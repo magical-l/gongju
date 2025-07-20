@@ -296,7 +296,7 @@
 	<script src="lib/bootstrap4-dev.js"></script>
 	<script src="lib/biz-util.js"></script>
 	<script src="lib/ue.js"></script>
-	<script src="https://cdn.bootcdn.net/ajax/libs/blueimp-md5/2.16.0/js/md5.js"></script>
+	<script src="lib/math.js"></script>
 	<script src="lib/base64.js"></script>
 	<script>
 		const funcMap = toMap({
@@ -306,13 +306,7 @@
 			'decode-uri-part': decodeURIComponent,
 			'encode-base64': encodeBase64,
 			'decode-base64': decodeBase64,
-			'md5': input => {
-				try {
-					return typeof md5 === 'function' ? md5(input) : 'MD5库未加载';
-				} catch (e) {
-					return 'MD5计算失败';
-				}
-			},
+			'md5': md5,
 			'dec': input => transRadix(input, 10, $('#input-radix').val()),
 			'bcd': input => transRadix(input, 2, $('#input-radix').val()),
 			'hex': input => transRadix(input, 16, $('#input-radix').val()),
@@ -413,20 +407,6 @@
 
 			// 初始化工具提示
 			$('[data-toggle="tooltip"]').tooltip();
-
-			// 添加键盘快捷键支持
-			$(document).on('keydown', (e) => {
-				// Ctrl+Enter 清空输入
-				if (e.ctrlKey && e.key === 'Enter') {
-					inputArea.val('').trigger('input');
-					e.preventDefault();
-				}
-				// Ctrl+L 聚焦到输入框
-				if (e.ctrlKey && e.key === 'l') {
-					inputArea.focus();
-					e.preventDefault();
-				}
-			});
 		});
 	</script>
 </body>
