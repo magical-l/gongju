@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans-CN">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+	<title>处理文本小工具</title>
+	<link href="lib/bootstrap/css/bootstrap.min.css?v=0204a" rel="stylesheet">
+	<link href="lib/toastr.min.css?v=0204a" rel="stylesheet"><!-- 提示框 -->
+	<link href="lib/iconfont/iconfont.css" rel="stylesheet">
+	<link href="lib/style.css?v=0229b" rel="stylesheet">
+	<!--[if lt IE 9]>
+	<script src="lib/html5-r29.min.js?v=0204a"></script>
+	<![endif]-->
+</head>
+
+<body class="container-fluid">
+	<!-- <div style="height:100px" class="d-flex align-items-center">测试</div> -->
+	<header class="navbar-light navbar-expand-md row">
+		<!-- logo -->
+		<a class="navbar-brand" href="#nogo"></a>
+		<div class="navbar-collapse" id="nav">
+			<nav class="navbar-nav nav-tabs">
+				<a class="active nav-link" href="text.html">处理文本小工具</a>
+			</nav>
+		</div>
+		<button class="navbar-toggler" data-toggle="collapse" data-target="#nav"></button>
+	</header>
+	<main class="container">
+
+		<div class="mb-1 row">
+			<textarea class="source input" style="height: 80px;" placeholder="在此输入要处理的文本" aria-label="输入要处理的文本"></textarea>
+		</div>
+		<div class="row">
+			<div class="w-100 card">
+				<header>一般文本处理</header>
+				<div class="card-body">
+					<div class="encode-uri area row">
+						<div class="col-3">URI编码</div>
+						<div class="col">
+							<div class="input-group">
+								<input class="text-truncate result output , form-control" readonly>
+								<div class="input-group-append">
+									<button class="copy result btn-primary" aria-label="复制结果">复制</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="decode-uri area row">
+						<div class="col-3">URI解码</div>
+						<div class="col">
+							<div class="input-group">
+								<input class="text-truncate result output , form-control" readonly>
+								<div class="input-group-append">
+									<button class="copy result btn-primary" aria-label="复制结果">复制</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="encode-uri-part area row">
+						<div class="col-3">URI参数编码</div>
+						<div class="col">
+							<div class="input-group">
+								<input class="text-truncate result output , form-control" readonly>
+								<div class="input-group-append">
+									<button class="copy result btn-primary" aria-label="复制结果">复制</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="decode-uri-part area row">
+						<div class="col-3">URI参数解码</div>
+						<div class="col">
+							<div class="input-group">
+								<input class="text-truncate result output , form-control" readonly>
+								<div class="input-group-append">
+									<button class="copy result btn-primary" aria-label="复制结果">复制</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="encode-base64 area row">
+						<div class="col-3">base64编码</div>
+						<div class="col">
+							<div class="input-group">
+								<input class="text-truncate result output , form-control" readonly>
+								<div class="input-group-append">
+									<button class="copy result btn-primary" aria-label="复制结果">复制</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="decode-base64 area row">
+						<div class="col-3">base64解码</div>
+						<div class="col">
+							<div class="input-group">
+								<input class="text-truncate result output , form-control" readonly>
+								<div class="input-group-append">
+									<button class="copy result btn-primary" aria-label="复制结果">复制</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="md5 area row">
+						<div class="col-3">md5</div>
+						<div class="col">
+							<div class="input-group">
+								<input class="text-truncate result output , form-control" readonly>
+								<div class="input-group-append">
+									<button class="copy result btn-primary" aria-label="复制结果">复制</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="w-100 card">
+				<header class="d-flex justify-content-between align-middle">
+					<span>一般数字处理
+						<span data-toggle="tooltip" data-placement="top" title="过大的数字会有精度问题">（注）</span>
+					</span>
+					<div class="btn-group">
+						<label class="form-inline">
+							<span>输入进制</span>
+							<select id="input-radix" class="form-control">
+								<option>10</option>
+								<option>2</option>
+								<option>16</option>
+								<option>8</option>
+								<option>62</option>
+							</select>
+						</label>
+						<!-- <button class="CN-digit options btn-light" data-target="#CN-digit-options" data-toggle="modal">
+							设置
+						</button> -->
+					</div>
+				</header>
+				<div class="card-body">
+					<div class="dec area row">
+						<div class="col-3">十进制</div>
+						<div class="col">
+							<div class="input-group">
+								<input class="text-truncate result output , form-control" readonly>
+								<div class="input-group-append">
+									<button class="copy result btn-primary" aria-label="复制结果">复制</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="bcd area row">
+						<div class="col-3">二进制</div>
+						<div class="col">
+							<div class="input-group">
+								<input class="text-truncate result output , form-control" readonly>
+								<div class="input-group-append">
+									<button class="copy result btn-primary" aria-label="复制结果">复制</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="hex area row">
+						<div class="col-3">十六进制</div>
+						<div class="col">
+							<div class="input-group">
+								<input class="text-truncate result output , form-control" readonly>
+								<div class="input-group-append">
+									<button class="copy result btn-primary" aria-label="复制结果">复制</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="oct area row">
+						<div class="col-3">八进制</div>
+						<div class="col">
+							<div class="input-group">
+								<input class="text-truncate result output , form-control" readonly>
+								<div class="input-group-append">
+									<button class="copy result btn-primary" aria-label="复制结果">复制</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="CN-digit area row">
+						<div class="col-3">汉语数码</div>
+						<div class="col">
+							<div class="input-group">
+								<input class="text-truncate result output , form-control" readonly placeholder="例：一〇八">
+								<div class="input-group-append">
+									<button class="copy result btn-primary" aria-label="复制结果">复制</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="CN-num area row">
+						<div class="col-3">汉语数字</div>
+						<div class="col">
+							<div class="input-group">
+								<input class="text-truncate result output , form-control" readonly placeholder="例：一百〇八">
+								<div class="input-group-append">
+									<button class="copy result btn-primary" aria-label="复制结果">复制</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="CN-digit-upper area row">
+						<div class="col-3">大写汉语数码</div>
+						<div class="col">
+							<div class="input-group">
+								<input class="text-truncate result output , form-control" readonly placeholder="例：壹零捌">
+								<div class="input-group-append">
+									<button class="copy result btn-primary" aria-label="复制结果">复制</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="CN-num-upper area row">
+						<div class="col-3">大写汉语数字</div>
+						<div class="col">
+							<div class="input-group">
+								<input class="text-truncate result output , form-control" readonly placeholder="例：壹佰零捌">
+								<div class="input-group-append">
+									<button class="copy result btn-primary" aria-label="复制结果">复制</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</main>
+	<div id="CN-digit-options" class="modal" role="dialog">
+		<div class="modal-dialog modal-dialog-centered" role="document">
+			<div class="modal-content">
+				<header class="modal-header">汉语数码设置</header>
+				<div class="modal-body">
+					<div class="form-group">
+						0小写：
+						<div class="btn-group" data-toggle="buttons">
+							<label><input name="mode-0" type="radio" checked>〇</label>
+							<label><input name="mode-0" type="radio">零</label>
+							<label><input name="mode-0" type="radio">洞</label>
+						</div>
+					</div>
+					<div class="form-group">
+						1小写：
+						<div class="btn-group" data-toggle="buttons">
+							<label><input name="mode-1" type="radio" checked>一</label>
+							<label><input name="mode-1" type="radio">幺</label>
+						</div>
+					</div>
+					<div class="form-group">
+						2小写：
+						<div class="btn-group" data-toggle="buttons">
+							<label><input name="mode-2" type="radio" checked>二</label>
+							<label><input name="mode-2" type="radio">两</label>
+						</div>
+					</div>
+					<div class="form-group">
+						7小写：
+						<div class="btn-group" data-toggle="buttons">
+							<label><input name="mode-7" type="radio" checked>七</label>
+							<label><input name="mode-7" type="radio">拐</label>
+						</div>
+					</div>
+					<div class="form-group">
+						10开头的小写：
+						<div class="btn-group" data-toggle="buttons">
+							<label><input name="mode-10" type="radio" checked>一十</label>
+							<label><input name="mode-10" type="radio">十</label>
+						</div>
+					</div>
+					<div class="form-group">
+						20小写：
+						<div class="btn-group" data-toggle="buttons">
+							<label><input name="mode-20" type="radio" checked>二十</label>
+							<label><input name="mode-20" type="radio">廿</label>
+						</div>
+					</div>
+					<div class="form-group">
+						30小写：
+						<div class="btn-group" data-toggle="buttons">
+							<label><input name="mode-30" type="radio" checked>三十</label>
+							<label><input name="mode-30" type="radio">卅</label>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script src="lib/jquery-3.4.1.min.js"></script>
+	<script src="lib/bootstrap/js/bootstrap.bundle.js"></script>
+	<script src="lib/toastr.min.js"></script>
+	<script src="lib/util.js"></script>
+	<script src="lib/bootstrap4-dev.js"></script>
+	<script src="lib/biz-util.js"></script>
+	<script src="lib/ue.js"></script>
+	<script src="https://cdn.bootcdn.net/ajax/libs/blueimp-md5/2.16.0/js/md5.js"></script>
+	<script src="lib/base64.js"></script>
+	<script>
+		const funcMap = toMap({
+			'encode-uri': encodeURI,
+			'decode-uri': decodeURI,
+			'encode-uri-part': encodeURIComponent,
+			'decode-uri-part': decodeURIComponent,
+			'encode-base64': encodeBase64,
+			'decode-base64': decodeBase64,
+			'md5': input => {
+				try {
+					return typeof md5 === 'function' ? md5(input) : 'MD5库未加载';
+				} catch (e) {
+					return 'MD5计算失败';
+				}
+			},
+			'dec': input => transRadix(input, 10, $('#input-radix').val()),
+			'bcd': input => transRadix(input, 2, $('#input-radix').val()),
+			'hex': input => transRadix(input, 16, $('#input-radix').val()),
+			'oct': input => transRadix(input, 8, $('#input-radix').val()),
+			'CN-digit': ChineseNum.digitsFromArabic,
+			'CN-num': ChineseNum.fromArabic,
+			'CN-digit-upper': input => ChineseNum.toUpperCase(ChineseNum.digitsFromArabic(input)),
+			'CN-num-upper': input => ChineseNum.toUpperCase(ChineseNum.fromArabic(input))
+		});
+
+		// 复制功能
+		async function copyToClipboard(text) {
+			try {
+				// 优先使用现代Clipboard API
+				if (navigator.clipboard && window.isSecureContext) {
+					await navigator.clipboard.writeText(text);
+					return true;
+				}
+				// 降级到传统方法
+				const textArea = document.createElement('textarea');
+				textArea.value = text;
+				textArea.style.position = 'fixed';
+				textArea.style.left = '-999999px';
+				textArea.style.top = '-999999px';
+				document.body.appendChild(textArea);
+				textArea.focus();
+				textArea.select();
+				const result = document.execCommand('copy');
+				document.body.removeChild(textArea);
+				return result;
+			} catch (err) {
+				console.error('复制失败:', err);
+				return false;
+			}
+		}
+
+		$(() => {
+			const inputArea = $('.source.input');
+
+			// 防抖函数
+			function debounce(func, wait) {
+				let timeout;
+				return function executedFunction(...args) {
+					const later = () => {
+						clearTimeout(timeout);
+						func(...args);
+					};
+					clearTimeout(timeout);
+					timeout = setTimeout(later, wait);
+				};
+			}
+
+			// 处理输入变化的函数
+			function processInput() {
+				const input = inputArea.val();
+				funcMap.forEach((func, funcName) => {
+					const outputArea = $('.' + funcName + '.area');
+					let v;
+					try {
+						v = func(input);
+					} catch (e) {
+						console.warn(`处理 ${funcName} 时出错:`, e);
+						v = '';
+					}
+					outputArea.find('.result.output').content(v).attr('title', v);
+				});
+			}
+
+			// 使用防抖处理输入变化，提升性能
+			const debouncedProcessInput = debounce(processInput, 200);
+			inputArea.on('input propertychange', debouncedProcessInput);
+			$('#input-radix').on('change', () => {
+				if (inputArea.val()) {
+					processInput(); // 直接调用，不使用防抖
+				}
+			});
+			funcMap.forEach((func, funcName) => {
+				const outputArea = $('.' + funcName + '.area');
+				const contentContainer = outputArea.find('.result.output');
+				outputArea.find('.copy.result.btn').click(async () => {
+					let isDisabled = false;
+					if (contentContainer.is(':disabled')) {
+						contentContainer.prop('disabled', false);
+						isDisabled = true;
+					}
+					contentContainer.select();
+					const success = await copyToClipboard(contentContainer.val());
+					if (success) {
+						successNotice('已复制。');
+					} else {
+						warnNotice('未复制成功。请手动复制。')
+					}
+					if (isDisabled) {
+						contentContainer.prop('disabled', true);
+					}
+				});
+			});
+
+			// 初始化工具提示
+			$('[data-toggle="tooltip"]').tooltip();
+
+			// 添加键盘快捷键支持
+			$(document).on('keydown', (e) => {
+				// Ctrl+Enter 清空输入
+				if (e.ctrlKey && e.key === 'Enter') {
+					inputArea.val('').trigger('input');
+					e.preventDefault();
+				}
+				// Ctrl+L 聚焦到输入框
+				if (e.ctrlKey && e.key === 'l') {
+					inputArea.focus();
+					e.preventDefault();
+				}
+			});
+		});
+	</script>
+</body>
+
+</html>
