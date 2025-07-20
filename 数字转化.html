@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<title>数字转化</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="在线数字处理工具，支持进制转换、汉语数字转换等功能">
+	<meta name="keywords" content="数字处理,进制转换,汉语数字,二进制,十六进制">
+	<meta name="author" content="数字转化">
+
+	<!-- 预加载关键资源 -->
+	<link rel="preload" href="lib/jquery-3.4.1.min.js" as="script">
+	<link rel="preload" href="lib/math.js" as="script">
+
+	<link href="https://cdn.jsdelivr.net/npm/primevue@3/resources/themes/lara-light-blue/theme.css" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/primeicons/primeicons.css" rel="stylesheet">
+	<link href="lib/toastr.min.css?v=0204a" rel="stylesheet"><!-- 提示框 -->
+	<link href="lib/iconfont/iconfont.css" rel="stylesheet">
+	<link href="lib/style.css?v=0229b" rel="stylesheet">
+	<link href="lib/layout.css" rel="stylesheet">
+</head>
+<body>
+	<main>
+		<nav>
+			<a href="文本转化.html">文本转化</a>
+			<a href="数字转化.html" class="active">数字转化</a>
+		</nav>
+
+		<section class="input area">
+			<p-textarea placeholder="在此输入要处理的数字" v-model="inputText" @input="processInput" rows="5" autoResize></p-textarea>
+		</section>
+
+				<p-panel header="数字处理（注：过大的数字会有精度问题）">
+			<template #header>
+				<div class="control-header">
+					<span>数字处理（注：过大的数字会有精度问题）</span>
+					<div class="controls">
+						输入为：
+						<p-selectbutton v-model="inputRadix" :options="radixOptions" @change="processInput"></p-selectbutton>
+						<p-button @click="toggleSettings" severity="secondary">
+							<i class="pi pi-cog"></i>
+							设置
+						</p-button>
+					</div>
+				</div>
+			</template>
+
+			<div v-show="showSettings" class="settings-grid">
+				<div class="Chinese-num mode option">
+					<label>0小写：</label>
+					<p-selectbutton v-model="settings.mode0" :options="mode0Options"></p-selectbutton>
+				</div>
+				<div class="Chinese-num mode option">
+					<label>1小写：</label>
+					<p-selectbutton v-model="settings.mode1" :options="mode1Options"></p-selectbutton>
+				</div>
+				<div class="Chinese-num mode option">
+					<label>2小写：</label>
+					<p-selectbutton v-model="settings.mode2" :options="mode2Options"></p-selectbutton>
+				</div>
+				<div class="Chinese-num mode option">
+					<label>7小写：</label>
+					<p-selectbutton v-model="settings.mode7" :options="mode7Options"></p-selectbutton>
+				</div>
+				<div class="Chinese-num mode option">
+					<label>10开头：</label>
+					<p-selectbutton v-model="settings.mode10" :options="mode10Options"></p-selectbutton>
+				</div>
+				<div class="Chinese-num mode option">
+					<label>20小写：</label>
+					<p-selectbutton v-model="settings.mode20" :options="mode20Options"></p-selectbutton>
+				</div>
+				<div class="Chinese-num mode option">
+					<label>30小写：</label>
+					<p-selectbutton v-model="settings.mode30" :options="mode30Options"></p-selectbutton>
+				</div>
+			</div>
+		</p-panel>
+
+		<section class="results area">
+			<div v-for="result in results" :key="result.type" class="result-item">
+				<div class="label">{{ result.label }}</div>
+				<div class="content">
+					<div class="result-text" :class="{ 'empty': !result.value }">
+						{{ result.value || result.placeholder }}
+					</div>
+					<p-button @click="copyToClipboard(result.value)" icon="pi pi-copy" severity="secondary" text :disabled="!result.value"></p-button>
+				</div>
+			</div>
+		</section>
+	</main>
+	<div>
+		<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+        <script src="https://unpkg.com/primevue/umd/primevue.min.js"></script>
+        <script src="https://unpkg.com/@primeuix/themes/umd/aura.js"></script>
+		<script src="lib/jquery-3.4.1.min.js"></script>
+		<script src="lib/toastr.min.js"></script>
+		<script src="lib/util.js"></script>
+		<script src="lib/biz-util.js"></script>
+		<script src="lib/ue.js"></script>
+		<script src="lib/math.js"></script>
+		<script src="lib/base64.js"></script>
+	</div>
+	<script>
+		const { createApp } = Vue;
+
+		const app = createApp({
+			components: {
+				'p-selectbutton': PrimeVue.SelectButton,
+				'p-button': PrimeVue.Button,
+				'p-textarea': PrimeVue.Textarea,
+				'p-panel': PrimeVue.Panel
+			},
+			data() {
+				return {
+					inputText: '',
+					inputRadix: '十进制',
+					showSettings: false,
+					settings: {
+						mode0: '〇',
+						mode1: '一',
+						mode2: '二',
+						mode7: '七',
+						mode10: '一十',
+						mode20: '二十',
+						mode30: '三十'
+					},
+					radixOptions: ['十进制', '二进制', '十六进制', '八进制', '62进制'],
+					mode0Options: ['〇', '零', '洞'],
+					mode1Options: ['一', '幺'],
+					mode2Options: ['二', '两'],
+					mode7Options: ['七', '拐'],
+					mode10Options: ['一十', '十'],
+					mode20Options: ['二十', '廿'],
+					mode30Options: ['三十', '卅'],
+					results: [
+						{ type: 'dec', label: '十进制', value: '', placeholder: '' },
+						{ type: 'bcd', label: '二进制', value: '', placeholder: '' },
+						{ type: 'hex', label: '十六进制', value: '', placeholder: '' },
+						{ type: 'oct', label: '八进制', value: '', placeholder: '' },
+						{ type: 'CN-digit', label: '汉语数码', value: '', placeholder: '例：一〇八' },
+						{ type: 'CN-num', label: '汉语数字', value: '', placeholder: '例：一百〇八' },
+						{ type: 'CN-digit-upper', label: '大写汉语数码', value: '', placeholder: '例：壹零捌' },
+						{ type: 'CN-num-upper', label: '大写汉语数字', value: '', placeholder: '例：壹佰零捌' }
+					]
+				}
+			},
+			methods: {
+				toggleSettings() {
+					this.showSettings = !this.showSettings;
+				},
+				async copyToClipboard(text) {
+					if (!text) return;
+
+					try {
+						await navigator.clipboard.writeText(text);
+						toastr.success('已复制到剪贴板');
+					} catch (err) {
+						// 降级方案
+						const textArea = document.createElement('textarea');
+						textArea.value = text;
+						document.body.appendChild(textArea);
+						textArea.select();
+						document.execCommand('copy');
+						document.body.removeChild(textArea);
+						toastr.success('已复制到剪贴板');
+					}
+				},
+				processInput() {
+					if (!this.inputText) {
+						this.results.forEach(result => result.value = '');
+						return;
+					}
+
+					// 将进制字符串转换为数字
+					const radixMap = {
+						'十进制': 10,
+						'二进制': 2,
+						'十六进制': 16,
+						'八进制': 8,
+						'62进制': 62
+					};
+					const radix = radixMap[this.inputRadix];
+
+					// 数字处理
+					this.results[0].value = convertToDecimal(this.inputText, radix);
+					this.results[1].value = convertToBinary(this.inputText, radix);
+					this.results[2].value = convertToHex(this.inputText, radix);
+					this.results[3].value = convertToOctal(this.inputText, radix);
+
+					// 汉语数字转换（使用设置选项）
+					let chineseDigit = convertToChineseDigit(this.inputText, radix);
+					let chineseNumber = convertToChineseNumber(this.inputText, radix);
+					let chineseDigitUpper = convertToChineseDigitUpper(this.inputText, radix);
+					let chineseNumberUpper = convertToChineseNumberUpper(this.inputText, radix);
+
+					// 应用设置选项
+					if (chineseDigit) {
+						chineseDigit = chineseDigit
+							.replace(/〇/g, this.settings.mode0)
+							.replace(/一/g, this.settings.mode1)
+							.replace(/二/g, this.settings.mode2)
+							.replace(/七/g, this.settings.mode7);
+					}
+
+					if (chineseNumber) {
+						chineseNumber = chineseNumber
+							.replace(/一十/g, this.settings.mode10)
+							.replace(/二十/g, this.settings.mode20)
+							.replace(/三十/g, this.settings.mode30);
+					}
+
+					this.results[4].value = chineseDigit;
+					this.results[5].value = chineseNumber;
+					this.results[6].value = chineseDigitUpper;
+					this.results[7].value = chineseNumberUpper;
+				}
+			},
+			mounted() {
+				// 初始化时处理一次输入
+				this.processInput();
+			}
+		});
+
+		app.use(PrimeVue.Config, {
+                theme: {
+                    preset: PrimeUIX.Themes.Aura
+                }
+            });
+		app.mount('main');
+	</script>
+</body>
+</html>

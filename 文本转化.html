@@ -2,11 +2,11 @@
 <html lang="zh-CN">
 <head>
 	<meta charset="UTF-8">
-	<title>处理文本小工具</title>
+	<title>文本转化</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="description" content="在线文本处理工具，支持URI编码解码、Base64转换、MD5加密、进制转换等功能">
 	<meta name="keywords" content="文本处理,URI编码,Base64,MD5,进制转换">
-	<meta name="author" content="文本处理工具">
+	<meta name="author" content="文本转化">
 
 	<!-- 预加载关键资源 -->
 	<link rel="preload" href="lib/style.css?v=0229b" as="style">
@@ -22,239 +22,91 @@
 <body>
 	<header class="header">
 		<nav class="nav">
-			<a class="nav-link active" href="text.html">处理文本小工具</a>
+			<a class="nav-link active" href="文本转化.html">文本转化</a>
+			<a class="nav-link" href="数字转化.html">数字转化</a>
 		</nav>
 	</header>
 	<main class="container">
-
+		<!-- 上方输入区域 -->
 		<div class="input-section">
-			<textarea class="source input" style="height: 80px;" placeholder="在此输入要处理的文本" aria-label="输入要处理的文本"></textarea>
-		</div>
-		<div class="content-grid">
 			<div class="card">
-				<div class="card-header">
-					<h5>一般文本处理</h5>
-				</div>
 				<div class="card-body">
-						<div class="process-row encode-uri area">
-							<div class="label">URI编码</div>
-							<div class="input-group">
-								<input class="result output" readonly>
-								<button class="copy-btn copy result" aria-label="复制结果">
-									<i class="pi pi-copy"></i>
-								</button>
-							</div>
-						</div>
-						<div class="process-row decode-uri area">
-							<div class="label">URI解码</div>
-							<div class="input-group">
-								<input class="result output" readonly>
-								<button class="copy-btn copy result" aria-label="复制结果">
-									<i class="pi pi-copy"></i>
-								</button>
-							</div>
-						</div>
-						<div class="process-row encode-uri-part area">
-							<div class="label">URI参数编码</div>
-							<div class="input-group">
-								<input class="result output" readonly>
-								<button class="copy-btn copy result" aria-label="复制结果">
-									<i class="pi pi-copy"></i>
-								</button>
-							</div>
-						</div>
-						<div class="process-row decode-uri-part area">
-							<div class="label">URI参数解码</div>
-							<div class="input-group">
-								<input class="result output" readonly>
-								<button class="copy-btn copy result" aria-label="复制结果">
-									<i class="pi pi-copy"></i>
-								</button>
-							</div>
-						</div>
-						<div class="process-row encode-base64 area">
-							<div class="label">base64编码</div>
-							<div class="input-group">
-								<input class="result output" readonly>
-								<button class="copy-btn copy result" aria-label="复制结果">
-									<i class="pi pi-copy"></i>
-								</button>
-							</div>
-						</div>
-						<div class="process-row decode-base64 area">
-							<div class="label">base64解码</div>
-							<div class="input-group">
-								<input class="result output" readonly>
-								<button class="copy-btn copy result" aria-label="复制结果">
-									<i class="pi pi-copy"></i>
-								</button>
-							</div>
-						</div>
-						<div class="process-row md5 area">
-							<div class="label">md5</div>
-							<div class="input-group">
-								<input class="result output" readonly>
-								<button class="copy-btn copy result" aria-label="复制结果">
-									<i class="pi pi-copy"></i>
-								</button>
-							</div>
-						</div>
+					<textarea class="source input" placeholder="在此输入要处理的文本" aria-label="输入要处理的文本"></textarea>
 				</div>
 			</div>
+		</div>
+
+		<!-- 文本处理区域 -->
+		<div class="content-area">
 			<div class="card">
-				<div class="card-header">
-					<div class="header-content">
-						<span>一般数字处理
-							<span class="tooltip" title="过大的数字会有精度问题">（注）</span>
-						</span>
-						<div class="controls">
-							<label>
-								<span>输入进制</span>
-								<select id="input-radix">
-									<option>10</option>
-									<option>2</option>
-									<option>16</option>
-									<option>8</option>
-									<option>62</option>
-								</select>
-							</label>
+				<div class="card-body">
+					<div class="process-row encode-uri area">
+						<div class="label">URI编码</div>
+						<div class="input-group">
+							<input class="result output" readonly>
+							<button class="copy-btn copy result" aria-label="复制结果">
+								<i class="pi pi-copy"></i>
+							</button>
 						</div>
 					</div>
-				</div>
-				<div class="card-body">
-						<div class="process-row dec area">
-							<div class="label">十进制</div>
-							<div class="input-group">
-								<input class="result output" readonly>
-								<button class="copy-btn copy result" aria-label="复制结果">
-									<i class="pi pi-copy"></i>
-								</button>
-							</div>
+					<div class="process-row decode-uri area">
+						<div class="label">URI解码</div>
+						<div class="input-group">
+							<input class="result output" readonly>
+							<button class="copy-btn copy result" aria-label="复制结果">
+								<i class="pi pi-copy"></i>
+							</button>
 						</div>
-						<div class="process-row bcd area">
-							<div class="label">二进制</div>
-							<div class="input-group">
-								<input class="result output" readonly>
-								<button class="copy-btn copy result" aria-label="复制结果">
-									<i class="pi pi-copy"></i>
-								</button>
-							</div>
+					</div>
+					<div class="process-row encode-uri-part area">
+						<div class="label">URI参数编码</div>
+						<div class="input-group">
+							<input class="result output" readonly>
+							<button class="copy-btn copy result" aria-label="复制结果">
+								<i class="pi pi-copy"></i>
+							</button>
 						</div>
-						<div class="process-row hex area">
-							<div class="label">十六进制</div>
-							<div class="input-group">
-								<input class="result output" readonly>
-								<button class="copy-btn copy result" aria-label="复制结果">
-									<i class="pi pi-copy"></i>
-								</button>
-							</div>
+					</div>
+					<div class="process-row decode-uri-part area">
+						<div class="label">URI参数解码</div>
+						<div class="input-group">
+							<input class="result output" readonly>
+							<button class="copy-btn copy result" aria-label="复制结果">
+								<i class="pi pi-copy"></i>
+							</button>
 						</div>
-						<div class="process-row oct area">
-							<div class="label">八进制</div>
-							<div class="input-group">
-								<input class="result output" readonly>
-								<button class="copy-btn copy result" aria-label="复制结果">
-									<i class="pi pi-copy"></i>
-								</button>
-							</div>
+					</div>
+					<div class="process-row encode-base64 area">
+						<div class="label">base64编码</div>
+						<div class="input-group">
+							<input class="result output" readonly>
+							<button class="copy-btn copy result" aria-label="复制结果">
+								<i class="pi pi-copy"></i>
+							</button>
 						</div>
-						<div class="process-row CN-digit area">
-							<div class="label">汉语数码</div>
-							<div class="input-group">
-								<input class="result output" readonly placeholder="例：一〇八">
-								<button class="copy-btn copy result" aria-label="复制结果">
-									<i class="pi pi-copy"></i>
-								</button>
-							</div>
+					</div>
+					<div class="process-row decode-base64 area">
+						<div class="label">base64解码</div>
+						<div class="input-group">
+							<input class="result output" readonly>
+							<button class="copy-btn copy result" aria-label="复制结果">
+								<i class="pi pi-copy"></i>
+							</button>
 						</div>
-						<div class="process-row CN-num area">
-							<div class="label">汉语数字</div>
-							<div class="input-group">
-								<input class="result output" readonly placeholder="例：一百〇八">
-								<button class="copy-btn copy result" aria-label="复制结果">
-									<i class="pi pi-copy"></i>
-								</button>
-							</div>
+					</div>
+					<div class="process-row md5 area">
+						<div class="label">md5</div>
+						<div class="input-group">
+							<input class="result output" readonly>
+							<button class="copy-btn copy result" aria-label="复制结果">
+								<i class="pi pi-copy"></i>
+							</button>
 						</div>
-						<div class="process-row CN-digit-upper area">
-							<div class="label">大写汉语数码</div>
-							<div class="input-group">
-								<input class="result output" readonly placeholder="例：壹零捌">
-								<button class="copy-btn copy result" aria-label="复制结果">
-									<i class="pi pi-copy"></i>
-								</button>
-							</div>
-						</div>
-						<div class="process-row CN-num-upper area">
-							<div class="label">大写汉语数字</div>
-							<div class="input-group">
-								<input class="result output" readonly placeholder="例：壹佰零捌">
-								<button class="copy-btn copy result" aria-label="复制结果">
-									<i class="pi pi-copy"></i>
-								</button>
-							</div>
-						</div>
+					</div>
 				</div>
 			</div>
 		</div>
 	</main>
-	<div id="CN-digit-options" class="p-dialog p-component" role="dialog">
-		<div class="p-dialog-header">
-			<h5>汉语数码设置</h5>
-		</div>
-		<div class="p-dialog-content">
-			<div class="p-field">
-				<label>0小写：</label>
-				<div class="p-button-group">
-					<label class="p-button p-button-outlined"><input name="mode-0" type="radio" checked>〇</label>
-					<label class="p-button p-button-outlined"><input name="mode-0" type="radio">零</label>
-					<label class="p-button p-button-outlined"><input name="mode-0" type="radio">洞</label>
-				</div>
-			</div>
-			<div class="p-field">
-				<label>1小写：</label>
-				<div class="p-button-group">
-					<label class="p-button p-button-outlined"><input name="mode-1" type="radio" checked>一</label>
-					<label class="p-button p-button-outlined"><input name="mode-1" type="radio">幺</label>
-				</div>
-			</div>
-			<div class="p-field">
-				<label>2小写：</label>
-				<div class="p-button-group">
-					<label class="p-button p-button-outlined"><input name="mode-2" type="radio" checked>二</label>
-					<label class="p-button p-button-outlined"><input name="mode-2" type="radio">两</label>
-				</div>
-			</div>
-			<div class="p-field">
-				<label>7小写：</label>
-				<div class="p-button-group">
-					<label class="p-button p-button-outlined"><input name="mode-7" type="radio" checked>七</label>
-					<label class="p-button p-button-outlined"><input name="mode-7" type="radio">拐</label>
-				</div>
-			</div>
-			<div class="p-field">
-				<label>10开头的小写：</label>
-				<div class="p-button-group">
-					<label class="p-button p-button-outlined"><input name="mode-10" type="radio" checked>一十</label>
-					<label class="p-button p-button-outlined"><input name="mode-10" type="radio">十</label>
-				</div>
-			</div>
-			<div class="p-field">
-				<label>20小写：</label>
-				<div class="p-button-group">
-					<label class="p-button p-button-outlined"><input name="mode-20" type="radio" checked>二十</label>
-					<label class="p-button p-button-outlined"><input name="mode-20" type="radio">廿</label>
-				</div>
-			</div>
-			<div class="p-field">
-				<label>30小写：</label>
-				<div class="p-button-group">
-					<label class="p-button p-button-outlined"><input name="mode-30" type="radio" checked>三十</label>
-					<label class="p-button p-button-outlined"><input name="mode-30" type="radio">卅</label>
-				</div>
-			</div>
-		</div>
-	</div>
 
 	<script src="lib/jquery-3.4.1.min.js"></script>
 	<script src="lib/toastr.min.js"></script>
