@@ -79,13 +79,11 @@
 
 		<section class="results area">
 			<div v-for="result in results" :key="result.type" class="result-item">
-				<div class="label">{{ result.label }}</div>
-				<div class="content">
-					<div class="result-text" :class="{ 'empty': !result.value }">
-						{{ result.value || result.placeholder }}
-					</div>
-					<p-button @click="copyToClipboard(result.value)" icon="pi pi-copy" severity="secondary" text :disabled="!result.value"></p-button>
+				<div class="label">{{ result.label }}：</div>
+				<div class="result-text" :class="{ 'empty': !result.value }">
+					{{ result.value || result.placeholder }}
 				</div>
+				<p-button @click="copyToClipboard(result.value)" icon="pi pi-copy" severity="secondary" :disabled="!result.value"></p-button>
 			</div>
 		</section>
 	</main>
@@ -134,10 +132,10 @@
 					mode20Options: ['二十', '廿'],
 					mode30Options: ['三十', '卅'],
 					results: [
-						{ type: 'dec', label: '十进制', value: '', placeholder: '' },
-						{ type: 'bcd', label: '二进制', value: '', placeholder: '' },
-						{ type: 'hex', label: '十六进制', value: '', placeholder: '' },
-						{ type: 'oct', label: '八进制', value: '', placeholder: '' },
+						{ type: 'dec', label: '十进制', value: '', placeholder: '请输入数字' },
+						{ type: 'bcd', label: '二进制', value: '', placeholder: '请输入数字' },
+						{ type: 'hex', label: '十六进制', value: '', placeholder: '请输入数字' },
+						{ type: 'oct', label: '八进制', value: '', placeholder: '请输入数字' },
 						{ type: 'CN-digit', label: '汉语数码', value: '', placeholder: '例：一〇八' },
 						{ type: 'CN-num', label: '汉语数字', value: '', placeholder: '例：一百〇八' },
 						{ type: 'CN-digit-upper', label: '大写汉语数码', value: '', placeholder: '例：壹零捌' },
