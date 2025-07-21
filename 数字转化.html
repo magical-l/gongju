@@ -24,31 +24,28 @@
 		main {
 			display: flex;
 			flex-wrap: wrap;
+			align-items: start; /* Align columns to the top, preventing stretch */
 			gap: 1rem;
 		}
 
-		header, .input.area {
+		header,
+		.input.area {
 			flex-basis: 100%;
 		}
 
-		header {
+		main > header {
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
 		}
 
-		header h1 {
-			margin: 0;
-			font-size: 1.5rem;
-		}
-
-		header nav a {
+		main nav a {
 			margin-left: 1rem;
 			text-decoration: none;
 			color: #333;
 		}
 
-		header nav a.active {
+		main nav a.active {
 			font-weight: bold;
 			border-bottom: 2px solid #007bff;
 		}
@@ -61,35 +58,47 @@
 
 		.setting.area {
 			flex: 1;
-			min-width: 240px;
-			border: 1px solid #ccc;
-			padding: 1rem;
-			border-radius: 6px;
+			min-width: 280px;
 		}
 
-		.result.area {
-			flex: 3;
-			display: grid;
-			grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-			gap: 1rem;
-		}
-
-		.settings-area legend {
-			font-weight: bold;
-			font-size: 1.2rem;
-			padding: 0 0.5rem;
-		}
-
-		.setting-item {
+		.one.setting {
 			display: flex;
-			flex-direction: column;
-			gap: 0.5rem;
+			flex-direction: row;
+			align-items: center;
+			gap: 1rem;
 			margin-bottom: 1rem;
 		}
 
+		.result.area {
+			flex: 4;
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			column-gap: 1rem;
+		}
+
+		.result.area > header {
+			grid-column: 1 / -1;
+			color: #666;
+			font-style: italic;
+		}
+
+		.result.area .one.result {
+			height: 75px;
+		}
+
+		@media (max-width: 1024px) {
+			.result.area {
+				grid-template-columns: repeat(2, 1fr);
+			}
+		}
+
 		@media (max-width: 768px) {
-			.settings-area, .results-area {
+			.setting.area, .result.area {
 				flex-basis: 100%;
+			}
+
+			.result.area {
+				grid-template-columns: 1fr;
 			}
 		}
 	</style>
@@ -97,10 +106,6 @@
 <body>
 <main>
 	<header>
-		<h1>
-			数字转化
-			<i class="pi pi-info-circle" title="过大、过小、小数数位过多的数字可能会有精度问题"></i>
-		</h1>
 		<nav>
 			<a href="文本转化.html">文本转化</a>
 			<a href="数字转化.html" class="active">数字转化</a>
@@ -108,51 +113,55 @@
 	</header>
 
 	<section class="input area">
-		<p-textarea placeholder="在此输入要处理的数字" v-model="inputText" @input="processInput" rows="5"
+		<p-textarea placeholder="在此输入要处理的文本" v-model="inputText" @input="processInput" rows="5"
 								autoResize></p-textarea>
 	</section>
 
-	<fieldset class="setting area">
-		<legend>设置</legend>
-		<div class="setting-item">
+	<p-fieldset legend="设置" class="setting area">
+		<div class="one setting">
 			<label>0小写：</label>
 			<p-selectbutton v-model="settings.mode0" :options="mode0Options"></p-selectbutton>
 		</div>
-		<div class="setting-item">
+		<div class="one setting">
 			<label>1小写：</label>
 			<p-selectbutton v-model="settings.mode1" :options="mode1Options"></p-selectbutton>
 		</div>
-		<div class="setting-item">
+		<div class="one setting">
 			<label>2小写：</label>
 			<p-selectbutton v-model="settings.mode2" :options="mode2Options"></p-selectbutton>
 		</div>
-		<div class="setting-item">
+		<div class="one setting">
 			<label>7小写：</label>
 			<p-selectbutton v-model="settings.mode7" :options="mode7Options"></p-selectbutton>
 		</div>
-		<div class="setting-item">
+		<div class="one setting">
 			<label>10开头：</label>
 			<p-selectbutton v-model="settings.mode10" :options="mode10Options"></p-selectbutton>
 		</div>
-		<div class="setting-item">
-			<label>20小写：</label>
+		<div class="one setting">
+			<label>20模式：</label>
 			<p-selectbutton v-model="settings.mode20" :options="mode20Options"></p-selectbutton>
 		</div>
-		<div class="setting-item">
-			<label>30小写：</label>
+		<div class="one setting">
+			<label>30模式：</label>
 			<p-selectbutton v-model="settings.mode30" :options="mode30Options"></p-selectbutton>
 		</div>
-	</fieldset>
+	</p-fieldset>
 
 	<section class="result area">
-		<div v-for="result in results" :key="result.type" class="result-item">
-			<div class="label">{{ result.label }}：</div>
-			<div class="result-text" :class="{ 'empty': !result.value }">
-				{{ result.value || result.placeholder }}
-			</div>
-			<p-button @click="copyToClipboard(result.value)" icon="pi pi-copy" severity="secondary"
-								:disabled="!result.value"></p-button>
-		</div>
+		<header>
+			点击数值即可复制
+			|
+			数位过多的数字可能会有精度问题
+		</header>
+		<p-fieldset v-for="result in results" :key="result.type" class="one result" @click="copyToClipboard(result.value)">
+			<template #legend>
+				{{ result.label }}
+				<i v-if="result.value" class="tip pi pi-copy">点击复制</i>
+			</template>
+			<message v-if="result.value" variant="simple">{{result.value}}</message>
+			<message v-else variant="simple" severity="secondary">（等待输入）</message>
+		</p-fieldset>
 	</section>
 </main>
 <div>
@@ -174,7 +183,9 @@
 		components: {
 			'p-selectbutton': PrimeVue.SelectButton,
 			'p-button': PrimeVue.Button,
-			'p-textarea': PrimeVue.Textarea
+			'p-textarea': PrimeVue.Textarea,
+			'p-fieldset': PrimeVue.Fieldset,
+			'message': PrimeVue.Message
 		},
 		data() {
 			return {
