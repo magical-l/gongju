@@ -255,35 +255,26 @@
 					return;
 				}
 
-				// Helper function to find and convert all number segments in the input string
-				const transformNumbers = (conversionFunc) => {
-					// Use regex to find all sequences of digits.
-					// The callback function is executed for each match.
-					return this.inputText.replace(/\d+/g, (numberString) => {
+				const transformNumbers = conversionFunc => {
+					return this.inputText.replace(/\d+/g, numberString => {
 						try {
-							// Assume all found numbers are base-10 for conversion.
 							return conversionFunc(numberString, 10);
 						} catch (e) {
-							// If conversion fails (e.g., number too large for safe integer),
-							// return the original number string.
 							return numberString;
 						}
 					});
 				};
 
-				// For the 'Decimal' output, we just show the original text.
 				this.results[0].value = this.inputText;
 				this.results[1].value = transformNumbers(convertToBinary);
 				this.results[2].value = transformNumbers(convertToHex);
 				this.results[3].value = transformNumbers(convertToOctal);
 
-				// --- Chinese Number Conversions ---
-				let chineseDigit = transformNumbers(convertToChineseDigit);
-				let chineseNumber = transformNumbers(convertToChineseNumber);
+				let chineseDigit = transformNumbers(ChineseNum.digitsFromArabic);
+				let chineseNumber = transformNumbers(ChineseNum.fromArabic);
 				let chineseDigitUpper = transformNumbers(convertToChineseDigitUpper);
 				let chineseNumberUpper = transformNumbers(convertToChineseNumberUpper);
 
-				// Apply user settings to the generated Chinese strings
 				if (chineseDigit) {
 					chineseDigit = chineseDigit
 						.replace(/〇/g, this.settings.mode0)
