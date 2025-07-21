@@ -8,7 +8,6 @@
 *.iml
 *.ipr
 *.iws
-*.iws
 out/
 .idea_modules/
 
@@ -26,7 +25,6 @@ out/
 *~
 
 # Emacs
-*~
 \#*\#
 /.emacs.desktop
 /.emacs.desktop.lock
@@ -38,35 +36,18 @@ tramp
 # Atom
 .atom/
 build/
-out/
 dist/
 
 # Brackets
 .brackets.json
 
 # WebStorm
-.idea/
-*.iml
-*.ipr
-*.iws
 
 # PhpStorm
-.idea/
-*.iml
-*.ipr
-*.iws
 
 # PyCharm
-.idea/
-*.iml
-*.ipr
-*.iws
 
 # Android Studio
-.idea/
-*.iml
-*.ipr
-*.iws
 .gradle/
 local.properties
 .idea/workspace.xml
@@ -88,9 +69,7 @@ bin/
 tmp/
 *.tmp
 *.bak
-*.swp
 *~.nib
-local.properties
 .settings/
 .loadpath
 .recommenders
@@ -107,7 +86,6 @@ local.properties
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
@@ -136,7 +114,6 @@ build/
 *.xcodeproj/xcuserdata/
 *.xcscmblueprint
 *.xccheckout
-build/
 DerivedData/
 *.moved-aside
 *.pbxuser
@@ -176,7 +153,6 @@ Thumbs.db
 Thumbs.db:encryptable
 ehthumbs.db
 ehthumbs_vista.db
-*.tmp
 *.temp
 Desktop.ini
 $RECYCLE.BIN/
@@ -188,7 +164,6 @@ $RECYCLE.BIN/
 *.lnk
 
 # Linux
-*~
 .fuse_hidden*
 .directory
 .Trash-*
@@ -207,38 +182,6 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-.hypothesis/
-
 # Java
 *.class
 *.log
@@ -256,10 +199,6 @@ replay_pid*
 
 # Logs
 logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 lerna-debug.log*
 .pnpm-debug.log*
 
@@ -277,11 +216,9 @@ coverage/
 .nyc_output
 
 # Dependency directories
-node_modules/
 jspm_packages/
 
 # Optional npm cache directory
-.npm
 
 # Optional eslint cache
 .eslintcache
@@ -299,10 +236,8 @@ jspm_packages/
 *.tgz
 
 # Yarn Integrity file
-.yarn-integrity
 
 # dotenv environment variables file
-.env
 .env.test
 
 # parcel-bundler cache (https://parceljs.org/)
@@ -325,5 +260,4 @@ public
 .storybook-out
 
 # Temporary folders
-tmp/
 temp/
