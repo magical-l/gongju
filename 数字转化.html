@@ -82,20 +82,19 @@
 			font-style: italic;
 		}
 
-		.result.area .one.result {
+		.one.result {
 			height: 75px;
 		}
 
-		/* -- 结果区域的文本样式 -- */
-		.result-value {
+		.one.result .value {
+			/* 隐藏过长文本 */
+			max-width: 300px;
 			white-space: nowrap;
 			overflow: hidden;
 			text-overflow: ellipsis;
-			font-size: 1.1rem;
-			padding: 0.25rem;
 		}
 
-		.result-value.placeholder {
+		.one.result .placeholder {
 			color: #6c757d;
 			font-style: italic;
 		}
@@ -172,8 +171,8 @@
 			<template #legend>
 				{{ result.label }}
 			</template>
-			<div v-if="result.value" class="result-value">{{result.value}}</div>
-			<div v-else class="result-value placeholder">（等待输入）</div>
+			<div v-if="result.value" class="value">{{result.value}}</div>
+			<div v-else class="placeholder">（等待输入）</div>
 		</p-fieldset>
 	</section>
 </main>
