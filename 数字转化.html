@@ -84,6 +84,17 @@
 
 		.one.result {
 			height: 75px;
+			cursor: pointer; /* 提示用户可以点击 */
+			transition: background-color 0.2s;
+		}
+
+		.one.result:hover {
+			background-color: #f0f8ff; /* 爱丽丝蓝，一种柔和的高亮色 */
+		}
+
+		.one.result .p-fieldset-content {
+			padding-top: 0;
+			padding-bottom: 0;
 		}
 
 		.one.result .value {
@@ -110,6 +121,7 @@
 			.result.area {
 				flex-basis: 100%;
 			}
+
 			.result.area {
 				grid-template-columns: 1fr;
 			}
@@ -167,11 +179,18 @@
 			|
 			数字数位过多可能会有精度问题
 		</header>
-		<p-fieldset v-for="result in results" :key="result.type" class="one result" @click="copyToClipboard(result.value)">
+		<p-fieldset class="one result" title="点击复制" @click="copyToClipboard(result.value)"
+								v-for="result in results" :key="result.type">
 			<template #legend>
 				{{ result.label }}
 			</template>
-			<div v-if="result.value" class="value">{{result.value}}</div>
+			<div v-if="result.value" style="display: flex; justify-content: space-between; align-items: center;">
+				<span class="value">{{result.value}}</span>
+				<p-button title="把此结果作为输入" aria-label="把此结果作为输入" @click.stop="asInput(result.value)"
+					variant="outlined" serverity="info">
+					<i class="pi pi-upload"></i>
+				</p-button>
+			</div>
 			<div v-else class="placeholder">（等待输入）</div>
 		</p-fieldset>
 	</section>
@@ -270,29 +289,33 @@
 				this.results[2].value = transformNumbers(convertToHex);
 				this.results[3].value = transformNumbers(convertToOctal);
 
-				let chineseDigit = transformNumbers(ChineseNum.digitsFromArabic);
+				let chineseDigit = transformNumbers(convertToChineseDigit);
 				let chineseNumber = transformNumbers(ChineseNum.fromArabic);
 				let chineseDigitUpper = transformNumbers(convertToChineseDigitUpper);
 				let chineseNumberUpper = transformNumbers(convertToChineseNumberUpper);
 
 				if (chineseDigit) {
 					chineseDigit = chineseDigit
-						.replace(/〇/g, this.settings.mode0)
-						.replace(/一/g, this.settings.mode1)
-						.replace(/二/g, this.settings.mode2)
-						.replace(/七/g, this.settings.mode7);
+					.replace(/〇/g, this.settings.mode0)
+					.replace(/一/g, this.settings.mode1)
+					.replace(/二/g, this.settings.mode2)
+					.replace(/七/g, this.settings.mode7);
 				}
 				if (chineseNumber) {
 					chineseNumber = chineseNumber
-						.replace(/一十/g, this.settings.mode10)
-						.replace(/二十/g, this.settings.mode20)
-						.replace(/三十/g, this.settings.mode30);
+					.replace(/一十/g, this.settings.mode10)
+					.replace(/二十/g, this.settings.mode20)
+					.replace(/三十/g, this.settings.mode30);
 				}
 
 				this.results[4].value = chineseDigit;
 				this.results[5].value = chineseNumber;
 				this.results[6].value = chineseDigitUpper;
 				this.results[7].value = chineseNumberUpper;
+			},
+			asInput(val) {
+				this.inputText = val;
+				this.processInput();
 			}
 		},
 		mounted() {
