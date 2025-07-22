@@ -74,7 +74,7 @@
 			display: grid;
 			grid-template-columns: repeat(3, 1fr);
 			align-items: start;
-			column-gap: 1rem;
+			gap: 1rem; /* Use gap for both row and column spacing */
 		}
 
 		.result.area > header {
@@ -89,11 +89,21 @@
 		}
 
 		.one.result:hover {
-			background-color: #f0f8ff; /* 悬停高亮样式 */
+			background-color: #f0f8ff;
+		}
+
+		.one.result .p-card-body {
+			padding: 0.75rem;
 		}
 
 		.one.result .p-card-content {
-			padding: 0.5rem 0;
+			padding: 0;
+		}
+
+		/* Reduce card title font size */
+		.one.result .p-card-title {
+			font-size: 1rem;
+			margin-bottom: 0.25rem;
 		}
 
 		.one.result .value {
@@ -151,12 +161,13 @@
 			|
 			数字数位过多可能会有精度问题
 		</header>
-		<p-fieldset class="one result" title="点击复制" @click="copyToClipboard(result.value)"
-								v-for="result in results" :key="result.type">
-			<template #legend>
+		<card class="one result" @click="copyToClipboard(result.value)"
+					v-for="result in results" :key="result.type">
+			<template #title>
 				{{ result.label }}
 			</template>
-			<div v-if="result.value" style="display: flex; justify-content: space-between; align-items: center;">
+			<template #content>
+			<div title="点击复制" v-if="result.value" style="display: flex; justify-content: space-between; align-items: center;">
 				<span class="value">{{result.value}}</span>
 				<p-button title="把此结果作为输入" aria-label="把此结果作为输入" @click.stop="asInput(result.value)"
 									variant="outlined" serverity="info">
@@ -164,7 +175,8 @@
 				</p-button>
 			</div>
 			<div v-else class="placeholder">（等待输入）</div>
-		</p-fieldset>
+			</template>
+		</card>
 	</section>
 </main>
 <div>
