@@ -100,16 +100,24 @@
 			padding: 0;
 		}
 
-		/* Reduce card title font size */
 		.one.result .p-card-title {
 			font-size: 1rem;
 			margin-bottom: 0.25rem;
 		}
 
-		/* Reduce button size to prevent layout shift */
 		.one.result .p-button {
 			height: auto;
 			padding: 0.2rem 0.4rem;
+		}
+
+		.zero-mode-chooser.p-selectbutton button {
+			padding: 0.1rem 0.3rem; /* Smaller padding */
+			font-size: 0.8rem; /* Smaller font size */
+			min-width: 2rem; /* Adjust min-width */
+		}
+
+		.zero-mode-chooser.p-selectbutton button .p-togglebutton-label {
+			font-weight: normal; /* Lighter font weight */
 		}
 
 		.one.result .value {
@@ -170,7 +178,14 @@
 		<card class="one result" @click="copyToClipboard(result.value)"
 					v-for="result in results" :key="result.type">
 			<template #title>
-				{{ result.label }}
+				<div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+					<span>{{ result.label }}</span>
+					<choose-group v-if="result.config && result.config.zeroOptions"
+										v-model="result.config.zeroMode"
+										:options="result.config.zeroOptions"
+										@change="processInput"
+										class="zero-mode-chooser"/>
+				</div>
 			</template>
 			<template #content>
 			<div title="点击复制" v-if="result.value" style="display: flex; justify-content: space-between; align-items: center;">
@@ -268,11 +283,24 @@
 						type: 'CN-digit',
 						label: '汉语数码',
 						value: '',
+						config: {
+							zeroMode: '零',
+							zeroOptions: ['零', '〇']
+						},
 						handler(text, fromRadix) {
 							const regex = this.getRegexForRadix(fromRadix);
+							const self = this.results.find(r => r.type === 'CN-digit');
+							const zeroMode = self.config.zeroMode;
+
 							return text.replace(regex, num => {
 								const cleanedNum = this.stripPrefix(num, fromRadix);
-								return convertToChineseDigit(cleanedNum, fromRadix);
+								let resultValue = convertToChineseDigit(cleanedNum, fromRadix);
+								if (zeroMode === '〇') {
+									resultValue = resultValue.replace(/零/g, '〇');
+								} else { // zeroMode === '零'
+									resultValue = resultValue.replace(/〇/g, '零');
+								}
+								return resultValue;
 							});
 						}
 					},
