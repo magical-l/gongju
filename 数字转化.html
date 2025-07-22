@@ -24,7 +24,7 @@
 		main {
 			display: flex;
 			flex-wrap: wrap;
-			align-items: start; /* 修正：让左右两栏从顶部对齐 */
+			align-items: start;
 			gap: 1rem;
 		}
 
@@ -72,7 +72,7 @@
 			flex: 4;
 			display: grid;
 			grid-template-columns: repeat(3, 1fr);
-			align-items: start; /* 修正：让网格内的项目从顶部对齐 */
+			align-items: start;
 			column-gap: 1rem;
 		}
 
@@ -83,18 +83,17 @@
 		}
 
 		.one.result {
-			height: 75px;
-			cursor: pointer; /* 提示用户可以点击 */
+			cursor: pointer;
 			transition: background-color 0.2s;
 		}
 
 		.one.result:hover {
-			background-color: #f0f8ff; /* 爱丽丝蓝，一种柔和的高亮色 */
+			background-color: #f0f8ff; /* 悬停高亮样式 */
 		}
 
-		.one.result .p-fieldset-content {
-			padding-top: 0;
-			padding-bottom: 0;
+		/* 修正卡片内边距，解决内容偏下问题 */
+		.one.result .p-feldset-content {
+			padding: 0.5rem 0;
 		}
 
 		.one.result .value {
@@ -142,7 +141,7 @@
 								autoResize></p-textarea>
 	</section>
 
-	<p-fieldset legend="设置" class="setting area">
+	<!--<p-fieldset legend="设置" class="setting area">
 		<div class="one setting">
 			<label>0小写：</label>
 			<p-selectbutton v-model="settings.mode0" :options="mode0Options"></p-selectbutton>
@@ -171,7 +170,7 @@
 			<label>30小写：</label>
 			<p-selectbutton v-model="settings.mode30" :options="mode30Options"></p-selectbutton>
 		</div>
-	</p-fieldset>
+	</p-fieldset>-->
 
 	<section class="result area">
 		<header>
@@ -180,14 +179,14 @@
 			数字数位过多可能会有精度问题
 		</header>
 		<p-fieldset class="one result" title="点击复制" @click="copyToClipboard(result.value)"
-								v-for="result in results" :key="result.type">
+					v-for="result in results" :key="result.type">
 			<template #legend>
 				{{ result.label }}
 			</template>
 			<div v-if="result.value" style="display: flex; justify-content: space-between; align-items: center;">
 				<span class="value">{{result.value}}</span>
 				<p-button title="把此结果作为输入" aria-label="把此结果作为输入" @click.stop="asInput(result.value)"
-					variant="outlined" serverity="info">
+									variant="outlined" serverity="info">
 					<i class="pi pi-upload"></i>
 				</p-button>
 			</div>
@@ -215,27 +214,28 @@
 			'p-selectbutton': PrimeVue.SelectButton,
 			'p-button': PrimeVue.Button,
 			'p-textarea': PrimeVue.Textarea,
-			'p-fieldset': PrimeVue.Fieldset
+			'p-fieldset': PrimeVue.Fieldset,
+			'card': PrimeVue.Card
 		},
 		data() {
 			return {
 				inputText: '',
-				settings: {
-					mode0: '〇',
-					mode1: '一',
-					mode2: '二',
-					mode7: '七',
-					mode10: '一十',
-					mode20: '二十',
-					mode30: '三十'
-				},
-				mode0Options: ['〇', '零', '洞'],
-				mode1Options: ['一', '幺'],
-				mode2Options: ['二', '两'],
-				mode7Options: ['七', '拐'],
-				mode10Options: ['一十', '十'],
-				mode20Options: ['二十', '廿'],
-				mode30Options: ['三十', '卅'],
+				// settings: {
+				// 	mode0: '〇',
+				// 	mode1: '一',
+				// 	mode2: '二',
+				// 	mode7: '七',
+				// 	mode10: '一十',
+				// 	mode20: '二十',
+				// 	mode30: '三十'
+				// },
+				// mode0Options: ['〇', '零', '洞'],
+				// mode1Options: ['一', '幺'],
+				// mode2Options: ['二', '两'],
+				// mode7Options: ['七', '拐'],
+				// mode10Options: ['一十', '十'],
+				// mode20Options: ['二十', '廿'],
+				// mode30Options: ['三十', '卅'],
 				results: [
 					{type: 'dec', label: '十进制', value: '', placeholder: '请输入数字'},
 					{type: 'bcd', label: '二进制', value: '', placeholder: '请输入数字'},
@@ -253,20 +253,17 @@
 				if (!text) {
 					return;
 				}
-
 				try {
 					await navigator.clipboard.writeText(text);
-					toastr.success('已复制到剪贴板');
 				} catch (err) {
-					// Fallback for older browsers
 					const textArea = document.createElement('textarea');
 					textArea.value = text;
 					document.body.appendChild(textArea);
 					textArea.select();
 					document.execCommand('copy');
 					document.body.removeChild(textArea);
-					toastr.success('已复制到剪贴板');
 				}
+				toastr.success('已复制到剪贴板');
 			},
 			processInput() {
 				if (!this.inputText) {
@@ -294,19 +291,19 @@
 				let chineseDigitUpper = transformNumbers(convertToChineseDigitUpper);
 				let chineseNumberUpper = transformNumbers(convertToChineseNumberUpper);
 
-				if (chineseDigit) {
-					chineseDigit = chineseDigit
-					.replace(/〇/g, this.settings.mode0)
-					.replace(/一/g, this.settings.mode1)
-					.replace(/二/g, this.settings.mode2)
-					.replace(/七/g, this.settings.mode7);
-				}
-				if (chineseNumber) {
-					chineseNumber = chineseNumber
-					.replace(/一十/g, this.settings.mode10)
-					.replace(/二十/g, this.settings.mode20)
-					.replace(/三十/g, this.settings.mode30);
-				}
+				// if (chineseDigit) {
+				// 	chineseDigit = chineseDigit
+				// 	.replace(/〇/g, this.settings.mode0)
+				// 	.replace(/一/g, this.settings.mode1)
+				// 	.replace(/二/g, this.settings.mode2)
+				// 	.replace(/七/g, this.settings.mode7);
+				// }
+				// if (chineseNumber) {
+				// 	chineseNumber = chineseNumber
+				// 	.replace(/一十/g, this.settings.mode10)
+				// 	.replace(/二十/g, this.settings.mode20)
+				// 	.replace(/三十/g, this.settings.mode30);
+				// }
 
 				this.results[4].value = chineseDigit;
 				this.results[5].value = chineseNumber;
@@ -319,7 +316,6 @@
 			}
 		},
 		mounted() {
-			// 初始化时处理一次输入
 			this.processInput();
 		}
 	});
