@@ -141,10 +141,6 @@
 		<toolbar>
 			<template #end>
 				<choose-group v-model="inputRadix" :options="radixOptions" @change="processInput"></choose-group>
-				<div v-if="inputRadix !== '十进制'" style="margin-left: 1rem; display: flex; align-items: center;">
-					<p-checkbox v-model="withPrefix" :binary="true" @change="processInput"></p-checkbox>
-					<label style="margin-left: 0.5rem;">带有前缀</label>
-				</div>
 			</template>
 		</toolbar>
 	</section>
@@ -201,7 +197,6 @@
 				inputText: '',
 				inputRadix: '十进制',
 				radixOptions: ['十进制', '二进制', '十六进制', '八进制'],
-				withPrefix: false,
 				results: [
 					{
 						type: 'dec',
@@ -305,22 +300,17 @@
 		methods: {
 			getRegexForRadix(radix) {
 				switch (radix) {
-					case 10:
-						return /\d+/g;
 					case 2:
-						return this.withPrefix ? /(0b)?[01]+/gi : /[01]+/g;
+						return /(0b)?[01]+/gi;
 					case 8:
-						return this.withPrefix ? /(0o)?[0-7]+/gi : /[0-7]+/g;
+						return /(0o)?[0-7]+/gi;
 					case 16:
-						return this.withPrefix ? /(0x)?[0-9a-f]+/gi : /[0-9a-f]+/gi;
+						return /(0x)?[0-9a-f]+/gi;
 					default:
 						return /\d+/g;
 				}
 			},
 			stripPrefix(num, fromRadix) {
-				if (!this.withPrefix) {
-					return num;
-				}
 				const lowerNum = num.toLowerCase();
 				if (fromRadix === 16 && lowerNum.startsWith('0x')) {
 					return num.substring(2);
