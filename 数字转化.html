@@ -53,6 +53,7 @@
 		.input.area textarea {
 			width: 100%;
 			min-height: 100px;
+			height: 100px;
 			box-sizing: border-box;
 		}
 
@@ -91,13 +92,11 @@
 			background-color: #f0f8ff; /* 悬停高亮样式 */
 		}
 
-		/* 修正卡片内边距，解决内容偏下问题 */
-		.one.result .p-feldset-content {
+		.one.result .p-card-content {
 			padding: 0.5rem 0;
 		}
 
 		.one.result .value {
-			/* 隐藏过长文本 */
 			max-width: 300px;
 			white-space: nowrap;
 			overflow: hidden;
@@ -137,40 +136,18 @@
 	</header>
 
 	<section class="input area">
-		<p-textarea placeholder="在此输入要处理的数字" v-model="inputText" @input="processInput" rows="5"
+		<p-textarea placeholder="在此输入要处理的文本" v-model="inputText" @input="processInput" rows="5"
 								autoResize></p-textarea>
+		<toolbar>
+			<template #end>
+				<choose-group v-model="inputRadix" :options="radixOptions" @change="processInput"></choose-group>
+				<div v-if="inputRadix !== '十进制'" style="margin-left: 1rem; display: flex; align-items: center;">
+					<p-checkbox v-model="withPrefix" :binary="true" @change="processInput"></p-checkbox>
+					<label style="margin-left: 0.5rem;">带有前缀</label>
+				</div>
+			</template>
+		</toolbar>
 	</section>
-
-	<!--<p-fieldset legend="设置" class="setting area">
-		<div class="one setting">
-			<label>0小写：</label>
-			<p-selectbutton v-model="settings.mode0" :options="mode0Options"></p-selectbutton>
-		</div>
-		<div class="one setting">
-			<label>1小写：</label>
-			<p-selectbutton v-model="settings.mode1" :options="mode1Options"></p-selectbutton>
-		</div>
-		<div class="one setting">
-			<label>2小写：</label>
-			<p-selectbutton v-model="settings.mode2" :options="mode2Options"></p-selectbutton>
-		</div>
-		<div class="one setting">
-			<label>7小写：</label>
-			<p-selectbutton v-model="settings.mode7" :options="mode7Options"></p-selectbutton>
-		</div>
-		<div class="one setting">
-			<label>10开头：</label>
-			<p-selectbutton v-model="settings.mode10" :options="mode10Options"></p-selectbutton>
-		</div>
-		<div class="one setting">
-			<label>20小写：</label>
-			<p-selectbutton v-model="settings.mode20" :options="mode20Options"></p-selectbutton>
-		</div>
-		<div class="one setting">
-			<label>30小写：</label>
-			<p-selectbutton v-model="settings.mode30" :options="mode30Options"></p-selectbutton>
-		</div>
-	</p-fieldset>-->
 
 	<section class="result area">
 		<header>
@@ -211,71 +188,77 @@
 
 	const app = createApp({
 		components: {
-			'p-selectbutton': PrimeVue.SelectButton,
+			'choose-group': PrimeVue.SelectButton,
 			'p-button': PrimeVue.Button,
 			'p-textarea': PrimeVue.Textarea,
 			'p-fieldset': PrimeVue.Fieldset,
-			'card': PrimeVue.Card
+			'card': PrimeVue.Card,
+			'toolbar': PrimeVue.Toolbar,
+			'p-checkbox': PrimeVue.Checkbox
 		},
 		data() {
 			return {
 				inputText: '',
-				// settings: {
-				// 	mode0: '〇',
-				// 	mode1: '一',
-				// 	mode2: '二',
-				// 	mode7: '七',
-				// 	mode10: '一十',
-				// 	mode20: '二十',
-				// 	mode30: '三十'
-				// },
-				// mode0Options: ['〇', '零', '洞'],
-				// mode1Options: ['一', '幺'],
-				// mode2Options: ['二', '两'],
-				// mode7Options: ['七', '拐'],
-				// mode10Options: ['一十', '十'],
-				// mode20Options: ['二十', '廿'],
-				// mode30Options: ['三十', '卅'],
+				inputRadix: '十进制',
+				radixOptions: ['十进制', '二进制', '十六进制', '八进制'],
+				withPrefix: false,
 				results: [
-					{
-						type: 'dec', label: '十进制', value: '', placeholder: '请输入数字', handler(text) {
-							return text;
+					{ 
+						type: 'dec', 
+						label: '十进制', 
+						value: '', 
+						handler(text, fromRadix) { return text.replace(/\d+/g, num => convertToDecimal(num, fromRadix)); }
+					},
+					{ 
+						type: 'bcd', 
+						label: '二进制', 
+						value: '', 
+						handler(text, fromRadix) {
+							const res = text.replace(/\d+/g, num => convertToBinary(num, fromRadix));
+							return this.withPrefix && res ? '0b' + res : res;
 						}
 					},
-					{
-						type: 'bcd', label: '二进制', value: '', placeholder: '请输入数字', handler(text) {
-							return text.replace(/\d+/g, num => convertToBinary(num, 10));
+					{ 
+						type: 'hex', 
+						label: '十六进制', 
+						value: '', 
+						handler(text, fromRadix) {
+							const res = text.replace(/\d+/g, num => convertToHex(num, fromRadix));
+							return this.withPrefix && res ? '0x' + res : res;
 						}
 					},
-					{
-						type: 'hex', label: '十六进制', value: '', placeholder: '请输入数字', handler(text) {
-							return text.replace(/\d+/g, num => convertToHex(num, 10));
+					{ 
+						type: 'oct', 
+						label: '八进制', 
+						value: '', 
+						handler(text, fromRadix) {
+							const res = text.replace(/\d+/g, num => convertToOctal(num, fromRadix));
+							return this.withPrefix && res ? '0o' + res : res;
 						}
 					},
-					{
-						type: 'oct', label: '八进制', value: '', placeholder: '请输入数字', handler(text) {
-							return text.replace(/\d+/g, num => convertToOctal(num, 10));
-						}
+					{ 
+						type: 'CN-digit', 
+						label: '汉语数码', 
+						value: '', 
+						handler(text, fromRadix) { return text.replace(/\d+/g, num => convertToChineseDigit(num, fromRadix)); }
 					},
-					{
-						type: 'CN-digit', label: '汉语数码', value: '', placeholder: '例：一〇八', handler(text) {
-							return text.replace(/\d+/g, num => convertToChineseDigit(num, 10));
-						}
+					{ 
+						type: 'CN-num', 
+						label: '汉语数字', 
+						value: '', 
+						handler(text, fromRadix) { return text.replace(/\d+/g, num => ChineseNum.fromArabic(parseInt(convertToDecimal(num, fromRadix), 10))); }
 					},
-					{
-						type: 'CN-num', label: '汉语数字', value: '', placeholder: '例：一百〇八', handler(text) {
-							return text.replace(/\d+/g, num => ChineseNum.fromArabic(parseInt(num, 10)));
-						}
+					{ 
+						type: 'CN-digit-upper', 
+						label: '大写汉语数码', 
+						value: '', 
+						handler(text, fromRadix) { return text.replace(/\d+/g, num => convertToChineseDigitUpper(num, fromRadix)); }
 					},
-					{
-						type: 'CN-digit-upper', label: '大写汉语数码', value: '', placeholder: '例：壹零捌', handler(text) {
-							return text.replace(/\d+/g, num => convertToChineseDigitUpper(num, 10));
-						}
-					},
-					{
-						type: 'CN-num-upper', label: '大写汉语数字', value: '', placeholder: '例：壹佰零捌', handler(text) {
-							return text.replace(/\d+/g, num => convertToChineseNumberUpper(num, 10));
-						}
+					{ 
+						type: 'CN-num-upper', 
+						label: '大写汉语数字', 
+						value: '', 
+						handler(text, fromRadix) { return text.replace(/\d+/g, num => convertToChineseNumberUpper(num, fromRadix)); }
 					}
 				]
 			};
@@ -298,10 +281,13 @@
 				toastr.success('已复制到剪贴板');
 			},
 			processInput() {
+				const radixMap = { '十进制': 10, '二进制': 2, '十六进制': 16, '八进制': 8 };
+				const fromRadix = radixMap[this.inputRadix];
+
 				this.results.forEach(result => {
 					if (this.inputText) {
 						try {
-							result.value = result.handler(this.inputText);
+							result.value = result.handler.call(this, this.inputText, fromRadix);
 						} catch (e) {
 							console.error(`Error processing result for type: ${result.type}`, e);
 							result.value = '转换出错';
