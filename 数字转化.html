@@ -156,7 +156,7 @@
 			数字数位过多可能会有精度问题
 		</header>
 		<p-fieldset class="one result" title="点击复制" @click="copyToClipboard(result.value)"
-					v-for="result in results" :key="result.type">
+								v-for="result in results" :key="result.type">
 			<template #legend>
 				{{ result.label }}
 			</template>
@@ -203,67 +203,136 @@
 				radixOptions: ['十进制', '二进制', '十六进制', '八进制'],
 				withPrefix: false,
 				results: [
-					{ 
-						type: 'dec', 
-						label: '十进制', 
-						value: '', 
-						handler(text, fromRadix) { return text.replace(/\d+/g, num => convertToDecimal(num, fromRadix)); }
-					},
-					{ 
-						type: 'bcd', 
-						label: '二进制', 
-						value: '', 
+					{
+						type: 'dec',
+						label: '十进制',
+						value: '',
 						handler(text, fromRadix) {
-							const res = text.replace(/\d+/g, num => convertToBinary(num, fromRadix));
-							return this.withPrefix && res ? '0b' + res : res;
+							const regex = this.getRegexForRadix(fromRadix);
+							return text.replace(regex, num => {
+								const cleanedNum = this.stripPrefix(num, fromRadix);
+								return convertToDecimal(cleanedNum, fromRadix);
+							});
 						}
 					},
-					{ 
-						type: 'hex', 
-						label: '十六进制', 
-						value: '', 
+					{
+						type: 'bcd',
+						label: '二进制',
+						value: '',
 						handler(text, fromRadix) {
-							const res = text.replace(/\d+/g, num => convertToHex(num, fromRadix));
-							return this.withPrefix && res ? '0x' + res : res;
+							const regex = this.getRegexForRadix(fromRadix);
+							return text.replace(regex, num => {
+								const cleanedNum = this.stripPrefix(num, fromRadix);
+								return convertToBinary(cleanedNum, fromRadix);
+							});
 						}
 					},
-					{ 
-						type: 'oct', 
-						label: '八进制', 
-						value: '', 
+					{
+						type: 'hex',
+						label: '十六进制',
+						value: '',
 						handler(text, fromRadix) {
-							const res = text.replace(/\d+/g, num => convertToOctal(num, fromRadix));
-							return this.withPrefix && res ? '0o' + res : res;
+							const regex = this.getRegexForRadix(fromRadix);
+							return text.replace(regex, num => {
+								const cleanedNum = this.stripPrefix(num, fromRadix);
+								return convertToHex(cleanedNum, fromRadix);
+							});
 						}
 					},
-					{ 
-						type: 'CN-digit', 
-						label: '汉语数码', 
-						value: '', 
-						handler(text, fromRadix) { return text.replace(/\d+/g, num => convertToChineseDigit(num, fromRadix)); }
+					{
+						type: 'oct',
+						label: '八进制',
+						value: '',
+						handler(text, fromRadix) {
+							const regex = this.getRegexForRadix(fromRadix);
+							return text.replace(regex, num => {
+								const cleanedNum = this.stripPrefix(num, fromRadix);
+								return convertToOctal(cleanedNum, fromRadix);
+							});
+						}
 					},
-					{ 
-						type: 'CN-num', 
-						label: '汉语数字', 
-						value: '', 
-						handler(text, fromRadix) { return text.replace(/\d+/g, num => ChineseNum.fromArabic(parseInt(convertToDecimal(num, fromRadix), 10))); }
+					{
+						type: 'CN-digit',
+						label: '汉语数码',
+						value: '',
+						handler(text, fromRadix) {
+							const regex = this.getRegexForRadix(fromRadix);
+							return text.replace(regex, num => {
+								const cleanedNum = this.stripPrefix(num, fromRadix);
+								return convertToChineseDigit(cleanedNum, fromRadix);
+							});
+						}
 					},
-					{ 
-						type: 'CN-digit-upper', 
-						label: '大写汉语数码', 
-						value: '', 
-						handler(text, fromRadix) { return text.replace(/\d+/g, num => convertToChineseDigitUpper(num, fromRadix)); }
+					{
+						type: 'CN-num',
+						label: '汉语数字',
+						value: '',
+						handler(text, fromRadix) {
+							const regex = this.getRegexForRadix(fromRadix);
+							return text.replace(regex, num => {
+								const cleanedNum = this.stripPrefix(num, fromRadix);
+								return ChineseNum.fromArabic(parseInt(convertToDecimal(cleanedNum, fromRadix), 10));
+							});
+						}
 					},
-					{ 
-						type: 'CN-num-upper', 
-						label: '大写汉语数字', 
-						value: '', 
-						handler(text, fromRadix) { return text.replace(/\d+/g, num => convertToChineseNumberUpper(num, fromRadix)); }
+					{
+						type: 'CN-digit-upper',
+						label: '大写汉语数码',
+						value: '',
+						handler(text, fromRadix) {
+							const regex = this.getRegexForRadix(fromRadix);
+							return text.replace(regex, num => {
+								const cleanedNum = this.stripPrefix(num, fromRadix);
+								return convertToChineseDigitUpper(cleanedNum, fromRadix);
+							});
+						}
+					},
+					{
+						type: 'CN-num-upper',
+						label: '大写汉语数字',
+						value: '',
+						handler(text, fromRadix) {
+							const regex = this.getRegexForRadix(fromRadix);
+							return text.replace(regex, num => {
+								const cleanedNum = this.stripPrefix(num, fromRadix);
+								return convertToChineseNumberUpper(cleanedNum, fromRadix);
+							});
+						}
 					}
 				]
 			};
 		},
 		methods: {
+			getRegexForRadix(radix) {
+				switch (radix) {
+					case 10:
+						return /\d+/g;
+					case 2:
+						return this.withPrefix ? /(0b)?[01]+/gi : /[01]+/g;
+					case 8:
+						return this.withPrefix ? /(0o)?[0-7]+/gi : /[0-7]+/g;
+					case 16:
+						return this.withPrefix ? /(0x)?[0-9a-f]+/gi : /[0-9a-f]+/gi;
+					default:
+						return /\d+/g;
+				}
+			},
+			stripPrefix(num, fromRadix) {
+				if (!this.withPrefix) {
+					return num;
+				}
+				const lowerNum = num.toLowerCase();
+				if (fromRadix === 16 && lowerNum.startsWith('0x')) {
+					return num.substring(2);
+				}
+				if (fromRadix === 2 && lowerNum.startsWith('0b')) {
+					return num.substring(2);
+				}
+				if (fromRadix === 8 && lowerNum.startsWith('0o')) {
+					return num.substring(2);
+				}
+				return num;
+			},
 			async copyToClipboard(text) {
 				if (!text) {
 					return;
@@ -281,7 +350,7 @@
 				toastr.success('已复制到剪贴板');
 			},
 			processInput() {
-				const radixMap = { '十进制': 10, '二进制': 2, '十六进制': 16, '八进制': 8 };
+				const radixMap = {'十进制': 10, '二进制': 2, '十六进制': 16, '八进制': 8};
 				const fromRadix = radixMap[this.inputRadix];
 
 				this.results.forEach(result => {
