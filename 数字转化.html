@@ -237,14 +237,46 @@
 				// mode20Options: ['二十', '廿'],
 				// mode30Options: ['三十', '卅'],
 				results: [
-					{type: 'dec', label: '十进制', value: '', placeholder: '请输入数字'},
-					{type: 'bcd', label: '二进制', value: '', placeholder: '请输入数字'},
-					{type: 'hex', label: '十六进制', value: '', placeholder: '请输入数字'},
-					{type: 'oct', label: '八进制', value: '', placeholder: '请输入数字'},
-					{type: 'CN-digit', label: '汉语数码', value: '', placeholder: '例：一〇八'},
-					{type: 'CN-num', label: '汉语数字', value: '', placeholder: '例：一百〇八'},
-					{type: 'CN-digit-upper', label: '大写汉语数码', value: '', placeholder: '例：壹零捌'},
-					{type: 'CN-num-upper', label: '大写汉语数字', value: '', placeholder: '例：壹佰零捌'}
+					{
+						type: 'dec', label: '十进制', value: '', placeholder: '请输入数字', handler(text) {
+							return text;
+						}
+					},
+					{
+						type: 'bcd', label: '二进制', value: '', placeholder: '请输入数字', handler(text) {
+							return text.replace(/\d+/g, num => convertToBinary(num, 10));
+						}
+					},
+					{
+						type: 'hex', label: '十六进制', value: '', placeholder: '请输入数字', handler(text) {
+							return text.replace(/\d+/g, num => convertToHex(num, 10));
+						}
+					},
+					{
+						type: 'oct', label: '八进制', value: '', placeholder: '请输入数字', handler(text) {
+							return text.replace(/\d+/g, num => convertToOctal(num, 10));
+						}
+					},
+					{
+						type: 'CN-digit', label: '汉语数码', value: '', placeholder: '例：一〇八', handler(text) {
+							return text.replace(/\d+/g, num => convertToChineseDigit(num, 10));
+						}
+					},
+					{
+						type: 'CN-num', label: '汉语数字', value: '', placeholder: '例：一百〇八', handler(text) {
+							return text.replace(/\d+/g, num => ChineseNum.fromArabic(parseInt(num, 10)));
+						}
+					},
+					{
+						type: 'CN-digit-upper', label: '大写汉语数码', value: '', placeholder: '例：壹零捌', handler(text) {
+							return text.replace(/\d+/g, num => convertToChineseDigitUpper(num, 10));
+						}
+					},
+					{
+						type: 'CN-num-upper', label: '大写汉语数字', value: '', placeholder: '例：壹佰零捌', handler(text) {
+							return text.replace(/\d+/g, num => convertToChineseNumberUpper(num, 10));
+						}
+					}
 				]
 			};
 		},
@@ -266,49 +298,18 @@
 				toastr.success('已复制到剪贴板');
 			},
 			processInput() {
-				if (!this.inputText) {
-					this.results.forEach(result => result.value = '');
-					return;
-				}
-
-				const transformNumbers = conversionFunc => {
-					return this.inputText.replace(/\d+/g, numberString => {
+				this.results.forEach(result => {
+					if (this.inputText) {
 						try {
-							return conversionFunc(numberString, 10);
+							result.value = result.handler(this.inputText);
 						} catch (e) {
-							return numberString;
+							console.error(`Error processing result for type: ${result.type}`, e);
+							result.value = '转换出错';
 						}
-					});
-				};
-
-				this.results[0].value = this.inputText;
-				this.results[1].value = transformNumbers(convertToBinary);
-				this.results[2].value = transformNumbers(convertToHex);
-				this.results[3].value = transformNumbers(convertToOctal);
-
-				let chineseDigit = transformNumbers(convertToChineseDigit);
-				let chineseNumber = transformNumbers(ChineseNum.fromArabic);
-				let chineseDigitUpper = transformNumbers(convertToChineseDigitUpper);
-				let chineseNumberUpper = transformNumbers(convertToChineseNumberUpper);
-
-				// if (chineseDigit) {
-				// 	chineseDigit = chineseDigit
-				// 	.replace(/〇/g, this.settings.mode0)
-				// 	.replace(/一/g, this.settings.mode1)
-				// 	.replace(/二/g, this.settings.mode2)
-				// 	.replace(/七/g, this.settings.mode7);
-				// }
-				// if (chineseNumber) {
-				// 	chineseNumber = chineseNumber
-				// 	.replace(/一十/g, this.settings.mode10)
-				// 	.replace(/二十/g, this.settings.mode20)
-				// 	.replace(/三十/g, this.settings.mode30);
-				// }
-
-				this.results[4].value = chineseDigit;
-				this.results[5].value = chineseNumber;
-				this.results[6].value = chineseDigitUpper;
-				this.results[7].value = chineseNumberUpper;
+					} else {
+						result.value = '';
+					}
+				});
 			},
 			asInput(val) {
 				this.inputText = val;
