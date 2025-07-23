@@ -110,16 +110,6 @@
 			padding: 0.2rem 0.4rem;
 		}
 
-		.zero-mode-chooser.p-selectbutton button {
-			padding: 0.1rem 0.3rem; /* Smaller padding */
-			font-size: 0.8rem; /* Smaller font size */
-			min-width: 2rem; /* Adjust min-width */
-		}
-
-		.zero-mode-chooser.p-selectbutton button .p-togglebutton-label {
-			font-weight: normal; /* Lighter font weight */
-		}
-
 		.one.result .value {
 			max-width: 300px;
 			white-space: nowrap;
@@ -138,14 +128,24 @@
 			}
 		}
 
+		.chooser.p-selectbutton button {
+			padding: 0.1rem 0.3rem; /* Smaller padding */
+			font-size: 0.8rem; /* Smaller font size */
+			min-width: 2rem; /* Adjust min-width */
+		}
+
+		.chooser.p-selectbutton button .p-togglebutton-label {
+			font-weight: normal; /* Lighter font weight */
+		}
+
 		@media (max-width: 768px) {
-			.setting.area,
 			.result.area {
 				flex-basis: 100%;
+				grid-template-columns: 1fr;
 			}
 
-			.result.area {
-				grid-template-columns: 1fr;
+			.setting.area {
+				flex-basis: 100%;
 			}
 		}
 	</style>
@@ -180,22 +180,21 @@
 			<template #title>
 				<div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
 					<span>{{ result.label }}</span>
-					<choose-group v-if="result.config && result.config.zeroOptions"
-										v-model="result.config.zeroMode"
-										:options="result.config.zeroOptions"
-										@change="processInput"
-										class="zero-mode-chooser"/>
+					<choose-group :class="setting.name" class="chooser" v-for="setting in result.settings" :key="setting.name"
+												v-model="setting.val" :options="setting.options"
+												@change="result.handler(inputText, inputRadix)"/><!-- todo:我希望修改选择时自动重算本result，但现在这样写有点问题 -->
 				</div>
 			</template>
 			<template #content>
-			<div title="点击复制" v-if="result.value" style="display: flex; justify-content: space-between; align-items: center;">
-				<span class="value">{{result.value}}</span>
-				<p-button title="把此结果作为输入" aria-label="把此结果作为输入" @click.stop="asInput(result.value)"
-									variant="outlined" serverity="info">
-					<i class="pi pi-upload"></i>
-				</p-button>
-			</div>
-			<div v-else class="placeholder">（等待输入）</div>
+				<div title="点击复制" v-if="result.value"
+						 style="display: flex; justify-content: space-between; align-items: center;">
+					<span class="value">{{result.value}}</span>
+					<p-button title="把此结果作为输入" aria-label="把此结果作为输入" @click.stop="asInput(result.value)"
+										variant="outlined" serverity="info">
+						<i class="pi pi-upload"></i>
+					</p-button>
+				</div>
+				<div v-else class="placeholder">（等待输入）</div>
 			</template>
 		</card>
 	</section>
@@ -236,9 +235,9 @@
 						label: '十进制',
 						value: '',
 						handler(text, fromRadix) {
-							const regex = this.getRegexForRadix(fromRadix);
+							const regex = getRegexForRadix(fromRadix);
 							return text.replace(regex, num => {
-								const cleanedNum = this.stripPrefix(num, fromRadix);
+								const cleanedNum = stripPrefix(num, fromRadix);
 								return convertToDecimal(cleanedNum, fromRadix);
 							});
 						}
@@ -248,9 +247,9 @@
 						label: '二进制',
 						value: '',
 						handler(text, fromRadix) {
-							const regex = this.getRegexForRadix(fromRadix);
+							const regex = getRegexForRadix(fromRadix);
 							return text.replace(regex, num => {
-								const cleanedNum = this.stripPrefix(num, fromRadix);
+								const cleanedNum = stripPrefix(num, fromRadix);
 								return convertToBinary(cleanedNum, fromRadix);
 							});
 						}
@@ -260,9 +259,9 @@
 						label: '十六进制',
 						value: '',
 						handler(text, fromRadix) {
-							const regex = this.getRegexForRadix(fromRadix);
+							const regex = getRegexForRadix(fromRadix);
 							return text.replace(regex, num => {
-								const cleanedNum = this.stripPrefix(num, fromRadix);
+								const cleanedNum = stripPrefix(num, fromRadix);
 								return convertToHex(cleanedNum, fromRadix);
 							});
 						}
@@ -272,9 +271,9 @@
 						label: '八进制',
 						value: '',
 						handler(text, fromRadix) {
-							const regex = this.getRegexForRadix(fromRadix);
+							const regex = getRegexForRadix(fromRadix);
 							return text.replace(regex, num => {
-								const cleanedNum = this.stripPrefix(num, fromRadix);
+								const cleanedNum = stripPrefix(num, fromRadix);
 								return convertToOctal(cleanedNum, fromRadix);
 							});
 						}
@@ -283,23 +282,28 @@
 						type: 'CN-digit',
 						label: '汉语数码',
 						value: '',
-						config: {
-							zeroMode: '零',
-							zeroOptions: ['零', '〇']
-						},
+						settings: [
+							{
+								name: 'zeroMode',
+								label: '零的模式',
+								val: '零',
+								options: ['零', '〇']
+							}
+						],
 						handler(text, fromRadix) {
-							const regex = this.getRegexForRadix(fromRadix);
-							const self = this.results.find(r => r.type === 'CN-digit');
-							const zeroMode = self.config.zeroMode;
+							const regex = getRegexForRadix(fromRadix);
+							const self = this;//.results.find(r => r.type === 'CN-digit');
 
 							return text.replace(regex, num => {
-								const cleanedNum = this.stripPrefix(num, fromRadix);
+								const cleanedNum = stripPrefix(num, fromRadix);
 								let resultValue = convertToChineseDigit(cleanedNum, fromRadix);
-								if (zeroMode === '〇') {
-									resultValue = resultValue.replace(/零/g, '〇');
-								} else { // zeroMode === '零'
-									resultValue = resultValue.replace(/〇/g, '零');
-								}
+
+								self.settings.forEach(setting => {
+									setting.options.filter(option => option !== setting.val)//
+									.forEach(option => {
+										resultValue = resultValue.replace(new RegExp(option, 'g'), setting.val);
+									});
+								});
 								return resultValue;
 							});
 						}
@@ -309,9 +313,9 @@
 						label: '汉语数字',
 						value: '',
 						handler(text, fromRadix) {
-							const regex = this.getRegexForRadix(fromRadix);
+							const regex = getRegexForRadix(fromRadix);
 							return text.replace(regex, num => {
-								const cleanedNum = this.stripPrefix(num, fromRadix);
+								const cleanedNum = stripPrefix(num, fromRadix);
 								return ChineseNum.fromArabic(parseInt(convertToDecimal(cleanedNum, fromRadix), 10));
 							});
 						}
@@ -321,9 +325,9 @@
 						label: '大写汉语数码',
 						value: '',
 						handler(text, fromRadix) {
-							const regex = this.getRegexForRadix(fromRadix);
+							const regex = getRegexForRadix(fromRadix);
 							return text.replace(regex, num => {
-								const cleanedNum = this.stripPrefix(num, fromRadix);
+								const cleanedNum = stripPrefix(num, fromRadix);
 								return convertToChineseDigitUpper(cleanedNum, fromRadix);
 							});
 						}
@@ -333,9 +337,9 @@
 						label: '大写汉语数字',
 						value: '',
 						handler(text, fromRadix) {
-							const regex = this.getRegexForRadix(fromRadix);
+							const regex = getRegexForRadix(fromRadix);
 							return text.replace(regex, num => {
-								const cleanedNum = this.stripPrefix(num, fromRadix);
+								const cleanedNum = stripPrefix(num, fromRadix);
 								return convertToChineseNumberUpper(cleanedNum, fromRadix);
 							});
 						}
@@ -344,31 +348,6 @@
 			};
 		},
 		methods: {
-			getRegexForRadix(radix) {
-				switch (radix) {
-					case 2:
-						return /(0b)?[01]+/gi;
-					case 8:
-						return /(0o)?[0-7]+/gi;
-					case 16:
-						return /(0x)?[0-9a-f]+/gi;
-					default:
-						return /\d+/g;
-				}
-			},
-			stripPrefix(num, fromRadix) {
-				const lowerNum = num.toLowerCase();
-				if (fromRadix === 16 && lowerNum.startsWith('0x')) {
-					return num.substring(2);
-				}
-				if (fromRadix === 2 && lowerNum.startsWith('0b')) {
-					return num.substring(2);
-				}
-				if (fromRadix === 8 && lowerNum.startsWith('0o')) {
-					return num.substring(2);
-				}
-				return num;
-			},
 			async copyToClipboard(text) {
 				if (!text) {
 					return;
@@ -392,7 +371,7 @@
 				this.results.forEach(result => {
 					if (this.inputText) {
 						try {
-							result.value = result.handler.call(this, this.inputText, fromRadix);
+							result.value = result.handler(this.inputText, fromRadix);
 						} catch (e) {
 							console.error(`Error processing result for type: ${result.type}`, e);
 							result.value = '转换出错';
