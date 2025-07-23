@@ -176,10 +176,10 @@
 			数字数位过多可能会有精度问题
 		</header>
 		<card class="one result" @click="copyToClipboard(result.value)"
-					v-for="result in results" :key="result.type">
+					v-for="(result,label) in results" :key="result.type">
 			<template #title>
 				<div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-					<span>{{ result.label }}</span>
+					<span>{{ label }}</span>
 					<choose-group v-for="setting in result.settings" :key="setting.name"
 												v-model="setting.val"
 												:options="setting.options"
@@ -217,6 +217,140 @@
 <script>
 	const {createApp} = Vue;
 
+	const results = {
+		'十进制': {
+			value: '',
+			convert(text, fromRadix) {
+				if (fromRadix === 10) {
+					return text;
+				}
+				const regex = getRegexForRadix(fromRadix);
+				return text.replace(regex, part => {
+					const cleanedNum = stripPrefix(part, fromRadix);
+					return convertToDecimal(cleanedNum, fromRadix);
+				});
+			}
+		},
+		'二进制': {
+			value: '',
+			convert(text, fromRadix) {
+				if (fromRadix === 2) {
+					return text;
+				}
+				const regex = getRegexForRadix(fromRadix);
+				return text.replace(regex, part => {
+					const cleanedNum = stripPrefix(part, fromRadix);
+					const decimal = convertToDecimal(cleanedNum, fromRadix);
+					return decimal ? parseInt(decimal).toString(2) : '';
+				});
+			}
+		},
+		'十六进制': {
+			value: '',
+			settings: [
+				{
+					name: 'case',
+					label: '大小写',
+					val: '大写',
+					options: ['大写', '小写'],
+					handle(s) {
+						return this.val === '大写' ? s.toUpperCase() : s.toLowerCase();
+					}
+				}
+			],
+			convert(text, fromRadix) {
+				if (fromRadix === 16) {
+					return text;
+				}
+				const regex = getRegexForRadix(fromRadix);
+				return text.replace(regex, part => {
+					const cleanedNum = stripPrefix(part, fromRadix);
+					const decimal = convertToDecimal(cleanedNum, fromRadix);
+					const converted = decimal ? parseInt(decimal).toString(16).toUpperCase() : '';
+					return this.settings.reduce((result, setting) => setting.handle(result), converted);
+				});
+			}
+		},
+		'八进制': {
+			value: '',
+			convert(text, fromRadix) {
+				if (fromRadix === 8) {
+					return text;
+				}
+				const regex = getRegexForRadix(fromRadix);
+				return text.replace(regex, part => {
+					const cleanedNum = stripPrefix(part, fromRadix);
+					const decimal = convertToDecimal(cleanedNum, fromRadix);
+					return decimal ? parseInt(decimal).toString(8) : '';
+				});
+			}
+		},
+		'汉语数码': {
+			value: '',
+			settings: [
+				{
+					name: 'zeroMode',
+					label: '零的模式',
+					val: '零',
+					options: ['零', '〇'],
+					handle(s) {
+						return this.val === '〇' ? s.replace(/零/g, '〇') : s;
+					}
+				}
+			],
+			convert(text, fromRadix) {
+				const regex = getRegexForRadix(fromRadix);
+				return text.replace(regex, part => {
+					const cleanedNum = stripPrefix(part, fromRadix);
+					const converted = ChineseNum.digitsFromArabic(parseInt(convertToDecimal(cleanedNum, fromRadix)));
+					return this.settings.reduce((result, setting) => setting.handle(result), converted);
+				});
+			}
+		},
+		'汉语数字': {
+			value: '',
+			convert(text, fromRadix) {
+				const regex = getRegexForRadix(fromRadix);
+				return text.replace(regex, part => {
+					const cleanedNum = stripPrefix(part, fromRadix);
+					return ChineseNum.fromArabic(parseInt(convertToDecimal(cleanedNum, fromRadix), 10));
+				});
+			}
+		},
+		'大写汉语数码': {
+			value: '',
+			convert(text, fromRadix) {
+				return ChineseNum.toUpperCase(results['汉语数码'].convert(text, fromRadix).replace(/〇/g, '零'));
+			}
+		},
+		'大写汉语数字': {
+			value: '',
+			convert(text, fromRadix) {
+				return ChineseNum.toUpperCase(results['汉语数字'].convert(text, fromRadix));
+			}
+		},
+		'Base62': {
+			value: '',
+			convert(text, fromRadix) {
+				const regex = getRegexForRadix(fromRadix);
+				return text.replace(regex, part => {
+					const cleanedNum = stripPrefix(part, fromRadix);
+					return base62ToDecimal(cleanedNum);
+				});
+			}
+		},
+		'标准通讯数字读音': {
+			value: '',
+			convert(text, fromRadix) {
+				const regex = getRegexForRadix(fromRadix);
+				return text.replace(regex, part => {
+					const cleanedNum = stripPrefix(part, fromRadix);
+					return convertToStandardCommunicationDigits(cleanedNum);
+				});
+			}
+		}
+	};
+
 	const app = createApp({
 		components: {
 			'choose-group': PrimeVue.SelectButton,
@@ -232,167 +366,7 @@
 				inputText: '',
 				inputRadix: '十进制',
 				radixOptions: ['十进制', '二进制', '十六进制', '八进制'],
-				results: [
-					{
-						type: 'dec',
-						label: '十进制',
-						value: '',
-						convert(text, fromRadix) {
-							if (fromRadix === 10) {
-								return text;
-							}
-							const regex = getRegexForRadix(fromRadix);
-							return text.replace(regex, part => {
-								const cleanedNum = stripPrefix(part, fromRadix);
-								return convertToDecimal(cleanedNum, fromRadix);
-							});
-						}
-					},
-					{
-						type: 'bcd',
-						label: '二进制',
-						value: '',
-						convert(text, fromRadix) {
-							if (fromRadix === 2) {
-								return text;
-							}
-							const regex = getRegexForRadix(fromRadix);
-							return text.replace(regex, part => {
-								const cleanedNum = stripPrefix(part, fromRadix);
-								const decimal = convertToDecimal(cleanedNum, fromRadix);
-								return decimal ? parseInt(decimal).toString(2) : '';
-							});
-						}
-					},
-					{
-						type: 'hex',
-						label: '十六进制',
-						value: '',
-						settings: [
-							{
-								name: 'case',
-								label: '大小写',
-								val: '大写',
-								options: ['大写', '小写'],
-								handle(s) {
-									return this.val === '大写' ? s.toUpperCase() : s.toLowerCase();
-								}
-							}
-						],
-						convert(text, fromRadix) {
-							if (fromRadix === 16) {
-								return text;
-							}
-							const regex = getRegexForRadix(fromRadix);
-							return text.replace(regex, part => {
-								const cleanedNum = stripPrefix(part, fromRadix);
-								const decimal = convertToDecimal(cleanedNum, fromRadix);
-								const converted = decimal ? parseInt(decimal).toString(16).toUpperCase() : '';
-								return this.settings.reduce((result, setting) => setting.handle(result), converted);
-							});
-						}
-					},
-					{
-						type: 'oct',
-						label: '八进制',
-						value: '',
-						convert(text, fromRadix) {
-							if (fromRadix === 8) {
-								return text;
-							}
-							const regex = getRegexForRadix(fromRadix);
-							return text.replace(regex, part => {
-								const cleanedNum = stripPrefix(part, fromRadix);
-								const decimal = convertToDecimal(cleanedNum, fromRadix);
-								return decimal ? parseInt(decimal).toString(8) : '';
-							});
-						}
-					},
-					{
-						type: 'CN-digit',
-						label: '汉语数码',
-						value: '',
-						settings: [
-							{
-								name: 'zeroMode',
-								label: '零的模式',
-								val: '零',
-								options: ['零', '〇'],
-								handle(s) {
-									return this.val === '〇' ? s.replace(/零/g, '〇') : s;
-								}
-							}
-						],
-						convert(text, fromRadix) {
-							const regex = getRegexForRadix(fromRadix);
-							return text.replace(regex, part => {
-								const cleanedNum = stripPrefix(part, fromRadix);
-								const converted = convertToChineseDigit(cleanedNum, fromRadix);
-								return this.settings.reduce((result, setting) => setting.handle(result), converted);
-							});
-						}
-					},
-					{
-						type: 'CN-num',
-						label: '汉语数字',
-						value: '',
-						convert(text, fromRadix) {
-							const regex = getRegexForRadix(fromRadix);
-							return text.replace(regex, part => {
-								const cleanedNum = stripPrefix(part, fromRadix);
-								return ChineseNum.fromArabic(parseInt(convertToDecimal(cleanedNum, fromRadix), 10));
-							});
-						}
-					},
-					{
-						type: 'CN-digit-upper',
-						label: '大写汉语数码',
-						value: '',
-						convert(text, fromRadix) {
-							const regex = getRegexForRadix(fromRadix);
-							return text.replace(regex, part => {
-								const cleanedNum = stripPrefix(part, fromRadix);
-								return ChineseNum.digitsFromArabic(parseInt(part),false);
-							});
-						}
-					},
-					{
-						type: 'CN-num-upper',
-						label: '大写汉语数字',
-						value: '',
-						convert(text, fromRadix) {
-							const regex = getRegexForRadix(fromRadix);
-							return text.replace(regex, part => {
-								const cleanedNum = stripPrefix(part, fromRadix);
-								return convertToChineseNumberUpper(cleanedNum, fromRadix);
-							});
-						}
-					},
-					{
-						type: 'base62',
-						label: 'Base62',
-						value: '',
-						convert(text, fromRadix) {
-							const regex = getRegexForRadix(fromRadix);
-							return text.replace(regex, part => {
-								const cleanedNum = stripPrefix(part, fromRadix);
-								return base62ToDecimal(cleanedNum);
-							});
-						}
-					},
-					{
-						type: 'standard-communication',
-						label: '标准通讯数字读音',
-						value: '',
-						convert(text, fromRadix) {
-							const regex = getRegexForRadix(fromRadix);
-							return text.replace(regex, part => {
-								const cleanedNum = stripPrefix(part, fromRadix);
-								return convertToStandardCommunicationDigits(cleanedNum);
-							});
-						}
-					}
-				]
+				results
 			};
 		},
 		methods: {
@@ -413,7 +387,7 @@
 				toastr.success('已复制到剪贴板');
 			},
 			processInput() {
-				this.results.forEach(result => {
+				Object.values(this.results).forEach(result => {
 					this.updateResult(result, this.inputText, this.inputRadix);
 				});
 			},
