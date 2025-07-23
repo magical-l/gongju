@@ -237,7 +237,7 @@
 						type: 'dec',
 						label: '十进制',
 						value: '',
-						handler(text, fromRadix) {
+						convert(text, fromRadix) {
 							const regex = getRegexForRadix(fromRadix);
 							return text.replace(regex, num => {
 								const cleanedNum = stripPrefix(num, fromRadix);
@@ -249,7 +249,7 @@
 						type: 'bcd',
 						label: '二进制',
 						value: '',
-						handler(text, fromRadix) {
+						convert(text, fromRadix) {
 							const regex = getRegexForRadix(fromRadix);
 							return text.replace(regex, num => {
 								const cleanedNum = stripPrefix(num, fromRadix);
@@ -261,7 +261,7 @@
 						type: 'hex',
 						label: '十六进制',
 						value: '',
-						handler(text, fromRadix) {
+						convert(text, fromRadix) {
 							const regex = getRegexForRadix(fromRadix);
 							return text.replace(regex, num => {
 								const cleanedNum = stripPrefix(num, fromRadix);
@@ -273,7 +273,7 @@
 						type: 'oct',
 						label: '八进制',
 						value: '',
-						handler(text, fromRadix) {
+						convert(text, fromRadix) {
 							const regex = getRegexForRadix(fromRadix);
 							return text.replace(regex, num => {
 								const cleanedNum = stripPrefix(num, fromRadix);
@@ -293,7 +293,7 @@
 								options: ['零', '〇']
 							}
 						],
-						handler(text, fromRadix) {
+						convert(text, fromRadix) {
 							const regex = getRegexForRadix(fromRadix);
 							return text.replace(regex, num => {
 								const cleanedNum = stripPrefix(num, fromRadix);
@@ -315,7 +315,7 @@
 						type: 'CN-num',
 						label: '汉语数字',
 						value: '',
-						handler(text, fromRadix) {
+						convert(text, fromRadix) {
 							const regex = getRegexForRadix(fromRadix);
 							return text.replace(regex, num => {
 								const cleanedNum = stripPrefix(num, fromRadix);
@@ -327,7 +327,7 @@
 						type: 'CN-digit-upper',
 						label: '大写汉语数码',
 						value: '',
-						handler(text, fromRadix) {
+						convert(text, fromRadix) {
 							const regex = getRegexForRadix(fromRadix);
 							return text.replace(regex, num => {
 								const cleanedNum = stripPrefix(num, fromRadix);
@@ -339,7 +339,7 @@
 						type: 'CN-num-upper',
 						label: '大写汉语数字',
 						value: '',
-						handler(text, fromRadix) {
+						convert(text, fromRadix) {
 							const regex = getRegexForRadix(fromRadix);
 							return text.replace(regex, num => {
 								const cleanedNum = stripPrefix(num, fromRadix);
@@ -351,7 +351,7 @@
 						type: 'base62',
 						label: 'Base62',
 						value: '',
-						handler(text, fromRadix) {
+						convert(text, fromRadix) {
 							const regex = getRegexForRadix(fromRadix);
 							return text.replace(regex, num => {
 								const cleanedNum = stripPrefix(num, fromRadix);
@@ -363,7 +363,7 @@
 						type: 'standard-communication',
 						label: '标准通讯数字读音',
 						value: '',
-						handler(text, fromRadix) {
+						convert(text, fromRadix) {
 							const regex = getRegexForRadix(fromRadix);
 							return text.replace(regex, num => {
 								const cleanedNum = stripPrefix(num, fromRadix);
@@ -401,7 +401,7 @@
 				const fromRadix = radixMap[inputRadixString];
 				if (inputText) {
 					try {
-						result.value = result.handler.call(result, inputText, fromRadix);
+						result.value = result.convert.call(result, inputText, fromRadix);
 					} catch (e) {
 						console.error(`Error processing result for type: ${result.type}`, e);
 						result.value = '转换出错';
