@@ -238,9 +238,12 @@
 						label: '十进制',
 						value: '',
 						convert(text, fromRadix) {
+							if (fromRadix === 10) {
+								return text;
+							}
 							const regex = getRegexForRadix(fromRadix);
-							return text.replace(regex, num => {
-								const cleanedNum = stripPrefix(num, fromRadix);
+							return text.replace(regex, part => {
+								const cleanedNum = stripPrefix(part, fromRadix);
 								return convertToDecimal(cleanedNum, fromRadix);
 							});
 						}
@@ -250,10 +253,15 @@
 						label: '二进制',
 						value: '',
 						convert(text, fromRadix) {
+							if (fromRadix === 2) {
+								return text;
+							}
 							const regex = getRegexForRadix(fromRadix);
-							return text.replace(regex, num => {
-								const cleanedNum = stripPrefix(num, fromRadix);
-								return convertToBinary(cleanedNum, fromRadix);
+							return text.replace(regex, part => {
+								const cleanedNum = stripPrefix(part, fromRadix);
+								const decimal = convertToDecimal(cleanedNum, fromRadix);
+								return decimal ? parseInt(decimal).toString(2) : '';
+								// return convertToBinary(cleanedNum, fromRadix);
 							});
 						}
 					},
@@ -273,9 +281,12 @@
 							}
 						],
 						convert(text, fromRadix) {
+							if (fromRadix === 16) {
+								return text;
+							}
 							const regex = getRegexForRadix(fromRadix);
-							return text.replace(regex, num => {
-								const cleanedNum = stripPrefix(num, fromRadix);
+							return text.replace(regex, part => {
+								const cleanedNum = stripPrefix(part, fromRadix);
 								const converted = convertToHex(cleanedNum, fromRadix);
 								return this.settings.reduce((result, setting) => setting.handle(result), converted);
 							});
@@ -286,9 +297,12 @@
 						label: '八进制',
 						value: '',
 						convert(text, fromRadix) {
+							if (fromRadix === 8) {
+								return text;
+							}
 							const regex = getRegexForRadix(fromRadix);
-							return text.replace(regex, num => {
-								const cleanedNum = stripPrefix(num, fromRadix);
+							return text.replace(regex, part => {
+								const cleanedNum = stripPrefix(part, fromRadix);
 								return convertToOctal(cleanedNum, fromRadix);
 							});
 						}
@@ -310,8 +324,8 @@
 						],
 						convert(text, fromRadix) {
 							const regex = getRegexForRadix(fromRadix);
-							return text.replace(regex, num => {
-								const cleanedNum = stripPrefix(num, fromRadix);
+							return text.replace(regex, part => {
+								const cleanedNum = stripPrefix(part, fromRadix);
 								const converted = convertToChineseDigit(cleanedNum, fromRadix);
 								return this.settings.reduce((result, setting) => setting.handle(result), converted);
 							});
@@ -323,8 +337,8 @@
 						value: '',
 						convert(text, fromRadix) {
 							const regex = getRegexForRadix(fromRadix);
-							return text.replace(regex, num => {
-								const cleanedNum = stripPrefix(num, fromRadix);
+							return text.replace(regex, part => {
+								const cleanedNum = stripPrefix(part, fromRadix);
 								return ChineseNum.fromArabic(parseInt(convertToDecimal(cleanedNum, fromRadix), 10));
 							});
 						}
@@ -335,9 +349,9 @@
 						value: '',
 						convert(text, fromRadix) {
 							const regex = getRegexForRadix(fromRadix);
-							return text.replace(regex, num => {
-								const cleanedNum = stripPrefix(num, fromRadix);
-								return convertToChineseDigitUpper(cleanedNum, fromRadix);//todo:最终应该调用ChineseNum.digitsFromArabic(num,false);
+							return text.replace(regex, part => {
+								const cleanedNum = stripPrefix(part, fromRadix);
+								return convertToChineseDigitUpper(cleanedNum, fromRadix);//todo:最终应该调用ChineseNum.digitsFromArabic(part,false);
 							});
 						}
 					},
@@ -347,8 +361,8 @@
 						value: '',
 						convert(text, fromRadix) {
 							const regex = getRegexForRadix(fromRadix);
-							return text.replace(regex, num => {
-								const cleanedNum = stripPrefix(num, fromRadix);
+							return text.replace(regex, part => {
+								const cleanedNum = stripPrefix(part, fromRadix);
 								return convertToChineseNumberUpper(cleanedNum, fromRadix);
 							});
 						}
@@ -359,8 +373,8 @@
 						value: '',
 						convert(text, fromRadix) {
 							const regex = getRegexForRadix(fromRadix);
-							return text.replace(regex, num => {
-								const cleanedNum = stripPrefix(num, fromRadix);
+							return text.replace(regex, part => {
+								const cleanedNum = stripPrefix(part, fromRadix);
 								return base62ToDecimal(cleanedNum);
 							});
 						}
@@ -371,8 +385,8 @@
 						value: '',
 						convert(text, fromRadix) {
 							const regex = getRegexForRadix(fromRadix);
-							return text.replace(regex, num => {
-								const cleanedNum = stripPrefix(num, fromRadix);
+							return text.replace(regex, part => {
+								const cleanedNum = stripPrefix(part, fromRadix);
 								return convertToStandardCommunicationDigits(cleanedNum);
 							});
 						}
