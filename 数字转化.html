@@ -346,6 +346,30 @@
 								return convertToChineseNumberUpper(cleanedNum, fromRadix);
 							});
 						}
+					},
+					{
+						type: 'base62',
+						label: 'Base62',
+						value: '',
+						handler(text, fromRadix) {
+							const regex = getRegexForRadix(fromRadix);
+							return text.replace(regex, num => {
+								const cleanedNum = stripPrefix(num, fromRadix);
+								return base62ToDecimal(cleanedNum);
+							});
+						}
+					},
+					{
+						type: 'standard-communication',
+						label: '标准通讯数字读音',
+						value: '',
+						handler(text, fromRadix) {
+							const regex = getRegexForRadix(fromRadix);
+							return text.replace(regex, num => {
+								const cleanedNum = stripPrefix(num, fromRadix);
+								return convertToStandardCommunicationDigits(cleanedNum);
+							});
+						}
 					}
 				]
 			};
