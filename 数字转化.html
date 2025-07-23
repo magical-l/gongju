@@ -261,7 +261,6 @@
 								const cleanedNum = stripPrefix(part, fromRadix);
 								const decimal = convertToDecimal(cleanedNum, fromRadix);
 								return decimal ? parseInt(decimal).toString(2) : '';
-								// return convertToBinary(cleanedNum, fromRadix);
 							});
 						}
 					},
@@ -287,7 +286,8 @@
 							const regex = getRegexForRadix(fromRadix);
 							return text.replace(regex, part => {
 								const cleanedNum = stripPrefix(part, fromRadix);
-								const converted = convertToHex(cleanedNum, fromRadix);
+								const decimal = convertToDecimal(cleanedNum, fromRadix);
+								const converted = decimal ? parseInt(decimal).toString(16).toUpperCase() : '';
 								return this.settings.reduce((result, setting) => setting.handle(result), converted);
 							});
 						}
@@ -303,7 +303,8 @@
 							const regex = getRegexForRadix(fromRadix);
 							return text.replace(regex, part => {
 								const cleanedNum = stripPrefix(part, fromRadix);
-								return convertToOctal(cleanedNum, fromRadix);
+								const decimal = convertToDecimal(cleanedNum, fromRadix);
+								return decimal ? parseInt(decimal).toString(8) : '';
 							});
 						}
 					},
@@ -351,7 +352,7 @@
 							const regex = getRegexForRadix(fromRadix);
 							return text.replace(regex, part => {
 								const cleanedNum = stripPrefix(part, fromRadix);
-								return convertToChineseDigitUpper(cleanedNum, fromRadix);//todo:最终应该调用ChineseNum.digitsFromArabic(part,false);
+								return ChineseNum.digitsFromArabic(parseInt(part),false);
 							});
 						}
 					},
