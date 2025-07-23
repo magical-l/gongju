@@ -183,7 +183,7 @@
 					<choose-group v-for="setting in result.settings" :key="setting.name"
 												v-model="setting.val"
 												:options="setting.options"
-												@change="result.handle(inputText, inputRadix)"
+												@change="updateResult(result, inputText, inputRadix)"
 												@click.stop
 												class="chooser"/>
 				</div>
@@ -243,21 +243,6 @@
 								const cleanedNum = stripPrefix(num, fromRadix);
 								return convertToDecimal(cleanedNum, fromRadix);
 							});
-						},
-						handle(inputText, inputRadixString) {
-							const radixMap = {'十进制': 10, '二进制': 2, '十六进制': 16, '八进制': 8};
-							const fromRadix = radixMap[inputRadixString];
-
-							if (inputText) {
-								try {
-									this.value = this.handler.call(this, inputText, fromRadix);
-								} catch (e) {
-									console.error(`Error processing result for type: ${this.type}`, e);
-									this.value = '转换出错';
-								}
-							} else {
-								this.value = '';
-							}
 						}
 					},
 					{
@@ -270,21 +255,6 @@
 								const cleanedNum = stripPrefix(num, fromRadix);
 								return convertToBinary(cleanedNum, fromRadix);
 							});
-						},
-						handle(inputText, inputRadixString) {
-							const radixMap = {'十进制': 10, '二进制': 2, '十六进制': 16, '八进制': 8};
-							const fromRadix = radixMap[inputRadixString];
-
-							if (inputText) {
-								try {
-									this.value = this.handler.call(this, inputText, fromRadix);
-								} catch (e) {
-									console.error(`Error processing result for type: ${this.type}`, e);
-									this.value = '转换出错';
-								}
-							} else {
-								this.value = '';
-							}
 						}
 					},
 					{
@@ -297,21 +267,6 @@
 								const cleanedNum = stripPrefix(num, fromRadix);
 								return convertToHex(cleanedNum, fromRadix);
 							});
-						},
-						handle(inputText, inputRadixString) {
-							const radixMap = {'十进制': 10, '二进制': 2, '十六进制': 16, '八进制': 8};
-							const fromRadix = radixMap[inputRadixString];
-
-							if (inputText) {
-								try {
-									this.value = this.handler.call(this, inputText, fromRadix);
-								} catch (e) {
-									console.error(`Error processing result for type: ${this.type}`, e);
-									this.value = '转换出错';
-								}
-							} else {
-								this.value = '';
-							}
 						}
 					},
 					{
@@ -324,21 +279,6 @@
 								const cleanedNum = stripPrefix(num, fromRadix);
 								return convertToOctal(cleanedNum, fromRadix);
 							});
-						},
-						handle(inputText, inputRadixString) {
-							const radixMap = {'十进制': 10, '二进制': 2, '十六进制': 16, '八进制': 8};
-							const fromRadix = radixMap[inputRadixString];
-
-							if (inputText) {
-								try {
-									this.value = this.handler.call(this, inputText, fromRadix);
-								} catch (e) {
-									console.error(`Error processing result for type: ${this.type}`, e);
-									this.value = '转换出错';
-								}
-							} else {
-								this.value = '';
-							}
 						}
 					},
 					{
@@ -369,21 +309,6 @@
 								}
 								return resultValue;
 							});
-						},
-						handle(inputText, inputRadixString) {
-							const radixMap = {'十进制': 10, '二进制': 2, '十六进制': 16, '八进制': 8};
-							const fromRadix = radixMap[inputRadixString];
-
-							if (inputText) {
-								try {
-									this.value = this.handler.call(this, inputText, fromRadix);
-								} catch (e) {
-									console.error(`Error processing result for type: ${this.type}`, e);
-									this.value = '转换出错';
-								}
-							} else {
-								this.value = '';
-							}
 						}
 					},
 					{
@@ -396,21 +321,6 @@
 								const cleanedNum = stripPrefix(num, fromRadix);
 								return ChineseNum.fromArabic(parseInt(convertToDecimal(cleanedNum, fromRadix), 10));
 							});
-						},
-						handle(inputText, inputRadixString) {
-							const radixMap = {'十进制': 10, '二进制': 2, '十六进制': 16, '八进制': 8};
-							const fromRadix = radixMap[inputRadixString];
-
-							if (inputText) {
-								try {
-									this.value = this.handler.call(this, inputText, fromRadix);
-								} catch (e) {
-									console.error(`Error processing result for type: ${this.type}`, e);
-									this.value = '转换出错';
-								}
-							} else {
-								this.value = '';
-							}
 						}
 					},
 					{
@@ -423,21 +333,6 @@
 								const cleanedNum = stripPrefix(num, fromRadix);
 								return convertToChineseDigitUpper(cleanedNum, fromRadix);//todo:最终应该调用ChineseNum.digitsFromArabic(num,false);
 							});
-						},
-						handle(inputText, inputRadixString) {
-							const radixMap = {'十进制': 10, '二进制': 2, '十六进制': 16, '八进制': 8};
-							const fromRadix = radixMap[inputRadixString];
-
-							if (inputText) {
-								try {
-									this.value = this.handler.call(this, inputText, fromRadix);
-								} catch (e) {
-									console.error(`Error processing result for type: ${this.type}`, e);
-									this.value = '转换出错';
-								}
-							} else {
-								this.value = '';
-							}
 						}
 					},
 					{
@@ -450,21 +345,6 @@
 								const cleanedNum = stripPrefix(num, fromRadix);
 								return convertToChineseNumberUpper(cleanedNum, fromRadix);
 							});
-						},
-						handle(inputText, inputRadixString) {
-							const radixMap = {'十进制': 10, '二进制': 2, '十六进制': 16, '八进制': 8};
-							const fromRadix = radixMap[inputRadixString];
-
-							if (inputText) {
-								try {
-									this.value = this.handler.call(this, inputText, fromRadix);
-								} catch (e) {
-									console.error(`Error processing result for type: ${this.type}`, e);
-									this.value = '转换出错';
-								}
-							} else {
-								this.value = '';
-							}
 						}
 					}
 				]
@@ -488,12 +368,23 @@
 				toastr.success('已复制到剪贴板');
 			},
 			processInput() {
-				const radixMap = {'十进制': 10, '二进制': 2, '十六进制': 16, '八进制': 8};
-				const fromRadix = radixMap[this.inputRadix];
-
 				this.results.forEach(result => {
-					result.handle(this.inputText, this.inputRadix);
+					this.updateResult(result, this.inputText, this.inputRadix);
 				});
+			},
+			updateResult(result, inputText, inputRadixString) {
+				const radixMap = {'十进制': 10, '二进制': 2, '十六进制': 16, '八进制': 8};
+				const fromRadix = radixMap[inputRadixString];
+				if (inputText) {
+					try {
+						result.value = result.handler.call(result, inputText, fromRadix);
+					} catch (e) {
+						console.error(`Error processing result for type: ${result.type}`, e);
+						result.value = '转换出错';
+					}
+				} else {
+					result.value = '';
+				}
 			},
 			asInput(val) {
 				this.inputText = val;
@@ -503,14 +394,13 @@
 		mounted() {
 			this.processInput();
 		}
-	});
-
-	app.use(PrimeVue.Config, {
+	})
+	.use(PrimeVue.Config, {
 		theme: {
 			preset: PrimeUIX.Themes.Aura
 		}
-	});
-	app.mount('main');
+	})
+	.mount('main');
 </script>
 </body>
 </html>
