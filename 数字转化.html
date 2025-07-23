@@ -261,11 +261,23 @@
 						type: 'hex',
 						label: '十六进制',
 						value: '',
+						settings: [
+							{
+								name: 'case',
+								label: '大小写',
+								val: '大写',
+								options: ['大写', '小写'],
+								handle(s) {
+									return this.val === '大写' ? s.toUpperCase() : s.toLowerCase();
+								}
+							}
+						],
 						convert(text, fromRadix) {
 							const regex = getRegexForRadix(fromRadix);
 							return text.replace(regex, num => {
 								const cleanedNum = stripPrefix(num, fromRadix);
-								return convertToHex(cleanedNum, fromRadix);
+								const converted = convertToHex(cleanedNum, fromRadix);
+								return this.settings.reduce((result, setting) => setting.handle(result), converted);
 							});
 						}
 					},
@@ -290,24 +302,18 @@
 								name: 'zeroMode',
 								label: '零的模式',
 								val: '零',
-								options: ['零', '〇']
+								options: ['零', '〇'],
+								handle(s) {
+									return this.val === '〇' ? s.replace(/零/g, '〇') : s;
+								}
 							}
 						],
 						convert(text, fromRadix) {
 							const regex = getRegexForRadix(fromRadix);
 							return text.replace(regex, num => {
 								const cleanedNum = stripPrefix(num, fromRadix);
-								let resultValue = convertToChineseDigit(cleanedNum, fromRadix);
-								if (this.settings) {
-									this.settings.forEach(setting => {
-										const selectedOption = setting.val;
-										const otherOptions = setting.options.filter(opt => opt !== selectedOption);
-										otherOptions.forEach(otherOption => {
-											resultValue = resultValue.replace(new RegExp(otherOption, 'g'), selectedOption);
-										});
-									});
-								}
-								return resultValue;
+								const converted = convertToChineseDigit(cleanedNum, fromRadix);
+								return this.settings.reduce((result, setting) => setting.handle(result), converted);
 							});
 						}
 					},
