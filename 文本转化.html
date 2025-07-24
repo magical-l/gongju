@@ -295,6 +295,24 @@
 	const {createApp} = Vue;
 
 	const results = {
+		'MD5': {
+			value: '',
+			convert: md5
+		},
+		'Base64编码': {
+			value: '',
+			convert: Base64.encode
+		},
+		'Base64解码': {
+			value: '',
+			convert: str => {
+				try {
+					return Base64.decode(str)
+				} catch (e) {
+					return '非Base64编码';
+				}
+			}
+		},
 		'URI编码': {
 			value: '',
 			convert: encodeURI
@@ -310,18 +328,6 @@
 		'URI参数解码': {
 			value: '',
 			convert: decodeURIComponent
-		},
-		'Base64编码': {
-			value: '',
-			convert: str => Base64.encode(str)
-		},
-		'Base64解码': {
-			value: '',
-			convert: str => Base64.decode(str)
-		},
-		'MD5': {
-			value: '',
-			convert: md5
 		}
 	};
 
