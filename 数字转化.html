@@ -168,6 +168,10 @@
 				flex-basis: 100%;
 			}
 		}
+
+		.note strong {
+			color: red;
+		}
 	</style>
 </head>
 <body>
@@ -190,7 +194,11 @@
 
 	<section class="result area">
 		<header>
-			* 点击数值即可复制。 * 超出进制的数字会被当作普通字符。
+			<span class="note">* 点击数值即可复制。</span>
+			<span class="note" v-if="inputRadix==='二进制'"> * 除<strong>0、1</strong>外其他数字会被当作普通字符</span>
+			<span class="note" v-if="inputRadix==='八进制'"> * <strong>8、9</strong>会被当作普通字符</span>
+			<span class="note"
+						v-if="inputRadix==='十六进制'"> * <strong>a、b、c、d、e、f（不分大小写）</strong>会被当作数字字符</span>
 		</header>
 		<card class="one result" @click="copyToClipboard(result.value)"
 					v-for="(result,label) in results" :key="result.type">
