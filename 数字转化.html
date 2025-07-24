@@ -50,11 +50,24 @@
 			border-bottom: 2px solid #007bff;
 		}
 
+		.input.area {
+			flex-basis: 100%;
+			position: relative;
+		}
+
 		.input.area textarea {
 			width: 100%;
 			min-height: 100px;
 			height: 100px;
 			box-sizing: border-box;
+			padding-bottom: 40px;
+		}
+
+		.input.area .input.radix.chooser {
+			position: absolute;
+			bottom: 10px;
+			right: 10px;
+			z-index: 1;
 		}
 
 		.setting.area {
@@ -74,7 +87,7 @@
 			display: grid;
 			grid-template-columns: repeat(3, 1fr);
 			align-items: start;
-			gap: 1rem; /* Use gap for both row and column spacing */
+			gap: 1rem;
 		}
 
 		.result.area > header {
@@ -129,13 +142,13 @@
 		}
 
 		.chooser.p-selectbutton button {
-			padding: 0.1rem 0.3rem; /* Smaller padding */
-			font-size: 0.8rem; /* Smaller font size */
-			min-width: 2rem; /* Adjust min-width */
+			padding: 0.1rem 0.3rem;
+			font-size: 0.8rem;
+			min-width: 2rem;
 		}
 
 		.chooser.p-selectbutton button .p-togglebutton-label {
-			font-weight: normal; /* Lighter font weight */
+			font-weight: normal;
 		}
 
 		@media (max-width: 768px) {
@@ -160,20 +173,17 @@
 	</header>
 
 	<section class="input area">
-		<p-textarea placeholder="在此输入要处理的文本" v-model="inputText" @input="processInput" rows="5"
-								autoResize></p-textarea>
-		<toolbar>
-			<template #end>
-				<choose-group v-model="inputRadix" :options="radixOptions" @change="processInput"></choose-group>
-			</template>
-		</toolbar>
+		<div style="position: relative;">
+			<p-textarea placeholder="在此输入要处理的文本，转换文本中的数字，其他字符保留。" rows="5" autoResize
+									v-model="inputText" @input="processInput"></p-textarea>
+			<choose-group class="input radix chooser" v-model="inputRadix" :options="radixOptions"
+										@change="processInput"></choose-group>
+		</div>
 	</section>
 
 	<section class="result area">
 		<header>
 			点击数值即可复制
-			|
-			数字数位过多可能会有精度问题
 		</header>
 		<card class="one result" @click="copyToClipboard(result.value)"
 					v-for="(result,label) in results" :key="result.type">
