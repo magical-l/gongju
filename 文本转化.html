@@ -1,112 +1,300 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
 <head>
 	<meta charset="UTF-8">
-	<title>文本转化</title>
+	<title itemprop="name">文本格式转换</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="description" content="在线文本处理工具，支持URI编码解码、Base64转换、MD5加密、进制转换等功能">
-	<meta name="keywords" content="文本处理,URI编码,Base64,MD5,进制转换">
-	<meta name="author" content="文本转化">
+	<meta name="description" content="在线文本格式转换工具，支持URI编码解码、Base64转换、MD5加密、进制转换等功能"
+				itemprop="description">
+	<meta name="keywords" content="文本格式转换,URI编码,Base64,MD5,进制转换">
+	<meta name="author" content="文本格式转换">
 
 	<!-- 预加载关键资源 -->
-	<link rel="preload" href="resources/style.css?v=0229b" as="style">
 	<link rel="preload" href="lib/jquery-3.4.1.min.js" as="script">
+	<link rel="preload" href="https://unpkg.com/vue@3/dist/vue.global.js" as="script">
+	<link rel="preload" href="https://unpkg.com/primevue/umd/primevue.min.js" as="script">
+	<link rel="preload" href="https://unpkg.com/@primeuix/themes/umd/aura.js" as="script">
 
-	<!-- 样式表 -->
 	<link href="https://cdn.jsdelivr.net/npm/primeicons/primeicons.css" rel="stylesheet">
 	<link href="lib/toastr.min.css?v=0204a" rel="stylesheet">
 	<link href="lib/iconfont/iconfont.css" rel="stylesheet">
 	<link href="resources/style.css?v=0229b" rel="stylesheet">
+	<style>
+		body {
+			font-family: sans-serif;
+			display: flex;
+			flex-direction: column;
+			min-height: 100vh;
+		}
+
+		main {
+			flex: 1;
+			display: flex;
+			flex-wrap: wrap;
+			align-items: start;
+			gap: 1rem;
+		}
+
+		footer {
+			margin-top: 2rem;
+			padding: 1rem;
+			background-color: #f8f9fa;
+			color: #6c757d;
+			text-align: center;
+			font-size: 0.85rem;
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			align-items: center;
+			gap: 1rem;
+		}
+
+		footer .qr-code {
+			margin: 1rem auto;
+			width: 100px;
+			height: auto;
+			background-color: #e9ecef;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			font-style: italic;
+			padding: 5px;
+		}
+
+		footer .qr-code img {
+			max-width: 100%;
+			height: auto;
+			margin-bottom: 5px;
+		}
+
+		footer .qr-code span {
+			font-size: 0.75rem;
+			color: #333;
+		}
+
+		footer p {
+			margin-bottom: 0.5rem;
+		}
+
+		footer a {
+			color: #007bff;
+			text-decoration: none;
+		}
+
+		footer a:hover {
+			text-decoration: underline;
+		}
+
+		header,
+		.input.area {
+			flex-basis: 100%;
+		}
+
+		main > header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		main nav a {
+			margin-left: 1rem;
+			text-decoration: none;
+			color: #333;
+		}
+
+		main nav a.nav-link.active {
+			font-weight: bold;
+			border-bottom: 2px solid #007bff;
+		}
+
+		.input.area {
+			flex-basis: 100%;
+			position: relative;
+		}
+
+		.input.area textarea {
+			width: 100%;
+			min-height: 100px;
+			height: 100px;
+			box-sizing: border-box;
+			padding-bottom: 40px;
+		}
+
+		.input.area .input.radix.chooser {
+			position: absolute;
+			bottom: 10px;
+			right: 10px;
+			z-index: 1;
+		}
+
+		.setting.area {
+			flex: 1;
+			min-width: 280px;
+		}
+
+		.one.setting {
+			display: flex;
+			align-items: center;
+			gap: 1rem;
+			margin-bottom: 1rem;
+		}
+
+		.result.area {
+			flex: 4;
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			align-items: start;
+			gap: 1rem;
+		}
+
+		.result.area > header {
+			grid-column: 1 / -1;
+			color: #666;
+			font-style: italic;
+		}
+
+		.one.result {
+			cursor: pointer;
+			transition: background-color 0.2s;
+		}
+
+		.one.result:hover {
+			background-color: #f0f8ff;
+		}
+
+		.one.result header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			width: 100%;
+		}
+
+		.one.result article {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.one.result .p-card-body {
+			padding: 0.75rem;
+		}
+
+		.one.result .p-card-content {
+			padding: 0;
+		}
+
+		.one.result .p-card-title {
+			font-size: 1rem;
+			margin-bottom: 0.25rem;
+		}
+
+		.one.result .p-button {
+			height: auto;
+			padding: 0.2rem 0.4rem;
+		}
+
+		.one.result .value {
+			max-width: 300px;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		.one.result .placeholder {
+			color: #6c757d;
+			font-style: italic;
+		}
+
+		@media (max-width: 1024px) {
+			.result.area {
+				grid-template-columns: repeat(2, 1fr);
+			}
+		}
+
+		.chooser.p-selectbutton button {
+			padding: 0.1rem 0.3rem;
+			font-size: 0.8rem;
+			min-width: 2rem;
+		}
+
+		.chooser.p-selectbutton button .p-togglebutton-label {
+			font-weight: normal;
+		}
+
+		@media (max-width: 768px) {
+			.result.area {
+				flex-basis: 100%;
+				grid-template-columns: 1fr;
+			}
+
+			.setting.area {
+				flex-basis: 100%;
+			}
+		}
+
+		.note strong {
+			color: red;
+		}
+	</style>
 </head>
 <body>
-	<header class="header">
-		<nav class="nav">
-			<a class="nav-link active" href="文本转化.html">文本转化</a>
-			<a class="nav-link" href="数字转化.html">数字转化</a>
+<main>
+	<header>
+		<nav>
+			<a href="文本转化.html" class="active">文本转化</a>
+			<a href="数字转化.html">数字转化</a>
 		</nav>
 	</header>
-	<main class="container">
-		<!-- 上方输入区域 -->
-		<div class="input-section">
-			<div class="card">
-				<div class="card-body">
-					<textarea class="source input" placeholder="在此输入要处理的文本" aria-label="输入要处理的文本"></textarea>
-				</div>
-			</div>
-		</div>
 
-		<!-- 文本处理区域 -->
-		<div class="content-area">
-			<div class="card">
-				<div class="card-body">
-					<div class="process-row encode-uri area">
-						<div class="label">URI编码</div>
-						<div class="input-group">
-							<input class="result output" readonly>
-							<button class="copy-btn copy result" aria-label="复制结果">
-								<i class="pi pi-copy"></i>
-							</button>
-						</div>
-					</div>
-					<div class="process-row decode-uri area">
-						<div class="label">URI解码</div>
-						<div class="input-group">
-							<input class="result output" readonly>
-							<button class="copy-btn copy result" aria-label="复制结果">
-								<i class="pi pi-copy"></i>
-							</button>
-						</div>
-					</div>
-					<div class="process-row encode-uri-part area">
-						<div class="label">URI参数编码</div>
-						<div class="input-group">
-							<input class="result output" readonly>
-							<button class="copy-btn copy result" aria-label="复制结果">
-								<i class="pi pi-copy"></i>
-							</button>
-						</div>
-					</div>
-					<div class="process-row decode-uri-part area">
-						<div class="label">URI参数解码</div>
-						<div class="input-group">
-							<input class="result output" readonly>
-							<button class="copy-btn copy result" aria-label="复制结果">
-								<i class="pi pi-copy"></i>
-							</button>
-						</div>
-					</div>
-					<div class="process-row encode-base64 area">
-						<div class="label">base64编码</div>
-						<div class="input-group">
-							<input class="result output" readonly>
-							<button class="copy-btn copy result" aria-label="复制结果">
-								<i class="pi pi-copy"></i>
-							</button>
-						</div>
-					</div>
-					<div class="process-row decode-base64 area">
-						<div class="label">base64解码</div>
-						<div class="input-group">
-							<input class="result output" readonly>
-							<button class="copy-btn copy result" aria-label="复制结果">
-								<i class="pi pi-copy"></i>
-							</button>
-						</div>
-					</div>
-					<div class="process-row md5 area">
-						<div class="label">md5</div>
-						<div class="input-group">
-							<input class="result output" readonly>
-							<button class="copy-btn copy result" aria-label="复制结果">
-								<i class="pi pi-copy"></i>
-							</button>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</main>
+	<section class="input area">
+		<p-textarea placeholder="在此输入要处理的文本" rows="5" autoResize
+								v-model="inputText" @input="processInput"></p-textarea>
+	</section>
 
+	<section class="result area">
+		<header>
+			点击文本即可复制
+		</header>
+		<card class="one result" @click="copyToClipboard(result.value)" v-for="(result,label) in results" :key="label">
+			<template #title>
+				<header>
+					<span>{{ label }}</span>
+					<span>
+						<choose-group class="chooser" v-for="(setting,settingName) in result.settings" :key="settingName"
+													v-model="setting.val" :options="setting.options"
+													@click.stop @change="updateResult(result, inputText)"/>
+					</span>
+				</header>
+			</template>
+			<template #content>
+				<article title="点击复制" v-if="result.value">
+					<span class="value">{{result.value}}</span>
+					<p-button title="把此结果作为输入" aria-label="把此结果作为输入" @click.stop="asInput(result.value)"
+										variant="outlined" serverity="info">
+						<i class="pi pi-upload"></i>
+					</p-button>
+				</article>
+				<div v-else class="placeholder">（等待输入）</div>
+			</template>
+		</card>
+	</section>
+</main>
+<footer>
+	<div class="qr-code">
+		<img src="resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+		<span>赞助一下</span>
+	</div>
+	<div>
+		<p>&copy; 2025 文本格式转换工具. All rights reserved.</p>
+		<p>一个简单实用的在线文本格式转换工具，支持URI编码解码、Base64转换、MD5加密等功能，助您高效处理文本数据。</p>
+		<p>反馈或建议请联系：<a href="mailto:lwj621@sohu.com">lwj621@sohu.com</a></p>
+	</div>
+</footer>
+<div>
+	<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+	<script src="https://unpkg.com/primevue/umd/primevue.min.js"></script>
+	<script src="https://unpkg.com/@primeuix/themes/umd/aura.js"></script>
 	<script src="lib/jquery-3.4.1.min.js"></script>
 	<script src="lib/toastr.min.js"></script>
 	<script src="resources/util.js"></script>
@@ -114,115 +302,105 @@
 	<script src="resources/ue.js"></script>
 	<script src="resources/math.js"></script>
 	<script src="lib/base64.js"></script>
-	<script>
-		const funcMap = toMap({
-			'encode-uri': encodeURI,
-			'decode-uri': decodeURI,
-			'encode-uri-part': encodeURIComponent,
-			'decode-uri-part': decodeURIComponent,
-			'encode-base64': encodeBase64,
-			'decode-base64': decodeBase64,
-			'md5': md5,
-			'dec': input => transRadix(input, 10, $('#input-radix').val()),
-			'bcd': input => transRadix(input, 2, $('#input-radix').val()),
-			'hex': input => transRadix(input, 16, $('#input-radix').val()),
-			'oct': input => transRadix(input, 8, $('#input-radix').val()),
-			'CN-digit': ChineseNum.digitsFromArabic,
-			'CN-num': ChineseNum.fromArabic,
-			'CN-digit-upper': input => ChineseNum.toUpperCase(ChineseNum.digitsFromArabic(input)),
-			'CN-num-upper': input => ChineseNum.toUpperCase(ChineseNum.fromArabic(input))
-		});
+</div>
+<script>
+	const {createApp} = Vue;
 
-		// 复制功能
-		async function copyToClipboard(text) {
-			try {
-				// 优先使用现代Clipboard API
-				if (navigator.clipboard && window.isSecureContext) {
-					await navigator.clipboard.writeText(text);
-					return true;
-				}
-				// 降级到传统方法
-				const textArea = document.createElement('textarea');
-				textArea.value = text;
-				textArea.style.position = 'fixed';
-				textArea.style.left = '-999999px';
-				textArea.style.top = '-999999px';
-				document.body.appendChild(textArea);
-				textArea.focus();
-				textArea.select();
-				const result = document.execCommand('copy');
-				document.body.removeChild(textArea);
-				return result;
-			} catch (err) {
-				console.error('复制失败:', err);
-				return false;
-			}
+	const results = {
+		'URI编码': {
+			value: '',
+			convert: encodeURI
+		},
+		'URI解码': {
+			value: '',
+			convert: decodeURI
+		},
+		'URI参数编码': {
+			value: '',
+			convert: encodeURIComponent
+		},
+		'URI参数解码': {
+			value: '',
+			convert: decodeURIComponent
+		},
+		'Base64编码': {
+			value: '',
+			convert: encodeBase64
+		},
+		'Base64解码': {
+			value: '',
+			convert: decodeBase64
+		},
+		'MD5': {
+			value: '',
+			convert: md5
 		}
+	};
 
-		$(() => {
-			const inputArea = $('.source.input');
-
-			// 防抖函数
-			function debounce(func, wait) {
-				let timeout;
-				return function executedFunction(...args) {
-					const later = () => {
-						clearTimeout(timeout);
-						func(...args);
-					};
-					clearTimeout(timeout);
-					timeout = setTimeout(later, wait);
-				};
-			}
-
-			// 处理输入变化的函数
-			function processInput() {
-				const input = inputArea.val();
-				funcMap.forEach((func, funcName) => {
-					const outputArea = $('.' + funcName + '.area');
-					let v;
-					try {
-						v = func(input);
-					} catch (e) {
-						console.warn(`处理 ${funcName} 时出错:`, e);
-						v = '';
-					}
-					outputArea.find('.result.output').content(v).attr('title', v);
-				});
-			}
-
-			// 使用防抖处理输入变化，提升性能
-			const debouncedProcessInput = debounce(processInput, 200);
-			inputArea.on('input propertychange', debouncedProcessInput);
-			$('#input-radix').on('change', () => {
-				if (inputArea.val()) {
-					processInput(); // 直接调用，不使用防抖
+	const app = createApp({
+		components: {
+			'choose-group': PrimeVue.SelectButton,
+			'p-button': PrimeVue.Button,
+			'p-textarea': PrimeVue.Textarea,
+			'p-fieldset': PrimeVue.Fieldset,
+			'card': PrimeVue.Card,
+			'toolbar': PrimeVue.Toolbar,
+			'p-checkbox': PrimeVue.Checkbox
+		},
+		data() {
+			return {
+				inputText: '',
+				results
+			};
+		},
+		methods: {
+			async copyToClipboard(text) {
+				if (!text) {
+					return;
 				}
-			});
-			funcMap.forEach((func, funcName) => {
-				const outputArea = $('.' + funcName + '.area');
-				const contentContainer = outputArea.find('.result.output');
-				outputArea.find('.copy.result.btn').click(async () => {
-					let isDisabled = false;
-					if (contentContainer.is(':disabled')) {
-						contentContainer.prop('disabled', false);
-						isDisabled = true;
-					}
-					contentContainer.select();
-					const success = await copyToClipboard(contentContainer.val());
-					if (success) {
-						successNotice('已复制。');
-					} else {
-						warnNotice('未复制成功。请手动复制。')
-					}
-					if (isDisabled) {
-						contentContainer.prop('disabled', true);
-					}
+				try {
+					await navigator.clipboard.writeText(text);
+				} catch (err) {
+					const textArea = document.createElement('textarea');
+					textArea.value = text;
+					document.body.appendChild(textArea);
+					textArea.select();
+					document.execCommand('copy');
+					document.body.removeChild(textArea);
+				}
+				toastr.success('已复制到剪贴板');
+			},
+			processInput() {
+				Object.values(this.results).forEach(result => {
+					this.updateResult(result, this.inputText);
 				});
-			});
-
-			// 工具提示已经使用原生title属性，无需额外初始化
-		});
-	</script>
+			},
+			updateResult(result, inputText) {
+				if (inputText) {
+					try {
+						result.value = result.convert.call(result, inputText);
+					} catch (e) {
+						console.error(`Error processing result:`, e);
+						result.value = '转换出错';
+					}
+				} else {
+					result.value = '';
+				}
+			},
+			asInput(val) {
+				this.inputText = val;
+				this.processInput();
+			}
+		},
+		mounted() {
+			this.processInput();
+		}
+	})
+	.use(PrimeVue.Config, {
+		theme: {
+			preset: PrimeUIX.Themes.Aura
+		}
+	})
+	.mount('main');
+</script>
 </body>
-</html>

@@ -167,6 +167,12 @@
 			width: 100%;
 		}
 
+		.one.result article {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
 		.one.result .p-card-body {
 			padding: 0.75rem;
 		}
@@ -239,12 +245,10 @@
 	</header>
 
 	<section class="input area">
-		<div style="position: relative;">
-			<p-textarea placeholder="在此输入要处理的文本，处理文本中的数字，非数字字符保留原样。" rows="5" autoResize
-									v-model="inputText" @input="processInput"></p-textarea>
-			<choose-group class="input radix chooser" v-model="inputRadix" :options="radixOptions"
-										@change="processInput"></choose-group>
-		</div>
+		<p-textarea placeholder="在此输入要处理的文本，处理文本中的数字，非数字字符保留原样。" rows="5" autoResize
+								v-model="inputText" @input="processInput"></p-textarea>
+		<choose-group class="input radix chooser" v-model="inputRadix" :options="radixOptions"
+									@change="processInput"></choose-group>
 	</section>
 
 	<section class="result area">
@@ -255,8 +259,7 @@
 			<span class="note"
 						v-if="inputRadix==='十六进制'"> * <strong>a、b、c、d、e、f（不分大小写）</strong>会被当作数字字符</span>
 		</header>
-		<card class="one result" @click="copyToClipboard(result.value)"
-					v-for="(result,label) in results" :key="result.type">
+		<card class="one result" @click="copyToClipboard(result.value)" v-for="(result,label) in results" :key="label">
 			<template #title>
 				<header>
 					<span>{{ label }}</span>
@@ -268,14 +271,13 @@
 				</header>
 			</template>
 			<template #content>
-				<div title="点击复制" v-if="result.value"
-						 style="display: flex; justify-content: space-between; align-items: center;">
+				<article title="点击复制" v-if="result.value">
 					<span class="value">{{result.value}}</span>
 					<p-button title="把此结果作为输入" aria-label="把此结果作为输入" @click.stop="asInput(result.value)"
 										variant="outlined" serverity="info">
 						<i class="pi pi-upload"></i>
 					</p-button>
-				</div>
+				</article>
 				<div v-else class="placeholder">（等待输入）</div>
 			</template>
 		</card>
@@ -413,7 +415,7 @@
 				return ChineseNum.toUpperCase(results['汉语数字'].convert(text, fromRadix));
 			}
 		},
-		
+
 		'标准通讯数字读法': {
 			value: '',
 			convert(text, fromRadix) {
