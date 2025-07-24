@@ -1,0 +1,34 @@
+.template {
+    display: none;
+}
+
+.hidden {
+    display: none;
+}
+
+.scrollbar-for-overflow-x {
+    overflow-x: scroll;
+}
+
+.text-maybe-too-long {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.text-maybe-too-long:hover {
+    overflow: visible;
+    text-overflow: inherit;
+}
+
+.disabled {
+    pointer-events: none;
+}
+
+.text-vertical-center {
+    vertical-align: middle !important;
+}
+
+.brace-right {
+    border-right: 1px;
+    border-right-style: dashed;
+}
