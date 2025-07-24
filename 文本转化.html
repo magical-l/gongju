@@ -103,7 +103,7 @@
 			color: #333;
 		}
 
-		main nav a.nav-link.active {
+		main nav a.active {
 			font-weight: bold;
 			border-bottom: 2px solid #007bff;
 		}
@@ -119,13 +119,6 @@
 			height: 100px;
 			box-sizing: border-box;
 			padding-bottom: 40px;
-		}
-
-		.input.area .input.radix.chooser {
-			position: absolute;
-			bottom: 10px;
-			right: 10px;
-			z-index: 1;
 		}
 
 		.setting.area {
@@ -150,8 +143,6 @@
 
 		.result.area > header {
 			grid-column: 1 / -1;
-			color: #666;
-			font-style: italic;
 		}
 
 		.one.result {
@@ -232,10 +223,6 @@
 				flex-basis: 100%;
 			}
 		}
-
-		.note strong {
-			color: red;
-		}
 	</style>
 </head>
 <body>
@@ -302,6 +289,7 @@
 	<script src="resources/ue.js"></script>
 	<script src="resources/math.js"></script>
 	<script src="lib/base64.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/js-md5@0.8.3/src/md5.min.js"></script>
 </div>
 <script>
 	const {createApp} = Vue;
@@ -325,11 +313,11 @@
 		},
 		'Base64编码': {
 			value: '',
-			convert: encodeBase64
+			convert: str => Base64.encode(str)
 		},
 		'Base64解码': {
 			value: '',
-			convert: decodeBase64
+			convert: str => Base64.decode(str)
 		},
 		'MD5': {
 			value: '',

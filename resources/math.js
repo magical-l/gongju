@@ -1,10 +1,4 @@
-/**
- * MD5算法实现
- */
-const MD5 = (() => {
-	// ... (MD5 implementation remains unchanged)
-})();
-const md5 = input => MD5.hash(input);
+
 
 /**
  * 汉语数字转换的核心定义和函数
