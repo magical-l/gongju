@@ -105,6 +105,13 @@
 			background-color: #f0f8ff;
 		}
 
+		.one.result header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			width: 100%;
+		}
+
 		.one.result .p-card-body {
 			padding: 0.75rem;
 		}
@@ -183,20 +190,17 @@
 
 	<section class="result area">
 		<header>
-			点击数值即可复制
+			* 点击数值即可复制。 * 超出进制的数字会被当作普通字符。
 		</header>
 		<card class="one result" @click="copyToClipboard(result.value)"
 					v-for="(result,label) in results" :key="result.type">
 			<template #title>
-				<div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+				<header>
 					<span>{{ label }}</span>
-					<choose-group v-for="setting in result.settings" :key="setting.name"
-												v-model="setting.val"
-												:options="setting.options"
-												@change="updateResult(result, inputText, inputRadix)"
-												@click.stop
-												class="chooser"/>
-				</div>
+					<choose-group class="chooser" v-for="setting in result.settings" :key="setting.name"
+												v-model="setting.val" :options="setting.options"
+												@click.stop @change="updateResult(result, inputText, inputRadix)"/>
+				</header>
 			</template>
 			<template #content>
 				<div title="点击复制" v-if="result.value"
@@ -349,7 +353,7 @@
 				});
 			}
 		},
-		'标准通讯数字读音': {
+		'标准通讯数字读法': {
 			value: '',
 			convert(text, fromRadix) {
 				const regex = getRegexForRadix(fromRadix);
