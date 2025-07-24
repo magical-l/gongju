@@ -197,7 +197,7 @@
 			<template #title>
 				<header>
 					<span>{{ label }}</span>
-					<choose-group class="chooser" v-for="setting in result.settings" :key="setting.name"
+					<choose-group class="chooser" v-for="(setting,settingName) in result.settings" :key="settingName"
 												v-model="setting.val" :options="setting.options"
 												@click.stop @change="updateResult(result, inputText, inputRadix)"/>
 				</header>
@@ -261,17 +261,15 @@
 		},
 		'十六进制': {
 			value: '',
-			settings: [
-				{
-					name: 'case',
-					label: '大小写',
+			settings: {
+				'大小写': {
 					val: '大写',
 					options: ['大写', '小写'],
 					handle(s) {
 						return this.val === '大写' ? s.toUpperCase() : s.toLowerCase();
 					}
 				}
-			],
+			},
 			convert(text, fromRadix) {
 				if (fromRadix === 16) {
 					return text;
@@ -281,7 +279,7 @@
 					const cleanedNum = stripPrefix(part, fromRadix);
 					const decimal = convertToDecimal(cleanedNum, fromRadix);
 					const converted = decimal ? parseInt(decimal).toString(16).toUpperCase() : '';
-					return this.settings.reduce((result, setting) => setting.handle(result), converted);
+					return Object.values(this.settings).reduce((result, setting) => setting.handle(result), converted);
 				});
 			}
 		},
@@ -301,21 +299,19 @@
 		},
 		'汉语数码': {
 			value: '',
-			settings: [
-				{
-					name: 'zeroMode',
-					label: '零的模式',
+			settings: {
+				'零的模式': {
 					val: '零',
 					options: ['零', '〇'],
 					handle(s) {
 						return this.val === '〇' ? s.replace(/零/g, '〇') : s;
 					}
 				}
-			],
+			},
 			convert(text, fromRadix) {
 				return text.replace(/\d/g, part => {
 					const converted = ChineseNum.digitsFromArabic(part);
-					return this.settings.reduce((result, setting) => setting.handle(result), converted);
+					return Object.values(this.settings).reduce((result, setting) => setting.handle(result), converted);
 				});
 			}
 		},
@@ -358,6 +354,29 @@
 					const communicationDigitsMap = ['洞', '幺', '两', '三', '四', '五', '六', '拐', '八', '九'];
 					return communicationDigitsMap[parseInt(part)];
 				});
+			}
+		},
+		'筛出数字': {
+			value: '',
+			settings: {
+				'弃留': {
+					val: '留',
+					options: ['留', '弃']
+				},
+				'留空': {
+					val: '留空',
+					options: ['留空', '不留']
+				}
+			},
+			convert(text, fromRadix) {
+				const separator = this.settings.留空.val === '留空' ? ' ' : '';
+				const regex = getRegexForRadix(fromRadix);
+				if (this.settings.弃留.val === '留') {
+					const matches = text.match(regex) ?? [];
+					return matches.join(separator);
+				} else {
+					return text.replace(regex, separator);
+				}
 			}
 		}
 	};
