@@ -163,6 +163,57 @@
 			height: 100%;
 			width: 100%;
 		}
+
+		footer {
+			margin-top: 2rem;
+			padding: 1rem;
+			background-color: #f8f9fa;
+			color: #6c757d;
+			text-align: center;
+			font-size: 0.85rem;
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			align-items: center;
+			gap: 1rem;
+		}
+
+		footer .qr-code {
+			margin: 1rem auto;
+			width: 100px;
+			height: auto;
+			background-color: #e9ecef;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			font-style: italic;
+			padding: 5px;
+		}
+
+		footer .qr-code img {
+			max-width: 100%;
+			height: auto;
+			margin-bottom: 5px;
+		}
+
+		footer .qr-code span {
+			font-size: 0.75rem;
+			color: #333;
+		}
+
+		footer p {
+			margin-bottom: 0.5rem;
+		}
+
+		footer a {
+			color: #007bff;
+			text-decoration: none;
+		}
+
+		footer a:hover {
+			text-decoration: underline;
+		}
 	</style>
 </head>
 <body>
@@ -355,6 +406,17 @@
 		</div>
 	</section>
 </main>
+<footer>
+	<div class="qr-code">
+		<img src="../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+		<span>赞助一下</span>
+	</div>
+	<div>
+		<p>&copy; 2025 文本格式转换工具. All rights reserved.</p>
+		<p>一个简单实用的在线文本格式转换工具，支持URI编码解码、Base64转换、MD5加密等功能，助您高效处理文本数据。</p>
+		<p>反馈或建议请联系：<a href="mailto:lwj621@sohu.com">lwj621@sohu.com</a></p>
+	</div>
+</footer>
 <div>
 	<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 	<script src="https://unpkg.com/primevue/umd/primevue.min.js"></script>
