@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>汉语拼音</title>
+	<link rel="stylesheet" href="https://unpkg.com/primeicons/primeicons.css">
+	<link rel="stylesheet" href="https://unpkg.com/primeflex/primeflex.css">
+	<link rel="stylesheet" href="拼音.css">
+	<style>
+		.keyboard .row {
+			display: flex;
+			justify-content: space-between;
+		}
+
+		.keyboard button {
+			display: inline-block;
+			width: 75px;
+			height: 75px;
+			margin: 6px;
+			position: relative;
+		}
+
+		.keyboard button > .badge {
+			position: absolute;
+			bottom: 8px;
+			left: 50%;
+			transform: translateX(-50%);
+			white-space: nowrap;
+		}
+
+		button.one.声母 {
+			--p-button-primary-background: #a5d6a7;
+			--p-button-primary-color: #37474f;
+			--p-button-primary-hover-background: #81c784;
+			--p-button-primary-hover-color: #37474f;
+		}
+
+		button.one.韵母 {
+			--p-button-primary-background: #90caf9;
+			--p-button-primary-color: #37474f;
+			--p-button-primary-hover-background: #64b5f6;
+			--p-button-primary-hover-color: #37474f;
+		}
+
+		button.one.声调 {
+			--p-button-primary-background: #ffcc80;
+			--p-button-primary-color: #37474f;
+			--p-button-primary-hover-background: #ffb74d;
+			--p-button-primary-hover-color: #37474f;
+		}
+
+		button.非正规.声母 {
+			--p-button-primary-background: #c8e6c9;
+			--p-button-primary-hover-background: #a5d6a7;
+		}
+
+		button.非正规.韵母 {
+			--p-button-primary-background: #bbdefb;
+			--p-button-primary-hover-background: #90caf9;
+		}
+
+		.音节 .显示 {
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+			min-height: 160px;
+			background-color: #ffffff;
+			border: 1px solid #e0e0e0;
+			border-radius: 12px;
+			padding: 10px 20px;
+			margin: 0 auto 10px auto;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+			max-width: 95%;
+		}
+
+		.equation-center-group {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			gap: 16px;
+			flex-wrap: wrap;
+		}
+
+		.equation-left {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			gap: 8px;
+			flex-wrap: wrap;
+		}
+
+		.part-container {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: flex-start;
+			min-width: 50px;
+			min-height: 90px;
+			gap: 10px;
+		}
+
+		.part-container .sign {
+			font-size: 52px;
+			height: 60px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			letter-spacing: 0.05em;
+		}
+
+		.part-container .badge {
+			font-size: 14px;
+		}
+
+		.equals-sign {
+			font-size: 48px;
+			color: #6c757d;
+			font-weight: 300;
+		}
+
+		.operator {
+			font-size: 36px;
+			color: #b0b0b0;
+			font-weight: 300;
+		}
+
+		.validation-area {
+			display: flex;
+			align-items: center;
+			gap: 16px;
+		}
+
+		.validation-area .icon {
+			font-size: 28px;
+		}
+
+		.correct {
+			color: #4caf50;
+		}
+
+		.incorrect {
+			color: #f05c6a;
+		}
+
+		.incomplete {
+			color: #ff9800;
+		}
+
+		.badges {
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+		}
+
+		.声调 .sign {
+			font-size: 24px;
+			line-height: 1;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			height: 100%;
+			width: 100%;
+		}
+	</style>
+</head>
+<body>
+<main>
+	<header>
+		<h1>汉语拼音</h1>
+	</header>
+	<section class="音节">
+		<div class="显示">
+			<div class="equation-center-group">
+				<div class="equation-left">
+					<div class="part-container">
+						<span class="sign">{{ 声母?.sign }}</span>
+						<badge class="badge">声母</badge>
+					</div>
+
+					<span v-if="介母" class="operator">+</span>
+					<div v-if="介母" class="part-container">
+						<span class="sign">{{ 介母?.sign }}</span>
+						<badge class="badge">介母</badge>
+					</div>
+
+					<span class="operator">+</span>
+					<div class="part-container">
+						<span class="sign">{{ 主韵母?.sign }}</span>
+						<badge class="badge"><span v-if="介母">主</span>韵母</badge>
+					</div>
+
+					<span class="operator">+</span>
+					<div class="part-container">
+						<span class="sign">{{ 声调?.sign }}</span>
+						<badge class="badge">声调</badge>
+					</div>
+				</div>
+
+				<span class="equals-sign">=</span>
+
+				<div class="part-container">
+					<span class="sign pinyin-result" :class="validity">{{result?.sign}}</span>
+				</div>
+
+				<div class="validation-area">
+					<i v-if="validity === 'correct'" class="correct icon pi pi-check-circle"></i>
+					<i v-if="validity === 'incorrect'" class="incorrect icon pi pi-times-circle"></i>
+					<i v-if="validity === 'incomplete'" class="incomplete icon pi pi-question-circle"></i>
+					<div class="badges">
+						<badge v-if="result.卷舌" class="卷舌 badge">卷舌</badge>
+						<badge v-if="result.前鼻音" class="前鼻音 badge">前鼻音</badge>
+						<badge v-if="result.后鼻音" class="后鼻音 badge">后鼻音</badge>
+						<badge v-if="result.整体认读" class="整体认读 badge">整体认读</badge>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+	<section class="keyboard">
+		<div class="row">
+			<div class="声母 group">
+				<p-button class="one 声母" raised @click="选声母"><span class="sign">b</span></p-button>
+				<p-button class="one 声母" raised @click="选声母"><span class="sign">p</span></p-button>
+				<p-button class="one 声母" raised @click="选声母"><span class="sign">m</span></p-button>
+				<p-button class="one 声母" raised @click="选声母"><span class="sign">f</span></p-button>
+				<p-button class="one 声母" raised @click="选声母"><span class="sign">d</span></p-button>
+				<p-button class="one 声母" raised @click="选声母"><span class="sign">t</span></p-button>
+				<p-button class="one 声母" raised @click="选声母"><span class="sign">n</span></p-button>
+				<p-button class="one 声母" raised @click="选声母"><span class="sign">l</span></p-button>
+			</div>
+			<div class="韵母 group">
+				<p-button class="one 韵母" raised @click="选韵母"><span class="sign">a</span></p-button>
+				<p-button class="one 韵母" raised @click="选韵母"><span class="sign">o</span></p-button>
+				<p-button class="one 韵母" raised @click="选韵母"><span class="sign">e</span></p-button>
+				<p-button class="one 韵母" raised @click="选韵母"><span class="sign">i</span></p-button>
+				<p-button class="one 韵母" raised @click="选韵母"><span class="sign">u</span></p-button>
+				<p-button class="one 韵母" raised @click="选韵母"><span class="sign">ü</span></p-button>
+			</div>
+		</div>
+		<div class="row">
+			<div class="声母 group">
+				<p-button class="one 声母" raised @click="选声母"><span class="sign">g</span></p-button>
+				<p-button class="one 声母" raised @click="选声母"><span class="sign">k</span></p-button>
+				<p-button class="one 声母" raised @click="选声母"><span class="sign">h</span></p-button>
+				<p-button class="one 声母" raised @click="选声母"><span class="sign">j</span></p-button>
+				<p-button class="one 声母" raised @click="选声母"><span class="sign">q</span></p-button>
+				<p-button class="one 声母" raised @click="选声母"><span class="sign">x</span></p-button>
+			</div>
+			<div class="韵母 group">
+				<p-button class="one 韵母" raised @click="选韵母">
+					<span class="sign"><span class="标声调的字母">a</span>i</span></p-button>
+				<p-button class="one 韵母" raised @click="选韵母">
+					<span class="sign"><span class="标声调的字母">e</span>i</span></p-button>
+				<p-button class="one 韵母" raised @click="选韵母">
+					<span class="sign">u<span class="标声调的字母">i</span></span></p-button>
+				<p-button class="one 韵母" raised @click="选韵母">
+					<span class="sign"><span class="标声调的字母">a</span>o</span></p-button>
+				<p-button class="one 韵母" raised @click="选韵母">
+					<span class="sign"><span class="标声调的字母">o</span>u</span></p-button>
+				<p-button class="one 韵母" raised @click="选韵母">
+					<span class="sign">i<span class="标声调的字母">u</span></span></p-button>
+				<p-button class="one 韵母" raised @click="选韵母">
+					<span class="sign">i<span class="标声调的字母">e</span></span></p-button>
+				<p-button class="one 韵母" raised @click="选韵母">
+					<span class="sign">ü<span class="标声调的字母">e</span></span></p-button>
+				<p-button class="one 韵母" raised @click="选韵母">
+					<span class="sign"><span class="标声调的字母">e</span>r</span>
+					<badge class="卷舌 badge">卷舌</badge>
+				</p-button>
+			</div>
+		</div>
+		<div class="row">
+			<div class="声母 group">
+				<p-button class="one 声母" raised @click="选声母">
+					<span class="sign">zh</span>
+					<badge class="卷舌 badge">卷舌</badge>
+				</p-button>
+				<p-button class="one 声母" raised @click="选声母">
+					<span class="sign">ch</span>
+					<badge class="卷舌 badge">卷舌</badge>
+				</p-button>
+				<p-button class="one 声母" raised @click="选声母">
+					<span class="sign">sh</span>
+					<badge class="卷舌 badge">卷舌</badge>
+				</p-button>
+				<p-button class="one 声母" raised @click="选声母">
+					<span class="sign">r</span>
+					<badge class="卷舌 badge">卷舌</badge>
+				</p-button>
+				<p-button class="one 声母" raised @click="选声母">
+					<span class="sign">z</span></p-button>
+				<p-button class="one 声母" raised @click="选声母">
+					<span class="sign">c</span></p-button>
+				<p-button class="one 声母" raised @click="选声母">
+					<span class="sign">s</span></p-button>
+			</div>
+			<div class="韵母 group">
+				<p-button class="one 韵母 鼻音 前鼻音" raised @click="选韵母">
+					<span class="sign"><span class="标声调的字母">a</span>n</span>
+				</p-button>
+				<p-button class="one 韵母 鼻音 前鼻音" raised @click="选韵母">
+					<span class="sign"><span class="标声调的字母">e</span>n</span>
+				</p-button>
+				<p-button class="one 韵母 鼻音 前鼻音" raised @click="选韵母">
+					<span class="sign"><span class="标声调的字母">i</span>n</span>
+				</p-button>
+				<p-button class="one 韵母 鼻音 前鼻音" raised @click="选韵母">
+					<span class="sign"><span class="标声调的字母">u</span>n</span>
+				</p-button>
+				<p-button class="one 韵母 鼻音 前鼻音" raised @click="选韵母">
+					<span class="sign"><span class="标声调的字母">ü</span>n</span>
+				</p-button>
+			</div>
+		</div>
+		<div class="row">
+			<div class="声母 group">
+				<p-button class="one 声母" raised @click="选声母"><span class="sign">y</span></p-button>
+				<p-button class="one 声母" raised @click="选声母"><span class="sign">w</span></p-button>
+			</div>
+			<div class="声母 group">
+				<p-button class="one 声母 非正规" raised @click="选声母" title="ng（非正规声母）"><span class="sign">ng</span>
+				</p-button>
+			</div>
+			<div class="声调 group">
+				<p-button title="阴平/第一声" class="one 声调" raised @click="选声调">
+					<span class="sign">ˉ</span></p-button>
+				<p-button title="阳平/第二声" class="one 声调" raised @click="选声调">
+					<span class="sign">ˊ</span></p-button>
+				<p-button title="上（shǎng）声/第三声" class="one 声调" raised @click="选声调">
+					<span class="sign">ˇ</span></p-button>
+				<p-button title="去声/第四声" class="one 声调" raised @click="选声调">
+					<span class="sign">ˋ</span></p-button>
+				<p-button title="轻声" class="one 声调" raised @click="选声调">
+					<span class="sign">·</span></p-button>
+			</div>
+			<div class="功能 group">
+				<p-button class="one 功能" raised @click="clear">清空</p-button>
+			</div>
+			<div class="韵母 group">
+				<p-button class="one 韵母 非正规" raised @click="选韵母" title="ê（非正规韵母）"><span class="sign">ê</span>
+				</p-button>
+			</div>
+			<div class="韵母 group">
+				<p-button class="one 韵母 鼻音 后鼻音" raised @click="选韵母">
+					<span class="sign"><span class="标声调的字母">a</span>ng</span></p-button>
+				<p-button class="one 韵母 鼻音 后鼻音" raised @click="选韵母">
+					<span class="sign"><span class="标声调的字母">e</span>ng</span></p-button>
+				<p-button class="one 韵母 鼻音 后鼻音" raised @click="选韵母">
+					<span class="sign"><span class="标声调的字母">i</span>ng</span></p-button>
+				<p-button class="one 韵母 鼻音 后鼻音" raised @click="选韵母">
+					<span class="sign"><span class="标声调的字母">o</span>ng</span></p-button>
+			</div>
+		</div>
+	</section>
+</main>
+<div>
+	<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+	<script src="https://unpkg.com/primevue/umd/primevue.min.js"></script>
+	<script src="https://unpkg.com/@primeuix/themes/umd/aura.js"></script>
+</div>
+<script>
+	const embeddedData = {
+		"声母": {
+			"b": {"发音参考": {"拼音": "bo", "字": "波"}},
+			"p": {"发音参考": {"拼音": "po", "字": "泼"}},
+			"m": {"发音参考": {"拼音": "mo", "字": "摸"}, "四声调": {"阴平": "m̄", "阳平": "ḿ", "上声": "m̌", "去声": "m̀"}},
+			"f": {"发音参考": {"拼音": "fo", "字": "佛"}},
+			"d": {"发音参考": {"拼音": "de", "字": "得"}},
+			"t": {"发音参考": {"拼音": "te", "字": "特"}},
+			"n": {"发音参考": {"拼音": "ne", "字": "讷"}, "四声调": {"阴平": "n̄", "阳平": "ń", "上声": "ň", "去声": "ǹ"}},
+			"l": {"发音参考": {"拼音": "le", "字": "乐"}},
+			"g": {"发音参考": {"拼音": "ge", "字": "哥"}},
+			"k": {"发音参考": {"拼音": "ke", "字": "科"}},
+			"h": {"发音参考": {"拼音": "he", "字": "喝"}},
+			"j": {"发音参考": {"拼音": "ji", "字": "鸡"}},
+			"q": {"发音参考": {"拼音": "qi", "字": "七"}},
+			"x": {"发音参考": {"拼音": "xi", "字": "西"}},
+			"zh": {"发音参考": {"拼音": "zhi", "字": "支"}, "卷舌": true},
+			"ch": {"发音参考": {"拼音": "chi", "字": "吃"}, "卷舌": true},
+			"sh": {"发音参考": {"拼音": "shi", "字": "诗"}, "卷舌": true},
+			"r": {"发音参考": {"拼音": "ri", "字": "日"}, "卷舌": true},
+			"z": {"发音参考": {"拼音": "zi", "字": "滋"}},
+			"c": {"发音参考": {"拼音": "ci", "字": "刺"}},
+			"s": {"发音参考": {"拼音": "si", "字": "丝"}},
+			"y": {"发音参考": {"拼音": "yi", "字": "衣"}},
+			"w": {"发音参考": {"拼音": "wu", "字": "乌"}},
+			"ng": {"发音参考": {"拼音": "ng", "字": "嗯"}, "标声调的字母": "n", "后鼻音": true, "非正规": true}
+		},
+		"声母分组": [
+			["b", "p", "m", "f"], ["d", "t", "n", "l"], ["g", "k", "h"], ["j", "q", "x"], ["zh", "ch", "sh", "r"],
+			["z", "c", "s"], ["y", "w"]
+		],
+		"声调": {
+			"阴平": {
+				"original": 1,
+				"name": "阴平",
+				"sign": "ˉ",
+				"label": "ˉ",
+				"alias": "第一声"
+			},
+			"阳平": {
+				"original": 2,
+				"name": "阳平",
+				"sign": "ˊ",
+				"label": "ˊ",
+				"alias": "第二声"
+			},
+			"上声": {
+				"original": 3,
+				"name": "上声",
+				"sign": "ˇ",
+				"label": "ˇ",
+				"alias": "第三声"
+			},
+			"去声": {
+				"original": 4,
+				"name": "去声",
+				"sign": "ˋ",
+				"label": "ˋ",
+				"alias": "第四声"
+			},
+			"轻声": {
+				"original": 5,
+				"name": "轻声",
+				"sign": "",
+				"label": "·"
+			}
+		},
+		"拼法": {
+			"": {"": ["a", "o", "e", "ai", "ei", "ao", "ou", "er", "an", "en", "ang", "ê"]},
+			"b": {
+				"": ["a", "o", "i", "u", "ai", "ei", "ao", "ie", "an", "en", "in", "ang", "eng", "ing"],
+				"i": ["ao", "an"]
+			},
+			"p": {
+				"": ["a", "o", "i", "u", "ai", "ei", "ao", "ou", "ie", "an", "en", "ang", "eng", "ing"],
+				"i": ["ao", "an"]
+			},
+			"m": {
+				"": ["", "a", "o", "e", "i", "u", "ai", "ei", "ao", "ou", "iu", "an", "en", "in", "ang", "eng", "ing"],
+				"i": ["ao", "an"]
+			},
+			"f": {"": ["a", "o", "u", "ei", "ou", "an", "en", "ang", "eng"]},
+			"d": {
+				"": ["a", "e", "i", "u", "ai", "ei", "ui", "ao", "ou", "iu", "ie", "an", "en", "un", "ang", "eng", "ong"],
+				"i": ["a", "ao", "an"],
+				"u": ["o", "an"]
+			},
+			"t": {
+				"": ["a", "e", "i", "u", "ai", "ei", "ui", "ao", "ou", "ie", "an", "un", "ang", "eng", "ing", "ong"],
+				"i": ["ao", "an"],
+				"u": ["o", "an"]
+			},
+			"n": {
+				"": ["", "a", "e", "i", "u", "ü", "ai", "ei", "ao", "ou", "iu", "ie", "üe", "an", "en", "in", "ang", "eng",
+						 "ing", "ong"],
+				"i": ["ao", "an"],
+				"u": ["o", "an"]
+			},
+			"l": {
+				"": ["a", "o", "e", "i", "u", "ü", "ai", "ei", "ao", "ou", "iu", "ie", "üe", "an", "in", "ang", "eng", "ing",
+						 "ong"],
+				"i": ["a", "ao", "an", "ang"],
+				"u": ["o", "an"]
+			},
+			"g": {
+				"": ["a", "o", "e", "u", "ai", "ei", "ao", "ou", "an", "en", "un", "ang", "eng", "ong"],
+				"u": ["a", "o", "ai", "an", "ang"]
+			},
+			"k": {
+				"": ["a", "e", "u", "ai", "ei", "ao", "ou", "an", "en", "un", "ang", "eng", "ong"],
+				"u": ["a", "o", "ai", "an", "ang"]
+			},
+			"h": {
+				"": ["a", "e", "u", "ai", "ei", "ui", "ao", "ou", "an", "en", "un", "ang", "eng", "ong"],
+				"u": ["a", "o", "ai", "an", "ang"]
+			},
+			"j": {
+				"": ["i", "ü", "iu", "ie", "üe", "in", "ün", "ing"],
+				"i": ["a", "ao", "an", "ang", "ong"],
+				"ü": ["an"]
+			},
+			"q": {
+				"": ["i", "ü", "ie", "üe", "in", "ün", "ing"],
+				"i": ["a", "ao", "an", "ang", "ong"],
+				"ü": ["an"]
+			},
+			"x": {
+				"": ["i", "ü", "ie", "üe", "in", "ün", "ing"],
+				"i": ["a", "ao", "an", "ang", "ong"],
+				"ü": ["an"]
+			},
+			"zh": {
+				"": ["a", "e", "i", "u", "ai", "ei", "ui", "ao", "ou", "an", "en", "un", "ang", "eng", "ong"],
+				"u": ["a", "o", "ai", "an", "ang"]
+			},
+			"ch": {
+				"": ["a", "e", "i", "u", "ai", "ui", "ao", "ou", "an", "en", "un", "ang", "eng", "ong"],
+				"u": ["a", "o", "ai", "an", "ang"]
+			},
+			"sh": {
+				"": ["a", "e", "i", "u", "ai", "ei", "ao", "ou", "an", "en", "un", "ang", "eng"],
+				"u": ["a", "o", "ai", "an", "ang"]
+			},
+			"r": {
+				"": ["e", "i", "u", "ui", "ao", "ou", "an", "en", "un", "ang", "eng", "ong"],
+				"u": ["o", "an"]
+			},
+			"z": {
+				"": ["a", "e", "i", "u", "ai", "ei", "ui", "ao", "ou", "an", "en", "un", "ang", "eng", "ong"],
+				"u": ["o", "an"]
+			},
+			"c": {
+				"": ["a", "e", "i", "u", "ai", "ei", "ui", "ao", "ou", "an", "en", "un", "ang", "eng", "ong"],
+				"u": ["o", "an"]
+			},
+			"s": {
+				"": ["a", "e", "i", "u", "ai", "ei", "ui", "ao", "ou", "an", "en", "un", "ang", "eng", "ong"],
+				"u": ["o", "an"]
+			},
+			"y": {
+				"": ["a", "o", "e", "i", "ü", "ai", "ao", "ou", "üe", "an", "in", "ün", "ang", "ing", "ong"],
+				"ü": ["an"]
+			},
+			"w": {"": ["a", "o", "u", "ai", "ei", "an", "en", "ang", "eng"]},
+			"ng": {"": [""]},
+			"rules": [
+				{
+					"声母": ["j", "q", "x", "y"],
+					"韵母": ["ü", "üe", "ün", "üan"],
+					"变化": {"ü": "u"}
+				}
+			]
+		},
+		"整体认读": ["zhi", "chi", "shi", "ri", "zi", "ci", "si", "yi", "wu", "yu", "ye", "yue", "yuan", "yin", "yun",
+								 "ying"],
+		"韵母": {
+			"a": {"发音参考": {"拼音": "a", "字": "阿"}, "四声调": {"阴平": "ā", "阳平": "á", "上声": "ǎ", "去声": "à"}},
+			"o": {"发音参考": {"拼音": "o", "字": "喔"}, "四声调": {"阴平": "ō", "阳平": "ó", "上声": "ǒ", "去声": "ò"}},
+			"e": {"发音参考": {"拼音": "e", "字": "鹅"}, "四声调": {"阴平": "ē", "阳平": "é", "上声": "ě", "去声": "è"}},
+			"i": {
+				"发音参考": {"拼音": "yi", "字": "衣"},
+				"四声调": {"阴平": "ī", "阳平": "í", "上声": "ǐ", "去声": "ì"},
+				"可做介母": true
+			},
+			"u": {
+				"发音参考": {"拼音": "wu", "字": "乌"},
+				"四声调": {"阴平": "ū", "阳平": "ú", "上声": "ǔ", "去声": "ù"},
+				"可做介母": true
+			},
+			"ü": {
+				"发音参考": {"拼音": "yu", "字": "鱼"},
+				"四声调": {"阴平": "ǖ", "阳平": "ǘ", "上声": "ǚ", "去声": "ǜ"},
+				"可做介母": true
+			},
+			"ai": {"发音参考": {"拼音": "ai", "字": "矮"}, "标声调的字母": "a"},
+			"ei": {"发音参考": {"拼音": "ei", "字": "诶"}, "标声调的字母": "e"},
+			"ui": {"发音参考": {"拼音": "wei", "字": "威"}, "标声调的字母": "i"},
+			"ao": {"发音参考": {"拼音": "ao", "字": "奥"}, "标声调的字母": "a"},
+			"ou": {"发音参考": {"拼音": "ou", "字": "欧"}, "标声调的字母": "o"},
+			"iu": {"发音参考": {"拼音": "you", "字": "悠"}, "标声调的字母": "u"},
+			"ie": {"发音参考": {"拼音": "ye", "字": "夜"}, "标声调的字母": "e"},
+			"üe": {"发音参考": {"拼音": "yue", "字": "月"}, "标声调的字母": "e"},
+			"er": {"发音参考": {"拼音": "er", "字": "儿"}, "标声调的字母": "e", "卷舌": true},
+			"an": {"发音参考": {"拼音": "an", "字": "安"}, "标声调的字母": "a", "前鼻音": true},
+			"en": {"发音参考": {"拼音": "en", "字": "恩"}, "标声调的字母": "e", "前鼻音": true},
+			"in": {"发音参考": {"拼音": "yin", "字": "音"}, "标声调的字母": "i", "前鼻音": true},
+			"un": {"发音参考": {"拼音": "wen", "字": "温"}, "标声调的字母": "u", "前鼻音": true},
+			"ün": {"发音参考": {"拼音": "yun", "字": "云"}, "标声调的字母": "ü", "前鼻音": true},
+			"ang": {"发音参考": {"拼音": "ang", "字": "安"}, "标声调的字母": "a", "后鼻音": true},
+			"eng": {"发音参考": {"拼音": "weng", "字": "翁"}, "标声调的字母": "e", "后鼻音": true},
+			"ing": {"发音参考": {"拼音": "ying", "字": "鹰"}, "标声调的字母": "i", "后鼻音": true},
+			"ong": {"发音参考": {"拼音": "hong", "字": "洪"}, "标声调的字母": "o", "后鼻音": true},
+			"ê": {
+				"发音参考": {"拼音": "ê", "字": "欸"},
+				"四声调": {"阴平": "ê̄", "阳平": "ế", "上声": "ê̌", "去声": "ề"},
+				"非正规": true
+			}
+		},
+		"韵母分组": {
+			"单韵母": ["ɑ", "o", "e", "i", "u", "ü"],
+			"复韵母": ["ɑi", "ei", "ui", "ɑo", "ou", "iu", "ie", "üe"],
+			"特殊韵母": ["er"],
+			"鼻韵母": {
+				"前鼻韵母": ["ɑn", "en", "in", "un", "ün"],
+				"后鼻韵母": ["ɑng", "eng", "ing", "ong"]
+			}
+		}
+	};
+	const 拼音规则 = {};
+
+	class 声母韵母 {
+		constructor(name, type, cfg) {
+			Object.assign(this, cfg);
+			this.name = name;
+			this.卷舌 = cfg.卷舌 ?? false;
+			this.前鼻音 = cfg.前鼻音 ?? false;
+			this.后鼻音 = cfg.后鼻音 ?? false;
+			this.可做介母 = cfg.可做介母 ?? false;
+
+			const group = 拼音规则[type];
+			if (!this.sign) {
+				if (this.name.length === 1) {
+					this.sign = this.name;
+				} else {
+					let s = '';
+					for (let c of this.name) {
+						s += group[c]?.sign ?? c;
+					}
+					this.sign = s;
+				}
+			}
+
+			if (this.四声调) {//有“四声调”就没有“标声调的字母”
+				this.标声调的字母 = name;
+			}
+		}
+	}
+
+	Object.entries(embeddedData).forEach(([group, data]) => {
+		拼音规则[group] = data;
+		if (group === '声母' || group === '韵母') {
+			for (const [key, value] of Object.entries(data)) {
+				data[key] = new 声母韵母(key, group, value);
+			}
+			拼音规则[group] = data;
+		}
+	});
+
+	const {createApp, ref, computed} = Vue;
+	const app = createApp({
+		setup() {
+			const 声母ref = ref();
+			const 介母ref = ref();
+			const 主韵母ref = ref();
+			const 声调ref = ref();
+
+			function 选声母(event) {
+				clear();
+				const btn = event.currentTarget;
+				const sign = btn.querySelector('.sign').textContent.trim();
+				声母ref.value = 拼音规则.声母[sign];
+			}
+
+			function 选韵母(event) {
+				const btn = event.currentTarget;
+				const sign = btn.querySelector('.sign').textContent.trim();
+				const 韵母 = 拼音规则.韵母[sign];
+				if (!韵母) {
+					return;
+				}
+
+				const old = 主韵母ref.value;
+
+				if (old && old.可做介母 && !韵母.可做介母 && !韵母.sign.includes(old.sign) && !(old.sign + 韵母.sign
+																																												in 拼音规则.韵母)) {
+					介母ref.value = old;
+					主韵母ref.value = 韵母;
+				} else {
+					介母ref.value = null;
+					主韵母ref.value = 韵母;
+				}
+			}
+
+			function 选声调(event) {
+				const btn = event.currentTarget;
+				const label = btn.querySelector('.sign').textContent.trim();
+				const 声调列表 = 拼音规则.声调;
+				声调ref.value = Object.values(声调列表).find(item => item.label === label);
+			}
+
+			const result = computed(() => {
+				const 声母 = 声母ref.value;
+				const 声母sign = 声母?.sign ?? '';
+				const 介母 = 介母ref.value;
+				const 介母sign = 介母?.sign ?? '';
+				const 主韵母 = 主韵母ref.value;
+				let 主韵母sign = 主韵母?.sign ?? '';
+				const 声调 = 声调ref.value;
+				const 声调sign = 声调?.sign ?? '';
+
+				const raw韵母sign = 介母sign + 主韵母sign;
+				const raw拼音 = 声母sign + raw韵母sign;
+				let sign = raw拼音;
+				if (sign) {
+					let 标调字母 = 主韵母?.标声调的字母 ?? 声母?.标声调的字母;
+
+					for (let rule of 拼音规则.拼法.rules) {
+						if (rule.声母.includes(声母sign) && rule.韵母.includes(raw韵母sign)) {
+							Object.entries(rule.变化).forEach(([rawLabel, targetLabel]) => {
+								sign = sign.replace(rawLabel, targetLabel);
+								if (标调字母 === rawLabel) {
+									标调字母 = targetLabel;
+								}
+							});
+						}
+					}
+					if (声调sign && 标调字母) {
+						const newVar = 主韵母 ? 拼音规则.韵母[标调字母] : 拼音规则.声母[标调字母];
+						sign = sign.replace(标调字母, newVar.四声调[声调.name]);
+					}
+				}
+
+				return {
+					sign,
+					卷舌: 声母?.卷舌 || 介母?.卷舌 || 主韵母?.卷舌 || false,
+					前鼻音: 声母?.前鼻音 || 介母?.前鼻音 || 主韵母?.前鼻音 || false,
+					后鼻音: 声母?.后鼻音 || 介母?.后鼻音 || 主韵母?.后鼻音 || false,
+					整体认读: 拼音规则.整体认读?.includes(raw拼音)
+				};
+			});
+
+			const validity = computed(() => {
+				const sm = 声母ref.value?.name ?? '';
+				const jm = 介母ref.value?.name ?? '';
+				const zym = 主韵母ref.value?.name ?? '';
+				const 拼法 = 拼音规则.拼法;
+				if (!拼法) {
+					return 'incomplete';
+				}
+				const lv1 = 拼法[sm][jm];
+				if (!lv1) {
+					return 'incorrect';
+				}
+				if (lv1.includes(zym)) {
+					return 'correct';
+				} else {
+					return zym ? 'incorrect' : 'incomplete';
+				}
+			});
+
+			function clear() {
+				声母ref.value = null;
+				介母ref.value = null;
+				主韵母ref.value = null;
+				声调ref.value = null;
+			}
+
+			return {
+				声母: 声母ref,
+				介母: 介母ref,
+				主韵母: 主韵母ref,
+				声调: 声调ref,
+				result,
+				validity,
+				选声母,
+				选韵母,
+				选声调,
+				clear
+			};
+		},
+		components: {
+			'p-button': PrimeVue.Button,
+			'badge': PrimeVue.Badge
+		}
+	})
+	.use(PrimeVue.Config, {theme: {preset: PrimeUIX.Themes.Aura}})
+	.mount('main');
+</script>
+</body>
+</html>

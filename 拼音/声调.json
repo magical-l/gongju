@@ -1,0 +1,36 @@
+{
+	"阴平": {
+		"original": 1,
+		"name": "阴平",
+		"sign": "ˉ",
+		"label": "ˉ",
+		"alias": "第一声"
+	},
+	"阳平": {
+		"original": 2,
+		"name": "阳平",
+		"sign": "ˊ",
+		"label": "ˊ",
+		"alias": "第二声"
+	},
+	"上声": {
+		"original": 3,
+		"name": "上声",
+		"sign": "ˇ",
+		"label": "ˇ",
+		"alias": "第三声"
+	},
+	"去声": {
+		"original": 4,
+		"name": "去声",
+		"sign": "ˋ",
+		"label": "ˋ",
+		"alias": "第四声"
+	},
+	"轻声": {
+		"original": 5,
+		"name": "轻声",
+		"sign": "",
+		"label": "·"
+	}
+}

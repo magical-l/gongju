@@ -1,0 +1,112 @@
+{
+	"": {
+		"": ["a","o","e","ai","ei","ao","ou","er","an","en","ang","ê"]
+	},
+	"b": {
+		"": ["a","o","i","u","ai","ei","ao","ie","an","en","in","ang","eng","ing"],
+		"i": ["ao","an"]
+	},
+	"p": {
+		"": ["a","o","i","u","ai","ei","ao","ou","ie","an","en","ang","eng","ing"],
+		"i": ["ao","an"]
+	},
+	"m": {
+		"": ["","a","o","e","i","u","ai","ei","ao","ou","iu","an","en","in","ang","eng","ing"],
+		"i": ["ao","an"]
+	},
+	"f": {
+		"": ["a","o","u","ei","ou","an","en","ang","eng"]
+	},
+	"d": {
+		"": ["a","e","i","u","ai","ei","ui","ao","ou","iu","ie","an","en","un","ang","eng","ong"],
+		"i": ["a","ao","an"],
+		"u": ["o","an"]
+	},
+	"t": {
+		"": ["a","e","i","u","ai","ei","ui","ao","ou","ie","an","un","ang","eng","ing","ong"],
+		"i": ["ao","an"],
+		"u": ["o","an"]
+	},
+	"n": {
+		"": ["","a","e","i","u","ü","ai","ei","ao","ou","iu","ie","üe","an","en","in","ang","eng","ing","ong"],
+		"i": ["ao","an"],
+		"u": ["o","an"]
+	},
+	"l": {
+		"": ["a","o","e","i","u","ü","ai","ei","ao","ou","iu","ie","üe","an","in","ang","eng","ing","ong"],
+		"i": ["a","ao","an","ang"],
+		"u": ["o","an"]
+	},
+	"g": {
+		"": ["a","o","e","u","ai","ei","ao","ou","an","en","un","ang","eng","ong"],
+		"u": ["a","o","ai","an","ang"]
+	},
+	"k": {
+		"": ["a","e","u","ai","ei","ao","ou","an","en","un","ang","eng","ong"],
+		"u": ["a","o","ai","an","ang"]
+	},
+	"h": {
+		"": ["a","e","u","ai","ei","ui","ao","ou","an","en","un","ang","eng","ong"],
+		"u": ["a","o","ai","an","ang"]
+	},
+	"j": {
+		"": ["i","ü","iu","ie","üe","in","ün","ing"],
+		"i": ["a","ao","an","ang","ong"],
+		"ü": ["an"]
+	},
+	"q": {
+		"": ["i","ü","ie","üe","in","ün","ing"],
+		"i": ["a","ao","an","ang","ong"],
+		"ü": ["an"]
+	},
+	"x": {
+		"": ["i","ü","ie","üe","in","ün","ing"],
+		"i": ["a","ao","an","ang","ong"],
+		"ü": ["an"]
+	},
+	"zh": {
+		"": ["a","e","i","u","ai","ei","ui","ao","ou","an","en","un","ang","eng","ong"],
+		"u": ["a","o","ai","an","ang"]
+	},
+	"ch": {
+		"": ["a","e","i","u","ai","ui","ao","ou","an","en","un","ang","eng","ong"],
+		"u": ["a","o","ai","an","ang"]
+	},
+	"sh": {
+		"": ["a","e","i","u","ai","ei","ao","ou","an","en","un","ang","eng"],
+		"u": ["a","o","ai","an","ang"]
+	},
+	"r": {
+		"": ["e","i","u","ui","ao","ou","an","en","un","ang","eng","ong"],
+		"u": ["o","an"]
+	},
+	"z": {
+		"": ["a","e","i","u","ai","ei","ui","ao","ou","an","en","un","ang","eng","ong"],
+		"u": ["o","an"]
+	},
+	"c": {
+		"": ["a","e","i","u","ai","ei","ui","ao","ou","an","en","un","ang","eng","ong"],
+		"u": ["o","an"]
+	},
+	"s": {
+		"": ["a","e","i","u","ai","ei","ui","ao","ou","an","en","un","ang","eng","ong"],
+		"u": ["o","an"]
+	},
+	"y": {
+		"": ["a","o","e","i","ü","ai","ao","ou","üe","an","in","ün","ang","ing","ong"],
+		"ü": ["an"]
+	},
+	"w": {
+		"": ["a","o","u","ai","ei","an","en","ang","eng"]
+	},
+	"ng": {
+		"": [""]
+	},
+	"rules": [
+		{
+			"声母": ["j", "q", "x", "y"],
+			"韵母": ["ü", "üe", "ün", "üan"],
+			"变化": {"ü": "u"}
+		}
+	]
+}
