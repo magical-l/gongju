@@ -313,10 +313,8 @@
 				}
 			],
 			convert(text, fromRadix) {
-				const regex = getRegexForRadix(fromRadix);
-				return text.replace(regex, part => {
-					const cleanedNum = stripPrefix(part, fromRadix);
-					const converted = ChineseNum.digitsFromArabic(parseInt(convertToDecimal(cleanedNum, fromRadix)));
+				return text.replace(/\d/g, part => {
+					const converted = ChineseNum.digitsFromArabic(part);
 					return this.settings.reduce((result, setting) => setting.handle(result), converted);
 				});
 			}
@@ -356,10 +354,9 @@
 		'标准通讯数字读法': {
 			value: '',
 			convert(text, fromRadix) {
-				const regex = getRegexForRadix(fromRadix);
-				return text.replace(regex, part => {
-					const cleanedNum = stripPrefix(part, fromRadix);
-					return convertToStandardCommunicationDigits(cleanedNum);
+				return text.replace(/\d/g, part => {
+					const communicationDigitsMap = ['洞', '幺', '两', '三', '四', '五', '六', '拐', '八', '九'];
+					return communicationDigitsMap[parseInt(part)];
 				});
 			}
 		}
