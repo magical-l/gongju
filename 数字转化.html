@@ -341,16 +341,16 @@
 				return ChineseNum.toUpperCase(results['汉语数字'].convert(text, fromRadix));
 			}
 		},
-		'Base62': {
-			value: '',
-			convert(text, fromRadix) {
-				const regex = getRegexForRadix(fromRadix);
-				return text.replace(regex, part => {
-					const cleanedNum = stripPrefix(part, fromRadix);
-					return base62ToDecimal(cleanedNum);
-				});
-			}
-		},
+		// 'Base62': {
+		// 	value: '',
+		// 	convert(text, fromRadix) {
+		// 		const regex = getRegexForRadix(fromRadix);
+		// 		return text.replace(regex, part => {
+		// 			const cleanedNum = stripPrefix(part, fromRadix);
+		// 			return base62ToDecimal(cleanedNum);
+		// 		});
+		// 	}
+		// },
 		'标准通讯数字读法': {
 			value: '',
 			convert(text, fromRadix) {
