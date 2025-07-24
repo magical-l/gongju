@@ -1,31 +1,86 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
 <head>
 	<meta charset="UTF-8">
-	<title>数字转化</title>
+	<title itemprop="name">数字格式转换</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="description" content="在线数字处理工具，支持进制转换、汉语数字转换等功能">
-	<meta name="keywords" content="数字处理,进制转换,汉语数字,二进制,十六进制">
-	<meta name="author" content="数字转化">
+	<meta name="description" content="在线数字格式转换工具，支持进制转换、汉语数字转换等功能" itemprop="description">
+	<meta name="keywords" content="数字格式转换,进制转换,汉语数字,二进制,十六进制">
+	<meta name="author" content="数字格式转换">
 
 	<!-- 预加载关键资源 -->
 	<link rel="preload" href="lib/jquery-3.4.1.min.js" as="script">
 	<link rel="preload" href="lib/math.js" as="script">
 
 	<link href="https://cdn.jsdelivr.net/npm/primeicons/primeicons.css" rel="stylesheet">
-	<link href="lib/toastr.min.css?v=0204a" rel="stylesheet"><!-- 提示框 -->
+	<link href="lib/toastr.min.css?v=0204a" rel="stylesheet">
 	<link href="lib/iconfont/iconfont.css" rel="stylesheet">
 	<link href="lib/style.css?v=0229b" rel="stylesheet">
 	<style>
 		body {
 			font-family: sans-serif;
+			display: flex;
+			flex-direction: column;
+			min-height: 100vh;
 		}
 
 		main {
+			flex: 1;
 			display: flex;
 			flex-wrap: wrap;
 			align-items: start;
 			gap: 1rem;
+		}
+
+		footer {
+			margin-top: 2rem;
+			padding: 1rem;
+			background-color: #f8f9fa;
+			color: #6c757d;
+			text-align: center;
+			font-size: 0.85rem;
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			align-items: center;
+			gap: 1rem;
+		}
+
+		footer .qr-code {
+			margin: 1rem auto;
+			width: 100px;
+			height: auto;
+			background-color: #e9ecef;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			font-style: italic;
+			padding: 5px;
+		}
+
+		footer .qr-code img {
+			max-width: 100%;
+			height: auto;
+			margin-bottom: 5px;
+		}
+
+		footer .qr-code span {
+			font-size: 0.75rem;
+			color: #333;
+		}
+
+		footer p {
+			margin-bottom: 0.5rem;
+		}
+
+		footer a {
+			color: #007bff;
+			text-decoration: none;
+		}
+
+		footer a:hover {
+			text-decoration: underline;
 		}
 
 		header,
@@ -185,7 +240,7 @@
 
 	<section class="input area">
 		<div style="position: relative;">
-			<p-textarea placeholder="在此输入要处理的文本，转换文本中的数字，其他字符保留。" rows="5" autoResize
+			<p-textarea placeholder="在此输入要处理的文本，处理文本中的数字，非数字字符保留原样。" rows="5" autoResize
 									v-model="inputText" @input="processInput"></p-textarea>
 			<choose-group class="input radix chooser" v-model="inputRadix" :options="radixOptions"
 										@change="processInput"></choose-group>
@@ -205,9 +260,11 @@
 			<template #title>
 				<header>
 					<span>{{ label }}</span>
-					<choose-group class="chooser" v-for="(setting,settingName) in result.settings" :key="settingName"
-												v-model="setting.val" :options="setting.options"
-												@click.stop @change="updateResult(result, inputText, inputRadix)"/>
+					<span>
+						<choose-group class="chooser" v-for="(setting,settingName) in result.settings" :key="settingName"
+													v-model="setting.val" :options="setting.options"
+													@click.stop @change="updateResult(result, inputText, inputRadix)"/>
+					</span>
 				</header>
 			</template>
 			<template #content>
@@ -224,6 +281,17 @@
 		</card>
 	</section>
 </main>
+<footer>
+	<div class="qr-code">
+		<img src="resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+		<span>赞助一下</span>
+	</div>
+	<div>
+		<p>&copy; 2025 数字格式转换工具. All rights reserved.</p>
+		<p>一个简单实用的在线数字格式转换工具，支持多种进制转换、汉语数字转换等功能，助您高效处理数字数据。</p>
+		<p>反馈或建议请联系：<a href="mailto:lwj621@sohu.com">lwj621@sohu.com</a></p>
+	</div>
+</footer>
 <div>
 	<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 	<script src="https://unpkg.com/primevue/umd/primevue.min.js"></script>
@@ -345,16 +413,7 @@
 				return ChineseNum.toUpperCase(results['汉语数字'].convert(text, fromRadix));
 			}
 		},
-		// 'Base62': {
-		// 	value: '',
-		// 	convert(text, fromRadix) {
-		// 		const regex = getRegexForRadix(fromRadix);
-		// 		return text.replace(regex, part => {
-		// 			const cleanedNum = stripPrefix(part, fromRadix);
-		// 			return base62ToDecimal(cleanedNum);
-		// 		});
-		// 	}
-		// },
+		
 		'标准通讯数字读法': {
 			value: '',
 			convert(text, fromRadix) {
