@@ -5,13 +5,157 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>汉语拼音</title>
 	<link rel="stylesheet" href="https://unpkg.com/primeicons/primeicons.css">
-	<link rel="stylesheet" href="https://unpkg.com/primeflex/primeflex.css">
 	<link rel="stylesheet" href="../resources/style.css">
 	<link rel="stylesheet" href="拼音.css">
+	<style>
+		.keyboard .row {
+			display: flex;
+			justify-content: space-between;
+		}
+
+		.keyboard button {
+			display: inline-block;
+			width: 75px;
+			height: 75px;
+			margin: 6px;
+			position: relative;
+		}
+
+		.keyboard button > .badge {
+			position: absolute;
+			bottom: 8px;
+			left: 50%;
+			transform: translateX(-50%);
+			white-space: nowrap;
+		}
+
+		button.one.声母 {
+			--p-button-primary-background: #a5d6a7;
+			--p-button-primary-color: #37474f;
+			--p-button-primary-hover-background: #81c784;
+			--p-button-primary-hover-color: #37474f;
+		}
+
+		button.one.韵母 {
+			--p-button-primary-background: #90caf9;
+			--p-button-primary-color: #37474f;
+			--p-button-primary-hover-background: #64b5f6;
+			--p-button-primary-hover-color: #37474f;
+		}
+
+		button.one.声调 {
+			--p-button-primary-background: #ffcc80;
+			--p-button-primary-color: #37474f;
+			--p-button-primary-hover-background: #ffb74d;
+			--p-button-primary-hover-color: #37474f;
+		}
+
+		button.非正规.声母 {
+			--p-button-primary-background: #c8e6c9;
+			--p-button-primary-hover-background: #a5d6a7;
+		}
+
+		button.非正规.韵母 {
+			--p-button-primary-background: #bbdefb;
+			--p-button-primary-hover-background: #90caf9;
+		}
+
+		.音节 .显示 {
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+			min-height: 160px;
+			background-color: #ffffff;
+			border: 1px solid #e0e0e0;
+			border-radius: 12px;
+			padding: 10px 20px;
+			margin: 0 auto 10px auto;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+			max-width: 95%;
+		}
+
+		.equation-center-group {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			gap: 16px;
+			flex-wrap: wrap;
+		}
+
+		.equation-left {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			gap: 8px;
+			flex-wrap: wrap;
+		}
+
+		.part-container {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: flex-start;
+			min-width: 50px;
+			min-height: 90px;
+			gap: 10px;
+		}
+
+		.part-container .sign {
+			font-size: 52px;
+			height: 60px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			letter-spacing: 0.05em;
+		}
+
+		.part-container .badge {
+			font-size: 14px;
+		}
+
+		.equals-sign {
+			font-size: 48px;
+			color: #6c757d;
+			font-weight: 300;
+		}
+
+		.operator {
+			font-size: 36px;
+			color: #b0b0b0;
+			font-weight: 300;
+		}
+
+		.validation-area {
+			display: flex;
+			align-items: center;
+			gap: 16px;
+		}
+
+		.validation-area .icon {
+			font-size: 28px;
+		}
+
+		.badges {
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+		}
+
+		.声调 .sign {
+			font-size: 24px;
+			line-height: 1;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			height: 100%;
+			width: 100%;
+		}
+	</style>
 </head>
 <body>
-<header class="main-header">
-	<h1 class="logo">在线工具</h1>
+<header>
+	<h1 class="name">在线工具</h1>
 	<nav>
 		<a href="../文本转化.html">文本转化</a>
 		<a href="../数字转化.html">数字转化</a>
@@ -20,8 +164,7 @@
 		<a href="拼音.html" class="active">拼音</a>
 	</nav>
 </header>
-<main class="container">
-	<h1>汉语拼音</h1>
+<main>
 	<section class="音节">
 		<div class="显示">
 			<div class="equation-center-group">
@@ -213,8 +356,7 @@
 		<span>赞助一下</span>
 	</div>
 	<div>
-		<p>&copy; 2025 文本格式转换工具. All rights reserved.</p>
-		<p>一个简单实用的在线文本格式转换工具，支持URI编码解码、Base64转换、MD5加密等功能，助您高效处理文本数据。</p>
+		<p>&copy; 2025 工具兽版权所有. All rights reserved.</p>
 		<p>反馈或建议请联系：<a href="mailto:lwj621@sohu.com">lwj621@sohu.com</a></p>
 	</div>
 </footer>

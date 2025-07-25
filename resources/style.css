@@ -237,3 +237,15 @@ button {
 .note strong {
 	color: red;
 }
+
+.correct {
+	color: #4caf50;
+}
+
+.incorrect {
+	color: #f05c6a;
+}
+
+.incomplete {
+	color: #ff9800;
+}
