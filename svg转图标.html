@@ -3,7 +3,10 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>SVG图标转换工具</title>
+	<title>SVG图标转换工具 | 工具兽</title>
+	<meta name="description"
+				content="在线SVG转图标工具，可将SVG代码快速转换为多种尺寸的PNG图标，方便在网站、应用等场景中使用。">
+	<meta name="keywords" content="SVG, 图标, PNG, 转换, 在线工具">
 
 	<!-- 预加载关键资源 -->
 	<link rel="preload" href="https://unpkg.com/vue@3/dist/vue.global.js" as="script">
@@ -17,7 +20,9 @@
 	<style>
 		.input.area textarea {
 			height: 200px;
+			margin-bottom: 20px;
 		}
+
 		.result.area {
 			grid-template-columns: repeat(4, 1fr);
 		}
@@ -35,10 +40,26 @@
 	</nav>
 </header>
 <main>
+	<header>
+		<h2>SVG转图片</h2>
+		<button class="toggle-description" onclick="toggleDescription()">查看说明</button>
+	</header>
+	<article class="description" style="display: none;">
+		<h2>关于SVG转图片</h2>
+		<p>
+			“SVG转图片”是一个便捷的在线应用，允许用户将SVG（可缩放矢量图形）代码快速转换为多种标准尺寸的PNG格式图标。对于需要在网站、移动应用或桌面程序中使用统一图标的开发者和设计师来说，这是一个非常高效的工具。</p>
+		<h2>核心功能</h2>
+		<ul>
+			<li><strong>实时预览：</strong>用户粘贴SVG代码后，页面会立即显示不同尺寸下的图标预览效果。</li>
+			<li><strong>多种尺寸：</strong>默认提供16x16, 32x32, 48x48, 128x128等常用图标尺寸。</li>
+			<li><strong>一键下载：</strong>用户可以一键下载所有尺寸的PNG格式图标。</li>
+		</ul>
+		<h2>如何使用</h2>
+		<p>
+			将您的SVG代码粘贴到输入框中，工具会自动生成预览。确认无误后，点击“下载图标”按钮，即可将生成的PNG图标文件保存到您的电脑。</p>
+	</article>
 	<section class="input area">
-		<label for="svg-input">SVG代码：</label>
-		<p-textarea id="svg-input" placeholder="粘贴你的SVG代码到这里" autoResize rows="8"
-								v-model="input"></p-textarea>
+		<p-textarea placeholder="粘贴你的SVG代码到这里" autoResize rows="8" v-model="input"></p-textarea>
 	</section>
 
 	<section class="result area">
@@ -71,6 +92,7 @@
 	<script src="https://unpkg.com/@primeuix/themes/umd/aura.js"></script>
 	<script src="lib/jquery-3.4.1.min.js"></script>
 	<script src="lib/toastr.min.js"></script>
+	<script src="resources/biz-util.js"></script>
 </div>
 <script>
 	const {createApp} = Vue;

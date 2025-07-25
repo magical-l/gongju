@@ -3,7 +3,9 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>格子盘</title>
+    <meta name="description" content="在线格子盘工具，轻松制作、自定义和导出田字格、米字格、九宫格等各种格子图案。支持填充颜色、输入文字、描边，是书法、练字、设计的得力助手。">
+    <meta name="keywords" content="格子盘, 田字格, 米字格, 九宫格, 在线工具, 练字, 书法, 设计, 自定义格子">
+	<title>格子盘 - 在线制作田字格、米字格 | 工具兽</title>
 	<link href="resources/style.css?v=0229b" rel="stylesheet">
 	<style>
 		:root {
@@ -154,6 +156,24 @@
 	</nav>
 </header>
 <main>
+	<header>
+		<h2>格子盘</h2>
+		<button class="toggle-description" onclick="toggleDescription()">查看说明</button>
+	</header>
+	<article class="description" style="display: none;">
+		<h2>关于格子盘</h2>
+		<p>“格子盘”是一个功能强大且简单易用的网页应用，旨在帮助用户轻松创建、定制和导出各种类型的格子，如田字格、米字格、九宫格等。无论您是书法爱好者、正在学习写字的学生，还是需要为设计项目制作网格的专业人士，这个工具都能满足您的需求。</p>
+		<h2>主要功能</h2>
+		<p><strong>自定义行列：</strong>用户可以根据需要自由设置格子的行数和列数，最大支持19x19的网格，灵活适应不同场景。</p>
+		<p><strong>三种操作模式：</strong></p>
+		<ul>
+			<li><strong>填充模式：</strong>快速为单元格填充颜色，方便制作像素画或标记特定区域。</li>
+			<li><strong>输入模式：</strong>在单元格中直接输入文字，非常适合用于制作字帖或进行教学演示。</li>			<li><strong>描边模式：</strong>精确地为单元格的边缘描绘不同颜色的边框，轻松制作出田字格、米字格等效果。</li>
+		</ul>
+		<p><strong>颜色选择与清除：</strong>提供调色板让用户选择喜欢的颜色进行填充或描边，并可一键清除所有内容，重新开始。</p>
+		<h2>如何使用</h2>
+		<p>首先，在工具栏中设置您需要的行数和列数，然后点击“应用”按钮生成网格。接着，根据您的需求选择“填充”、“输入”或“描边”模式。最后，使用鼠标在网格上进行创作。完成的作品可以通过截图等方式保存下来。</p>
+	</article>
 	<div class="toolbar">
 		<div class="tool-group">
 			<label>行：<input type="number" class="size-input" id="rows" min="1" max="19" value="5"></label>
@@ -183,8 +203,10 @@
 		<p>反馈或建议请联系：<a href="mailto:lwj621@sohu.com">lwj621@sohu.com</a></p>
 	</div>
 </footer>
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<div>
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="resources/biz-util.js"></script>
+</div>
 <script>
 	const maxSize = 19;
 	const board = $('#board');

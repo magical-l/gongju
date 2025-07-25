@@ -2,10 +2,9 @@
 <html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
 <head>
 	<meta charset="UTF-8">
-	<title itemprop="name">文本格式转换</title>
+	<title itemprop="name">文本格式转换 - Base64, MD5, URI | 工具兽</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="description" content="在线文本格式转换工具，支持URI编码解码、Base64转换、MD5加密、进制转换等功能"
-				itemprop="description">
+	<meta name="description" content="一个多功能的在线文本转换工具，能够对文本进行MD5加密、Base64编码/解码、URI及URI参数编码/解码。无论您是开发者、数据分析师，还是需要处理网络数据的普通用户，这个工具都能为您提供便捷、高效的文本处理服务。" itemprop="description">
 	<meta name="keywords" content="文本格式转换,URI编码,Base64,MD5,进制转换">
 	<meta name="author" content="文本格式转换">
 
@@ -31,6 +30,25 @@
 	</nav>
 </header>
 <main>
+	<header>
+		<h2>文本格式转换工具</h2>
+		<button class="toggle-description" onclick="toggleDescription()">查看说明</button>
+	</header>
+	<article class="description" style="display: none;">
+		<h2>关于文本格式转换工具</h2>
+		<p>“文本格式转换工具”是一个强大而实用的在线服务，专为需要对文本进行各种编码、解码和加密操作的用户设计。无论您是开发人员、数据分析师，还是普通用户，这个工具都能满足您在文本处理方面的多样化需求。</p>
+		<h2>核心功能</h2>
+		<ul>
+			<li><strong>MD5加密：</strong>快速生成文本的MD5哈希值，常用于数据校验和密码存储。</li>
+			<li><strong>Base64编码/解码：</strong>支持文本与Base64格式之间的相互转换，广泛应用于网络数据传输和二进制数据表示。</li>
+			<li><strong>URI编码/解码：</strong>提供对URL中的特殊字符进行编码和解码的功能，确保URL的正确性和可读性。</li>
+			<li><strong>URI参数编码/解码：</strong>专门针对URL查询参数中的字符进行更严格的编码和解码。</li>
+		</ul>
+		<h2>适用场景</h2>
+		<p><strong>Web开发：</strong>在处理URL、API请求或用户输入时，经常需要进行URI编码和解码，以避免安全漏洞和解析错误。</p>
+		<p><strong>数据传输：</strong>当需要在网络上传输二进制数据（如图片、文件）时，通常会先将其进行Base64编码，以文本形式安全传输。</p>
+		<p><strong>信息安全：</strong>MD5哈希算法可用于验证文件完整性，确保文件在传输过程中未被篡改。</p>
+	</article>
 	<section class="input area">
 		<p-textarea placeholder="在此输入要处理的文本" rows="5" autoResize
 								v-model="inputText" @input="processInput"></p-textarea>

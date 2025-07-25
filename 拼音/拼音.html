@@ -3,7 +3,9 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>汉语拼音</title>
+	<title>汉语拼音学习工具 - 在线声母韵母组合练习</title>
+	<meta name="description" content="一个在线的汉语拼音学习和练习工具，通过可视化的方式展示声母、韵母和声调的组合规则，帮助用户更好地掌握汉语拼音。">
+    <meta name="keywords" content="汉语拼音, 拼音学习, 声母, 韵母, 声调, 在线工具, pinyin">
 	<link rel="stylesheet" href="https://unpkg.com/primeicons/primeicons.css">
 	<link rel="stylesheet" href="../resources/style.css">
 	<link rel="stylesheet" href="拼音.css">
@@ -165,6 +167,24 @@
 	</nav>
 </header>
 <main>
+	<header>
+		<h2>汉语拼音学习工具</h2>
+		<button class="toggle-description" onclick="toggleDescription()">查看说明</button>
+	</header>
+	<article class="description" style="display: none;">
+		<h2>关于汉语拼音学习工具</h2>
+		<p>“汉语拼音学习工具”是一个为汉语学习者设计的互动在线应用。它通过一个直观的界面，帮助用户理解和练习汉语拼音中声母、韵母和声调的组合规则。无论您是初学者还是希望巩固拼音知识，这个工具都能为您提供有效的帮助。</p>
+		<h2>核心功能</h2>
+		<ul>
+			<li><strong>可视化拼写：</strong>用户可以通过点击虚拟键盘上的声母、韵母和声调，实时查看它们的组合结果。</li>
+			<li><strong>拼写规则验证：</strong>工具会根据内置的拼音规则，判断所选组合是否有效，并给出相应的提示（正确、错误或不完整）。</li>
+			<li><strong>详细信息展示：：</strong>对于生成的拼音，工具会显示其是否为卷舌音、前鼻音、后鼻音或整体认读音节。</li>
+		</ul>
+		<h2>适用人群</h2>
+		<p><strong>汉语初学者：：</strong>特别是儿童和外籍人士，可以通过这个工具直观地学习拼音规则。</p>
+		<p><strong>教师与家长：：</strong>可以利用此工具进行拼音教学，增加互动性和趣味性。</p>
+		<p><strong>语言爱好者：：</strong>对汉语语言学感兴趣的用户，可以通过此工具探索拼音的奥秘。</p>
+	</article>
 	<section class="音节">
 		<div class="显示">
 			<div class="equation-center-group">
@@ -364,6 +384,9 @@
 	<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 	<script src="https://unpkg.com/primevue/umd/primevue.min.js"></script>
 	<script src="https://unpkg.com/@primeuix/themes/umd/aura.js"></script>
+	<script src="../lib/jquery-3.4.1.min.js"></script>
+	<script src="../lib/toastr.min.js"></script>
+	<script src="../resources/biz-util.js"></script>
 </div>
 <script>
 	const embeddedData = {

@@ -118,3 +118,15 @@ $(() => {
 		textarea.css('overflow', 'hidden').css('height', textarea.prop('scrollHeight'));
 	});
 });
+
+function toggleDescription() {
+	const description = document.querySelector('.description');
+	const button = document.querySelector('.toggle-description');
+	if (description.style.display === 'none') {
+		description.style.display = 'block';
+		button.textContent = '隐藏说明';
+	} else {
+		description.style.display = 'none';
+		button.textContent = '查看说明';
+	}
+}
