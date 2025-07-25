@@ -11,86 +11,15 @@
 	<link rel="preload" href="https://unpkg.com/@primeuix/themes/umd/aura.js" as="script">
 
 	<link href="https://cdn.jsdelivr.net/npm/primeicons/primeicons.css" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/primeflex@3.3.1/primeflex.min.css" rel="stylesheet">
 	<link href="lib/toastr.min.css" rel="stylesheet">
 	<link href="resources/style.css" rel="stylesheet">
 	<style>
-		.input-section, .output-section {
-			margin-bottom: 25px;
+		.input.area textarea {
+			height: 200px;
 		}
-
-		label {
-			display: block;
-			margin-bottom: 8px;
-			font-weight: 600;
-		}
-
-		.preview-container {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 20px;
-			margin-top: 15px;
-		}
-
-		.preview-item {
-			text-align: center;
-			background: #f9f9f9;
-			padding: 10px;
-			border-radius: 4px;
-			min-width: 100px;
-		}
-
-		.preview-icon {
-			margin: 10px auto;
-			display: block;
-		}
-
-		.btn-container {
-			display: flex;
-			justify-content: center;
-			gap: 15px;
-			margin-top: 20px;
-		}
-
-		button {
-			padding: 10px 20px;
-			background-color: #00a1d6;
-			color: white;
-			border: none;
-			border-radius: 4px;
-			cursor: pointer;
-			font-weight: 600;
-		}
-
-		button:hover {
-			background-color: #0087b3;
-		}
-
-		.download-btn {
-			background-color: #fb7299;
-		}
-
-		.download-btn:hover {
-			background-color: #e65c85;
-		}
-
-		.instructions {
-			margin-top: 30px;
-			padding: 15px;
-			background-color: #e6f7ff;
-			border-left: 4px solid #00a1d6;
-			border-radius: 4px;
-		}
-
-		.instructions h3 {
-			margin-top: 0;
-		}
-
-		.instructions ul {
-			padding-left: 20px;
-		}
-
-		.instructions li {
-			margin-bottom: 8px;
+		.result.area {
+			grid-template-columns: repeat(4, 1fr);
 		}
 	</style>
 </head>
@@ -108,36 +37,22 @@
 <main>
 	<section class="input area">
 		<label for="svg-input">SVG代码：</label>
-		<textarea id="svg-input" placeholder="SVG代码" v-model="input">
-			<svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M9.77234 30.8573V11.7471H7.54573C5.50932 11.7471 3.85742 13.3931 3.85742 15.425V27.1794C3.85742 29.2112 5.50932 30.8573 7.54573 30.8573H9.77234ZM11.9902 30.8573V11.7054C14.9897 10.627 16.6942 7.8853 17.1055 3.33591C17.2666 1.55463 18.9633 0.814421 20.5803 1.59505C22.1847 2.36964 23.243 4.32583 23.243 6.93947C23.243 8.50265 23.0478 10.1054 22.6582 11.7471H29.7324C31.7739 11.7471 33.4289 13.402 33.4289 15.4435C33.4289 15.7416 33.3928 16.0386 33.3215 16.328L30.9883 25.7957C30.2558 28.7683 27.5894 30.8573 24.528 30.8573H11.9911H11.9902Z" fill="currentColor"></path></svg>
-		</textarea>
+		<p-textarea id="svg-input" placeholder="粘贴你的SVG代码到这里" autoResize rows="8"
+								v-model="input"></p-textarea>
 	</section>
 
 	<section class="result area">
-		<label>预览：</label>
-		<div class="preview-container">
-			<div class="preview-item">
-				<div>16×16</div>
-				<svg class="preview-icon" width="16" height="16" viewBox="0 0 36 36"></svg>
-			</div>
-			<div class="preview-item">
-				<div>32×32</div>
-				<svg class="preview-icon" width="32" height="32" viewBox="0 0 36 36"></svg>
-			</div>
-			<div class="preview-item">
-				<div>48×48</div>
-				<svg class="preview-icon" width="48" height="48" viewBox="0 0 36 36"></svg>
-			</div>
-			<div class="preview-item">
-				<div>128×128</div>
-				<svg class="preview-icon" width="128" height="128" viewBox="0 0 36 36"></svg>
-			</div>
-		</div>
+		<card class="one result" v-for="size in sizes" :key="size">
+			<template #title>{{ size }}&times;{{ size }}</template>
+			<template #content>
+				<svg class="preview-icon" :width="size" :height="size" :view-box.camel="parsedSvg.viewBox"
+						 v-html="parsedSvg.inner"></svg>
+			</template>
+		</card>
 	</section>
 
-	<div class="btn-container">
-		<button id="preview-btn">预览图标</button>
-		<button id="download-btn" class="download-btn">下载图标包</button>
+	<div class="flex justify-content-center mt-3">
+		<p-button label="下载图标（png）" icon="pi pi-download" @click="downloadIcons"></p-button>
 	</div>
 </main>
 <footer>
@@ -155,120 +70,96 @@
 	<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 	<script src="https://unpkg.com/primevue/umd/primevue.min.js"></script>
 	<script src="https://unpkg.com/@primeuix/themes/umd/aura.js"></script>
+	<script src="lib/jquery-3.4.1.min.js"></script>
+	<script src="lib/toastr.min.js"></script>
 </div>
 <script>
-	document.getElementById('preview-btn').addEventListener('click', updatePreview);
-	document.getElementById('download-btn').addEventListener('click', downloadIcons);
-
-	function updatePreview() {
-		const svgCode = document.getElementById('svg-input').value;
-		const previewIcons = document.querySelectorAll('.preview-icon');
-
-		previewIcons.forEach(icon => {
-			// 清空现有内容
-			while (icon.firstChild) {
-				icon.removeChild(icon.firstChild);
-			}
-
-			// 创建临时容器解析SVG
-			const tempDiv = document.createElement('div');
-			tempDiv.innerHTML = svgCode;
-			const svgElement = tempDiv.querySelector('svg');
-
-			if (svgElement) {
-				// 克隆SVG并添加到预览容器
-				const clonedSvg = svgElement.cloneNode(true);
-				icon.appendChild(clonedSvg);
-			}
-		});
-	}
-
-	function downloadIcons() {
-		const svgCode = document.getElementById('svg-input').value;
-		const sizes = [16, 32, 48, 128];
-
-		sizes.forEach(size => {
-			// 创建SVG元素
-			const parser = new DOMParser();
-			const svgDoc = parser.parseFromString(svgCode, 'image/svg+xml');
-			const svgElement = svgDoc.documentElement;
-
-			// 设置尺寸
-			svgElement.setAttribute('width', size);
-			svgElement.setAttribute('height', size);
-
-			// 创建canvas用于转换
-			const canvas = document.createElement('canvas');
-			canvas.width = size;
-			canvas.height = size;
-			const ctx = canvas.getContext('2d');
-
-			// 创建图片对象
-			const img = new Image();
-			const svgBlob = new Blob([new XMLSerializer().serializeToString(svgElement)], {type: 'image/svg+xml'});
-			const url = URL.createObjectURL(svgBlob);
-
-			img.onload = function () {
-				// 绘制到canvas
-				ctx.clearRect(0, 0, size, size);
-				ctx.drawImage(img, 0, 0, size, size);
-
-				// 转换为PNG并下载
-				const pngUrl = canvas.toDataURL('image/png');
-				const link = document.createElement('a');
-				link.download = `icon-${size}x${size}.png`;
-				link.href = pngUrl;
-				link.click();
-
-				// 清理
-				URL.revokeObjectURL(url);
-			};
-
-			img.src = url;
-		});
-	}
-
-	// 初始预览
-	updatePreview();
-
 	const {createApp} = Vue;
+
+	function download(svgDom, size) {
+		// 必须克隆，否则会修改同一个svgElement
+		const clonedSvgElement = svgDom.cloneNode(true);
+		clonedSvgElement.setAttribute('width', size);
+		clonedSvgElement.setAttribute('height', size);
+
+		const canvas = document.createElement('canvas');
+		canvas.width = size;
+		canvas.height = size;
+		const ctx = canvas.getContext('2d');
+
+		const img = new Image();
+		const svgBlob = new Blob([new XMLSerializer().serializeToString(clonedSvgElement)],
+			{type: 'image/svg+xml;charset=utf-8'});
+		const url = URL.createObjectURL(svgBlob);
+
+		img.onload = () => {
+			ctx.clearRect(0, 0, size, size);
+			ctx.drawImage(img, 0, 0, size, size);
+
+			const pngUrl = canvas.toDataURL('image/png');
+			const link = document.createElement('a');
+			link.download = `icon${size}.png`;
+			link.href = pngUrl;
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+
+			URL.revokeObjectURL(url);
+		};
+		img.onerror = e => {
+			toastr.error(`${size} 的图标生成失败`);
+			console.error(e);
+			URL.revokeObjectURL(url);
+		};
+		img.src = url;
+	}
+
 	const app = createApp({
 		components: {
-			'choose-group': PrimeVue.SelectButton,
 			'p-button': PrimeVue.Button,
 			'p-textarea': PrimeVue.Textarea,
-			'p-fieldset': PrimeVue.Fieldset,
-			'card': PrimeVue.Card,
-			'toolbar': PrimeVue.Toolbar,
-			'p-checkbox': PrimeVue.Checkbox
+			'card': PrimeVue.Card
 		},
 		data() {
 			return {
-				inputText: '',
-				results
+				input: `<svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M9.77234 30.8573V11.7471H7.54573C5.50932 11.7471 3.85742 13.3931 3.85742 15.425V27.1794C3.85742 29.2112 5.50932 30.8573 7.54573 30.8573H9.77234ZM11.9902 30.8573V11.7054C14.9897 10.627 16.6942 7.8853 17.1055 3.33591C17.2666 1.55463 18.9633 0.814421 20.5803 1.59505C22.1847 2.36964 23.243 4.32583 23.243 6.93947C23.243 8.50265 23.0478 10.1054 22.6582 11.7471H29.7324C31.7739 11.7471 33.4289 13.402 33.4289 15.4435C33.4289 15.7416 33.3928 16.0386 33.3215 16.328L30.9883 25.7957C30.2558 28.7683 27.5894 30.8573 24.528 30.8573H11.9911H11.9902Z" fill="currentColor"></path></svg>`,
+				sizes: [16, 32, 48, 128]
 			};
 		},
-		methods: {
-			processInput() {
-				Object.values(this.results).forEach(result => {
-					this.updateResult(result, this.inputText);
-				});
-			},
-			updateResult(result, inputText) {
-				if (inputText) {
-					try {
-						result.value = result.convert.call(result, inputText);
-					} catch (e) {
-						console.error(`Error processing result:`, e);
-						result.value = '转换出错';
-					}
-				} else {
-					result.value = '';
+		computed: {
+			parsedSvg() {
+				const tempDiv = document.createElement('div');
+				// 使用v-html有XSS风险，但这是一个本地工具，用户输入自己的代码，风险可控
+				tempDiv.innerHTML = this.input;
+				const svgElement = tempDiv.querySelector('svg');
+				if (!svgElement) {
+					return {viewBox: '0 0 100 100', inner: ''};
 				}
-			},
+				return {
+					viewBox: svgElement.getAttribute('viewBox') || '0 0 100 100',
+					inner: svgElement.innerHTML
+				};
+			}
 		},
-		mounted() {
-			this.processInput();
+		methods: {
+			downloadIcons() {
+				if (!this.input) {
+					toastr.warning('SVG代码不能为空');
+					return;
+				}
+
+				const parser = new DOMParser();
+				const svgDoc = parser.parseFromString(this.input, 'image/svg+xml');
+				const svgElement = svgDoc.documentElement;
+
+				if (svgElement.tagName.toLowerCase() !== 'svg' || svgDoc.querySelector('parsererror')) {
+					toastr.error('无效的SVG代码，请检查');
+					return;
+				}
+
+				toastr.success('即将开始下载，请稍候');
+				this.sizes.forEach(size => download(svgElement, size));
+			}
 		}
 	})
 	.use(PrimeVue.Config, {

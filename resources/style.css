@@ -147,6 +147,7 @@ button {
 }
 
 .result.area {
+	flex-basis: 100%;
 	flex: 4;
 	display: grid;
 	grid-template-columns: repeat(3, 1fr);
@@ -156,6 +157,22 @@ button {
 
 .result.area > header {
 	grid-column: 1 / -1;
+}
+
+.transfer.result.area {
+
+}
+
+@media (max-width: 1024px) {
+	.result.area {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+@media (max-width: 768px) {
+	.result.area {
+		grid-template-columns: 1fr;
+	}
 }
 
 .one.result {
@@ -207,12 +224,6 @@ button {
 	font-style: italic;
 }
 
-@media (max-width: 1024px) {
-	.result.area {
-		grid-template-columns: repeat(2, 1fr);
-	}
-}
-
 .chooser.p-selectbutton button {
 	padding: 0.1rem 0.3rem;
 	font-size: 0.8rem;
@@ -221,13 +232,6 @@ button {
 
 .chooser.p-selectbutton button .p-togglebutton-label {
 	font-weight: normal;
-}
-
-@media (max-width: 768px) {
-	.result.area {
-		flex-basis: 100%;
-		grid-template-columns: 1fr;
-	}
 }
 
 .note strong {
