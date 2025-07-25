@@ -13,109 +13,11 @@
 	<link rel="preload" href="resources/math.js" as="script">
 
 	<link href="https://cdn.jsdelivr.net/npm/primeicons/primeicons.css" rel="stylesheet">
-	<link href="lib/toastr.min.css?v=0204a" rel="stylesheet">
-	
-	<link href="resources/style.css?v=0229b" rel="stylesheet">
+	<link href="lib/toastr.min.css" rel="stylesheet">
+	<link href="resources/style.css" rel="stylesheet">
 	<style>
-		body {
-			font-family: sans-serif;
-			display: flex;
-			flex-direction: column;
-			min-height: 100vh;
-		}
-
-		main {
-			flex: 1;
-			display: flex;
-			flex-wrap: wrap;
-			align-items: start;
-			gap: 1rem;
-		}
-
-		footer {
-			margin-top: 2rem;
-			padding: 1rem;
-			background-color: #f8f9fa;
-			color: #6c757d;
-			text-align: center;
-			font-size: 0.85rem;
-			display: flex;
-			flex-wrap: wrap;
-			justify-content: center;
-			align-items: center;
-			gap: 1rem;
-		}
-
-		footer .qr-code {
-			margin: 1rem auto;
-			width: 100px;
-			height: auto;
-			background-color: #e9ecef;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			justify-content: center;
-			font-style: italic;
-			padding: 5px;
-		}
-
-		footer .qr-code img {
-			max-width: 100%;
-			height: auto;
-			margin-bottom: 5px;
-		}
-
-		footer .qr-code span {
-			font-size: 0.75rem;
-			color: #333;
-		}
-
-		footer p {
-			margin-bottom: 0.5rem;
-		}
-
-		footer a {
-			color: #007bff;
-			text-decoration: none;
-		}
-
-		footer a:hover {
-			text-decoration: underline;
-		}
-
-		header,
 		.input.area {
-			flex-basis: 100%;
-		}
-
-		main > header {
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-		}
-
-		main nav a {
-			margin-left: 1rem;
-			text-decoration: none;
-			color: #333;
-		}
-
-		main nav a.active {
-			font-weight: bold;
-			border-bottom: 2px solid #007bff;
-		}
-
-		.input.area {
-			flex-basis: 100%;
 			position: relative;
-		}
-
-		.input.area textarea {
-			width: 100%;
-			min-height: 100px;
-			height: 100px;
-			box-sizing: border-box;
-			padding-bottom: 40px;
 		}
 
 		.input.area .input.radix.chooser {
@@ -124,128 +26,22 @@
 			right: 10px;
 			z-index: 1;
 		}
-
-		.setting.area {
-			flex: 1;
-			min-width: 280px;
-		}
-
-		.one.setting {
-			display: flex;
-			align-items: center;
-			gap: 1rem;
-			margin-bottom: 1rem;
-		}
-
-		.result.area {
-			flex: 4;
-			display: grid;
-			grid-template-columns: repeat(3, 1fr);
-			align-items: start;
-			gap: 1rem;
-		}
-
-		.result.area > header {
-			grid-column: 1 / -1;
-			color: #666;
-			font-style: italic;
-		}
-
-		.one.result {
-			cursor: pointer;
-			transition: background-color 0.2s;
-		}
-
-		.one.result:hover {
-			background-color: #f0f8ff;
-		}
-
-		.one.result header {
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-			width: 100%;
-		}
-
-		.one.result article {
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-		}
-
-		.one.result .p-card-body {
-			padding: 0.75rem;
-		}
-
-		.one.result .p-card-content {
-			padding: 0;
-		}
-
-		.one.result .p-card-title {
-			font-size: 1rem;
-			margin-bottom: 0.25rem;
-		}
-
-		.one.result .p-button {
-			height: auto;
-			padding: 0.2rem 0.4rem;
-		}
-
-		.one.result .value {
-			max-width: 300px;
-			white-space: nowrap;
-			overflow: hidden;
-			text-overflow: ellipsis;
-		}
-
-		.one.result .placeholder {
-			color: #6c757d;
-			font-style: italic;
-		}
-
-		@media (max-width: 1024px) {
-			.result.area {
-				grid-template-columns: repeat(2, 1fr);
-			}
-		}
-
-		.chooser.p-selectbutton button {
-			padding: 0.1rem 0.3rem;
-			font-size: 0.8rem;
-			min-width: 2rem;
-		}
-
-		.chooser.p-selectbutton button .p-togglebutton-label {
-			font-weight: normal;
-		}
-
-		@media (max-width: 768px) {
-			.result.area {
-				flex-basis: 100%;
-				grid-template-columns: 1fr;
-			}
-
-			.setting.area {
-				flex-basis: 100%;
-			}
-		}
-
-		.note strong {
-			color: red;
-		}
 	</style>
 </head>
 <body>
+<header>
+	<h1 class="name">在线工具</h1>
+	<nav>
+		<a href="文本转化.html">文本转化</a>
+		<a href="数字转化.html" class="active">数字转化</a>
+		<a href="格子盘.html">格子盘</a>
+		<a href="svg转图标.html">SVG转图标</a>
+		<a href="拼音/拼音.html">拼音</a>
+	</nav>
+</header>
 <main>
-	<header>
-		<nav>
-			<a href="文本转化.html">文本转化</a>
-			<a href="数字转化.html" class="active">数字转化</a>
-		</nav>
-	</header>
-
 	<section class="input area">
-		<p-textarea placeholder="在此输入要处理的文本，处理文本中的数字，非数字字符保留原样。" rows="5" autoResize
+		<p-textarea placeholder="在此输入要处理的文本，处理文本中的数字，非数字部分将保留原样。" rows="5" autoResize
 								v-model="inputText" @input="processInput"></p-textarea>
 		<choose-group class="input radix chooser" v-model="inputRadix" :options="radixOptions"
 									@change="processInput"></choose-group>
@@ -272,7 +68,7 @@
 			</template>
 			<template #content>
 				<article title="点击复制" v-if="result.value">
-					<span class="value">{{result.value}}</span>
+					<span class="value text-maybe-too-long">{{result.value}}</span>
 					<p-button title="把此结果作为输入" aria-label="把此结果作为输入" @click.stop="asInput(result.value)"
 										variant="outlined" serverity="info">
 						<i class="pi pi-upload"></i>
@@ -304,7 +100,7 @@
 	<script src="resources/biz-util.js"></script>
 	<script src="resources/ue.js"></script>
 	<script src="resources/math.js"></script>
-	
+
 </div>
 <script>
 	const {createApp} = Vue;
@@ -480,7 +276,6 @@
 					textArea.value = text;
 					document.body.appendChild(textArea);
 					textArea.select();
-					document.execCommand('copy');
 					document.body.removeChild(textArea);
 				}
 				toastr.success('已复制到剪贴板');

@@ -1,297 +1,346 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-    <style>
-        :root {
-            --default-draw-color: #88CC88;
-            --toolbar-border: #dee2e6;
-            --cell-border: #e0e0e0;
-        }
-        body {
-            font-family: Arial, sans-serif;
-            background: #F0F8FF;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 0;
-        }
-        .toolbar {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            width: fit-content;
-            padding: 2px 0;
-        }
-        .tool-group {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            height: 40px;
-            padding: 6px 12px;
-            background: white;
-            border: 1px solid var(--toolbar-border);
-            border-radius: 6px;
-        }
-        .btn-group {
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            overflow: hidden;
-            display: inline-flex;
-        }
-        .btn-group button {
-            border: none;
-            border-radius: 0;
-            margin: 0;
-            border-right: 1px solid #ccc;
-            padding: 6px 12px;
-            background: white;
-            color: #666;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .btn-group button:last-child {
-            border-right: none;
-        }
-        button.active {
-            border-color: var(--default-draw-color);
-            background: var(--default-draw-color);
-            color: white;
-        }
-        .size-input {
-            width: 50px;
-            padding: 6px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>格子盘</title>
+	<link href="resources/style.css?v=0229b" rel="stylesheet">
+	<style>
+		:root {
+			--default-draw-color: #88CC88;
+			--toolbar-border: #dee2e6;
+			--cell-border: #e0e0e0;
+		}
 
-        .board {
-            border: 1px solid #d3d3d3;
-            background: white;
-            border-collapse: collapse;
-            margin: 15px auto;
-        }
-        .cell {
-            width: 36px;
-            height: 36px;
-            position: relative;
-            text-align: center;
-            border: 2px solid var(--cell-border);
-            user-select: none;
-        }
-        .dimmed.cell {
-            background: #e0e0e0 !important;
-            opacity: 0.7;
-            pointer-events: none;
-        }
-        .fill-mode td:not(.dimmed) { 
-            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%2388CC88" d="M7.44,8.94L16.38,0L17.79,1.41l-2.38,2.38L20.56,8.94c0.59,0.59,0.59,1.54,0,2.12l-5.5,5.5C14.77,16.85,14.38,17,14,17s-0.77-0.15-1.06-0.44l-5.5-5.5C6.85,10.48,6.85,9.53,7.44,8.94z M18.79,10L14,5.21L9.21,10H18.79z M5,11.5c0,0,2,2.17,2,3.5c0,1.1-0.9,2-2,2s-2-0.9-2-2C3,13.67,5,11.5,5,11.5z"/></svg>') 0 18, pointer;
-        }
-        .input-mode td:not(.dimmed) {
-            cursor: text;
-        }
-        .text-container {
-            position: relative;
-            z-index: 4;
-            pointer-events: none;
-        }
-        .text-input {
-            width: 80%;
-            font-size: 12px;
-            border: none;
-            background: transparent;
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            outline: none;
-            z-index: 5;
-            pointer-events: auto;
-        }
-        .stroke-mode .edge-hotzone:hover {
-            background-color: rgba(136, 204, 136, 0.2);
-        }
+		.toolbar {
+			display: flex;
+			gap: 12px;
+			justify-content: center;
+			width: fit-content;
+			padding: 2px 0;
+		}
 
-        .stroke-mode .edge-hotzone {
-            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%2388CC88" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>') 6 18, pointer;
-        }
-        .edge-hotzone {
-            position: absolute;
-            background: transparent;
-            z-index: 3;
-            transition: background-color 0.1s;
-        }
-        .edge-hotzone.top { top: 0; left: 0; width: 100%; height: 12px; }
-        .edge-hotzone.right { right: 0; top: 0; width: 12px; height: 100%; }
-        .edge-hotzone.bottom { bottom: 0; left: 0; width: 100%; height: 12px; }
-        .edge-hotzone.left { left: 0; top: 0; width: 12px; height: 100%; }
-    </style>
+		.tool-group {
+			display: flex;
+			gap: 8px;
+			align-items: center;
+			height: 40px;
+			padding: 6px 12px;
+			background: white;
+			border: 1px solid var(--toolbar-border);
+			border-radius: 6px;
+		}
+
+		.btn-group {
+			border: 1px solid #ccc;
+			border-radius: 4px;
+			overflow: hidden;
+			display: inline-flex;
+		}
+
+		.btn-group button {
+			border: none;
+			border-radius: 0;
+			margin: 0;
+			border-right: 1px solid #ccc;
+			padding: 6px 12px;
+			background: white;
+			color: #666;
+			cursor: pointer;
+			transition: 0.2s;
+		}
+
+		.btn-group button:last-child {
+			border-right: none;
+		}
+
+		button.active {
+			border-color: var(--default-draw-color);
+			background: var(--default-draw-color);
+			color: white;
+		}
+
+		.size-input {
+			width: 50px;
+			padding: 6px;
+			border: 1px solid #ccc;
+			border-radius: 4px;
+		}
+
+		.board {
+			border: 1px solid #d3d3d3;
+			background: white;
+			border-collapse: collapse;
+			margin: 15px auto;
+		}
+
+		.cell {
+			width: 36px;
+			height: 36px;
+			position: relative;
+			text-align: center;
+			border: 2px solid var(--cell-border);
+			user-select: none;
+		}
+
+		.dimmed.cell {
+			background: #e0e0e0 !important;
+			opacity: 0.7;
+			pointer-events: none;
+		}
+
+		.fill-mode td:not(.dimmed) {
+			cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%2388CC88" d="M7.44,8.94L16.38,0L17.79,1.41l-2.38,2.38L20.56,8.94c0.59,0.59,0.59,1.54,0,2.12l-5.5,5.5C14.77,16.85,14.38,17,14,17s-0.77-0.15-1.06-0.44l-5.5-5.5C6.85,10.48,6.85,9.53,7.44,8.94z M18.79,10L14,5.21L9.21,10H18.79z M5,11.5c0,0,2,2.17,2,3.5c0,1.1-0.9,2-2,2s-2-0.9-2-2C3,13.67,5,11.5,5,11.5z"/></svg>') 0 18, pointer;
+		}
+
+		.input-mode td:not(.dimmed) {
+			cursor: text;
+		}
+
+		.text-container {
+			position: relative;
+			z-index: 4;
+			pointer-events: none;
+		}
+
+		.text-input {
+			width: 80%;
+			font-size: 12px;
+			border: none;
+			background: transparent;
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			transform: translate(-50%, -50%);
+			text-align: center;
+			outline: none;
+			z-index: 5;
+			pointer-events: auto;
+		}
+
+		.stroke-mode .edge-hotzone:hover {
+			background-color: rgba(136, 204, 136, 0.2);
+		}
+
+		.stroke-mode .edge-hotzone {
+			cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%2388CC88" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>') 6 18, pointer;
+		}
+
+		.edge-hotzone {
+			position: absolute;
+			background: transparent;
+			z-index: 3;
+			transition: background-color 0.1s;
+		}
+
+		.edge-hotzone.top { top: 0; left: 0; width: 100%; height: 12px; }
+
+		.edge-hotzone.right { right: 0; top: 0; width: 12px; height: 100%; }
+
+		.edge-hotzone.bottom { bottom: 0; left: 0; width: 100%; height: 12px; }
+
+		.edge-hotzone.left { left: 0; top: 0; width: 12px; height: 100%; }
+	</style>
 </head>
 <body class="fill-mode">
-    <div class="toolbar">
-        <div class="tool-group">
-            <label>行：<input type="number" class="size-input" id="rows" min="1" max="19" value="5"></label>
-            <label>列：<input type="number" class="size-input" id="cols" min="1" max="19" value="5"></label>
-            <button onclick="initGrid()">应用</button>
-        </div>
-        <div class="tool-group">
-            <div class="btn-group">
-                <button class="active" data-mode="fill">填充</button>
-                <button data-mode="input">输入</button>
-                <button data-mode="stroke">描边</button>
-            </div>
-            <input type="color" value="#88CC88">
-            <button onclick="clearAll()">清除</button>
-        </div>
-    </div>
+<header>
+	<h1 class="name">在线工具</h1>
+	<nav>
+		<a href="文本转化.html">文本转化</a>
+		<a href="数字转化.html">数字转化</a>
+		<a href="格子盘.html" class="active">格子盘</a>
+		<a href="svg转图标.html">SVG转图标</a>
+		<a href="拼音/拼音.html">拼音</a>
+	</nav>
+</header>
+<main>
+	<div class="toolbar">
+		<div class="tool-group">
+			<label>行：<input type="number" class="size-input" id="rows" min="1" max="19" value="5"></label>
+			<label>列：<input type="number" class="size-input" id="cols" min="1" max="19" value="5"></label>
+			<button onclick="initGrid()">应用</button>
+		</div>
+		<div class="tool-group">
+			<div class="btn-group">
+				<button class="active" data-mode="fill">填充</button>
+				<button data-mode="input">输入</button>
+				<button data-mode="stroke">描边</button>
+			</div>
+			<input type="color" value="#88CC88">
+			<button onclick="clearAll()">清除</button>
+		</div>
+	</div>
 
-    <table class="board" id="board"></table>
+	<table class="board" id="board"></table>
+</main>
+<footer>
+	<div class="qr-code">
+		<img src="resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+		<span>赞助一下</span>
+	</div>
+	<div>
+		<p>&copy; 2025 格子盘. All rights reserved.</p>
+		<p>一个用于在线画格子、描边和填色的工具。</p>
+		<p>反馈或建议请联系：<a href="mailto:lwj621@sohu.com">lwj621@sohu.com</a></p>
+	</div>
+</footer>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        const maxSize = 19;
-        const board = $('#board');
-        let currentMode = 'fill';
-        let currentColor = getComputedStyle(document.documentElement).getPropertyValue('--default-draw-color').trim();
-        let isDrawing = false;
-        let isFilling = false;
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+	const maxSize = 19;
+	const board = $('#board');
+	let currentMode = 'fill';
+	let currentColor = getComputedStyle(document.documentElement).getPropertyValue('--default-draw-color').trim();
+	let isDrawing = false;
+	let isFilling = false;
 
-        $('.btn-group button').on('click', function() {
-            $('.btn-group button').removeClass('active');
-            $(this).addClass('active');
-            currentMode = $(this).data('mode');
-            $('body').attr('class', `${currentMode}-mode`);
-            
-            // 移除所有之前的事件处理
-            board.off('mousedown mousemove click');
-            
-            // 根据模式绑定对应的事件处理
-            switch(currentMode) {
-                case 'fill':
-                    board.on('mousedown mousemove', handleFill);
-                    break;
-                case 'input':
-                    board.on('click', handleInput);
-                    break;
-                case 'stroke':
-                    board.on('mousedown mousemove', handleStroke);
-                    break;
-            }
-        });
+	$('.btn-group button').on('click', function () {
+		$('.btn-group button').removeClass('active');
+		$(this).addClass('active');
+		currentMode = $(this).data('mode');
+		$('body').attr('class', `${currentMode}-mode`);
 
-        $('input[type="color"]').on('input', e => currentColor = e.target.value);
+		// 移除所有之前的事件处理
+		board.off('mousedown mousemove click');
 
-        function initGrid() {
-            board.empty();
-            const activeRows = Math.min(parseInt($('#rows').val()) || 5, maxSize);
-            const activeCols = Math.min(parseInt($('#cols').val()) || 5, maxSize);
-            const colOffset = Math.floor((maxSize - activeCols) / 2);
+		// 根据模式绑定对应的事件处理
+		switch (currentMode) {
+			case 'fill':
+				board.on('mousedown mousemove', handleFill);
+				break;
+			case 'input':
+				board.on('click', handleInput);
+				break;
+			case 'stroke':
+				board.on('mousedown mousemove', handleStroke);
+				break;
+		}
+	});
 
-            for(let i = 0; i < maxSize; i++) {
-                const row = $('<tr>');
-                for(let j = 0; j < maxSize; j++) {
-                    const isActive = i < activeRows && (j >= colOffset && j < colOffset + activeCols);
-                    const cell = createCell(isActive);
-                    if(!isActive) cell.addClass('dimmed');
-                    row.append(cell);
-                }
-                board.append(row);
-            }
-        }
-        function createCell(isActive) {
-            const cell = $('<td>').addClass('cell');
-            if (!isActive) return cell;
-            
-            const elements = [
-                ['div', 'text-container'],
-                ...['top', 'right', 'bottom', 'left'].map(d => ['div', `edge-hotzone ${d}`])
-            ];
-            
-            elements.forEach(([tag, className]) => {
-                const el = $('<' + tag + '>').addClass(className);
-                cell.append(el);
-            });
-            
-            return cell;
-        }
+	$('input[type="color"]').on('input', e => currentColor = e.target.value);
 
-        initGrid();
+	function initGrid() {
+		board.empty();
+		const activeRows = Math.min(parseInt($('#rows').val()) || 5, maxSize);
+		const activeCols = Math.min(parseInt($('#cols').val()) || 5, maxSize);
+		const colOffset = Math.floor((maxSize - activeCols) / 2);
 
-        board.on('mousedown mousemove', handleFill);
+		for (let i = 0; i < maxSize; i++) {
+			const row = $('<tr>');
+			for (let j = 0; j < maxSize; j++) {
+				const isActive = i < activeRows && (j >= colOffset && j < colOffset + activeCols);
+				const cell = createCell(isActive);
+				if (!isActive) {
+					cell.addClass('dimmed');
+				}
+				row.append(cell);
+			}
+			board.append(row);
+		}
+	}
 
-        function handleFill(e) {
-            const cell = $(e.target).closest('.cell');
-            if (!cell.length || cell.hasClass('dimmed')) return;
+	function createCell(isActive) {
+		const cell = $('<td>').addClass('cell');
+		if (!isActive) {
+			return cell;
+		}
 
-            if (e.type === 'mousedown') {
-                isFilling = true;
-                fillCell(cell);
-            } else if (e.type === 'mousemove' && isFilling) {
-                fillCell(cell);
-            }
-        }
+		const elements = [
+			['div', 'text-container'],
+			...['top', 'right', 'bottom', 'left'].map(d => ['div', `edge-hotzone ${d}`])
+		];
 
-        function fillCell(cell) {
-            cell.css('background-color', currentColor);
-        }
+		elements.forEach(([tag, className]) => {
+			const el = $('<' + tag + '>').addClass(className);
+			cell.append(el);
+		});
 
-        function handleInput(e) {
-            const cell = $(e.target).closest('td');
-            if (!cell.length || cell.hasClass('dimmed')) return;
+		return cell;
+	}
 
-            const textContainer = cell.find('.text-container');
-            const input = $('<input>').addClass('text-input').val(textContainer.text());
-            textContainer.empty().append(input);
-            input.trigger('focus');
-            input.on('blur', () => textContainer.text(input.val()));
-        }
+	initGrid();
 
-        function handleStroke(e) {
-            const hotzone = $(e.target).closest('.edge-hotzone');
-            if (!hotzone.length || hotzone.parent().hasClass('dimmed')) return;
+	board.on('mousedown mousemove', handleFill);
 
-            if (e.type === 'mousedown') {
-                isDrawing = true;
-                stroke(hotzone);
-            } else if(e.type === 'mousemove' && isDrawing) {
-                stroke(hotzone);
-            }
-        }
+	function handleFill(e) {
+		const cell = $(e.target).closest('.cell');
+		if (!cell.length || cell.hasClass('dimmed')) {
+			return;
+		}
 
-        function stroke(hotzone) {
-            const cell = hotzone.parent();
-            const direction = hotzone.attr('class').split(' ')[1];
-            const borderProp = `border-${direction}-color`;
-            
-            // 获取当前单元格的位置
-            const row = cell.parent().index();
-            const col = cell.index();
-            
-            // 设置当前单元格的边框颜色
-            cell.css(borderProp, currentColor);
-            
-            // 处理相邻单元格的对应边框
-            const oppositeDirections = {
-                'top': ['bottom', row - 1, col],
-                'bottom': ['top', row + 1, col],
-                'left': ['right', row, col - 1],
-                'right': ['left', row, col + 1]
-            };
-            
-            const [oppositeDirection, neighborRow, neighborCol] = oppositeDirections[direction];
-            const neighbor = board.find(`tr:eq(${neighborRow}) td:eq(${neighborCol})`);
-            neighbor.css(`border-${oppositeDirection}-color`, currentColor);
-        }
+		if (e.type === 'mousedown') {
+			isFilling = true;
+			fillCell(cell);
+		} else if (e.type === 'mousemove' && isFilling) {
+			fillCell(cell);
+		}
+	}
 
-        $(document).on('mouseup', () => {
-            isDrawing = false;
-            isFilling = false;
-        });
+	function fillCell(cell) {
+		cell.css('background-color', currentColor);
+	}
 
-        function clearAll() {
-            $('.cell').removeAttr('style')
-                .find('.text-container').text('');
-        }
-    </script>
+	function handleInput(e) {
+		const cell = $(e.target).closest('td');
+		if (!cell.length || cell.hasClass('dimmed')) {
+			return;
+		}
+
+		const textContainer = cell.find('.text-container');
+		const input = $('<input>').addClass('text-input').val(textContainer.text());
+		textContainer.empty().append(input);
+		input.trigger('focus');
+		input.on('blur', () => textContainer.text(input.val()));
+	}
+
+	function handleStroke(e) {
+		const hotzone = $(e.target).closest('.edge-hotzone');
+		if (!hotzone.length || hotzone.parent().hasClass('dimmed')) {
+			return;
+		}
+
+		if (e.type === 'mousedown') {
+			isDrawing = true;
+			stroke(hotzone);
+		} else if (e.type === 'mousemove' && isDrawing) {
+			stroke(hotzone);
+		}
+	}
+
+	function stroke(hotzone) {
+		const cell = hotzone.parent();
+		const direction = hotzone.attr('class').split(' ')[1];
+		const borderProp = `border-${direction}-color`;
+
+		// 获取当前单元格的位置
+		const row = cell.parent().index();
+		const col = cell.index();
+
+		// 设置当前单元格的边框颜色
+		cell.css(borderProp, currentColor);
+
+		// 处理相邻单元格的对应边框
+		const oppositeDirections = {
+			'top': ['bottom', row - 1, col],
+			'bottom': ['top', row + 1, col],
+			'left': ['right', row, col - 1],
+			'right': ['left', row, col + 1]
+		};
+
+		const [oppositeDirection, neighborRow, neighborCol] = oppositeDirections[direction];
+		const neighbor = board.find(`tr:eq(${neighborRow}) td:eq(${neighborCol})`);
+		neighbor.css(`border-${oppositeDirection}-color`, currentColor);
+	}
+
+	$(document).on('mouseup', () => {
+		isDrawing = false;
+		isFilling = false;
+	});
+
+	function clearAll() {
+		$('.cell').removeAttr('style')
+		.find('.text-container').text('');
+	}
+</script>
 </body>
 </html>
