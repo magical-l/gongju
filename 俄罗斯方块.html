@@ -1,389 +1,576 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>俄罗斯方块 - 主题版</title>
-    <style>
-        /* CSS Variables for Theming */
-        body {
-            --body-bg: #1a1129; --container-bg: #2c1d4d; --text-color: #dcd1ff; --board-bg: #130c1f; --border-color: #7b52c9; --highlight-color: #dcd1ff; --button-bg: #7b52c9; --button-text: #1a1129; --help-bg: #2c1d4d;
-            --color-T: #e83e8c; --color-O: #f08d49; --color-L: #98c379; --color-J: #56b6c2; --color-I: #c678dd; --color-S: #d19a66; --color-Z: #e83e8c;
-        }
-        body[data-theme="matrix"] { --body-bg: #111; --container-bg: #1a1a1a; --text-color: #3dcc71; --board-bg: #0a0a0a; --border-color: #3dcc71; --highlight-color: #3dcc71; --button-bg: #3dcc71; --button-text: #111; --help-bg: #1a1a1a; --color-T: #4CAF50; --color-O: #66BB6A; --color-L: #81C784; --color-J: #A5D6A7; --color-I: #C8E6C9; --color-S: #388E3C; --color-Z: #2E7D32; }
-        body[data-theme="girly-pink"] { --body-bg: #fdf6f8; --container-bg: #fceef2; --text-color: #7a4b63; --board-bg: #f9e2e9; --border-color: #e88db2; --highlight-color: #7a4b63; --button-bg: #e88db2; --button-text: #fdf6f8; --help-bg: #fceef2; --color-T: #ffb6c1; --color-O: #fbcce7; --color-L: #e0b0ff; --color-J: #fbaed2; --color-I: #ffc3a0; --color-S: #f7a8b8; --color-Z: #fa86c4; }
-        body[data-theme="misty-rain"] { --body-bg: #f0f2f5; --container-bg: #dce1e9; --text-color: #4a5c6d; --board-bg: #cdd4e0; --border-color: #92a1b1; --highlight-color: #4a5c6d; --button-bg: #92a1b1; --button-text: #f0f2f5; --help-bg: #dce1e9; --color-T: #7d92a6; --color-O: #a0aec0; --color-L: #8a9aac; --color-J: #b0bdce; --color-I: #cad3de; --color-S: #93a3b5; --color-Z: #aab7c8; }
-        body[data-theme="genki-forest"] { --body-bg: #f5fff5; --container-bg: #e8f5e9; --text-color: #2e6b5f; --board-bg: #dceddc; --border-color: #77bfa9; --highlight-color: #2e6b5f; --button-bg: #77bfa9; --button-text: #f5fff5; --help-bg: #e8f5e9; --color-T: #f4a27e; --color-O: #80cbc4; --color-L: #a5d6a7; --color-J: #ffe082; --color-I: #b39ddb; --color-S: #f4b8c7; --color-Z: #90caf9; }
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>俄罗斯方块</title>
+	<style>
+		body {
+			--body-bg: #f8f9fa;
+			--container-bg: #ffffff;
+			--text-color: #495057;
+			--board-bg: #e9ecef;
+			--border-color: #ced4da;
+			--highlight-color: #495057;
+			--button-bg: #84a59d;
+			--button-text: #ffffff;
+			--help-bg: #ffffff;
 
-        /* General Styles */
-        body { background: var(--body-bg); color: var(--text-color); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 1em; margin: 0; padding: 2rem; box-sizing: border-box; transition: background 0.3s, color 0.3s; }
-        .app-container { max-width: 1200px; width: 95%; margin: 0 auto; }
-        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-        .page-header h1 { margin: 0; font-size: 2em; }
-        .page-header button { background: var(--button-bg); color: var(--button-text); border: none; border-radius: 5px; padding: 0.5em 1em; cursor: pointer; }
-        .help-content { background: var(--help-bg); padding: 1rem; border-radius: 5px; margin-bottom: 2rem; border: 1px solid var(--border-color); line-height: 1.6; }
-        .game-wrapper { display: flex; justify-content: center; align-items: flex-start; gap: 30px; }
-        .board-wrapper { position: relative; border: 2px solid var(--border-color); padding: 2px; }
-        #game-board { display: grid; grid-gap: 1px; border: 2px solid var(--highlight-color); background: var(--board-bg); }
-        .cell { width: 30px; height: 30px; background-color: rgba(0, 0, 0, 0.2); border-radius: 2px; }
-        .cell.T { background-color: var(--color-T); } .cell.O { background-color: var(--color-O); } .cell.L { background-color: var(--color-L); } .cell.J { background-color: var(--color-J); } .cell.I { background-color: var(--color-I); } .cell.S { background-color: var(--color-S); } .cell.Z { background-color: var(--color-Z); }
-        .cell.ghost { background-color: var(--text-color); opacity: 0.2; }
-        .side-panel { width: 240px; text-align: left; display: flex; flex-direction: column; gap: 1.5rem; }
-        .side-panel-section { background: var(--container-bg); padding: 15px; border-radius: 5px; }
-        .side-panel h3 { margin-top: 0; margin-bottom: 1rem; text-align: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
-        #next-piece-container { display: grid; grid-template-columns: repeat(4, 30px); grid-template-rows: repeat(4, 30px); grid-gap: 1px; background: var(--board-bg); padding: 5px; border-radius: 5px; min-height: 129px; margin: 0 auto; }
-        .next-cell { width: 30px; height: 30px; border-radius: 2px; }
-        .info-box { font-size: 1.1rem; margin-bottom: 10px; }
-        .info-box:last-child { margin-bottom: 0; }
-        .theme-selector label, .size-config label, .toggle-switch-container label { display: block; margin-bottom: 5px; }
-        .theme-selector select, .size-inputs input { width: 100%; padding: 5px; box-sizing: border-box; border-radius: 4px; border: 1px solid var(--border-color); background: var(--container-bg); color: var(--text-color); }
-        .size-inputs { display: flex; gap: 10px; margin-bottom: 10px; }
-        .size-inputs > div { flex: 1; }
-        .game-buttons, .size-config .button-group { display: flex; gap: 10px; margin-bottom: 15px; }
-        .game-buttons button, .size-config button { flex-grow: 1; padding: 10px; background: var(--button-bg); color: var(--button-text); border: none; border-radius: 5px; cursor: pointer; font-size: 1em; transition: opacity 0.2s; }
-        .game-buttons button:hover, .size-config button:hover { opacity: 0.9; }
-        .game-buttons button:disabled { opacity: 0.5; cursor: not-allowed; }
-        .size-config .button-group { margin-top: 10px; }
-        #pause-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); color: white; font-size: 2em; font-weight: bold; display: flex; justify-content: center; align-items: center; text-align: center; line-height: 1.5; }
-        .hidden { display: none; }
-        /* Toggle Switch CSS */
-        .toggle-switch-container { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; }
-        .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: .4s; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; }
-        input:checked + .slider { background-color: var(--button-bg); }
-        input:checked + .slider:before { transform: translateX(26px); }
-        .slider.round { border-radius: 24px; }
-        .slider.round:before { border-radius: 50%; }
-    </style>
+			--color-I: #a0e7e5;
+			--color-O: #ffd6a5;
+			--color-T: #d4a5a5;
+			--color-J: #89c2d9;
+			--color-L: #f4a261;
+			--color-S: #b2e0b8;
+			--color-Z: #ffb3c1;
+		}
+
+		body { background: var(--body-bg); color: var(--text-color); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1em; margin: 0; padding: 2rem; box-sizing: border-box; transition: background 0.3s, color 0.3s; }
+
+		.app-container { max-width: 1200px; width: 95%; margin: 0 auto; }
+
+		.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+
+		.page-header h1 { margin: 0; font-size: 2em; }
+
+		.page-header button { background: var(--button-bg); color: var(--button-text); border: 1px solid var(--border-color); border-radius: 5px; padding: 0.5em 1em; cursor: pointer; transition: opacity 0.2s; }
+
+		.page-header button:hover { opacity: 0.85; }
+
+		.help-content { background: var(--help-bg); padding: 1rem; border-radius: 5px; margin-bottom: 2rem; border: 1px solid var(--border-color); line-height: 1.6; }
+
+		.game-wrapper { display: flex; justify-content: center; align-items: flex-start; gap: 30px; }
+
+		.board-wrapper { position: relative; border: 2px solid var(--border-color); padding: 2px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
+
+		#game-board { display: grid; grid-gap: 1px; border: 2px solid var(--highlight-color); background: var(--board-bg); }
+
+		.cell { width: 30px; height: 30px; background-color: rgba(0, 0, 0, 0.05); border-radius: 2px; }
+
+		.cell.T { background-color: var(--color-T); }
+
+		.cell.O { background-color: var(--color-O); }
+
+		.cell.L { background-color: var(--color-L); }
+
+		.cell.J { background-color: var(--color-J); }
+
+		.cell.I { background-color: var(--color-I); }
+
+		.cell.S { background-color: var(--color-S); }
+
+		.cell.Z { background-color: var(--color-Z); }
+
+		.cell.ghost { background-color: var(--text-color); opacity: 0.15; }
+
+		.side-panel { width: 240px; text-align: left; display: flex; flex-direction: column; gap: 1.5rem; }
+
+		.side-panel-section { background: var(--container-bg); padding: 15px; border-radius: 5px; border: 1px solid var(--border-color); }
+
+		.side-panel h3 { margin-top: 0; margin-bottom: 1rem; text-align: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+
+		#next-piece-container { display: grid; grid-template-columns: repeat(4, 30px); grid-template-rows: repeat(4, 30px); grid-gap: 1px; background: var(--board-bg); padding: 5px; border-radius: 5px; min-height: 129px; margin: 0 auto; }
+
+		.next-cell { width: 30px; height: 30px; border-radius: 2px; }
+
+		.info-box { font-size: 1.1rem; margin-bottom: 10px; }
+
+		.info-box:last-child { margin-bottom: 0; }
+
+		.size-config label, .toggle-switch-container label { display: block; margin-bottom: 5px; }
+
+		.size-inputs input { width: 100%; padding: 8px; box-sizing: border-box; border-radius: 4px; border: 1px solid var(--border-color); background: #fff; color: var(--text-color); }
+
+		.size-inputs { display: flex; gap: 10px; margin-bottom: 10px; }
+
+		.size-inputs > div { flex: 1; }
+
+		.game-buttons, .size-config .button-group { display: flex; gap: 10px; margin-bottom: 15px; }
+
+		.game-buttons button, .size-config button { flex-grow: 1; padding: 10px; background: var(--button-bg); color: var(--button-text); border: none; border-radius: 5px; cursor: pointer; font-size: 1em; transition: opacity 0.2s; }
+
+		.game-buttons button:hover, .size-config button:hover { opacity: 0.85; }
+
+		.game-buttons button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+		.size-config .button-group { margin-top: 10px; }
+
+		#pause-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(73, 80, 87, 0.6); color: white; font-size: 2em; font-weight: bold; display: flex; justify-content: center; align-items: center; text-align: center; line-height: 1.5; }
+
+		.hidden { display: none !important; }
+
+		.toggle-switch-container { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; }
+
+		.switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+
+		.switch input { opacity: 0; width: 0; height: 0; }
+
+		.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; }
+
+		.slider:before { position: absolute; content: ''; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; }
+
+		input:checked + .slider { background-color: var(--button-bg); }
+
+		input:checked + .slider:before { transform: translateX(26px); }
+
+		.slider.round { border-radius: 24px; }
+
+		.slider.round:before { border-radius: 50%; }
+	</style>
 </head>
-<body data-theme="cyberpunk">
+<body>
 
 <div class="app-container">
-    <div class="page-header">
-        <h1>俄罗斯方块</h1>
-        <button id="toggle-help-btn">说明</button>
-    </div>
+	<div class="page-header">
+		<h1>俄罗斯方块</h1>
+		<button id="toggle-help-btn">说明</button>
+	</div>
 
-    <div id="help-content" class="help-content hidden">
-        <p>一个经典的俄罗斯方块游戏，但拥有更现代化的功能。</p>
-        <ul>
-            <li><strong>主题:</strong> 切换不同的配色方案，找到你最喜欢的一种。</li>
-            <li><strong>宽高设置:</strong> 自定义游戏区域的大小，然后点击“应用尺寸”临时体验，或“保存为默认”以供后续游戏使用。</li>
-            <li><strong>幽灵方块:</strong> 开启后，会在底部显示方块的最终落点，帮助你更精确地放置。</li>
-            <li><strong>快捷键:</strong> 使用方向键控制方块，按<strong>空格键</strong>可以随时暂停或继续游戏，按<strong>回车键</strong>可以使方块硬着陆。</li>
-        </ul>
-    </div>
+	<div id="help-content" class="help-content hidden">
+		<p>一个经典的俄罗斯方块游戏，但拥有更现代化的功能。</p>
+		<ul>
+			<li><strong>宽高设置:</strong> 自定义游戏区域的大小，然后点击“应用尺寸”临时体验，或“保存为默认”以供后续游戏使用。
+			</li>
+			<li><strong>幽灵方块:</strong> 开启后，会在底部显示方块的最终落点，帮助你更精确地放置。</li>
+			<li><strong>快捷键:</strong>
+				使用方向键控制方块，按<strong>空格键</strong>可以随时暂停或继续游戏，按<strong>回车键</strong>可以使方块硬着陆。
+			</li>
+		</ul>
+	</div>
 
-    <div class="game-wrapper">
-        <div class="board-wrapper">
-            <div id="game-board"></div>
-            <div id="pause-overlay" class="hidden"></div>
-        </div>
-        <div class="side-panel">
-            <div class="side-panel-section">
-                <h3>设置</h3>
-                <div class="game-buttons">
-                    <button id="pause-btn">暂停</button>
-                    <button id="restart-btn">重新开始</button>
-                </div>
-                <div class="theme-selector">
-                    <label for="theme-select">主题:</label>
-                    <select id="theme-select">
-                        <option value="cyberpunk">赛博朋克</option>
-                        <option value="matrix">黑客帝国</option>
-                        <option value="girly-pink">粉红少女心</option>
-                        <option value="misty-rain">江南烟雨</option>
-                        <option value="genki-forest">元气森林</option>
-                    </select>
-                </div>
-                <div class="size-config">
-                    <div class="size-inputs">
-                        <div><label for="cols-input">宽度</label><input type="number" id="cols-input" min="5" max="30"></div>
-                        <div><label for="rows-input">高度</label><input type="number" id="rows-input" min="10" max="40"></div>
-                    </div>
-                    <div class="button-group">
-                        <button id="apply-size-btn">应用尺寸</button>
-                        <button id="save-size-btn">保存为默认</button>
-                    </div>
-                </div>
-                <div class="toggle-switch-container">
-                    <label for="ghost-toggle">幽灵方块</label>
-                    <label class="switch"><input type="checkbox" id="ghost-toggle"><span class="slider round"></span></label>
-                </div>
-            </div>
+	<div class="game-wrapper">
+		<div class="board-wrapper">
+			<div id="game-board"></div>
+			<div id="pause-overlay" class="hidden"></div>
+		</div>
+		<div class="side-panel">
+			<div class="side-panel-section">
+				<h3>设置</h3>
+				<div class="game-buttons">
+					<button id="pause-btn">暂停</button>
+					<button id="restart-btn">重新开始</button>
+				</div>
+				<div class="size-config">
+					<div class="size-inputs">
+						<div><label for="cols-input">宽度</label><input type="number" id="cols-input" min="5" max="30"></div>
+						<div><label for="rows-input">高度</label><input type="number" id="rows-input" min="10" max="40"></div>
+					</div>
+					<div class="button-group">
+						<button id="apply-size-btn">应用尺寸</button>
+						<button id="save-size-btn">保存为默认</button>
+					</div>
+				</div>
+				<div class="toggle-switch-container">
+					<label for="ghost-toggle">幽灵方块</label>
+					<label class="switch"><input type="checkbox" id="ghost-toggle"><span class="slider round"></span></label>
+				</div>
+			</div>
 
-            <div class="side-panel-section">
-                <h3>状态</h3>
-                <div id="score" class="info-box">分数: 0</div>
-                <div id="lines" class="info-box">行数: 0</div>
-                <div id="level" class="info-box">等级: 1</div>
-            </div>
+			<div class="side-panel-section">
+				<h3>状态</h3>
+				<div id="score" class="info-box">分数: 0</div>
+				<div id="lines" class="info-box">行数: 0</div>
+				<div id="level" class="info-box">等级: 1</div>
+			</div>
 
-            <div class="side-panel-section">
-                <h3>下一个</h3>
-                <div id="next-piece-container"></div>
-            </div>
-        </div>
-    </div>
+			<div class="side-panel-section">
+				<h3>下一个</h3>
+				<div id="next-piece-container"></div>
+			</div>
+		</div>
+	</div>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    let COLS, ROWS;
-    const boardElement = document.getElementById('game-board');
-    const scoreElement = document.getElementById('score');
-    const levelElement = document.getElementById('level');
-    const linesElement = document.getElementById('lines');
-    const nextPieceContainer = document.getElementById('next-piece-container');
-    const pauseBtn = document.getElementById('pause-btn');
-    const restartBtn = document.getElementById('restart-btn');
-    const pauseOverlay = document.getElementById('pause-overlay');
-    const colsInput = document.getElementById('cols-input');
-    const rowsInput = document.getElementById('rows-input');
-    const applySizeBtn = document.getElementById('apply-size-btn');
-    const saveSizeBtn = document.getElementById('save-size-btn');
-    const ghostToggle = document.getElementById('ghost-toggle');
-    const toggleHelpBtn = document.getElementById('toggle-help-btn');
-    const helpContent = document.getElementById('help-content');
+	document.addEventListener('DOMContentLoaded', () => {
+		let COLS, ROWS;
+		const boardElement = document.getElementById('game-board');
+		const scoreElement = document.getElementById('score');
+		const levelElement = document.getElementById('level');
+		const linesElement = document.getElementById('lines');
+		const nextPieceContainer = document.getElementById('next-piece-container');
+		const pauseBtn = document.getElementById('pause-btn');
+		const restartBtn = document.getElementById('restart-btn');
+		const pauseOverlay = document.getElementById('pause-overlay');
+		const colsInput = document.getElementById('cols-input');
+		const rowsInput = document.getElementById('rows-input');
+		const applySizeBtn = document.getElementById('apply-size-btn');
+		const saveSizeBtn = document.getElementById('save-size-btn');
+		const ghostToggle = document.getElementById('ghost-toggle');
+		const toggleHelpBtn = document.getElementById('toggle-help-btn');
+		const helpContent = document.getElementById('help-content');
 
-    let grid, score, level, lines, dropCounter, dropInterval, lastTime;
-    let isGameOver = false, isPaused = true, animationFrameId, showGhostPiece;
+		let grid, score, level, lines, dropCounter, dropInterval, lastTime;
+		let isGameOver = false, isPaused = true, animationFrameId, showGhostPiece;
 
-    const TETROMINOES = {
-        'T':{shape:[[0,1,0],[1,1,1],[0,0,0]],color:'T'},'O':{shape:[[1,1],[1,1]],color:'O'},'L':{shape:[[0,0,1],[1,1,1],[0,0,0]],color:'L'},'J':{shape:[[1,0,0],[1,1,1],[0,0,0]],color:'J'},'I':{shape:[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],color:'I'},'S':{shape:[[0,1,1],[1,1,0],[0,0,0]],color:'S'},'Z':{shape:[[1,1,0],[0,1,1],[0,0,0]],color:'Z'}
-    };
-    const TETROMINO_KEYS = 'IOTSZJL';
+		const TETROMINOES = {
+			'T': {shape: [[0, 1, 0], [1, 1, 1], [0, 0, 0]], color: 'T'},
+			'O': {shape: [[1, 1], [1, 1]], color: 'O'},
+			'L': {shape: [[0, 0, 1], [1, 1, 1], [0, 0, 0]], color: 'L'},
+			'J': {shape: [[1, 0, 0], [1, 1, 1], [0, 0, 0]], color: 'J'},
+			'I': {shape: [[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]], color: 'I'},
+			'S': {shape: [[0, 1, 1], [1, 1, 0], [0, 0, 0]], color: 'S'},
+			'Z': {shape: [[1, 1, 0], [0, 1, 1], [0, 0, 0]], color: 'Z'}
+		};
+		const TETROMINO_KEYS = 'IOTSZJL';
 
-    let player = { pos: { x: 0, y: 0 }, tetromino: null };
-    let nextTetromino = null;
+		let player = {pos: {x: 0, y: 0}, tetromino: null};
+		let nextTetromino = null;
 
-    function createEmptyGrid() { return Array.from({ length: ROWS }, () => Array(COLS).fill(0)); }
-    function getNewTetromino() { const type = TETROMINO_KEYS[Math.floor(Math.random() * TETROMINO_KEYS.length)]; const piece = TETROMINOES[type]; return { shape: piece.shape.map(r => r.slice()), color: piece.color }; }
+		function createEmptyGrid() {
+			return Array.from({length: ROWS}, () => Array(COLS).fill(0));
+		}
 
-    function playerReset() {
-        player.tetromino = nextTetromino || getNewTetromino();
-        nextTetromino = getNewTetromino();
-        player.pos.y = 0;
-        player.pos.x = Math.floor(COLS / 2) - Math.floor(player.tetromino.shape[0].length / 2);
-        if (collides(grid, player)) {
-            isGameOver = true;
-            pauseOverlay.innerHTML = `游戏结束<br>得分: ${score}`;
-            pauseOverlay.classList.remove('hidden');
-            pauseBtn.disabled = true;
-            cancelAnimationFrame(animationFrameId);
-        }
-        drawNextPiece();
-    }
+		function getNewTetromino() {
+			const type = TETROMINO_KEYS[Math.floor(Math.random() * TETROMINO_KEYS.length)];
+			const piece = TETROMINOES[type];
+			return {shape: piece.shape.map(r => r.slice()), color: piece.color};
+		}
 
-    function collides(grid, player) {
-        const { shape } = player.tetromino;
-        const { pos } = player;
-        for (let y = 0; y < shape.length; y++) {
-            for (let x = 0; x < shape[y].length; x++) {
-                if (shape[y][x] !== 0) {
-                    const newY = y + pos.y;
-                    const newX = x + pos.x;
-                    if (newX < 0 || newX >= COLS || newY >= ROWS || (newY >= 0 && grid[newY][newX] !== 0)) return true;
-                }
-            }
-        }
-        return false;
-    }
+		function playerReset() {
+			player.tetromino = nextTetromino || getNewTetromino();
+			nextTetromino = getNewTetromino();
+			player.pos.y = 0;
+			player.pos.x = Math.floor(COLS / 2) - Math.floor(player.tetromino.shape[0].length / 2);
+			if (collides(grid, player)) {
+				isGameOver = true;
+				pauseOverlay.innerHTML = `游戏结束<br>得分: ${score}`;
+				pauseOverlay.classList.remove('hidden');
+				pauseBtn.disabled = true;
+				cancelAnimationFrame(animationFrameId);
+			}
+			drawNextPiece();
+		}
 
-    function getGhostPosition() {
-        const ghostPlayer = JSON.parse(JSON.stringify(player));
-        while (!collides(grid, ghostPlayer)) { ghostPlayer.pos.y++; }
-        ghostPlayer.pos.y--;
-        return ghostPlayer.pos;
-    }
+		function collides(grid, player) {
+			const {shape} = player.tetromino;
+			const {pos} = player;
+			for (let y = 0; y < shape.length; y++) {
+				for (let x = 0; x < shape[y].length; x++) {
+					if (shape[y][x] !== 0) {
+						const newY = y + pos.y;
+						const newX = x + pos.x;
+						if (newX < 0 || newX >= COLS || newY >= ROWS || (newY >= 0 && grid[newY][newX] !== 0)) {
+							return true;
+						}
+					}
+				}
+			}
+			return false;
+		}
 
-    function merge(grid, player) { player.tetromino.shape.forEach((row, y) => { row.forEach((value, x) => { if (value !== 0) grid[y + player.pos.y][x + player.pos.x] = player.tetromino.color; }); }); }
-    function rotate(matrix) { const N = matrix.length; return matrix.map((row, i) => row.map((val, j) => matrix[N - 1 - j][i])); }
+		function getGhostPosition() {
+			const ghostPlayer = JSON.parse(JSON.stringify(player));
+			while (!collides(grid, ghostPlayer)) {
+				ghostPlayer.pos.y++;
+			}
+			ghostPlayer.pos.y--;
+			return ghostPlayer.pos;
+		}
 
-    function playerRotate() {
-        const originalShape = JSON.parse(JSON.stringify(player.tetromino.shape));
-        player.tetromino.shape = rotate(player.tetromino.shape);
-        const posX = player.pos.x;
-        let offset = 1;
-        while (collides(grid, player)) {
-            player.pos.x += offset;
-            offset = -(offset + (offset > 0 ? 1 : -1));
-            if (Math.abs(offset) > player.tetromino.shape[0].length) { player.tetromino.shape = originalShape; player.pos.x = posX; return; }
-        }
-    }
+		function merge(grid, player) {
+			player.tetromino.shape.forEach((row, y) => {
+				row.forEach((value, x) => {
+					if (value !== 0) {
+						grid[y + player.pos.y][x + player.pos.x] = player.tetromino.color;
+					}
+				});
+			});
+		}
 
-    function playerMove(offset) { player.pos.x += offset; if (collides(grid, player)) player.pos.x -= offset; }
+		function rotate(matrix) {
+			const N = matrix.length;
+			return matrix.map((row, i) => row.map((val, j) => matrix[N - 1 - j][i]));
+		}
 
-    function playerDrop() {
-        player.pos.y++;
-        if (collides(grid, player)) { player.pos.y--; merge(grid, player); sweep(); playerReset(); }
-        dropCounter = 0;
-    }
+		function playerRotate() {
+			const originalShape = JSON.parse(JSON.stringify(player.tetromino.shape));
+			player.tetromino.shape = rotate(player.tetromino.shape);
+			const posX = player.pos.x;
+			let offset = 1;
+			while (collides(grid, player)) {
+				player.pos.x += offset;
+				offset = -(offset + (offset > 0 ? 1 : -1));
+				if (Math.abs(offset) > player.tetromino.shape[0].length) {
+					player.tetromino.shape = originalShape;
+					player.pos.x = posX;
+					return;
+				}
+			}
+		}
 
-    function hardDrop() {
-        player.pos.y = getGhostPosition().y;
-        merge(grid, player);
-        sweep();
-        playerReset();
-        dropCounter = 0;
-        draw();
-    }
-    
-    function sweep() {
-        let clearedLines = 0;
-        outer: for (let y = grid.length - 1; y > 0; --y) {
-            for (let x = 0; x < grid[y].length; ++x) { if (grid[y][x] === 0) continue outer; }
-            grid.splice(y, 1); grid.unshift(Array(COLS).fill(0)); y++; clearedLines++;
-        }
-        if (clearedLines > 0) { lines += clearedLines; score += (clearedLines * 10) * clearedLines; if (lines >= level * 10) { level++; dropInterval = Math.max(150, 1000 - (level * 75)); } }
-    }
+		function playerMove(offset) {
+			player.pos.x += offset;
+			if (collides(grid, player)) {
+				player.pos.x -= offset;
+			}
+		}
 
-    function draw() {
-        const displayGrid = JSON.parse(JSON.stringify(grid));
-        if (showGhostPiece && player.tetromino) {
-            const ghostPos = getGhostPosition();
-            player.tetromino.shape.forEach((row, y) => {
-                row.forEach((value, x) => {
-                    if (value !== 0) {
-                        const gridY = y + ghostPos.y;
-                        const gridX = x + ghostPos.x;
-                        if (gridY >= 0 && displayGrid[gridY][gridX] === 0) displayGrid[gridY][gridX] = 'ghost';
-                    }
-                });
-            });
-        }
-        if (player.tetromino) { player.tetromino.shape.forEach((row, y) => { row.forEach((value, x) => { if (value !== 0 && y + player.pos.y >= 0) displayGrid[y + player.pos.y][x + player.pos.x] = player.tetromino.color; }); }); }
-        
-        boardElement.innerHTML = '';
-        displayGrid.forEach(row => { row.forEach(cellType => { const cell = document.createElement('div'); cell.classList.add('cell'); if (cellType) cell.classList.add(cellType); boardElement.appendChild(cell); }); });
-        scoreElement.innerText = `分数: ${score}`; levelElement.innerText = `等级: ${level}`; linesElement.innerText = `行数: ${lines}`;
-    }
-    
-    function drawNextPiece() {
-        nextPieceContainer.innerHTML = '';
-        if (!nextTetromino || !nextTetromino.shape || !nextTetromino.shape.length === 0) return;
-        const { shape, color } = nextTetromino;
-        const previewGrid = Array.from({ length: 4 }, () => Array(4).fill(0));
-        const shapeHeight = shape.length; const shapeWidth = shape[0].length;
-        const startY = Math.floor((4 - shapeHeight) / 2); const startX = Math.floor((4 - shapeWidth) / 2);
-        shape.forEach((row, y) => { row.forEach((value, x) => { if (value !== 0) previewGrid[startY + y][startX + x] = color; }); });
-        previewGrid.forEach(row => { row.forEach(cellType => { const cell = document.createElement('div'); cell.classList.add('next-cell'); if (cellType) cell.classList.add('cell', cellType); nextPieceContainer.appendChild(cell); }); });
-    }
+		function playerDrop() {
+			player.pos.y++;
+			if (collides(grid, player)) {
+				player.pos.y--;
+				merge(grid, player);
+				sweep();
+				playerReset();
+			}
+			dropCounter = 0;
+		}
 
-    function update(time = 0) {
-        if (isPaused || isGameOver) return;
-        const deltaTime = time - lastTime;
-        lastTime = time;
-        dropCounter += deltaTime;
-        if (dropCounter > dropInterval) playerDrop();
-        draw();
-        animationFrameId = requestAnimationFrame(update);
-    }
+		function hardDrop() {
+			player.pos.y = getGhostPosition().y;
+			merge(grid, player);
+			sweep();
+			playerReset();
+			dropCounter = 0;
+			draw();
+		}
 
-    function togglePause() {
-        if (isGameOver) return;
-        isPaused = !isPaused;
-        if (isPaused) {
-            pauseOverlay.textContent = '已暂停';
-            pauseOverlay.classList.remove('hidden');
-            pauseBtn.textContent = '继续';
-            cancelAnimationFrame(animationFrameId);
-        } else {
-            pauseOverlay.classList.add('hidden');
-            pauseOverlay.textContent = '';
-            pauseBtn.textContent = '暂停';
-            lastTime = performance.now();
-            update();
-        }
-    }
+		function sweep() {
+			let clearedLines = 0;
+			outer: for (let y = grid.length - 1; y > 0; --y) {
+				for (let x = 0; x < grid[y].length; ++x) {
+					if (grid[y][x] === 0) {
+						continue outer;
+					}
+				}
+				grid.splice(y, 1);
+				grid.unshift(Array(COLS).fill(0));
+				y++;
+				clearedLines++;
+			}
+			if (clearedLines > 0) {
+				lines += clearedLines;
+				score += (clearedLines * 10) * clearedLines;
+				if (lines >= level * 10) {
+					level++;
+					dropInterval = Math.max(150, 1000 - (level * 75));
+				}
+			}
+		}
 
-    function startGame(useSavedSize = false) {
-        if(animationFrameId) cancelAnimationFrame(animationFrameId);
-        let newCols, newRows;
-        if (useSavedSize) {
-            newCols = parseInt(localStorage.getItem('tetrisCols'), 10) || 10;
-            newRows = parseInt(localStorage.getItem('tetrisRows'), 10) || 20;
-        } else {
-            newCols = parseInt(colsInput.value, 10);
-            newRows = parseInt(rowsInput.value, 10);
-        }
-        if (isNaN(newCols) || newCols < 5 || newCols > 30) newCols = 10;
-        if (isNaN(newRows) || newRows < 10 || newRows > 40) newRows = 20;
-        COLS = newCols; ROWS = newRows;
-        colsInput.value = COLS; rowsInput.value = ROWS;
-        boardElement.style.gridTemplateColumns = `repeat(${COLS}, 30px)`;
-        boardElement.style.gridTemplateRows = `repeat(${ROWS}, 30px)`;
+		function draw() {
+			const displayGrid = JSON.parse(JSON.stringify(grid));
+			if (showGhostPiece && player.tetromino) {
+				const ghostPos = getGhostPosition();
+				player.tetromino.shape.forEach((row, y) => {
+					row.forEach((value, x) => {
+						if (value !== 0) {
+							const gridY = y + ghostPos.y;
+							const gridX = x + ghostPos.x;
+							if (gridY >= 0 && displayGrid[gridY][gridX] === 0) {
+								displayGrid[gridY][gridX] = 'ghost';
+							}
+						}
+					});
+				});
+			}
+			if (player.tetromino) {
+				player.tetromino.shape.forEach((row, y) => {
+					row.forEach((value, x) => {
+						if (value !== 0 && y + player.pos.y >= 0) {
+							displayGrid[y + player.pos.y][x + player.pos.x]
+								= player.tetromino.color;
+						}
+					});
+				});
+			}
 
-        grid = createEmptyGrid(); score = 0; level = 1; lines = 0; dropCounter = 0; dropInterval = 1000; lastTime = 0;
-        isGameOver = false; isPaused = true;
-        pauseBtn.disabled = false; pauseBtn.textContent = '开始游戏';
-        pauseOverlay.textContent = '准备就绪';
-        pauseOverlay.classList.remove('hidden');
-        playerReset();
-        draw();
-    }
+			boardElement.innerHTML = '';
+			displayGrid.forEach(row => {
+				row.forEach(cellType => {
+					const cell = document.createElement('div');
+					cell.classList.add('cell');
+					if (cellType) {
+						cell.classList.add(cellType);
+					}
+					boardElement.appendChild(cell);
+				});
+			});
+			scoreElement.innerText = `分数: ${score}`;
+			levelElement.innerText = `等级: ${level}`;
+			linesElement.innerText = `行数: ${lines}`;
+		}
 
-    function saveSizeAsDefault() {
-        let newCols = parseInt(colsInput.value, 10);
-        let newRows = parseInt(rowsInput.value, 10);
-        if (isNaN(newCols) || newCols < 5 || newCols > 30) newCols = 10;
-        if (isNaN(newRows) || newRows < 10 || newRows > 40) newRows = 20;
-        localStorage.setItem('tetrisCols', newCols);
-        localStorage.setItem('tetrisRows', newRows);
-        saveSizeBtn.textContent = '已保存!';
-        setTimeout(() => { saveSizeBtn.textContent = '保存为默认'; }, 1000);
-    }
+		function drawNextPiece() {
+			nextPieceContainer.innerHTML = '';
+			if (!nextTetromino || !nextTetromino.shape || !nextTetromino.shape.length === 0) {
+				return;
+			}
+			const {shape, color} = nextTetromino;
+			const previewGrid = Array.from({length: 4}, () => Array(4).fill(0));
+			const shapeHeight = shape.length;
+			const shapeWidth = shape[0].length;
+			const startY = Math.floor((4 - shapeHeight) / 2);
+			const startX = Math.floor((4 - shapeWidth) / 2);
+			shape.forEach((row, y) => {
+				row.forEach((value, x) => {
+					if (value !== 0) {
+						previewGrid[startY + y][startX + x] = color;
+					}
+				});
+			});
+			previewGrid.forEach(row => {
+				row.forEach(cellType => {
+					const cell = document.createElement('div');
+					cell.classList.add('next-cell');
+					if (cellType) {
+						cell.classList.add('cell', cellType);
+					}
+					nextPieceContainer.appendChild(cell);
+				});
+			});
+		}
 
-    // --- Init Logic ---
-    if (localStorage.getItem('tetrisHelpCollapsed') === 'true') { helpContent.classList.add('hidden'); }
-    toggleHelpBtn.addEventListener('click', () => { helpContent.classList.toggle('hidden'); localStorage.setItem('tetrisHelpCollapsed', helpContent.classList.contains('hidden')); });
+		function update(time = 0) {
+			if (isPaused || isGameOver) {
+				return;
+			}
+			const deltaTime = time - lastTime;
+			lastTime = time;
+			dropCounter += deltaTime;
+			if (dropCounter > dropInterval) {
+				playerDrop();
+			}
+			draw();
+			animationFrameId = requestAnimationFrame(update);
+		}
 
-    const themeSelect = document.getElementById('theme-select');
-    function applyTheme(theme) { document.body.dataset.theme = theme; localStorage.setItem('tetrisTheme', theme); themeSelect.value = theme; }
-    themeSelect.addEventListener('change', (e) => applyTheme(e.target.value));
-    const savedTheme = localStorage.getItem('tetrisTheme') || 'cyberpunk';
-    applyTheme(savedTheme);
+		function togglePause() {
+			if (isGameOver) {
+				return;
+			}
+			isPaused = !isPaused;
+			if (isPaused) {
+				pauseOverlay.textContent = '已暂停';
+				pauseOverlay.classList.remove('hidden');
+				pauseBtn.textContent = '继续';
+				cancelAnimationFrame(animationFrameId);
+			} else {
+				pauseOverlay.classList.add('hidden');
+				pauseOverlay.textContent = '';
+				pauseBtn.textContent = '暂停';
+				lastTime = performance.now();
+				update();
+			}
+		}
 
-    function applyGhostToggle(show) { showGhostPiece = show; ghostToggle.checked = show; localStorage.setItem('tetrisShowGhost', show); }
-    ghostToggle.addEventListener('change', (e) => applyGhostToggle(e.target.checked));
-    const savedShowGhost = localStorage.getItem('tetrisShowGhost');
-    applyGhostToggle(savedShowGhost === null ? true : savedShowGhost === 'true');
+		function startGame(useSavedSize = false) {
+			if (animationFrameId) {
+				cancelAnimationFrame(animationFrameId);
+			}
+			let newCols, newRows;
+			if (useSavedSize) {
+				newCols = parseInt(localStorage.getItem('tetrisCols'), 10) || 10;
+				newRows = parseInt(localStorage.getItem('tetrisRows'), 10) || 20;
+			} else {
+				newCols = parseInt(colsInput.value, 10);
+				newRows = parseInt(rowsInput.value, 10);
+			}
+			if (isNaN(newCols) || newCols < 5 || newCols > 30) {
+				newCols = 10;
+			}
+			if (isNaN(newRows) || newRows < 10 || newRows > 40) {
+				newRows = 20;
+			}
+			COLS = newCols;
+			ROWS = newRows;
+			colsInput.value = COLS;
+			rowsInput.value = ROWS;
+			boardElement.style.gridTemplateColumns = `repeat(${COLS}, 30px)`;
+			boardElement.style.gridTemplateRows = `repeat(${ROWS}, 30px)`;
 
-    pauseBtn.addEventListener('click', togglePause);
-    restartBtn.addEventListener('click', () => startGame(true));
-    applySizeBtn.addEventListener('click', () => startGame(false));
-    saveSizeBtn.addEventListener('click', saveSizeAsDefault);
+			grid = createEmptyGrid();
+			score = 0;
+			level = 1;
+			lines = 0;
+			dropCounter = 0;
+			dropInterval = 1000;
+			lastTime = 0;
+			isGameOver = false;
+			isPaused = true;
+			pauseBtn.disabled = false;
+			pauseBtn.textContent = '开始游戏';
+			pauseOverlay.textContent = '准备就绪';
+			pauseOverlay.classList.remove('hidden');
+			playerReset();
+			draw();
+		}
 
-    document.addEventListener('keydown', event => {
-        if (event.key === ' ') { // Spacebar
-            event.preventDefault(); // Prevent page scrolling
-            togglePause();
-            return;
-        }
-        if (isPaused || isGameOver) return;
-        switch (event.key) {
-            case 'Enter':
-                hardDrop();
-                break;
-            case 'ArrowLeft':
-                playerMove(-1);
-                break;
-            case 'ArrowRight':
-                playerMove(1);
-                break;
-            case 'ArrowDown':
-                playerDrop();
-                break;
-            case 'ArrowUp':
-                playerRotate();
-                break;
-        }
-    });
-    
-    startGame(true);
-});
+		function saveSizeAsDefault() {
+			let newCols = parseInt(colsInput.value, 10);
+			let newRows = parseInt(rowsInput.value, 10);
+			if (isNaN(newCols) || newCols < 5 || newCols > 30) {
+				newCols = 10;
+			}
+			if (isNaN(newRows) || newRows < 10 || newRows > 40) {
+				newRows = 20;
+			}
+			localStorage.setItem('tetrisCols', newCols);
+			localStorage.setItem('tetrisRows', newRows);
+			saveSizeBtn.textContent = '已保存!';
+			setTimeout(() => {
+				saveSizeBtn.textContent = '保存为默认';
+			}, 1000);
+		}
+
+		// --- Init Logic ---
+		if (localStorage.getItem('tetrisHelpCollapsed') === 'true') {
+			helpContent.classList.add('hidden');
+		}
+		toggleHelpBtn.addEventListener('click', () => {
+			helpContent.classList.toggle('hidden');
+			localStorage.setItem('tetrisHelpCollapsed', helpContent.classList.contains('hidden'));
+		});
+
+		function applyGhostToggle(show) {
+			showGhostPiece = show;
+			ghostToggle.checked = show;
+			localStorage.setItem('tetrisShowGhost', show);
+		}
+
+		ghostToggle.addEventListener('change', (e) => applyGhostToggle(e.target.checked));
+		const savedShowGhost = localStorage.getItem('tetrisShowGhost');
+		applyGhostToggle(savedShowGhost === null ? true : savedShowGhost === 'true');
+
+		pauseBtn.addEventListener('click', togglePause);
+		restartBtn.addEventListener('click', () => startGame(true));
+		applySizeBtn.addEventListener('click', () => startGame(false));
+		saveSizeBtn.addEventListener('click', saveSizeAsDefault);
+
+		document.addEventListener('keydown', event => {
+			if (event.key === ' ') {
+				event.preventDefault();
+				togglePause();
+				return;
+			}
+			if (isPaused || isGameOver) {
+				return;
+			}
+			if (['Enter', 'ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp'].includes(event.key)) {
+				event.preventDefault();
+			}
+			switch (event.key) {
+				case 'Enter':
+					hardDrop();
+					break;
+				case 'ArrowLeft':
+					playerMove(-1);
+					break;
+				case 'ArrowRight':
+					playerMove(1);
+					break;
+				case 'ArrowDown':
+					playerDrop();
+					break;
+				case 'ArrowUp':
+					playerRotate();
+					break;
+			}
+		});
+
+		startGame(true);
+	});
 </script>
 
 </body>
