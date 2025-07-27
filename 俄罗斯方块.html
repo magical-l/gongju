@@ -6,23 +6,8 @@
 	<title>俄罗斯方块</title>
 	<style>
 		body {
-			--body-bg: #f8f9fa;
-			--container-bg: #ffffff;
-			--text-color: #495057;
-			--board-bg: #e9ecef;
-			--border-color: #ced4da;
-			--highlight-color: #495057;
-			--button-bg: #84a59d;
-			--button-text: #ffffff;
-			--help-bg: #ffffff;
-
-			--color-I: #a0e7e5;
-			--color-O: #ffd6a5;
-			--color-T: #d4a5a5;
-			--color-J: #89c2d9;
-			--color-L: #f4a261;
-			--color-S: #b2e0b8;
-			--color-Z: #ffb3c1;
+			--body-bg: #f8f9fa; --container-bg: #ffffff; --text-color: #495057; --board-bg: #e9ecef; --border-color: #ced4da; --highlight-color: #495057; --button-bg: #84a59d; --button-text: #ffffff; --help-bg: #ffffff;
+			--color-I: #a0e7e5; --color-O: #ffd6a5; --color-T: #d4a5a5; --color-J: #89c2d9; --color-L: #f4a261; --color-S: #b2e0b8; --color-Z: #ffb3c1;
 		}
 
 		body { background: var(--body-bg); color: var(--text-color); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1em; margin: 0; padding: 2rem; box-sizing: border-box; transition: background 0.3s, color 0.3s; }
@@ -77,15 +62,19 @@
 
 		.info-box:last-child { margin-bottom: 0; }
 
-		.size-config label, .toggle-switch-container label { display: block; margin-bottom: 5px; }
+		.config-item label { display: block; margin-bottom: 5px; }
 
-		.size-inputs input { width: 100%; padding: 8px; box-sizing: border-box; border-radius: 4px; border: 1px solid var(--border-color); background: #fff; color: var(--text-color); }
+		.config-item select, .config-item input { width: 100%; padding: 8px; box-sizing: border-box; border-radius: 4px; border: 1px solid var(--border-color); background: #fff; color: var(--text-color); }
 
-		.size-inputs { display: flex; gap: 10px; margin-bottom: 10px; }
+		.config-item { margin-bottom: 15px; }
+
+		.size-inputs { display: flex; gap: 10px; }
 
 		.size-inputs > div { flex: 1; }
 
-		.game-buttons, .size-config .button-group { display: flex; gap: 10px; margin-bottom: 15px; }
+		.game-buttons, .size-config .button-group { display: flex; gap: 10px; }
+
+		.game-buttons { margin-bottom: 15px; }
 
 		.game-buttons button, .size-config button { flex-grow: 1; padding: 10px; background: var(--button-bg); color: var(--button-text); border: none; border-radius: 5px; cursor: pointer; font-size: 1em; transition: opacity 0.2s; }
 
@@ -129,6 +118,9 @@
 	<div id="help-content" class="help-content hidden">
 		<p>一个经典的俄罗斯方块游戏，但拥有更现代化的功能。</p>
 		<ul>
+			<li><strong>难度曲线:</strong> “柔和”模式速度线性增加；“经典”模式模拟原版游戏，速度会在特定等级急剧提升，更具挑战性。
+			</li>
+			<li><strong>初始等级:</strong> 选择一个更高的等级来开始游戏，直接挑战高速率。</li>
 			<li><strong>宽高设置:</strong> 自定义游戏区域的大小，然后点击“应用尺寸”临时体验，或“保存为默认”以供后续游戏使用。
 			</li>
 			<li><strong>幽灵方块:</strong> 开启后，会在底部显示方块的最终落点，帮助你更精确地放置。</li>
@@ -150,10 +142,22 @@
 					<button id="pause-btn">暂停</button>
 					<button id="restart-btn">重新开始</button>
 				</div>
-				<div class="size-config">
+				<div class="config-item">
+					<label for="difficulty-select">难度曲线:</label>
+					<select id="difficulty-select">
+						<option value="gentle">柔和</option>
+						<option value="classic">经典</option>
+					</select>
+				</div>
+				<div class="config-item">
+					<label for="level-input">初始等级:</label>
+					<input type="number" id="level-input" min="1" max="29">
+				</div>
+				<div class="config-item size-config">
+					<label>游戏区尺寸:</label>
 					<div class="size-inputs">
-						<div><label for="cols-input">宽度</label><input type="number" id="cols-input" min="5" max="30"></div>
-						<div><label for="rows-input">高度</label><input type="number" id="rows-input" min="10" max="40"></div>
+						<div><input type="number" id="cols-input" min="5" max="30" title="宽度"></div>
+						<div><input type="number" id="rows-input" min="10" max="40" title="高度"></div>
 					</div>
 					<div class="button-group">
 						<button id="apply-size-btn">应用尺寸</button>
@@ -199,10 +203,14 @@
 		const ghostToggle = document.getElementById('ghost-toggle');
 		const toggleHelpBtn = document.getElementById('toggle-help-btn');
 		const helpContent = document.getElementById('help-content');
+		const difficultySelect = document.getElementById('difficulty-select');
+		const levelInput = document.getElementById('level-input');
 
 		let grid, score, level, lines, dropCounter, dropInterval, lastTime;
-		let isGameOver = false, isPaused = true, animationFrameId, showGhostPiece;
+		let isGameOver = false, isPaused = true, animationFrameId, showGhostPiece, difficultyMode;
 
+		const CLASSIC_SPEEDS = [800, 717, 633, 550, 467, 383, 300, 217, 133, 100, 83, 83, 83, 67, 67, 67, 50, 50, 50, 33,
+														33, 33, 33, 33, 33, 33, 33, 33, 33, 17];
 		const TETROMINOES = {
 			'T': {shape: [[0, 1, 0], [1, 1, 1], [0, 0, 0]], color: 'T'},
 			'O': {shape: [[1, 1], [1, 1]], color: 'O'},
@@ -225,6 +233,14 @@
 			const type = TETROMINO_KEYS[Math.floor(Math.random() * TETROMINO_KEYS.length)];
 			const piece = TETROMINOES[type];
 			return {shape: piece.shape.map(r => r.slice()), color: piece.color};
+		}
+
+		function updateDropInterval() {
+			if (difficultyMode === 'classic') {
+				dropInterval = CLASSIC_SPEEDS[Math.min(level - 1, CLASSIC_SPEEDS.length - 1)];
+			} else {
+				dropInterval = Math.max(150, 1000 - level * 75);
+			}
 		}
 
 		function playerReset() {
@@ -250,7 +266,7 @@
 					if (shape[y][x] !== 0) {
 						const newY = y + pos.y;
 						const newX = x + pos.x;
-						if (newX < 0 || newX >= COLS || newY >= ROWS || (newY >= 0 && grid[newY][newX] !== 0)) {
+						if (newX < 0 || newX >= COLS || newY >= ROWS || newY >= 0 && grid[newY][newX] !== 0) {
 							return true;
 						}
 					}
@@ -340,11 +356,12 @@
 				clearedLines++;
 			}
 			if (clearedLines > 0) {
+				const prevLevel = level;
 				lines += clearedLines;
-				score += (clearedLines * 10) * clearedLines;
-				if (lines >= level * 10) {
-					level++;
-					dropInterval = Math.max(150, 1000 - (level * 75));
+				score += clearedLines * 10 * clearedLines * level;
+				level = Math.floor(lines / 10) + (parseInt(levelInput.value, 10) || 1);
+				if (level > prevLevel) {
+					updateDropInterval();
 				}
 			}
 		}
@@ -482,11 +499,15 @@
 
 			grid = createEmptyGrid();
 			score = 0;
-			level = 1;
-			lines = 0;
+			level = parseInt(levelInput.value, 10) || 1;
+			if (level < 1 || level > 29) {
+				level = 1;
+			}
+			levelInput.value = level;
+			lines = (level - 1) * 10;
 			dropCounter = 0;
-			dropInterval = 1000;
 			lastTime = 0;
+			updateDropInterval();
 			isGameOver = false;
 			isPaused = true;
 			pauseBtn.disabled = false;
@@ -523,13 +544,27 @@
 			localStorage.setItem('tetrisHelpCollapsed', helpContent.classList.contains('hidden'));
 		});
 
+		function applyDifficulty(mode) {
+			difficultyMode = mode;
+			difficultySelect.value = mode;
+			localStorage.setItem('tetrisDifficulty', mode);
+		}
+
+		difficultySelect.addEventListener('change', e => applyDifficulty(e.target.value));
+		applyDifficulty(localStorage.getItem('tetrisDifficulty') || 'gentle');
+
+		levelInput.addEventListener('change', () => {
+			localStorage.setItem('tetrisStartLevel', levelInput.value);
+		});
+		levelInput.value = localStorage.getItem('tetrisStartLevel') || '1';
+
 		function applyGhostToggle(show) {
 			showGhostPiece = show;
 			ghostToggle.checked = show;
 			localStorage.setItem('tetrisShowGhost', show);
 		}
 
-		ghostToggle.addEventListener('change', (e) => applyGhostToggle(e.target.checked));
+		ghostToggle.addEventListener('change', e => applyGhostToggle(e.target.checked));
 		const savedShowGhost = localStorage.getItem('tetrisShowGhost');
 		applyGhostToggle(savedShowGhost === null ? true : savedShowGhost === 'true');
 
@@ -572,6 +607,5 @@
 		startGame(true);
 	});
 </script>
-
 </body>
 </html>
