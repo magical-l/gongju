@@ -3,11 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>俄罗斯方块 - 重构版</title>
+    <title>俄罗斯方块 - 主题版</title>
     <style>
+        /* CSS Variables for Theming - Eye-friendly palettes */
         body {
-            background: #202028;
-            color: #fff;
+            /* Default Theme: Cyberpunk (Softer) */
+            --body-bg: #1a1129;
+            --container-bg: #2c1d4d;
+            --text-color: #dcd1ff;
+            --board-bg: #130c1f;
+            --border-color: #7b52c9;
+            --highlight-color: #dcd1ff;
+            --button-bg: #7b52c9;
+            --button-text: #1a1129;
+            --color-T: #e83e8c; /* Softer Pink */
+            --color-O: #f08d49; /* Softer Orange */
+            --color-L: #98c379; /* Softer Green */
+            --color-J: #56b6c2; /* Softer Cyan */
+            --color-I: #c678dd; /* Softer Purple */
+            --color-S: #d19a66; /* Softer Yellow/Brown */
+            --color-Z: #e83e8c; /* Softer Pink */
+        }
+
+        body[data-theme="matrix"] {
+            --body-bg: #111111;
+            --container-bg: #1a1a1a;
+            --text-color: #3dcc71;
+            --board-bg: #0a0a0a;
+            --border-color: #3dcc71;
+            --highlight-color: #3dcc71;
+            --button-bg: #3dcc71;
+            --button-text: #111111;
+            --color-T: #4CAF50; --color-O: #66BB6A; --color-L: #81C784; --color-J: #A5D6A7; --color-I: #C8E6C9; --color-S: #388E3C; --color-Z: #2E7D32;
+        }
+
+        body[data-theme="girly-pink"] {
+            --body-bg: #fdf6f8;
+            --container-bg: #fceef2;
+            --text-color: #7a4b63;
+            --board-bg: #f9e2e9;
+            --border-color: #e88db2;
+            --highlight-color: #7a4b63;
+            --button-bg: #e88db2;
+            --button-text: #fdf6f8;
+            --color-T: #ffb6c1; --color-O: #fbcce7; --color-L: #e0b0ff; --color-J: #fbaed2; --color-I: #ffc3a0; --color-S: #f7a8b8; --color-Z: #fa86c4;
+        }
+
+        body[data-theme="misty-rain"] {
+            --body-bg: #f0f2f5;
+            --container-bg: #dce1e9;
+            --text-color: #4a5c6d;
+            --board-bg: #cdd4e0;
+            --border-color: #92a1b1;
+            --highlight-color: #4a5c6d;
+            --button-bg: #92a1b1;
+            --button-text: #f0f2f5;
+            --color-T: #7d92a6; --color-O: #a0aec0; --color-L: #8a9aac; --color-J: #b0bdce; --color-I: #cad3de; --color-S: #93a3b5; --color-Z: #aab7c8;
+        }
+
+        body[data-theme="genki-forest"] {
+            --body-bg: #f5fff5;
+            --container-bg: #e8f5e9;
+            --text-color: #2e6b5f;
+            --board-bg: #dceddc;
+            --border-color: #77bfa9;
+            --highlight-color: #2e6b5f;
+            --button-bg: #77bfa9;
+            --button-text: #f5fff5;
+            --color-T: #f4a27e; --color-O: #80cbc4; --color-L: #a5d6a7; --color-J: #ffe082; --color-I: #b39ddb; --color-S: #f4b8c7; --color-Z: #90caf9;
+        }
+
+        /* General Styles using Variables */
+        body {
+            background: var(--body-bg);
+            color: var(--text-color);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             font-size: 1em;
             text-align: center;
@@ -16,23 +85,25 @@
             align-items: center;
             height: 100vh;
             margin: 0;
+            transition: background 0.3s, color 0.3s;
         }
         .game-container {
             display: flex;
             align-items: flex-start;
             gap: 30px;
-            border: 2px solid #444;
-            padding: 20px;
-            background: #282830;
-            border-radius: 10px;
+        }
+        .board-wrapper {
+            position: relative;
+            border: 2px solid var(--border-color);
+            padding: 2px;
         }
         #game-board {
             display: grid;
             grid-template-columns: repeat(10, 30px);
             grid-template-rows: repeat(20, 30px);
             grid-gap: 1px;
-            border: 2px solid #fff;
-            background: #101018;
+            border: 2px solid var(--highlight-color);
+            background: var(--board-bg);
         }
         .cell {
             width: 30px;
@@ -40,29 +111,31 @@
             background-color: rgba(0, 0, 0, 0.2);
             border-radius: 2px;
         }
-        /* Tetromino Colors */
-        .cell.T { background-color: #AE81FF; }
-        .cell.O { background-color: #F92672; }
-        .cell.L { background-color: #FD971F; }
-        .cell.J { background-color: #66D9EF; }
-        .cell.I { background-color: #A6E22E; }
-        .cell.S { background-color: #E6DB74; }
-        .cell.Z { background-color: #F92672; }
+        .cell.T { background-color: var(--color-T); }
+        .cell.O { background-color: var(--color-O); }
+        .cell.L { background-color: var(--color-L); }
+        .cell.J { background-color: var(--color-J); }
+        .cell.I { background-color: var(--color-I); }
+        .cell.S { background-color: var(--color-S); }
+        .cell.Z { background-color: var(--color-Z); }
 
         .side-panel {
             width: 180px;
             text-align: left;
             padding: 0 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         }
         .side-panel h2 {
             margin-top: 0;
             font-size: 1.5rem;
             text-align: center;
         }
-        .side-panel div {
+        .side-panel div.info-box {
             font-size: 1.1rem;
             margin-bottom: 15px;
-            background: #333;
+            background: var(--container-bg);
             padding: 10px;
             border-radius: 5px;
         }
@@ -75,47 +148,109 @@
             grid-template-columns: repeat(4, 30px);
             grid-template-rows: repeat(4, 30px);
             grid-gap: 1px;
-            background: #101018;
+            background: var(--board-bg);
             padding: 5px;
             border-radius: 5px;
             min-height: 129px;
         }
-        .next-cell {
-            width: 30px;
-            height: 30px;
-            border-radius: 2px;
-        }
+        .next-cell { width: 30px; height: 30px; border-radius: 2px; }
+        .controls-container { margin-top: auto; }
         .controls {
             font-size: 0.8rem;
             margin-top: 20px;
             color: #aaa;
             line-height: 1.5;
         }
+        .theme-selector {
+            margin-top: 20px;
+        }
+        .theme-selector label { display: block; margin-bottom: 5px; }
+        .theme-selector select {
+            width: 100%;
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background: var(--container-bg);
+            color: var(--text-color);
+        }
+        .game-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .game-buttons button {
+            flex-grow: 1;
+            padding: 10px;
+            background: var(--button-bg);
+            color: var(--button-text);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: opacity 0.2s;
+        }
+        .game-buttons button:hover { opacity: 0.9; }
+        .game-buttons button:disabled { opacity: 0.5; cursor: not-allowed; }
+        #pause-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            font-size: 2em;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            line-height: 1.5;
+        }
+        .hidden { display: none; }
     </style>
 </head>
-<body>
+<body data-theme="cyberpunk">
+
 <div class="game-container">
-    <div id="game-board"></div>
+    <div class="board-wrapper">
+        <div id="game-board"></div>
+        <div id="pause-overlay" class="hidden"></div>
+    </div>
     <div class="side-panel">
-        <h2>俄罗斯方块</h2>
-        <div id="score">分数: 0</div>
-        <div id="lines">行数: 0</div>
-        <div id="level">等级: 1</div>
-        <h3>下一个:</h3>
-        <div id="next-piece-container"></div>
-        <div class="controls">
-            <strong>控制:</strong><br>
-            ←: 左移<br>
-            →: 右移<br>
-            ↓: 加速<br>
-            ↑: 旋转
+        <div>
+            <h2>俄罗斯方块</h2>
+            <div class="game-buttons">
+                <button id="pause-btn">暂停</button>
+                <button id="restart-btn">重新开始</button>
+            </div>
+            <div id="score" class="info-box">分数: 0</div>
+            <div id="lines" class="info-box">行数: 0</div>
+            <div id="level" class="info-box">等级: 1</div>
+            <h3>下一个:</h3>
+            <div id="next-piece-container"></div>
+        </div>
+        <div class="controls-container">
+            <div class="theme-selector">
+                <label for="theme-select">主题:</label>
+                <select id="theme-select">
+                    <option value="cyberpunk">赛博朋克</option>
+                    <option value="matrix">黑客帝国</option>
+                    <option value="girly-pink">粉红少女心</option>
+                    <option value="misty-rain">江南烟雨</option>
+                    <option value="genki-forest">元气森林</option>
+                </select>
+            </div>
+            <div class="controls">
+                <strong>控制:</strong><br>
+                ←: 左移<br>
+                →: 右移<br>
+                ↓: 加速<br>
+                ↑: 旋转<br>
+                P: 暂停/继续
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-// 经过现代化重构的俄罗斯方块
-// 作者: Gemini (基于一个经典的紧凑代码实现)
 document.addEventListener('DOMContentLoaded', () => {
     const COLS = 10;
     const ROWS = 20;
@@ -125,24 +260,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const levelElement = document.getElementById('level');
     const linesElement = document.getElementById('lines');
     const nextPieceContainer = document.getElementById('next-piece-container');
+    const pauseBtn = document.getElementById('pause-btn');
+    const restartBtn = document.getElementById('restart-btn');
+    const pauseOverlay = document.getElementById('pause-overlay');
 
-    let grid = createEmptyGrid();
-    let score = 0;
-    let level = 1;
-    let lines = 0;
-    let dropCounter = 0;
-    let dropInterval = 1000;
-    let lastTime = 0;
+    let grid, score, level, lines, dropCounter, dropInterval, lastTime;
     let isGameOver = false;
+    let isPaused = false;
+    let animationFrameId;
 
     const TETROMINOES = {
-        'T': { shape: [[0, 1, 0], [1, 1, 1], [0, 0, 0]], color: 'T' },
-        'O': { shape: [[1, 1], [1, 1]], color: 'O' },
-        'L': { shape: [[0, 0, 1], [1, 1, 1], [0, 0, 0]], color: 'L' },
-        'J': { shape: [[1, 0, 0], [1, 1, 1], [0, 0, 0]], color: 'J' },
-        'I': { shape: [[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]], color: 'I' },
-        'S': { shape: [[0, 1, 1], [1, 1, 0], [0, 0, 0]], color: 'S' },
-        'Z': { shape: [[1, 1, 0], [0, 1, 1], [0, 0, 0]], color: 'Z' }
+        'T':{shape:[[0,1,0],[1,1,1],[0,0,0]],color:'T'},'O':{shape:[[1,1],[1,1]],color:'O'},'L':{shape:[[0,0,1],[1,1,1],[0,0,0]],color:'L'},'J':{shape:[[1,0,0],[1,1,1],[0,0,0]],color:'J'},'I':{shape:[[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],color:'I'},'S':{shape:[[0,1,1],[1,1,0],[0,0,0]],color:'S'},'Z':{shape:[[1,1,0],[0,1,1],[0,0,0]],color:'Z'}
     };
     const TETROMINO_KEYS = 'IOTSZJL';
 
@@ -156,31 +284,27 @@ document.addEventListener('DOMContentLoaded', () => {
     function getNewTetromino() {
         const type = TETROMINO_KEYS[Math.floor(Math.random() * TETROMINO_KEYS.length)];
         const piece = TETROMINOES[type];
-        // A more robust way to deep-clone the shape array
-        const newShape = piece.shape.map(row => row.slice());
-        return {
-            shape: newShape,
-            color: piece.color
-        };
+        return { shape: piece.shape.map(r => r.slice()), color: piece.color };
     }
 
     function playerReset() {
         player.tetromino = nextTetromino || getNewTetromino();
         nextTetromino = getNewTetromino();
-        
         player.pos.y = 0;
         player.pos.x = Math.floor(COLS / 2) - Math.floor(player.tetromino.shape[0].length / 2);
 
         if (collides(grid, player)) {
             isGameOver = true;
-            alert(`游戏结束! 最终得分: ${score}`);
+            pauseOverlay.innerHTML = `游戏结束<br>得分: ${score}`;
+            pauseOverlay.classList.remove('hidden');
+            pauseBtn.disabled = true;
         }
         drawNextPiece();
     }
 
     function collides(grid, player) {
-        const shape = player.tetromino.shape;
-        const pos = player.pos;
+        const { shape } = player.tetromino;
+        const { pos } = player;
         for (let y = 0; y < shape.length; y++) {
             for (let x = 0; x < shape[y].length; x++) {
                 if (shape[y][x] !== 0) {
@@ -207,15 +331,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function rotate(matrix) {
         const N = matrix.length;
-        const result = matrix.map((row, i) => row.map((val, j) => matrix[N - 1 - j][i]));
-        return result;
+        return matrix.map((row, i) => row.map((val, j) => matrix[N - 1 - j][i]));
     }
 
     function playerRotate() {
         const originalShape = JSON.parse(JSON.stringify(player.tetromino.shape));
-        const rotated = rotate(player.tetromino.shape);
-        player.tetromino.shape = rotated;
-
+        player.tetromino.shape = rotate(player.tetromino.shape);
         const posX = player.pos.x;
         let offset = 1;
         while (collides(grid, player)) {
@@ -251,12 +372,10 @@ document.addEventListener('DOMContentLoaded', () => {
         let clearedLines = 0;
         outer: for (let y = grid.length - 1; y > 0; --y) {
             for (let x = 0; x < grid[y].length; ++x) {
-                if (grid[y][x] === 0) {
-                    continue outer;
-                }
+                if (grid[y][x] === 0) continue outer;
             }
-            const row = grid.splice(y, 1)[0].fill(0);
-            grid.unshift(row);
+            grid.splice(y, 1);
+            grid.unshift(Array(COLS).fill(0));
             y++;
             clearedLines++;
         }
@@ -273,30 +392,23 @@ document.addEventListener('DOMContentLoaded', () => {
     function draw() {
         boardElement.innerHTML = '';
         const displayGrid = JSON.parse(JSON.stringify(grid));
-        
         if (player.tetromino) {
             player.tetromino.shape.forEach((row, y) => {
                 row.forEach((value, x) => {
-                    if (value !== 0) {
-                        if (y + player.pos.y >= 0) {
-                           displayGrid[y + player.pos.y][x + player.pos.x] = player.tetromino.color;
-                        }
+                    if (value !== 0 && y + player.pos.y >= 0) {
+                       displayGrid[y + player.pos.y][x + player.pos.x] = player.tetromino.color;
                     }
                 });
             });
         }
-
-        for (let y = 0; y < ROWS; y++) {
-            for (let x = 0; x < COLS; x++) {
+        displayGrid.forEach(row => {
+            row.forEach(cellType => {
                 const cell = document.createElement('div');
                 cell.classList.add('cell');
-                if (displayGrid[y][x] !== 0) {
-                    cell.classList.add(displayGrid[y][x]);
-                }
+                if (cellType) cell.classList.add(cellType);
                 boardElement.appendChild(cell);
-            }
-        }
-        
+            });
+        });
         scoreElement.innerText = `分数: ${score}`;
         levelElement.innerText = `等级: ${level}`;
         linesElement.innerText = `行数: ${lines}`;
@@ -304,78 +416,104 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function drawNextPiece() {
         nextPieceContainer.innerHTML = '';
-        if (!nextTetromino || !nextTetromino.shape || nextTetromino.shape.length === 0) {
-            return; // Safety check
-        }
+        if (!nextTetromino || !nextTetromino.shape || nextTetromino.shape.length === 0) return;
         const { shape, color } = nextTetromino;
-
-        // Create a 4x4 grid representation for the preview
         const previewGrid = Array.from({ length: 4 }, () => Array(4).fill(0));
-        
-        // Center the piece in the preview grid
         const shapeHeight = shape.length;
         const shapeWidth = shape[0].length;
         const startY = Math.floor((4 - shapeHeight) / 2);
         const startX = Math.floor((4 - shapeWidth) / 2);
-
         shape.forEach((row, y) => {
             row.forEach((value, x) => {
-                if (value !== 0) {
-                    previewGrid[startY + y][startX + x] = color;
-                }
+                if (value !== 0) previewGrid[startY + y][startX + x] = color;
             });
         });
-
-        // Render the preview grid
         previewGrid.forEach(row => {
             row.forEach(cellType => {
                 const cell = document.createElement('div');
                 cell.classList.add('next-cell');
-                if (cellType !== 0) {
-                    cell.classList.add('cell', cellType);
-                }
+                if (cellType) cell.classList.add('cell', cellType);
                 nextPieceContainer.appendChild(cell);
             });
         });
     }
 
     function update(time = 0) {
-        if (isGameOver) return;
-
+        if (isPaused || isGameOver) return;
         const deltaTime = time - lastTime;
         lastTime = time;
         dropCounter += deltaTime;
-
-        if (dropCounter > dropInterval) {
-            playerDrop();
-        }
-
+        if (dropCounter > dropInterval) playerDrop();
         draw();
-        requestAnimationFrame(update);
+        animationFrameId = requestAnimationFrame(update);
     }
 
+    function togglePause() {
+        if (isGameOver) return;
+        isPaused = !isPaused;
+        if (isPaused) {
+            pauseOverlay.textContent = '已暂停';
+            pauseOverlay.classList.remove('hidden');
+            pauseBtn.textContent = '继续';
+            cancelAnimationFrame(animationFrameId);
+        } else {
+            pauseOverlay.classList.add('hidden');
+            pauseOverlay.textContent = ''; // Clear text content
+            pauseBtn.textContent = '暂停';
+            update();
+        }
+    }
+
+    function startGame() {
+        grid = createEmptyGrid();
+        score = 0;
+        level = 1;
+        lines = 0;
+        dropCounter = 0;
+        dropInterval = 1000;
+        lastTime = 0;
+        isGameOver = false;
+        isPaused = false;
+        pauseBtn.disabled = false;
+        pauseBtn.textContent = '暂停';
+        pauseOverlay.classList.add('hidden');
+        pauseOverlay.textContent = ''; // Clear text content
+        playerReset();
+        update();
+    }
+
+    // --- Theme Switcher Logic ---
+    const themeSelect = document.getElementById('theme-select');
+    function applyTheme(theme) {
+        document.body.dataset.theme = theme;
+        localStorage.setItem('tetrisTheme', theme);
+        themeSelect.value = theme;
+    }
+    themeSelect.addEventListener('change', (e) => applyTheme(e.target.value));
+    const savedTheme = localStorage.getItem('tetrisTheme') || 'cyberpunk';
+    applyTheme(savedTheme);
+
+    // --- Event Listeners ---
+    pauseBtn.addEventListener('click', togglePause);
+    restartBtn.addEventListener('click', startGame);
     document.addEventListener('keydown', event => {
         if (isGameOver) return;
-        
+        if (event.key === 'p' || event.key === 'P') {
+            togglePause();
+            return;
+        }
+        if (isPaused) return;
         switch (event.key) {
-            case 'ArrowLeft':
-                playerMove(-1);
-                break;
-            case 'ArrowRight':
-                playerMove(1);
-                break;
-            case 'ArrowDown':
-                playerDrop();
-                break;
-            case 'ArrowUp':
-                playerRotate();
-                break;
+            case 'ArrowLeft': playerMove(-1); break;
+            case 'ArrowRight': playerMove(1); break;
+            case 'ArrowDown': playerDrop(); break;
+            case 'ArrowUp': playerRotate(); break;
         }
     });
     
-    playerReset();
-    update();
+    startGame();
 });
 </script>
+
 </body>
 </html>
