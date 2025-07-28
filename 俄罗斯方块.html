@@ -1,15 +1,21 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>俄罗斯方块 - PrimeVue版</title>
+	<title itemprop="name">俄罗斯方块 | 工具兽</title>
+	<meta name="description" content="一个经典的俄罗斯方块游戏，拥有现代化的功能和可自定义的设置，包括难度曲线、初始等级、游戏区尺寸和幽灵方块显示。支持键盘快捷键操作，提供流畅的游戏体验。" itemprop="description">
+	<meta name="keywords" content="俄罗斯方块,Tetris,在线游戏,休闲游戏,益智游戏">
+	<meta name="author" content="工具兽">
 
-	<link rel="stylesheet" href="lib/toastr.min.css">
-	<link rel="stylesheet" href="resources/style.css">
+	<!-- 预加载关键资源 -->
+	<link rel="preload" href="lib/jquery-3.4.1.min.js" as="script">
+	<link rel="preload" href="resources/util.js" as="script">
 
+	<link href="https://cdn.jsdelivr.net/npm/primeicons/primeicons.css" rel="stylesheet">
+	<link href="lib/toastr.min.css" rel="stylesheet">
+	<link href="resources/style.css" rel="stylesheet">
 	<link href="https://unpkg.com/primevue/resources/primevue.min.css" rel="stylesheet">
-	<link href="https://unpkg.com/primeicons/primeicons.css" rel="stylesheet">
 
 	<style>
 		body { background-color: #f8f9fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 2rem; }
@@ -542,6 +548,5 @@
 	})
 	.mount('main');
 </script>
-
 </body>
 </html>
