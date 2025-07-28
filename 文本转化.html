@@ -4,7 +4,9 @@
 	<meta charset="UTF-8">
 	<title itemprop="name">文本格式转换 - Base64, MD5, URI | 工具兽</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="description" content="一个多功能的在线文本转换工具，能够对文本进行MD5加密、Base64编码/解码、URI及URI参数编码/解码。无论您是开发者、数据分析师，还是需要处理网络数据的普通用户，这个工具都能为您提供便捷、高效的文本处理服务。" itemprop="description">
+	<meta name="description"
+				content="一个多功能的在线文本转换工具，能够对文本进行MD5加密、Base64编码/解码、URI及URI参数编码/解码。无论您是开发者、数据分析师，还是需要处理网络数据的普通用户，这个工具都能为您提供便捷、高效的文本处理服务。"
+				itemprop="description">
 	<meta name="keywords" content="文本格式转换,URI编码,Base64,MD5,进制转换">
 	<meta name="author" content="文本格式转换">
 
@@ -36,17 +38,20 @@
 	</header>
 	<article class="description" style="display: none;">
 		<h2>关于文本格式转换工具</h2>
-		<p>“文本格式转换工具”是一个强大而实用的在线服务，专为需要对文本进行各种编码、解码和加密操作的用户设计。无论您是开发人员、数据分析师，还是普通用户，这个工具都能满足您在文本处理方面的多样化需求。</p>
+		<p>
+			“文本格式转换工具”是一个强大而实用的在线服务，专为需要对文本进行各种编码、解码和加密操作的用户设计。无论您是开发人员、数据分析师，还是普通用户，这个工具都能满足您在文本处理方面的多样化需求。</p>
 		<h2>核心功能</h2>
 		<ul>
 			<li><strong>MD5加密：</strong>快速生成文本的MD5哈希值，常用于数据校验和密码存储。</li>
-			<li><strong>Base64编码/解码：</strong>支持文本与Base64格式之间的相互转换，广泛应用于网络数据传输和二进制数据表示。</li>
+			<li><strong>Base64编码/解码：</strong>支持文本与Base64格式之间的相互转换，广泛应用于网络数据传输和二进制数据表示。
+			</li>
 			<li><strong>URI编码/解码：</strong>提供对URL中的特殊字符进行编码和解码的功能，确保URL的正确性和可读性。</li>
 			<li><strong>URI参数编码/解码：</strong>专门针对URL查询参数中的字符进行更严格的编码和解码。</li>
 		</ul>
 		<h2>适用场景</h2>
 		<p><strong>Web开发：</strong>在处理URL、API请求或用户输入时，经常需要进行URI编码和解码，以避免安全漏洞和解析错误。</p>
-		<p><strong>数据传输：</strong>当需要在网络上传输二进制数据（如图片、文件）时，通常会先将其进行Base64编码，以文本形式安全传输。</p>
+		<p><strong>数据传输：</strong>当需要在网络上传输二进制数据（如图片、文件）时，通常会先将其进行Base64编码，以文本形式安全传输。
+		</p>
 		<p><strong>信息安全：</strong>MD5哈希算法可用于验证文件完整性，确保文件在传输过程中未被篡改。</p>
 	</article>
 	<section class="input area">
@@ -104,6 +109,8 @@
 	<script src="resources/math.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/js-base64@3.7.7/base64.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/js-md5@0.8.3/src/md5.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/js-sha1@0.6.0/build/sha1.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
 </div>
 <script>
 	const {createApp} = Vue;
@@ -120,10 +127,13 @@
 		'Base64解码': {
 			value: '',
 			convert: str => {
+				if (!str) {
+					return '';
+				}
 				try {
-					return Base64.decode(str)
+					return Base64.decode(str) || '（非Base64编码文本）';
 				} catch (e) {
-					return '非Base64编码';
+					return '（非Base64编码文本）';
 				}
 			}
 		},
@@ -142,6 +152,102 @@
 		'URI参数解码': {
 			value: '',
 			convert: decodeURIComponent
+		},
+		'unicode编码': {
+			value: '',
+			convert(str) {
+				return str.split('').map(function (char) {
+					return '\\u' + ('0000' + char.charCodeAt(0).toString(16)).slice(-4);
+				}).join('');
+			}
+		},
+		'unicode解码': {
+			value: '',
+			convert(str) {
+				return str.replace(/\\u([0-9a-fA-F]{4})/g, function (match, grp) {
+					return String.fromCharCode(parseInt(grp, 16));
+				});
+			}
+		},
+		'utf16编码': {
+			value: '',
+			convert(str) {
+				const utf16 = [];
+				for (let i = 0; i < str.length; i++) {
+					utf16.push(str.charCodeAt(i));
+				}
+				return utf16.map(val => val.toString(16)).join(' ');
+			}
+		},
+		'utf16解码': {
+			value: '',
+			convert(str) {
+				const utf16 = str.split(' ').map(val => parseInt(val, 16));
+				return String.fromCharCode(...utf16) || '（非utf16编码文本）';
+			}
+		},
+		'html转义': {
+			value: '',
+			convert(str) {
+				const div = document.createElement('div');
+				div.appendChild(document.createTextNode(str));
+				return div.innerHTML;
+			}
+		},
+		'html解除转义': {
+			value: '',
+			convert(str) {
+				const div = document.createElement('div');
+				div.innerHTML = str;
+				return div.textContent || div.innerText || '';
+			}
+		},
+		'十六进制编码': {
+			value: '',
+			convert(str) {
+				let hex = '';
+				for (let i = 0; i < str.length; i++) {
+					hex += ('0000' + str.charCodeAt(i).toString(16)).slice(-4);
+				}
+				return hex;
+			}
+		},
+		'十六进制解码': {
+			value: '',
+			convert(str) {
+				let decoded = '';
+				for (let i = 0; i < str.length; i += 4) {
+					decoded += String.fromCharCode(parseInt(str.substr(i, 4), 16));
+				}
+				return decoded.trim() || '（非十六进制编码文本）';
+			}
+		},
+		'二进制编码': {
+			value: '',
+			convert: str => str.split('').map(char => char.charCodeAt(0).toString(2)).join(' ')
+		},
+		'二进制解码': {
+			value: '',
+			convert: str => str.split(' ').map(bin => String.fromCharCode(parseInt(bin, 2))).join('').trim() || '（非二进制编码文本）'
+		},
+		'sha1加密': {
+			value: '',
+			convert: sha1
+		},
+		'gzip压缩': {
+			value: '',
+			convert: str => Base64.encode(pako.gzip(str, {to: 'string'}))
+		},
+		'gzip解压': {
+			value: '',
+			convert(str) {
+				try {
+					const decoded = Base64.decode(str);
+					return pako.ungzip(decoded, {to: 'string'}) || '（非gzip编码文本）';
+				} catch (e) {
+					return '解压失败或非gzip编码';
+				}
+			}
 		}
 	};
 
