@@ -3,609 +3,545 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>俄罗斯方块</title>
+	<title>俄罗斯方块 - PrimeVue版</title>
+
+	<link rel="stylesheet" href="lib/toastr.min.css">
+	<link rel="stylesheet" href="resources/style.css">
+
+	<link href="https://unpkg.com/primevue/resources/primevue.min.css" rel="stylesheet">
+	<link href="https://unpkg.com/primeicons/primeicons.css" rel="stylesheet">
+
 	<style>
-		body {
-			--body-bg: #f8f9fa; --container-bg: #ffffff; --text-color: #495057; --board-bg: #e9ecef; --border-color: #ced4da; --highlight-color: #495057; --button-bg: #84a59d; --button-text: #ffffff; --help-bg: #ffffff;
-			--color-I: #a0e7e5; --color-O: #ffd6a5; --color-T: #d4a5a5; --color-J: #89c2d9; --color-L: #f4a261; --color-S: #b2e0b8; --color-Z: #ffb3c1;
-		}
+		body { background-color: #f8f9fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 2rem; }
 
-		body { background: var(--body-bg); color: var(--text-color); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1em; margin: 0; padding: 2rem; box-sizing: border-box; transition: background 0.3s, color 0.3s; }
+		main { max-width: 1600px; margin: 0 auto; }
 
-		.app-container { max-width: 1200px; width: 95%; margin: 0 auto; }
+		.game-wrapper { display: flex; justify-content: center; align-items: flex-start; gap: 2rem; }
 
-		.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+		.board-wrapper { flex-grow: 1; display: flex; justify-content: center; }
 
-		.page-header h1 { margin: 0; font-size: 2em; }
+		#game-board-container { position: relative; border: 2px solid #ced4da; padding: 2px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); display: inline-block; }
 
-		.page-header button { background: var(--button-bg); color: var(--button-text); border: 1px solid var(--border-color); border-radius: 5px; padding: 0.5em 1em; cursor: pointer; transition: opacity 0.2s; }
+		.p-inputnumber-input { width: 60px !important; text-align: center; }
 
-		.page-header button:hover { opacity: 0.85; }
-
-		.help-content { background: var(--help-bg); padding: 1rem; border-radius: 5px; margin-bottom: 2rem; border: 1px solid var(--border-color); line-height: 1.6; }
-
-		.game-wrapper { display: flex; justify-content: center; align-items: flex-start; gap: 30px; }
-
-		.board-wrapper { position: relative; border: 2px solid var(--border-color); padding: 2px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
-
-		#game-board { display: grid; grid-gap: 1px; border: 2px solid var(--highlight-color); background: var(--board-bg); }
+		#game-board { display: grid; grid-gap: 1px; border: 2px solid #495057; background: #e9ecef; }
 
 		.cell { width: 30px; height: 30px; background-color: rgba(0, 0, 0, 0.05); border-radius: 2px; }
 
-		.cell.T { background-color: var(--color-T); }
+		.cell.I { background-color: #a0e7e5; }
 
-		.cell.O { background-color: var(--color-O); }
+		.cell.O { background-color: #ffd6a5; }
 
-		.cell.L { background-color: var(--color-L); }
+		.cell.T { background-color: #d4a5a5; }
 
-		.cell.J { background-color: var(--color-J); }
+		.cell.J { background-color: #89c2d9; }
 
-		.cell.I { background-color: var(--color-I); }
+		.cell.L { background-color: #f4a261; }
 
-		.cell.S { background-color: var(--color-S); }
+		.cell.S { background-color: #b2e0b8; }
 
-		.cell.Z { background-color: var(--color-Z); }
+		.cell.Z { background-color: #ffb3c1; }
 
-		.cell.ghost { background-color: var(--text-color); opacity: 0.15; }
+		.cell.ghost { background-color: #495057; opacity: 0.15; }
 
-		.side-panel { width: 240px; text-align: left; display: flex; flex-direction: column; gap: 1.5rem; }
+		.side-panel { width: 400px; flex-shrink: 0; }
 
-		.side-panel-section { background: var(--container-bg); padding: 15px; border-radius: 5px; border: 1px solid var(--border-color); }
-
-		.side-panel h3 { margin-top: 0; margin-bottom: 1rem; text-align: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
-
-		#next-piece-container { display: grid; grid-template-columns: repeat(4, 30px); grid-template-rows: repeat(4, 30px); grid-gap: 1px; background: var(--board-bg); padding: 5px; border-radius: 5px; min-height: 129px; margin: 0 auto; }
+		#next-piece-container { display: grid; grid-template-columns: repeat(4, 30px); grid-template-rows: repeat(4, 30px); grid-gap: 1px; min-height: 129px; margin: 0 auto; }
 
 		.next-cell { width: 30px; height: 30px; border-radius: 2px; }
 
-		.info-box { font-size: 1.1rem; margin-bottom: 10px; }
+		.config-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
 
-		.info-box:last-child { margin-bottom: 0; }
+		.config-item:last-child { margin-bottom: 0; }
 
-		.config-item label { display: block; margin-bottom: 5px; }
+		.p-panel-content { display: flex; flex-direction: column; gap: 1.5rem; }
 
-		.config-item select, .config-item input { width: 100%; padding: 8px; box-sizing: border-box; border-radius: 4px; border: 1px solid var(--border-color); background: #fff; color: var(--text-color); }
+		#pause-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(73, 80, 87, 0.7); color: white; font-size: 2em; font-weight: bold; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; line-height: 1.5; }
 
-		.config-item { margin-bottom: 15px; }
-
-		.size-inputs { display: flex; gap: 10px; }
-
-		.size-inputs > div { flex: 1; }
-
-		.game-buttons, .size-config .button-group { display: flex; gap: 10px; }
-
-		.game-buttons { margin-bottom: 15px; }
-
-		.game-buttons button, .size-config button { flex-grow: 1; padding: 10px; background: var(--button-bg); color: var(--button-text); border: none; border-radius: 5px; cursor: pointer; font-size: 1em; transition: opacity 0.2s; }
-
-		.game-buttons button:hover, .size-config button:hover { opacity: 0.85; }
-
-		.game-buttons button:disabled { opacity: 0.5; cursor: not-allowed; }
-
-		.size-config .button-group { margin-top: 10px; }
-
-		#pause-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(73, 80, 87, 0.6); color: white; font-size: 2em; font-weight: bold; display: flex; justify-content: center; align-items: center; text-align: center; line-height: 1.5; }
-
-		.hidden { display: none !important; }
-
-		.toggle-switch-container { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; }
-
-		.switch { position: relative; display: inline-block; width: 50px; height: 24px; }
-
-		.switch input { opacity: 0; width: 0; height: 0; }
-
-		.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; }
-
-		.slider:before { position: absolute; content: ''; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; }
-
-		input:checked + .slider { background-color: var(--button-bg); }
-
-		input:checked + .slider:before { transform: translateX(26px); }
-
-		.slider.round { border-radius: 24px; }
-
-		.slider.round:before { border-radius: 50%; }
+		#pause-overlay .p-button { margin-top: 20px; }
 	</style>
 </head>
 <body>
+<main>
+	<panel header="俄罗斯方块">
+		<template #icons>
+			<button class="p-panel-header-icon p-link mr-2" @click="toggleHelp">
+				<span class="pi pi-question-circle"></span>
+			</button>
+		</template>
+		<div v-if="helpVisible" class="help-content">
+			<p>一个经典的俄罗斯方块游戏，但拥有更现代化的功能。</p>
+			<ul>
+				<li><strong>难度曲线:</strong> “柔和”模式速度线性增加；“经典”模式模拟原版游戏，速度会在特定等级急剧提升，更具挑战性。
+				</li>
+				<li><strong>初始等级:</strong> 选择一个更高的等级来开始游戏，直接挑战高速率。</li>
+				<li><strong>宽高设置:</strong> 自定义游戏区域的大小，点击“✓”即可保存并开始新游戏。“⟳”可随时回到经典的10x20尺寸。
+				</li>
+				<li><strong>幽灵方块:</strong> 开启后，会在底部显示方块的最终落点，帮助你更精确地放置。</li>
+				<li><strong>快捷键:</strong>
+					使用方向键控制方块，按<strong>空格键</strong>可以随时暂停或继续游戏，按<strong>回车键</strong>可以使方块硬着陆。
+				</li>
+			</ul>
+		</div>
+	</panel>
 
-<div class="app-container">
-	<div class="page-header">
-		<h1>俄罗斯方块</h1>
-		<button id="toggle-help-btn">说明</button>
-	</div>
-
-	<div id="help-content" class="help-content hidden">
-		<p>一个经典的俄罗斯方块游戏，但拥有更现代化的功能。</p>
-		<ul>
-			<li><strong>难度曲线:</strong> “柔和”模式速度线性增加；“经典”模式模拟原版游戏，速度会在特定等级急剧提升，更具挑战性。
-			</li>
-			<li><strong>初始等级:</strong> 选择一个更高的等级来开始游戏，直接挑战高速率。</li>
-			<li><strong>宽高设置:</strong> 自定义游戏区域的大小，然后点击“应用尺寸”临时体验，或“保存为默认”以供后续游戏使用。
-			</li>
-			<li><strong>幽灵方块:</strong> 开启后，会在底部显示方块的最终落点，帮助你更精确地放置。</li>
-			<li><strong>快捷键:</strong>
-				使用方向键控制方块，按<strong>空格键</strong>可以随时暂停或继续游戏，按<strong>回车键</strong>可以使方块硬着陆。
-			</li>
-		</ul>
-	</div>
-
-	<div class="game-wrapper">
+	<div class="game-wrapper" style="margin-top: 1rem;">
 		<div class="board-wrapper">
-			<div id="game-board"></div>
-			<div id="pause-overlay" class="hidden"></div>
+			<div id="game-board-container">
+				<div id="game-board" :style="boardStyle">
+					<div v-for="(cell, index) in displayGrid" :key="index" :class="['cell', cell]"></div>
+				</div>
+				<div id="pause-overlay" v-if="isPaused || isGameOver">
+					<div id="overlay-text">{{ overlayText }}</div>
+					<p-button v-if="!isGameOver" :label="pauseButtonText" @click="togglePause"></p-button>
+				</div>
+			</div>
 		</div>
 		<div class="side-panel">
-			<div class="side-panel-section">
-				<h3>设置</h3>
+			<panel header="控制与设置">
 				<div class="game-buttons">
-					<button id="pause-btn">暂停</button>
-					<button id="restart-btn">重新开始</button>
+					<p-button label="重新开始" @click="startGame" class="p-button-secondary" style="width: 100%;"></p-button>
 				</div>
 				<div class="config-item">
-					<label for="difficulty-select">难度曲线:</label>
-					<select id="difficulty-select">
-						<option value="gentle">柔和</option>
-						<option value="classic">经典</option>
-					</select>
+					<label>难度设置:</label>
+					<div style="display: flex; align-items: center; gap: 10px;">
+						<num-input v-model="settings.startLevel" :min="1" :max="29" @update:model-value="saveSettings"
+											 :inputStyle="{width: '70px'}"></num-input>
+						<choose-group v-model="settings.difficulty" :options="difficultyOptions"
+													option-label="name" option-value="value"
+													@update:model-value="saveSettings"></choose-group>
+					</div>
 				</div>
 				<div class="config-item">
-					<label for="level-input">初始等级:</label>
-					<input type="number" id="level-input" min="1" max="29">
-				</div>
-				<div class="config-item size-config">
 					<label>游戏区尺寸:</label>
-					<div class="size-inputs">
-						<div><input type="number" id="cols-input" min="5" max="30" title="宽度"></div>
-						<div><input type="number" id="rows-input" min="10" max="40" title="高度"></div>
-					</div>
-					<div class="button-group">
-						<button id="apply-size-btn">应用尺寸</button>
-						<button id="save-size-btn">保存为默认</button>
+					<div style="display: flex; align-items: center; gap: 10px;">
+						<num-input v-model="settings.cols" :min="5" :max="30" :inputStyle="{width: '70px'}"></num-input>
+						<span>x</span>
+						<num-input v-model="settings.rows" :min="10" :max="40" :inputStyle="{width: '70px'}"></num-input>
+						<p-button icon="pi pi-check" @click="applyAndSaveSize" title="应用并重开一局"></p-button>
+						<p-button icon="pi pi-replay" @click="restoreDefaultSize" title="恢复默认并重开一局"
+											class="p-button-secondary"></p-button>
 					</div>
 				</div>
-				<div class="toggle-switch-container">
-					<label for="ghost-toggle">幽灵方块</label>
-					<label class="switch"><input type="checkbox" id="ghost-toggle"><span class="slider round"></span></label>
+				<div class="config-item">
+					<toggle v-model="settings.showGhost" on-label="显示幽灵方块" off-label="不显示幽灵方块"
+									@update:model-value="saveSettings"></toggle>
 				</div>
-			</div>
+			</panel>
 
-			<div class="side-panel-section">
-				<h3>状态</h3>
-				<div id="score" class="info-box">分数: 0</div>
-				<div id="lines" class="info-box">行数: 0</div>
-				<div id="level" class="info-box">等级: 1</div>
-			</div>
+			<panel header="游戏状态" style="margin-top: 1.5rem;">
+				<div style="display: flex; justify-content: space-around; text-align: center;">
+					<div><h3>分数</h3>
+						<p>{{ score }}</p></div>
+					<div><h3>行数</h3>
+						<p>{{ lines }}</p></div>
+					<div><h3>等级</h3>
+						<p>{{ level }}</p></div>
+				</div>
+			</panel>
 
-			<div class="side-panel-section">
-				<h3>下一个</h3>
-				<div id="next-piece-container"></div>
-			</div>
+			<panel header="下一个" style="margin-top: 1.5rem;">
+				<div id="next-piece-container">
+					<div v-for="(cell, index) in nextPieceGrid" :key="index" :class="['next-cell', 'cell', cell]"></div>
+				</div>
+			</panel>
 		</div>
 	</div>
+</main>
+<div>
+	<script src="lib/jquery-3.4.1.min.js"></script>
+	<script src="lib/toastr.min.js"></script>
+	<script src="resources/util.js"></script>
+	<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+	<script src="https://unpkg.com/primevue/umd/primevue.min.js"></script>
+	<script src="https://unpkg.com/@primeuix/themes/umd/aura.js"></script>
 </div>
-
 <script>
-	document.addEventListener('DOMContentLoaded', () => {
-		let COLS, ROWS;
-		const boardElement = document.getElementById('game-board');
-		const scoreElement = document.getElementById('score');
-		const levelElement = document.getElementById('level');
-		const linesElement = document.getElementById('lines');
-		const nextPieceContainer = document.getElementById('next-piece-container');
-		const pauseBtn = document.getElementById('pause-btn');
-		const restartBtn = document.getElementById('restart-btn');
-		const pauseOverlay = document.getElementById('pause-overlay');
-		const colsInput = document.getElementById('cols-input');
-		const rowsInput = document.getElementById('rows-input');
-		const applySizeBtn = document.getElementById('apply-size-btn');
-		const saveSizeBtn = document.getElementById('save-size-btn');
-		const ghostToggle = document.getElementById('ghost-toggle');
-		const toggleHelpBtn = document.getElementById('toggle-help-btn');
-		const helpContent = document.getElementById('help-content');
-		const difficultySelect = document.getElementById('difficulty-select');
-		const levelInput = document.getElementById('level-input');
+	const {createApp, ref, reactive, computed, onMounted, watch} = Vue;
 
-		let grid, score, level, lines, dropCounter, dropInterval, lastTime;
-		let isGameOver = false, isPaused = true, animationFrameId, showGhostPiece, difficultyMode;
+	const app = createApp({
+		components: {
+			'choose-group': PrimeVue.SelectButton,
+			'p-button': PrimeVue.Button,
+			'p-textarea': PrimeVue.Textarea,
+			'p-fieldset': PrimeVue.Fieldset,
+			'card': PrimeVue.Card,
+			'toolbar': PrimeVue.Toolbar,
+			'panel': PrimeVue.Panel,
+			'num-input': PrimeVue.InputNumber,
+			'toggle': PrimeVue.ToggleButton
+		},
+		setup() {
+			// --- Reactive State ---
+			const score = ref(0);
+			const lines = ref(0);
+			const level = ref(1);
+			const grid = ref([]);
+			const player = reactive({tetromino: null, pos: {x: 0, y: 0}});
+			const nextTetromino = ref(null);
+			const isGameOver = ref(false);
+			const isPaused = ref(true);
+			const helpVisible = ref(false);
 
-		const CLASSIC_SPEEDS = [800, 717, 633, 550, 467, 383, 300, 217, 133, 100, 83, 83, 83, 67, 67, 67, 50, 50, 50, 33,
-														33, 33, 33, 33, 33, 33, 33, 33, 33, 17];
-		const TETROMINOES = {
-			'T': {shape: [[0, 1, 0], [1, 1, 1], [0, 0, 0]], color: 'T'},
-			'O': {shape: [[1, 1], [1, 1]], color: 'O'},
-			'L': {shape: [[0, 0, 1], [1, 1, 1], [0, 0, 0]], color: 'L'},
-			'J': {shape: [[1, 0, 0], [1, 1, 1], [0, 0, 0]], color: 'J'},
-			'I': {shape: [[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]], color: 'I'},
-			'S': {shape: [[0, 1, 1], [1, 1, 0], [0, 0, 0]], color: 'S'},
-			'Z': {shape: [[1, 1, 0], [0, 1, 1], [0, 0, 0]], color: 'Z'}
-		};
-		const TETROMINO_KEYS = 'IOTSZJL';
+			const settings = reactive({
+				cols: 10,
+				rows: 20,
+				difficulty: 'gentle',
+				startLevel: 1,
+				showGhost: true
+			});
 
-		let player = {pos: {x: 0, y: 0}, tetromino: null};
-		let nextTetromino = null;
+			const difficultyOptions = ref([
+				{name: '柔和', value: 'gentle'},
+				{name: '经典', value: 'classic'}
+			]);
 
-		function createEmptyGrid() {
-			return Array.from({length: ROWS}, () => Array(COLS).fill(0));
-		}
+			// --- Non-Reactive Game Loop Vars ---
+			let dropCounter = 0;
+			let dropInterval = 1000;
+			let lastTime = 0;
+			let animationFrameId = null;
 
-		function getNewTetromino() {
-			const type = TETROMINO_KEYS[Math.floor(Math.random() * TETROMINO_KEYS.length)];
-			const piece = TETROMINOES[type];
-			return {shape: piece.shape.map(r => r.slice()), color: piece.color};
-		}
+			const CLASSIC_SPEEDS = [800, 717, 633, 550, 467, 383, 300, 217, 133, 100, 83, 83, 83, 67, 67, 67, 50, 50, 50, 33,
+															33, 33, 33, 33, 33, 33, 33, 33, 33, 17];
+			const TETROMINOES = {
+				'T': {shape: [[0, 1, 0], [1, 1, 1], [0, 0, 0]], color: 'T'},
+				'O': {shape: [[1, 1], [1, 1]], color: 'O'},
+				'L': {shape: [[0, 0, 1], [1, 1, 1], [0, 0, 0]], color: 'L'},
+				'J': {shape: [[1, 0, 0], [1, 1, 1], [0, 0, 0]], color: 'J'},
+				'I': {shape: [[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]], color: 'I'},
+				'S': {shape: [[0, 1, 1], [1, 1, 0], [0, 0, 0]], color: 'S'},
+				'Z': {shape: [[1, 1, 0], [0, 1, 1], [0, 0, 0]], color: 'Z'}
+			};
+			const TETROMINO_KEYS = 'IOTSZJL';
 
-		function updateDropInterval() {
-			if (difficultyMode === 'classic') {
-				dropInterval = CLASSIC_SPEEDS[Math.min(level - 1, CLASSIC_SPEEDS.length - 1)];
-			} else {
-				dropInterval = Math.max(150, 1000 - level * 75);
-			}
-		}
+			// --- Computed Properties ---
+			const boardStyle = computed(() => ({
+				gridTemplateColumns: `repeat(${settings.cols}, 30px)`,
+				gridTemplateRows: `repeat(${settings.rows}, 30px)`
+			}));
 
-		function playerReset() {
-			player.tetromino = nextTetromino || getNewTetromino();
-			nextTetromino = getNewTetromino();
-			player.pos.y = 0;
-			player.pos.x = Math.floor(COLS / 2) - Math.floor(player.tetromino.shape[0].length / 2);
-			if (collides(grid, player)) {
-				isGameOver = true;
-				pauseOverlay.innerHTML = `游戏结束<br>得分: ${score}`;
-				pauseOverlay.classList.remove('hidden');
-				pauseBtn.disabled = true;
-				cancelAnimationFrame(animationFrameId);
-			}
-			drawNextPiece();
-		}
+			const ghostPosition = computed(() => {
+				if (!player.tetromino) {
+					return null;
+				}
+				const ghostPlayer = {tetromino: player.tetromino, pos: {x: player.pos.x, y: player.pos.y}};
+				while (!collides(grid.value, ghostPlayer)) {
+					ghostPlayer.pos.y++;
+				}
+				ghostPlayer.pos.y--;
+				return ghostPlayer.pos;
+			});
 
-		function collides(grid, player) {
-			const {shape} = player.tetromino;
-			const {pos} = player;
-			for (let y = 0; y < shape.length; y++) {
-				for (let x = 0; x < shape[y].length; x++) {
-					if (shape[y][x] !== 0) {
-						const newY = y + pos.y;
-						const newX = x + pos.x;
-						if (newX < 0 || newX >= COLS || newY >= ROWS || newY >= 0 && grid[newY][newX] !== 0) {
-							return true;
+			const displayGrid = computed(() => {
+				const newGrid = grid.value.map(row => [...row]);
+				if (settings.showGhost && player.tetromino && ghostPosition.value) {
+					player.tetromino.shape.forEach((row, y) => {
+						row.forEach((value, x) => {
+							if (value !== 0) {
+								const gridY = y + ghostPosition.value.y;
+								const gridX = x + ghostPosition.value.x;
+								if (gridY >= 0 && newGrid[gridY][gridX] === 0) {
+									newGrid[gridY][gridX] = 'ghost';
+								}
+							}
+						});
+					});
+				}
+				if (player.tetromino) {
+					player.tetromino.shape.forEach((row, y) => {
+						row.forEach((value, x) => {
+							if (value !== 0 && y + player.pos.y >= 0) {
+								newGrid[y + player.pos.y][x + player.pos.x]
+									= player.tetromino.color;
+							}
+						});
+					});
+				}
+				return newGrid.flat();
+			});
+
+			const nextPieceGrid = computed(() => {
+				const previewGrid = Array.from({length: 4}, () => Array(4).fill(0));
+				if (nextTetromino.value) {
+					const {shape, color} = nextTetromino.value;
+					const y_offset = Math.floor((4 - shape.length) / 2);
+					const x_offset = Math.floor((4 - shape[0].length) / 2);
+					shape.forEach((row, y) => {
+						row.forEach((value, x) => {
+							if (value !== 0) {
+								previewGrid[y + y_offset][x + x_offset] = color;
+							}
+						});
+					});
+				}
+				return previewGrid.flat();
+			});
+
+			const overlayText = computed(() => {
+				if (isGameOver.value) {
+					return `游戏结束\n得分: ${score.value}`;
+				}
+				if (isPaused.value) {
+					return '准备就绪';
+				}
+				return '';
+			});
+
+			const pauseButtonText = computed(
+				() => (grid.value.every(row => row.every(cell => cell === 0))) ? '开始游戏' : '继续');
+
+			// --- Methods ---
+			const createEmptyGrid = () => Array.from({length: settings.rows}, () => Array(settings.cols).fill(0));
+			const getNewTetromino = () => {
+				const type = TETROMINO_KEYS[Math.floor(Math.random() * TETROMINO_KEYS.length)];
+				return {...TETROMINOES[type], shape: TETROMINOES[type].shape.map(r => [...r])};
+			};
+
+			const updateDropInterval = () => {
+				if (settings.difficulty === 'classic') {
+					dropInterval = CLASSIC_SPEEDS[Math.min(level.value - 1, CLASSIC_SPEEDS.length - 1)];
+				} else {
+					dropInterval = Math.max(150, 1000 - (level.value * 75));
+				}
+			};
+
+			const playerReset = () => {
+				player.tetromino = nextTetromino.value || getNewTetromino();
+				nextTetromino.value = getNewTetromino();
+				player.pos.y = 0;
+				player.pos.x = Math.floor(settings.cols / 2) - Math.floor(player.tetromino.shape[0].length / 2);
+				if (collides(grid.value, player)) {
+					isGameOver.value = true;
+					cancelAnimationFrame(animationFrameId);
+				}
+			};
+
+			const collides = (currentGrid, currentPlayer) => {
+				const {shape} = currentPlayer.tetromino;
+				const {pos} = currentPlayer;
+				for (let y = 0; y < shape.length; y++) {
+					for (let x = 0; x < shape[y].length; x++) {
+						if (shape[y][x] !== 0) {
+							const newY = y + pos.y;
+							const newX = x + pos.x;
+							if (newX < 0 || newX >= settings.cols || newY >= settings.rows || (newY >= 0 && currentGrid[newY][newX]
+																																								 !== 0)) {
+								return true;
+							}
 						}
 					}
 				}
-			}
-			return false;
-		}
+				return false;
+			};
 
-		function getGhostPosition() {
-			const ghostPlayer = JSON.parse(JSON.stringify(player));
-			while (!collides(grid, ghostPlayer)) {
-				ghostPlayer.pos.y++;
-			}
-			ghostPlayer.pos.y--;
-			return ghostPlayer.pos;
-		}
-
-		function merge(grid, player) {
-			player.tetromino.shape.forEach((row, y) => {
-				row.forEach((value, x) => {
-					if (value !== 0) {
-						grid[y + player.pos.y][x + player.pos.x] = player.tetromino.color;
-					}
-				});
-			});
-		}
-
-		function rotate(matrix) {
-			const N = matrix.length;
-			return matrix.map((row, i) => row.map((val, j) => matrix[N - 1 - j][i]));
-		}
-
-		function playerRotate() {
-			const originalShape = JSON.parse(JSON.stringify(player.tetromino.shape));
-			player.tetromino.shape = rotate(player.tetromino.shape);
-			const posX = player.pos.x;
-			let offset = 1;
-			while (collides(grid, player)) {
-				player.pos.x += offset;
-				offset = -(offset + (offset > 0 ? 1 : -1));
-				if (Math.abs(offset) > player.tetromino.shape[0].length) {
-					player.tetromino.shape = originalShape;
-					player.pos.x = posX;
-					return;
-				}
-			}
-		}
-
-		function playerMove(offset) {
-			player.pos.x += offset;
-			if (collides(grid, player)) {
-				player.pos.x -= offset;
-			}
-		}
-
-		function playerDrop() {
-			player.pos.y++;
-			if (collides(grid, player)) {
-				player.pos.y--;
-				merge(grid, player);
-				sweep();
-				playerReset();
-			}
-			dropCounter = 0;
-		}
-
-		function hardDrop() {
-			player.pos.y = getGhostPosition().y;
-			merge(grid, player);
-			sweep();
-			playerReset();
-			dropCounter = 0;
-			draw();
-		}
-
-		function sweep() {
-			let clearedLines = 0;
-			outer: for (let y = grid.length - 1; y > 0; --y) {
-				for (let x = 0; x < grid[y].length; ++x) {
-					if (grid[y][x] === 0) {
-						continue outer;
-					}
-				}
-				grid.splice(y, 1);
-				grid.unshift(Array(COLS).fill(0));
-				y++;
-				clearedLines++;
-			}
-			if (clearedLines > 0) {
-				const prevLevel = level;
-				lines += clearedLines;
-				score += clearedLines * 10 * clearedLines * level;
-				level = Math.floor(lines / 10) + (parseInt(levelInput.value, 10) || 1);
-				if (level > prevLevel) {
-					updateDropInterval();
-				}
-			}
-		}
-
-		function draw() {
-			const displayGrid = JSON.parse(JSON.stringify(grid));
-			if (showGhostPiece && player.tetromino) {
-				const ghostPos = getGhostPosition();
+			const merge = () => {
 				player.tetromino.shape.forEach((row, y) => {
 					row.forEach((value, x) => {
 						if (value !== 0) {
-							const gridY = y + ghostPos.y;
-							const gridX = x + ghostPos.x;
-							if (gridY >= 0 && displayGrid[gridY][gridX] === 0) {
-								displayGrid[gridY][gridX] = 'ghost';
-							}
+							grid.value[y + player.pos.y][x + player.pos.x] = player.tetromino.color;
 						}
 					});
 				});
-			}
-			if (player.tetromino) {
-				player.tetromino.shape.forEach((row, y) => {
-					row.forEach((value, x) => {
-						if (value !== 0 && y + player.pos.y >= 0) {
-							displayGrid[y + player.pos.y][x + player.pos.x]
-								= player.tetromino.color;
-						}
-					});
-				});
-			}
+			};
 
-			boardElement.innerHTML = '';
-			displayGrid.forEach(row => {
-				row.forEach(cellType => {
-					const cell = document.createElement('div');
-					cell.classList.add('cell');
-					if (cellType) {
-						cell.classList.add(cellType);
+			const rotate = () => {
+				const matrix = player.tetromino.shape;
+				const N = matrix.length;
+				const result = matrix.map((row, i) => row.map((val, j) => matrix[N - 1 - j][i]));
+				const originalShape = player.tetromino.shape;
+				player.tetromino.shape = result;
+				const posX = player.pos.x;
+				let offset = 1;
+				while (collides(grid.value, player)) {
+					player.pos.x += offset;
+					offset = -(offset + (offset > 0 ? 1 : -1));
+					if (Math.abs(offset) > player.tetromino.shape[0].length) {
+						player.tetromino.shape = originalShape;
+						player.pos.x = posX;
+						return;
 					}
-					boardElement.appendChild(cell);
-				});
-			});
-			scoreElement.innerText = `分数: ${score}`;
-			levelElement.innerText = `等级: ${level}`;
-			linesElement.innerText = `行数: ${lines}`;
-		}
+				}
+			};
 
-		function drawNextPiece() {
-			nextPieceContainer.innerHTML = '';
-			if (!nextTetromino || !nextTetromino.shape || !nextTetromino.shape.length === 0) {
-				return;
-			}
-			const {shape, color} = nextTetromino;
-			const previewGrid = Array.from({length: 4}, () => Array(4).fill(0));
-			const shapeHeight = shape.length;
-			const shapeWidth = shape[0].length;
-			const startY = Math.floor((4 - shapeHeight) / 2);
-			const startX = Math.floor((4 - shapeWidth) / 2);
-			shape.forEach((row, y) => {
-				row.forEach((value, x) => {
-					if (value !== 0) {
-						previewGrid[startY + y][startX + x] = color;
+			const move = (offset) => {
+				player.pos.x += offset;
+				if (collides(grid.value, player)) {
+					player.pos.x -= offset;
+				}
+			};
+
+			const drop = () => {
+				player.pos.y++;
+				if (collides(grid.value, player)) {
+					player.pos.y--;
+					merge();
+					sweep();
+					playerReset();
+				}
+				dropCounter = 0;
+			};
+
+			const hardDrop = () => {
+				player.pos.y = ghostPosition.value.y;
+				merge();
+				sweep();
+				playerReset();
+				dropCounter = 0;
+			};
+
+			const sweep = () => {
+				let clearedLines = 0;
+				for (let y = grid.value.length - 1; y > 0; --y) {
+					if (grid.value[y].every(cell => cell !== 0)) {
+						grid.value.splice(y, 1);
+						grid.value.unshift(Array(settings.cols).fill(0));
+						clearedLines++;
+						y++;
 					}
-				});
-			});
-			previewGrid.forEach(row => {
-				row.forEach(cellType => {
-					const cell = document.createElement('div');
-					cell.classList.add('next-cell');
-					if (cellType) {
-						cell.classList.add('cell', cellType);
+				}
+				if (clearedLines > 0) {
+					lines.value += clearedLines;
+					score.value += (clearedLines * 10) * clearedLines * level.value;
+					const newLevel = Math.floor(lines.value / 10) + settings.startLevel;
+					if (newLevel > level.value) {
+						level.value = newLevel;
+						updateDropInterval();
 					}
-					nextPieceContainer.appendChild(cell);
-				});
+				}
+			};
+
+			const update = (time = 0) => {
+				if (isPaused.value || isGameOver.value) {
+					return;
+				}
+				const deltaTime = time - lastTime;
+				lastTime = time;
+				dropCounter += deltaTime;
+				if (dropCounter > dropInterval) {
+					drop();
+				}
+				animationFrameId = requestAnimationFrame(update);
+			};
+
+			const togglePause = () => {
+				if (isGameOver.value) {
+					return;
+				}
+				isPaused.value = !isPaused.value;
+				if (!isPaused.value) {
+					lastTime = performance.now();
+					update();
+				}
+			};
+
+			const startGame = () => {
+				if (animationFrameId) {
+					cancelAnimationFrame(animationFrameId);
+				}
+				grid.value = createEmptyGrid();
+				score.value = 0;
+				lines.value = 0;
+				level.value = settings.startLevel;
+				dropCounter = 0;
+				lastTime = 0;
+				updateDropInterval();
+				isGameOver.value = false;
+				isPaused.value = true;
+				playerReset();
+			};
+
+			const saveSettings = () => {
+				localStorage.setItem('tetrisSettings', JSON.stringify(settings));
+				startGame();
+			};
+			const applyAndSaveSize = () => {
+				saveSettings();
+			};
+			const restoreDefaultSize = () => {
+				settings.cols = 10;
+				settings.rows = 20;
+				saveSettings();
+			};
+			const toggleHelp = () => {
+				helpVisible.value = !helpVisible.value;
+			};
+
+			const handleKeydown = (event) => {
+				if (event.key === ' ') {
+					event.preventDefault();
+					togglePause();
+					return;
+				}
+				if (isPaused.value || isGameOver.value) {
+					return;
+				}
+				if (['Enter', 'ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp'].includes(event.key)) {
+					event.preventDefault();
+				}
+				switch (event.key) {
+					case 'Enter':
+						hardDrop();
+						break;
+					case 'ArrowLeft':
+						move(-1);
+						break;
+					case 'ArrowRight':
+						move(1);
+						break;
+					case 'ArrowDown':
+						drop();
+						break;
+					case 'ArrowUp':
+						rotate();
+						break;
+				}
+			};
+
+			onMounted(() => {
+				const savedSettings = localStorage.getItem('tetrisSettings');
+				if (savedSettings) {
+					const parsedSettings = JSON.parse(savedSettings);
+					// 确保 difficulty 是字符串，而不是对象
+					if (typeof parsedSettings.difficulty === 'object' && parsedSettings.difficulty !== null) {
+						parsedSettings.difficulty = parsedSettings.difficulty.value;
+					}
+					Object.assign(settings, parsedSettings);
+				}
+				startGame();
+				window.addEventListener('keydown', handleKeydown);
 			});
+
+			return {
+				settings,
+				score,
+				lines,
+				level,
+				isGameOver,
+				isPaused,
+				helpVisible,
+				difficultyOptions,
+				boardStyle,
+				displayGrid,
+				nextPieceGrid,
+				overlayText,
+				pauseButtonText,
+				startGame,
+				togglePause,
+				applyAndSaveSize,
+				restoreDefaultSize,
+				toggleHelp,
+				saveSettings
+			};
 		}
-
-		function update(time = 0) {
-			if (isPaused || isGameOver) {
-				return;
-			}
-			const deltaTime = time - lastTime;
-			lastTime = time;
-			dropCounter += deltaTime;
-			if (dropCounter > dropInterval) {
-				playerDrop();
-			}
-			draw();
-			animationFrameId = requestAnimationFrame(update);
+	})
+	.use(PrimeVue.Config, {
+		theme: {
+			preset: PrimeUIX.Themes.Aura
 		}
-
-		function togglePause() {
-			if (isGameOver) {
-				return;
-			}
-			isPaused = !isPaused;
-			if (isPaused) {
-				pauseOverlay.textContent = '已暂停';
-				pauseOverlay.classList.remove('hidden');
-				pauseBtn.textContent = '继续';
-				cancelAnimationFrame(animationFrameId);
-			} else {
-				pauseOverlay.classList.add('hidden');
-				pauseOverlay.textContent = '';
-				pauseBtn.textContent = '暂停';
-				lastTime = performance.now();
-				update();
-			}
-		}
-
-		function startGame(useSavedSize = false) {
-			if (animationFrameId) {
-				cancelAnimationFrame(animationFrameId);
-			}
-			let newCols, newRows;
-			if (useSavedSize) {
-				newCols = parseInt(localStorage.getItem('tetrisCols'), 10) || 10;
-				newRows = parseInt(localStorage.getItem('tetrisRows'), 10) || 20;
-			} else {
-				newCols = parseInt(colsInput.value, 10);
-				newRows = parseInt(rowsInput.value, 10);
-			}
-			if (isNaN(newCols) || newCols < 5 || newCols > 30) {
-				newCols = 10;
-			}
-			if (isNaN(newRows) || newRows < 10 || newRows > 40) {
-				newRows = 20;
-			}
-			COLS = newCols;
-			ROWS = newRows;
-			colsInput.value = COLS;
-			rowsInput.value = ROWS;
-			boardElement.style.gridTemplateColumns = `repeat(${COLS}, 30px)`;
-			boardElement.style.gridTemplateRows = `repeat(${ROWS}, 30px)`;
-
-			grid = createEmptyGrid();
-			score = 0;
-			level = parseInt(levelInput.value, 10) || 1;
-			if (level < 1 || level > 29) {
-				level = 1;
-			}
-			levelInput.value = level;
-			lines = (level - 1) * 10;
-			dropCounter = 0;
-			lastTime = 0;
-			updateDropInterval();
-			isGameOver = false;
-			isPaused = true;
-			pauseBtn.disabled = false;
-			pauseBtn.textContent = '开始游戏';
-			pauseOverlay.textContent = '准备就绪';
-			pauseOverlay.classList.remove('hidden');
-			playerReset();
-			draw();
-		}
-
-		function saveSizeAsDefault() {
-			let newCols = parseInt(colsInput.value, 10);
-			let newRows = parseInt(rowsInput.value, 10);
-			if (isNaN(newCols) || newCols < 5 || newCols > 30) {
-				newCols = 10;
-			}
-			if (isNaN(newRows) || newRows < 10 || newRows > 40) {
-				newRows = 20;
-			}
-			localStorage.setItem('tetrisCols', newCols);
-			localStorage.setItem('tetrisRows', newRows);
-			saveSizeBtn.textContent = '已保存!';
-			setTimeout(() => {
-				saveSizeBtn.textContent = '保存为默认';
-			}, 1000);
-		}
-
-		// --- Init Logic ---
-		if (localStorage.getItem('tetrisHelpCollapsed') === 'true') {
-			helpContent.classList.add('hidden');
-		}
-		toggleHelpBtn.addEventListener('click', () => {
-			helpContent.classList.toggle('hidden');
-			localStorage.setItem('tetrisHelpCollapsed', helpContent.classList.contains('hidden'));
-		});
-
-		function applyDifficulty(mode) {
-			difficultyMode = mode;
-			difficultySelect.value = mode;
-			localStorage.setItem('tetrisDifficulty', mode);
-		}
-
-		difficultySelect.addEventListener('change', e => applyDifficulty(e.target.value));
-		applyDifficulty(localStorage.getItem('tetrisDifficulty') || 'gentle');
-
-		levelInput.addEventListener('change', () => {
-			localStorage.setItem('tetrisStartLevel', levelInput.value);
-		});
-		levelInput.value = localStorage.getItem('tetrisStartLevel') || '1';
-
-		function applyGhostToggle(show) {
-			showGhostPiece = show;
-			ghostToggle.checked = show;
-			localStorage.setItem('tetrisShowGhost', show);
-		}
-
-		ghostToggle.addEventListener('change', e => applyGhostToggle(e.target.checked));
-		const savedShowGhost = localStorage.getItem('tetrisShowGhost');
-		applyGhostToggle(savedShowGhost === null ? true : savedShowGhost === 'true');
-
-		pauseBtn.addEventListener('click', togglePause);
-		restartBtn.addEventListener('click', () => startGame(true));
-		applySizeBtn.addEventListener('click', () => startGame(false));
-		saveSizeBtn.addEventListener('click', saveSizeAsDefault);
-
-		document.addEventListener('keydown', event => {
-			if (event.key === ' ') {
-				event.preventDefault();
-				togglePause();
-				return;
-			}
-			if (isPaused || isGameOver) {
-				return;
-			}
-			if (['Enter', 'ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp'].includes(event.key)) {
-				event.preventDefault();
-			}
-			switch (event.key) {
-				case 'Enter':
-					hardDrop();
-					break;
-				case 'ArrowLeft':
-					playerMove(-1);
-					break;
-				case 'ArrowRight':
-					playerMove(1);
-					break;
-				case 'ArrowDown':
-					playerDrop();
-					break;
-				case 'ArrowUp':
-					playerRotate();
-					break;
-			}
-		});
-
-		startGame(true);
-	});
+	})
+	.mount('main');
 </script>
+
 </body>
 </html>
