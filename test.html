@@ -15,6 +15,7 @@
 			padding: 20px;
 			background-color: #f5f5f5;
 		}
+
 		.test-section {
 			background: white;
 			padding: 20px;
@@ -22,6 +23,7 @@
 			border-radius: 8px;
 			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 		}
+
 		.test-result {
 			background: #f8f9fa;
 			padding: 10px;
@@ -29,9 +31,13 @@
 			border-left: 4px solid #007bff;
 			font-family: monospace;
 		}
+
 		h1 { color: #333; text-align: center; }
+
 		h2 { color: #666; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+
 		.component-info { background: #e3f2fd; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+
 		#app[v-cloak] { display: none; }
 	</style>
 </head>
@@ -39,29 +45,32 @@
 <h1>C-Chooser 智能选择器组件测试</h1>
 
 <div class="component-info">
-	<strong>组件说明：</strong>根据选项数量自动选择合适的组件类型<br>
-	• 选项 < 5个：使用 SelectButton（按钮组风格）<br>
-	• 选项 ≥ 5个：使用 Select（下拉选择器风格）
+	<strong>组件说明：</strong>根据选项数量和多选属性，自动选择最合适的组件：<br>
+	• 选项 &lt; 5个：使用 <code>SelectButton</code> (按钮组)。<br>
+	• 选项 ≥ 5个 &amp; 多选：使用 <code>MultiSelect</code> (多选下拉框)。<br>
+	• 选项 ≥ 5个 &amp; 单选：使用 <code>Select</code> (单选下拉框)。
 </div>
 
 <main id="app" v-cloak>
 	<div class="test-section">
-		<h2>测试1：对象数组 + 自定义字段（&lt; 5个选项 → SelectButton）</h2>
+		<h2>测试1：对象数组 + 自定义字段（&lt; 5个选项 → SelectButton, 单选）</h2>
 		<c-chooser v-model="selectedOption1" :options="objectOptions" label-field="name" value-field="id"></c-chooser>
 		<div class="test-result">已选择: {{ selectedOption1 || '未选择' }}</div>
 	</div>
 
 	<div class="test-section">
-		<h2>测试2：基础类型数组 + 多选（≥ 5个选项 → Select）</h2>
+		<h2>测试2：基础类型数组 + 多选（≥ 5个选项 → MultiSelect）</h2>
 		<c-chooser v-model="selectedOptions2" :options="colorOptions" multiple placeholder="选择你喜欢的颜色"></c-chooser>
 		<div class="test-result">
-			已选择: {{ Array.isArray(selectedOptions2) && selectedOptions2.length ? selectedOptions2.join(', ') : '未选择' }}<br>
-			<small style="color: #666;">调试: {{ selectedOptions2 }} ({{ Array.isArray(selectedOptions2) ? 'Array' : typeof selectedOptions2 }})</small>
+			已选择: {{ Array.isArray(selectedOptions2) && selectedOptions2.length ? selectedOptions2.join(', ') : '未选择'
+			}}<br>
+			<small style="color: #666;">调试: {{ selectedOptions2 }} ({{ Array.isArray(selectedOptions2) ? 'Array' : typeof
+				selectedOptions2 }})</small>
 		</div>
 	</div>
 
 	<div class="test-section">
-		<h2>测试3：基础类型数组（&lt; 5个选项 → SelectButton）</h2>
+		<h2>测试3：基础类型数组（&lt; 5个选项 → SelectButton, 单选）</h2>
 		<c-chooser v-model="selectedOption3" :options="fruitOptions"></c-chooser>
 		<div class="test-result">已选择: {{ selectedOption3 || '未选择' }}</div>
 	</div>
@@ -76,19 +85,34 @@
 	</div>
 
 	<div class="test-section">
-		<h2>测试5：数字数组（&lt; 5个选项 → SelectButton）</h2>
+		<h2>测试5：数字数组（&lt; 5个选项 → SelectButton, 单选）</h2>
 		<c-chooser v-model="selectedOption5" :options="numberOptions"></c-chooser>
 		<div class="test-result">已选择: {{ selectedOption5 || '未选择' }}</div>
 	</div>
 
 	<div class="test-section">
-		<h2>测试6：复杂对象数组 + 多选（≥ 5个选项 → Select）</h2>
-		<c-chooser v-model="selectedOptions6" :options="cityOptions" label-field="title" value-field="code" multiple></c-chooser>
+		<h2>测试6：复杂对象数组 + 多选（≥ 5个选项 → MultiSelect）</h2>
+		<c-chooser v-model="selectedOptions6" :options="cityOptions" label-field="title" value-field="code"
+							 multiple></c-chooser>
 		<div class="test-result">
-			已选择: {{ Array.isArray(selectedOptions6) && selectedOptions6.length ? selectedOptions6.join(', ') : '未选择' }}<br>
-			<small style="color: #666;">调试: {{ selectedOptions6 }} ({{ Array.isArray(selectedOptions6) ? 'Array' : typeof selectedOptions6 }})</small>
+			已选择: {{ Array.isArray(selectedOptions6) && selectedOptions6.length ? selectedOptions6.join(', ') : '未选择'
+			}}<br>
+			<small style="color: #666;">调试: {{ selectedOptions6 }} ({{ Array.isArray(selectedOptions6) ? 'Array' : typeof
+				selectedOptions6 }})</small>
 		</div>
 	</div>
+
+	<div class="test-section">
+		<h2>测试7：基础类型数组 + 多选（&lt; 5个选项 → SelectButton, 多选）</h2>
+		<c-chooser v-model="selectedOptions7" :options="fruitOptions" multiple></c-chooser>
+		<div class="test-result">
+			已选择: {{ Array.isArray(selectedOptions7) && selectedOptions7.length ? selectedOptions7.join(', ') : '未选择'
+			}}<br>
+			<small style="color: #666;">调试: {{ selectedOptions7 }} ({{ Array.isArray(selectedOptions7) ? 'Array' : typeof
+				selectedOptions7 }})</small>
+		</div>
+	</div>
+
 </main>
 
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -96,7 +120,7 @@
 <script src="https://unpkg.com/@primeuix/themes/umd/aura.js"></script>
 
 <script>
-	const { createApp, ref, defineAsyncComponent } = Vue;
+	const {createApp, ref, defineAsyncComponent} = Vue;
 
 	// 异步加载并注册 C-Chooser 组件
 	const CChooser = defineAsyncComponent(async () => {
@@ -105,67 +129,63 @@
 			throw new Error('无法加载 c-chooser.html');
 		}
 		const html = await response.text();
-		
 		const parser = new DOMParser();
 		const doc = parser.parseFromString(html, 'text/html');
-		
 		const template = doc.querySelector('#c-chooser-template')?.innerHTML;
 		const scriptContent = doc.querySelector('script')?.textContent;
-
 		if (!template || !scriptContent) {
 			throw new Error('在 c-chooser.html 中未找到模板或脚本');
 		}
-
-		// 从脚本内容中提取组件定义对象
-		// 注意：这是一个简化版的解析，它假设组件定义是脚本中的唯一主要部分
 		const componentDefinition = new Function(`${scriptContent}; return CChooser;`)();
-		
-		return {
-			...componentDefinition,
-			template: template,
-		};
+		return {...componentDefinition, template};
 	});
 
 	// Vue App Initialization
 	const app = createApp({
 		setup() {
-			const objectOptions = ref([
-				{id: 1, name: '选项一'}, {id: 2, name: '选项二'},
-				{id: 3, name: '选项三'}, {id: 4, name: '选项四'}
-			]);
+			const objectOptions = ref(
+				[{id: 1, name: '选项一'}, {id: 2, name: '选项二'}, {id: 3, name: '选项三'}, {id: 4, name: '选项四'}]);
 			const colorOptions = ref(['红色', '蓝色', '绿色', '黄色', '紫色', '橙色', '黑色', '白色']);
 			const fruitOptions = ref(['苹果', '香蕉', '橘子']);
-			const autoLabelOptions = ref([
-				{label: '自动标签1', desc: '描述1'}, {name: '自动标签2', desc: '描述2'},
-				{title: '自动标签3', desc: '描述3'}
-			]);
+			const autoLabelOptions = ref([{label: '自动标签1'}, {name: '自动标签2'}, {title: '自动标签3'}]);
 			const numberOptions = ref([1, 2, 3, 4]);
-			const cityOptions = ref([
-				{code: 'BJ', title: '北京'}, {code: 'SH', title: '上海'},
-				{code: 'GZ', title: '广州'}, {code: 'SZ', title: '深圳'},
-				{code: 'HZ', title: '杭州'}, {code: 'NJ', title: '南京'}
-			]);
+			const cityOptions = ref([{code: 'BJ', title: '北京'}, {code: 'SH', title: '上海'}, {code: 'GZ', title: '广州'},
+				{code: 'SZ', title: '深圳'}, {code: 'HZ', title: '杭州'}, {code: 'NJ', title: '南京'}]);
 
-			// 修复：为多选场景提供数组作为初始值
 			const selectedOption1 = ref(null);
-			const selectedOptions2 = ref([]); 
+			const selectedOptions2 = ref([]);
 			const selectedOption3 = ref(null);
 			const selectedOption4 = ref(null);
 			const selectedOption5 = ref(null);
 			const selectedOptions6 = ref([]);
+			const selectedOptions7 = ref([]); // 新增测试7的数据绑定
 
 			return {
-				objectOptions, colorOptions, fruitOptions, autoLabelOptions, numberOptions, cityOptions,
-								selectedOption1, selectedOptions2, selectedOption3, selectedOption4, selectedOption5, selectedOptions6
+				objectOptions,
+				colorOptions,
+				fruitOptions,
+				autoLabelOptions,
+				numberOptions,
+				cityOptions,
+				selectedOption1,
+				selectedOptions2,
+				selectedOption3,
+				selectedOption4,
+				selectedOption5,
+				selectedOptions6,
+				selectedOptions7
 			};
 		}
 	});
 
+	// 注册所有需要的 PrimeVue 组件
 	app.component('c-chooser', CChooser);
 	app.component('SelectButton', PrimeVue.SelectButton);
 	app.component('Select', PrimeVue.Select);
+	app.component('MultiSelect', PrimeVue.MultiSelect); // 注册 MultiSelect
+
 	app.use(PrimeVue.Config, {
-		theme: { preset: PrimeUIX.Themes.Aura }
+		theme: {preset: PrimeUIX.Themes.Aura}
 	});
 
 	app.mount('#app');
