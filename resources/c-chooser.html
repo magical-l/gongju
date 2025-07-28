@@ -63,7 +63,10 @@
 		computed: {
 			// 根据选项数量决定使用哪个组件
 			componentType() {
-				return this.options.length < 5 ? 'SelectButton' : 'Select';
+				if (this.options.length < 5) {
+					return 'SelectButton';
+				}
+				return this.multiple ? 'MultiSelect' : 'Select';
 			},
 			// 统一处理选项，始终返回 {label, value} 格式的数组
 			processedOptions() {
@@ -81,12 +84,19 @@
 			// 简化的双向绑定处理
 			internalValue: {
 				get() {
-					// 直接返回父组件绑定的值
+					// 当父组件的值是 null 且是多选模式时，内部返回空数组以兼容 SelectButton
+					if (this.multiple && this.modelValue === null) {
+						return [];
+					}
 					return this.modelValue;
 				},
 				set(newValue) {
-					// 当组件内部值变化时，直接通知父组件更新
-					this.$emit('update:modelValue', newValue);
+					// 当组件更新为 null 且是多选时，确保向父组件发出的是空数组
+					if (this.multiple && newValue === null) {
+						this.$emit('update:modelValue', []);
+					} else {
+						this.$emit('update:modelValue', newValue);
+					}
 				}
 			}
 		},
