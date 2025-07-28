@@ -45,10 +45,10 @@
 <h1>C-Chooser 智能选择器组件测试</h1>
 
 <div class="component-info">
-	<strong>组件说明：</strong>根据选项数量和多选属性，自动选择最合适的组件：<br>
+	<strong>组件说明：</strong>根据选项数量和选择数量限制，自动选择最合适的组件：<br>
 	• 选项 &lt; 5个：使用 <code>SelectButton</code> (按钮组)。<br>
-	• 选项 ≥ 5个 &amp; 多选：使用 <code>MultiSelect</code> (多选下拉框)。<br>
-	• 选项 ≥ 5个 &amp; 单选：使用 <code>Select</code> (单选下拉框)。
+	• 选项 ≥ 5个 &amp; (最少选择数 > 1 或 最多选择数 > 1)：使用 <code>MultiSelect</code> (多选下拉框)。<br>
+	• 选项 ≥ 5个 &amp; (最少选择数 = 1 且 最多选择数 = 1)：使用 <code>Select</code> (单选下拉框)。
 </div>
 
 <main id="app" v-cloak>
@@ -60,7 +60,8 @@
 
 	<div class="test-section">
 		<h2>测试2：基础类型数组 + 多选（≥ 5个选项 → MultiSelect）</h2>
-		<c-chooser v-model="selectedOptions2" :options="colorOptions" multiple placeholder="选择你喜欢的颜色"></c-chooser>
+		<c-chooser v-model="selectedOptions2" :options="colorOptions" :at-least="1" :at-most="999999999"
+							 placeholder="选择你喜欢的颜色"></c-chooser>
 		<div class="test-result">
 			已选择: {{ Array.isArray(selectedOptions2) && selectedOptions2.length ? selectedOptions2.join(', ') : '未选择'
 			}}<br>
@@ -93,7 +94,7 @@
 	<div class="test-section">
 		<h2>测试6：复杂对象数组 + 多选（≥ 5个选项 → MultiSelect）</h2>
 		<c-chooser v-model="selectedOptions6" :options="cityOptions" label-field="title" value-field="code"
-							 multiple></c-chooser>
+							 :at-least="1" :at-most="999999999"></c-chooser>
 		<div class="test-result">
 			已选择: {{ Array.isArray(selectedOptions6) && selectedOptions6.length ? selectedOptions6.join(', ') : '未选择'
 			}}<br>
@@ -104,7 +105,8 @@
 
 	<div class="test-section">
 		<h2>测试7：基础类型数组 + 多选（&lt; 5个选项 → SelectButton, 多选）</h2>
-		<c-chooser v-model="selectedOptions7" :options="fruitOptions" multiple></c-chooser>
+		<c-chooser v-model="selectedOptions7" :options="fruitOptions" :at-least="1"
+							 :at-most="999999999"></c-chooser>
 		<div class="test-result">
 			已选择: {{ Array.isArray(selectedOptions7) && selectedOptions7.length ? selectedOptions7.join(', ') : '未选择'
 			}}<br>
