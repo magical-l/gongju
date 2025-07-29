@@ -2,7 +2,7 @@
 <!-- 使用方式：<c-chooser v-model="value" :options="options" label-field="name" value-field="id" 			:atLeast="0" :atMost="null"></c-chooser> -->
 
 <template id="c-chooser-template">
-	<div class="c-chooser-container">
+	<div class="c-chooser-container" ref="chooserContainer">
 		<!--
 			关键属性解释:
 			- v-model="internalValue": 核心双向绑定。
@@ -28,12 +28,13 @@
 	.c-chooser-container {
 		display: inline-block;
 		min-width: 200px;
+		width: 100%; /* 让容器撑满父级，以便正确测量可用宽度 */
 	}
 </style>
 
 <script>
 	// C-Chooser 智能选择器组件
-	// 根据选项数量自动选择 SelectButton(<5) 或 Select(>=5) 组件
+	// 根据容器宽度自动选择 SelectButton 或 Select/MultiSelect 组件
 	const CChooser = {
 		template: '#c-chooser-template',
 		props: {
@@ -65,15 +66,14 @@
 			}
 		},
 		emits: ['update:modelValue'],
+		data() {
+			return {
+				// 默认使用按钮组，后续会通过宽度检查来动态修改
+				componentType: 'SelectButton',
+				resizeObserver: null
+			};
+		},
 		computed: {
-			// 根据选项数量决定使用哪个组件
-			componentType() {
-				if (this.options.length < 5) {
-					return 'SelectButton';
-				}
-				// 如果选项数量大于等于5，则根据是否多选来决定使用 MultiSelect 还是 Select
-				return this.isMultipleMode ? 'MultiSelect' : 'Select';
-			},
 			isMultipleMode() {
 				return this.atLeast > 1 || this.getActualMax() > 1;
 			},
@@ -110,9 +110,28 @@
 			}
 		},
 		methods: {
+			// 检查容器宽度并决定使用哪个组件
+			checkWidth() {
+				this.componentType = 'SelectButton';//先假定是按钮组
+				this.$nextTick(() => {
+					const container = this.$refs.chooserContainer;
+					if (!container) {
+						return;
+					}
+
+					// 比较实际内容宽度和可见宽度
+					const needsDropdown = container.scrollWidth > container.clientWidth;
+
+					if (needsDropdown) {
+						this.componentType = this.isMultipleMode ? 'MultiSelect' : 'Select';
+					}//else this.componentType = 'SelectButton';//不能在这里分支，否则会在 变成按钮组→宽度够→变成下拉框→宽度不够→变成按钮组 之间死循环
+				});
+			},
 			// 从对象中智能获取用于显示的标签
 			getObjectLabel(option) {
-				const commonLabelKeys = ['label', 'name', 'title', 'text'];
+				const commonLabelKeys = ['label', 'name', 'title', 'text', 'key',
+																 'lable', 'txt'//防呆
+				];
 				for (const key of commonLabelKeys) {
 					if (option[key] !== undefined) {
 						return option[key];
@@ -123,6 +142,30 @@
 			},
 			getActualMax() {
 				return this.atMost === null ? this.atLeast : this.atMost;
+			}
+		},
+		mounted() {
+			// 组件挂载后，初始化 ResizeObserver 来监听容器尺寸变化
+			this.resizeObserver = new ResizeObserver(() => {
+				this.checkWidth();
+			});
+			this.resizeObserver.observe(this.$refs.chooserContainer);
+			// 初始加载时也检查一次
+			this.checkWidth();
+		},
+		beforeUnmount() {
+			// 组件卸载前，停止监听并清理，防止内存泄漏
+			if (this.resizeObserver) {
+				this.resizeObserver.disconnect();
+			}
+		},
+		watch: {
+			// 当选项变化时，也需要重新检查宽度
+			options: {
+				handler() {
+					this.checkWidth();
+				},
+				deep: true
 			}
 		}
 	};
