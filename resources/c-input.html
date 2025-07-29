@@ -1,0 +1,117 @@
+<!--
+	C-Input 智能输入框组件
+	支持单行和多行输入的自动适配。
+	始终使用 PrimeVue Textarea 组件，通过动态调整 rows 属性实现单行/多行效果。
+	参数：（注意在html里要把驼峰名变成短横线连接的名字）
+		v-model：略
+		placeholder：占位符文本
+		minRows：最小行数，默认为1（单行效果）
+		maxRows：最大行数，默认为10
+		autoResize：是否自动调整高度，默认为true
+		maxLength：最大字符长度限制
+		multilineThreshold：内容长度阈值，超过此字符数时显示为多行，默认为50
+		resizable：控制是否允许用户手动调整大小以及是否自动调整高度。可选值：'no'（不自动调整，不能手动调整），'auto'（自动调整，不能手动调整），'manual'（不自动调整，能手动调整），'yes'（自动调整，能手动调整）。默认为'yes'。
+-->
+
+	- 如果内容包含换行符，自动调整为多行
+	- 如果内容长度 >= multilineThreshold，自动调整为多行
+	- 否则使用 minRows（默认1行，单行效果）
+
+<template id="c-input-template">
+	<div class="c-input-container">
+	<p-textarea v-model="internalValue"
+							:placeholder="placeholder"
+							:size="size" :variant="variant" :disabled="disabled"
+							:invalid="invalid"
+							:rows="currentRows"
+							:auto-resize="shouldAutoResize"
+							:style="textareaStyle">
+	</p-textarea>
+	</div>
+</template>
+
+<style>
+	.c-input-container {
+		display: inline-block;
+		width: 100%;
+	}
+
+	.c-input-container .p-textarea {
+		width: 100%;
+		min-height: 2.5em; /* 最小高度，单行效果 */
+		resize: vertical; /* 允许垂直调整大小 */
+	}
+</style>
+
+<script>
+	const CInput = {
+		template: '#c-input-template',
+		components: {
+			'p-textarea': PrimeVue.Textarea
+		},
+		props: {
+			modelValue: [String, Number],
+			placeholder: {type: String, default: ''},
+			minRows: {type: Number, default: 1},
+			maxRows: {type: Number, default: 10},
+			maxLength: {type: Number, default: null},
+			multilineThreshold: {type: Number, default: 50},
+			resizable: {type: String, default: 'yes'},
+			size: {type: String, default: null},
+			variant: {type: String, default: 'outlined'},
+			invalid: {type: Boolean, default: false},
+			disabled: {type: Boolean, default: false}
+		},
+		emits: ['update:modelValue'],
+		computed: {
+			// 双向绑定处理
+			internalValue: {
+				get() {
+					return this.modelValue || '';
+				},
+				set(newValue) {
+					this.$emit('update:modelValue', newValue);
+				}
+			},
+			// 控制 PrimeVue Textarea 的 auto-resize 属性
+			shouldAutoResize() {
+				return ['auto', 'yes'].includes(this.resizable);
+			},
+			// 控制 Textarea 的 CSS resize 属性
+			textareaStyle() {
+				let resizeValue = 'none';
+				if (['manual', 'yes'].includes(this.resizable)) {
+					resizeValue = 'vertical';
+				}
+				return {
+					resize: resizeValue
+				};
+			},
+			// 计算当前应该使用的行数
+			currentRows() {
+				const content = this.internalValue || '';
+
+				// 包含换行符时，计算实际行数
+				if (content.includes('\n')) {
+					const lineCount = content.split('\n').length;
+					return Math.min(Math.max(lineCount, this.minRows), this.maxRows);
+				}
+
+				// 内容长度超过阈值时，使用多行
+				if (content.length >= this.multilineThreshold) {
+					return Math.min(3, this.maxRows); // 默认3行
+				}
+
+				// 默认使用最小行数（通常为1，实现单行效果）
+				return this.minRows;
+			}
+		}
+		// 不需要复杂的methods，Textarea会自动处理所有输入
+	};
+
+	// 注册到全局，以便使用的页面直接获得
+	if (typeof window !== 'undefined') {
+		window.customComponents = window.customComponents || {};
+		window.customComponents.CInput = CInput;
+	}
+</script>
