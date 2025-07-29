@@ -60,7 +60,7 @@
 
 	<div class="test-section">
 		<h2>测试2：基础类型数组 + 多选（≥ 5个选项 → MultiSelect）</h2>
-		<c-chooser v-model="selectedOptions2" :options="colorOptions" :at-least="1" :at-most="999999999"
+		<c-chooser v-model="selectedOptions2" :options="colorOptions" :at-least="1" :at-most="3"
 							 placeholder="选择你喜欢的颜色"></c-chooser>
 		<div class="test-result">
 			已选择: {{ Array.isArray(selectedOptions2) && selectedOptions2.length ? selectedOptions2.join(', ') : '未选择'

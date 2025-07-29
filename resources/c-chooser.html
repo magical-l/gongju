@@ -1,25 +1,52 @@
-<!-- C-Chooser 智能选择器组件 -->
-<!-- 使用方式：<c-chooser v-model="value" :options="options" label-field="name" value-field="id" 			:atLeast="0" :atMost="null"></c-chooser> -->
+<!--
+	C-Chooser 智能选择器组件
+	支持单选、多选。
+	根据容器宽度，自适应地选择控件：宽度富裕时使用按钮组，宽度不够时使用下拉框。
+	底层使用 PrimeVue 组件 (SelectButton, MultiSelect, Select)
+	参数：（注意在html里要把驼峰名变成短横线连接的名字）
+		v-model：略
+		options：略
+		label-field：选项为对象时，指定用来显示的字段名
+		value-field：选项为对象时，指定作为值的字段名
+		atLeast：至少选择多少个选项，0表示可以不选任何一项，即可以留空。默认为0。
+		atMost：最多选择多少个选项，默认为null，表示不限制选择数量。如需限定为单选，设置at-most=1。
+		placeholder：当显示为下拉框时，未选任何一项时的提示文本。默认为“请选择”。
+		selectedItemsLabel：当显示为下拉框时，选择多于x项时显示的文本，默认为“已选 {0} 项”。（不足x项时直接显示选中项的标签名。x目前固定为3）
+-->
 
-<template id="c-chooser-template">
-	<div class="c-chooser-container" ref="chooserContainer">
-		<!--
-			关键属性解释:
+<!--
+			实现:
 			- v-model="internalValue": 核心双向绑定。
 			- :options="processedOptions": 统一处理后的选项数组，格式为 [{label, value}, ...]。
-			- optionLabel="label": 指定使用 processedOptions 中的 'label' 属性作为显示文本。
-			- optionValue="value": 指定使用 processedOptions 中的 'value' 属性作为选项的值。
+			- option-label="label": 指定使用 processedOptions 中的 'label' 属性作为显示文本。
+			- option-value="value": 指定使用 processedOptions 中的 'value' 属性作为选项的值。
 			- dataKey="value": 必须项。它能唯一标识每个选项，确保状态更新正确。
+			组件通用
+			- size、disabled、
+			- option-disabled：判断选项是否被禁用。Property name or getter function to use as the disabled flag of an option, defaults to false when not defined.
+			- invalid
+			下拉框独有属性：
+			- filter: 显示为下拉框时，开启搜索功能。
+			- display="chip": 显示为下拉框时，已选项显示为标签形式（后面带有叉叉按钮）。
+			- show-clear: 显示为下拉框时，显示清除按钮。
+			- max-selected-labels：显示为下拉框时，选择<=此数时显示已选项的标签。（大于此数则显示selected-items-label）
+			- placeholder：显示为下拉框时，未选任何一项时的提示文本。
+			按钮组独有属性：
+			- allow-empty: 是否可以不选任何一项。
 		-->
+<template id="c-chooser-template">
+	<div class="c-chooser-container" ref="chooserContainer">
 		<component :is="componentType"
-							 v-model="internalValue"
-							 :options="processedOptions"
-							 option-label="label"
-							 option-value="value"
-							 data-key="value"
+							 v-model="internalValue" :options="processedOptions" data-key="value"
+							 option-label="label" option-value="value"
+							 :size="size" :disabled="disabled" :option-disabled="optionDisabled" :invalid="invalid"
+
+							 :multiple="isMultipleMode" :selection-limit="atMost"
+							 filter display="chip" show-clear
+							 max-selected-labels="3" :selected-items-label="selectedItemsLabel"
 							 :placeholder="placeholder"
-							 :multiple="isMultipleMode"
-							 :filter="componentType !== 'SelectButton'">
+
+							 :allow-empty="atLeast === 0">
 		</component>
 	</div>
 </template>
@@ -44,37 +71,23 @@
 		},
 		props: {
 			modelValue: [String, Number, Array, Object],
-			options: {
-				type: Array,
-				required: true,
-				default: () => []
-			},
-			labelField: {
-				type: String,
-				default: null
-			},
-			valueField: {
-				type: String,
-				default: null
-			},
-			atLeast: {
-				type: Number,
-				default: 0
-			},
-			atMost: {
-				type: Number,
-				default: null
-			},
-			placeholder: {
-				type: String,
-				default: '请选择'
-			}
+			options: {type: Array, required: true, default: () => []},
+			labelField: {type: String, default: null},
+			valueField: {type: String, default: null},
+			atLeast: {type: Number, default: 0},
+			atMost: {type: Number, default: null},
+			placeholder: {type: String, default: '请选择'},
+			selectedItemsLabel: {type: String, default: '已选 {0} 项'},
+			size: {type: String, default: null},
+			variant: {type: String, default: 'outlined'},
+			invalid: {type: Boolean, default: false},
+			disabled: {type: Boolean, default: false},
+			optionDisabled: {type: [String, Function], default: null}
 		},
 		emits: ['update:modelValue'],
 		data() {
 			return {
-				// 默认使用按钮组，后续会通过宽度检查来动态修改
-				componentType: 'SelectButton',
+				componentType: 'SelectButton',// 默认使用按钮组，后续会通过宽度检查来动态修改
 				resizeObserver: null
 			};
 		},
@@ -123,10 +136,8 @@
 					if (!container) {
 						return;
 					}
-
 					// 比较实际内容宽度和可见宽度
 					const needsDropdown = container.scrollWidth > container.clientWidth;
-
 					if (needsDropdown) {
 						this.componentType = this.isMultipleMode ? 'MultiSelect' : 'Dropdown';
 					}//else this.componentType = 'SelectButton';//不能在这里分支，否则会在 变成按钮组→宽度够→变成下拉框→宽度不够→变成按钮组 之间死循环
@@ -135,7 +146,7 @@
 			// 从对象中智能获取用于显示的标签
 			getObjectLabel(option) {
 				const commonLabelKeys = ['label', 'name', 'title', 'text', 'key', 'txt',
-																 'lable'//防呆
+																 'lable'//防呆：兼容使用者写的错别字
 				];
 				for (const key of commonLabelKeys) {
 					if (option[key] !== undefined) {
