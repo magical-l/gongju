@@ -37,6 +37,11 @@
 	// 根据容器宽度自动选择 SelectButton 或 Select/MultiSelect 组件
 	const CChooser = {
 		template: '#c-chooser-template',
+		components: {
+			SelectButton: PrimeVue.SelectButton,
+			MultiSelect: PrimeVue.MultiSelect,
+			Dropdown: PrimeVue.Select
+		},
 		props: {
 			modelValue: [String, Number, Array, Object],
 			options: {
@@ -123,14 +128,14 @@
 					const needsDropdown = container.scrollWidth > container.clientWidth;
 
 					if (needsDropdown) {
-						this.componentType = this.isMultipleMode ? 'MultiSelect' : 'Select';
+						this.componentType = this.isMultipleMode ? 'MultiSelect' : 'Dropdown';
 					}//else this.componentType = 'SelectButton';//不能在这里分支，否则会在 变成按钮组→宽度够→变成下拉框→宽度不够→变成按钮组 之间死循环
 				});
 			},
 			// 从对象中智能获取用于显示的标签
 			getObjectLabel(option) {
-				const commonLabelKeys = ['label', 'name', 'title', 'text', 'key',
-																 'lable', 'txt'//防呆
+				const commonLabelKeys = ['label', 'name', 'title', 'text', 'key', 'txt',
+																 'lable'//防呆
 				];
 				for (const key of commonLabelKeys) {
 					if (option[key] !== undefined) {
