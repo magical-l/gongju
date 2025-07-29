@@ -15,38 +15,40 @@
 -->
 
 <!--
-			实现:
-			- v-model="internalValue": 核心双向绑定。
-			- :options="processedOptions": 统一处理后的选项数组，格式为 [{label, value}, ...]。
-			- option-label="label": 指定使用 processedOptions 中的 'label' 属性作为显示文本。
-			- option-value="value": 指定使用 processedOptions 中的 'value' 属性作为选项的值。
-			- dataKey="value": 必须项。它能唯一标识每个选项，确保状态更新正确。
-			组件通用
-			- size、disabled、
-			- option-disabled：判断选项是否被禁用。Property name or getter function to use as the disabled flag of an option, defaults to false when not defined.
-			- invalid
-			下拉框独有属性：
-			- filter: 显示为下拉框时，开启搜索功能。
-			- display="chip": 显示为下拉框时，已选项显示为标签形式（后面带有叉叉按钮）。
-			- show-clear: 显示为下拉框时，显示清除按钮。
-			- max-selected-labels：显示为下拉框时，选择<=此数时显示已选项的标签。（大于此数则显示selected-items-label）
-			- placeholder：显示为下拉框时，未选任何一项时的提示文本。
-			按钮组独有属性：
-			- allow-empty: 是否可以不选任何一项。
-		-->
+	实现:
+	- v-model="internalValue": 核心双向绑定。
+	- :options="processedOptions": 统一处理后的选项数组，格式为 [{label, value}, ...]。
+	- option-label="label": 指定使用 processedOptions 中的 'label' 属性作为显示文本。
+	- option-value="value": 指定使用 processedOptions 中的 'value' 属性作为选项的值。
+	- dataKey="value": 必须项。它能唯一标识每个选项，确保状态更新正确。
+	组件通用
+	- size、disabled、
+	- option-disabled：判断选项是否被禁用。Property name or getter function to use as the disabled flag of an option, defaults to false when not defined.
+	- invalid
+	下拉框独有属性：
+	- selection-limit: 最大可选数量。但我们不用它，选过头了用invalid提示，而非不准选（有时需要先选很多再删到合适的数量）。
+	- filter: 显示为下拉框时，开启搜索功能。
+	- display="chip": 显示为下拉框时，已选项显示为标签形式（后面带有叉叉按钮）。
+	- show-clear: 显示为下拉框时，显示清除按钮。
+	- max-selected-labels：显示为下拉框时，选择<=此数时显示已选项的标签。（大于此数则显示selected-items-label）
+	- placeholder：显示为下拉框时，未选任何一项时的提示文本。
+	按钮组独有属性：
+	- allow-empty: 是否可以不选任何一项。
+-->
 <template id="c-chooser-template">
 	<div class="c-chooser-container" ref="chooserContainer">
 		<component :is="componentType"
 							 v-model="internalValue" :options="processedOptions" data-key="value"
 							 option-label="label" option-value="value"
-							 :size="size" :disabled="disabled" :option-disabled="optionDisabled" :invalid="invalid"
+							 :size="size" :variant="variant" :disabled="disabled" :option-disabled="optionDisabled"
+							 :invalid="isSelectionInvalid"
 
-							 :multiple="isMultipleMode" :selection-limit="atMost"
+							 :multiple="isMultipleMode"
 							 filter display="chip" show-clear
 							 max-selected-labels="3" :selected-items-label="selectedItemsLabel"
 							 :placeholder="placeholder"
 
-							 :allow-empty="atLeast === 0">
+							 :allow-empty="true">
 		</component>
 	</div>
 </template>
@@ -60,8 +62,6 @@
 </style>
 
 <script>
-	// C-Chooser 智能选择器组件
-	// 根据容器宽度自动选择 SelectButton 或 Select/MultiSelect 组件
 	const CChooser = {
 		template: '#c-chooser-template',
 		components: {
@@ -88,7 +88,8 @@
 		data() {
 			return {
 				componentType: 'SelectButton',// 默认使用按钮组，后续会通过宽度检查来动态修改
-				resizeObserver: null
+				resizeObserver: null,
+				touched: false // 标记用户是否与组件交互过
 			};
 		},
 		computed: {
@@ -118,13 +119,24 @@
 					return this.modelValue;
 				},
 				set(newValue) {
-					// 如果是多选模式，确保 newValue 始终是数组
-					if (this.isMultipleMode) {
-						this.$emit('update:modelValue', Array.isArray(newValue) ? newValue : []);
-					} else {
-						this.$emit('update:modelValue', newValue);
-					}
+					// 在多选模式下，确保值始终是数组 (SelectButton 清空时可能返回 null)
+					const proposedValue = this.isMultipleMode ? newValue ?? [] : newValue;
+					this.touched = true; // 用户已交互
+					this.$emit('update:modelValue', proposedValue);
 				}
+			},
+			isSelectionInvalid() {
+				if (this.invalid) {
+					return true;
+				}
+				if (!this.touched) {
+					return false; // 未交互时不显示错误
+				}
+				// 根据 atLeast 和 atMost 判断当前选择是否无效
+				const currentSelectionCount = Array.isArray(this.internalValue) ? this.internalValue.length
+																																				: (this.internalValue === null ? 0 : 1);
+				return currentSelectionCount < this.atLeast || this.atMost !== null && currentSelectionCount > this.atMost;
+
 			}
 		},
 		methods: {
