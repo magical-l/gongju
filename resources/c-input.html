@@ -13,26 +13,62 @@
 		resizable：控制是否允许用户手动调整大小以及是否自动调整高度。可选值：'no'（不自动调整，不能手动调整），'auto'（自动调整，不能手动调整），'manual'（不自动调整，能手动调整），'yes'（自动调整，能手动调整）。默认为'yes'。
 -->
 <template id="c-input-template">
-	<p-textarea v-model="internalValue" ref="textarea"
-							:placeholder="placeholder"
-							:size="size" :variant="variant" :disabled="disabled"
-							:invalid="invalid"
-							:rows="minRows"
-							:auto-resize="isAutoResizeEffectivelyOn"
-							:style="textareaStyle"
-							@mousedown="onMouseDown">
-	</p-textarea>
+	<div class="c-input-container">
+		<p-textarea v-model="internalValue" ref="textarea"
+								:placeholder="placeholder"
+								:size="size" :variant="variant" :disabled="disabled"
+								:invalid="invalid"
+								:rows="minRows" :auto-resize="isAutoResizeEffectivelyOn"
+								:style="textareaStyle"
+								@mousedown="onMouseDown">
+		</p-textarea>
+		<span v-if="resizable !== 'no'"
+					:title="isManualMode ? '切换到自动调整大小' : '切换到手动调整大小'"
+					class="resize-mode-toggle"
+					@click="toggleResizeMode">
+      <span v-if="isManualMode">🔒</span>
+      <span v-else>🔄</span>
+    </span>
+	</div>
 </template>
 
 <style>
 	.c-input-container {
 		display: inline-block;
+		position: relative;
 		width: 100%;
 	}
 
 	.c-input-container .p-textarea {
 		width: 100%;
 		min-height: 2.5em;
+	}
+
+	/* 拖拽时的特殊样式 */
+	.c-input-container.resizing .p-textarea {
+		overflow: hidden !important;
+		pointer-events: none !important;
+		transition: none !important;
+	}
+
+	.resize-mode-toggle {
+		position: absolute;
+		top: 0.5rem;
+		right: 0.5rem;
+		cursor: pointer;
+		font-size: 1.1rem;
+		background: rgba(255, 255, 255, 0.7);
+		border-radius: 3px;
+		width: 24px;
+		height: 24px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 10;
+	}
+
+	.resize-mode-toggle:hover {
+		background: #f0f0f0;
 	}
 </style>
 
@@ -46,7 +82,11 @@
 			modelValue: [String, Number],
 			placeholder: {type: String, default: ''},
 			minRows: {type: Number, default: 1},
-			resizable: {type: String, default: 'yes'}, // 'yes', 'auto', 'manual', 'none'
+			resizable: {
+				type: String,
+				default: 'yes',
+				validator: value => ['yes', 'auto', 'manual', 'no'].includes(value)
+			},
 			size: {type: String, default: null},
 			variant: {type: String, default: 'outlined'},
 			invalid: {type: Boolean, default: false},
@@ -59,7 +99,8 @@
 				hasBeenResized: false,
 				startY: 0,
 				startHeight: 0,
-				originalOverflow: '' // 用于存储原始 overflow 样式
+				originalOverflow: '',
+				isManualMode: this.resizable === 'manual'
 			};
 		},
 		emits: ['update:modelValue'],
@@ -80,25 +121,34 @@
 				return !this.isDragging && (this.resizable === 'yes' || this.resizable === 'auto') && !this.hasBeenResized;
 			},
 			textareaStyle() {
-				const style = {};
-				if (this.resizable === 'yes' || this.resizable === 'manual') {
-					style.resize = 'vertical';
-				} else {
-					style.resize = 'none';
-				}
+				const style = {
+					resize: this.resizable === 'yes' || this.resizable === 'manual' ? 'auto' : 'no'
+				};
 
+				// 关键修复：始终设置minHeight来锁定最小高度
 				if (this.manualHeight) {
 					style.minHeight = `${this.manualHeight}px`;
 				}
 
-				// 拖拽期间固定高度
-				if (this.isDragging && this.$refs.textarea) {
+				// 在手动模式下固定高度
+				if (this.isManualMode && this.manualHeight) {
 					style.height = `${this.manualHeight}px`;
-					style.overflow = 'hidden'; // 防止内容影响高度计算
+
+					// 添加overflow约束防止跳闪
+					style.overflow = 'hidden';
 				}
 
 				return style;
 			}
+		},
+		mounted() {
+			// 确保初始高度正确设置
+			this.$nextTick(() => {
+				if (!this.manualHeight && this.$refs.textarea) {
+					const textarea = this.$refs.textarea.$el;
+					this.manualHeight = textarea.scrollHeight;
+				}
+			});
 		},
 		methods: {
 			onMouseDown(event) {
@@ -106,11 +156,13 @@
 					this.isDragging = true;
 					const textarea = this.$refs.textarea.$el;
 
-					// 存储原始状态
 					this.originalOverflow = textarea.style.overflow;
 					this.startY = event.clientY;
 					this.startHeight = textarea.clientHeight;
-					this.manualHeight = this.startHeight; // 初始化拖拽高度
+
+					if (this.resizable !== 'manual') {
+						this.isManualMode = true;
+					}
 
 					window.addEventListener('mousemove', this.onDragMove);
 					window.addEventListener('mouseup', this.onDragEnd, {once: true});
@@ -119,23 +171,31 @@
 			onDragMove(event) {
 				if (this.isDragging) {
 					const newHeight = this.startHeight + (event.clientY - this.startY);
-
-					// 核心修复：直接设置高度并锁定
 					this.manualHeight = Math.max(this.minRows * 20, newHeight); // 确保不低于最小高度
 				}
 			},
-			onDragEnd(event) {
+			onDragEnd() {
 				if (this.isDragging) {
 					this.isDragging = false;
-					window.removeEventListener('mousemove', this.onDragMove);
 					this.hasBeenResized = true;
 
-					const textarea = this.$refs.textarea.$el;
-					textarea.style.overflow = this.originalOverflow; // 恢复原始 overflow
+					// 立即锁定高度防止抖动
+					if (this.$refs.textarea) {
+						const textarea = this.$refs.textarea.$el;
+						textarea.style.height = `${this.manualHeight}px`;
+					}
 
-					// 确保高度与内容匹配
+					// 清理事件监听
+					window.removeEventListener('mousemove', this.onDragMove);
+				}
+			},
+			toggleResizeMode() {
+				this.isManualMode = !this.isManualMode;
+
+				if (!this.isManualMode) {
 					this.$nextTick(() => {
-						if (textarea.scrollHeight > this.manualHeight) {
+						const textarea = this.$refs.textarea.$el;
+						if (textarea) {
 							this.manualHeight = textarea.scrollHeight;
 						}
 					});
@@ -147,7 +207,6 @@
 				const textarea = this.$refs.textarea.$el;
 				const contentHeight = textarea.scrollHeight;
 
-				// 仅在内容高度大于当前高度时调整
 				if (contentHeight > textarea.clientHeight) {
 					this.manualHeight = contentHeight;
 				}

@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title itemprop="name">C-Input 智能输入框组件演示 | 工具兽</title>
+	<title itemprop="name">C-Input 智能输入框组件演示</title>
 	<link href="https://cdn.jsdelivr.net/npm/primeicons/primeicons.css" rel="stylesheet">
 	<link href="https://unpkg.com/primevue/resources/themes/aura-light-green/theme.css" rel="stylesheet">
 	<link href="https://unpkg.com/primevue/resources/primevue.min.css" rel="stylesheet">
@@ -54,33 +54,6 @@
 		<h3>智能切换 (resizable="yes") - 默认</h3>
 		<p>拖拽过程平滑无抖动。松手后，新高度将成为最小高度，内容仍可继续撑高。</p>
 		<c-input v-model="resizable.yes" resizable="yes"></c-input>
-<!--
-		<h3>仅自动 (resizable="auto")</h3>
-		<p>组件高度始终根据内容自动调整，无法手动拖拽。</p>
-		<c-input v-model="resizable.auto" resizable="auto"></c-input>
-
-		<h3>仅手动 (resizable="manual")</h3>
-		<p>组件高度固定，但可以手动拖拽调整。</p>
-		<c-input v-model="resizable.manual" resizable="manual"></c-input>
-
-		<h3>禁止调整 (resizable="none")</h3>
-		<p>组件高度和尺寸完全固定。</p>
-		<c-input v-model="resizable.none" resizable="none"></c-input>
-	</div>
-
-	<div class="test-section">
-		<h2>测试2：初始行数 (min-rows)</h2>
-		<p>设置 <code>min-rows="3"</code>，使组件在无内容时也保持3行的高度。</p>
-		<c-input v-model="minRowsText" :min-rows="3" placeholder="最小3行显示"></c-input>
-	</div>
-
-	<div class="test-section">
-		<h2>测试3：组件状态</h2>
-		<h3>禁用状态</h3>
-		<c-input v-model="disabledText" disabled placeholder="此输入框已禁用"></c-input>
-
-		<h3 style="margin-top: 25px;">错误状态</h3>
-		<c-input v-model="invalidText" invalid placeholder="此输入框包含错误"></c-input>-->
 	</div>
 </main>
 
@@ -109,7 +82,6 @@
 		return {...componentDefinition, template};
 	});
 
-	// Vue App Initialization
 	const app = createApp({
 		setup() {
 			// 测试1
@@ -128,18 +100,8 @@
 这段文本框的高度是固定的。`
 			});
 
-			// 测试2
-			const minRowsText = ref('');
-
-			// 测试3
-			const disabledText = ref('这是被禁用的值');
-			const invalidText = ref('');
-
 			return {
 				resizable,
-				minRowsText,
-				disabledText,
-				invalidText
 			};
 		}
 	});
