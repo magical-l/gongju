@@ -12,22 +12,16 @@
 		multilineThreshold：内容长度阈值，超过此字符数时显示为多行，默认为50
 		resizable：控制是否允许用户手动调整大小以及是否自动调整高度。可选值：'no'（不自动调整，不能手动调整），'auto'（自动调整，不能手动调整），'manual'（不自动调整，能手动调整），'yes'（自动调整，能手动调整）。默认为'yes'。
 -->
-
-	- 如果内容包含换行符，自动调整为多行
-	- 如果内容长度 >= multilineThreshold，自动调整为多行
-	- 否则使用 minRows（默认1行，单行效果）
-
 <template id="c-input-template">
-	<div class="c-input-container">
-	<p-textarea v-model="internalValue"
+	<p-textarea v-model="internalValue" ref="textarea"
 							:placeholder="placeholder"
 							:size="size" :variant="variant" :disabled="disabled"
 							:invalid="invalid"
-							:rows="currentRows"
-							:auto-resize="shouldAutoResize"
-							:style="textareaStyle">
+							:rows="minRows"
+							:auto-resize="isAutoResizeEffectivelyOn"
+							:style="textareaStyle"
+							@mousedown="onMouseDown">
 	</p-textarea>
-	</div>
 </template>
 
 <style>
@@ -38,8 +32,7 @@
 
 	.c-input-container .p-textarea {
 		width: 100%;
-		min-height: 2.5em; /* 最小高度，单行效果 */
-		resize: vertical; /* 允许垂直调整大小 */
+		min-height: 2.5em;
 	}
 </style>
 
@@ -53,63 +46,130 @@
 			modelValue: [String, Number],
 			placeholder: {type: String, default: ''},
 			minRows: {type: Number, default: 1},
-			maxRows: {type: Number, default: 10},
-			maxLength: {type: Number, default: null},
-			multilineThreshold: {type: Number, default: 50},
-			resizable: {type: String, default: 'yes'},
+			resizable: {type: String, default: 'yes'}, // 'yes', 'auto', 'manual', 'none'
 			size: {type: String, default: null},
 			variant: {type: String, default: 'outlined'},
 			invalid: {type: Boolean, default: false},
 			disabled: {type: Boolean, default: false}
 		},
+		data() {
+			return {
+				isDragging: false,
+				manualHeight: null,
+				hasBeenResized: false,
+				startY: 0,
+				startHeight: 0,
+				originalOverflow: '' // 用于存储原始 overflow 样式
+			};
+		},
 		emits: ['update:modelValue'],
 		computed: {
-			// 双向绑定处理
 			internalValue: {
 				get() {
 					return this.modelValue || '';
 				},
 				set(newValue) {
 					this.$emit('update:modelValue', newValue);
+					if (this.hasBeenResized && !this.isDragging) {
+						this.$nextTick(this.adjustHeight);
+					}
 				}
 			},
-			// 控制 PrimeVue Textarea 的 auto-resize 属性
-			shouldAutoResize() {
-				return ['auto', 'yes'].includes(this.resizable);
+			isAutoResizeEffectivelyOn() {
+				// 核心修复：拖拽时完全禁用自动调整高度
+				return !this.isDragging && (this.resizable === 'yes' || this.resizable === 'auto') && !this.hasBeenResized;
 			},
-			// 控制 Textarea 的 CSS resize 属性
 			textareaStyle() {
-				let resizeValue = 'none';
-				if (['manual', 'yes'].includes(this.resizable)) {
-					resizeValue = 'vertical';
-				}
-				return {
-					resize: resizeValue
-				};
-			},
-			// 计算当前应该使用的行数
-			currentRows() {
-				const content = this.internalValue || '';
-
-				// 包含换行符时，计算实际行数
-				if (content.includes('\n')) {
-					const lineCount = content.split('\n').length;
-					return Math.min(Math.max(lineCount, this.minRows), this.maxRows);
+				const style = {};
+				if (this.resizable === 'yes' || this.resizable === 'manual') {
+					style.resize = 'vertical';
+				} else {
+					style.resize = 'none';
 				}
 
-				// 内容长度超过阈值时，使用多行
-				if (content.length >= this.multilineThreshold) {
-					return Math.min(3, this.maxRows); // 默认3行
+				if (this.manualHeight) {
+					style.minHeight = `${this.manualHeight}px`;
 				}
 
-				// 默认使用最小行数（通常为1，实现单行效果）
-				return this.minRows;
+				// 拖拽期间固定高度
+				if (this.isDragging && this.$refs.textarea) {
+					style.height = `${this.manualHeight}px`;
+					style.overflow = 'hidden'; // 防止内容影响高度计算
+				}
+
+				return style;
 			}
+		},
+		methods: {
+			onMouseDown(event) {
+				if (this.resizable === 'yes' && this.isResizeHandle(event)) {
+					this.isDragging = true;
+					const textarea = this.$refs.textarea.$el;
+
+					// 存储原始状态
+					this.originalOverflow = textarea.style.overflow;
+					this.startY = event.clientY;
+					this.startHeight = textarea.clientHeight;
+					this.manualHeight = this.startHeight; // 初始化拖拽高度
+
+					window.addEventListener('mousemove', this.onDragMove);
+					window.addEventListener('mouseup', this.onDragEnd, {once: true});
+				}
+			},
+			onDragMove(event) {
+				if (this.isDragging) {
+					const newHeight = this.startHeight + (event.clientY - this.startY);
+
+					// 核心修复：直接设置高度并锁定
+					this.manualHeight = Math.max(this.minRows * 20, newHeight); // 确保不低于最小高度
+				}
+			},
+			onDragEnd(event) {
+				if (this.isDragging) {
+					this.isDragging = false;
+					window.removeEventListener('mousemove', this.onDragMove);
+					this.hasBeenResized = true;
+
+					const textarea = this.$refs.textarea.$el;
+					textarea.style.overflow = this.originalOverflow; // 恢复原始 overflow
+
+					// 确保高度与内容匹配
+					this.$nextTick(() => {
+						if (textarea.scrollHeight > this.manualHeight) {
+							this.manualHeight = textarea.scrollHeight;
+						}
+					});
+				}
+			},
+			adjustHeight() {
+				if (this.isDragging || !this.$refs.textarea) return;
+
+				const textarea = this.$refs.textarea.$el;
+				const contentHeight = textarea.scrollHeight;
+
+				// 仅在内容高度大于当前高度时调整
+				if (contentHeight > textarea.clientHeight) {
+					this.manualHeight = contentHeight;
+				}
+			},
+			isResizeHandle(event) {
+				const el = event.target;
+				return event.offsetY > el.clientHeight - 16 && event.offsetX > el.clientWidth - 16;
+			}
+		},
+		watch: {
+			resizable() {
+				this.manualHeight = null;
+				this.isDragging = false;
+				this.hasBeenResized = false;
+			}
+		},
+		beforeUnmount() {
+			window.removeEventListener('mouseup', this.onDragEnd);
+			window.removeEventListener('mousemove', this.onDragMove);
 		}
-		// 不需要复杂的methods，Textarea会自动处理所有输入
 	};
 
-	// 注册到全局，以便使用的页面直接获得
 	if (typeof window !== 'undefined') {
 		window.customComponents = window.customComponents || {};
 		window.customComponents.CInput = CInput;
