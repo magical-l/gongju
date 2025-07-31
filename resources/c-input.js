@@ -40,9 +40,7 @@ const CInput = {
 			manualHeight: null,
 			hasBeenResized: false,
 			startY: 0,
-			startHeight: 0,
-			maxAvailableWidth: null,
-			maxAvailableHeight: null
+			startHeight: 0
 		};
 	},
 	emits: ['update:modelValue'],
@@ -108,6 +106,26 @@ const CInput = {
 		},
 		canManualResize() {
 			return this.resizable === 'manual' || this.resizable === 'yes';
+		},
+		maxAvailableHeight() {
+			const container = this.containerDom;
+			const parentContainer = container.parentElement;
+			const containerRect = container.getBoundingClientRect();
+			// 获取父容器在文档中的位置
+			const parentRect = parentContainer.getBoundingClientRect();
+			// 计算容器顶部到父容器顶部的距离
+			const topOffset = containerRect.top - parentRect.top;
+			return parentRect.height - topOffset;
+		},
+		maxAvailableWidth() {
+			const container = this.containerDom;
+			const parentContainer = container.parentElement;
+			const containerRect = container.getBoundingClientRect();
+			// 获取父容器在文档中的位置
+			const parentRect = parentContainer.getBoundingClientRect();
+			// 计算容器顶部到父容器顶部的距离
+			const leftOffset = containerRect.left - parentRect.left;
+			return parentRect.width - leftOffset;
 		}
 	},
 	methods: {
@@ -116,22 +134,6 @@ const CInput = {
 				this.isDragging = true;
 				const container = this.containerDom;
 				const textarea = this.textareaDom;
-				// 获取父容器（container的父元素）
-				const parentContainer = container.parentElement;
-				if (parentContainer) {
-					// 获取父容器在文档中的位置
-					const parentRect = parentContainer.getBoundingClientRect();
-					// 获取容器在文档中的位置
-					const containerRect = container.getBoundingClientRect();
-					// 计算容器顶部到父容器顶部的距离
-					const topOffset = containerRect.top - parentRect.top;
-					// 计算最大可用高度 = 父容器高度 - 容器顶部偏移量
-					this.maxAvailableHeight = parentRect.height - topOffset;
-					// 计算容器左侧到父容器左侧的距离
-					const leftOffset = containerRect.left - parentRect.left;
-					// 计算最大可用宽度 = 父容器宽度 - 容器左侧偏移量
-					this.maxAvailableWidth = parentRect.width - leftOffset;
-				}
 				// 记录初始位置和尺寸
 				this.startX = event.clientX;
 				this.startY = event.clientY;
@@ -157,17 +159,13 @@ const CInput = {
 				// 应用最小宽度限制
 				newWidth = Math.max(100, newWidth);
 				// 应用最大宽度限制
-				if (this.maxAvailableWidth) {
-					newWidth = Math.min(newWidth, this.maxAvailableWidth);
-				}
+				newWidth = Math.min(newWidth, this.maxAvailableWidth);
 				// 计算新的高度
 				let newHeight = this.startHeight + (event.clientY - this.startY);
 				// 应用最小高度限制
 				newHeight = Math.max(32, newHeight);
 				// 应用最大高度限制
-				if (this.maxAvailableHeight) {
-					newHeight = Math.min(newHeight, this.maxAvailableHeight);
-				}
+				newHeight = Math.min(newHeight, this.maxAvailableHeight);
 				// 设置容器尺寸
 				this.containerDom.style.width = `${newWidth}px`;
 				this.containerDom.style.height = `${newHeight}px`;
@@ -178,8 +176,6 @@ const CInput = {
 		},
 		onDragEnd() {
 			if (this.isDragging) {
-				this.maxAvailableWidth = null;
-				this.maxAvailableHeight = null;
 				// 移除拖拽样式
 				this.containerDom.classList.remove('resizing');
 				const textarea = this.textareaDom;
