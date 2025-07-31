@@ -2,18 +2,18 @@
 const CInput = {
 	name: 'CInput',
 	template: `
-    <div class="c-input-container" :class="{'resizing': isDragging}" ref="container">
-      <p-textarea v-model="internalValue" ref="textarea"
-                :placeholder="placeholder"
-                :size="size" :variant="variant" :disabled="disabled"
-                :invalid="invalid"
-                :rows="minRows" :auto-resize="isAutoResizeOn"
-                :style="textareaStyle"
-                @mousedown="onMouseDown">
-      </p-textarea>
-      <span :title="isUnderManual ? '切换到自动' : '切换到手动'" v-if="showToggleButton"
-            class="resize-mode-toggle" @click="toggleResizeMode">{{ isUnderManual ? '🔒' : '🔄' }}</span>
-    </div>
+		<div class="c-input-container" :class="{'resizing': isDragging}" ref="container">
+			<p-textarea v-model="internalValue" ref="textarea"
+								:placeholder="placeholder"
+								:size="size" :variant="variant" :disabled="disabled"
+								:invalid="invalid"
+								:rows="minRows" :auto-resize="isAutoResizeOn"
+								:style="textareaStyle"
+								@mousedown="onMouseDown">
+			</p-textarea>
+			<span :title="isUnderManual ? '切换到自动' : '切换到手动'" v-if="showToggleButton"
+						class="resize-mode-toggle" @click="toggleResizeMode">{{ isUnderManual ? '🔒' : '🔄' }}</span>
+		</div>
   `,
 	components: {
 		'p-textarea': PrimeVue ? PrimeVue.Textarea : {}
@@ -79,9 +79,7 @@ const CInput = {
 			return style;
 		},
 		containerStyle() {
-			const style = {
-				position: 'relative'
-			};
+			const style = {};
 			if (this.hasBeenResized) {
 				if (this.manualHeight) {
 					style.height = `${this.manualHeight}px`;
@@ -107,24 +105,23 @@ const CInput = {
 		canManualResize() {
 			return this.resizable === 'manual' || this.resizable === 'yes';
 		},
-		maxAvailableHeight() {
-			const container = this.containerDom;
-			const parentContainer = container.parentElement;
-			const containerRect = container.getBoundingClientRect();
+		containerRect() {
+			return this.containerDom.getBoundingClientRect();
+		},
+		parentRect() {
 			// 获取父容器在文档中的位置
-			const parentRect = parentContainer.getBoundingClientRect();
+			return this.containerDom.parentElement.getBoundingClientRect();
+		},
+		maxAvailableHeight() {
+			const parentRect = this.parentRect;
 			// 计算容器顶部到父容器顶部的距离
-			const topOffset = containerRect.top - parentRect.top;
+			const topOffset = this.containerRect.top - parentRect.top;
 			return parentRect.height - topOffset;
 		},
 		maxAvailableWidth() {
-			const container = this.containerDom;
-			const parentContainer = container.parentElement;
-			const containerRect = container.getBoundingClientRect();
-			// 获取父容器在文档中的位置
-			const parentRect = parentContainer.getBoundingClientRect();
+			const parentRect = this.parentRect;
 			// 计算容器顶部到父容器顶部的距离
-			const leftOffset = containerRect.left - parentRect.left;
+			const leftOffset = this.containerRect.left - parentRect.left;
 			return parentRect.width - leftOffset;
 		}
 	},
@@ -133,7 +130,6 @@ const CInput = {
 			if (this.canManualResize && this.isInResizingRegion(event)) {
 				this.isDragging = true;
 				const container = this.containerDom;
-				const textarea = this.textareaDom;
 				// 记录初始位置和尺寸
 				this.startX = event.clientX;
 				this.startY = event.clientY;
@@ -221,78 +217,73 @@ const CInput = {
 // 定义组件样式
 const cInputStyles = `
 .c-input-container {
-  display: inline-block;
-  box-sizing: border-box;
-  width: 100%;
-  max-height: 100%;
-  position: relative;
-  min-height: 2.5rem;
+	position: relative;
+	display: inline-block;
+	box-sizing: border-box;
+	width: 100%;
+	max-height: 100%;
+	position: relative;
+	min-height: 2.5rem;
 }
-
 .c-input-container .p-textarea {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  min-height: 2.5em;
-  box-sizing: border-box;
+	position: relative;
+	width: 100%;
+	height: 100%;
+	min-height: 2.5em;
+	box-sizing: border-box;
 }
 .c-input-container.resizing .p-textarea {
-transform:none;
-overflow:hidden;
+	transform:none;
+	overflow:hidden;
 }
 .resize-mode-toggle {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  cursor: pointer;
-  font-size: 1.1rem;
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 3px;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
+	position: absolute;
+	top: 0.5rem;
+	right: 0.5rem;
+	cursor: pointer;
+	font-size: 1.1rem;
+	background: rgba(255, 255, 255, 0.7);
+	border-radius: 3px;
+	width: 24px;
+	height: 24px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 10;
 }
-
 /* 手动模式下的文本域样式 */
 .c-input-container .p-textarea.manual-resize {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 36px;
-  bottom: 0;
-  width: auto;
-  resize: none;
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 36px;
+	bottom: 0;
+	width: auto;
+	resize: none;
 }
 `;
 
-// 将样式注入到页面
-if (typeof document !== 'undefined') {
-	const styleId = 'c-input-styles';
-	if (!document.getElementById(styleId)) {
-		const style = document.createElement('style');
-		style.id = styleId;
-		style.textContent = cInputStyles;
-		document.head.appendChild(style);
-	}
-}
-
-// 创建CInput插件对象
 const CInputPlugin = {
 	install(app) {
+		// 将样式注入到页面
+		if (typeof document !== 'undefined') {
+			const styleId = 'c-input-styles';
+			if (!document.getElementById(styleId)) {
+				const style = document.createElement('style');
+				style.id = styleId;
+				style.textContent = cInputStyles;
+				document.head.appendChild(style);
+			}
+		}
+
 		// 注册全局组件
 		app.component('c-input', CInput);
-
 		// 添加全局版本信息
 		app.config.globalProperties.$cInputVersion = '1.0.0';
-
 		// 提供可注入的选项
 		app.provide('cInputPlugin', true);
 	}
 };
-
 // 自动注册到全局（如果通过script标签引入）
 if (typeof window !== 'undefined') {
 	window.CInput = CInput;
