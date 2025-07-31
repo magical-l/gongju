@@ -61,19 +61,13 @@ const CInput = {
 		textareaStyle() {
 			const style = {
 				resize: this.resizable === 'yes' || this.resizable === 'manual' ? 'both' : 'none',
-				overflow: 'auto',
-				width: 'calc(100% - 30px)', // 关键修改：留出按钮空间
-				height: '100%'
+				width: 'calc(100% - 36px)', // 必须加，否则被别人加
 			};
 
 			// 当手动调整过时
 			if (this.hasBeenResized) {
 				// 使用绝对定位保持正确布局
 				style.position = 'absolute';
-				// style.top = '0';
-				// style.left = '0';
-				// style.right = '30px'; // 为按钮留出空间
-				// style.bottom = '0';
 			} else if (this.minRows > 0) {
 				style.minHeight = `${this.minRows * 1.5}rem`;
 			}
@@ -264,10 +258,6 @@ const CInput = {
 const cInputStyles = `
 .c-input-container {
   position: relative;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 36px;
   display: inline-block;
   box-sizing: border-box;
   width: 100%;
@@ -281,10 +271,11 @@ const cInputStyles = `
   bottom: 0;
   left: 0;
   right: 36px;
-  width: 100%;
+  box-sizing: border-box;
+  width: calc(100% - 36px);
   height: 100%;
   min-height: 2.5em;
-  box-sizing: border-box;
+  overflow: auto;
 }
 
 .resize-mode-toggle {
