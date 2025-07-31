@@ -2,19 +2,19 @@
 const CInput = {
 	name: 'CInput',
 	template: `
-		<div class="c-input-container" :class="{'resizing': isDragging}">
-			<p-textarea v-model="internalValue" ref="textarea"
-								:placeholder="placeholder"
-								:size="size" :variant="variant" :disabled="disabled"
-								:invalid="invalid"
-								:rows="minRows" :auto-resize="isAutoResizeEffectivelyOn"
-								:style="textareaStyle"
-								@mousedown="onMouseDown">
-			</p-textarea>
-			<span :title="isManualMode ? '切换到自动' : '切换到手动'" v-if="showToggleButton"
-				class="resize-mode-toggle" @click="toggleResizeMode">{{ isManualMode ? '🔒' : '🔄' }}</span>
-		</div>
-	`,
+    <div class="c-input-container" :class="{'resizing': isDragging}" ref="container">
+      <p-textarea v-model="internalValue" ref="textarea"
+                :placeholder="placeholder"
+                :size="size" :variant="variant" :disabled="disabled"
+                :invalid="invalid"
+                :rows="minRows" :auto-resize="isAutoResizeEffectivelyOn"
+                :style="textareaStyle"
+                @mousedown="onMouseDown">
+      </p-textarea>
+      <span :title="isManualMode ? '切换到自动' : '切换到手动'" v-if="showToggleButton"
+            class="resize-mode-toggle" @click="toggleResizeMode">{{ isManualMode ? '🔒' : '🔄' }}</span>
+    </div>
+  `,
 	components: {
 		'p-textarea': PrimeVue ? PrimeVue.Textarea : {}
 	},
@@ -38,7 +38,9 @@ const CInput = {
 			manualHeight: null,
 			hasBeenResized: false,
 			startY: 0,
-			startHeight: 0
+			startHeight: 0,
+			maxAvailableWidth: null,
+			maxAvailableHeight: null
 		};
 	},
 	emits: ['update:modelValue'],
@@ -60,15 +62,30 @@ const CInput = {
 			const style = {
 				resize: this.resizable === 'yes' || this.resizable === 'manual' ? 'both' : 'none'
 			};
-			// 当手动调整过时固定高度
-			if (this.hasBeenResized && this.manualHeight) {
-				const height = `${this.manualHeight}px`;
-				style.height = height;
-				style.minHeight = height;
-				style.maxHeight = height;
+
+			// 当手动调整过时固定尺寸
+			if (this.hasBeenResized) {
+				// 应用宽度和高度限制
+				if (this.manualHeight) {
+					const height = `${this.manualHeight}px`;
+					style.height = height;
+					style.minHeight = height;
+					style.maxHeight = height;
+				}
+
+				// 新增宽度设置
+				if (this.manualWidth) {
+					const width = `${this.manualWidth}px`;
+					style.width = width;
+					style.minWidth = width;
+					style.maxWidth = width;
+				}
+
 				// 确保滚动条出现
 				style.overflowY = 'auto';
-			} else if (this.minRows > 0) {// 其他模式设置最小高度
+				style.overflowX = 'auto';
+			} else if (this.minRows > 0) {
+				// 其他模式设置最小高度
 				style.minHeight = `${this.minRows * 1.5}rem`;
 			}
 			return style;
@@ -79,9 +96,6 @@ const CInput = {
 			},
 			set(newValue) {
 				this.$emit('update:modelValue', newValue);
-				// if (this.isAutoResizeEffectivelyOn) {
-				// 	this.$nextTick(this.adjustHeightForContent);
-				// }
 			}
 		}
 	},
@@ -91,11 +105,36 @@ const CInput = {
 			if (isResizable && this.isResizing(event)) {
 				this.isDragging = true;
 				const textarea = this.$refs.textarea.$el;
+				const container = this.$refs.container;
+
+				// 获取父容器而不是当前容器（关键修复）
+				const parentContainer = container.parentElement;
+
+				if (parentContainer) {
+					// 获取父容器在文档中的位置
+					const parentRect = parentContainer.getBoundingClientRect();
+
+					// 获取文本域在文档中的位置
+					const textareaRect = textarea.getBoundingClientRect();
+
+					// 计算横向可用空间
+					const leftOffset = textareaRect.left - parentRect.left;
+					this.maxAvailableWidth = parentRect.width - leftOffset;
+
+					// 计算纵向可用空间
+					const topOffset = textareaRect.top - parentRect.top;
+					this.maxAvailableHeight = parentRect.height - topOffset;
+				}
+
+				// 记录初始位置
+				this.startX = event.clientX; // 新增：存储初始X位置
+				this.startY = event.clientY;
+				this.startWidth = textarea.clientWidth; // 新增：存储初始宽度
+				this.startHeight = textarea.clientHeight;
 
 				this.startY = event.clientY;
 				this.startHeight = textarea.clientHeight;
 
-				// 添加临时样式优化拖拽体验
 				textarea.style.transition = 'none';
 				textarea.style.overflow = 'hidden';
 
@@ -108,15 +147,35 @@ const CInput = {
 				if (this.resizable === 'yes') {
 					this.hasBeenResized = true;
 				}
-				const newHeight = this.startHeight + (event.clientY - this.startY);
-				this.manualHeight = Math.max(32, newHeight);
+
+				// 计算新的宽度
+				let newWidth = this.startWidth + (event.clientX - this.startX);
+				// 应用最小宽度限制
+				newWidth = Math.max(100, newWidth);
+				// 应用最大宽度限制
+				if (this.maxAvailableWidth) {
+					newWidth = Math.min(newWidth, this.maxAvailableWidth);
+				}
+
+				// 计算新的高度
+				let newHeight = this.startHeight + (event.clientY - this.startY);
+				// 应用最小高度限制
+				newHeight = Math.max(32, newHeight);
+				// 应用最大高度限制
+				if (this.maxAvailableHeight) {
+					newHeight = Math.min(newHeight, this.maxAvailableHeight);
+				}
+
+				// 同时设置宽度和高度
+				this.manualWidth = newWidth; // 新增
+				this.manualHeight = newHeight;
 			}
 		},
 		onDragEnd() {
 			if (this.isDragging) {
 				this.isDragging = false;
+				this.maxAvailableHeight = null; // 重置最大高度限制
 
-				// 重置临时样式
 				if (this.$refs.textarea) {
 					const textarea = this.$refs.textarea.$el;
 					textarea.style.transition = '';
@@ -124,11 +183,6 @@ const CInput = {
 				}
 
 				window.removeEventListener('mousemove', this.onDragMove);
-
-				// 对于yes模式，标记已手动调整
-				if (this.resizable === 'yes') {
-					this.hasBeenResized = true;
-				}
 			}
 		},
 		toggleResizeMode() {
@@ -194,11 +248,16 @@ const cInputStyles = `
 	display: inline-block;
 	position: relative;
 	width: 100%;
+	max-height: 100%; /* 确保容器有高度限制 */
+	overflow: hidden; /* 防止内容溢出 */
+	box-sizing: border-box; /* 包含内边距和边框 */
 }
 
 	.c-input-container .p-textarea {
 	width: 100%;
 	min-height: 2.5em;
+	max-height: 100%; /* 限制最大高度 */
+	box-sizing: border-box; /* 包含内边距和边框 */
 }
 
 	.c-input-container.resizing .p-textarea {
