@@ -1,19 +1,6 @@
-<!--
-	C-Input 智能输入框组件
-	支持单行和多行输入的自动适配。
-	始终使用 PrimeVue Textarea 组件，通过动态调整 rows 属性实现单行/多行效果。
-	参数：（注意在html里要把驼峰名变成短横线连接的名字）
-		v-model：略
-		placeholder：占位符文本
-		minRows：最小行数，默认为1（单行效果）
-		maxRows：最大行数，默认为10
-		autoResize：是否自动调整高度，默认为true
-		maxLength：最大字符长度限制
-		multilineThreshold：内容长度阈值，超过此字符数时显示为多行，默认为50
-		resizable：控制是否允许用户手动调整大小以及是否自动调整高度。可选值：'no'（不自动调整，不能手动调整），'auto'（自动调整，不能手动调整），'manual'（不自动调整，能手动调整），'yes'（自动调整，能手动调整）。默认为'yes'。
--->
+<!-- C-Input 智能输入框组件 -->
 <template id="c-input-template">
-	<div class="c-input-container">
+	<div class="c-input-container" :class="{'resizing': isDragging}">
 		<p-textarea v-model="internalValue" ref="textarea"
 								:placeholder="placeholder"
 								:size="size" :variant="variant" :disabled="disabled"
@@ -22,17 +9,18 @@
 								:style="textareaStyle"
 								@mousedown="onMouseDown">
 		</p-textarea>
-		<span v-if="resizable !== 'no'"
-					:title="isManualMode ? '切换到自动调整大小' : '切换到手动调整大小'"
+		<span v-if="showToggleButton"
+					:title="hasBeenResized ? '切换到自动缩放模式' : '切换到手动调整模式'"
 					class="resize-mode-toggle"
 					@click="toggleResizeMode">
-      <span v-if="isManualMode">🔒</span>
-      <span v-else>🔄</span>
+      <span v-if="hasBeenResized">🔄</span>
+      <span v-else>🔒</span>
     </span>
 	</div>
 </template>
 
 <style>
+	/* 原有样式保持不变 */
 	.c-input-container {
 		display: inline-block;
 		position: relative;
@@ -44,7 +32,6 @@
 		min-height: 2.5em;
 	}
 
-	/* 拖拽时的特殊样式 */
 	.c-input-container.resizing .p-textarea {
 		overflow: hidden !important;
 		pointer-events: none !important;
@@ -99,70 +86,55 @@
 				hasBeenResized: false,
 				startY: 0,
 				startHeight: 0,
-				originalOverflow: '',
-				isManualMode: this.resizable === 'manual'
 			};
 		},
 		emits: ['update:modelValue'],
 		computed: {
+			showToggleButton() {
+				return this.resizable === 'yes';
+			},
+			isAutoResizeEffectivelyOn() {
+				return !this.isDragging &&
+							 !(this.resizable === 'yes' && this.hasBeenResized) &&
+							 (this.resizable === 'yes' || this.resizable === 'auto');
+			},
+			textareaStyle() {
+				const style = {
+					resize: this.resizable === 'yes' || this.resizable === 'manual' ? 'both' : 'none'
+				};
+				// 当手动调整过时固定高度
+				if (this.hasBeenResized && this.manualHeight) {
+					const height = `${this.manualHeight}px`;
+					style.height = height;
+					style.minHeight = height;
+					style.maxHeight = height;
+
+					// 始终允许滚动条出现
+					style.overflowX = 'auto';
+					style.overflowY = 'auto';
+				} else if (this.minRows > 0) {// 其他模式设置最小高度
+					style.minHeight = `${this.minRows * 1.5}rem`;
+				}
+				return style;
+			},
 			internalValue: {
 				get() {
 					return this.modelValue || '';
 				},
 				set(newValue) {
 					this.$emit('update:modelValue', newValue);
-					if (this.hasBeenResized && !this.isDragging) {
-						this.$nextTick(this.adjustHeight);
-					}
 				}
-			},
-			isAutoResizeEffectivelyOn() {
-				// 核心修复：拖拽时完全禁用自动调整高度
-				return !this.isDragging && (this.resizable === 'yes' || this.resizable === 'auto') && !this.hasBeenResized;
-			},
-			textareaStyle() {
-				const style = {
-					resize: this.resizable === 'yes' || this.resizable === 'manual' ? 'auto' : 'no'
-				};
-
-				// 关键修复：始终设置minHeight来锁定最小高度
-				if (this.manualHeight) {
-					style.minHeight = `${this.manualHeight}px`;
-				}
-
-				// 在手动模式下固定高度
-				if (this.isManualMode && this.manualHeight) {
-					style.height = `${this.manualHeight}px`;
-
-					// 添加overflow约束防止跳闪
-					style.overflow = 'hidden';
-				}
-
-				return style;
 			}
-		},
-		mounted() {
-			// 确保初始高度正确设置
-			this.$nextTick(() => {
-				if (!this.manualHeight && this.$refs.textarea) {
-					const textarea = this.$refs.textarea.$el;
-					this.manualHeight = textarea.scrollHeight;
-				}
-			});
 		},
 		methods: {
 			onMouseDown(event) {
-				if (this.resizable === 'yes' && this.isResizeHandle(event)) {
+				const isResizable = ['yes', 'manual'].includes(this.resizable);
+				if (isResizable && this.isResizing(event)) {
 					this.isDragging = true;
 					const textarea = this.$refs.textarea.$el;
 
-					this.originalOverflow = textarea.style.overflow;
 					this.startY = event.clientY;
 					this.startHeight = textarea.clientHeight;
-
-					if (this.resizable !== 'manual') {
-						this.isManualMode = true;
-					}
 
 					window.addEventListener('mousemove', this.onDragMove);
 					window.addEventListener('mouseup', this.onDragEnd, {once: true});
@@ -170,58 +142,71 @@
 			},
 			onDragMove(event) {
 				if (this.isDragging) {
-					const newHeight = this.startHeight + (event.clientY - this.startY);
-					this.manualHeight = Math.max(this.minRows * 20, newHeight); // 确保不低于最小高度
+					if (this.resizable === 'yes') {
+						this.hasBeenResized = true;
+					}
+					this.manualHeight = this.startHeight + (event.clientY - this.startY);
 				}
 			},
 			onDragEnd() {
 				if (this.isDragging) {
-					this.isDragging = false;
-					this.hasBeenResized = true;
-
-					// 立即锁定高度防止抖动
-					if (this.$refs.textarea) {
+					// 确保高度设置
+					if (this.$refs.textarea && this.manualHeight) {
 						const textarea = this.$refs.textarea.$el;
-						textarea.style.height = `${this.manualHeight}px`;
+						textarea.style.minHeight = `${this.manualHeight}px`;
+						textarea.style.maxHeight = `${this.manualHeight}px`;
 					}
-
-					// 清理事件监听
+					this.isDragging = false;
 					window.removeEventListener('mousemove', this.onDragMove);
 				}
 			},
 			toggleResizeMode() {
-				this.isManualMode = !this.isManualMode;
-
-				if (!this.isManualMode) {
+				if (!this.showToggleButton) {
+					return;
+				}
+				this.hasBeenResized = !this.hasBeenResized;
+				if (this.hasBeenResized) {
 					this.$nextTick(() => {
-						const textarea = this.$refs.textarea.$el;
-						if (textarea) {
+						if (this.$refs.textarea) {
+							const textarea = this.$refs.textarea.$el;
+							// 设置当前高度为内容高度
 							this.manualHeight = textarea.scrollHeight;
+							textarea.style.height = `${this.manualHeight}px`;
+							textarea.style.overflowY = 'auto';
+						}
+					});
+				} else {
+					this.manualHeight = null;
+					this.$nextTick(() => {
+						if (this.$refs.textarea) {
+							const textarea = this.$refs.textarea.$el;
+							textarea.style.height = '';
 						}
 					});
 				}
 			},
-			adjustHeight() {
-				if (this.isDragging || !this.$refs.textarea) return;
-
-				const textarea = this.$refs.textarea.$el;
-				const contentHeight = textarea.scrollHeight;
-
-				if (contentHeight > textarea.clientHeight) {
-					this.manualHeight = contentHeight;
-				}
-			},
-			isResizeHandle(event) {
+			isResizing(event) {
 				const el = event.target;
 				return event.offsetY > el.clientHeight - 16 && event.offsetX > el.clientWidth - 16;
 			}
 		},
 		watch: {
-			resizable() {
+			resizable(newVal) {
 				this.manualHeight = null;
 				this.isDragging = false;
 				this.hasBeenResized = false;
 			}
+		},
+		mounted() {
+			this.$nextTick(() => {
+				if (this.$refs.textarea) {
+					const textarea = this.$refs.textarea.$el;
+					if (this.resizable === 'manual' && !this.manualHeight) {
+						this.manualHeight = textarea.scrollHeight;
+						this.hasBeenResized = true;
+					}
+				}
+			});
 		},
 		beforeUnmount() {
 			window.removeEventListener('mouseup', this.onDragEnd);
