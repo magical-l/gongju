@@ -141,9 +141,6 @@ const CInput = {
 				this.startHeight = container.clientHeight;
 				// 添加拖拽样式
 				container.classList.add('resizing');
-				// 添加临时样式优化拖拽体验
-				textarea.style.transition = 'none';
-				textarea.style.overflow = 'hidden';
 
 				window.addEventListener('mousemove', this.onDragMove);
 				window.addEventListener('mouseup', this.onDragEnd, {once: true});
@@ -239,7 +236,10 @@ const cInputStyles = `
   min-height: 2.5em;
   box-sizing: border-box;
 }
-
+.c-input-container.resizing .p-textarea {
+transform:none;
+overflow:hidden;
+}
 .resize-mode-toggle {
   position: absolute;
   top: 0.5rem;
