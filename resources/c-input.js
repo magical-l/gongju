@@ -32,7 +32,7 @@ const CInput = {
 		invalid: {type: Boolean, default: false},
 		//html原生
 		placeholder: {type: String, default: ''},
-		disabled: {type: Boolean, default: false},
+		disabled: {type: Boolean, default: false}
 	},
 	data() {
 		return {
@@ -47,6 +47,12 @@ const CInput = {
 	},
 	emits: ['update:modelValue'],
 	computed: {
+		textareaDom() {
+			return this.$refs.textarea?.$el;
+		},
+		containerDom() {
+			return this.$refs.container;
+		},
 		showToggleButton() {
 			return this.resizable === 'yes';
 		},
@@ -66,39 +72,30 @@ const CInput = {
 				width: 'calc(100% - 36px)',
 				boxSizing: 'border-box'
 			};
-
 			// 当手动调整过时
 			if (this.hasBeenResized) {
-				style.position = 'absolute';
-				style.top = '0';
-				style.left = '0';
-				style.right = '36px';
-				style.bottom = '0';
+				this.textareaDom.classList.add('manual-resize');
 			} else if (this.minRows > 0) {
 				style.minHeight = `${this.minRows * 1.5}rem`;
 			}
-
 			return style;
 		},
 		containerStyle() {
 			const style = {
 				position: 'relative'
 			};
-
 			if (this.hasBeenResized) {
 				if (this.manualHeight) {
 					style.height = `${this.manualHeight}px`;
 					style.minHeight = `${this.manualHeight}px`;
 					style.maxHeight = `${this.manualHeight}px`;
 				}
-
 				if (this.manualWidth) {
 					style.width = `${this.manualWidth}px`;
 					style.minWidth = `${this.manualWidth}px`;
 					style.maxWidth = `${this.manualWidth}px`;
 				}
 			}
-
 			return style;
 		},
 		internalValue: {
@@ -108,15 +105,17 @@ const CInput = {
 			set(newValue) {
 				this.$emit('update:modelValue', newValue);
 			}
+		},
+		canManualResize() {
+			return this.resizable === 'manual' || this.resizable === 'yes';
 		}
 	},
 	methods: {
 		onMouseDown(event) {
-			const isResizable = ['yes', 'manual'].includes(this.resizable);
-			if (isResizable && this.isResizing(event)) {
+			if (this.canManualResize && this.isInResizingRegion(event)) {
 				this.isDragging = true;
-				const container = this.$refs.container;
-				const textarea = this.$refs.textarea.$el;
+				const container = this.containerDom;
+				const textarea = this.textareaDom;
 				// 获取父容器（container的父元素）
 				const parentContainer = container.parentElement;
 				if (parentContainer) {
@@ -170,8 +169,8 @@ const CInput = {
 					newHeight = Math.min(newHeight, this.maxAvailableHeight);
 				}
 				// 设置容器尺寸
-				this.$refs.container.style.width = `${newWidth}px`;
-				this.$refs.container.style.height = `${newHeight}px`;
+				this.containerDom.style.width = `${newWidth}px`;
+				this.containerDom.style.height = `${newHeight}px`;
 				// 存储尺寸用于样式计算
 				this.manualWidth = newWidth;
 				this.manualHeight = newHeight;
@@ -179,16 +178,16 @@ const CInput = {
 		},
 		onDragEnd() {
 			if (this.isDragging) {
-				this.isDragging = false;
 				this.maxAvailableWidth = null;
 				this.maxAvailableHeight = null;
 				// 移除拖拽样式
-				this.$refs.container.classList.remove('resizing');
-				if (this.$refs.textarea) {
-					const textarea = this.$refs.textarea.$el;
+				this.containerDom.classList.remove('resizing');
+				const textarea = this.textareaDom;
+				if (textarea) {
 					textarea.style.transition = '';
 					textarea.style.overflow = '';
 				}
+				this.isDragging = false;
 				window.removeEventListener('mousemove', this.onDragMove);
 			}
 		},
@@ -198,21 +197,9 @@ const CInput = {
 				this.manualHeight = null; // 这个操作足够触发自动模式
 			}
 		},
-		isResizing(event) {
+		isInResizingRegion(event) {
 			const el = event.target;
 			return event.offsetY > el.clientHeight - 16 && event.offsetX > el.clientWidth - 16;
-		},
-		adjustHeightForContent() {
-			if (this.isDragging || !this.$refs.textarea || this.hasBeenResized) {
-				return;
-			}
-			const textarea = this.$refs.textarea.$el;
-			if (textarea && this.isAutoResizeOn) {
-				// 重置高度让自动调整生效
-				textarea.style.height = 'auto';
-				// 重新设置高度为内容高度
-				textarea.style.height = `${textarea.scrollHeight}px`;
-			}
 		}
 	},
 	watch: {
@@ -223,17 +210,14 @@ const CInput = {
 			// 如果是manual模式，初始化为内容高度
 			if (newVal === 'manual') {
 				this.$nextTick(() => {
-					if (this.$refs.textarea) {
-						const textarea = this.$refs.textarea.$el;
+					if (this.textareaDom) {
+						const textarea = this.textareaDom;
 						this.manualHeight = textarea.scrollHeight;
 						this.hasBeenResized = true;
 					}
 				});
 			}
 		}
-	},
-	mounted() {
-		this.$nextTick(this.adjustHeightForContent);
 	},
 	beforeUnmount() {
 		window.removeEventListener('mouseup', this.onDragEnd);
