@@ -242,6 +242,7 @@ const cInputStyles = `
 	height: 100%;
 	min-height: 2.5em;
 	box-sizing: border-box;
+	transition: height 0.2s ease, width 0.2s ease; /* 添加平滑过渡 */
 }
 
 .c-input-container.resizing .p-textarea {
