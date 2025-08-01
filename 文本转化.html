@@ -18,7 +18,7 @@
 
 	<link href="https://cdn.jsdelivr.net/npm/primeicons/primeicons.css" rel="stylesheet">
 	<link href="lib/toastr.min.css" rel="stylesheet">
-	<link href="resources/style.css" rel="stylesheet">
+	<link href="resources/style.css?v=250801" rel="stylesheet">
 </head>
 <body>
 <header>
@@ -55,6 +55,7 @@
 	</article>
 	<section class="input area">
 		<p-textarea placeholder="在此输入要处理的文本" rows="5" autoResize
+								:class="descriptionVisible?'border-pulse':''"
 								v-model="inputText" @input="processInput"></p-textarea>
 	</section>
 
@@ -103,7 +104,7 @@
 	<script src="lib/jquery-3.4.1.min.js"></script>
 	<script src="lib/toastr.min.js"></script>
 	<script src="resources/util.js"></script>
-	<script src="resources/biz-util.js"></script>
+	<script src="resources/biz-util.js?v=250801"></script>
 	<script src="resources/ue.js"></script>
 	<script src="resources/math.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/js-base64@3.7.7/base64.min.js"></script>

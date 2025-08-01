@@ -16,7 +16,7 @@
 	<link href="https://cdn.jsdelivr.net/npm/primeicons/primeicons.css" rel="stylesheet">
 	<link href="https://cdn.jsdelivr.net/npm/primeflex@3.3.1/primeflex.min.css" rel="stylesheet">
 	<link href="lib/toastr.min.css" rel="stylesheet">
-	<link href="resources/style.css" rel="stylesheet">
+	<link href="resources/style.css?v=250801" rel="stylesheet">
 	<style>
 		.input.area textarea {
 			height: 200px;
@@ -58,7 +58,8 @@
 			将您的SVG代码粘贴到输入框中，工具会自动生成预览。确认无误后，点击“下载图标”按钮，即可将生成的PNG图标文件保存到您的电脑。</p>
 	</article>
 	<section class="input area">
-		<p-textarea placeholder="粘贴你的SVG代码到这里" autoResize rows="8" v-model="input"></p-textarea>
+		<p-textarea placeholder="粘贴你的SVG代码到这里" autoResize rows="8" v-model="input"
+								:class="descriptionVisible?'border-pulse':''"></p-textarea>
 	</section>
 
 	<section class="result area">
@@ -91,7 +92,7 @@
 	<script src="https://unpkg.com/@primeuix/themes/umd/aura.js"></script>
 	<script src="lib/jquery-3.4.1.min.js"></script>
 	<script src="lib/toastr.min.js"></script>
-	<script src="resources/biz-util.js"></script>
+	<script src="resources/biz-util.js?v=250801"></script>
 </div>
 <script>
 	const {createApp} = Vue;
