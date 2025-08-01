@@ -292,3 +292,25 @@ button {
 .incomplete {
 	color: #ff9800;
 }
+
+.resizable {
+	overflow: auto; /* 必须设置且不能是visible */
+	resize: both;
+	display: block; /* 确保是块级元素 */
+}
+
+.resizable-x {
+	overflow: auto;
+	resize: horizontal;
+	display: block;
+}
+
+.resizable-y {
+	overflow: auto;
+	resize: vertical;
+	display: block;
+}
+
+.resizable-none {
+	resize: none; /* 用于禁用resize */
+}
