@@ -2,18 +2,19 @@
 const CInput = {
 	name: 'CInput',
 	template: `
-		<div class="c-input-container" :class="{'resizing': isDragging}" ref="container">
-			<p-textarea v-model="internalValue" ref="textarea"
-								:placeholder="placeholder"
-								:size="size" :variant="variant" :disabled="disabled"
-								:invalid="invalid"
-								:rows="minRows" :auto-resize="isAutoResizeOn"
-								:style="textareaStyle"
-								@mousedown="onMouseDown">
-			</p-textarea>
-			<span :title="isUnderManual ? '切换到自动' : '切换到手动'" v-if="showToggleButton"
-						class="resize-mode-toggle" @click="toggleResizeMode">{{ isUnderManual ? '🔒' : '🔄' }}</span>
-		</div>
+    <div class="c-input-container" :class="{'resizing': isDragging}" ref="container">
+      <p-textarea v-model="internalValue" ref="textarea"
+                  :placeholder="placeholder"
+                  :size="size" :variant="variant" :disabled="disabled"
+                  :invalid="invalid"
+                  :rows="minRows" :auto-resize="isAutoResizeOn"
+                  :class="{'manual-resize': hasBeenResized}"
+                  :style="textareaStyle"
+                  @mousedown="onMouseDown">
+      </p-textarea>
+      <span :title="isUnderManual ? '切换到自动' : '切换到手动'" v-if="showToggleButton"
+            class="resize-mode-toggle" @click="toggleResizeMode">{{ isUnderManual ? '🔒' : '🔄' }}</span>
+    </div>
   `,
 	components: {
 		'p-textarea': PrimeVue ? PrimeVue.Textarea : {}
@@ -40,17 +41,13 @@ const CInput = {
 			manualHeight: null,
 			hasBeenResized: false,
 			startY: 0,
-			startHeight: 0
+			startHeight: 0,
+			maxAvailableHeight: null,
+			maxAvailableWidth: null
 		};
 	},
 	emits: ['update:modelValue'],
 	computed: {
-		textareaDom() {
-			return this.$refs.textarea?.$el;
-		},
-		containerDom() {
-			return this.$refs.container;
-		},
 		showToggleButton() {
 			return this.resizable === 'yes';
 		},
@@ -70,9 +67,11 @@ const CInput = {
 				width: 'calc(100% - 36px)',
 				boxSizing: 'border-box'
 			};
+
 			// 当手动调整过时
 			if (this.hasBeenResized) {
-				this.textareaDom.classList.add('manual-resize');
+				// 移除宽度限制，由绝对定位控制
+				delete style.width;
 			} else if (this.minRows > 0) {
 				style.minHeight = `${this.minRows * 1.5}rem`;
 			}
@@ -104,37 +103,43 @@ const CInput = {
 		},
 		canManualResize() {
 			return this.resizable === 'manual' || this.resizable === 'yes';
-		},
-		containerRect() {
-			return this.containerDom.getBoundingClientRect();
-		},
-		parentRect() {
-			// 获取父容器在文档中的位置
-			return this.containerDom.parentElement.getBoundingClientRect();
-		},
-		maxAvailableHeight() {
-			const parentRect = this.parentRect;
-			// 计算容器顶部到父容器顶部的距离
-			const topOffset = this.containerRect.top - parentRect.top;
-			return parentRect.height - topOffset;
-		},
-		maxAvailableWidth() {
-			const parentRect = this.parentRect;
-			// 计算容器顶部到父容器顶部的距离
-			const leftOffset = this.containerRect.left - parentRect.left;
-			return parentRect.width - leftOffset;
 		}
 	},
 	methods: {
+		getTextareaDom() {
+			return this.$refs.textarea?.$el;
+		},
+		getContainerDom() {
+			return this.$refs.container;
+		},
+		calMaxAvailableSpace() {
+			const container = this.getContainerDom();
+			if (!container) {
+				return {height: null, width: null};
+			}
+			const containerRect = container.getBoundingClientRect();
+			const parent = container.parentElement;
+			if (!parent) {
+				return {height: null, width: null};
+			}
+			const parentRect = parent.getBoundingClientRect();
+			return {
+				height: parentRect.height - (containerRect.top - parentRect.top),
+				width: parentRect.width - (containerRect.left - parentRect.left)
+			};
+		},
 		onMouseDown(event) {
 			if (this.canManualResize && this.isInResizingRegion(event)) {
 				this.isDragging = true;
-				const container = this.containerDom;
+				const container = this.getContainerDom();
 				// 记录初始位置和尺寸
 				this.startX = event.clientX;
 				this.startY = event.clientY;
 				this.startWidth = container.clientWidth;
 				this.startHeight = container.clientHeight;
+				const maxSpace = this.calMaxAvailableSpace();
+				this.maxAvailableHeight = maxSpace.height;
+				this.maxAvailableWidth = maxSpace.width;
 				// 添加拖拽样式
 				container.classList.add('resizing');
 
@@ -160,8 +165,8 @@ const CInput = {
 				// 应用最大高度限制
 				newHeight = Math.min(newHeight, this.maxAvailableHeight);
 				// 设置容器尺寸
-				this.containerDom.style.width = `${newWidth}px`;
-				this.containerDom.style.height = `${newHeight}px`;
+				this.getContainerDom().style.width = `${newWidth}px`;
+				this.getContainerDom().style.height = `${newHeight}px`;
 				// 存储尺寸用于样式计算
 				this.manualWidth = newWidth;
 				this.manualHeight = newHeight;
@@ -170,12 +175,14 @@ const CInput = {
 		onDragEnd() {
 			if (this.isDragging) {
 				// 移除拖拽样式
-				this.containerDom.classList.remove('resizing');
-				const textarea = this.textareaDom;
+				this.getContainerDom().classList.remove('resizing');
+				const textarea = this.getTextareaDom();
 				if (textarea) {
 					textarea.style.transition = '';
 					textarea.style.overflow = '';
 				}
+				this.maxAvailableWidth = null;
+				this.maxAvailableHeight = null;
 				this.isDragging = false;
 				window.removeEventListener('mousemove', this.onDragMove);
 			}
@@ -183,7 +190,14 @@ const CInput = {
 		toggleResizeMode() {
 			this.hasBeenResized = !this.hasBeenResized;
 			if (!this.hasBeenResized) {
-				this.manualHeight = null; // 这个操作足够触发自动模式
+				this.manualHeight = null;
+				this.manualWidth = null;
+				// 清除内联样式，让容器可以自动调整
+				const container = this.getContainerDom();
+				if (container) {
+					container.style.width = '';
+					container.style.height = '';
+				}
 			}
 		},
 		isInResizingRegion(event) {
@@ -199,8 +213,8 @@ const CInput = {
 			// 如果是manual模式，初始化为内容高度
 			if (newVal === 'manual') {
 				this.$nextTick(() => {
-					if (this.textareaDom) {
-						const textarea = this.textareaDom;
+					const textarea = this.getTextareaDom();
+					if (textarea) {
 						this.manualHeight = textarea.scrollHeight;
 						this.hasBeenResized = true;
 					}
@@ -211,55 +225,62 @@ const CInput = {
 	beforeUnmount() {
 		window.removeEventListener('mouseup', this.onDragEnd);
 		window.removeEventListener('mousemove', this.onDragMove);
+		// 清理可能存在的其他监听器
+		if (this.isDragging) {
+			window.removeEventListener('mouseup', this.onDragEnd);
+		}
 	}
 };
 
 // 定义组件样式
 const cInputStyles = `
 .c-input-container {
-	position: relative;
-	display: inline-block;
-	box-sizing: border-box;
-	width: 100%;
-	max-height: 100%;
-	position: relative;
-	min-height: 2.5rem;
+  position: relative;
+  display: inline-block;
+  box-sizing: border-box;
+  width: 100%;
+  max-height: 100%;
+  min-height: 2.5rem;
 }
+
 .c-input-container .p-textarea {
-	position: relative;
-	width: 100%;
-	height: 100%;
-	min-height: 2.5em;
-	box-sizing: border-box;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 2.5em;
+  box-sizing: border-box;
 }
+
 .c-input-container.resizing .p-textarea {
-	transform:none;
-	overflow:hidden;
+  overflow: hidden !important;
+  pointer-events: none !important;
+  transition: none !important;
 }
+
 .resize-mode-toggle {
-	position: absolute;
-	top: 0.5rem;
-	right: 0.5rem;
-	cursor: pointer;
-	font-size: 1.1rem;
-	background: rgba(255, 255, 255, 0.7);
-	border-radius: 3px;
-	width: 24px;
-	height: 24px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	z-index: 10;
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  cursor: pointer;
+  font-size: 1.1rem;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 3px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
 }
+
 /* 手动模式下的文本域样式 */
 .c-input-container .p-textarea.manual-resize {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 36px;
-	bottom: 0;
-	width: auto;
-	resize: none;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 36px !important;
+  bottom: 0 !important;
+  width: auto !important;
 }
 `;
 
@@ -284,6 +305,7 @@ const CInputPlugin = {
 		app.provide('cInputPlugin', true);
 	}
 };
+
 // 自动注册到全局（如果通过script标签引入）
 if (typeof window !== 'undefined') {
 	window.CInput = CInput;
