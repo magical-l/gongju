@@ -13,7 +13,10 @@ const CInput = {
 									@mousedown="onMouseDown">
 			</p-textarea>
 			<span :title="isUnderManual ? '切换到自动' : '切换到手动'" v-if="showToggleButton"
-						class="resize-mode-toggle" @click="toggleResizeMode">{{ isUnderManual ? '🔒' : '🔄' }}</span>
+						class="resize-mode-toggle" @click="toggleResizeMode"
+						aria-label="isUnderManual ? '切换到自动' : '切换到手动'" role="button" tabindex="0">
+						{{ isUnderManual ? '🔒' : '🔄' }}
+			</span>
 		</div>
 	`,
 	components: {
@@ -39,7 +42,7 @@ const CInput = {
 		return {
 			isDragging: false,
 			manualHeight: null,
-			hasBeenResized: false,
+			hasBeenResized: false
 		};
 	},
 	emits: ['update:modelValue'],
@@ -59,35 +62,11 @@ const CInput = {
 		},
 		textareaStyle() {
 			const style = {
-				resize: this.resizable === 'yes' || this.resizable === 'manual' ? 'both' : 'none',
-				width: 'calc(100% - 36px)',
-				height: '100%',
-				minHeight: '100%',
-				maxHeight: '100%'
+				resize: this.resizable === 'yes' || this.resizable === 'manual' ? 'both' : 'none'
 			};
-
-			// 当手动调整过时
-			if (this.hasBeenResized) {
-				// 移除宽度限制，由绝对定位控制
-				delete style.width;
-			} else if (this.minRows > 0) {
+			// 自动模式下的最小高度
+			if (!this.hasBeenResized && this.minRows > 0) {
 				style.minHeight = `${this.minRows * 1.5}rem`;
-			}
-			return style;
-		},
-		containerStyle() {
-			const style = {};
-			if (this.hasBeenResized) {
-				if (this.manualHeight) {
-					style.height = `${this.manualHeight}px`;
-					style.minHeight = `${this.manualHeight}px`;
-					style.maxHeight = `${this.manualHeight}px`;
-				}
-				if (this.manualWidth) {
-					style.width = `${this.manualWidth}px`;
-					style.minWidth = `${this.manualWidth}px`;
-					style.maxWidth = `${this.manualWidth}px`;
-				}
 			}
 			return style;
 		},
@@ -157,7 +136,6 @@ const CInput = {
 					newHeight = Math.max(32, newHeight);
 					// 应用最大高度限制
 					newHeight = Math.min(newHeight, maxAvailableHeight);
-					console.log('新宽高：',newWidth,newHeight);
 					// 设置容器尺寸
 					const width = `${newWidth}px`;
 					container.style.maxWidth = width;
@@ -196,7 +174,11 @@ const CInput = {
 				// 清除内联样式，让容器可以自动调整
 				const container = this.getContainerDom();
 				if (container) {
+					container.style.minWidth = '';
+					container.style.maxWidth = '';
 					container.style.width = '';
+					container.style.minHeight = '';
+					container.style.maxHeight = '';
 					container.style.height = '';
 				}
 			}
@@ -222,7 +204,7 @@ const CInput = {
 				});
 			}
 		}
-	},
+	}
 };
 
 // 定义组件样式
@@ -238,10 +220,11 @@ const cInputStyles = `
 
 .c-input-container .p-textarea {
 	position: relative;
-	width: 100%;
-	height: 100%;
-	min-height: 2.5em;
 	box-sizing: border-box;
+	width: calc(100% - 36px);
+	min-height: 2.5em;
+	max-height: 100%;
+	height: 100%;
 	transition: height 0.2s ease, width 0.2s ease; /* 添加平滑过渡 */
 }
 
@@ -249,12 +232,23 @@ const cInputStyles = `
 	overflow: hidden !important;
 	pointer-events: none !important;
 	transition: none !important;
+	
 	min-height: 100% !important;
 	max-height: 100% !important;
 	height: 100% !important;
 	min-width: 32px !important;
 	max-width: calc(100% - 36px) !important;
 	width: calc(100% - 36px) !important;
+}
+
+/* 手动模式下的文本域样式 */
+.c-input-container .p-textarea.manual-resize {
+	position: absolute !important;
+	top: 0 !important;
+	left: 0 !important;
+	right: 36px !important;
+	bottom: 0 !important;
+	width: auto !important;
 }
 
 .resize-mode-toggle {
@@ -271,16 +265,6 @@ const cInputStyles = `
 	align-items: center;
 	justify-content: center;
 	z-index: 10;
-}
-
-/* 手动模式下的文本域样式 */
-.c-input-container .p-textarea.manual-resize {
-	position: absolute !important;
-	top: 0 !important;
-	left: 0 !important;
-	right: 36px !important;
-	bottom: 0 !important;
-	width: auto !important;
 }
 `;
 
