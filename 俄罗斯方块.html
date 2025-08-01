@@ -71,11 +71,9 @@
 <main>
 	<panel header="俄罗斯方块">
 		<template #icons>
-			<button class="p-panel-header-icon p-link mr-2" @click="toggleHelp">
-				<span class="pi pi-question-circle"></span>
-			</button>
+			<button class="p-panel-header-icon p-link mr-2" @click="toggleDescription">{{ descriptionVisible ? '隐藏说明' : '显示说明' }}</button>
 		</template>
-		<div v-if="helpVisible" class="help-content">
+		<div v-if="descriptionVisible" class="help-content">
 			<p>一个经典的俄罗斯方块游戏，但拥有更现代化的功能。</p>
 			<ul>
 				<li><strong>难度曲线:</strong> “柔和”模式速度线性增加；“经典”模式模拟原版游戏，速度会在特定等级急剧提升，更具挑战性。
@@ -536,9 +534,24 @@
 				togglePause,
 				applyAndSaveSize,
 				restoreDefaultSize,
-				toggleHelp,
 				saveSettings
 			};
+		},
+		data() {
+			return {
+				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname)
+			}
+		},
+		methods: {
+			toggleDescription() {
+				this.descriptionVisible = !this.descriptionVisible;
+				const storageKey = 'description-hidden-' + window.location.pathname;
+				if (this.descriptionVisible) {
+					localStorage.removeItem(storageKey);
+				} else {
+					localStorage.setItem(storageKey, 'true');
+				}
+			}
 		}
 	})
 	.use(PrimeVue.Config, {

@@ -42,9 +42,9 @@
 <main>
 	<header>
 		<h2>文中数字格式转换工具</h2>
-		<button class="toggle-description" onclick="toggleDescription()">查看说明</button>
+		<button class="toggle-description" @click="toggleDescription">{{ descriptionVisible ? '隐藏说明' : '显示说明' }}</button>
 	</header>
-	<article class="description">
+	<article class="description" v-if="descriptionVisible">
 		<p>“文中数字格式转换工具”是一个全面的在线服务，旨在为用户提供快速、准确的数字格式转换。无论您是需要进行不同进制间的转换，还是需要将阿拉伯数字转换为中文大写格式，这个工具都能轻松应对。</p>
 		<h2>核心功能</h2>
 		<ul>
@@ -277,10 +277,20 @@
 				inputText: '',
 				inputRadix: '十进制',
 				radixOptions: ['十进制', '二进制', '十六进制', '八进制'],
-				results
+				results,
+				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname)
 			};
 		},
 		methods: {
+			toggleDescription() {
+				this.descriptionVisible = !this.descriptionVisible;
+				const storageKey = 'description-hidden-' + window.location.pathname;
+				if (this.descriptionVisible) {
+					localStorage.removeItem(storageKey);
+				} else {
+					localStorage.setItem(storageKey, 'true');
+				}
+			},
 			async copyToClipboard(text) {
 				if (!text) {
 					return;

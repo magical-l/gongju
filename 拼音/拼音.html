@@ -169,9 +169,9 @@
 <main>
 	<header>
 		<h2>汉语拼音学习工具</h2>
-		<button class="toggle-description" onclick="toggleDescription()">查看说明</button>
+		<button class="toggle-description" @click="toggleDescription">{{ descriptionVisible ? '隐藏说明' : '显示说明' }}</button>
 	</header>
-	<article class="description">
+	<article class="description" v-if="descriptionVisible">
 		<p>“汉语拼音学习工具”是一个为汉语学习者设计的互动在线应用。它通过一个直观的界面，帮助用户理解和练习汉语拼音中声母、韵母和声调的组合规则。无论您是初学者还是希望巩固拼音知识，这个工具都能为您提供有效的帮助。</p>
 		<h2>核心功能</h2>
 		<ul>
@@ -775,8 +775,24 @@
 				选声母,
 				选韵母,
 				选声调,
-				clear
+				clear,
 			};
+		},
+		data() {
+			return {
+				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname)
+			}
+		},
+		methods: {
+			toggleDescription() {
+				this.descriptionVisible = !this.descriptionVisible;
+				const storageKey = 'description-hidden-' + window.location.pathname;
+				if (this.descriptionVisible) {
+					localStorage.removeItem(storageKey);
+				} else {
+					localStorage.setItem(storageKey, 'true');
+				}
+			}
 		},
 		components: {
 			'p-button': PrimeVue.Button,

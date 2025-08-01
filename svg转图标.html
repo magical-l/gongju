@@ -42,9 +42,9 @@
 <main>
 	<header>
 		<h2>SVG转图片</h2>
-		<button id="toggle-description" class="toggle-description">隐藏说明</button>
+		<button class="toggle-description" @click="toggleDescription">{{ descriptionVisible ? '隐藏说明' : '显示说明' }}</button>
 	</header>
-	<article class="description" style="display: none;">
+	<article class="description" v-if="descriptionVisible">
 		<p>
 			“SVG转图片”是一个便捷的在线应用，允许用户将SVG（可缩放矢量图形）代码快速转换为多种标准尺寸的PNG格式图标。对于需要在网站、移动应用或桌面程序中使用统一图标的开发者和设计师来说，这是一个非常高效的工具。</p>
 		<h2>核心功能</h2>
@@ -94,28 +94,6 @@
 	<script src="resources/biz-util.js"></script>
 </div>
 <script>
-  (function() {
-    const description = document.querySelector('.description');
-    const toggleButton = document.getElementById('toggle-description');
-    const storageKey = 'description-hidden-' + window.location.pathname;
-
-    if (localStorage.getItem(storageKey)) {
-      description.style.display = 'none';
-      toggleButton.textContent = '显示说明';
-    }
-
-    toggleButton.addEventListener('click', function() {
-      if (description.style.display === 'none') {
-        description.style.display = 'block';
-        toggleButton.textContent = '隐藏说明';
-        localStorage.removeItem(storageKey);
-      } else {
-        description.style.display = 'none';
-        toggleButton.textContent = '显示说明';
-        localStorage.setItem(storageKey, 'true');
-      }
-    });
-  })();
 	const {createApp} = Vue;
 
 	function download(svgDom, size) {
@@ -165,7 +143,8 @@
 		data() {
 			return {
 				input: `<svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M9.77234 30.8573V11.7471H7.54573C5.50932 11.7471 3.85742 13.3931 3.85742 15.425V27.1794C3.85742 29.2112 5.50932 30.8573 7.54573 30.8573H9.77234ZM11.9902 30.8573V11.7054C14.9897 10.627 16.6942 7.8853 17.1055 3.33591C17.2666 1.55463 18.9633 0.814421 20.5803 1.59505C22.1847 2.36964 23.243 4.32583 23.243 6.93947C23.243 8.50265 23.0478 10.1054 22.6582 11.7471H29.7324C31.7739 11.7471 33.4289 13.402 33.4289 15.4435C33.4289 15.7416 33.3928 16.0386 33.3215 16.328L30.9883 25.7957C30.2558 28.7683 27.5894 30.8573 24.528 30.8573H11.9911H11.9902Z" fill="currentColor"></path></svg>`,
-				sizes: [16, 32, 48, 128]
+				sizes: [16, 32, 48, 128],
+				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname)
 			};
 		},
 		computed: {
@@ -184,6 +163,15 @@
 			}
 		},
 		methods: {
+			toggleDescription() {
+				this.descriptionVisible = !this.descriptionVisible;
+				const storageKey = 'description-hidden-' + window.location.pathname;
+				if (this.descriptionVisible) {
+					localStorage.removeItem(storageKey);
+				} else {
+					localStorage.setItem(storageKey, 'true');
+				}
+			},
 			downloadIcons() {
 				if (!this.input) {
 					toastr.warning('SVG代码不能为空');
