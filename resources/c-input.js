@@ -127,12 +127,20 @@ const CInput = {
 			this.isDragging = true;
 
 			const container = this.getContainerDom();
+			const startWidth = container.clientWidth;
+			const startHeight = container.clientHeight;
+			const nowWidth = startWidth + 'px';
+			container.style.maxWidth = nowWidth;
+			container.style.minWidth = nowWidth;
+			container.style.width = nowWidth;
+			const nowHeight = startHeight + 'px';
+			container.style.maxHeight = nowHeight;
+			container.style.minHeight = nowHeight;
+			container.style.height = nowHeight;
 			container.classList.add('resizing');
 
 			const startX = event.clientX;
 			const startY = event.clientY;
-			const startWidth = container.clientWidth;
-			const startHeight = container.clientHeight;
 			const maxSpace = this.calMaxAvailableSpace();
 			const maxAvailableHeight = maxSpace.height;
 			const maxAvailableWidth = maxSpace.width;
@@ -187,8 +195,21 @@ const CInput = {
 				// 清除内联样式，让容器可以自动调整
 				const container = this.getContainerDom();
 				if (container) {
+					container.style.maxWidth = '';
+					container.style.minWidth = '';
 					container.style.width = '';
+					container.style.maxHeight = '';
+					container.style.minHeight = '';
 					container.style.height = '';
+				}
+				const textarea = this.getTextareaDom();
+				if(textarea) {
+					textarea.style.maxWidth = '';
+					textarea.style.minWidth = '';
+					textarea.style.width = '';
+					textarea.style.maxHeight = '';
+					textarea.style.minHeight = '';
+					textarea.style.height = '';
 				}
 			}
 		},
@@ -240,15 +261,22 @@ const cInputStyles = `
 .textarea-inner-container {
 	position: relative;
 	width: 100%;
+	max-width: 100%;
+	min-width: 100%;
 	height: 100%;
+	max-height: 100%;
+	min-height: 100%;
 }
 
 .c-input-container .p-textarea {
 	position: relative;
 	box-sizing: border-box;
+	min-width: 100px;
+	max-width: 100%;
 	width: calc(100% - 36px);
-	height: 100%;
 	min-height: 2.5em;
+	max-height: 100%;
+	height: 100%;
 	padding-right: 70px; /* 为按钮留出空间 */
 }
 
