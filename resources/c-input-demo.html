@@ -36,14 +36,8 @@
 	</style>
 </head>
 <body>
-<h1>C-Input 智能输入框组件演示</h1>
-
-<textarea id="test" style="resize: both;">
-  普通textarea
-</textarea>
-
 <main id="app" v-cloak>
-	<div class="test-section">
+	<div class="test-section" style="height: 300px;">
 		<h2>测试1：核心交互 (resizable="yes")</h2>
 		<p>预期行为：初始为自动缩放。手动拖拽后，尺寸被锁定，按钮变为“切换自动”。点击按钮可恢复自动缩放。</p>
 		<c-input v-model="interactiveText"
@@ -64,25 +58,27 @@
 <script src="https://unpkg.com/primevue/umd/primevue.min.js"></script>
 <script src="https://unpkg.com/@primeuix/themes/umd/aura.js"></script>
 
+<script src="c-input.js"></script>
+
 <script>
 	const {createApp, ref, defineAsyncComponent} = Vue;
 
-	const CInput = defineAsyncComponent(async () => {
-		const response = await fetch('c-input.html');
-		if (!response.ok) {
-			throw new Error('无法加载 c-input.html');
-		}
-		const html = await response.text();
-		const parser = new DOMParser();
-		const doc = parser.parseFromString(html, 'text/html');
-		const template = doc.querySelector('#c-input-template')?.innerHTML;
-		const scriptContent = doc.querySelector('script')?.textContent;
-		if (!template || !scriptContent) {
-			throw new Error('在 c-input.html 中未找到模板或脚本');
-		}
-		const componentDefinition = new Function(`${scriptContent}; return CInput;`)();
-		return {...componentDefinition, template};
-	});
+	// const CInput = defineAsyncComponent(async () => {
+	// 	const response = await fetch('c-input2.html');
+	// 	if (!response.ok) {
+	// 		throw new Error('无法加载 c-input.html');
+	// 	}
+	// 	const html = await response.text();
+	// 	const parser = new DOMParser();
+	// 	const doc = parser.parseFromString(html, 'text/html');
+	// 	const template = doc.querySelector('#c-input-template')?.innerHTML;
+	// 	const scriptContent = doc.querySelector('script')?.textContent;
+	// 	if (!template || !scriptContent) {
+	// 		throw new Error('在 c-input.html 中未找到模板或脚本');
+	// 	}
+	// 	const componentDefinition = new Function(`${scriptContent}; return CInput;`)();
+	// 	return {...componentDefinition, template};
+	// });
 
 	const app = createApp({
 		setup() {
@@ -95,13 +91,16 @@
 		}
 	});
 
-	app.component('c-input', CInput);
+	// app.component('c-input', CInput);
 	app.component('Button', PrimeVue.Button);
 	app.component('Textarea', PrimeVue.Textarea);
 
 	app.use(PrimeVue.Config, {
 		theme: {preset: PrimeUIX.Themes.Aura}
 	});
+	if(CInputPlugin){
+		app.use(CInputPlugin);
+	}
 
 	app.mount('#app');
 	document.getElementById('app').removeAttribute('v-cloak');
