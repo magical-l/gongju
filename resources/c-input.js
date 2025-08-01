@@ -20,7 +20,9 @@ const CInput = {
 			<span :title="isUnderManual ? '切换到自动' : '切换到手动'" v-if="showToggleButton"
 						class="resize-mode-toggle" @click="toggleResizeMode"
 						aria-label="isUnderManual ? '切换到自动' : '切换到手动'" role="button" tabindex="0">
-						{{ isUnderManual ? '🔒' : '🔄' }}
+				<i class="left pi pi-arrows-v">
+					<i class="right pi" :class="isUnderManual?'pi-lock':'pi-lock-open'"></i>
+				</i>
 			</span>
 		</div>
 	`,
@@ -258,7 +260,7 @@ const cInputStyles = `
 	min-height: 2.5rem;
 }
 
-.textarea-inner-container {
+.c-input-container .textarea-inner-container {
 	position: relative;
 	width: 100%;
 	max-width: 100%;
@@ -278,37 +280,6 @@ const cInputStyles = `
 	max-height: 100%;
 	height: 100%;
 	padding-right: 70px; /* 为按钮留出空间 */
-}
-
-/* 内容操作按钮 */
-.textarea-buttons {
-	position: absolute;
-	top: 0.5rem;
-	right: 2.5rem;
-	display: flex;
-	gap: 5px;
-}
-
-.reset-button, .clear-button {
-	background: rgba(255, 255, 255, 0.7);
-	border: none;
-	border-radius: 3px;
-	width: 24px;
-	height: 24px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	cursor: pointer;
-	font-size: 1.1rem;
-}
-
-.reset-button:hover, .clear-button:hover {
-	background: #f0f0f0;
-}
-
-.clear-button:disabled {
-	opacity: 0.5;
-	cursor: not-allowed;
 }
 
 .c-input-container.resizing .p-textarea {
@@ -333,7 +304,38 @@ const cInputStyles = `
 	width: auto !important;
 }
 
-.resize-mode-toggle {
+/* 内容操作按钮 */
+.c-input-container .textarea-buttons {
+	position: absolute;
+	top: 0.5rem;
+	right: 2.5rem;
+	display: flex;
+	gap: 5px;
+}
+
+.c-input-container .reset-button,.c-input-container .clear-button {
+	background: rgba(255, 255, 255, 0.7);
+	border: none;
+	border-radius: 3px;
+	width: 24px;
+	height: 24px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	font-size: 1.1rem;
+}
+
+.c-input-container .reset-button:hover,.c-input-container .clear-button:hover {
+	background: #f0f0f0;
+}
+
+.c-input-container .clear-button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.c-input-container .resize-mode-toggle {
 	position: absolute;
 	top: 0.5rem;
 	right: 0.5rem;
@@ -341,7 +343,7 @@ const cInputStyles = `
 	font-size: 1.1rem;
 	background: rgba(255, 255, 255, 0.7);
 	border-radius: 3px;
-	width: 24px;
+	width: 28px;
 	height: 24px;
 	display: flex;
 	align-items: center;
@@ -349,8 +351,15 @@ const cInputStyles = `
 	z-index: 10;
 }
 
-.resize-mode-toggle:hover {
+.c-input-container .resize-mode-toggle:hover {
 	background: #f0f0f0;
+}
+.c-input-container .resize-mode-toggle i.left{
+	font-size: 1.2rem;
+}
+.c-input-container .resize-mode-toggle i.right{
+	font-size: 0.7em;
+	margin-left:-8px;
 }
 `;
 
