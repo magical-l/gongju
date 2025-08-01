@@ -1,9 +1,9 @@
-// 定义C-Input组件
 const CInput = {
 	name: 'CInput',
 	template: `
 		<div class="c-input-container" :class="{'resizing': isDragging}" ref="container">
-			<p-textarea v-model="internalValue" ref="textarea"
+			<div class="textarea-inner-container">
+				<p-textarea v-model="internalValue" ref="textarea"
 									:placeholder="placeholder"
 									:size="size" :variant="variant" :disabled="disabled"
 									:invalid="invalid"
@@ -11,7 +11,12 @@ const CInput = {
 									:class="{'manual-resize': hasBeenResized}"
 									:style="textareaStyle"
 									@mousedown="onMouseDown">
-			</p-textarea>
+				</p-textarea>
+				<div class="textarea-buttons">
+					<button title="重置到初始内容" class="reset-button" v-if="showResetButton" @click="resetContent">↺</button>
+					<button title="清空内容" class="clear-button" :disabled="isContentEmpty" @click="clearContent">×</button>
+				</div>
+			</div>
 			<span :title="isUnderManual ? '切换到自动' : '切换到手动'" v-if="showToggleButton"
 						class="resize-mode-toggle" @click="toggleResizeMode"
 						aria-label="isUnderManual ? '切换到自动' : '切换到手动'" role="button" tabindex="0">
@@ -36,13 +41,17 @@ const CInput = {
 		invalid: {type: Boolean, default: false},
 		//html原生
 		placeholder: {type: String, default: ''},
-		disabled: {type: Boolean, default: false}
+		disabled: {type: Boolean, default: false},
+		//初始内容
+		initialContent: {type: [String, Number], default: ''}
 	},
 	data() {
 		return {
 			isDragging: false,
 			manualHeight: null,
-			hasBeenResized: false
+			hasBeenResized: false,
+			// 存储初始内容副本
+			initialValue: this.modelValue || ''
 		};
 	},
 	emits: ['update:modelValue'],
@@ -80,6 +89,12 @@ const CInput = {
 		},
 		canManualResize() {
 			return this.resizable === 'manual' || this.resizable === 'yes';
+		},
+		showResetButton() {
+			return this.initialValue !== '';
+		},
+		isContentEmpty() {
+			return this.internalValue === '';
 		}
 	},
 	methods: {
@@ -145,8 +160,7 @@ const CInput = {
 					container.style.maxHeight = height;
 					container.style.minHeight = height;
 					container.style.height = height;
-					// 存储尺寸用于样式计算 todo：可能不需要了
-					this.manualWidth = newWidth;
+					// 存储尺寸用于样式计算
 					this.manualHeight = newHeight;
 				}
 			};
@@ -170,15 +184,10 @@ const CInput = {
 			this.hasBeenResized = !this.hasBeenResized;
 			if (!this.hasBeenResized) {
 				this.manualHeight = null;
-				this.manualWidth = null;
 				// 清除内联样式，让容器可以自动调整
 				const container = this.getContainerDom();
 				if (container) {
-					container.style.minWidth = '';
-					container.style.maxWidth = '';
 					container.style.width = '';
-					container.style.minHeight = '';
-					container.style.maxHeight = '';
 					container.style.height = '';
 				}
 			}
@@ -186,6 +195,12 @@ const CInput = {
 		isInResizingRegion(event) {
 			const el = event.target;
 			return event.offsetY > el.clientHeight - 16 && event.offsetX > el.clientWidth - 16;
+		},
+		clearContent() {
+			this.internalValue = '';
+		},
+		resetContent() {
+			this.internalValue = this.initialValue;
 		}
 	},
 	watch: {
@@ -203,6 +218,10 @@ const CInput = {
 					}
 				});
 			}
+		},
+		// 监听initialContent变化
+		initialContent(newValue) {
+			this.initialValue = newValue;
 		}
 	}
 };
@@ -218,21 +237,56 @@ const cInputStyles = `
 	min-height: 2.5rem;
 }
 
+.textarea-inner-container {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
 .c-input-container .p-textarea {
 	position: relative;
 	box-sizing: border-box;
 	width: calc(100% - 36px);
-	min-height: 2.5em;
-	max-height: 100%;
 	height: 100%;
-	transition: height 0.2s ease, width 0.2s ease; /* 添加平滑过渡 */
+	min-height: 2.5em;
+	padding-right: 70px; /* 为按钮留出空间 */
+}
+
+/* 内容操作按钮 */
+.textarea-buttons {
+	position: absolute;
+	top: 0.5rem;
+	right: 2.5rem;
+	display: flex;
+	gap: 5px;
+}
+
+.reset-button, .clear-button {
+	background: rgba(255, 255, 255, 0.7);
+	border: none;
+	border-radius: 3px;
+	width: 24px;
+	height: 24px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	font-size: 1.1rem;
+}
+
+.reset-button:hover, .clear-button:hover {
+	background: #f0f0f0;
+}
+
+.clear-button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
 }
 
 .c-input-container.resizing .p-textarea {
 	overflow: hidden !important;
 	pointer-events: none !important;
 	transition: none !important;
-	
 	min-height: 100% !important;
 	max-height: 100% !important;
 	height: 100% !important;
@@ -265,6 +319,10 @@ const cInputStyles = `
 	align-items: center;
 	justify-content: center;
 	z-index: 10;
+}
+
+.resize-mode-toggle:hover {
+	background: #f0f0f0;
 }
 `;
 
