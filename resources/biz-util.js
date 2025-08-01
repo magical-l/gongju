@@ -109,7 +109,7 @@ const showItems = option => {
 	});
 };
 $(() => {
-	$('textarea.auto-height ').on('input propertychange', e => {
+	$('textarea.auto-height').on('input propertychange', e => {
 		const textarea = $(e.currentTarget);
 		if (textarea.val()) {
 			const area = textarea.parentsUntil('.source.area').parent();

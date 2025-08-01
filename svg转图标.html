@@ -42,10 +42,9 @@
 <main>
 	<header>
 		<h2>SVG转图片</h2>
-		<button class="toggle-description" onclick="toggleDescription()">查看说明</button>
+		<button id="toggle-description" class="toggle-description">隐藏说明</button>
 	</header>
 	<article class="description" style="display: none;">
-		<h2>关于SVG转图片</h2>
 		<p>
 			“SVG转图片”是一个便捷的在线应用，允许用户将SVG（可缩放矢量图形）代码快速转换为多种标准尺寸的PNG格式图标。对于需要在网站、移动应用或桌面程序中使用统一图标的开发者和设计师来说，这是一个非常高效的工具。</p>
 		<h2>核心功能</h2>
@@ -95,6 +94,28 @@
 	<script src="resources/biz-util.js"></script>
 </div>
 <script>
+  (function() {
+    const description = document.querySelector('.description');
+    const toggleButton = document.getElementById('toggle-description');
+    const storageKey = 'description-hidden-' + window.location.pathname;
+
+    if (localStorage.getItem(storageKey)) {
+      description.style.display = 'none';
+      toggleButton.textContent = '显示说明';
+    }
+
+    toggleButton.addEventListener('click', function() {
+      if (description.style.display === 'none') {
+        description.style.display = 'block';
+        toggleButton.textContent = '隐藏说明';
+        localStorage.removeItem(storageKey);
+      } else {
+        description.style.display = 'none';
+        toggleButton.textContent = '显示说明';
+        localStorage.setItem(storageKey, 'true');
+      }
+    });
+  })();
 	const {createApp} = Vue;
 
 	function download(svgDom, size) {
