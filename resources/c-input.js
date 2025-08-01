@@ -17,13 +17,13 @@ const CInput = {
 					<button title="清空内容" class="clear-button" :disabled="isContentEmpty" @click="clearContent">×</button>
 				</div>
 			</div>
-			<span :title="isUnderManual ? '切换到自动' : '切换到手动'" v-if="showToggleButton"
+			<button :title="isUnderManual ? '切换到自动' : '切换到手动'" v-if="showToggleButton"
 						class="resize-mode-toggle" @click="toggleResizeMode"
 						aria-label="isUnderManual ? '切换到自动' : '切换到手动'" role="button" tabindex="0">
 				<i class="left pi pi-arrows-v">
 					<i class="right pi" :class="isUnderManual?'pi-lock':'pi-lock-open'"></i>
 				</i>
-			</span>
+			</button>
 		</div>
 	`,
 	components: {
@@ -262,12 +262,12 @@ const cInputStyles = `
 
 .c-input-container .textarea-inner-container {
 	position: relative;
-	width: 100%;
 	max-width: 100%;
 	min-width: 100%;
-	height: 100%;
+	width: 100%;
 	max-height: 100%;
 	min-height: 100%;
+	height: 100%;
 }
 
 .c-input-container .p-textarea {
@@ -284,14 +284,14 @@ const cInputStyles = `
 
 .c-input-container.resizing .p-textarea {
 	overflow: hidden !important;
-	pointer-events: none !important;
-	transition: none !important;
 	min-height: 100% !important;
 	max-height: 100% !important;
 	height: 100% !important;
 	min-width: 32px !important;
 	max-width: calc(100% - 36px) !important;
 	width: calc(100% - 36px) !important;
+	pointer-events: none !important;
+	transition: none !important;
 }
 
 /* 手动模式下的文本域样式 */
@@ -314,16 +314,16 @@ const cInputStyles = `
 }
 
 .c-input-container .reset-button,.c-input-container .clear-button {
-	background: rgba(255, 255, 255, 0.7);
 	border: none;
 	border-radius: 3px;
 	width: 24px;
 	height: 24px;
+	background: rgba(255, 255, 255, 0.7);
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	cursor: pointer;
 	font-size: 1.1rem;
+	cursor: pointer;
 }
 
 .c-input-container .reset-button:hover,.c-input-container .clear-button:hover {
@@ -339,16 +339,18 @@ const cInputStyles = `
 	position: absolute;
 	top: 0.5rem;
 	right: 0.5rem;
-	cursor: pointer;
-	font-size: 1.1rem;
-	background: rgba(255, 255, 255, 0.7);
+	z-index: 10;
+	border: none;
 	border-radius: 3px;
+	padding:0;
 	width: 28px;
 	height: 24px;
+	background: rgba(255, 255, 255, 0.7);
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	z-index: 10;
+	font-size: 1.1rem;
+	cursor: pointer;
 }
 
 .c-input-container .resize-mode-toggle:hover {
