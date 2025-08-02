@@ -34,7 +34,8 @@
 <main>
 	<header>
 		<h2>文本格式转换工具</h2>
-		<button class="toggle-description" @click="toggleDescription">{{ descriptionVisible ? '隐藏说明' : '显示说明' }}</button>
+		<button class="toggle-description" @click="toggleDescription">{{ descriptionVisible ? '隐藏说明' : '显示说明' }}
+		</button>
 	</header>
 	<article class="description" v-if="descriptionVisible">
 		<p>
@@ -94,7 +95,7 @@
 	</div>
 	<div>
 		<p>&copy; 2025 工具兽版权所有 All rights reserved.</p>
-		<p>反馈或建议请联系：<a href="mailto:lwj621@sohu.com">lwj621@sohu.com</a></p>
+		<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
 	</div>
 </footer>
 <div>
@@ -265,7 +266,7 @@
 			return {
 				inputText: '',
 				results,
-				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname),
+				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname)
 			};
 		},
 		methods: {
@@ -325,6 +326,20 @@
 		}
 	})
 	.mount('main');
+</script>
+
+<!-- 谷歌广告联盟 -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"
+				crossorigin="anonymous"></script>
+<!-- 展示广告1 -->
+<ins class="adsbygoogle"
+		 style="display:block"
+		 data-ad-client="ca-pub-3376778290975789"
+		 data-ad-slot="7434043904"
+		 data-ad-format="auto"
+		 data-full-width-responsive="true"></ins>
+<script>
+	(adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 </body>
 </html>
