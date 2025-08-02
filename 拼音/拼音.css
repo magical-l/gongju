@@ -1,12 +1,39 @@
+button.声母 {
+	--p-button-primary-background: #a5d6a7;
+	--p-button-primary-color: #37474f;
+	--p-button-primary-hover-background: #81c784;
+	--p-button-primary-hover-color: #37474f;
+}
+
+button.韵母 {
+	--p-button-primary-background: #90caf9;
+	--p-button-primary-color: #37474f;
+	--p-button-primary-hover-background: #64b5f6;
+	--p-button-primary-hover-color: #37474f;
+}
+
+button.声调 {
+	--p-button-primary-background: #ffcc80;
+	--p-button-primary-color: #37474f;
+	--p-button-primary-hover-background: #ffb74d;
+	--p-button-primary-hover-color: #37474f;
+}
+
+button.非正规.声母 {
+	--p-button-primary-background: #c8e6c9;
+	--p-button-primary-hover-background: #a5d6a7;
+}
+
+button.非正规.韵母 {
+	--p-button-primary-background: #bbdefb;
+	--p-button-primary-hover-background: #90caf9;
+}
+
 .标声调的字母 {
 	color: #E91E63;
 }
 
 .声调 .sign {
+	font-size: 1.5rem;
 	color: #E91E63;
-	font-size: 2em;
-	margin: 10px 0;
-	display: flex;
-	justify-content: center;
-	align-items: center;
 }

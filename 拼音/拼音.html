@@ -4,8 +4,9 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>汉语拼音学习工具 - 在线声母韵母组合练习</title>
-	<meta name="description" content="一个在线的汉语拼音学习和练习工具，通过可视化的方式展示声母、韵母和声调的组合规则，帮助用户更好地掌握汉语拼音。">
-    <meta name="keywords" content="汉语拼音, 拼音学习, 声母, 韵母, 声调, 在线工具, pinyin">
+	<meta name="description"
+				content="一个在线的汉语拼音学习和练习工具，通过可视化的方式展示声母、韵母和声调的组合规则，帮助用户更好地掌握汉语拼音。">
+	<meta name="keywords" content="汉语拼音, 拼音学习, 声母, 韵母, 声调, 在线工具, pinyin">
 	<link rel="stylesheet" href="https://unpkg.com/primeicons/primeicons.css">
 	<link rel="stylesheet" href="../resources/style.css?v=250801">
 	<link rel="stylesheet" href="拼音.css">
@@ -29,37 +30,6 @@
 			left: 50%;
 			transform: translateX(-50%);
 			white-space: nowrap;
-		}
-
-		button.one.声母 {
-			--p-button-primary-background: #a5d6a7;
-			--p-button-primary-color: #37474f;
-			--p-button-primary-hover-background: #81c784;
-			--p-button-primary-hover-color: #37474f;
-		}
-
-		button.one.韵母 {
-			--p-button-primary-background: #90caf9;
-			--p-button-primary-color: #37474f;
-			--p-button-primary-hover-background: #64b5f6;
-			--p-button-primary-hover-color: #37474f;
-		}
-
-		button.one.声调 {
-			--p-button-primary-background: #ffcc80;
-			--p-button-primary-color: #37474f;
-			--p-button-primary-hover-background: #ffb74d;
-			--p-button-primary-hover-color: #37474f;
-		}
-
-		button.非正规.声母 {
-			--p-button-primary-background: #c8e6c9;
-			--p-button-primary-hover-background: #a5d6a7;
-		}
-
-		button.非正规.韵母 {
-			--p-button-primary-background: #bbdefb;
-			--p-button-primary-hover-background: #90caf9;
 		}
 
 		.音节 .显示 {
@@ -143,16 +113,6 @@
 			flex-direction: column;
 			gap: 8px;
 		}
-
-		.声调 .sign {
-			font-size: 24px;
-			line-height: 1;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			height: 100%;
-			width: 100%;
-		}
 	</style>
 </head>
 <body>
@@ -169,14 +129,17 @@
 <main>
 	<header>
 		<h2>汉语拼音学习工具</h2>
-		<button class="toggle-description" @click="toggleDescription">{{ descriptionVisible ? '隐藏说明' : '显示说明' }}</button>
+		<button class="toggle-description" @click="toggleDescription">{{ descriptionVisible ? '隐藏说明' : '显示说明' }}
+		</button>
 	</header>
 	<article class="description" v-if="descriptionVisible">
-		<p>“汉语拼音学习工具”是一个为汉语学习者设计的互动在线应用。它通过一个直观的界面，帮助用户理解和练习汉语拼音中声母、韵母和声调的组合规则。无论您是初学者还是希望巩固拼音知识，这个工具都能为您提供有效的帮助。</p>
+		<p>
+			“汉语拼音学习工具”是一个为汉语学习者设计的互动在线应用。它通过一个直观的界面，帮助用户理解和练习汉语拼音中声母、韵母和声调的组合规则。无论您是初学者还是希望巩固拼音知识，这个工具都能为您提供有效的帮助。</p>
 		<h2>核心功能</h2>
 		<ul>
 			<li><strong>可视化拼写：</strong>用户可以通过点击虚拟键盘上的声母、韵母和声调，实时查看它们的组合结果。</li>
-			<li><strong>拼写规则验证：</strong>工具会根据内置的拼音规则，判断所选组合是否有效，并给出相应的提示（正确、错误或不完整）。</li>
+			<li><strong>拼写规则验证：</strong>工具会根据内置的拼音规则，判断所选组合是否有效，并给出相应的提示（正确、错误或不完整）。
+			</li>
 			<li><strong>详细信息展示：：</strong>对于生成的拼音，工具会显示其是否为卷舌音、前鼻音、后鼻音或整体认读音节。</li>
 		</ul>
 		<h2>适用人群</h2>
@@ -790,13 +753,13 @@
 				选声母,
 				选韵母,
 				选声调,
-				clear,
+				clear
 			};
 		},
 		data() {
 			return {
 				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname)
-			}
+			};
 		},
 		methods: {
 			toggleDescription() {
