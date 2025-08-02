@@ -59,7 +59,7 @@ body > header nav a.active {
 	border-bottom-color: #007bff;
 }
 
-body > footer {
+aside > footer {
 	background-color: #f8f9fa;
 	color: #6c757d;
 	text-align: center;
@@ -71,7 +71,7 @@ body > footer {
 	gap: 1.5rem;
 }
 
-body > footer .qr-code {
+aside > footer .qr-code {
 	width: 120px;
 	background-color: #e9ecef;
 	display: flex;
@@ -83,38 +83,60 @@ body > footer .qr-code {
 	border-radius: 4px;
 }
 
-body > footer .qr-code img {
+aside > footer .qr-code img {
 	max-width: 100%;
 	height: auto;
 	margin-bottom: 5px;
 }
 
-body > footer .qr-code span {
+aside > footer .qr-code span {
 	font-size: 0.75rem;
 	color: #333;
 }
 
-body > footer p {
+aside > footer p {
 	margin-bottom: 0.5rem;
 }
 
-body > footer a {
+aside > footer a {
 	color: #007bff;
 	text-decoration: none;
 }
 
-body > footer a:hover {
+aside > footer a:hover {
 	text-decoration: underline;
+}
+
+.container {
+	display: flex;
+	flex: 1;
+	gap: 1.5rem;
+	padding: 1.5rem;
 }
 
 main {
 	flex: 1;
 	width: 100%;
-	margin: 0 auto;
+	margin: 0;
 	padding: 1.5rem;
 	background-color: #fff;
 	border-radius: 8px;
 	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+aside {
+	width: 300px;
+	flex-shrink: 0;
+}
+
+@media (max-width: 1024px) {
+	.container {
+		flex-direction: column;
+	}
+
+	aside {
+		width: 100%;
+	}
 }
 
 main > header {
@@ -193,7 +215,7 @@ button {
 	flex-basis: 100%;
 	flex: 4;
 	display: grid;
-	grid-template-columns: repeat(3, 1fr);
+	grid-template-columns: repeat(2, 1fr);
 	align-items: start;
 	gap: 1rem;
 }

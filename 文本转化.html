@@ -31,73 +31,90 @@
 		<a href="拼音/拼音.html">拼音</a>
 	</nav>
 </header>
-<main>
-	<header>
-		<h2>文本格式转换工具</h2>
-		<button class="toggle-description" @click="toggleDescription">{{ descriptionVisible ? '隐藏说明' : '显示说明' }}
-		</button>
-	</header>
-	<article class="description" v-if="descriptionVisible">
-		<p>
-			“文本格式转换工具”是一个强大而实用的在线服务，专为需要对文本进行各种编码、解码和加密操作的用户设计。无论您是开发人员、数据分析师，还是普通用户，这个工具都能满足您在文本处理方面的多样化需求。</p>
-		<h2>核心功能</h2>
-		<ul>
-			<li><strong>MD5加密：</strong>快速生成文本的MD5哈希值，常用于数据校验和密码存储。</li>
-			<li><strong>Base64编码/解码：</strong>支持文本与Base64格式之间的相互转换，广泛应用于网络数据传输和二进制数据表示。
-			</li>
-			<li><strong>URI编码/解码：</strong>提供对URL中的特殊字符进行编码和解码的功能，确保URL的正确性和可读性。</li>
-			<li><strong>URI参数编码/解码：</strong>专门针对URL查询参数中的字符进行更严格的编码和解码。</li>
-		</ul>
-		<h2>适用场景</h2>
-		<p><strong>Web开发：</strong>在处理URL、API请求或用户输入时，经常需要进行URI编码和解码，以避免安全漏洞和解析错误。</p>
-		<p><strong>数据传输：</strong>当需要在网络上传输二进制数据（如图片、文件）时，通常会先将其进行Base64编码，以文本形式安全传输。
-		</p>
-		<p><strong>信息安全：</strong>MD5哈希算法可用于验证文件完整性，确保文件在传输过程中未被篡改。</p>
-	</article>
-	<section class="input area">
-		<p-textarea placeholder="在此输入要处理的文本" rows="5" autoResize
-								:class="descriptionVisible?'border-pulse':''"
-								v-model="inputText" @input="processInput"></p-textarea>
-	</section>
-
-	<section class="transfer result area">
+<div class="container">
+	<main>
 		<header>
-			点击文本即可复制
+			<h2>文本格式转换工具</h2>
+			<button class="toggle-description" @click="toggleDescription">{{ descriptionVisible ? '隐藏说明' : '显示说明' }}
+			</button>
 		</header>
-		<card class="one result" @click="copyToClipboard(result.value)" v-for="(result,label) in results" :key="label">
-			<template #title>
-				<header>
-					<span>{{ label }}</span>
-					<span>
-						<choose-group class="chooser" v-for="(setting,settingName) in result.settings" :key="settingName"
-													v-model="setting.val" :options="setting.options"
-													@click.stop @change="updateResult(result, inputText)"/>
-					</span>
-				</header>
-			</template>
-			<template #content>
-				<article title="点击复制" v-if="result.value">
-					<span class="value text-maybe-too-long">{{result.value}}</span>
-					<p-button title="把此结果作为输入" aria-label="把此结果作为输入" @click.stop="asInput(result.value)"
-										variant="outlined" serverity="info">
-						<i class="pi pi-upload"></i>
-					</p-button>
-				</article>
-				<div v-else class="placeholder">（等待输入）</div>
-			</template>
-		</card>
-	</section>
-</main>
-<footer>
-	<div class="qr-code">
-		<img src="resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
-		<span>赞助一下</span>
-	</div>
-	<div>
-		<p>&copy; 2025 工具兽版权所有 All rights reserved.</p>
-		<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
-	</div>
-</footer>
+		<article class="description" v-if="descriptionVisible">
+			<p>
+				“文本格式转换工具”是一个强大而实用的在线服务，专为需要对文本进行各种编码、解码和加密操作的用户设计。无论您是开发人员、数据分析师，还是普通用户，这个工具都能满足您在文本处理方面的多样化需求。</p>
+			<h2>核心功能</h2>
+			<ul>
+				<li><strong>MD5加密：</strong>快速生成文本的MD5哈希值，常用于数据校验和密码存储。</li>
+				<li><strong>Base64编码/解码：</strong>支持文本与Base64格式之间的相互转换，广泛应用于网络数据传输和二进制数据表示。
+				</li>
+				<li><strong>URI编码/解码：</strong>提供对URL中的特殊字符进行编码和解码的功能，确保URL的正确性和可读性。</li>
+				<li><strong>URI参数编码/解码：</strong>专门针对URL查询参数中的字符进行更严格的编码和解码。</li>
+			</ul>
+			<h2>适用场景</h2>
+			<p><strong>Web开发：</strong>在处理URL、API请求或用户输入时，经常需要进行URI编码和解码，以避免安全漏洞和解析错误。</p>
+			<p><strong>数据传输：</strong>当需要在网络上传输二进制数据（如图片、文件）时，通常会先将其进行Base64编码，以文本形式安全传输。
+			</p>
+			<p><strong>信息安全：</strong>MD5哈希算法可用于验证文件完整性，确保文件在传输过程中未被篡改。</p>
+		</article>
+		<section class="input area">
+			<p-textarea placeholder="在此输入要处理的文本" rows="5" autoResize
+									:class="descriptionVisible?'border-pulse':''"
+									v-model="inputText" @input="processInput"></p-textarea>
+		</section>
+
+		<section class="transfer result area">
+			<header>
+				点击文本即可复制
+			</header>
+			<card class="one result" @click="copyToClipboard(result.value)" v-for="(result,label) in results" :key="label">
+				<template #title>
+					<header>
+						<span>{{ label }}</span>
+						<span>
+							<choose-group class="chooser" v-for="(setting,settingName) in result.settings" :key="settingName"
+														v-model="setting.val" :options="setting.options"
+														@click.stop @change="updateResult(result, inputText)"/>
+						</span>
+					</header>
+				</template>
+				<template #content>
+					<article title="点击复制" v-if="result.value">
+						<span class="value text-maybe-too-long">{{result.value}}</span>
+						<p-button title="把此结果作为输入" aria-label="把此结果作为输入" @click.stop="asInput(result.value)"
+											variant="outlined" serverity="info">
+							<i class="pi pi-upload"></i>
+						</p-button>
+					</article>
+					<div v-else class="placeholder">（等待输入）</div>
+				</template>
+			</card>
+		</section>
+	</main>
+	<aside>
+		<!-- 谷歌广告联盟 -->
+		<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"
+						crossorigin="anonymous"></script>
+		<!-- 展示广告1 -->
+		<ins class="adsbygoogle"
+				 style="display:block"
+				 data-ad-client="ca-pub-3376778290975789"
+				 data-ad-slot="7434043904"
+				 data-ad-format="auto"
+				 data-full-width-responsive="true"></ins>
+		<script>
+			(adsbygoogle = window.adsbygoogle || []).push({});
+		</script>
+		<footer>
+			<div class="qr-code">
+				<img src="resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+				<span>赞助一下</span>
+			</div>
+			<div>
+				<p>&copy; 2025 工具兽版权所有 All rights reserved.</p>
+				<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+			</div>
+		</footer>
+	</aside>
+</div>
 <div>
 	<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 	<script src="https://unpkg.com/primevue/umd/primevue.min.js"></script>
@@ -120,6 +137,10 @@
 		'MD5': {
 			value: '',
 			convert: md5
+		},
+		'sha1加密': {
+			value: '',
+			convert: sha1
 		},
 		'Base64编码': {
 			value: '',
@@ -230,10 +251,6 @@
 		'二进制解码': {
 			value: '',
 			convert: str => str.split(' ').map(bin => String.fromCharCode(parseInt(bin, 2))).join('').trim() || '（非二进制编码文本）'
-		},
-		'sha1加密': {
-			value: '',
-			convert: sha1
 		},
 		'gzip压缩': {
 			value: '',
