@@ -16,6 +16,7 @@
 
 	<link href="https://cdn.jsdelivr.net/npm/primeicons/primeicons.css" rel="stylesheet">
 	<link href="lib/toastr.min.css" rel="stylesheet">
+	<link href="resources/common.css?v=250802" rel="stylesheet">
 	<link href="resources/style.css?v=250801" rel="stylesheet">
 	<style>
 		.input.area {
@@ -92,7 +93,7 @@
 			</template>
 			<template #content>
 				<article title="点击复制" v-if="result.value">
-					<span class="value text-maybe-too-long">{{result.value}}</span>
+					<span class="value truncate-long-text">{{result.value}}</span>
 					<p-button title="把此结果作为输入" aria-label="把此结果作为输入" @click.stop="asInput(result.value)"
 										variant="outlined" serverity="info">
 						<i class="pi pi-upload"></i>
