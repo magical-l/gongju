@@ -29,16 +29,12 @@
 	display: block; /* 确保是块级元素 */
 }
 
-.resizable-x {
-	overflow: auto;
+.resizable.x {
 	resize: horizontal;
-	display: block;
 }
 
-.resizable-y {
-	overflow: auto;
+.resizable.y {
 	resize: vertical;
-	display: block;
 }
 
 .resizable-none {/* 用于禁用resize */
