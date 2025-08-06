@@ -1,48 +1,63 @@
 @charset "utf-8";
 
+:root {
+	--亚字形-left-sidebar-min-width: 150px;
+	--亚字形-left-sidebar-max-width: 20%;
+	--亚字形-right-sidebar-min-width: 150px;
+	--亚字形-right-sidebar-max-width: 20%;
+	--亚字形-gap: 1rem;
+	--叵字形-left-sidebar-min-width: 150px;
+	--叵字形-left-sidebar-max-width: 20%;
+	--叵字形-right-sidebar-min-width: 150px;
+	--叵字形-right-sidebar-max-width: 20%;
+	--叵字形-gap: 1rem;
+	--反叵字形-left-sidebar-min-width: 150px;
+	--反叵字形-left-sidebar-max-width: 20%;
+	--反叵字形-right-sidebar-min-width: 150px;
+	--反叵字形-right-sidebar-max-width: 20%;
+	--反叵字形-gap: 1rem;
+}
+
 body {
-	--left-sidebar-min-width: 150px;
-	--left-sidebar-max-width: 20%;
-	--right-sidebar-min-width: 150px;
-	--right-sidebar-max-width: 20%;
-	--gap: 1rem;
 	min-height: 100vh; /* 确保布局撑满视口高度 */
 	display: grid;
 	grid-template-rows:
 		auto    /* Header 高度自适应内容 */
 		1fr     /* 主内容区填充剩余垂直空间 */
 		auto; /* Footer 高度自适应 */
-	gap: var(--gap); /* 网格间隙 */
 }
 
 /* “亚字形”布局，上部导航栏，底部页脚，中间有左右侧栏，中部是主要内容 */
 body.亚字形 {
 	grid-template-columns:
-		minmax(var(--left-sidebar-min-width), var(--left-sidebar-max-width))   /* 左侧：最小150px，最大占20%宽度 */
+		minmax(var(--亚字形-left-sidebar-min-width), var(--亚字形-left-sidebar-max-width))   /* 左侧：最小150px，最大占20%宽度 */
 		1fr                  /* 中间：自适应剩余空间 */
-		minmax(var(--right-sidebar-min-width), var(--right-sidebar-max-width)); /* 右侧：同左侧 */
+		minmax(var(--亚字形-right-sidebar-min-width), var(--亚字形-right-sidebar-max-width)); /* 右侧：同左侧 */
 	grid-template-areas:
 		'header header header'
 		'left-sidebar main right-sidebar'
 		'footer footer footer';
+	gap: var(--亚字形-gap);
 }
 
 /* “叵字形”布局，上部导航栏，底部页脚，中间左侧栏宽度固定，右侧主要内容自适应 */
 body.叵字形 {
-	grid-template-columns: minmax(var(--left-sidebar-min-width), var(--left-sidebar-max-width)) 1fr;
+	grid-template-columns: minmax(var(--叵字形-left-sidebar-min-width), var(--叵字形-left-sidebar-max-width)) 1fr;
 	grid-template-areas:
 		'header header'
 		'left-sidebar main'
 		'footer footer';
+	gap: var(--叵字形-gap);
 }
 
 /* “反叵字形”布局，上部导航栏，底部页脚，中间右侧栏宽度固定，左侧主要内容自适应 */
 body.反叵字形 {
-	grid-template-columns: 1fr minmax(var(--right-sidebar-min-width), var(--right-sidebar-max-width));
+	grid-template-columns: 1fr minmax(var(--反叵字形-right-sidebar-min-width), var(--反叵字形-right-sidebar-max-width));
 	grid-template-areas:
 				'header header'
 				'main right-sidebar'
 				'footer footer';
+	gap: var(--反叵字形-gap);
 }
 
 body > header { grid-area: header; }
