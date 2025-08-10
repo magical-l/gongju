@@ -1,6 +1,3 @@
-
-
-
 String.prototype.capitalize = function () {
 	return this.length > 1 ? this.charAt(0).toUpperCase() + this.substr(1) : this;
 };
