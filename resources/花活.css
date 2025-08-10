@@ -1,0 +1,60 @@
+@charset "utf-8";
+
+:root {
+	--taiji-yin-color:#000; /* 阴鱼颜色，必须全不透明 */
+	--taiji-yang-color:#fff; /* 阳鱼颜色，必须全不透明 */
+}
+.taiji {
+	position: relative;
+}
+.taiji::before {
+	content:'';
+	position: absolute;
+	z-index:-1;
+	display: block;
+	width: 100%;
+	height: 100%;
+	border-radius: 50%; /* 靠边框围成圆形 */
+	background:
+		/* 阴鱼头，在上 */
+		radial-gradient(circle closest-side at 50% 25%,
+			var(--taiji-yang-color) 0%,
+			var(--taiji-yang-color) 25%,
+			var(--taiji-yin-color) 25%,
+			var(--taiji-yin-color) 100%,
+			transparent 100%),
+		/* 阳鱼头，在下 */
+		radial-gradient(circle closest-side at 50% 75%,
+			var(--taiji-yin-color) 0%,
+			var(--taiji-yin-color) 25%,
+			var(--taiji-yang-color) 25%,
+			var(--taiji-yang-color) 100%,
+			transparent 100%),
+		/* 左阴右阳 */
+		linear-gradient(to right, var(--taiji-yin-color) 50%, var(--taiji-yang-color) 50%);
+}
+
+/* 脉动动画 */
+:root {
+	--border-pulse-color: #3498db;
+	--color-pulse-color: #3498db;
+}
+@keyframes box-shadow-pulse {
+	0% { box-shadow: 0 0 0 0 var(--border-pulse-color); }
+	70% { box-shadow: 0 0 0 10px color-mix(in srgb, var(--border-pulse-color) 0%, transparent) }
+	100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--border-pulse-color) 0%, transparent); }
+}
+.border-pulse {
+	border-color: var(--border-pulse-color);
+	animation: box-shadow-pulse 2s infinite;
+}
+
+@keyframes color-pulse {
+	0% { color: var(--color-pulse-color); }
+	50% { color: color-mix(in srgb, var(--color-pulse-color) 0%, transparent) }
+	100% { color: var(--color-pulse-color); }
+}
+.color-pulse {
+	color: var(--color-pulse-color);
+	animation: color-pulse 2s infinite;
+}

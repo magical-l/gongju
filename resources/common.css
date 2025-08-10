@@ -82,28 +82,3 @@ nav.sticky {
 	border-color: #3498db;
 	box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.25);
 }
-
-/* 脉动动画 */
-@keyframes box-shadow-pulse {
-	0% { box-shadow: 0 0 0 0 var(--border-pulse-color); }
-	70% { box-shadow: 0 0 0 10px color-mix(in srgb, var(--border-pulse-color) 0%, transparent) }
-	100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--border-pulse-color) 0%, transparent); }
-}
-
-.border-pulse {
-	--border-pulse-color: #3498db; /* 默认脉冲颜色，可覆盖此变量 */
-	border-color: var(--border-pulse-color);
-	animation: box-shadow-pulse 2s infinite;
-}
-
-@keyframes color-pulse {
-	0% { color: var(--color-pulse-color); }
-	50% { color: color-mix(in srgb, var(--color-pulse-color) 0%, transparent) }
-	100% { color: var(--color-pulse-color); }
-}
-
-.color-pulse {
-	--color-pulse-color: #3498db; /* 默认脉冲颜色，可覆盖此变量 */
-	color: var(--color-pulse-color);
-	animation: color-pulse 2s infinite;
-}
