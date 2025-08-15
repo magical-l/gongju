@@ -16,6 +16,7 @@
 	--反叵字形-right-sidebar-min-width: 150px;
 	--反叵字形-right-sidebar-max-width: 20%;
 	--反叵字形-gap: 1rem;
+	--目字形-gap: 1rem;
 }
 
 body {
@@ -58,6 +59,16 @@ body.反叵字形 {
 				'main right-sidebar'
 				'footer footer';
 	gap: var(--反叵字形-gap);
+}
+
+/* “目字形”布局，上部导航栏，底部页脚 */
+body.目字形 {
+	grid-template-columns: 1fr;
+	grid-template-areas:
+		'header'
+		'main'
+		'footer';
+	gap: var(--目字形-gap);
 }
 
 body > header { grid-area: header; }
