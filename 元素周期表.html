@@ -86,12 +86,12 @@
 			justify-content: end;
 		}
 
-		.half-width #镧, .half-width #锕 {
-			clip-path: polygon(0% 100%, 100% 100%, 100% 40%, 50% 20%, 0% 40%);
-		}
-
 		.half-width .镧系 .element.info, .half-width .锕系 .element.info {
 			height: 50%; /* 否则占不满一行的格子 */
+		}
+
+		.half-width #镧, .half-width #锕 {
+			clip-path: polygon(0% 100%, 100% 100%, 100% 40%, 50% 20%, 0% 40%);
 		}
 
 		.碱金属.element { background-color: #ffadad; }
@@ -112,32 +112,7 @@
 
 		.稀有气体.element { background-color: #f1f1f1; }
 
-		.element > footer {
-			display: flex;
-			justify-content: flex-end;
-			align-items: center;
-			gap: 4px;
-			padding: 0 4px 2px;
-			height: 16px;
-		}
-
-		.element > footer > i {
-			font-style: normal;
-			font-size: 12px;
-			line-height: 1;
-		}
-
 		.dangerous { color: #d32f2f; }
-
-		.half-width .element > footer {
-			justify-content: space-around; /* 分散对齐图标 */
-			align-items: center;
-			height: 24px; /* 增加页脚高度 */
-		}
-
-		.half-width .element > footer > i {
-			font-size: 18px;
-		}
 
 		.element.info {
 			display: flex;
@@ -154,13 +129,32 @@
 			padding: 0;
 		}
 
-		.element > footer > i[title="铁磁性"] {
-			font-size: 0.9em;
+		.element > footer {
+			display: flex;
+			justify-content: flex-end;
+			align-items: center;
+			gap: 4px;
+			padding: 0 4px 2px;
+			height: 16px;
 		}
 
-		.element > footer > i[title="稀土元素"] {
-			font-size: 1em;
+		.element > footer > i {
+			font-style: normal;
+			font-size: 12px;
+			line-height: 1;
 		}
+
+		.element > footer > i[title='铁磁性'] {font-size: 0.9em;}
+
+		.element > footer > i[title='稀土元素'] {font-size: 1em;}
+
+		.half-width .element > footer {
+			justify-content: space-around; /* 分散对齐图标 */
+			align-items: center;
+			height: 24px; /* 增加页脚高度 */
+		}
+
+		.half-width .element > footer > i {font-size: 18px;}
 	</style>
 </head>
 <body class="目字形">
@@ -184,12 +178,12 @@
 				</header>
 				<p class="element name">{{element.name}}</p>
 				<footer>
-				<i v-if="element.tags.includes('放射性元素')" title="放射性元素" class="dangerous">☢</i>
-				<i v-if="element.tags.includes('铁磁性')" title="铁磁性">🧲</i>
-				<i v-if="element.tags.includes('人造元素')" title="人造元素">🧪</i>
-				<i v-if="element.tags.includes('稀土元素')" title="稀土元素">💎</i>
-				<i v-if="element.tags.includes('贵金属')" title="贵金属">💰</i>
-			</footer>
+					<i v-if="element.tags.includes('放射性元素')" title="放射性元素" class="dangerous">☢</i>
+					<i v-if="element.tags.includes('铁磁性')" title="铁磁性">🧲</i>
+					<i v-if="element.tags.includes('人造元素')" title="人造元素">🧪</i>
+					<i v-if="element.tags.includes('稀土元素')" title="稀土元素">💎</i>
+					<i v-if="element.tags.includes('贵金属')" title="贵金属">💰</i>
+				</footer>
 			</div>
 		</section>
 	</article>
