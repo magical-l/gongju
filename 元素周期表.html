@@ -174,13 +174,7 @@
 		{id: 14, symbol: "Si", name: "硅", 熔点: "1414", 沸点: "3265", period: 3, col: -5, tags: ['类金属', '碳族元素']},
 		{id: 15, symbol: "P", name: "磷", 熔点: "44.1", 沸点: "281", period: 3, col: -4, tags: ['活泼非金属', '氮族元素']},
 		{
-			id: 16,
-			symbol: "S",
-			name: "硫",
-			熔点: "115.2",
-			沸点: "444.6",
-			period: 3,
-			col: -3,
+			id: 16, symbol: "S", name: "硫", 熔点: "115.2", 沸点: "444.6", period: 3, col: -3,
 			tags: ['活泼非金属', '氧族元素']
 		},
 		{id: 17, symbol: "Cl", name: "氯", 熔点: "-101.5", 沸点: "-34", period: 3, col: -2, tags: ['活泼非金属', '卤素']},
@@ -210,13 +204,7 @@
 		{id: 41, symbol: "Nb", name: "铌", 熔点: "2477", 沸点: "4744", period: 5, col: -14, tags: ['过渡金属']},
 		{id: 42, symbol: "Mo", name: "钼", 熔点: "2623", 沸点: "4639", period: 5, col: -13, tags: ['过渡金属']},
 		{
-			id: 43,
-			symbol: "Tc",
-			name: "锝",
-			熔点: "2157",
-			沸点: "4265",
-			period: 5,
-			col: -12,
+			id: 43, symbol: "Tc", name: "锝", 熔点: "2157", 沸点: "4265", period: 5, col: -12,
 			tags: ['过渡金属', '放射性元素', '人造元素']
 		},
 		{id: 44, symbol: "Ru", name: "钌", 熔点: "2334", 沸点: "4150", period: 5, col: -11, tags: ['过渡金属', '贵金属']},
@@ -237,13 +225,7 @@
 		{id: 59, symbol: "Pr", name: "镨", 熔点: "931", 沸点: "3520", period: 6, col: 5, tags: ['镧系', '稀土元素']},
 		{id: 60, symbol: "Nd", name: "钕", 熔点: "1021", 沸点: "3074", period: 6, col: 6, tags: ['镧系', '稀土元素']},
 		{
-			id: 61,
-			symbol: "Pm",
-			name: "钷",
-			熔点: "1042",
-			沸点: "3000",
-			period: 6,
-			col: 7,
+			id: 61, symbol: "Pm", name: "钷", 熔点: "1042", 沸点: "3000", period: 6, col: 7,
 			tags: ['镧系', '稀土元素', '放射性元素', '人造元素']
 		},
 		{id: 62, symbol: "Sm", name: "钐", 熔点: "1074", 沸点: "1794", period: 6, col: 8, tags: ['镧系', '稀土元素']},
@@ -414,6 +396,14 @@
 			toggleLayout() {
 				this.layout = this.layout === 'full-width' ? 'half-width' : 'full-width';
 			},
+			checkLayout() {
+				const threshold = 2500; // 屏幕宽度阈值
+				if (window.innerWidth < threshold) {
+					this.layout = 'half-width';
+				} else {
+					this.layout = 'full-width';
+				}
+			},
 			getElementStyle(element) {
 				let row = element.period;
 				const id = element.id;
@@ -436,6 +426,11 @@
 			}
 		},
 		mounted() {
+			this.checkLayout();
+			window.addEventListener('resize', this.checkLayout);
+		},
+		beforeUnmount() {
+			window.removeEventListener('resize', this.checkLayout);
 		}
 	})
 	// .use(PrimeVue.Config, {
