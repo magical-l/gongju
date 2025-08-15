@@ -59,6 +59,7 @@
 			background-color: #ccc; /* 默认颜色 */
 			display: flex;
 			flex-direction: column;
+			transition: opacity 0.2s ease-in-out;
 		}
 
 		.element.info {
@@ -155,24 +156,36 @@
 		}
 
 		.half-width .element > footer > i {font-size: 18px;}
+
+		/* --- 筛选高亮样式 --- */
+		.dimmed {
+			opacity: 0.3;
+		}
+
+		.highlight {
+			opacity: 1;
+		}
 	</style>
 </head>
 <body class="目字形">
 <main>
 	<toolbar>
 		<template #start>
-			<choose-group v-model="layoutMode" :options="layoutOptions" option-label="label" option-value="value" variant="outlined"/>
+			<choose-group v-model="layoutMode" :options="layoutOptions" option-label="label" option-value="value"
+										variant="outlined"/>
+		</template>
+		<template #center>
+			<choose-group v-model="selectedTags" :options="filterableTags" multiple/>
 		</template>
 	</toolbar>
 	<article class="periodic table of chemical element" :class="layout">
 		<section v-for="n in 7" :key="n" class="周期序号" :class="`周期`+n">
 			<p>{{n}}</p>
 		</section>
-
-		<section :id="element.name" class="one element" :class="[...element.tags, `周期`+element.period]"
+		<section :id="element.name" class="one element"
+						 :class="[...element.tags, `周期`+element.period, getHighlightClass(element)]"
 						 :style="getElementStyle(element)"
-						 v-for="element in elements" :key="element.id"
-						 style="">
+						 v-for="element in elements" :key="element.id">
 			<div class="element info">
 				<header>
 					<p class="element id">{{element.id}}</p>
@@ -426,20 +439,27 @@
 			// 'p-textarea': PrimeVue.Textarea,
 			// 'p-fieldset': PrimeVue.Fieldset,
 			// 'card': PrimeVue.Card,
-			'toolbar': PrimeVue.Toolbar,
+			'toolbar': PrimeVue.Toolbar
 			// 'p-checkbox': PrimeVue.Checkbox
 		},
-				data() {
+		data() {
 			return {
 				elements,
 				layout: 'full-width',
-				layoutMode: 'auto', // v-model for the choose-group
-				layoutOptions: [ // options for the choose-group
-					{ label: '宽版', value: 'wide' },
-					{ label: '窄版', value: 'narrow' },
-					{ label: '自动', value: 'auto' }
-				]
+				layoutMode: 'auto',
+				layoutOptions: [
+					{label: '宽版', value: 'wide'},
+					{label: '窄版', value: 'narrow'},
+					{label: '自动', value: 'auto'}
+				],
+				selectedTags: []
 			};
+		},
+		computed: {
+			filterableTags() {
+				const allTags = this.elements.flatMap(el => el.tags || []);
+				return [...new Set(allTags)].sort();
+			}
 		},
 		watch: {
 			layoutMode(newMode) {
@@ -447,12 +467,22 @@
 					this.layout = 'full-width';
 				} else if (newMode === 'narrow') {
 					this.layout = 'half-width';
-				} else { // auto
+				} else {
 					this.checkLayout();
 				}
 			}
 		},
 		methods: {
+			getHighlightClass(element) {
+				if (this.selectedTags.length === 0) {
+					return {};
+				}
+				const hasActiveTag = element.tags.some(tag => this.selectedTags.includes(tag));
+				return {
+					'highlight': hasActiveTag,
+					'dimmed': !hasActiveTag
+				};
+			},
 			checkLayout() {
 				if (this.layoutMode !== 'auto') {
 					return;
@@ -465,27 +495,13 @@
 				}
 			},
 			getElementStyle(element) {
-				let row = element.period;
-				const id = element.id;
-
-				if (this.layout === 'half-width') {
-					if (id >= 57 && id <= 71) { // 镧系 La-Lu
-						row = 7;
-					} else if (id >= 89 && id <= 103) { // 锕系 Ac-Lr
-						row = 9;
-					} else if (element.period === 7) { // 原本的第7周期
-						row = 8;
-					}
-				}
-
-				const gridColumn = element.col > 0 ? element.col + 1 : element.col - 1;
 				return {
-					'grid-column': gridColumn
+					'grid-column': element.col > 0 ? element.col + 1 : element.col - 1
 				};
 			}
 		},
 		mounted() {
-			this.checkLayout(); // Initial check
+			this.checkLayout();
 			window.addEventListener('resize', this.checkLayout);
 		},
 		beforeUnmount() {
