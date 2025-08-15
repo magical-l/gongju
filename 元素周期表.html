@@ -112,45 +112,55 @@
 
 		.稀有气体.element { background-color: #f1f1f1; }
 
-		.贵金属.element {
-			border: 2px solid #ffd700;
+		.element > footer {
+			display: flex;
+			justify-content: flex-end;
+			align-items: center;
+			gap: 4px;
+			padding: 0 4px 2px;
+			height: 16px;
 		}
 
-		.稀土元素.element {
-			border-bottom: 2px dashed #8d6e63;
+		.element > footer > i {
+			font-style: normal;
+			font-size: 12px;
+			line-height: 1;
 		}
 
-		.放射性元素::before {
-			/*content: 'R';*/
-			/*position: absolute;*/
-			/*top: 1px;*/
-			/*right: 2px;*/
-			/*font-size: 10px;*/
-			/*font-weight: bold;*/
-			/*color: #d32f2f;*/
+		.dangerous { color: #d32f2f; }
+
+		.half-width .element > footer {
+			justify-content: space-around; /* 分散对齐图标 */
+			align-items: center;
+			height: 24px; /* 增加页脚高度 */
 		}
 
-		.人造元素::after {
-			/*content: 'S';*/
-			/*position: absolute;*/
-			/*bottom: 1px;*/
-			/*right: 2px;*/
-			/*font-size: 10px;*/
-			/*font-weight: bold;*/
-			/*color: #212121;*/
+		.half-width .element > footer > i {
+			font-size: 18px;
 		}
 
-		.铁磁性::before {
-			/* 为了避免和放射性图标冲突，将它放在左上角 */
-			/*content: 'F';*/
-			/*position: absolute;*/
-			/*top: 1px;*/
-			/*left: 2px;*/
-			/*font-size: 10px;*/
-			/*font-weight: bold;*/
-			/*color: #1976d2;*/
+		.element.info {
+			display: flex;
+			flex-direction: column;
+			height: 100%;
 		}
 
+		.element.name {
+			flex-grow: 1;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			font-size: 1.6em;
+			padding: 0;
+		}
+
+		.element > footer > i[title="铁磁性"] {
+			font-size: 0.9em;
+		}
+
+		.element > footer > i[title="稀土元素"] {
+			font-size: 1em;
+		}
 	</style>
 </head>
 <body class="目字形">
@@ -174,7 +184,12 @@
 				</header>
 				<p class="element name">{{element.name}}</p>
 				<footer>
-				</footer>
+				<i v-if="element.tags.includes('放射性元素')" title="放射性元素" class="dangerous">☢</i>
+				<i v-if="element.tags.includes('铁磁性')" title="铁磁性">🧲</i>
+				<i v-if="element.tags.includes('人造元素')" title="人造元素">🧪</i>
+				<i v-if="element.tags.includes('稀土元素')" title="稀土元素">💎</i>
+				<i v-if="element.tags.includes('贵金属')" title="贵金属">💰</i>
+			</footer>
 			</div>
 		</section>
 	</article>
