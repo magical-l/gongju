@@ -159,9 +159,11 @@
 </head>
 <body class="目字形">
 <main>
-	<div style="padding: 1em;">
-		<button @click="toggleLayout">切换视图</button>
-	</div>
+	<toolbar>
+		<template #start>
+			<choose-group v-model="layoutMode" :options="layoutOptions" option-label="label" option-value="value" variant="outlined"/>
+		</template>
+	</toolbar>
 	<article class="periodic table of chemical element" :class="layout">
 		<section v-for="n in 7" :key="n" class="周期序号" :class="`周期`+n">
 			<p>{{n}}</p>
@@ -419,26 +421,43 @@
 	const {createApp} = Vue;
 	const app = createApp({
 		components: {
-			// 'choose-group': PrimeVue.SelectButton,
-			// 'p-button': PrimeVue.Button,
+			'choose-group': PrimeVue.SelectButton,
+			// 'p-button': PrimeVue.Button
 			// 'p-textarea': PrimeVue.Textarea,
 			// 'p-fieldset': PrimeVue.Fieldset,
 			// 'card': PrimeVue.Card,
-			// 'toolbar': PrimeVue.Toolbar,
+			'toolbar': PrimeVue.Toolbar,
 			// 'p-checkbox': PrimeVue.Checkbox
 		},
-		data() {
+				data() {
 			return {
 				elements,
-				layout: 'full-width'
+				layout: 'full-width',
+				layoutMode: 'auto', // v-model for the choose-group
+				layoutOptions: [ // options for the choose-group
+					{ label: '宽版', value: 'wide' },
+					{ label: '窄版', value: 'narrow' },
+					{ label: '自动', value: 'auto' }
+				]
 			};
 		},
+		watch: {
+			layoutMode(newMode) {
+				if (newMode === 'wide') {
+					this.layout = 'full-width';
+				} else if (newMode === 'narrow') {
+					this.layout = 'half-width';
+				} else { // auto
+					this.checkLayout();
+				}
+			}
+		},
 		methods: {
-			toggleLayout() {
-				this.layout = this.layout === 'full-width' ? 'half-width' : 'full-width';
-			},
 			checkLayout() {
-				const threshold = 2500; // 屏幕宽度阈值
+				if (this.layoutMode !== 'auto') {
+					return;
+				}
+				const threshold = 2500;
 				if (window.innerWidth < threshold) {
 					this.layout = 'half-width';
 				} else {
@@ -466,18 +485,18 @@
 			}
 		},
 		mounted() {
-			this.checkLayout();
+			this.checkLayout(); // Initial check
 			window.addEventListener('resize', this.checkLayout);
 		},
 		beforeUnmount() {
 			window.removeEventListener('resize', this.checkLayout);
 		}
 	})
-	// .use(PrimeVue.Config, {
-	// 	theme: {
-	// 		preset: PrimeUIX.Themes.Aura
-	// 	}
-	// })
+	.use(PrimeVue.Config, {
+		theme: {
+			preset: PrimeUIX.Themes.Aura
+		}
+	})
 	.mount('main');
 </script>
 </body>
