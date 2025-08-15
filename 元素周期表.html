@@ -17,24 +17,21 @@
 		}
 
 		.one.element {
+			position: relative;
+			border: 1px solid #ccc;
+			box-sizing: border-box;
+		}
+
+		.one.element p {
+			margin: 0;
+			padding: 1px 2px;
+			line-height: 1.2;
 		}
 
 		.element > header {
-		}
-
-		.element > p {
-		}
-
-		.element.id {
-		}
-
-		.element.symbol {
-		}
-
-		.element.name {
-		}
-
-		.element > footer {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
 		}
 
 		.element.periodic.table {
@@ -69,6 +66,63 @@
 			grid-row: 9;
 		}
 
+		.碱金属 { background-color: #ffadad; }
+
+		.碱土金属 { background-color: #ffd6a5; }
+
+		.过渡金属 { background-color: #fdffb6; }
+
+		.镧系 { background-color: #caffbf; }
+
+		.锕系 { background-color: #9bf6ff; }
+
+		.类金属 { background-color: #a0c4ff; }
+
+		.贫金属 { background-color: #bdb2ff; }
+
+		.活泼非金属 { background-color: #ffc6ff; }
+
+		.稀有气体 { background-color: #f1f1f1; }
+
+		.贵金属 {
+			border: 2px solid #ffd700;
+		}
+
+		.稀土元素 {
+			border-bottom: 2px dashed #8d6e63;
+		}
+
+		.放射性元素::before {
+			/*content: 'R';*/
+			/*position: absolute;*/
+			/*top: 1px;*/
+			/*right: 2px;*/
+			/*font-size: 10px;*/
+			/*font-weight: bold;*/
+			/*color: #d32f2f;*/
+		}
+
+		.人造元素::after {
+			/*content: 'S';*/
+			/*position: absolute;*/
+			/*bottom: 1px;*/
+			/*right: 2px;*/
+			/*font-size: 10px;*/
+			/*font-weight: bold;*/
+			/*color: #212121;*/
+		}
+
+		.铁磁性::before {
+			/* 为了避免和放射性图标冲突，将它放在左上角 */
+			/*content: 'F';*/
+			/*position: absolute;*/
+			/*top: 1px;*/
+			/*left: 2px;*/
+			/*font-size: 10px;*/
+			/*font-weight: bold;*/
+			/*color: #1976d2;*/
+		}
+
 	</style>
 </head>
 <body class="目字形">
@@ -84,7 +138,8 @@
 		<section class="one element" :class="element.tags" :style="getElementStyle(element)"
 						 v-for="element in elements" :key="element.id">
 			<header>
-				<span class="element id">{{element.id}}</span> <span class="element symbol">{{element.symbol}}</span>
+				<p class="element id">{{element.id}}</p>
+				<p class="element symbol">{{element.symbol}}</p>
 			</header>
 			<p class="element name">{{element.name}}</p>
 			<footer>
@@ -118,7 +173,16 @@
 		{id: 13, symbol: "Al", name: "铝", 熔点: "660.3", 沸点: "2470", period: 3, col: -6, tags: ['贫金属', '硼族元素']},
 		{id: 14, symbol: "Si", name: "硅", 熔点: "1414", 沸点: "3265", period: 3, col: -5, tags: ['类金属', '碳族元素']},
 		{id: 15, symbol: "P", name: "磷", 熔点: "44.1", 沸点: "281", period: 3, col: -4, tags: ['活泼非金属', '氮族元素']},
-		{id: 16, symbol: "S", name: "硫", 熔点: "115.2", 沸点: "444.6", period: 3, col: -3, tags: ['活泼非金属', '氧族元素']},
+		{
+			id: 16,
+			symbol: "S",
+			name: "硫",
+			熔点: "115.2",
+			沸点: "444.6",
+			period: 3,
+			col: -3,
+			tags: ['活泼非金属', '氧族元素']
+		},
 		{id: 17, symbol: "Cl", name: "氯", 熔点: "-101.5", 沸点: "-34", period: 3, col: -2, tags: ['活泼非金属', '卤素']},
 		{id: 18, symbol: "Ar", name: "氩", 熔点: "-189.3", 沸点: "-186", period: 3, col: -1, tags: ['稀有气体']},
 		{id: 19, symbol: "K", name: "钾", 熔点: "63.5", 沸点: "759", period: 4, col: 1, tags: ['碱金属']},
@@ -145,7 +209,16 @@
 		{id: 40, symbol: "Zr", name: "锆", 熔点: "1855", 沸点: "4409", period: 5, col: -15, tags: ['过渡金属']},
 		{id: 41, symbol: "Nb", name: "铌", 熔点: "2477", 沸点: "4744", period: 5, col: -14, tags: ['过渡金属']},
 		{id: 42, symbol: "Mo", name: "钼", 熔点: "2623", 沸点: "4639", period: 5, col: -13, tags: ['过渡金属']},
-		{id: 43, symbol: "Tc", name: "锝", 熔点: "2157", 沸点: "4265", period: 5, col: -12, tags: ['过渡金属', '放射性元素', '人造元素']},
+		{
+			id: 43,
+			symbol: "Tc",
+			name: "锝",
+			熔点: "2157",
+			沸点: "4265",
+			period: 5,
+			col: -12,
+			tags: ['过渡金属', '放射性元素', '人造元素']
+		},
 		{id: 44, symbol: "Ru", name: "钌", 熔点: "2334", 沸点: "4150", period: 5, col: -11, tags: ['过渡金属', '贵金属']},
 		{id: 45, symbol: "Rh", name: "铑", 熔点: "1964", 沸点: "3695", period: 5, col: -10, tags: ['过渡金属', '贵金属']},
 		{id: 46, symbol: "Pd", name: "钯", 熔点: "1555", 沸点: "2963", period: 5, col: -9, tags: ['过渡金属', '贵金属']},
@@ -163,7 +236,16 @@
 		{id: 58, symbol: "Ce", name: "铈", 熔点: "798", 沸点: "3443", period: 6, col: 4, tags: ['镧系', '稀土元素']},
 		{id: 59, symbol: "Pr", name: "镨", 熔点: "931", 沸点: "3520", period: 6, col: 5, tags: ['镧系', '稀土元素']},
 		{id: 60, symbol: "Nd", name: "钕", 熔点: "1021", 沸点: "3074", period: 6, col: 6, tags: ['镧系', '稀土元素']},
-		{id: 61, symbol: "Pm", name: "钷", 熔点: "1042", 沸点: "3000", period: 6, col: 7, tags: ['镧系', '稀土元素', '放射性元素', '人造元素']},
+		{
+			id: 61,
+			symbol: "Pm",
+			name: "钷",
+			熔点: "1042",
+			沸点: "3000",
+			period: 6,
+			col: 7,
+			tags: ['镧系', '稀土元素', '放射性元素', '人造元素']
+		},
 		{id: 62, symbol: "Sm", name: "钐", 熔点: "1074", 沸点: "1794", period: 6, col: 8, tags: ['镧系', '稀土元素']},
 		{id: 63, symbol: "Eu", name: "铕", 熔点: "822", 沸点: "1597", period: 6, col: 9, tags: ['镧系', '稀土元素']},
 		{id: 64, symbol: "Gd", name: "钆", 熔点: "1313", 沸点: "3273", period: 6, col: 10, tags: ['镧系', '稀土元素']},
@@ -186,41 +268,128 @@
 		{id: 81, symbol: "Tl", name: "铊", 熔点: "304", 沸点: "1473", period: 6, col: -6, tags: ['贫金属', '硼族元素']},
 		{id: 82, symbol: "Pb", name: "铅", 熔点: "327.5", 沸点: "1740", period: 6, col: -5, tags: ['贫金属', '碳族元素']},
 		{id: 83, symbol: "Bi", name: "铋", 熔点: "271.4", 沸点: "1564", period: 6, col: -4, tags: ['贫金属', '氮族元素']},
-		{id: 84, symbol: "Po", name: "钋", 熔点: "254", 沸点: "962", period: 6, col: -3, tags: ['贫金属', '放射性元素', '氧族元素']},
-		{id: 85, symbol: "At", name: "砹", 熔点: "302", 沸点: "337", period: 6, col: -2, tags: ['类金属', '放射性元素', '卤素']},
-		{id: 86, symbol: "Rn", name: "氡", 熔点: "-71", 沸点: "-61.7", period: 6, col: -1, tags: ['稀有气体', '放射性元素']},
+		{
+			id: 84, symbol: "Po", name: "钋", 熔点: "254", 沸点: "962", period: 6, col: -3,
+			tags: ['贫金属', '放射性元素', '氧族元素']
+		},
+		{
+			id: 85, symbol: "At", name: "砹", 熔点: "302", 沸点: "337", period: 6, col: -2,
+			tags: ['类金属', '放射性元素', '卤素']
+		},
+		{
+			id: 86, symbol: "Rn", name: "氡", 熔点: "-71", 沸点: "-61.7", period: 6, col: -1,
+			tags: ['稀有气体', '放射性元素']
+		},
 		{id: 87, symbol: "Fr", name: "钫", 熔点: "27", 沸点: "677", period: 7, col: 1, tags: ['碱金属', '放射性元素']},
 		{id: 88, symbol: "Ra", name: "镭", 熔点: "700", 沸点: "1737", period: 7, col: 2, tags: ['碱土金属', '放射性元素']},
 		{id: 89, symbol: "Ac", name: "锕", 熔点: "1050", 沸点: "3200", period: 7, col: 3, tags: ['锕系', '放射性元素']},
 		{id: 90, symbol: "Th", name: "钍", 熔点: "1750", 沸点: "4790", period: 7, col: 4, tags: ['锕系', '放射性元素']},
 		{id: 91, symbol: "Pa", name: "镤", 熔点: "1572", 沸点: "4027", period: 7, col: 5, tags: ['锕系', '放射性元素']},
 		{id: 92, symbol: "U", name: "铀", 熔点: "1135", 沸点: "4131", period: 7, col: 6, tags: ['锕系', '放射性元素']},
-		{id: 93, symbol: "Np", name: "镎", 熔点: "640", 沸点: "3902", period: 7, col: 7, tags: ['锕系', '放射性元素', '人造元素']},
-		{id: 94, symbol: "Pu", name: "钚", 熔点: "640", 沸点: "3228", period: 7, col: 8, tags: ['锕系', '放射性元素', '人造元素']},
-		{id: 95, symbol: "Am", name: "镅", 熔点: "1176", 沸点: "2011", period: 7, col: 9, tags: ['锕系', '放射性元素', '人造元素']},
-		{id: 96, symbol: "Cm", name: "锔", 熔点: "1345", 沸点: "3110", period: 7, col: 10, tags: ['锕系', '放射性元素', '人造元素']},
-		{id: 97, symbol: "Bk", name: "锫", 熔点: "986", 沸点: "2627", period: 7, col: 11, tags: ['锕系', '放射性元素', '人造元素']},
-		{id: 98, symbol: "Cf", name: "锎", 熔点: "900", 沸点: "1470", period: 7, col: 12, tags: ['锕系', '放射性元素', '人造元素']},
-		{id: 99, symbol: "Es", name: "锿", 熔点: "860", 沸点: "996", period: 7, col: 13, tags: ['锕系', '放射性元素', '人造元素']},
-		{id: 100, symbol: "Fm", name: "镄", 熔点: "1527", 沸点: "未知", period: 7, col: 14, tags: ['锕系', '放射性元素', '人造元素']},
-		{id: 101, symbol: "Md", name: "钔", 熔点: "827", 沸点: "未知", period: 7, col: 15, tags: ['锕系', '放射性元素', '人造元素']},
-		{id: 102, symbol: "No", name: "锘", 熔点: "827", 沸点: "未知", period: 7, col: 16, tags: ['锕系', '放射性元素', '人造元素']},
-		{id: 103, symbol: "Lr", name: "铹", 熔点: "1627", 沸点: "未知", period: 7, col: 17, tags: ['锕系', '放射性元素', '人造元素']},
-		{id: 104, symbol: "Rf", name: "𬬻", 熔点: "未知", 沸点: "未知", period: 7, col: -15, tags: ['放射性元素', '人造元素']},
-		{id: 105, symbol: "Db", name: "𬭊", 熔点: "未知", 沸点: "未知", period: 7, col: -14, tags: ['放射性元素', '人造元素']},
-		{id: 106, symbol: "Sg", name: "𬭳", 熔点: "未知", 沸点: "未知", period: 7, col: -13, tags: ['放射性元素', '人造元素']},
-		{id: 107, symbol: "Bh", name: "𬭛", 熔点: "未知", 沸点: "未知", period: 7, col: -12, tags: ['放射性元素', '人造元素']},
-		{id: 108, symbol: "Hs", name: "𬭶", 熔点: "未知", 沸点: "未知", period: 7, col: -11, tags: ['放射性元素', '人造元素']},
-		{id: 109, symbol: "Mt", name: "鿏", 熔点: "未知", 沸点: "未知", period: 7, col: -10, tags: ['放射性元素', '人造元素']},
-		{id: 110, symbol: "Ds", name: "𫟼", 熔点: "未知", 沸点: "未知", period: 7, col: -9, tags: ['放射性元素', '人造元素']},
-		{id: 111, symbol: "Rg", name: "𬬭", 熔点: "未知", 沸点: "未知", period: 7, col: -8, tags: ['放射性元素', '人造元素']},
-		{id: 112, symbol: "Cn", name: "鎶", 熔点: "未知", 沸点: "未知", period: 7, col: -7, tags: ['放射性元素', '人造元素']},
-		{id: 113, symbol: "Nh", name: "鿭", 熔点: "未知", 沸点: "未知", period: 7, col: -6, tags: ['放射性元素', '人造元素', '硼族元素']},
-		{id: 114, symbol: "Fl", name: "𫓧", 熔点: "未知", 沸点: "未知", period: 7, col: -5, tags: ['放射性元素', '人造元素', '碳族元素']},
-		{id: 115, symbol: "Mc", name: "镆", 熔点: "未知", 沸点: "未知", period: 7, col: -4, tags: ['放射性元素', '人造元素', '氮族元素']},
-		{id: 116, symbol: "Lv", name: "鉝", 熔点: "未知", 沸点: "未知", period: 7, col: -3, tags: ['放射性元素', '人造元素', '氧族元素']},
-		{id: 117, symbol: "Ts", name: "鿬", 熔点: "未知", 沸点: "未知", period: 7, col: -2, tags: ['放射性元素', '人造元素', '卤素']},
-		{id: 118, symbol: "Og", name: "鿫", 熔点: "未知", 沸点: "未知", period: 7, col: -1, tags: ['放射性元素', '人造元素']}
+		{
+			id: 93, symbol: "Np", name: "镎", 熔点: "640", 沸点: "3902", period: 7, col: 7,
+			tags: ['锕系', '放射性元素', '人造元素']
+		},
+		{
+			id: 94, symbol: "Pu", name: "钚", 熔点: "640", 沸点: "3228", period: 7, col: 8,
+			tags: ['锕系', '放射性元素', '人造元素']
+		},
+		{
+			id: 95, symbol: "Am", name: "镅", 熔点: "1176", 沸点: "2011", period: 7, col: 9,
+			tags: ['锕系', '放射性元素', '人造元素']
+		},
+		{
+			id: 96, symbol: "Cm", name: "锔", 熔点: "1345", 沸点: "3110", period: 7, col: 10,
+			tags: ['锕系', '放射性元素', '人造元素']
+		},
+		{
+			id: 97, symbol: "Bk", name: "锫", 熔点: "986", 沸点: "2627", period: 7, col: 11,
+			tags: ['锕系', '放射性元素', '人造元素']
+		},
+		{
+			id: 98, symbol: "Cf", name: "锎", 熔点: "900", 沸点: "1470", period: 7, col: 12,
+			tags: ['锕系', '放射性元素', '人造元素']
+		},
+		{
+			id: 99, symbol: "Es", name: "锿", 熔点: "860", 沸点: "996", period: 7, col: 13,
+			tags: ['锕系', '放射性元素', '人造元素']
+		},
+		{
+			id: 100, symbol: "Fm", name: "镄", 熔点: "1527", 沸点: "未知", period: 7, col: 14,
+			tags: ['锕系', '放射性元素', '人造元素']
+		},
+		{
+			id: 101, symbol: "Md", name: "钔", 熔点: "827", 沸点: "未知", period: 7, col: 15,
+			tags: ['锕系', '放射性元素', '人造元素']
+		},
+		{
+			id: 102, symbol: "No", name: "锘", 熔点: "827", 沸点: "未知", period: 7, col: 16,
+			tags: ['锕系', '放射性元素', '人造元素']
+		},
+		{
+			id: 103, symbol: "Lr", name: "铹", 熔点: "1627", 沸点: "未知", period: 7, col: 17,
+			tags: ['锕系', '放射性元素', '人造元素']
+		},
+		{
+			id: 104, symbol: "Rf", name: "𬬻", 熔点: "未知", 沸点: "未知", period: 7, col: -15,
+			tags: ['放射性元素', '人造元素']
+		},
+		{
+			id: 105, symbol: "Db", name: "𬭊", 熔点: "未知", 沸点: "未知", period: 7, col: -14,
+			tags: ['放射性元素', '人造元素']
+		},
+		{
+			id: 106, symbol: "Sg", name: "𬭳", 熔点: "未知", 沸点: "未知", period: 7, col: -13,
+			tags: ['放射性元素', '人造元素']
+		},
+		{
+			id: 107, symbol: "Bh", name: "𬭛", 熔点: "未知", 沸点: "未知", period: 7, col: -12,
+			tags: ['放射性元素', '人造元素']
+		},
+		{
+			id: 108, symbol: "Hs", name: "𬭶", 熔点: "未知", 沸点: "未知", period: 7, col: -11,
+			tags: ['放射性元素', '人造元素']
+		},
+		{
+			id: 109, symbol: "Mt", name: "鿏", 熔点: "未知", 沸点: "未知", period: 7, col: -10,
+			tags: ['放射性元素', '人造元素']
+		},
+		{
+			id: 110, symbol: "Ds", name: "𫟼", 熔点: "未知", 沸点: "未知", period: 7, col: -9,
+			tags: ['放射性元素', '人造元素']
+		},
+		{
+			id: 111, symbol: "Rg", name: "𬬭", 熔点: "未知", 沸点: "未知", period: 7, col: -8,
+			tags: ['放射性元素', '人造元素']
+		},
+		{
+			id: 112, symbol: "Cn", name: "鎶", 熔点: "未知", 沸点: "未知", period: 7, col: -7,
+			tags: ['放射性元素', '人造元素']
+		},
+		{
+			id: 113, symbol: "Nh", name: "鿭", 熔点: "未知", 沸点: "未知", period: 7, col: -6,
+			tags: ['放射性元素', '人造元素', '硼族元素']
+		},
+		{
+			id: 114, symbol: "Fl", name: "𫓧", 熔点: "未知", 沸点: "未知", period: 7, col: -5,
+			tags: ['放射性元素', '人造元素', '碳族元素']
+		},
+		{
+			id: 115, symbol: "Mc", name: "镆", 熔点: "未知", 沸点: "未知", period: 7, col: -4,
+			tags: ['放射性元素', '人造元素', '氮族元素']
+		},
+		{
+			id: 116, symbol: "Lv", name: "鉝", 熔点: "未知", 沸点: "未知", period: 7, col: -3,
+			tags: ['放射性元素', '人造元素', '氧族元素']
+		},
+		{
+			id: 117, symbol: "Ts", name: "鿬", 熔点: "未知", 沸点: "未知", period: 7, col: -2,
+			tags: ['放射性元素', '人造元素', '卤素']
+		},
+		{
+			id: 118, symbol: "Og", name: "鿫", 熔点: "未知", 沸点: "未知", period: 7, col: -1,
+			tags: ['放射性元素', '人造元素']
+		}
 	];
 	const a = [2, 8, 8, 18, 18, 32, 32];
 
