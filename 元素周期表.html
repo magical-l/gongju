@@ -19,19 +19,25 @@
 		.one.element {
 			position: relative;
 			border: 1px solid #ccc;
-			box-sizing: border-box;
+			background-color: #ccc; /* 默认颜色 */
+			display: flex;
+			flex-direction: column;
 		}
 
-		.one.element p {
-			margin: 0;
-			padding: 1px 2px;
-			line-height: 1.2;
+		.element.info {
+			height: 100%
 		}
 
-		.element > header {
+		.element.info > header {
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
+		}
+
+		.element.info p {
+			margin: 0;
+			padding: 1px 2px;
+			line-height: 1.2;
 		}
 
 		.element.periodic.table {
@@ -53,42 +59,58 @@
 			border: 1px solid #ccc;
 		}
 
-		.half-width .周期6,
-		.half-width .周期7 {
+		.周期1 {grid-row: 1;}
+
+		.周期2 {grid-row: 2;}
+
+		.周期3 {grid-row: 3;}
+
+		.周期4 {grid-row: 4;}
+
+		.周期5 {grid-row: 5;}
+
+		.周期6 {grid-row: 6;}
+
+		.周期7 {grid-row: 7;}
+
+		.half-width .周期7 {grid-row-start: 8;}
+
+		.half-width .周期6.周期序号, .half-width .周期7.周期序号 {
 			grid-row-end: span 2;
 		}
 
-		.full-width.镧系 {
-			grid-row: 7;
+		.half-width .镧系, .half-width .锕系 {
+			grid-row-end: span 2;
+			justify-content: end;
 		}
 
-		.full-width.锕系 {
-			grid-row: 9;
+		.half-width .镧系 .element.info, .half-width .锕系 .element.info {
+			height: 50%; /* 否则占不满一行的格子 */
 		}
 
-		.碱金属 { background-color: #ffadad; }
+		.碱金属.element { background-color: #ffadad; }
 
-		.碱土金属 { background-color: #ffd6a5; }
+		.碱土金属.element { background-color: #ffd6a5; }
 
-		.过渡金属 { background-color: #fdffb6; }
+		.过渡金属.element { background-color: #fdffb6; }
 
-		.镧系 { background-color: #caffbf; }
+		.镧系.element { background-color: #caffbf; }
 
-		.锕系 { background-color: #9bf6ff; }
+		.锕系.element { background-color: #9bf6ff; }
 
-		.类金属 { background-color: #a0c4ff; }
+		.类金属.element { background-color: #a0c4ff; }
 
-		.贫金属 { background-color: #bdb2ff; }
+		.贫金属.element { background-color: #bdb2ff; }
 
-		.活泼非金属 { background-color: #ffc6ff; }
+		.活泼非金属.element { background-color: #ffc6ff; }
 
-		.稀有气体 { background-color: #f1f1f1; }
+		.稀有气体.element { background-color: #f1f1f1; }
 
-		.贵金属 {
+		.贵金属.element {
 			border: 2px solid #ffd700;
 		}
 
-		.稀土元素 {
+		.稀土元素.element {
 			border-bottom: 2px dashed #8d6e63;
 		}
 
@@ -135,15 +157,19 @@
 			<p>{{n}}</p>
 		</section>
 
-		<section class="one element" :class="element.tags" :style="getElementStyle(element)"
-						 v-for="element in elements" :key="element.id">
-			<header>
-				<p class="element id">{{element.id}}</p>
-				<p class="element symbol">{{element.symbol}}</p>
-			</header>
-			<p class="element name">{{element.name}}</p>
-			<footer>
-			</footer>
+		<section :id="element.name" class="one element" :class="[...element.tags, `周期`+element.period]"
+						 :style="getElementStyle(element)"
+						 v-for="element in elements" :key="element.id"
+						 style="">
+			<div class="element info">
+				<header>
+					<p class="element id">{{element.id}}</p>
+					<p class="element symbol">{{element.symbol}}</p>
+				</header>
+				<p class="element name">{{element.name}}</p>
+				<footer>
+				</footer>
+			</div>
 		</section>
 	</article>
 </main>
@@ -314,23 +340,23 @@
 		},
 		{
 			id: 104, symbol: "Rf", name: "𬬻", 熔点: "未知", 沸点: "未知", period: 7, col: -15,
-			tags: ['放射性元素', '人造元素']
+			tags: ['放射性元素', '人造元素', '过渡金属']
 		},
 		{
 			id: 105, symbol: "Db", name: "𬭊", 熔点: "未知", 沸点: "未知", period: 7, col: -14,
-			tags: ['放射性元素', '人造元素']
+			tags: ['放射性元素', '人造元素', '过渡金属']
 		},
 		{
 			id: 106, symbol: "Sg", name: "𬭳", 熔点: "未知", 沸点: "未知", period: 7, col: -13,
-			tags: ['放射性元素', '人造元素']
+			tags: ['放射性元素', '人造元素', '过渡金属']
 		},
 		{
 			id: 107, symbol: "Bh", name: "𬭛", 熔点: "未知", 沸点: "未知", period: 7, col: -12,
-			tags: ['放射性元素', '人造元素']
+			tags: ['放射性元素', '人造元素', '过渡金属']
 		},
 		{
 			id: 108, symbol: "Hs", name: "𬭶", 熔点: "未知", 沸点: "未知", period: 7, col: -11,
-			tags: ['放射性元素', '人造元素']
+			tags: ['放射性元素', '人造元素', '过渡金属']
 		},
 		{
 			id: 109, symbol: "Mt", name: "鿏", 熔点: "未知", 沸点: "未知", period: 7, col: -10,
@@ -420,7 +446,6 @@
 
 				const gridColumn = element.col > 0 ? element.col + 1 : element.col - 1;
 				return {
-					'grid-row': row,
 					'grid-column': gridColumn
 				};
 			}
