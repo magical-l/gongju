@@ -208,8 +208,8 @@
 <main>
 	<toolbar>
 		<template #start>
-			<choose-group v-model="layoutMode" :options="layoutOptions" option-label="label" option-value="value"
-										variant="outlined"/>
+			<choose-group v-model="layout" :options="layoutOptions" option-label="label" option-value="value"
+										variant="outlined" />
 		</template>
 		<template #center>
 			<label class="element filter" :class="filter" :title="filter" v-for="filter in filters" :key="filter">
@@ -483,12 +483,10 @@
 		data() {
 			return {
 				elements,
-				layout: 'full-width',
-				layoutMode: 'auto',
+				layout: null,
 				layoutOptions: [
-					{label: '宽版', value: 'wide'},
-					{label: '窄版', value: 'narrow'},
-					{label: '自动', value: 'auto'}
+					{label: '宽版', value: 'full-width'},
+					{label: '窄版', value: 'half-width'},
 				],
 				selectedTags: [],
 				filtering: []
@@ -504,12 +502,8 @@
 			}
 		},
 		watch: {
-			layoutMode(newMode) {
-				if (newMode === 'wide') {
-					this.layout = 'full-width';
-				} else if (newMode === 'narrow') {
-					this.layout = 'half-width';
-				} else {
+			layout(newLayout) {
+				if(!newLayout) {
 					this.checkLayout();
 				}
 			}
@@ -526,7 +520,7 @@
 				};
 			},
 			checkLayout() {
-				if (this.layoutMode !== 'auto') {
+				if (this.layout) {
 					return;
 				}
 				const threshold = 2500;
