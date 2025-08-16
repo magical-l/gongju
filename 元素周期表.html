@@ -83,6 +83,10 @@
 			content: '镧系';
 		}
 
+		.half-width #锕::before {
+			content: '锕系';
+		}
+
 		.碱金属.element { background-color: #ffadad; }
 
 		.碱土金属.element { background-color: #ffd6a5; }
@@ -143,40 +147,21 @@
 			line-height: 1;
 		}
 
-		icon[title='气体']::after {
-			content: '💨';
-		}
+		[title='人造元素'].with.icon::after {content: '🧪'}
 
-		icon[title='人造元素']::after {
-			content: '🧪'
-		}
+		[title='放射性元素'].with.icon::after {content: '☢️';}
 
-		icon[title='放射性元素']::after {
-			content: '☢';
-			color: #d32f2f;
-		}
+		[title='铁磁性'].with.icon::after {content: '🧲';font-size: 0.9em;}
 
-		icon[title='铁磁性']::after {
-			content: '🧲';
-			font-size: 0.9em;
-		}
+		[title='稀土元素'].with.icon::after {content: '💎';font-size: 1em;}
 
-		icon[title='稀土元素']::after {
-			content: '💎';
-			font-size: 1em;
-		}
+		[title='贵金属'].with.icon::after {content: '💰';}
 
-		icon[title='贵金属']::after {
-			content: '💰';
-		}
+		[title='气体'].with.icon::after {content: '🌀';}
 
-		icon[title='稀有气体']::after {
-			content: '';
-			display: block;
-			width: 100%;
-			height: 100%;
-			background-color: #f1f1f1;
-		}
+		[title='液体'].with.icon::after {content: '💧';}
+
+		[title='固体'].with.icon::after {content: '🪨';}
 
 		.half-width .element > footer {
 			justify-content: space-around; /* 分散对齐图标 */
@@ -186,21 +171,34 @@
 
 		.half-width .element > footer > i {font-size: 18px;}
 
-		/* --- 筛选高亮样式 --- */
-		.filtering.碱金属 .one.element {
+		.filtering.碱金属 .one.element,
+		.filtering.碱土金属 .one.element,
+		.filtering.过渡金属 .one.element,
+		.filtering.贫金属 .one.element,
+		.filtering.类金属 .one.element,
+		.filtering.活泼非金属 .one.element,
+		.filtering.稀有气体 .one.element,
+		.filtering.放射性元素 .one.element,
+		.filtering.人造元素 .one.element,
+		.filtering.稀土元素 .one.element,
+		.filtering.铁磁性元素 .one.element,
+		.filtering.贵金属 .one.element {
 			opacity: 0.5;
 		}
 
-		.filtering.碱金属 .碱金属 {
+		.filtering.碱金属 .碱金属,
+		.filtering.碱土金属 .碱土金属,
+		.filtering.过渡金属 .过渡金属,
+		.filtering.贫金属 .贫金属,
+		.filtering.类金属 .类金属,
+		.filtering.活泼非金属 .活泼非金属,
+		.filtering.稀有气体 .稀有气体,
+		.filtering.放射性元素 .放射性元素,
+		.filtering.人造元素 .人造元素,
+		.filtering.稀土元素 .稀土元素,
+		.filtering.铁磁性元素 .铁磁性元素,
+		.filtering.贵金属 .贵金属 {
 			opacity: 1 !important;
-		}
-
-		.dimmed {
-			opacity: 0.3;
-		}
-
-		.highlight {
-			opacity: 1;
 		}
 	</style>
 </head>
@@ -208,18 +206,19 @@
 <main>
 	<toolbar>
 		<template #start>
-			<choose-group v-model="layout" :options="layoutOptions" option-label="label" option-value="value"
-										variant="outlined" />
+			<choose-group v-model="layout" :options="layoutOptions" option-label="label" option-value="value"/>
 		</template>
 		<template #center>
-			<label class="element filter" :class="filter" :title="filter" v-for="filter in filters" :key="filter">
-				<input type="checkbox" :value="filter" v-model="filtering"/>
-				{{filter}}
+			<label class="element filter with icon" :class="filter.name" :title="filter.name"
+						 v-for="filter in filters" :key="filter.name">
+				<input type="checkbox" :value="filter.name" v-model="filtering"/>
+				{{filter.name}}
+				<icon :title="filter.name"></icon>
 			</label>
 		</template>
 	</toolbar>
 	<article :class="`${layout} periodic-table-of-chemical-element , filtering ${filtering.join(' ')}`">
-		<section v-for="n in 7" :key="n" class="周期序号" :class="`周期`+n">
+		<section class="周期序号" :class="`周期`+n" v-for="n in 7" :key="n">
 			<p>{{n}}</p>
 		</section>
 		<section :id="element.name" class="one element"
@@ -233,7 +232,7 @@
 				</header>
 				<p class="element name">{{element.name}}</p>
 				<footer>
-					<icon v-for="tag in element.tags" :title="tag"></icon>
+					<span class="with icon" v-for="tag in element.tags" :title="tag"></span>
 				</footer>
 			</div>
 		</section>
@@ -466,8 +465,30 @@
 		}
 	];
 	const a = [2, 8, 8, 18, 18, 32, 32];
-	const filters = ['碱金属', '碱土金属', '过渡金属', '贫金属', '类金属', '活泼非金属', '稀有气体',
-									 '放射性元素', '人造元素', '稀土元素', '铁磁性元素', '贵金属', '镧系元素', '锕系元素'];
+	const categories = [
+		{name: '碱金属', filterable: true},
+		{name: '碱土金属', filterable: true},
+		{name: '过渡金属', filterable: true},
+		{name: '贫金属', filterable: true},
+		{name: '类金属', filterable: true},
+		{name: '活泼非金属', filterable: true},
+		{name: '稀有气体', filterable: true},
+		{name: '放射性元素', filterable: true},
+		{name: '人造元素', filterable: true},
+		{name: '稀土元素', filterable: true},
+		{name: '铁磁性元素', filterable: true},
+		{name: '贵金属', filterable: true},
+		{name: '镧系元素', filterable: false},
+		{name: '锕系元素', filterable: false},
+		{name: '卤素', filterable: true},
+		{name: '氧族元素', filterable: false},
+		{name: '氮族元素', filterable: false},
+		{name: '碳族元素', filterable: false},
+		{name: '硼族元素', filterable: false},
+		{name: '气体', filterable: true},
+		{name: '液体', filterable: true},
+		{name: '固体', filterable: true}
+	];
 
 	const {createApp} = Vue;
 	const app = createApp({
@@ -486,7 +507,7 @@
 				layout: null,
 				layoutOptions: [
 					{label: '宽版', value: 'full-width'},
-					{label: '窄版', value: 'half-width'},
+					{label: '窄版', value: 'half-width'}
 				],
 				selectedTags: [],
 				filtering: []
@@ -498,12 +519,12 @@
 				return [...new Set(allTags)].sort();
 			},
 			filters() {
-				return filters;
+				return categories.filter(e => e.filterable);
 			}
 		},
 		watch: {
 			layout(newLayout) {
-				if(!newLayout) {
+				if (!newLayout) {
 					this.checkLayout();
 				}
 			}
