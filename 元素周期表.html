@@ -16,13 +16,13 @@
 			padding: 0;
 		}
 
-		.element.periodic.table.full-width {
+		.full-width.periodic-table-of-chemical-element {
 			height: 720px;
 			grid-template-columns: 10px repeat(32, 1fr);
 			grid-template-rows: repeat(7, 1fr);
 		}
 
-		.element.periodic.table.half-width {
+		.half-width.periodic-table-of-chemical-element {
 			height: 720px;
 			grid-template-columns: 10px repeat(18, 1fr);
 			grid-template-rows: repeat(9, 1fr);
@@ -62,23 +62,7 @@
 			transition: opacity 0.2s ease-in-out;
 		}
 
-		.element.info {
-			height: 100%
-		}
-
-		.element.info > header {
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-		}
-
-		.element.info p {
-			margin: 0;
-			padding: 1px 2px;
-			line-height: 1.2;
-		}
-
-		.element.periodic.table {
+		.periodic-table-of-chemical-element {
 			display: grid;
 		}
 
@@ -93,6 +77,10 @@
 
 		.half-width #镧, .half-width #锕 {
 			clip-path: polygon(0% 100%, 100% 100%, 100% 40%, 50% 20%, 0% 40%);
+		}
+
+		.half-width #镧::before {
+			content: '镧系';
 		}
 
 		.碱金属.element { background-color: #ffadad; }
@@ -113,12 +101,22 @@
 
 		.稀有气体.element { background-color: #f1f1f1; }
 
-		.dangerous { color: #d32f2f; }
-
 		.element.info {
 			display: flex;
 			flex-direction: column;
 			height: 100%;
+		}
+
+		.element.info > header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.element.info p {
+			margin: 0;
+			padding: 1px 2px;
+			line-height: 1.2;
 		}
 
 		.element.name {
@@ -139,15 +137,46 @@
 			height: 16px;
 		}
 
-		.element > footer > i {
+		.element > footer > icon::after {
 			font-style: normal;
-			font-size: 12px;
+			font-size: 18px;
 			line-height: 1;
 		}
 
-		.element > footer > i[title='铁磁性'] {font-size: 0.9em;}
+		icon[title='气体']::after {
+			content: '💨';
+		}
 
-		.element > footer > i[title='稀土元素'] {font-size: 1em;}
+		icon[title='人造元素']::after {
+			content: '🧪'
+		}
+
+		icon[title='放射性元素']::after {
+			content: '☢';
+			color: #d32f2f;
+		}
+
+		icon[title='铁磁性']::after {
+			content: '🧲';
+			font-size: 0.9em;
+		}
+
+		icon[title='稀土元素']::after {
+			content: '💎';
+			font-size: 1em;
+		}
+
+		icon[title='贵金属']::after {
+			content: '💰';
+		}
+
+		icon[title='稀有气体']::after {
+			content: '';
+			display: block;
+			width: 100%;
+			height: 100%;
+			background-color: #f1f1f1;
+		}
 
 		.half-width .element > footer {
 			justify-content: space-around; /* 分散对齐图标 */
@@ -158,6 +187,14 @@
 		.half-width .element > footer > i {font-size: 18px;}
 
 		/* --- 筛选高亮样式 --- */
+		.filtering.碱金属 .one.element {
+			opacity: 0.5;
+		}
+
+		.filtering.碱金属 .碱金属 {
+			opacity: 1 !important;
+		}
+
 		.dimmed {
 			opacity: 0.3;
 		}
@@ -175,10 +212,13 @@
 										variant="outlined"/>
 		</template>
 		<template #center>
-			<choose-group v-model="selectedTags" :options="filterableTags" multiple/>
+			<label class="element filter" :class="filter" :title="filter" v-for="filter in filters" :key="filter">
+				<input type="checkbox" :value="filter" v-model="filtering"/>
+				{{filter}}
+			</label>
 		</template>
 	</toolbar>
-	<article class="periodic table of chemical element" :class="layout">
+	<article :class="`${layout} periodic-table-of-chemical-element , filtering ${filtering.join(' ')}`">
 		<section v-for="n in 7" :key="n" class="周期序号" :class="`周期`+n">
 			<p>{{n}}</p>
 		</section>
@@ -193,11 +233,7 @@
 				</header>
 				<p class="element name">{{element.name}}</p>
 				<footer>
-					<i v-if="element.tags.includes('放射性元素')" title="放射性元素" class="dangerous">☢</i>
-					<i v-if="element.tags.includes('铁磁性')" title="铁磁性">🧲</i>
-					<i v-if="element.tags.includes('人造元素')" title="人造元素">🧪</i>
-					<i v-if="element.tags.includes('稀土元素')" title="稀土元素">💎</i>
-					<i v-if="element.tags.includes('贵金属')" title="贵金属">💰</i>
+					<icon v-for="tag in element.tags" :title="tag"></icon>
 				</footer>
 			</div>
 		</section>
@@ -430,12 +466,14 @@
 		}
 	];
 	const a = [2, 8, 8, 18, 18, 32, 32];
+	const filters = ['碱金属', '碱土金属', '过渡金属', '贫金属', '类金属', '活泼非金属', '稀有气体',
+									 '放射性元素', '人造元素', '稀土元素', '铁磁性元素', '贵金属', '镧系元素', '锕系元素'];
 
 	const {createApp} = Vue;
 	const app = createApp({
 		components: {
 			'choose-group': PrimeVue.SelectButton,
-			// 'p-button': PrimeVue.Button
+			'p-button': PrimeVue.Button,
 			// 'p-textarea': PrimeVue.Textarea,
 			// 'p-fieldset': PrimeVue.Fieldset,
 			// 'card': PrimeVue.Card,
@@ -452,13 +490,17 @@
 					{label: '窄版', value: 'narrow'},
 					{label: '自动', value: 'auto'}
 				],
-				selectedTags: []
+				selectedTags: [],
+				filtering: []
 			};
 		},
 		computed: {
 			filterableTags() {
 				const allTags = this.elements.flatMap(el => el.tags || []);
 				return [...new Set(allTags)].sort();
+			},
+			filters() {
+				return filters;
 			}
 		},
 		watch: {
@@ -514,6 +556,7 @@
 		}
 	})
 	.mount('main');
+	window.app = app;
 </script>
 </body>
 </html>
