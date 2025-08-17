@@ -171,6 +171,20 @@
 
 		.half-width .element > footer > i {font-size: 18px;}
 
+		.toolbar {
+			display: flex;
+			align-items: center;
+			padding: 0.5rem 1rem;
+			gap: 1rem;
+			border-bottom: 1px solid #dcdfe6;
+			flex-wrap: wrap;
+		}
+
+		.element.filter {
+			--el-checkbox-button-checked-bg-color: transparent;
+			--el-button-bg-color: transparent;
+		}
+
 		.filtering.碱金属 .one.element:not(.碱金属),
 		.filtering.碱土金属 .one.element:not(.碱土金属),
 		.filtering.过渡金属 .one.element:not(.过渡金属),
@@ -185,41 +199,22 @@
 		.filtering.贵金属 .one.element:not(.贵金属) {
 			opacity: 0.5;
 		}
-
-		.toolbar {
-			display: flex;
-			align-items: center;
-			padding: 0.5rem 1rem;
-			gap: 1rem;
-			border-bottom: 1px solid #dcdfe6;
-			flex-wrap: wrap;
-		}
-
-		.toolbar-center {
-			display: flex;
-			gap: 0.5rem;
-			flex-wrap: wrap;
-			align-items: center;
-		}
 	</style>
 </head>
 <body class="目字形">
 <main>
 	<div class="toolbar">
-		<div class="toolbar-start">
-			<el-radio-group v-model="layout">
-				<el-radio-button v-for="opt in widthModes" :key="opt.value" :label="opt.value">{{ opt.label }}
-				</el-radio-button>
-			</el-radio-group>
-		</div>
-		<div class="toolbar-center">
-			<el-checkbox-group v-model="filtering" size="small">
-				<el-checkbox-button v-for="f in filters" :key="f.name" v-model="this.filtering" :label="f.name" :class="f.name"
-														@mouseenter="hoverFilter=f.name" @mouseleave="hoverFilter=null">
-					{{ f.name }}
-				</el-checkbox-button>
-			</el-checkbox-group>
-		</div>
+		<el-radio-group v-model="layout">
+			<el-radio-button v-for="opt in widthModes" :key="opt.value" :label="opt.value" size="small">{{ opt.label }}
+			</el-radio-button>
+		</el-radio-group>
+		<el-checkbox-group v-model="filtering" size="small">
+			<el-checkbox-button class="element filter maybe with icon" :class="f.name" :title="f.name"
+													v-for="f in filters" :key="f.name" v-model="this.filtering"
+													@mouseenter="hoverFilter=f.name" @mouseleave="hoverFilter=null">
+				{{ f.name }}
+			</el-checkbox-button>
+		</el-checkbox-group>
 	</div>
 	<article class="periodic-table-of-chemical-element" :class="tableClasses">
 		<section class="周期序号" :class="`周期`+n" v-for="n in 7" :key="n">
