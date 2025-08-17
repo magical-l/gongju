@@ -5,7 +5,7 @@
 	<title itemprop="name">元素周期表 | 工具兽</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
-	<link href="https://cdn.jsdelivr.net/npm/primeicons/primeicons.css" rel="stylesheet">
+	<link href="https://unpkg.com/element-plus/dist/index.css" rel="stylesheet">
 	<link href="lib/toastr.min.css" rel="stylesheet">
 	<link href="resources/common.css?v=250802" rel="stylesheet">
 	<link href="resources/花活.css" rel="stylesheet">
@@ -59,7 +59,7 @@
 			background-color: #ccc; /* 默认颜色 */
 			display: flex;
 			flex-direction: column;
-			transition: opacity 0.2s ease-in-out;
+			transition: all 0.2s ease-in-out;
 		}
 
 		.periodic-table-of-chemical-element {
@@ -171,58 +171,62 @@
 
 		.half-width .element > footer > i {font-size: 18px;}
 
-		.filtering.碱金属 .one.element,
-		.filtering.碱土金属 .one.element,
-		.filtering.过渡金属 .one.element,
-		.filtering.贫金属 .one.element,
-		.filtering.类金属 .one.element,
-		.filtering.活泼非金属 .one.element,
-		.filtering.稀有气体 .one.element,
-		.filtering.放射性元素 .one.element,
-		.filtering.人造元素 .one.element,
-		.filtering.稀土元素 .one.element,
-		.filtering.铁磁性元素 .one.element,
-		.filtering.贵金属 .one.element {
+		.filtering.碱金属 .one.element:not(.碱金属),
+		.filtering.碱土金属 .one.element:not(.碱土金属),
+		.filtering.过渡金属 .one.element:not(.过渡金属),
+		.filtering.贫金属 .one.element:not(.贫金属),
+		.filtering.类金属 .one.element:not(.类金属),
+		.filtering.活泼非金属 .one.element:not(.活泼非金属),
+		.filtering.稀有气体 .one.element:not(.稀有气体),
+		.filtering.放射性元素 .one.element:not(.放射性元素),
+		.filtering.人造元素 .one.element:not(.人造元素),
+		.filtering.稀土元素 .one.element:not(.稀土元素),
+		.filtering.铁磁性元素 .one.element:not(.铁磁性元素),
+		.filtering.贵金属 .one.element:not(.贵金属) {
 			opacity: 0.5;
 		}
 
-		.filtering.碱金属 .碱金属,
-		.filtering.碱土金属 .碱土金属,
-		.filtering.过渡金属 .过渡金属,
-		.filtering.贫金属 .贫金属,
-		.filtering.类金属 .类金属,
-		.filtering.活泼非金属 .活泼非金属,
-		.filtering.稀有气体 .稀有气体,
-		.filtering.放射性元素 .放射性元素,
-		.filtering.人造元素 .人造元素,
-		.filtering.稀土元素 .稀土元素,
-		.filtering.铁磁性元素 .铁磁性元素,
-		.filtering.贵金属 .贵金属 {
-			opacity: 1 !important;
+		.toolbar {
+			display: flex;
+			align-items: center;
+			padding: 0.5rem 1rem;
+			gap: 1rem;
+			border-bottom: 1px solid #dcdfe6;
+			flex-wrap: wrap;
+		}
+
+		.toolbar-center {
+			display: flex;
+			gap: 0.5rem;
+			flex-wrap: wrap;
+			align-items: center;
 		}
 	</style>
 </head>
 <body class="目字形">
 <main>
-	<toolbar>
-		<template #start>
-			<choose-group v-model="layout" :options="layoutOptions" option-label="label" option-value="value"/>
-		</template>
-		<template #center>
-			<label class="element filter with icon" :class="filter.name" :title="filter.name"
-						 v-for="filter in filters" :key="filter.name">
-				<input type="checkbox" :value="filter.name" v-model="filtering"/>
-				{{filter.name}}
-				<icon :title="filter.name"></icon>
-			</label>
-		</template>
-	</toolbar>
-	<article :class="`${layout} periodic-table-of-chemical-element , filtering ${filtering.join(' ')}`">
+	<div class="toolbar">
+		<div class="toolbar-start">
+			<el-radio-group v-model="layout">
+				<el-radio-button v-for="opt in widthModes" :key="opt.value" :label="opt.value">{{ opt.label }}
+				</el-radio-button>
+			</el-radio-group>
+		</div>
+		<div class="toolbar-center">
+			<el-checkbox-group v-model="filtering" size="small">
+				<el-checkbox-button v-for="f in filters" :key="f.name" v-model="this.filtering" :label="f.name" :class="f.name"
+														@mouseenter="hoverFilter=f.name" @mouseleave="hoverFilter=null">
+					{{ f.name }}
+				</el-checkbox-button>
+			</el-checkbox-group>
+		</div>
+	</div>
+	<article class="periodic-table-of-chemical-element" :class="tableClasses">
 		<section class="周期序号" :class="`周期`+n" v-for="n in 7" :key="n">
 			<p>{{n}}</p>
 		</section>
 		<section :id="element.name" class="one element"
-						 :class="[...element.tags, `周期`+element.period, getHighlightClass(element)]"
+						 :class="[...element.tags, `周期`+element.period]"
 						 :style="getElementStyle(element)"
 						 v-for="element in elements" :key="element.id">
 			<div class="element info">
@@ -240,8 +244,7 @@
 </main>
 <div>
 	<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-	<script src="https://unpkg.com/primevue/umd/primevue.min.js"></script>
-	<script src="https://unpkg.com/@primeuix/themes/umd/aura.js"></script>
+	<script src="https://unpkg.com/element-plus/dist/index.full.js"></script>
 	<!--	<script src="lib/jquery-3.4.1.min.js"></script>-->
 	<script src="lib/toastr.min.js"></script>
 	<script src="resources/util.js"></script>
@@ -277,9 +280,18 @@
 		{id: 23, symbol: "V", name: "钒", 熔点: "1910", 沸点: "3407", period: 4, col: -14, tags: ['过渡金属']},
 		{id: 24, symbol: "Cr", name: "铬", 熔点: "1907", 沸点: "2671", period: 4, col: -13, tags: ['过渡金属']},
 		{id: 25, symbol: "Mn", name: "锰", 熔点: "1246", 沸点: "2061", period: 4, col: -12, tags: ['过渡金属']},
-		{id: 26, symbol: "Fe", name: "铁", 熔点: "1538", 沸点: "2861", period: 4, col: -11, tags: ['过渡金属', '铁磁性']},
-		{id: 27, symbol: "Co", name: "钴", 熔点: "1495", 沸点: "2927", period: 4, col: -10, tags: ['过渡金属', '铁磁性']},
-		{id: 28, symbol: "Ni", name: "镍", 熔点: "1455", 沸点: "2730", period: 4, col: -9, tags: ['过渡金属', '铁磁性']},
+		{
+			id: 26, symbol: "Fe", name: "铁", 熔点: "1538", 沸点: "2861", period: 4, col: -11,
+			tags: ['过渡金属', '铁磁性元素']
+		},
+		{
+			id: 27, symbol: "Co", name: "钴", 熔点: "1495", 沸点: "2927", period: 4, col: -10,
+			tags: ['过渡金属', '铁磁性元素']
+		},
+		{
+			id: 28, symbol: "Ni", name: "镍", 熔点: "1455", 沸点: "2730", period: 4, col: -9,
+			tags: ['过渡金属', '铁磁性元素']
+		},
 		{id: 29, symbol: "Cu", name: "铜", 熔点: "1085", 沸点: "2562", period: 4, col: -8, tags: ['过渡金属']},
 		{id: 30, symbol: "Zn", name: "锌", 熔点: "419.5", 沸点: "907", period: 4, col: -7, tags: ['过渡金属']},
 		{id: 31, symbol: "Ga", name: "镓", 熔点: "29.76", 沸点: "2400", period: 4, col: -6, tags: ['贫金属', '硼族元素']},
@@ -492,34 +504,31 @@
 
 	const {createApp} = Vue;
 	const app = createApp({
-		components: {
-			'choose-group': PrimeVue.SelectButton,
-			'p-button': PrimeVue.Button,
-			// 'p-textarea': PrimeVue.Textarea,
-			// 'p-fieldset': PrimeVue.Fieldset,
-			// 'card': PrimeVue.Card,
-			'toolbar': PrimeVue.Toolbar
-			// 'p-checkbox': PrimeVue.Checkbox
-		},
 		data() {
 			return {
 				elements,
 				layout: null,
-				layoutOptions: [
+				widthModes: [
 					{label: '宽版', value: 'full-width'},
 					{label: '窄版', value: 'half-width'}
 				],
-				selectedTags: [],
-				filtering: []
+				filtering: [],
+				hoverFilter: null
 			};
 		},
 		computed: {
-			filterableTags() {
-				const allTags = this.elements.flatMap(el => el.tags || []);
-				return [...new Set(allTags)].sort();
-			},
 			filters() {
 				return categories.filter(e => e.filterable);
+			},
+			tableClasses() {
+				let rt = this.layout;
+				if (this.filtering?.length) {
+					rt += ' , filtering ' + this.filtering.join(' ');
+				}
+				if (this.hoverFilter) {
+					rt += ' , filtering ' + this.hoverFilter;
+				}
+				return rt;
 			}
 		},
 		watch: {
@@ -530,16 +539,6 @@
 			}
 		},
 		methods: {
-			getHighlightClass(element) {
-				if (this.selectedTags.length === 0) {
-					return {};
-				}
-				const hasActiveTag = element.tags.some(tag => this.selectedTags.includes(tag));
-				return {
-					'highlight': hasActiveTag,
-					'dimmed': !hasActiveTag
-				};
-			},
 			checkLayout() {
 				if (this.layout) {
 					return;
@@ -565,11 +564,7 @@
 			window.removeEventListener('resize', this.checkLayout);
 		}
 	})
-	.use(PrimeVue.Config, {
-		theme: {
-			preset: PrimeUIX.Themes.Aura
-		}
-	})
+	.use(ElementPlus)
 	.mount('main');
 	window.app = app;
 </script>
