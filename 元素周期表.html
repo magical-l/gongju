@@ -256,13 +256,15 @@
 		<section class="周期序号" :class="`周期`+n" v-for="n in 7" :key="n">
 			<p>{{n}}</p>
 		</section>
+
 		<!--<section class="族" v-for="group in groups" :key="group.name" :class="group.name">
 			<p>{{group.name}}</p>
 		</section>-->
+
 		<section :id="element.name" class="one element"
 						 :class="[...element.tags, `周期`+element.period]"
 						 :style="getElementStyle(element)"
-						 v-for="element in elements" :key="element.id">
+						 v-for="element in elements" :key="element.id" @click="curElement=element">
 			<div class="element info">
 				<header>
 					<p class="element id">{{element.id}}</p>
@@ -272,6 +274,22 @@
 				<footer>
 					<span class="with icon" v-for="tag in element.tags" :title="tag"></span>
 				</footer>
+			</div>
+		</section>
+
+		<section v-if="curElement" class="element detail area" style="display:block;grid-column:4/14;grid-row:1/4;padding:20px">
+			<div class="element detail card" :class="[...curElement.tags, `周期`+curElement.period]"
+					 :style="getElementStyle(curElement)">
+				<div class="element info">
+					<header>
+						<p class="element id">{{curElement.id}}</p>
+						<p class="element symbol">{{curElement.symbol}}</p>
+					</header>
+					<p class="element name">{{curElement.name}}</p>
+					<footer>
+						<span class="with icon" v-for="tag in curElement.tags" :title="tag"></span>
+					</footer>
+				</div>
 			</div>
 		</section>
 	</article>
@@ -548,6 +566,7 @@
 		data() {
 			return {
 				elements,
+				curElement:null,
 				groups,
 				layout: null,
 				widthModes: [
