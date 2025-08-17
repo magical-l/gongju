@@ -15,6 +15,25 @@
 		body > main {
 			--period1-row-offset: 0;
 			padding: 0;
+			display: flex;
+			flex-direction: column;
+		}
+
+		.table-wrapper {
+			display: flex;
+		}
+
+		.periodic-table-of-chemical-element {
+			display: grid;
+			flex-grow: 1;
+		}
+
+		.temperature-control {
+			flex-shrink: 0;
+			/*display: flex;*/
+			/*flex-direction: column;*/
+			/*align-items: center;*/
+			/*gap: 1rem;*/
 		}
 
 		.full-width.periodic-table-of-chemical-element {
@@ -35,21 +54,14 @@
 		}
 
 		.周期1 {grid-row: calc(1 + var(--period1-row-offset));}
-
 		.周期2 {grid-row: calc(2 + var(--period1-row-offset));}
-
 		.周期3 {grid-row: calc(3 + var(--period1-row-offset));}
-
 		.周期4 {grid-row: calc(4 + var(--period1-row-offset));}
-
 		.周期5 {grid-row: calc(5 + var(--period1-row-offset));}
-
 		.周期6 {grid-row: calc(6 + var(--period1-row-offset));}
-
 		.周期7 {grid-row: calc(7 + var(--period1-row-offset));}
 
 		.half-width .周期7 {grid-row-start: calc(8 + var(--period1-row-offset));}
-
 		.half-width .周期6.周期序号, .half-width .周期7.周期序号 {
 			grid-row-end: span 2;
 		}
@@ -62,25 +74,11 @@
 			justify-content: center;
 		}
 
-		.硼族元素 {
-			grid-column: -7;
-		}
-
-		.碳族元素 {
-			grid-column: -6;
-		}
-
-		.氮族元素 {
-			grid-column: -5;
-		}
-
-		.氧族元素 {
-			grid-column: -4;
-		}
-
-		.卤素 {
-			grid-column: -3;
-		}
+		.硼族元素 { grid-column: -7; }
+		.碳族元素 { grid-column: -6; }
+		.氮族元素 { grid-column: -5; }
+		.氧族元素 { grid-column: -4; }
+		.卤素 { grid-column: -3; }
 
 		.族 p {
 			padding: 0;
@@ -96,10 +94,6 @@
 			transition: all 0.2s ease-in-out;
 		}
 
-		.periodic-table-of-chemical-element {
-			display: grid;
-		}
-
 		.half-width .镧系, .half-width .锕系 {
 			grid-row-end: span 2;
 			justify-content: end;
@@ -113,13 +107,8 @@
 			clip-path: polygon(0% 100%, 100% 100%, 100% 10%, 50% 5%, 0% 10%);
 		}
 
-		.half-width #镧::before {
-			content: '57~71\A  镧系';
-		}
-
-		.half-width #锕::before {
-			content: '89~103\A    锕系';
-		}
+		.half-width #镧::before { content: '57~71\A  镧系'; }
+		.half-width #锕::before { content: '89~103\A    锕系'; }
 
 		.half-width #镧::before, .half-width #锕::before {
 			width: 100%;
@@ -131,21 +120,13 @@
 		}
 
 		.碱金属.element { background-color: #ffadad; }
-
 		.碱土金属.element { background-color: #ffd6a5; }
-
 		.过渡金属.element { background-color: #fdffb6; }
-
 		.镧系.element { background-color: #caffbf; }
-
 		.锕系.element { background-color: #9bf6ff; }
-
 		.类金属.element { background-color: #a0c4ff; }
-
 		.贫金属.element { background-color: #bdb2ff; }
-
 		.活泼非金属.element { background-color: #ffc6ff; }
-
 		.稀有气体.element { background-color: #f1f1f1; }
 
 		.element.info {
@@ -185,26 +166,19 @@
 			align-items: center;
 		}
 
-		.element > footer > icon::after {
+		.element > footer > .with.icon::after {
 			font-style: normal;
 			font-size: 0.8em;
 			line-height: 1;
 		}
 
 		[title='人造元素'].with.icon::after {content: '🧪';font-size: 0.8em;}
-
 		[title='放射性元素'].with.icon::after {content: '☢️';font-size: 0.8em;}
-
 		[title='铁磁性元素'].with.icon::after {content: '🧲';font-size: 0.8em;}
-
 		[title='稀土元素'].with.icon::after {content: '💎';font-size: 0.8em;}
-
 		[title='贵金属'].with.icon::after {content: '💰';font-size: 0.8em;}
-
 		[title='气体'].with.icon::after {content: '🌀';}
-
 		[title='液体'].with.icon::after {content: '💧';}
-
 		[title='固体'].with.icon::after {content: '🪨';}
 
 		.toolbar {
@@ -257,9 +231,23 @@
 		}
 
 		.element.detail.card .element.info {
-			width: 60px;
-			height: 60px;
+			width: 120px;
+			height: 120px;
 			flex-shrink: 0;
+		}
+
+		.element.detail.card footer {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 4px;
+			height: auto;
+			justify-content: flex-start;
+		}
+
+		.tag-item {
+			display: flex;
+			align-items: center;
+			gap: 8px;
 		}
 
 		.element-properties {
@@ -283,7 +271,7 @@
 		}
 	</style>
 </head>
-<body class="目字形">
+<body class="反叵字形">
 <main>
 	<div class="toolbar">
 		<el-radio-group v-model="layout">
@@ -298,52 +286,61 @@
 			</el-checkbox-button>
 		</el-checkbox-group>
 	</div>
-	<article class="periodic-table-of-chemical-element" :class="tableClasses">
-		<section class="周期序号" :class="`周期`+n" v-for="n in 7" :key="n">
-			<p>{{n}}</p>
-		</section>
+	<div class="table-wrapper">
+		<article class="periodic-table-of-chemical-element" :class="tableClasses">
+			<section class="周期序号" :class="`周期`+n" v-for="n in 7" :key="n">
+				<p>{{n}}</p>
+			</section>
 
-		<!--<section class="族" v-for="group in groups" :key="group.name" :class="group.name">
-			<p>{{group.name}}</p>
-		</section>-->
+			<!--<section class="族" v-for="group in groups" :key="group.name" :class="group.name">
+				<p>{{group.name}}</p>
+			</section>-->
 
-		<section :id="element.name" class="one element"
-						 :class="[...element.tags, `周期`+element.period]"
-						 :style="getElementStyle(element)"
-						 v-for="element in elements" :key="element.id" @click="curElement=element">
-			<div class="element info">
-				<header>
-					<p class="element id">{{element.id}}</p>
-					<p class="element symbol">{{element.symbol}}</p>
-				</header>
-				<p class="element name">{{element.name}}</p>
-				<footer>
-					<span class="with icon" v-for="tag in element.tags" :title="tag"></span>
-				</footer>
-			</div>
-		</section>
-
-		<section class="element detail area" v-if="curElement">
-			<div class="element detail card" :class="curElement.tags">
+			<section :id="element.name" class="one element"
+							 :class="[...element.tags, `周期`+element.period]"
+							 :style="getElementStyle(element)"
+							 v-for="element in elements" :key="element.id" @click="curElement=element">
 				<div class="element info">
 					<header>
-						<p class="element id">{{curElement.id}}</p>
-						<p class="element symbol">{{curElement.symbol}}</p>
+						<p class="element id">{{element.id}}</p>
+						<p class="element symbol">{{element.symbol}}</p>
 					</header>
-					<p class="element name">{{curElement.name}}</p>
+					<p class="element name">{{element.name}}</p>
 					<footer>
-						<span class="with icon" v-for="tag in curElement.tags" :title="tag"></span>
+						<span class="with icon" v-for="tag in element.tags" :title="tag"></span>
+						<span class="with icon" :title="getElementPhase(element)"></span>
 					</footer>
 				</div>
-				<dl class="element-properties">
-					<dt>熔点</dt>
-					<dd>{{curElement.熔点}}</dd>
-					<dt>沸点</dt>
-					<dd>{{curElement.沸点}}</dd>
-				</dl>
-			</div>
-		</section>
-	</article>
+			</section>
+
+			<section class="element detail area" v-if="curElement">
+				<div class="element detail card" :class="curElement.tags">
+					<div class="element info">
+						<header>
+							<p class="element id">{{curElement.id}}</p>
+							<p class="element symbol">{{curElement.symbol}}</p>
+						</header>
+						<p class="element name">{{curElement.name}}</p>
+						<footer>
+							<div class="tag-item" v-for="tag in curElement.tags" :key="tag">
+								<span class="with icon" :title="tag"></span>
+								<span>{{tag}}</span>
+							</div>
+						</footer>
+					</div>
+					<dl class="element-properties">
+						<dt>熔点</dt>
+						<dd>{{curElement.熔点}} °C</dd>
+						<dt>沸点</dt>
+						<dd>{{curElement.沸点}} °C</dd>
+					</dl>
+				</div>
+			</section>
+		</article>
+		<aside class="temperature-control">
+			<el-slider vertical v-model="temperature" :min="-273" :max="6000" height="100%" marks="{0:'0°'}"></el-slider>
+		</aside>
+	</div>
 </main>
 <div>
 	<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -622,7 +619,8 @@
 			{label: '窄版', value: 'half-width'}
 		],
 		filtering: [],
-		hoverFilter: null
+		hoverFilter: null,
+		temperature: 0,
 	};
 
 	const {createApp} = Vue;
@@ -668,6 +666,22 @@
 				return {
 					'grid-column': element.col > 0 ? element.col + 1 : element.col - 1
 				};
+			},
+			getElementPhase(element) {
+				if (element.熔点 === null || element.熔点 === '未知') {
+					return '未知';
+				}
+				const mp = parseFloat(element.熔点);
+				const bp = parseFloat(element.沸点);
+
+				if (this.temperature < mp) {
+					return '固体';
+				} else if (this.temperature >= mp && (isNaN(bp) || this.temperature < bp)) {
+					return '液体';
+				} else if (!isNaN(bp) && this.temperature >= bp) {
+					return '气体';
+				}
+				return '未知';
 			}
 		},
 		mounted() {
