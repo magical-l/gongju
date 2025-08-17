@@ -219,6 +219,7 @@
 		.element.filter {
 			--el-checkbox-button-checked-bg-color: transparent;
 			--el-button-bg-color: transparent;
+			--el-checkbox-button-checked-text-color: var(--el-color-primary);
 		}
 
 		.filtering.碱金属 .one.element:not(.碱金属),
@@ -245,8 +246,8 @@
 			</el-radio-button>
 		</el-radio-group>
 		<el-checkbox-group v-model="filtering" size="small">
-			<el-checkbox-button class="element filter maybe with icon" :class="f.name" :title="f.name"
-													v-for="f in filters" :key="f.name" v-model="this.filtering"
+			<el-checkbox-button class="element filter maybe with icon" :class="f.name" :title="f.name" :value="f.name"
+													v-for="f in filters" :key="f.name"
 													@mouseenter="hoverFilter=f.name" @mouseleave="hoverFilter=null">
 				{{ f.name }}
 			</el-checkbox-button>
@@ -277,7 +278,8 @@
 			</div>
 		</section>
 
-		<section v-if="curElement" class="element detail area" style="display:block;grid-column:4/14;grid-row:1/4;padding:20px">
+		<section v-if="curElement" class="element detail area"
+						 style="display:block;grid-column:4/14;grid-row:1/4;padding:20px">
 			<div class="element detail card" :class="[...curElement.tags, `周期`+curElement.period]"
 					 :style="getElementStyle(curElement)">
 				<div class="element info">
@@ -561,21 +563,23 @@
 		{name: '固体', filterable: true}
 	];
 
+	const data = {
+		elements,
+		curElement: null,
+		groups,
+		layout: null,
+		widthModes: [
+			{label: '宽版', value: 'full-width'},
+			{label: '窄版', value: 'half-width'}
+		],
+		filtering: [],
+		hoverFilter: null
+	};
+
 	const {createApp} = Vue;
 	const app = createApp({
 		data() {
-			return {
-				elements,
-				curElement:null,
-				groups,
-				layout: null,
-				widthModes: [
-					{label: '宽版', value: 'full-width'},
-					{label: '窄版', value: 'half-width'}
-				],
-				filtering: [],
-				hoverFilter: null
-			};
+			return data;
 		},
 		computed: {
 			filters() {
@@ -627,6 +631,8 @@
 	})
 	.use(ElementPlus)
 	.mount('main');
+
+	window.data = data;
 	window.app = app;
 </script>
 </body>
