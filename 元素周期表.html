@@ -21,7 +21,7 @@
 
 		.table-wrapper {
 			display: flex;
-			flex-wrap: wrap;
+			width: 100%;
 		}
 
 		.discovery.year.filter {
@@ -29,7 +29,7 @@
 			flex-shrink: 0;
 			flex-grow: 1;
 			border-bottom: 1px solid #dcdfe6;
-			padding: 10px 30px;
+			padding: 5px 30px;
 			display: flex;
 			align-items: center;
 		}
@@ -39,9 +39,9 @@
 		}
 
 		.periodic-table-of-chemical-element {
-			height: 720px;
+			height: 700px;
 			display: grid;
-			flex-grow: 1;
+			width: calc(100% - 72px);
 		}
 
 		.full-width.periodic-table-of-chemical-element {
@@ -411,7 +411,7 @@
 
 	<div class="discovery year filter">
 		<span class="label">年代：</span>
-		<el-slider v-model="discoveryYear" :min="1650" :max="2025" show-input></el-slider>
+		<el-slider v-model="discoveryYear" :min="1650" :max="2025" show-input size="small"></el-slider>
 	</div>
 
 	<article class="periodic-table-of-chemical-element" :class="tableClasses">
