@@ -338,7 +338,7 @@
 			</section>
 		</article>
 		<aside class="temperature-control">
-			<el-slider vertical v-model="temperature" :min="-273" :max="6000" height="100%" marks="{0:'0°'}"></el-slider>
+			<el-slider vertical v-model="temperature" :min="-273" :max="6000" height="100%" :marks="{0:'0°'}"></el-slider>
 		</aside>
 	</div>
 </main>
@@ -668,19 +668,26 @@
 				};
 			},
 			getElementPhase(element) {
-				if (element.熔点 === null || element.熔点 === '未知') {
-					return '未知';
-				}
 				const mp = parseFloat(element.熔点);
 				const bp = parseFloat(element.沸点);
-
-				if (this.temperature < mp) {
-					return '固体';
-				} else if (this.temperature >= mp && (isNaN(bp) || this.temperature < bp)) {
-					return '液体';
-				} else if (!isNaN(bp) && this.temperature >= bp) {
+				const temp = this.temperature;
+				// 气态判断最优先，逻辑最清晰
+				if (!isNaN(bp) && temp >= bp) {
 					return '气体';
 				}
+				// 液态判断
+				// 条件1: 温度高于一个有效的熔点 (但低于沸点，因为气态已提前判断)
+				const isAboveMeltingPoint = !isNaN(mp) && temp >= mp;
+				// 条件2: 熔点未知, 但温度低于一个有效的沸点
+				const isMeltUnknownAndBelowBoiling = isNaN(mp) && !isNaN(bp) && temp < bp;
+				if (isAboveMeltingPoint || isMeltUnknownAndBelowBoiling) {
+					return '液体';
+				}
+				// 固态判断
+				if (!isNaN(mp) && temp < mp) {
+					return '固体';
+				}
+				// 其他情况
 				return '未知';
 			}
 		},
