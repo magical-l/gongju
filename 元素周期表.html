@@ -21,7 +21,7 @@
 
 		.table-wrapper {
 			display: flex;
-			gap:16px;
+			gap: 16px;
 		}
 
 		.periodic-table-of-chemical-element {
@@ -306,14 +306,18 @@
 		.temperature-control {
 			gap: 8px;
 		}
+
 		.temperature-control .mode-switch {
 			margin-bottom: 4px;
 		}
+
 		.temperature-control .el-radio-group .el-radio-button__inner {
 			padding: 4px 6px;
 		}
+
 		/* 自定义温度计控件 */
 		.temperature-control .thermo { position: relative; width: 160px; }
+
 		.temperature-control .thermo-track {
 			position: relative;
 			height: 680px;
@@ -322,6 +326,7 @@
 			border-radius: 999px;
 			background: linear-gradient(to top, #3b82f6 0%, #22d3ee 25%, #10b981 50%, #f59e0b 75%, #ef4444 100%);
 		}
+
 		.temperature-control .thermo-pointer {
 			position: absolute;
 			left: 12px;
@@ -332,14 +337,46 @@
 			border-right: 10px solid #ef4444;
 			cursor: ns-resize;
 		}
+
 		.temperature-control .thermo-value {
 			position: absolute;
-			left: 30px;
-			width: 84px;
+			left: 21px;
+			width: 40px;
 			height: auto;
-			padding: 12px 0; /* 为上下三角预留空间，便于整体居中测量 */
+			/*padding: 12px 0; !* 为上下三角预留空间，便于整体居中测量 *!*/
 		}
-		.temperature-control .thermo-value .el-input-number { width: 100%; }
+
+		.temperature-control .thermo-value .el-input-number {
+			width: 100%;
+			flex-direction: column;
+			margin: 0;
+			padding: 0;
+		}
+
+		.temperature-control .thermo-value .el-input-number__decrease,
+		.temperature-control .thermo-value .el-input-number__increase {
+			position: unset;
+			width: 100%;
+			height: 15px;
+			border: var(--el-border);
+		}
+
+		.temperature-control .thermo-value .el-input-number__decrease {
+			order: 2;
+			border-top: none;
+			border-radius: 0 0 var(--el-border-radius-base) var(--el-border-radius-base);
+		}
+
+		.temperature-control .thermo-value .el-input-number__increase {
+			border-bottom: none;
+			border-radius: var(--el-border-radius-base) var(--el-border-radius-base) 0 0;
+		}
+
+		.temperature-control .thermo-value .el-input__wrapper {
+			border-radius: 0;
+			padding: 0 !important;
+		}
+
 		/* 自定义上下三角按钮（位于输入框上/下方） */
 		.temperature-control .thermo-step {
 			position: absolute;
@@ -348,28 +385,33 @@
 			width: 0; height: 0;
 			cursor: pointer;
 		}
+
 		.temperature-control .thermo-step-up {
 			top: 0;
 			border-left: 6px solid transparent;
 			border-right: 6px solid transparent;
 			border-bottom: 8px solid #606266;
 		}
+
 		.temperature-control .thermo-step-down {
 			bottom: 0;
 			border-left: 6px solid transparent;
 			border-right: 6px solid transparent;
 			border-top: 8px solid #606266;
 		}
+
 		.temperature-control .thermo-step:hover {
 			filter: brightness(1.2);
 		}
+
 		.temperature-control .thermo-zero {
 			position: absolute;
 			left: -4px;
 			width: 10px;
 			height: 1px;
-			background: rgba(0,0,0,1);
+			background: rgba(0, 0, 0, 1);
 		}
+
 		.temperature-control .el-input-number { width: 76px; margin-top: 8px; }
 
 		/* 单位小文本 */
@@ -379,14 +421,18 @@
 			cursor: pointer;
 			user-select: none;
 		}
+
 		.temperature-control .unit-label::after {
 			content: ' ▾';
 			font-size: 12px;
 			color: #909399;
 		}
-		.unit-menu { display:flex; flex-direction: column; gap:6px; justify-content:center;  }
-		.unit-item { display:block; text-align:center; font-size:12px; color:#606266; border-radius:4px; cursor:pointer; }
-		.unit-item:hover { background:#f5f7fa; color:#409EFF; }
+
+		.unit-menu { display: flex; flex-direction: column; gap: 6px; justify-content: center; }
+
+		.unit-item { display: block; text-align: center; font-size: 12px; color: #606266; border-radius: 4px; cursor: pointer; }
+
+		.unit-item:hover { background: #f5f7fa; color: #409EFF; }
 	</style>
 </head>
 <body class="反叵字形">
@@ -462,16 +508,16 @@
 					<div class="unit-label">{{ unitLabel }}</div>
 				</template>
 				<div class="unit-menu">
-					<span class="unit-item" v-for="opt in unitMenuOptions" :key="opt" @click="setUnit(opt)">{{ unitName(opt) }}</span>
+					<span class="unit-item" v-for="opt in unitMenuOptions" :key="opt"
+								@click="setUnit(opt)">{{ unitName(opt) }}</span>
 				</div>
 			</el-popover>
 			<div class="thermo">
-				<div class="thermo-track" ref="thermoTrack" @mousedown="onThermoMouseDown">
+				<div class="thermo-track" ref="thermoTrack">
 					<div class="thermo-pointer" :style="thermoPointerStyle" @mousedown.stop="onThermoMouseDown"></div>
 					<div class="thermo-value" :style="thermoValueStyle" ref="thermoValueBox">
-						<div class="thermo-step thermo-step-up" @click.stop="nudgeThermo(1)"></div>
-						<el-input-number v-model="temperatureInMode" :controls="false" :min="temperatureMin" :max="temperatureMax" :step="1" size="small"></el-input-number>
-						<div class="thermo-step thermo-step-down" @click.stop="nudgeThermo(-1)"></div>
+						<el-input-number v-model="temperatureInMode" :min="temperatureMin" :max="temperatureMax" :step="1"
+														 controls-position="right" size="small"></el-input-number>
 					</div>
 					<div class="thermo-zero" v-if="thermoZeroStyle" :style="thermoZeroStyle"></div>
 				</div>
@@ -785,8 +831,12 @@
 			},
 			temperatureInMode: {
 				get() {
-					if (this.temperatureMode === 'C') return Math.round(this.temperature);
-					if (this.temperatureMode === 'K') return Math.round(this.temperature + 273);
+					if (this.temperatureMode === 'C') {
+						return Math.round(this.temperature);
+					}
+					if (this.temperatureMode === 'K') {
+						return Math.round(this.temperature + 273);
+					}
 					return Math.round(this.temperature * 9 / 5 + 32);
 				},
 				set(v) {
@@ -800,54 +850,70 @@
 				}
 			},
 			temperatureMin() {
-				if (this.temperatureMode === 'C') return -273;
-				if (this.temperatureMode === 'K') return 0;
+				if (this.temperatureMode === 'C') {
+					return -273;
+				}
+				if (this.temperatureMode === 'K') {
+					return 0;
+				}
 				return -459;
 			},
 			temperatureMax() {
-				if (this.temperatureMode === 'C') return 6000;
-				if (this.temperatureMode === 'K') return 6273;
+				if (this.temperatureMode === 'C') {
+					return 6000;
+				}
+				if (this.temperatureMode === 'K') {
+					return 6273;
+				}
 				return 10832;
 			},
 			temperatureMarks() {
-				if (this.temperatureMode === 'C') return {0: '0°C'};
-				if (this.temperatureMode === 'K') return {0: '0K'};
+				if (this.temperatureMode === 'C') {
+					return {0: '0°C'};
+				}
+				if (this.temperatureMode === 'K') {
+					return {0: '0K'};
+				}
 				return {0: '0°F'};
 			},
 			unitLabel() {
 				return this.temperatureMode === 'C' ? '°C' : (this.temperatureMode === 'K' ? 'K' : '°F');
 			},
 			unitMenuOptions() {
-				const all = ['C','K','F'];
+				const all = ['C', 'K', 'F'];
 				return all.filter(u => u !== this.temperatureMode);
 			},
 			thermoPercent() {
 				const min = this.temperatureMin;
 				const max = this.temperatureMax;
 				const span = max - min;
-				if (!span) return 0;
+				if (!span) {
+					return 0;
+				}
 				const pct = (this.temperatureInMode - min) / span;
 				return Math.max(0, Math.min(1, pct));
 			},
 			thermoFillStyle() {
-				return { height: (this.thermoPercent * 100).toFixed(2) + '%' };
+				return {height: (this.thermoPercent * 100).toFixed(2) + '%'};
 			},
 			thermoPointerStyle() {
 				// 指针三角形以自身高度一半作为中心（6px），令中心对齐到百分比高度
-				return { bottom: 'calc(' + (this.thermoPercent * 100).toFixed(2) + '% - 6px)' };
+				return {bottom: 'calc(' + (this.thermoPercent * 100).toFixed(2) + '% - 6px)'};
 			},
 			thermoValueStyle() {
 				// 使用实测一半高度精确对齐中线
 				const half = this.thermoBoxHalf || 12;
-				return { bottom: 'calc(' + (this.thermoPercent * 100).toFixed(2) + '% - ' + half + 'px)' };
+				return {bottom: 'calc(' + (this.thermoPercent * 100).toFixed(2) + '% - ' + half + 'px)'};
 			},
 			thermoZeroStyle() {
 				const min = this.temperatureMin;
 				const max = this.temperatureMax;
-				if (min > 0 || max < 0) return null;
+				if (min > 0 || max < 0) {
+					return null;
+				}
 				const pct = (0 - min) / (max - min);
 				// 0°线需要与旋钮中心对齐，所以不做额外偏移
-				return { bottom: (pct * 100).toFixed(2) + '%' };
+				return {bottom: (pct * 100).toFixed(2) + '%'};
 			}
 		},
 		watch: {
@@ -863,7 +929,9 @@
 		methods: {
 			measureThermoBox() {
 				const el = this.$refs.thermoValueBox;
-				if (!el) return;
+				if (!el) {
+					return;
+				}
 				const rect = el.getBoundingClientRect();
 				const half = rect.height / 2;
 				if (half > 6 && Math.abs(half - this.thermoBoxHalf) > 0.5) {
@@ -904,8 +972,12 @@
 				return '未知';
 			},
 			formatTempTooltip(value) {
-				if (this.temperatureMode === 'C') return `${value} °C`;
-				if (this.temperatureMode === 'K') return `${value} K`;
+				if (this.temperatureMode === 'C') {
+					return `${value} °C`;
+				}
+				if (this.temperatureMode === 'K') {
+					return `${value} K`;
+				}
 				return `${value} °F`;
 			},
 			clamp(value, min, max) {
@@ -913,7 +985,9 @@
 			},
 			updateThermoFromEvent(e) {
 				const track = this.$refs.thermoTrack;
-				if (!track) return;
+				if (!track) {
+					return;
+				}
 				const rect = track.getBoundingClientRect();
 				const yFromTop = this.clamp(e.clientY - rect.top, 0, rect.height);
 				const percent = 1 - (yFromTop / rect.height);
@@ -927,10 +1001,12 @@
 				this.isThermoDragging = true;
 				this.updateThermoFromEvent(e);
 				window.addEventListener('mousemove', this.onThermoMouseMove);
-				window.addEventListener('mouseup', this.onThermoMouseUp, { once: true });
+				window.addEventListener('mouseup', this.onThermoMouseUp, {once: true});
 			},
 			onThermoMouseMove(e) {
-				if (!this.isThermoDragging) return;
+				if (!this.isThermoDragging) {
+					return;
+				}
 				this.updateThermoFromEvent(e);
 			},
 			onThermoMouseUp() {
