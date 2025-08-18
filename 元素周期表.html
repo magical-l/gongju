@@ -16,11 +16,26 @@
 			--period1-row-offset: 0;
 			padding: 0;
 			display: flex;
-			flex-direction: column;
+			flex-wrap: wrap;
 		}
 
 		.table-wrapper {
 			display: flex;
+			flex-wrap: wrap;
+		}
+
+		.discovery.year.filter {
+			width: 100%;
+			flex-shrink: 0;
+			flex-grow: 1;
+			border-bottom: 1px solid #dcdfe6;
+			padding: 10px 30px;
+			display: flex;
+			align-items: center;
+		}
+
+		.discovery.year.filter .label {
+			width: 60px;
 		}
 
 		.periodic-table-of-chemical-element {
@@ -200,15 +215,17 @@
 		}
 
 		.toolbar {
-			display: flex;
-			align-items: center;
-			padding: 0.5rem 1rem;
-			gap: 1rem;
+			flex-shrink: 0;
+			flex-grow: 1;
 			border-bottom: 1px solid #dcdfe6;
+			padding: 0.5rem 1rem;
+			display: flex;
 			flex-wrap: wrap;
+			gap: 1rem;
+			align-items: center;
 		}
 
-		.element.filter {
+		.element.category.filter {
 			--el-checkbox-button-checked-bg-color: transparent;
 			--el-button-bg-color: transparent;
 			--el-checkbox-button-checked-text-color: var(--el-color-primary);
@@ -383,89 +400,94 @@
 			</el-radio-button>
 		</el-radio-group>
 		<el-checkbox-group v-model="filtering" size="small">
-			<el-checkbox-button class="element filter maybe with icon" :class="f.name" :title="f.name" :value="f.name"
+			<el-checkbox-button class="element category filter maybe with icon" :class="f.name"
+													:title="f.name" :value="f.name"
 													v-for="f in filters" :key="f.name"
 													@mouseenter="hoverFilter=f.name" @mouseleave="hoverFilter=null">
 				{{ f.name }}
 			</el-checkbox-button>
 		</el-checkbox-group>
 	</div>
-	<div class="table-wrapper">
-		<article class="periodic-table-of-chemical-element" :class="tableClasses">
-			<section class="周期序号" :class="`周期`+n" v-for="n in 7" :key="n">
-				<p>{{n}}</p>
-			</section>
 
-			<!--<section class="族" v-for="group in groups" :key="group.name" :class="group.name">
-				<p>{{group.name}}</p>
-			</section>-->
+	<div class="discovery year filter">
+		<span class="label">年代：</span>
+		<el-slider v-model="discoveryYear" :min="1650" :max="2025" show-input></el-slider>
+	</div>
 
-			<section :id="element.name" class="one element"
-							 :class="[...element.tags, `周期`+element.period]"
-							 :style="getElementStyle(element)"
-							 v-for="element in elements" :key="element.id" @click="curElement=element">
+	<article class="periodic-table-of-chemical-element" :class="tableClasses">
+		<section class="周期序号" :class="`周期`+n" v-for="n in 7" :key="n">
+			<p>{{n}}</p>
+		</section>
+
+		<!--<section class="族" v-for="group in groups" :key="group.name" :class="group.name">
+			<p>{{group.name}}</p>
+		</section>-->
+
+		<section :id="element.name" class="one element"
+						 :class="[...element.tags, `周期`+element.period]"
+						 :style="[getElementStyle(element), getYearFilterStyle(element)]"
+						 v-for="element in elements" :key="element.id" @click="curElement=element">
+			<div class="element info">
+				<header>
+					<p class="element id">{{element.id}}</p>
+					<p class="element symbol">{{element.symbol}}</p>
+				</header>
+				<p class="element name">{{element.name}}</p>
+				<footer>
+					<span class="with icon" v-for="tag in element.tags" :title="tag"></span>
+					<span class="with icon" :title="getElementPhase(element)"></span>
+				</footer>
+			</div>
+		</section>
+
+		<section class="element detail area" v-if="curElement">
+			<div class="element detail card" :class="curElement.tags">
 				<div class="element info">
 					<header>
-						<p class="element id">{{element.id}}</p>
-						<p class="element symbol">{{element.symbol}}</p>
+						<p class="element id">{{curElement.id}}</p>
+						<p class="element symbol">{{curElement.symbol}}</p>
 					</header>
-					<p class="element name">{{element.name}}</p>
+					<p class="element name">{{curElement.name}}</p>
 					<footer>
-						<span class="with icon" v-for="tag in element.tags" :title="tag"></span>
-						<span class="with icon" :title="getElementPhase(element)"></span>
+						<div class="tag-item" v-for="tag in curElement.tags" :key="tag">
+							<span class="with icon" :title="tag"></span>
+							<span>{{tag}}</span>
+						</div>
 					</footer>
 				</div>
-			</section>
+				<dl class="element-properties">
+					<dt>熔点</dt>
+					<dd>{{curElement.熔点}} °C</dd>
+					<dt>沸点</dt>
+					<dd>{{curElement.沸点}} °C</dd>
+					<dt>物态</dt>
+					<dd class="with icon" :title="getElementPhase(curElement)">{{getElementPhase(curElement)}}</dd>
+					<dt>发现年份</dt>
+					<dd>{{curElement.发现年份 || '未知'}}</dd>
+				</dl>
+			</div>
+		</section>
+	</article>
 
-			<section class="element detail area" v-if="curElement">
-				<div class="element detail card" :class="curElement.tags">
-					<div class="element info">
-						<header>
-							<p class="element id">{{curElement.id}}</p>
-							<p class="element symbol">{{curElement.symbol}}</p>
-						</header>
-						<p class="element name">{{curElement.name}}</p>
-						<footer>
-							<div class="tag-item" v-for="tag in curElement.tags" :key="tag">
-								<span class="with icon" :title="tag"></span>
-								<span>{{tag}}</span>
-							</div>
-						</footer>
-					</div>
-					<dl class="element-properties">
-						<dt>熔点</dt>
-						<dd>{{curElement.熔点}} °C</dd>
-						<dt>沸点</dt>
-						<dd>{{curElement.沸点}} °C</dd>
-						<dt>物态</dt>
-						<dd class="with icon" :title="getElementPhase(curElement)">{{getElementPhase(curElement)}}</dd>
-						<dt>发现年份</dt>
-						<dd>{{curElement.发现年份 || '未知'}}</dd>
-					</dl>
-				</div>
-			</section>
-		</article>
-
-		<aside class="temperature-control">
-			<el-popover v-model:visible="unitMenuVisible" placement="bottom" trigger="click" :width="60">
-				<template #reference>
-					<div class="unit-label">{{ unitLabel }}</div>
-				</template>
-				<div class="unit-menu">
+	<aside class="temperature-control">
+		<el-popover v-model:visible="unitMenuVisible" placement="bottom" trigger="click" :width="60">
+			<template #reference>
+				<div class="unit-label">{{ unitLabel }}</div>
+			</template>
+			<div class="unit-menu">
 					<span class="unit-item" v-for="opt in unitMenuOptions" :key="opt"
 								@click="setUnit(opt)">{{ unitName(opt) }}</span>
-				</div>
-			</el-popover>
-			<div class="thermometer-bulb">
-				<el-input-number v-model="temperatureInMode" :min="temperatureMin" :max="temperatureMax" :step="1"
-												 controls-position="right" size="small"></el-input-number>
 			</div>
-			<div class="thermometer-track" ref="thermometerTrack">
-				<div class="thermometer-knob" :style="thermometerKnobStyle" @mousedown.stop="onThermometerMouseDown"></div>
-				<div class="thermometer-zero" v-if="thermometerZeroStyle" :style="thermometerZeroStyle"></div>
-			</div>
-		</aside>
-	</div>
+		</el-popover>
+		<div class="thermometer-bulb">
+			<el-input-number v-model="temperatureInMode" :min="temperatureMin" :max="temperatureMax" :step="1"
+											 controls-position="right" size="small"></el-input-number>
+		</div>
+		<div class="thermometer-track" ref="thermometerTrack">
+			<div class="thermometer-knob" :style="thermometerKnobStyle" @mousedown.stop="onThermometerMouseDown"></div>
+			<div class="thermometer-zero" v-if="thermometerZeroStyle" :style="thermometerZeroStyle"></div>
+		</div>
+	</aside>
 </main>
 <div>
 	<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -999,7 +1021,8 @@
 		temperatureMode: 'C',
 		unitMenuVisible: false,
 		isThermometerDragging: false,
-		thermometerBoxHalf: 12
+		thermometerBoxHalf: 12,
+		discoveryYear: 2025
 	};
 
 	const {createApp} = Vue;
@@ -1008,6 +1031,7 @@
 			return data;
 		},
 		computed: {
+
 			filters() {
 				return categories.filter(e => e.filterable);
 			},
@@ -1110,6 +1134,19 @@
 			}
 		},
 		methods: {
+			getYearFilterStyle(element) {
+				const year = element.发现年份;
+				if (year === '古代' || !year) {
+					return {};
+				}
+				if (year === '未知') {
+					return this.discoveryYear === 2025 ? {} : {opacity: 0.2, pointerEvents: 'none'};
+				}
+				if (Number(year) > this.discoveryYear) {
+					return {opacity: 0.2, pointerEvents: 'none'};
+				}
+				return {};
+			},
 			measureThermometerBox() {
 				const el = this.$refs.thermometerValueBox;
 				if (!el) {
