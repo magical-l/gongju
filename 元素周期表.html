@@ -246,6 +246,7 @@
 			display: flex;
 			gap: 20px;
 			align-items: start;
+			justify-content: start;
 		}
 
 		.element.detail.card .element.info {
@@ -436,6 +437,8 @@
 						<dd>{{curElement.熔点}} °C</dd>
 						<dt>沸点</dt>
 						<dd>{{curElement.沸点}} °C</dd>
+						<dt>物态</dt>
+						<dd>{{ getElementPhase(curElement) }}</dd>
 					</dl>
 				</div>
 			</section>
