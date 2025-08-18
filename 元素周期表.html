@@ -39,54 +39,6 @@
 			grid-template-rows: repeat(9, 81px);
 		}
 
-		.周期序号 {
-			grid-column: 1;
-			border: 1px solid #ccc;
-		}
-
-		.周期1 {grid-row: calc(1 + var(--period1-row-offset));}
-
-		.周期2 {grid-row: calc(2 + var(--period1-row-offset));}
-
-		.周期3 {grid-row: calc(3 + var(--period1-row-offset));}
-
-		.周期4 {grid-row: calc(4 + var(--period1-row-offset));}
-
-		.周期5 {grid-row: calc(5 + var(--period1-row-offset));}
-
-		.周期6 {grid-row: calc(6 + var(--period1-row-offset));}
-
-		.周期7 {grid-row: calc(7 + var(--period1-row-offset));}
-
-		.half-width .周期7 {grid-row-start: calc(8 + var(--period1-row-offset));}
-
-		.half-width .周期6.周期序号, .half-width .周期7.周期序号 {
-			grid-row-end: span 2;
-		}
-
-		.族 {
-			grid-row: 1;
-			border: 1px solid #ccc;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-		}
-
-		.硼族元素 { grid-column: -7; }
-
-		.碳族元素 { grid-column: -6; }
-
-		.氮族元素 { grid-column: -5; }
-
-		.氧族元素 { grid-column: -4; }
-
-		.卤素 { grid-column: -3; }
-
-		.族 p {
-			padding: 0;
-			margin: 0;
-		}
-
 		.one.element {
 			position: relative;
 			border: 1px solid #ccc;
@@ -95,50 +47,6 @@
 			flex-direction: column;
 			transition: all 0.2s ease-in-out;
 		}
-
-		.half-width .镧系, .half-width .锕系 {
-			grid-row-end: span 2;
-			justify-content: end;
-		}
-
-		.half-width .镧系 .element.info, .half-width .锕系 .element.info {
-			height: 50%; /* 否则占不满一行的格子 */
-		}
-
-		.half-width #镧, .half-width #锕 {
-			clip-path: polygon(0% 100%, 100% 100%, 100% 10%, 50% 5%, 0% 10%);
-		}
-
-		.half-width #镧::before { content: '57~71\A  镧系'; }
-
-		.half-width #锕::before { content: '89~103\A    锕系'; }
-
-		.half-width #镧::before, .half-width #锕::before {
-			width: 100%;
-			height: 100%;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			white-space: pre;
-		}
-
-		.碱金属.element { background-color: #ffadad; }
-
-		.碱土金属.element { background-color: #ffd6a5; }
-
-		.过渡金属.element { background-color: #fdffb6; }
-
-		.镧系.element { background-color: #caffbf; }
-
-		.锕系.element { background-color: #9bf6ff; }
-
-		.类金属.element { background-color: #a0c4ff; }
-
-		.贫金属.element { background-color: #bdb2ff; }
-
-		.活泼非金属.element { background-color: #ffc6ff; }
-
-		.稀有气体.element { background-color: #f1f1f1; }
 
 		.element.info {
 			display: flex;
@@ -198,6 +106,98 @@
 		[title='液体'].with.icon::after {content: '💧';}
 
 		[title='固体'].with.icon::after {content: '🪨';}
+
+		.周期1 {grid-row: calc(1 + var(--period1-row-offset));}
+
+		.周期2 {grid-row: calc(2 + var(--period1-row-offset));}
+
+		.周期3 {grid-row: calc(3 + var(--period1-row-offset));}
+
+		.周期4 {grid-row: calc(4 + var(--period1-row-offset));}
+
+		.周期5 {grid-row: calc(5 + var(--period1-row-offset));}
+
+		.周期6 {grid-row: calc(6 + var(--period1-row-offset));}
+
+		.周期7 {grid-row: calc(7 + var(--period1-row-offset));}
+
+		.half-width .周期7 {grid-row-start: calc(8 + var(--period1-row-offset));}
+
+		.half-width .周期6.周期序号, .half-width .周期7.周期序号 {
+			grid-row-end: span 2;
+		}
+
+		.周期序号 {
+			grid-column: 1;
+			border: 1px solid #ccc;
+		}
+
+		.族 {
+			grid-row: 1;
+			border: 1px solid #ccc;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.硼族元素 { grid-column: -7; }
+
+		.碳族元素 { grid-column: -6; }
+
+		.氮族元素 { grid-column: -5; }
+
+		.氧族元素 { grid-column: -4; }
+
+		.卤素 { grid-column: -3; }
+
+		.族 p {
+			padding: 0;
+			margin: 0;
+		}
+
+		.碱金属.element { background-color: #ffadad; }
+
+		.碱土金属.element { background-color: #ffd6a5; }
+
+		.过渡金属.element { background-color: #fdffb6; }
+
+		.镧系.element { background-color: #caffbf; }
+
+		.锕系.element { background-color: #9bf6ff; }
+
+		.类金属.element { background-color: #a0c4ff; }
+
+		.贫金属.element { background-color: #bdb2ff; }
+
+		.活泼非金属.element { background-color: #ffc6ff; }
+
+		.稀有气体.element { background-color: #f1f1f1; }
+
+		.half-width .镧系, .half-width .锕系 {
+			grid-row-end: span 2;
+			justify-content: end;
+		}
+
+		.half-width .镧系 .element.info, .half-width .锕系 .element.info {
+			height: 50%; /* 否则占不满一行的格子 */
+		}
+
+		.half-width #镧, .half-width #锕 {
+			clip-path: polygon(0% 100%, 100% 100%, 100% 10%, 50% 5%, 0% 10%);
+		}
+
+		.half-width #镧::before { content: '57~71\A  镧系'; }
+
+		.half-width #锕::before { content: '89~103\A    锕系'; }
+
+		.half-width #镧::before, .half-width #锕::before {
+			width: 100%;
+			height: 100%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			white-space: pre;
+		}
 
 		.toolbar {
 			display: flex;
