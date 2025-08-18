@@ -28,14 +28,6 @@
 			flex-grow: 1;
 		}
 
-		.temperature-control {
-			flex-shrink: 0;
-			/*display: flex;*/
-			/*flex-direction: column;*/
-			/*align-items: center;*/
-			/*gap: 1rem;*/
-		}
-
 		.full-width.periodic-table-of-chemical-element {
 			height: 720px;
 			grid-template-columns: 10px repeat(32, 1fr);
@@ -44,7 +36,7 @@
 
 		.half-width.periodic-table-of-chemical-element {
 			height: 720px;
-			grid-template-columns: 10px repeat(18, 77px);
+			grid-template-columns: 10px repeat(18, 75px);
 			grid-template-rows: repeat(9, 81px);
 		}
 
@@ -54,14 +46,21 @@
 		}
 
 		.周期1 {grid-row: calc(1 + var(--period1-row-offset));}
+
 		.周期2 {grid-row: calc(2 + var(--period1-row-offset));}
+
 		.周期3 {grid-row: calc(3 + var(--period1-row-offset));}
+
 		.周期4 {grid-row: calc(4 + var(--period1-row-offset));}
+
 		.周期5 {grid-row: calc(5 + var(--period1-row-offset));}
+
 		.周期6 {grid-row: calc(6 + var(--period1-row-offset));}
+
 		.周期7 {grid-row: calc(7 + var(--period1-row-offset));}
 
 		.half-width .周期7 {grid-row-start: calc(8 + var(--period1-row-offset));}
+
 		.half-width .周期6.周期序号, .half-width .周期7.周期序号 {
 			grid-row-end: span 2;
 		}
@@ -75,9 +74,13 @@
 		}
 
 		.硼族元素 { grid-column: -7; }
+
 		.碳族元素 { grid-column: -6; }
+
 		.氮族元素 { grid-column: -5; }
+
 		.氧族元素 { grid-column: -4; }
+
 		.卤素 { grid-column: -3; }
 
 		.族 p {
@@ -108,6 +111,7 @@
 		}
 
 		.half-width #镧::before { content: '57~71\A  镧系'; }
+
 		.half-width #锕::before { content: '89~103\A    锕系'; }
 
 		.half-width #镧::before, .half-width #锕::before {
@@ -120,13 +124,21 @@
 		}
 
 		.碱金属.element { background-color: #ffadad; }
+
 		.碱土金属.element { background-color: #ffd6a5; }
+
 		.过渡金属.element { background-color: #fdffb6; }
+
 		.镧系.element { background-color: #caffbf; }
+
 		.锕系.element { background-color: #9bf6ff; }
+
 		.类金属.element { background-color: #a0c4ff; }
+
 		.贫金属.element { background-color: #bdb2ff; }
+
 		.活泼非金属.element { background-color: #ffc6ff; }
+
 		.稀有气体.element { background-color: #f1f1f1; }
 
 		.element.info {
@@ -173,12 +185,19 @@
 		}
 
 		[title='人造元素'].with.icon::after {content: '🧪';font-size: 0.8em;}
+
 		[title='放射性元素'].with.icon::after {content: '☢️';font-size: 0.8em;}
+
 		[title='铁磁性元素'].with.icon::after {content: '🧲';font-size: 0.8em;}
+
 		[title='稀土元素'].with.icon::after {content: '💎';font-size: 0.8em;}
+
 		[title='贵金属'].with.icon::after {content: '💰';font-size: 0.8em;}
+
 		[title='气体'].with.icon::after {content: '🌀';}
+
 		[title='液体'].with.icon::after {content: '💧';}
+
 		[title='固体'].with.icon::after {content: '🪨';}
 
 		.toolbar {
@@ -269,6 +288,82 @@
 			margin: 0;
 			color: #303133;
 		}
+
+		.temperature-control {
+			flex-shrink: 0;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			/*gap: 1rem;*/
+		}
+
+		.temperature-control .el-input-number {
+			/*transform: rotate(-90deg);*/
+			/*margin-top: 50px;*/
+			/*margin-bottom: 55px;*/
+		}
+
+		.temperature-control .el-slider.el-slider--small.is-vertical.el-slider--with-input {
+			flex-direction: column-reverse;
+		}
+
+		/* thermometer styles */
+		.temperature-control {
+			gap: 8px;
+		}
+		.temperature-control .mode-switch {
+			margin-bottom: 4px;
+		}
+		.temperature-control .el-radio-group .el-radio-button__inner {
+			padding: 4px 6px;
+		}
+		/* 自定义温度计控件 */
+		.temperature-control .thermo { width: 44px; }
+		.temperature-control .thermo-track {
+			position: relative;
+			height: 600px;
+			width: 12px;
+			margin: 0 auto;
+			border-radius: 999px;
+			background: linear-gradient(to top, #3b82f6 0%, #22d3ee 25%, #10b981 50%, #f59e0b 75%, #ef4444 100%);
+		}
+		.temperature-control .thermo-knob {
+			position: absolute;
+			left: 50%;
+			transform: translateX(-50%);
+			width: 20px;
+			height: 20px;
+			border-radius: 50%;
+			border: 2px solid #ef4444;
+			background: #fff;
+			box-shadow: 0 1px 4px rgba(0,0,0,.2);
+			cursor: grab;
+		}
+		.temperature-control .thermo-zero {
+			position: absolute;
+			left: -8px;
+			width: 28px;
+			height: 1px;
+			background: rgba(0,0,0,.2);
+		}
+		.temperature-control .el-input-number { width: 76px; margin-top: 8px; }
+
+		/* 单位小文本 */
+		.temperature-control .unit-label {
+			font-size: 12px;
+			color: #606266;
+			cursor: pointer;
+			user-select: none;
+			margin-bottom: 4px;
+		}
+		.temperature-control .unit-label::after {
+			content: ' ▾';
+			font-size: 12px;
+			color: #909399;
+		}
+		.unit-menu { display:flex; flex-direction: column; gap:6px; justify-content:center; padding:4px 6px; min-width: 64px; }
+		.unit-item { display:block; text-align:center; font-size:12px; color:#606266; padding:2px 6px; border-radius:4px; cursor:pointer; }
+		.unit-item:hover { background:#f5f7fa; color:#409EFF; }
 	</style>
 </head>
 <body class="反叵字形">
@@ -337,8 +432,23 @@
 				</div>
 			</section>
 		</article>
+
 		<aside class="temperature-control">
-			<el-slider vertical v-model="temperature" :min="-273" :max="6000" height="100%" :marks="{0:'0°'}"></el-slider>
+			<el-popover v-model:visible="unitMenuVisible" placement="bottom" trigger="click" :width="120">
+				<template #reference>
+					<div class="unit-label">{{ unitLabel }}</div>
+				</template>
+				<div class="unit-menu">
+					<span class="unit-item" v-for="opt in unitMenuOptions" :key="opt" @click="setUnit(opt)">{{ unitName(opt) }}</span>
+				</div>
+			</el-popover>
+			<div class="thermo">
+				<div class="thermo-track" ref="thermoTrack" @mousedown="onThermoMouseDown">
+					<div class="thermo-knob" :style="thermoKnobStyle" @mousedown.stop="onThermoMouseDown"></div>
+					<div class="thermo-zero" v-if="thermoZeroStyle" :style="thermoZeroStyle"></div>
+				</div>
+			</div>
+			<el-input-number v-model="temperatureInMode" :min="temperatureMin" :max="temperatureMax" :step="1" size="small"></el-input-number>
 		</aside>
 	</div>
 </main>
@@ -621,6 +731,9 @@
 		filtering: [],
 		hoverFilter: null,
 		temperature: 0,
+		temperatureMode: 'C',
+		unitMenuVisible: false,
+		isThermoDragging: false
 	};
 
 	const {createApp} = Vue;
@@ -641,6 +754,67 @@
 					rt += ' , filtering ' + this.hoverFilter;
 				}
 				return rt;
+			},
+			temperatureInMode: {
+				get() {
+					if (this.temperatureMode === 'C') return Math.round(this.temperature);
+					if (this.temperatureMode === 'K') return Math.round(this.temperature + 273);
+					return Math.round(this.temperature * 9 / 5 + 32);
+				},
+				set(v) {
+					if (this.temperatureMode === 'C') {
+						this.temperature = Math.round(v);
+					} else if (this.temperatureMode === 'K') {
+						this.temperature = Math.round(v - 273);
+					} else {
+						this.temperature = Math.round((v - 32) * 5 / 9);
+					}
+				}
+			},
+			temperatureMin() {
+				if (this.temperatureMode === 'C') return -273;
+				if (this.temperatureMode === 'K') return 0;
+				return -459;
+			},
+			temperatureMax() {
+				if (this.temperatureMode === 'C') return 6000;
+				if (this.temperatureMode === 'K') return 6273;
+				return 10832;
+			},
+			temperatureMarks() {
+				if (this.temperatureMode === 'C') return {0: '0°C'};
+				if (this.temperatureMode === 'K') return {0: '0K'};
+				return {0: '0°F'};
+			},
+			unitLabel() {
+				return this.temperatureMode === 'C' ? '°C' : (this.temperatureMode === 'K' ? 'K' : '°F');
+			},
+			unitMenuOptions() {
+				const all = ['C','K','F'];
+				return all.filter(u => u !== this.temperatureMode);
+			},
+			thermoPercent() {
+				const min = this.temperatureMin;
+				const max = this.temperatureMax;
+				const span = max - min;
+				if (!span) return 0;
+				const pct = (this.temperatureInMode - min) / span;
+				return Math.max(0, Math.min(1, pct));
+			},
+			thermoFillStyle() {
+				return { height: (this.thermoPercent * 100).toFixed(2) + '%' };
+			},
+			thermoKnobStyle() {
+				// 让旋钮中心对齐到刻度百分比位置
+				return { bottom: 'calc(' + (this.thermoPercent * 100).toFixed(2) + '% - 10px)' };
+			},
+			thermoZeroStyle() {
+				const min = this.temperatureMin;
+				const max = this.temperatureMax;
+				if (min > 0 || max < 0) return null;
+				const pct = (0 - min) / (max - min);
+				// 0°线需要与旋钮中心对齐，所以不做额外偏移
+				return { bottom: (pct * 100).toFixed(2) + '%' };
 			}
 		},
 		watch: {
@@ -671,32 +845,72 @@
 				const mp = parseFloat(element.熔点);
 				const bp = parseFloat(element.沸点);
 				const temp = this.temperature;
-				// 气态判断最优先，逻辑最清晰
 				if (!isNaN(bp) && temp >= bp) {
 					return '气体';
 				}
-				// 液态判断
-				// 条件1: 温度高于一个有效的熔点 (但低于沸点，因为气态已提前判断)
 				const isAboveMeltingPoint = !isNaN(mp) && temp >= mp;
-				// 条件2: 熔点未知, 但温度低于一个有效的沸点
 				const isMeltUnknownAndBelowBoiling = isNaN(mp) && !isNaN(bp) && temp < bp;
 				if (isAboveMeltingPoint || isMeltUnknownAndBelowBoiling) {
 					return '液体';
 				}
-				// 固态判断
 				if (!isNaN(mp) && temp < mp) {
 					return '固体';
 				}
-				// 其他情况
 				return '未知';
+			},
+			formatTempTooltip(value) {
+				if (this.temperatureMode === 'C') return `${value} °C`;
+				if (this.temperatureMode === 'K') return `${value} K`;
+				return `${value} °F`;
+			},
+			clamp(value, min, max) {
+				return Math.min(max, Math.max(min, value));
+			},
+			updateThermoFromEvent(e) {
+				const track = this.$refs.thermoTrack;
+				if (!track) return;
+				const rect = track.getBoundingClientRect();
+				const yFromTop = this.clamp(e.clientY - rect.top, 0, rect.height);
+				const percent = 1 - (yFromTop / rect.height);
+				const min = this.temperatureMin;
+				const max = this.temperatureMax;
+				const value = Math.round(min + percent * (max - min));
+				this.temperatureInMode = value;
+			},
+			onThermoMouseDown(e) {
+				e.preventDefault();
+				this.isThermoDragging = true;
+				this.updateThermoFromEvent(e);
+				window.addEventListener('mousemove', this.onThermoMouseMove);
+				window.addEventListener('mouseup', this.onThermoMouseUp, { once: true });
+			},
+			onThermoMouseMove(e) {
+				if (!this.isThermoDragging) return;
+				this.updateThermoFromEvent(e);
+			},
+			onThermoMouseUp() {
+				this.isThermoDragging = false;
+				window.removeEventListener('mousemove', this.onThermoMouseMove);
+			},
+			setUnit(mode) {
+				this.temperatureMode = mode;
+				this.unitMenuVisible = false;
+			},
+			unitName(mode) {
+				return mode === 'C' ? '°C' : (mode === 'K' ? 'K' : '°F');
 			}
 		},
 		mounted() {
 			this.checkLayout();
 			window.addEventListener('resize', this.checkLayout);
+			// 拖拽过程中若鼠标离开窗口，也能正常结束
+			this._onWinMouseMove = (e) => this.onThermoMouseMove(e);
+			this._onWinMouseUp = () => this.onThermoMouseUp();
 		},
 		beforeUnmount() {
 			window.removeEventListener('resize', this.checkLayout);
+			window.removeEventListener('mousemove', this._onWinMouseMove);
+			window.removeEventListener('mouseup', this._onWinMouseUp);
 		}
 	})
 	.use(ElementPlus)
