@@ -19,11 +19,6 @@
 			flex-wrap: wrap;
 		}
 
-		.table-wrapper {
-			display: flex;
-			width: 100%;
-		}
-
 		.discovery.year.filter {
 			width: 100%;
 			flex-shrink: 0;
@@ -39,7 +34,7 @@
 		}
 
 		.periodic-table-of-chemical-element {
-			height: 700px;
+			height: 750px;
 			display: grid;
 			width: calc(100% - 72px);
 		}
@@ -407,11 +402,12 @@
 				{{ f.name }}
 			</el-checkbox-button>
 		</el-checkbox-group>
-	</div>
-
-	<div class="discovery year filter">
-		<span class="label">年代：</span>
-		<el-slider v-model="discoveryYear" :min="1650" :max="2025" show-input size="small"></el-slider>
+		<el-popover placement="bottom" title="筛选发现年代" :width="400" trigger="click">
+			<template #reference>
+				<el-button size="small">年代</el-button>
+			</template>
+			<el-slider v-model="discoveryYear" :min="1650" :max="2025" show-input size="small"></el-slider>
+		</el-popover>
 	</div>
 
 	<article class="periodic-table-of-chemical-element" :class="tableClasses">
