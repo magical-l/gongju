@@ -304,7 +304,7 @@
 			margin-bottom: 4px;
 		}
 
-		.temperature-control .thermo-track {
+		.temperature-control .thermometer-track {
 			position: relative;
 			height: 620px;
 			width: 3px;
@@ -314,7 +314,7 @@
 		}
 
 		/* 温度计底端水银球（加大并容纳数值输入） */
-		.temperature-control .thermo-bulb {
+		.temperature-control .thermometer-bulb {
 			order: 2;
 			flex-grow: 0;
 			width: 72px;
@@ -328,7 +328,7 @@
 			justify-content: center;
 		}
 
-		.temperature-control .thermo-knob {
+		.temperature-control .thermometer-knob {
 			position: absolute;
 			left: 50%;
 			transform: translateX(-50%);
@@ -342,12 +342,12 @@
 			z-index: 1;
 		}
 
-		.temperature-control .thermo-value {
+		.temperature-control .thermometer-value {
 			position: absolute;
 			transform: translateX(-50%);
 		}
 
-		.temperature-control .thermo-value .el-input-number {
+		.temperature-control .thermometer-value .el-input-number {
 			width: 60px;
 			margin: 0;
 			padding: 0;
@@ -456,13 +456,13 @@
 								@click="setUnit(opt)">{{ unitName(opt) }}</span>
 				</div>
 			</el-popover>
-			<div class="thermo-bulb">
+			<div class="thermometer-bulb">
 				<el-input-number v-model="temperatureInMode" :min="temperatureMin" :max="temperatureMax" :step="1"
 												 controls-position="right" size="small"></el-input-number>
 			</div>
-			<div class="thermo-track" ref="thermoTrack">
-				<div class="thermo-knob" :style="thermoKnobStyle" @mousedown.stop="onThermoMouseDown"></div>
-				<div class="thermo-zero" v-if="thermoZeroStyle" :style="thermoZeroStyle"></div>
+			<div class="thermometer-track" ref="thermometerTrack">
+				<div class="thermometer-knob" :style="thermometerKnobStyle" @mousedown.stop="onThermometerMouseDown"></div>
+				<div class="thermometer-zero" v-if="thermometerZeroStyle" :style="thermometerZeroStyle"></div>
 			</div>
 		</aside>
 	</div>
@@ -998,8 +998,8 @@
 		temperature: 0,
 		temperatureMode: 'C',
 		unitMenuVisible: false,
-		isThermoDragging: false,
-		thermoBoxHalf: 12
+		isThermometerDragging: false,
+		thermometerBoxHalf: 12
 	};
 
 	const {createApp} = Vue;
@@ -1074,7 +1074,7 @@
 			unitMenuOptions() {
 				return temperatureModes.filter(u => u !== this.temperatureMode);
 			},
-			thermoPercent() {
+			thermometerPercent() {
 				const min = this.temperatureMin;
 				const max = this.temperatureMax;
 				const span = max - min;
@@ -1084,11 +1084,11 @@
 				const pct = (this.temperatureInMode - min) / span;
 				return Math.max(0, Math.min(1, pct));
 			},
-			thermoKnobStyle() {
+			thermometerKnobStyle() {
 				// 圆形滑块半径 ~ 7px（含描边），中心对齐到百分比高度
-				return {bottom: 'calc(' + (this.thermoPercent * 100).toFixed(2) + '% - 7px)'};
+				return {bottom: 'calc(' + (this.thermometerPercent * 100).toFixed(2) + '% - 7px)'};
 			},
-			thermoZeroStyle() {
+			thermometerZeroStyle() {
 				const min = this.temperatureMin;
 				const max = this.temperatureMax;
 				if (min > 0 || max < 0) {
@@ -1106,19 +1106,19 @@
 				}
 			},
 			temperatureInMode() {
-				this.$nextTick(this.measureThermoBox);
+				this.$nextTick(this.measureThermometerBox);
 			}
 		},
 		methods: {
-			measureThermoBox() {
-				const el = this.$refs.thermoValueBox;
+			measureThermometerBox() {
+				const el = this.$refs.thermometerValueBox;
 				if (!el) {
 					return;
 				}
 				const rect = el.getBoundingClientRect();
 				const half = rect.height / 2;
-				if (half > 6 && Math.abs(half - this.thermoBoxHalf) > 0.5) {
-					this.thermoBoxHalf = half;
+				if (half > 6 && Math.abs(half - this.thermometerBoxHalf) > 0.5) {
+					this.thermometerBoxHalf = half;
 				}
 			},
 			checkLayout() {
@@ -1166,35 +1166,34 @@
 			clamp(value, min, max) {
 				return Math.min(max, Math.max(min, value));
 			},
-			updateThermoFromEvent(e) {
-				const track = this.$refs.thermoTrack;
+			updateThermometerFromEvent(e) {
+				const track = this.$refs.thermometerTrack;
 				if (!track) {
 					return;
 				}
 				const rect = track.getBoundingClientRect();
 				const yFromTop = this.clamp(e.clientY - rect.top, 0, rect.height);
-				const percent = 1 - (yFromTop / rect.height);
+				const percent = 1 - yFromTop / rect.height;
 				const min = this.temperatureMin;
 				const max = this.temperatureMax;
-				const value = Math.round(min + percent * (max - min));
-				this.temperatureInMode = value;
+				this.temperatureInMode = Math.round(min + percent * (max - min));
 			},
-			onThermoMouseDown(e) {
+			onThermometerMouseDown(e) {
 				e.preventDefault();
-				this.isThermoDragging = true;
-				this.updateThermoFromEvent(e);
-				window.addEventListener('mousemove', this.onThermoMouseMove);
-				window.addEventListener('mouseup', this.onThermoMouseUp, {once: true});
+				this.isThermometerDragging = true;
+				this.updateThermometerFromEvent(e);
+				window.addEventListener('mousemove', this.onThermometerMouseMove);
+				window.addEventListener('mouseup', this.onThermometerMouseUp, {once: true});
 			},
-			onThermoMouseMove(e) {
-				if (!this.isThermoDragging) {
+			onThermometerMouseMove(e) {
+				if (!this.isThermometerDragging) {
 					return;
 				}
-				this.updateThermoFromEvent(e);
+				this.updateThermometerFromEvent(e);
 			},
-			onThermoMouseUp() {
-				this.isThermoDragging = false;
-				window.removeEventListener('mousemove', this.onThermoMouseMove);
+			onThermometerMouseUp() {
+				this.isThermometerDragging = false;
+				window.removeEventListener('mousemove', this.onThermometerMouseMove);
 			},
 			setUnit(mode) {
 				this.temperatureMode = mode;
@@ -1203,7 +1202,7 @@
 			unitName(mode) {
 				return mode === 'C' ? '°C' : (mode === 'K' ? 'K' : '°F');
 			},
-			nudgeThermo(step) {
+			nudgeThermometer(step) {
 				const min = this.temperatureMin;
 				const max = this.temperatureMax;
 				this.temperatureInMode = this.clamp(this.temperatureInMode + step, min, max);
@@ -1213,9 +1212,9 @@
 			this.checkLayout();
 			window.addEventListener('resize', this.checkLayout);
 			// 拖拽过程中若鼠标离开窗口，也能正常结束
-			this._onWinMouseMove = e => this.onThermoMouseMove(e);
-			this._onWinMouseUp = () => this.onThermoMouseUp();
-			this.$nextTick(this.measureThermoBox);
+			this._onWinMouseMove = e => this.onThermometerMouseMove(e);
+			this._onWinMouseUp = () => this.onThermometerMouseUp();
+			this.$nextTick(this.measureThermometerBox);
 		},
 		beforeUnmount() {
 			window.removeEventListener('resize', this.checkLayout);
