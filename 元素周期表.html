@@ -31,6 +31,7 @@
 		flex-wrap: wrap;
 		gap: 1rem;
 		align-items: center;
+		flex-basis: 100%; /* 确保工具栏独占一行 */
 	}
 
 	.toolbar [title='显示说明'] {
@@ -61,12 +62,14 @@
 	.periodic-table-of-chemical-element {
 		height: 750px;
 		display: grid;
-		width: calc(100% - 93px);
+		flex: 1;
+		min-width: 0; /* 防止flex项目因内容过宽而溢出 */
 	}
 
 	.full-width.periodic-table-of-chemical-element {
-		grid-template-columns: 10px repeat(32, 1fr);
+		grid-template-columns: 10px repeat(32, 72px);
 		grid-template-rows: repeat(7, 1fr);
+		width: 2400px; /* 显式设置宽度以避免重叠 */
 	}
 
 	.half-width.periodic-table-of-chemical-element {
@@ -333,6 +336,7 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: start;
+		width: 93px; /* 设定固定宽度，避免被挤到下一行 */
 	}
 
 	/* -----------------温度单位-----------------*/
