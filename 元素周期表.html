@@ -17,6 +17,7 @@
 			padding: 0;
 			display: flex;
 			flex-wrap: wrap;
+			gap: 3px;
 		}
 
 		.discovery.year.filter {
@@ -36,7 +37,7 @@
 		.periodic-table-of-chemical-element {
 			height: 750px;
 			display: grid;
-			width: calc(100% - 85px);
+			width: calc(100% - 93px);
 		}
 
 		.full-width.periodic-table-of-chemical-element {
@@ -326,28 +327,15 @@
 		}
 
 		/* -----------------温度单位-----------------*/
-		.temperature-control .unit-label {
-			order: -2; /* 放在温度输入框之前 */
-			flex: 0;
-			font-size: 12px;
-			color: #606266;
-			cursor: pointer;
-			user-select: none;
+		.temperature-control .mode.input.selector.one.option {
+			margin-bottom: 10px;
 		}
 
-		.temperature-control .unit-label::after {
-			content: ' ▾';
-			font-size: 12px;
-			color: #909399;
+		.temperature-control .el-radio-button__inner {
+			padding: 0 8px;
 		}
 
-		.unit-menu { display: flex; flex-direction: column; gap: 6px; justify-content: center; }
-
-		.unit-item { display: block; text-align: center; font-size: 12px; color: #606266; border-radius: 4px; cursor: pointer; }
-
-		.unit-item:hover { background: #f5f7fa; color: #409EFF; }
-
-		/*------------------温度计底部“玻璃球”-----------------*/
+		/*------------温度计底部“玻璃球”-------------*/
 		.temperature-control .bulb {
 			flex-grow: 0;
 			width: 18px;
@@ -357,10 +345,10 @@
 			border: 3px solid #ef4444;
 			box-shadow: 0 4px 12px rgba(0, 0, 0, .25);
 			margin-top: -9px;
-			z-index: 2;
+			z-index: 2; /* 要高于“温度条” */
 		}
 
-		/*------------------温度计滑杆整体-----------------*/
+		/*--------------温度计滑杆整体------------*/
 		.temperature-control .slider {
 			display: contents; /* 把子元素拿出来跟兄弟元素（温标、水银球）做flex */
 		}
@@ -370,15 +358,20 @@
 			background: linear-gradient(to top, #3b82f6 0%, #ef4444 100%);
 		}
 
+		/* 滑块 */
+		.temperature-control .slider .el-slider__button-wrapper {
+			z-index: 3; /* 要高于“玻璃球” */
+		}
+
 		/* 温度输入框 */
 		.temperature-control .el-slider__input.el-input-number {
-			order: -1; /* 放在滑杆之前 */
+			order: 2; /* 放在最后 */
 			position: sticky;
-			top: 10px;
+			bottom: 80px;
 			left: 0;
 			width: 80px;
 			rotate: -90deg;
-			transform: translate(-55px, -23px);
+			transform: translate(55px, -23px);
 		}
 
 		.temperature-control .el-slider__input.el-input-number .el-input__wrapper {
@@ -401,7 +394,7 @@
 <main>
 	<div class="toolbar">
 		<el-radio-group v-model="layout">
-			<el-radio-button v-for="opt in widthModes" :key="opt.value" :label="opt.value" size="small">{{ opt.label }}
+			<el-radio-button v-for="opt in widthModes" :key="opt.value" :value="opt.value" size="small">{{ opt.label }}
 			</el-radio-button>
 		</el-radio-group>
 		<el-checkbox-group v-model="filtering" size="small">
@@ -480,33 +473,16 @@
 	</article>
 
 	<aside class="temperature-control">
-		<el-popover v-model:visible="unitMenuVisible" placement="bottom" trigger="click" :width="60">
-			<template #reference>
-				<div class="unit-label">{{ unitLabel }}</div>
-			</template>
-			<div class="unit-menu">
-					<span class="unit-item" v-for="opt in unitMenuOptions" :key="opt"
-								@click="setUnit(opt)">{{ unitName(opt) }}</span>
-			</div>
-		</el-popover>
+		<el-radio-group class="mode input selector" v-model="temperatureMode" size="small">
+			<el-radio-button class="mode input selector one option" v-for="opt in temperatureModes" :key="opt" :value="opt"
+											 size="small">{{opt}}
+			</el-radio-button>
+		</el-radio-group>
 		<el-slider class="slider" v-model="temperatureInMode" :min="temperatureMin" :max="temperatureMax" :step="1"
-							 :marks="{0:'0',500:'500',1000:'1000',2000:'2000',3000:'3000',4000:'4000',5000:'5000',6000:'6000'}"
-							 vertical height="650px" size="small" show-input size="small" controls-position="right">
+							 :marks="temperatureMarks"
+							 vertical height="650px" size="small" controls-position="right" show-input>
 		</el-slider>
-		<!--		<div class="thermometer-track" ref="thermometerTrack">-->
-		<!--			<div class="thermometer-knob" :style="thermometerKnobStyle" @mousedown.stop="onThermometerMouseDown"></div>-->
-		<!--			<div class="thermometer-zero" v-if="thermometerZeroStyle" :style="thermometerZeroStyle" style="bottom: 4.35%;-->
-		<!--    position: absolute;-->
-		<!--    border: 2px solid red;-->
-		<!--    width: 9px;-->
-		<!--    height: 9px;-->
-		<!--    border-radius: 50%;-->
-		<!--    translate: -3px;-->
-		<!--    background-color: #fff;"></div>-->
-		<!--		</div>-->
 		<div class="bulb"></div>
-		<!--		<el-input-number v-model="temperatureInMode" :min="temperatureMin" :max="temperatureMax" :step="1"-->
-		<!--										 controls-position="right" size="small"></el-input-number>-->
 	</aside>
 
 	<el-dialog v-model="descriptionDialogVisible" title="页面说明" width="60%">
@@ -552,6 +528,22 @@
 	<script src="resources/biz-util.js?v=250801"></script>
 </div>
 <script>
+	function celsiusToKelvin(c) {
+		return c + 273.15;
+	}
+
+	function celsiusToFahrenheit(c) {
+		return c * 9 / 5 + 32;
+	}
+
+	function kelvinToCelsius(k) {
+		return k - 273.15;
+	}
+
+	function fahrenheitToCelsius(f) {
+		return (f - 32) * 5 / 9;
+	}
+
 	const elements = [
 		{
 			id: 1, symbol: "H", name: "氢", 原子量: 1.008, 熔点: "-259.1", 沸点: "-252.9", period: 1, col: 1,
@@ -1058,7 +1050,7 @@
 		{name: '液体', filterable: true},
 		{name: '固体', filterable: true}
 	];
-	const temperatureModes = ['C', 'K', 'F'];
+	const temperatureModes = ['°C', 'K', '°F'];
 
 	const data = {
 		elements,
@@ -1072,12 +1064,13 @@
 		filtering: [],
 		hoverFilter: null,
 		temperature: 0,
-		temperatureMode: 'C',
+		temperatureMode: '°C',
 		unitMenuVisible: false,
 		isThermometerDragging: false,
 		thermometerBoxHalf: 12,
 		discoveryYear: 2025,
-		descriptionDialogVisible: false
+		descriptionDialogVisible: false,
+		temperatureModes
 	};
 
 	const {createApp} = Vue;
@@ -1086,7 +1079,6 @@
 			return data;
 		},
 		computed: {
-
 			filters() {
 				return categories.filter(e => e.filterable);
 			},
@@ -1102,80 +1094,61 @@
 			},
 			temperatureInMode: {
 				get() {
-					if (this.temperatureMode === 'C') {
+					if (this.temperatureMode === '°C') {
 						return Math.round(this.temperature);
 					}
 					if (this.temperatureMode === 'K') {
-						return Math.round(this.temperature + 273);
+						return Math.round(celsiusToKelvin(this.temperature));
 					}
-					return Math.round(this.temperature * 9 / 5 + 32);
+					return Math.round(celsiusToFahrenheit(this.temperature));
 				},
 				set(v) {
-					if (this.temperatureMode === 'C') {
+					if (this.temperatureMode === '°C') {
 						this.temperature = Math.round(v);
 					} else if (this.temperatureMode === 'K') {
-						this.temperature = Math.round(v - 273);
+						this.temperature = Math.round(kelvinToCelsius(v));
 					} else {
-						this.temperature = Math.round((v - 32) * 5 / 9);
+						this.temperature = Math.round(fahrenheitToCelsius(v));
 					}
 				}
 			},
 			temperatureMin() {
-				if (this.temperatureMode === 'C') {
-					return -273;
+				if (this.temperatureMode === '°C') {
+					return Math.round(kelvinToCelsius(0));
 				}
 				if (this.temperatureMode === 'K') {
 					return 0;
 				}
-				return -459;
+				return Math.round(celsiusToFahrenheit(kelvinToCelsius(0)));
 			},
 			temperatureMax() {
-				if (this.temperatureMode === 'C') {
+				if (this.temperatureMode === '°C') {
 					return 6000;
 				}
 				if (this.temperatureMode === 'K') {
-					return 6273;
+					return Math.round(celsiusToKelvin(6000));
 				}
-				return 10832;
+				return Math.round(celsiusToFahrenheit(6000));
 			},
 			temperatureMarks() {
-				if (this.temperatureMode === 'C') {
-					return {0: '0°C'};
-				}
-				if (this.temperatureMode === 'K') {
-					return {0: '0K'};
-				}
-				return {0: '0°F'};
-			},
-			unitLabel() {
-				return this.temperatureMode === 'C' ? '°C' : (this.temperatureMode === 'K' ? 'K' : '°F');
-			},
-			unitMenuOptions() {
-				return temperatureModes.filter(u => u !== this.temperatureMode);
-			},
-			thermometerPercent() {
+				const marks = {};
 				const min = this.temperatureMin;
 				const max = this.temperatureMax;
-				const span = max - min;
-				if (!span) {
-					return 0;
+				// 添加最低温度标记
+				marks[min] = `${min}`;
+				// 从0开始，每1000一档
+				for (let i = 0; i <= max; i += 1000) {
+					// 确保标记在有效范围内
+					if (i >= min && i <= max) {
+						marks[i] = `${i}`;
+					}
 				}
-				const pct = (this.temperatureInMode - min) / span;
-				return Math.max(0, Math.min(1, pct));
-			},
-			thermometerKnobStyle() {
-				// 圆形滑块半径 ~ 7px（含描边），中心对齐到百分比高度
-				return {bottom: 'calc(' + (this.thermometerPercent * 100).toFixed(2) + '% - 7px)'};
-			},
-			thermometerZeroStyle() {
-				const min = this.temperatureMin;
-				const max = this.temperatureMax;
-				if (min > 0 || max < 0) {
-					return null;
+				// 添加最高温度标记（如果最高温度不是1000的倍数，或者没有被之前的循环覆盖）
+				// 并且最高温度不等于最低温度，避免重复
+				if (max % 1000 !== 0 && max !== min) {
+					marks[max] = `${max}`;
 				}
-				const pct = (0 - min) / (max - min);
-				// 0°线需要与旋钮中心对齐，所以不做额外偏移
-				return {bottom: (pct * 100).toFixed(2) + '%'};
+				return marks;
 			}
 		},
 		watch: {
@@ -1245,73 +1218,15 @@
 					return '固体';
 				}
 				return '未知';
-			},
-			formatTempTooltip(value) {
-				if (this.temperatureMode === 'C') {
-					return `${value} °C`;
-				}
-				if (this.temperatureMode === 'K') {
-					return `${value} K`;
-				}
-				return `${value} °F`;
-			},
-			clamp(value, min, max) {
-				return Math.min(max, Math.max(min, value));
-			},
-			updateThermometerFromEvent(e) {
-				const track = this.$refs.thermometerTrack;
-				if (!track) {
-					return;
-				}
-				const rect = track.getBoundingClientRect();
-				const yFromTop = this.clamp(e.clientY - rect.top, 0, rect.height);
-				const percent = 1 - yFromTop / rect.height;
-				const min = this.temperatureMin;
-				const max = this.temperatureMax;
-				this.temperatureInMode = Math.round(min + percent * (max - min));
-			},
-			onThermometerMouseDown(e) {
-				e.preventDefault();
-				this.isThermometerDragging = true;
-				this.updateThermometerFromEvent(e);
-				window.addEventListener('mousemove', this.onThermometerMouseMove);
-				window.addEventListener('mouseup', this.onThermometerMouseUp, {once: true});
-			},
-			onThermometerMouseMove(e) {
-				if (!this.isThermometerDragging) {
-					return;
-				}
-				this.updateThermometerFromEvent(e);
-			},
-			onThermometerMouseUp() {
-				this.isThermometerDragging = false;
-				window.removeEventListener('mousemove', this.onThermometerMouseMove);
-			},
-			setUnit(mode) {
-				this.temperatureMode = mode;
-				this.unitMenuVisible = false;
-			},
-			unitName(mode) {
-				return mode === 'C' ? '°C' : (mode === 'K' ? 'K' : '°F');
-			},
-			nudgeThermometer(step) {
-				const min = this.temperatureMin;
-				const max = this.temperatureMax;
-				this.temperatureInMode = this.clamp(this.temperatureInMode + step, min, max);
 			}
 		},
 		mounted() {
 			this.checkLayout();
 			window.addEventListener('resize', this.checkLayout);
-			// 拖拽过程中若鼠标离开窗口，也能正常结束
-			this._onWinMouseMove = e => this.onThermometerMouseMove(e);
-			this._onWinMouseUp = () => this.onThermometerMouseUp();
 			this.$nextTick(this.measureThermometerBox);
 		},
 		beforeUnmount() {
 			window.removeEventListener('resize', this.checkLayout);
-			window.removeEventListener('mousemove', this._onWinMouseMove);
-			window.removeEventListener('mouseup', this._onWinMouseUp);
 		}
 	})
 	.use(ElementPlus)
