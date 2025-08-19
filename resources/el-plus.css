@@ -1,0 +1,7 @@
+.el-radio-group>.el-radio-button:first-child,
+.el-checkbox-group>.el-checkbox-button:first-child {
+	border-bottom-left-radius: var(--el-border-radius-base);
+	border-left: var(--el-border);
+	border-top-left-radius: var(--el-border-radius-base);
+	box-shadow: none !important;
+}
