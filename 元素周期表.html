@@ -248,7 +248,11 @@
 		.filtering.人造元素 .one.element:not(.人造元素),
 		.filtering.稀土元素 .one.element:not(.稀土元素),
 		.filtering.铁磁性元素 .one.element:not(.铁磁性元素),
-		.filtering.贵金属 .one.element:not(.贵金属) {
+		.filtering.贵金属 .one.element:not(.贵金属),
+		.filtering.卤素 .one.element:not(.卤素),
+		.filtering.气体 .one.element:not(.气体),
+		.filtering.液体 .one.element:not(.液体),
+		.filtering.固体 .one.element:not(.固体) {
 			opacity: 0.5;
 		}
 
@@ -427,7 +431,7 @@
 		</section>-->
 
 		<section :id="element.name" class="one element"
-						 :class="[...element.tags, `周期`+element.period]"
+						 :class="[...element.tags, `周期`+element.period, getElementPhase(element)]"
 						 :style="[getElementStyle(element), getYearFilterStyle(element)]"
 						 v-for="element in elements" :key="element.id" @click="curElement=element">
 			<div class="element info">
