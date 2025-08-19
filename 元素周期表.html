@@ -1,391 +1,391 @@
 <!DOCTYPE html>
 <html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
 <head>
-	<meta charset="UTF-8">
-	<title itemprop="name">元素周期表 | 工具兽</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-
-	<link href="https://unpkg.com/element-plus/dist/index.css" rel="stylesheet">
-	<link href="lib/toastr.min.css" rel="stylesheet">
-	<link href="resources/common.css?v=250802" rel="stylesheet">
-	<link href="resources/花活.css" rel="stylesheet">
-	<link href="resources/layout.css?v=0806" rel="stylesheet">
-	<link href="resources/biz.css?v=250806" rel="stylesheet">
-	<style>
-		body > main {
-			--period1-row-offset: 0;
-			padding: 0;
-			display: flex;
-			flex-wrap: wrap;
-			gap: 3px;
-		}
-
-		/*=====================工具栏====================*/
-		.toolbar {
-			flex-shrink: 0;
-			flex-grow: 1;
-			border-bottom: 1px solid #dcdfe6;
-			padding: 0.5rem 1rem;
-			display: flex;
-			flex-wrap: wrap;
-			gap: 1rem;
-			align-items: center;
-		}
-
-		.toolbar [title='显示说明'] {
-			margin-left: auto;
-		}
-
-		.element.category.filter {
-			--el-checkbox-button-checked-bg-color: transparent;
-			--el-button-bg-color: transparent;
-			--el-checkbox-button-checked-text-color: var(--el-color-primary);
-		}
-
-		.discovery.year.filter {
-			width: 100%;
-			flex-shrink: 0;
-			flex-grow: 1;
-			border-bottom: 1px solid #dcdfe6;
-			padding: 5px 30px;
-			display: flex;
-			align-items: center;
-		}
-
-		.discovery.year.filter .label {
-			width: 60px;
-		}
-
-		/*==========================元素周期表========================*/
-		.periodic-table-of-chemical-element {
-			height: 750px;
-			display: grid;
-			width: calc(100% - 93px);
-		}
-
-		.full-width.periodic-table-of-chemical-element {
-			grid-template-columns: 10px repeat(32, 1fr);
-			grid-template-rows: repeat(7, 1fr);
-		}
-
-		.half-width.periodic-table-of-chemical-element {
-			grid-template-columns: 10px repeat(18, 1fr);
-			grid-template-rows: repeat(9, 1fr);
-		}
-
-		/*----------------元素卡--------------*/
-		.one.element {
-			position: relative;
-			border: 1px solid #ccc;
-			background-color: #ccc; /* 默认颜色 */
-			display: flex;
-			flex-direction: column;
-			transition: all 0.2s ease-in-out;
-		}
-
-		.element.info {
-			display: flex;
-			flex-direction: column;
-			height: 100%;
-			padding: 2px;
-		}
-
-		.element.info > header {
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-		}
-
-		.element.info p {
-			margin: 0;
-			padding: 1px 2px;
-			line-height: 1.2;
-		}
-
-		.element.name {
-			flex-grow: 1;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			font-size: 1.2em;
-			padding: 0;
-		}
+<meta charset="UTF-8">
+<title itemprop="name">元素周期表 | 工具兽</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://unpkg.com/element-plus/dist/index.css" rel="stylesheet">
+<link href="lib/toastr.min.css" rel="stylesheet">
+<link href="resources/common.css?v=250802" rel="stylesheet">
+<link href="resources/花活.css" rel="stylesheet">
+<link href="resources/layout.css?v=0806" rel="stylesheet">
+<link href="resources/biz.css?v=250806" rel="stylesheet">
+<style>
+	body > main {
+		--period1-row-offset: 0;
+		padding: 0;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 3px;
+	}
+
+	/*=====================工具栏====================*/
+	.toolbar {
+		flex-shrink: 0;
+		flex-grow: 1;
+		border-bottom: 1px solid #dcdfe6;
+		padding: 0.5rem 1rem;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1rem;
+		align-items: center;
+	}
+
+	.toolbar [title='显示说明'] {
+		margin-left: auto;
+	}
+
+	.element.category.filter {
+		--el-checkbox-button-checked-bg-color: transparent;
+		--el-button-bg-color: transparent;
+		--el-checkbox-button-checked-text-color: var(--el-color-primary);
+	}
+
+	.discovery.year.filter {
+		width: 100%;
+		flex-shrink: 0;
+		flex-grow: 1;
+		border-bottom: 1px solid #dcdfe6;
+		padding: 5px 30px;
+		display: flex;
+		align-items: center;
+	}
+
+	.discovery.year.filter .label {
+		width: 60px;
+	}
+
+	/*==========================元素周期表========================*/
+	.periodic-table-of-chemical-element {
+		height: 750px;
+		display: grid;
+		width: calc(100% - 93px);
+	}
+
+	.full-width.periodic-table-of-chemical-element {
+		grid-template-columns: 10px repeat(32, 1fr);
+		grid-template-rows: repeat(7, 1fr);
+	}
+
+	.half-width.periodic-table-of-chemical-element {
+		grid-template-columns: 10px repeat(18, 1fr);
+		grid-template-rows: repeat(9, 1fr);
+	}
+
+	/*----------------元素卡--------------*/
+	.one.element {
+		position: relative;
+		border: 1px solid #ccc;
+		background-color: #ccc; /* 默认颜色 */
+		display: flex;
+		flex-direction: column;
+		transition: all 0.2s ease-in-out;
+	}
+
+	.element.info {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		padding: 2px;
+	}
+
+	.element.info > header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.element.info p {
+		margin: 0;
+		padding: 1px 2px;
+		line-height: 1.2;
+	}
+
+	.element.name {
+		flex-grow: 1;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		font-size: 1.2em;
+		padding: 0;
+	}
 
-		.element .atomic-mass {
-			font-size: 0.7em;
-			text-align: center;
-			line-height: 1;
-			opacity: 0.8;
-		}
+	.element .atomic-mass {
+		font-size: 0.7em;
+		text-align: center;
+		line-height: 1;
+		opacity: 0.8;
+	}
 
-		.element > footer {
-			display: flex;
-			justify-content: end;
-			align-items: center;
-			height: 16px;
-			justify-content: space-around; /* 分散对齐图标 */
-			align-items: center;
-		}
+	.element > footer {
+		display: flex;
+		justify-content: end;
+		align-items: center;
+		height: 16px;
+		justify-content: space-around; /* 分散对齐图标 */
+		align-items: center;
+	}
 
-		.element > footer > .with.icon::after {
-			font-style: normal;
-			font-size: 0.8em;
-			line-height: 1;
-		}
+	.element > footer > .with.icon::after {
+		font-style: normal;
+		font-size: 0.8em;
+		line-height: 1;
+	}
 
-		/*========================分组分类=====================*/
-		[title='人造元素'].with.icon::after {content: '🧪';font-size: 0.8em;}
+	/*========================分组分类=====================*/
+	[title='人造元素'].with.icon::after {content: '🧪';font-size: 0.8em;}
 
-		[title='放射性元素'].with.icon::after {content: '☢️';font-size: 0.8em;}
+	[title='放射性元素'].with.icon::after {content: '☢️';font-size: 0.8em;}
 
-		[title='铁磁性元素'].with.icon::after {content: '🧲';font-size: 0.8em;}
+	[title='铁磁性元素'].with.icon::after {content: '🧲';font-size: 0.8em;}
 
-		[title='稀土元素'].with.icon::after {content: '💎';font-size: 0.8em;}
+	[title='稀土元素'].with.icon::after {content: '💎';font-size: 0.8em;}
 
-		[title='贵金属'].with.icon::after {content: '💰';font-size: 0.8em;}
+	[title='贵金属'].with.icon::after {content: '💰';font-size: 0.8em;}
 
-		[title='气体'].with.icon::after {content: '🌀';}
+	[title='气体'].with.icon::after {content: '🌀';}
 
-		[title='液体'].with.icon::after {content: '💧';}
+	[title='液体'].with.icon::after {content: '💧';}
 
-		[title='固体'].with.icon::after {content: '🪨';}
+	[title='固体'].with.icon::after {content: '🪨';}
 
-		.周期1 {grid-row: calc(1 + var(--period1-row-offset));}
+	.周期1 {grid-row: calc(1 + var(--period1-row-offset));}
 
-		.周期2 {grid-row: calc(2 + var(--period1-row-offset));}
+	.周期2 {grid-row: calc(2 + var(--period1-row-offset));}
 
-		.周期3 {grid-row: calc(3 + var(--period1-row-offset));}
+	.周期3 {grid-row: calc(3 + var(--period1-row-offset));}
 
-		.周期4 {grid-row: calc(4 + var(--period1-row-offset));}
+	.周期4 {grid-row: calc(4 + var(--period1-row-offset));}
 
-		.周期5 {grid-row: calc(5 + var(--period1-row-offset));}
+	.周期5 {grid-row: calc(5 + var(--period1-row-offset));}
 
-		.周期6 {grid-row: calc(6 + var(--period1-row-offset));}
+	.周期6 {grid-row: calc(6 + var(--period1-row-offset));}
 
-		.周期7 {grid-row: calc(7 + var(--period1-row-offset));}
+	.周期7 {grid-row: calc(7 + var(--period1-row-offset));}
 
-		.half-width .周期7 {grid-row-start: calc(8 + var(--period1-row-offset));}
+	.half-width .周期7 {grid-row-start: calc(8 + var(--period1-row-offset));}
 
-		.half-width .周期6.周期序号, .half-width .周期7.周期序号 {
-			grid-row-end: span 2;
-		}
+	.half-width .周期6.周期序号, .half-width .周期7.周期序号 {
+		grid-row-end: span 2;
+	}
 
-		.周期序号 {
-			grid-column: 1;
-			border: 1px solid #ccc;
-		}
+	.周期序号 {
+		grid-column: 1;
+		border: 1px solid #ccc;
+	}
 
-		.族 {
-			grid-row: 1;
-			border: 1px solid #ccc;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-		}
+	.族 {
+		grid-row: 1;
+		border: 1px solid #ccc;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
 
-		.硼族元素 { grid-column: -7; }
+	.硼族元素 { grid-column: -7; }
 
-		.碳族元素 { grid-column: -6; }
+	.碳族元素 { grid-column: -6; }
 
-		.氮族元素 { grid-column: -5; }
+	.氮族元素 { grid-column: -5; }
 
-		.氧族元素 { grid-column: -4; }
+	.氧族元素 { grid-column: -4; }
 
-		.卤素 { grid-column: -3; }
+	.卤素 { grid-column: -3; }
 
-		.族 p {
-			padding: 0;
-			margin: 0;
-		}
+	.族 p {
+		padding: 0;
+		margin: 0;
+	}
 
-		.碱金属.element { background-color: #ffadad; }
+	.碱金属.element { background-color: #ffadad; }
 
-		.碱土金属.element { background-color: #ffd6a5; }
+	.碱土金属.element { background-color: #ffd6a5; }
 
-		.过渡金属.element { background-color: #fdffb6; }
-
-		.镧系.element { background-color: #caffbf; }
+	.过渡金属.element { background-color: #fdffb6; }
+
+	.镧系.element { background-color: #caffbf; }
 
-		.锕系.element { background-color: #9bf6ff; }
-
-		.类金属.element { background-color: #a0c4ff; }
-
-		.贫金属.element { background-color: #bdb2ff; }
-
-		.活泼非金属.element { background-color: #ffc6ff; }
-
-		.稀有气体.element { background-color: #f1f1f1; }
-
-		.half-width .镧系, .half-width .锕系 {
-			grid-row-end: span 2;
-			justify-content: end;
-		}
-
-		.half-width .镧系 .element.info, .half-width .锕系 .element.info {
-			height: 50%; /* 否则占不满一行的格子 */
-		}
-
-		.half-width #镧, .half-width #锕 {
-			clip-path: polygon(0% 100%, 100% 100%, 100% 10%, 50% 5%, 0% 10%);
-		}
-
-		.half-width #镧::before { content: '57~71\A  镧系'; }
-
-		.half-width #锕::before { content: '89~103\A    锕系'; }
-
-		.half-width #镧::before, .half-width #锕::before {
-			width: 100%;
-			height: 100%;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			white-space: pre;
-		}
-
-		.filtering.碱金属 .one.element:not(.碱金属),
-		.filtering.碱土金属 .one.element:not(.碱土金属),
-		.filtering.过渡金属 .one.element:not(.过渡金属),
-		.filtering.贫金属 .one.element:not(.贫金属),
-		.filtering.类金属 .one.element:not(.类金属),
-		.filtering.活泼非金属 .one.element:not(.活泼非金属),
-		.filtering.稀有气体 .one.element:not(.稀有气体),
-		.filtering.放射性元素 .one.element:not(.放射性元素),
-		.filtering.人造元素 .one.element:not(.人造元素),
-		.filtering.稀土元素 .one.element:not(.稀土元素),
-		.filtering.铁磁性元素 .one.element:not(.铁磁性元素),
-		.filtering.贵金属 .one.element:not(.贵金属),
-		.filtering.卤素 .one.element:not(.卤素),
-		.filtering.气体 .one.element:not(.气体),
-		.filtering.液体 .one.element:not(.液体),
-		.filtering.固体 .one.element:not(.固体) {
-			opacity: 0.5;
-		}
-
-		/*=====================元素详情区====================*/
-		.element.detail.area {
-			grid-column: 4 / 14;
-			grid-row: 1 / 4;
-			width: 100%;
-			height: 100%;
-			padding: 20px;
-		}
-
-		/*==========元素详情卡===========*/
-		.element.detail.card {
-			width: 100%;
-			height: 100%;
-			padding: 20px;
-			border-radius: 8px;
-			box-shadow: 0 2px 12px 0 rgba(0, 0, 0, .1);
-			display: flex;
-			gap: 20px;
-			align-items: start;
-			justify-content: start;
-		}
-
-		.element.detail.card .element.info {
-			width: 120px;
-			height: 100%;
-			flex-shrink: 0;
-		}
-
-		/*------元素属性------*/
-		.element.detail.card .properties {
-			margin: 0;
-			padding: 0;
-			display: grid;
-			grid-template-columns: repeat(2, 1fr);
-			gap: 8px;
-			min-width: 0;
-		}
-
-		.element.detail.card .properties dt {
-			font-weight: bold;
-			color: #606266;
-			flex-shrink: 0; /* 防止标签被压缩 */
-		}
-
-		.element.detail.card .properties dd {
-			margin: 0;
-			color: #303133;
-			word-break: break-word; /* 允许值在必要时换行 */
-		}
-
-		.element.detail.card footer {
-			flex-direction: column;
-			align-items: start;
-			gap: 4px;
-			height: auto;
-			justify-content: start;
-		}
-
-		.element.detail.card footer .tag {
-			display: flex;
-			align-items: center;
-			gap: 8px;
-		}
-
-		/* ==========================温度计========================== */
-		.temperature-control {
-			flex-shrink: 0;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			justify-content: start;
-		}
-
-		/* -----------------温度单位-----------------*/
-		.temperature-control .mode.input.selector.one.option {
-			margin-bottom: 10px;
-		}
-
-		.temperature-control .el-radio-button__inner {
-			padding: 0 8px;
-		}
-
-		/*------------温度计底部“玻璃球”-------------*/
-		.temperature-control .bulb {
-			flex-grow: 0;
-			width: 18px;
-			height: 18px;
-			border-radius: 50%;
-			background: radial-gradient(circle at 40% 40%, #ffcccc 0%, #ef4444 45%, #b91c1c 100%);
-			border: 3px solid #ef4444;
-			box-shadow: 0 4px 12px rgba(0, 0, 0, .25);
-			margin-top: -9px;
-			z-index: 2; /* 要高于“温度条” */
-		}
-
-		/*--------------温度计滑杆整体------------*/
-		.temperature-control .slider {
-			display: contents; /* 把子元素拿出来跟兄弟元素（温标、水银球）做flex */
-		}
-
-		/* 温度条 */
-		.temperature-control .slider .el-slider__bar {
-			background: linear-gradient(to top, #3b82f6 0%, #ef4444 100%);
-		}
-
-		/* 滑块 */
-		.temperature-control .slider .el-slider__button-wrapper {
-			z-index: 3; /* 要高于“玻璃球” */
-		}
-
-		/* 温度输入框 */
-		.temperature-control .el-slider__input.el-input-number {
-			order: 2; /* 放在最后 */
-			position: sticky;
-			bottom: 80px;
-			left: 0;
-			width: 80px;
-			rotate: -90deg;
-			transform: translate(55px, -23px);
-		}
-
-		.temperature-control .el-slider__input.el-input-number .el-input__wrapper {
-			padding: 0;
-		}
-	</style>
+	.锕系.element { background-color: #9bf6ff; }
+
+	.类金属.element { background-color: #a0c4ff; }
+
+	.贫金属.element { background-color: #bdb2ff; }
+
+	.活泼非金属.element { background-color: #ffc6ff; }
+
+	.稀有气体.element { background-color: #f1f1f1; }
+
+	.half-width .镧系, .half-width .锕系 {
+		grid-row-end: span 2;
+		justify-content: end;
+	}
+
+	.half-width .镧系 .element.info, .half-width .锕系 .element.info {
+		height: 50%; /* 否则占不满一行的格子 */
+	}
+
+	.half-width #镧, .half-width #锕 {
+		clip-path: polygon(0% 100%, 100% 100%, 100% 10%, 50% 5%, 0% 10%);
+	}
+
+	.half-width #镧::before { content: '57~71\A  镧系'; }
+
+	.half-width #锕::before { content: '89~103\A    锕系'; }
+
+	.half-width #镧::before, .half-width #锕::before {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		white-space: pre;
+	}
+
+	.filtering.碱金属 .one.element:not(.碱金属),
+	.filtering.碱土金属 .one.element:not(.碱土金属),
+	.filtering.过渡金属 .one.element:not(.过渡金属),
+	.filtering.贫金属 .one.element:not(.贫金属),
+	.filtering.类金属 .one.element:not(.类金属),
+	.filtering.活泼非金属 .one.element:not(.活泼非金属),
+	.filtering.稀有气体 .one.element:not(.稀有气体),
+	.filtering.放射性元素 .one.element:not(.放射性元素),
+	.filtering.人造元素 .one.element:not(.人造元素),
+	.filtering.稀土元素 .one.element:not(.稀土元素),
+	.filtering.铁磁性元素 .one.element:not(.铁磁性元素),
+	.filtering.贵金属 .one.element:not(.贵金属),
+	.filtering.卤素 .one.element:not(.卤素),
+	.filtering.气体 .one.element:not(.气体),
+	.filtering.液体 .one.element:not(.液体),
+	.filtering.固体 .one.element:not(.固体) {
+		opacity: 0.5;
+	}
+
+	/*=====================元素详情区====================*/
+	.element.detail.area {
+		grid-column: 4 / 14;
+		grid-row: 1 / 4;
+		width: 100%;
+		height: 100%;
+		padding: 20px;
+	}
+
+	/*==========元素详情卡===========*/
+	.element.detail.card {
+		width: 100%;
+		height: 100%;
+		padding: 20px;
+		border-radius: 8px;
+		box-shadow: 0 2px 12px 0 rgba(0, 0, 0, .1);
+		display: flex;
+		gap: 20px;
+		align-items: start;
+		justify-content: start;
+	}
+
+	.element.detail.card .element.info {
+		width: 120px;
+		height: 100%;
+		flex-shrink: 0;
+	}
+
+	/*------元素属性------*/
+	.element.detail.card .properties {
+		margin: 0;
+		padding: 0;
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 8px;
+		min-width: 0;
+	}
+
+	.element.detail.card .properties dt {
+		font-weight: bold;
+		color: #606266;
+		flex-shrink: 0; /* 防止标签被压缩 */
+	}
+
+	.element.detail.card .properties dd {
+		margin: 0;
+		color: #303133;
+		word-break: break-word; /* 允许值在必要时换行 */
+	}
+
+	.element.detail.card footer {
+		flex-direction: column;
+		align-items: start;
+		gap: 4px;
+		height: auto;
+		justify-content: start;
+	}
+
+	.element.detail.card footer .tag {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	/* ==========================温度计========================== */
+	.temperature-control {
+		flex-shrink: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: start;
+	}
+
+	/* -----------------温度单位-----------------*/
+	.temperature-control .mode.input.selector.one.option {
+		margin-bottom: 10px;
+	}
+
+	.temperature-control .el-radio-button__inner {
+		padding: 0 8px;
+	}
+
+	/*------------温度计底部“玻璃球”-------------*/
+	.temperature-control .bulb {
+		flex-grow: 0;
+		width: 18px;
+		height: 18px;
+		border-radius: 50%;
+		background: radial-gradient(circle at 40% 40%, #ffcccc 0%, #ef4444 45%, #b91c1c 100%);
+		border: 3px solid #ef4444;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, .25);
+		margin-top: -9px;
+		z-index: 2; /* 要高于“温度条” */
+	}
+
+	/*--------------温度计滑杆整体------------*/
+	.temperature-control .slider {
+		display: contents; /* 把子元素拿出来跟兄弟元素（温标、水银球）做flex */
+	}
+
+	/* 温度条 */
+	.temperature-control .slider .el-slider__bar {
+		background: linear-gradient(to top, #3b82f6 0%, #ef4444 100%);
+	}
+
+	/* 滑块 */
+	.temperature-control .slider .el-slider__button-wrapper {
+		z-index: 3; /* 要高于“玻璃球” */
+	}
+
+	/* 温度输入框 */
+	.temperature-control .el-slider__input.el-input-number {
+		order: 2; /* 放在最后 */
+		position: sticky;
+		bottom: 80px;
+		left: 0;
+		width: 80px;
+		rotate: -90deg;
+		transform: translate(55px, -23px);
+	}
+
+	.temperature-control .el-slider__input.el-input-number .el-input__wrapper {
+		padding: 0;
+	}
+</style>
 </head>
 <body class="目字形">
 <header>
@@ -462,22 +462,20 @@
 					</footer>
 				</div>
 				<dl class="properties">
-					<dt>原子量</dt>
-					<dd>{{curElement.原子量}}</dd>
-					<dt>熔点</dt>
-					<dd>{{curElement.熔点}} °C</dd>
-					<dt>沸点</dt>
-					<dd>{{curElement.沸点}} °C</dd>
+					<dt>原子量</dt><dd>{{curElement.原子量}}</dd>
+					<dt>熔点</dt><dd>{{curElement.熔点}} °C</dd>
+					<dt>沸点</dt><dd>{{curElement.沸点}} °C</dd>
 					<dt>物态</dt>
-					<dd class="with icon" :title="getElementPhase(curElement)">{{getElementPhase(curElement)}}</dd>
+					<dd>
+						<span :title="getElementPhase(curElement)"
+									class="element phase with icon">{{getElementPhase(curElement)}}</span>
+						（{{temperatureInMode}}{{temperatureMode}}）
+					</dd>
 				</dl>
 				<dl class="properties">
-					<dt>发现年份</dt>
-					<dd>{{curElement.发现年份 || '未知'}}</dd>
-					<dt>电负性</dt>
-					<dd>{{curElement.电负性 || '未知'}}</dd>
-					<dt>电子亲和能</dt>
-					<dd>{{curElement.电子亲和能 || '未知'}}</dd>
+					<dt>发现年份</dt><dd>{{curElement.发现年份 || '未知'}}</dd>
+					<dt>电负性</dt><dd>{{curElement.电负性 || '未知'}}</dd>
+					<dt>电子亲和能</dt><dd>{{curElement.电子亲和能 || '未知'}}</dd>
 				</dl>
 			</div>
 		</section>
