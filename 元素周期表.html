@@ -36,7 +36,7 @@
 		.periodic-table-of-chemical-element {
 			height: 750px;
 			display: grid;
-			width: calc(100% - 72px);
+			width: calc(100% - 85px);
 		}
 
 		.full-width.periodic-table-of-chemical-element {
@@ -46,7 +46,7 @@
 
 		.half-width.periodic-table-of-chemical-element {
 			grid-template-columns: 10px repeat(18, 1fr);
-			grid-template-rows: repeat(9, 81px);
+			grid-template-rows: repeat(9, 78px);
 		}
 
 		.one.element {
@@ -227,7 +227,7 @@
 			align-items: center;
 		}
 
-		.toolbar [title="显示说明"] {
+		.toolbar [title='显示说明'] {
 			margin-left: auto;
 		}
 
@@ -312,73 +312,19 @@
 			color: #303133;
 		}
 
+		/* ==========================温度计========================== */
 		.temperature-control {
 			flex-shrink: 0;
-			/*position: relative;*/
-			/*width: 40px;*/
-			/*height: 700px;*/
 			display: flex;
 			flex-direction: column;
 			align-items: center;
-			justify-content: end;
+			justify-content: start;
 		}
 
-		.temperature-control .mode-switch {
-			margin-bottom: 4px;
-		}
-
-		.temperature-control .thermometer-track {
-			position: relative;
-			height: 620px;
-			width: 3px;
-			margin: 0 auto;
-			border-radius: 999px;
-			background: linear-gradient(to top, #3b82f6 0%, #ef4444 100%);
-		}
-
-		/* 温度计底端水银球（加大并容纳数值输入） */
-		.temperature-control .thermometer-bulb {
-			order: 2;
-			flex-grow: 0;
-			width: 72px;
-			height: 72px;
-			border-radius: 50%;
-			background: radial-gradient(circle at 40% 40%, #ffcccc 0%, #ef4444 45%, #b91c1c 100%);
-			border: 3px solid #ef4444;
-			box-shadow: 0 4px 12px rgba(0, 0, 0, .25);
-			display: flex;
-			align-items: center;
-			justify-content: center;
-		}
-
-		.temperature-control .thermometer-knob {
-			position: absolute;
-			left: 50%;
-			transform: translateX(-50%);
-			width: 14px;
-			height: 14px;
-			border-radius: 50%;
-			border: 2px solid #ef4444;
-			background: #fff;
-			box-shadow: 0 1px 4px rgba(0, 0, 0, .2);
-			cursor: ns-resize;
-			z-index: 1;
-		}
-
-		.temperature-control .thermometer-value {
-			position: absolute;
-			transform: translateX(-50%);
-		}
-
-		.temperature-control .thermometer-value .el-input-number {
-			width: 60px;
-			margin: 0;
-			padding: 0;
-		}
-
-		/* 单位小文本 */
+		/* -----------------温度单位-----------------*/
 		.temperature-control .unit-label {
-			flex-grow: 0;
+			order: -2; /* 放在温度输入框之前 */
+			flex: 0;
 			font-size: 12px;
 			color: #606266;
 			cursor: pointer;
@@ -396,6 +342,44 @@
 		.unit-item { display: block; text-align: center; font-size: 12px; color: #606266; border-radius: 4px; cursor: pointer; }
 
 		.unit-item:hover { background: #f5f7fa; color: #409EFF; }
+
+		/*------------------温度计底部“玻璃球”-----------------*/
+		.temperature-control .bulb {
+			flex-grow: 0;
+			width: 18px;
+			height: 18px;
+			border-radius: 50%;
+			background: radial-gradient(circle at 40% 40%, #ffcccc 0%, #ef4444 45%, #b91c1c 100%);
+			border: 3px solid #ef4444;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, .25);
+			margin-top: -9px;
+			z-index: 2;
+		}
+
+		/*------------------温度计滑杆整体-----------------*/
+		.temperature-control .slider {
+			display: contents; /* 把子元素拿出来跟兄弟元素（温标、水银球）做flex */
+		}
+
+		/* 温度条 */
+		.temperature-control .slider .el-slider__bar {
+			background: linear-gradient(to top, #3b82f6 0%, #ef4444 100%);
+		}
+
+		/* 温度输入框 */
+		.temperature-control .el-slider__input.el-input-number {
+			order: -1; /* 放在滑杆之前 */
+			position: sticky;
+			top: 10px;
+			left: 0;
+			width: 80px;
+			rotate: -90deg;
+			transform: translate(-55px, -23px);
+		}
+
+		.temperature-control .el-slider__input.el-input-number .el-input__wrapper {
+			padding: 0;
+		}
 	</style>
 </head>
 <body class="目字形">
@@ -501,15 +485,26 @@
 								@click="setUnit(opt)">{{ unitName(opt) }}</span>
 			</div>
 		</el-popover>
-		<div class="thermometer-bulb">
-			<el-input-number v-model="temperatureInMode" :min="temperatureMin" :max="temperatureMax" :step="1"
-											 controls-position="right" size="small"></el-input-number>
-		</div>
-		<div class="thermometer-track" ref="thermometerTrack">
-			<div class="thermometer-knob" :style="thermometerKnobStyle" @mousedown.stop="onThermometerMouseDown"></div>
-			<div class="thermometer-zero" v-if="thermometerZeroStyle" :style="thermometerZeroStyle"></div>
-		</div>
+		<el-slider class="slider" v-model="temperatureInMode" :min="temperatureMin" :max="temperatureMax" :step="1"
+							 :marks="{0:'0',500:'500',1000:'1000',2000:'2000',3000:'3000',4000:'4000',5000:'5000',6000:'6000'}"
+							 vertical height="650px" size="small" show-input size="small" controls-position="right">
+		</el-slider>
+		<!--		<div class="thermometer-track" ref="thermometerTrack">-->
+		<!--			<div class="thermometer-knob" :style="thermometerKnobStyle" @mousedown.stop="onThermometerMouseDown"></div>-->
+		<!--			<div class="thermometer-zero" v-if="thermometerZeroStyle" :style="thermometerZeroStyle" style="bottom: 4.35%;-->
+		<!--    position: absolute;-->
+		<!--    border: 2px solid red;-->
+		<!--    width: 9px;-->
+		<!--    height: 9px;-->
+		<!--    border-radius: 50%;-->
+		<!--    translate: -3px;-->
+		<!--    background-color: #fff;"></div>-->
+		<!--		</div>-->
+		<div class="bulb"></div>
+		<!--		<el-input-number v-model="temperatureInMode" :min="temperatureMin" :max="temperatureMax" :step="1"-->
+		<!--										 controls-position="right" size="small"></el-input-number>-->
 	</aside>
+
 	<el-dialog v-model="descriptionDialogVisible" title="页面说明" width="60%">
 		<p>这是一个交互式化学元素周期表。您可以探索元素的各种属性，并利用以下功能：</p>
 		<ul>
