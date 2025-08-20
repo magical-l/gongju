@@ -76,11 +76,12 @@
 		flex: 1;
 		min-width: 0; /* 防止flex项目因内容过宽而溢出 */
 		display: grid;
+		transition: all 0.5s ease-in-out;
 	}
 
 	.full-width.periodic-table-of-chemical-element {
 		height: 560px;
-		grid-template-columns: 10px repeat(32, 72px);
+		grid-template-columns: 10px repeat(32, 81px);
 		grid-template-rows: repeat(7, 1fr);
 	}
 
@@ -97,7 +98,6 @@
 		background-color: #ccc; /* 默认颜色 */
 		display: flex;
 		flex-direction: column;
-		transition: all 0.2s ease-in-out;
 	}
 
 	.element.info {
@@ -369,7 +369,7 @@
 			</el-checkbox-button>
 		</el-checkbox-group>
 
-		<el-popover trigger="click" placement="bottom" width="250px" hide-after="0"
+		<el-popover trigger="click" placement="bottom" width="250px" :hide-after="0"
 								popper-style="background-color:transparent">
 			<template #reference>
 				<el-button size="small">温度</el-button>
@@ -393,7 +393,7 @@
 		</el-popover>
 
 		<el-button title="显示说明" size="small" circle @click="descriptionDialogVisible = true">?</el-button>
-	</div><!-- 工具栏 -->
+	</div><!-- /工具栏 -->
 
 	<article class="periodic-table-of-chemical-element" :class="tableClasses">
 		<section class="周期序号" :class="`周期`+n" v-for="n in 7" :key="n">
@@ -452,7 +452,7 @@
 				</dl>
 			</div>
 		</section>
-	</article><!-- 周期表 -->
+	</article><!-- /周期表 -->
 
 	<el-dialog title="页面说明" v-model="descriptionDialogVisible" width="60%">
 		<p>这是一个交互式化学元素周期表。您可以探索元素的各种属性，并利用以下功能：</p>
@@ -479,7 +479,7 @@
 	<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 	<article class="website info">
 		<section class="qr-code">
-			<img src="resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+			<img src="../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
 			<span>赞助一下</span>
 		</section>
 		<section>
@@ -497,22 +497,6 @@
 	<script src="../resources/biz-util.js?v=250801"></script>
 </div>
 <script>
-	function celsiusToKelvin(c) {
-		return c + 273.15;
-	}
-
-	function celsiusToFahrenheit(c) {
-		return c * 9 / 5 + 32;
-	}
-
-	function kelvinToCelsius(k) {
-		return k - 273.15;
-	}
-
-	function fahrenheitToCelsius(f) {
-		return (f - 32) * 5 / 9;
-	}
-
 	const elements = [
 		{
 			id: 1, symbol: "H", name: "氢", 原子量: 1.008, 熔点: "-259.1", 沸点: "-252.9", period: 1, col: 1,

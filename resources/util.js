@@ -16,6 +16,23 @@ String.prototype.hyphenStyle = function () {
 Array.prototype.isEmpty = function (filter) {
 	return (filter ? this.filter(filter) : this).length === 0;
 };
+
+function celsiusToKelvin(c) {
+	return c + 273.15;
+}
+
+function celsiusToFahrenheit(c) {
+	return c * 9 / 5 + 32;
+}
+
+function kelvinToCelsius(k) {
+	return k - 273.15;
+}
+
+function fahrenheitToCelsius(f) {
+	return (f - 32) * 5 / 9;
+}
+
 //配置toastr
 if (typeof toastr !== 'undefined') {
 	toastr.options.positionClass = 'toast-top-right';
@@ -34,7 +51,7 @@ const errorNotice = (notice, cb) => {
 };
 (() => {
 	const or = (o1, o2) => 'undefined' !== typeof o1 && o1 !== null ? o1 : o2;
-	if(typeof $ !== 'undefined' && $?.fn){
+	if (typeof $ !== 'undefined' && $?.fn) {
 		$.fn.isEmpty = function () {
 			return this.toArray().isEmpty();
 		};
