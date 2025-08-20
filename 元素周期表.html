@@ -137,6 +137,19 @@
 		line-height: 1;
 	}
 
+	.element > footer > .with.icon[title='固体'], .element > footer > .with.icon[title='液体'], .element > footer > .with.icon[title='气体'] {
+		position: absolute;
+		top: 2px;
+		left: 50%;
+		transform: translateX(-50%);
+		z-index: 1;
+	}
+
+	.half-width .镧系 .with.icon[title='固体'], .half-width .镧系 .with.icon[title='液体'], .half-width .镧系 .with.icon[title='气体'],
+	.half-width .锕系 .with.icon[title='固体'], .half-width .锕系 .with.icon[title='液体'], .half-width .锕系 .with.icon[title='气体'] {
+		top: calc(50% + 2px);
+	}
+
 	/*========================分组分类=====================*/
 	[title='人造元素'].with.icon::after {content: '🧪';font-size: 0.8em;}
 
