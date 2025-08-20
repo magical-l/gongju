@@ -109,13 +109,19 @@
 	}
 
 	.element.info {
-		display: flex;
-		flex-direction: column;
 		height: 100%;
 		padding: 2px;
+		display: grid;
+		grid-template-rows: 1fr 1fr;
+		grid-template-columns: auto 1fr auto;
+		grid-template-areas:
+				'header header'
+				'main right-sidebar'
+				'footer footer';
 	}
 
 	.element.info > header {
+		grid-area: header;
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
@@ -128,15 +134,21 @@
 	}
 
 	.element.info .name {
-		flex-grow: 1;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		font-size: 1.2em;
+		grid-area: main;
+		grid-column: 1 / -1;
 		padding: 0;
+		justify-self: center;
+		font-size: 1.2em;
+	}
+
+	.element.info .phase {
+		grid-area: right-sidebar;
+		justify-self: end;
 	}
 
 	.element.info .atomic-mass {
+		grid-column: 1 / -1;
+		justify-content: end;
 		font-size: 0.7em;
 		text-align: center;
 		line-height: 1;
@@ -410,10 +422,10 @@
 			<div class="element info"><!-- 窄版时作为镧系锕系的正式内容，底部对齐至下一行 -->
 				<header>
 					<p class="element id">{{element.id}}</p>
-					<p class="phase with icon" :title="getElementPhase(element)"></p>
 					<p class="element symbol">{{element.symbol}}</p>
 				</header>
 				<p class="element name">{{element.name}}</p>
+				<p class="phase with icon" :title="getElementPhase(element)"></p>
 				<p class="element atomic-mass">{{element.原子量}}</p>
 				<footer>
 					<span class="tag with icon" v-for="tag in element.tags" :title="tag"></span>
