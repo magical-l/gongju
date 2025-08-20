@@ -5,7 +5,7 @@
 <title itemprop="name">元素周期表 | 工具兽</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<link href="https://unpkg.com/element-plus/dist/index.css" rel="stylesheet">
+<link href="lib/element-plus/2.10.7/index.css" rel="stylesheet">
 <link href="resources/el-plus.css" rel="stylesheet">
 <link href="lib/toastr.min.css" rel="stylesheet">
 <link href="resources/common.css?v=250802" rel="stylesheet">
@@ -13,6 +13,10 @@
 <link href="resources/layout.css?v=0806" rel="stylesheet">
 <link href="resources/biz.css?v=250806" rel="stylesheet">
 <style>
+	body {
+		--目字形-gap: 3px;
+	}
+
 	body > main {
 		--period1-row-offset: 0;
 		padding: 0;
@@ -69,18 +73,19 @@
 
 	/*==========================元素周期表========================*/
 	.periodic-table-of-chemical-element {
-		height: 750px;
-		display: grid;
 		flex: 1;
 		min-width: 0; /* 防止flex项目因内容过宽而溢出 */
+		display: grid;
 	}
 
 	.full-width.periodic-table-of-chemical-element {
+		height: 560px;
 		grid-template-columns: 10px repeat(32, 72px);
 		grid-template-rows: repeat(7, 1fr);
 	}
 
 	.half-width.periodic-table-of-chemical-element {
+		height: 720px;
 		grid-template-columns: 10px repeat(18, 1fr);
 		grid-template-rows: repeat(9, 1fr);
 	}
@@ -484,8 +489,8 @@
 	</article>
 </footer>
 <div>
-	<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-	<script src="https://unpkg.com/element-plus/dist/index.full.js"></script>
+	<script src="lib/vue/2.5.18/vue.global.js"></script>
+	<script src="lib/element-plus/2.10.7/index.full.js"></script>
 	<!--	<script src="lib/jquery-3.4.1.min.js"></script>-->
 	<script src="lib/toastr.min.js"></script>
 	<script src="resources/util.js"></script>
