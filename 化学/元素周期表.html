@@ -53,7 +53,15 @@
 	.temperature.controller {
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
+		justify-content: center;
+	}
+
+	.temperature.controller .el-input-number {
+		width: 80px;
+	}
+
+	.temperature.controller .temperature.mode.input {
+		width: 24px;
 	}
 
 	/*--------------发现年代------------*/
@@ -369,21 +377,12 @@
 			</el-checkbox-button>
 		</el-checkbox-group>
 
-		<el-popover trigger="click" placement="bottom" width="250px" :hide-after="0"
-								popper-style="background-color:transparent">
-			<template #reference>
-				<el-button size="small">温度</el-button>
-			</template>
-			<section class="temperature controller">
-				<el-input-number v-model="temperatureInMode" :min="temperatureMin" :max="temperatureMax" size="small">
-				</el-input-number>
-				<el-radio-group class="mode input , selector" v-model="temperatureMode" size="small">
-					<el-radio-button class="mode input selector one option" size="small"
-													 v-for="opt in temperatureModes" :key="opt" :value="opt">{{opt}}
-					</el-radio-button>
-				</el-radio-group>
-			</section>
-		</el-popover>
+		<span class="temperature controller">
+			<el-input-number v-model="temperatureInMode" :min="temperatureMin" :max="temperatureMax" controls-position="right"
+											 size="small"></el-input-number>
+			<el-button class="temperature mode input , toggle" size="small" type="primary" @click="nextTemperatureMode">
+				{{temperatureMode}}</el-button>
+		</span>
 
 		<el-popover placement="bottom" title="筛选发现年代" :width="400" trigger="click">
 			<template #reference>
@@ -1171,6 +1170,11 @@
 					return '固体';
 				}
 				return '未知';
+			},
+			nextTemperatureMode() {
+				const len = temperatureModes.length;
+				const index = temperatureModes.indexOf(this.temperatureMode);
+				this.temperatureMode = temperatureModes[(index + 1) % len];
 			}
 		},
 		mounted() {
