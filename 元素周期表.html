@@ -114,7 +114,7 @@
 		line-height: 1.2;
 	}
 
-	.element.name {
+	.element.info .name {
 		flex-grow: 1;
 		display: flex;
 		justify-content: center;
@@ -123,14 +123,14 @@
 		padding: 0;
 	}
 
-	.element .atomic-mass {
+	.element.info .atomic-mass {
 		font-size: 0.7em;
 		text-align: center;
 		line-height: 1;
 		opacity: 0.8;
 	}
 
-	.element > footer {
+	.element.info > footer {
 		display: flex;
 		justify-content: end;
 		align-items: center;
@@ -139,23 +139,36 @@
 		align-items: center;
 	}
 
-	.element > footer > .with.icon::after {
+	.element.info .icon::after {
 		font-style: normal;
 		font-size: 0.8em;
 		line-height: 1;
 	}
 
-	.element > footer > .with.icon[title='固体'], .element > footer > .with.icon[title='液体'], .element > footer > .with.icon[title='气体'] {
-		position: absolute;
-		top: 2px;
-		left: 50%;
-		transform: translateX(-50%);
-		z-index: 1;
+	.half-width .镧系, .half-width .锕系 {
+		grid-row-end: span 2;
+		justify-content: end;
 	}
 
-	.half-width .镧系 .with.icon[title='固体'], .half-width .镧系 .with.icon[title='液体'], .half-width .镧系 .with.icon[title='气体'],
-	.half-width .锕系 .with.icon[title='固体'], .half-width .锕系 .with.icon[title='液体'], .half-width .锕系 .with.icon[title='气体'] {
-		top: calc(50% + 2px);
+	.half-width .镧系 .element.info, .half-width .锕系 .element.info {
+		height: auto; /* 否则占不满一行的格子 */
+	}
+
+	.half-width #镧, .half-width #锕 {
+		clip-path: polygon(0% 100%, 100% 100%, 100% 10%, 50% 5%, 0% 10%);
+	}
+
+	.half-width #镧::before { content: '57~71\A  镧系'; /* 在css里\A是换行 */ }
+
+	.half-width #锕::before { content: '89~103\A    锕系'; /* 序号到了3位数，所以空格要多些 */ }
+
+	.half-width #镧::before, .half-width #锕::before {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		white-space: pre;
 	}
 
 	/*========================分组分类=====================*/
@@ -191,9 +204,7 @@
 
 	.half-width .周期7 {grid-row-start: calc(8 + var(--period1-row-offset));}
 
-	.half-width .周期6.周期序号, .half-width .周期7.周期序号 {
-		grid-row-end: span 2;
-	}
+	.half-width .周期6.周期序号, .half-width .周期7.周期序号 {grid-row-end: span 2;}
 
 	.周期序号 {
 		grid-column: 1;
@@ -241,32 +252,6 @@
 
 	.稀有气体.element { background-color: #f1f1f1; }
 
-	.half-width .镧系, .half-width .锕系 {
-		grid-row-end: span 2;
-		justify-content: end;
-	}
-
-	.half-width .镧系 .element.info, .half-width .锕系 .element.info {
-		height: 50%; /* 否则占不满一行的格子 */
-	}
-
-	.half-width #镧, .half-width #锕 {
-		clip-path: polygon(0% 100%, 100% 100%, 100% 10%, 50% 5%, 0% 10%);
-	}
-
-	.half-width #镧::before { content: '57~71\A  镧系'; }
-
-	.half-width #锕::before { content: '89~103\A    锕系'; }
-
-	.half-width #镧::before, .half-width #锕::before {
-		width: 100%;
-		height: 100%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		white-space: pre;
-	}
-
 	.filtering.碱金属 .one.element:not(.碱金属),
 	.filtering.碱土金属 .one.element:not(.碱土金属),
 	.filtering.过渡金属 .one.element:not(.过渡金属),
@@ -295,7 +280,7 @@
 		padding: 20px;
 	}
 
-	/*==========元素详情卡===========*/
+	/*------------元素详情卡------------*/
 	.element.detail.card {
 		width: 100%;
 		height: 100%;
@@ -344,7 +329,7 @@
 		justify-content: start;
 	}
 
-	.element.detail.card footer .tag {
+	.element.detail.card > footer .tag {
 		display: flex;
 		align-items: center;
 		gap: 8px;
@@ -418,16 +403,16 @@
 						 :class="[...element.tags, `周期`+element.period, getElementPhase(element)]"
 						 :style="[getElementStyle(element), getYearFilterStyle(element)]"
 						 v-for="element in elements" :key="element.id" @click="curElement=element">
-			<div class="element info">
+			<div class="element info"><!-- 窄版时作为镧系锕系的正式内容，底部对齐至下一行 -->
 				<header>
 					<p class="element id">{{element.id}}</p>
+					<p class="phase with icon" :title="getElementPhase(element)"></p>
 					<p class="element symbol">{{element.symbol}}</p>
 				</header>
 				<p class="element name">{{element.name}}</p>
 				<p class="element atomic-mass">{{element.原子量}}</p>
 				<footer>
-					<span class="with icon" v-for="tag in element.tags" :title="tag"></span>
-					<span class="with icon" :title="getElementPhase(element)"></span>
+					<span class="tag with icon" v-for="tag in element.tags" :title="tag"></span>
 				</footer>
 			</div>
 		</section>
