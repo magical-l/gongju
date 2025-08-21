@@ -1,37 +1,5 @@
 @charset "utf-8";
 
-*, *::before, *::after {
-	box-sizing: border-box;
-}
-
-html {
-	/* 声明确定的宽高（可以是百分比型值），供后代元素宽高定义x%参考。
-		100%相对于父元素（视口），比100vh避免了safari工具栏高度的问题
-		不需要设置min-height（未理解）
-	*/
-	height: 100%;
-	scrollbar-gutter: stable; /*为滚动条预留空间，防止滚动条在出现/隐藏间切换时影响内容宽高计算变化*/
-	scroll-behavior: smooth; /*跳转至锚点时平滑滚动，而非突然跳走*/
-
-	font-size: 62.5%; /* 浏览器默认字号16px，62.5%即10px，这样可令1rem=10px，方便换算 */
-	text-size-adjust: 100%; /*iOS 横屏字体放大问题：保持字体尺寸稳定*/
-
-	/* 安全策略 */
-	block-size: unset; /* 防止某些浏览器怪异模式 */
-
-	/* macOS 上字体锯齿感
-		不同浏览器字体渲染差异
-	*/
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-}
-
-@media (max-width: 480px) {
-	html {
-		font-size: 56.25%; /* 基于9px/16px */
-	}
-}
-
 :root {
 	--left-sidebar-min-width: 150px;
 	--left-sidebar-max-width: 20%;
@@ -55,184 +23,6 @@ html {
 	--反叵字形-gap: var(--gap);
 }
 
-body {
-	max-inline-size: 100%;
-	min-height: 100vh; /* 确保布局撑满视口高度 */
-	height: 100%; /*显式定义了高度且撑满父元素（html）*/
-	margin: 0;
-	padding: 0;
-
-	background-color: #f5f5f5;
-
-	contain: layout style paint; /* 为动态内容预留空间 */
-
-	line-height: 1.6; /*1.6是可读性最佳行高*/
-	font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-	font-size: 1.6rem; /* 配合html的font-size修改，恢复回16px */
-	text-rendering: optimizeLegibility; /*精细字体细节*/
-	overflow-wrap: break-word; /*允许在单词内换行（避免溢出）*/
-	hyphens: auto; /*自动添加连字符（西文）*/
-	image-rendering: optimize-contrast; /*高清图片渲染*/
-
-	touch-action: manipulation; /*移动端点击延迟问题：立即响应触摸事件*/
-}
-
-body:focus { /*为键盘导航用户清晰焦点指示*/
-	outline: 2px solid #0066cc;
-}
-
-/* 响应式调整 */
-@media (max-width: 768px) {
-	html {
-		font-size: 58%;
-	}
-
-	body {
-		padding: 0 1rem;
-	}
-}
-
-/* 移动端优化 */
-@supports (-webkit-touch-callout: none) {
-	body {
-		min-height: -webkit-fill-available;
-		overscroll-behavior-y: contain;
-	}
-}
-
-/* 深色模式 */
-@media (prefers-color-scheme: dark) {
-	body {
-		background-color: #121212;
-		color: #f0f0f0;
-	}
-}
-
-/* 打印优化 */
-@media print {
-	body {
-		background: white;
-		color: black;
-		font-size: 12pt;
-	}
-
-	/* 隐藏不必要元素 */
-	nav, footer, .ad-banner {
-		display: none;
-	}
-}
-
-/* 移动端Safari特殊处理 */
-@supports (-webkit-touch-callout: none) {
-	body {
-		min-height: -webkit-fill-available;
-		/* 修复iOS下拉刷新区域 */
-		overscroll-behavior-y: contain;
-	}
-}
-
-body > header {
-	grid-area: header;
-}
-
-body > header {
-	background-color: #fff;
-	padding: 1rem 2rem;
-	border-bottom: 1px solid #dee2e6;
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	flex-wrap: wrap;
-	gap: 1rem;
-}
-
-body > header > .name {
-	margin: 0;
-	font-size: 2.4rem;
-	font-weight: 600;
-}
-
-body > header nav {
-	display: flex;
-	gap: 1.5rem;
-	flex-wrap: wrap;
-}
-
-body > header nav a {
-	text-decoration: none;
-	color: #333;
-	font-weight: 500;
-	padding-bottom: 5px;
-	border-bottom: 2px solid transparent;
-	transition: border-color 0.2s, color 0.2s;
-}
-
-body > header nav a:hover,
-body > header nav a.active {
-	color: #007bff;
-	border-bottom-color: #007bff;
-}
-
-h1, h2, h3 {
-	color: #333;
-}
-
-img, video, iframe {
-	aspect-ratio: attr(width) / attr(height);
-}
-img, video, iframe, canvas, object, embed {
-	max-inline-size: 100%;
-	block-size: auto; /* 保持比例 */
-}
-
-.website.info {
-	background-color: #f8f9fa;
-	color: #6c757d;
-	text-align: center;
-	font-size: 1.36rem;
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: center;
-	align-items: center;
-	gap: 1.5rem;
-}
-
-.website.info .qr-code {
-	width: 120px;
-	background-color: #e9ecef;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	font-style: italic;
-	padding: 5px;
-	border-radius: 4px;
-}
-
-.website.info .qr-code img {
-	max-width: 100%;
-	height: auto;
-	margin-bottom: 5px;
-}
-
-.website.info .qr-code span {
-	font-size: 1.2rem;
-	color: #333;
-}
-
-.website.info p {
-	margin-bottom: 0.5rem;
-}
-
-.website.info a {
-	color: #007bff;
-	text-decoration: none;
-}
-
-.website.info a:hover {
-	text-decoration: underline;
-}
-
 main {
 	flex: 1;
 	width: 100%;
@@ -241,20 +31,6 @@ main {
 	background-color: #fff;
 	border-radius: 8px;
 	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-
-@media (max-width: 1024px) {
-	body {
-		grid-template-columns: 1fr;
-		grid-template-areas:
-			'header'
-			'main'
-			'aside';
-	}
-
-	aside {
-		width: 100%;
-	}
 }
 
 main > header {
@@ -294,21 +70,6 @@ main > header h2 {
 
 .description p {
 	margin-bottom: 10px;
-}
-
-textarea {
-	width: 100%;
-	padding: 10px;
-	border: 1px solid #ddd;
-	border-radius: 4px;
-	font-family: monospace;
-	resize: vertical;
-	box-sizing: border-box;
-}
-
-button {
-	cursor: pointer;
-	transition: background-color 0.3s;
 }
 
 .input.area textarea {
@@ -392,6 +153,7 @@ button {
 	font-style: italic;
 }
 
+/*=================================与primevue有关=================================*/
 .chooser.p-selectbutton button {
 	padding: 0.1rem 0.3rem;
 	font-size: 1.28rem;

@@ -1,5 +1,10 @@
-.el-radio-group>.el-radio-button:first-child,
-.el-checkbox-group>.el-checkbox-button:first-child {
+@charset "UTF-8";
+
+/* 设置单选组/多选组在按钮模式下第一个按钮的圆角。
+	原生element-plus标在了内部的span上，导致如果在最外层设置background的话，没有圆角
+	*/
+.el-radio-group > .el-radio-button:first-child,
+.el-checkbox-group > .el-checkbox-button:first-child {
 	border-bottom-left-radius: var(--el-border-radius-base);
 	border-left: var(--el-border);
 	border-top-left-radius: var(--el-border-radius-base);
