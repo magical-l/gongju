@@ -109,15 +109,10 @@
 	}
 
 	.element.info {
+		--反叵字形-right-sidebar-min-width:12px;
+		--反叵字形-right-sidebar-max-width:12px;
 		height: 100%;
 		padding: 2px;
-		display: grid;
-		grid-template-rows: 1fr 1fr;
-		grid-template-columns: auto 1fr auto;
-		grid-template-areas:
-				'header header'
-				'main right-sidebar'
-				'footer footer';
 	}
 
 	.element.info > header {
@@ -127,6 +122,11 @@
 		align-items: center;
 	}
 
+	.element.info > .body {
+		display: flex;
+		flex-wrap: wrap;
+	}
+
 	.element.info p {
 		margin: 0;
 		padding: 1px 2px;
@@ -134,20 +134,24 @@
 	}
 
 	.element.info .name {
-		grid-area: main;
-		grid-column: 1 / -1;
+		flex: 1;
 		padding: 0;
 		justify-self: center;
+		text-align: center;
 		font-size: 1.2em;
 	}
 
+	.element.info .name span {
+		display: inline-block;
+		transform: translateX(50%);
+	}
+
 	.element.info .phase {
-		grid-area: right-sidebar;
 		justify-self: end;
 	}
 
 	.element.info .atomic-mass {
-		grid-column: 1 / -1;
+		flex-basis: 100%;
 		justify-content: end;
 		font-size: 0.7em;
 		text-align: center;
@@ -419,14 +423,16 @@
 						 :class="[...element.tags, `周期`+element.period, getElementPhase(element)]"
 						 :style="[getElementStyle(element), getYearFilterStyle(element)]"
 						 v-for="element in elements" :key="element.id" @click="curElement=element">
-			<div class="element info"><!-- 窄版时作为镧系锕系的正式内容，底部对齐至下一行 -->
+			<div class="element info 目字形"><!-- 窄版时作为镧系锕系的正式内容，底部对齐至下一行 -->
 				<header>
 					<p class="element id">{{element.id}}</p>
 					<p class="element symbol">{{element.symbol}}</p>
 				</header>
-				<p class="element name">{{element.name}}</p>
-				<p class="phase with icon" :title="getElementPhase(element)"></p>
-				<p class="element atomic-mass">{{element.原子量}}</p>
+				<div class="body">
+					<p class="element name"><span>{{element.name}}</span></p>
+					<p class="phase with icon" :title="getElementPhase(element)"></p>
+					<p class="element atomic-mass">{{element.原子量}}</p>
+				</div>
 				<footer>
 					<span class="tag with icon" v-for="tag in element.tags" :title="tag"></span>
 				</footer>

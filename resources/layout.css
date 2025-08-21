@@ -52,7 +52,12 @@ body.叵字形 {
 }
 
 /* “反叵字形”布局，上部导航栏，底部页脚，中间右侧栏宽度固定，左侧主要内容自适应 */
-body.反叵字形 {
+.反叵字形 {
+	display: grid;
+	grid-template-rows:
+		auto    /* Header 高度自适应内容 */
+		1fr     /* 主内容区填充剩余垂直空间 */
+		auto; /* Footer 高度自适应 */
 	grid-template-columns: 1fr minmax(var(--反叵字形-right-sidebar-min-width), var(--反叵字形-right-sidebar-max-width));
 	grid-template-areas:
 				'header header'
@@ -71,12 +76,12 @@ body.目字形 {
 	gap: var(--目字形-gap);
 }
 
-body > header { grid-area: header; }
+header { grid-area: header; }
 
-body > footer { grid-area: footer; }
+footer { grid-area: footer; }
 
-body > aside.left { grid-area: left-sidebar; }
+aside.left { grid-area: left-sidebar; }
 
-body > aside.right { grid-area: right-sidebar; }
+aside.right { grid-area: right-sidebar; }
 
-body > main { grid-area: main; }
+main, .main, .body { grid-area: main; }
