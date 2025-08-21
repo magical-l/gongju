@@ -131,9 +131,9 @@ body:focus { /*为键盘导航用户清晰焦点指示*/
 
 /*================================设定一些元素的初始值==============================*/
 
-template, .template, .hidden {display: none;}
+template, .template, .hidden {display: none; }
 
-h1, h2, h3 {color: #333;}
+h1, h2, h3 {color: #333; }
 
 textarea {
 	width: 100%;
@@ -151,20 +151,6 @@ button {
 i.icon {
 	font-style: unset; /* <i>标签本来是做斜体的，但现在通常被用来做图标，因此要去掉本身的斜体。 */
 }
-
-/*================================一些常用类==============================*/
-
-.note strong {color: red;}
-
-.correct {color: var(--correct-color);}
-
-.incorrect {color: var(--incorrect-color);}
-
-.half-correct {color: var(--half-correct-color);}
-
-.dangerous-via-font {color: var(--dangerous-color);}
-
-.dangerous-via-background {background-color: var(--dangerous-color);}
 
 /*-------------------------整个导航栏--------------------*/
 body > header {
@@ -207,6 +193,20 @@ body > header nav a:hover, body > header nav a.active {
 	color: #007bff;
 	border-bottom-color: #007bff;
 }
+
+/*================================一些工具类==============================*/
+
+.note strong {color: red; }
+
+.correct {color: var(--correct-color); }
+
+.incorrect {color: var(--incorrect-color); }
+
+.half-correct {color: var(--half-correct-color); }
+
+.dangerous-via-font {color: var(--dangerous-color); }
+
+.dangerous-via-background {background-color: var(--dangerous-color); }
 
 /*---------------------网站信息---------------------*/
 .website.info {
@@ -259,18 +259,14 @@ body > header nav a:hover, body > header nav a.active {
 
 /*--------------可拖放调整大小的元素--------------*/
 .resizable {
+	display: block; /* 确保是块级元素 */
 	overflow: auto; /* 必须设置且不能是visible */
 	resize: both;
-	display: block; /* 确保是块级元素 */
 }
 
-.resizable.x {
-	resize: horizontal;
-}
+.resizable.x {resize: horizontal;}
 
-.resizable.y {
-	resize: vertical;
-}
+.resizable.y {resize: vertical;}
 
 /*---------------截断长文本---------------*/
 .truncate-long-text {
@@ -285,32 +281,19 @@ body > header nav a:hover, body > header nav a.active {
 }
 
 /*-------------定位-------------*/
-.position-fixed {position: fixed;}
+.position-fixed {position: fixed; }
 
-.in-center {
+.position-fixed.in-center {
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
 }
 
-.sticky {position: sticky;}
+.sticky {position: sticky; }
 
-footer.sticky {bottom: 0;}
+footer.sticky {bottom: 0; }
 
-nav.sticky {top: 0;}
-
-/*-------------布局-------------*/
-.grid-row {
-	grid-row: 1 / -1;
-}
-
-.grid-column {
-	grid-column: 1 / -1;
-}
-
-.flex-monopoly {
-	flex-basis: 100%;
-}
+nav.sticky {top: 0; }
 
 /*-----------渐变色------------*/
 .text-gradient { /* 渐变色字 */
