@@ -1,30 +1,37 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>SVG图标转换工具 | 工具兽</title>
-	<meta name="description"
-				content="在线SVG转图标工具，可将SVG代码快速转换为多种尺寸的PNG图标，方便在网站、应用等场景中使用。">
-	<meta name="keywords" content="SVG, 图标, PNG, 转换, 在线工具">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SVG图标转换工具 | 工具兽</title>
+<meta name="description"
+			content="在线SVG转图标工具，可将SVG代码快速转换为多种尺寸的PNG图标，方便在网站、应用等场景中使用。">
+<meta name="keywords" content="SVG, 图标, PNG, 转换, 在线工具">
 
-	<link href="lib/element-plus/2.10.7/index.css" rel="stylesheet">
-	<link href="resources/el-plus.css" rel="stylesheet">
-	<link href="lib/toastr.min.css" rel="stylesheet">
-	<link href="resources/common.css?v=250821" rel="stylesheet">
-	<link href="resources/花活.css" rel="stylesheet">
-	<link href="resources/layout.css?v=0821" rel="stylesheet">
-	<link href="resources/biz.css?v=250821" rel="stylesheet">
-	<style>
-		.input.area .el-textarea__inner {
-			height: 200px;
-			margin-bottom: 20px;
-		}
+<link href="lib/element-plus/2.10.7/index.css" rel="stylesheet">
+<link href="resources/el-plus.css" rel="stylesheet">
+<link href="lib/toastr.min.css" rel="stylesheet">
+<link href="resources/common.css?v=250821" rel="stylesheet">
+<link href="resources/花活.css" rel="stylesheet">
+<link href="resources/layout.css?v=0821" rel="stylesheet">
+<link href="resources/biz.css?v=250821" rel="stylesheet">
+<style>
+	main > header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 1rem;
+	}
 
-		.result.area {
-			grid-template-columns: repeat(4, 1fr);
-		}
-	</style>
+	.input.area .el-textarea__inner {
+		height: 200px;
+		margin-bottom: 20px;
+	}
+
+	.result.area {
+		grid-template-columns: repeat(4, 1fr);
+	}
+</style>
 </head>
 <body class="反叵字形">
 <header>
@@ -41,25 +48,25 @@
 <main>
 	<header>
 		<h2>SVG转图片</h2>
-		<button class="toggle-description" @click="toggleDescription">{{ descriptionVisible ? '隐藏说明' : '显示说明' }}
-		</button>
+		<el-button size="small" circle title="显示说明" @click="descriptionVisible = true">?</el-button>
 	</header>
-	<article class="description" v-if="descriptionVisible">
-		<p>
-			“SVG转图片”是一个便捷的在线应用，允许用户将SVG（可缩放矢量图形）代码快速转换为多种标准尺寸的PNG格式图标。对于需要在网站、移动应用或桌面程序中使用统一图标的开发者和设计师来说，这是一个非常高效的工具。</p>
-		<h2>核心功能</h2>
-		<ul>
-			<li><strong>实时预览：</strong>用户粘贴SVG代码后，页面会立即显示不同尺寸下的图标预览效果。</li>
-			<li><strong>多种尺寸：</strong>默认提供16x16, 32x32, 48x48, 128x128等常用图标尺寸。</li>
-			<li><strong>一键下载：</strong>用户可以一键下载所有尺寸的PNG格式图标。</li>
-		</ul>
-		<h2>如何使用</h2>
-		<p>
-			将您的SVG代码粘贴到输入框中，工具会自动生成预览。确认无误后，点击“下载图标”按钮，即可将生成的PNG图标文件保存到您的电脑。</p>
-	</article>
+	<el-dialog title="页面说明" v-model="descriptionVisible" width="60%">
+		<article class="description">
+			<p>
+				“SVG转图片”是一个便捷的在线应用，允许用户将SVG（可缩放矢量图形）代码快速转换为多种标准尺寸的PNG格式图标。对于需要在网站、移动应用或桌面程序中使用统一图标的开发者和设计师来说，这是一个非常高效的工具。</p>
+			<h2>核心功能</h2>
+			<ul>
+				<li><strong>实时预览：</strong>用户粘贴SVG代码后，页面会立即显示不同尺寸下的图标预览效果。</li>
+				<li><strong>多种尺寸：</strong>默认提供16x16, 32x32, 48x48, 128x128等常用图标尺寸。</li>
+				<li><strong>一键下载：</strong>用户可以一键下载所有尺寸的PNG格式图标。</li>
+			</ul>
+			<h2>如何使用</h2>
+			<p>
+				将您的SVG代码粘贴到输入框中，工具会自动生成预览。确认无误后，点击“下载图标”按钮，即可将生成的PNG图标文件保存到您的电脑。</p>
+		</article>
+	</el-dialog>
 	<section class="input area">
-		<el-input type="textarea" placeholder="粘贴你的SVG代码到这里" :rows="8" v-model="input"
-								:class="descriptionVisible?'border-pulse':''"></el-input>
+		<el-input type="textarea" placeholder="粘贴SVG代码到这里" :rows="8" v-model="input"></el-input>
 	</section>
 
 	<section class="result area">
@@ -126,7 +133,7 @@
 
 		const img = new Image();
 		const svgBlob = new Blob([new XMLSerializer().serializeToString(clonedSvgElement)],
-			{type: 'image/svg+xml;charset=utf-8'});
+				{type: 'image/svg+xml;charset=utf-8'});
 		const url = URL.createObjectURL(svgBlob);
 
 		img.onload = () => {
@@ -159,6 +166,18 @@
 				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname)
 			};
 		},
+		watch: {
+			descriptionVisible(newValue) {
+				const storageKey = 'description-hidden-' + window.location.pathname;
+				if (newValue === true) {
+					// When dialog is opened, remove the key so a refresh will show it again.
+					localStorage.removeItem(storageKey);
+				} else {
+					// When dialog is closed, set the key so it stays hidden on next visit.
+					localStorage.setItem(storageKey, 'true');
+				}
+			}
+		},
 		computed: {
 			parsedSvg() {
 				const tempDiv = document.createElement('div');
@@ -175,15 +194,6 @@
 			}
 		},
 		methods: {
-			toggleDescription() {
-				this.descriptionVisible = !this.descriptionVisible;
-				const storageKey = 'description-hidden-' + window.location.pathname;
-				if (this.descriptionVisible) {
-					localStorage.removeItem(storageKey);
-				} else {
-					localStorage.setItem(storageKey, 'true');
-				}
-			},
 			downloadIcons() {
 				if (!this.input) {
 					toastr.warning('SVG代码不能为空');
