@@ -8,14 +8,15 @@
 				content="在线SVG转图标工具，可将SVG代码快速转换为多种尺寸的PNG图标，方便在网站、应用等场景中使用。">
 	<meta name="keywords" content="SVG, 图标, PNG, 转换, 在线工具">
 
-	<link href="lib/primevue/primeflex/3.3.1/primeflex.min.css" rel="stylesheet">
+	<link href="lib/element-plus/2.10.7/index.css" rel="stylesheet">
+	<link href="resources/el-plus.css" rel="stylesheet">
 	<link href="lib/toastr.min.css" rel="stylesheet">
 	<link href="resources/common.css?v=250821" rel="stylesheet">
 	<link href="resources/花活.css" rel="stylesheet">
 	<link href="resources/layout.css?v=0821" rel="stylesheet">
 	<link href="resources/biz.css?v=250821" rel="stylesheet">
 	<style>
-		.input.area textarea {
+		.input.area .el-textarea__inner {
 			height: 200px;
 			margin-bottom: 20px;
 		}
@@ -24,7 +25,6 @@
 			grid-template-columns: repeat(4, 1fr);
 		}
 	</style>
-	<script src="lib/primevue/themes/aura/1.2.3/aura.js"></script>
 </head>
 <body class="反叵字形">
 <header>
@@ -58,22 +58,24 @@
 			将您的SVG代码粘贴到输入框中，工具会自动生成预览。确认无误后，点击“下载图标”按钮，即可将生成的PNG图标文件保存到您的电脑。</p>
 	</article>
 	<section class="input area">
-		<p-textarea placeholder="粘贴你的SVG代码到这里" autoResize rows="8" v-model="input"
-								:class="descriptionVisible?'border-pulse':''"></p-textarea>
+		<el-input type="textarea" placeholder="粘贴你的SVG代码到这里" :rows="8" v-model="input"
+								:class="descriptionVisible?'border-pulse':''"></el-input>
 	</section>
 
 	<section class="result area">
-		<card class="one result" v-for="size in sizes" :key="size">
-			<template #title>{{ size }}&times;{{ size }}</template>
-			<template #content>
-				<svg class="preview-icon" :width="size" :height="size" :view-box.camel="parsedSvg.viewBox"
-						 v-html="parsedSvg.inner"></svg>
+		<el-card class="one result" v-for="size in sizes" :key="size">
+			<template #header>
+				<div class="card-header">
+					<span>{{ size }}&times;{{ size }}</span>
+				</div>
 			</template>
-		</card>
+			<svg class="preview-icon" :width="size" :height="size" :view-box.camel="parsedSvg.viewBox"
+					 v-html="parsedSvg.inner"></svg>
+		</el-card>
 	</section>
 
-	<div class="flex justify-content-center mt-3">
-		<p-button label="下载图标（png）" @click="downloadIcons"></p-button>
+	<div style="text-align: center; margin-top: 1.5rem;">
+		<el-button type="primary" @click="downloadIcons" style="font-size: 3rem;padding: 20px;">下载图标（png）</el-button>
 	</div>
 </main>
 <aside class="right-sidebar">
@@ -103,8 +105,7 @@
 </aside>
 <div>
 	<script src="lib/vue/2.5.18/vue.global.js"></script>
-	<script src="lib/primevue/4.3.7/primevue.min.js"></script>
-	<script src="lib/primevue/themes/aura/1.2.3/aura.js"></script>
+	<script src="lib/element-plus/2.10.7/index.full.js"></script>
 	<script src="lib/jquery-3.4.1.min.js"></script>
 	<script src="lib/toastr.min.js"></script>
 	<script src="resources/biz-util.js?v=250801"></script>
@@ -151,11 +152,6 @@
 	}
 
 	const app = createApp({
-		components: {
-			'p-button': PrimeVue.Button,
-			'p-textarea': PrimeVue.Textarea,
-			'card': PrimeVue.Card
-		},
 		data() {
 			return {
 				input: `<svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M9.77234 30.8573V11.7471H7.54573C5.50932 11.7471 3.85742 13.3931 3.85742 15.425V27.1794C3.85742 29.2112 5.50932 30.8573 7.54573 30.8573H9.77234ZM11.9902 30.8573V11.7054C14.9897 10.627 16.6942 7.8853 17.1055 3.33591C17.2666 1.55463 18.9633 0.814421 20.5803 1.59505C22.1847 2.36964 23.243 4.32583 23.243 6.93947C23.243 8.50265 23.0478 10.1054 22.6582 11.7471H29.7324C31.7739 11.7471 33.4289 13.402 33.4289 15.4435C33.4289 15.7416 33.3928 16.0386 33.3215 16.328L30.9883 25.7957C30.2558 28.7683 27.5894 30.8573 24.528 30.8573H11.9911H11.9902Z" fill="currentColor"></path></svg>`,
@@ -208,11 +204,7 @@
 			}
 		}
 	})
-	.use(PrimeVue.Config, {
-		theme: {
-			preset: PrimeUIX.Themes.Aura
-		}
-	})
+	.use(ElementPlus)
 	.mount('main');
 </script>
 </body>
