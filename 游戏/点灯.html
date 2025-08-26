@@ -100,6 +100,13 @@
 		border-bottom: none;
 	}
 
+	.cell.highlighted {
+		outline: 3px solid #3295ff; /* A solid, clear blue outline */
+		outline-offset: -3px;
+		transform: scale(1.05);
+		transition: all 0.3s ease;
+	}
+
 	@media (max-width: 500px) {
 		.cell {
 			width: 40px;
@@ -155,7 +162,7 @@
 				<section id="main-map" class="inline grid" :style="{gridTemplateColumns: `repeat(${boardSize}, 1fr)`}">
 					<template v-for="(row, rowIndex) in board" :key="rowIndex">
 						<div v-for="(cell, colIndex) in row" :key="colIndex"
-								 class="cell" :class="cell ? 'b' : 'a'"
+								 class="cell" :class="[cell ? 'b' : 'a', {'highlighted': highlightedCells[rowIndex * boardSize + colIndex]}]"
 								 ref="cells" @click="handleCellClick(rowIndex, colIndex)">
 						</div>
 					</template>
@@ -226,6 +233,73 @@
 <script>
 	const {createApp} = Vue;
 
+	function solveLightsOut(board) {
+		const size = board.length;
+		if (size === 0) return null;
+		const n = size * size;
+
+		const A = Array(n).fill(0).map(() => Array(n).fill(0));
+		for (let r = 0; r < size; r++) {
+			for (let c = 0; c < size; c++) {
+				const idx = r * size + c;
+				A[idx][idx] = 1;
+				if (r > 0) A[idx - size][idx] = 1;
+				if (r < size - 1) A[idx + size][idx] = 1;
+				if (c > 0) A[idx - 1][idx] = 1;
+				if (c < size - 1) A[idx + 1][idx] = 1;
+			}
+		}
+
+		const b = board.flat().map(light => light ? 0 : 1);
+
+		const M = A.map((row, i) => [...row, b[i]]);
+		let rank = 0;
+		const pivots = [];
+
+		for (let j = 0; j < n && rank < n; j++) {
+			let pivotRow = rank;
+			while (pivotRow < n && M[pivotRow][j] === 0) {
+				pivotRow++;
+			}
+
+			if (pivotRow < n) {
+				[M[rank], M[pivotRow]] = [M[pivotRow], M[rank]];
+				const pivot = M[rank];
+				for (let i = 0; i < n; i++) {
+					if (i !== rank && M[i][j] === 1) {
+						for (let k = j; k <= n; k++) {
+							M[i][k] ^= pivot[k];
+						}
+					}
+				}
+				pivots[j] = rank;
+				rank++;
+			}
+		}
+
+		for (let i = rank; i < n; i++) {
+			if (M[i][n] === 1) {
+				return null; // Unsolvable
+			}
+		}
+
+		const solution = Array(n).fill(0);
+		for (let j = n - 1; j >= 0; j--) {
+			if (pivots[j] !== undefined) {
+				const pivotRow = pivots[j];
+				let val = M[pivotRow][n];
+				for (let k = j + 1; k < n; k++) {
+					val ^= (M[pivotRow][k] * solution[k]);
+				}
+				solution[j] = val;
+			} else {
+				solution[j] = 0;
+			}
+		}
+
+		return solution;
+	}
+
 	const app = createApp({
 		data() {
 			return {
@@ -233,6 +307,7 @@
 				boardSize: 2,
 				board: [],
 				rounds: [],
+				highlightedCells: [],
 				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname),
 				showWinModal: false
 			};
@@ -279,6 +354,7 @@
 			initGame() {
 				this.rounds = [];
 				this.board = Array(this.boardSize).fill(0).map(() => Array(this.boardSize).fill(false));
+				this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
 			},
 			closeWinModal() {
 				this.showWinModal = false;
@@ -336,21 +412,32 @@
 			},
 			giveHint() {
 				if (this.isWin) {
+					this.$message.success('已经赢了，无需提示！');
 					return;
 				}
-				const row = Math.floor(Math.random() * this.boardSize);
-				const col = Math.floor(Math.random() * this.boardSize);
-				const index = row * this.boardSize + col;
-				const cell = this.$refs.cells[index];
 
-				if (cell) {
-					cell.style.boxShadow = '0 0 15px 5px gold';
-					cell.style.transform = 'scale(1.1)';
-					setTimeout(() => {
-						cell.style.boxShadow = '';
-						cell.style.transform = '';
-					}, 1000);
+				const solution = solveLightsOut(this.board);
+
+				if (!solution) {
+					this.$message.error('当前局面无解！请重新开始。');
+					this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
+					return;
 				}
+
+				const presses = solution.reduce((acc, val) => acc + val, 0);
+				if (presses === 0) {
+					this.$message.info('看起来已经完成了。');
+					this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
+					return;
+				}
+
+				this.$message.info(`建议按 ${presses} 个格子。`);
+
+				const newHighlights = [];
+				solution.forEach((press, index) => {
+					newHighlights[index] = press === 1;
+				});
+				this.highlightedCells = newHighlights;
 			}
 		},
 		mounted() {
