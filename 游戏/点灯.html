@@ -101,7 +101,7 @@
 	}
 
 	.cell.highlighted {
-		outline: 3px solid #3295ff; /* A solid, clear blue outline */
+		outline: 3px solid #3295ff;
 		outline-offset: -3px;
 		transform: scale(1.05);
 		transition: all 0.3s ease;
@@ -132,7 +132,7 @@
 		<a href="点灯.html" class="active">点灯</a>
 	</nav>
 </header>
-<main>
+<main v-cloak>
 	<header>
 		<h2>点灯游戏</h2>
 		<el-button size="small" circle title="显示说明" @click="descriptionVisible = true">?</el-button>
@@ -153,10 +153,10 @@
 				<el-radio-button v-for="opt in boardSizes" :key="opt" size="large" :value="opt">{{opt}}x{{opt}}
 				</el-radio-button>
 			</el-radio-group>
-			<el-button @click="initGame" type="primary" size="large">重新开始</el-button>
-			<el-button-group style="justify-self: end">
-				<el-button @click="showRandomHint" size="large">提示</el-button>
-				<el-button @click="showAnswer" size="large">答案</el-button>
+			<el-button @click="initGame" type="primary" size="large" icon="RefreshRight">重新开始</el-button>
+			<el-button-group>
+				<el-button @click="showRandomHint" size="large" icon="MagicStick">提示</el-button>
+				<el-button @click="showAnswer" size="large" icon="Key">答案</el-button>
 			</el-button-group>
 		</section>
 
@@ -164,8 +164,7 @@
 			<article class="main map area , one-row item , flex items-near-center-x">
 				<section id="main-map" class="inline grid" :style="{gridTemplateColumns: `repeat(${boardSize}, 1fr)`}">
 					<template v-for="(row, rowIndex) in board" :key="rowIndex">
-						<div v-for="(cell, colIndex) in row" :key="colIndex"
-								 class="cell"
+						<div class="cell" v-for="(cell, colIndex) in row" :key="colIndex"
 								 :class="[cell ? 'b' : 'a', {'highlighted': highlightedCells[rowIndex * boardSize + colIndex]}]"
 								 ref="cells" @click="handleCellClick(rowIndex, colIndex)">
 						</div>
@@ -180,7 +179,7 @@
 				<article class="rounds area">
 					<header style="display: flex; justify-content: space-between; align-items: center;">
 						<span>回合记录</span>
-						<el-button text bg size="small" @click="exportRounds" :disabled="!rounds.length">导出</el-button>
+						<el-button size="small" @click="exportRounds" :disabled="!rounds.length" icon="Download">导出</el-button>
 					</header>
 					<section class="rounds list" ref="roundList">
 						<p v-for="(round, roundI) in rounds">{{roundI+1}}：第{{round.row}}行, 第{{round.col}}列</p>
@@ -189,13 +188,13 @@
 				</article>
 			</aside>
 
-			<article class="modal-overlay fullscreen" v-if="isWin && showWinModal">
+			<article class="modal-overlay fullscreen" v-if="showWinModal">
 				<section class="body">
 					<h2>恭喜你，挑战成功！</h2>
 					<p>您总共使用了 {{ moveCount }} 步。</p>
 					<footer class="actions">
 						<el-button type="primary" @click="initGame" size="large">再来一局</el-button>
-						<el-button @click="exportRounds" size="large">导出回合记录</el-button>
+						<el-button @click="exportRounds" size="large" icon="Download">导出回合记录</el-button>
 						<el-button @click="closeWinModal" size="large">关闭</el-button>
 					</footer>
 				</section>
@@ -234,6 +233,7 @@
 
 <script src="../lib/vue/3.5.18/vue.global.js"></script>
 <script src="../lib/element-plus/2.10.7/index.full.js"></script>
+<script src="../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
 <script>
 	const {createApp} = Vue;
 
@@ -422,7 +422,6 @@
 					return;
 				}
 
-				// Find all the cells that need to be pressed
 				const solutionPresses = [];
 				solution.forEach((press, index) => {
 					if (press === 1) {
@@ -494,8 +493,13 @@
 		mounted() {
 			this.initGame();
 		}
-	})
-	.use(ElementPlus)
+	});
+
+	for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+		app.component(key, component);
+	}
+
+	app.use(ElementPlus)
 	.mount('main');
 </script>
 </body>

@@ -113,7 +113,7 @@ body:focus { /*为键盘导航用户清晰焦点指示*/
 
 /*================================设定一些元素的初始值==============================*/
 
-template, .template, .hidden {display: none; }
+template, .template, .hidden, [v-cloak] {display: none; }
 
 h1, h2, h3 {color: #333; }
 
