@@ -136,11 +136,13 @@
 			</section>
 
 			<section class="map" :style="{gridTemplateColumns: `repeat(${boardSize}, 1fr)`}">
-				<div class="cell" :class="cell ? 'b' : 'a'"
-						 v-for="(cell, index) in flatBoard" :key="index"
-						 ref="cells"
-						 @click="handleCellClick(Math.floor(index / boardSize), index % boardSize)">
-				</div>
+				<template v-for="(row, rowIndex) in board" :key="rowIndex">
+					<div class="cell" :class="cell ? 'b' : 'a'"
+							 v-for="(cell, colIndex) in row" :key="colIndex"
+							 ref="cells"
+							 @click="handleCellClick(rowIndex, colIndex)">
+					</div>
+				</template>
 			</section>
 		</section>
 	</article>
@@ -183,13 +185,15 @@
 				boardSize: 5,
 				board: [],
 				moveCount: 0,
-				isWin: false,
 				descriptionVisible: false,
 			};
 		},
 		computed: {
-			flatBoard() {
-				return this.board.flat();
+			isWin() {
+				if (!this.board || this.board.length === 0) {
+					return false;
+				}
+				return this.board.flat().every(cell => cell === true);
 			}
 		},
 		watch: {
@@ -198,7 +202,6 @@
 		methods: {
 			initGame() {
 				this.moveCount = 0;
-				this.isWin = false;
 				this.board = Array(this.boardSize).fill(0).map(() => Array(this.boardSize).fill(false));
 			},
 			toggleCellState(row, col) {
@@ -217,10 +220,6 @@
 				if (col < this.boardSize - 1) this.toggleCellState(row, col + 1);
 
 				this.moveCount++;
-				this.checkWin();
-			},
-			checkWin() {
-				this.isWin = this.board.flat().every(cell => cell === true);
 			},
 			giveHint() {
 				if (this.isWin) {
