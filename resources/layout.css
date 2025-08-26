@@ -22,89 +22,112 @@
 /*============================flex布局===========================*/
 .flex {display: flex;}
 
+.inline-flex, .flex.inline {display: inline-flex;}
+
+.flex.vertical, .inline-flex.vertical {
+	flex-direction: column;
+}
+
 /*堆叠：从下部开始向上堆*/
-.flex.stack {flex-direction: column-reverse;}
+.flex.stack, .inline-flex.stack {flex-direction: column-reverse;}
 
-.flex.single-line {flex-wrap: nowrap;}
+.flex.single-line, .inline-flex.single-line {flex-wrap: nowrap;}
 
-.flex.multi-line {flex-wrap: wrap;}
+.flex.multi-line, .inline-flex.multi-line {flex-wrap: wrap;}
 
 /*----------线路之间（align-content）----------*/
 /*所有线路都拉伸膨胀，充满空间*/
-.flex.lines-stretch {flex-wrap: wrap; align-content: stretch;}
+.flex.lines-stretch, .inline-flex.lines-stretch {flex-wrap: wrap; align-content: stretch;}
 
 /*所有线路都拥到第一条线路这边*/
-.flex.lines-near-start {flex-wrap: wrap; align-content: start;}
+.flex.lines-near-start, .inline-flex.lines-near-start {flex-wrap: wrap; align-content: start;}
 
 /*所有线路都退到最后一条线路这边*/
-.flex.lines-near-end {flex-wrap: wrap; align-content: end;}
+.flex.lines-near-end, .inline-flex.lines-near-end {flex-wrap: wrap; align-content: end;}
 
 /*所有线路都挤在中间*/
-.flex.lines-near-center {flex-wrap: wrap; align-content: center;}
+.flex.lines-near-center, .inline-flex.lines-near-center {flex-wrap: wrap; align-content: center;}
 
 /*线路互斥（社恐），即线路互相之间距离尽量远*/
-.flex.lines-space-between, .flex.lines-mutex, .flex.lines-social-phobia {flex-wrap: wrap; align-content: space-between;}
+.flex.lines-space-between, .flex.lines-mutex, .flex.lines-social-phobia,
+.inline-flex.lines-space-between, .inline-flex.lines-mutex, .inline-flex.lines-social-phobia {
+	flex-wrap: wrap; align-content: space-between;
+}
 
 /*线路不熟，即线路互相之间保持距离但又不极端排斥*/
-.flex.lines-space-around, .flex.lines-unfamiliar {flex-wrap: wrap; align-content: space-around;}
+.flex.lines-space-around, .flex.lines-unfamiliar, .inline-flex.lines-space-around, .inline-flex.lines-unfamiliar {
+	flex-wrap: wrap; align-content: space-around;
+}
 
 /*线路不熟但比较友好*/
-.flex.lines-space-evenly, .flex.lines-friendly {flex-wrap: wrap; align-content: space-evenly;}
+.flex.lines-space-evenly, .flex.lines-friendly, .inline-flex.lines-space-evenly, .inline-flex.lines-friendly {
+	flex-wrap: wrap; align-content: space-evenly;
+}
 
-.flex.near-center {justify-content: center; align-items: center;}
+.flex.near-center, .inline-flex.near-center {justify-content: center; align-items: center;}
 
 /*----------项目之间（justify-content）----------*/
 /*项目都拥到队伍前面/在主轴上靠前*/
-.flex.items-near-start-x {justify-content: start;}
+.flex.items-near-start-x, .inline-flex.items-near-start-x {justify-content: start;}
 
 /*项目都退到队伍后面/在主轴上靠后*/
-.flex.items-near-end-x {justify-content: end;}
+.flex.items-near-end-x, .inline-flex.items-near-end-x {justify-content: end;}
 
 /*项目都挤在队伍中间/在主轴上居中*/
-.flex.items-near-center-x {justify-content: center;}
+.flex.items-near-center-x, .inline-flex.items-near-center-x {justify-content: center;}
 
 /*项目互斥（社恐），即项目互相之间距离尽量远*/
-.flex.items-space-between, .flex.items-mutex, .flex.items-social-phobia {justify-content: space-between;}
+.flex.items-space-between, .flex.items-mutex, .flex.items-social-phobia,
+.inline-flex.items-space-between, .inline-flex.items-mutex, .inline-flex.items-social-phobia {
+	justify-content: space-between;
+}
 
 /*项目不熟，即项目互相之间保持距离但又不极端排斥*/
-.flex.items-space-around, .flex.items-unfamiliar {justify-content: space-around;}
+.flex.items-space-around, .flex.items-unfamiliar, .inline-flex.items-space-around, .inline-flex.items.items-unfamiliar {
+	justify-content: space-around;
+}
 
 /*项目不熟但比较友好*/
-.flex.items-space-evenly, .flex.items-friendly {justify-content: space-evenly;}
+.flex.items-space-evenly, .flex.items-friendly, .inline-flex.items-space-evenly, .inline-flex.items-friendly {
+	justify-content: space-evenly;
+}
 
 /*----------项目在次轴方向（align-items）----------*/
 /*项目在次轴方向上拉伸膨胀，充满空间*/
-.flex.items-stretch {align-items: stretch;}
+.flex.items-stretch, .inline-flex.items-stretch {align-items: stretch;}
 
 /*项目垂直靠向开始的方向/在次轴上靠前*/
-.flex.items-near-start-y {align-items: start;}
+.flex.items-near-start-y, .inline-flex.items-near-start-y {align-items: start;}
 
 /*项目垂直靠向结束的方向/在次轴上靠后*/
-.flex.items-near-end-y {align-items: end;}
+.flex.items-near-end-y, .inline-flex.items-near-end-y {align-items: end;}
 
 /*项目垂直居中/在次轴上居中，像“册”字一样*/
-.flex.items-near-center-y, .flex.items-like-册 {align-items: center;}
+.flex.items-near-center-y, .flex.items-like-册, .inline-flex.items-near-center-y, .inline-flex.items-like-册 {
+	align-items: center;
+}
 
 /*-----------项目本身------------*/
 /*项目独占/垄断 一行*/
-.flex > .item.monopoly {flex-basis: 100%;}
+.flex > .item.monopoly, .inline-flex > .item.monopoly {flex-basis: 100%;}
 
 /*项目在主轴方向上拉伸/压缩*/
-.flex > .item.stretch {flex: 1 1 auto;}
+.flex > .item.stretch, .inline-flex > .item.stretch {flex: 1 1 auto;}
 
 /*项目禁止压缩*/
-.flex > .item.no-shrink {flex-shrink: 0;}
+.flex > .item.no-shrink, .inline-flex > .item.no-shrink {flex-shrink: 0;}
 
 /*===============================grid布局===============================*/
 .grid {display: grid;}
 
-.grid > .item.monopoly.row {grid-row: 1 / -1;}
+.grid.inline, .inline-grid {display: inline-grid}
 
-.grid > .item.monopoly.column {grid-column: 1 / -1;}
+.grid > .one-row.item, .inline-grid > .one-row.item {grid-column: 1 / -1;}
+
+.grid > .one-column.item, .inline-grid > .one-column.item {grid-row: 1 / -1;}
 
 /* “亚字形”布局，上部导航栏，底部页脚，中间有左右侧栏，中部是主要内容 */
-.亚字形 {
-	display: grid;
+.grid.亚字形, .inline-grid.亚字形 {
 	grid-template-rows:
 		auto    /* Header 高度自适应内容 */
 		1fr     /* 主内容区填充剩余垂直空间 */
@@ -121,8 +144,7 @@
 }
 
 /* “叵字形”布局，上部导航栏，底部页脚，中间左侧栏宽度固定，右侧主要内容自适应 */
-.叵字形 {
-	display: grid;
+.grid.叵字形, .inline-grid.叵字形 {
 	grid-template-rows:
 		auto    /* Header 高度自适应内容 */
 		1fr     /* 主内容区填充剩余垂直空间 */
@@ -136,8 +158,7 @@
 }
 
 /* “反叵字形”布局，上部导航栏，底部页脚，中间右侧栏宽度固定，左侧主要内容自适应 */
-.反叵字形 {
-	display: grid;
+.grid.反叵字形, .inline-grid.反叵字形 {
 	grid-template-rows:
 		auto    /* Header 高度自适应内容 */
 		1fr     /* 主内容区填充剩余垂直空间 */
@@ -151,8 +172,7 @@
 }
 
 /* “目字形”布局，上部导航栏，底部页脚 */
-.目字形 {
-	display: grid;
+.grid.目字形, .inline-grid.目字形 {
 	grid-template-rows:
 		auto    /* Header 高度自适应内容 */
 		1fr     /* 主内容区填充剩余垂直空间 */
