@@ -15,17 +15,21 @@
 	}
 
 	.toolbar {
-		/*display: flex;*/
 		gap: 15px;
-		/*justify-content: center;*/
-		/*align-items: center;*/
 	}
 
-	.gaming > .map {
+	.main.map.area {
+		grid-column: 1 / -1;
+		display: flex;
+		justify-content: center;
+	}
+
+	#main-map {
 		display: inline-grid;
+		align-self: start;
 		gap: 6px;
 		padding: 10px;
-		background: #e6eaf0; /* Softer background */
+		background: #e6eaf0;
 		border-radius: 10px;
 		box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
 	}
@@ -44,24 +48,31 @@
 	}
 
 	.cell.a {
-		background: #dce1e6; /* Soft gray for "off" */
+		background: #dce1e6;
 	}
 
 	.cell.b {
-		background: linear-gradient(135deg, #a8e6cf 0%, #dcedc1 100%); /* Soft green for "on" */
+		background: linear-gradient(135deg, #a8e6cf 0%, #dcedc1 100%);
 	}
 
 	.moves {
 		font-size: 1.2rem;
 		margin: 15px 0;
-		color: #4a4a4a; /* Softer text */
+		color: #4a4a4a;
 		font-weight: bold;
+	}
+
+	.rounds.list {
+		max-height: 400px;
+		overflow-y: auto;
+		scrollbar-gutter: stable;
+		scroll-behavior: smooth;
 	}
 
 	.win-message {
 		font-size: 1.5rem;
 		font-weight: bold;
-		color: #3d9970; /* Softer win message green */
+		color: #3d9970;
 		margin-top: 15px;
 		opacity: 0;
 		transform: scale(0.8);
@@ -71,12 +82,6 @@
 	.win-message.show {
 		opacity: 1;
 		transform: scale(1);
-	}
-
-	footer {
-		margin-top: 30px;
-		color: white;
-		text-align: center;
 	}
 
 	@media (max-width: 500px) {
@@ -129,21 +134,31 @@
 			<el-button @click="giveHint" size="large">提示</el-button>
 		</section>
 
-		<section class="gaming">
-			<section class="score board">
-				<p class="moves">移动次数: <span>{{ moveCount }}</span></p>
-				<p class="win-message" :class="{ show: isWin }">恭喜你赢了！</p>
-			</section>
-
-			<section class="map" :style="{gridTemplateColumns: `repeat(${boardSize}, 1fr)`}">
-				<template v-for="(row, rowIndex) in board" :key="rowIndex">
-					<div class="cell" :class="cell ? 'b' : 'a'"
-							 v-for="(cell, colIndex) in row" :key="colIndex"
-							 ref="cells"
-							 @click="handleCellClick(rowIndex, colIndex)">
-					</div>
-				</template>
-			</section>
+		<section class="gaming area 反叵字形">
+			<article class="main map area">
+				<section id="main-map" :style="{gridTemplateColumns: `repeat(${boardSize}, 1fr)`}">
+					<template v-for="(row, rowIndex) in board" :key="rowIndex">
+						<div class="cell" :class="cell ? 'b' : 'a'"
+								 v-for="(cell, colIndex) in row" :key="colIndex"
+								 ref="cells"
+								 @click="handleCellClick(rowIndex, colIndex)">
+						</div>
+					</template>
+				</section>
+			</article>
+			<aside class="right-sidebar">
+				<header>记分牌</header>
+				<article class="score board">
+					<p class="moves">移动次数: <span>{{ moveCount }}</span></p>
+					<p class="win-message" :class="{ show: isWin }">恭喜你赢了！</p>
+				</article>
+				<article class="rounds area">
+					<header>记录</header>
+					<section class="rounds list">
+						<p v-for="(round, roundI) in rounds">{{roundI+1}}：第{{round.row+1}}行第{{round.col+1}}列</p>
+					</section>
+				</article>
+			</aside>
 		</section>
 	</article>
 </main>
@@ -184,8 +199,8 @@
 				boardSizes: [3, 5, 7],
 				boardSize: 5,
 				board: [],
-				moveCount: 0,
-				descriptionVisible: false,
+				rounds: [],
+				descriptionVisible: false
 			};
 		},
 		computed: {
@@ -194,6 +209,9 @@
 					return false;
 				}
 				return this.board.flat().every(cell => cell === true);
+			},
+			moveCount() {
+				return this.rounds.length;
 			}
 		},
 		watch: {
@@ -201,7 +219,7 @@
 		},
 		methods: {
 			initGame() {
-				this.moveCount = 0;
+				this.rounds = [];
 				this.board = Array(this.boardSize).fill(0).map(() => Array(this.boardSize).fill(false));
 			},
 			toggleCellState(row, col) {
@@ -214,12 +232,19 @@
 					return;
 				}
 				this.toggleCellState(row, col);
-				if (row > 0) this.toggleCellState(row - 1, col);
-				if (row < this.boardSize - 1) this.toggleCellState(row + 1, col);
-				if (col > 0) this.toggleCellState(row, col - 1);
-				if (col < this.boardSize - 1) this.toggleCellState(row, col + 1);
-
-				this.moveCount++;
+				if (row > 0) {
+					this.toggleCellState(row - 1, col);
+				}
+				if (row < this.boardSize - 1) {
+					this.toggleCellState(row + 1, col);
+				}
+				if (col > 0) {
+					this.toggleCellState(row, col - 1);
+				}
+				if (col < this.boardSize - 1) {
+					this.toggleCellState(row, col + 1);
+				}
+				this.rounds.push({row, col});
 			},
 			giveHint() {
 				if (this.isWin) {
