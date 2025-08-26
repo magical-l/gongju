@@ -167,7 +167,10 @@
 					<p class="moves">移动次数: <span>{{ moveCount }}</span></p>
 				</article>
 				<article class="rounds area">
-					<header>回合记录</header>
+					<header style="display: flex; justify-content: space-between; align-items: center;">
+						<span>回合记录</span>
+						<el-button text bg size="small" @click="exportRounds" :disabled="!rounds.length">导出</el-button>
+					</header>
 					<section class="rounds list" ref="roundList">
 						<p v-for="(round, roundI) in rounds">{{roundI+1}}：第{{round.row}}行, 第{{round.col}}列</p>
 						<el-empty v-if="!rounds.length" description="尚无记录。请开始吧！"/>
@@ -181,6 +184,7 @@
 					<p>您总共使用了 {{ moveCount }} 步。</p>
 					<footer class="actions">
 						<el-button type="primary" @click="initGame" size="large">再来一局</el-button>
+						<el-button @click="exportRounds" size="large">导出回合记录</el-button>
 						<el-button @click="closeWinModal" size="large">关闭</el-button>
 					</footer>
 				</section>
@@ -270,7 +274,7 @@
 			initGame() {
 				this.rounds = [];
 				this.board = Array(this.boardSize).fill(0).map(() => Array(this.boardSize).fill(false));
-				this.showWinModal = true; // Reset for next win
+				this.showWinModal = true;
 			},
 			closeWinModal() {
 				this.showWinModal = false;
@@ -309,6 +313,24 @@
 					this.toggleCellState(row, col + 1);
 				}
 				this.rounds.push({row: row + 1, col: col + 1});
+			},
+			exportRounds() {
+				if (this.rounds.length === 0) {
+					this.$message.info('没有回合记录可导出');
+					return;
+				}
+				const content = this.rounds.map((round, index) => {
+					return `${index + 1}：第${round.row}行, 第${round.col}列`;
+				}).join('\n');
+
+				const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+				const a = document.createElement('a');
+				a.href = URL.createObjectURL(blob);
+				a.download = `点灯游戏-回合记录（${this.boardSize}x${this.boardSize}）.txt`;
+				document.body.appendChild(a);
+				a.click();
+				document.body.removeChild(a);
+				URL.revokeObjectURL(a.href);
 			},
 			giveHint() {
 				if (this.isWin) {
