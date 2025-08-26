@@ -10,28 +10,23 @@
 <link href="../resources/layout.css?v=0821" rel="stylesheet">
 <link href="../resources/biz.css?v=250821" rel="stylesheet">
 <style>
-	main > article {
-		text-align: center;
-	}
-
 	.toolbar {
 		gap: 15px;
 	}
 
-	.main.map.area {
-		grid-column: 1 / -1;
-		display: flex;
-		justify-content: center;
+	.gaming.area {
+		margin-top: 20px;
+		gap: 20px;
+		align-items: start;
 	}
 
 	#main-map {
-		display: inline-grid;
 		align-self: start;
-		gap: 6px;
-		padding: 10px;
+		box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
 		background: #e6eaf0;
 		border-radius: 10px;
-		box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+		padding: 10px;
+		gap: 6px;
 	}
 
 	.cell {
@@ -55,25 +50,35 @@
 		background: linear-gradient(135deg, #a8e6cf 0%, #dcedc1 100%);
 	}
 
-	.moves {
-		font-size: 1.2rem;
-		margin: 15px 0;
-		color: #4a4a4a;
-		font-weight: bold;
+	.gaming.area > .right-sidebar {
+		background-color: #f0f2f5;
+		padding: 15px;
+		border-radius: 10px;
+		min-width: 220px;
+		text-align: left;
 	}
 
-	.rounds.list {
-		max-height: 400px;
-		overflow-y: auto;
-		scrollbar-gutter: stable;
-		scroll-behavior: smooth;
+	.gaming.area > .right-sidebar header {
+		font-size: 1.3em;
+		font-weight: 600;
+		margin-bottom: 10px;
+		color: #333;
+		border-bottom: 2px solid #dce1e6;
+		padding-bottom: 5px;
+	}
+
+	.moves {
+		margin: 15px 0;
+		font-size: 1.2rem;
+		font-weight: bold;
+		color: #4a4a4a;
 	}
 
 	.win-message {
+		margin-top: 15px;
 		font-size: 1.5rem;
 		font-weight: bold;
 		color: #3d9970;
-		margin-top: 15px;
 		opacity: 0;
 		transform: scale(0.8);
 		transition: all 0.5s;
@@ -82,6 +87,27 @@
 	.win-message.show {
 		opacity: 1;
 		transform: scale(1);
+	}
+
+	.rounds.list {
+		max-height: 330px;
+		overflow-y: auto;
+		background-color: #fff;
+		border: 1px solid #dce1e6;
+		border-radius: 5px;
+		padding: 10px;
+	}
+
+	.rounds.list p {
+		margin: 0;
+		padding: 6px 4px;
+		border-bottom: 1px solid #f0f2f5;
+		color: #555;
+		font-size: 0.9em;
+	}
+
+	.rounds.list p:last-child {
+		border-bottom: none;
 	}
 
 	@media (max-width: 500px) {
@@ -134,14 +160,13 @@
 			<el-button @click="giveHint" size="large">提示</el-button>
 		</section>
 
-		<section class="gaming area 反叵字形">
-			<article class="main map area">
-				<section id="main-map" :style="{gridTemplateColumns: `repeat(${boardSize}, 1fr)`}">
+		<section class="gaming area , 反叵字形 grid">
+			<article class="main map area , one-row item , flex items-near-center-x">
+				<section id="main-map" class="inline grid" :style="{gridTemplateColumns: `repeat(${boardSize}, 1fr)`}">
 					<template v-for="(row, rowIndex) in board" :key="rowIndex">
-						<div class="cell" :class="cell ? 'b' : 'a'"
-								 v-for="(cell, colIndex) in row" :key="colIndex"
-								 ref="cells"
-								 @click="handleCellClick(rowIndex, colIndex)">
+						<div v-for="(cell, colIndex) in row" :key="colIndex"
+								 class="cell" :class="cell ? 'b' : 'a'"
+								 ref="cells" @click="handleCellClick(rowIndex, colIndex)">
 						</div>
 					</template>
 				</section>
@@ -153,9 +178,10 @@
 					<p class="win-message" :class="{ show: isWin }">恭喜你赢了！</p>
 				</article>
 				<article class="rounds area">
-					<header>记录</header>
-					<section class="rounds list">
-						<p v-for="(round, roundI) in rounds">{{roundI+1}}：第{{round.row+1}}行第{{round.col+1}}列</p>
+					<header>回合记录</header>
+					<section class="rounds list" ref="roundList">
+						<p v-for="(round, roundI) in rounds">{{roundI+1}}：第{{round.row+1}}行, 第{{round.col+1}}列</p>
+						<el-empty v-if="!rounds.length" description="尚无记录。请开始吧！"/>
 					</section>
 				</article>
 			</aside>
@@ -215,7 +241,18 @@
 			}
 		},
 		watch: {
-			boardSize: 'initGame'
+			boardSize: 'initGame',
+			rounds: {
+				handler() {
+					this.$nextTick(() => {
+						const el = this.$refs.roundList;
+						if (el) {
+							el.scrollTop = el.scrollHeight;
+						}
+					});
+				},
+				deep: true
+			}
 		},
 		methods: {
 			initGame() {
