@@ -234,7 +234,7 @@
 				board: [],
 				rounds: [],
 				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname),
-				showWinModal: true
+				showWinModal: false
 			};
 		},
 		computed: {
@@ -249,6 +249,11 @@
 			}
 		},
 		watch: {
+			isWin(isWin) {
+				if (isWin) {
+					this.showWinModal = true;
+				}
+			},
 			descriptionVisible(newValue) {
 				const storageKey = 'description-hidden-' + window.location.pathname;
 				if (!newValue) {
@@ -274,7 +279,6 @@
 			initGame() {
 				this.rounds = [];
 				this.board = Array(this.boardSize).fill(0).map(() => Array(this.boardSize).fill(false));
-				this.showWinModal = true;
 			},
 			closeWinModal() {
 				this.showWinModal = false;
@@ -319,9 +323,7 @@
 					this.$message.info('没有回合记录可导出');
 					return;
 				}
-				const content = this.rounds.map((round, index) => {
-					return `${index + 1}：第${round.row}行, 第${round.col}列`;
-				}).join('\n');
+				const content = this.rounds.map((round, index) => `${index + 1}：第${round.row}行, 第${round.col}列`).join('\n');
 
 				const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
 				const a = document.createElement('a');
