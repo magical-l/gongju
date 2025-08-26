@@ -185,12 +185,13 @@
 	gap: var(--目字形-gap);
 }
 
-header {grid-area: header;}
+/* 为防父元素没有使用.grid类之类，所以不使用 .grid > header ，直接设置grid-area。若父元素非display:grid也没事，会被浏览器忽略 */
+header {grid-area: header;flex: 1 1 100%;}
 
-footer {grid-area: footer;}
+footer {grid-area: footer;flex: 1 1 100%;}
 
 aside.left-sidebar {grid-area: left-sidebar;}
 
 aside.right-sidebar {grid-area: right-sidebar;}
 
-main, .main, .body {grid-area: main;}
+main, .main, .body {grid-area: main;flex: 1;}
