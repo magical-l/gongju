@@ -9,6 +9,7 @@
 <link href="../resources/common.css?v=250821" rel="stylesheet">
 <link href="../resources/layout.css?v=0821" rel="stylesheet">
 <link href="../resources/biz.css?v=250821" rel="stylesheet">
+<link href="../resources/花活.css?v=250821" rel="stylesheet">
 <style>
 	.toolbar {
 		gap: 15px;
@@ -95,78 +96,6 @@
 		border-bottom: none;
 	}
 
-	.win-modal-overlay {
-		position: fixed;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		background-color: rgba(0, 0, 0, 0.6);
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		z-index: 1000;
-		overflow: hidden; /* Hide overflowing confetti */
-	}
-
-	.win-modal-content {
-		background: white;
-		padding: 40px 50px;
-		border-radius: 15px;
-		text-align: center;
-		box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-		position: relative;
-		z-index: 1001;
-		transform: scale(0.7);
-		animation: zoomIn 0.5s forwards;
-	}
-
-	@keyframes zoomIn {
-		to {
-			transform: scale(1);
-		}
-	}
-
-	.win-modal-content h2 {
-		color: #27ae60;
-		font-size: 2.5em;
-		margin-bottom: 15px;
-	}
-
-	.win-modal-content p {
-		color: #555;
-		font-size: 1.2em;
-		margin-bottom: 30px;
-	}
-
-	.win-modal-actions .el-button {
-		margin: 0 10px;
-	}
-
-	.confetti-container {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-	}
-
-	.confetti {
-		position: absolute;
-		top: -20px;
-		width: 10px;
-		height: 10px;
-		opacity: 0.8;
-		animation: fall 5s linear infinite;
-	}
-
-	@keyframes fall {
-		to {
-			transform: translateY(100vh) rotate(360deg);
-			opacity: 0;
-		}
-	}
-
 	@media (max-width: 500px) {
 		.cell {
 			width: 40px;
@@ -236,25 +165,25 @@
 				<article class="rounds area">
 					<header>回合记录</header>
 					<section class="rounds list" ref="roundList">
-						<p v-for="(round, roundI) in rounds">{{roundI+1}}：第{{round.row+1}}行, 第{{round.col+1}}列</p>
+						<p v-for="(round, roundI) in rounds">{{roundI+1}}：第{{round.row}}行, 第{{round.col}}列</p>
 						<el-empty v-if="!rounds.length" description="尚无记录。请开始吧！"/>
 					</section>
 				</article>
 			</aside>
 
-			<div class="win-modal-overlay" v-if="isWin && showWinModal">
-				<div class="confetti-container">
-					<div class="confetti" v-for="i in 150" :key="i" :style="getConfettiStyle()"></div>
-				</div>
-				<div class="win-modal-content">
+			<article class="modal-overlay fullscreen" v-if="isWin && showWinModal">
+				<section class="body">
 					<h2>恭喜你，挑战成功！</h2>
 					<p>您总共使用了 {{ moveCount }} 步。</p>
-					<div class="win-modal-actions">
+					<footer class="actions">
 						<el-button type="primary" @click="initGame" size="large">再来一局</el-button>
 						<el-button @click="closeWinModal" size="large">关闭</el-button>
-					</div>
+					</footer>
+				</section>
+				<div class="confetti-container">
+					<div class="confetti" v-for="i in 150" :key="'confetti'+i" :style="getConfettiStyle()"></div>
 				</div>
-			</div>
+			</article>
 		</section>
 	</article>
 </main>
@@ -292,12 +221,12 @@
 	const app = createApp({
 		data() {
 			return {
-				boardSizes: [3, 5, 7],
-				boardSize: 5,
+				boardSizes: [2, 3, 5, 7],
+				boardSize: 2,
 				board: [],
 				rounds: [],
 				descriptionVisible: false,
-				showWinModal: true,
+				showWinModal: true
 			};
 		},
 		computed: {
@@ -335,7 +264,8 @@
 				this.showWinModal = false;
 			},
 			getConfettiStyle() {
-				const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800'];
+				const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4',
+												'#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800'];
 				return {
 					left: `${Math.random() * 100}vw`,
 					animationDuration: `${Math.random() * 3 + 3}s`,
@@ -366,7 +296,7 @@
 				if (col < this.boardSize - 1) {
 					this.toggleCellState(row, col + 1);
 				}
-				this.rounds.push({row, col});
+				this.rounds.push({row: row + 1, col: col + 1});
 			},
 			giveHint() {
 				if (this.isWin) {
