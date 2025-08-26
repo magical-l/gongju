@@ -51,6 +51,10 @@
 		background: linear-gradient(135deg, #a8e6cf 0%, #dcedc1 100%);
 	}
 
+	.gaming.area {
+		--反叵字形-right-sidebar-max-width: 220px;
+	}
+
 	.gaming.area > .right-sidebar {
 		background-color: #f0f2f5;
 		padding: 15px;
@@ -221,11 +225,11 @@
 	const app = createApp({
 		data() {
 			return {
-				boardSizes: [2, 3, 5, 7],
+				boardSizes: [2, 3, 4, 5, 6, 7, 8, 9],
 				boardSize: 2,
 				board: [],
 				rounds: [],
-				descriptionVisible: false,
+				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname),
 				showWinModal: true
 			};
 		},
@@ -241,6 +245,14 @@
 			}
 		},
 		watch: {
+			descriptionVisible(newValue) {
+				const storageKey = 'description-hidden-' + window.location.pathname;
+				if (!newValue) {
+					localStorage.setItem(storageKey, 'true');
+				} else {
+					localStorage.removeItem(storageKey);
+				}
+			},
 			boardSize: 'initGame',
 			rounds: {
 				handler() {
