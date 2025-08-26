@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>熄灯游戏 - Lights Out</title>
+<link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
+<link href="../resources/el-plus.css" rel="stylesheet">
+<link href="../resources/common.css?v=250821" rel="stylesheet">
+<link href="../resources/layout.css?v=0821" rel="stylesheet">
+<link href="../resources/biz.css?v=250821" rel="stylesheet">
+<style>
+	.container {
+		text-align: center;
+	}
+
+	.game-controls {
+		display: flex;
+		gap: 15px;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.game-board {
+		display: inline-grid;
+		gap: 6px;
+		padding: 10px;
+		background: #34495e;
+		border-radius: 10px;
+		box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+	}
+
+	.cell {
+		width: 50px;
+		height: 50px;
+		border-radius: 8px;
+		cursor: pointer;
+		transition: all 0.2s;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+	}
+
+	.cell:hover {
+		transform: scale(1.05);
+	}
+
+	.cell.a {
+		background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+	}
+
+	.cell.b {
+		background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+	}
+
+	.moves {
+		font-size: 1.2rem;
+		margin: 15px 0;
+		color: #2c3e50;
+		font-weight: bold;
+	}
+
+	.win-message {
+		font-size: 1.5rem;
+		font-weight: bold;
+		color: #27ae60;
+		margin-top: 15px;
+		opacity: 0;
+		transform: scale(0.8);
+		transition: all 0.5s;
+	}
+
+	.win-message.show {
+		opacity: 1;
+		transform: scale(1);
+	}
+
+	footer {
+		margin-top: 30px;
+		color: white;
+		text-align: center;
+	}
+
+	@media (max-width: 500px) {
+		.cell {
+			width: 40px;
+			height: 40px;
+		}
+
+		h1 {
+			font-size: 2rem;
+		}
+	}
+</style>
+</head>
+<body class="反叵字形">
+<header>
+	<h1 class="website name" title="工具人（gongju.ren）域名太贵买不起">工具兽</h1>
+	<nav>
+		<a href="../文本转化.html">文本转化</a>
+		<a href="../数字转化.html">数字转化</a>
+		<a href="../格子盘.html">格子盘</a>
+		<a href="../svg转图标.html">SVG转图标</a>
+		<a href="../化学/元素周期表.html">元素周期表</a>
+		<a href="../拼音/拼音.html">拼音</a>
+		<a href="点灯.html" class="active">点灯</a>
+	</nav>
+</header>
+<main>
+	<header>
+		<h2>点灯游戏</h2>
+		<el-button size="small" circle title="显示说明" @click="descriptionVisible = true">?</el-button>
+	</header>
+	<el-dialog title="页面说明" v-model="descriptionVisible" width="60%">
+		<article class="description">
+			<p>
+				点击任意格子，它和相邻的格子都会切换颜色。<br>
+				目标是将所有格子变成<b>蓝色</b>。
+			</p>
+			<p>这个游戏也被称为Lights Out，由Tiger Electronics在1995年推出。</p>
+		</article>
+	</el-dialog>
+
+	<section class="container">
+		<div class="game-controls">
+			<el-radio-group v-model="boardSize">
+				<el-radio-button v-for="opt in boardSizes" :key="opt" size="large" :value="opt">
+					{{opt}}x{{opt}}
+				</el-radio-button>
+			</el-radio-group>
+			<el-button @click="initGame" type="primary" size="large">重新开始</el-button>
+			<el-button @click="giveHint" size="large">提示</el-button>
+			<div class="moves">移动次数: <span>{{ moveCount }}</span></div>
+		</div>
+		<div class="win-message" :class="{ show: isWin }">恭喜你赢了！</div>
+
+		<div class="game-board" :style="{gridTemplateColumns: `repeat(${boardSize}, 1fr)`}">
+			<div class="cell" :class="cell ? 'b' : 'a'"
+					 v-for="(cell, index) in flatBoard" :key="index"
+					 :ref="el => { if (el) cellRefs[index] = el }"
+					 @click="handleCellClick(Math.floor(index / boardSize), index % boardSize)">
+			</div>
+		</div>
+	</section>
+</main>
+<aside class="right-sidebar">
+	<!-- 谷歌广告联盟 -->
+	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"
+					crossorigin="anonymous"></script>
+	<!-- 展示广告1 -->
+	<ins class="adsbygoogle"
+			 style="display:block"
+			 data-ad-client="ca-pub-3376778290975789"
+			 data-ad-slot="7434043904"
+			 data-ad-format="auto"
+			 data-full-width-responsive="true"></ins>
+	<script>
+		(adsbygoogle = window.adsbygoogle || []).push({});
+	</script>
+	<article class="website info">
+		<section class="qr-code">
+			<img src="../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+			<span>赞助一下</span>
+		</section>
+		<section>
+			<p>&copy; 2025 工具兽版权所有 All rights reserved.</p>
+			<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+		</section>
+	</article>
+</aside>
+
+<script src="../lib/vue/3.5.18/vue.global.js"></script>
+<script src="../lib/element-plus/2.10.7/index.full.js"></script>
+<script>
+	const boardSizes = [3, 5, 7];
+
+	const {createApp, ref, onMounted, computed, onBeforeUpdate, nextTick, watch} = Vue;
+
+	const app = createApp({
+		setup() {
+			const boardSize = ref(5);
+			const board = ref([]);
+			const moveCount = ref(0);
+			const isWin = ref(false);
+			const descriptionVisible = ref(false);
+			const cellRefs = ref([]);
+
+			const flatBoard = computed(() => board.value.flat());
+
+			const initGame = () => {
+				moveCount.value = 0;
+				isWin.value = false;
+				board.value = Array(boardSize.value).fill(0).map(() => Array(boardSize.value).fill(false)); // false = a, true = b
+			};
+
+			watch(boardSize, initGame);
+
+			const toggleCellState = (row, col) => {
+				if (board.value[row] && board.value[row][col] !== undefined) {
+					board.value[row][col] = !board.value[row][col];
+				}
+			};
+
+			const handleCellClick = (row, col) => {
+				if (isWin.value) {
+					return;
+				}
+
+				toggleCellState(row, col);
+				if (row > 0) {
+					toggleCellState(row - 1, col);
+				}
+				if (row < boardSize.value - 1) {
+					toggleCellState(row + 1, col);
+				}
+				if (col > 0) {
+					toggleCellState(row, col - 1);
+				}
+				if (col < boardSize.value - 1) {
+					toggleCellState(row, col + 1);
+				}
+
+				moveCount.value++;
+				checkWin();
+			};
+
+			const checkWin = () => {
+				isWin.value = board.value.flat().every(cell => cell === true);
+			};
+
+			const giveHint = () => {
+				if (isWin.value) {
+					return;
+				}
+
+				const row = Math.floor(Math.random() * boardSize.value);
+				const col = Math.floor(Math.random() * boardSize.value);
+				const index = row * boardSize.value + col;
+				const cell = cellRefs.value[index];
+
+				if (cell) {
+					cell.style.boxShadow = '0 0 15px 5px gold';
+					cell.style.transform = 'scale(1.1)';
+					setTimeout(() => {
+						cell.style.boxShadow = '';
+						cell.style.transform = '';
+					}, 1000);
+				}
+			};
+
+			onMounted(() => {
+				initGame();
+			});
+
+			onBeforeUpdate(() => {
+				cellRefs.value = [];
+			});
+
+			return {
+				boardSizes,
+				boardSize,
+				board,
+				moveCount,
+				isWin,
+				descriptionVisible,
+				flatBoard,
+				cellRefs,
+				initGame,
+				handleCellClick,
+				giveHint
+			};
+		}
+	})
+	.use(ElementPlus)
+	.mount('main');
+</script>
+</body>
+</html>
