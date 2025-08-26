@@ -10,18 +10,18 @@
 <link href="../resources/layout.css?v=0821" rel="stylesheet">
 <link href="../resources/biz.css?v=250821" rel="stylesheet">
 <style>
-	.container {
+	main > article {
 		text-align: center;
 	}
 
-	.game-controls {
-		display: flex;
+	.toolbar {
+		/*display: flex;*/
 		gap: 15px;
-		justify-content: center;
-		align-items: center;
+		/*justify-content: center;*/
+		/*align-items: center;*/
 	}
 
-	.game-board {
+	.gaming > .map {
 		display: inline-grid;
 		gap: 6px;
 		padding: 10px;
@@ -119,27 +119,31 @@
 		</article>
 	</el-dialog>
 
-	<section class="container">
-		<div class="game-controls">
+	<article>
+		<section class="toolbar flex near-center">
 			<el-radio-group v-model="boardSize">
-				<el-radio-button v-for="opt in boardSizes" :key="opt" size="large" :value="opt">
-					{{opt}}x{{opt}}
+				<el-radio-button v-for="opt in boardSizes" :key="opt" size="large" :value="opt">{{opt}}x{{opt}}
 				</el-radio-button>
 			</el-radio-group>
 			<el-button @click="initGame" type="primary" size="large">重新开始</el-button>
 			<el-button @click="giveHint" size="large">提示</el-button>
-			<div class="moves">移动次数: <span>{{ moveCount }}</span></div>
-		</div>
-		<div class="win-message" :class="{ show: isWin }">恭喜你赢了！</div>
+		</section>
 
-		<div class="game-board" :style="{gridTemplateColumns: `repeat(${boardSize}, 1fr)`}">
-			<div class="cell" :class="cell ? 'b' : 'a'"
-					 v-for="(cell, index) in flatBoard" :key="index"
-					 :ref="el => { if (el) cellRefs[index] = el }"
-					 @click="handleCellClick(Math.floor(index / boardSize), index % boardSize)">
-			</div>
-		</div>
-	</section>
+		<section class="gaming">
+			<section class="score board">
+				<p class="moves">移动次数: <span>{{ moveCount }}</span></p>
+				<p class="win-message" :class="{ show: isWin }">恭喜你赢了！</p>
+			</section>
+
+			<section class="map" :style="{gridTemplateColumns: `repeat(${boardSize}, 1fr)`}">
+				<div class="cell" :class="cell ? 'b' : 'a'"
+						 v-for="(cell, index) in flatBoard" :key="index"
+						 ref="cells"
+						 @click="handleCellClick(Math.floor(index / boardSize), index % boardSize)">
+				</div>
+			</section>
+		</section>
+	</article>
 </main>
 <aside class="right-sidebar">
 	<!-- 谷歌广告联盟 -->
@@ -170,71 +174,62 @@
 <script src="../lib/vue/3.5.18/vue.global.js"></script>
 <script src="../lib/element-plus/2.10.7/index.full.js"></script>
 <script>
-	const boardSizes = [3, 5, 7];
-
-	const {createApp, ref, onMounted, computed, onBeforeUpdate, nextTick, watch} = Vue;
+	const {createApp} = Vue;
 
 	const app = createApp({
-		setup() {
-			const boardSize = ref(5);
-			const board = ref([]);
-			const moveCount = ref(0);
-			const isWin = ref(false);
-			const descriptionVisible = ref(false);
-			const cellRefs = ref([]);
-
-			const flatBoard = computed(() => board.value.flat());
-
-			const initGame = () => {
-				moveCount.value = 0;
-				isWin.value = false;
-				board.value = Array(boardSize.value).fill(0).map(() => Array(boardSize.value).fill(false)); // false = a, true = b
+		data() {
+			return {
+				boardSizes: [3, 5, 7],
+				boardSize: 5,
+				board: [],
+				moveCount: 0,
+				isWin: false,
+				descriptionVisible: false,
 			};
-
-			watch(boardSize, initGame);
-
-			const toggleCellState = (row, col) => {
-				if (board.value[row] && board.value[row][col] !== undefined) {
-					board.value[row][col] = !board.value[row][col];
+		},
+		computed: {
+			flatBoard() {
+				return this.board.flat();
+			}
+		},
+		watch: {
+			boardSize: 'initGame'
+		},
+		methods: {
+			initGame() {
+				this.moveCount = 0;
+				this.isWin = false;
+				this.board = Array(this.boardSize).fill(0).map(() => Array(this.boardSize).fill(false));
+			},
+			toggleCellState(row, col) {
+				if (this.board[row] && this.board[row][col] !== undefined) {
+					this.board[row][col] = !this.board[row][col];
 				}
-			};
-
-			const handleCellClick = (row, col) => {
-				if (isWin.value) {
+			},
+			handleCellClick(row, col) {
+				if (this.isWin) {
 					return;
 				}
+				this.toggleCellState(row, col);
+				if (row > 0) this.toggleCellState(row - 1, col);
+				if (row < this.boardSize - 1) this.toggleCellState(row + 1, col);
+				if (col > 0) this.toggleCellState(row, col - 1);
+				if (col < this.boardSize - 1) this.toggleCellState(row, col + 1);
 
-				toggleCellState(row, col);
-				if (row > 0) {
-					toggleCellState(row - 1, col);
-				}
-				if (row < boardSize.value - 1) {
-					toggleCellState(row + 1, col);
-				}
-				if (col > 0) {
-					toggleCellState(row, col - 1);
-				}
-				if (col < boardSize.value - 1) {
-					toggleCellState(row, col + 1);
-				}
-
-				moveCount.value++;
-				checkWin();
-			};
-
-			const checkWin = () => {
-				isWin.value = board.value.flat().every(cell => cell === true);
-			};
-
-			const giveHint = () => {
-				if (isWin.value) {
+				this.moveCount++;
+				this.checkWin();
+			},
+			checkWin() {
+				this.isWin = this.board.flat().every(cell => cell === true);
+			},
+			giveHint() {
+				if (this.isWin) {
 					return;
 				}
-
-				const row = Math.floor(Math.random() * boardSize.value);
-				const col = Math.floor(Math.random() * boardSize.value);
-				const index = row * boardSize.value + col;
-				const cell = cellRefs.value[index];
+				const row = Math.floor(Math.random() * this.boardSize);
+				const col = Math.floor(Math.random() * this.boardSize);
+				const index = row * this.boardSize + col;
+				const cell = this.$refs.cells[index];
 
 				if (cell) {
 					cell.style.boxShadow = '0 0 15px 5px gold';
@@ -244,29 +239,10 @@
 						cell.style.transform = '';
 					}, 1000);
 				}
-			};
-
-			onMounted(() => {
-				initGame();
-			});
-
-			onBeforeUpdate(() => {
-				cellRefs.value = [];
-			});
-
-			return {
-				boardSizes,
-				boardSize,
-				board,
-				moveCount,
-				isWin,
-				descriptionVisible,
-				flatBoard,
-				cellRefs,
-				initGame,
-				handleCellClick,
-				giveHint
-			};
+			}
+		},
+		mounted() {
+			this.initGame();
 		}
 	})
 	.use(ElementPlus)

@@ -10,3 +10,7 @@
 	border-top-left-radius: var(--el-border-radius-base);
 	box-shadow: none !important;
 }
+
+.flex > .el-button + .el-button {
+	margin-left: 0;
+}
