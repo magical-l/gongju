@@ -1,157 +1,173 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>格子盘工具 - 在线网格生成与编辑</title>
-<meta name="description" content="在线生成和编辑各种网格、格子盘，自定义尺寸和样式，适用于设计、游戏等场景。">
-<meta name="keywords" content="格子盘, 网格工具, 在线工具, 设计工具, 棋盘, grid">
-<meta name="author" content="工具兽">
-<meta property="og:title" content="格子盘工具 - 在线网格生成与编辑">
-<meta property="og:description" content="在线生成和编辑各种网格、格子盘，自定义尺寸和样式，适用于设计、游戏等场景。">
-<meta property="og:type" content="website">
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>格子盘工具 - 在线网格生成与编辑</title>
+	<meta name="description" content="在线生成和编辑各种网格、格子盘，自定义尺寸和样式，适用于设计、游戏等场景。">
+	<meta name="keywords" content="格子盘, 网格工具, 在线工具, 设计工具, 棋盘, grid">
+	<meta name="author" content="工具兽">
+	<meta property="og:title" content="格子盘工具 - 在线网格生成与编辑">
+	<meta property="og:description" content="在线生成和编辑各种网格、格子盘，自定义尺寸和样式，适用于设计、游戏等场景。">
+	<meta property="og:type" content="website">
 
-<link href="resources/common.css?v=250821" rel="stylesheet">
-<link href="resources/layout.css?v=0821" rel="stylesheet">
-<link href="resources/biz.css?v=250806?v=0229b" rel="stylesheet">
-<style>
-	:root {
-		--default-draw-color: #88CC88;
-		--toolbar-border: #dee2e6;
-		--cell-border: #e0e0e0;
-	}
+	<link href="lib/element-plus/2.10.7/index.css" rel="stylesheet">
+	<link href="resources/el-plus.css" rel="stylesheet">
+	<link href="resources/common.css?v=250821" rel="stylesheet">
+	<link href="resources/layout.css?v=0821" rel="stylesheet">
+	<link href="resources/biz.css?v=250806?v=0229b" rel="stylesheet">
+	<style>
+		:root {
+			--default-draw-color: #88CC88;
+			--toolbar-border: #dee2e6;
+			--cell-border: #e0e0e0;
+		}
 
-	.toolbar {
-		display: flex;
-		gap: 12px;
-		justify-content: center;
-		width: fit-content;
-		padding: 2px 0;
-	}
+		main > header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 1rem;
+		}
 
-	.tool-group {
-		display: flex;
-		gap: 8px;
-		align-items: center;
-		height: 40px;
-		padding: 6px 12px;
-		background: white;
-		border: 1px solid var(--toolbar-border);
-		border-radius: 6px;
-	}
+		.toolbar {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 12px;
+			justify-content: center;
+			width: fit-content;
+			padding: 2px 0;
+			margin: 0 auto 15px auto;
+		}
 
-	.btn-group {
-		border: 1px solid #ccc;
-		border-radius: 4px;
-		overflow: hidden;
-		display: inline-flex;
-	}
+		.tool-group {
+			display: flex;
+			gap: 8px;
+			align-items: center;
+			height: 40px;
+			padding: 6px 12px;
+			background: white;
+			border: 1px solid var(--toolbar-border);
+			border-radius: 6px;
+		}
 
-	.btn-group button {
-		border: none;
-		border-radius: 0;
-		margin: 0;
-		border-right: 1px solid #ccc;
-		padding: 6px 12px;
-		background: white;
-		color: #666;
-		cursor: pointer;
-		transition: 0.2s;
-	}
+		.tool-group .el-input-number {
+			width: 80px;
+		}
 
-	.btn-group button:last-child {
-		border-right: none;
-	}
+		.tool-group .el-input-number__decrease,
+		.tool-group .el-input-number__increase {
+			width: 20px;
+		}
 
-	button.active {
-		border-color: var(--default-draw-color);
-		background: var(--default-draw-color);
-		color: white;
-	}
+		.tool-group .el-input-number__decrease.is-disabled,
+		.tool-group .el-input-number__increase.is-disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
 
-	.size-input {
-		width: 50px;
-		padding: 6px;
-		border: 1px solid #ccc;
-		border-radius: 4px;
-	}
+		.tool-group .el-color-picker {
+			height: 32px;
+			width: 32px;
+		}
 
-	.board {
-		border: 1px solid #d3d3d3;
-		background: white;
-		border-collapse: collapse;
-		margin: 15px auto;
-	}
+		.grid-wrapper {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			min-height: 300px;
+			padding: 20px;
+		}
 
-	.cell {
-		width: 36px;
-		height: 36px;
-		position: relative;
-		text-align: center;
-		border: 2px solid var(--cell-border);
-		user-select: none;
-	}
+		#grid-container {
+			display: grid;
+			border: 2px solid #d3d3d3;
+			background: white;
+			padding: 20px;
+			border-radius: 8px;
+			box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+			width: fit-content;
+		}
 
-	.dimmed.cell {
-		background: #e0e0e0 !important;
-		opacity: 0.7;
-		pointer-events: none;
-	}
+		.grid-row {
+			display: contents; /* Makes children participate in parent's grid */
+		}
 
-	.fill-mode td:not(.dimmed) {
-		cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%2388CC88" d="M7.44,8.94L16.38,0L17.79,1.41l-2.38,2.38L20.56,8.94c0.59,0.59,0.59,1.54,0,2.12l-5.5,5.5C14.77,16.85,14.38,17,14,17s-0.77-0.15-1.06-0.44l-5.5-5.5C6.85,10.48,6.85,9.53,7.44,8.94z M18.79,10L14,5.21L9.21,10H18.79z M5,11.5c0,0,2,2.17,2,3.5c0,1.1-0.9,2-2,2s-2-0.9-2-2C3,13.67,5,11.5,5,11.5z"/></svg>') 0 18, pointer;
-	}
+		.cell {
+			width: 45px;
+			height: 45px;
+			position: relative;
+			text-align: center;
+			border: 2px solid var(--cell-border);
+			user-select: none;
+			box-sizing: border-box; /* Include padding and border in the element's total width and height */
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
 
-	.input-mode td:not(.dimmed) {
-		cursor: text;
-	}
+		.fill-mode .cell {
+			cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%2388CC88" d="M7.44,8.94L16.38,0L17.79,1.41l-2.38,2.38L20.56,8.94c0.59,0.59,0.59,1.54,0,2.12l-5.5,5.5C14.77,16.85,14.38,17,14,17s-0.77-0.15-1.06-0.44l-5.5-5.5C6.85,10.48,6.85,9.53,7.44,8.94z M18.79,10L14,5.21L9.21,10H18.79z M5,11.5c0,0,2,2.17,2,3.5c0,1.1-0.9,2-2,2s-2-0.9-2-2C3,13.67,5,11.5,5,11.5z"/></svg>') 0 18, pointer;
+		}
 
-	.text-container {
-		position: relative;
-		z-index: 4;
-		pointer-events: none;
-	}
+		.input-mode .cell {
+			cursor: text;
+		}
 
-	.text-input {
-		width: 80%;
-		font-size: 12px;
-		border: none;
-		background: transparent;
-		position: absolute;
-		left: 50%;
-		top: 50%;
-		transform: translate(-50%, -50%);
-		text-align: center;
-		outline: none;
-		z-index: 5;
-		pointer-events: auto;
-	}
+		.text-container {
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			z-index: 4;
+			pointer-events: none;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
 
-	.stroke-mode .edge-hotzone:hover {
-		background-color: rgba(136, 204, 136, 0.2);
-	}
+		.text-input {
+			width: 85%;
+			font-size: 14px;
+			border: none;
+			background: transparent;
+			text-align: center;
+			outline: none;
+			z-index: 5;
+			pointer-events: auto;
+		}
 
-	.stroke-mode .edge-hotzone {
-		cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%2388CC88" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>') 6 18, pointer;
-	}
+		.cell span {
+			font-size: 14px;
+			font-weight: 500;
+		}
 
-	.edge-hotzone {
-		position: absolute;
-		background: transparent;
-		z-index: 3;
-		transition: background-color 0.1s;
-	}
+		.stroke-mode .edge-hotzone:hover {
+			background-color: rgba(136, 204, 136, 0.2);
+		}
 
-	.edge-hotzone.top { top: 0; left: 0; width: 100%; height: 12px; }
+		.stroke-mode .edge-hotzone {
+			cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%2388CC88" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>') 6 18, pointer;
+		}
 
-	.edge-hotzone.right { right: 0; top: 0; width: 12px; height: 100%; }
+		.edge-hotzone {
+			position: absolute;
+			background: transparent;
+			z-index: 3;
+			transition: background-color 0.1s;
+		}
 
-	.edge-hotzone.bottom { bottom: 0; left: 0; width: 100%; height: 12px; }
+		.edge-hotzone.top { top: 0; left: 0; width: 100%; height: 12px; }
 
-	.edge-hotzone.left { left: 0; top: 0; width: 12px; height: 100%; }
-</style>
+		.edge-hotzone.right { right: 0; top: 0; width: 12px; height: 100%; }
+
+		.edge-hotzone.bottom { bottom: 0; left: 0; width: 100%; height: 12px; }
+
+		.edge-hotzone.left { left: 0; top: 0; width: 12px; height: 100%; }
+	</style>
 </head>
-<body class="fill-mode 反叵字形">
+<body class="grid 反叵字形">
 <header>
 	<h1 class="website name" title="工具人（gongju.ren）域名太贵买不起">工具兽</h1>
 	<nav>
@@ -164,219 +180,284 @@
 		<a href="游戏/点灯.html">点灯</a>
 	</nav>
 </header>
-<main>
+<main v-cloak>
 	<header>
 		<h2>格子盘</h2>
-		<button class="toggle-description" onclick="toggleDescription()">查看说明</button>
+		<el-button size="small" circle title="查看说明" @click="toggleDescription">?</el-button>
 	</header>
-	<article class="description">
-		<p>
-			“格子盘”是一个功能强大且简单易用的网页应用，旨在帮助用户轻松创建、定制和导出各种类型的格子，如田字格、米字格、九宫格等。无论您是书法爱好者、正在学习写字的学生，还是需要为设计项目制作网格的专业人士，这个工具都能满足您的需求。</p>
-		<h2>主要功能</h2>
-		<p><strong>自定义行列：</strong>用户可以根据需要自由设置格子的行数和列数，最大支持19x19的网格，灵活适应不同场景。</p>
-		<p><strong>三种操作模式：</strong></p>
-		<ul>
-			<li><strong>填充模式：</strong>快速为单元格填充颜色，方便制作像素画或标记特定区域。</li>
-			<li><strong>输入模式：</strong>在单元格中直接输入文字，非常适合用于制作字帖或进行教学演示。</li>
-			<li><strong>描边模式：</strong>精确地为单元格的边缘描绘不同颜色的边框，轻松制作出田字格、米字格等效果。</li>
-		</ul>
-		<p><strong>颜色选择与清除：</strong>提供调色板让用户选择喜欢的颜色进行填充或描边，并可一键清除所有内容，重新开始。</p>
-		<h2>如何使用</h2>
-		<p>
-			首先，在工具栏中设置您需要的行数和列数，然后点击“应用”按钮生成网格。接着，根据您的需求选择“填充”、“输入”或“描边”模式。最后，使用鼠标在网格上进行创作。完成的作品可以通过截图等方式保存下来。</p>
-	</article>
+	<el-dialog title="格子盘使用说明" v-model="descriptionVisible" width="60%">
+		<article class="description">
+			<p>
+				“格子盘”是一个功能强大且简单易用的网页应用，旨在帮助用户轻松创建、定制和导出各种类型的格子，如田字格、米字格、九宫格等。无论您是书法爱好者、正在学习写字的学生，还是需要为设计项目制作网格的专业人士，这个工具都能满足您的需求。</p>
+			<h2>主要功能</h2>
+			<p><strong>自定义行列：</strong>用户可以根据需要自由设置格子的行数和列数，最大支持19x19的网格，灵活适应不同场景。</p>
+			<p><strong>三种操作模式：</strong></p>
+			<ul>
+				<li><strong>填充模式：</strong>快速为单元格填充颜色，方便制作像素画或标记特定区域。</li>
+				<li><strong>输入模式：</strong>在单元格中直接输入文字，非常适合用于制作字帖或进行教学演示。</li>
+				<li><strong>描边模式：</strong>精确地为单元格的边缘描绘不同颜色的边框，轻松制作出田字格、米字格等效果。</li>
+			</ul>
+			<p><strong>颜色选择与清除：</strong>提供调色板让用户选择喜欢的颜色进行填充或描边，并可一键清除所有内容，重新开始。</p>
+			<h2>如何使用</h2>
+			<p>
+				首先，在工具栏中设置您需要的行数和列数，然后点击"应用"按钮生成网格。接着，根据您的需求选择"填充"、"输入"或"描边"模式。最后，使用鼠标在网格上进行创作。修改行列数后需要点击"应用"按钮才会生效。完成的作品可以通过截图等方式保存下来。</p>
+		</article>
+	</el-dialog>
 	<div class="toolbar">
 		<div class="tool-group">
-			<label>行：<input type="number" class="size-input" id="rows" min="1" max="19" value="5"></label>
-			<label>列：<input type="number" class="size-input" id="cols" min="1" max="19" value="5"></label>
-			<button onclick="initGrid()">应用</button>
+			<label>行：
+				<el-input-number v-model="rows" :min="1" :max="maxSize" size="small"></el-input-number>
+			</label>
+			<label>列：
+				<el-input-number v-model="cols" :min="1" :max="maxSize" size="small"></el-input-number>
+			</label>
+			
 		</div>
 		<div class="tool-group">
-			<div class="btn-group">
-				<button class="active" data-mode="fill">填充</button>
-				<button data-mode="input">输入</button>
-				<button data-mode="stroke">描边</button>
-			</div>
-			<input type="color" value="#88CC88">
-			<button onclick="clearAll()">清除</button>
+			<el-radio-group v-model="currentMode">
+				<el-radio-button label="fill">填充</el-radio-button>
+				<el-radio-button label="input">输入</el-radio-button>
+				<el-radio-button label="stroke">描边</el-radio-button>
+			</el-radio-group>
+			<el-color-picker v-model="currentColor"></el-color-picker>
+			<el-button @click="clearAll">清除</el-button>
 		</div>
 	</div>
 
-	<table class="board" id="board"></table>
+	<div class="grid-wrapper">
+		<div id="grid-container" :style="gridContainerStyle">
+			<template v-for="(row, rowIndex) in gridData" :key="rowIndex">
+				<div class="cell" v-for="(cell, colIndex) in row" :key="colIndex"
+					 :style="{backgroundColor: cell.bgColor, borderColor: cell.borderColor,
+						borderTopColor: cell.borders.top, borderRightColor: cell.borders.right,
+						borderBottomColor: cell.borders.bottom, borderLeftColor: cell.borders.left}"
+					 @mousedown="handleMouseDown(rowIndex, colIndex, $event)"
+					 @mousemove="handleMouseMove(rowIndex, colIndex, $event)"
+					 @click="handleCellClick(rowIndex, colIndex, $event)">
+					<div class="text-container">
+						<input v-if="currentMode === 'input'" type="text" class="text-input"
+							   v-model="cell.text" @blur="updateCellText(rowIndex, colIndex, $event)"
+							   @click.stop/>
+						<span v-else>{{ cell.text }}</span>
+					</div>
+					<template v-if="currentMode === 'stroke'">
+						<div class="edge-hotzone top" @mousedown="handleStrokeStart(rowIndex, colIndex, 'top', $event)" @mouseenter="handleStrokeMove(rowIndex, colIndex, 'top', $event)"></div>
+						<div class="edge-hotzone right" @mousedown="handleStrokeStart(rowIndex, colIndex, 'right', $event)" @mouseenter="handleStrokeMove(rowIndex, colIndex, 'right', $event)"></div>
+						<div class="edge-hotzone bottom" @mousedown="handleStrokeStart(rowIndex, colIndex, 'bottom', $event)" @mouseenter="handleStrokeMove(rowIndex, colIndex, 'bottom', $event)"></div>
+						<div class="edge-hotzone left" @mousedown="handleStrokeStart(rowIndex, colIndex, 'left', $event)" @mouseenter="handleStrokeMove(rowIndex, colIndex, 'left', $event)"></div>
+					</template>
+				</div>
+			</template>
+		</div>
+	</div>
 </main>
 
 <aside class="right-sidebar">
 	<article class="website info">
-		<section class="qr-code">
+		<div class="qr-code">
 			<img src="resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
 			<span>赞助一下</span>
-		</section>
-		<section>
+		</div>
+		<div>
 			<p>&copy; 2025 工具兽版权所有 All rights reserved.</p>
 			<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
-		</section>
+		</div>
 	</article>
 </aside>
 
 <div class="js container">
-	<script src="lib/jquery-3.4.1.min.js"></script>
+	<script src="lib/vue/3.5.18/vue.global.js"></script>
+	<script src="lib/element-plus/2.10.7/index.full.js"></script>
+
 	<script src="resources/biz-util.js?v=250801"></script>
 </div>
 <script>
-	const maxSize = 19;
-	const board = $("#board");
-	let currentMode = 'fill';
-	let currentColor = getComputedStyle(document.documentElement).getPropertyValue('--default-draw-color').trim();
-	let isDrawing = false;
-	let isFilling = false;
+	const {createApp} = Vue;
 
-	$(".btn-group button").on('click', function () {
-		$(".btn-group button").removeClass('active');
-		$(this).addClass('active');
-		currentMode = $(this).data('mode');
-		$("body").attr('class', `${currentMode}-mode`);
-
-		// 移除所有之前的事件处理
-		board.off('mousedown mousemove click');
-
-		// 根据模式绑定对应的事件处理
-		switch (currentMode) {
-			case 'fill':
-				board.on('mousedown mousemove', handleFill);
-				break;
-			case 'input':
-				board.on('click', handleInput);
-				break;
-			case 'stroke':
-				board.on('mousedown mousemove', handleStroke);
-				break;
-		}
-	});
-
-	$('input[type="color"]').on('input', e => currentColor = e.target.value);
-
-	function initGrid() {
-		board.empty();
-		const activeRows = Math.min(parseInt($("#rows").val()) || 5, maxSize);
-		const activeCols = Math.min(parseInt($("#cols").val()) || 5, maxSize);
-		const colOffset = Math.floor((maxSize - activeCols) / 2);
-
-		for (let i = 0; i < maxSize; i++) {
-			const row = $("<tr>");
-			for (let j = 0; j < maxSize; j++) {
-				const isActive = i < activeRows && (j >= colOffset && j < colOffset + activeCols);
-				const cell = createCell(isActive);
-				if (!isActive) {
-					cell.addClass('dimmed');
-				}
-				row.append(cell);
+	const app = createApp({
+		data() {
+			return {
+				rows: 5,
+				cols: 5,
+				maxSize: 19,
+				gridData: [],
+				currentMode: 'fill',
+				currentColor: '#88CC88',
+				descriptionVisible: false,
+				isDrawing: false,
+				isFilling: false,
+				// 新增：用于描边模式下拖动时记录初始点击的边缘方向
+				initialStrokeDirection: null,
+			};
+		},
+		computed: {
+			gridContainerStyle() {
+				// 让单元格稍微大一点，更大方
+				const cellSize = 45;
+				const borderWidth = 2;
+				return {
+					gridTemplateColumns: `repeat(${this.cols}, ${cellSize}px)`,
+					gridTemplateRows: `repeat(${this.rows}, ${cellSize}px)`,
+					gap: '0px',
+				};
+			},
+		},
+		watch: {
+			currentMode(newMode) {
+				// 更新body的class来应用模式样式
+				document.body.className = `grid 反叵字形 ${newMode}-mode`;
+				// Clear any active drawing/filling state when mode changes
+				this.isDrawing = false;
+				this.isFilling = false;
+			},
+			rows() {
+				this.initGrid();
+			},
+			cols() {
+				this.initGrid();
 			}
-			board.append(row);
+		},
+		methods: {
+			initGrid() {
+				const newGrid = [];
+				// 实际使用用户设置的行列数，不需要限制到maxSize
+				const activeRows = this.rows;
+				const activeCols = this.cols;
+
+				// 创建实际需要的网格，而不是maxSize的网格
+				for (let i = 0; i < activeRows; i++) {
+					const row = [];
+					for (let j = 0; j < activeCols; j++) {
+						row.push({
+							bgColor: '',
+							text: '',
+							borders: {top: '', right: '', bottom: '', left: ''},
+							isActive: true, // 所有单元格都是活动的
+						});
+					}
+					newGrid.push(row);
+				}
+				this.gridData = newGrid;
+			},
+			copyToClipboard(text) {
+				// Re-implement copyToClipboard without toastr and jQuery
+				if (!text) return;
+				navigator.clipboard.writeText(text).then(() => {
+					// Optionally, add a simple alert or console log for success
+				}).catch(err => {
+					console.error('Failed to copy: ', err);
+				});
+			},
+			// Event handlers for mouse interactions
+			handleMouseDown(rowIndex, colIndex, event) {
+				if (this.currentMode === 'fill') {
+					this.isFilling = true;
+					this.fillCell(rowIndex, colIndex);
+				}
+				// 描边模式的事件处理由edge-hotzone直接处理，不在这里处理
+			},
+			handleMouseMove(rowIndex, colIndex, event) {
+				if (this.isFilling && this.currentMode === 'fill') {
+					this.fillCell(rowIndex, colIndex);
+				}
+				// 描边模式的鼠标移动由edge-hotzone直接处理，不在这里处理
+			},
+			handleMouseUp() {
+				this.isFilling = false;
+				this.isDrawing = false;
+			},
+
+			// Specific mode handlers
+			fillCell(rowIndex, colIndex) {
+				this.gridData[rowIndex][colIndex].bgColor = this.currentColor;
+			},
+			handleCellClick(rowIndex, colIndex, event) {
+				if (this.currentMode === 'input') {
+					// Focus the input field if it exists
+					this.$nextTick(() => {
+						const inputElement = event.target.querySelector('.text-input');
+						if (inputElement) {
+							inputElement.focus();
+						}
+					});
+				} else if (this.currentMode === 'fill') {
+					// Click in fill mode also fills a single cell
+					this.fillCell(rowIndex, colIndex);
+				}
+			},
+			updateCellText(rowIndex, colIndex, event) {
+				this.gridData[rowIndex][colIndex].text = event.target.value;
+			},
+			handleStrokeStart(rowIndex, colIndex, direction, event) {
+				event.stopPropagation();
+				this.isDrawing = true;
+				this.initialStrokeDirection = direction;
+				this.handleStroke(rowIndex, colIndex, direction);
+			},
+			handleStrokeMove(rowIndex, colIndex, direction, event) {
+				if (this.isDrawing && this.currentMode === 'stroke') {
+					event.stopPropagation();
+					this.handleStroke(rowIndex, colIndex, direction);
+				}
+			},
+			handleStroke(rowIndex, colIndex, direction) {
+				const cell = this.gridData[rowIndex][colIndex];
+				const oppositeDirections = {
+					'top': 'bottom',
+					'bottom': 'top',
+					'left': 'right',
+					'right': 'left',
+				};
+
+				// Set current cell's border
+				cell.borders[direction] = this.currentColor;
+
+				// Set neighbor cell's opposite border
+				let neighborRow = rowIndex;
+				let neighborCol = colIndex;
+				if (direction === 'top') neighborRow--;
+				else if (direction === 'bottom') neighborRow++;
+				else if (direction === 'left') neighborCol--;
+				else if (direction === 'right') neighborCol++;
+
+				// 检查邻居单元格是否在有效范围内
+				if (neighborRow >= 0 && neighborRow < this.rows &&
+				    neighborCol >= 0 && neighborCol < this.cols &&
+				    this.gridData[neighborRow] && this.gridData[neighborRow][neighborCol]) {
+					this.gridData[neighborRow][neighborCol].borders[oppositeDirections[direction]] = this.currentColor;
+				}
+			},
+			clearAll() {
+				this.gridData.forEach(row => {
+					row.forEach(cell => {
+						cell.bgColor = '';
+						cell.text = '';
+						cell.borders = {top: '', right: '', bottom: '', left: ''};
+					});
+				});
+			},
+			toggleDescription() {
+				this.descriptionVisible = !this.descriptionVisible;
+				const storageKey = 'description-hidden-' + window.location.pathname;
+				if (!this.descriptionVisible) {
+					localStorage.setItem(storageKey, 'true');
+				} else {
+					localStorage.removeItem(storageKey);
+				}
+			},
+		},
+		mounted() {
+			this.initGrid();
+			// 初始化body的class
+			document.body.className = `grid 反叵字形 ${this.currentMode}-mode`;
+			document.addEventListener('mouseup', this.handleMouseUp);
+		},
+		unmounted() {
+			document.removeEventListener('mouseup', this.handleMouseUp);
 		}
-	}
-
-	function createCell(isActive) {
-		const cell = $("<td>").addClass('cell');
-		if (!isActive) {
-			return cell;
-		}
-
-		const elements = [
-			['div', 'text-container'],
-			...['top', 'right', 'bottom', 'left'].map(d => ['div', `edge-hotzone ${d}`])
-		];
-
-		elements.forEach(([tag, className]) => {
-			const el = $("<" + tag + ">").addClass(className);
-			cell.append(el);
-		});
-
-		return cell;
-	}
-
-	initGrid();
-
-	board.on('mousedown mousemove', handleFill);
-
-	function handleFill(e) {
-		const cell = $(e.target).closest('.cell');
-		if (!cell.length || cell.hasClass('dimmed')) {
-			return;
-		}
-
-		if (e.type === 'mousedown') {
-			isFilling = true;
-			fillCell(cell);
-		} else if (e.type === 'mousemove' && isFilling) {
-			fillCell(cell);
-		}
-	}
-
-	function fillCell(cell) {
-		cell.css('background-color', currentColor);
-	}
-
-	function handleInput(e) {
-		const cell = $(e.target).closest('td');
-		if (!cell.length || cell.hasClass('dimmed')) {
-			return;
-		}
-
-		const textContainer = cell.find('.text-container');
-		const input = $("<input>").addClass('text-input').val(textContainer.text());
-		textContainer.empty().append(input);
-		input.trigger('focus');
-		input.on('blur', () => textContainer.text(input.val()));
-	}
-
-	function handleStroke(e) {
-		const hotzone = $(e.target).closest('.edge-hotzone');
-		if (!hotzone.length || hotzone.parent().hasClass('dimmed')) {
-			return;
-		}
-
-		if (e.type === 'mousedown') {
-			isDrawing = true;
-			stroke(hotzone);
-		} else if (e.type === 'mousemove' && isDrawing) {
-			stroke(hotzone);
-		}
-	}
-
-	function stroke(hotzone) {
-		const cell = hotzone.parent();
-		const direction = hotzone.attr('class').split(' ')[1];
-		const borderProp = `border-${direction}-color`;
-
-		// 获取当前单元格的位置
-		const row = cell.parent().index();
-		const col = cell.index();
-
-		// 设置当前单元格的边框颜色
-		cell.css(borderProp, currentColor);
-
-		// 处理相邻单元格的对应边框
-		const oppositeDirections = {
-			'top': ['bottom', row - 1, col],
-			'bottom': ['top', row + 1, col],
-			'left': ['right', row, col - 1],
-			'right': ['left', row, col + 1]
-		};
-
-		const [oppositeDirection, neighborRow, neighborCol] = oppositeDirections[direction];
-		const neighbor = board.find(`tr:eq(${neighborRow}) td:eq(${neighborCol})`);
-		neighbor.css(`border-${oppositeDirection}-color`, currentColor);
-	}
-
-	$(document).on('mouseup', () => {
-		isDrawing = false;
-		isFilling = false;
-	});
-
-	function clearAll() {
-		$('.cell').removeAttr('style')
-		.find('.text-container').text('');
-	}
+	})
+	.use(ElementPlus)
+	.mount('main');
 </script>
 
 <div>
