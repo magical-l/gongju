@@ -83,11 +83,6 @@ main > header h2 {
 	box-sizing: border-box;
 }
 
-.result.area.grid {
-	grid-template-columns: 50% 50%;
-	gap: 1rem;
-}
-
 @media (max-width: 1024px) {
 	.result.area {
 		grid-template-columns: repeat(2, 1fr);

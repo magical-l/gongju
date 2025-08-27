@@ -128,7 +128,7 @@
 	<header>
 		<h2>格子盘</h2>
 		<div class="help area" v-cloak>
-			<el-button size="small" circle title="查看说明" @click="toggleDescription">?</el-button>
+			<el-button size="small" circle title="查看说明" @click="descriptionVisible = true">?</el-button>
 			<el-dialog title="格子盘使用说明" v-model="descriptionVisible" width="60%">
 				<article class="description">
 					<p>
@@ -243,7 +243,6 @@
 				gridData: [],
 				currentMode: 'fill',
 				currentColor: '#88CC88',
-				descriptionVisible: false,
 				isDrawing: false,
 				isFilling: false,
 				// 新增：用于描边模式下拖动时记录初始点击的边缘方向
@@ -402,15 +401,6 @@
 						cell.borders = {top: '', right: '', bottom: '', left: ''};
 					});
 				});
-			},
-			toggleDescription() {
-				this.descriptionVisible = !this.descriptionVisible;
-				const storageKey = 'description-hidden-' + window.location.pathname;
-				if (!this.descriptionVisible) {
-					localStorage.setItem(storageKey, 'true');
-				} else {
-					localStorage.removeItem(storageKey);
-				}
 			}
 		},
 		mounted() {

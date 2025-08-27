@@ -92,7 +92,7 @@
 			</div>
 		</section>
 
-		<section class="result area , grid">
+		<section class="result area , grid 朋字形">
 			<header class="one-row , flex items-near-start-x">
 				<p>转换结果：</p>
 				<p>（点击文本即可复制）</p>
@@ -273,13 +273,13 @@
 					val: '留',
 					options: ['留', '弃']
 				},
-				'留空': {
-					val: '留空',
-					options: ['留空', '不留']
+				'分隔处留空': {
+					val: '分隔处留空',
+					options: ['分隔处留空', '不留']
 				}
 			},
 			convert(text, fromRadix) {
-				const separator = this.settings.留空.val === '留空' ? ' ' : '';
+				const separator = this.settings.分隔处留空.val === '分隔处留空' ? ' ' : '';
 				const regex = getRegexForRadix(fromRadix);
 				if (this.settings.弃留.val === '留') {
 					const matches = text.match(regex) ?? [];
