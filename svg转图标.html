@@ -43,9 +43,10 @@
 		<a href="svg转图标.html" class="active">SVG转图标</a>
 		<a href="化学/元素周期表.html">元素周期表</a>
 		<a href="拼音/拼音.html">拼音</a>
+		<a href="点灯.html">点灯</a>
 	</nav>
 </header>
-<main>
+<main v-cloak>
 	<header>
 		<h2>SVG转图片</h2>
 		<el-button size="small" circle title="显示说明" @click="descriptionVisible = true">?</el-button>
@@ -61,8 +62,8 @@
 				<li><strong>一键下载：</strong>用户可以一键下载所有尺寸的PNG格式图标。</li>
 			</ul>
 			<h2>如何使用</h2>
-			<p>
-				将您的SVG代码粘贴到输入框中，工具会自动生成预览。确认无误后，点击“下载图标”按钮，即可将生成的PNG图标文件保存到您的电脑。</p>
+			<p>将您的SVG代码粘贴到输入框中，工具会自动生成预览。确认无误后，点击“下载图标”按钮，即可将生成的PNG图标文件保存到您的电脑。
+			</p>
 		</article>
 	</el-dialog>
 	<section class="input area">
@@ -85,32 +86,8 @@
 		<el-button type="primary" @click="downloadIcons" size="large">下载图标（png）</el-button>
 	</div>
 </main>
-<aside class="right-sidebar">
-	<!-- 谷歌广告联盟 -->
-	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"
-					crossorigin="anonymous"></script>
-	<!-- 展示广告1 -->
-	<ins class="adsbygoogle"
-			 style="display:block"
-			 data-ad-client="ca-pub-3376778290975789"
-			 data-ad-slot="7434043904"
-			 data-ad-format="auto"
-			 data-full-width-responsive="true"></ins>
-	<script>
-		(adsbygoogle = window.adsbygoogle || []).push({});
-	</script>
-	<article class="website info">
-		<section class="qr-code">
-			<img src="resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
-			<span>赞助一下</span>
-		</section>
-		<section>
-			<p>&copy; 2025 工具兽版权所有 All rights reserved.</p>
-			<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
-		</section>
-	</article>
-</aside>
-<div>
+
+<div class="js container">
 	<script src="lib/vue/3.5.18/vue.global.js"></script>
 	<script src="lib/element-plus/2.10.7/index.full.js"></script>
 	<script src="lib/jquery-3.4.1.min.js"></script>
@@ -217,5 +194,31 @@
 	.use(ElementPlus)
 	.mount('main');
 </script>
+
+<aside class="right-sidebar">
+	<!-- 谷歌广告联盟 -->
+	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"
+					crossorigin="anonymous"></script>
+	<!-- 展示广告1 -->
+	<ins class="adsbygoogle"
+			 style="display:block"
+			 data-ad-client="ca-pub-3376778290975789"
+			 data-ad-slot="7434043904"
+			 data-ad-format="auto"
+			 data-full-width-responsive="true"></ins>
+	<script>
+		(adsbygoogle = window.adsbygoogle || []).push({});
+	</script>
+	<article class="website info">
+		<section class="qr-code">
+			<img src="resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+			<span>赞助一下</span>
+		</section>
+		<section>
+			<p>&copy; 2025 工具兽版权所有 All rights reserved.</p>
+			<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+		</section>
+	</article>
+</aside>
 </body>
 </html>

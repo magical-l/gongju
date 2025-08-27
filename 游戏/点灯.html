@@ -3,7 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>熄灯游戏 - Lights Out</title>
+<title>熄灯游戏 - Lights Out | 在线益智点灯游戏</title>
+<meta name="description"
+			content="在线玩经典的点灯/熄灯（Lights On/Out）益智游戏。挑战不同大小的棋盘，通过点击格子和相邻格子来点亮/熄灭所有灯光。提供提示和答案功能。">
+<meta name="keywords" content="熄灯游戏, Lights Out, 点灯游戏, 益智游戏, 在线游戏, 逻辑游戏, 休闲游戏, 棋盘游戏">
+<meta name="author" content="工具兽">
+<meta property="og:title" content="点灯/熄灯游戏 - Lights On/Out | 在线益智点灯游戏">
+<meta property="og:description"
+			content="在线玩经典的点灯/熄灯（Lights On/Out）益智游戏。挑战不同大小的棋盘，通过点击格子和相邻格子来点亮/熄灭所有灯光。提供提示和答案功能。">
+<meta property="og:type" content="game">
+
 <link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
 <link href="../resources/el-plus.css" rel="stylesheet">
 <link href="../resources/common.css?v=250821" rel="stylesheet">
@@ -135,15 +144,20 @@
 <main v-cloak>
 	<header>
 		<h2>点灯游戏</h2>
-		<el-button size="small" circle title="显示说明" @click="descriptionVisible = true">?</el-button>
+		<el-button size="small" circle title="游戏介绍" @click="descriptionVisible = true">?</el-button>
 	</header>
-	<el-dialog title="页面说明" v-model="descriptionVisible" width="60%">
+	<el-dialog title="游戏介绍" v-model="descriptionVisible" width="60%">
 		<article class="description">
 			<p>
-				点击任意格子，它和相邻的格子都会切换颜色。<br>
-				目标是将所有格子变成<b>蓝色</b>。
+				欢迎来到“熄灯游戏”（Lights Out），这是一款经典的益智游戏，由 Tiger Electronics 在 1995
+				年推出。游戏的目标非常简单：通过点击格子，将棋盘上所有的灯光都点亮/熄灭（变成蓝色）。
 			</p>
-			<p>这个游戏也被称为Lights Out，由Tiger Electronics在1995年推出。</p>
+			<p>
+				游戏的规则是：点击任意一个格子，该格子以及其上下左右相邻的格子都会切换状态（亮变灭，灭变亮）。您需要巧妙地选择点击的顺序和位置，才能最终让所有灯光都点亮/熄灭。
+			</p>
+			<p>
+				您可以选择不同大小的棋盘（例如 3x3、5x5、7x7 等）来挑战自己。游戏还提供了“提示”和“答案”功能，帮助您在遇到困难时找到解决方案。祝您玩得愉快！
+			</p>
 		</article>
 	</el-dialog>
 
@@ -188,7 +202,7 @@
 				</article>
 			</aside>
 
-			<article class="modal-overlay fullscreen" v-if="showWinModal">
+			<article class="modal-overlay fullscreen" v-if="isWin && showWinModal">
 				<section class="body">
 					<h2>恭喜你，挑战成功！</h2>
 					<p>您总共使用了 {{ moveCount }} 步。</p>
@@ -205,6 +219,271 @@
 		</section>
 	</article>
 </main>
+
+<div class="js container">
+	<script src="../lib/vue/3.5.18/vue.global.js"></script>
+	<script src="../lib/element-plus/2.10.7/index.full.js"></script>
+	<script src="../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
+	<script>
+		const {createApp} = Vue;
+
+		function solveLightsOut(board) {
+			const size = board.length;
+			if (size === 0) {
+				return null;
+			}
+			const n = size * size;
+
+			const A = Array(n).fill(0).map(() => Array(n).fill(0));
+			for (let r = 0; r < size; r++) {
+				for (let c = 0; c < size; c++) {
+					const idx = r * size + c;
+					A[idx][idx] = 1;
+					if (r > 0) {
+						A[idx - size][idx] = 1;
+					}
+					if (r < size - 1) {
+						A[idx + size][idx] = 1;
+					}
+					if (c > 0) {
+						A[idx - 1][idx] = 1;
+					}
+					if (c < size - 1) {
+						A[idx + 1][idx] = 1;
+					}
+				}
+			}
+
+			const b = board.flat().map(light => light ? 0 : 1);
+
+			const M = A.map((row, i) => [...row, b[i]]);
+			let rank = 0;
+			const pivots = [];
+
+			for (let j = 0; j < n && rank < n; j++) {
+				let pivotRow = rank;
+				while (pivotRow < n && M[pivotRow][j] === 0) {
+					pivotRow++;
+				}
+
+				if (pivotRow < n) {
+					[M[rank], M[pivotRow]] = [M[pivotRow], M[rank]];
+					const pivot = M[rank];
+					for (let i = 0; i < n; i++) {
+						if (i !== rank && M[i][j] === 1) {
+							for (let k = j; k <= n; k++) {
+								M[i][k] ^= pivot[k];
+							}
+						}
+					}
+					pivots[j] = rank;
+					rank++;
+				}
+			}
+
+			for (let i = rank; i < n; i++) {
+				if (M[i][n] === 1) {
+					return null;
+				}
+			}
+
+			const solution = Array(n).fill(0);
+			for (let j = n - 1; j >= 0; j--) {
+				if (pivots[j] !== undefined) {
+					const pivotRow = pivots[j];
+					let val = M[pivotRow][n];
+					for (let k = j + 1; k < n; k++) {
+						val ^= M[pivotRow][k] * solution[k];
+					}
+					solution[j] = val;
+				} else {
+					solution[j] = 0;
+				}
+			}
+
+			return solution;
+		}
+
+		const app = createApp({
+			data() {
+				return {
+					boardSizes: [2, 3, 4, 5, 6, 7, 8, 9],
+					boardSize: 2,
+					board: [],
+					rounds: [],
+					highlightedCells: [],
+					descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname),
+					showWinModal: false
+				};
+			},
+			computed: {
+				isWin() {
+					if (!this.board || this.board.length === 0) {
+						return false;
+					}
+					return this.board.flat().every(cell => cell === true);
+				},
+				moveCount() {
+					return this.rounds.length;
+				}
+			},
+			watch: {
+				isWin(isWin) {
+					if (isWin) {
+						this.showWinModal = true;
+					}
+				},
+				descriptionVisible(newValue) {
+					const storageKey = 'description-hidden-' + window.location.pathname;
+					if (!newValue) {
+						localStorage.setItem(storageKey, 'true');
+					} else {
+						localStorage.removeItem(storageKey);
+					}
+				},
+				boardSize: 'initGame',
+				rounds: {
+					handler() {
+						this.$nextTick(() => {
+							const el = this.$refs.roundList;
+							if (el) {
+								el.scrollTop = el.scrollHeight;
+							}
+						});
+					},
+					deep: true
+				}
+			},
+			methods: {
+				initGame() {
+					this.rounds = [];
+					this.board = Array(this.boardSize).fill(0).map(() => Array(this.boardSize).fill(false));
+					this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
+				},
+				closeWinModal() {
+					this.showWinModal = false;
+				},
+				toggleCellState(row, col) {
+					if (this.board[row] && this.board[row][col] !== undefined) {
+						this.board[row][col] = !this.board[row][col];
+					}
+				},
+				handleCellClick(row, col) {
+					if (this.isWin) {
+						return;
+					}
+					this.toggleCellState(row, col);
+					if (row > 0) {
+						this.toggleCellState(row - 1, col);
+					}
+					if (row < this.boardSize - 1) {
+						this.toggleCellState(row + 1, col);
+					}
+					if (col > 0) {
+						this.toggleCellState(row, col - 1);
+					}
+					if (col < this.boardSize - 1) {
+						this.toggleCellState(row, col + 1);
+					}
+					this.rounds.push({row: row + 1, col: col + 1});
+				},
+				showRandomHint() {
+					if (this.isWin) {
+						this.$message.success('已经赢了，无需提示！');
+						return;
+					}
+
+					const solution = solveLightsOut(this.board);
+
+					if (!solution) {
+						this.$message.error('当前局面无解！请重新开始。');
+						this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
+						return;
+					}
+
+					const solutionPresses = [];
+					solution.forEach((press, index) => {
+						if (press === 1) {
+							solutionPresses.push(index);
+						}
+					});
+
+					if (solutionPresses.length === 0) {
+						this.$message.info('看起来已经完成了。');
+						this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
+						return;
+					}
+
+					const randomIndex = Math.floor(Math.random() * solutionPresses.length);
+					const hintIndex = solutionPresses[randomIndex];
+
+					// Highlight just that one cell
+					this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
+					const newHighlights = [...this.highlightedCells];
+					newHighlights[hintIndex] = true;
+					this.highlightedCells = newHighlights;
+				},
+				exportRounds() {
+					if (this.rounds.length === 0) {
+						this.$message.info('没有回合记录可导出');
+						return;
+					}
+					const content = this.rounds.map((round, index) => `${index + 1}：第${round.row}行, 第${round.col}列`)
+					.join('\n');
+
+					const blob = new Blob([content], {type: 'text/plain;charset=utf-8'});
+					const a = document.createElement('a');
+					a.href = URL.createObjectURL(blob);
+					a.download = `点灯游戏-回合记录（${this.boardSize}x${this.boardSize}）.txt`;
+					document.body.appendChild(a);
+					a.click();
+					document.body.removeChild(a);
+					URL.revokeObjectURL(a.href);
+				},
+				showAnswer() {
+					if (this.isWin) {
+						this.$message.success('已经赢了，无需提示！');
+						return;
+					}
+
+					const solution = solveLightsOut(this.board);
+
+					if (!solution) {
+						this.$message.error('当前局面无解！请重新开始。');
+						this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
+						return;
+					}
+
+					const presses = solution.reduce((acc, val) => acc + val, 0);
+					if (presses === 0) {
+						this.$message.info('看起来已经完成了。');
+						this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
+						return;
+					}
+
+					this.$message.info(`建议按 ${presses} 个格子。`);
+
+					const newHighlights = [];
+					solution.forEach((press, index) => {
+						newHighlights[index] = press === 1;
+					});
+					this.highlightedCells = newHighlights;
+				}
+			},
+			mounted() {
+				this.initGame();
+			}
+		});
+
+		for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+			app.component(key, component);
+		}
+
+		app.use(ElementPlus)
+		.mount('main');
+	</script>
+</div>
+
 <aside class="right-sidebar">
 	<!-- 谷歌广告联盟 -->
 	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"
@@ -230,277 +509,5 @@
 		</section>
 	</article>
 </aside>
-
-<script src="../lib/vue/3.5.18/vue.global.js"></script>
-<script src="../lib/element-plus/2.10.7/index.full.js"></script>
-<script src="../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
-<script>
-	const {createApp} = Vue;
-
-	function solveLightsOut(board) {
-		const size = board.length;
-		if (size === 0) {
-			return null;
-		}
-		const n = size * size;
-
-		const A = Array(n).fill(0).map(() => Array(n).fill(0));
-		for (let r = 0; r < size; r++) {
-			for (let c = 0; c < size; c++) {
-				const idx = r * size + c;
-				A[idx][idx] = 1;
-				if (r > 0) {
-					A[idx - size][idx] = 1;
-				}
-				if (r < size - 1) {
-					A[idx + size][idx] = 1;
-				}
-				if (c > 0) {
-					A[idx - 1][idx] = 1;
-				}
-				if (c < size - 1) {
-					A[idx + 1][idx] = 1;
-				}
-			}
-		}
-
-		const b = board.flat().map(light => light ? 0 : 1);
-
-		const M = A.map((row, i) => [...row, b[i]]);
-		let rank = 0;
-		const pivots = [];
-
-		for (let j = 0; j < n && rank < n; j++) {
-			let pivotRow = rank;
-			while (pivotRow < n && M[pivotRow][j] === 0) {
-				pivotRow++;
-			}
-
-			if (pivotRow < n) {
-				[M[rank], M[pivotRow]] = [M[pivotRow], M[rank]];
-				const pivot = M[rank];
-				for (let i = 0; i < n; i++) {
-					if (i !== rank && M[i][j] === 1) {
-						for (let k = j; k <= n; k++) {
-							M[i][k] ^= pivot[k];
-						}
-					}
-				}
-				pivots[j] = rank;
-				rank++;
-			}
-		}
-
-		for (let i = rank; i < n; i++) {
-			if (M[i][n] === 1) {
-				return null;
-			}
-		}
-
-		const solution = Array(n).fill(0);
-		for (let j = n - 1; j >= 0; j--) {
-			if (pivots[j] !== undefined) {
-				const pivotRow = pivots[j];
-				let val = M[pivotRow][n];
-				for (let k = j + 1; k < n; k++) {
-					val ^= M[pivotRow][k] * solution[k];
-				}
-				solution[j] = val;
-			} else {
-				solution[j] = 0;
-			}
-		}
-
-		return solution;
-	}
-
-	const app = createApp({
-		data() {
-			return {
-				boardSizes: [2, 3, 4, 5, 6, 7, 8, 9],
-				boardSize: 2,
-				board: [],
-				rounds: [],
-				highlightedCells: [],
-				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname),
-				showWinModal: false
-			};
-		},
-		computed: {
-			isWin() {
-				if (!this.board || this.board.length === 0) {
-					return false;
-				}
-				return this.board.flat().every(cell => cell === true);
-			},
-			moveCount() {
-				return this.rounds.length;
-			}
-		},
-		watch: {
-			isWin(isWin) {
-				if (isWin) {
-					this.showWinModal = true;
-				}
-			},
-			descriptionVisible(newValue) {
-				const storageKey = 'description-hidden-' + window.location.pathname;
-				if (!newValue) {
-					localStorage.setItem(storageKey, 'true');
-				} else {
-					localStorage.removeItem(storageKey);
-				}
-			},
-			boardSize: 'initGame',
-			rounds: {
-				handler() {
-					this.$nextTick(() => {
-						const el = this.$refs.roundList;
-						if (el) {
-							el.scrollTop = el.scrollHeight;
-						}
-					});
-				},
-				deep: true
-			}
-		},
-		methods: {
-			initGame() {
-				this.rounds = [];
-				this.board = Array(this.boardSize).fill(0).map(() => Array(this.boardSize).fill(false));
-				this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
-			},
-			closeWinModal() {
-				this.showWinModal = false;
-			},
-			getConfettiStyle() {
-				const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4',
-												'#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800'];
-				return {
-					left: `${Math.random() * 100}vw`,
-					animationDuration: `${Math.random() * 3 + 3}s`,
-					animationDelay: `${Math.random() * 2}s`,
-					backgroundColor: colors[Math.floor(Math.random() * colors.length)],
-					transform: `rotate(${Math.random() * 360}deg)`
-				};
-			},
-			toggleCellState(row, col) {
-				if (this.board[row] && this.board[row][col] !== undefined) {
-					this.board[row][col] = !this.board[row][col];
-				}
-			},
-			handleCellClick(row, col) {
-				if (this.isWin) {
-					return;
-				}
-				this.toggleCellState(row, col);
-				if (row > 0) {
-					this.toggleCellState(row - 1, col);
-				}
-				if (row < this.boardSize - 1) {
-					this.toggleCellState(row + 1, col);
-				}
-				if (col > 0) {
-					this.toggleCellState(row, col - 1);
-				}
-				if (col < this.boardSize - 1) {
-					this.toggleCellState(row, col + 1);
-				}
-				this.rounds.push({row: row + 1, col: col + 1});
-			},
-			showRandomHint() {
-				if (this.isWin) {
-					this.$message.success('已经赢了，无需提示！');
-					return;
-				}
-
-				const solution = solveLightsOut(this.board);
-
-				if (!solution) {
-					this.$message.error('当前局面无解！请重新开始。');
-					this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
-					return;
-				}
-
-				const solutionPresses = [];
-				solution.forEach((press, index) => {
-					if (press === 1) {
-						solutionPresses.push(index);
-					}
-				});
-
-				if (solutionPresses.length === 0) {
-					this.$message.info('看起来已经完成了。');
-					this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
-					return;
-				}
-
-				const randomIndex = Math.floor(Math.random() * solutionPresses.length);
-				const hintIndex = solutionPresses[randomIndex];
-
-				// Highlight just that one cell
-				this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
-				const newHighlights = [...this.highlightedCells];
-				newHighlights[hintIndex] = true;
-				this.highlightedCells = newHighlights;
-			},
-			exportRounds() {
-				if (this.rounds.length === 0) {
-					this.$message.info('没有回合记录可导出');
-					return;
-				}
-				const content = this.rounds.map((round, index) => `${index + 1}：第${round.row}行, 第${round.col}列`).join('\n');
-
-				const blob = new Blob([content], {type: 'text/plain;charset=utf-8'});
-				const a = document.createElement('a');
-				a.href = URL.createObjectURL(blob);
-				a.download = `点灯游戏-回合记录（${this.boardSize}x${this.boardSize}）.txt`;
-				document.body.appendChild(a);
-				a.click();
-				document.body.removeChild(a);
-				URL.revokeObjectURL(a.href);
-			},
-			showAnswer() {
-				if (this.isWin) {
-					this.$message.success('已经赢了，无需提示！');
-					return;
-				}
-
-				const solution = solveLightsOut(this.board);
-
-				if (!solution) {
-					this.$message.error('当前局面无解！请重新开始。');
-					this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
-					return;
-				}
-
-				const presses = solution.reduce((acc, val) => acc + val, 0);
-				if (presses === 0) {
-					this.$message.info('看起来已经完成了。');
-					this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
-					return;
-				}
-
-				this.$message.info(`建议按 ${presses} 个格子。`);
-
-				const newHighlights = [];
-				solution.forEach((press, index) => {
-					newHighlights[index] = press === 1;
-				});
-				this.highlightedCells = newHighlights;
-			}
-		},
-		mounted() {
-			this.initGame();
-		}
-	});
-
-	for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-		app.component(key, component);
-	}
-
-	app.use(ElementPlus)
-	.mount('main');
-</script>
 </body>
 </html>

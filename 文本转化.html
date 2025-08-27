@@ -27,9 +27,10 @@
 		<a href="svg转图标.html">SVG转图标</a>
 		<a href="化学/元素周期表.html">元素周期表</a>
 		<a href="拼音/拼音.html">拼音</a>
+		<a href="点灯.html">点灯</a>
 	</nav>
 </header>
-<main>
+<main v-cloak>
 	<header>
 		<h2>文本格式转换工具</h2>
 		<button class="toggle-description" @click="toggleDescription">{{ descriptionVisible ? '隐藏说明' : '显示说明' }}
@@ -86,26 +87,8 @@
 		</card>
 	</section>
 </main>
-<aside class="right-sidebar">
-	<!-- 谷歌广告联盟 -->
-	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"
-					crossorigin="anonymous"></script>
-	<!-- 展示广告1 -->
-	<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true"
-			 data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
-	<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-	<article class="website info">
-		<section class="qr-code">
-			<img src="resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
-			<span>赞助一下</span>
-		</section>
-		<section>
-			<p>&copy; 2025 工具兽版权所有 All rights reserved.</p>
-			<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
-		</section>
-	</article>
-</aside>
-<div>
+
+<div class="js container">
 	<script src="lib/vue/3.5.18/vue.global.js"></script>
 	<script src="lib/primevue/4.3.7/primevue.min.js"></script>
 	<script src="lib/primevue/themes/aura/1.2.3/aura.js"></script>
@@ -335,18 +318,24 @@
 	.mount('main');
 </script>
 
-<!-- 谷歌广告联盟 -->
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"
-				crossorigin="anonymous"></script>
-<!-- 展示广告1 -->
-<ins class="adsbygoogle"
-		 style="display:block"
-		 data-ad-client="ca-pub-3376778290975789"
-		 data-ad-slot="7434043904"
-		 data-ad-format="auto"
-		 data-full-width-responsive="true"></ins>
-<script>
-	(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
+<aside class="right-sidebar">
+	<!-- 谷歌广告联盟 -->
+	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"
+					crossorigin="anonymous"></script>
+	<!-- 展示广告1 -->
+	<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true"
+			 data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
+	<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+	<article class="website info">
+		<section class="qr-code">
+			<img src="resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+			<span>赞助一下</span>
+		</section>
+		<section>
+			<p>&copy; 2025 工具兽版权所有 All rights reserved.</p>
+			<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+		</section>
+	</article>
+</aside>
 </body>
 </html>
