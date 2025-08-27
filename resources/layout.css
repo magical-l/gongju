@@ -1,22 +1,23 @@
 @charset "utf-8";
 
 :root {
+	--朋字形-gap: 1em;
 	--亚字形-left-sidebar-min-width: 150px;
 	--亚字形-left-sidebar-max-width: 20%;
 	--亚字形-right-sidebar-min-width: 150px;
 	--亚字形-right-sidebar-max-width: 20%;
-	--亚字形-gap: 1rem;
+	--亚字形-gap: 1em;
 	--叵字形-left-sidebar-min-width: 150px;
 	--叵字形-left-sidebar-max-width: 20%;
 	--叵字形-right-sidebar-min-width: 150px;
 	--叵字形-right-sidebar-max-width: 20%;
-	--叵字形-gap: 1rem;
+	--叵字形-gap: 1em;
 	--反叵字形-left-sidebar-min-width: 150px;
 	--反叵字形-left-sidebar-max-width: 20%;
 	--反叵字形-right-sidebar-min-width: 150px;
 	--反叵字形-right-sidebar-max-width: 20%;
-	--反叵字形-gap: 1rem;
-	--目字形-gap: 1rem;
+	--反叵字形-gap: 1em;
+	--目字形-gap: 1em;
 }
 
 /*============================flex布局===========================*/
@@ -35,77 +36,27 @@
 
 .flex.multi-line, .inline-flex.multi-line {flex-wrap: wrap;}
 
-/*----------线路之间（align-content）----------*/
+/*----------线路之间（align-content）(lines带有语义，仅适用于flex布局）----------*/
 /*所有线路都拉伸膨胀，充满空间*/
-.flex.lines-stretch, .inline-flex.lines-stretch {flex-wrap: wrap; align-content: stretch;}
+.lines-stretch {flex-wrap: wrap; align-content: stretch;}
 
 /*所有线路都拥到第一条线路这边*/
-.flex.lines-near-start, .inline-flex.lines-near-start {flex-wrap: wrap; align-content: start;}
+.lines-near-start {flex-wrap: wrap; align-content: start;}
 
 /*所有线路都退到最后一条线路这边*/
-.flex.lines-near-end, .inline-flex.lines-near-end {flex-wrap: wrap; align-content: end;}
+.lines-near-end {flex-wrap: wrap; align-content: end;}
 
 /*所有线路都挤在中间*/
-.flex.lines-near-center, .inline-flex.lines-near-center {flex-wrap: wrap; align-content: center;}
+.lines-near-center {flex-wrap: wrap; align-content: center;}
 
 /*线路互斥（社恐），即线路互相之间距离尽量远*/
-.flex.lines-space-between, .flex.lines-mutex, .flex.lines-social-phobia,
-.inline-flex.lines-space-between, .inline-flex.lines-mutex, .inline-flex.lines-social-phobia {
-	flex-wrap: wrap; align-content: space-between;
-}
+.lines-space-between, .lines-mutex, .lines-social-phobia {flex-wrap: wrap; align-content: space-between;}
 
 /*线路不熟，即线路互相之间保持距离但又不极端排斥*/
-.flex.lines-space-around, .flex.lines-unfamiliar, .inline-flex.lines-space-around, .inline-flex.lines-unfamiliar {
-	flex-wrap: wrap; align-content: space-around;
-}
+.lines-space-around, .flex.lines-unfamiliar {flex-wrap: wrap; align-content: space-around;}
 
 /*线路不熟但比较友好*/
-.flex.lines-space-evenly, .flex.lines-friendly, .inline-flex.lines-space-evenly, .inline-flex.lines-friendly {
-	flex-wrap: wrap; align-content: space-evenly;
-}
-
-.flex.near-center, .inline-flex.near-center {justify-content: center; align-items: center;}
-
-/*----------项目之间（justify-content）----------*/
-/*项目都拥到队伍前面/在主轴上靠前*/
-.flex.items-near-start-x, .inline-flex.items-near-start-x {justify-content: start;}
-
-/*项目都退到队伍后面/在主轴上靠后*/
-.flex.items-near-end-x, .inline-flex.items-near-end-x {justify-content: end;}
-
-/*项目都挤在队伍中间/在主轴上居中*/
-.flex.items-near-center-x, .inline-flex.items-near-center-x {justify-content: center;}
-
-/*项目互斥（社恐），即项目互相之间距离尽量远*/
-.flex.items-space-between, .flex.items-mutex, .flex.items-social-phobia,
-.inline-flex.items-space-between, .inline-flex.items-mutex, .inline-flex.items-social-phobia {
-	justify-content: space-between;
-}
-
-/*项目不熟，即项目互相之间保持距离但又不极端排斥*/
-.flex.items-space-around, .flex.items-unfamiliar, .inline-flex.items-space-around, .inline-flex.items.items-unfamiliar {
-	justify-content: space-around;
-}
-
-/*项目不熟但比较友好*/
-.flex.items-space-evenly, .flex.items-friendly, .inline-flex.items-space-evenly, .inline-flex.items-friendly {
-	justify-content: space-evenly;
-}
-
-/*----------项目在次轴方向（align-items）----------*/
-/*项目在次轴方向上拉伸膨胀，充满空间*/
-.flex.items-stretch, .inline-flex.items-stretch {align-items: stretch;}
-
-/*项目垂直靠向开始的方向/在次轴上靠前*/
-.flex.items-near-start-y, .inline-flex.items-near-start-y {align-items: start;}
-
-/*项目垂直靠向结束的方向/在次轴上靠后*/
-.flex.items-near-end-y, .inline-flex.items-near-end-y {align-items: end;}
-
-/*项目垂直居中/在次轴上居中，像“册”字一样*/
-.flex.items-near-center-y, .flex.items-like-册, .inline-flex.items-near-center-y, .inline-flex.items-like-册 {
-	align-items: center;
-}
+.lines-space-evenly, .flex.lines-friendly {flex-wrap: wrap; align-content: space-evenly;}
 
 /*-----------项目本身------------*/
 /*项目独占/垄断 一行*/
@@ -122,9 +73,16 @@
 
 .grid.inline, .inline-grid {display: inline-grid}
 
+/* 不一定真的能独占一行/列。如果另有项目也安排在同一行/列，两者会堆叠 */
 .grid > .one-row.item, .inline-grid > .one-row.item {grid-column: 1 / -1;}
 
 .grid > .one-column.item, .inline-grid > .one-column.item {grid-row: 1 / -1;}
+
+.grid.朋字形, .inline-grid.朋字形 {
+	grid-template-columns: 50% 50%;
+	grid-template-areas: 'left right';
+	gap: var(--朋字形-gap);
+}
 
 /* “亚字形”布局，上部导航栏，底部页脚，中间有左右侧栏，中部是主要内容 */
 .grid.亚字形, .inline-grid.亚字形 {
@@ -185,7 +143,41 @@
 	gap: var(--目字形-gap);
 }
 
-/* 为防父元素没有使用.grid类之类，所以不使用 .grid > header ，直接设置grid-area。若父元素非display:grid也没事，会被浏览器忽略 */
+/*==========================================用于布局容器本身==========================================*/
+/*----------项目之间（justify-content），适用于flex、grid布局里的项目----------*/
+/*项目都拥到队伍前面/在主轴上靠前*/
+.items-near-start-x {justify-content: start;}
+
+/*项目都退到队伍后面/在主轴上靠后*/
+.items-near-end-x {justify-content: end;}
+
+/*项目都挤在队伍中间/在主轴上居中*/
+.items-near-center-x {justify-content: center;}
+
+/*项目互斥（社恐），即项目互相之间距离尽量远*/
+.items-space-between, .items-mutex, .items-social-phobia {justify-content: space-between;}
+
+/*项目不熟，即项目互相之间保持距离但又不极端排斥*/
+.items-space-around,.items-unfamiliar {justify-content: space-around;}
+
+/*项目不熟但比较友好*/
+.items-space-evenly, .items-friendly {justify-content: space-evenly;}
+
+/*----------项目在次轴方向（align-items），适用于flex、grid布局里的项目----------*/
+/*项目在次轴方向上拉伸膨胀，充满空间*/
+.items-stretch {align-items: stretch;}
+
+/*项目垂直靠向开始的方向/在次轴上靠前*/
+.items-near-start-y {align-items: start;}
+
+/*项目垂直靠向结束的方向/在次轴上靠后*/
+.items-near-end-y {align-items: end;}
+
+/*项目垂直居中/在次轴上居中，像“册”字一样*/
+.items-near-center-y, .items-like-册 {align-items: center;}
+
+/*==========================================用于项目=========================================*/
+/* 为防父元素没有使用.grid类之类，所以不使用 .grid > header ，直接设置grid-area。若父元素非display:grid也没事，会被浏览器忽略。下同 */
 header {
 	grid-area: header;
 	grid-row: 1;
@@ -205,3 +197,6 @@ aside.left-sidebar {grid-area: left-sidebar;}
 aside.right-sidebar {grid-area: right-sidebar;}
 
 main, .main, .body {grid-area: main;flex: 1;}
+
+.near-center {justify-content: center; align-items: center;}
+
