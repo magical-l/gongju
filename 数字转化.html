@@ -1,34 +1,43 @@
 <!DOCTYPE html>
 <html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
 <head>
-	<meta charset="UTF-8">
-	<title>数字转化工具 - 在线进制转换与格式化</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="description" content="在线进行数字进制转换（二进制、八进制、十进制、十六进制）和数字格式化，方便程序员和学生使用。">
-	<meta name="keywords" content="数字转化, 进制转换, 在线工具, 程序员工具, 二进制, 十六进制, 数字格式化">
-	<meta name="author" content="工具兽">
-	<meta property="og:title" content="数字转化工具 - 在线进制转换与格式化">
-	<meta property="og:description" content="在线进行数字进制转换（二进制、八进制、十进制、十六进制）和数字格式化，方便程序员和学生使用。">
-	<meta property="og:type" content="website">
+<meta charset="UTF-8">
+<title>数字转化工具 - 在线进制转换与格式化</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description"
+			content="在线进行数字进制转换（二进制、八进制、十进制、十六进制）和数字格式化，方便程序员和学生使用。">
+<meta name="keywords" content="数字转化, 进制转换, 在线工具, 程序员工具, 二进制, 十六进制, 数字格式化">
+<meta name="author" content="工具兽">
+<meta property="og:title" content="数字转化工具 - 在线进制转换与格式化">
+<meta property="og:description"
+			content="在线进行数字进制转换（二进制、八进制、十进制、十六进制）和数字格式化，方便程序员和学生使用。">
+<meta property="og:type" content="website">
 
-	<link href="lib/primevue/primeicons.css" rel="stylesheet">
-	<link href="lib/toastr.min.css" rel="stylesheet">
-	<link href="resources/common.css?v=250821" rel="stylesheet">
-	<link href="resources/花活.css" rel="stylesheet">
-	<link href="resources/layout.css?v=0821" rel="stylesheet">
-	<link href="resources/biz.css?v=250821" rel="stylesheet">
-	<style>
-		.input.area {
-			position: relative;
-		}
+<link href="lib/element-plus/2.10.7/index.css" rel="stylesheet">
+<link href="resources/el-plus.css" rel="stylesheet">
+<link href="lib/toastr.min.css" rel="stylesheet">
+<link href="resources/common.css?v=250821" rel="stylesheet">
+<link href="resources/layout.css?v=0821" rel="stylesheet">
+<link href="resources/biz.css?v=250821" rel="stylesheet">
+<link href="resources/花活.css" rel="stylesheet">
+<style>
+	.radix.setting.area {
+		margin-top: 10px;
+		gap: 1em;
+	}
 
-		.input.area .input.radix.chooser {
-			position: absolute;
-			bottom: 10px;
-			right: 10px;
-			z-index: 1;
-		}
-	</style>
+	.radix.setting.area > p {
+		margin: 0;
+	}
+
+	.one.result > .header {
+		padding: 0 20px;
+	}
+
+	.one.result .one.setting {
+		margin-left: 10px;
+	}
+</style>
 </head>
 <body class="grid 反叵字形">
 <header>
@@ -38,71 +47,79 @@
 		<a href="数字转化.html" class="active">数字转化</a>
 		<a href="格子盘.html">格子盘</a>
 		<a href="svg转图标.html">SVG转图标</a>
-		<a href="化学/元素周期表.html">元素周期表</a>		<a href="拼音/拼音.html">拼音</a>
+		<a href="化学/元素周期表.html">元素周期表</a>
+		<a href="拼音/拼音.html">拼音</a>
 		<a href="游戏/点灯.html">点灯</a>
 	</nav>
 </header>
-<main v-cloak>
+<main>
 	<header>
 		<h2>文中数字格式转换工具</h2>
-		<button class="toggle-description" @click="toggleDescription">{{ descriptionVisible ? '隐藏说明' : '显示说明' }}
-		</button>
-	</header>
-	<article class="description" v-if="descriptionVisible">
-		<p>
-			“文中数字格式转换工具”是一个全面的在线服务，旨在为用户提供快速、准确的数字格式转换。无论您是需要进行不同进制间的转换，还是需要将阿拉伯数字转换为中文大写格式，这个工具都能轻松应对。</p>
-		<h2>核心功能</h2>
-		<ul>
-			<li><strong>多进制转换：</strong>支持在二进制、八进制、十进制和十六进制之间进行任意转换。</li>
-			<li><strong>中文数字转换：</strong>可将阿拉伯数字转换为汉语数码、大写汉语数码、汉语数字以及大写汉语数字，满足不同场合下的使用需求。
-			</li>
-			<li><strong>专业格式：</strong>提供“标准通讯数字读法”转换，方便在特定行业（如电信、航空）中使用。</li>
-			<li><strong>文本处理：</strong>工具能够智能识别并处理文本中的数字部分，非数字字符将保持原样，方便处理混合文本。</li>
-		</ul>
-		<h2>适用场景</h2>
-		<p><strong>编程与开发：</strong>程序员在处理底层数据或进行编码转换时，经常需要进行进制转换。</p>
-		<p><strong>财务与会计：</strong>在填写支票、发票或合同等正式文件时，需要将金额转换为大写汉语数字，以防篡改。</p>
-		<p><strong>教育与学习：</strong>学生在学习计算机科学或数学时，可以使用此工具来验证和练习不同进制的计算。</p>
-	</article>
-	<section class="input area">
-		<p-textarea placeholder="在此输入要处理的文本，处理文本中的数字，非数字部分将保留原样。" rows="5" autoResize
-								:class="descriptionVisible?'border-pulse':''"
-								v-model="inputText" @input="processInput"></p-textarea>
-		<choose-group class="input radix chooser" v-model="inputRadix" :options="radixOptions"
-									@change="processInput"></choose-group>
-	</section>
-
-	<section class="transfer result area">
-		<header>
-			<span class="note">* 点击数值即可复制。</span>
-			<span class="note" v-if="inputRadix==='二进制'"> * 除<strong>0、1</strong>外其他数字会被当作普通字符</span>
-			<span class="note" v-if="inputRadix==='八进制'"> * <strong>8、9</strong>会被当作普通字符</span>
-			<span class="note"
-						v-if="inputRadix==='十六进制'"> * <strong>a、b、c、d、e、f（不分大小写）</strong>会被当作数字字符</span>
-		</header>
-		<card class="one result" @click="copyToClipboard(result.value)" v-for="(result,label) in results" :key="label">
-			<template #title>
-				<header>
-					<span>{{ label }}</span>
-					<span>
-						<choose-group class="chooser" v-for="(setting,settingName) in result.settings" :key="settingName"
-													v-model="setting.val" :options="setting.options"
-													@click.stop @change="updateResult(result, inputText, inputRadix)"/>
-					</span>
-				</header>
-			</template>
-			<template #content>
-				<article title="点击复制" v-if="result.value">
-					<span class="value truncate-long-text">{{result.value}}</span>
-					<p-button title="把此结果作为输入" aria-label="把此结果作为输入" @click.stop="asInput(result.value)"
-										variant="outlined" serverity="info">
-						<i class="pi pi-upload"></i>
-					</p-button>
+		<div class="help area" v-cloak>
+			<el-button size="small" circle title="显示说明" @click="descriptionVisible = true">?</el-button>
+			<el-dialog title="页面说明" v-model="descriptionVisible" width="60%">
+				<article class="description">
+					<p>
+						“文中数字格式转换工具”是一个全面的在线服务，旨在为用户提供快速、准确的数字格式转换。无论您是需要进行不同进制间的转换，还是需要将阿拉伯数字转换为中文大写格式，这个工具都能轻松应对。</p>
+					<h2>核心功能</h2>
+					<ul>
+						<li><strong>多进制转换：</strong>支持在二进制、八进制、十进制和十六进制之间进行任意转换。</li>
+						<li><strong>中文数字转换：</strong>可将阿拉伯数字转换为汉语数码、大写汉语数码、汉语数字以及大写汉语数字，满足不同场合下的使用需求。
+						</li>
+						<li><strong>专业格式：</strong>提供“标准通讯数字读法”转换，方便在特定行业（如电信、航空）中使用。</li>
+						<li><strong>文本处理：</strong>工具能够智能识别并处理文本中的数字部分，非数字字符将保持原样，方便处理混合文本。
+						</li>
+					</ul>
+					<h2>适用场景</h2>
+					<p><strong>编程与开发：</strong>程序员在处理底层数据或进行编码转换时，经常需要进行进制转换。</p>
+					<p><strong>财务与会计：</strong>在填写支票、发票或合同等正式文件时，需要将金额转换为大写汉语数字，以防篡改。</p>
+					<p><strong>教育与学习：</strong>学生在学习计算机科学或数学时，可以使用此工具来验证和练习不同进制的计算。</p>
 				</article>
-				<div v-else class="placeholder">（等待输入）</div>
-			</template>
-		</card>
-	</section>
+			</el-dialog>
+		</div>
+	</header>
+	<article v-cloak>
+		<section class="input area">
+			<el-input placeholder="在此输入要处理的文本，处理文本中的数字，非数字部分将保留原样。" type="textarea" :rows="5"
+								v-model="inputText" @input="processInput"></el-input>
+			<div class="radix setting area , flex items-near-start-x">
+				<el-radio-group v-model="inputRadix" @change="processInput">
+					<el-radio-button v-for="radix in radixOptions" :key="radix" :label="radix"/>
+				</el-radio-group>
+				<p class="note" v-if="inputRadix==='二进制'">* 除<strong>0、1</strong>外其他数字会被当作普通字符</p>
+				<p class="note" v-if="inputRadix==='八进制'">* <strong>8、9</strong>会被当作普通字符</p>
+				<p class="note" v-if="inputRadix==='十六进制'">* <strong>a、b、c、d、e、f（不分大小写）</strong>会被当作数字字符</p>
+			</div>
+		</section>
+
+		<section class="result area , grid">
+			<header class="one-row , flex items-near-start-x">
+				<p>转换结果：</p>
+				<p>（点击文本即可复制）</p>
+			</header>
+			<el-card class="one result" v-for="(result,label) in results" :key="label"
+							 header-class="header , flex items-mutex items-like-册" body-class="val">
+				<template #header>
+					<p>{{ label }}</p>
+					<div class="setting">
+						<el-radio-group class="one setting" v-for="(setting,settingName) in result.settings" :key="settingName"
+														v-model="setting.val" size="small"
+														@change="updateResult(result, inputText, inputRadix)">
+							<el-radio-button v-for="opt in setting.options" :key="opt" :label="opt"/>
+						</el-radio-group>
+					</div>
+				</template>
+				<section class="grid" style="grid-template-columns: 1fr auto;align-items: center">
+					<p v-if="result.value" class="truncate-long-text" @click="copyToClipboard(result.value)">{{result.value}}</p>
+					<p v-else>（无结果。等待输入）</p>
+					<el-button title="把此结果作为输入" v-if="result.value" @click.stop="asInput(result.value)"
+										 aria-label="把此结果作为输入"
+										 type="primary" icon="Upload">
+					</el-button>
+				</section>
+			</el-card>
+		</section>
+	</article>
 </main>
 
 <aside class="right-sidebar">
@@ -120,8 +137,8 @@
 
 <div class="js container">
 	<script src="lib/vue/3.5.18/vue.global.js"></script>
-	<script src="lib/primevue/4.3.7/primevue.min.js"></script>
-	<script src="lib/primevue/themes/aura/1.2.3/aura.js"></script>
+	<script src="lib/element-plus/2.10.7/index.full.js"></script>
+	<script src="lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
 	<script src="lib/jquery-3.4.1.min.js"></script>
 	<script src="lib/toastr.min.js"></script>
 	<script src="resources/util.js"></script>
@@ -131,6 +148,7 @@
 </div>
 <script>
 	const {createApp} = Vue;
+	const {Upload} = ElementPlusIconsVue;
 
 	const results = {
 		'十进制': {
@@ -274,34 +292,15 @@
 	};
 
 	const app = createApp({
-		components: {
-			'choose-group': PrimeVue.SelectButton,
-			'p-button': PrimeVue.Button,
-			'p-textarea': PrimeVue.Textarea,
-			'p-fieldset': PrimeVue.Fieldset,
-			'card': PrimeVue.Card,
-			'toolbar': PrimeVue.Toolbar,
-			'p-checkbox': PrimeVue.Checkbox
-		},
 		data() {
 			return {
 				inputText: '',
 				inputRadix: '十进制',
 				radixOptions: ['十进制', '二进制', '十六进制', '八进制'],
-				results,
-				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname)
+				results
 			};
 		},
 		methods: {
-			toggleDescription() {
-				this.descriptionVisible = !this.descriptionVisible;
-				const storageKey = 'description-hidden-' + window.location.pathname;
-				if (this.descriptionVisible) {
-					localStorage.removeItem(storageKey);
-				} else {
-					localStorage.setItem(storageKey, 'true');
-				}
-			},
 			async copyToClipboard(text) {
 				if (!text) {
 					return;
@@ -345,12 +344,29 @@
 			this.processInput();
 		}
 	})
-	.use(PrimeVue.Config, {
-		theme: {
-			preset: PrimeUIX.Themes.Aura
+	.use(ElementPlus)
+	.component('Upload', Upload)
+	.mount('main > article');
+
+	createApp({
+		data() {
+			return {
+				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname)
+			};
+		},
+		watch: {
+			descriptionVisible(newValue) {
+				const storageKey = 'description-hidden-' + window.location.pathname;
+				if (!newValue) {
+					localStorage.setItem(storageKey, 'true');
+				} else {
+					localStorage.removeItem(storageKey);
+				}
+			}
 		}
 	})
-	.mount('main');
+	.use(ElementPlus)
+	.mount('.help.area');
 </script>
 
 <div>

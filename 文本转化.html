@@ -73,12 +73,11 @@
 			</header>
 
 			<section class="one result" v-for="(result,label) in results" :key="label">
-				<el-input readonly v-model="result.value"  @click="copyToClipboard(result.value)">
+				<el-input readonly v-model="result.value" @click="copyToClipboard(result.value)">
 					<template #prepend>{{ label }}</template>
 					<template #append>
 						<el-button title="把此结果作为输入" aria-label="把此结果作为输入" @click.stop="asInput(result.value)"
-											 type="info">
-							<el-icon><Upload /></el-icon>
+											 type="info" icon="Upload">
 						</el-button>
 					</template>
 				</el-input>
@@ -308,6 +307,7 @@
 		}
 	})
 	.use(ElementPlus)
+	.component('Upload', Upload)
 	.mount('main > article');
 
 	createApp({
