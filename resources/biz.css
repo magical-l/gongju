@@ -45,6 +45,10 @@ main > header h2 {
 	margin: 0; /* 移除默认h2的外边距 */
 }
 
+.toolbar {
+	gap: 15px;
+}
+
 .toggle-description {
 	padding: 8px 16px;
 	border: 1px solid #ccc;
