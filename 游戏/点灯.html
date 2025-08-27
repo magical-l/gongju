@@ -483,6 +483,10 @@
 		}
 	})
 	.use(ElementPlus);
+	for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+		app.component(key, component);
+	}
+	app.mount('main>article');
 
 	const help = createApp({
 		data() {
@@ -501,14 +505,8 @@
 			}
 		}
 	})
-	.use(ElementPlus);
-
-	for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-		app.component(key, component);
-		help.component(key, component);
-	}
-	app.mount('main>article');
-	help.mount('.help.area');
+	.use(ElementPlus)
+	.mount('.help.area');
 </script>
 
 <div>
