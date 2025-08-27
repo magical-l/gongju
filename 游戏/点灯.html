@@ -141,27 +141,30 @@
 		<a href="点灯.html" class="active">点灯</a>
 	</nav>
 </header>
-<main v-cloak>
+<main>
 	<header>
 		<h2>点灯游戏</h2>
-		<el-button size="small" circle title="游戏介绍" @click="descriptionVisible = true">?</el-button>
-	</header>
-	<el-dialog title="游戏介绍" v-model="descriptionVisible" width="60%">
-		<article class="description">
-			<p>
-				欢迎来到“熄灯游戏”（Lights Out），这是一款经典的益智游戏，由 Tiger Electronics 在 1995
-				年推出。游戏的目标非常简单：通过点击格子，将棋盘上所有的灯光都点亮/熄灭（变成蓝色）。
-			</p>
-			<p>
-				游戏的规则是：点击任意一个格子，该格子以及其上下左右相邻的格子都会切换状态（亮变灭，灭变亮）。您需要巧妙地选择点击的顺序和位置，才能最终让所有灯光都点亮/熄灭。
-			</p>
-			<p>
-				您可以选择不同大小的棋盘（例如 3x3、5x5、7x7 等）来挑战自己。游戏还提供了“提示”和“答案”功能，帮助您在遇到困难时找到解决方案。祝您玩得愉快！
-			</p>
-		</article>
-	</el-dialog>
 
-	<article>
+		<div class="help area" v-cloak>
+			<el-button class="help btn" size="small" circle title="游戏介绍" @click="descriptionVisible = true">?</el-button>
+			<el-dialog title="游戏介绍" v-model="descriptionVisible" width="60%">
+				<article class="description">
+					<p>
+						欢迎来到“熄灯游戏”（Lights Out），这是一款经典的益智游戏，由 Tiger Electronics 在 1995
+						年推出。游戏的目标非常简单：通过点击格子，将棋盘上所有的灯光都点亮/熄灭（变成蓝色）。
+					</p>
+					<p>
+						游戏的规则是：点击任意一个格子，该格子以及其上下左右相邻的格子都会切换状态（亮变灭，灭变亮）。您需要巧妙地选择点击的顺序和位置，才能最终让所有灯光都点亮/熄灭。
+					</p>
+					<p>
+						您可以选择不同大小的棋盘（例如 3x3、5x5、7x7 等）来挑战自己。游戏还提供了“提示”和“答案”功能，帮助您在遇到困难时找到解决方案。祝您玩得愉快！
+					</p>
+				</article>
+			</el-dialog>
+		</div>
+	</header>
+
+	<article v-cloak>
 		<section class="toolbar flex near-center">
 			<el-radio-group v-model="boardSize">
 				<el-radio-button v-for="opt in boardSizes" :key="opt" size="large" :value="opt">{{opt}}x{{opt}}
@@ -326,7 +329,6 @@
 				board: [],
 				rounds: [],
 				highlightedCells: [],
-				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname),
 				showWinModal: false
 			};
 		},
@@ -345,14 +347,6 @@
 			isWin(isWin) {
 				if (isWin) {
 					this.showWinModal = true;
-				}
-			},
-			descriptionVisible(newValue) {
-				const storageKey = 'description-hidden-' + window.location.pathname;
-				if (!newValue) {
-					localStorage.setItem(storageKey, 'true');
-				} else {
-					localStorage.removeItem(storageKey);
 				}
 			},
 			boardSize: 'initGame',
@@ -487,14 +481,34 @@
 		mounted() {
 			this.initGame();
 		}
-	});
+	})
+	.use(ElementPlus);
+
+	const help = createApp({
+		data() {
+			return {
+				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname)
+			};
+		},
+		watch: {
+			descriptionVisible(newValue) {
+				const storageKey = 'description-hidden-' + window.location.pathname;
+				if (!newValue) {
+					localStorage.setItem(storageKey, 'true');
+				} else {
+					localStorage.removeItem(storageKey);
+				}
+			}
+		}
+	})
+	.use(ElementPlus);
 
 	for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 		app.component(key, component);
+		help.component(key, component);
 	}
-
-	app.use(ElementPlus)
-	.mount('main');
+	app.mount('main>article');
+	help.mount('.help.area');
 </script>
 
 <div>
