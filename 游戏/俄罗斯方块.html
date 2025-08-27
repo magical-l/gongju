@@ -21,7 +21,7 @@
 <link href="../resources/common.css?v=250821" rel="stylesheet">
 <link href="../resources/layout.css?v=0821" rel="stylesheet">
 <link href="../resources/biz.css?v=250821" rel="stylesheet">
-<link href="resources/花活.css" rel="stylesheet">
+<link href="../resources/花活.css?v=250821" rel="stylesheet">
 
 <style>
 	body { background-color: #f8f9fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 2rem; }
@@ -88,27 +88,7 @@
 	</nav>
 </header>
 <main>
-	<!--<panel header="俄罗斯方块">
-		<template #icons>
-			<button class="p-panel-header-icon p-link mr-2" @click="toggleDescription">{{ descriptionVisible ? '隐藏说明' :
-				'显示说明' }}
-			</button>
-		</template>
-		<div v-if="descriptionVisible" class="help-content">
-			<p>一个经典的俄罗斯方块游戏，但拥有更现代化的功能。</p>
-			<ul>
-				<li><strong>难度曲线:</strong> “柔和”模式速度线性增加；“经典”模式模拟原版游戏，速度会在特定等级急剧提升，更具挑战性。
-				</li>
-				<li><strong>初始等级:</strong> 选择一个更高的等级来开始游戏，直接挑战高速率。</li>
-				<li><strong>宽高设置:</strong> 自定义游戏区域的大小，点击“✓”即可保存并开始新游戏。“⟳”可随时回到经典的10x20尺寸。
-				</li>
-				<li><strong>幽灵方块:</strong> 开启后，会在底部显示方块的最终落点，帮助你更精确地放置。</li>
-				<li><strong>快捷键:</strong>
-					使用方向键控制方块，按<strong>空格键</strong>可以随时暂停或继续游戏，按<strong>回车键</strong>可以使方块硬着陆。
-				</li>
-			</ul>
-		</div>
-	</panel>-->
+	
 
 	<div class="game-wrapper" style="margin-top: 1rem;">
 		<div class="board-wrapper">
@@ -118,43 +98,40 @@
 				</div>
 				<div id="pause-overlay" v-if="isPaused || isGameOver">
 					<div id="overlay-text">{{ overlayText }}</div>
-					<p-button v-if="!isGameOver" :label="pauseButtonText" @click="togglePause"></p-button>
+					<el-button v-if="!isGameOver" :label="pauseButtonText" @click="togglePause"></el-button>
 				</div>
 			</div>
 		</div>
 		<div class="side-panel">
-			<panel header="控制与设置">
+			<el-card header="控制与设置">
 				<div class="game-buttons">
-					<p-button label="重新开始" @click="startGame" class="p-button-secondary" style="width: 100%;"></p-button>
+					<el-button type="primary" @click="startGame" style="width: 100%;">重新开始</el-button>
 				</div>
 				<div class="config-item">
 					<label>难度设置:</label>
 					<div style="display: flex; align-items: center; gap: 10px;">
-						<num-input v-model="settings.startLevel" :min="1" :max="29" @update:model-value="saveSettings"
-											 :inputStyle="{width: '70px'}"></num-input>
-						<choose-group v-model="settings.difficulty" :options="difficultyOptions"
-													option-label="name" option-value="value"
-													@update:model-value="saveSettings"></choose-group>
+						<el-input-number v-model="settings.startLevel" :min="1" :max="29" @change="saveSettings" style="width: 70px;"></el-input-number>
+						<el-radio-group v-model="settings.difficulty" @change="saveSettings">
+							<el-radio-button v-for="opt in difficultyOptions" :key="opt.value" :label="opt.value">{{opt.name}}</el-radio-button>
+						</el-radio-group>
 					</div>
 				</div>
 				<div class="config-item">
 					<label>游戏区尺寸:</label>
 					<div style="display: flex; align-items: center; gap: 10px;">
-						<num-input v-model="settings.cols" :min="5" :max="30" :inputStyle="{width: '70px'}"></num-input>
+						<el-input-number v-model="settings.cols" :min="5" :max="30" style="width: 70px;"></el-input-number>
 						<span>x</span>
-						<num-input v-model="settings.rows" :min="10" :max="40" :inputStyle="{width: '70px'}"></num-input>
-						<p-button icon="pi pi-check" @click="applyAndSaveSize" title="应用并重开一局"></p-button>
-						<p-button icon="pi pi-replay" @click="restoreDefaultSize" title="恢复默认并重开一局"
-											class="p-button-secondary"></p-button>
+						<el-input-number v-model="settings.rows" :min="10" :max="40" style="width: 70px;"></el-input-number>
+						<el-button icon="Check" @click="applyAndSaveSize" title="应用并重开一局"></el-button>
+						<el-button icon="RefreshRight" @click="restoreDefaultSize" title="恢复默认并重开一局"></el-button>
 					</div>
 				</div>
 				<div class="config-item">
-					<toggle v-model="settings.showGhost" on-label="显示幽灵方块" off-label="不显示幽灵方块"
-									@update:model-value="saveSettings"></toggle>
+					<el-switch v-model="settings.showGhost" active-text="显示幽灵方块" inactive-text="不显示幽灵方块" @change="saveSettings"></el-switch>
 				</div>
-			</panel>
+			</el-card>
 
-			<panel header="游戏状态" style="margin-top: 1.5rem;">
+			<el-card header="游戏状态" style="margin-top: 1.5rem;">
 				<div style="display: flex; justify-content: space-around; text-align: center;">
 					<div><h3>分数</h3>
 						<p>{{ score }}</p></div>
@@ -163,13 +140,13 @@
 					<div><h3>等级</h3>
 						<p>{{ level }}</p></div>
 				</div>
-			</panel>
+			</el-card>
 
-			<panel header="下一个" style="margin-top: 1.5rem;">
+			<el-card header="下一个" style="margin-top: 1.5rem;">
 				<div id="next-piece-container">
 					<div v-for="(cell, index) in nextPieceGrid" :key="index" :class="['next-cell', 'cell', cell]"></div>
 				</div>
-			</panel>
+			</el-card>
 		</div>
 	</div>
 </main>
@@ -188,28 +165,16 @@
 </aside>
 
 <div class="js container">
-	<script src="lib/jquery-3.4.1.min.js"></script>
-	<script src="lib/toastr.min.js"></script>
-	<script src="resources/util.js"></script>
-	<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-	<script src="https://unpkg.com/primevue/umd/primevue.min.js"></script>
-	<script src="https://unpkg.com/@primeuix/themes/umd/aura.js"></script>
+	<script src="../lib/jquery-3.4.1.min.js"></script>
+	<script src="../lib/toastr.min.js"></script>
+	<script src="../resources/util.js"></script>
+	<script src="../lib/vue/3.5.18/vue.global.js"></script>
+	<script src="../lib/element-plus/2.10.7/index.full.js"></script>
+	<script src="../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
 </div>
 <script>
 	const {createApp, ref, reactive, computed, onMounted, watch} = Vue;
-
 	const app = createApp({
-		components: {
-			'choose-group': PrimeVue.SelectButton,
-			'p-button': PrimeVue.Button,
-			'p-textarea': PrimeVue.Textarea,
-			'p-fieldset': PrimeVue.Fieldset,
-			'card': PrimeVue.Card,
-			'toolbar': PrimeVue.Toolbar,
-			'panel': PrimeVue.Panel,
-			'num-input': PrimeVue.InputNumber,
-			'toggle': PrimeVue.ToggleButton
-		},
 		setup() {
 			// --- Reactive State ---
 			const score = ref(0);
@@ -571,30 +536,13 @@
 				restoreDefaultSize,
 				saveSettings
 			};
-		},
-		data() {
-			return {
-				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname)
-			};
-		},
-		methods: {
-			toggleDescription() {
-				this.descriptionVisible = !this.descriptionVisible;
-				const storageKey = 'description-hidden-' + window.location.pathname;
-				if (this.descriptionVisible) {
-					localStorage.removeItem(storageKey);
-				} else {
-					localStorage.setItem(storageKey, 'true');
-				}
-			}
 		}
-	})
-	.use(PrimeVue.Config, {
-		theme: {
-			preset: PrimeUIX.Themes.Aura
-		}
-	})
-	.mount('main');
+	});
+	app.use(ElementPlus);
+	for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+		app.component(key, component);
+	}
+	app.mount('main');
 </script>
 
 <div>
