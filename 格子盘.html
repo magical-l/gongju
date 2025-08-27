@@ -23,37 +23,18 @@
 		--cell-border: #e0e0e0;
 	}
 
-	/*.tool-group {*/
-	/*	display: flex;*/
-	/*	gap: 8px;*/
-	/*	align-items: center;*/
-	/*	height: 40px;*/
-	/*	padding: 6px 12px;*/
-	/*	background: white;*/
-	/*	border: 1px solid var(--toolbar-border);*/
-	/*	border-radius: 6px;*/
-	/*}*/
-
 	.grid-wrapper {
-		display: flex;
-		justify-content: center;
-		align-items: center;
 		min-height: 300px;
 		padding: 20px;
 	}
 
 	#grid-container {
-		display: grid;
 		border: 2px solid #d3d3d3;
 		background: white;
 		padding: 20px;
 		border-radius: 8px;
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 		width: fit-content;
-	}
-
-	.grid-row {
-		display: contents; /* Makes children participate in parent's grid */
 	}
 
 	.cell {
@@ -198,8 +179,8 @@
 			</div>
 		</header>
 
-		<div class="grid-wrapper">
-			<div id="grid-container" :style="gridContainerStyle">
+		<section class="grid-wrapper flex near-center">
+			<div id="grid-container" class="grid" :style="gridContainerStyle">
 				<template v-for="(row, rowIndex) in gridData" :key="rowIndex">
 					<div class="cell" v-for="(cell, colIndex) in row" :key="colIndex"
 							 :style="{backgroundColor: cell.bgColor, borderColor: cell.borderColor,
@@ -227,7 +208,7 @@
 					</div>
 				</template>
 			</div>
-		</div>
+		</section>
 	</article>
 </main>
 
