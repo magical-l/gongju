@@ -11,26 +11,17 @@
 <meta name="author" content="工具兽">
 
 <!-- 预加载关键资源 -->
-<link rel="preload" href="lib/jquery-3.4.1.min.js" as="script">
-<link rel="preload" href="resources/util.js" as="script">
+<link rel="preload" href="../lib/jquery-3.4.1.min.js" as="script">
+<link rel="preload" href="../resources/util.js" as="script">
 
-<!--	<link href="https://cdn.jsdelivr.net/npm/primeicons/primeicons.css" rel="stylesheet">-->
-<!--	<link href="https://unpkg.com/primevue/resources/primevue.min.css" rel="stylesheet">-->
 <link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
 <link href="../resources/el-plus.css" rel="stylesheet">
 <link href="../resources/common.css?v=250821" rel="stylesheet">
 <link href="../resources/layout.css?v=0821" rel="stylesheet">
 <link href="../resources/biz.css?v=250821" rel="stylesheet">
 <link href="../resources/花活.css?v=250821" rel="stylesheet">
-
 <style>
-	body { background-color: #f8f9fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 2rem; }
-
-	main { max-width: 1600px; margin: 0 auto; }
-
-	.game-wrapper { display: flex; justify-content: center; align-items: flex-start; gap: 2rem; }
-
-	.board-wrapper { flex-grow: 1; display: flex; justify-content: center; }
+	.game-wrapper { gap: 2rem; }
 
 	#game-board-container { position: relative; border: 2px solid #ced4da; padding: 2px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); display: inline-block; }
 
@@ -56,21 +47,17 @@
 
 	.cell.ghost { background-color: #495057; opacity: 0.15; }
 
-	.side-panel { width: 400px; flex-shrink: 0; }
+	.side-panel { width: 400px; }
 
 	#next-piece-container { display: grid; grid-template-columns: repeat(4, 30px); grid-template-rows: repeat(4, 30px); grid-gap: 1px; min-height: 129px; margin: 0 auto; }
 
 	.next-cell { width: 30px; height: 30px; border-radius: 2px; }
 
-	.config-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+	.one.setting {margin-bottom: 1.5rem; }
 
-	.config-item:last-child { margin-bottom: 0; }
-
-	.p-panel-content { display: flex; flex-direction: column; gap: 1.5rem; }
+	.one.setting:last-child { margin-bottom: 0; }
 
 	#pause-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(73, 80, 87, 0.7); color: white; font-size: 2em; font-weight: bold; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; line-height: 1.5; }
-
-	#pause-overlay .p-button { margin-top: 20px; }
 </style>
 </head>
 <body class="grid 反叵字形">
@@ -88,11 +75,22 @@
 	</nav>
 </header>
 <main>
-	
+	<header>
+		<h2>俄罗斯方块</h2>
 
-	<div class="game-wrapper" style="margin-top: 1rem;">
-		<div class="board-wrapper">
-			<div id="game-board-container">
+		<div class="help area" v-cloak>
+			<el-button class="help btn" size="small" circle title="游戏介绍" @click="descriptionVisible = true">?</el-button>
+			<el-dialog title="游戏介绍" v-model="descriptionVisible" width="60%">
+				<article class="description">
+					todo
+				</article>
+			</el-dialog>
+		</div>
+	</header>
+
+	<article class="game-wrapper flex items-near-center-x items-near-start-y" v-cloak>
+		<div class="flexible item , flex items-near-center-x">
+			<section id="game-board-container">
 				<div id="game-board" :style="boardStyle">
 					<div v-for="(cell, index) in displayGrid" :key="index" :class="['cell', cell]"></div>
 				</div>
@@ -100,35 +98,38 @@
 					<div id="overlay-text">{{ overlayText }}</div>
 					<el-button v-if="!isGameOver" :label="pauseButtonText" @click="togglePause"></el-button>
 				</div>
-			</div>
+			</section>
 		</div>
-		<div class="side-panel">
+		<section class="side-panel no-shrink item">
 			<el-card header="控制与设置">
-				<div class="game-buttons">
+				<p>
 					<el-button type="primary" @click="startGame" style="width: 100%;">重新开始</el-button>
-				</div>
-				<div class="config-item">
+				</p>
+				<section class="one setting">
 					<label>难度设置:</label>
-					<div style="display: flex; align-items: center; gap: 10px;">
-						<el-input-number v-model="settings.startLevel" :min="1" :max="29" @change="saveSettings" style="width: 70px;"></el-input-number>
+					<p class="flex items-near-start-x" style="gap: 10px;">
+						<el-input-number v-model="settings.startLevel" :min="1" :max="29" @change="saveSettings" controls-position="right">
+						</el-input-number>
 						<el-radio-group v-model="settings.difficulty" @change="saveSettings">
-							<el-radio-button v-for="opt in difficultyOptions" :key="opt.value" :label="opt.value">{{opt.name}}</el-radio-button>
+							<el-radio-button v-for="opt in difficultyOptions" :key="opt.value" :label="opt.value">{{opt.name}}
+							</el-radio-button>
 						</el-radio-group>
-					</div>
-				</div>
-				<div class="config-item">
+					</p>
+				</section>
+				<section class="one setting">
 					<label>游戏区尺寸:</label>
-					<div style="display: flex; align-items: center; gap: 10px;">
-						<el-input-number v-model="settings.cols" :min="5" :max="30" style="width: 70px;"></el-input-number>
+					<p class="flex items-near-start-x" style="gap: 10px;">
+						<el-input-number v-model="settings.cols" :min="5" :max="30" controls-position="right"></el-input-number>
 						<span>x</span>
-						<el-input-number v-model="settings.rows" :min="10" :max="40" style="width: 70px;"></el-input-number>
+						<el-input-number v-model="settings.rows" :min="10" :max="40" controls-position="right"></el-input-number>
 						<el-button icon="Check" @click="applyAndSaveSize" title="应用并重开一局"></el-button>
 						<el-button icon="RefreshRight" @click="restoreDefaultSize" title="恢复默认并重开一局"></el-button>
-					</div>
-				</div>
-				<div class="config-item">
-					<el-switch v-model="settings.showGhost" active-text="显示幽灵方块" inactive-text="不显示幽灵方块" @change="saveSettings"></el-switch>
-				</div>
+					</p>
+				</section>
+				<p class="one setting">
+					<el-switch v-model="settings.showGhost" active-text="显示幽灵方块" inactive-text="不显示幽灵方块"
+										 @change="saveSettings"></el-switch>
+				</p>
 			</el-card>
 
 			<el-card header="游戏状态" style="margin-top: 1.5rem;">
@@ -147,8 +148,8 @@
 					<div v-for="(cell, index) in nextPieceGrid" :key="index" :class="['next-cell', 'cell', cell]"></div>
 				</div>
 			</el-card>
-		</div>
-	</div>
+		</section>
+	</article>
 </main>
 
 <aside class="right-sidebar">
@@ -173,102 +174,101 @@
 	<script src="../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
 </div>
 <script>
-	const {createApp, ref, reactive, computed, onMounted, watch} = Vue;
+	const {createApp} = Vue;
+
+	const CLASSIC_SPEEDS = [800, 717, 633, 550, 467, 383, 300, 217, 133, 100, 83, 83, 83, 67, 67, 67, 50, 50, 50, 33, 33,
+													33, 33, 33, 33, 33, 33, 33, 33, 17];
+	const TETROMINOES = {
+		'T': {shape: [[0, 1, 0], [1, 1, 1], [0, 0, 0]], color: 'T'},
+		'O': {shape: [[1, 1], [1, 1]], color: 'O'},
+		'L': {shape: [[0, 0, 1], [1, 1, 1], [0, 0, 0]], color: 'L'},
+		'J': {shape: [[1, 0, 0], [1, 1, 1], [0, 0, 0]], color: 'J'},
+		'I': {shape: [[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]], color: 'I'},
+		'S': {shape: [[0, 1, 1], [1, 1, 0], [0, 0, 0]], color: 'S'},
+		'Z': {shape: [[1, 1, 0], [0, 1, 1], [0, 0, 0]], color: 'Z'}
+	};
+	const TETROMINO_KEYS = 'IOTSZJL';
+
 	const app = createApp({
-		setup() {
-			// --- Reactive State ---
-			const score = ref(0);
-			const lines = ref(0);
-			const level = ref(1);
-			const grid = ref([]);
-			const player = reactive({tetromino: null, pos: {x: 0, y: 0}});
-			const nextTetromino = ref(null);
-			const isGameOver = ref(false);
-			const isPaused = ref(true);
-			const helpVisible = ref(false);
-
-			const settings = reactive({
-				cols: 10,
-				rows: 20,
-				difficulty: 'gentle',
-				startLevel: 1,
-				showGhost: true
-			});
-
-			const difficultyOptions = ref([
-				{name: '柔和', value: 'gentle'},
-				{name: '经典', value: 'classic'}
-			]);
-
-			// --- Non-Reactive Game Loop Vars ---
-			let dropCounter = 0;
-			let dropInterval = 1000;
-			let lastTime = 0;
-			let animationFrameId = null;
-
-			const CLASSIC_SPEEDS = [800, 717, 633, 550, 467, 383, 300, 217, 133, 100, 83, 83, 83, 67, 67, 67, 50, 50, 50, 33,
-															33, 33, 33, 33, 33, 33, 33, 33, 33, 17];
-			const TETROMINOES = {
-				'T': {shape: [[0, 1, 0], [1, 1, 1], [0, 0, 0]], color: 'T'},
-				'O': {shape: [[1, 1], [1, 1]], color: 'O'},
-				'L': {shape: [[0, 0, 1], [1, 1, 1], [0, 0, 0]], color: 'L'},
-				'J': {shape: [[1, 0, 0], [1, 1, 1], [0, 0, 0]], color: 'J'},
-				'I': {shape: [[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]], color: 'I'},
-				'S': {shape: [[0, 1, 1], [1, 1, 0], [0, 0, 0]], color: 'S'},
-				'Z': {shape: [[1, 1, 0], [0, 1, 1], [0, 0, 0]], color: 'Z'}
+		data() {
+			return {
+				score: 0,
+				lines: 0,
+				level: 1,
+				grid: [],
+				player: {tetromino: null, pos: {x: 0, y: 0}},
+				nextTetromino: null,
+				isGameOver: false,
+				isPaused: true,
+				helpVisible: false,
+				settings: {
+					cols: 10,
+					rows: 20,
+					difficulty: 'gentle',
+					startLevel: 1,
+					showGhost: true
+				},
+				difficultyOptions: [
+					{name: '柔和', value: 'gentle'},
+					{name: '经典', value: 'classic'}
+				],
+				dropCounter: 0,
+				dropInterval: 1000,
+				lastTime: 0,
+				animationFrameId: null
 			};
-			const TETROMINO_KEYS = 'IOTSZJL';
-
-			// --- Computed Properties ---
-			const boardStyle = computed(() => ({
-				gridTemplateColumns: `repeat(${settings.cols}, 30px)`,
-				gridTemplateRows: `repeat(${settings.rows}, 30px)`
-			}));
-
-			const ghostPosition = computed(() => {
-				if (!player.tetromino) {
+		},
+		computed: {
+			boardStyle() {
+				return {
+					gridTemplateColumns: `repeat(${this.settings.cols}, 30px)`,
+					gridTemplateRows: `repeat(${this.settings.rows}, 30px)`
+				};
+			},
+			ghostPosition() {
+				if (!this.player.tetromino) {
 					return null;
 				}
-				const ghostPlayer = {tetromino: player.tetromino, pos: {x: player.pos.x, y: player.pos.y}};
-				while (!collides(grid.value, ghostPlayer)) {
+				const ghostPlayer = {tetromino: this.player.tetromino, pos: {x: this.player.pos.x, y: this.player.pos.y}};
+				while (!this.collides(this.grid, ghostPlayer)) {
 					ghostPlayer.pos.y++;
 				}
 				ghostPlayer.pos.y--;
 				return ghostPlayer.pos;
-			});
-
-			const displayGrid = computed(() => {
-				const newGrid = grid.value.map(row => [...row]);
-				if (settings.showGhost && player.tetromino && ghostPosition.value) {
-					player.tetromino.shape.forEach((row, y) => {
+			},
+			displayGrid() {
+				const newGrid = this.grid.map(row => [...row]);
+				if (this.settings.showGhost && this.player.tetromino && this.ghostPosition) {
+					this.player.tetromino.shape.forEach((row, y) => {
 						row.forEach((value, x) => {
 							if (value !== 0) {
-								const gridY = y + ghostPosition.value.y;
-								const gridX = x + ghostPosition.value.x;
-								if (gridY >= 0 && newGrid[gridY][gridX] === 0) {
+								const gridY = y + this.ghostPosition.y;
+								const gridX = x + this.ghostPosition.x;
+								if (gridY >= 0 && newGrid[gridY] && newGrid[gridY][gridX] === 0) {
 									newGrid[gridY][gridX] = 'ghost';
 								}
 							}
 						});
 					});
 				}
-				if (player.tetromino) {
-					player.tetromino.shape.forEach((row, y) => {
+				if (this.player.tetromino) {
+					this.player.tetromino.shape.forEach((row, y) => {
 						row.forEach((value, x) => {
-							if (value !== 0 && y + player.pos.y >= 0) {
-								newGrid[y + player.pos.y][x + player.pos.x]
-										= player.tetromino.color;
+							if (value !== 0 && y + this.player.pos.y >= 0) {
+								if (newGrid[y + this.player.pos.y]) {
+									newGrid[y + this.player.pos.y][x + this.player.pos.x]
+											= this.player.tetromino.color;
+								}
 							}
 						});
 					});
 				}
 				return newGrid.flat();
-			});
-
-			const nextPieceGrid = computed(() => {
+			},
+			nextPieceGrid() {
 				const previewGrid = Array.from({length: 4}, () => Array(4).fill(0));
-				if (nextTetromino.value) {
-					const {shape, color} = nextTetromino.value;
+				if (this.nextTetromino) {
+					const {shape, color} = this.nextTetromino;
 					const y_offset = Math.floor((4 - shape.length) / 2);
 					const x_offset = Math.floor((4 - shape[0].length) / 2);
 					shape.forEach((row, y) => {
@@ -280,48 +280,22 @@
 					});
 				}
 				return previewGrid.flat();
-			});
-
-			const overlayText = computed(() => {
-				if (isGameOver.value) {
-					return `游戏结束\n得分: ${score.value}`;
+			},
+			overlayText() {
+				if (this.isGameOver) {
+					return `游戏结束！得分: ${this.score}`;
 				}
-				if (isPaused.value) {
+				if (this.isPaused) {
 					return '准备就绪';
 				}
 				return '';
-			});
-
-			const pauseButtonText = computed(
-					() => (grid.value.every(row => row.every(cell => cell === 0))) ? '开始游戏' : '继续');
-
-			// --- Methods ---
-			const createEmptyGrid = () => Array.from({length: settings.rows}, () => Array(settings.cols).fill(0));
-			const getNewTetromino = () => {
-				const type = TETROMINO_KEYS[Math.floor(Math.random() * TETROMINO_KEYS.length)];
-				return {...TETROMINOES[type], shape: TETROMINOES[type].shape.map(r => [...r])};
-			};
-
-			const updateDropInterval = () => {
-				if (settings.difficulty === 'classic') {
-					dropInterval = CLASSIC_SPEEDS[Math.min(level.value - 1, CLASSIC_SPEEDS.length - 1)];
-				} else {
-					dropInterval = Math.max(150, 1000 - (level.value * 75));
-				}
-			};
-
-			const playerReset = () => {
-				player.tetromino = nextTetromino.value || getNewTetromino();
-				nextTetromino.value = getNewTetromino();
-				player.pos.y = 0;
-				player.pos.x = Math.floor(settings.cols / 2) - Math.floor(player.tetromino.shape[0].length / 2);
-				if (collides(grid.value, player)) {
-					isGameOver.value = true;
-					cancelAnimationFrame(animationFrameId);
-				}
-			};
-
-			const collides = (currentGrid, currentPlayer) => {
+			},
+			pauseButtonText() {
+				return this.grid.length === 0 || this.grid.every(row => row.every(cell => cell === 0)) ? '开始游戏' : '继续';
+			}
+		},
+		methods: {
+			collides(currentGrid, currentPlayer) {
 				const {shape} = currentPlayer.tetromino;
 				const {pos} = currentPlayer;
 				for (let y = 0; y < shape.length; y++) {
@@ -329,155 +303,165 @@
 						if (shape[y][x] !== 0) {
 							const newY = y + pos.y;
 							const newX = x + pos.x;
-							if (newX < 0 || newX >= settings.cols || newY >= settings.rows || (newY >= 0 && currentGrid[newY][newX]
-																																								 !== 0)) {
+							if (newX < 0 || newX >= this.settings.cols || newY >= this.settings.rows || (newY >= 0
+																																													 && currentGrid[newY]
+																																													 && currentGrid[newY][newX]
+																																													 !== 0)) {
 								return true;
 							}
 						}
 					}
 				}
 				return false;
-			};
-
-			const merge = () => {
-				player.tetromino.shape.forEach((row, y) => {
+			},
+			createEmptyGrid() {
+				return Array.from({length: this.settings.rows}, () => Array(this.settings.cols).fill(0));
+			},
+			getNewTetromino() {
+				const type = TETROMINO_KEYS[Math.floor(Math.random() * TETROMINO_KEYS.length)];
+				return {...TETROMINOES[type], shape: TETROMINOES[type].shape.map(r => [...r])};
+			},
+			updateDropInterval() {
+				this.dropInterval = this.settings.difficulty === 'classic'
+														? CLASSIC_SPEEDS[Math.min(this.level - 1, CLASSIC_SPEEDS.length - 1)]
+														: Math.max(150, 1000 - (this.level * 75));
+			},
+			playerReset() {
+				this.player.tetromino = this.nextTetromino || this.getNewTetromino();
+				this.nextTetromino = this.getNewTetromino();
+				this.player.pos.y = 0;
+				this.player.pos.x = Math.floor(this.settings.cols / 2) - Math.floor(this.player.tetromino.shape[0].length / 2);
+				if (this.collides(this.grid, this.player)) {
+					this.isGameOver = true;
+					cancelAnimationFrame(this.animationFrameId);
+				}
+			},
+			merge() {
+				this.player.tetromino.shape.forEach((row, y) => {
 					row.forEach((value, x) => {
 						if (value !== 0) {
-							grid.value[y + player.pos.y][x + player.pos.x] = player.tetromino.color;
+							this.grid[y + this.player.pos.y][x + this.player.pos.x] = this.player.tetromino.color;
 						}
 					});
 				});
-			};
-
-			const rotate = () => {
-				const matrix = player.tetromino.shape;
+			},
+			rotate() {
+				const matrix = this.player.tetromino.shape;
 				const N = matrix.length;
 				const result = matrix.map((row, i) => row.map((val, j) => matrix[N - 1 - j][i]));
-				const originalShape = player.tetromino.shape;
-				player.tetromino.shape = result;
-				const posX = player.pos.x;
+				const originalShape = this.player.tetromino.shape;
+				this.player.tetromino.shape = result;
+				const posX = this.player.pos.x;
 				let offset = 1;
-				while (collides(grid.value, player)) {
-					player.pos.x += offset;
+				while (this.collides(this.grid, this.player)) {
+					this.player.pos.x += offset;
 					offset = -(offset + (offset > 0 ? 1 : -1));
-					if (Math.abs(offset) > player.tetromino.shape[0].length) {
-						player.tetromino.shape = originalShape;
-						player.pos.x = posX;
+					if (Math.abs(offset) > this.player.tetromino.shape[0].length) {
+						this.player.tetromino.shape = originalShape;
+						this.player.pos.x = posX;
 						return;
 					}
 				}
-			};
-
-			const move = (offset) => {
-				player.pos.x += offset;
-				if (collides(grid.value, player)) {
-					player.pos.x -= offset;
+			},
+			move(offset) {
+				this.player.pos.x += offset;
+				if (this.collides(this.grid, this.player)) {
+					this.player.pos.x -= offset;
 				}
-			};
-
-			const drop = () => {
-				player.pos.y++;
-				if (collides(grid.value, player)) {
-					player.pos.y--;
-					merge();
-					sweep();
-					playerReset();
-				}
-				dropCounter = 0;
-			};
-
-			const hardDrop = () => {
-				player.pos.y = ghostPosition.value.y;
-				merge();
-				sweep();
-				playerReset();
-				dropCounter = 0;
-			};
-
-			const sweep = () => {
+			},
+			sweep() {
 				let clearedLines = 0;
-				for (let y = grid.value.length - 1; y > 0; --y) {
-					if (grid.value[y].every(cell => cell !== 0)) {
-						grid.value.splice(y, 1);
-						grid.value.unshift(Array(settings.cols).fill(0));
+				for (let y = this.grid.length - 1; y > 0; --y) {
+					if (this.grid[y].every(cell => cell !== 0)) {
+						this.grid.splice(y, 1);
+						this.grid.unshift(Array(this.settings.cols).fill(0));
 						clearedLines++;
 						y++;
 					}
 				}
 				if (clearedLines > 0) {
-					lines.value += clearedLines;
-					score.value += (clearedLines * 10) * clearedLines * level.value;
-					const newLevel = Math.floor(lines.value / 10) + settings.startLevel;
-					if (newLevel > level.value) {
-						level.value = newLevel;
-						updateDropInterval();
+					this.lines += clearedLines;
+					this.score += (clearedLines * 10) * clearedLines * this.level;
+					const newLevel = Math.floor(this.lines / 10) + this.settings.startLevel;
+					if (newLevel > this.level) {
+						this.level = newLevel;
+						this.updateDropInterval();
 					}
 				}
-			};
-
-			const update = (time = 0) => {
-				if (isPaused.value || isGameOver.value) {
+			},
+			drop() {
+				this.player.pos.y++;
+				if (this.collides(this.grid, this.player)) {
+					this.player.pos.y--;
+					this.merge();
+					this.sweep();
+					this.playerReset();
+				}
+				this.dropCounter = 0;
+			},
+			hardDrop() {
+				this.player.pos.y = this.ghostPosition.y;
+				this.merge();
+				this.sweep();
+				this.playerReset();
+				this.dropCounter = 0;
+			},
+			update(time = 0) {
+				if (this.isPaused || this.isGameOver) {
 					return;
 				}
-				const deltaTime = time - lastTime;
-				lastTime = time;
-				dropCounter += deltaTime;
-				if (dropCounter > dropInterval) {
-					drop();
+				const deltaTime = time - this.lastTime;
+				this.lastTime = time;
+				this.dropCounter += deltaTime;
+				if (this.dropCounter > this.dropInterval) {
+					this.drop();
 				}
-				animationFrameId = requestAnimationFrame(update);
-			};
-
-			const togglePause = () => {
-				if (isGameOver.value) {
+				this.animationFrameId = requestAnimationFrame(this.update);
+			},
+			togglePause() {
+				if (this.isGameOver) {
 					return;
 				}
-				isPaused.value = !isPaused.value;
-				if (!isPaused.value) {
-					lastTime = performance.now();
-					update();
+				this.isPaused = !this.isPaused;
+				if (!this.isPaused) {
+					this.lastTime = performance.now();
+					this.update();
 				}
-			};
-
-			const startGame = () => {
-				if (animationFrameId) {
-					cancelAnimationFrame(animationFrameId);
+			},
+			startGame() {
+				if (this.animationFrameId) {
+					cancelAnimationFrame(this.animationFrameId);
 				}
-				grid.value = createEmptyGrid();
-				score.value = 0;
-				lines.value = 0;
-				level.value = settings.startLevel;
-				dropCounter = 0;
-				lastTime = 0;
-				updateDropInterval();
-				isGameOver.value = false;
-				isPaused.value = true;
-				playerReset();
-			};
-
-			const saveSettings = () => {
-				localStorage.setItem('tetrisSettings', JSON.stringify(settings));
-				startGame();
-			};
-			const applyAndSaveSize = () => {
-				saveSettings();
-			};
-			const restoreDefaultSize = () => {
-				settings.cols = 10;
-				settings.rows = 20;
-				saveSettings();
-			};
-			const toggleHelp = () => {
-				helpVisible.value = !helpVisible.value;
-			};
-
-			const handleKeydown = (event) => {
+				this.grid = this.createEmptyGrid();
+				this.score = 0;
+				this.lines = 0;
+				this.level = this.settings.startLevel;
+				this.dropCounter = 0;
+				this.lastTime = 0;
+				this.updateDropInterval();
+				this.isGameOver = false;
+				this.isPaused = true;
+				this.playerReset();
+			},
+			saveSettings() {
+				localStorage.setItem('tetrisSettings', JSON.stringify(this.settings));
+				this.startGame();
+			},
+			applyAndSaveSize() {
+				this.saveSettings();
+			},
+			restoreDefaultSize() {
+				this.settings.cols = 10;
+				this.settings.rows = 20;
+				this.saveSettings();
+			},
+			handleKeydown(event) {
 				if (event.key === ' ') {
 					event.preventDefault();
-					togglePause();
+					this.togglePause();
 					return;
 				}
-				if (isPaused.value || isGameOver.value) {
+				if (this.isPaused || this.isGameOver) {
 					return;
 				}
 				if (['Enter', 'ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp'].includes(event.key)) {
@@ -485,64 +469,71 @@
 				}
 				switch (event.key) {
 					case 'Enter':
-						hardDrop();
+						this.hardDrop();
 						break;
 					case 'ArrowLeft':
-						move(-1);
+						this.move(-1);
 						break;
 					case 'ArrowRight':
-						move(1);
+						this.move(1);
 						break;
 					case 'ArrowDown':
-						drop();
+						this.drop();
 						break;
 					case 'ArrowUp':
-						rotate();
+						this.rotate();
 						break;
 				}
-			};
-
-			onMounted(() => {
+			},
+			loadSettings() {
 				const savedSettings = localStorage.getItem('tetrisSettings');
 				if (savedSettings) {
 					const parsedSettings = JSON.parse(savedSettings);
-					// 确保 difficulty 是字符串，而不是对象
 					if (typeof parsedSettings.difficulty === 'object' && parsedSettings.difficulty !== null) {
 						parsedSettings.difficulty = parsedSettings.difficulty.value;
 					}
-					Object.assign(settings, parsedSettings);
+					Object.assign(this.settings, parsedSettings);
 				}
-				startGame();
-				window.addEventListener('keydown', handleKeydown);
-			});
-
-			return {
-				settings,
-				score,
-				lines,
-				level,
-				isGameOver,
-				isPaused,
-				helpVisible,
-				difficultyOptions,
-				boardStyle,
-				displayGrid,
-				nextPieceGrid,
-				overlayText,
-				pauseButtonText,
-				startGame,
-				togglePause,
-				applyAndSaveSize,
-				restoreDefaultSize,
-				saveSettings
-			};
+			}
+		},
+		mounted() {
+			this.loadSettings();
+			this.startGame();
+			window.addEventListener('keydown', this.handleKeydown);
+		},
+		beforeUnmount() {
+			window.removeEventListener('keydown', this.handleKeydown);
+			if (this.animationFrameId) {
+				cancelAnimationFrame(this.animationFrameId);
+			}
 		}
 	});
+
 	app.use(ElementPlus);
 	for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 		app.component(key, component);
 	}
-	app.mount('main');
+	app.mount('main>article');
+
+	const help = createApp({
+		data() {
+			return {
+				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname)
+			};
+		},
+		watch: {
+			descriptionVisible(newValue) {
+				const storageKey = 'description-hidden-' + window.location.pathname;
+				if (!newValue) {
+					localStorage.setItem(storageKey, 'true');
+				} else {
+					localStorage.removeItem(storageKey);
+				}
+			}
+		}
+	})
+	.use(ElementPlus)
+	.mount('.help.area');
 </script>
 
 <div>

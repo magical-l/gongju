@@ -158,7 +158,7 @@
 .items-space-between, .items-mutex, .items-social-phobia {justify-content: space-between;}
 
 /*项目不熟，即项目互相之间保持距离但又不极端排斥*/
-.items-space-around,.items-unfamiliar {justify-content: space-around;}
+.items-space-around, .items-unfamiliar {justify-content: space-around;}
 
 /*项目不熟但比较友好*/
 .items-space-evenly, .items-friendly {justify-content: space-evenly;}
@@ -196,7 +196,16 @@ aside.left-sidebar {grid-area: left-sidebar;}
 
 aside.right-sidebar {grid-area: right-sidebar;}
 
-main, .main, .body {grid-area: main;flex: 1;}
+main, .main, .body {grid-area: main; flex: 1;}
 
 .near-center {justify-content: center; align-items: center;}
 
+.flexible.item {
+	flex: 1 1 auto; /* 允许扩展和收缩 */
+	align-self: stretch; /* 默认拉伸填满 */
+	box-sizing: border-box; /* 包含内边距和边框 */
+	min-width: 0; /* 防止内容溢出 */
+	min-height: 0; /* 防止内容溢出 */
+	will-change: flex-basis; /* 性能优化 */
+	transition: flex-basis 0.2s ease;
+}
