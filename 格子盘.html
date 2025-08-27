@@ -1,171 +1,134 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>格子盘工具 - 在线网格生成与编辑</title>
-	<meta name="description" content="在线生成和编辑各种网格、格子盘，自定义尺寸和样式，适用于设计、游戏等场景。">
-	<meta name="keywords" content="格子盘, 网格工具, 在线工具, 设计工具, 棋盘, grid">
-	<meta name="author" content="工具兽">
-	<meta property="og:title" content="格子盘工具 - 在线网格生成与编辑">
-	<meta property="og:description" content="在线生成和编辑各种网格、格子盘，自定义尺寸和样式，适用于设计、游戏等场景。">
-	<meta property="og:type" content="website">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>格子盘工具 - 在线网格生成与编辑</title>
+<meta name="description" content="在线生成和编辑各种网格、格子盘，自定义尺寸和样式，适用于设计、游戏等场景。">
+<meta name="keywords" content="格子盘, 网格工具, 在线工具, 设计工具, 棋盘, grid">
+<meta name="author" content="工具兽">
+<meta property="og:title" content="格子盘工具 - 在线网格生成与编辑">
+<meta property="og:description" content="在线生成和编辑各种网格、格子盘，自定义尺寸和样式，适用于设计、游戏等场景。">
+<meta property="og:type" content="website">
 
-	<link href="lib/element-plus/2.10.7/index.css" rel="stylesheet">
-	<link href="resources/el-plus.css" rel="stylesheet">
-	<link href="resources/common.css?v=250821" rel="stylesheet">
-	<link href="resources/layout.css?v=0821" rel="stylesheet">
-	<link href="resources/biz.css?v=250806?v=0229b" rel="stylesheet">
-	<style>
-		:root {
-			--default-draw-color: #88CC88;
-			--toolbar-border: #dee2e6;
-			--cell-border: #e0e0e0;
-		}
+<link href="lib/element-plus/2.10.7/index.css" rel="stylesheet">
+<link href="resources/el-plus.css" rel="stylesheet">
+<link href="resources/common.css?v=250821" rel="stylesheet">
+<link href="resources/layout.css?v=0821" rel="stylesheet">
+<link href="resources/biz.css?v=250806?v=0229b" rel="stylesheet">
+<style>
+	:root {
+		--default-draw-color: #88CC88;
+		--toolbar-border: #dee2e6;
+		--cell-border: #e0e0e0;
+	}
 
-		main > header {
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-			margin-bottom: 1rem;
-		}
+	/*.tool-group {*/
+	/*	display: flex;*/
+	/*	gap: 8px;*/
+	/*	align-items: center;*/
+	/*	height: 40px;*/
+	/*	padding: 6px 12px;*/
+	/*	background: white;*/
+	/*	border: 1px solid var(--toolbar-border);*/
+	/*	border-radius: 6px;*/
+	/*}*/
 
-		.toolbar {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 12px;
-			justify-content: center;
-			width: fit-content;
-			padding: 2px 0;
-			margin: 0 auto 15px auto;
-		}
+	.grid-wrapper {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		min-height: 300px;
+		padding: 20px;
+	}
 
-		.tool-group {
-			display: flex;
-			gap: 8px;
-			align-items: center;
-			height: 40px;
-			padding: 6px 12px;
-			background: white;
-			border: 1px solid var(--toolbar-border);
-			border-radius: 6px;
-		}
+	#grid-container {
+		display: grid;
+		border: 2px solid #d3d3d3;
+		background: white;
+		padding: 20px;
+		border-radius: 8px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+		width: fit-content;
+	}
 
-		.tool-group .el-input-number {
-			width: 80px;
-		}
+	.grid-row {
+		display: contents; /* Makes children participate in parent's grid */
+	}
 
-		.tool-group .el-input-number__decrease,
-		.tool-group .el-input-number__increase {
-			width: 20px;
-		}
+	.cell {
+		width: 45px;
+		height: 45px;
+		position: relative;
+		text-align: center;
+		border: 2px solid var(--cell-border);
+		user-select: none;
+		box-sizing: border-box; /* Include padding and border in the element's total width and height */
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
 
-		.tool-group .el-input-number__decrease.is-disabled,
-		.tool-group .el-input-number__increase.is-disabled {
-			opacity: 0.5;
-			cursor: not-allowed;
-		}
+	.fill-mode .cell {
+		cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%2388CC88" d="M7.44,8.94L16.38,0L17.79,1.41l-2.38,2.38L20.56,8.94c0.59,0.59,0.59,1.54,0,2.12l-5.5,5.5C14.77,16.85,14.38,17,14,17s-0.77-0.15-1.06-0.44l-5.5-5.5C6.85,10.48,6.85,9.53,7.44,8.94z M18.79,10L14,5.21L9.21,10H18.79z M5,11.5c0,0,2,2.17,2,3.5c0,1.1-0.9,2-2,2s-2-0.9-2-2C3,13.67,5,11.5,5,11.5z"/></svg>') 0 18, pointer;
+	}
 
-		.tool-group .el-color-picker {
-			height: 32px;
-			width: 32px;
-		}
+	.input-mode .cell {
+		cursor: text;
+	}
 
-		.grid-wrapper {
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			min-height: 300px;
-			padding: 20px;
-		}
+	.text-container {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 4;
+		pointer-events: none;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
 
-		#grid-container {
-			display: grid;
-			border: 2px solid #d3d3d3;
-			background: white;
-			padding: 20px;
-			border-radius: 8px;
-			box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-			width: fit-content;
-		}
+	.text-input {
+		width: 85%;
+		font-size: 14px;
+		border: none;
+		background: transparent;
+		text-align: center;
+		outline: none;
+		z-index: 5;
+		pointer-events: auto;
+	}
 
-		.grid-row {
-			display: contents; /* Makes children participate in parent's grid */
-		}
+	.cell span {
+		font-size: 14px;
+		font-weight: 500;
+	}
 
-		.cell {
-			width: 45px;
-			height: 45px;
-			position: relative;
-			text-align: center;
-			border: 2px solid var(--cell-border);
-			user-select: none;
-			box-sizing: border-box; /* Include padding and border in the element's total width and height */
-			display: flex;
-			align-items: center;
-			justify-content: center;
-		}
+	.stroke-mode .edge-hotzone:hover {
+		background-color: rgba(136, 204, 136, 0.2);
+	}
 
-		.fill-mode .cell {
-			cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%2388CC88" d="M7.44,8.94L16.38,0L17.79,1.41l-2.38,2.38L20.56,8.94c0.59,0.59,0.59,1.54,0,2.12l-5.5,5.5C14.77,16.85,14.38,17,14,17s-0.77-0.15-1.06-0.44l-5.5-5.5C6.85,10.48,6.85,9.53,7.44,8.94z M18.79,10L14,5.21L9.21,10H18.79z M5,11.5c0,0,2,2.17,2,3.5c0,1.1-0.9,2-2,2s-2-0.9-2-2C3,13.67,5,11.5,5,11.5z"/></svg>') 0 18, pointer;
-		}
+	.stroke-mode .edge-hotzone {
+		cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%2388CC88" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>') 6 18, pointer;
+	}
 
-		.input-mode .cell {
-			cursor: text;
-		}
+	.edge-hotzone {
+		position: absolute;
+		background: transparent;
+		z-index: 3;
+		transition: background-color 0.1s;
+	}
 
-		.text-container {
-			position: absolute;
-			top: 0;
-			left: 0;
-			right: 0;
-			bottom: 0;
-			z-index: 4;
-			pointer-events: none;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-		}
+	.edge-hotzone.top { top: 0; left: 0; width: 100%; height: 12px; }
 
-		.text-input {
-			width: 85%;
-			font-size: 14px;
-			border: none;
-			background: transparent;
-			text-align: center;
-			outline: none;
-			z-index: 5;
-			pointer-events: auto;
-		}
+	.edge-hotzone.right { right: 0; top: 0; width: 12px; height: 100%; }
 
-		.cell span {
-			font-size: 14px;
-			font-weight: 500;
-		}
+	.edge-hotzone.bottom { bottom: 0; left: 0; width: 100%; height: 12px; }
 
-		.stroke-mode .edge-hotzone:hover {
-			background-color: rgba(136, 204, 136, 0.2);
-		}
-
-		.stroke-mode .edge-hotzone {
-			cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%2388CC88" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>') 6 18, pointer;
-		}
-
-		.edge-hotzone {
-			position: absolute;
-			background: transparent;
-			z-index: 3;
-			transition: background-color 0.1s;
-		}
-
-		.edge-hotzone.top { top: 0; left: 0; width: 100%; height: 12px; }
-
-		.edge-hotzone.right { right: 0; top: 0; width: 12px; height: 100%; }
-
-		.edge-hotzone.bottom { bottom: 0; left: 0; width: 100%; height: 12px; }
-
-		.edge-hotzone.left { left: 0; top: 0; width: 12px; height: 100%; }
-	</style>
+	.edge-hotzone.left { left: 0; top: 0; width: 12px; height: 100%; }
+</style>
 </head>
 <body class="grid 反叵字形">
 <header>
@@ -180,76 +143,92 @@
 		<a href="游戏/点灯.html">点灯</a>
 	</nav>
 </header>
-<main v-cloak>
+<main>
 	<header>
 		<h2>格子盘</h2>
-		<el-button size="small" circle title="查看说明" @click="toggleDescription">?</el-button>
+		<div class="help area" v-cloak>
+			<el-button size="small" circle title="查看说明" @click="toggleDescription">?</el-button>
+			<el-dialog title="格子盘使用说明" v-model="descriptionVisible" width="60%">
+				<article class="description">
+					<p>
+						“格子盘”是一个功能强大且简单易用的网页应用，旨在帮助用户轻松创建、定制和导出各种类型的格子，如田字格、米字格、九宫格等。无论您是书法爱好者、正在学习写字的学生，还是需要为设计项目制作网格的专业人士，这个工具都能满足您的需求。</p>
+					<h2>主要功能</h2>
+					<p><strong>自定义行列：</strong>用户可以根据需要自由设置格子的行数和列数，最大支持19x19的网格，灵活适应不同场景。
+					</p>
+					<p><strong>三种操作模式：</strong></p>
+					<ul>
+						<li><strong>填充模式：</strong>快速为单元格填充颜色，方便制作像素画或标记特定区域。</li>
+						<li><strong>输入模式：</strong>在单元格中直接输入文字，非常适合用于制作字帖或进行教学演示。</li>
+						<li><strong>描边模式：</strong>精确地为单元格的边缘描绘不同颜色的边框，轻松制作出田字格、米字格等效果。</li>
+					</ul>
+					<p><strong>颜色选择与清除：</strong>提供调色板让用户选择喜欢的颜色进行填充或描边，并可一键清除所有内容，重新开始。
+					</p>
+					<h2>如何使用</h2>
+					<p>
+						首先，在工具栏中设置您需要的行数和列数，然后点击"应用"按钮生成网格。接着，根据您的需求选择"填充"、"输入"或"描边"模式。最后，使用鼠标在网格上进行创作。修改行列数后需要点击"应用"按钮才会生效。完成的作品可以通过截图等方式保存下来。</p>
+				</article>
+			</el-dialog>
+		</div>
 	</header>
-	<el-dialog title="格子盘使用说明" v-model="descriptionVisible" width="60%">
-		<article class="description">
-			<p>
-				“格子盘”是一个功能强大且简单易用的网页应用，旨在帮助用户轻松创建、定制和导出各种类型的格子，如田字格、米字格、九宫格等。无论您是书法爱好者、正在学习写字的学生，还是需要为设计项目制作网格的专业人士，这个工具都能满足您的需求。</p>
-			<h2>主要功能</h2>
-			<p><strong>自定义行列：</strong>用户可以根据需要自由设置格子的行数和列数，最大支持19x19的网格，灵活适应不同场景。</p>
-			<p><strong>三种操作模式：</strong></p>
-			<ul>
-				<li><strong>填充模式：</strong>快速为单元格填充颜色，方便制作像素画或标记特定区域。</li>
-				<li><strong>输入模式：</strong>在单元格中直接输入文字，非常适合用于制作字帖或进行教学演示。</li>
-				<li><strong>描边模式：</strong>精确地为单元格的边缘描绘不同颜色的边框，轻松制作出田字格、米字格等效果。</li>
-			</ul>
-			<p><strong>颜色选择与清除：</strong>提供调色板让用户选择喜欢的颜色进行填充或描边，并可一键清除所有内容，重新开始。</p>
-			<h2>如何使用</h2>
-			<p>
-				首先，在工具栏中设置您需要的行数和列数，然后点击"应用"按钮生成网格。接着，根据您的需求选择"填充"、"输入"或"描边"模式。最后，使用鼠标在网格上进行创作。修改行列数后需要点击"应用"按钮才会生效。完成的作品可以通过截图等方式保存下来。</p>
-		</article>
-	</el-dialog>
-	<div class="toolbar">
-		<div class="tool-group">
-			<label>行：
-				<el-input-number v-model="rows" :min="1" :max="maxSize" size="small"></el-input-number>
-			</label>
-			<label>列：
-				<el-input-number v-model="cols" :min="1" :max="maxSize" size="small"></el-input-number>
-			</label>
-			
-		</div>
-		<div class="tool-group">
-			<el-radio-group v-model="currentMode">
-				<el-radio-button label="fill">填充</el-radio-button>
-				<el-radio-button label="input">输入</el-radio-button>
-				<el-radio-button label="stroke">描边</el-radio-button>
-			</el-radio-group>
-			<el-color-picker v-model="currentColor"></el-color-picker>
-			<el-button @click="clearAll">清除</el-button>
-		</div>
-	</div>
 
-	<div class="grid-wrapper">
-		<div id="grid-container" :style="gridContainerStyle">
-			<template v-for="(row, rowIndex) in gridData" :key="rowIndex">
-				<div class="cell" v-for="(cell, colIndex) in row" :key="colIndex"
-					 :style="{backgroundColor: cell.bgColor, borderColor: cell.borderColor,
+	<article v-cloak>
+		<header class="toolbar flex items-mutex">
+			<div class="tool group , grid 朋字形">
+				<label>行：
+					<el-input-number v-model="rows" :min="1" :max="maxSize" size="small"></el-input-number>
+				</label>
+				<label>列：
+					<el-input-number v-model="cols" :min="1" :max="maxSize" size="small"></el-input-number>
+				</label>
+			</div>
+			<div class="tool group">
+				<el-radio-group v-model="currentMode">
+					<el-radio-button label="fill">填充</el-radio-button>
+					<el-radio-button label="input">输入</el-radio-button>
+					<el-radio-button label="stroke">描边</el-radio-button>
+				</el-radio-group>
+			</div>
+			<div class="tool group">
+				<label>颜色
+					<el-color-picker v-model="currentColor"></el-color-picker>
+				</label>
+			</div>
+			<div class="tool group">
+				<el-button @click="clearAll">清除</el-button>
+			</div>
+		</header>
+
+		<div class="grid-wrapper">
+			<div id="grid-container" :style="gridContainerStyle">
+				<template v-for="(row, rowIndex) in gridData" :key="rowIndex">
+					<div class="cell" v-for="(cell, colIndex) in row" :key="colIndex"
+							 :style="{backgroundColor: cell.bgColor, borderColor: cell.borderColor,
 						borderTopColor: cell.borders.top, borderRightColor: cell.borders.right,
 						borderBottomColor: cell.borders.bottom, borderLeftColor: cell.borders.left}"
-					 @mousedown="handleMouseDown(rowIndex, colIndex, $event)"
-					 @mousemove="handleMouseMove(rowIndex, colIndex, $event)"
-					 @click="handleCellClick(rowIndex, colIndex, $event)">
-					<div class="text-container">
-						<input v-if="currentMode === 'input'" type="text" class="text-input"
-							   v-model="cell.text" @blur="updateCellText(rowIndex, colIndex, $event)"
-							   @click.stop/>
-						<span v-else>{{ cell.text }}</span>
+							 @mousedown="handleMouseDown(rowIndex, colIndex, $event)"
+							 @mousemove="handleMouseMove(rowIndex, colIndex, $event)"
+							 @click="handleCellClick(rowIndex, colIndex, $event)">
+						<div class="text-container">
+							<input v-if="currentMode === 'input'" type="text" class="text-input"
+										 v-model="cell.text" @blur="updateCellText(rowIndex, colIndex, $event)"
+										 @click.stop/>
+							<span v-else>{{ cell.text }}</span>
+						</div>
+						<template v-if="currentMode === 'stroke'">
+							<div class="edge-hotzone top" @mousedown="handleStrokeStart(rowIndex, colIndex, 'top', $event)"
+									 @mouseenter="handleStrokeMove(rowIndex, colIndex, 'top', $event)"></div>
+							<div class="edge-hotzone right" @mousedown="handleStrokeStart(rowIndex, colIndex, 'right', $event)"
+									 @mouseenter="handleStrokeMove(rowIndex, colIndex, 'right', $event)"></div>
+							<div class="edge-hotzone bottom" @mousedown="handleStrokeStart(rowIndex, colIndex, 'bottom', $event)"
+									 @mouseenter="handleStrokeMove(rowIndex, colIndex, 'bottom', $event)"></div>
+							<div class="edge-hotzone left" @mousedown="handleStrokeStart(rowIndex, colIndex, 'left', $event)"
+									 @mouseenter="handleStrokeMove(rowIndex, colIndex, 'left', $event)"></div>
+						</template>
 					</div>
-					<template v-if="currentMode === 'stroke'">
-						<div class="edge-hotzone top" @mousedown="handleStrokeStart(rowIndex, colIndex, 'top', $event)" @mouseenter="handleStrokeMove(rowIndex, colIndex, 'top', $event)"></div>
-						<div class="edge-hotzone right" @mousedown="handleStrokeStart(rowIndex, colIndex, 'right', $event)" @mouseenter="handleStrokeMove(rowIndex, colIndex, 'right', $event)"></div>
-						<div class="edge-hotzone bottom" @mousedown="handleStrokeStart(rowIndex, colIndex, 'bottom', $event)" @mouseenter="handleStrokeMove(rowIndex, colIndex, 'bottom', $event)"></div>
-						<div class="edge-hotzone left" @mousedown="handleStrokeStart(rowIndex, colIndex, 'left', $event)" @mouseenter="handleStrokeMove(rowIndex, colIndex, 'left', $event)"></div>
-					</template>
-				</div>
-			</template>
+				</template>
+			</div>
 		</div>
-	</div>
+	</article>
 </main>
 
 <aside class="right-sidebar">
@@ -287,7 +266,7 @@
 				isDrawing: false,
 				isFilling: false,
 				// 新增：用于描边模式下拖动时记录初始点击的边缘方向
-				initialStrokeDirection: null,
+				initialStrokeDirection: null
 			};
 		},
 		computed: {
@@ -298,9 +277,9 @@
 				return {
 					gridTemplateColumns: `repeat(${this.cols}, ${cellSize}px)`,
 					gridTemplateRows: `repeat(${this.rows}, ${cellSize}px)`,
-					gap: '0px',
+					gap: '0px'
 				};
-			},
+			}
 		},
 		watch: {
 			currentMode(newMode) {
@@ -332,7 +311,7 @@
 							bgColor: '',
 							text: '',
 							borders: {top: '', right: '', bottom: '', left: ''},
-							isActive: true, // 所有单元格都是活动的
+							isActive: true // 所有单元格都是活动的
 						});
 					}
 					newGrid.push(row);
@@ -341,7 +320,9 @@
 			},
 			copyToClipboard(text) {
 				// Re-implement copyToClipboard without toastr and jQuery
-				if (!text) return;
+				if (!text) {
+					return;
+				}
 				navigator.clipboard.writeText(text).then(() => {
 					// Optionally, add a simple alert or console log for success
 				}).catch(err => {
@@ -406,7 +387,7 @@
 					'top': 'bottom',
 					'bottom': 'top',
 					'left': 'right',
-					'right': 'left',
+					'right': 'left'
 				};
 
 				// Set current cell's border
@@ -415,15 +396,20 @@
 				// Set neighbor cell's opposite border
 				let neighborRow = rowIndex;
 				let neighborCol = colIndex;
-				if (direction === 'top') neighborRow--;
-				else if (direction === 'bottom') neighborRow++;
-				else if (direction === 'left') neighborCol--;
-				else if (direction === 'right') neighborCol++;
+				if (direction === 'top') {
+					neighborRow--;
+				} else if (direction === 'bottom') {
+					neighborRow++;
+				} else if (direction === 'left') {
+					neighborCol--;
+				} else if (direction === 'right') {
+					neighborCol++;
+				}
 
 				// 检查邻居单元格是否在有效范围内
 				if (neighborRow >= 0 && neighborRow < this.rows &&
-				    neighborCol >= 0 && neighborCol < this.cols &&
-				    this.gridData[neighborRow] && this.gridData[neighborRow][neighborCol]) {
+						neighborCol >= 0 && neighborCol < this.cols &&
+						this.gridData[neighborRow] && this.gridData[neighborRow][neighborCol]) {
 					this.gridData[neighborRow][neighborCol].borders[oppositeDirections[direction]] = this.currentColor;
 				}
 			},
@@ -444,7 +430,7 @@
 				} else {
 					localStorage.removeItem(storageKey);
 				}
-			},
+			}
 		},
 		mounted() {
 			this.initGrid();
@@ -457,7 +443,27 @@
 		}
 	})
 	.use(ElementPlus)
-	.mount('main');
+	.mount('main>article');
+
+	const help = createApp({
+		data() {
+			return {
+				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname)
+			};
+		},
+		watch: {
+			descriptionVisible(newValue) {
+				const storageKey = 'description-hidden-' + window.location.pathname;
+				if (!newValue) {
+					localStorage.setItem(storageKey, 'true');
+				} else {
+					localStorage.removeItem(storageKey);
+				}
+			}
+		}
+	})
+	.use(ElementPlus)
+	.mount('.help.area');
 </script>
 
 <div>
