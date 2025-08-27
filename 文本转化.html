@@ -1,22 +1,24 @@
 <!DOCTYPE html>
 <html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
 <head>
-	<meta charset="UTF-8">
-	<title>文本转化工具 - 在线文本编码解码与格式化</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="description" content="在线进行文本编码（Base64, URL编码等）、解码、大小写转换、去除空格等多种文本处理操作。">
-	<meta name="keywords" content="文本转化, 文本工具, 在线工具, 编码解码, Base64, URL编码, 文本格式化">
-	<meta name="author" content="工具兽">
-	<meta property="og:title" content="文本转化工具 - 在线文本编码解码与格式化">
-	<meta property="og:description" content="在线进行文本编码（Base64, URL编码等）、解码、大小写转换、去除空格等多种文本处理操作。">
-	<meta property="og:type" content="website">
+<meta charset="UTF-8">
+<title>文本转化工具 - 在线文本编码解码与格式化</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="在线进行文本编码（Base64, URL编码等）、解码、大小写转换、去除空格等多种文本处理操作。">
+<meta name="keywords" content="文本转化, 文本工具, 在线工具, 编码解码, Base64, URL编码, 文本格式化">
+<meta name="author" content="工具兽">
+<meta property="og:title" content="文本转化工具 - 在线文本编码解码与格式化">
+<meta property="og:description"
+			content="在线进行文本编码（Base64, URL编码等）、解码、大小写转换、去除空格等多种文本处理操作。">
+<meta property="og:type" content="website">
 
-	<link href="lib/primevue/primeicons.css" rel="stylesheet">
-	<link href="lib/toastr.min.css" rel="stylesheet">
-	<link href="resources/common.css?v=250821" rel="stylesheet">
-	<link href="resources/花活.css" rel="stylesheet">
-	<link href="resources/layout.css?v=0821" rel="stylesheet">
-	<link href="resources/biz.css?v=250821" rel="stylesheet">
+<link href="lib/element-plus/2.10.7/index.css" rel="stylesheet">
+<link href="resources/el-plus.css" rel="stylesheet">
+<link href="lib/toastr.min.css" rel="stylesheet">
+<link href="resources/common.css?v=250821" rel="stylesheet">
+<link href="resources/layout.css?v=0821" rel="stylesheet">
+<link href="resources/biz.css?v=250821" rel="stylesheet">
+<link href="resources/花活.css" rel="stylesheet">
 </head>
 <body class="grid 反叵字形">
 <header>
@@ -31,62 +33,58 @@
 		<a href="游戏/点灯.html">点灯</a>
 	</nav>
 </header>
-<main v-cloak>
+<main>
 	<header>
 		<h2>文本格式转换工具</h2>
-		<button class="toggle-description" @click="toggleDescription">{{ descriptionVisible ? '隐藏说明' : '显示说明' }}
-		</button>
-	</header>
-	<article class="description" v-if="descriptionVisible">
-		<p>
-			“文本格式转换工具”是一个强大而实用的在线服务，专为需要对文本进行各种编码、解码和加密操作的用户设计。无论您是开发人员、数据分析师，还是普通用户，这个工具都能满足您在文本处理方面的多样化需求。</p>
-		<h2>核心功能</h2>
-		<ul>
-			<li><strong>MD5加密：</strong>快速生成文本的MD5哈希值，常用于数据校验和密码存储。</li>
-			<li><strong>Base64编码/解码：</strong>支持文本与Base64格式之间的相互转换，广泛应用于网络数据传输和二进制数据表示。
-			</li>
-			<li><strong>URI编码/解码：</strong>提供对URL中的特殊字符进行编码和解码的功能，确保URL的正确性和可读性。</li>
-			<li><strong>URI参数编码/解码：</strong>专门针对URL查询参数中的字符进行更严格的编码和解码。</li>
-		</ul>
-		<h2>适用场景</h2>
-		<p><strong>Web开发：</strong>在处理URL、API请求或用户输入时，经常需要进行URI编码和解码，以避免安全漏洞和解析错误。</p>
-		<p><strong>数据传输：</strong>当需要在网络上传输二进制数据（如图片、文件）时，通常会先将其进行Base64编码，以文本形式安全传输。
-		</p>
-		<p><strong>信息安全：</strong>MD5哈希算法可用于验证文件完整性，确保文件在传输过程中未被篡改。</p>
-	</article>
-	<section class="input area">
-		<p-textarea placeholder="在此输入要处理的文本" rows="5" autoResize
-								:class="descriptionVisible?'border-pulse':''"
-								v-model="inputText" @input="processInput"></p-textarea>
-	</section>
 
-	<section class="transfer result area">
-		<header>
-			点击文本即可复制
-		</header>
-		<card class="one result" @click="copyToClipboard(result.value)" v-for="(result,label) in results" :key="label">
-			<template #title>
-				<header>
-					<span>{{ label }}</span>
-					<span>
-							<choose-group class="chooser" v-for="(setting,settingName) in result.settings" :key="settingName"
-														v-model="setting.val" :options="setting.options"
-														@click.stop @change="updateResult(result, inputText)"/>
-						</span>
-				</header>
-			</template>
-			<template #content>
-				<article title="点击复制" v-if="result.value">
-					<span class="value truncate-long-text">{{result.value}}</span>
-					<p-button title="把此结果作为输入" aria-label="把此结果作为输入" @click.stop="asInput(result.value)"
-										variant="outlined" serverity="info">
-						<i class="pi pi-upload"></i>
-					</p-button>
+		<div class="help area" v-cloak>
+			<el-button size="small" circle title="显示说明" @click="descriptionVisible = true">?</el-button>
+			<el-dialog title="页面说明" v-model="descriptionVisible" width="60%">
+				<article class="description">
+					<p>
+						“文本格式转换工具”是一个强大而实用的在线服务，专为需要对文本进行各种编码、解码和加密操作的用户设计。无论您是开发人员、数据分析师，还是普通用户，这个工具都能满足您在文本处理方面的多样化需求。</p>
+					<h2>核心功能</h2>
+					<ul>
+						<li><strong>MD5加密：</strong>快速生成文本的MD5哈希值，常用于数据校验和密码存储。</li>
+						<li><strong>Base64编码/解码：：</strong>支持文本与Base64格式之间的相互转换，广泛应用于网络数据传输和二进制数据表示。
+						</li>
+						<li><strong>URI编码/解码：：</strong>提供对URL中的特殊字符进行编码和解码的功能，确保URL的正确性和可读性。</li>
+						<li><strong>URI参数编码/解码：：</strong>专门针对URL查询参数中的字符进行更严格的编码和解码。</li>
+					</ul>
+					<h2>适用场景</h2>
+					<p><strong>Web开发：：</strong>在处理URL、API请求或用户输入时，经常需要进行URI编码和解码，以避免安全漏洞和解析错误。
+					</p>
+					<p><strong>数据传输：：</strong>当需要在网络上传输二进制数据（如图片、文件）时，通常会先将其进行Base64编码，以文本形式安全传输。
+					</p>
+					<p><strong>信息安全：：</strong>MD5哈希算法可用于验证文件完整性，确保文件在传输过程中未被篡改。</p>
 				</article>
-				<div v-else class="placeholder">（等待输入）</div>
-			</template>
-		</card>
-	</section>
+			</el-dialog>
+		</div>
+	</header>
+	<article v-cloak>
+		<section class="input area">
+			<el-input placeholder="在此输入要处理的文本" v-model="inputText" @input="processInput" type="textarea" :rows="5">
+			</el-input>
+		</section>
+		<section class="result area , grid">
+			<header class="one-row , flex items-near-start-x">
+				<p>转换结果：</p>
+				<p>（点击文本即可复制）</p>
+			</header>
+
+			<section class="one result" v-for="(result,label) in results" :key="label">
+				<el-input readonly v-model="result.value"  @click="copyToClipboard(result.value)">
+					<template #prepend>{{ label }}</template>
+					<template #append>
+						<el-button title="把此结果作为输入" aria-label="把此结果作为输入" @click.stop="asInput(result.value)"
+											 type="info">
+							<el-icon><Upload /></el-icon>
+						</el-button>
+					</template>
+				</el-input>
+			</section>
+		</section>
+	</article>
 </main>
 
 <aside class="right-sidebar">
@@ -104,8 +102,8 @@
 
 <div class="js container">
 	<script src="lib/vue/3.5.18/vue.global.js"></script>
-	<script src="lib/primevue/4.3.7/primevue.min.js"></script>
-	<script src="lib/primevue/themes/aura/1.2.3/aura.js"></script>
+	<script src="lib/element-plus/2.10.7/index.full.js"></script>
+	<script src="lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
 	<script src="lib/jquery-3.4.1.min.js"></script>
 	<script src="lib/toastr.min.js"></script>
 	<script src="resources/util.js"></script>
@@ -119,6 +117,7 @@
 </div>
 <script>
 	const {createApp} = Vue;
+	const {Upload} = ElementPlusIconsVue;
 
 	const results = {
 		'MD5': {
@@ -258,31 +257,15 @@
 
 	const app = createApp({
 		components: {
-			'choose-group': PrimeVue.SelectButton,
-			'p-button': PrimeVue.Button,
-			'p-textarea': PrimeVue.Textarea,
-			'p-fieldset': PrimeVue.Fieldset,
-			'card': PrimeVue.Card,
-			'toolbar': PrimeVue.Toolbar,
-			'p-checkbox': PrimeVue.Checkbox
+			Upload
 		},
 		data() {
 			return {
 				inputText: '',
-				results,
-				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname)
+				results
 			};
 		},
 		methods: {
-			toggleDescription() {
-				this.descriptionVisible = !this.descriptionVisible;
-				const storageKey = 'description-hidden-' + window.location.pathname;
-				if (this.descriptionVisible) {
-					localStorage.removeItem(storageKey);
-				} else {
-					localStorage.setItem(storageKey, 'true');
-				}
-			},
 			async copyToClipboard(text) {
 				if (!text) {
 					return;
@@ -324,12 +307,28 @@
 			this.processInput();
 		}
 	})
-	.use(PrimeVue.Config, {
-		theme: {
-			preset: PrimeUIX.Themes.Aura
+	.use(ElementPlus)
+	.mount('main > article');
+
+	createApp({
+		data() {
+			return {
+				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname)
+			};
+		},
+		watch: {
+			descriptionVisible(newValue) {
+				const storageKey = 'description-hidden-' + window.location.pathname;
+				if (!newValue) {
+					localStorage.setItem(storageKey, 'true');
+				} else {
+					localStorage.removeItem(storageKey);
+				}
+			}
 		}
 	})
-	.mount('main');
+	.use(ElementPlus)
+	.mount('.help.area');
 </script>
 
 <div>

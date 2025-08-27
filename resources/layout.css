@@ -186,9 +186,19 @@
 }
 
 /* 为防父元素没有使用.grid类之类，所以不使用 .grid > header ，直接设置grid-area。若父元素非display:grid也没事，会被浏览器忽略 */
-header {grid-area: header;flex: 1 1 100%;}
+header {
+	grid-area: header;
+	grid-row: 1;
+	grid-column: 1 / -1;
+	flex: 1 1 100%;
+}
 
-footer {grid-area: footer;flex: 1 1 100%;}
+footer {
+	grid-area: footer;
+	grid-row: -2;
+	grid-column: 1 / -1;
+	flex: 1 1 100%;
+}
 
 aside.left-sidebar {grid-area: left-sidebar;}
 

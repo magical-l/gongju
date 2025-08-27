@@ -79,17 +79,9 @@ main > header h2 {
 	box-sizing: border-box;
 }
 
-.result.area {
-	flex-basis: 100%;
-	flex: 4;
-	display: grid;
-	grid-template-columns: repeat(2, 1fr);
-	align-items: start;
+.result.area.grid {
+	grid-template-columns: 50% 50%;
 	gap: 1rem;
-}
-
-.result.area > header {
-	grid-column: 1 / -1;
 }
 
 @media (max-width: 1024px) {
@@ -102,55 +94,6 @@ main > header h2 {
 	.result.area {
 		grid-template-columns: 1fr;
 	}
-}
-
-.one.result {
-	cursor: pointer;
-	transition: background-color 0.2s;
-}
-
-.one.result:hover {
-	background-color: #f0f8ff;
-}
-
-.one.result header {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	width: 100%;
-}
-
-.one.result article {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-}
-
-.one.result .p-card-body {
-	padding: 0.75rem;
-}
-
-.one.result .p-card-content {
-	padding: 0;
-}
-
-.one.result .p-card-title {
-	font-size: 1rem;
-	margin-bottom: 0.25rem;
-}
-
-.one.result .p-button {
-	height: auto;
-	padding: 0.2rem 0.4rem;
-}
-
-.one.result .value {
-	max-width: 300px;
-}
-
-.one.result .placeholder {
-	color: #6c757d;
-	font-style: italic;
 }
 
 /*=================================与primevue有关=================================*/
