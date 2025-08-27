@@ -1,120 +1,120 @@
 <!DOCTYPE html>
 <html lang="zh-cn">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>汉语拼音学习工具 - 在线声母韵母组合练习</title>
-	<meta name="description"
-				content="一个在线的汉语拼音学习和练习工具，通过可视化的方式展示声母、韵母和声调的组合规则，帮助用户更好地掌握汉语拼音。">
-	<meta name="keywords" content="汉语拼音, 拼音学习, 声母, 韵母, 声调, 在线工具, pinyin">
-	<link href="../resources/common.css?v=250821" rel="stylesheet">
-	<link href="../resources/layout.css?v=0821" rel="stylesheet">
-	<link href="../resources/biz.css?v=250821" rel="stylesheet">
-	<link href="拼音.css" rel="stylesheet">
-	<style>
-		.keyboard .row {
-			display: flex;
-			justify-content: space-between;
-		}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>汉语拼音学习工具 - 在线声母韵母组合练习</title>
+<meta name="description"
+			content="一个在线的汉语拼音学习和练习工具，通过可视化的方式展示声母、韵母和声调的组合规则，帮助用户更好地掌握汉语拼音。">
+<meta name="keywords" content="汉语拼音, 拼音学习, 声母, 韵母, 声调, 在线工具, pinyin">
+<link href="../resources/common.css?v=250821" rel="stylesheet">
+<link href="../resources/layout.css?v=0821" rel="stylesheet">
+<link href="../resources/biz.css?v=250821" rel="stylesheet">
+<link href="拼音.css" rel="stylesheet">
+<style>
+	.keyboard .row {
+		display: flex;
+		justify-content: space-between;
+	}
 
-		.keyboard button {
-			display: inline-block;
-			width: 60px;
-			height: 60px;
-			margin: 5px;
-			position: relative;
-		}
+	.keyboard button {
+		display: inline-block;
+		width: 60px;
+		height: 60px;
+		margin: 5px;
+		position: relative;
+	}
 
-		.keyboard button > .badge {
-			position: absolute;
-			bottom: 4px;
-			left: 50%;
-			transform: translateX(-50%);
-			white-space: nowrap;
-		}
+	.keyboard button > .badge {
+		position: absolute;
+		bottom: 4px;
+		left: 50%;
+		transform: translateX(-50%);
+		white-space: nowrap;
+	}
 
-		.音节 .显示 {
-			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-			min-height: 160px;
-			background-color: #ffffff;
-			border: 1px solid #e0e0e0;
-			border-radius: 12px;
-			padding: 10px 20px;
-			margin: 0 auto 10px auto;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-			max-width: 95%;
-		}
+	.音节 .显示 {
+		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+		min-height: 160px;
+		background-color: #ffffff;
+		border: 1px solid #e0e0e0;
+		border-radius: 12px;
+		padding: 10px 20px;
+		margin: 0 auto 10px auto;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+		max-width: 95%;
+	}
 
-		.equation-center-group {
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			gap: 16px;
-			flex-wrap: wrap;
-		}
+	.equation-center-group {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		gap: 16px;
+		flex-wrap: wrap;
+	}
 
-		.equation-left {
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			gap: 8px;
-			flex-wrap: wrap;
-		}
+	.equation-left {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		gap: 8px;
+		flex-wrap: wrap;
+	}
 
-		.part-container {
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			justify-content: flex-start;
-			min-width: 50px;
-			min-height: 90px;
-			gap: 10px;
-		}
+	.part-container {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: flex-start;
+		min-width: 50px;
+		min-height: 90px;
+		gap: 10px;
+	}
 
-		.part-container .sign {
-			font-size: 52px;
-			height: 60px;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			letter-spacing: 0.05em;
-		}
+	.part-container .sign {
+		font-size: 52px;
+		height: 60px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		letter-spacing: 0.05em;
+	}
 
-		.part-container .badge {
-			font-size: 14px;
-		}
+	.part-container .badge {
+		font-size: 14px;
+	}
 
-		.equals-sign {
-			font-size: 48px;
-			color: #6c757d;
-			font-weight: 300;
-		}
+	.equals-sign {
+		font-size: 48px;
+		color: #6c757d;
+		font-weight: 300;
+	}
 
-		.operator {
-			font-size: 36px;
-			color: #b0b0b0;
-			font-weight: 300;
-		}
+	.operator {
+		font-size: 36px;
+		color: #b0b0b0;
+		font-weight: 300;
+	}
 
-		.validation-area {
-			display: flex;
-			align-items: center;
-			gap: 16px;
-		}
+	.validation-area {
+		display: flex;
+		align-items: center;
+		gap: 16px;
+	}
 
-		.validation-area .icon {
-			font-size: 28px;
-		}
+	.validation-area .icon {
+		font-size: 28px;
+	}
 
-		.badges {
-			display: flex;
-			flex-direction: column;
-			gap: 8px;
-		}
-	</style>
+	.badges {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+</style>
 </head>
 <body class="grid 反叵字形">
 <header>
@@ -126,9 +126,10 @@
 		<a href="../svg转图标.html">SVG转图标</a>
 		<a href="../化学/元素周期表.html">元素周期表</a>
 		<a href="拼音.html" class="active">拼音</a>
+		<a href="../游戏/点灯.html">点灯</a>
 	</nav>
 </header>
-<main>
+<main v-cloak>
 	<header>
 		<h2>汉语拼音学习工具</h2>
 		<button class="toggle-description" @click="toggleDescription">{{ descriptionVisible ? '隐藏说明' : '显示说明' }}
@@ -334,20 +335,8 @@
 		</div>
 	</section>
 </main>
+
 <aside class="right-sidebar">
-	<!-- 谷歌广告联盟 -->
-	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"
-					crossorigin="anonymous"></script>
-	<!-- 展示广告1 -->
-	<ins class="adsbygoogle"
-			 style="display:block"
-			 data-ad-client="ca-pub-3376778290975789"
-			 data-ad-slot="7434043904"
-			 data-ad-format="auto"
-			 data-full-width-responsive="true"></ins>
-	<script>
-		(adsbygoogle = window.adsbygoogle || []).push({});
-	</script>
 	<article class="website info">
 		<div class="qr-code">
 			<img src="../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
@@ -359,7 +348,8 @@
 		</div>
 	</article>
 </aside>
-<div>
+
+<div class="js container">
 	<script src="../lib/vue/3.5.18/vue.global.js"></script>
 	<script src="../lib/primevue/4.3.7/primevue.min.js"></script>
 	<script src="../lib/primevue/themes/aura/1.2.3/aura.js"></script>
@@ -782,5 +772,15 @@
 	.use(PrimeVue.Config, {theme: {preset: PrimeUIX.Themes.Aura}})
 	.mount('main');
 </script>
+
+<div>
+	<!-- 谷歌广告联盟 -->
+	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"
+					crossorigin="anonymous"></script>
+	<!-- 展示广告1 -->
+	<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true"
+			 data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
+	<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
 </body>
 </html>

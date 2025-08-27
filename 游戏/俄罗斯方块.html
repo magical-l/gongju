@@ -1,79 +1,85 @@
 <!DOCTYPE html>
 <html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title itemprop="name">俄罗斯方块 | 工具兽</title>
-	<meta name="description" content="一个经典的俄罗斯方块游戏，拥有现代化的功能和可自定义的设置，包括难度曲线、初始等级、游戏区尺寸和幽灵方块显示。支持键盘快捷键操作，提供流畅的游戏体验。" itemprop="description">
-	<meta name="keywords" content="俄罗斯方块,Tetris,在线游戏,休闲游戏,益智游戏">
-	<meta name="author" content="工具兽">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title itemprop="name">俄罗斯方块 | 工具兽</title>
+<meta name="description"
+			content="一个经典的俄罗斯方块游戏，拥有现代化的功能和可自定义的设置，包括难度曲线、初始等级、游戏区尺寸和幽灵方块显示。支持键盘快捷键操作，提供流畅的游戏体验。"
+			itemprop="description">
+<meta name="keywords" content="俄罗斯方块,Tetris,在线游戏,休闲游戏,益智游戏">
+<meta name="author" content="工具兽">
 
-	<!-- 预加载关键资源 -->
-	<link rel="preload" href="lib/jquery-3.4.1.min.js" as="script">
-	<link rel="preload" href="resources/util.js" as="script">
+<!-- 预加载关键资源 -->
+<link rel="preload" href="lib/jquery-3.4.1.min.js" as="script">
+<link rel="preload" href="resources/util.js" as="script">
 
-	<link href="https://cdn.jsdelivr.net/npm/primeicons/primeicons.css" rel="stylesheet">
-	<link href="lib/toastr.min.css" rel="stylesheet">
-	<link href="resources/common.css?v=250821" rel="stylesheet">
-	<link href="resources/花活.css" rel="stylesheet">
-	<link href="resources/biz.css?v=250821" rel="stylesheet">
-	<link href="https://unpkg.com/primevue/resources/primevue.min.css" rel="stylesheet">
+<!--	<link href="https://cdn.jsdelivr.net/npm/primeicons/primeicons.css" rel="stylesheet">-->
+<!--	<link href="https://unpkg.com/primevue/resources/primevue.min.css" rel="stylesheet">-->
+<link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
+<link href="../resources/el-plus.css" rel="stylesheet">
+<link href="../resources/common.css?v=250821" rel="stylesheet">
+<link href="../resources/layout.css?v=0821" rel="stylesheet">
+<link href="../resources/biz.css?v=250821" rel="stylesheet">
+<link href="resources/花活.css" rel="stylesheet">
 
-	<style>
-		body { background-color: #f8f9fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 2rem; }
+<style>
+	body { background-color: #f8f9fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 2rem; }
 
-		main { max-width: 1600px; margin: 0 auto; }
+	main { max-width: 1600px; margin: 0 auto; }
 
-		.game-wrapper { display: flex; justify-content: center; align-items: flex-start; gap: 2rem; }
+	.game-wrapper { display: flex; justify-content: center; align-items: flex-start; gap: 2rem; }
 
-		.board-wrapper { flex-grow: 1; display: flex; justify-content: center; }
+	.board-wrapper { flex-grow: 1; display: flex; justify-content: center; }
 
-		#game-board-container { position: relative; border: 2px solid #ced4da; padding: 2px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); display: inline-block; }
+	#game-board-container { position: relative; border: 2px solid #ced4da; padding: 2px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); display: inline-block; }
 
-		.p-inputnumber-input { width: 60px !important; text-align: center; }
+	.p-inputnumber-input { width: 60px !important; text-align: center; }
 
-		#game-board { display: grid; grid-gap: 1px; border: 2px solid #495057; background: #e9ecef; }
+	#game-board { display: grid; grid-gap: 1px; border: 2px solid #495057; background: #e9ecef; }
 
-		.cell { width: 30px; height: 30px; background-color: rgba(0, 0, 0, 0.05); border-radius: 2px; }
+	.cell { width: 30px; height: 30px; background-color: rgba(0, 0, 0, 0.05); border-radius: 2px; }
 
-		.cell.I { background-color: #a0e7e5; }
+	.cell.I { background-color: #a0e7e5; }
 
-		.cell.O { background-color: #ffd6a5; }
+	.cell.O { background-color: #ffd6a5; }
 
-		.cell.T { background-color: #d4a5a5; }
+	.cell.T { background-color: #d4a5a5; }
 
-		.cell.J { background-color: #89c2d9; }
+	.cell.J { background-color: #89c2d9; }
 
-		.cell.L { background-color: #f4a261; }
+	.cell.L { background-color: #f4a261; }
 
-		.cell.S { background-color: #b2e0b8; }
+	.cell.S { background-color: #b2e0b8; }
 
-		.cell.Z { background-color: #ffb3c1; }
+	.cell.Z { background-color: #ffb3c1; }
 
-		.cell.ghost { background-color: #495057; opacity: 0.15; }
+	.cell.ghost { background-color: #495057; opacity: 0.15; }
 
-		.side-panel { width: 400px; flex-shrink: 0; }
+	.side-panel { width: 400px; flex-shrink: 0; }
 
-		#next-piece-container { display: grid; grid-template-columns: repeat(4, 30px); grid-template-rows: repeat(4, 30px); grid-gap: 1px; min-height: 129px; margin: 0 auto; }
+	#next-piece-container { display: grid; grid-template-columns: repeat(4, 30px); grid-template-rows: repeat(4, 30px); grid-gap: 1px; min-height: 129px; margin: 0 auto; }
 
-		.next-cell { width: 30px; height: 30px; border-radius: 2px; }
+	.next-cell { width: 30px; height: 30px; border-radius: 2px; }
 
-		.config-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+	.config-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
 
-		.config-item:last-child { margin-bottom: 0; }
+	.config-item:last-child { margin-bottom: 0; }
 
-		.p-panel-content { display: flex; flex-direction: column; gap: 1.5rem; }
+	.p-panel-content { display: flex; flex-direction: column; gap: 1.5rem; }
 
-		#pause-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(73, 80, 87, 0.7); color: white; font-size: 2em; font-weight: bold; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; line-height: 1.5; }
+	#pause-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(73, 80, 87, 0.7); color: white; font-size: 2em; font-weight: bold; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; line-height: 1.5; }
 
-		#pause-overlay .p-button { margin-top: 20px; }
-	</style>
+	#pause-overlay .p-button { margin-top: 20px; }
+</style>
 </head>
 <body>
 <main>
 	<panel header="俄罗斯方块">
 		<template #icons>
-			<button class="p-panel-header-icon p-link mr-2" @click="toggleDescription">{{ descriptionVisible ? '隐藏说明' : '显示说明' }}</button>
+			<button class="p-panel-header-icon p-link mr-2" @click="toggleDescription">{{ descriptionVisible ? '隐藏说明' :
+				'显示说明' }}
+			</button>
 		</template>
 		<div v-if="descriptionVisible" class="help-content">
 			<p>一个经典的俄罗斯方块游戏，但拥有更现代化的功能。</p>
@@ -154,7 +160,21 @@
 		</div>
 	</div>
 </main>
-<div>
+
+<aside class="right-sidebar">
+	<article class="website info">
+		<section class="qr-code">
+			<img src="../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+			<span>赞助一下</span>
+		</section>
+		<section>
+			<p>&copy; 2025 工具兽版权所有 All rights reserved.</p>
+			<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+		</section>
+	</article>
+</aside>
+
+<div class="js container">
 	<script src="lib/jquery-3.4.1.min.js"></script>
 	<script src="lib/toastr.min.js"></script>
 	<script src="resources/util.js"></script>
@@ -259,7 +279,7 @@
 						row.forEach((value, x) => {
 							if (value !== 0 && y + player.pos.y >= 0) {
 								newGrid[y + player.pos.y][x + player.pos.x]
-									= player.tetromino.color;
+										= player.tetromino.color;
 							}
 						});
 					});
@@ -295,7 +315,7 @@
 			});
 
 			const pauseButtonText = computed(
-				() => (grid.value.every(row => row.every(cell => cell === 0))) ? '开始游戏' : '继续');
+					() => (grid.value.every(row => row.every(cell => cell === 0))) ? '开始游戏' : '继续');
 
 			// --- Methods ---
 			const createEmptyGrid = () => Array.from({length: settings.rows}, () => Array(settings.cols).fill(0));
@@ -542,7 +562,7 @@
 		data() {
 			return {
 				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname)
-			}
+			};
 		},
 		methods: {
 			toggleDescription() {
@@ -564,18 +584,14 @@
 	.mount('main');
 </script>
 
-<!-- 谷歌广告联盟 -->
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"
-				crossorigin="anonymous"></script>
-<!-- 展示广告1 -->
-<ins class="adsbygoogle"
-		 style="display:block"
-		 data-ad-client="ca-pub-3376778290975789"
-		 data-ad-slot="7434043904"
-		 data-ad-format="auto"
-		 data-full-width-responsive="true"></ins>
-<script>
-	(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
+<div>
+	<!-- 谷歌广告联盟 -->
+	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"
+					crossorigin="anonymous"></script>
+	<!-- 展示广告1 -->
+	<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true"
+			 data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
+	<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
 </body>
 </html>

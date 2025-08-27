@@ -1,151 +1,155 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta name="description"
-				content="在线格子盘工具，轻松制作、自定义和导出田字格、米字格、九宫格等各种格子图案。支持填充颜色、输入文字、描边，是书法、练字、设计的得力助手。">
-	<meta name="keywords" content="格子盘, 田字格, 米字格, 九宫格, 在线工具, 练字, 书法, 设计, 自定义格子">
-	<title>格子盘 - 在线制作田字格、米字格 | 工具兽</title>
-	<link href="resources/common.css?v=250821" rel="stylesheet">
-	<link href="resources/layout.css?v=0821" rel="stylesheet">
-	<link href="resources/biz.css?v=250806?v=0229b" rel="stylesheet">
-	<style>
-		:root {
-			--default-draw-color: #88CC88;
-			--toolbar-border: #dee2e6;
-			--cell-border: #e0e0e0;
-		}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>格子盘工具 - 在线网格生成与编辑</title>
+<meta name="description" content="在线生成和编辑各种网格、格子盘，自定义尺寸和样式，适用于设计、游戏等场景。">
+<meta name="keywords" content="格子盘, 网格工具, 在线工具, 设计工具, 棋盘, grid">
+<meta name="author" content="工具兽">
+<meta property="og:title" content="格子盘工具 - 在线网格生成与编辑">
+<meta property="og:description" content="在线生成和编辑各种网格、格子盘，自定义尺寸和样式，适用于设计、游戏等场景。">
+<meta property="og:type" content="website">
 
-		.toolbar {
-			display: flex;
-			gap: 12px;
-			justify-content: center;
-			width: fit-content;
-			padding: 2px 0;
-		}
+<link href="resources/common.css?v=250821" rel="stylesheet">
+<link href="resources/layout.css?v=0821" rel="stylesheet">
+<link href="resources/biz.css?v=250806?v=0229b" rel="stylesheet">
+<style>
+	:root {
+		--default-draw-color: #88CC88;
+		--toolbar-border: #dee2e6;
+		--cell-border: #e0e0e0;
+	}
 
-		.tool-group {
-			display: flex;
-			gap: 8px;
-			align-items: center;
-			height: 40px;
-			padding: 6px 12px;
-			background: white;
-			border: 1px solid var(--toolbar-border);
-			border-radius: 6px;
-		}
+	.toolbar {
+		display: flex;
+		gap: 12px;
+		justify-content: center;
+		width: fit-content;
+		padding: 2px 0;
+	}
 
-		.btn-group {
-			border: 1px solid #ccc;
-			border-radius: 4px;
-			overflow: hidden;
-			display: inline-flex;
-		}
+	.tool-group {
+		display: flex;
+		gap: 8px;
+		align-items: center;
+		height: 40px;
+		padding: 6px 12px;
+		background: white;
+		border: 1px solid var(--toolbar-border);
+		border-radius: 6px;
+	}
 
-		.btn-group button {
-			border: none;
-			border-radius: 0;
-			margin: 0;
-			border-right: 1px solid #ccc;
-			padding: 6px 12px;
-			background: white;
-			color: #666;
-			cursor: pointer;
-			transition: 0.2s;
-		}
+	.btn-group {
+		border: 1px solid #ccc;
+		border-radius: 4px;
+		overflow: hidden;
+		display: inline-flex;
+	}
 
-		.btn-group button:last-child {
-			border-right: none;
-		}
+	.btn-group button {
+		border: none;
+		border-radius: 0;
+		margin: 0;
+		border-right: 1px solid #ccc;
+		padding: 6px 12px;
+		background: white;
+		color: #666;
+		cursor: pointer;
+		transition: 0.2s;
+	}
 
-		button.active {
-			border-color: var(--default-draw-color);
-			background: var(--default-draw-color);
-			color: white;
-		}
+	.btn-group button:last-child {
+		border-right: none;
+	}
 
-		.size-input {
-			width: 50px;
-			padding: 6px;
-			border: 1px solid #ccc;
-			border-radius: 4px;
-		}
+	button.active {
+		border-color: var(--default-draw-color);
+		background: var(--default-draw-color);
+		color: white;
+	}
 
-		.board {
-			border: 1px solid #d3d3d3;
-			background: white;
-			border-collapse: collapse;
-			margin: 15px auto;
-		}
+	.size-input {
+		width: 50px;
+		padding: 6px;
+		border: 1px solid #ccc;
+		border-radius: 4px;
+	}
 
-		.cell {
-			width: 36px;
-			height: 36px;
-			position: relative;
-			text-align: center;
-			border: 2px solid var(--cell-border);
-			user-select: none;
-		}
+	.board {
+		border: 1px solid #d3d3d3;
+		background: white;
+		border-collapse: collapse;
+		margin: 15px auto;
+	}
 
-		.dimmed.cell {
-			background: #e0e0e0 !important;
-			opacity: 0.7;
-			pointer-events: none;
-		}
+	.cell {
+		width: 36px;
+		height: 36px;
+		position: relative;
+		text-align: center;
+		border: 2px solid var(--cell-border);
+		user-select: none;
+	}
 
-		.fill-mode td:not(.dimmed) {
-			cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%2388CC88" d="M7.44,8.94L16.38,0L17.79,1.41l-2.38,2.38L20.56,8.94c0.59,0.59,0.59,1.54,0,2.12l-5.5,5.5C14.77,16.85,14.38,17,14,17s-0.77-0.15-1.06-0.44l-5.5-5.5C6.85,10.48,6.85,9.53,7.44,8.94z M18.79,10L14,5.21L9.21,10H18.79z M5,11.5c0,0,2,2.17,2,3.5c0,1.1-0.9,2-2,2s-2-0.9-2-2C3,13.67,5,11.5,5,11.5z"/></svg>') 0 18, pointer;
-		}
+	.dimmed.cell {
+		background: #e0e0e0 !important;
+		opacity: 0.7;
+		pointer-events: none;
+	}
 
-		.input-mode td:not(.dimmed) {
-			cursor: text;
-		}
+	.fill-mode td:not(.dimmed) {
+		cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%2388CC88" d="M7.44,8.94L16.38,0L17.79,1.41l-2.38,2.38L20.56,8.94c0.59,0.59,0.59,1.54,0,2.12l-5.5,5.5C14.77,16.85,14.38,17,14,17s-0.77-0.15-1.06-0.44l-5.5-5.5C6.85,10.48,6.85,9.53,7.44,8.94z M18.79,10L14,5.21L9.21,10H18.79z M5,11.5c0,0,2,2.17,2,3.5c0,1.1-0.9,2-2,2s-2-0.9-2-2C3,13.67,5,11.5,5,11.5z"/></svg>') 0 18, pointer;
+	}
 
-		.text-container {
-			position: relative;
-			z-index: 4;
-			pointer-events: none;
-		}
+	.input-mode td:not(.dimmed) {
+		cursor: text;
+	}
 
-		.text-input {
-			width: 80%;
-			font-size: 12px;
-			border: none;
-			background: transparent;
-			position: absolute;
-			left: 50%;
-			top: 50%;
-			transform: translate(-50%, -50%);
-			text-align: center;
-			outline: none;
-			z-index: 5;
-			pointer-events: auto;
-		}
+	.text-container {
+		position: relative;
+		z-index: 4;
+		pointer-events: none;
+	}
 
-		.stroke-mode .edge-hotzone:hover {
-			background-color: rgba(136, 204, 136, 0.2);
-		}
+	.text-input {
+		width: 80%;
+		font-size: 12px;
+		border: none;
+		background: transparent;
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		transform: translate(-50%, -50%);
+		text-align: center;
+		outline: none;
+		z-index: 5;
+		pointer-events: auto;
+	}
 
-		.stroke-mode .edge-hotzone {
-			cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%2388CC88" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>') 6 18, pointer;
-		}
+	.stroke-mode .edge-hotzone:hover {
+		background-color: rgba(136, 204, 136, 0.2);
+	}
 
-		.edge-hotzone {
-			position: absolute;
-			background: transparent;
-			z-index: 3;
-			transition: background-color 0.1s;
-		}
+	.stroke-mode .edge-hotzone {
+		cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%2388CC88" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>') 6 18, pointer;
+	}
 
-		.edge-hotzone.top { top: 0; left: 0; width: 100%; height: 12px; }
+	.edge-hotzone {
+		position: absolute;
+		background: transparent;
+		z-index: 3;
+		transition: background-color 0.1s;
+	}
 
-		.edge-hotzone.right { right: 0; top: 0; width: 12px; height: 100%; }
+	.edge-hotzone.top { top: 0; left: 0; width: 100%; height: 12px; }
 
-		.edge-hotzone.bottom { bottom: 0; left: 0; width: 100%; height: 12px; }
+	.edge-hotzone.right { right: 0; top: 0; width: 12px; height: 100%; }
 
-		.edge-hotzone.left { left: 0; top: 0; width: 12px; height: 100%; }
-	</style>
+	.edge-hotzone.bottom { bottom: 0; left: 0; width: 100%; height: 12px; }
+
+	.edge-hotzone.left { left: 0; top: 0; width: 12px; height: 100%; }
+</style>
 </head>
 <body class="fill-mode 反叵字形">
 <header>
@@ -157,10 +161,10 @@
 		<a href="svg转图标.html">SVG转图标</a>
 		<a href="化学/元素周期表.html">元素周期表</a>
 		<a href="拼音/拼音.html">拼音</a>
-		<a href="点灯.html">点灯</a>
+		<a href="游戏/点灯.html">点灯</a>
 	</nav>
 </header>
-<main v-cloak>
+<main>
 	<header>
 		<h2>格子盘</h2>
 		<button class="toggle-description" onclick="toggleDescription()">查看说明</button>
@@ -201,23 +205,36 @@
 	<table class="board" id="board"></table>
 </main>
 
+<aside class="right-sidebar">
+	<article class="website info">
+		<section class="qr-code">
+			<img src="resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+			<span>赞助一下</span>
+		</section>
+		<section>
+			<p>&copy; 2025 工具兽版权所有 All rights reserved.</p>
+			<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+		</section>
+	</article>
+</aside>
+
 <div class="js container">
 	<script src="lib/jquery-3.4.1.min.js"></script>
 	<script src="resources/biz-util.js?v=250801"></script>
 </div>
 <script>
 	const maxSize = 19;
-	const board = $('#board');
+	const board = $("#board");
 	let currentMode = 'fill';
 	let currentColor = getComputedStyle(document.documentElement).getPropertyValue('--default-draw-color').trim();
 	let isDrawing = false;
 	let isFilling = false;
 
-	$('.btn-group button').on('click', function () {
-		$('.btn-group button').removeClass('active');
+	$(".btn-group button").on('click', function () {
+		$(".btn-group button").removeClass('active');
 		$(this).addClass('active');
 		currentMode = $(this).data('mode');
-		$('body').attr('class', `${currentMode}-mode`);
+		$("body").attr('class', `${currentMode}-mode`);
 
 		// 移除所有之前的事件处理
 		board.off('mousedown mousemove click');
@@ -240,12 +257,12 @@
 
 	function initGrid() {
 		board.empty();
-		const activeRows = Math.min(parseInt($('#rows').val()) || 5, maxSize);
-		const activeCols = Math.min(parseInt($('#cols').val()) || 5, maxSize);
+		const activeRows = Math.min(parseInt($("#rows").val()) || 5, maxSize);
+		const activeCols = Math.min(parseInt($("#cols").val()) || 5, maxSize);
 		const colOffset = Math.floor((maxSize - activeCols) / 2);
 
 		for (let i = 0; i < maxSize; i++) {
-			const row = $('<tr>');
+			const row = $("<tr>");
 			for (let j = 0; j < maxSize; j++) {
 				const isActive = i < activeRows && (j >= colOffset && j < colOffset + activeCols);
 				const cell = createCell(isActive);
@@ -259,7 +276,7 @@
 	}
 
 	function createCell(isActive) {
-		const cell = $('<td>').addClass('cell');
+		const cell = $("<td>").addClass('cell');
 		if (!isActive) {
 			return cell;
 		}
@@ -270,7 +287,7 @@
 		];
 
 		elements.forEach(([tag, className]) => {
-			const el = $('<' + tag + '>').addClass(className);
+			const el = $("<" + tag + ">").addClass(className);
 			cell.append(el);
 		});
 
@@ -306,7 +323,7 @@
 		}
 
 		const textContainer = cell.find('.text-container');
-		const input = $('<input>').addClass('text-input').val(textContainer.text());
+		const input = $("<input>").addClass('text-input').val(textContainer.text());
 		textContainer.empty().append(input);
 		input.trigger('focus');
 		input.on('blur', () => textContainer.text(input.val()));
@@ -362,31 +379,14 @@
 	}
 </script>
 
-<aside class="right-sidebar">
+<div>
 	<!-- 谷歌广告联盟 -->
 	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"
 					crossorigin="anonymous"></script>
 	<!-- 展示广告1 -->
-	<ins class="adsbygoogle"
-			 style="display:block"
-			 data-ad-client="ca-pub-3376778290975789"
-			 data-ad-slot="7434043904"
-			 data-ad-format="auto"
-			 data-full-width-responsive="true"></ins>
-	<script>
-		(adsbygoogle = window.adsbygoogle || []).push({});
-	</script>
-	<article class="website info">
-		<div class="qr-code">
-			<img src="resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
-			<span>赞助一下</span>
-		</div>
-		<div>
-			<p>&copy; 2025 工具兽版权所有 All rights reserved.</p>
-			<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
-		</div>
-	</article>
-</aside>
-
+	<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true"
+			 data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
+	<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
 </body>
 </html>

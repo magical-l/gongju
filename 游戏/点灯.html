@@ -220,284 +220,7 @@
 	</article>
 </main>
 
-<div class="js container">
-	<script src="../lib/vue/3.5.18/vue.global.js"></script>
-	<script src="../lib/element-plus/2.10.7/index.full.js"></script>
-	<script src="../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
-	<script>
-		const {createApp} = Vue;
-
-		function solveLightsOut(board) {
-			const size = board.length;
-			if (size === 0) {
-				return null;
-			}
-			const n = size * size;
-
-			const A = Array(n).fill(0).map(() => Array(n).fill(0));
-			for (let r = 0; r < size; r++) {
-				for (let c = 0; c < size; c++) {
-					const idx = r * size + c;
-					A[idx][idx] = 1;
-					if (r > 0) {
-						A[idx - size][idx] = 1;
-					}
-					if (r < size - 1) {
-						A[idx + size][idx] = 1;
-					}
-					if (c > 0) {
-						A[idx - 1][idx] = 1;
-					}
-					if (c < size - 1) {
-						A[idx + 1][idx] = 1;
-					}
-				}
-			}
-
-			const b = board.flat().map(light => light ? 0 : 1);
-
-			const M = A.map((row, i) => [...row, b[i]]);
-			let rank = 0;
-			const pivots = [];
-
-			for (let j = 0; j < n && rank < n; j++) {
-				let pivotRow = rank;
-				while (pivotRow < n && M[pivotRow][j] === 0) {
-					pivotRow++;
-				}
-
-				if (pivotRow < n) {
-					[M[rank], M[pivotRow]] = [M[pivotRow], M[rank]];
-					const pivot = M[rank];
-					for (let i = 0; i < n; i++) {
-						if (i !== rank && M[i][j] === 1) {
-							for (let k = j; k <= n; k++) {
-								M[i][k] ^= pivot[k];
-							}
-						}
-					}
-					pivots[j] = rank;
-					rank++;
-				}
-			}
-
-			for (let i = rank; i < n; i++) {
-				if (M[i][n] === 1) {
-					return null;
-				}
-			}
-
-			const solution = Array(n).fill(0);
-			for (let j = n - 1; j >= 0; j--) {
-				if (pivots[j] !== undefined) {
-					const pivotRow = pivots[j];
-					let val = M[pivotRow][n];
-					for (let k = j + 1; k < n; k++) {
-						val ^= M[pivotRow][k] * solution[k];
-					}
-					solution[j] = val;
-				} else {
-					solution[j] = 0;
-				}
-			}
-
-			return solution;
-		}
-
-		const app = createApp({
-			data() {
-				return {
-					boardSizes: [2, 3, 4, 5, 6, 7, 8, 9],
-					boardSize: 2,
-					board: [],
-					rounds: [],
-					highlightedCells: [],
-					descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname),
-					showWinModal: false
-				};
-			},
-			computed: {
-				isWin() {
-					if (!this.board || this.board.length === 0) {
-						return false;
-					}
-					return this.board.flat().every(cell => cell === true);
-				},
-				moveCount() {
-					return this.rounds.length;
-				}
-			},
-			watch: {
-				isWin(isWin) {
-					if (isWin) {
-						this.showWinModal = true;
-					}
-				},
-				descriptionVisible(newValue) {
-					const storageKey = 'description-hidden-' + window.location.pathname;
-					if (!newValue) {
-						localStorage.setItem(storageKey, 'true');
-					} else {
-						localStorage.removeItem(storageKey);
-					}
-				},
-				boardSize: 'initGame',
-				rounds: {
-					handler() {
-						this.$nextTick(() => {
-							const el = this.$refs.roundList;
-							if (el) {
-								el.scrollTop = el.scrollHeight;
-							}
-						});
-					},
-					deep: true
-				}
-			},
-			methods: {
-				initGame() {
-					this.rounds = [];
-					this.board = Array(this.boardSize).fill(0).map(() => Array(this.boardSize).fill(false));
-					this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
-				},
-				closeWinModal() {
-					this.showWinModal = false;
-				},
-				toggleCellState(row, col) {
-					if (this.board[row] && this.board[row][col] !== undefined) {
-						this.board[row][col] = !this.board[row][col];
-					}
-				},
-				handleCellClick(row, col) {
-					if (this.isWin) {
-						return;
-					}
-					this.toggleCellState(row, col);
-					if (row > 0) {
-						this.toggleCellState(row - 1, col);
-					}
-					if (row < this.boardSize - 1) {
-						this.toggleCellState(row + 1, col);
-					}
-					if (col > 0) {
-						this.toggleCellState(row, col - 1);
-					}
-					if (col < this.boardSize - 1) {
-						this.toggleCellState(row, col + 1);
-					}
-					this.rounds.push({row: row + 1, col: col + 1});
-				},
-				showRandomHint() {
-					if (this.isWin) {
-						this.$message.success('已经赢了，无需提示！');
-						return;
-					}
-
-					const solution = solveLightsOut(this.board);
-
-					if (!solution) {
-						this.$message.error('当前局面无解！请重新开始。');
-						this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
-						return;
-					}
-
-					const solutionPresses = [];
-					solution.forEach((press, index) => {
-						if (press === 1) {
-							solutionPresses.push(index);
-						}
-					});
-
-					if (solutionPresses.length === 0) {
-						this.$message.info('看起来已经完成了。');
-						this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
-						return;
-					}
-
-					const randomIndex = Math.floor(Math.random() * solutionPresses.length);
-					const hintIndex = solutionPresses[randomIndex];
-
-					// Highlight just that one cell
-					this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
-					const newHighlights = [...this.highlightedCells];
-					newHighlights[hintIndex] = true;
-					this.highlightedCells = newHighlights;
-				},
-				exportRounds() {
-					if (this.rounds.length === 0) {
-						this.$message.info('没有回合记录可导出');
-						return;
-					}
-					const content = this.rounds.map((round, index) => `${index + 1}：第${round.row}行, 第${round.col}列`)
-					.join('\n');
-
-					const blob = new Blob([content], {type: 'text/plain;charset=utf-8'});
-					const a = document.createElement('a');
-					a.href = URL.createObjectURL(blob);
-					a.download = `点灯游戏-回合记录（${this.boardSize}x${this.boardSize}）.txt`;
-					document.body.appendChild(a);
-					a.click();
-					document.body.removeChild(a);
-					URL.revokeObjectURL(a.href);
-				},
-				showAnswer() {
-					if (this.isWin) {
-						this.$message.success('已经赢了，无需提示！');
-						return;
-					}
-
-					const solution = solveLightsOut(this.board);
-
-					if (!solution) {
-						this.$message.error('当前局面无解！请重新开始。');
-						this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
-						return;
-					}
-
-					const presses = solution.reduce((acc, val) => acc + val, 0);
-					if (presses === 0) {
-						this.$message.info('看起来已经完成了。');
-						this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
-						return;
-					}
-
-					this.$message.info(`建议按 ${presses} 个格子。`);
-
-					const newHighlights = [];
-					solution.forEach((press, index) => {
-						newHighlights[index] = press === 1;
-					});
-					this.highlightedCells = newHighlights;
-				}
-			},
-			mounted() {
-				this.initGame();
-			}
-		});
-
-		for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-			app.component(key, component);
-		}
-
-		app.use(ElementPlus)
-		.mount('main');
-	</script>
-</div>
-
 <aside class="right-sidebar">
-	<!-- 谷歌广告联盟 -->
-	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"
-					crossorigin="anonymous"></script>
-	<!-- 展示广告1 -->
-	<ins class="adsbygoogle"
-			 style="display:block"
-			 data-ad-client="ca-pub-3376778290975789"
-			 data-ad-slot="7434043904"
-			 data-ad-format="auto"
-			 data-full-width-responsive="true"></ins>
-	<script>
-		(adsbygoogle = window.adsbygoogle || []).push({});
-	</script>
 	<article class="website info">
 		<section class="qr-code">
 			<img src="../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
@@ -509,5 +232,279 @@
 		</section>
 	</article>
 </aside>
+
+<div class="js container">
+	<script src="../lib/vue/3.5.18/vue.global.js"></script>
+	<script src="../lib/element-plus/2.10.7/index.full.js"></script>
+	<script src="../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
+</div>
+<script>
+	const {createApp} = Vue;
+
+	function solveLightsOut(board) {
+		const size = board.length;
+		if (size === 0) {
+			return null;
+		}
+		const n = size * size;
+
+		const A = Array(n).fill(0).map(() => Array(n).fill(0));
+		for (let r = 0; r < size; r++) {
+			for (let c = 0; c < size; c++) {
+				const idx = r * size + c;
+				A[idx][idx] = 1;
+				if (r > 0) {
+					A[idx - size][idx] = 1;
+				}
+				if (r < size - 1) {
+					A[idx + size][idx] = 1;
+				}
+				if (c > 0) {
+					A[idx - 1][idx] = 1;
+				}
+				if (c < size - 1) {
+					A[idx + 1][idx] = 1;
+				}
+			}
+		}
+
+		const b = board.flat().map(light => light ? 0 : 1);
+
+		const M = A.map((row, i) => [...row, b[i]]);
+		let rank = 0;
+		const pivots = [];
+
+		for (let j = 0; j < n && rank < n; j++) {
+			let pivotRow = rank;
+			while (pivotRow < n && M[pivotRow][j] === 0) {
+				pivotRow++;
+			}
+
+			if (pivotRow < n) {
+				[M[rank], M[pivotRow]] = [M[pivotRow], M[rank]];
+				const pivot = M[rank];
+				for (let i = 0; i < n; i++) {
+					if (i !== rank && M[i][j] === 1) {
+						for (let k = j; k <= n; k++) {
+							M[i][k] ^= pivot[k];
+						}
+					}
+				}
+				pivots[j] = rank;
+				rank++;
+			}
+		}
+
+		for (let i = rank; i < n; i++) {
+			if (M[i][n] === 1) {
+				return null;
+			}
+		}
+
+		const solution = Array(n).fill(0);
+		for (let j = n - 1; j >= 0; j--) {
+			if (pivots[j] !== undefined) {
+				const pivotRow = pivots[j];
+				let val = M[pivotRow][n];
+				for (let k = j + 1; k < n; k++) {
+					val ^= M[pivotRow][k] * solution[k];
+				}
+				solution[j] = val;
+			} else {
+				solution[j] = 0;
+			}
+		}
+
+		return solution;
+	}
+
+	const app = createApp({
+		data() {
+			return {
+				boardSizes: [2, 3, 4, 5, 6, 7, 8, 9],
+				boardSize: 2,
+				board: [],
+				rounds: [],
+				highlightedCells: [],
+				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname),
+				showWinModal: false
+			};
+		},
+		computed: {
+			isWin() {
+				if (!this.board || this.board.length === 0) {
+					return false;
+				}
+				return this.board.flat().every(cell => cell === true);
+			},
+			moveCount() {
+				return this.rounds.length;
+			}
+		},
+		watch: {
+			isWin(isWin) {
+				if (isWin) {
+					this.showWinModal = true;
+				}
+			},
+			descriptionVisible(newValue) {
+				const storageKey = 'description-hidden-' + window.location.pathname;
+				if (!newValue) {
+					localStorage.setItem(storageKey, 'true');
+				} else {
+					localStorage.removeItem(storageKey);
+				}
+			},
+			boardSize: 'initGame',
+			rounds: {
+				handler() {
+					this.$nextTick(() => {
+						const el = this.$refs.roundList;
+						if (el) {
+							el.scrollTop = el.scrollHeight;
+						}
+					});
+				},
+				deep: true
+			}
+		},
+		methods: {
+			initGame() {
+				this.rounds = [];
+				this.board = Array(this.boardSize).fill(0).map(() => Array(this.boardSize).fill(false));
+				this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
+			},
+			closeWinModal() {
+				this.showWinModal = false;
+			},
+			toggleCellState(row, col) {
+				if (this.board[row] && this.board[row][col] !== undefined) {
+					this.board[row][col] = !this.board[row][col];
+				}
+			},
+			handleCellClick(row, col) {
+				if (this.isWin) {
+					return;
+				}
+				this.toggleCellState(row, col);
+				if (row > 0) {
+					this.toggleCellState(row - 1, col);
+				}
+				if (row < this.boardSize - 1) {
+					this.toggleCellState(row + 1, col);
+				}
+				if (col > 0) {
+					this.toggleCellState(row, col - 1);
+				}
+				if (col < this.boardSize - 1) {
+					this.toggleCellState(row, col + 1);
+				}
+				this.rounds.push({row: row + 1, col: col + 1});
+			},
+			showRandomHint() {
+				if (this.isWin) {
+					this.$message.success('已经赢了，无需提示！');
+					return;
+				}
+
+				const solution = solveLightsOut(this.board);
+
+				if (!solution) {
+					this.$message.error('当前局面无解！请重新开始。');
+					this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
+					return;
+				}
+
+				const solutionPresses = [];
+				solution.forEach((press, index) => {
+					if (press === 1) {
+						solutionPresses.push(index);
+					}
+				});
+
+				if (solutionPresses.length === 0) {
+					this.$message.info('看起来已经完成了。');
+					this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
+					return;
+				}
+
+				const randomIndex = Math.floor(Math.random() * solutionPresses.length);
+				const hintIndex = solutionPresses[randomIndex];
+
+				// Highlight just that one cell
+				this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
+				const newHighlights = [...this.highlightedCells];
+				newHighlights[hintIndex] = true;
+				this.highlightedCells = newHighlights;
+			},
+			exportRounds() {
+				if (this.rounds.length === 0) {
+					this.$message.info('没有回合记录可导出');
+					return;
+				}
+				const content = this.rounds.map((round, index) => `${index + 1}：第${round.row}行, 第${round.col}列`)
+				.join('\n');
+
+				const blob = new Blob([content], {type: 'text/plain;charset=utf-8'});
+				const a = document.createElement('a');
+				a.href = URL.createObjectURL(blob);
+				a.download = `点灯游戏-回合记录（${this.boardSize}x${this.boardSize}）.txt`;
+				document.body.appendChild(a);
+				a.click();
+				document.body.removeChild(a);
+				URL.revokeObjectURL(a.href);
+			},
+			showAnswer() {
+				if (this.isWin) {
+					this.$message.success('已经赢了，无需提示！');
+					return;
+				}
+
+				const solution = solveLightsOut(this.board);
+
+				if (!solution) {
+					this.$message.error('当前局面无解！请重新开始。');
+					this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
+					return;
+				}
+
+				const presses = solution.reduce((acc, val) => acc + val, 0);
+				if (presses === 0) {
+					this.$message.info('看起来已经完成了。');
+					this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
+					return;
+				}
+
+				this.$message.info(`建议按 ${presses} 个格子。`);
+
+				const newHighlights = [];
+				solution.forEach((press, index) => {
+					newHighlights[index] = press === 1;
+				});
+				this.highlightedCells = newHighlights;
+			}
+		},
+		mounted() {
+			this.initGame();
+		}
+	});
+
+	for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+		app.component(key, component);
+	}
+
+	app.use(ElementPlus)
+	.mount('main');
+</script>
+
+<div>
+	<!-- 谷歌广告联盟 -->
+	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"
+					crossorigin="anonymous"></script>
+	<!-- 展示广告1 -->
+	<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true"
+			 data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
+	<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
 </body>
 </html>
