@@ -60,23 +60,6 @@
 		--反叵字形-right-sidebar-max-width: 220px;
 	}
 
-	.gaming.area > .right-sidebar {
-		background-color: #f0f2f5;
-		padding: 15px;
-		border-radius: 10px;
-		min-width: 220px;
-		text-align: left;
-	}
-
-	.gaming.area > .right-sidebar header {
-		font-size: 1.3em;
-		font-weight: 600;
-		margin-bottom: 10px;
-		color: #333;
-		border-bottom: 2px solid #dce1e6;
-		padding-bottom: 5px;
-	}
-
 	.moves {
 		margin: 15px 0;
 		font-size: 1.2rem;
@@ -84,7 +67,7 @@
 		color: #4a4a4a;
 	}
 
-	.rounds.list {
+	.round.list.container {
 		max-height: 330px;
 		overflow-y: auto;
 		background-color: #fff;
@@ -93,7 +76,7 @@
 		padding: 10px;
 	}
 
-	.rounds.list p {
+	.round.list.area p {
 		margin: 0;
 		padding: 6px 4px;
 		border-bottom: 1px solid #f0f2f5;
@@ -101,7 +84,7 @@
 		font-size: 0.9em;
 	}
 
-	.rounds.list p:last-child {
+	.round.list.area p:last-child {
 		border-bottom: none;
 	}
 
@@ -134,46 +117,42 @@
 		<a href="../svg转图标.html">SVG转图标</a>
 		<a href="../化学/元素周期表.html">元素周期表</a>
 		<a href="../拼音/拼音.html">拼音</a>
+		<a href="俄罗斯方块.html">俄罗斯方块</a>
+		<a href="贪吃蛇.html">贪吃蛇</a>
 		<a href="点灯.html" class="active">点灯</a>
 	</nav>
 </header>
 <main>
 	<header>
-		<h2>点灯游戏</h2>
-
-		<div class="help area" v-cloak>
-			<el-button class="help btn" size="small" circle title="游戏介绍" @click="descriptionVisible = true">?</el-button>
-			<el-dialog title="游戏介绍" v-model="descriptionVisible" width="60%">
-				<article class="description">
-					<p>
-						欢迎来到“熄灯游戏”（Lights Out），这是一款经典的益智游戏，由 Tiger Electronics 在 1995
-						年推出。游戏的目标非常简单：通过点击格子，将棋盘上所有的灯光都点亮/熄灭（变成蓝色）。
-					</p>
-					<p>
-						游戏的规则是：点击任意一个格子，该格子以及其上下左右相邻的格子都会切换状态（亮变灭，灭变亮）。您需要巧妙地选择点击的顺序和位置，才能最终让所有灯光都点亮/熄灭。
-					</p>
-					<p>
-						您可以选择不同大小的棋盘（例如 3x3、5x5、7x7 等）来挑战自己。游戏还提供了“提示”和“答案”功能，帮助您在遇到困难时找到解决方案。祝您玩得愉快！
-					</p>
-				</article>
+		<h2 class="game name">点灯游戏</h2>
+		<div class="page-lv help area" v-cloak>
+			<el-button class="page-lv help btn" title="游戏介绍" @click="introVisible = true" size="small" circle>?
+			</el-button>
+			<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
+				<p>欢迎来到“熄灯游戏”（Lights Out），这是一款经典的益智游戏，由 Tiger Electronics 在 1995 年推出。</p>
+				<p>游戏的目标非常简单：通过点击格子，将棋盘上所有的灯光都点亮/熄灭（变成蓝色）。</p>
+				<p>游戏的规则是：点击任意一个格子，该格子以及其上下左右相邻的格子都会切换状态（亮变灭，灭变亮）。您需要巧妙地选择点击的顺序和位置，才能最终让所有灯光都点亮/熄灭。
+				</p>
+				<p>您可以选择不同大小的棋盘（例如 3x3、5x5、7x7 等）来挑战自己。游戏还提供了“提示”和“答案”功能，帮助您在遇到困难时找到解决方案。祝您玩得愉快！
+				</p>
 			</el-dialog>
 		</div>
 	</header>
 
-	<article v-cloak>
-		<header class="toolbar flex near-center">
-			<section class="setting area">
+	<article class="gaming area , 反叵字形 grid" v-cloak>
+		<header class="toolbar , flex near-center">
+			<section class="setting list area">
 				<el-radio-group title="尺寸" class="one setting : map size" v-model="boardSize">
 					<el-radio-button v-for="opt in boardSizes" :key="opt" size="large" :value="opt">{{opt}}x{{opt}}
 					</el-radio-button>
 				</el-radio-group>
 			</section>
-			<section class="controller area">
-				<el-button class="one controller : restart" @click="initGame" type="primary" size="large" icon="RefreshRight">
+			<section class="controller list area">
+				<el-button class="one controller : restart" @click="initGame" icon="RefreshRight" type="primary" size="large">
 					重新开始
 				</el-button>
 			</section>
-			<section class="tool area">
+			<section class="tool list area">
 				<el-button-group>
 					<el-button class="one tool : hint" @click="showRandomHint" size="large" icon="MagicStick">提示</el-button>
 					<el-button class="one tool : answer" @click="showAnswer" size="large" icon="Key">答案</el-button>
@@ -181,33 +160,31 @@
 			</section>
 		</header>
 
-		<section class="gaming area , 反叵字形 grid">
-			<article class="main map area , one-row item , flex items-near-center-x">
-				<section id="main-map" class="inline grid" :style="{gridTemplateColumns: `repeat(${boardSize}, 1fr)`}">
-					<template v-for="(row, rowIndex) in board" :key="rowIndex">
-						<div class="cell" v-for="(cell, colIndex) in row" :key="colIndex"
-								 :class="[cell ? 'b' : 'a', {'highlighted': highlightedCells[rowIndex * boardSize + colIndex]}]"
-								 ref="cells" @click="handleCellClick(rowIndex, colIndex)">
-						</div>
-					</template>
-				</section>
-			</article>
-			<aside class="right-sidebar">
-				<header>记分牌</header>
-				<article class="score board">
-					<p class="moves">移动次数: <span>{{ moveCount }}</span></p>
-				</article>
-				<article class="rounds area">
-					<header style="display: flex; justify-content: space-between; align-items: center;">
-						<span>回合记录</span>
-						<el-button size="small" @click="exportRounds" :disabled="!rounds.length" icon="Download">导出</el-button>
-					</header>
-					<section class="rounds list" ref="roundList">
-						<p v-for="(round, roundI) in rounds">{{roundI+1}}：第{{round.row}}行, 第{{round.col}}列</p>
-						<el-empty v-if="!rounds.length" description="尚无记录。请开始吧！"/>
-					</section>
-				</article>
-			</aside>
+		<article class="main map area , one-row item , flex items-near-center-x">
+			<section id="main-map" class="grid" :style="{gridTemplateColumns: `repeat(${boardSize}, 1fr)`}">
+				<template v-for="(row, rowIndex) in board" :key="rowIndex">
+					<div class="cell" v-for="(cell, colIndex) in row" :key="colIndex"
+							 :class="[cell ? 'b' : 'a', {'highlighted': highlightedCells[rowIndex * boardSize + colIndex]}]"
+							 ref="cells" @click="handleCellClick(rowIndex, colIndex)">
+					</div>
+				</template>
+			</section>
+		</article>
+
+		<article class="gaming-situation , right sidebar">
+			<el-card header="记分牌" class="scoreboard section">
+				<p class="moves">移动次数: <span>{{ moveCount }}</span></p>
+			</el-card>
+			<el-card class="round list area section" header-class="flex items-mutex items-near-center-y">
+				<template #header>
+					<span>回合记录</span>
+					<el-button @click="exportRounds" :disabled="!rounds.length" icon="Download" size="small">导出</el-button>
+				</template>
+				<el-empty v-if="!rounds.length" description="尚无记录。请开始吧！"></el-empty>
+				<div v-else class="round list container" ref="roundList">
+					<p v-for="(round, roundI) in rounds">{{roundI+1}}：第{{round.row}}行, 第{{round.col}}列</p>
+				</div>
+			</el-card>
 
 			<article class="modal-overlay fullscreen" v-if="isWin && showWinModal">
 				<section class="body">
@@ -223,19 +200,18 @@
 					<div class="confetti" v-for="i in 150" :key="'confetti'+i"></div>
 				</div>
 			</article>
-		</section>
+		</article>
 	</article>
 </main>
 
-<aside class="right-sidebar">
+<aside class="right sidebar">
 	<article class="website info">
-		<section class="qr-code">
-			<img src="../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
-			<span>赞助一下</span>
+		<section class="sponsorship area">
+			<img class="qr-code" src="../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+			<p class="slogan">赞助一下</p>
 		</section>
-		<section>
-			<p>&copy; 2025 工具兽版权所有 All rights reserved.</p>
-			<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+		<section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
+		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
 		</section>
 	</article>
 </aside>
@@ -495,12 +471,12 @@
 	const help = createApp({
 		data() {
 			return {
-				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname)
+				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname)
 			};
 		},
 		watch: {
-			descriptionVisible(newValue) {
-				const storageKey = 'description-hidden-' + window.location.pathname;
+			introVisible(newValue) {
+				const storageKey = 'intro-hidden-' + window.location.pathname;
 				if (!newValue) {
 					localStorage.setItem(storageKey, 'true');
 				} else {

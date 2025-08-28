@@ -76,8 +76,6 @@
 
 	.cell.ghost { background-color: #495057; opacity: 0.15; }
 
-	.side-panel {grid-area: right-sidebar;}
-
 	.next.piece.container {min-height: 129px; }
 
 	#pause-overlay {
@@ -89,11 +87,11 @@
 
 	.start.play.btn {font-size: larger;}
 
-	.one.setting.group {margin-bottom: 0;}
+	.toolbar .el-form-item {margin-bottom: 0;}
 
 	.one.setting.input.number {width: 80px;}
 
-	.score.board section {text-align: center;}
+	.scoreboard section {text-align: center;}
 </style>
 </head>
 <body class="grid 反叵字形">
@@ -107,16 +105,17 @@
 		<a href="../化学/元素周期表.html">元素周期表</a>
 		<a href="../拼音/拼音.html">拼音</a>
 		<a href="俄罗斯方块.html" class="active">俄罗斯方块</a>
+		<a href="贪吃蛇.html">贪吃蛇</a>
 		<a href="点灯.html">点灯</a>
 	</nav>
 </header>
 <main>
 	<header>
-		<h2>俄罗斯方块</h2>
-
-		<div class="help area" v-cloak>
-			<el-button class="help btn" size="small" circle title="游戏介绍" @click="descriptionVisible = true">?</el-button>
-			<el-dialog title="游戏介绍" v-model="descriptionVisible" width="60%">
+		<h2 class="game name">俄罗斯方块</h2>
+		<div class="page-lv help area" v-cloak>
+			<el-button class="page-lv help btn" title="游戏介绍" @click="introVisible = true" size="small" circle>?
+			</el-button>
+			<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
 				<article class="description">
 					<h3>游戏目标</h3>
 					<p>
@@ -152,9 +151,10 @@
 		</div>
 	</header>
 
-	<article class="game-wrapper grid 反叵字形" v-cloak>
-		<header class="item monopoly , toolbar flex items-mutex">
-			<section class="setting area">
+	<article class="game-wrapper , 反叵字形 grid" v-cloak>
+		<header class="toolbar , flex near-center">
+			<!--		<header class="item monopoly , toolbar flex items-mutex">-->
+			<section class="setting list area">
 				<el-form inline>
 					<el-form-item label="尺寸" class="one setting group">
 						<el-input-number class="one setting : cols input number" v-model="settings.cols" :min="5" :max="20"
@@ -162,7 +162,7 @@
 						<span>x</span>
 						<el-input-number class="one setting : rows input number" v-model="settings.rows" :min="10" :max="30"
 														 controls-position="right"></el-input-number>
-						<el-button icon="RefreshLeft" @click="restoreDefaultSize" title="恢复默认并重开一局"></el-button>
+						<el-button title="恢复默认并重开一局" @click="restoreDefaultSize" icon="RefreshLeft"></el-button>
 					</el-form-item>
 					<el-form-item label="难度" class="one setting group">
 						<div class="flex items-near-start-x">
@@ -178,7 +178,7 @@
 					</el-form-item>
 				</el-form>
 			</section>
-			<section class="controller area">
+			<section class="controller list area">
 				<el-button-group>
 					<el-button v-if="isPaused" class="one controller : pause" title="开始（快捷键：空格）" @click="togglePause"
 										 :disabled="isGameOver" type="primary">开始
@@ -189,16 +189,16 @@
 					<el-button class="one controller : restart" @click="startGame">重开</el-button>
 				</el-button-group>
 			</section>
-			<section class="tool area">
+			<section class="tool list area">
 				<el-form inline>
-					<el-form-item label="显示落点" class="one setting group">
+					<el-form-item label="显示落点">
 						<el-switch class="one tool" v-model="settings.showGhost"></el-switch>
 					</el-form-item>
 				</el-form>
 			</section>
 		</header>
 
-		<div class="flex items-near-center-x items-near-start-y" style="grid-row:2">
+		<article class="flex items-near-center-x items-near-start-y" style="grid-row:2">
 			<section id="game-board-container">
 				<div id="game-board" class="grid" :style="boardStyle">
 					<div v-for="(cell, index) in displayGrid" :key="index" :class="['cell', cell]"></div>
@@ -209,16 +209,16 @@
 										 icon="CaretRight"></el-button>
 				</div>
 			</section>
-		</div>
-		<div class="side-panel">
+		</article>
+		<article class="gaming-situation , right sidebar">
 			<el-card header="下一个" class="next piece section">
 				<div class="next piece container , flex near-center">
 					<div :style="nextPieceStyle">
-						<div v-for="(block, index) in nextPieceBlocks" :key="index" :class="['cell', block]"></div>
+						<div class="cell" v-for="(block, index) in nextPieceBlocks" :key="index" :class="block"></div>
 					</div>
 				</div>
 			</el-card>
-			<el-card header="记分牌" class="score board section" body-class="flex items-unfamiliar">
+			<el-card header="记分牌" class="scoreboard section" body-class="flex items-unfamiliar">
 				<section>
 					<h3>分数</h3>
 					<p>{{ score }}</p>
@@ -238,19 +238,18 @@
 				<p>回车：砖块直接落到底</p>
 				<p>空格：暂停/开始</p>
 			</el-card>
-		</div>
+		</article>
 	</article>
 </main>
 
-<aside class="right-sidebar">
+<aside class="right sidebar">
 	<article class="website info">
-		<section class="qr-code">
-			<img src="../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
-			<span>赞助一下</span>
+		<section class="sponsorship area">
+			<img class="qr-code" src="../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+			<p class="slogan">赞助一下</p>
 		</section>
-		<section>
-			<p>&copy; 2025 工具兽版权所有 All rights reserved.</p>
-			<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+		<section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
+		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
 		</section>
 	</article>
 </aside>
@@ -630,12 +629,12 @@
 	const help = createApp({
 		data() {
 			return {
-				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname)
+				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname)
 			};
 		},
 		watch: {
-			descriptionVisible(newValue) {
-				const storageKey = 'description-hidden-' + window.location.pathname;
+			introVisible(newValue) {
+				const storageKey = 'intro-hidden-' + window.location.pathname;
 				if (!newValue) {
 					localStorage.setItem(storageKey, 'true');
 				} else {

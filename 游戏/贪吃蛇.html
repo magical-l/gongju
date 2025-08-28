@@ -64,25 +64,24 @@
 </header>
 <main>
 	<header>
-		<h2>贪吃蛇游戏</h2>
-		<div class="help area" v-cloak>
-			<el-button class="help btn" size="small" circle title="游戏介绍" @click="descriptionVisible = true">?</el-button>
-			<el-dialog title="游戏介绍" v-model="descriptionVisible" width="60%">
-				<article class="description">
-					<p>欢迎来到“贪吃蛇”游戏，这是一款经典的街机游戏。</p>
-					<p>使用键盘的<strong>方向键 (↑, ↓, ←, →)</strong> 来控制蛇的移动方向。</p>
-					<p>通过<strong>“开始/暂停”按钮</strong>或按<strong>空格键</strong>来控制游戏的开始、暂停与重新开始。</p>
-					<p>游戏的目标是吃掉随机出现的食物（红色方块），每吃掉一个食物，蛇的身体就会变长，并且你的得分也会增加。</p>
-					<p>请注意，蛇不能碰到墙壁或自己的身体，否则游戏就会结束。</p>
-					<p>祝您玩得愉快，挑战更高的分数！</p>
-				</article>
+		<h2 class="game name">贪吃蛇游戏</h2>
+		<div class="page-lv help area" v-cloak>
+			<el-button class="page-lv help btn" title="游戏介绍" @click="introVisible = true" size="small" circle>?
+			</el-button>
+			<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
+				<p>欢迎来到“贪吃蛇”游戏，这是一款经典的街机游戏。</p>
+				<p>使用键盘的<strong>方向键 (↑, ↓, ←, →)</strong> 来控制蛇的移动方向。</p>
+				<p>通过<strong>“开始/暂停”按钮</strong>或按<strong>空格键</strong>来控制游戏的开始、暂停与重新开始。</p>
+				<p>游戏的目标是吃掉随机出现的食物（红色方块），每吃掉一个食物，蛇的身体就会变长，并且你的得分也会增加。</p>
+				<p>请注意，蛇不能碰到墙壁或自己的身体，否则游戏就会结束。</p>
+				<p>祝您玩得愉快，挑战更高的分数！</p>
 			</el-dialog>
 		</div>
 	</header>
 
-	<article v-cloak>
-		<header class="toolbar flex near-center">
-			<section class="setting area">
+	<article class="gaming area , 反叵字形 grid" v-cloak>
+		<header class="toolbar , flex near-center">
+			<section class="setting list area">
 				<el-form inline>
 					<el-form-item label="宽度" class="one setting : width">
 						<el-input-number v-model="gridWidth" :min="10" :max="50" size="large" controls-position="right"/>
@@ -95,44 +94,44 @@
 					</el-form-item>
 				</el-form>
 			</section>
-			<section class="controller area">
-				<el-button class="one controller : pause" @click="togglePause" size="large"
-									 :icon="isPaused ? 'VideoPlay' : 'VideoPause'">
+			<section class="controller list area">
+				<el-button class="one controller : pause" @click="togglePause"
+									 :icon="isPaused ? 'VideoPlay' : 'VideoPause'" size="large">
 					{{ isPaused ? (score === 0 && !gameOver ? '开始' : '继续') : '暂停' }}
 				</el-button>
-				<el-button class="one controller : restart" @click="initGame" size="large" icon="RefreshRight">
+				<el-button class="one controller : restart" @click="initGame" icon="RefreshRight" size="large">
 					重新开始
 				</el-button>
 			</section>
 		</header>
 
-		<section class="gaming area , 反叵字形 grid">
-			<div class="main map area , one-row item , flex items-near-center-x">
+		<article class="gaming area , 反叵字形 grid">
+			<article class="main map area , one-row item , flex items-near-center-x">
 				<canvas id="game-canvas" :width="canvasWidth" :height="canvasHeight" @click="handleCanvasClick"></canvas>
-			</div>
-			<aside class="right-sidebar">
-				<el-card header="记分牌" class="score board section">
-					<p class="score-item">分数: <span>{{ score }}</span></p>
-					<p class="score-item">最高分: <span>{{ highScore }}</span></p>
-				</el-card>
-				<el-card header="快捷键" class="shortcut intro section">
-					<p>↑ ↓ → ← ：方向</p>
-					<p>空格：暂停/开始</p>
-				</el-card>
-			</aside>
-		</section>
+			</article>
+		</article>
+
+		<article class="gaming-situation , right sidebar">
+			<el-card header="记分牌" class="scoreboard section">
+				<p class="score-item">分数: <span>{{ score }}</span></p>
+				<p class="score-item">最高分: <span>{{ highScore }}</span></p>
+			</el-card>
+			<el-card header="快捷键" class="shortcut intro section">
+				<p>↑ ↓ → ← ：控制方向，不能转向当前反方向。</p>
+				<p>空格：暂停/开始</p>
+			</el-card>
+		</article>
 	</article>
 </main>
 
-<aside class="right-sidebar">
+<aside class="right sidebar">
 	<article class="website info">
-		<section class="qr-code">
-			<img src="../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
-			<span>赞助一下</span>
+		<section class="sponsorship area">
+			<img class="qr-code" src="../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+			<p class="slogan">赞助一下</p>
 		</section>
-		<section>
-			<p>&copy; 2025 工具兽版权所有 All rights reserved.</p>
-			<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+		<section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
+		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
 		</section>
 	</article>
 </aside>
@@ -148,7 +147,6 @@
 	const app = createApp({
 		data() {
 			return {
-				descriptionVisible: false,
 				speedLevel: 5,
 				gridWidth: 20,
 				gridHeight: 20,
@@ -409,12 +407,12 @@
 	const help = createApp({
 		data() {
 			return {
-				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname)
+				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname)
 			};
 		},
 		watch: {
-			descriptionVisible(newValue) {
-				const storageKey = 'description-hidden-' + window.location.pathname;
+			introVisible(newValue) {
+				const storageKey = 'intro-hidden-' + window.location.pathname;
 				if (!newValue) {
 					localStorage.setItem(storageKey, 'true');
 				} else {
