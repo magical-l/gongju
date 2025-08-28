@@ -3,12 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title itemprop="name">俄罗斯方块 | 工具兽</title>
+<title itemprop="name">俄罗斯方块 | 工具兽 - 在线玩经典的益智游戏</title>
 <meta name="description"
 			content="一个经典的俄罗斯方块游戏，拥有现代化的功能和可自定义的设置，包括难度曲线、初始等级、游戏区尺寸和幽灵方块显示。支持键盘快捷键操作，提供流畅的游戏体验。"
 			itemprop="description">
 <meta name="keywords" content="俄罗斯方块,Tetris,在线游戏,休闲游戏,益智游戏">
 <meta name="author" content="工具兽">
+<link rel="canonical" href="https://gongju.monster/game/tetris">
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://gongju.monster/game/tetris">
+<meta property="og:title" content="俄罗斯方块 | 工具兽 - 在线玩经典的益智游戏">
+<meta property="og:description"
+			content="一个经典的俄罗斯方块游戏，拥有现代化的功能和可自定义的设置，包括难度曲线、初始等级、游戏区尺寸和幽灵方块显示。支持键盘快捷键操作，提供流畅的游戏体验。">
+<meta property="og:image" content="https://gongju.monster/resources/preview-tetris.jpg">
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image">
+<meta property="twitter:url" content="https://gongju.monster/game/tetris">
+<meta property="twitter:title" content="俄罗斯方块 | 工具兽 - 在线玩经典的益智游戏">
+<meta property="twitter:description"
+			content="一个经典的俄罗斯方块游戏，拥有现代化的功能和可自定义的设置，包括难度曲线、初始等级、游戏区尺寸和幽灵方块显示。支持键盘快捷键操作，提供流畅的游戏体验。">
+<meta property="twitter:image" content="https://gongju.monster/resources/preview-tetris.jpg">
 
 <!-- 预加载关键资源 -->
 <link rel="preload" href="../lib/jquery-3.4.1.min.js" as="script">
@@ -23,11 +38,29 @@
 <style>
 	.game-wrapper { --反叵字形-gap: 2em; }
 
-	#game-board-container { position: relative; border: 2px solid #ced4da; padding: 2px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); display: inline-block; }
+	#game-board-container {
+		position: relative;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+		border: 2px solid #ced4da;
+		padding: 2px;
+		display: inline-block;
+	}
 
-	#game-board { display: grid; grid-gap: 1px; border: 2px solid #495057; background: #e9ecef; }
+	#game-board {
+		background: #e9ecef;
+		border: 2px solid #495057;
+		display: grid;
+		grid-gap: 1px;
+	}
 
-	.cell { width: 30px; height: 30px; background-color: rgba(0, 0, 0, 0.05); border-radius: 2px; }
+	.cell {
+		width: 30px;
+		height: 30px;
+		background-color: rgba(0, 0, 0, 0.05);
+		border-radius: 2px;
+	}
+
+	.cell:not(:empty) { background-color: #ccc; }
 
 	.cell.I { background-color: #a0e7e5; }
 
@@ -45,15 +78,12 @@
 
 	.cell.ghost { background-color: #495057; opacity: 0.15; }
 
-	.side-panel {
-		grid-area: right-sidebar;
-	}
+	.side-panel {grid-area: right-sidebar;}
 
-	#next-piece-container { display: grid; grid-template-columns: repeat(4, 30px); grid-template-rows: repeat(4, 30px); grid-gap: 1px; min-height: 129px; margin: 0 auto; }
+	.next.piece.container {min-height: 129px; }
 
-	.next-cell { width: 30px; height: 30px; border-radius: 2px; }
-
-	#pause-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(73, 80, 87, 0.7); color: white; font-size: 2em; font-weight: bold; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; line-height: 1.5; }
+	#pause-overlay {
+		position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(73, 80, 87, 0.7); color: white; font-size: 2em; font-weight: bold; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; line-height: 1.5; }
 
 	.start.play.btn {
 		font-size: larger;
@@ -94,7 +124,35 @@
 			<el-button class="help btn" size="small" circle title="游戏介绍" @click="descriptionVisible = true">?</el-button>
 			<el-dialog title="游戏介绍" v-model="descriptionVisible" width="60%">
 				<article class="description">
-					todo
+					<h3>游戏目标</h3>
+					<p>
+						《俄罗斯方块》是一款经典的益智游戏。游戏的目标很简单：移动和旋转下落的各种形状的方块（俄罗斯方块），将它们排列成完整的水平行。每当您成功填满一行，该行就会被消除，并且您会获得分数。游戏会随着您消除的行数增加而提升等级，方块下落的速度也会越来越快，挑战您的反应速度和策略规划能力。</p>
+					<h3>操作方式</h3>
+					<p>您可以使用键盘来控制方块的移动和旋转：</p>
+					<ul>
+						<li><strong>← (左箭头)</strong>：向左移动方块</li>
+						<li><strong>→ (右箭头)</strong>：向右移动方块</li>
+						<li><strong>↓ (下箭头)</strong>：加速方块下落（软降）</li>
+						<li><strong>↑ (上箭头)</strong>：旋转方块</li>
+						<li><strong>回车 (Enter)</strong>：将方块瞬间移动到最底部（硬降）</li>
+						<li><strong>空格 (Space)</strong>：暂停或继续游戏</li>
+					</ul>
+					<h3>计分与升级</h3>
+					<ul>
+						<li><strong>计分</strong>：消除的行数越多，获得的分数也越多。一次性消除多行（例如，使用长条方块一次消除4行，即
+							"Tetris"）会获得高额奖励分数。
+						</li>
+						<li><strong>升级</strong>：每当您累计消除10行，游戏等级就会提升一级。等级越高，方块下落的速度越快。</li>
+					</ul>
+					<h3>自定义设置</h3>
+					<p>游戏提供了多种自定义选项，让您可以根据自己的喜好调整游戏体验：</p>
+					<ul>
+						<li><strong>尺寸</strong>：您可以自定义游戏区域的宽度和高度。</li>
+						<li><strong>难度</strong>：提供“柔和”与“经典”两种难度曲线。经典模式遵循传统的速度设定，更具挑战性。</li>
+						<li><strong>起始等级</strong>：您可以选择一个较高的起始等级来直接挑战高速游戏。</li>
+						<li><strong>显示落点</strong>：开启此功能后，游戏区域底部会显示一个“幽灵方块”，提示您当前方块将会下落到的最终位置，帮助您更精确地放置方块。
+						</li>
+					</ul>
 				</article>
 			</el-dialog>
 		</div>
@@ -129,9 +187,10 @@
 			<section class="controller area">
 				<el-button-group>
 					<el-button v-if="isPaused" class="one controller : pause" title="开始（快捷键：空格）" @click="togglePause"
-										 type="primary">开始
+										 :disabled="isGameOver" type="primary">开始
 					</el-button>
-					<el-button v-else class="one controller : pause" title="暂停（快捷键：空格）" @click="togglePause">暂停
+					<el-button v-else class="one controller : pause" title="暂停（快捷键：空格）" @click="togglePause"
+										 :disabled="isGameOver">暂停
 					</el-button>
 					<el-button class="one controller : restart" @click="startGame">重开</el-button>
 				</el-button-group>
@@ -158,14 +217,14 @@
 			</section>
 		</div>
 		<div class="side-panel">
-			<el-card header="下一个" class="section" body-class="flex">
-				<div id="next-piece-container">
+			<el-card header="下一个" class="next piece section">
+				<div class="next piece container , flex near-center">
 					<div :style="nextPieceStyle">
 						<div v-for="(block, index) in nextPieceBlocks" :key="index" :class="['cell', block]"></div>
 					</div>
 				</div>
 			</el-card>
-			<el-card header="记分牌" class="section" class="score board" body-class="flex items-unfamiliar">
+			<el-card header="记分牌" class="score board section" body-class="flex items-unfamiliar">
 				<section>
 					<h3>分数</h3>
 					<p>{{ score }}</p>
@@ -303,21 +362,27 @@
 				return newGrid.flat();
 			},
 			nextPieceStyle() {
-				if (!this.nextTetromino) return {};
+				if (!this.nextTetromino) {
+					return {};
+				}
 				const shape = this.nextTetromino.shape.filter(row => row.some(val => val !== 0));
 				const height = shape.length;
-				if (height === 0) return {};
+				if (height === 0) {
+					return {};
+				}
 				const width = shape[0].length;
 				return {
 					display: 'grid',
 					gridTemplateColumns: `repeat(${width}, 30px)`,
 					gridTemplateRows: `repeat(${height}, 30px)`,
-					gridGap: '1px',
+					gridGap: '1px'
 				};
 			},
 			nextPieceBlocks() {
-				if (!this.nextTetromino) return [];
-				const { shape, color } = this.nextTetromino;
+				if (!this.nextTetromino) {
+					return [];
+				}
+				const {shape, color} = this.nextTetromino;
 				const realShape = shape.filter(row => row.some(val => val !== 0));
 				return realShape.flat().map(val => val === 0 ? '' : color);
 			},
@@ -329,27 +394,29 @@
 					return '准备就绪';
 				}
 				return '';
+			},
+			settingsString() {
+				return JSON.stringify(this.settings);
 			}
 		},
 		watch: {
-			'settings.rows': function () {
-				this.saveSettings();
-				this.startGame();
-			},
-			'settings.cols': function () {
-				this.saveSettings();
-				this.startGame();
-			},
-			'settings.startLevel': function () {
-				this.saveSettings();
-				this.startGame();
-			},
-			'settings.difficulty': function () {
-				this.saveSettings();
-				this.startGame();
-			},
-			'settings.showGhost': function () {
-				this.saveSettings();
+			settingsString(newSettingsJSON, oldSettingsJSON) {
+				if (!oldSettingsJSON) { // Prevents running on initial component mount
+					return;
+				}
+				const newSettings = JSON.parse(newSettingsJSON);
+				const oldSettings = JSON.parse(oldSettingsJSON);
+
+				// Always save the latest settings
+				localStorage.setItem('tetrisSettings', JSON.stringify(newSettings));
+
+				// Restart the game only if critical settings have changed
+				if (newSettings.cols !== oldSettings.cols ||
+						newSettings.rows !== oldSettings.rows ||
+						newSettings.startLevel !== oldSettings.startLevel ||
+						newSettings.difficulty !== oldSettings.difficulty) {
+					this.startGame();
+				}
 			}
 		},
 		methods: {
@@ -361,10 +428,8 @@
 						if (shape[y][x] !== 0) {
 							const newY = y + pos.y;
 							const newX = x + pos.x;
-							if (newX < 0 || newX >= this.settings.cols || newY >= this.settings.rows || (newY >= 0
-																																													 && currentGrid[newY]
-																																													 && currentGrid[newY][newX]
-																																													 !== 0)) {
+							if (newX < 0 || newX >= this.settings.cols || newY >= this.settings.rows//
+									|| newY >= 0 && currentGrid[newY] && currentGrid[newY][newX] !== 0) {
 								return true;
 							}
 						}
@@ -382,7 +447,7 @@
 			updateDropInterval() {
 				this.dropInterval = this.settings.difficulty === 'classic'
 														? CLASSIC_SPEEDS[Math.min(this.level - 1, CLASSIC_SPEEDS.length - 1)]
-														: Math.max(150, 1000 - (this.level * 75));
+														: Math.max(150, 1000 - this.level * 75);
 			},
 			playerReset() {
 				this.player.tetromino = this.nextTetromino || this.getNewTetromino();
@@ -439,7 +504,7 @@
 				}
 				if (clearedLines > 0) {
 					this.lines += clearedLines;
-					this.score += (clearedLines * 10) * clearedLines * this.level;
+					this.score += clearedLines * 10 * clearedLines * this.level;
 					const newLevel = Math.floor(this.lines / 10) + this.settings.startLevel;
 					if (newLevel > this.level) {
 						this.level = newLevel;
@@ -507,8 +572,6 @@
 			restoreDefaultSize() {
 				this.settings.cols = 10;
 				this.settings.rows = 20;
-				this.saveSettings();
-				this.startGame();
 			},
 			handleKeydown(event) {
 				if (event.key === ' ') {
