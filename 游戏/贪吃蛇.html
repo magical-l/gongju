@@ -8,7 +8,8 @@
 <meta name="keywords" content="贪吃蛇, Snake, 在线游戏, 经典游戏, 怀旧游戏, 休闲游戏">
 <meta name="author" content="工具兽">
 <meta property="og:title" content="贪吃蛇游戏 | 在线经典怀旧游戏">
-<meta property="og:description" content="在线玩经典的贪吃蛇游戏。控制小蛇吃食物，不断变长，挑战你的最高分。提供不同速度选择。">
+<meta property="og:description"
+			content="在线玩经典的贪吃蛇游戏。控制小蛇吃食物，不断变长，挑战你的最高分。提供不同速度选择。">
 <meta property="og:type" content="game">
 
 <link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
@@ -24,62 +25,16 @@
 		align-items: start;
 	}
 
-	.main.map.area {
-		position: relative;
-	}
-
 	#game-canvas {
 		background-color: #e6eaf0;
 		border-radius: 10px;
 		box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
 		display: block;
-	}
-
-	.game-overlay {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		background-color: rgba(240, 242, 245, 0.75);
-		border-radius: 10px;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		color: #34495e;
-		text-align: center;
-	}
-
-	.game-overlay h2 {
-		font-size: 2.5rem;
-		margin: 0;
-	}
-
-	.game-overlay p {
-		font-size: 1.2rem;
-		margin: 10px 0 20px;
+		cursor: pointer;
 	}
 
 	.gaming.area {
 		--反叵字形-right-sidebar-max-width: 220px;
-	}
-
-	.gaming.area > .right-sidebar {
-		background-color: #f0f2f5;
-		padding: 15px;
-		border-radius: 10px;
-		min-width: 220px;
-		text-align: left;
-	}
-
-	.gaming.area > .right-sidebar header {
-		font-size: 1.3em;
-		font-weight: 600;
-		margin-bottom: 10px;
-		color: #333;
-		border-bottom: 2px solid #dce1e6;
-		padding-bottom: 5px;
 	}
 
 	.score-item {
@@ -89,9 +44,7 @@
 		color: #4a4a4a;
 	}
 
-	.setting.area .el-form-item {
-		margin-bottom: 0;
-	}
+	.one.setting {margin-bottom: 0;}
 </style>
 </head>
 <body class="grid 反叵字形">
@@ -104,8 +57,9 @@
 		<a href="../svg转图标.html">SVG转图标</a>
 		<a href="../化学/元素周期表.html">元素周期表</a>
 		<a href="../拼音/拼音.html">拼音</a>
-		<a href="点灯.html">点灯</a>
+		<a href="俄罗斯方块.html">俄罗斯方块</a>
 		<a href="贪吃蛇.html" class="active">贪吃蛇</a>
+		<a href="点灯.html">点灯</a>
 	</nav>
 </header>
 <main>
@@ -117,7 +71,7 @@
 				<article class="description">
 					<p>欢迎来到“贪吃蛇”游戏，这是一款经典的街机游戏。</p>
 					<p>使用键盘的<strong>方向键 (↑, ↓, ←, →)</strong> 来控制蛇的移动方向。</p>
-					<p>通过<strong>“开始/暂停”按钮</strong>或按<strong>空格键</strong>来控制游戏的开始与暂停。</p>
+					<p>通过<strong>“开始/暂停”按钮</strong>或按<strong>空格键</strong>来控制游戏的开始、暂停与重新开始。</p>
 					<p>游戏的目标是吃掉随机出现的食物（红色方块），每吃掉一个食物，蛇的身体就会变长，并且你的得分也会增加。</p>
 					<p>请注意，蛇不能碰到墙壁或自己的身体，否则游戏就会结束。</p>
 					<p>祝您玩得愉快，挑战更高的分数！</p>
@@ -130,40 +84,41 @@
 		<header class="toolbar flex near-center">
 			<section class="setting area">
 				<el-form inline>
-					<el-form-item label="速度">
-						<el-input-number v-model="speedLevel" :min="1" :max="10" size="large" style="width: 120px"/>
+					<el-form-item label="宽度" class="one setting : width">
+						<el-input-number v-model="gridWidth" :min="10" :max="50" size="large" controls-position="right"/>
 					</el-form-item>
-					<el-form-item label="尺寸">
-						<el-input-number v-model="boardSizeInGrids" :min="10" :max="40" :step="2" size="large"
-														 style="width: 120px"/>
+					<el-form-item label="高度" class="one setting : height">
+						<el-input-number v-model="gridHeight" :min="10" :max="50" size="large" controls-position="right"/>
+					</el-form-item>
+					<el-form-item label="速度" class="one setting : speed">
+						<el-input-number v-model="speedLevel" :min="1" :max="10" size="large" controls-position="right"/>
 					</el-form-item>
 				</el-form>
 			</section>
 			<section class="controller area">
-				<el-button :icon="isPaused ? 'VideoPlay' : 'VideoPause'" @click="togglePause" size="large">
+				<el-button class="one controller : pause" @click="togglePause" size="large"
+									 :icon="isPaused ? 'VideoPlay' : 'VideoPause'">
 					{{ isPaused ? (score === 0 && !gameOver ? '开始' : '继续') : '暂停' }}
 				</el-button>
-				<el-button @click="initGame" type="primary" size="large" icon="RefreshRight">
+				<el-button class="one controller : restart" @click="initGame" size="large" icon="RefreshRight">
 					重新开始
 				</el-button>
 			</section>
 		</header>
 
 		<section class="gaming area , 反叵字形 grid">
-			<article class="main map area , one-row item , flex items-near-center-x">
-				<canvas id="game-canvas" :width="canvasSize" :height="canvasSize"></canvas>
-				<div class="game-overlay" v-if="gameOver">
-					<h2>游戏结束</h2>
-					<p>你的分数: {{ score }}</p>
-					<el-button type="primary" @click="initGame" size="large">再玩一次</el-button>
-				</div>
-			</article>
+			<div class="main map area , one-row item , flex items-near-center-x">
+				<canvas id="game-canvas" :width="canvasWidth" :height="canvasHeight" @click="handleCanvasClick"></canvas>
+			</div>
 			<aside class="right-sidebar">
-				<header>记分牌</header>
-				<article class="score board">
+				<el-card header="记分牌" class="score board section">
 					<p class="score-item">分数: <span>{{ score }}</span></p>
 					<p class="score-item">最高分: <span>{{ highScore }}</span></p>
-				</article>
+				</el-card>
+				<el-card header="快捷键" class="shortcut intro section">
+					<p>↑ ↓ → ← ：方向</p>
+					<p>空格：暂停/开始</p>
+				</el-card>
 			</aside>
 		</section>
 	</article>
@@ -195,7 +150,8 @@
 			return {
 				descriptionVisible: false,
 				speedLevel: 5,
-				boardSizeInGrids: 20,
+				gridWidth: 20,
+				gridHeight: 20,
 				gridSize: 20,
 				snake: [],
 				food: {},
@@ -206,21 +162,18 @@
 				gameOver: false,
 				isPaused: true,
 				gameInterval: null,
-				ctx: null,
+				ctx: null
 			};
 		},
 		computed: {
 			gameSpeed() {
 				return 250 - this.speedLevel * 20;
 			},
-			canvasSize() {
-				return this.boardSizeInGrids * this.gridSize;
+			canvasWidth() {
+				return this.gridWidth * this.gridSize;
 			},
-			gridWidth() {
-				return this.boardSizeInGrids;
-			},
-			gridHeight() {
-				return this.boardSizeInGrids;
+			canvasHeight() {
+				return this.gridHeight * this.gridSize;
 			}
 		},
 		watch: {
@@ -235,13 +188,19 @@
 					localStorage.setItem('snake-high-score', newScore);
 				}
 			},
-			boardSizeInGrids() {
-				this.$nextTick(() => {
-					this.initGame();
-				});
+			gridWidth() {
+				this.onDimensionChange();
+			},
+			gridHeight() {
+				this.onDimensionChange();
 			}
 		},
 		methods: {
+			onDimensionChange() {
+				this.$nextTick(() => {
+					this.initGame();
+				});
+			},
 			initGame() {
 				this.isPaused = true;
 				this.gameOver = false;
@@ -265,7 +224,10 @@
 				this.draw();
 			},
 			togglePause() {
-				if (this.gameOver) return;
+				if (this.gameOver) {
+					this.initGame();
+					return;
+				}
 				this.isPaused = !this.isPaused;
 				if (this.isPaused) {
 					clearInterval(this.gameInterval);
@@ -276,11 +238,15 @@
 				}
 			},
 			startGameLoop() {
-				if (this.gameInterval) clearInterval(this.gameInterval);
+				if (this.gameInterval) {
+					clearInterval(this.gameInterval);
+				}
 				this.gameInterval = setInterval(this.gameLoop, this.gameSpeed);
 			},
 			gameLoop() {
-				if (this.isPaused || this.gameOver) return;
+				if (this.isPaused || this.gameOver) {
+					return;
+				}
 
 				this.moveSnake();
 				if (this.checkCollision()) {
@@ -299,10 +265,18 @@
 				this.direction = this.nextDirection;
 				const head = {x: this.snake[0].x, y: this.snake[0].y};
 				switch (this.direction) {
-					case 'up': head.y--; break;
-					case 'down': head.y++; break;
-					case 'left': head.x--; break;
-					case 'right': head.x++; break;
+					case 'up':
+						head.y--;
+						break;
+					case 'down':
+						head.y++;
+						break;
+					case 'left':
+						head.x--;
+						break;
+					case 'right':
+						head.x++;
+						break;
 				}
 				this.snake.unshift(head);
 			},
@@ -331,7 +305,7 @@
 				}
 			},
 			draw() {
-				this.ctx.clearRect(0, 0, this.canvasSize, this.canvasSize);
+				this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
 				// Draw snake
 				this.ctx.fillStyle = '#34495e';
 				this.snake.forEach(segment => {
@@ -339,17 +313,33 @@
 				});
 				// Draw food
 				this.ctx.fillStyle = '#e74c3c';
-				this.ctx.fillRect(this.food.x * this.gridSize, this.food.y * this.gridSize, this.gridSize - 1, this.gridSize - 1);
+				this.ctx.fillRect(this.food.x * this.gridSize, this.food.y * this.gridSize, this.gridSize - 1,
+						this.gridSize - 1);
 
-				if (this.isPaused && !this.gameOver) {
-					this.ctx.fillStyle = 'rgba(240, 242, 245, 0.75)';
-					this.ctx.fillRect(0, 0, this.canvasSize, this.canvasSize);
-					this.ctx.fillStyle = '#34495e';
-					this.ctx.font = 'bold 30px Arial';
-					this.ctx.textAlign = 'center';
-					this.ctx.textBaseline = 'middle';
+				if (this.gameOver) {
+					this.drawOverlay('游戏结束', `分数: ${this.score}`, '按空格或点击以重新开始');
+				} else if (this.isPaused) {
 					const message = this.score === 0 ? '准备就绪' : '已暂停';
-					this.ctx.fillText(message, this.canvasSize / 2, this.canvasSize / 2);
+					this.drawOverlay(message, '按空格或点击以开始/继续');
+				}
+			},
+			drawOverlay(text, subtext, subtext2) {
+				this.ctx.fillStyle = 'rgba(240, 242, 245, 0.85)';
+				this.ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
+				this.ctx.fillStyle = '#34495e';
+				this.ctx.textAlign = 'center';
+				this.ctx.textBaseline = 'middle';
+
+				this.ctx.font = 'bold 40px Arial';
+				this.ctx.fillText(text, this.canvasWidth / 2, this.canvasHeight / 2 - 40);
+
+				if (subtext) {
+					this.ctx.font = '20px Arial';
+					this.ctx.fillText(subtext, this.canvasWidth / 2, this.canvasHeight / 2 + 10);
+				}
+				if (subtext2) {
+					this.ctx.font = '16px Arial';
+					this.ctx.fillText(subtext2, this.canvasWidth / 2, this.canvasHeight / 2 + 40);
 				}
 			},
 			endGame() {
@@ -357,6 +347,10 @@
 				this.isPaused = true;
 				clearInterval(this.gameInterval);
 				this.gameInterval = null;
+				this.draw();
+			},
+			handleCanvasClick() {
+				this.togglePause();
 			},
 			handleKeydown(e) {
 				if (e.key === ' ') {
@@ -364,23 +358,33 @@
 					this.togglePause();
 					return;
 				}
-				if (this.isPaused || this.gameOver) return;
+				if (this.isPaused || this.gameOver) {
+					return;
+				}
 
 				if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
 					e.preventDefault();
 				}
 				switch (e.key) {
 					case 'ArrowLeft':
-						if (this.direction !== 'right') this.nextDirection = 'left';
+						if (this.direction !== 'right') {
+							this.nextDirection = 'left';
+						}
 						break;
 					case 'ArrowUp':
-						if (this.direction !== 'down') this.nextDirection = 'up';
+						if (this.direction !== 'down') {
+							this.nextDirection = 'up';
+						}
 						break;
 					case 'ArrowRight':
-						if (this.direction !== 'left') this.nextDirection = 'right';
+						if (this.direction !== 'left') {
+							this.nextDirection = 'right';
+						}
 						break;
 					case 'ArrowDown':
-						if (this.direction !== 'up') this.nextDirection = 'down';
+						if (this.direction !== 'up') {
+							this.nextDirection = 'down';
+						}
 						break;
 				}
 			}
