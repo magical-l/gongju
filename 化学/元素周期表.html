@@ -20,22 +20,17 @@
 	body > main {
 		--period1-row-offset: 0;
 		padding: 0;
-		display: flex;
-		flex-wrap: wrap;
 		gap: 3px;
 	}
 
+	body > main > header { margin: 0;}
+
 	/*=====================工具栏====================*/
 	.toolbar {
-		flex-shrink: 0;
-		flex-grow: 1;
+		flex: 1 0 100%;
 		border-bottom: 1px solid #dcdfe6;
 		padding: 0.5rem 1rem;
-		display: flex;
-		flex-wrap: wrap;
-		gap: 1rem;
-		align-items: center;
-		flex-basis: 100%; /* 确保工具栏独占一行 */
+		gap: 1em;
 	}
 
 	.toolbar [title='显示说明'] {
@@ -85,10 +80,11 @@
 		min-width: 0; /* 防止flex项目因内容过宽而溢出 */
 		display: grid;
 		transition: all 0.5s ease-in-out;
+		overflow: auto;
 	}
 
 	.full-width.periodic-table-of-chemical-element {
-		height: 560px;
+		height: 600px;
 		grid-template-columns: 10px repeat(32, 81px);
 		grid-template-rows: repeat(7, 1fr);
 	}
@@ -375,17 +371,19 @@
 		<a href="../svg转图标.html">SVG转图标</a>
 		<a href="元素周期表.html" class="active">元素周期表</a>
 		<a href="../拼音/拼音.html">拼音</a>
+		<a href="../游戏/俄罗斯方块.html">俄罗斯方块</a>
+		<a href="../游戏/贪吃蛇.html">贪吃蛇</a>
 		<a href="../游戏/点灯.html">点灯</a>
 	</nav>
 </header>
-<main v-cloak>
-	<div class="toolbar">
-		<el-radio-group v-model="layout">
+<main class="flex multi-line" v-cloak>
+	<header class="toolbar , monopoly item , multi-line flex items-near-center-x">
+		<el-radio-group class="one controller : width-mode" v-model="layout">
 			<el-radio-button v-for="opt in widthModes" :key="opt.value" :value="opt.value" size="small">{{ opt.label }}
 			</el-radio-button>
 		</el-radio-group>
 
-		<el-checkbox-group v-model="filtering" size="small">
+		<el-checkbox-group class="one controller" v-model="filtering" size="small">
 			<el-checkbox-button class="element category filter maybe with icon" :class="f.name"
 													:title="f.name" :value="f.name"
 													v-for="f in filters" :key="f.name"
@@ -394,22 +392,36 @@
 			</el-checkbox-button>
 		</el-checkbox-group>
 
-		<span class="temperature controller">
+		<span class="one controller : temperature">
 			<el-input-number v-model="temperatureInMode" :min="temperatureMin" :max="temperatureMax" controls-position="right"
 											 size="small"></el-input-number>
 			<el-button class="temperature mode input , toggle" size="small" type="primary" @click="nextTemperatureMode">
 				{{temperatureMode}}</el-button>
 		</span>
 
-		<el-popover placement="bottom" title="筛选发现年代" :width="400" trigger="click">
+		<el-popover class="one controller" placement="bottom" title="筛选发现年代" :width="400" trigger="click">
 			<template #reference>
 				<el-button size="small">年代</el-button>
 			</template>
 			<el-slider v-model="discoveryYear" :min="1650" :max="2025" show-input size="small"></el-slider>
 		</el-popover>
 
-		<el-button title="显示说明" size="small" circle @click="descriptionDialogVisible = true">?</el-button>
-	</div><!-- /工具栏 -->
+		<el-button title="显示说明" size="small" circle @click="introVisible = true">?</el-button>
+		<el-dialog title="页面说明" v-model="introVisible" width="60%">
+			<p>这是一个交互式化学元素周期表。您可以探索元素的各种属性，并利用以下功能：</p>
+			<ul>
+				<li><strong>布局切换：</strong>在“宽版”和“窄版”之间切换，以适应不同屏幕尺寸。</li>
+				<li><strong>分类筛选：</strong>点击上方的分类按钮（如“碱金属”、“稀有气体”等），可以高亮显示特定类别的所有元素。再次点击可取消筛选。
+				</li>
+				<li><strong>发现年代筛选：</strong>通过拖动年代滑块，可以筛选出在特定年份之前发现的元素。</li>
+				<li><strong>温度模拟：</strong>拖动右侧的温度计滑块，或直接输入温度值，可以观察各元素在不同温度下的物态（固态、液态、气态）。您也可以切换温标（摄氏度、开尔文、华氏度）。
+				</li>
+				<li><strong>详细信息：</strong>点击任意元素，会在元素周期表右侧区域显示该元素的详细信息卡片，包括熔点、沸点、物态和发现年份等。
+				</li>
+			</ul>
+			<p>将鼠标悬停在元素上可以查看其基本信息，元素右下角的图标代表了元素的特殊属性，例如放射性、人造、稀土等。</p>
+		</el-dialog>
+	</header><!-- /工具栏 -->
 
 	<article class="periodic-table-of-chemical-element" :class="tableClasses">
 		<section class="周期序号" :class="`周期`+n" v-for="n in 7" :key="n">
@@ -471,32 +483,16 @@
 			</div>
 		</section>
 	</article><!-- /周期表 -->
-
-	<el-dialog title="页面说明" v-model="descriptionDialogVisible" width="60%">
-		<p>这是一个交互式化学元素周期表。您可以探索元素的各种属性，并利用以下功能：</p>
-		<ul>
-			<li><strong>布局切换：</strong>在“宽版”和“窄版”之间切换，以适应不同屏幕尺寸。</li>
-			<li><strong>分类筛选：</strong>点击上方的分类按钮（如“碱金属”、“稀有气体”等），可以高亮显示特定类别的所有元素。再次点击可取消筛选。
-			</li>
-			<li><strong>发现年代筛选：</strong>通过拖动年代滑块，可以筛选出在特定年份之前发现的元素。</li>
-			<li><strong>温度模拟：</strong>拖动右侧的温度计滑块，或直接输入温度值，可以观察各元素在不同温度下的物态（固态、液态、气态）。您也可以切换温标（摄氏度、开尔文、华氏度）。
-			</li>
-			<li><strong>详细信息：</strong>点击任意元素，会在元素周期表右侧区域显示该元素的详细信息卡片，包括熔点、沸点、物态和发现年份等。
-			</li>
-		</ul>
-		<p>将鼠标悬停在元素上可以查看其基本信息，元素右下角的图标代表了元素的特殊属性，例如放射性、人造、稀土等。</p>
-	</el-dialog>
 </main>
 
 <footer>
 	<article class="website info">
-		<section class="qr-code">
-			<img src="../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
-			<span>赞助一下</span>
+		<section class="sponsorship area">
+			<img class="qr-code" src="../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+			<p class="slogan">赞助一下</p>
 		</section>
-		<section>
-			<p>&copy; 2025 工具兽版权所有 All rights reserved.</p>
-			<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+		<section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
+		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
 		</section>
 	</article>
 </footer>
@@ -504,7 +500,6 @@
 <div class="js container">
 	<script src="../lib/vue/3.5.18/vue.global.js"></script>
 	<script src="../lib/element-plus/2.10.7/index.full.js"></script>
-	<!--	<script src="lib/jquery-3.4.1.min.js"></script>-->
 	<script src="../lib/toastr.min.js"></script>
 	<script src="../resources/util.js"></script>
 	<script src="../resources/biz-util.js?v=250801"></script>
@@ -1035,7 +1030,7 @@
 		isThermometerDragging: false,
 		thermometerBoxHalf: 12,
 		discoveryYear: 2025,
-		descriptionDialogVisible: false,
+		introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname),
 		temperatureModes
 	};
 
@@ -1125,6 +1120,14 @@
 			},
 			temperatureInMode() {
 				this.$nextTick(this.measureThermometerBox);
+			},
+			introVisible(newValue) {
+				const storageKey = 'intro-hidden-' + window.location.pathname;
+				if (!newValue) {
+					localStorage.setItem(storageKey, 'true');
+				} else {
+					localStorage.removeItem(storageKey);
+				}
 			}
 		},
 		methods: {
