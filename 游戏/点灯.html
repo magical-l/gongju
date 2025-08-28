@@ -162,15 +162,23 @@
 
 	<article v-cloak>
 		<header class="toolbar flex near-center">
-			<el-radio-group v-model="boardSize">
-				<el-radio-button v-for="opt in boardSizes" :key="opt" size="large" :value="opt">{{opt}}x{{opt}}
-				</el-radio-button>
-			</el-radio-group>
-			<el-button @click="initGame" type="primary" size="large" icon="RefreshRight">重新开始</el-button>
-			<el-button-group>
-				<el-button @click="showRandomHint" size="large" icon="MagicStick">提示</el-button>
-				<el-button @click="showAnswer" size="large" icon="Key">答案</el-button>
-			</el-button-group>
+			<section class="setting area">
+				<el-radio-group title="尺寸" class="one setting : map size" v-model="boardSize">
+					<el-radio-button v-for="opt in boardSizes" :key="opt" size="large" :value="opt">{{opt}}x{{opt}}
+					</el-radio-button>
+				</el-radio-group>
+			</section>
+			<section class="controller area">
+				<el-button class="one controller : restart" @click="initGame" type="primary" size="large" icon="RefreshRight">
+					重新开始
+				</el-button>
+			</section>
+			<section class="tool area">
+				<el-button-group>
+					<el-button class="one tool : hint" @click="showRandomHint" size="large" icon="MagicStick">提示</el-button>
+					<el-button class="one tool : answer" @click="showAnswer" size="large" icon="Key">答案</el-button>
+				</el-button-group>
+			</section>
 		</header>
 
 		<section class="gaming area , 反叵字形 grid">

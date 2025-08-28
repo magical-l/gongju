@@ -21,7 +21,7 @@
 <link href="../resources/biz.css?v=250821" rel="stylesheet">
 <link href="../resources/花活.css?v=250821" rel="stylesheet">
 <style>
-	.game-wrapper { gap: 2rem; }
+	.game-wrapper { --反叵字形-gap: 2em; }
 
 	#game-board-container { position: relative; border: 2px solid #ced4da; padding: 2px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); display: inline-block; }
 
@@ -45,20 +45,30 @@
 
 	.cell.ghost { background-color: #495057; opacity: 0.15; }
 
-	.side-panel { width: 320px; }
+	.side-panel {
+		grid-area: right-sidebar;
+	}
 
 	#next-piece-container { display: grid; grid-template-columns: repeat(4, 30px); grid-template-rows: repeat(4, 30px); grid-gap: 1px; min-height: 129px; margin: 0 auto; }
 
 	.next-cell { width: 30px; height: 30px; border-radius: 2px; }
 
-	.one.setting {margin-bottom: 1.5rem; }
-
-	.one.setting:last-child { margin-bottom: 0; }
-
 	#pause-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(73, 80, 87, 0.7); color: white; font-size: 2em; font-weight: bold; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; line-height: 1.5; }
 
 	.start.play.btn {
 		font-size: larger;
+	}
+
+	.one.setting.group {
+		margin-bottom: 0;
+	}
+
+	.one.setting.input.number {
+		width: 80px;
+	}
+
+	.score.board section {
+		text-align: center;
 	}
 </style>
 </head>
@@ -90,8 +100,52 @@
 		</div>
 	</header>
 
-	<article class="game-wrapper flex items-near-center-x items-near-start-y" v-cloak>
-		<div class="flexible item , flex items-near-center-x items-near-start-y">
+	<article class="game-wrapper grid 反叵字形" v-cloak>
+		<header class="item monopoly , toolbar flex items-mutex">
+			<section class="setting area">
+				<el-form inline>
+					<el-form-item label="尺寸" class="one setting group">
+						<el-input-number class="one setting : cols input number" v-model="settings.cols" :min="5" :max="20"
+														 controls-position="right"></el-input-number>
+						<span>x</span>
+						<el-input-number class="one setting : rows input number" v-model="settings.rows" :min="10" :max="30"
+														 controls-position="right"></el-input-number>
+						<el-button icon="RefreshLeft" @click="restoreDefaultSize" title="恢复默认并重开一局"></el-button>
+					</el-form-item>
+					<el-form-item label="难度" class="one setting group">
+						<div class="flex items-near-start-x">
+							<el-input-number class="one setting : startLv input number"
+															 v-model="settings.startLevel" :min="1" :max="29" @change="saveSettings"
+															 controls-position="right">
+							</el-input-number>
+							<el-radio-group v-model="settings.difficulty" @change="saveSettings">
+								<el-radio-button v-for="opt in difficultyOptions" :key="opt.value" :label="opt.value">{{opt.name}}
+								</el-radio-button>
+							</el-radio-group>
+						</div>
+					</el-form-item>
+				</el-form>
+			</section>
+			<section class="controller area">
+				<el-button-group>
+					<el-button v-if="isPaused" class="one controller : pause" title="开始（快捷键：空格）" @click="togglePause"
+										 type="primary">开始
+					</el-button>
+					<el-button v-else class="one controller : pause" title="暂停（快捷键：空格）" @click="togglePause">暂停
+					</el-button>
+					<el-button class="one controller : restart" @click="startGame">重开</el-button>
+				</el-button-group>
+			</section>
+			<section class="tool area">
+				<el-form inline>
+					<el-form-item label="显示落点" class="one setting group">
+						<el-switch class="one tool" v-model="settings.showGhost" @change="saveSettings"></el-switch>
+					</el-form-item>
+				</el-form>
+			</section>
+		</header>
+
+		<div class="flex items-near-center-x items-near-start-y" style="grid-row:2">
 			<section id="game-board-container">
 				<div id="game-board" :style="boardStyle">
 					<div v-for="(cell, index) in displayGrid" :key="index" :class="['cell', cell]"></div>
@@ -103,56 +157,27 @@
 				</div>
 			</section>
 		</div>
-		<section class="side-panel no-shrink item">
-			<el-card header="控制与设置">
-				<p>
-					<el-button type="primary" @click="startGame" style="width: 100%;">重新开始</el-button>
-				</p>
-				<section class="one setting">
-					<label>难度设置:</label>
-					<p class="flex items-near-start-x" style="gap: 10px;">
-						<el-input-number v-model="settings.startLevel" :min="1" :max="29" @change="saveSettings"
-														 controls-position="right">
-						</el-input-number>
-						<el-radio-group v-model="settings.difficulty" @change="saveSettings">
-							<el-radio-button v-for="opt in difficultyOptions" :key="opt.value" :label="opt.value">{{opt.name}}
-							</el-radio-button>
-						</el-radio-group>
-					</p>
-				</section>
-				<section class="one setting">
-					<label>游戏区尺寸:</label>
-					<p class="flex items-near-start-x" style="gap: 10px;">
-						<el-input-number v-model="settings.cols" :min="5" :max="30" controls-position="right"></el-input-number>
-						<span>x</span>
-						<el-input-number v-model="settings.rows" :min="10" :max="40" controls-position="right"></el-input-number>
-						<el-button icon="Check" @click="applyAndSaveSize" title="应用并重开一局"></el-button>
-						<el-button icon="RefreshRight" @click="restoreDefaultSize" title="恢复默认并重开一局"></el-button>
-					</p>
-				</section>
-				<p class="one setting">
-					<el-switch v-model="settings.showGhost" active-text="显示幽灵方块" inactive-text="不显示幽灵方块"
-										 @change="saveSettings"></el-switch>
-				</p>
-			</el-card>
-
-			<el-card header="记分牌" style="margin-top: 1.5rem;">
-				<div style="display: flex; justify-content: space-around; text-align: center;">
-					<div><h3>分数</h3>
-						<p>{{ score }}</p></div>
-					<div><h3>行数</h3>
-						<p>{{ lines }}</p></div>
-					<div><h3>等级</h3>
-						<p>{{ level }}</p></div>
-				</div>
-			</el-card>
-
-			<el-card header="下一个" style="margin-top: 1.5rem;">
+		<div class="side-panel">
+			<el-card header="下一个" class="section">
 				<div id="next-piece-container">
 					<div v-for="(cell, index) in nextPieceGrid" :key="index" :class="['next-cell', 'cell', cell]"></div>
 				</div>
 			</el-card>
-		</section>
+			<el-card header="记分牌" class="section" class="score board" body-class="flex items-unfamiliar">
+				<section>
+					<h3>分数</h3>
+					<p>{{ score }}</p>
+				</section>
+				<section>
+					<h3>行数</h3>
+					<p>{{ lines }}</p>
+				</section>
+				<section>
+					<h3>等级</h3>
+					<p>{{ level }}</p>
+				</section>
+			</el-card>
+		</div>
 	</article>
 </main>
 
@@ -447,9 +472,6 @@
 			saveSettings() {
 				localStorage.setItem('tetrisSettings', JSON.stringify(this.settings));
 				this.startGame();
-			},
-			applyAndSaveSize() {
-				this.saveSettings();
 			},
 			restoreDefaultSize() {
 				this.settings.cols = 10;
