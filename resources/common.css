@@ -203,7 +203,7 @@ body > header nav a:hover, body > header nav a.active {
 	color: #6c757d;
 }
 
-.website.info .sponsorship.area {
+.website.info .patronage.area {
 	width: 120px;
 	background-color: #e9ecef;
 	display: flex;
@@ -215,13 +215,13 @@ body > header nav a:hover, body > header nav a.active {
 	border-radius: 4px;
 }
 
-.website.info .sponsorship.area img.qr-code {
+.website.info .patronage.area img.qr-code {
 	max-width: 100%;
 	height: auto;
 	margin-bottom: 5px;
 }
 
-.website.info .sponsorship.area .slogan {
+.website.info .patronage.area .slogan {
 	font-size: 0.75rem;
 	color: #333;
 }
