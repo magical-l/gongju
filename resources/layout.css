@@ -152,7 +152,7 @@
 .items-near-end-x {justify-content: end;}
 
 /*项目都挤在队伍中间/在主轴上居中*/
-.items-near-center-x {justify-content: center;}
+.items-near-center-x {justify-content: center; text-align: center;}
 
 /*项目互斥（社恐），即项目互相之间距离尽量远*/
 .items-space-between, .items-mutex, .items-social-phobia {justify-content: space-between;}
@@ -198,7 +198,7 @@ aside.right-sidebar {grid-area: right-sidebar;}
 
 main, .main, .body {grid-area: main; flex: 1;}
 
-.near-center {justify-content: center; align-items: center;}
+.near-center {justify-content: center; align-items: center; text-align: center;}
 
 .flexible.item {
 	flex: 1 1 auto; /* 允许扩展和收缩 */
