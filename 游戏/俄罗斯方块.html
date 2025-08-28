@@ -115,10 +115,10 @@
 					<el-form-item label="难度" class="one setting group">
 						<div class="flex items-near-start-x">
 							<el-input-number class="one setting : startLv input number"
-															 v-model="settings.startLevel" :min="1" :max="29" @change="saveSettings"
+															 v-model="settings.startLevel" :min="1" :max="29"
 															 controls-position="right">
 							</el-input-number>
-							<el-radio-group v-model="settings.difficulty" @change="saveSettings">
+							<el-radio-group v-model="settings.difficulty">
 								<el-radio-button v-for="opt in difficultyOptions" :key="opt.value" :label="opt.value">{{opt.name}}
 								</el-radio-button>
 							</el-radio-group>
@@ -139,7 +139,7 @@
 			<section class="tool area">
 				<el-form inline>
 					<el-form-item label="显示落点" class="one setting group">
-						<el-switch class="one tool" v-model="settings.showGhost" @change="saveSettings"></el-switch>
+						<el-switch class="one tool" v-model="settings.showGhost"></el-switch>
 					</el-form-item>
 				</el-form>
 			</section>
@@ -158,9 +158,11 @@
 			</section>
 		</div>
 		<div class="side-panel">
-			<el-card header="下一个" class="section">
+			<el-card header="下一个" class="section" body-class="flex">
 				<div id="next-piece-container">
-					<div v-for="(cell, index) in nextPieceGrid" :key="index" :class="['next-cell', 'cell', cell]"></div>
+					<div :style="nextPieceStyle">
+						<div v-for="(block, index) in nextPieceBlocks" :key="index" :class="['cell', block]"></div>
+					</div>
 				</div>
 			</el-card>
 			<el-card header="记分牌" class="section" class="score board" body-class="flex items-unfamiliar">
@@ -176,6 +178,12 @@
 					<h3>等级</h3>
 					<p>{{ level }}</p>
 				</section>
+			</el-card>
+			<el-card header="快捷键">
+				<p>← ↓ → ：方向</p>
+				<p>↑ ：变形</p>
+				<p>回车：砖块直接落到底</p>
+				<p>空格：暂停/开始</p>
 			</el-card>
 		</div>
 	</article>
@@ -294,21 +302,24 @@
 				}
 				return newGrid.flat();
 			},
-			nextPieceGrid() {
-				const previewGrid = Array.from({length: 4}, () => Array(4).fill(0));
-				if (this.nextTetromino) {
-					const {shape, color} = this.nextTetromino;
-					const y_offset = Math.floor((4 - shape.length) / 2);
-					const x_offset = Math.floor((4 - shape[0].length) / 2);
-					shape.forEach((row, y) => {
-						row.forEach((value, x) => {
-							if (value !== 0) {
-								previewGrid[y + y_offset][x + x_offset] = color;
-							}
-						});
-					});
-				}
-				return previewGrid.flat();
+			nextPieceStyle() {
+				if (!this.nextTetromino) return {};
+				const shape = this.nextTetromino.shape.filter(row => row.some(val => val !== 0));
+				const height = shape.length;
+				if (height === 0) return {};
+				const width = shape[0].length;
+				return {
+					display: 'grid',
+					gridTemplateColumns: `repeat(${width}, 30px)`,
+					gridTemplateRows: `repeat(${height}, 30px)`,
+					gridGap: '1px',
+				};
+			},
+			nextPieceBlocks() {
+				if (!this.nextTetromino) return [];
+				const { shape, color } = this.nextTetromino;
+				const realShape = shape.filter(row => row.some(val => val !== 0));
+				return realShape.flat().map(val => val === 0 ? '' : color);
 			},
 			overlayText() {
 				if (this.isGameOver) {
@@ -318,6 +329,27 @@
 					return '准备就绪';
 				}
 				return '';
+			}
+		},
+		watch: {
+			'settings.rows': function () {
+				this.saveSettings();
+				this.startGame();
+			},
+			'settings.cols': function () {
+				this.saveSettings();
+				this.startGame();
+			},
+			'settings.startLevel': function () {
+				this.saveSettings();
+				this.startGame();
+			},
+			'settings.difficulty': function () {
+				this.saveSettings();
+				this.startGame();
+			},
+			'settings.showGhost': function () {
+				this.saveSettings();
 			}
 		},
 		methods: {
@@ -471,12 +503,12 @@
 			},
 			saveSettings() {
 				localStorage.setItem('tetrisSettings', JSON.stringify(this.settings));
-				this.startGame();
 			},
 			restoreDefaultSize() {
 				this.settings.cols = 10;
 				this.settings.rows = 20;
 				this.saveSettings();
+				this.startGame();
 			},
 			handleKeydown(event) {
 				if (event.key === ' ') {
