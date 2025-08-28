@@ -49,32 +49,33 @@
 		<a href="svg转图标.html">SVG转图标</a>
 		<a href="化学/元素周期表.html">元素周期表</a>
 		<a href="拼音/拼音.html">拼音</a>
+		<a href="游戏/俄罗斯方块.html">俄罗斯方块</a>
+		<a href="游戏/贪吃蛇.html">贪吃蛇</a>
 		<a href="游戏/点灯.html">点灯</a>
 	</nav>
 </header>
 <main>
 	<header>
-		<h2>文中数字格式转换工具</h2>
-		<div class="help area" v-cloak>
-			<el-button size="small" circle title="显示说明" @click="descriptionVisible = true">?</el-button>
-			<el-dialog title="页面说明" v-model="descriptionVisible" width="60%">
-				<article class="description">
-					<p>
-						“文中数字格式转换工具”是一个全面的在线服务，旨在为用户提供快速、准确的数字格式转换。无论您是需要进行不同进制间的转换，还是需要将阿拉伯数字转换为中文大写格式，这个工具都能轻松应对。</p>
-					<h2>核心功能</h2>
-					<ul>
-						<li><strong>多进制转换：</strong>支持在二进制、八进制、十进制和十六进制之间进行任意转换。</li>
-						<li><strong>中文数字转换：</strong>可将阿拉伯数字转换为汉语数码、大写汉语数码、汉语数字以及大写汉语数字，满足不同场合下的使用需求。
-						</li>
-						<li><strong>专业格式：</strong>提供“标准通讯数字读法”转换，方便在特定行业（如电信、航空）中使用。</li>
-						<li><strong>文本处理：</strong>工具能够智能识别并处理文本中的数字部分，非数字字符将保持原样，方便处理混合文本。
-						</li>
-					</ul>
-					<h2>适用场景</h2>
-					<p><strong>编程与开发：</strong>程序员在处理底层数据或进行编码转换时，经常需要进行进制转换。</p>
-					<p><strong>财务与会计：</strong>在填写支票、发票或合同等正式文件时，需要将金额转换为大写汉语数字，以防篡改。</p>
-					<p><strong>教育与学习：</strong>学生在学习计算机科学或数学时，可以使用此工具来验证和练习不同进制的计算。</p>
-				</article>
+		<h2 class="page-lv name">文中数字格式转换工具</h2>
+		<div class="page-lv help area" v-cloak>
+			<el-button title="显示说明" class="page-lv help btn" @click="introVisible = true" size="small" circle>?
+			</el-button>
+			<el-dialog title="页面说明" class="page-lv intro" v-model="introVisible" width="60%">
+				<p>
+					“文中数字格式转换工具”是一个全面的在线服务，旨在为用户提供快速、准确的数字格式转换。无论您是需要进行不同进制间的转换，还是需要将阿拉伯数字转换为中文大写格式，这个工具都能轻松应对。</p>
+				<h2>核心功能</h2>
+				<ul>
+					<li><strong>多进制转换：</strong>支持在二进制、八进制、十进制和十六进制之间进行任意转换。</li>
+					<li><strong>中文数字转换：</strong>可将阿拉伯数字转换为汉语数码、大写汉语数码、汉语数字以及大写汉语数字，满足不同场合下的使用需求。
+					</li>
+					<li><strong>专业格式：</strong>提供“标准通讯数字读法”转换，方便在特定行业（如电信、航空）中使用。</li>
+					<li><strong>文本处理：</strong>工具能够智能识别并处理文本中的数字部分，非数字字符将保持原样，方便处理混合文本。
+					</li>
+				</ul>
+				<h2>适用场景</h2>
+				<p><strong>编程与开发：</strong>程序员在处理底层数据或进行编码转换时，经常需要进行进制转换。</p>
+				<p><strong>财务与会计：</strong>在填写支票、发票或合同等正式文件时，需要将金额转换为大写汉语数字，以防篡改。</p>
+				<p><strong>教育与学习：</strong>学生在学习计算机科学或数学时，可以使用此工具来验证和练习不同进制的计算。</p>
 			</el-dialog>
 		</div>
 	</header>
@@ -122,15 +123,14 @@
 	</article>
 </main>
 
-<aside class="right-sidebar">
+<aside class="right sidebar">
 	<article class="website info">
-		<section class="qr-code">
-			<img src="resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
-			<span>赞助一下</span>
+		<section class="sponsorship area">
+			<img class="qr-code" src="resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+			<p class="slogan">赞助一下</p>
 		</section>
-		<section>
-			<p>&copy; 2025 工具兽版权所有 All rights reserved.</p>
-			<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+		<section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
+		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
 		</section>
 	</article>
 </aside>
@@ -351,12 +351,12 @@
 	createApp({
 		data() {
 			return {
-				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname)
+				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname)
 			};
 		},
 		watch: {
-			descriptionVisible(newValue) {
-				const storageKey = 'description-hidden-' + window.location.pathname;
+			introVisible(newValue) {
+				const storageKey = 'intro-hidden-' + window.location.pathname;
 				if (!newValue) {
 					localStorage.setItem(storageKey, 'true');
 				} else {

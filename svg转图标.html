@@ -46,29 +46,28 @@
 		<a href="svg转图标.html" class="active">SVG转图标</a>
 		<a href="化学/元素周期表.html">元素周期表</a>
 		<a href="拼音/拼音.html">拼音</a>
+		<a href="游戏/俄罗斯方块.html">俄罗斯方块</a>
+		<a href="游戏/贪吃蛇.html">贪吃蛇</a>
 		<a href="游戏/点灯.html">点灯</a>
 	</nav>
 </header>
 <main>
 	<header>
-		<h2>SVG转图片</h2>
-
-		<div class="help area" v-cloak>
-			<el-button size="small" circle title="显示说明" @click="descriptionVisible = true">?</el-button>
-			<el-dialog title="页面说明" v-model="descriptionVisible" width="60%">
-				<article class="description">
-					<p>
-						“SVG转图片”是一个便捷的在线应用，允许用户将SVG（可缩放矢量图形）代码快速转换为多种标准尺寸的PNG格式图标。对于需要在网站、移动应用或桌面程序中使用统一图标的开发者和设计师来说，这是一个非常高效的工具。</p>
-					<h2>核心功能</h2>
-					<ul>
-						<li><strong>实时预览：</strong>用户粘贴SVG代码后，页面会立即显示不同尺寸下的图标预览效果。</li>
-						<li><strong>多种尺寸：</strong>默认提供16x16, 32x32, 48x48, 128x128等常用图标尺寸。</li>
-						<li><strong>一键下载：</strong>用户可以一键下载所有尺寸的PNG格式图标。</li>
-					</ul>
-					<h2>如何使用</h2>
-					<p>将您的SVG代码粘贴到输入框中，工具会自动生成预览。确认无误后，点击“下载图标”按钮，即可将生成的PNG图标文件保存到您的电脑。
-					</p>
-				</article>
+		<h2 class="page-lv name">SVG转图片</h2>
+		<div class="page-lv help area" v-cloak>
+			<el-button title="显示说明" class="page-lv help btn" @click="introVisible = true" size="small" circle>?
+			</el-button>
+			<el-dialog title="页面说明" class="page-lv intro" v-model="introVisible" width="60%">
+				<p>
+					“SVG转图片”是一个便捷的在线应用，允许用户将SVG（可缩放矢量图形）代码快速转换为多种标准尺寸的PNG格式图标。对于需要在网站、移动应用或桌面程序中使用统一图标的开发者和设计师来说，这是一个非常高效的工具。</p>
+				<h2>核心功能</h2>
+				<ul>
+					<li><strong>实时预览：</strong>用户粘贴SVG代码后，页面会立即显示不同尺寸下的图标预览效果。</li>
+					<li><strong>多种尺寸：</strong>默认提供16x16, 32x32, 48x48, 128x128等常用图标尺寸。</li>
+					<li><strong>一键下载：</strong>用户可以一键下载所有尺寸的PNG格式图标。</li>
+				</ul>
+				<h2>如何使用</h2>
+				<p>将SVG代码粘贴到输入框中，工具会自动生成预览。确认无误后，点击“下载图标”按钮，即可将生成的PNG图标文件保存到电脑。</p>
 			</el-dialog>
 		</div>
 	</header>
@@ -79,32 +78,26 @@
 		</section>
 
 		<section class="result area , grid">
-			<el-card class="one result" v-for="size in sizes" :key="size">
-				<template #header>
-					<div class="card-header">
-						<span>{{ size }}&times;{{ size }}</span>
-					</div>
-				</template>
+			<el-card class="one result" :header="size+'x'+size" v-for="size in sizes" :key="size">
 				<svg class="preview-icon" :width="size" :height="size" :view-box.camel="parsedSvg.viewBox"
 						 v-html="parsedSvg.inner"></svg>
 			</el-card>
 		</section>
 
-		<div style="text-align: center; margin-top: 1.5rem;">
+		<footer class="toolbar near-center" style="margin-top: 1.5rem;">
 			<el-button type="primary" @click="downloadIcons" size="large">下载图标（png）</el-button>
-		</div>
+		</footer>
 	</article>
 </main>
 
-<aside class="right-sidebar">
+<aside class="right sidebar">
 	<article class="website info">
-		<section class="qr-code">
-			<img src="resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
-			<span>赞助一下</span>
+		<section class="sponsorship area">
+			<img class="qr-code" src="resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+			<p class="slogan">赞助一下</p>
 		</section>
-		<section>
-			<p>&copy; 2025 工具兽版权所有 All rights reserved.</p>
-			<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+		<section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
+		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
 		</section>
 	</article>
 </aside>
@@ -161,21 +154,8 @@
 		data() {
 			return {
 				input: `<svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M9.77234 30.8573V11.7471H7.54573C5.50932 11.7471 3.85742 13.3931 3.85742 15.425V27.1794C3.85742 29.2112 5.50932 30.8573 7.54573 30.8573H9.77234ZM11.9902 30.8573V11.7054C14.9897 10.627 16.6942 7.8853 17.1055 3.33591C17.2666 1.55463 18.9633 0.814421 20.5803 1.59505C22.1847 2.36964 23.243 4.32583 23.243 6.93947C23.243 8.50265 23.0478 10.1054 22.6582 11.7471H29.7324C31.7739 11.7471 33.4289 13.402 33.4289 15.4435C33.4289 15.7416 33.3928 16.0386 33.3215 16.328L30.9883 25.7957C30.2558 28.7683 27.5894 30.8573 24.528 30.8573H11.9911H11.9902Z" fill="currentColor"></path></svg>`,
-				sizes: [16, 32, 48, 128],
-				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname)
+				sizes: [16, 32, 48, 128]
 			};
-		},
-		watch: {
-			descriptionVisible(newValue) {
-				const storageKey = 'description-hidden-' + window.location.pathname;
-				if (newValue === true) {
-					// When dialog is opened, remove the key so a refresh will show it again.
-					localStorage.removeItem(storageKey);
-				} else {
-					// When dialog is closed, set the key so it stays hidden on next visit.
-					localStorage.setItem(storageKey, 'true');
-				}
-			}
 		},
 		computed: {
 			parsedSvg() {
@@ -219,12 +199,12 @@
 	const help = createApp({
 		data() {
 			return {
-				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname)
+				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname)
 			};
 		},
 		watch: {
-			descriptionVisible(newValue) {
-				const storageKey = 'description-hidden-' + window.location.pathname;
+			introVisible(newValue) {
+				const storageKey = 'intro-hidden-' + window.location.pathname;
 				if (!newValue) {
 					localStorage.setItem(storageKey, 'true');
 				} else {

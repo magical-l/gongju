@@ -30,34 +30,34 @@
 		<a href="svg转图标.html">SVG转图标</a>
 		<a href="化学/元素周期表.html">元素周期表</a>
 		<a href="拼音/拼音.html">拼音</a>
+		<a href="游戏/俄罗斯方块.html">俄罗斯方块</a>
+		<a href="游戏/贪吃蛇.html">贪吃蛇</a>
 		<a href="游戏/点灯.html">点灯</a>
 	</nav>
 </header>
 <main>
 	<header>
 		<h2>文本格式转换工具</h2>
-
-		<div class="help area" v-cloak>
-			<el-button size="small" circle title="显示说明" @click="descriptionVisible = true">?</el-button>
-			<el-dialog title="页面说明" v-model="descriptionVisible" width="60%">
-				<article class="description">
-					<p>
-						“文本格式转换工具”是一个强大而实用的在线服务，专为需要对文本进行各种编码、解码和加密操作的用户设计。无论您是开发人员、数据分析师，还是普通用户，这个工具都能满足您在文本处理方面的多样化需求。</p>
-					<h2>核心功能</h2>
-					<ul>
-						<li><strong>MD5加密：</strong>快速生成文本的MD5哈希值，常用于数据校验和密码存储。</li>
-						<li><strong>Base64编码/解码：：</strong>支持文本与Base64格式之间的相互转换，广泛应用于网络数据传输和二进制数据表示。
-						</li>
-						<li><strong>URI编码/解码：：</strong>提供对URL中的特殊字符进行编码和解码的功能，确保URL的正确性和可读性。</li>
-						<li><strong>URI参数编码/解码：：</strong>专门针对URL查询参数中的字符进行更严格的编码和解码。</li>
-					</ul>
-					<h2>适用场景</h2>
-					<p><strong>Web开发：：</strong>在处理URL、API请求或用户输入时，经常需要进行URI编码和解码，以避免安全漏洞和解析错误。
-					</p>
-					<p><strong>数据传输：：</strong>当需要在网络上传输二进制数据（如图片、文件）时，通常会先将其进行Base64编码，以文本形式安全传输。
-					</p>
-					<p><strong>信息安全：：</strong>MD5哈希算法可用于验证文件完整性，确保文件在传输过程中未被篡改。</p>
-				</article>
+		<div class="page-lv help area" v-cloak>
+			<el-button title="显示说明" class="page-lv help btn" @click="introVisible = true" size="small" circle>?
+			</el-button>
+			<el-dialog title="页面说明" class="page-lv intro" v-model="introVisible" width="60%">
+				<p>
+					“文本格式转换工具”是一个强大而实用的在线服务，专为需要对文本进行各种编码、解码和加密操作的用户设计。无论您是开发人员、数据分析师，还是普通用户，这个工具都能满足您在文本处理方面的多样化需求。</p>
+				<h2>核心功能</h2>
+				<ul>
+					<li><strong>MD5加密：</strong>快速生成文本的MD5哈希值，常用于数据校验和密码存储。</li>
+					<li><strong>Base64编码/解码：：</strong>支持文本与Base64格式之间的相互转换，广泛应用于网络数据传输和二进制数据表示。
+					</li>
+					<li><strong>URI编码/解码：：</strong>提供对URL中的特殊字符进行编码和解码的功能，确保URL的正确性和可读性。</li>
+					<li><strong>URI参数编码/解码：：</strong>专门针对URL查询参数中的字符进行更严格的编码和解码。</li>
+				</ul>
+				<h2>适用场景</h2>
+				<p><strong>Web开发：：</strong>在处理URL、API请求或用户输入时，经常需要进行URI编码和解码，以避免安全漏洞和解析错误。
+				</p>
+				<p><strong>数据传输：：</strong>当需要在网络上传输二进制数据（如图片、文件）时，通常会先将其进行Base64编码，以文本形式安全传输。
+				</p>
+				<p><strong>信息安全：：</strong>MD5哈希算法可用于验证文件完整性，确保文件在传输过程中未被篡改。</p>
 			</el-dialog>
 		</div>
 	</header>
@@ -86,15 +86,14 @@
 	</article>
 </main>
 
-<aside class="right-sidebar">
+<aside class="right sidebar">
 	<article class="website info">
-		<section class="qr-code">
-			<img src="resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
-			<span>赞助一下</span>
+		<section class="sponsorship area">
+			<img class="qr-code" src="resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+			<p class="slogan">赞助一下</p>
 		</section>
-		<section>
-			<p>&copy; 2025 工具兽版权所有 All rights reserved.</p>
-			<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+		<section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
+		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
 		</section>
 	</article>
 </aside>
@@ -313,12 +312,12 @@
 	createApp({
 		data() {
 			return {
-				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname)
+				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname)
 			};
 		},
 		watch: {
-			descriptionVisible(newValue) {
-				const storageKey = 'description-hidden-' + window.location.pathname;
+			introVisible(newValue) {
+				const storageKey = 'intro-hidden-' + window.location.pathname;
 				if (!newValue) {
 					localStorage.setItem(storageKey, 'true');
 				} else {
