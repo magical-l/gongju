@@ -24,10 +24,41 @@
 		align-items: start;
 	}
 
+	.main.map.area {
+		position: relative;
+	}
+
 	#game-canvas {
 		background-color: #e6eaf0;
 		border-radius: 10px;
 		box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+		display: block;
+	}
+
+	.game-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-color: rgba(240, 242, 245, 0.75);
+		border-radius: 10px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		color: #34495e;
+		text-align: center;
+	}
+
+	.game-overlay h2 {
+		font-size: 2.5rem;
+		margin: 0;
+	}
+
+	.game-overlay p {
+		font-size: 1.2rem;
+		margin: 10px 0 20px;
 	}
 
 	.gaming.area {
@@ -57,6 +88,10 @@
 		font-weight: bold;
 		color: #4a4a4a;
 	}
+
+	.setting.area .el-form-item {
+		margin-bottom: 0;
+	}
 </style>
 </head>
 <body class="grid 反叵字形">
@@ -82,6 +117,7 @@
 				<article class="description">
 					<p>欢迎来到“贪吃蛇”游戏，这是一款经典的街机游戏。</p>
 					<p>使用键盘的<strong>方向键 (↑, ↓, ←, →)</strong> 来控制蛇的移动方向。</p>
+					<p>通过<strong>“开始/暂停”按钮</strong>或按<strong>空格键</strong>来控制游戏的开始与暂停。</p>
 					<p>游戏的目标是吃掉随机出现的食物（红色方块），每吃掉一个食物，蛇的身体就会变长，并且你的得分也会增加。</p>
 					<p>请注意，蛇不能碰到墙壁或自己的身体，否则游戏就会结束。</p>
 					<p>祝您玩得愉快，挑战更高的分数！</p>
@@ -93,12 +129,21 @@
 	<article v-cloak>
 		<header class="toolbar flex near-center">
 			<section class="setting area">
-				<el-radio-group title="速度" class="one setting : speed" v-model="gameSpeed">
-					<el-radio-button v-for="opt in speedOptions" :key="opt.value" size="large" :value="opt.value">{{ opt.label }}</el-radio-button>
-				</el-radio-group>
+				<el-form inline>
+					<el-form-item label="速度">
+						<el-input-number v-model="speedLevel" :min="1" :max="10" size="large" style="width: 120px"/>
+					</el-form-item>
+					<el-form-item label="尺寸">
+						<el-input-number v-model="boardSizeInGrids" :min="10" :max="40" :step="2" size="large"
+														 style="width: 120px"/>
+					</el-form-item>
+				</el-form>
 			</section>
 			<section class="controller area">
-				<el-button class="one controller : restart" @click="initGame" type="primary" size="large" icon="RefreshRight">
+				<el-button :icon="isPaused ? 'VideoPlay' : 'VideoPause'" @click="togglePause" size="large">
+					{{ isPaused ? (score === 0 && !gameOver ? '开始' : '继续') : '暂停' }}
+				</el-button>
+				<el-button @click="initGame" type="primary" size="large" icon="RefreshRight">
 					重新开始
 				</el-button>
 			</section>
@@ -107,6 +152,11 @@
 		<section class="gaming area , 反叵字形 grid">
 			<article class="main map area , one-row item , flex items-near-center-x">
 				<canvas id="game-canvas" :width="canvasSize" :height="canvasSize"></canvas>
+				<div class="game-overlay" v-if="gameOver">
+					<h2>游戏结束</h2>
+					<p>你的分数: {{ score }}</p>
+					<el-button type="primary" @click="initGame" size="large">再玩一次</el-button>
+				</div>
 			</article>
 			<aside class="right-sidebar">
 				<header>记分牌</header>
@@ -115,13 +165,6 @@
 					<p class="score-item">最高分: <span>{{ highScore }}</span></p>
 				</article>
 			</aside>
-
-			<el-dialog v-model="gameOver" title="游戏结束" width="300px" center :show-close="false" :close-on-click-modal="false" :close-on-press-escape="false">
-				<p style="text-align: center; font-size: 1.2rem;">你的分数: {{ score }}</p>
-				<template #footer>
-					<el-button type="primary" @click="initGame" size="large">重新开始</el-button>
-				</template>
-			</el-dialog>
 		</section>
 	</article>
 </main>
@@ -151,13 +194,8 @@
 		data() {
 			return {
 				descriptionVisible: false,
-				speedOptions: [
-					{label: '慢', value: 150},
-					{label: '中', value: 100},
-					{label: '快', value: 60},
-				],
-				gameSpeed: 100,
-				canvasSize: 400,
+				speedLevel: 5,
+				boardSizeInGrids: 20,
 				gridSize: 20,
 				snake: [],
 				food: {},
@@ -166,21 +204,28 @@
 				score: 0,
 				highScore: localStorage.getItem('snake-high-score') || 0,
 				gameOver: false,
+				isPaused: true,
 				gameInterval: null,
 				ctx: null,
 			};
 		},
 		computed: {
+			gameSpeed() {
+				return 250 - this.speedLevel * 20;
+			},
+			canvasSize() {
+				return this.boardSizeInGrids * this.gridSize;
+			},
 			gridWidth() {
-				return this.canvasSize / this.gridSize;
+				return this.boardSizeInGrids;
 			},
 			gridHeight() {
-				return this.canvasSize / this.gridSize;
+				return this.boardSizeInGrids;
 			}
 		},
 		watch: {
 			gameSpeed() {
-				if (!this.gameOver) {
+				if (!this.isPaused && !this.gameOver) {
 					this.startGameLoop();
 				}
 			},
@@ -189,30 +234,54 @@
 					this.highScore = newScore;
 					localStorage.setItem('snake-high-score', newScore);
 				}
+			},
+			boardSizeInGrids() {
+				this.$nextTick(() => {
+					this.initGame();
+				});
 			}
 		},
 		methods: {
 			initGame() {
+				this.isPaused = true;
+				this.gameOver = false;
+				if (this.gameInterval) {
+					clearInterval(this.gameInterval);
+					this.gameInterval = null;
+				}
+
+				const startPosition = {x: Math.floor(this.gridWidth / 4), y: Math.floor(this.gridHeight / 2)};
 				this.snake = [
-					{x: 5, y: 10},
-					{x: 4, y: 10},
-					{x: 3, y: 10}
+					{...startPosition},
+					{x: startPosition.x - 1, y: startPosition.y},
+					{x: startPosition.x - 2, y: startPosition.y}
 				];
-				this.generateFood();
+
 				this.score = 0;
 				this.direction = 'right';
 				this.nextDirection = 'right';
-				this.gameOver = false;
-				this.startGameLoop();
+
+				this.generateFood();
+				this.draw();
+			},
+			togglePause() {
+				if (this.gameOver) return;
+				this.isPaused = !this.isPaused;
+				if (this.isPaused) {
+					clearInterval(this.gameInterval);
+					this.gameInterval = null;
+					this.draw();
+				} else {
+					this.startGameLoop();
+				}
 			},
 			startGameLoop() {
-				if (this.gameInterval) {
-					clearInterval(this.gameInterval);
-				}
+				if (this.gameInterval) clearInterval(this.gameInterval);
 				this.gameInterval = setInterval(this.gameLoop, this.gameSpeed);
 			},
 			gameLoop() {
-				if (this.gameOver) return;
+				if (this.isPaused || this.gameOver) return;
+
 				this.moveSnake();
 				if (this.checkCollision()) {
 					this.endGame();
@@ -263,18 +332,40 @@
 			},
 			draw() {
 				this.ctx.clearRect(0, 0, this.canvasSize, this.canvasSize);
-				this.ctx.fillStyle = '#34495e'; // Snake color
+				// Draw snake
+				this.ctx.fillStyle = '#34495e';
 				this.snake.forEach(segment => {
-					this.ctx.fillRect(segment.x * this.gridSize, segment.y * this.gridSize, this.gridSize, this.gridSize);
+					this.ctx.fillRect(segment.x * this.gridSize, segment.y * this.gridSize, this.gridSize - 1, this.gridSize - 1);
 				});
-				this.ctx.fillStyle = '#e74c3c'; // Food color
-				this.ctx.fillRect(this.food.x * this.gridSize, this.food.y * this.gridSize, this.gridSize, this.gridSize);
+				// Draw food
+				this.ctx.fillStyle = '#e74c3c';
+				this.ctx.fillRect(this.food.x * this.gridSize, this.food.y * this.gridSize, this.gridSize - 1, this.gridSize - 1);
+
+				if (this.isPaused && !this.gameOver) {
+					this.ctx.fillStyle = 'rgba(240, 242, 245, 0.75)';
+					this.ctx.fillRect(0, 0, this.canvasSize, this.canvasSize);
+					this.ctx.fillStyle = '#34495e';
+					this.ctx.font = 'bold 30px Arial';
+					this.ctx.textAlign = 'center';
+					this.ctx.textBaseline = 'middle';
+					const message = this.score === 0 ? '准备就绪' : '已暂停';
+					this.ctx.fillText(message, this.canvasSize / 2, this.canvasSize / 2);
+				}
 			},
 			endGame() {
 				this.gameOver = true;
+				this.isPaused = true;
 				clearInterval(this.gameInterval);
+				this.gameInterval = null;
 			},
 			handleKeydown(e) {
+				if (e.key === ' ') {
+					e.preventDefault();
+					this.togglePause();
+					return;
+				}
+				if (this.isPaused || this.gameOver) return;
+
 				if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
 					e.preventDefault();
 				}
