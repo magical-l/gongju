@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>塔防游戏 | 工具兽</title>
+	<link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
+	<link href="../resources/el-plus.css" rel="stylesheet">
+	<link href="../resources/common.css" rel="stylesheet">
+	<link href="../resources/layout.css" rel="stylesheet">
+	<style>
+		.gaming.area {
+			margin-top: 20px;
+			gap: 20px;
+			align-items: start;
+		}
+
+		#game-canvas {
+			background-color: #f0f2f5;
+			border-radius: 10px;
+			box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+			cursor: pointer;
+		}
+
+		.gaming.area {
+			--反叵字形-right-sidebar-max-width: 240px;
+		}
+
+		.stat-item {
+			font-size: 1.1rem;
+			margin-bottom: 12px;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.stat-value {
+			font-weight: bold;
+			color: #409EFF;
+		}
+
+		.el-card__header {
+			font-weight: bold;
+		}
+	</style>
+</head>
+<body class="grid 反叵字形">
+<header>
+	<h1 class="website name">工具兽</h1>
+	<nav>
+		<a href="../文本转化.html">文本转化</a>
+		<a href="俄罗斯方块.html">俄罗斯方块</a>
+		<a href="贪吃蛇.html">贪吃蛇</a>
+		<a href="塔防.html" class="active">塔防</a>
+	</nav>
+</header>
+<main id="app" v-cloak>
+	<header>
+		<h2 class="game name">塔防游戏</h2>
+	</header>
+
+	<article class="gaming area , 反叵字形 grid">
+		<article class="main map area , one-row item , flex items-near-center-x">
+			<canvas id="game-canvas" :width="canvasWidth" :height="canvasHeight" @click="handleCanvasClick"></canvas>
+		</article>
+
+		<aside class="gaming-situation , right-sidebar">
+			<el-card header="战况">
+				<div class="stat-item"><span>❤️ 生命:</span> <span class="stat-value">{{ health }}</span></div>
+				<div class="stat-item"><span>💰 金币:</span> <span class="stat-value">{{ coins }}</span></div>
+				<div class="stat-item"><span>🌊 波数:</span> <span class="stat-value">{{ waveDisplay }}</span></div>
+			</el-card>
+			<el-card header="操作" style="margin-top: 20px;">
+				<el-button @click="addRandomTower" :disabled="coins < towerCost" style="width: 100%;">
+					随机建塔 ({{ towerCost }}💰)
+				</el-button>
+				<el-button @click="restartGame" style="width: 100%; margin: 10px 0 0 0;" type="primary">
+					重新开始
+				</el-button>
+			</el-card>
+			<el-card header="说明" style="margin-top: 20px;">
+				<p>点击非路径区域可花费金币建造炮塔。</p>
+			</el-card>
+		</aside>
+	</article>
+
+	<el-dialog v-model="showGameOverDialog" :title="gameWon ? '恭喜通关! 🎉' : '游戏结束 😢'" width="30%" center :show-close="false" :close-on-click-modal="false" :close-on-press-escape="false">
+		<span>{{ gameWon ? '你成功保卫了萝卜！' : '萝卜被吃掉了，再试一次吧！' }}</span>
+		<template #footer>
+			<el-button type="primary" @click="restartGame">重新开始</el-button>
+		</template>
+	</el-dialog>
+</main>
+
+<div class="js container">
+	<script src="../lib/vue/3.5.18/vue.global.js"></script>
+	<script src="../lib/element-plus/2.10.7/index.full.js"></script>
+</div>
+<script>
+	// --- Entity Classes (defined outside Vue for performance) ---
+	class Enemy {
+		constructor(health, speed, reward, path) {
+			this.id = Date.now() + Math.random();
+			this.path = path;
+			this.pathIndex = 0;
+			this.x = this.path[0].x;
+			this.y = this.path[0].y;
+			this.speed = speed;
+			this.maxHealth = health;
+			this.health = health;
+			this.reward = reward;
+			this.radius = 12;
+		}
+
+		update(deltaTime) {
+			if (this.pathIndex >= this.path.length - 1) {
+				return { reachedEnd: true };
+			}
+
+			const target = this.path[this.pathIndex + 1];
+			const dx = target.x - this.x;
+			const dy = target.y - this.y;
+			const distance = Math.sqrt(dx * dx + dy * dy);
+			const moveDistance = this.speed * (deltaTime / 16);
+
+			if (distance < moveDistance) {
+				this.x = target.x;
+				this.y = target.y;
+				this.pathIndex++;
+			} else {
+				this.x += (dx / distance) * moveDistance;
+				this.y += (dy / distance) * moveDistance;
+			}
+			return { reachedEnd: false };
+		}
+
+		takeDamage(damage) {
+			this.health -= damage;
+			return this.health <= 0;
+		}
+
+		draw(ctx) {
+			// Body
+			ctx.fillStyle = '#c0392b';
+			ctx.beginPath();
+			ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+			ctx.fill();
+
+			// Health bar
+			const healthBarWidth = this.radius * 2;
+			const healthPercentage = this.health / this.maxHealth;
+			ctx.fillStyle = '#555';
+			ctx.fillRect(this.x - this.radius, this.y - this.radius - 10, healthBarWidth, 4);
+			ctx.fillStyle = '#2ecc71';
+			ctx.fillRect(this.x - this.radius, this.y - this.radius - 10, healthBarWidth * healthPercentage, 4);
+		}
+	}
+
+	class Tower {
+		constructor(x, y) {
+			this.id = Date.now() + Math.random();
+			this.x = x;
+			this.y = y;
+			this.radius = 15;
+			this.range = 120;
+			this.damage = 1;
+			this.fireRate = 500; // ms per shot
+			this.fireCountdown = 0;
+		}
+
+		update(deltaTime, enemies, bullets) {
+			this.fireCountdown -= deltaTime;
+			if (this.fireCountdown <= 0) {
+				const target = this.findTarget(enemies);
+				if (target) {
+					bullets.push({
+						id: Date.now() + Math.random(),
+						x: this.x,
+						y: this.y,
+						target: target,
+						speed: 8,
+						damage: this.damage
+					});
+					this.fireCountdown = this.fireRate;
+				}
+			}
+		}
+
+		findTarget(enemies) {
+			let closestEnemy = null;
+			let minDistance = this.range;
+			for (const enemy of enemies) {
+				const distance = Math.sqrt((enemy.x - this.x) ** 2 + (enemy.y - this.y) ** 2);
+				if (distance < minDistance) {
+					minDistance = distance;
+					closestEnemy = enemy;
+				}
+			}
+			return closestEnemy;
+		}
+
+		draw(ctx) {
+			ctx.fillStyle = '#f39c12';
+			ctx.strokeStyle = '#e88d0b';
+			ctx.lineWidth = 2;
+			ctx.beginPath();
+			ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+			ctx.fill();
+			ctx.stroke();
+			ctx.fillStyle = '#fff';
+			ctx.font = 'bold 16px Arial';
+			ctx.textAlign = 'center';
+			ctx.textBaseline = 'middle';
+			ctx.fillText('T', this.x, this.y);
+		}
+	}
+
+	const { createApp } = Vue;
+	const app = createApp({
+		data() {
+			return {
+				// Canvas and Grid
+				canvasWidth: 600,
+				canvasHeight: 400,
+				gridSize: { cols: 15, rows: 10, cellSize: 40 },
+				gridCells: [],
+				ctx: null,
+
+				// Game State
+				health: 10,
+				coins: 100,
+				wave: 0,
+				gameOver: false,
+				gameWon: false,
+				spawnCount: 0,
+				towerCost: 50,
+
+				// Entities
+				enemies: [],
+				towers: [],
+				bullets: [],
+
+				// Path
+				pathPoints: [
+					{x: 20, y: 200}, {x: 140, y: 200}, {x: 140, y: 100}, {x: 300, y: 100},
+					{x: 300, y: 300}, {x: 460, y: 300}, {x: 460, y: 140}, {x: 580, y: 140}
+				],
+
+				// Wave Data
+				wavesData: [
+					{ count: 8, health: 3, speed: 1.2, interval: 1500, reward: 5 },
+					{ count: 10, health: 5, speed: 1.4, interval: 1200, reward: 8 },
+					{ count: 12, health: 8, speed: 1.6, interval: 1000, reward: 10 },
+					{ count: 15, health: 12, speed: 1.8, interval: 800, reward: 12 },
+					{ count: 20, health: 15, speed: 2.0, interval: 600, reward: 15 }
+				],
+
+				// Game Loop
+				gameLoopId: null,
+				lastFrameTime: 0,
+				timeToNextSpawn: 0,
+				timeToNextWave: 3000,
+			}
+		},
+		computed: {
+			endPoint() {
+				return this.pathPoints[this.pathPoints.length - 1];
+			},
+			waveDisplay() {
+				if (this.wave >= this.wavesData.length) return `最终波`;
+				return `${this.wave + 1} / ${this.wavesData.length}`;
+			},
+			showGameOverDialog: {
+				get() {
+					return this.gameOver || this.gameWon;
+				},
+				set(value) {
+					// This setter is needed for v-model, but we control the state via game logic.
+					if (!value) {
+						this.gameOver = false;
+						this.gameWon = false;
+					}
+				}
+			}
+		},
+		methods: {
+			// --- Initialization ---
+			initGame() {
+				this.health = 10;
+				this.coins = 100;
+				this.wave = 0;
+				this.spawnCount = 0;
+				this.gameOver = false;
+				this.gameWon = false;
+				this.enemies = [];
+				this.towers = [];
+				this.bullets = [];
+				this.timeToNextSpawn = 0;
+				this.timeToNextWave = 3000; // Delay before first wave
+
+				this.initGrid();
+
+				this.lastFrameTime = performance.now();
+				if (this.gameLoopId) cancelAnimationFrame(this.gameLoopId);
+				this.gameLoopId = requestAnimationFrame(this.gameLoop);
+			},
+			initGrid() {
+				const cells = [];
+				const pathWidth = this.gridSize.cellSize / 2;
+
+				const isPointNearLine = (px, py, x1, y1, x2, y2, maxDistance) => {
+					const dx = x2 - x1, dy = y2 - y1;
+					const lenSq = dx * dx + dy * dy;
+					if (lenSq === 0) return Math.sqrt((px - x1) ** 2 + (py - y1) ** 2) <= maxDistance;
+					let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
+					t = Math.max(0, Math.min(1, t));
+					const projX = x1 + t * dx, projY = y1 + t * dy;
+					return Math.sqrt((px - projX) ** 2 + (py - projY) ** 2) <= maxDistance;
+				};
+
+				for (let r = 0; r < this.gridSize.rows; r++) {
+					for (let c = 0; c < this.gridSize.cols; c++) {
+						const x = c * this.gridSize.cellSize + this.gridSize.cellSize / 2;
+						const y = r * this.gridSize.cellSize + this.gridSize.cellSize / 2;
+						let isPath = false;
+						for (let i = 0; i < this.pathPoints.length - 1; i++) {
+							if (isPointNearLine(x, y, this.pathPoints[i].x, this.pathPoints[i].y, this.pathPoints[i+1].x, this.pathPoints[i+1].y, pathWidth)) {
+								isPath = true;
+								break;
+							}
+						}
+						cells.push({ r, c, x, y, isPath, hasTower: false });
+					}
+				}
+				this.gridCells = cells;
+			},
+
+			// --- Game Loop and Updates ---
+			gameLoop(timestamp) {
+				const deltaTime = timestamp - this.lastFrameTime;
+				this.lastFrameTime = timestamp;
+
+				if (!this.gameOver && !this.gameWon) {
+					this.update(deltaTime);
+				}
+				
+				this.draw();
+				
+				if (!this.gameOver && !this.gameWon) {
+					this.gameLoopId = requestAnimationFrame(this.gameLoop);
+				}
+			},
+			update(deltaTime) {
+				// Update Towers
+				this.towers.forEach(t => t.update(deltaTime, this.enemies, this.bullets));
+
+				// Update Bullets
+				for (let i = this.bullets.length - 1; i >= 0; i--) {
+					const bullet = this.bullets[i];
+					if (!this.enemies.includes(bullet.target)) {
+						this.bullets.splice(i, 1);
+						continue;
+					}
+					const dx = bullet.target.x - bullet.x, dy = bullet.target.y - bullet.y;
+					const dist = Math.sqrt(dx * dx + dy * dy);
+					if (dist < bullet.speed) {
+						if (bullet.target.takeDamage(bullet.damage)) {
+							this.coins += bullet.target.reward;
+							const index = this.enemies.findIndex(e => e.id === bullet.target.id);
+							if (index > -1) this.enemies.splice(index, 1);
+						}
+						this.bullets.splice(i, 1);
+					} else {
+						bullet.x += (dx / dist) * bullet.speed;
+						bullet.y += (dy / dist) * bullet.speed;
+					}
+				}
+
+				// Update Enemies
+				for (let i = this.enemies.length - 1; i >= 0; i--) {
+					if (this.enemies[i].update(deltaTime).reachedEnd) {
+						this.enemies.splice(i, 1);
+						this.health--;
+					}
+				}
+
+				// Wave and Spawning Logic
+				this.handleSpawning(deltaTime);
+
+				// Check Game Over
+				if (this.health <= 0) {
+					this.gameOver = true;
+				}
+			},
+			handleSpawning(deltaTime) {
+				if (this.wave >= this.wavesData.length) {
+					if (this.enemies.length === 0) this.gameWon = true;
+					return;
+				}
+
+				if (this.timeToNextWave > 0) {
+					this.timeToNextWave -= deltaTime;
+					return;
+				}
+
+				const waveInfo = this.wavesData[this.wave];
+				if (this.spawnCount < waveInfo.count) {
+					this.timeToNextSpawn -= deltaTime;
+					if (this.timeToNextSpawn <= 0) {
+						this.enemies.push(new Enemy(waveInfo.health, waveInfo.speed, waveInfo.reward, this.pathPoints));
+						this.spawnCount++;
+						this.timeToNextSpawn = waveInfo.interval;
+					}
+				} else if (this.enemies.length === 0) {
+					this.wave++;
+					this.spawnCount = 0;
+					if (this.wave < this.wavesData.length) {
+						this.timeToNextWave = 3000; // 3s for next wave
+					} else {
+						this.gameWon = true;
+					}
+				}
+			},
+
+			// --- Drawing ---
+			draw() {
+				this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
+				this.drawGrid();
+				this.drawPath();
+				this.drawCarrot();
+				this.towers.forEach(t => t.draw(this.ctx));
+				this.enemies.forEach(e => e.draw(this.ctx));
+				this.bullets.forEach(b => {
+					this.ctx.fillStyle = '#f1c40f';
+					this.ctx.beginPath();
+					this.ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
+					this.ctx.fill();
+				});
+			},
+			drawGrid() {
+				this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+				this.ctx.lineWidth = 1;
+				for (let i = 0; i < this.gridCells.length; i++) {
+					const cell = this.gridCells[i];
+					if (cell.isPath) {
+						this.ctx.fillStyle = '#e0e0e0';
+						this.ctx.fillRect(cell.c * this.gridSize.cellSize, cell.r * this.gridSize.cellSize, this.gridSize.cellSize, this.gridSize.cellSize);
+					}
+					this.ctx.strokeRect(cell.c * this.gridSize.cellSize, cell.r * this.gridSize.cellSize, this.gridSize.cellSize, this.gridSize.cellSize);
+				}
+			},
+			drawPath() {
+				this.ctx.strokeStyle = '#bbb';
+				this.ctx.lineWidth = this.gridSize.cellSize;
+				this.ctx.lineCap = 'round';
+				this.ctx.lineJoin = 'round';
+				this.ctx.beginPath();
+				this.ctx.moveTo(this.pathPoints[0].x, this.pathPoints[0].y);
+				for (let i = 1; i < this.pathPoints.length; i++) {
+					this.ctx.lineTo(this.pathPoints[i].x, this.pathPoints[i].y);
+				}
+				this.ctx.stroke();
+			},
+			drawCarrot() {
+				this.ctx.font = '30px Arial';
+				this.ctx.textAlign = 'center';
+				this.ctx.textBaseline = 'middle';
+				this.ctx.fillText('🥕', this.endPoint.x, this.endPoint.y);
+			},
+
+			// --- User Actions ---
+			restartGame() {
+				this.showGameOverDialog = false; // Hide dialog
+				this.initGame();
+			},
+			placeTower(cell) {
+				if (!cell || cell.isPath || cell.hasTower || this.coins < this.towerCost) return;
+				this.towers.push(new Tower(cell.x, cell.y));
+				cell.hasTower = true;
+				this.coins -= this.towerCost;
+			},
+			addRandomTower() {
+				const availableCells = this.gridCells.filter(c => !c.isPath && !c.hasTower);
+				if (availableCells.length > 0) {
+					const randomCell = availableCells[Math.floor(Math.random() * availableCells.length)];
+					this.placeTower(randomCell);
+				}
+			},
+			handleCanvasClick(e) {
+				const rect = e.currentTarget.getBoundingClientRect();
+				const x = e.clientX - rect.left;
+				const y = e.clientY - rect.top;
+				const col = Math.floor(x / this.gridSize.cellSize);
+				const row = Math.floor(y / this.gridSize.cellSize);
+				const cell = this.gridCells[row * this.gridSize.cols + col];
+				this.placeTower(cell);
+			}
+		},
+		mounted() {
+			const canvas = document.getElementById('game-canvas');
+			this.ctx = canvas.getContext('2d');
+			this.initGame();
+		},
+		beforeUnmount() {
+			if (this.gameLoopId) cancelAnimationFrame(this.gameLoopId);
+		}
+	});
+	app.use(ElementPlus);
+	app.mount('#app');
+</script>
+</body>
+</html>
