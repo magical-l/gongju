@@ -192,9 +192,9 @@ footer {
 	flex: 1 1 100%;
 }
 
-aside.left-sidebar, .left.sidebar {grid-area: left-sidebar;}
+.left-sidebar {grid-area: left-sidebar;}
 
-aside.right-sidebar, .right.sidebar {grid-area: right-sidebar;}
+.right-sidebar {grid-area: right-sidebar;}
 
 main, .main, .body {grid-area: main; flex: 1;}
 
