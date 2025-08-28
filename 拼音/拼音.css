@@ -1,32 +1,42 @@
-button.声母 {
-	--p-button-primary-background: #a5d6a7;
-	--p-button-primary-color: #37474f;
-	--p-button-primary-hover-background: #81c784;
-	--p-button-primary-hover-color: #37474f;
+.el-button.声母 {
+	--el-button-bg-color: #a5d6a7;
+	--el-button-text-color: #37474f;
+	--el-button-hover-bg-color: #81c784;
+	--el-button-hover-text-color: #37474f;
+	--el-button-border-color: #a5d6a7;
+	--el-button-hover-border-color: #81c784;
 }
 
-button.韵母 {
-	--p-button-primary-background: #90caf9;
-	--p-button-primary-color: #37474f;
-	--p-button-primary-hover-background: #64b5f6;
-	--p-button-primary-hover-color: #37474f;
+.el-button.韵母 {
+	--el-button-bg-color: #90caf9;
+	--el-button-text-color: #37474f;
+	--el-button-hover-bg-color: #64b5f6;
+	--el-button-hover-text-color: #37474f;
+	--el-button-border-color: #90caf9;
+	--el-button-hover-border-color: #64b5f6;
 }
 
-button.声调 {
-	--p-button-primary-background: #ffcc80;
-	--p-button-primary-color: #37474f;
-	--p-button-primary-hover-background: #ffb74d;
-	--p-button-primary-hover-color: #37474f;
+.el-button.声调 {
+	--el-button-bg-color: #ffcc80;
+	--el-button-text-color: #37474f;
+	--el-button-hover-bg-color: #ffb74d;
+	--el-button-hover-text-color: #37474f;
+	--el-button-border-color: #ffcc80;
+	--el-button-hover-border-color: #ffb74d;
 }
 
-button.非正规.声母 {
-	--p-button-primary-background: #c8e6c9;
-	--p-button-primary-hover-background: #a5d6a7;
+.el-button.非正规.声母 {
+	--el-button-bg-color: #c8e6c9;
+	--el-button-hover-bg-color: #a5d6a7;
+	--el-button-border-color: #c8e6c9;
+	--el-button-hover-border-color: #a5d6a7;
 }
 
-button.非正规.韵母 {
-	--p-button-primary-background: #bbdefb;
-	--p-button-primary-hover-background: #90caf9;
+.el-button.非正规.韵母 {
+	--el-button-bg-color: #bbdefb;
+	--el-button-hover-bg-color: #90caf9;
+	--el-button-border-color: #bbdefb;
+	--el-button-hover-border-color: #90caf9;
 }
 
 .标声调的字母 {

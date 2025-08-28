@@ -1,23 +1,37 @@
 <!DOCTYPE html>
-<html lang="zh-cn">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>汉语拼音学习工具 - 在线声母韵母组合练习</title>
-<meta name="description"
-			content="一个在线的汉语拼音学习和练习工具，通过可视化的方式展示声母、韵母和声调的组合规则，帮助用户更好地掌握汉语拼音。">
+<meta name="description" content="一个在线的汉语拼音学习和练习工具，通过可视化的方式展示声母、韵母和声调的组合规则，帮助用户更好地掌握汉语拼音。">
 <meta name="keywords" content="汉语拼音, 拼音学习, 声母, 韵母, 声调, 在线工具, pinyin">
+<meta name="author" content="工具兽">
+<meta property="og:title" content="汉语拼音学习工具 - 在线声母韵母组合练习">
+<meta property="og:description" content="一个在线的汉语拼音学习和练习工具，通过可视化的方式展示声母、韵母和声调的组合规则，帮助用户更好地掌握汉语拼音。">
+<meta property="og:type" content="website">
+
+<link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
+<link href="../resources/el-plus.css" rel="stylesheet">
+<link href="../lib/toastr.min.css" rel="stylesheet">
 <link href="../resources/common.css?v=250821" rel="stylesheet">
 <link href="../resources/layout.css?v=0821" rel="stylesheet">
 <link href="../resources/biz.css?v=250821" rel="stylesheet">
+<link href="../resources/花活.css" rel="stylesheet">
 <link href="拼音.css" rel="stylesheet">
 <style>
+	main > header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 1rem;
+	}
 	.keyboard .row {
 		display: flex;
 		justify-content: space-between;
 	}
 
-	.keyboard button {
+	.keyboard .el-button {
 		display: inline-block;
 		width: 60px;
 		height: 60px;
@@ -25,7 +39,7 @@
 		position: relative;
 	}
 
-	.keyboard button > .badge {
+	.keyboard .el-button .badge {
 		position: absolute;
 		bottom: 4px;
 		left: 50%;
@@ -126,233 +140,238 @@
 		<a href="../svg转图标.html">SVG转图标</a>
 		<a href="../化学/元素周期表.html">元素周期表</a>
 		<a href="拼音.html" class="active">拼音</a>
+		<a href="../游戏/俄罗斯方块.html">俄罗斯方块</a>
+		<a href="../游戏/贪吃蛇.html">贪吃蛇</a>
 		<a href="../游戏/点灯.html">点灯</a>
 	</nav>
 </header>
-<main v-cloak>
+<main>
 	<header>
-		<h2>汉语拼音学习工具</h2>
-		<button class="toggle-description" @click="toggleDescription">{{ descriptionVisible ? '隐藏说明' : '显示说明' }}
-		</button>
-	</header>
-	<article class="description" v-if="descriptionVisible">
-		<p>
+		<h2 class="page-lv name">汉语拼音学习工具</h2>
+		<div class="page-lv help area" v-cloak>
+			<el-button title="显示说明" class="page-lv help btn" @click="introVisible = true" size="small" circle>?
+			</el-button>
+			<el-dialog title="页面说明" class="page-lv intro" v-model="introVisible" width="60%">
+				<p>
 			“汉语拼音学习工具”是一个为汉语学习者设计的互动在线应用。它通过一个直观的界面，帮助用户理解和练习汉语拼音中声母、韵母和声调的组合规则。无论您是初学者还是希望巩固拼音知识，这个工具都能为您提供有效的帮助。</p>
 		<h2>核心功能</h2>
 		<ul>
 			<li><strong>可视化拼写：</strong>用户可以通过点击虚拟键盘上的声母、韵母和声调，实时查看它们的组合结果。</li>
 			<li><strong>拼写规则验证：</strong>工具会根据内置的拼音规则，判断所选组合是否有效，并给出相应的提示（正确、错误或不完整）。
 			</li>
-			<li><strong>详细信息展示：：</strong>对于生成的拼音，工具会显示其是否为卷舌音、前鼻音、后鼻音或整体认读音节。</li>
+			<li><strong>详细信息展示：</strong>对于生成的拼音，工具会显示其是否为卷舌音、前鼻音、后鼻音或整体认读音节。</li>
 		</ul>
 		<h2>适用人群</h2>
-		<p><strong>汉语初学者：：</strong>特别是儿童和外籍人士，可以通过这个工具直观地学习拼音规则。</p>
-		<p><strong>教师与家长：：</strong>可以利用此工具进行拼音教学，增加互动性和趣味性。</p>
-		<p><strong>语言爱好者：：</strong>对汉语语言学感兴趣的用户，可以通过此工具探索拼音的奥秘。</p>
+		<p><strong>汉语初学者：</strong>特别是儿童和外籍人士，可以通过这个工具直观地学习拼音规则。</p>
+		<p><strong>教师与家长：</strong>可以利用此工具进行拼音教学，增加互动性和趣味性。</p>
+		<p><strong>语言爱好者：</strong>对汉语语言学感兴趣的用户，可以通过此工具探索拼音的奥秘。</p>
+			</el-dialog>
+		</div>
+	</header>
+
+	<article v-cloak>
+		<section class="音节">
+			<div class="显示">
+				<div class="equation-center-group">
+					<div class="equation-left">
+						<div class="part-container">
+							<span class="sign">{{ 声母?.sign }}</span>
+							<span class="badge">声母</span>
+						</div>
+
+						<span v-if="介母" class="operator">+</span>
+						<div v-if="介母" class="part-container">
+							<span class="sign">{{ 介母?.sign }}</span>
+							<span class="badge">介母</span>
+						</div>
+
+						<span class="operator">+</span>
+						<div class="part-container">
+							<span class="sign">{{ 主韵母?.sign }}</span>
+							<span class="badge"><span v-if="介母">主</span>韵母</span>
+						</div>
+
+						<span class="operator">+</span>
+						<div class="part-container">
+							<span class="sign">{{ 声调?.sign }}</span>
+							<span class="badge">声调</span>
+						</div>
+					</div>
+
+					<span class="equals-sign">=</span>
+
+					<div class="part-container">
+						<span class="sign pinyin-result" :class="validity">{{result?.sign}}</span>
+					</div>
+
+					<div class="validation-area">
+						<span v-if="validity === 'correct'" class="correct icon">✔️</span>
+						<span v-if="validity === 'incorrect'" class="incorrect icon">❌</span>
+						<span v-if="validity === 'incomplete'" class="half-correct icon">❓</span>
+						<div class="badges">
+							<span v-if="result.卷舌" class="卷舌 badge">卷舌</span>
+							<span v-if="result.前鼻音" class="前鼻音 badge">前鼻音</span>
+							<span v-if="result.后鼻音" class="后鼻音 badge">后鼻音</span>
+							<span v-if="result.整体认读" class="整体认读 badge">整体认读</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+		<section class="keyboard">
+			<div class="row">
+				<div class="声母 group">
+					<el-button class="one 声母" @click="选声母"><span class="sign">b</span></el-button>
+					<el-button class="one 声母" @click="选声母"><span class="sign">p</span></el-button>
+					<el-button class="one 声母" @click="选声母"><span class="sign">m</span></el-button>
+					<el-button class="one 声母" @click="选声母"><span class="sign">f</span></el-button>
+					<el-button class="one 声母" @click="选声母"><span class="sign">d</span></el-button>
+					<el-button class="one 声母" @click="选声母"><span class="sign">t</span></el-button>
+					<el-button class="one 声母" @click="选声母"><span class="sign">n</span></el-button>
+					<el-button class="one 声母" @click="选声母"><span class="sign">l</span></el-button>
+				</div>
+				<div class="韵母 group">
+					<el-button class="one 韵母" @click="选韵母"><span class="sign">a</span></el-button>
+					<el-button class="one 韵母" @click="选韵母"><span class="sign">o</span></el-button>
+					<el-button class="one 韵母" @click="选韵母"><span class="sign">e</span></el-button>
+					<el-button class="one 韵母" @click="选韵母"><span class="sign">i</span></el-button>
+					<el-button class="one 韵母" @click="选韵母"><span class="sign">u</span></el-button>
+					<el-button class="one 韵母" @click="选韵母"><span class="sign">ü</span></el-button>
+				</div>
+			</div>
+			<div class="row">
+				<div class="声母 group">
+					<el-button class="one 声母" @click="选声母"><span class="sign">g</span></el-button>
+					<el-button class="one 声母" @click="选声母"><span class="sign">k</span></el-button>
+					<el-button class="one 声母" @click="选声母"><span class="sign">h</span></el-button>
+					<el-button class="one 声母" @click="选声母"><span class="sign">j</span></el-button>
+					<el-button class="one 声母" @click="选声母"><span class="sign">q</span></el-button>
+					<el-button class="one 声母" @click="选声母"><span class="sign">x</span></el-button>
+				</div>
+				<div class="韵母 group">
+					<el-button class="one 韵母" @click="选韵母">
+						<span class="sign"><span class="标声调的字母">a</span>i</span></el-button>
+					<el-button class="one 韵母" @click="选韵母">
+						<span class="sign"><span class="标声调的字母">e</span>i</span></el-button>
+					<el-button class="one 韵母" @click="选韵母">
+						<span class="sign">u<span class="标声调的字母">i</span></span></el-button>
+					<el-button class="one 韵母" @click="选韵母">
+						<span class="sign"><span class="标声调的字母">a</span>o</span></el-button>
+					<el-button class="one 韵母" @click="选韵母">
+						<span class="sign"><span class="标声调的字母">o</span>u</span></el-button>
+					<el-button class="one 韵母" @click="选韵母">
+						<span class="sign">i<span class="标声调的字母">u</span></span></el-button>
+					<el-button class="one 韵母" @click="选韵母">
+						<span class="sign">i<span class="标声调的字母">e</span></span></el-button>
+					<el-button class="one 韵母" @click="选韵母">
+						<span class="sign">ü<span class="标声调的字母">e</span></span></el-button>
+					<el-button class="one 韵母" @click="选韵母">
+						<span class="sign"><span class="标声调的字母">e</span>r</span>
+						<span class="卷舌 badge">卷舌</span>
+					</el-button>
+				</div>
+			</div>
+			<div class="row">
+				<div class="声母 group">
+					<el-button class="one 声母" @click="选声母">
+						<span class="sign">zh</span>
+						<span class="卷舌 badge">卷舌</span>
+					</el-button>
+					<el-button class="one 声母" @click="选声母">
+						<span class="sign">ch</span>
+						<span class="卷舌 badge">卷舌</span>
+					</el-button>
+					<el-button class="one 声母" @click="选声母">
+						<span class="sign">sh</span>
+						<span class="卷舌 badge">卷舌</span>
+					</el-button>
+					<el-button class="one 声母" @click="选声母">
+						<span class="sign">r</span>
+						<span class="卷舌 badge">卷舌</span>
+					</el-button>
+					<el-button class="one 声母" @click="选声母">
+						<span class="sign">z</span></el-button>
+					<el-button class="one 声母" @click="选声母">
+						<span class="sign">c</span></el-button>
+					<el-button class="one 声母" @click="选声母">
+						<span class="sign">s</span></el-button>
+				</div>
+				<div class="韵母 group">
+					<el-button class="one 韵母 鼻音 前鼻音" @click="选韵母">
+						<span class="sign"><span class="标声调的字母">a</span>n</span>
+					</el-button>
+					<el-button class="one 韵母 鼻音 前鼻音" @click="选韵母">
+						<span class="sign"><span class="标声调的字母">e</span>n</span>
+					</el-button>
+					<el-button class="one 韵母 鼻音 前鼻音" @click="选韵母">
+						<span class="sign"><span class="标声调的字母">i</span>n</span>
+					</el-button>
+					<el-button class="one 韵母 鼻音 前鼻音" @click="选韵母">
+						<span class="sign"><span class="标声调的字母">u</span>n</span>
+					</el-button>
+					<el-button class="one 韵母 鼻音 前鼻音" @click="选韵母">
+						<span class="sign"><span class="标声调的字母">ü</span>n</span>
+					</el-button>
+				</div>
+			</div>
+			<div class="row">
+				<div class="声母 group">
+					<el-button class="one 声母" @click="选声母"><span class="sign">y</span></el-button>
+					<el-button class="one 声母" @click="选声母"><span class="sign">w</span></el-button>
+				</div>
+				<div class="声母 group">
+					<el-button class="one 声母 非正规" @click="选声母" title="ng（非正规声母）"><span class="sign">ng</span>
+					</el-button>
+				</div>
+				<div class="声调 group">
+					<el-button title="阴平/第一声" class="one 声调" @click="选声调">
+						<span class="sign">ˉ</span></el-button>
+					<el-button title="阳平/第二声" class="one 声调" @click="选声调">
+						<span class="sign">ˊ</span></el-button>
+					<el-button title="上（shǎng）声/第三声" class="one 声调" @click="选声调">
+						<span class="sign">ˇ</span></el-button>
+					<el-button title="去声/第四声" class="one 声调" @click="选声调">
+						<span class="sign">ˋ</span></el-button>
+					<el-button title="轻声" class="one 声调" @click="选声调">
+						<span class="sign">·</span></el-button>
+				</div>
+				<div class="功能 group">
+					<el-button class="one 功能" @click="clear">清空</el-button>
+				</div>
+				<div class="韵母 group">
+					<el-button class="one 韵母 非正规" @click="选韵母" title="ê（非正规韵母）"><span class="sign">ê</span>
+					</el-button>
+				</div>
+				<div class="韵母 group">
+					<el-button class="one 韵母 鼻音 后鼻音" @click="选韵母">
+						<span class="sign"><span class="标声调的字母">a</span>ng</span></el-button>
+					<el-button class="one 韵母 鼻音 后鼻音" @click="选韵母">
+						<span class="sign"><span class="标声调的字母">e</span>ng</span></el-button>
+					<el-button class="one 韵母 鼻音 后鼻音" @click="选韵母">
+						<span class="sign"><span class="标声调的字母">i</span>ng</span></el-button>
+					<el-button class="one 韵母 鼻音 后鼻音" @click="选韵母">
+						<span class="sign"><span class="标声调的字母">o</span>ng</span></el-button>
+				</div>
+			</div>
+		</section>
 	</article>
-	<section class="音节">
-		<div class="显示">
-			<div class="equation-center-group">
-				<div class="equation-left">
-					<div class="part-container">
-						<span class="sign">{{ 声母?.sign }}</span>
-						<badge class="badge">声母</badge>
-					</div>
-
-					<span v-if="介母" class="operator">+</span>
-					<div v-if="介母" class="part-container">
-						<span class="sign">{{ 介母?.sign }}</span>
-						<badge class="badge">介母</badge>
-					</div>
-
-					<span class="operator">+</span>
-					<div class="part-container">
-						<span class="sign">{{ 主韵母?.sign }}</span>
-						<badge class="badge"><span v-if="介母">主</span>韵母</badge>
-					</div>
-
-					<span class="operator">+</span>
-					<div class="part-container">
-						<span class="sign">{{ 声调?.sign }}</span>
-						<badge class="badge">声调</badge>
-					</div>
-				</div>
-
-				<span class="equals-sign">=</span>
-
-				<div class="part-container">
-					<span class="sign pinyin-result" :class="validity">{{result?.sign}}</span>
-				</div>
-
-				<div class="validation-area">
-					<i v-if="validity === 'correct'" class="correct icon pi pi-check-circle"></i>
-					<i v-if="validity === 'incorrect'" class="incorrect icon pi pi-times-circle"></i>
-					<i v-if="validity === 'incomplete'" class="half-correct icon pi pi-question-circle"></i>
-					<div class="badges">
-						<badge v-if="result.卷舌" class="卷舌 badge">卷舌</badge>
-						<badge v-if="result.前鼻音" class="前鼻音 badge">前鼻音</badge>
-						<badge v-if="result.后鼻音" class="后鼻音 badge">后鼻音</badge>
-						<badge v-if="result.整体认读" class="整体认读 badge">整体认读</badge>
-					</div>
-				</div>
-			</div>
-		</div>
-	</section>
-	<section class="keyboard">
-		<div class="row">
-			<div class="声母 group">
-				<p-button class="one 声母" raised @click="选声母"><span class="sign">b</span></p-button>
-				<p-button class="one 声母" raised @click="选声母"><span class="sign">p</span></p-button>
-				<p-button class="one 声母" raised @click="选声母"><span class="sign">m</span></p-button>
-				<p-button class="one 声母" raised @click="选声母"><span class="sign">f</span></p-button>
-				<p-button class="one 声母" raised @click="选声母"><span class="sign">d</span></p-button>
-				<p-button class="one 声母" raised @click="选声母"><span class="sign">t</span></p-button>
-				<p-button class="one 声母" raised @click="选声母"><span class="sign">n</span></p-button>
-				<p-button class="one 声母" raised @click="选声母"><span class="sign">l</span></p-button>
-			</div>
-			<div class="韵母 group">
-				<p-button class="one 韵母" raised @click="选韵母"><span class="sign">a</span></p-button>
-				<p-button class="one 韵母" raised @click="选韵母"><span class="sign">o</span></p-button>
-				<p-button class="one 韵母" raised @click="选韵母"><span class="sign">e</span></p-button>
-				<p-button class="one 韵母" raised @click="选韵母"><span class="sign">i</span></p-button>
-				<p-button class="one 韵母" raised @click="选韵母"><span class="sign">u</span></p-button>
-				<p-button class="one 韵母" raised @click="选韵母"><span class="sign">ü</span></p-button>
-			</div>
-		</div>
-		<div class="row">
-			<div class="声母 group">
-				<p-button class="one 声母" raised @click="选声母"><span class="sign">g</span></p-button>
-				<p-button class="one 声母" raised @click="选声母"><span class="sign">k</span></p-button>
-				<p-button class="one 声母" raised @click="选声母"><span class="sign">h</span></p-button>
-				<p-button class="one 声母" raised @click="选声母"><span class="sign">j</span></p-button>
-				<p-button class="one 声母" raised @click="选声母"><span class="sign">q</span></p-button>
-				<p-button class="one 声母" raised @click="选声母"><span class="sign">x</span></p-button>
-			</div>
-			<div class="韵母 group">
-				<p-button class="one 韵母" raised @click="选韵母">
-					<span class="sign"><span class="标声调的字母">a</span>i</span></p-button>
-				<p-button class="one 韵母" raised @click="选韵母">
-					<span class="sign"><span class="标声调的字母">e</span>i</span></p-button>
-				<p-button class="one 韵母" raised @click="选韵母">
-					<span class="sign">u<span class="标声调的字母">i</span></span></p-button>
-				<p-button class="one 韵母" raised @click="选韵母">
-					<span class="sign"><span class="标声调的字母">a</span>o</span></p-button>
-				<p-button class="one 韵母" raised @click="选韵母">
-					<span class="sign"><span class="标声调的字母">o</span>u</span></p-button>
-				<p-button class="one 韵母" raised @click="选韵母">
-					<span class="sign">i<span class="标声调的字母">u</span></span></p-button>
-				<p-button class="one 韵母" raised @click="选韵母">
-					<span class="sign">i<span class="标声调的字母">e</span></span></p-button>
-				<p-button class="one 韵母" raised @click="选韵母">
-					<span class="sign">ü<span class="标声调的字母">e</span></span></p-button>
-				<p-button class="one 韵母" raised @click="选韵母">
-					<span class="sign"><span class="标声调的字母">e</span>r</span>
-					<badge class="卷舌 badge">卷舌</badge>
-				</p-button>
-			</div>
-		</div>
-		<div class="row">
-			<div class="声母 group">
-				<p-button class="one 声母" raised @click="选声母">
-					<span class="sign">zh</span>
-					<badge class="卷舌 badge">卷舌</badge>
-				</p-button>
-				<p-button class="one 声母" raised @click="选声母">
-					<span class="sign">ch</span>
-					<badge class="卷舌 badge">卷舌</badge>
-				</p-button>
-				<p-button class="one 声母" raised @click="选声母">
-					<span class="sign">sh</span>
-					<badge class="卷舌 badge">卷舌</badge>
-				</p-button>
-				<p-button class="one 声母" raised @click="选声母">
-					<span class="sign">r</span>
-					<badge class="卷舌 badge">卷舌</badge>
-				</p-button>
-				<p-button class="one 声母" raised @click="选声母">
-					<span class="sign">z</span></p-button>
-				<p-button class="one 声母" raised @click="选声母">
-					<span class="sign">c</span></p-button>
-				<p-button class="one 声母" raised @click="选声母">
-					<span class="sign">s</span></p-button>
-			</div>
-			<div class="韵母 group">
-				<p-button class="one 韵母 鼻音 前鼻音" raised @click="选韵母">
-					<span class="sign"><span class="标声调的字母">a</span>n</span>
-				</p-button>
-				<p-button class="one 韵母 鼻音 前鼻音" raised @click="选韵母">
-					<span class="sign"><span class="标声调的字母">e</span>n</span>
-				</p-button>
-				<p-button class="one 韵母 鼻音 前鼻音" raised @click="选韵母">
-					<span class="sign"><span class="标声调的字母">i</span>n</span>
-				</p-button>
-				<p-button class="one 韵母 鼻音 前鼻音" raised @click="选韵母">
-					<span class="sign"><span class="标声调的字母">u</span>n</span>
-				</p-button>
-				<p-button class="one 韵母 鼻音 前鼻音" raised @click="选韵母">
-					<span class="sign"><span class="标声调的字母">ü</span>n</span>
-				</p-button>
-			</div>
-		</div>
-		<div class="row">
-			<div class="声母 group">
-				<p-button class="one 声母" raised @click="选声母"><span class="sign">y</span></p-button>
-				<p-button class="one 声母" raised @click="选声母"><span class="sign">w</span></p-button>
-			</div>
-			<div class="声母 group">
-				<p-button class="one 声母 非正规" raised @click="选声母" title="ng（非正规声母）"><span class="sign">ng</span>
-				</p-button>
-			</div>
-			<div class="声调 group">
-				<p-button title="阴平/第一声" class="one 声调" raised @click="选声调">
-					<span class="sign">ˉ</span></p-button>
-				<p-button title="阳平/第二声" class="one 声调" raised @click="选声调">
-					<span class="sign">ˊ</span></p-button>
-				<p-button title="上（shǎng）声/第三声" class="one 声调" raised @click="选声调">
-					<span class="sign">ˇ</span></p-button>
-				<p-button title="去声/第四声" class="one 声调" raised @click="选声调">
-					<span class="sign">ˋ</span></p-button>
-				<p-button title="轻声" class="one 声调" raised @click="选声调">
-					<span class="sign">·</span></p-button>
-			</div>
-			<div class="功能 group">
-				<p-button class="one 功能" raised @click="clear">清空</p-button>
-			</div>
-			<div class="韵母 group">
-				<p-button class="one 韵母 非正规" raised @click="选韵母" title="ê（非正规韵母）"><span class="sign">ê</span>
-				</p-button>
-			</div>
-			<div class="韵母 group">
-				<p-button class="one 韵母 鼻音 后鼻音" raised @click="选韵母">
-					<span class="sign"><span class="标声调的字母">a</span>ng</span></p-button>
-				<p-button class="one 韵母 鼻音 后鼻音" raised @click="选韵母">
-					<span class="sign"><span class="标声调的字母">e</span>ng</span></p-button>
-				<p-button class="one 韵母 鼻音 后鼻音" raised @click="选韵母">
-					<span class="sign"><span class="标声调的字母">i</span>ng</span></p-button>
-				<p-button class="one 韵母 鼻音 后鼻音" raised @click="选韵母">
-					<span class="sign"><span class="标声调的字母">o</span>ng</span></p-button>
-			</div>
-		</div>
-	</section>
 </main>
 
-<aside class="right-sidebar">
+<aside class="right sidebar">
 	<article class="website info">
-		<div class="qr-code">
-			<img src="../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
-			<span>赞助一下</span>
-		</div>
-		<div>
-			<p>&copy; 2025 工具兽版权所有. All rights reserved.</p>
-			<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
-		</div>
+		<section class="sponsorship area">
+			<img class="qr-code" src="../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+			<p class="slogan">赞助一下</p>
+		</section>
+		<section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
+		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+		</section>
 	</article>
 </aside>
 
 <div class="js container">
 	<script src="../lib/vue/3.5.18/vue.global.js"></script>
-	<script src="../lib/primevue/4.3.7/primevue.min.js"></script>
-	<script src="../lib/primevue/themes/aura/1.2.3/aura.js"></script>
+	<script src="../lib/element-plus/2.10.7/index.full.js"></script>
 	<script src="../lib/jquery-3.4.1.min.js"></script>
 	<script src="../lib/toastr.min.js"></script>
 	<script src="../resources/biz-util.js?v=250801"></script>
@@ -747,30 +766,30 @@
 				选声调,
 				clear
 			};
-		},
-		data() {
-			return {
-				descriptionVisible: !localStorage.getItem('description-hidden-' + window.location.pathname)
-			};
-		},
-		methods: {
-			toggleDescription() {
-				this.descriptionVisible = !this.descriptionVisible;
-				const storageKey = 'description-hidden-' + window.location.pathname;
-				if (this.descriptionVisible) {
-					localStorage.removeItem(storageKey);
-				} else {
-					localStorage.setItem(storageKey, 'true');
-				}
-			}
-		},
-		components: {
-			'p-button': PrimeVue.Button,
-			'badge': PrimeVue.Badge
 		}
 	})
-	.use(PrimeVue.Config, {theme: {preset: PrimeUIX.Themes.Aura}})
-	.mount('main');
+	.use(ElementPlus)
+	.mount('main>article');
+
+	const help = createApp({
+		data() {
+			return {
+				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname)
+			};
+		},
+		watch: {
+			introVisible(newValue) {
+				const storageKey = 'intro-hidden-' + window.location.pathname;
+				if (!newValue) {
+					localStorage.setItem(storageKey, 'true');
+				} else {
+					localStorage.removeItem(storageKey);
+				}
+			}
+		}
+	})
+	.use(ElementPlus)
+	.mount('.page-lv.help.area');
 </script>
 
 <div>
