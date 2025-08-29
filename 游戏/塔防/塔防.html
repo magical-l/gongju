@@ -4,10 +4,10 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>塔防游戏 | 工具兽</title>
-	<link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
-	<link href="../resources/el-plus.css" rel="stylesheet">
-	<link href="../resources/common.css" rel="stylesheet">
-	<link href="../resources/layout.css" rel="stylesheet">
+	<link href="../../lib/element-plus/2.10.7/index.css" rel="stylesheet">
+	<link href="../../resources/el-plus.css" rel="stylesheet">
+	<link href="../../resources/common.css" rel="stylesheet">
+	<link href="../../resources/layout.css" rel="stylesheet">
 	<style>
 		.game-wrapper {
 			margin-top: 20px;
@@ -130,52 +130,48 @@
 			pointer-events: none; /* So it doesn't interfere with clicks */
 		}
 
-		/* New styles for tower selection */
-		.tower-selection .el-card__body {
-			padding: 10px;
+		.placement-popup {
+			position: absolute;
+			display: flex;
+			gap: 8px;
+			background: rgba(255, 255, 255, 0.9);
+			border-radius: 8px;
+			padding: 8px;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+			z-index: 20;
+			/* To center it on the cursor */
+			transform: translate(-50%, -50%);
+			pointer-events: auto;
 		}
 
-		.tower-type {
+		.popup-tower-type {
 			display: flex;
+			flex-direction: column;
 			align-items: center;
 			cursor: pointer;
-			padding: 8px;
-			border-radius: 4px;
-			transition: background-color 0.2s;
-			border: 2px solid transparent;
 		}
 
-		.tower-type.selected {
-			border-color: #409EFF;
-			background-color: #ecf5ff;
-		}
-
-		.tower-type:hover {
-			background-color: #f5f7fa;
-		}
-
-		.tower-icon {
-			width: 30px;
-			height: 30px;
+		.popup-tower-icon {
+			width: 36px;
+			height: 36px;
 			border-radius: 50%;
 			display: flex;
 			justify-content: center;
 			align-items: center;
 			color: white;
 			font-weight: bold;
-			margin-right: 10px;
+			border: 2px solid white;
+			transition: transform 0.2s;
 		}
 
-		.tower-details {
-			font-size: 0.9rem;
+		.popup-tower-type:hover .popup-tower-icon {
+			transform: scale(1.1);
 		}
 
-		.tower-details .name {
+		.popup-tower-cost {
+			font-size: 0.8rem;
 			font-weight: bold;
-		}
-
-		.tower-details .cost {
-			color: #E6A23C;
+			margin-top: 4px;
 		}
 	</style>
 </head>
@@ -185,7 +181,7 @@
 		<header class="toolbar , flex near-center">
 			<section class="controller list area">
 				<el-button-group>
-					<el-button @click="togglePause" :disabled="!gameStarted || gameOver || gameWon" type="primary">
+					<el-button @click="togglePause" :disabled="gameOver || gameWon" type="primary">
 						{{ pauseButtonText }}
 					</el-button>
 					<el-button @click="restartGame" :disabled="!currentLevelId">
@@ -211,8 +207,10 @@
 				<!-- Grid for visuals and placement -->
 				<div v-for="(cell, index) in gridCells" :key="index"
 					 :class="['cell', {'path-cell': cell.isPath}]"></div>
+
 				<!-- Range Indicator -->
-				<div v-if="selectedTower" class="range-indicator" :style="rangeIndicatorStyle"></div>
+				<div v-if="rangeIndicatorStyle.display === 'block'" class="range-indicator" :style="rangeIndicatorStyle"></div>
+
 				<!-- Carrot -->
 				<div v-if="endPoint" class="carrot"
 					 :style="{ left: `${endPoint.x - 15}px`, top: `${endPoint.y - 15}px` }">🥕
@@ -232,6 +230,18 @@
 				<!-- Bullets -->
 				<div v-for="bullet in bullets" :key="'bullet-'+bullet.id" class="bullet"
 					 :style="{ left: `${bullet.x - 4}px`, top: `${bullet.y - 4}px` }"></div>
+
+				<!-- Tower Placement Popup -->
+				<div v-if="placementPopup.visible" class="placement-popup"
+					 :style="{ left: `${placementPopup.x}px`, top: `${placementPopup.y}px` }"
+					 @mouseleave="hideRangePreview">
+					<div v-for="(towerType, id) in towerTypes" :key="id" class="popup-tower-type"
+						 @click.stop="placeTowerFromPopup(id)"
+						 @mouseover="showRangePreview(towerType)">
+						<div class="popup-tower-icon" :style="{ backgroundColor: towerType.color }">{{ towerType.icon }}</div>
+						<div class="popup-tower-cost">💰{{ towerType.cost }}</div>
+					</div>
+				</div>
 			</div>
 		</article>
 
@@ -240,18 +250,6 @@
 				<div class="stat-item"><span>❤️ 生命:</span> <span class="stat-value">{{ health }}</span></div>
 				<div class="stat-item"><span>💰 金币:</span> <span class="stat-value">{{ coins }}</span></div>
 				<div class="stat-item"><span>🌊 波数:</span> <span class="stat-value">{{ waveDisplay }}</span></div>
-			</el-card>
-			<el-card header="建造炮塔" class="tower-selection" style="margin-top: 20px;">
-				<div v-for="towerType in towerTypes" :key="towerType.id"
-					 class="tower-type"
-					 :class="{ 'selected': selectedTowerTypeId === towerType.id }"
-					 @click="selectTowerType(towerType.id)">
-					<div class="tower-icon" :style="{ backgroundColor: towerType.color }">{{ towerType.icon }}</div>
-					<div class="tower-details">
-						<div class="name">{{ towerType.name }}</div>
-						<div class="cost">💰 {{ towerType.cost }}</div>
-					</div>
-				</div>
 			</el-card>
 		</aside>
 
@@ -266,8 +264,8 @@
 </main>
 
 <div class="js container">
-	<script src="../lib/vue/3.5.18/vue.global.js"></script>
-	<script src="../lib/element-plus/2.10.7/index.full.js"></script>
+	<script src="../../lib/vue/3.5.18/vue.global.js"></script>
+	<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
 </div>
 <script>
 	// --- Entity Classes (defined outside Vue for performance) ---
@@ -383,9 +381,15 @@
 				gameWon: false,
 				isPaused: true,
 
-				// Tower Selection
+				// Tower Selection & Placement
 				selectedTowerId: null, // for inspecting placed towers
-				selectedTowerTypeId: 'basic', // for building new towers
+				hoveredTowerTypeForRangePreview: null,
+				placementPopup: {
+					visible: false,
+					x: 0,
+					y: 0,
+					cell: null
+				},
 
 				// Entities
 				enemies: [],
@@ -394,6 +398,8 @@
 
 				// Spawning
 				spawningQueue: [],
+				timeToNextWave: 0,
+				waveDelay: 3000, // ms between waves
 
 				// Game Loop
 				gameLoopId: null,
@@ -432,14 +438,25 @@
 				return this.towers.find(t => t.id === this.selectedTowerId);
 			},
 			rangeIndicatorStyle() {
-				if (!this.selectedTower) return {display: 'none'};
-				const tower = this.selectedTower;
+				let tower, x, y;
+				if (this.selectedTower) {
+					tower = this.selectedTower;
+					x = tower.x;
+					y = tower.y;
+				} else if (this.hoveredTowerTypeForRangePreview && this.placementPopup.cell) {
+					tower = this.hoveredTowerTypeForRangePreview;
+					x = this.placementPopup.cell.x;
+					y = this.placementPopup.cell.y;
+				} else {
+					return {display: 'none'};
+				}
+
 				return {
 					display: 'block',
 					width: `${tower.range * 2}px`,
 					height: `${tower.range * 2}px`,
-					left: `${tower.x - tower.range}px`,
-					top: `${tower.y - tower.range}px`,
+					left: `${x - tower.range}px`,
+					top: `${y - tower.range}px`,
 				};
 			},
 			pauseButtonText() {
@@ -492,8 +509,15 @@
 				this.bullets = [];
 				this.selectedTowerId = null;
 				this.spawningQueue = [];
+				this.timeToNextWave = 0;
 
 				this.initGrid();
+			},
+			hideRangePreview() {
+				this.hoveredTowerTypeForRangePreview = null;
+			},
+			showRangePreview(towerType) {
+				this.hoveredTowerTypeForRangePreview = towerType;
 			},
 			initGrid() {
 				const cells = [];
@@ -600,9 +624,9 @@
 				this.spawningQueue.sort((a, b) => a.delay - b.delay);
 			},
 			handleSpawning(deltaTime) {
+				// 1. If there are enemies to spawn in the current wave, spawn them
 				if (this.spawningQueue.length > 0) {
 					this.spawningQueue.forEach(spawn => spawn.delay -= deltaTime);
-
 					while (this.spawningQueue.length > 0 && this.spawningQueue[0].delay <= 0) {
 						const spawn = this.spawningQueue.shift();
 						const enemyConfig = this.enemyTypes[spawn.type];
@@ -610,63 +634,75 @@
 							this.enemies.push(new Enemy(enemyConfig, this.pathPoints));
 						}
 					}
-				} else if (this.gameStarted && this.enemies.length === 0) {
-					// Wave is over, advance to next
-					this.wave++;
-					if (this.wave >= this.currentLevel.waves.length) {
-						this.gameWon = true;
-					} else {
-						this.isPaused = true; // Pause before next wave
+				}
+				// 2. If spawn queue is empty and all enemies are gone, start countdown for the next wave
+				else if (this.gameStarted && this.enemies.length === 0) {
+					this.timeToNextWave += deltaTime;
+					if (this.timeToNextWave >= this.waveDelay) {
+						this.timeToNextWave = 0;
+						this.wave++;
+						if (this.wave >= this.currentLevel.waves.length) {
+							this.gameWon = true;
+						} else {
+							this.prepareWave();
+						}
 					}
 				}
 			},
 			togglePause() {
 				if (this.gameOver || this.gameWon) return;
 
-				if (!this.gameStarted) {
-					this.gameStarted = true;
-					this.isPaused = false;
-					this.prepareWave();
+				this.isPaused = !this.isPaused;
+
+				if (!this.isPaused) {
+					// If this is the very first time, start the game
+					if (!this.gameStarted) {
+						this.gameStarted = true;
+						this.prepareWave();
+					}
+					// Always start the loop when un-pausing
 					this.lastFrameTime = performance.now();
 					this.gameLoopId = requestAnimationFrame(this.gameLoop);
-				} else {
-					this.isPaused = !this.isPaused;
-					if (!this.isPaused) {
-						if (this.spawningQueue.length === 0 && this.enemies.length === 0) {
-							this.prepareWave(); // Prepare for the next wave
-						}
-						this.lastFrameTime = performance.now();
-						this.gameLoopId = requestAnimationFrame(this.gameLoop);
-					}
 				}
 			},
-			selectTowerType(typeId) {
-				this.selectedTowerTypeId = typeId;
-			},
-			placeTower(cell) {
-				const towerConfig = this.towerTypes[this.selectedTowerTypeId];
+			placeTowerFromPopup(towerTypeId) {
+				const towerConfig = this.towerTypes[towerTypeId];
+				const cell = this.placementPopup.cell;
+
 				if (!cell || cell.isPath || cell.hasTower || !towerConfig || this.coins < towerConfig.cost) {
 					return;
 				}
 				this.towers.push(new Tower(towerConfig, cell.x, cell.y));
 				cell.hasTower = true;
 				this.coins -= towerConfig.cost;
+				this.placementPopup.visible = false;
 			},
 			handleGameClick(e) {
-				// If a tower is selected, clicking the background deselects it.
+				// If a tower is selected, clicking anywhere deselects it.
 				if (this.selectedTowerId) {
 					this.selectedTowerId = null;
+					this.placementPopup.visible = false; // Also hide popup
 					return;
 				}
 
-				// Otherwise, try to place a tower.
 				const rect = e.currentTarget.getBoundingClientRect();
-				const x = e.clientX - rect.left;
-				const y = e.clientY - rect.top;
-				const col = Math.floor(x / this.gridSize.cellSize);
-				const row = Math.floor(y / this.gridSize.cellSize);
+				const clickX = e.clientX - rect.left;
+				const clickY = e.clientY - rect.top;
+				const col = Math.floor(clickX / this.gridSize.cellSize);
+				const row = Math.floor(clickY / this.gridSize.cellSize);
 				const cell = this.gridCells[row * this.gridSize.cols + col];
-				this.placeTower(cell);
+
+				// If clicked on an invalid cell, hide the popup
+				if (!cell || cell.isPath || cell.hasTower) {
+					this.placementPopup.visible = false;
+					return;
+				}
+
+				// Show placement popup at the location of the valid cell
+				this.placementPopup.cell = cell;
+				this.placementPopup.x = cell.x;
+				this.placementPopup.y = cell.y;
+				this.placementPopup.visible = true;
 			},
 			selectTower(tower) {
 				this.selectedTowerId = this.selectedTowerId === tower.id ? null : tower.id;

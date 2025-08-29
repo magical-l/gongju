@@ -1,4 +1,3 @@
-
 [
   {
     "id": "level-1",
@@ -14,6 +13,43 @@
     "waves": [
       { "interval": 1500, "enemies": [{ "type": "runner", "count": 8 }] },
       { "interval": 1200, "enemies": [{ "type": "runner", "count": 10 }, { "type": "brute", "count": 2, "delay": 3000 }] }
+    ]
+  },
+  {
+    "id": "level-2",
+    "name": "第二关：曲折小路",
+    "initialHealth": 10,
+    "initialCoins": 120,
+    "path": [
+      {"x": 20, "y": 60}, {"x": 500, "y": 60},
+      {"x": 500, "y": 220}, {"x": 100, "y": 220},
+      {"x": 100, "y": 340}, {"x": 580, "y": 340}
+    ],
+    "waves": [
+      { "interval": 1200, "enemies": [{ "type": "runner", "count": 10 }, { "type": "brute", "count": 3, "delay": 2000 }] },
+      { "interval": 1000, "enemies": [{ "type": "runner", "count": 15 }, { "type": "brute", "count": 5, "delay": 2500 }] },
+      { "interval": 800, "enemies": [{ "type": "brute", "count": 10 }] }
+    ]
+  },
+  {
+    "id": "level-3",
+    "name": "第三关：钢铁洪流",
+    "initialHealth": 5,
+    "initialCoins": 80,
+    "path": [
+      {"x": 20, "y": 180}, {"x": 100, "y": 180},
+      {"x": 100, "y": 60}, {"x": 180, "y": 60},
+      {"x": 180, "y": 180}, {"x": 260, "y": 180},
+      {"x": 260, "y": 60}, {"x": 340, "y": 60},
+      {"x": 340, "y": 180}, {"x": 420, "y": 180},
+      {"x": 420, "y": 60}, {"x": 500, "y": 60},
+      {"x": 500, "y": 180}, {"x": 580, "y": 180}
+    ],
+    "waves": [
+      { "interval": 1000, "enemies": [{ "type": "runner", "count": 20 }] },
+      { "interval": 800, "enemies": [{ "type": "runner", "count": 15 }, { "type": "brute", "count": 8, "delay": 1000 }] },
+      { "interval": 700, "enemies": [{ "type": "runner", "count": 10 }, { "type": "brute", "count": 15, "delay": 1000 }] },
+      { "interval": 500, "enemies": [{ "type": "brute", "count": 20 }] }
     ]
   }
 ]
