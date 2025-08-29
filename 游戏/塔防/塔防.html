@@ -64,9 +64,14 @@
 			background-color: #e0e0e0;
 		}
 
-		.carrot, .enemy, .tower, .bullet {
+		.carrot, .enemy, .tower, .bullet, .prop {
 			position: absolute;
 			transition: left 0.1s linear, top 0.1s linear;
+		}
+
+		.prop {
+			cursor: crosshair;
+			z-index: 2;
 		}
 
 		.carrot {
@@ -83,14 +88,19 @@
 			height: 24px;
 			border-radius: 50%;
 			z-index: 5;
+			cursor: crosshair;
+		}
+
+		.locked-on {
+			box-shadow: 0 0 0 3px rgba(255, 50, 50, 0.7);
 		}
 
 		.health-bar {
 			position: absolute;
-			width: 24px;
-			height: 4px;
+			width: 100%;
+			height: 5px;
 			background: #555;
-			top: -8px;
+			top: -10px;
 			left: 0;
 			border-radius: 2px;
 			overflow: hidden;
@@ -230,9 +240,21 @@
 				<div v-if="endPoint" class="carrot"
 					 :style="{ left: `${endPoint.x - 15}px`, top: `${endPoint.y - 15}px` }">🥕
 				</div>
+				<!-- Props -->
+				<div v-for="prop in props" :key="'prop-'+prop.id" class="prop tower"
+					 :class="{'locked-on': prop.id === lockedTargetId}"
+					 :style="{ left: `${prop.x - 15}px`, top: `${prop.y - 15}px`, backgroundColor: prop.color, borderColor: prop.color }"
+					 @click.stop="toggleLockOnTarget(prop)">
+					{{ prop.icon }}
+					<div class="health-bar">
+						<div class="health-fill" :style="{width: (prop.health/prop.maxHealth)*100 + '%'}"></div>
+					</div>
+				</div>
 				<!-- Enemies -->
 				<div v-for="enemy in enemies" :key="'enemy-'+enemy.id" class="enemy"
-					 :style="{ left: `${enemy.x - 12}px`, top: `${enemy.y - 12}px`, backgroundColor: enemy.color }">
+					 :class="{'locked-on': enemy.id === lockedTargetId}"
+					 :style="{ left: `${enemy.x - 12}px`, top: `${enemy.y - 12}px`, backgroundColor: enemy.color }"
+					 @click.stop="toggleLockOnTarget(enemy)">
 					<div class="health-bar">
 						<div class="health-fill" :style="{width: (enemy.health/enemy.maxHealth)*100 + '%'}"></div>
 					</div>
@@ -285,8 +307,16 @@
 </div>
 <script>
 	// --- Entity Classes (defined outside Vue for performance) ---
-	class Enemy {
+	class Destructible {
+		takeDamage(damage) {
+			this.health -= damage;
+			return this.health <= 0;
+		}
+	}
+
+	class Enemy extends Destructible {
 		constructor(config, path) {
+			super();
 			this.id = Date.now() + Math.random();
 			this.path = path;
 			this.pathIndex = 0;
@@ -321,10 +351,21 @@
 			}
 			return {reachedEnd: false};
 		}
+	}
 
-		takeDamage(damage) {
-			this.health -= damage;
-			return this.health <= 0;
+	class Prop extends Destructible {
+		constructor(config, cellSize) {
+			super();
+			this.id = config.id;
+			this.gridX = config.x;
+			this.gridY = config.y;
+			this.x = this.gridX * cellSize + cellSize / 2;
+			this.y = this.gridY * cellSize + cellSize / 2;
+			this.health = config.health;
+			this.maxHealth = config.health;
+			this.reward = config.reward;
+			this.color = config.color;
+			this.icon = config.icon;
 		}
 	}
 
@@ -343,10 +384,10 @@
 			this.fireCountdown = 0;
 		}
 
-		update(deltaTime, enemies, bullets) {
+		update(deltaTime, enemies, props, bullets, lockedTargetId) {
 			this.fireCountdown -= deltaTime;
 			if (this.fireCountdown <= 0) {
-				const target = this.findTarget(enemies);
+				const target = this.findTarget(enemies, props, lockedTargetId);
 				if (target) {
 					bullets.push({
 						id: Date.now() + Math.random(),
@@ -361,7 +402,19 @@
 			}
 		}
 
-		findTarget(enemies) {
+		findTarget(enemies, props, lockedTargetId) {
+			// 1. Prioritize locked target
+			if (lockedTargetId) {
+				const lockedTarget = [...enemies, ...props].find(t => t.id === lockedTargetId);
+				if (lockedTarget) {
+					const distance = Math.sqrt((lockedTarget.x - this.x) ** 2 + (lockedTarget.y - this.y) ** 2);
+					if (distance < this.range) {
+						return lockedTarget; // Return locked target if it's in range
+					}
+				}
+			}
+
+			// 2. Default behavior: find closest enemy (never auto-target props)
 			let closestEnemy = null;
 			let minDistance = this.range;
 			for (const enemy of enemies) {
@@ -397,6 +450,7 @@
 				gameOver: false,
 				gameWon: false,
 				isPaused: true,
+				lockedTargetId: null,
 
 				// Tower Selection & Placement
 				selectedTowerId: null, // for inspecting placed towers
@@ -412,6 +466,7 @@
 				enemies: [],
 				towers: [],
 				bullets: [],
+				props: [],
 
 				// Spawning
 				spawningQueue: [],
@@ -524,7 +579,9 @@
 				this.enemies = [];
 				this.towers = [];
 				this.bullets = [];
+				this.props = [];
 				this.selectedTowerId = null;
+				this.lockedTargetId = null;
 				this.spawningQueue = [];
 				this.timeToNextWave = 0;
 
@@ -539,6 +596,9 @@
 			initGrid() {
 				const cells = [];
 				const pathWidth = this.gridSize.cellSize / 2;
+
+				// Initialize props for the current level
+				this.props = (this.currentLevel.props || []).map(p => new Prop(p, this.gridSize.cellSize));
 
 				const isPointNearLine = (px, py, x1, y1, x2, y2, maxDistance) => {
 					const dx = x2 - x1, dy = y2 - y1;
@@ -561,7 +621,8 @@
 								break;
 							}
 						}
-						cells.push({r, c, x, y, isPath, hasTower: false});
+						const propOnCell = this.props.find(p => p.gridX === c && p.gridY === r);
+						cells.push({r, c, x, y, isPath, hasTower: !!propOnCell});
 					}
 				}
 				this.gridCells = cells;
@@ -585,7 +646,7 @@
 			},
 			update(deltaTime) {
 				// Update Towers
-				this.towers.forEach(t => t.update(deltaTime, this.enemies, this.bullets));
+				this.towers.forEach(t => t.update(deltaTime, this.enemies, this.props, this.bullets, this.lockedTargetId));
 
 				// Update Bullets
 				for (let i = this.bullets.length - 1; i >= 0; i--) {
@@ -601,8 +662,20 @@
 						const isDead = bullet.target.takeDamage(bullet.damage);
 						if (isDead) {
 							this.coins += bullet.target.reward;
-							const index = this.enemies.findIndex(e => e.id === bullet.target.id);
-							if (index > -1) this.enemies.splice(index, 1);
+							// Remove from either enemies or props array
+							let index = this.enemies.findIndex(e => e.id === bullet.target.id);
+							if (index > -1) {
+								this.enemies.splice(index, 1);
+							} else {
+								index = this.props.findIndex(p => p.id === bullet.target.id);
+								if (index > -1) {
+									const prop = this.props[index];
+									// Make the cell buildable again
+									const cell = this.gridCells[prop.gridY * this.gridSize.cols + prop.gridX];
+									if(cell) cell.hasTower = false;
+									this.props.splice(index, 1);
+								}
+							}
 						}
 						this.bullets.splice(i, 1);
 					} else {
@@ -727,14 +800,27 @@
 			},
 			selectTower(tower) {
 				this.placementPopup.visible = false; // Hide placement popup when selecting a tower
+				this.lockedTargetId = null; // Deselect any locked target
 				this.selectedTowerId = this.selectedTowerId === tower.id ? null : tower.id;
+			},
+			toggleLockOnTarget(target) {
+				if (this.isPaused) return;
+				this.selectedTowerId = null; // Deselect any selected tower
+				this.lockedTargetId = this.lockedTargetId === target.id ? null : target.id;
+			},
+			handleVisibilityChange() {
+				if (document.hidden && !this.isPaused && this.gameStarted) {
+					this.togglePause();
+				}
 			}
 		},
 		mounted() {
 			this.loadGameData();
+			document.addEventListener('visibilitychange', this.handleVisibilityChange);
 		},
 		beforeUnmount() {
 			if (this.gameLoopId) cancelAnimationFrame(this.gameLoopId);
+			document.removeEventListener('visibilitychange', this.handleVisibilityChange);
 		}
 	})
 	.use(ElementPlus)

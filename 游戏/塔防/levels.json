@@ -25,6 +25,10 @@
       {"x": 500, "y": 220}, {"x": 100, "y": 220},
       {"x": 100, "y": 340}, {"x": 580, "y": 340}
     ],
+    "props": [
+      { "id": "rock1", "x": 5, "y": 3, "health": 20, "reward": 50, "color": "#a9a9a9", "icon": "R" },
+      { "id": "rock2", "x": 6, "y": 3, "health": 20, "reward": 50, "color": "#a9a9a9", "icon": "R" }
+    ],
     "waves": [
       { "interval": 1200, "enemies": [{ "type": "runner", "count": 10 }, { "type": "brute", "count": 3, "delay": 2000 }] },
       { "interval": 1000, "enemies": [{ "type": "runner", "count": 15 }, { "type": "brute", "count": 5, "delay": 2500 }] },
@@ -44,6 +48,12 @@
       {"x": 340, "y": 180}, {"x": 420, "y": 180},
       {"x": 420, "y": 60}, {"x": 500, "y": 60},
       {"x": 500, "y": 180}, {"x": 580, "y": 180}
+    ],
+    "props": [
+      { "id": "rock3", "x": 0, "y": 0, "health": 50, "reward": 100, "color": "#808080", "icon": "R" },
+      { "id": "rock4", "x": 14, "y": 0, "health": 50, "reward": 100, "color": "#808080", "icon": "R" },
+      { "id": "rock5", "x": 0, "y": 9, "health": 50, "reward": 100, "color": "#808080", "icon": "R" },
+      { "id": "rock6", "x": 14, "y": 9, "health": 50, "reward": 100, "color": "#808080", "icon": "R" }
     ],
     "waves": [
       { "interval": 1000, "enemies": [{ "type": "runner", "count": 20 }] },
