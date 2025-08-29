@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>塔防游戏 | 工具兽</title>
+	<link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
+	<link href="../resources/el-plus.css" rel="stylesheet">
+	<link href="../resources/common.css" rel="stylesheet">
+	<link href="../resources/layout.css" rel="stylesheet">
+	<style>
+		.game-wrapper {
+			margin-top: 20px;
+			gap: 20px;
+			align-items: start;
+			--反叵字形-right-sidebar-max-width: 240px;
+		}
+
+		.toolbar .el-form-item {
+			margin-bottom: 0;
+		}
+
+		.stat-item {
+			font-size: 1.1rem;
+			margin-bottom: 12px;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.stat-value {
+			font-weight: bold;
+			color: #409EFF;
+		}
+
+		.el-card__header {
+			font-weight: bold;
+		}
+
+		.game-container {
+			position: relative;
+			width: 600px;
+			height: 400px;
+			background-color: #f0f2f5;
+			border-radius: 10px;
+			box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+			cursor: pointer;
+			display: grid;
+			grid-template-columns: repeat(15, 1fr);
+			grid-template-rows: repeat(10, 1fr);
+		}
+
+		.cell {
+			border: 1px solid rgba(0, 0, 0, 0.05);
+		}
+
+		.path-cell {
+			background-color: #e0e0e0;
+		}
+
+		.carrot, .enemy, .tower, .bullet {
+			position: absolute;
+			transition: left 0.1s linear, top 0.1s linear;
+		}
+
+		.carrot {
+			font-size: 30px;
+			width: 30px;
+			height: 30px;
+			text-align: center;
+			line-height: 30px;
+			z-index: 10;
+		}
+
+		.enemy {
+			width: 24px;
+			height: 24px;
+			border-radius: 50%;
+			z-index: 5;
+		}
+
+		.health-bar {
+			position: absolute;
+			width: 24px;
+			height: 4px;
+			background: #555;
+			top: -8px;
+			left: 0;
+			border-radius: 2px;
+			overflow: hidden;
+		}
+
+		.health-fill {
+			height: 100%;
+			background: #67C23A;
+			width: 100%;
+			transition: width 0.2s;
+		}
+
+		.tower {
+			width: 30px;
+			height: 30px;
+			border-radius: 50%;
+			z-index: 4;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			font-size: 16px;
+			color: white;
+			font-weight: bold;
+			border-width: 2px;
+			border-style: solid;
+		}
+
+		.bullet {
+			width: 8px;
+			height: 8px;
+			background: #f1c40f;
+			border-radius: 50%;
+			z-index: 6;
+			box-shadow: 0 0 5px #f1c40f;
+		}
+
+		.range-indicator {
+			position: absolute;
+			background: rgba(44, 62, 80, 0.2);
+			border: 2px dashed rgba(44, 62, 80, 0.5);
+			border-radius: 50%;
+			z-index: 3; /* Below towers */
+			pointer-events: none; /* So it doesn't interfere with clicks */
+		}
+
+		/* New styles for tower selection */
+		.tower-selection .el-card__body {
+			padding: 10px;
+		}
+
+		.tower-type {
+			display: flex;
+			align-items: center;
+			cursor: pointer;
+			padding: 8px;
+			border-radius: 4px;
+			transition: background-color 0.2s;
+			border: 2px solid transparent;
+		}
+
+		.tower-type.selected {
+			border-color: #409EFF;
+			background-color: #ecf5ff;
+		}
+
+		.tower-type:hover {
+			background-color: #f5f7fa;
+		}
+
+		.tower-icon {
+			width: 30px;
+			height: 30px;
+			border-radius: 50%;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			color: white;
+			font-weight: bold;
+			margin-right: 10px;
+		}
+
+		.tower-details {
+			font-size: 0.9rem;
+		}
+
+		.tower-details .name {
+			font-weight: bold;
+		}
+
+		.tower-details .cost {
+			color: #E6A23C;
+		}
+	</style>
+</head>
+<body class="grid 反叵字形">
+<main>
+	<article class="game-wrapper , 反叵字形 grid" v-cloak>
+		<header class="toolbar , flex near-center">
+			<section class="controller list area">
+				<el-button-group>
+					<el-button @click="togglePause" :disabled="!gameStarted || gameOver || gameWon" type="primary">
+						{{ pauseButtonText }}
+					</el-button>
+					<el-button @click="restartGame" :disabled="!currentLevelId">
+						重新开始
+					</el-button>
+				</el-button-group>
+			</section>
+			<section class="tool list area">
+				<el-form inline>
+					<el-form-item label="选择关卡">
+						<el-select v-model="currentLevelId" placeholder="请选择" @change="initGame"
+								   :disabled="gameStarted && !isPaused">
+							<el-option v-for="level in levels" :key="level.id" :label="level.name"
+									   :value="level.id"></el-option>
+						</el-select>
+					</el-form-item>
+				</el-form>
+			</section>
+		</header>
+
+		<article class="main map area , one-row item , flex items-near-center-x" style="grid-row: 2">
+			<div class="game-container" @click="handleGameClick">
+				<!-- Grid for visuals and placement -->
+				<div v-for="(cell, index) in gridCells" :key="index"
+					 :class="['cell', {'path-cell': cell.isPath}]"></div>
+				<!-- Range Indicator -->
+				<div v-if="selectedTower" class="range-indicator" :style="rangeIndicatorStyle"></div>
+				<!-- Carrot -->
+				<div v-if="endPoint" class="carrot"
+					 :style="{ left: `${endPoint.x - 15}px`, top: `${endPoint.y - 15}px` }">🥕
+				</div>
+				<!-- Enemies -->
+				<div v-for="enemy in enemies" :key="'enemy-'+enemy.id" class="enemy"
+					 :style="{ left: `${enemy.x - 12}px`, top: `${enemy.y - 12}px`, backgroundColor: enemy.color }">
+					<div class="health-bar">
+						<div class="health-fill" :style="{width: (enemy.health/enemy.maxHealth)*100 + '%'}"></div>
+					</div>
+				</div>
+				<!-- Towers -->
+				<div v-for="tower in towers" :key="'tower-'+tower.id" @click.stop="selectTower(tower)" class="tower"
+					 :style="{ left: `${tower.x - 15}px`, top: `${tower.y - 15}px`, backgroundColor: tower.color, borderColor: tower.color }">
+					{{ tower.icon }}
+				</div>
+				<!-- Bullets -->
+				<div v-for="bullet in bullets" :key="'bullet-'+bullet.id" class="bullet"
+					 :style="{ left: `${bullet.x - 4}px`, top: `${bullet.y - 4}px` }"></div>
+			</div>
+		</article>
+
+		<aside class="gaming-situation , right-sidebar">
+			<el-card header="战况" v-if="currentLevel">
+				<div class="stat-item"><span>❤️ 生命:</span> <span class="stat-value">{{ health }}</span></div>
+				<div class="stat-item"><span>💰 金币:</span> <span class="stat-value">{{ coins }}</span></div>
+				<div class="stat-item"><span>🌊 波数:</span> <span class="stat-value">{{ waveDisplay }}</span></div>
+			</el-card>
+			<el-card header="建造炮塔" class="tower-selection" style="margin-top: 20px;">
+				<div v-for="towerType in towerTypes" :key="towerType.id"
+					 class="tower-type"
+					 :class="{ 'selected': selectedTowerTypeId === towerType.id }"
+					 @click="selectTowerType(towerType.id)">
+					<div class="tower-icon" :style="{ backgroundColor: towerType.color }">{{ towerType.icon }}</div>
+					<div class="tower-details">
+						<div class="name">{{ towerType.name }}</div>
+						<div class="cost">💰 {{ towerType.cost }}</div>
+					</div>
+				</div>
+			</el-card>
+		</aside>
+
+		<el-dialog v-model="showGameOverDialog" :title="gameWon ? '恭喜通关! 🎉' : '游戏结束 😢'" width="30%" center
+							 :show-close="false" :close-on-click-modal="false" :close-on-press-escape="false">
+			<span>{{ gameWon ? '你成功保卫了萝卜！' : '萝卜被吃掉了，再试一次吧！' }}</span>
+			<template #footer>
+				<el-button type="primary" @click="restartGame">重新开始</el-button>
+			</template>
+		</el-dialog>
+	</article>
+</main>
+
+<div class="js container">
+	<script src="../lib/vue/3.5.18/vue.global.js"></script>
+	<script src="../lib/element-plus/2.10.7/index.full.js"></script>
+</div>
+<script>
+	// --- Entity Classes (defined outside Vue for performance) ---
+	class Enemy {
+		constructor(config, path) {
+			this.id = Date.now() + Math.random();
+			this.path = path;
+			this.pathIndex = 0;
+			this.x = this.path[0].x;
+			this.y = this.path[0].y;
+
+			this.speed = config.speed;
+			this.maxHealth = config.health;
+			this.health = config.health;
+			this.reward = config.reward;
+			this.color = config.color;
+		}
+
+		update(deltaTime) {
+			if (this.pathIndex >= this.path.length - 1) {
+				return {reachedEnd: true};
+			}
+
+			const target = this.path[this.pathIndex + 1];
+			const dx = target.x - this.x;
+			const dy = target.y - this.y;
+			const distance = Math.sqrt(dx * dx + dy * dy);
+			const moveDistance = this.speed * (deltaTime / 16);
+
+			if (distance < moveDistance) {
+				this.x = target.x;
+				this.y = target.y;
+				this.pathIndex++;
+			} else {
+				this.x += (dx / distance) * moveDistance;
+				this.y += (dy / distance) * moveDistance;
+			}
+			return {reachedEnd: false};
+		}
+
+		takeDamage(damage) {
+			this.health -= damage;
+			return this.health <= 0;
+		}
+	}
+
+	class Tower {
+		constructor(config, x, y) {
+			this.id = Date.now() + Math.random();
+			this.x = x;
+			this.y = y;
+
+			this.range = config.range;
+			this.damage = config.damage;
+			this.fireRate = config.fireRate;
+			this.color = config.color;
+			this.icon = config.icon;
+			this.fireCountdown = 0;
+		}
+
+		update(deltaTime, enemies, bullets) {
+			this.fireCountdown -= deltaTime;
+			if (this.fireCountdown <= 0) {
+				const target = this.findTarget(enemies);
+				if (target) {
+					bullets.push({
+						id: Date.now() + Math.random(),
+						x: this.x,
+						y: this.y,
+						target: target,
+						speed: 8,
+						damage: this.damage
+					});
+					this.fireCountdown = this.fireRate;
+				}
+			}
+		}
+
+		findTarget(enemies) {
+			let closestEnemy = null;
+			let minDistance = this.range;
+			for (const enemy of enemies) {
+				const distance = Math.sqrt((enemy.x - this.x) ** 2 + (enemy.y - this.y) ** 2);
+				if (distance < minDistance) {
+					minDistance = distance;
+					closestEnemy = enemy;
+				}
+			}
+			return closestEnemy;
+		}
+	}
+
+	const {createApp} = Vue;
+	const app = createApp({
+		data() {
+			return {
+				// Config Data
+				levels: [],
+				enemyTypes: {},
+				towerTypes: {},
+
+				// Grid
+				gridSize: {cols: 15, rows: 10, cellSize: 40},
+				gridCells: [],
+
+				// Game State
+				currentLevelId: null,
+				health: 0,
+				coins: 0,
+				wave: 0,
+				gameStarted: false,
+				gameOver: false,
+				gameWon: false,
+				isPaused: true,
+
+				// Tower Selection
+				selectedTowerId: null, // for inspecting placed towers
+				selectedTowerTypeId: 'basic', // for building new towers
+
+				// Entities
+				enemies: [],
+				towers: [],
+				bullets: [],
+
+				// Spawning
+				spawningQueue: [],
+
+				// Game Loop
+				gameLoopId: null,
+				lastFrameTime: 0
+			}
+		},
+		computed: {
+			currentLevel() {
+				if (!this.currentLevelId) return null;
+				return this.levels.find(l => l.id === this.currentLevelId);
+			},
+			pathPoints() {
+				return this.currentLevel ? this.currentLevel.path : [];
+			},
+			endPoint() {
+				return this.pathPoints.length > 0 ? this.pathPoints[this.pathPoints.length - 1] : null;
+			},
+			waveDisplay() {
+				if (!this.currentLevel) return '-';
+				if (this.wave >= this.currentLevel.waves.length) return `最终波`;
+				return `${this.wave + 1} / ${this.currentLevel.waves.length}`;
+			},
+			showGameOverDialog: {
+				get() {
+					return this.gameOver || this.gameWon;
+				},
+				set(value) {
+					if (!value) {
+						this.gameOver = false;
+						this.gameWon = false;
+					}
+				}
+			},
+			selectedTower() {
+				if (!this.selectedTowerId) return null;
+				return this.towers.find(t => t.id === this.selectedTowerId);
+			},
+			rangeIndicatorStyle() {
+				if (!this.selectedTower) return {display: 'none'};
+				const tower = this.selectedTower;
+				return {
+					display: 'block',
+					width: `${tower.range * 2}px`,
+					height: `${tower.range * 2}px`,
+					left: `${tower.x - tower.range}px`,
+					top: `${tower.y - tower.range}px`,
+				};
+			},
+			pauseButtonText() {
+				if (!this.isPaused) return '暂停';
+				if (!this.gameStarted) return '开始游戏';
+				return '继续';
+			}
+		},
+		methods: {
+			async loadGameData() {
+				try {
+					const [levelsRes, enemiesRes, towersRes] = await Promise.all([
+						fetch('levels.json'),
+						fetch('enemies.json'),
+						fetch('towers.json')
+					]);
+					this.levels = await levelsRes.json();
+					const enemyList = await enemiesRes.json();
+					const towerList = await towersRes.json();
+
+					// Convert lists to objects for easy lookup
+					this.enemyTypes = enemyList.reduce((obj, item) => ({...obj, [item.id]: item}), {});
+					this.towerTypes = towerList.reduce((obj, item) => ({...obj, [item.id]: item}), {});
+
+					if (this.levels.length > 0) {
+						this.currentLevelId = this.levels[0].id;
+						this.initGame(this.currentLevelId);
+					}
+				} catch (error) {
+					console.error("Failed to load game data:", error);
+					// Maybe show an error message to the user
+				}
+			},
+			initGame(levelId) {
+				if (this.gameLoopId) cancelAnimationFrame(this.gameLoopId);
+
+				this.currentLevelId = levelId;
+				const level = this.currentLevel;
+				if (!level) return;
+
+				this.health = level.initialHealth;
+				this.coins = level.initialCoins;
+				this.wave = 0;
+				this.gameStarted = false;
+				this.gameOver = false;
+				this.gameWon = false;
+				this.isPaused = true;
+				this.enemies = [];
+				this.towers = [];
+				this.bullets = [];
+				this.selectedTowerId = null;
+				this.spawningQueue = [];
+
+				this.initGrid();
+			},
+			initGrid() {
+				const cells = [];
+				const pathWidth = this.gridSize.cellSize / 2;
+
+				const isPointNearLine = (px, py, x1, y1, x2, y2, maxDistance) => {
+					const dx = x2 - x1, dy = y2 - y1;
+					const lenSq = dx * dx + dy * dy;
+					if (lenSq === 0) return Math.sqrt((px - x1) ** 2 + (py - y1) ** 2) <= maxDistance;
+					let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
+					t = Math.max(0, Math.min(1, t));
+					const projX = x1 + t * dx, projY = y1 + t * dy;
+					return Math.sqrt((px - projX) ** 2 + (py - projY) ** 2) <= maxDistance;
+				};
+
+				for (let r = 0; r < this.gridSize.rows; r++) {
+					for (let c = 0; c < this.gridSize.cols; c++) {
+						const x = c * this.gridSize.cellSize + this.gridSize.cellSize / 2;
+						const y = r * this.gridSize.cellSize + this.gridSize.cellSize / 2;
+						let isPath = false;
+						for (let i = 0; i < this.pathPoints.length - 1; i++) {
+							if (isPointNearLine(x, y, this.pathPoints[i].x, this.pathPoints[i].y, this.pathPoints[i + 1].x, this.pathPoints[i + 1].y, pathWidth)) {
+								isPath = true;
+								break;
+							}
+						}
+						cells.push({r, c, x, y, isPath, hasTower: false});
+					}
+				}
+				this.gridCells = cells;
+			},
+			restartGame() {
+				if (this.currentLevelId) {
+					this.initGame(this.currentLevelId);
+				}
+			},
+			gameLoop(timestamp) {
+				if (this.isPaused || this.gameOver || this.gameWon) {
+					return;
+				}
+
+				const deltaTime = timestamp - this.lastFrameTime;
+				this.lastFrameTime = timestamp;
+
+				this.update(deltaTime);
+
+				this.gameLoopId = requestAnimationFrame(this.gameLoop);
+			},
+			update(deltaTime) {
+				// Update Towers
+				this.towers.forEach(t => t.update(deltaTime, this.enemies, this.bullets));
+
+				// Update Bullets
+				for (let i = this.bullets.length - 1; i >= 0; i--) {
+					const bullet = this.bullets[i];
+					if (!this.enemies.includes(bullet.target)) {
+						this.bullets.splice(i, 1);
+						continue;
+					}
+					const dx = bullet.target.x - bullet.x, dy = bullet.target.y - bullet.y;
+					const dist = Math.sqrt(dx * dx + dy * dy);
+					if (dist < bullet.speed) {
+						if (bullet.target.takeDamage(bullet.damage)) {
+							this.coins += bullet.target.reward;
+							const index = this.enemies.findIndex(e => e.id === bullet.target.id);
+							if (index > -1) this.enemies.splice(index, 1);
+						}
+						this.bullets.splice(i, 1);
+					} else {
+						bullet.x += (dx / dist) * bullet.speed;
+						bullet.y += (dy / dist) * bullet.speed;
+					}
+				}
+
+				// Update Enemies
+				for (let i = this.enemies.length - 1; i >= 0; i--) {
+					if (this.enemies[i].update(deltaTime).reachedEnd) {
+						this.enemies.splice(i, 1);
+						this.health--;
+					}
+				}
+				// Wave and Spawning Logic
+				this.handleSpawning(deltaTime);
+
+				// Check Game Over
+				if (this.health <= 0) {
+					this.gameOver = true;
+				}
+			},
+			prepareWave() {
+				if (this.wave >= this.currentLevel.waves.length) return;
+
+				const waveData = this.currentLevel.waves[this.wave];
+				this.spawningQueue = [];
+
+				waveData.enemies.forEach(group => {
+					for (let i = 0; i < group.count; i++) {
+						this.spawningQueue.push({
+							type: group.type,
+							delay: (group.delay || 0) + i * waveData.interval,
+						});
+					}
+				});
+				this.spawningQueue.sort((a, b) => a.delay - b.delay);
+			},
+			handleSpawning(deltaTime) {
+				if (this.spawningQueue.length > 0) {
+					this.spawningQueue.forEach(spawn => spawn.delay -= deltaTime);
+
+					while (this.spawningQueue.length > 0 && this.spawningQueue[0].delay <= 0) {
+						const spawn = this.spawningQueue.shift();
+						const enemyConfig = this.enemyTypes[spawn.type];
+						if (enemyConfig) {
+							this.enemies.push(new Enemy(enemyConfig, this.pathPoints));
+						}
+					}
+				} else if (this.gameStarted && this.enemies.length === 0) {
+					// Wave is over, advance to next
+					this.wave++;
+					if (this.wave >= this.currentLevel.waves.length) {
+						this.gameWon = true;
+					} else {
+						this.isPaused = true; // Pause before next wave
+					}
+				}
+			},
+			togglePause() {
+				if (this.gameOver || this.gameWon) return;
+
+				if (!this.gameStarted) {
+					this.gameStarted = true;
+					this.isPaused = false;
+					this.prepareWave();
+					this.lastFrameTime = performance.now();
+					this.gameLoopId = requestAnimationFrame(this.gameLoop);
+				} else {
+					this.isPaused = !this.isPaused;
+					if (!this.isPaused) {
+						if (this.spawningQueue.length === 0 && this.enemies.length === 0) {
+							this.prepareWave(); // Prepare for the next wave
+						}
+						this.lastFrameTime = performance.now();
+						this.gameLoopId = requestAnimationFrame(this.gameLoop);
+					}
+				}
+			},
+			selectTowerType(typeId) {
+				this.selectedTowerTypeId = typeId;
+			},
+			placeTower(cell) {
+				const towerConfig = this.towerTypes[this.selectedTowerTypeId];
+				if (!cell || cell.isPath || cell.hasTower || !towerConfig || this.coins < towerConfig.cost) {
+					return;
+				}
+				this.towers.push(new Tower(towerConfig, cell.x, cell.y));
+				cell.hasTower = true;
+				this.coins -= towerConfig.cost;
+			},
+			handleGameClick(e) {
+				// If a tower is selected, clicking the background deselects it.
+				if (this.selectedTowerId) {
+					this.selectedTowerId = null;
+					return;
+				}
+
+				// Otherwise, try to place a tower.
+				const rect = e.currentTarget.getBoundingClientRect();
+				const x = e.clientX - rect.left;
+				const y = e.clientY - rect.top;
+				const col = Math.floor(x / this.gridSize.cellSize);
+				const row = Math.floor(y / this.gridSize.cellSize);
+				const cell = this.gridCells[row * this.gridSize.cols + col];
+				this.placeTower(cell);
+			},
+			selectTower(tower) {
+				this.selectedTowerId = this.selectedTowerId === tower.id ? null : tower.id;
+			}
+		},
+		mounted() {
+			this.loadGameData();
+		},
+		beforeUnmount() {
+			if (this.gameLoopId) cancelAnimationFrame(this.gameLoopId);
+		}
+	})
+	.use(ElementPlus)
+	.mount('main>article');
+</script>
+</body>
+</html>

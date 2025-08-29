@@ -1,0 +1,19 @@
+
+[
+  {
+    "id": "runner",
+    "name": "小兵",
+    "health": 3,
+    "speed": 1.2,
+    "reward": 5,
+    "color": "#F56C6C"
+  },
+  {
+    "id": "brute",
+    "name": "精英怪",
+    "health": 10,
+    "speed": 0.8,
+    "reward": 15,
+    "color": "#A93226"
+  }
+]

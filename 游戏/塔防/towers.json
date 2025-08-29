@@ -1,0 +1,23 @@
+
+[
+  {
+    "id": "basic",
+    "name": "基础炮塔",
+    "cost": 50,
+    "damage": 1,
+    "range": 120,
+    "fireRate": 500,
+    "icon": "T",
+    "color": "#E6A23C"
+  },
+  {
+    "id": "sniper",
+    "name": "狙击炮塔",
+    "cost": 120,
+    "damage": 5,
+    "range": 200,
+    "fireRate": 1500,
+    "icon": "S",
+    "color": "#409EFF"
+  }
+]

@@ -1,0 +1,19 @@
+
+[
+  {
+    "id": "level-1",
+    "name": "第一关：经典",
+    "initialHealth": 10,
+    "initialCoins": 100,
+    "path": [
+      {"x": 20, "y": 220}, {"x": 140, "y": 220},
+      {"x": 140, "y": 100}, {"x": 300, "y": 100},
+      {"x": 300, "y": 300}, {"x": 460, "y": 300},
+      {"x": 460, "y": 140}, {"x": 580, "y": 140}
+    ],
+    "waves": [
+      { "interval": 1500, "enemies": [{ "type": "runner", "count": 8 }] },
+      { "interval": 1200, "enemies": [{ "type": "runner", "count": 10 }, { "type": "brute", "count": 2, "delay": 3000 }] }
+    ]
+  }
+]
