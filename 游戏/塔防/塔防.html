@@ -345,6 +345,8 @@
 	<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
 	<script src="../../resources/util.js"></script>
 	<script src="aimer.js"></script>
+	<script src="obstacle_base_stats.js"></script>
+	<script src="enemy_base_stats.js"></script>
 </div>
 <script>
 	//可摧毁的
@@ -644,24 +646,20 @@
 		methods: {
 			async loadGameData() {
 				try {
-					const [levelsRes, enemyBaseStatsRes, enemiesRes, obstacleBaseStatsRes, obstaclesRes, towersRes] = await Promise.all([
+					const [levelsRes, enemiesRes, obstaclesRes, towersRes] = await Promise.all([
 						fetch('levels.json'),
-						fetch('enemy_base_stats.json'),
 						fetch('enemies.json'),
-						fetch('obstacle_base_stats.json'),
 						fetch('obstacles.json'),
 						fetch('towers.json')
 					]);
 					this.levels = await levelsRes.json();
-					const enemyBaseStatsList = await enemyBaseStatsRes.json();
 					const enemyList = await enemiesRes.json();
-					const obstacleBaseStatsList = await obstacleBaseStatsRes.json();
 					const obstacleList = await obstaclesRes.json();
 					const towerList = await towersRes.json();
 
 					// Convert lists to objects for easy lookup
-					this.enemyBaseStats = enemyBaseStatsList.reduce((obj, item) => ({...obj, [item.id]: item}), {});
-					this.obstacleBaseStats = obstacleBaseStatsList.reduce((obj, item) => ({...obj, [item.id]: item}), {});
+					this.enemyBaseStats = enemyBaseStats.reduce((obj, item) => ({...obj, [item.id]: item}), {});
+					this.obstacleBaseStats = obstacleBaseStats.reduce((obj, item) => ({...obj, [item.id]: item}), {});
 
 					this.enemyTypes = enemyList.reduce((obj, item) => ({
 						...obj,
@@ -679,7 +677,6 @@
 					}
 				} catch (error) {
 					console.error("Failed to load game data:", error);
-					// Maybe show an error message to the user
 				}
 			},
 			initGame(levelId) {

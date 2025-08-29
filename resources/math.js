@@ -1,4 +1,15 @@
+function hitOneInN(n) {
+	// 处理无效输入（确保n是大于0的数字）
+	if (typeof n !== 'number' || n <= 0 || !isFinite(n)) {
+		throw new Error('n must be a positive number');
+	}
 
+	// 生成 [0, 1) 区间的随机数
+	const randomValue = Math.random();
+
+	// 当随机数落在 [0, 1/n) 区间时返回 true
+	return randomValue < 1 / n;
+}
 
 /**
  * 汉语数字转换的核心定义和函数

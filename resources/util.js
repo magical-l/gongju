@@ -16,7 +16,13 @@ String.prototype.hyphenStyle = function () {
 Array.prototype.isEmpty = function (filter) {
 	return (filter ? this.filter(filter) : this).length === 0;
 };
-
+Array.prototype.randomOne = function() {
+	if (this.length === 0) {
+		return null;
+	}
+	const randomIndex = Math.floor(Math.random() * this.length);
+	return this[randomIndex];
+};
 function celsiusToKelvin(c) {
 	return c + 273.15;
 }

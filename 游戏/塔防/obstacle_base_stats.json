@@ -1,4 +1,0 @@
-[
-  { "id": "small_rock", "health": 20, "reward": 50 },
-  { "id": "large_rock", "health": 50, "reward": 100 }
-]
