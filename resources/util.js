@@ -106,3 +106,20 @@ const errorNotice = (notice, cb) => {
 	}
 })();
 
+// 塔防游戏工具函数
+const ImgUtils = {
+	// 判断是否为图片URL或base64
+	isImageUrl(image) {
+		return image && (
+			image.startsWith('http://') ||
+			image.startsWith('https://') ||
+			image.startsWith('data:image/')
+		);
+	},
+
+	// 判断是否为SVG代码
+	isSvg(image) {
+		return image && image.trim().startsWith('<svg');
+	}
+};
+

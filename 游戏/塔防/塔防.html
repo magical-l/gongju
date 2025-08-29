@@ -35,8 +35,6 @@
 
 		.game-container {
 			position: relative;
-			width: 600px;
-			height: 400px;
 			background-color: #f0f2f5;
 			border-radius: 10px;
 			box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
@@ -71,20 +69,25 @@
 		}
 
 		.carrot {
-			font-size: 30px;
-			width: 30px;
-			height: 30px;
 			text-align: center;
-			line-height: 30px;
 			z-index: 10;
 		}
 
 		.enemy {
-			width: 24px;
-			height: 24px;
-			border-radius: 50%;
 			z-index: 5;
 			cursor: crosshair;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			overflow: hidden;
+			transition: transform 0.1s linear;
+		}
+
+		.enemy-image {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			border-radius: 50%;
 		}
 
 		.locked-on {
@@ -94,12 +97,13 @@
 		.health-bar {
 			position: absolute;
 			width: 100%;
-			height: 5px;
+			height: 4px;
 			background: #555;
-			top: -10px;
+			top: 0;
 			left: 0;
 			border-radius: 2px;
 			overflow: hidden;
+			z-index: 10;
 		}
 
 		.health-fill {
@@ -109,14 +113,11 @@
 		}
 
 		.tower {
-			width: 30px;
-			height: 30px;
 			border-radius: 50%;
 			z-index: 4;
 			display: flex;
 			justify-content: center;
 			align-items: center;
-			font-size: 16px;
 			color: white;
 			font-weight: bold;
 			border-width: 2px;
@@ -228,38 +229,78 @@
 			</section>
 		</header>
 
-		<article class="main map area , one-row item , flex items-near-center-x" style="grid-row: 2">
-			<div class="game-container" @click="handleGameClick">
+		<article class="main map area , flex items-near-center-x" style="grid-row: 2">
+			<div class="game-container" @click="handleGameClick"
+				 :style="{width: gameContainerWidth + 'px', height: gameContainerHeight + 'px'}">
 				<!-- 地面和路径 -->
 				<div v-for="(cell, index) in gridCells" :key="index"
 					 :class="['cell', {'path': cell.isPath, 'selected': placementPopup.visible && placementPopup.cell === cell}]"></div>
 				<!-- 攻击范围圈 -->
 				<div v-if="rangeIndicatorStyle.display === 'block'" class="range-indicator" :style="rangeIndicatorStyle"></div>
 				<!-- 终点 -->
-				<div v-if="endPoint" class="carrot" :style="{ left: `${endPoint.x - 15}px`, top: `${endPoint.y - 15}px` }">🥕
-				</div>
+				<div v-if="endPoint" class="carrot" :style="{
+					left: `${endPoint.x - towerSize/2}px`,
+					top: `${endPoint.y - towerSize/2}px`,
+					width: `${towerSize}px`,
+					height: `${towerSize}px`,
+					lineHeight: `${towerSize}px`,
+					fontSize: `${Math.floor(towerSize * 1)}px`
+				}">🥕</div>
 				<!-- 障碍物 -->
 				<div v-for="obstacle in obstacles" :key="'obstacle-'+obstacle.id" class="obstacle tower"
 					 :class="{'locked-on': obstacle.id === lockedTargetId}"
-					 :style="{ left: `${obstacle.x - 15}px`, top: `${obstacle.y - 15}px`, backgroundColor: obstacle.color, borderColor: obstacle.color }"
+					 :style="{
+						left: `${obstacle.x - towerSize/2}px`,
+						top: `${obstacle.y - towerSize/2}px`,
+						width: `${towerSize}px`,
+						height: `${towerSize}px`,
+						fontSize: `${Math.floor(towerSize * 0.53)}px`,
+						backgroundColor: obstacle.color,
+						borderColor: obstacle.color
+					 }"
 					 @click.stop="toggleLockOnTarget(obstacle)">
 					{{ obstacle.icon }}
 					<div class="health-bar">
 						<div class="health-fill" :style="{width: (obstacle.health/obstacle.maxHealth)*100 + '%'}"></div>
 					</div>
 				</div>
-				<!-- 敌人 -->
+								<!-- 敌人 -->
 				<div v-for="enemy in enemies" :key="'enemy-'+enemy.id" class="enemy"
 					 :class="{'locked-on': enemy.id === lockedTargetId}"
-					 :style="{ left: `${enemy.x - 12}px`, top: `${enemy.y - 12}px`, backgroundColor: enemy.color }"
+					 :style="{
+						left: `${enemy.x - enemySize/2}px`,
+						top: `${enemy.y - enemySize/2}px`,
+						width: `${enemySize}px`,
+						height: `${enemySize}px`,
+						fontSize: `${Math.floor(enemySize * 0.83)}px`,
+						backgroundColor: enemy.image ? 'transparent' : enemy.color,
+						transform: shouldFlipEnemy(enemy) ? 'scaleX(-1)' : 'scaleX(1)'
+					 }"
 					 @click.stop="toggleLockOnTarget(enemy)">
+					<!-- 显示图片 -->
+					<template v-if="enemy.image">
+						<!-- URL 或 base64 图片 -->
+						<img v-if="isImageUrl(enemy.image)" :src="enemy.image" class="enemy-image" />
+						<!-- SVG 代码 -->
+						<div v-else-if="isSvg(enemy.image)" v-html="enemy.image" style="width: 100%; height: 100%;"></div>
+						<!-- emoji 或 unicode 字符 -->
+						<span v-else>{{ enemy.image }}</span>
+					</template>
 					<div class="health-bar">
 						<div class="health-fill" :style="{width: (enemy.health/enemy.maxHealth)*100 + '%'}"></div>
 					</div>
 				</div>
 				<!-- 塔 -->
 				<div v-for="tower in towers" :key="'tower-'+tower.id" @click.stop="selectTower(tower)" class="tower"
-					 :style="{ left: `${tower.x - 15}px`, top: `${tower.y - 15}px`, backgroundColor: tower.color, borderColor: tower.color }">
+					 :style="{
+						left: `${tower.x - towerSize/2}px`,
+						top: `${tower.y - towerSize/2}px`,
+						width: `${towerSize}px`,
+						height: `${towerSize}px`,
+						fontSize: `${Math.floor(towerSize * 0.53)}px`,
+						backgroundColor: tower.color,
+						borderColor: tower.color
+					 }">
 					{{ tower.icon }}
 				</div>
 				<!-- 子弹 -->
@@ -302,6 +343,7 @@
 <div class="js container">
 	<script src="../../lib/vue/3.5.18/vue.global.js"></script>
 	<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
+	<script src="../../resources/util.js"></script>
 	<script src="aimer.js"></script>
 </div>
 <script>
@@ -329,6 +371,9 @@
 			this.maxHealth = config.health;
 			this.reward = config.reward;
 			this.color = config.color;
+			this.image = config.image || null;
+			this.facing = config.facing || 'right'; // 图形默认朝向
+			this.direction = 'right'; // 当前移动方向
 		}
 
 		update(deltaTime) {
@@ -341,6 +386,11 @@
 			const dy = target.y - this.y;
 			const distance = Math.sqrt(dx * dx + dy * dy);
 			const moveDistance = this.speed * (deltaTime / 16);
+
+			// 根据移动方向设置朝向
+			if (Math.abs(dx) > Math.abs(dy)) { // 主要是水平移动
+				this.direction = dx < 0 ? 'left' : 'right';
+			}
 
 			if (distance < moveDistance) {
 				this.x = target.x;
@@ -371,12 +421,22 @@
 	}
 
 	class Tower {
-		constructor(config, x, y, aimerType = 'earliest') {
+		constructor(config, x, y, aimerType = 'earliest', cellSize = 50) {
 			this.id = Date.now() + Math.random();
 			this.x = x;
 			this.y = y;
+			this.cellSize = cellSize;
 
-			this.range = config.range;
+			// 如果配置中有rangeInCells，则使用它；否则将像素range转换为格子数
+			if (config.rangeInCells) {
+				this.rangeInCells = config.rangeInCells;
+				this.range = config.rangeInCells * cellSize;
+			} else {
+				// 兼容旧的像素range，转换为格子数
+				this.range = config.range;
+				this.rangeInCells = Math.round(config.range / cellSize);
+			}
+
 			this.damage = config.damage;
 			this.fireRate = config.fireRate;
 			this.color = config.color;
@@ -387,6 +447,12 @@
 			// 瞄准器系统
 			this.aimerType = aimerType;
 			this.aimer = AimerFactory.create(aimerType);
+		}
+
+		// 更新范围以适应新的缩放
+		updateRange(cellSize) {
+			this.cellSize = cellSize;
+			this.range = this.rangeInCells * cellSize;
 		}
 
 		update(deltaTime, enemies, obstacles, bullets, lockedTargetId) {
@@ -436,8 +502,17 @@
 				obstacleTypes: {},
 				towerTypes: {},
 
-				// Grid
-				gridSize: {cols: 15, rows: 10, cellSize: 40},
+				// 缩放配置
+				scale: {
+					baseCellSize: 40, // 基础格子大小
+					factor: 1.25, // 缩放因子 (50/40 = 1.25)
+				},
+
+				// Grid - 基础配置
+				gridSize: {
+					cols: 15,
+					rows: 10
+				},
 				gridCells: [],
 
 				// Game State
@@ -482,6 +557,23 @@
 			}
 		},
 		computed: {
+			// 缩放相关计算属性
+			cellSize() {
+				return this.scale.baseCellSize * this.scale.factor;
+			},
+			gameContainerWidth() {
+				return this.gridSize.cols * this.cellSize;
+			},
+			gameContainerHeight() {
+				return this.gridSize.rows * this.cellSize;
+			},
+			enemySize() {
+				return Math.floor(this.cellSize * 0.72); // 原来是36px，现在是cellSize的0.72倍
+			},
+			towerSize() {
+				return Math.floor(this.cellSize * 0.6); // 原来是30px，现在是cellSize的0.6倍
+			},
+
 			currentLevel() {
 				if (!this.currentLevelId) return null;
 				return this.levels.find(l => l.id === this.currentLevelId);
@@ -513,25 +605,34 @@
 				return this.towers.find(t => t.id === this.selectedTowerId);
 			},
 			rangeIndicatorStyle() {
-				let tower, x, y;
+				let tower, x, y, range;
 				if (this.selectedTower) {
 					tower = this.selectedTower;
 					x = tower.x;
 					y = tower.y;
+					range = tower.range;
 				} else if (this.hoveredTowerTypeForRangePreview && this.placementPopup.cell) {
 					tower = this.hoveredTowerTypeForRangePreview;
 					x = this.placementPopup.cell.x;
 					y = this.placementPopup.cell.y;
+					// 计算预览塔的范围
+					if (tower.rangeInCells) {
+						range = tower.rangeInCells * this.cellSize;
+					} else {
+						// 兼容旧的像素range，转换为格子数再转回像素
+						const rangeInCells = Math.round(tower.range / 40); // 基于基础40px格子计算
+						range = rangeInCells * this.cellSize;
+					}
 				} else {
 					return {display: 'none'};
 				}
 
 				return {
 					display: 'block',
-					width: `${tower.range * 2}px`,
-					height: `${tower.range * 2}px`,
-					left: `${x - tower.range}px`,
-					top: `${y - tower.range}px`,
+					width: `${range * 2}px`,
+					height: `${range * 2}px`,
+					left: `${x - range}px`,
+					top: `${y - range}px`,
 				};
 			},
 			pauseButtonText() {
@@ -614,12 +715,19 @@
 			},
 			initGrid() {
 				const cells = [];
-				const pathWidth = this.gridSize.cellSize / 2;
+				const pathWidth = this.cellSize * 0.6; // 调整路径宽度
 
 				// Initialize obstacles for the current level
 				this.obstacles = (this.currentLevel.obstacles || []).map(o => {
 					const obstacleConfig = this.obstacleTypes[o.type];
-					return reactive(new Obstacle({...obstacleConfig, ...o}, this.gridSize.cellSize));
+					return reactive(new Obstacle({...obstacleConfig, ...o}, this.cellSize));
+				});
+
+				// 更新现有塔的范围以适应新的缩放
+				this.towers.forEach(tower => {
+					if (tower.updateRange) {
+						tower.updateRange(this.cellSize);
+					}
 				});
 
 				const isPointNearLine = (px, py, x1, y1, x2, y2, maxDistance) => {
@@ -634,8 +742,8 @@
 
 				for (let r = 0; r < this.gridSize.rows; r++) {
 					for (let c = 0; c < this.gridSize.cols; c++) {
-						const x = c * this.gridSize.cellSize + this.gridSize.cellSize / 2;
-						const y = r * this.gridSize.cellSize + this.gridSize.cellSize / 2;
+						const x = c * this.cellSize + this.cellSize / 2;
+						const y = r * this.cellSize + this.cellSize / 2;
 						let isPath = false;
 						for (let i = 0; i < this.pathPoints.length - 1; i++) {
 							if (isPointNearLine(x, y, this.pathPoints[i].x, this.pathPoints[i].y, this.pathPoints[i + 1].x, this.pathPoints[i + 1].y, pathWidth)) {
@@ -811,8 +919,9 @@
 				if (!cell || !towerConfig || this.coins < towerConfig.cost) {
 					return;
 				}
-				// 使用当前全局瞄准器类型创建塔
-				this.towers.push(new Tower(towerConfig, cell.x, cell.y, this.globalAimerType));
+				// 使用当前全局瞄准器类型创建塔，传入当前cellSize
+				const tower = new Tower(towerConfig, cell.x, cell.y, this.globalAimerType, this.cellSize);
+				this.towers.push(tower);
 				cell.hasTower = true;
 				this.coins -= towerConfig.cost;
 				this.placementPopup.visible = false;
@@ -829,8 +938,8 @@
 				const rect = e.currentTarget.getBoundingClientRect();
 				const clickX = e.clientX - rect.left;
 				const clickY = e.clientY - rect.top;
-				const col = Math.floor(clickX / this.gridSize.cellSize);
-				const row = Math.floor(clickY / this.gridSize.cellSize);
+				const col = Math.floor(clickX / this.cellSize);
+				const row = Math.floor(clickY / this.cellSize);
 				const cell = this.gridCells[row * this.gridSize.cols + col];
 
 				// If clicked on an invalid cell, hide the popup
@@ -860,6 +969,20 @@
 				if (document.hidden && !this.isPaused && this.gameStarted) {
 					this.togglePause();
 				}
+			},
+
+			// 工具函数引用
+			isImageUrl: ImgUtils.isImageUrl,
+			isSvg: ImgUtils.isSvg,
+
+			// 判断是否需要翻转怪物
+			shouldFlipEnemy(enemy) {
+				// 如果facing=front，无论向哪走都不翻转
+				if (enemy.facing === 'front') {
+					return false;
+				}
+				// 如果图形默认朝向和当前移动方向不一致，则需要翻转
+				return enemy.facing !== enemy.direction;
 			}
 		},
 		mounted() {
