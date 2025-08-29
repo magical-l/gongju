@@ -185,7 +185,7 @@
 	.start.play.btn {font-size: larger;}
 
 	/* 棋谱记录 */
-	.chess-record {
+	.record.list {
 		max-height: 300px;
 		overflow-y: auto;
 		border: 1px solid #ddd;
@@ -195,12 +195,12 @@
 		font-size: 14px;
 	}
 
-	.chess-record .move-item {
+	.record.list .move-item {
 		padding: 2px 0;
 		border-bottom: 1px solid #eee;
 	}
 
-	.chess-record .move-item:last-child {
+	.record.list .move-item:last-child {
 		border-bottom: none;
 	}
 </style>
@@ -217,8 +217,8 @@
 		<a href="../拼音/拼音.html">拼音</a>
 		<a href="俄罗斯方块.html">俄罗斯方块</a>
 		<a href="贪吃蛇.html">贪吃蛇</a>
-		<a href="点灯.html">点灯</a>
 		<a href="中国象棋.html" class="active">中国象棋</a>
+		<a href="点灯.html">点灯</a>
 	</nav>
 </header>
 <main>
@@ -258,21 +258,21 @@
 				<el-form inline>
 					<el-form-item label="游戏模式" class="one setting group">
 						<el-radio-group v-model="gameMode">
-							<el-radio-button label="pvp">双人对战</el-radio-button>
-							<el-radio-button label="pvc" disabled>人机对战</el-radio-button>
+							<el-radio-button value="pvp">双人对战</el-radio-button>
+							<el-radio-button value="pvc" disabled>人机对战</el-radio-button>
 						</el-radio-group>
 					</el-form-item>
 				</el-form>
 			</section>
 			<section class="controller list area">
+				<el-button class="one controller : restart" @click="startNewGame">新游戏</el-button>
 				<el-button-group>
-					<el-button class="one controller : restart" @click="startNewGame">新游戏</el-button>
 					<el-button class="one controller : undo" @click="undoMove" :disabled="moveHistory.length === 0">悔棋</el-button>
 				</el-button-group>
 			</section>
 			<section class="tool list area">
 				<el-form inline>
-					<el-form-item label="显示提示">
+					<el-form-item label="显示提示" class="one tool">
 						<el-switch class="one tool" v-model="showHints"></el-switch>
 					</el-form-item>
 				</el-form>
@@ -350,8 +350,8 @@
 				</div>
 			</el-card>
 
-			<el-card header="走棋记录" class="chess-record section">
-				<div class="chess-record">
+			<el-card header="走棋记录" class="record list section">
+				<div class="record list container">
 					<div v-for="(move, index) in moveHistory" :key="index" class="move-item">
 						{{ formatMove(move, index) }}
 					</div>
