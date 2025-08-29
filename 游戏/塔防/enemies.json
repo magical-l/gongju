@@ -1,19 +1,5 @@
-
 [
-  {
-    "id": "runner",
-    "name": "小兵",
-    "health": 3,
-    "speed": 1.2,
-    "reward": 5,
-    "color": "#F56C6C"
-  },
-  {
-    "id": "brute",
-    "name": "精英怪",
-    "health": 10,
-    "speed": 0.8,
-    "reward": 15,
-    "color": "#A93226"
-  }
+  { "id": "red_grunt", "base_id": "basic_grunt", "name": "红色小兵", "color": "#F56C6C" },
+  { "id": "blue_grunt", "base_id": "basic_grunt", "name": "蓝色小兵", "color": "#409EFF" },
+  { "id": "green_brute", "base_id": "heavy_brute", "name": "绿色精英怪", "color": "#67C23A" }
 ]

@@ -11,8 +11,8 @@
       {"x": 460, "y": 140}, {"x": 580, "y": 140}
     ],
     "waves": [
-      { "interval": 1500, "enemies": [{ "type": "runner", "count": 8 }] },
-      { "interval": 1200, "enemies": [{ "type": "runner", "count": 10 }, { "type": "brute", "count": 2, "delay": 3000 }] }
+      { "interval": 1500, "enemies": [{ "type": "red_grunt", "count": 8 }] },
+      { "interval": 1200, "enemies": [{ "type": "red_grunt", "count": 10 }, { "type": "green_brute", "count": 2, "delay": 3000 }] }
     ]
   },
   {
@@ -25,14 +25,14 @@
       {"x": 500, "y": 220}, {"x": 100, "y": 220},
       {"x": 100, "y": 340}, {"x": 580, "y": 340}
     ],
-    "props": [
-      { "id": "rock1", "x": 5, "y": 3, "health": 20, "reward": 50, "color": "#a9a9a9", "icon": "R" },
-      { "id": "rock2", "x": 6, "y": 3, "health": 20, "reward": 50, "color": "#a9a9a9", "icon": "R" }
+    "obstacles": [
+      { "id": "rock1", "type": "grey_rock", "gridX": 5, "gridY": 3 },
+      { "id": "rock2", "type": "grey_rock", "gridX": 6, "gridY": 3 }
     ],
     "waves": [
-      { "interval": 1200, "enemies": [{ "type": "runner", "count": 10 }, { "type": "brute", "count": 3, "delay": 2000 }] },
-      { "interval": 1000, "enemies": [{ "type": "runner", "count": 15 }, { "type": "brute", "count": 5, "delay": 2500 }] },
-      { "interval": 800, "enemies": [{ "type": "brute", "count": 10 }] }
+      { "interval": 1200, "enemies": [{ "type": "red_grunt", "count": 10 }, { "type": "green_brute", "count": 3, "delay": 2000 }] },
+      { "interval": 1000, "enemies": [{ "type": "red_grunt", "count": 15 }, { "type": "green_brute", "count": 5, "delay": 2500 }] },
+      { "interval": 800, "enemies": [{ "type": "green_brute", "count": 10 }] }
     ]
   },
   {
@@ -49,17 +49,17 @@
       {"x": 420, "y": 60}, {"x": 500, "y": 60},
       {"x": 500, "y": 180}, {"x": 580, "y": 180}
     ],
-    "props": [
-      { "id": "rock3", "x": 0, "y": 0, "health": 50, "reward": 100, "color": "#808080", "icon": "R" },
-      { "id": "rock4", "x": 14, "y": 0, "health": 50, "reward": 100, "color": "#808080", "icon": "R" },
-      { "id": "rock5", "x": 0, "y": 9, "health": 50, "reward": 100, "color": "#808080", "icon": "R" },
-      { "id": "rock6", "x": 14, "y": 9, "health": 50, "reward": 100, "color": "#808080", "icon": "R" }
+    "obstacles": [
+      { "id": "rock3", "type": "dark_rock", "gridX": 0, "gridY": 0 },
+      { "id": "rock4", "type": "dark_rock", "gridX": 14, "gridY": 0 },
+      { "id": "rock5", "type": "dark_rock", "gridX": 0, "gridY": 9 },
+      { "id": "rock6", "type": "dark_rock", "gridX": 14, "gridY": 9 }
     ],
     "waves": [
-      { "interval": 1000, "enemies": [{ "type": "runner", "count": 20 }] },
-      { "interval": 800, "enemies": [{ "type": "runner", "count": 15 }, { "type": "brute", "count": 8, "delay": 1000 }] },
-      { "interval": 700, "enemies": [{ "type": "runner", "count": 10 }, { "type": "brute", "count": 15, "delay": 1000 }] },
-      { "interval": 500, "enemies": [{ "type": "brute", "count": 20 }] }
+      { "interval": 1000, "enemies": [{ "type": "red_grunt", "count": 20 }] },
+      { "interval": 800, "enemies": [{ "type": "red_grunt", "count": 15 }, { "type": "green_brute", "count": 8, "delay": 1000 }] },
+      { "interval": 700, "enemies": [{ "type": "red_grunt", "count": 10 }, { "type": "green_brute", "count": 15, "delay": 1000 }] },
+      { "interval": 500, "enemies": [{ "type": "green_brute", "count": 20 }] }
     ]
   }
 ]

@@ -1,0 +1,4 @@
+[
+  { "id": "grey_rock", "base_id": "small_rock", "color": "#a9a9a9", "icon": "R" },
+  { "id": "dark_rock", "base_id": "large_rock", "color": "#808080", "icon": "R" }
+]

@@ -64,12 +64,12 @@
 			background-color: #e0e0e0;
 		}
 
-		.carrot, .enemy, .tower, .bullet, .prop {
+		.carrot, .enemy, .tower, .bullet, .obstacle {
 			position: absolute;
 			transition: left 0.1s linear, top 0.1s linear;
 		}
 
-		.prop {
+		.obstacle {
 			cursor: crosshair;
 			z-index: 2;
 		}
@@ -206,6 +206,7 @@
 		<header class="toolbar , flex near-center">
 			<section class="controller list area">
 				<el-button-group>
+
 					<el-button @click="togglePause" :disabled="gameOver || gameWon" type="primary">
 						{{ pauseButtonText }}
 					</el-button>
@@ -247,14 +248,14 @@
 				<div v-if="endPoint" class="carrot"
 					 :style="{ left: `${endPoint.x - 15}px`, top: `${endPoint.y - 15}px` }">🥕
 				</div>
-				<!-- Props -->
-				<div v-for="prop in props" :key="'prop-'+prop.id" class="prop tower"
-					 :class="{'locked-on': prop.id === lockedTargetId}"
-					 :style="{ left: `${prop.x - 15}px`, top: `${prop.y - 15}px`, backgroundColor: prop.color, borderColor: prop.color }"
-					 @click.stop="toggleLockOnTarget(prop)">
-					{{ prop.icon }}
+				<!-- Obstacles -->
+				<div v-for="obstacle in obstacles" :key="'obstacle-'+obstacle.id" class="obstacle tower"
+					 :class="{'locked-on': obstacle.id === lockedTargetId}"
+					 :style="{ left: `${obstacle.x - 15}px`, top: `${obstacle.y - 15}px`, backgroundColor: obstacle.color, borderColor: obstacle.color }"
+					 @click.stop="toggleLockOnTarget(obstacle)">
+					{{ obstacle.icon }}
 					<div class="health-bar">
-						<div class="health-fill" :style="{width: (prop.health/prop.maxHealth)*100 + '%'}"></div>
+						<div class="health-fill" :style="{width: (obstacle.health/obstacle.maxHealth)*100 + '%'}"></div>
 					</div>
 				</div>
 				<!-- Enemies -->
@@ -296,6 +297,12 @@
 				<div class="stat-item"><span>💰 金币:</span> <span class="stat-value">{{ coins }}</span></div>
 				<div class="stat-item"><span>🌊 波数:</span> <span class="stat-value">{{ waveDisplay }}</span></div>
 			</el-card>
+			<el-card header="障碍物" v-if="currentLevel && obstacles.length > 0">
+				<div v-for="obstacle in obstacles" :key="obstacle.id" class="stat-item">
+					<span>{{ obstacle.name || obstacle.icon }}:</span>
+					<span class="stat-value">{{ obstacle.health }} / {{ obstacle.maxHealth }}</span>
+				</div>
+			</el-card>
 		</aside>
 
 		<el-dialog v-model="showGameOverDialog" :title="gameWon ? '恭喜通关! 🎉' : '游戏结束 😢'" width="30%" center
@@ -304,7 +311,7 @@
 			<template #footer>
 				<el-button type="primary" @click="restartGame">重新开始</el-button>
 			</template>
-		</el-dialog>
+			</el-dialog>
 	</article>
 </main>
 
@@ -315,6 +322,8 @@
 <script>
 	// --- Entity Classes (defined outside Vue for performance) ---
 	class Destructible {
+		constructor() {
+		}
 		takeDamage(damage) {
 			this.health -= damage;
 			return this.health <= 0;
@@ -331,8 +340,8 @@
 			this.y = this.path[0].y;
 
 			this.speed = config.speed;
-			this.maxHealth = config.health;
 			this.health = config.health;
+			this.maxHealth = config.health;
 			this.reward = config.reward;
 			this.color = config.color;
 		}
@@ -360,12 +369,12 @@
 		}
 	}
 
-	class Prop extends Destructible {
+	class Obstacle extends Destructible {
 		constructor(config, cellSize) {
 			super();
 			this.id = config.id;
-			this.gridX = config.x;
-			this.gridY = config.y;
+			this.gridX = config.gridX;
+			this.gridY = config.gridY;
 			this.x = this.gridX * cellSize + cellSize / 2;
 			this.y = this.gridY * cellSize + cellSize / 2;
 			this.health = config.health;
@@ -391,10 +400,10 @@
 			this.fireCountdown = 0;
 		}
 
-		update(deltaTime, enemies, props, bullets, lockedTargetId) {
+		update(deltaTime, enemies, obstacles, bullets, lockedTargetId) {
 			this.fireCountdown -= deltaTime;
 			if (this.fireCountdown <= 0) {
-				const target = this.findTarget(enemies, props, lockedTargetId);
+				const target = this.findTarget(enemies, obstacles, lockedTargetId);
 				if (target) {
 					bullets.push({
 						id: Date.now() + Math.random(),
@@ -409,10 +418,10 @@
 			}
 		}
 
-		findTarget(enemies, props, lockedTargetId) {
+		findTarget(enemies, obstacles, lockedTargetId) {
 			// 1. Prioritize locked target
 			if (lockedTargetId) {
-				const lockedTarget = [...enemies, ...props].find(t => t.id === lockedTargetId);
+				const lockedTarget = [...enemies, ...obstacles].find(t => t.id === lockedTargetId);
 				if (lockedTarget) {
 					const distance = Math.sqrt((lockedTarget.x - this.x) ** 2 + (lockedTarget.y - this.y) ** 2);
 					if (distance < this.range) {
@@ -421,7 +430,7 @@
 				}
 			}
 
-			// 2. Default behavior: find closest enemy (never auto-target props)
+			// 2. Default behavior: find closest enemy (never auto-target obstacles)
 			let closestEnemy = null;
 			let minDistance = this.range;
 			for (const enemy of enemies) {
@@ -435,13 +444,16 @@
 		}
 	}
 
-	const {createApp} = Vue;
+	const {createApp, reactive} = Vue;
 	const app = createApp({
 		data() {
 			return {
 				// Config Data
 				levels: [],
+				enemyBaseStats: {},
 				enemyTypes: {},
+				obstacleBaseStats: {},
+				obstacleTypes: {},
 				towerTypes: {},
 
 				// Grid
@@ -474,7 +486,7 @@
 				enemies: [],
 				towers: [],
 				bullets: [],
-				props: [],
+				obstacles: [],
 
 				// Spawning
 				spawningQueue: [],
@@ -548,17 +560,33 @@
 		methods: {
 			async loadGameData() {
 				try {
-					const [levelsRes, enemiesRes, towersRes] = await Promise.all([
+					const [levelsRes, enemyBaseStatsRes, enemiesRes, obstacleBaseStatsRes, obstaclesRes, towersRes] = await Promise.all([
 						fetch('levels.json'),
+						fetch('enemy_base_stats.json'),
 						fetch('enemies.json'),
+						fetch('obstacle_base_stats.json'),
+						fetch('obstacles.json'),
 						fetch('towers.json')
 					]);
 					this.levels = await levelsRes.json();
+					const enemyBaseStatsList = await enemyBaseStatsRes.json();
 					const enemyList = await enemiesRes.json();
+					const obstacleBaseStatsList = await obstacleBaseStatsRes.json();
+					const obstacleList = await obstaclesRes.json();
 					const towerList = await towersRes.json();
 
 					// Convert lists to objects for easy lookup
-					this.enemyTypes = enemyList.reduce((obj, item) => ({...obj, [item.id]: item}), {});
+					this.enemyBaseStats = enemyBaseStatsList.reduce((obj, item) => ({...obj, [item.id]: item}), {});
+					this.obstacleBaseStats = obstacleBaseStatsList.reduce((obj, item) => ({...obj, [item.id]: item}), {});
+
+					this.enemyTypes = enemyList.reduce((obj, item) => ({
+						...obj,
+						[item.id]: {...this.enemyBaseStats[item.base_id], ...item}
+					}), {});
+					this.obstacleTypes = obstacleList.reduce((obj, item) => ({
+						...obj,
+						[item.id]: {...this.obstacleBaseStats[item.base_id], ...item}
+					}), {});
 					this.towerTypes = towerList.reduce((obj, item) => ({...obj, [item.id]: item}), {});
 
 					if (this.levels.length > 0) {
@@ -587,7 +615,7 @@
 				this.enemies = [];
 				this.towers = [];
 				this.bullets = [];
-				this.props = [];
+				this.obstacles = [];
 				this.selectedTowerId = null;
 				this.lockedTargetId = null;
 				this.spawningQueue = [];
@@ -605,8 +633,11 @@
 				const cells = [];
 				const pathWidth = this.gridSize.cellSize / 2;
 
-				// Initialize props for the current level
-				this.props = (this.currentLevel.props || []).map(p => new Prop(p, this.gridSize.cellSize));
+				// Initialize obstacles for the current level
+				this.obstacles = (this.currentLevel.obstacles || []).map(o => {
+					const obstacleConfig = this.obstacleTypes[o.type];
+					return reactive(new Obstacle({...obstacleConfig, ...o}, this.gridSize.cellSize));
+				});
 
 				const isPointNearLine = (px, py, x1, y1, x2, y2, maxDistance) => {
 					const dx = x2 - x1, dy = y2 - y1;
@@ -629,8 +660,8 @@
 								break;
 							}
 						}
-						const propOnCell = this.props.find(p => p.gridX === c && p.gridY === r);
-						cells.push({r, c, x, y, isPath, hasTower: !!propOnCell});
+						const obstacleOnCell = this.obstacles.find(o => o.gridX === c && o.gridY === r);
+						cells.push({r, c, x, y, isPath, hasTower: !!obstacleOnCell});
 					}
 				}
 				this.gridCells = cells;
@@ -668,8 +699,13 @@
 				this.gameLoopId = requestAnimationFrame(this.gameLoop);
 			},
 			update(deltaTime) {
+				// If the game is paused, do not update any game logic.
+				if (this.isPaused) {
+					return;
+				}
+
 				// Update Towers
-				this.towers.forEach(t => t.update(deltaTime, this.enemies, this.props, this.bullets, this.lockedTargetId));
+				this.towers.forEach(t => t.update(deltaTime, this.enemies, this.obstacles, this.bullets, this.lockedTargetId));
 
 				// Update Bullets
 				for (let i = this.bullets.length - 1; i >= 0; i--) {
@@ -685,18 +721,18 @@
 						const isDead = bullet.target.takeDamage(bullet.damage);
 						if (isDead) {
 							this.coins += bullet.target.reward;
-							// Remove from either enemies or props array
+							// Remove from either enemies or obstacles array
 							let index = this.enemies.findIndex(e => e.id === bullet.target.id);
 							if (index > -1) {
 								this.enemies.splice(index, 1);
 							} else {
-								index = this.props.findIndex(p => p.id === bullet.target.id);
+								index = this.obstacles.findIndex(o => o.id === bullet.target.id);
 								if (index > -1) {
-									const prop = this.props[index];
+									const obstacle = this.obstacles[index];
 									// Make the cell buildable again
-									const cell = this.gridCells[prop.gridY * this.gridSize.cols + prop.gridX];
+									const cell = this.gridCells[obstacle.gridY * this.gridSize.cols + obstacle.gridX];
 									if(cell) cell.hasTower = false;
-									this.props.splice(index, 1);
+									this.obstacles.splice(index, 1);
 								}
 							}
 						}
