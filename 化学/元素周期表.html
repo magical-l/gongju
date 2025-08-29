@@ -92,7 +92,8 @@
 	.half-width.periodic-table-of-chemical-element {
 		height: 720px;
 		grid-template-columns: 10px repeat(18, 1fr);
-		grid-template-rows: repeat(9, 1fr);
+		/* 经测试，1fr（80px）都会导致出现纵向滚动条（edge上阈值为79.7858px，即总高度超过718px，不可解，不知道哪里来的2像素导致了溢出），所以写死79px。 */
+		grid-template-rows: repeat(9, 79px);
 	}
 
 	/*----------------元素卡--------------*/
