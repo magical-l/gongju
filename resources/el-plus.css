@@ -11,6 +11,8 @@
 	box-shadow: none !important;
 }
 
-.flex > .el-button + .el-button {
-	margin-left: 0;
-}
+/* .el-button + .el-button自带margin-left:20px，如果布局已经自己做了间隔（比如gap），再加就太傻了 */
+.flex > .el-button + .el-button {margin-left: 0;}
+
+/* .el-form-item自带底部外边距 */
+.toolbar .el-form-item {margin-bottom: 0;}

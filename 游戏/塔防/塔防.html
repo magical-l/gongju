@@ -16,10 +16,6 @@
 			--反叵字形-right-sidebar-max-width: 240px;
 		}
 
-		.toolbar .el-form-item {
-			margin-bottom: 0;
-		}
-
 		.stat-item {
 			font-size: 1.1rem;
 			margin-bottom: 12px;
@@ -51,16 +47,16 @@
 		}
 
 		.cell {
+			box-sizing: border-box;
 			border: 1px solid rgba(0, 0, 0, 0.05);
-			box-sizing: border-box; /* Ensure border is inside */
 		}
 
-		.cell.selected-for-placement {
+		.cell.selected {
 			border: 2px solid #67C23A;
 			background-color: rgba(103, 194, 58, 0.2);
 		}
 
-		.path-cell {
+		.path.cell {
 			background-color: #e0e0e0;
 		}
 
@@ -154,7 +150,7 @@
 			padding: 8px;
 			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 			z-index: 20;
-			transform: translate(-50%, 25px); /* Position below the cell center */
+			transform: translate(-50%, 25px);
 			pointer-events: auto;
 		}
 
@@ -206,29 +202,26 @@
 		<header class="toolbar , flex near-center">
 			<section class="controller list area">
 				<el-button-group>
-
-					<el-button @click="togglePause" :disabled="gameOver || gameWon" type="primary">
+					<el-button @click="togglePause" class="one controller" :disabled="gameOver || gameWon" type="primary">
 						{{ pauseButtonText }}
 					</el-button>
-					<el-button @click="restartGame" :disabled="!currentLevelId">
-						重新开始
-					</el-button>
+					<el-button @click="restartGame" class="one controller" :disabled="!currentLevelId">重新开始</el-button>
 				</el-button-group>
 			</section>
 			<section class="tool list area">
 				<el-form inline>
-					<el-form-item label="选择关卡">
+					<el-form-item label="选择关卡" class="one setting">
 						<el-select v-model="currentLevelId" placeholder="请选择" @change="initGame"
 								   :disabled="gameStarted && !isPaused">
 							<el-option v-for="level in levels" :key="level.id" :label="level.name"
 									   :value="level.id"></el-option>
 						</el-select>
 					</el-form-item>
-					<el-form-item label="游戏速度">
+					<el-form-item label="游戏速度" class="one setting">
 						<el-radio-group v-model="gameSpeed">
-							<el-radio-button :label="1">1x</el-radio-button>
-							<el-radio-button :label="2">2x</el-radio-button>
-							<el-radio-button :label="4">4x</el-radio-button>
+							<el-radio-button :value="1">1x</el-radio-button>
+							<el-radio-button :value="2">2x</el-radio-button>
+							<el-radio-button :value="4">4x</el-radio-button>
 						</el-radio-group>
 					</el-form-item>
 				</el-form>
@@ -237,18 +230,15 @@
 
 		<article class="main map area , one-row item , flex items-near-center-x" style="grid-row: 2">
 			<div class="game-container" @click="handleGameClick">
-				<!-- Grid for visuals and placement -->
+				<!-- 地面和路径 -->
 				<div v-for="(cell, index) in gridCells" :key="index"
-					 :class="['cell', {'path-cell': cell.isPath, 'selected-for-placement': placementPopup.visible && placementPopup.cell === cell}]"></div>
-
-				<!-- Range Indicator -->
+					 :class="['cell', {'path': cell.isPath, 'selected': placementPopup.visible && placementPopup.cell === cell}]"></div>
+				<!-- 攻击范围圈 -->
 				<div v-if="rangeIndicatorStyle.display === 'block'" class="range-indicator" :style="rangeIndicatorStyle"></div>
-
-				<!-- Carrot -->
-				<div v-if="endPoint" class="carrot"
-					 :style="{ left: `${endPoint.x - 15}px`, top: `${endPoint.y - 15}px` }">🥕
+				<!-- 终点 -->
+				<div v-if="endPoint" class="carrot" :style="{ left: `${endPoint.x - 15}px`, top: `${endPoint.y - 15}px` }">🥕
 				</div>
-				<!-- Obstacles -->
+				<!-- 障碍物 -->
 				<div v-for="obstacle in obstacles" :key="'obstacle-'+obstacle.id" class="obstacle tower"
 					 :class="{'locked-on': obstacle.id === lockedTargetId}"
 					 :style="{ left: `${obstacle.x - 15}px`, top: `${obstacle.y - 15}px`, backgroundColor: obstacle.color, borderColor: obstacle.color }"
@@ -258,7 +248,7 @@
 						<div class="health-fill" :style="{width: (obstacle.health/obstacle.maxHealth)*100 + '%'}"></div>
 					</div>
 				</div>
-				<!-- Enemies -->
+				<!-- 敌人 -->
 				<div v-for="enemy in enemies" :key="'enemy-'+enemy.id" class="enemy"
 					 :class="{'locked-on': enemy.id === lockedTargetId}"
 					 :style="{ left: `${enemy.x - 12}px`, top: `${enemy.y - 12}px`, backgroundColor: enemy.color }"
@@ -267,16 +257,16 @@
 						<div class="health-fill" :style="{width: (enemy.health/enemy.maxHealth)*100 + '%'}"></div>
 					</div>
 				</div>
-				<!-- Towers -->
+				<!-- 塔 -->
 				<div v-for="tower in towers" :key="'tower-'+tower.id" @click.stop="selectTower(tower)" class="tower"
 					 :style="{ left: `${tower.x - 15}px`, top: `${tower.y - 15}px`, backgroundColor: tower.color, borderColor: tower.color }">
 					{{ tower.icon }}
 				</div>
-				<!-- Bullets -->
+				<!-- 子弹 -->
 				<div v-for="bullet in bullets" :key="'bullet-'+bullet.id" class="bullet"
 					 :style="{ left: `${bullet.x - 4}px`, top: `${bullet.y - 4}px` }"></div>
 
-				<!-- Tower Placement Popup -->
+				<!-- ‘建造’弹窗 -->
 				<div v-if="placementPopup.visible" class="placement-popup"
 					 :style="{ left: `${placementPopup.x}px`, top: `${placementPopup.y}px` }"
 					 @mouseleave="hideRangePreview">
@@ -297,12 +287,6 @@
 				<div class="stat-item"><span>💰 金币:</span> <span class="stat-value">{{ coins }}</span></div>
 				<div class="stat-item"><span>🌊 波数:</span> <span class="stat-value">{{ waveDisplay }}</span></div>
 			</el-card>
-			<el-card header="障碍物" v-if="currentLevel && obstacles.length > 0">
-				<div v-for="obstacle in obstacles" :key="obstacle.id" class="stat-item">
-					<span>{{ obstacle.name || obstacle.icon }}:</span>
-					<span class="stat-value">{{ obstacle.health }} / {{ obstacle.maxHealth }}</span>
-				</div>
-			</el-card>
 		</aside>
 
 		<el-dialog v-model="showGameOverDialog" :title="gameWon ? '恭喜通关! 🎉' : '游戏结束 😢'" width="30%" center
@@ -320,7 +304,7 @@
 	<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
 </div>
 <script>
-	// --- Entity Classes (defined outside Vue for performance) ---
+	//可摧毁的
 	class Destructible {
 		constructor() {
 		}

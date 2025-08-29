@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title itemprop="name">中国象棋 | 工具兽 - 在线玩经典的棋类游戏</title>
+<meta name="description"
+			content="经典中国象棋游戏，支持双人对战，完整的象棋规则，包含将军、将死判断。体验传统文化魅力，享受策略对弈乐趣。"
+			itemprop="description">
+<meta name="keywords" content="中国象棋,象棋,在线游戏,策略游戏,棋类游戏">
+<meta name="author" content="工具兽">
+
+<!-- 预加载关键资源 -->
+<link rel="preload" href="../lib/jquery-3.4.1.min.js" as="script">
+<link rel="preload" href="../resources/util.js" as="script">
+
+<link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
+<link href="../resources/el-plus.css" rel="stylesheet">
+<link href="../resources/common.css?v=250821" rel="stylesheet">
+<link href="../resources/layout.css?v=0821" rel="stylesheet">
+<link href="../resources/biz.css?v=250821" rel="stylesheet">
+<link href="../resources/花活.css?v=250821" rel="stylesheet">
+<style>
+	.game-wrapper { --反叵字形-gap: 2em; }
+
+	#chess-board {
+		width: 540px;
+		height: 600px;
+		background: linear-gradient(#deb887, #cd853f);
+		border: 4px solid #8b4513;
+		position: relative;
+		margin: 20px auto;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+	}
+
+	/* 棋盘线条 */
+	.board-lines {
+		position: absolute;
+		top: 30px;
+		left: 30px;
+		width: 480px;
+		height: 540px;
+	}
+
+	.horizontal-line {
+		position: absolute;
+		width: 100%;
+		height: 2px;
+		background: #2c1810;
+	}
+
+	.vertical-line {
+		position: absolute;
+		height: 100%;
+		width: 2px;
+		background: #2c1810;
+	}
+
+	/* 九宫格对角线 */
+	.diagonal-line {
+		position: absolute;
+		background: #2c1810;
+		width: 2px;
+		height: 120px;
+		transform-origin: top;
+	}
+
+	/* 河界 */
+	.river {
+		position: absolute;
+		top: 270px;
+		left: 0;
+		width: 100%;
+		height: 60px;
+		background: rgba(135, 206, 235, 0.2);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 24px;
+		font-weight: bold;
+		color: #2c1810;
+	}
+
+	/* 棋子样式 */
+	.chess-piece {
+		position: absolute;
+		width: 50px;
+		height: 50px;
+		border-radius: 50%;
+		border: 3px solid #2c1810;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 18px;
+		font-weight: bold;
+		cursor: pointer;
+		transition: all 0.2s ease;
+		user-select: none;
+		z-index: 100;
+	}
+
+	.chess-piece.red {
+		background: radial-gradient(circle, #ff4444, #cc0000);
+		color: #fff;
+		text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+	}
+
+	.chess-piece.black {
+		background: radial-gradient(circle, #444, #111);
+		color: #fff;
+		text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+	}
+
+	.chess-piece:hover {
+		transform: scale(1.1);
+		box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+	}
+
+	.chess-piece.selected {
+		box-shadow: 0 0 0 4px #ffd700;
+		transform: scale(1.1);
+	}
+
+	.chess-piece.can-move {
+		animation: pulse 1s infinite;
+	}
+
+	@keyframes pulse {
+		0%, 100% { box-shadow: 0 0 0 4px rgba(0,255,0,0.5); }
+		50% { box-shadow: 0 0 0 8px rgba(0,255,0,0.2); }
+	}
+
+	/* 可移动位置提示 */
+	.move-hint {
+		position: absolute;
+		width: 30px;
+		height: 30px;
+		border-radius: 50%;
+		background: rgba(0, 255, 0, 0.3);
+		border: 2px solid #00ff00;
+		z-index: 5;
+		cursor: pointer;
+		transform: translate(-50%, -50%);
+	}
+
+	.move-hint:hover {
+		background: rgba(0, 255, 0, 0.5);
+	}
+
+	/* 攻击位置提示 */
+	.attack-hint {
+		position: absolute;
+		width: 30px;
+		height: 30px;
+		border-radius: 50%;
+		background: rgba(255, 0, 0, 0.3);
+		border: 2px solid #ff0000;
+		z-index: 5;
+		cursor: pointer;
+		transform: translate(-50%, -50%);
+	}
+
+	.attack-hint:hover {
+		background: rgba(255, 0, 0, 0.5);
+	}
+
+	/* 游戏状态 */
+	.game-status {
+		text-align: center;
+		margin: 20px 0;
+		font-size: 20px;
+		font-weight: bold;
+	}
+
+	.game-status.red-turn {
+		color: #cc0000;
+	}
+
+	.game-status.black-turn {
+		color: #333;
+	}
+
+	.scoreboard section {text-align: center;}
+
+	.start.play.btn {font-size: larger;}
+
+	/* 棋谱记录 */
+	.chess-record {
+		max-height: 300px;
+		overflow-y: auto;
+		border: 1px solid #ddd;
+		padding: 10px;
+		background: #f9f9f9;
+		font-family: monospace;
+		font-size: 14px;
+	}
+
+	.chess-record .move-item {
+		padding: 2px 0;
+		border-bottom: 1px solid #eee;
+	}
+
+	.chess-record .move-item:last-child {
+		border-bottom: none;
+	}
+</style>
+</head>
+<body class="grid 反叵字形">
+<header>
+	<h1 class="website name" title="工具人（gongju.ren）域名太贵买不起">工具兽</h1>
+	<nav>
+		<a href="../文本转化.html">文本转化</a>
+		<a href="../数字转化.html">数字转化</a>
+		<a href="../格子盘.html">格子盘</a>
+		<a href="../svg转图标.html">SVG转图标</a>
+		<a href="../化学/元素周期表.html">元素周期表</a>
+		<a href="../拼音/拼音.html">拼音</a>
+		<a href="俄罗斯方块.html">俄罗斯方块</a>
+		<a href="贪吃蛇.html">贪吃蛇</a>
+		<a href="点灯.html">点灯</a>
+		<a href="中国象棋.html" class="active">中国象棋</a>
+	</nav>
+</header>
+<main>
+	<header>
+		<h2 class="game name">中国象棋</h2>
+		<div class="page-lv help area" v-cloak>
+			<el-button class="page-lv help btn" title="游戏介绍" @click="introVisible = true" size="small" circle>?
+			</el-button>
+			<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
+				<article class="description">
+					<h3>游戏目标</h3>
+					<p>
+						中国象棋是一款经典的策略棋类游戏。游戏目标是通过合理的棋子移动，将死对方的"将"或"帅"。游戏分为红方和黑方，红方先行。
+					</p>
+					<h3>棋子介绍</h3>
+					<ul>
+						<li><strong>帅/将</strong>：只能在九宫格内移动，每次走一格，不能直接对面</li>
+						<li><strong>士/仕</strong>：只能在九宫格内斜走一格</li>
+						<li><strong>象/相</strong>：斜走两格，不能过河，不能被拦象眼</li>
+						<li><strong>马</strong>：走"日"字形，不能被蹩马腿</li>
+						<li><strong>车</strong>：横竖直走，不限步数</li>
+						<li><strong>炮</strong>：直走不限步数，攻击时需要隔一个棋子</li>
+						<li><strong>兵/卒</strong>：过河前只能向前，过河后可以左右移动</li>
+					</ul>
+					<h3>操作方式</h3>
+					<p>点击棋子选择，再点击目标位置移动。绿色圆圈表示可移动位置，红色圆圈表示可攻击位置。</p>
+					<h3>胜负条件</h3>
+					<p>将死对方的"将"或"帅"即为获胜。如果形成将军局面，对方必须解除将军状态。</p>
+				</article>
+			</el-dialog>
+		</div>
+	</header>
+
+	<article class="game-wrapper , 反叵字形 grid" v-cloak>
+		<header class="toolbar , flex near-center">
+			<section class="setting list area">
+				<el-form inline>
+					<el-form-item label="游戏模式" class="one setting group">
+						<el-radio-group v-model="gameMode">
+							<el-radio-button label="pvp">双人对战</el-radio-button>
+							<el-radio-button label="pvc" disabled>人机对战</el-radio-button>
+						</el-radio-group>
+					</el-form-item>
+				</el-form>
+			</section>
+			<section class="controller list area">
+				<el-button-group>
+					<el-button class="one controller : restart" @click="startNewGame">新游戏</el-button>
+					<el-button class="one controller : undo" @click="undoMove" :disabled="moveHistory.length === 0">悔棋</el-button>
+				</el-button-group>
+			</section>
+			<section class="tool list area">
+				<el-form inline>
+					<el-form-item label="显示提示">
+						<el-switch class="one tool" v-model="showHints"></el-switch>
+					</el-form-item>
+				</el-form>
+			</section>
+		</header>
+
+		<article class="flex items-near-center-x items-near-start-y" style="grid-row:2">
+			<section id="chess-board-container">
+				<div id="chess-board">
+					<!-- 棋盘线条 -->
+					<div class="board-lines">
+						<!-- 横线 -->
+						<div v-for="i in 10" :key="'h'+i" class="horizontal-line" :style="{top: (i-1)*60 + 'px'}"></div>
+											<!-- 竖线（跳过河界） -->
+					<template v-for="i in 9" :key="'v'+i">
+						<div class="vertical-line" :style="{left: (i-1)*60 + 'px', height: '270px', top: '0px'}"></div>
+						<div class="vertical-line" :style="{left: (i-1)*60 + 'px', height: '270px', top: '330px'}"></div>
+					</template>
+
+												<!-- 九宫格对角线 -->
+						<!-- 黑方九宫格（上方） -->
+						<div class="diagonal-line" style="top: 0px; left: 240px; transform: rotate(45deg); height: 85px;"></div>
+						<div class="diagonal-line" style="top: 0px; left: 360px; transform: rotate(-45deg); height: 85px;"></div>
+						<div class="diagonal-line" style="top: 120px; left: 240px; transform: rotate(-45deg); height: 85px;"></div>
+						<div class="diagonal-line" style="top: 120px; left: 360px; transform: rotate(45deg); height: 85px;"></div>
+
+						<!-- 红方九宫格（下方） -->
+						<div class="diagonal-line" style="top: 420px; left: 240px; transform: rotate(45deg); height: 85px;"></div>
+						<div class="diagonal-line" style="top: 420px; left: 360px; transform: rotate(-45deg); height: 85px;"></div>
+						<div class="diagonal-line" style="top: 540px; left: 240px; transform: rotate(-45deg); height: 85px;"></div>
+						<div class="diagonal-line" style="top: 540px; left: 360px; transform: rotate(45deg); height: 85px;"></div>
+					</div>
+
+					<!-- 河界 -->
+					<div class="river">
+						<span style="margin-right: 60px;">楚河</span>
+						<span>汉界</span>
+					</div>
+
+					<!-- 棋子 -->
+					<div v-for="piece in allPieces" :key="piece.id"
+						 class="chess-piece"
+						 :class="[piece.color, {selected: selectedPiece && selectedPiece.id === piece.id, 'can-move': canMovePieces.includes(piece.id)}]"
+						 :style="getPieceStyle(piece)"
+						 @click="selectPiece(piece)">
+						{{ piece.name }}
+					</div>
+
+					<!-- 移动提示 -->
+					<div v-if="showHints && selectedPiece"
+						 v-for="hint in moveHints" :key="'hint'+hint.x+'-'+hint.y"
+						 :class="hint.isAttack ? 'attack-hint' : 'move-hint'"
+						 :style="getHintStyle(hint)"
+						 @click="movePiece(hint.x, hint.y)">
+					</div>
+				</div>
+
+				<div class="game-status" :class="currentPlayer === 'red' ? 'red-turn' : 'black-turn'">
+					{{ gameStatus }}
+				</div>
+			</section>
+		</article>
+
+		<article class="gaming-situation , right-sidebar">
+			<el-card header="游戏状态" class="game-info section">
+				<div class="flex items-unfamiliar">
+					<section>
+						<h3>当前回合</h3>
+						<p>{{ currentPlayer === 'red' ? '红方' : '黑方' }}</p>
+					</section>
+					<section>
+						<h3>回合数</h3>
+						<p>{{ Math.floor(moveHistory.length / 2) + 1 }}</p>
+					</section>
+				</div>
+			</el-card>
+
+			<el-card header="走棋记录" class="chess-record section">
+				<div class="chess-record">
+					<div v-for="(move, index) in moveHistory" :key="index" class="move-item">
+						{{ formatMove(move, index) }}
+					</div>
+				</div>
+			</el-card>
+
+			<el-card header="操作说明" class="help section">
+				<p>• 点击棋子选择</p>
+				<p>• 绿圈：可移动位置</p>
+				<p>• 红圈：可攻击位置</p>
+				<p>• 点击目标位置移动</p>
+			</el-card>
+		</article>
+	</article>
+</main>
+
+<aside class="right-sidebar">
+	<article class="website info">
+		<section class="patronage area">
+			<img class="qr-code" src="../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+			<p class="slogan">赞助一下</p>
+		</section>
+		<section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
+		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+		</section>
+	</article>
+</aside>
+
+<div class="js container">
+	<script src="../lib/jquery-3.4.1.min.js"></script>
+	<script src="../lib/toastr.min.js"></script>
+	<script src="../resources/util.js"></script>
+	<script src="../lib/vue/3.5.18/vue.global.js"></script>
+	<script src="../lib/element-plus/2.10.7/index.full.js"></script>
+	<script src="../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
+</div>
+<script>
+	const {createApp} = Vue;
+
+	// 初始棋盘布局（红方在下）
+	const initialBoard = {
+		red: [
+			// 第一排（红方在下方）
+			{id: 'r1', type: 'rook', name: '车', x: 0, y: 9},
+			{id: 'h1', type: 'horse', name: '马', x: 1, y: 9},
+			{id: 'e1', type: 'elephant', name: '相', x: 2, y: 9},
+			{id: 'a1', type: 'advisor', name: '仕', x: 3, y: 9},
+			{id: 'k1', type: 'king', name: '帅', x: 4, y: 9},
+			{id: 'a2', type: 'advisor', name: '仕', x: 5, y: 9},
+			{id: 'e2', type: 'elephant', name: '相', x: 6, y: 9},
+			{id: 'h2', type: 'horse', name: '马', x: 7, y: 9},
+			{id: 'r2', type: 'rook', name: '车', x: 8, y: 9},
+			// 炮
+			{id: 'c1', type: 'cannon', name: '炮', x: 1, y: 7},
+			{id: 'c2', type: 'cannon', name: '炮', x: 7, y: 7},
+			// 兵
+			{id: 'p1', type: 'pawn', name: '兵', x: 0, y: 6},
+			{id: 'p2', type: 'pawn', name: '兵', x: 2, y: 6},
+			{id: 'p3', type: 'pawn', name: '兵', x: 4, y: 6},
+			{id: 'p4', type: 'pawn', name: '兵', x: 6, y: 6},
+			{id: 'p5', type: 'pawn', name: '兵', x: 8, y: 6}
+		],
+		black: [
+			// 第一排（黑方在上方）
+			{id: 'R1', type: 'rook', name: '车', x: 0, y: 0},
+			{id: 'H1', type: 'horse', name: '马', x: 1, y: 0},
+			{id: 'E1', type: 'elephant', name: '象', x: 2, y: 0},
+			{id: 'A1', type: 'advisor', name: '士', x: 3, y: 0},
+			{id: 'K1', type: 'king', name: '将', x: 4, y: 0},
+			{id: 'A2', type: 'advisor', name: '士', x: 5, y: 0},
+			{id: 'E2', type: 'elephant', name: '象', x: 6, y: 0},
+			{id: 'H2', type: 'horse', name: '马', x: 7, y: 0},
+			{id: 'R2', type: 'rook', name: '车', x: 8, y: 0},
+			// 炮
+			{id: 'C1', type: 'cannon', name: '炮', x: 1, y: 2},
+			{id: 'C2', type: 'cannon', name: '炮', x: 7, y: 2},
+			// 卒
+			{id: 'P1', type: 'pawn', name: '卒', x: 0, y: 3},
+			{id: 'P2', type: 'pawn', name: '卒', x: 2, y: 3},
+			{id: 'P3', type: 'pawn', name: '卒', x: 4, y: 3},
+			{id: 'P4', type: 'pawn', name: '卒', x: 6, y: 3},
+			{id: 'P5', type: 'pawn', name: '卒', x: 8, y: 3}
+		]
+	};
+
+	const app = createApp({
+		data() {
+			return {
+				gameMode: 'pvp',
+				currentPlayer: 'red',
+				selectedPiece: null,
+				showHints: true,
+				isGameOver: false,
+				winner: null,
+				moveHistory: [],
+				canMovePieces: [],
+				redPieces: JSON.parse(JSON.stringify(initialBoard.red)),
+				blackPieces: JSON.parse(JSON.stringify(initialBoard.black))
+			};
+		},
+		computed: {
+			allPieces() {
+				return [
+					...this.redPieces.map(p => ({...p, color: 'red'})),
+					...this.blackPieces.map(p => ({...p, color: 'black'}))
+				];
+			},
+			gameStatus() {
+				if (this.isGameOver) {
+					return this.winner === 'red' ? '红方胜利！' : '黑方胜利！';
+				}
+				return this.currentPlayer === 'red' ? '红方回合' : '黑方回合';
+			},
+			moveHints() {
+				if (!this.selectedPiece) return [];
+				return this.getValidMoves(this.selectedPiece);
+			}
+		},
+		methods: {
+			// 获取棋子样式
+			getPieceStyle(piece) {
+				return {
+					left: piece.x * 60 + 5 + 'px',
+					top: piece.y * 60 + 5 + 'px'
+				};
+			},
+			// 获取提示样式
+			getHintStyle(hint) {
+				return {
+					left: hint.x * 60 + 30 + 'px',
+					top: hint.y * 60 + 30 + 'px'
+				};
+			},
+			// 选择棋子
+			selectPiece(piece) {
+				if (this.isGameOver) return;
+
+				// 如果点击的是对方棋子且当前有选中棋子，尝试攻击
+				if (this.selectedPiece && piece.color !== this.currentPlayer) {
+					const validMoves = this.getValidMoves(this.selectedPiece);
+					const targetMove = validMoves.find(m => m.x === piece.x && m.y === piece.y && m.isAttack);
+					if (targetMove) {
+						this.movePiece(piece.x, piece.y);
+						return;
+					}
+				}
+
+				// 只能选择当前玩家的棋子
+				if (piece.color !== this.currentPlayer) {
+					return;
+				}
+
+				// 选择或取消选择棋子
+				this.selectedPiece = this.selectedPiece?.id === piece.id ? null : piece;
+			},
+						// 移动棋子
+			movePiece(targetX, targetY) {
+				if (!this.selectedPiece) return;
+
+				const validMoves = this.getValidMoves(this.selectedPiece);
+				const targetMove = validMoves.find(m => m.x === targetX && m.y === targetY);
+
+				if (!targetMove) return;
+
+				// 记录移动
+				const moveRecord = {
+					from: {x: this.selectedPiece.x, y: this.selectedPiece.y},
+					to: {x: targetX, y: targetY},
+					piece: JSON.parse(JSON.stringify(this.selectedPiece)),
+					capturedPiece: null,
+					player: this.currentPlayer
+				};
+
+				// 检查是否吃子
+				if (targetMove.isAttack) {
+					const targetPieces = this.currentPlayer === 'red' ? this.blackPieces : this.redPieces;
+					const capturedIndex = targetPieces.findIndex(p => p.x === targetX && p.y === targetY);
+					if (capturedIndex !== -1) {
+						moveRecord.capturedPiece = JSON.parse(JSON.stringify(targetPieces[capturedIndex]));
+						targetPieces.splice(capturedIndex, 1);
+					}
+				}
+
+				// 移动棋子
+				this.selectedPiece.x = targetX;
+				this.selectedPiece.y = targetY;
+
+				// 添加到历史记录
+				this.moveHistory.push(moveRecord);
+
+				// 检查游戏结束
+				this.checkGameOver();
+
+				// 切换玩家
+				if (!this.isGameOver) {
+					this.currentPlayer = this.currentPlayer === 'red' ? 'black' : 'red';
+				}
+
+				// 取消选择
+				this.selectedPiece = null;
+			},
+			// 获取有效移动
+			getValidMoves(piece) {
+				const moves = [];
+				const {x, y, type, color} = piece;
+
+								switch (type) {
+					case 'king':
+						// 帅/将：只能在九宫格内移动
+						for (let dx = -1; dx <= 1; dx++) {
+							for (let dy = -1; dy <= 1; dy++) {
+								if (dx === 0 && dy === 0) continue;
+								if (Math.abs(dx) + Math.abs(dy) !== 1) continue; // 只能横竖移动
+
+								const newX = x + dx;
+								const newY = y + dy;
+
+								// 检查是否在九宫格内（红方在下方7-9行，黑方在上方0-2行）
+								if (color === 'red') {
+									if (newX >= 3 && newX <= 5 && newY >= 7 && newY <= 9) {
+										this.addMoveIfValid(moves, piece, newX, newY);
+									}
+								} else {
+									if (newX >= 3 && newX <= 5 && newY >= 0 && newY <= 2) {
+										this.addMoveIfValid(moves, piece, newX, newY);
+									}
+								}
+							}
+						}
+						break;
+
+										case 'advisor':
+						// 士/仕：只能在九宫格内斜走
+						for (let dx = -1; dx <= 1; dx += 2) {
+							for (let dy = -1; dy <= 1; dy += 2) {
+								const newX = x + dx;
+								const newY = y + dy;
+
+								// 检查是否在九宫格内（红方在下方7-9行，黑方在上方0-2行）
+								if (color === 'red') {
+									if (newX >= 3 && newX <= 5 && newY >= 7 && newY <= 9) {
+										this.addMoveIfValid(moves, piece, newX, newY);
+									}
+								} else {
+									if (newX >= 3 && newX <= 5 && newY >= 0 && newY <= 2) {
+										this.addMoveIfValid(moves, piece, newX, newY);
+									}
+								}
+							}
+						}
+						break;
+
+										case 'elephant':
+						// 象/相：斜走两格，不能过河
+						for (let dx = -2; dx <= 2; dx += 4) {
+							for (let dy = -2; dy <= 2; dy += 4) {
+								const newX = x + dx;
+								const newY = y + dy;
+
+								// 检查是否过河（红方在下方不能过4行，黑方在上方不能过5行）
+								if (color === 'red' && newY < 5) continue;
+								if (color === 'black' && newY > 4) continue;
+
+								// 检查象眼
+								const eyeX = x + dx / 2;
+								const eyeY = y + dy / 2;
+								if (this.isPieceAt(eyeX, eyeY)) continue;
+
+								if (newX >= 0 && newX <= 8 && newY >= 0 && newY <= 9) {
+									this.addMoveIfValid(moves, piece, newX, newY);
+								}
+							}
+						}
+						break;
+
+					case 'horse':
+						// 马：走日字
+						const horseMoves = [
+							{dx: 2, dy: 1, legX: 1, legY: 0},
+							{dx: 2, dy: -1, legX: 1, legY: 0},
+							{dx: -2, dy: 1, legX: -1, legY: 0},
+							{dx: -2, dy: -1, legX: -1, legY: 0},
+							{dx: 1, dy: 2, legX: 0, legY: 1},
+							{dx: -1, dy: 2, legX: 0, legY: 1},
+							{dx: 1, dy: -2, legX: 0, legY: -1},
+							{dx: -1, dy: -2, legX: 0, legY: -1}
+						];
+
+						for (let move of horseMoves) {
+							const newX = x + move.dx;
+							const newY = y + move.dy;
+							const legX = x + move.legX;
+							const legY = y + move.legY;
+
+							// 检查马腿
+							if (this.isPieceAt(legX, legY)) continue;
+
+							if (newX >= 0 && newX <= 8 && newY >= 0 && newY <= 9) {
+								this.addMoveIfValid(moves, piece, newX, newY);
+							}
+						}
+						break;
+
+					case 'rook':
+						// 车：横竖直走
+						for (let direction of [{dx: 1, dy: 0}, {dx: -1, dy: 0}, {dx: 0, dy: 1}, {dx: 0, dy: -1}]) {
+							for (let i = 1; i <= 9; i++) {
+								const newX = x + direction.dx * i;
+								const newY = y + direction.dy * i;
+
+								if (newX < 0 || newX > 8 || newY < 0 || newY > 9) break;
+
+								const pieceAt = this.isPieceAt(newX, newY);
+								if (pieceAt) {
+									if (pieceAt.color !== color) {
+										moves.push({x: newX, y: newY, isAttack: true});
+									}
+									break;
+								} else {
+									moves.push({x: newX, y: newY, isAttack: false});
+								}
+							}
+						}
+						break;
+
+					case 'cannon':
+						// 炮：直走，攻击时需隔一子
+						for (let direction of [{dx: 1, dy: 0}, {dx: -1, dy: 0}, {dx: 0, dy: 1}, {dx: 0, dy: -1}]) {
+							let hasJumped = false;
+							for (let i = 1; i <= 9; i++) {
+								const newX = x + direction.dx * i;
+								const newY = y + direction.dy * i;
+
+								if (newX < 0 || newX > 8 || newY < 0 || newY > 9) break;
+
+								const pieceAt = this.isPieceAt(newX, newY);
+								if (pieceAt) {
+									if (!hasJumped) {
+										hasJumped = true;
+									} else {
+										if (pieceAt.color !== color) {
+											moves.push({x: newX, y: newY, isAttack: true});
+										}
+										break;
+									}
+								} else {
+									if (!hasJumped) {
+										moves.push({x: newX, y: newY, isAttack: false});
+									}
+								}
+							}
+						}
+						break;
+
+										case 'pawn':
+						// 兵/卒（红方在下向上走，黑方在上向下走）
+						const forward = color === 'red' ? -1 : 1;
+						const hasRiver = color === 'red' ? y < 5 : y > 4;
+
+						// 向前
+						const frontY = y + forward;
+						if (frontY >= 0 && frontY <= 9) {
+							this.addMoveIfValid(moves, piece, x, frontY);
+						}
+
+						// 过河后可以左右
+						if (hasRiver) {
+							if (x > 0) this.addMoveIfValid(moves, piece, x - 1, y);
+							if (x < 8) this.addMoveIfValid(moves, piece, x + 1, y);
+						}
+						break;
+				}
+
+				return moves;
+			},
+			// 添加有效移动
+			addMoveIfValid(moves, piece, x, y) {
+				const targetPiece = this.isPieceAt(x, y);
+				if (targetPiece) {
+					if (targetPiece.color !== piece.color) {
+						moves.push({x, y, isAttack: true});
+					}
+				} else {
+					moves.push({x, y, isAttack: false});
+				}
+			},
+			// 检查位置是否有棋子
+			isPieceAt(x, y) {
+				return this.allPieces.find(p => p.x === x && p.y === y);
+			},
+			// 检查游戏结束
+			checkGameOver() {
+				// 检查是否有将/帅被吃
+				const redKing = this.redPieces.find(p => p.type === 'king');
+				const blackKing = this.blackPieces.find(p => p.type === 'king');
+
+				if (!redKing) {
+					this.isGameOver = true;
+					this.winner = 'black';
+				} else if (!blackKing) {
+					this.isGameOver = true;
+					this.winner = 'red';
+				}
+			},
+						// 悔棋
+			undoMove() {
+				if (this.moveHistory.length === 0) return;
+
+				const lastMove = this.moveHistory.pop();
+
+				// 找到当前棋子并恢复位置
+				const currentPieces = lastMove.player === 'red' ? this.redPieces : this.blackPieces;
+				const movingPiece = currentPieces.find(p => p.id === lastMove.piece.id);
+				if (movingPiece) {
+					movingPiece.x = lastMove.from.x;
+					movingPiece.y = lastMove.from.y;
+				}
+
+				// 恢复被吃的棋子
+				if (lastMove.capturedPiece) {
+					const targetPieces = lastMove.player === 'red' ? this.blackPieces : this.redPieces;
+					targetPieces.push(lastMove.capturedPiece);
+				}
+
+				// 切换回上一个玩家
+				this.currentPlayer = lastMove.player;
+				this.isGameOver = false;
+				this.winner = null;
+				this.selectedPiece = null;
+			},
+			// 开始新游戏
+			startNewGame() {
+				this.redPieces = JSON.parse(JSON.stringify(initialBoard.red));
+				this.blackPieces = JSON.parse(JSON.stringify(initialBoard.black));
+				this.currentPlayer = 'red';
+				this.selectedPiece = null;
+				this.isGameOver = false;
+				this.winner = null;
+				this.moveHistory = [];
+			},
+			// 格式化移动记录
+			formatMove(move, index) {
+				const moveNum = Math.floor(index / 2) + 1;
+				const player = move.player === 'red' ? '红' : '黑';
+				const fromPos = this.posToChineseNotation(move.from.x, move.from.y);
+				const toPos = this.posToChineseNotation(move.to.x, move.to.y);
+				return `${moveNum}.${index % 2 === 0 ? '' : '...'} ${player}${move.piece.name}${fromPos}→${toPos}`;
+			},
+			// 位置转中文记谱
+			posToChineseNotation(x, y) {
+				const files = ['一', '二', '三', '四', '五', '六', '七', '八', '九'];
+				const ranks = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
+				return files[x] + ranks[y];
+			}
+		},
+		mounted() {
+			this.startNewGame();
+		}
+	});
+
+	app.use(ElementPlus);
+	for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+		app.component(key, component);
+	}
+	app.mount('main>article');
+
+	const help = createApp({
+		data() {
+			return {
+				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname)
+			};
+		},
+		watch: {
+			introVisible(newValue) {
+				const storageKey = 'intro-hidden-' + window.location.pathname;
+				if (!newValue) {
+					localStorage.setItem(storageKey, 'true');
+				} else {
+					localStorage.removeItem(storageKey);
+				}
+			}
+		}
+	})
+	.use(ElementPlus)
+	.mount('.help.area');
+</script>
+
+<div>
+	<!-- 谷歌广告联盟 -->
+	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"
+					crossorigin="anonymous"></script>
+	<!-- 展示广告1 -->
+	<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true"
+			 data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
+	<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
+</body>
+</html>

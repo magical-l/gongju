@@ -6,7 +6,7 @@
     "damage": 1,
     "range": 120,
     "fireRate": 500,
-    "icon": "T",
+    "icon": "◉",
     "color": "#E6A23C",
     "bulletSpeed": 12
   },
@@ -17,7 +17,7 @@
     "damage": 5,
     "range": 200,
     "fireRate": 1500,
-    "icon": "S",
+    "icon": "\uD83D\uDDE1",
     "color": "#409EFF",
     "bulletSpeed": 20
   }
