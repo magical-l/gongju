@@ -302,6 +302,7 @@
 <div class="js container">
 	<script src="../../lib/vue/3.5.18/vue.global.js"></script>
 	<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
+	<script src="aimer.js"></script>
 </div>
 <script>
 	//可摧毁的
@@ -370,7 +371,7 @@
 	}
 
 	class Tower {
-		constructor(config, x, y) {
+		constructor(config, x, y, aimerType = 'earliest') {
 			this.id = Date.now() + Math.random();
 			this.x = x;
 			this.y = y;
@@ -382,6 +383,10 @@
 			this.icon = config.icon;
 			this.bulletSpeed = config.bulletSpeed;
 			this.fireCountdown = 0;
+
+			// 瞄准器系统
+			this.aimerType = aimerType;
+			this.aimer = AimerFactory.create(aimerType);
 		}
 
 		update(deltaTime, enemies, obstacles, bullets, lockedTargetId) {
@@ -403,28 +408,19 @@
 		}
 
 		findTarget(enemies, obstacles, lockedTargetId) {
-			// 1. Prioritize locked target
+			// 1. 优先攻击锁定目标
 			if (lockedTargetId) {
 				const lockedTarget = [...enemies, ...obstacles].find(t => t.id === lockedTargetId);
 				if (lockedTarget) {
 					const distance = Math.sqrt((lockedTarget.x - this.x) ** 2 + (lockedTarget.y - this.y) ** 2);
 					if (distance < this.range) {
-						return lockedTarget; // Return locked target if it's in range
+						return lockedTarget; // 如果锁定目标在范围内，优先攻击
 					}
 				}
 			}
 
-			// 2. Default behavior: find closest enemy (never auto-target obstacles)
-			let closestEnemy = null;
-			let minDistance = this.range;
-			for (const enemy of enemies) {
-				const distance = Math.sqrt((enemy.x - this.x) ** 2 + (enemy.y - this.y) ** 2);
-				if (distance < minDistance) {
-					minDistance = distance;
-					closestEnemy = enemy;
-				}
-			}
-			return closestEnemy;
+			// 2. 使用瞄准器系统选择目标（只自动瞄准敌人，不瞄准障碍物）
+			return this.aimer.aim(enemies, obstacles, this.range, this.x, this.y);
 		}
 	}
 
@@ -465,6 +461,9 @@
 					y: 0,
 					cell: null
 				},
+
+				// 瞄准器相关
+				globalAimerType: 'earliest', // 全局默认瞄准器类型
 
 				// Entities
 				enemies: [],
@@ -812,7 +811,8 @@
 				if (!cell || !towerConfig || this.coins < towerConfig.cost) {
 					return;
 				}
-				this.towers.push(new Tower(towerConfig, cell.x, cell.y));
+				// 使用当前全局瞄准器类型创建塔
+				this.towers.push(new Tower(towerConfig, cell.x, cell.y, this.globalAimerType));
 				cell.hasTower = true;
 				this.coins -= towerConfig.cost;
 				this.placementPopup.visible = false;
