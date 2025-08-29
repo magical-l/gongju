@@ -113,7 +113,7 @@ const errorNotice = (notice, cb) => {
 })();
 
 // 塔防游戏工具函数
-const ImgUtils = {
+export const ImgUtils = {
 	// 判断是否为图片URL或base64
 	isImageUrl(image) {
 		return image && (

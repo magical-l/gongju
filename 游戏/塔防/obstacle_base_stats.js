@@ -1,4 +1,4 @@
-const obstacleBaseStats = [
+export const obstacleBaseStats = [
 	{id: "普通1x1", width: 1, height: 1, health: 20, reward: 50},
 	{id: "普通1x2", width: 1, height: 2, health: 50, reward: 100},
 	{id: "普通2x1", width: 2, height: 1, health: 50, reward: 100},

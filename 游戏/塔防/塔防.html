@@ -79,7 +79,14 @@
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			overflow: hidden;
+		}
+
+		.enemy-visual {
+			width: 100%;
+			height: 100%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
 			transition: transform 0.1s linear;
 		}
 
@@ -264,7 +271,7 @@
 						<div class="health-fill" :style="{width: (obstacle.health/obstacle.maxHealth)*100 + '%'}"></div>
 					</div>
 				</div>
-								<!-- 敌人 -->
+				<!-- 敌人 -->
 				<div v-for="enemy in enemies" :key="'enemy-'+enemy.id" class="enemy"
 					 :class="{'locked-on': enemy.id === lockedTargetId}"
 					 :style="{
@@ -273,19 +280,20 @@
 						width: `${enemySize}px`,
 						height: `${enemySize}px`,
 						fontSize: `${Math.floor(enemySize * 0.83)}px`,
-						backgroundColor: enemy.image ? 'transparent' : enemy.color,
-						transform: shouldFlipEnemy(enemy) ? 'scaleX(-1)' : 'scaleX(1)'
+						backgroundColor: enemy.image ? 'transparent' : enemy.color
 					 }"
 					 @click.stop="toggleLockOnTarget(enemy)">
-					<!-- 显示图片 -->
-					<template v-if="enemy.image">
-						<!-- URL 或 base64 图片 -->
-						<img v-if="isImageUrl(enemy.image)" :src="enemy.image" class="enemy-image" />
-						<!-- SVG 代码 -->
-						<div v-else-if="isSvg(enemy.image)" v-html="enemy.image" style="width: 100%; height: 100%;"></div>
-						<!-- emoji 或 unicode 字符 -->
-						<span v-else>{{ enemy.image }}</span>
-					</template>
+					<div class="enemy-visual" :style="{transform: shouldFlipEnemy(enemy) ? 'scaleX(-1)' : 'scaleX(1)'}">
+						<!-- 显示图片 -->
+						<template v-if="enemy.image">
+							<!-- URL 或 base64 图片 -->
+							<img v-if="isImageUrl(enemy.image)" :src="enemy.image" class="enemy-image" />
+							<!-- SVG 代码 -->
+							<div v-else-if="isSvg(enemy.image)" v-html="enemy.image" style="width: 100%; height: 100%;"></div>
+							<!-- emoji 或 unicode 字符 -->
+							<span v-else>{{ enemy.image }}</span>
+						</template>
+					</div>
 					<div class="health-bar">
 						<div class="health-fill" :style="{width: (enemy.health/enemy.maxHealth)*100 + '%'}"></div>
 					</div>
@@ -331,7 +339,7 @@
 		</aside>
 
 		<el-dialog v-model="showGameOverDialog" :title="gameWon ? '恭喜通关! 🎉' : '游戏结束 😢'" width="30%" center
-							 :show-close="false" :close-on-click-modal="false" :close-on-press-escape="false">
+					 :show-close="false" :close-on-click-modal="false" :close-on-press-escape="false">
 			<span>{{ gameWon ? '你成功保卫了萝卜！' : '萝卜被吃掉了，再试一次吧！' }}</span>
 			<template #footer>
 				<el-button type="primary" @click="restartGame">重新开始</el-button>
@@ -343,154 +351,14 @@
 <div class="js container">
 	<script src="../../lib/vue/3.5.18/vue.global.js"></script>
 	<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
-	<script src="../../resources/util.js"></script>
-	<script src="aimer.js"></script>
-	<script src="obstacle_base_stats.js"></script>
-	<script src="enemy_base_stats.js"></script>
 </div>
-<script>
-	//可摧毁的
-	class Destructible {
-		constructor() {
-		}
-		takeDamage(damage) {
-			this.health -= damage;
-			return this.health <= 0;
-		}
-	}
-
-	class Enemy extends Destructible {
-		constructor(config, path) {
-			super();
-			this.id = Date.now() + Math.random();
-			this.path = path;
-			this.pathIndex = 0;
-			this.x = this.path[0].x;
-			this.y = this.path[0].y;
-
-			this.speed = config.speed;
-			this.health = config.health;
-			this.maxHealth = config.health;
-			this.reward = config.reward;
-			this.color = config.color;
-			this.image = config.image || null;
-			this.facing = config.facing || 'right'; // 图形默认朝向
-			this.direction = 'right'; // 当前移动方向
-		}
-
-		update(deltaTime) {
-			if (this.pathIndex >= this.path.length - 1) {
-				return {reachedEnd: true};
-			}
-
-			const target = this.path[this.pathIndex + 1];
-			const dx = target.x - this.x;
-			const dy = target.y - this.y;
-			const distance = Math.sqrt(dx * dx + dy * dy);
-			const moveDistance = this.speed * (deltaTime / 16);
-
-			// 根据移动方向设置朝向
-			if (Math.abs(dx) > Math.abs(dy)) { // 主要是水平移动
-				this.direction = dx < 0 ? 'left' : 'right';
-			}
-
-			if (distance < moveDistance) {
-				this.x = target.x;
-				this.y = target.y;
-				this.pathIndex++;
-			} else {
-				this.x += (dx / distance) * moveDistance;
-				this.y += (dy / distance) * moveDistance;
-			}
-			return {reachedEnd: false};
-		}
-	}
-
-	class Obstacle extends Destructible {
-		constructor(config, cellSize) {
-			super();
-			this.id = config.id;
-			this.gridX = config.gridX;
-			this.gridY = config.gridY;
-			this.x = this.gridX * cellSize + cellSize / 2;
-			this.y = this.gridY * cellSize + cellSize / 2;
-			this.health = config.health;
-			this.maxHealth = config.health;
-			this.reward = config.reward;
-			this.color = config.color;
-			this.icon = config.icon;
-		}
-	}
-
-	class Tower {
-		constructor(config, x, y, aimerType = 'earliest', cellSize = 50) {
-			this.id = Date.now() + Math.random();
-			this.x = x;
-			this.y = y;
-			this.cellSize = cellSize;
-
-			// 如果配置中有rangeInCells，则使用它；否则将像素range转换为格子数
-			if (config.rangeInCells) {
-				this.rangeInCells = config.rangeInCells;
-				this.range = config.rangeInCells * cellSize;
-			} else {
-				// 兼容旧的像素range，转换为格子数
-				this.range = config.range;
-				this.rangeInCells = Math.round(config.range / cellSize);
-			}
-
-			this.damage = config.damage;
-			this.fireRate = config.fireRate;
-			this.color = config.color;
-			this.icon = config.icon;
-			this.bulletSpeed = config.bulletSpeed;
-			this.fireCountdown = 0;
-
-			// 瞄准器系统
-			this.aimerType = aimerType;
-			this.aimer = AimerFactory.create(aimerType);
-		}
-
-		// 更新范围以适应新的缩放
-		updateRange(cellSize) {
-			this.cellSize = cellSize;
-			this.range = this.rangeInCells * cellSize;
-		}
-
-		update(deltaTime, enemies, obstacles, bullets, lockedTargetId) {
-			this.fireCountdown -= deltaTime;
-			if (this.fireCountdown <= 0) {
-				const target = this.findTarget(enemies, obstacles, lockedTargetId);
-				if (target) {
-					bullets.push({
-						id: Date.now() + Math.random(),
-						x: this.x,
-						y: this.y,
-						target: target,
-						speed: this.bulletSpeed,
-						damage: this.damage
-					});
-					this.fireCountdown = this.fireRate;
-				}
-			}
-		}
-
-		findTarget(enemies, obstacles, lockedTargetId) {
-			// 1. 优先攻击锁定目标
-			if (lockedTargetId) {
-				const lockedTarget = [...enemies, ...obstacles].find(t => t.id === lockedTargetId);
-				if (lockedTarget) {
-					const distance = Math.sqrt((lockedTarget.x - this.x) ** 2 + (lockedTarget.y - this.y) ** 2);
-					if (distance < this.range) {
-						return lockedTarget; // 如果锁定目标在范围内，优先攻击
-					}
-				}
-			}
-
-			// 2. 使用瞄准器系统选择目标（只自动瞄准敌人，不瞄准障碍物）
-			return this.aimer.aim(enemies, obstacles, this.range, this.x, this.y);
-		}
-	}
+<script type="module">
+	import { ImgUtils } from '../../resources/util.js';
+	import { obstacleBaseStats } from './obstacle_base_stats.js';
+	import { enemyBaseStats } from './enemy_base_stats.js';
+	import { Enemy } from './Enemy.js';
+	import { Obstacle } from './Obstacle.js';
+	import { Tower } from './/Tower.js';
 
 	const {createApp, reactive} = Vue;
 	const app = createApp({
@@ -617,14 +485,9 @@
 					tower = this.hoveredTowerTypeForRangePreview;
 					x = this.placementPopup.cell.x;
 					y = this.placementPopup.cell.y;
-					// 计算预览塔的范围
-					if (tower.rangeInCells) {
-						range = tower.rangeInCells * this.cellSize;
-					} else {
-						// 兼容旧的像素range，转换为格子数再转回像素
-						const rangeInCells = Math.round(tower.range / 40); // 基于基础40px格子计算
-						range = rangeInCells * this.cellSize;
-					}
+					// 修复：确保预览范围和实际范围计算逻辑一致
+					let rangeInCells = tower.rangeInCells || (tower.range / this.scale.baseCellSize);
+					range = rangeInCells * this.cellSize;
 				} else {
 					return {display: 'none'};
 				}
@@ -916,8 +779,8 @@
 				if (!cell || !towerConfig || this.coins < towerConfig.cost) {
 					return;
 				}
-				// 使用当前全局瞄准器类型创建塔，传入当前cellSize
-				const tower = new Tower(towerConfig, cell.x, cell.y, this.globalAimerType, this.cellSize);
+				// 修复：传入baseCellSize以确保范围计算正确
+				const tower = new Tower(towerConfig, cell.x, cell.y, this.globalAimerType, this.cellSize, this.scale.baseCellSize);
 				this.towers.push(tower);
 				cell.hasTower = true;
 				this.coins -= towerConfig.cost;
