@@ -52,6 +52,12 @@
 
 		.cell {
 			border: 1px solid rgba(0, 0, 0, 0.05);
+			box-sizing: border-box; /* Ensure border is inside */
+		}
+
+		.cell.selected-for-placement {
+			border: 2px solid #67C23A;
+			background-color: rgba(103, 194, 58, 0.2);
 		}
 
 		.path-cell {
@@ -94,7 +100,6 @@
 			height: 100%;
 			background: #67C23A;
 			width: 100%;
-			transition: width 0.2s;
 		}
 
 		.tower {
@@ -123,8 +128,8 @@
 
 		.range-indicator {
 			position: absolute;
-			background: rgba(44, 62, 80, 0.2);
-			border: 2px dashed rgba(44, 62, 80, 0.5);
+			background: rgba(44, 62, 80, 0.15);
+			border: 2px dashed rgba(44, 62, 80, 0.4);
 			border-radius: 50%;
 			z-index: 3; /* Below towers */
 			pointer-events: none; /* So it doesn't interfere with clicks */
@@ -134,13 +139,12 @@
 			position: absolute;
 			display: flex;
 			gap: 8px;
-			background: rgba(255, 255, 255, 0.9);
+			background: rgba(255, 255, 255, 0.75);
 			border-radius: 8px;
 			padding: 8px;
 			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 			z-index: 20;
-			/* To center it on the cursor */
-			transform: translate(-50%, -50%);
+			transform: translate(-50%, 25px); /* Position below the cell center */
 			pointer-events: auto;
 		}
 
@@ -149,6 +153,15 @@
 			flex-direction: column;
 			align-items: center;
 			cursor: pointer;
+			flex-shrink: 0; /* Prevent wrapping issue */
+		}
+
+		.popup-tower-type.insufficient-funds {
+			filter: grayscale(80%);
+		}
+
+		.popup-tower-type.insufficient-funds .popup-tower-cost {
+			color: #F56C6C;
 		}
 
 		.popup-tower-icon {
@@ -164,7 +177,7 @@
 			transition: transform 0.2s;
 		}
 
-		.popup-tower-type:hover .popup-tower-icon {
+		.popup-tower-type:not(.insufficient-funds):hover .popup-tower-icon {
 			transform: scale(1.1);
 		}
 
@@ -172,6 +185,8 @@
 			font-size: 0.8rem;
 			font-weight: bold;
 			margin-top: 4px;
+			color: #67C23A;
+			white-space: nowrap; /* Prevent wrapping */
 		}
 	</style>
 </head>
@@ -206,7 +221,7 @@
 			<div class="game-container" @click="handleGameClick">
 				<!-- Grid for visuals and placement -->
 				<div v-for="(cell, index) in gridCells" :key="index"
-					 :class="['cell', {'path-cell': cell.isPath}]"></div>
+					 :class="['cell', {'path-cell': cell.isPath, 'selected-for-placement': placementPopup.visible && placementPopup.cell === cell}]"></div>
 
 				<!-- Range Indicator -->
 				<div v-if="rangeIndicatorStyle.display === 'block'" class="range-indicator" :style="rangeIndicatorStyle"></div>
@@ -236,6 +251,7 @@
 					 :style="{ left: `${placementPopup.x}px`, top: `${placementPopup.y}px` }"
 					 @mouseleave="hideRangePreview">
 					<div v-for="(towerType, id) in towerTypes" :key="id" class="popup-tower-type"
+						 :class="{'insufficient-funds': coins < towerType.cost}"
 						 @click.stop="placeTowerFromPopup(id)"
 						 @mouseover="showRangePreview(towerType)">
 						<div class="popup-tower-icon" :style="{ backgroundColor: towerType.color }">{{ towerType.icon }}</div>
@@ -323,6 +339,7 @@
 			this.fireRate = config.fireRate;
 			this.color = config.color;
 			this.icon = config.icon;
+			this.bulletSpeed = config.bulletSpeed;
 			this.fireCountdown = 0;
 		}
 
@@ -336,7 +353,7 @@
 						x: this.x,
 						y: this.y,
 						target: target,
-						speed: 8,
+						speed: this.bulletSpeed,
 						damage: this.damage
 					});
 					this.fireCountdown = this.fireRate;
@@ -573,14 +590,16 @@
 				// Update Bullets
 				for (let i = this.bullets.length - 1; i >= 0; i--) {
 					const bullet = this.bullets[i];
-					if (!this.enemies.includes(bullet.target)) {
+					// If target is already dead, remove the bullet.
+					if (bullet.target.health <= 0) {
 						this.bullets.splice(i, 1);
 						continue;
 					}
 					const dx = bullet.target.x - bullet.x, dy = bullet.target.y - bullet.y;
 					const dist = Math.sqrt(dx * dx + dy * dy);
 					if (dist < bullet.speed) {
-						if (bullet.target.takeDamage(bullet.damage)) {
+						const isDead = bullet.target.takeDamage(bullet.damage);
+						if (isDead) {
 							this.coins += bullet.target.reward;
 							const index = this.enemies.findIndex(e => e.id === bullet.target.id);
 							if (index > -1) this.enemies.splice(index, 1);
@@ -669,13 +688,14 @@
 				const towerConfig = this.towerTypes[towerTypeId];
 				const cell = this.placementPopup.cell;
 
-				if (!cell || cell.isPath || cell.hasTower || !towerConfig || this.coins < towerConfig.cost) {
+				if (!cell || !towerConfig || this.coins < towerConfig.cost) {
 					return;
 				}
 				this.towers.push(new Tower(towerConfig, cell.x, cell.y));
 				cell.hasTower = true;
 				this.coins -= towerConfig.cost;
 				this.placementPopup.visible = false;
+				this.hideRangePreview();
 			},
 			handleGameClick(e) {
 				// If a tower is selected, clicking anywhere deselects it.
@@ -695,6 +715,7 @@
 				// If clicked on an invalid cell, hide the popup
 				if (!cell || cell.isPath || cell.hasTower) {
 					this.placementPopup.visible = false;
+					this.hideRangePreview();
 					return;
 				}
 
@@ -705,6 +726,7 @@
 				this.placementPopup.visible = true;
 			},
 			selectTower(tower) {
+				this.placementPopup.visible = false; // Hide placement popup when selecting a tower
 				this.selectedTowerId = this.selectedTowerId === tower.id ? null : tower.id;
 			}
 		},
