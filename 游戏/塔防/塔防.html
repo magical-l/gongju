@@ -223,6 +223,13 @@
 									   :value="level.id"></el-option>
 						</el-select>
 					</el-form-item>
+					<el-form-item label="游戏速度">
+						<el-radio-group v-model="gameSpeed">
+							<el-radio-button :label="1">1x</el-radio-button>
+							<el-radio-button :label="2">2x</el-radio-button>
+							<el-radio-button :label="4">4x</el-radio-button>
+						</el-radio-group>
+					</el-form-item>
 				</el-form>
 			</section>
 		</header>
@@ -451,6 +458,7 @@
 				gameWon: false,
 				isPaused: true,
 				lockedTargetId: null,
+				gameSpeed: 2,
 
 				// Tower Selection & Placement
 				selectedTowerId: null, // for inspecting placed towers
@@ -633,15 +641,16 @@
 				}
 			},
 			gameLoop(timestamp) {
-				// If the tab is hidden, immediately pause and stop. This is a more robust check than relying on the event listener alone.
+				// The document.hidden check is a safety net for tab switching.
 				if (document.hidden) {
 					if (!this.isPaused) {
-						this.isPaused = true;
+						this.togglePause(); // Use the canonical pause method
 					}
 					return;
 				}
 
-				if (this.isPaused || this.gameOver || this.gameWon) {
+				// The main loop is now controlled by togglePause, but we still need to stop if the game ends.
+				if (this.gameOver || this.gameWon) {
 					return;
 				}
 
@@ -653,8 +662,9 @@
 					deltaTime = 16;
 				}
 
-				this.update(deltaTime);
+				this.update(deltaTime * (this.gameSpeed / 2));
 
+				// Schedule the next frame. The ID is stored so it can be cancelled.
 				this.gameLoopId = requestAnimationFrame(this.gameLoop);
 			},
 			update(deltaTime) {
