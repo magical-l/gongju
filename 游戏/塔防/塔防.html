@@ -633,12 +633,25 @@
 				}
 			},
 			gameLoop(timestamp) {
+				// If the tab is hidden, immediately pause and stop. This is a more robust check than relying on the event listener alone.
+				if (document.hidden) {
+					if (!this.isPaused) {
+						this.isPaused = true;
+					}
+					return;
+				}
+
 				if (this.isPaused || this.gameOver || this.gameWon) {
 					return;
 				}
 
-				const deltaTime = timestamp - this.lastFrameTime;
+				let deltaTime = timestamp - this.lastFrameTime;
 				this.lastFrameTime = timestamp;
+
+				// Cap deltaTime to prevent massive jumps on tab focus, etc.
+				if (deltaTime > 100) {
+					deltaTime = 16;
+				}
 
 				this.update(deltaTime);
 
@@ -746,13 +759,18 @@
 
 				this.isPaused = !this.isPaused;
 
-				if (!this.isPaused) {
-					// If this is the very first time, start the game
+				if (this.isPaused) {
+					// If we are PAUSING the game, immediately cancel the next scheduled frame.
+					if (this.gameLoopId) {
+						cancelAnimationFrame(this.gameLoopId);
+						this.gameLoopId = null;
+					}
+				} else {
+					// If we are UN-PAUSING, start the loop.
 					if (!this.gameStarted) {
 						this.gameStarted = true;
 						this.prepareWave();
 					}
-					// Always start the loop when un-pausing
 					this.lastFrameTime = performance.now();
 					this.gameLoopId = requestAnimationFrame(this.gameLoop);
 				}
