@@ -24,29 +24,49 @@
 		flex-direction: column;
 		gap: 2rem;
 	}
+
 	.symbol-group .name {
 		font-size: 1.5rem;
-		margin-bottom: 1rem;
 		border-bottom: 1px solid var(--el-border-color-light);
-		padding-bottom: 0.5rem;
 	}
+
 	.symbols {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-		gap: 0.5rem;
+		grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
 	}
+
 	.symbol {
 		display: flex;
+		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-		height: 60px;
-		font-size: 1.8rem;
+		height: 85px;
 		cursor: pointer;
 		border-radius: 4px;
 		transition: background-color 0.3s;
+		box-sizing: border-box;
 	}
+
 	.symbol:hover {
 		background-color: var(--el-color-primary-light-9);
+	}
+
+	.symbol .char {
+		font-size: 2rem;
+		flex-grow: 1;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.symbol .name {
+		font-size: 0.75rem;
+		color: var(--el-text-color-secondary);
+		text-align: center;
+		width: 100%;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 </style>
 </head>
@@ -56,9 +76,9 @@
 	<nav>
 		<a href="文本转化.html">文本转化</a>
 		<a href="数字转化.html">数字转化</a>
-		<a href="符号.html" class="active">符号</a>
 		<a href="格子盘.html">格子盘</a>
 		<a href="svg转图标.html">SVG转图标</a>
+		<a href="符号.html" class="active">符号</a>
 		<a href="化学/元素周期表.html">元素周期表</a>
 		<a href="拼音/拼音.html">拼音</a>
 		<a href="游戏/俄罗斯方块.html">俄罗斯方块</a>
@@ -80,7 +100,8 @@
 					<li><strong>一键复制：</strong> 点击任意符号即可将其复制到剪贴板。</li>
 				</ul>
 				<h2>如何使用</h2>
-				<p>浏览不同类别的符号，找到你想要的，然后单击它。符号会自动复制到你的剪贴板，并有提示信息确认。然后你可以将其粘贴到任何需要的地方。</p>
+				<p>
+					浏览不同类别的符号，找到你想要的，然后单击它。符号会自动复制到你的剪贴板，并有提示信息确认。然后你可以将其粘贴到任何需要的地方。</p>
 			</el-dialog>
 		</div>
 	</header>
@@ -90,8 +111,10 @@
 			<section class="symbol-group" v-for="group in symbolGroups" :key="group.name">
 				<h3 class="name">{{ group.name }}</h3>
 				<div class="symbols">
-					<div class="symbol" v-for="symbol in group.symbols" :key="symbol" @click="copySymbol(symbol)" :title="'点击复制: ' + symbol">
-						{{ symbol }}
+					<div class="symbol" v-for="s in group.symbols" :key="s.char" @click="copySymbol(s)"
+							 :title="s.name + '\n点击复制: ' + s.char">
+						<span class="char">{{ s.char }}</span>
+						<span class="name">{{ s.name }}</span>
 					</div>
 				</div>
 			</section>
@@ -127,41 +150,137 @@
 				symbolGroups: [
 					{
 						name: '星星符号',
-						symbols: ['★', '☆', '✡', '✦', '✧', '✩', '✪', '✫', '✬', '✭', '✮', '✯', '✰', '⁂', '⁎', '⁑', '⌑', '⍟', '⍣', '★', '☆', '☉', '☿', '♀', '♁', '♂', '♃', '♄', '♅', '♆', '♇', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓']
+						symbols: [
+							{char: '★', name: '实心星'}, {char: '☆', name: '空心星'}, {char: '✡', name: '大卫之星'},
+							{char: '✦', name: '四角星'}, {char: '✧', name: '四角星'}, {char: '✩', name: '旋转星'},
+							{char: '✪', name: '带圈星'}, {char: '✫', name: '五角星'}, {char: '✬', name: '五角星'},
+							{char: '✭', name: '六角星'}, {char: '✮', name: '六角星'}, {char: '✯', name: '六角星'},
+							{char: '✰', name: '带影星'}, {char: '⁂', name: '星群'}, {char: '⁎', name: '低位星'},
+							{char: '⁑', name: '双星'}, {char: '⌑', name: '方形菱形'}, {char: '⍟', name: 'APL功能符'},
+							{char: '⍣', name: 'APL功能符'}, {char: '☉', name: '太阳'}, {char: '☿', name: '水星'},
+							{char: '♀', name: '金星'}, {char: '♁', name: '地球'}, {char: '♂', name: '火星'},
+							{char: '♃', name: '木星'}, {char: '♄', name: '土星'}, {char: '♅', name: '天王星'},
+							{char: '♆', name: '海王星'}, {char: '♇', name: '冥王星'}, {char: '♈', name: '白羊座'},
+							{char: '♉', name: '金牛座'}, {char: '♊', name: '双子座'}, {char: '♋', name: '巨蟹座'},
+							{char: '♌', name: '狮子座'}, {char: '♍', name: '处女座'}, {char: '♎', name: '天秤座'},
+							{char: '♏', name: '天蝎座'}, {char: '♐', name: '射手座'}, {char: '♑', name: '摩羯座'},
+							{char: '♒', name: '水瓶座'}, {char: '♓', name: '双鱼座'}
+						]
 					},
 					{
 						name: '箭头符号',
-						symbols: ['↑', '↓', '←', '→', '↖', '↗', '↘', '↙', '↔', '↕', '⇦', '⇧', '⇨', '⇩', '⇪', '⌅', '⌆', '⌤', '⏎', '▶', '☇', '☈', '☊', '☋', '☌', '☍', '➔', '➘', '➙', '➚', '➛', '➜', '➝', '➞', '➟', '➠', '➡', '➢', '➣', '➤', '➥', '➦', '➧', '➨', '➩', '➪', '➫', '➬', '➭', '➮', '➯', '➱', '➲', '➳', '➴', '➵', '➶', '➷', '➸', '➹', '➺', '➻', '➼', '➽', '➾']
+						symbols: [
+							{char: '↑', name: '上箭头'}, {char: '↓', name: '下箭头'}, {char: '←', name: '左箭头'},
+							{char: '→', name: '右箭头'}, {char: '↖', name: '左上箭头'}, {char: '↗', name: '右上箭头'},
+							{char: '↘', name: '右下箭头'}, {char: '↙', name: '左下箭头'}, {char: '↔', name: '左右箭头'},
+							{char: '↕', name: '上下箭头'}, {char: '⇦', name: '左双箭头'}, {char: '⇧', name: '上双箭头'},
+							{char: '⇨', name: '右双箭头'}, {char: '⇩', name: '下双箭头'}, {char: '⇪', name: 'caps lock'},
+							{char: '➔', name: '粗右箭头'}, {char: '➘', name: '右下粗箭头'}, {char: '➙', name: '右上粗箭头'},
+							{char: '➚', name: '右上粗箭头'}, {char: '➛', name: '右箭头'}, {char: '➜', name: '粗圆头右箭头'},
+							{char: '➝', name: '三角头右箭头'}, {char: '➞', name: '粗三角头右箭头'},
+							{char: '➟', name: '虚线三角头右箭头'},
+							{char: '➠', name: '粗虚线三角头右箭头'}, {char: '➡', name: '黑三角右箭头'},
+							{char: '➢', name: '三维顶灯右箭头'},
+							{char: '➣', name: '三维底灯右箭头'}, {char: '➤', name: '黑三角'}, {char: '➥', name: '旋转粗右箭头'},
+							{char: '➦', name: '圆圈内右箭头'}, {char: '➧', name: '重黑三角'}, {char: '➨', name: '曲线右箭头'},
+							{char: '➩', name: '曲线粗右箭头'}, {char: '➪', name: '曲线三角头右箭头'},
+							{char: '➫', name: '曲线粗三角头右箭头'},
+							{char: '➬', name: '曲线虚线三角头右箭头'}, {char: '➭', name: '曲线粗虚线三角头右箭头'},
+							{char: '➮', name: '波浪线右箭头'},
+							{char: '➯', name: '带垂直笔划的波浪线右箭头'}, {char: '➱', name: '右上双箭头'},
+							{char: '➲', name: '粗右上双箭头'},
+							{char: '➳', name: '粗右箭头'}, {char: '➴', name: '右下箭头'}, {char: '➵', name: '粗右箭头'},
+							{char: '➶', name: '右上箭头'}, {char: '➷', name: '左下箭头'}, {char: '➸', name: '粗右箭头'},
+							{char: '➹', name: '右上箭头'}, {char: '➺', name: '粗右箭头'}, {char: '➻', name: '右上箭头'},
+							{char: '➼', name: '粗右箭头'}, {char: '➽', name: '右上箭头'}, {char: '➾', name: '粗右箭头'}
+						]
 					},
-                    {
-                        name: '货币符号',
-                        symbols: ['¢', '£', '¤', '¥', '֏', '؋', '₲', '₵', '₸', '₺', '₼', '₾', '₿', '￠', '￡', '￥', '＄', '﹩', '€', '₨', '₩', '₪', '₫', '₭', '₮', '₥', '₦', '₧', '₴', '₵', '₶', '₷', '₸', '₹', '₺', '₻', '₼', '₽', '₾', '₿']
-                    },
+					{
+						name: '货币符号',
+						symbols: [
+							{char: '¢', name: '分'}, {char: '£', name: '英镑'}, {char: '¤', name: '货币'},
+							{char: '¥', name: '人民币'}, {char: '֏', name: '亚美尼亚德拉姆'}, {char: '؋', name: '阿富汗尼'},
+							{char: '₲', name: '巴拉圭瓜拉尼'}, {char: '₵', name: '加纳塞地'}, {char: '₸', name: '哈萨克斯坦坚戈'},
+							{char: '₺', name: '土耳其里拉'}, {char: '₼', name: '阿塞拜疆马纳特'}, {char: '₾', name: '格鲁吉亚拉里'},
+							{char: '₿', name: '比特币'}, {char: '€', name: '欧元'}, {char: '₨', name: '卢比'},
+							{char: '₩', name: '韩元'}, {char: '₪', name: '以色列新谢克尔'}, {char: '₫', name: '越南盾'},
+							{char: '₭', name: '老挝基普'}, {char: '₮', name: '蒙古图格里克'}, {char: '₥', name: '密尔'},
+							{char: '₦', name: '尼日利亚奈拉'}, {char: '₧', name: '西班牙比塞塔'}, {char: '₴', name: '乌克兰格里夫纳'},
+							{char: '₹', name: '印度卢比'}, {char: '₽', name: '俄罗斯卢布'}
+						]
+					},
 					{
 						name: '括号和引号',
-						symbols: ['（', '）', '〔', '〕', '【', '】', '《', '》', '〈', '〉', '『', '』', '「', '」', '﹃', '﹄', '﹙', '﹚', '﹛', '﹜', '﹝', '﹞', '‘', '’', '“', '”']
+						symbols: [
+							{char: '（', name: '圆括号'}, {char: '）', name: '圆括号'}, {char: '〔', name: '六角括号'},
+							{char: '〕', name: '六角括号'}, {char: '【', name: '方头括号'}, {char: '】', name: '方头括号'},
+							{char: '《', name: '书名号'}, {char: '》', name: '书名号'}, {char: '〈', name: '单书名号'},
+							{char: '〉', name: '单书名号'}, {char: '『', name: '空心方头括号'}, {char: '』', name: '空心方头括号'},
+							{char: '「', name: '空心方头括号'}, {char: '」', name: '空心方头括号'}, {char: '﹃', name: '竖引号'},
+							{char: '﹄', name: '竖引号'}, {char: '‘', name: '单引号'}, {char: '’', name: '单引号'},
+							{char: '“', name: '双引号'}, {char: '”', name: '双引号'}
+						]
 					},
 					{
 						name: '数学符号',
-						symbols: ['+', '-', '×', '÷', '±', '≠', '≈', '≤', '≥', '∞', '∫', '∑', '∏', '√', '∛', '∜', '∠', '⊥', '∥', '∧', '∨', '∩', '∪', '∈', '∉', '⊂', '⊃', '⊆', '⊇', '∅', '∀', '∃', '∴', '∵']
+						symbols: [
+							{char: '+', name: '加'}, {char: '-', name: '减'}, {char: '×', name: '乘'},
+							{char: '÷', name: '除'}, {char: '±', name: '正负'}, {char: '≠', name: '不等于'},
+							{char: '≈', name: '约等于'}, {char: '≤', name: '小于等于'}, {char: '≥', name: '大于等于'},
+							{char: '∞', name: '无穷大'}, {char: '∫', name: '积分'}, {char: '∑', name: '求和'},
+							{char: '∏', name: '求积'}, {char: '√', name: '平方根'}, {char: '∛', name: '立方根'},
+							{char: '∜', name: '四次方根'}, {char: '∠', name: '角'}, {char: '⊥', name: '垂直'},
+							{char: '∥', name: '平行'}, {char: '∧', name: '逻辑与'}, {char: '∨', name: '逻辑或'},
+							{char: '∩', name: '交集'}, {char: '∪', name: '并集'}, {char: '∈', name: '属于'},
+							{char: '∉', name: '不属于'}, {char: '⊂', name: '包含于'}, {char: '⊃', name: '包含'},
+							{char: '⊆', name: '包含于等于'}, {char: '⊇', name: '包含等于'}, {char: '∅', name: '空集'},
+							{char: '∀', name: '任意'}, {char: '∃', name: '存在'}, {char: '∴', name: '所以'},
+							{char: '∵', name: '因为'}
+						]
 					},
-                    {
-                        name: '数字符号',
-                        symbols: ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩', '⑴', '⑵', '⑶', '⑷', '⑸', '⑹', '⑺', '⑻', '⑼', '⑽', '⒈', '⒉', '⒊', '⒋', '⒌', '⒍', '⒎', '⒏', '⒐', '⒑', 'Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ', 'Ⅴ', 'Ⅵ', 'Ⅶ', 'Ⅷ', 'Ⅸ', 'Ⅹ', 'Ⅺ', 'Ⅻ']
-                    },
-                    {
-                        name: '天气和自然',
-                        symbols: ['☀', '☁', '☂', '☃', '☄', '★', '☆', '☇', '☈', '☉', '☊', '☋', '☌', '☍', '☎', '☏', '☐', '☑', '☒', '☓', '☔', '☕', '☖', '☗', '☘', '☙', '☚', '☛', '☜', '☝', '☞', '☟', '☠', '☡', '☢', '☣', '☤', '☥', '☦', '☧', '☨', '☩', '☪', '☫', '☬', '☭', '☮', '☯']
-                    }
+					{
+						name: '数字符号',
+						symbols: [
+							{char: '①', name: '一'}, {char: '②', name: '二'}, {char: '③', name: '三'},
+							{char: '④', name: '四'}, {char: '⑤', name: '五'}, {char: '⑥', name: '六'},
+							{char: '⑦', name: '七'}, {char: '⑧', name: '八'}, {char: '⑨', name: '九'},
+							{char: '⑩', name: '十'}, {char: 'Ⅰ', name: '一'}, {char: 'Ⅱ', name: '二'},
+							{char: 'Ⅲ', name: '三'}, {char: 'Ⅳ', name: '四'}, {char: 'Ⅴ', name: '五'},
+							{char: 'Ⅵ', name: '六'}, {char: 'Ⅶ', name: '七'}, {char: 'Ⅷ', name: '八'},
+							{char: 'Ⅸ', name: '九'}, {char: 'Ⅹ', name: '十'}, {char: 'Ⅺ', name: '十一'},
+							{char: 'Ⅻ', name: '十二'}
+						]
+					},
+					{
+						name: '天气和自然',
+						symbols: [
+							{char: '☀', name: '太阳'}, {char: '☁', name: '云'}, {char: '☂', name: '雨伞'},
+							{char: '☃', name: '雪人'}, {char: '☄', name: '彗星'}, {char: '★', name: '实心星'},
+							{char: '☆', name: '空心星'}, {char: '☇', name: '闪电'}, {char: '☈', name: '雷'},
+							{char: '☉', name: '太阳'}, {char: '☊', name: '升交点'}, {char: '☋', name: '降交点'},
+							{char: '☌', name: '合'}, {char: '☍', name: '冲'}, {char: '☎', name: '电话'},
+							{char: '☏', name: '电话'}, {char: '☐', name: '复选框'}, {char: '☑', name: '选中复选框'},
+							{char: '☒', name: '带叉复选框'}, {char: '☓', name: '叉'}, {char: '☔', name: '雨伞'},
+							{char: '☕', name: '咖啡'}, {char: '☘', name: '三叶草'}, {char: '☙', name: '引号'},
+							{char: '☚', name: '左指'}, {char: '☛', name: '右指'}, {char: '☜', name: '左指'},
+							{char: '☝', name: '上指'}, {char: '☞', name: '右指'}, {char: '☟', name: '下指'},
+							{char: '☠', name: '骷髅'}, {char: '☡', name: '警告'}, {char: '☢', name: '放射性'},
+							{char: '☣', name: '生物危害'}, {char: '☤', name: '医学'}, {char: '☥', name: '生命之符'},
+							{char: '☦', name: '东正教十字'}, {char: '☧', name: '基督符号'}, {char: '☨', name: '洛林十字'},
+							{char: '☩', name: '耶路撒冷十字'}, {char: '☪', name: '星月'}, {char: '☫', name: '法拉瓦哈'},
+							{char: '☬', name: '坎达'}, {char: '☭', name: '镰刀锤子'}, {char: '☮', name: '和平'},
+							{char: '☯', name: '太极'}
+						]
+					}
 				]
 			};
 		},
 		methods: {
 			copySymbol(symbol) {
-				navigator.clipboard.writeText(symbol).then(() => {
-					toastr.success(`符号 "${symbol}" 已复制到剪贴板`);
+				navigator.clipboard.writeText(symbol.char).then(() => {
+					tostr.success(`符号 “${symbol.name}” (${symbol.char}) 已复制`);
 				}).catch(err => {
-					toastr.error('复制失败: ', err);
+					tostr.error('复制失败: ', err);
 				});
 			}
 		}
