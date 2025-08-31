@@ -19,6 +19,14 @@
 <link href="resources/biz.css?v=250821" rel="stylesheet">
 <link href="resources/花活.css" rel="stylesheet">
 <style>
+	@font-face {
+		font-family: 'Noto Sans Symbols 2';
+		src: url('lib/fonts/NotoSansSymbols2-Regular.ttf') format('truetype');
+		font-weight: normal;
+		font-style: normal;
+		font-display: swap;
+	}
+
 	.search-bar {
 		margin-bottom: 2rem;
 	}
@@ -58,6 +66,7 @@
 	}
 
 	.symbol .char {
+		font-family: 'Noto Sans Symbols 2', sans-serif;
 		font-size: 1.8rem;
 		flex-basis: 40px;
 		display: flex;
@@ -112,13 +121,16 @@
 				<h2>核心功能</h2>
 				<ul>
 					<li><strong>搜索过滤：</strong> 输入关键字，实时过滤符号。</li>
-					<li><strong>分类浏览：</strong> 符号按类别进行组织，方便快速查找。</li>
-					<li><strong>双语名称：</strong> 提供中文和英文官方名称，便于理解和学习。</li>
-					<li><strong>一键复制：</strong> 点击任意符号即可将其复制到剪贴板。</li>
+					<li><strong>分类浏览：：</strong> 符号按类别进行组织，方便快速查找。</li>
+					<li><strong>双语名称：：</strong> 提供中文和英文官方名称，便于理解和学习。</li>
+					<li><strong>一键复制：：</strong> 点击任意符号即可将其复制到剪贴板。</li>
 				</ul>
 				<h2>如何使用</h2>
 				<p>
 					直接在搜索框输入关键字，或者浏览不同类别的符号，找到你想要的，然后单击它。符号会自动复制到你的剪贴板，并有提示信息确认。然后你可以将其粘贴到任何需要的地方。</p>
+				<p style="color: #e6a23c; font-weight: bold;">
+					温馨提示：本页面已尽力确保符号显示完整，但复制到其他软件（如聊天工具、文档编辑器等）后，能否正常显示取决于该软件或操作系统的字体支持。如果目标环境缺少相应字体，符号可能显示为方框或乱码。
+				</p>
 			</el-dialog>
 		</div>
 	</header>
@@ -400,8 +412,6 @@
 							{char: "☂", name: "雨伞", ename: "Umbrella"},
 							{char: "☃", name: "雪人", ename: "Snowman"},
 							{char: "☄", name: "彗星", ename: "Comet"},
-							{char: "★", name: "黑星", ename: "Black Star"},
-							{char: "☆", name: "白星", ename: "White Star"},
 							{char: "☇", name: "闪电", ename: "Lightning"},
 							{char: "☈", name: "雷暴", ename: "Thunderstorm"},
 							{char: "☉", name: "太阳", ename: "Sun"},
@@ -485,6 +495,31 @@
 							{char: "🏆", name: "奖杯", ename: "Trophy"},
 							{char: "🎯", name: "靶心", ename: "Direct Hit"}
 						]
+					},
+					{
+						name: "棋类符号",
+						symbols: [
+							{char: "🨀", name: "中立象棋国王", ename: "Neutral Chess King"},
+							{char: "🨁", name: "中立象棋王后", ename: "Neutral Chess Queen"},
+							{char: "🨂", name: "中立象棋战车", ename: "Neutral Chess Rook"},
+							{char: "🨃", name: "中立象棋主教", ename: "Neutral Chess Bishop"},
+							{char: "🨄", name: "中立象棋骑士", ename: "Neutral Chess Knight"},
+							{char: "🨅", name: "中立象棋兵", ename: "Neutral Chess Pawn"},
+							{char: "🩠", name: "中国象棋红帅", ename: "Xiangqi Red General"},
+							{char: "🩡", name: "中国象棋红仕", ename: "Xiangqi Red Mandarin"},
+							{char: "🩢", name: "中国象棋红相", ename: "Xiangqi Red Elephant"},
+							{char: "🩣", name: "中国象棋红马", ename: "Xiangqi Red Horse"},
+							{char: "🩤", name: "中国象棋红车", ename: "Xiangqi Red Chariot"},
+							{char: "🩥", name: "中国象棋红炮", ename: "Xiangqi Red Cannon"},
+							{char: "🩦", name: "中国象棋红兵", ename: "Xiangqi Red Soldier"},
+							{char: "🩧", name: "中国象棋黑将", ename: "Xiangqi Black General"},
+							{char: "🩨", name: "中国象棋黑士", ename: "Xiangqi Black Mandarin"},
+							{char: "🩩", name: "中国象棋黑象", ename: "Xiangqi Black Elephant"},
+							{char: "🩪", name: "中国象棋黑马", ename: "Xiangqi Black Horse"},
+							{char: "🩫", name: "中国象棋黑车", ename: "Xiangqi Black Chariot"},
+							{char: "🩬", name: "中国象棋黑炮", ename: "Xiangqi Black Cannon"},
+							{char: "🩭", name: "中国象棋黑卒", ename: "Xiangqi Black Soldier"}
+						]
 					}
 				]
 			};
@@ -500,12 +535,10 @@
 				for (const group of this.symbolGroups) {
 					const filteredSymbols = group.symbols.filter(s => {
 						const tags = s.tags || [];
-						return (
-								s.char.toLowerCase().includes(query) ||
-								s.name.toLowerCase().includes(query) ||
-								s.ename.toLowerCase().includes(query) ||
-								tags.some(t => t.toLowerCase().includes(query))
-						);
+						return s.char.toLowerCase().includes(query)
+									 || s.name.toLowerCase().includes(query)
+									 || s.ename.toLowerCase().includes(query)
+									 || tags.some(t => t.toLowerCase().includes(query));
 					});
 
 					if (filteredSymbols.length > 0) {
