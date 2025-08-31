@@ -172,7 +172,7 @@
 				searchQuery: '',
 				symbolGroups: [
 					{
-						name: "星星符号",
+						name: "星星与星座",
 						symbols: [
 							{char: "★", name: "黑星", ename: "Black Star", tags: ["实心星", "五角星"]},
 							{char: "☆", name: "白星", ename: "White Star", tags: ["空心星", "五角星"]},
@@ -193,16 +193,6 @@
 							{char: "⌑", name: "方形菱形", ename: "Square Lozenge"},
 							{char: "⍟", name: "圈内星", ename: "APL Functional Symbol Circle Star"},
 							{char: "⍣", name: "星形分音符", ename: "APL Functional Symbol Star Diaeresis"},
-							{char: "☉", name: "太阳", ename: "Sun"},
-							{char: "☿", name: "水星", ename: "Mercury"},
-							{char: "♀", name: "金星", ename: "Venus", tags: ["女性", "雌性"]},
-							{char: "♁", name: "地球", ename: "Earth"},
-							{char: "♂", name: "火星", ename: "Mars", tags: ["男性", "雄性"]},
-							{char: "♃", name: "木星", ename: "Jupiter"},
-							{char: "♄", name: "土星", ename: "Saturn"},
-							{char: "♅", name: "天王星", ename: "Uranus"},
-							{char: "♆", name: "海王星", ename: "Neptune"},
-							{char: "♇", name: "冥王星", ename: "Pluto"},
 							{char: "♈", name: "白羊座", ename: "Aries"},
 							{char: "♉", name: "金牛座", ename: "Taurus"},
 							{char: "♊", name: "双子座", ename: "Gemini"},
@@ -258,6 +248,7 @@
 							{char: "➫", name: "曲线粗三角头右箭头", ename: "Heavy Triangle-Headed Right-Side Arc-Ended Arrow"},
 							{char: "➬", name: "曲线虚线三角头右箭头", ename: "Dashed Triangle-Headed Right-Side Arc-Ended Arrow"},
 							{
+								char: "➭",
 								name: "曲线粗虚线三角头右箭头",
 								ename: "Heavy Dashed Triangle-Headed Right-Side Arc-Ended Arrow"
 							},
@@ -418,15 +409,20 @@
 							{char: "☋", name: "降交点", ename: "Descending Node"},
 							{char: "☌", name: "合点", ename: "Conjunction"},
 							{char: "☍", name: "冲日点", ename: "Opposition"},
+							{char: "☔", name: "带雨滴的雨伞", ename: "Umbrella with Rain Drops"},
+							{char: "☕", name: "热饮", ename: "Hot Beverage", tags: ["咖啡"]},
+							{char: "☘", name: "三叶草", ename: "Shamrock"}
+						]
+					},
+					{
+						name: "人文与宗教",
+						symbols: [
 							{char: "☎", name: "黑电话", ename: "Black Telephone"},
 							{char: "☏", name: "白电话", ename: "White Telephone"},
 							{char: "☐", name: "投票框", ename: "Ballot Box"},
 							{char: "☑", name: "带勾的投票框", ename: "Ballot Box with Check"},
 							{char: "☒", name: "带叉的投票框", ename: "Ballot Box with X"},
 							{char: "☓", name: "圣安德鲁十字", ename: "St Andrew's Cross"},
-							{char: "☔", name: "带雨滴的雨伞", ename: "Umbrella with Rain Drops"},
-							{char: "☕", name: "热饮", ename: "Hot Beverage", tags: ["咖啡"]},
-							{char: "☘", name: "三叶草", ename: "Shamrock"},
 							{char: "☙", name: "反向旋转花心", ename: "Reversed Rotated Floral Heart Bullet"},
 							{char: "☚", name: "左指黑指针", ename: "Black Left Pointing Index"},
 							{char: "☛", name: "右指黑指针", ename: "Black Right Pointing Index"},
@@ -450,6 +446,44 @@
 							{char: "☭", name: "镰刀锤子", ename: "Hammer and Sickle"},
 							{char: "☮", name: "和平符号", ename: "Peace Symbol"},
 							{char: "☯", name: "阴阳", ename: "Yin Yang"}
+						]
+					},
+					{
+						name: "音乐",
+						symbols: [
+							{char: "♩", name: "四分音符", ename: "Quarter Note"},
+							{char: "♪", name: "八分音符", ename: "Eighth Note"},
+							{char: "♫", name: "双八分音符", ename: "Beamed Eighth Notes"},
+							{char: "♬", name: "十六分音符", ename: "Beamed Sixteenth Notes"},
+							{char: "♭", name: "降号", ename: "Music Flat Sign"},
+							{char: "♮", name: "本位号", ename: "Music Natural Sign"},
+							{char: "♯", name: "升号", ename: "Music Sharp Sign"}
+						]
+					},
+					{
+						name: "体育",
+						symbols: [
+							{char: "⚽", name: "足球", ename: "Soccer Ball"},
+							{char: "⚾", name: "棒球", ename: "Baseball"},
+							{char: "🏀", name: "篮球", ename: "Basketball"},
+							{char: "🏐", name: "排球", ename: "Volleyball"},
+							{char: "🏈", name: "橄榄球", ename: "American Football"},
+							{char: "🏉", name: "英式橄榄球", ename: "Rugby Football"},
+							{char: "🎾", name: "网球", ename: "Tennis"},
+							{char: "🎳", name: "保龄球", ename: "Bowling"},
+							{char: "🏏", name: "板球", ename: "Cricket Game"},
+							{char: "🏑", name: "曲棍球", ename: "Field Hockey"},
+							{char: "🏒", name: "冰球", ename: "Ice Hockey"},
+							{char: "🏓", name: "乒乓球", ename: "Ping Pong"},
+							{char: "🏸", name: "羽毛球", ename: "Badminton"},
+							{char: "🥊", name: "拳击手套", ename: "Boxing Glove"},
+							{char: "🥋", name: "武术服", ename: "Martial Arts Uniform"},
+							{char: "🥅", name: "球门", ename: "Goal Net"},
+							{char: "🥇", name: "金牌", ename: "1st Place Medal"},
+							{char: "🥈", name: "银牌", ename: "2nd Place Medal"},
+							{char: "🥉", name: "铜牌", ename: "3rd Place Medal"},
+							{char: "🏆", name: "奖杯", ename: "Trophy"},
+							{char: "🎯", name: "靶心", ename: "Direct Hit"}
 						]
 					}
 				]
