@@ -19,6 +19,10 @@
 <link href="resources/biz.css?v=250821" rel="stylesheet">
 <link href="resources/花活.css" rel="stylesheet">
 <style>
+	.search-bar {
+		margin-bottom: 2rem;
+	}
+
 	.symbol-groups {
 		display: flex;
 		flex-direction: column;
@@ -41,7 +45,7 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-		height: 100px;
+		height: 120px;
 		cursor: pointer;
 		border-radius: 4px;
 		transition: background-color 0.3s;
@@ -107,20 +111,25 @@
 				<p>“符号大全”是一个方便用户查找和复制各种Unicode特殊字符的工具。</p>
 				<h2>核心功能</h2>
 				<ul>
+					<li><strong>搜索过滤：</strong> 输入关键字，实时过滤符号。</li>
 					<li><strong>分类浏览：</strong> 符号按类别进行组织，方便快速查找。</li>
 					<li><strong>双语名称：</strong> 提供中文和英文官方名称，便于理解和学习。</li>
 					<li><strong>一键复制：</strong> 点击任意符号即可将其复制到剪贴板。</li>
 				</ul>
 				<h2>如何使用</h2>
 				<p>
-					浏览不同类别的符号，找到你想要的，然后单击它。符号会自动复制到你的剪贴板，并有提示信息确认。然后你可以将其粘贴到任何需要的地方。</p>
+					直接在搜索框输入关键字，或者浏览不同类别的符号，找到你想要的，然后单击它。符号会自动复制到你的剪贴板，并有提示信息确认。然后你可以将其粘贴到任何需要的地方。</p>
 			</el-dialog>
 		</div>
 	</header>
 
 	<article v-cloak>
+		<section class="search-bar">
+			<el-input v-model="searchQuery" placeholder="输入中文、英文或拼音搜索符号..." clearable size="large"></el-input>
+		</section>
+
 		<div class="symbol-groups">
-			<section class="symbol-group" v-for="group in symbolGroups" :key="group.name">
+			<section class="symbol-group" v-for="group in filteredSymbolGroups" :key="group.name">
 				<h3 class="name">{{ group.name }}</h3>
 				<div class="symbols">
 					<div class="symbol" v-for="s in group.symbols" :key="s.char" @click="copySymbol(s)"
@@ -160,34 +169,35 @@
 	const app = createApp({
 		data() {
 			return {
+				searchQuery: '',
 				symbolGroups: [
 					{
 						name: "星星符号",
 						symbols: [
-							{char: "★", name: "实心星", ename: "Black Star"},
-							{char: "☆", name: "空心星", ename: "White Star"},
-							{char: "✡", name: "大卫之星", ename: "Star of David"},
-							{char: "✦", name: "四角星", ename: "Black Four Pointed Star"},
-							{char: "✧", name: "四角星", ename: "White Four Pointed Star"},
-							{char: "✩", name: "旋转星", ename: "Stress Outlined White Star"},
-							{char: "✪", name: "带圈星", ename: "Circled White Star"},
-							{char: "✫", name: "五角星", ename: "Open Centre Black Star"},
-							{char: "✬", name: "五角星", ename: "Black Centre White Star"},
-							{char: "✭", name: "六角星", ename: "Outlined Black Star"},
-							{char: "✮", name: "六角星", ename: "Heavy Outlined Black Star"},
-							{char: "✯", name: "六角星", ename: "Pinwheel Star"},
-							{char: "✰", name: "带影星", ename: "Shadowed White Star"},
+							{char: "★", name: "黑星", ename: "Black Star", tags: ["实心星", "五角星"]},
+							{char: "☆", name: "白星", ename: "White Star", tags: ["空心星", "五角星"]},
+							{char: "✡", name: "大卫之星", ename: "Star of David", tags: ["六角星"]},
+							{char: "✦", name: "黑四角星", ename: "Black Four Pointed Star", tags: ["四角星"]},
+							{char: "✧", name: "白四角星", ename: "White Four Pointed Star", tags: ["四角星"]},
+							{char: "✩", name: "压力轮廓白星", ename: "Stress Outlined White Star", tags: ["旋转星"]},
+							{char: "✪", name: "圈白星", ename: "Circled White Star", tags: ["带圈星"]},
+							{char: "✫", name: "中心镂空黑星", ename: "Open Centre Black Star", tags: ["五角星"]},
+							{char: "✬", name: "中心白色黑星", ename: "Black Centre White Star", tags: ["五角星"]},
+							{char: "✭", name: "描边黑星", ename: "Outlined Black Star", tags: ["六角星"]},
+							{char: "✮", name: "粗描边黑星", ename: "Heavy Outlined Black Star", tags: ["六角星"]},
+							{char: "✯", name: "风车星", ename: "Pinwheel Star", tags: ["六角星"]},
+							{char: "✰", name: "阴影白星", ename: "Shadowed White Star", tags: ["带影星"]},
 							{char: "⁂", name: "星群", ename: "Asterism"},
-							{char: "⁎", name: "低位星", ename: "Low Asterisk"},
-							{char: "⁑", name: "双星", ename: "Two Asterisks Aligned Vertically"},
+							{char: "⁎", name: "低位星号", ename: "Low Asterisk"},
+							{char: "⁑", name: "竖排双星号", ename: "Two Asterisks Aligned Vertically"},
 							{char: "⌑", name: "方形菱形", ename: "Square Lozenge"},
-							{char: "⍟", name: "APL功能符", ename: "APL Functional Symbol Circle Star"},
-							{char: "⍣", name: "APL功能符", ename: "APL Functional Symbol Star Diaeresis"},
+							{char: "⍟", name: "圈内星", ename: "APL Functional Symbol Circle Star"},
+							{char: "⍣", name: "星形分音符", ename: "APL Functional Symbol Star Diaeresis"},
 							{char: "☉", name: "太阳", ename: "Sun"},
 							{char: "☿", name: "水星", ename: "Mercury"},
-							{char: "♀", name: "金星", ename: "Venus"},
+							{char: "♀", name: "金星", ename: "Venus", tags: ["女性", "雌性"]},
 							{char: "♁", name: "地球", ename: "Earth"},
-							{char: "♂", name: "火星", ename: "Mars"},
+							{char: "♂", name: "火星", ename: "Mars", tags: ["男性", "雄性"]},
 							{char: "♃", name: "木星", ename: "Jupiter"},
 							{char: "♄", name: "土星", ename: "Saturn"},
 							{char: "♅", name: "天王星", ename: "Uranus"},
@@ -248,7 +258,6 @@
 							{char: "➫", name: "曲线粗三角头右箭头", ename: "Heavy Triangle-Headed Right-Side Arc-Ended Arrow"},
 							{char: "➬", name: "曲线虚线三角头右箭头", ename: "Dashed Triangle-Headed Right-Side Arc-Ended Arrow"},
 							{
-								char: "➭",
 								name: "曲线粗虚线三角头右箭头",
 								ename: "Heavy Dashed Triangle-Headed Right-Side Arc-Ended Arrow"
 							},
@@ -273,10 +282,10 @@
 					{
 						name: "货币符号",
 						symbols: [
-							{char: "¢", name: "分", ename: "Cent"},
-							{char: "£", name: "英镑", ename: "Pound"},
+							{char: "¢", name: "分", ename: "Cent", tags: ["货币"]},
+							{char: "£", name: "英镑", ename: "Pound", tags: ["货币"]},
 							{char: "¤", name: "货币", ename: "Currency"},
-							{char: "¥", name: "人民币", ename: "Yen"},
+							{char: "¥", name: "日元", ename: "Yen", tags: ["人民币", "钱"]},
 							{char: "֏", name: "亚美尼亚德拉姆", ename: "Armenian Dram"},
 							{char: "؋", name: "阿富汗尼", ename: "Afghani"},
 							{char: "₲", name: "巴拉圭瓜拉尼", ename: "Guarani"},
@@ -304,40 +313,40 @@
 					{
 						name: "括号和引号",
 						symbols: [
-							{char: "（", name: "圆括号", ename: "Fullwidth Parenthesis"},
-							{char: "）", name: "圆括号", ename: "Fullwidth Parenthesis"},
-							{char: "〔", name: "六角括号", ename: "Torgoise Shell Bracket"},
-							{char: "〕", name: "六角括号", ename: "Torgoise Shell Bracket"},
-							{char: "【", name: "方头括号", ename: "Fullwidth Tortoise Shell Bracket"},
-							{char: "】", name: "方头括号", ename: "Fullwidth Tortoise Shell Bracket"},
-							{char: "《", name: "书名号", ename: "Double Angle Bracket"},
-							{char: "》", name: "书名号", ename: "Double Angle Bracket"},
-							{char: "〈", name: "单书名号", ename: "Single Angle Bracket"},
-							{char: "〉", name: "单书名号", ename: "Single Angle Bracket"},
-							{char: "『", name: "空心方头括号", ename: "White Lenticular Bracket"},
-							{char: "』", name: "空心方头括号", ename: "White Lenticular Bracket"},
-							{char: "「", name: "空心方头括号", ename: "White Corner Bracket"},
-							{char: "」", name: "空心方头括号", ename: "White Corner Bracket"},
-							{char: "﹃", name: "竖引号", ename: "Presentation Form for Vertical Left Double Quotation Mark"},
-							{char: "﹄", name: "竖引号", ename: "Presentation Form for Vertical Right Double Quotation Mark"},
-							{char: "‘", name: "单引号", ename: "Left Single Quotation Mark"},
-							{char: "’", name: "单引号", ename: "Right Single Quotation Mark"},
-							{char: "“", name: "双引号", ename: "Left Double Quotation Mark"},
-							{char: "”", name: "双引号", ename: "Right Double Quotation Mark"}
+							{char: "（", name: "全角括号", ename: "Fullwidth Parenthesis"},
+							{char: "）", name: "全角括号", ename: "Fullwidth Parenthesis"},
+							{char: "〔", name: "龟甲括号", ename: "Torgoise Shell Bracket"},
+							{char: "〕", name: "龟甲括号", ename: "Torgoise Shell Bracket"},
+							{char: "【", name: "全角龟甲括号", ename: "Fullwidth Tortoise Shell Bracket"},
+							{char: "】", name: "全角龟甲括号", ename: "Fullwidth Tortoise Shell Bracket"},
+							{char: "《", name: "双尖括号", ename: "Double Angle Bracket", tags: ["书名号"]},
+							{char: "》", name: "双尖括号", ename: "Double Angle Bracket", tags: ["书名号"]},
+							{char: "〈", name: "单尖括号", ename: "Single Angle Bracket", tags: ["书名号"]},
+							{char: "〉", name: "单尖括号", ename: "Single Angle Bracket", tags: ["书名号"]},
+							{char: "『", name: "白透镜括号", ename: "White Lenticular Bracket"},
+							{char: "』", name: "白透镜括号", ename: "White Lenticular Bracket"},
+							{char: "「", name: "白角括号", ename: "White Corner Bracket"},
+							{char: "」", name: "白角括号", ename: "White Corner Bracket"},
+							{char: "﹃", name: "竖排左双引号", ename: "Presentation Form for Vertical Left Double Quotation Mark"},
+							{char: "﹄", name: "竖排右双引号", ename: "Presentation Form for Vertical Right Double Quotation Mark"},
+							{char: "‘", name: "左单引号", ename: "Left Single Quotation Mark"},
+							{char: "’", name: "右单引号", ename: "Right Single Quotation Mark"},
+							{char: "“", name: "左双引号", ename: "Left Double Quotation Mark"},
+							{char: "”", name: "右双引号", ename: "Right Double Quotation Mark"}
 						]
 					},
 					{
 						name: "数学符号",
 						symbols: [
-							{char: "+", name: "加", ename: "Plus Sign"},
-							{char: "-", name: "减", ename: "Minus Sign"},
-							{char: "×", name: "乘", ename: "Multiplication Sign"},
-							{char: "÷", name: "除", ename: "Division Sign"},
-							{char: "±", name: "正负", ename: "Plus-Minus Sign"},
-							{char: "≠", name: "不等于", ename: "Not Equal To"},
-							{char: "≈", name: "约等于", ename: "Almost Equal To"},
-							{char: "≤", name: "小于等于", ename: "Less-Than or Equal To"},
-							{char: "≥", name: "大于等于", ename: "Greater-Than or Equal To"},
+							{char: "+", name: "加号", ename: "Plus Sign"},
+							{char: "-", name: "减号", ename: "Minus Sign"},
+							{char: "×", name: "乘号", ename: "Multiplication Sign"},
+							{char: "÷", name: "除号", ename: "Division Sign"},
+							{char: "±", name: "正负号", ename: "Plus-Minus Sign"},
+							{char: "≠", name: "不等于号", ename: "Not Equal To"},
+							{char: "≈", name: "约等于号", ename: "Almost Equal To"},
+							{char: "≤", name: "小于等于号", ename: "Less-Than or Equal To"},
+							{char: "≥", name: "大于等于号", ename: "Greater-Than or Equal To"},
 							{char: "∞", name: "无穷大", ename: "Infinity"},
 							{char: "∫", name: "积分", ename: "Integral"},
 							{char: "∑", name: "求和", ename: "N-Ary Summation"},
@@ -354,10 +363,10 @@
 							{char: "∪", name: "并集", ename: "Union"},
 							{char: "∈", name: "属于", ename: "Element Of"},
 							{char: "∉", name: "不属于", ename: "Not an Element Of"},
-							{char: "⊂", name: "包含于", ename: "Subset Of"},
-							{char: "⊃", name: "包含", ename: "Superset Of"},
-							{char: "⊆", name: "包含于等于", ename: "Subset of or Equal To"},
-							{char: "⊇", name: "包含等于", ename: "Superset of or Equal To"},
+							{char: "⊂", name: "…的子集", ename: "Subset Of"},
+							{char: "⊃", name: "…的超集", ename: "Superset Of"},
+							{char: "⊆", name: "…的子集或等于", ename: "Subset of or Equal To"},
+							{char: "⊇", name: "…的超集或等于", ename: "Superset of or Equal To"},
 							{char: "∅", name: "空集", ename: "Empty Set"},
 							{char: "∀", name: "任意", ename: "For All"},
 							{char: "∃", name: "存在", ename: "There Exists"},
@@ -368,68 +377,68 @@
 					{
 						name: "数字符号",
 						symbols: [
-							{char: "①", name: "一", ename: "Circled Digit One"},
-							{char: "②", name: "二", ename: "Circled Digit Two"},
-							{char: "③", name: "三", ename: "Circled Digit Three"},
-							{char: "④", name: "四", ename: "Circled Digit Four"},
-							{char: "⑤", name: "五", ename: "Circled Digit Five"},
-							{char: "⑥", name: "六", ename: "Circled Digit Six"},
-							{char: "⑦", name: "七", ename: "Circled Digit Seven"},
-							{char: "⑧", name: "八", ename: "Circled Digit Eight"},
-							{char: "⑨", name: "九", ename: "Circled Digit Nine"},
-							{char: "⑩", name: "十", ename: "Circled Number Ten"},
-							{char: "Ⅰ", name: "一", ename: "Roman Numeral One"},
-							{char: "Ⅱ", name: "二", ename: "Roman Numeral Two"},
-							{char: "Ⅲ", name: "三", ename: "Roman Numeral Three"},
-							{char: "Ⅳ", name: "四", ename: "Roman Numeral Four"},
-							{char: "Ⅴ", name: "五", ename: "Roman Numeral Five"},
-							{char: "Ⅵ", name: "六", ename: "Roman Numeral Six"},
-							{char: "Ⅶ", name: "七", ename: "Roman Numeral Seven"},
-							{char: "Ⅷ", name: "八", ename: "Roman Numeral Eight"},
-							{char: "Ⅸ", name: "九", ename: "Roman Numeral Nine"},
-							{char: "Ⅹ", name: "十", ename: "Roman Numeral Ten"},
-							{char: "Ⅺ", name: "十一", ename: "Roman Numeral Eleven"},
-							{char: "Ⅻ", name: "十二", ename: "Roman Numeral Twelve"}
+							{char: "①", name: "带圈数字一", ename: "Circled Digit One"},
+							{char: "②", name: "带圈数字二", ename: "Circled Digit Two"},
+							{char: "③", name: "带圈数字三", ename: "Circled Digit Three"},
+							{char: "④", name: "带圈数字四", ename: "Circled Digit Four"},
+							{char: "⑤", name: "带圈数字五", ename: "Circled Digit Five"},
+							{char: "⑥", name: "带圈数字六", ename: "Circled Digit Six"},
+							{char: "⑦", name: "带圈数字七", ename: "Circled Digit Seven"},
+							{char: "⑧", name: "带圈数字八", ename: "Circled Digit Eight"},
+							{char: "⑨", name: "带圈数字九", ename: "Circled Digit Nine"},
+							{char: "⑩", name: "带圈数字十", ename: "Circled Number Ten"},
+							{char: "Ⅰ", name: "罗马数字一", ename: "Roman Numeral One"},
+							{char: "Ⅱ", name: "罗马数字二", ename: "Roman Numeral Two"},
+							{char: "Ⅲ", name: "罗马数字三", ename: "Roman Numeral Three"},
+							{char: "Ⅳ", name: "罗马数字四", ename: "Roman Numeral Four"},
+							{char: "Ⅴ", name: "罗马数字五", ename: "Roman Numeral Five"},
+							{char: "Ⅵ", name: "罗马数字六", ename: "Roman Numeral Six"},
+							{char: "Ⅶ", name: "罗马数字七", ename: "Roman Numeral Seven"},
+							{char: "Ⅷ", name: "罗马数字八", ename: "Roman Numeral Eight"},
+							{char: "Ⅸ", name: "罗马数字九", ename: "Roman Numeral Nine"},
+							{char: "Ⅹ", name: "罗马数字十", ename: "Roman Numeral Ten"},
+							{char: "Ⅺ", name: "罗马数字十一", ename: "Roman Numeral Eleven"},
+							{char: "Ⅻ", name: "罗马数字十二", ename: "Roman Numeral Twelve"}
 						]
 					},
 					{
 						name: "天气和自然",
 						symbols: [
-							{char: "☀", name: "太阳", ename: "Black Sun with Rays"},
+							{char: "☀", name: "带光芒的黑太阳", ename: "Black Sun with Rays"},
 							{char: "☁", name: "云", ename: "Cloud"},
 							{char: "☂", name: "雨伞", ename: "Umbrella"},
 							{char: "☃", name: "雪人", ename: "Snowman"},
 							{char: "☄", name: "彗星", ename: "Comet"},
-							{char: "★", name: "实心星", ename: "Black Star"},
-							{char: "☆", name: "空心星", ename: "White Star"},
+							{char: "★", name: "黑星", ename: "Black Star"},
+							{char: "☆", name: "白星", ename: "White Star"},
 							{char: "☇", name: "闪电", ename: "Lightning"},
-							{char: "☈", name: "雷", ename: "Thunderstorm"},
+							{char: "☈", name: "雷暴", ename: "Thunderstorm"},
 							{char: "☉", name: "太阳", ename: "Sun"},
 							{char: "☊", name: "升交点", ename: "Ascending Node"},
 							{char: "☋", name: "降交点", ename: "Descending Node"},
-							{char: "☌", name: "合", ename: "Conjunction"},
-							{char: "☍", name: "冲", ename: "Opposition"},
-							{char: "☎", name: "电话", ename: "Black Telephone"},
-							{char: "☏", name: "电话", ename: "White Telephone"},
-							{char: "☐", name: "复选框", ename: "Ballot Box"},
-							{char: "☑", name: "选中复选框", ename: "Ballot Box with Check"},
-							{char: "☒", name: "带叉复选框", ename: "Ballot Box with X"},
-							{char: "☓", name: "叉", ename: "St Andrew's Cross"},
-							{char: "☔", name: "雨伞", ename: "Umbrella with Rain Drops"},
-							{char: "☕", name: "咖啡", ename: "Hot Beverage"},
+							{char: "☌", name: "合点", ename: "Conjunction"},
+							{char: "☍", name: "冲日点", ename: "Opposition"},
+							{char: "☎", name: "黑电话", ename: "Black Telephone"},
+							{char: "☏", name: "白电话", ename: "White Telephone"},
+							{char: "☐", name: "投票框", ename: "Ballot Box"},
+							{char: "☑", name: "带勾的投票框", ename: "Ballot Box with Check"},
+							{char: "☒", name: "带叉的投票框", ename: "Ballot Box with X"},
+							{char: "☓", name: "圣安德鲁十字", ename: "St Andrew's Cross"},
+							{char: "☔", name: "带雨滴的雨伞", ename: "Umbrella with Rain Drops"},
+							{char: "☕", name: "热饮", ename: "Hot Beverage", tags: ["咖啡"]},
 							{char: "☘", name: "三叶草", ename: "Shamrock"},
-							{char: "☙", name: "引号", ename: "Reversed Rotated Floral Heart Bullet"},
-							{char: "☚", name: "左指", ename: "Black Left Pointing Index"},
-							{char: "☛", name: "右指", ename: "Black Right Pointing Index"},
-							{char: "☜", name: "左指", ename: "White Left Pointing Index"},
-							{char: "☝", name: "上指", ename: "White Up Pointing Index"},
-							{char: "☞", name: "右指", ename: "White Right Pointing Index"},
-							{char: "☟", name: "下指", ename: "White Down Pointing Index"},
-							{char: "☠", name: "骷髅", ename: "Skull and Crossbones"},
-							{char: "☡", name: "警告", ename: "Caution Sign"},
-							{char: "☢", name: "放射性", ename: "Radioactive Sign"},
-							{char: "☣", name: "生物危害", ename: "Biohazard Sign"},
-							{char: "☤", name: "医学", ename: "Caduceus"},
+							{char: "☙", name: "反向旋转花心", ename: "Reversed Rotated Floral Heart Bullet"},
+							{char: "☚", name: "左指黑指针", ename: "Black Left Pointing Index"},
+							{char: "☛", name: "右指黑指针", ename: "Black Right Pointing Index"},
+							{char: "☜", name: "左指白指针", ename: "White Left Pointing Index"},
+							{char: "☝", name: "上指白指针", ename: "White Up Pointing Index"},
+							{char: "☞", name: "右指白指针", ename: "White Right Pointing Index"},
+							{char: "☟", name: "下指白指针", ename: "White Down Pointing Index"},
+							{char: "☠", name: "骷髅和交叉骨", ename: "Skull and Crossbones"},
+							{char: "☡", name: "警告标志", ename: "Caution Sign"},
+							{char: "☢", name: "放射性标志", ename: "Radioactive Sign"},
+							{char: "☣", name: "生物危害标志", ename: "Biohazard Sign"},
+							{char: "☤", name: "商神杖", ename: "Caduceus"},
 							{char: "☥", name: "生命之符", ename: "Ankh"},
 							{char: "☦", name: "东正教十字", ename: "Orthodox Cross"},
 							{char: "☧", name: "基督符号", ename: "Chi Rho"},
@@ -439,12 +448,41 @@
 							{char: "☫", name: "法拉瓦哈", ename: "Faravahar"},
 							{char: "☬", name: "坎达", ename: "Khanda"},
 							{char: "☭", name: "镰刀锤子", ename: "Hammer and Sickle"},
-							{char: "☮", name: "和平", ename: "Peace Symbol"},
-							{char: "☯", name: "太极", ename: "Yin Yang"}
+							{char: "☮", name: "和平符号", ename: "Peace Symbol"},
+							{char: "☯", name: "阴阳", ename: "Yin Yang"}
 						]
 					}
 				]
 			};
+		},
+		computed: {
+			filteredSymbolGroups() {
+				if (!this.searchQuery) {
+					return this.symbolGroups;
+				}
+				const query = this.searchQuery.toLowerCase();
+				const result = [];
+
+				for (const group of this.symbolGroups) {
+					const filteredSymbols = group.symbols.filter(s => {
+						const tags = s.tags || [];
+						return (
+								s.char.toLowerCase().includes(query) ||
+								s.name.toLowerCase().includes(query) ||
+								s.ename.toLowerCase().includes(query) ||
+								tags.some(t => t.toLowerCase().includes(query))
+						);
+					});
+
+					if (filteredSymbols.length > 0) {
+						result.push({
+							...group,
+							symbols: filteredSymbols
+						});
+					}
+				}
+				return result;
+			}
 		},
 		methods: {
 			copySymbol(symbol) {
