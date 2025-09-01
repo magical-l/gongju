@@ -182,10 +182,22 @@
 		data() {
 			return {
 				searchQuery: '',
-				symbolGroups: [
+								symbolGroups: [
 					{
-						name: "星星与星座",
+						name: "天文",
 						symbols: [
+							{char: "☉", name: "太阳", ename: "Sun"},
+							{char: "☽", name: "上弦月", ename: "First Quarter Moon"},
+							{char: "☾", name: "下弦月", ename: "Last Quarter Moon"},
+							{char: "☿", name: "水星", ename: "Mercury"},
+							{char: "♀", name: "金星", ename: "Venus"},
+							{char: "♁", name: "地球", ename: "Earth"},
+							{char: "♂", name: "火星", ename: "Mars"},
+							{char: "♃", name: "木星", ename: "Jupiter"},
+							{char: "♄", name: "土星", ename: "Saturn"},
+							{char: "♅", name: "天王星", ename: "Uranus"},
+							{char: "♆", name: "海王星", ename: "Neptune"},
+							{char: "♇", name: "冥王星", ename: "Pluto"},
 							{char: "★", name: "黑星", ename: "Black Star", tags: ["实心星", "五角星"]},
 							{char: "☆", name: "白星", ename: "White Star", tags: ["空心星", "五角星"]},
 							{char: "✡", name: "大卫之星", ename: "Star of David", tags: ["六角星"]},
@@ -285,6 +297,7 @@
 					{
 						name: "货币符号",
 						symbols: [
+							{char: "$", name: "美元", ename: "Dollar", tags: ["货币", "钱"]},
 							{char: "¢", name: "分", ename: "Cent", tags: ["货币"]},
 							{char: "£", name: "英镑", ename: "Pound", tags: ["货币"]},
 							{char: "¤", name: "货币", ename: "Currency"},
@@ -348,6 +361,9 @@
 							{char: "±", name: "正负号", ename: "Plus-Minus Sign"},
 							{char: "≠", name: "不等于号", ename: "Not Equal To"},
 							{char: "≈", name: "约等于号", ename: "Almost Equal To"},
+							{char: "≅", name: "全等于号", ename: "Congruent To"},
+							{char: "≡", name: "恒等于号", ename: "Identical To"},
+							{char: "∝", name: "正比于", ename: "Proportional To"},
 							{char: "≤", name: "小于等于号", ename: "Less-Than or Equal To"},
 							{char: "≥", name: "大于等于号", ename: "Greater-Than or Equal To"},
 							{char: "∞", name: "无穷大", ename: "Infinity"},
@@ -408,18 +424,20 @@
 						name: "天气和自然",
 						symbols: [
 							{char: "☀", name: "带光芒的黑太阳", ename: "Black Sun with Rays"},
+							{char: "☼", name: "白太阳", ename: "White Sun with Rays"},
 							{char: "☁", name: "云", ename: "Cloud"},
 							{char: "☂", name: "雨伞", ename: "Umbrella"},
+							{char: "☔", name: "带雨滴的雨伞", ename: "Umbrella with Rain Drops"},
 							{char: "☃", name: "雪人", ename: "Snowman"},
-							{char: "☄", name: "彗星", ename: "Comet"},
+							{char: "❄", name: "雪花", ename: "Snowflake"},
 							{char: "☇", name: "闪电", ename: "Lightning"},
 							{char: "☈", name: "雷暴", ename: "Thunderstorm"},
-							{char: "☉", name: "太阳", ename: "Sun"},
+							{char: "🔥", name: "火", ename: "Fire"},
+							{char: "☄", name: "彗星", ename: "Comet"},
 							{char: "☊", name: "升交点", ename: "Ascending Node"},
 							{char: "☋", name: "降交点", ename: "Descending Node"},
 							{char: "☌", name: "合点", ename: "Conjunction"},
 							{char: "☍", name: "冲日点", ename: "Opposition"},
-							{char: "☔", name: "带雨滴的雨伞", ename: "Umbrella with Rain Drops"},
 							{char: "☕", name: "热饮", ename: "Hot Beverage", tags: ["咖啡"]},
 							{char: "☘", name: "三叶草", ename: "Shamrock"}
 						]
@@ -461,6 +479,8 @@
 					{
 						name: "音乐",
 						symbols: [
+							{char: "𝅝", name: "全音符", ename: "Whole Note"},
+							{char: "𝅗𝅥", name: "二分音符", ename: "Half Note"},
 							{char: "♩", name: "四分音符", ename: "Quarter Note"},
 							{char: "♪", name: "八分音符", ename: "Eighth Note"},
 							{char: "♫", name: "双八分音符", ename: "Beamed Eighth Notes"},
