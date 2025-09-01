@@ -213,6 +213,56 @@
 				activeGroupNames: ['天文'],
 				symbolGroups: [
 					{
+						name:'生活',
+						groups:[
+							{
+								name:'生活',
+								symbols: [
+									{char: "☎", name: "黑电话", ename: "Black Telephone"},
+									{char: "☏", name: "白电话", ename: "White Telephone"},
+									{char: "☐", name: "投票框", ename: "Ballot Box"},
+									{char: "☑", name: "带勾的投票框", ename: "Ballot Box with Check"},
+									{char: "☒", name: "带叉的投票框", ename: "Ballot Box with X"},
+									{char: "☂", name: "雨伞", ename: "Umbrella"},
+									{char: "☔", name: "带雨滴的雨伞", ename: "Umbrella with Rain Drops"},
+									{char: "⛱", name: "地面雨伞", ename: "Umbrella On Ground", tags: ['雨伞', '地面']},
+									{char: "☃", name: "雪人", ename: "Snowman"},
+									{char: "⛇", name: "黑雪人", ename: "Black Snowman", tags: ['雪人', '冬天']},
+									{char: "⛺", name: "帐篷", ename: "Tent", tags: ['帐篷', '露营']},
+									{char: "⛲", name: "喷泉", ename: "Fountain", tags: ['喷泉', '水']},
+									{char: "⛵", name: "帆船", ename: "Sailboat", tags: ['帆船', '船']},
+									{char: "☕", name: "热饮", ename: "Hot Beverage", tags: ["咖啡"]},
+									{char: "⛫", name: "城堡", ename: "Castle", tags: ['城堡', '建筑']},
+								]
+							},
+							{
+								name:'自然',
+								symbols: [
+									{char: "🔥", name: "火", ename: "Fire"},
+									{char: "☘", name: "三叶草", ename: "Shamrock"},
+									{char: "☙", name: "反向旋转花心", ename: "Reversed Rotated Floral Heart Bullet"},
+								]
+							},
+							{
+								name:'天气',
+								symbols: [
+									{char: "☀", name: "黑太阳", ename: "Black Sun with Rays"},
+									{char: "☼", name: "白太阳", ename: "White Sun with Rays"},
+									{char: "☁", name: "云", ename: "Cloud"},
+									{char: "❄", name: "雪花", ename: "Snowflake"},
+									{char: "☇", name: "闪电", ename: "Lightning"},
+									{char: "☈", name: "雷暴", ename: "Thunderstorm"},
+									{char: "⛰", name: "山", ename: "Mountain", tags: ['山', '地形']},
+									{char: "⛅", name: "云后太阳", ename: "Sun Behind Cloud", tags: ['多云']},
+									{char: "⛆", name: "雨", ename: "Rain", tags: ['雨', '天气']},
+									{char: "⛉", name: "雾", ename: "Fog", tags: ['雾', '天气']},
+									{char: "⛊", name: "雾", ename: "Fog", tags: ['雾', '天气']},
+									{char: "⛋", name: "雾", ename: "Fog", tags: ['雾', '天气']}
+								]
+							}
+						]
+					},
+					{
 						name: "天文",
 						groups: [
 							{
@@ -230,13 +280,19 @@
 									{char: "♃", name: "木星", ename: "Jupiter"},
 									{char: "♄", name: "土星", ename: "Saturn"},
 									{char: "♅", name: "天王星", ename: "Uranus"},
+									{char: "⛢", name: "天王星天文符号", ename: "Astronomical Symbol For Uranus"},
 									{char: "♆", name: "海王星", ename: "Neptune"},
 									{char: "♇", name: "冥王星", ename: "Pluto"},
+									{char: "⚳", name: "谷神星", ename: "Ceres", tags: ['矮行星']},
+									{char: "⚴", name: "智神星", ename: "Pallas", tags: ['小行星']},
+									{char: "⚵", name: "婚神星", ename: "Juno", tags: ['小行星']},
+									{char: "⚶", name: "灶神星", ename: "Vesta", tags: ['小行星']},
+									{char: "⚷", name: "凯龙星", ename: "Chiron", tags: ['小行星']},
 									{char: "☄", name: "彗星", ename: "Comet"},
 									{char: "☊", name: "升交点", ename: "Ascending Node"},
 									{char: "☋", name: "降交点", ename: "Descending Node"},
 									{char: "☌", name: "合点", ename: "Conjunction"},
-									{char: "☍", name: "冲日点", ename: "Opposition"}
+									{char: "☍", name: "冲日点", ename: "Opposition"},
 								]
 							},
 							{
@@ -253,7 +309,8 @@
 									{char: "♐", name: "射手座", ename: "Sagittarius"},
 									{char: "♑", name: "摩羯座", ename: "Capricorn"},
 									{char: "♒", name: "水瓶座", ename: "Aquarius"},
-									{char: "♓", name: "双鱼座", ename: "Pisces"}
+									{char: "♓", name: "双鱼座", ename: "Pisces"},
+									{char: "⛎", name: "蛇夫座", ename: "Ophiuchus"},
 								]
 							},
 							{
@@ -287,7 +344,11 @@
 									{char: "⁎", name: "星号", ename: "Low Asterisk"},
 									{char: "⁑", name: "竖排双星号", ename: "Two Asterisks Aligned Vertically"},
 									{char: "⌑", name: "凹正方形", ename: "Square Lozenge", tags: ['方菱形']},
-									{char: "⍣", name: "星形分音符", ename: "APL Functional Symbol Star Diaeresis"}
+									{char: "⍣", name: "星形分音符", ename: "APL Functional Symbol Star Diaeresis"},
+									{char: "⛤", name: "五角星", ename: "Pentagram", tags: ['五角星', '魔法']},
+									{char: "⛥", name: "右手交织五角星", ename: "Right-Handed Interlaced Pentagram", tags: ['五角星', '交织']},
+									{char: "⛦", name: "左手交织五角星", ename: "Left-Handed Interlaced Pentagram", tags: ['五角星', '交织']},
+									{char: "⛧", name: "倒五角星", ename: "Inverted Pentagram", tags: ['五角星', '倒置']},
 								]
 							}
 						]
@@ -352,7 +413,13 @@
 							{char: "➻", name: "右上箭头", ename: "Heavy North East Arrow"},
 							{char: "➼", name: "粗右箭头", ename: "Heavy Rightwards Arrow"},
 							{char: "➽", name: "右上箭头", ename: "Heavy North East Arrow"},
-							{char: "➾", name: "粗右箭头", ename: "Heavy Rightwards Arrow"}
+							{char: "➾", name: "粗右箭头", ename: "Heavy Rightwards Arrow"},
+							{char: "☚", name: "黑左指", ename: "Black Left Pointing Index", tags: ['手指', '指向']},
+							{char: "☛", name: "黑右指", ename: "Black Right Pointing Index", tags: ['手指', '指向']},
+							{char: "☜", name: "白左指", ename: "White Left Pointing Index", tags: ['手指', '指向']},
+							{char: "☝", name: "白上指", ename: "White Up Pointing Index", tags: ['手指', '指向']},
+							{char: "☞", name: "白右指", ename: "White Right Pointing Index", tags: ['手指', '指向']},
+							{char: "☟", name: "白下指", ename: "White Down Pointing Index", tags: ['手指', '指向']}
 						]
 					},
 					{
@@ -727,37 +794,9 @@
 						]
 					},
 					{
-						name: "天气和自然",
-						symbols: [
-							{char: "☀", name: "黑太阳", ename: "Black Sun with Rays"},
-							{char: "☼", name: "白太阳", ename: "White Sun with Rays"},
-							{char: "☁", name: "云", ename: "Cloud"},
-							{char: "☂", name: "雨伞", ename: "Umbrella"},
-							{char: "☔", name: "带雨滴的雨伞", ename: "Umbrella with Rain Drops"},
-							{char: "☃", name: "雪人", ename: "Snowman"},
-							{char: "❄", name: "雪花", ename: "Snowflake"},
-							{char: "☇", name: "闪电", ename: "Lightning"},
-							{char: "☈", name: "雷暴", ename: "Thunderstorm"},
-							{char: "🔥", name: "火", ename: "Fire"},
-							{char: "☘", name: "三叶草", ename: "Shamrock"}
-						]
-					},
-					{
 						name: "人文与宗教",
 						symbols: [
-							{char: "☎", name: "黑电话", ename: "Black Telephone"},
-							{char: "☏", name: "白电话", ename: "White Telephone"},
-							{char: "☐", name: "投票框", ename: "Ballot Box"},
-							{char: "☑", name: "带勾的投票框", ename: "Ballot Box with Check"},
-							{char: "☒", name: "带叉的投票框", ename: "Ballot Box with X"},
 							{char: "☓", name: "圣安德鲁十字", ename: "St Andrew's Cross"},
-							{char: "☙", name: "反向旋转花心", ename: "Reversed Rotated Floral Heart Bullet"},
-							{char: "☚", name: "左指黑指针", ename: "Black Left Pointing Index"},
-							{char: "☛", name: "右指黑指针", ename: "Black Right Pointing Index"},
-							{char: "☜", name: "左指白指针", ename: "White Left Pointing Index"},
-							{char: "☝", name: "上指白指针", ename: "White Up Pointing Index"},
-							{char: "☞", name: "右指白指针", ename: "White Right Pointing Index"},
-							{char: "☟", name: "下指白指针", ename: "White Down Pointing Index"},
 							{char: "☠", name: "骷髅和交叉骨", ename: "Skull and Crossbones", tags: ['海盗']},
 							{char: "☡", name: "警告标志", ename: "Caution Sign"},
 							{char: "☢", name: "放射性标志", ename: "Radioactive Sign", tags: ['辐射']},
@@ -774,7 +813,28 @@
 							{char: "☭", name: "镰刀锤子", ename: "Hammer and Sickle", tags: ['共产党', '苏维埃', '苏联']},
 							{char: "☮", name: "和平", ename: "Peace Symbol"},
 							{char: "☯", name: "阴阳", ename: "Yin Yang", tags: ['太极图', '两仪', '易经', '道教']},
-							{char: "☕", name: "热饮", ename: "Hot Beverage", tags: ["咖啡"]}
+							{char: "♰", name: "西叙利亚十字", ename: "West Syriac Cross", tags: ['十字', '宗教']},
+							{char: "♱", name: "东叙利亚十字", ename: "East Syriac Cross", tags: ['十字', '宗教']},
+							{char: "⚊", name: "阳符", ename: "Monogram For Yang", tags: ['阴阳', '道教']},
+							{char: "⚋", name: "阴符", ename: "Monogram For Yin", tags: ['阴阳', '道教']},
+							{char: "⚌", name: "太阳符", ename: "Digram For Greater Yang", tags: ['阴阳', '道教']},
+							{char: "⚍", name: "少阴符", ename: "Digram For Lesser Yin", tags: ['阴阳', '道教']},
+							{char: "⚎", name: "少阳符", ename: "Digram For Lesser Yang", tags: ['阴阳', '道教']},
+							{char: "⚏", name: "太阴符", ename: "Digram For Greater Yin", tags: ['阴阳', '道教']},
+							{char: "⛤", name: "五角星", ename: "Pentagram", tags: ['五角星', '魔法']},
+							{char: "⛥", name: "右手交织五角星", ename: "Right-Handed Interlaced Pentagram", tags: ['五角星', '交织']},
+							{char: "⛦", name: "左手交织五角星", ename: "Left-Handed Interlaced Pentagram", tags: ['五角星', '交织']},
+							{char: "⛧", name: "倒五角星", ename: "Inverted Pentagram", tags: ['五角星', '倒置']},
+							{char: "⛨", name: "盾牌黑十字", ename: "Black Cross On Shield", tags: ['十字', '盾牌']},
+							{char: "⛩", name: "神道教神社", ename: "Shinto Shrine", tags: ['神社', '宗教']},
+							{char: "⛪", name: "教堂", ename: "Church", tags: ['教堂', '宗教']},
+							{char: "⛬", name: "历史遗址", ename: "Historic Site", tags: ['遗址', '历史']},
+
+							{char: "⚸", name: "黑月莉莉丝", ename: "Black Moon Lilith", tags: ['黑月', '占星']},
+							{char: "⚹", name: "六分相", ename: "Sextile", tags: ['六分相', '占星']},
+							{char: "⚺", name: "半六分相", ename: "Semisextile", tags: ['半六分相', '占星']},
+							{char: "⚻", name: "梅花相", ename: "Quincunx", tags: ['梅花相', '占星']},
+							{char: "⚼", name: "倍半四分相", ename: "Sesquiquadrate", tags: ['倍半四分相', '占星']},
 						]
 					},
 					{
@@ -973,7 +1033,14 @@
 							{char: "𝇧", name: "十二连音", ename: "Musical Symbol Duodecuplet"},
 							{char: "𝇨", name: "十三连音", ename: "Musical Symbol Tredecuplet"},
 							{char: "𝇩", name: "十四连音", ename: "Musical Symbol Quattuordecuplet"},
-							{char: "𝇪", name: "十五连音", ename: "Musical Symbol Quindecuplet"}
+							{char: "𝇪", name: "十五连音", ename: "Musical Symbol Quindecuplet"},
+							{char: "♩", name: "四分音符", ename: "Quarter Note", tags: ['音乐', '音符']},
+							{char: "♪", name: "八分音符", ename: "Eighth Note", tags: ['音乐', '音符']},
+							{char: "♫", name: "连八分音符", ename: "Beamed Eighth Notes", tags: ['音乐', '音符']},
+							{char: "♬", name: "连十六分音符", ename: "Beamed Sixteenth Notes", tags: ['音乐', '音符']},
+							{char: "♭", name: "降号", ename: "Music Flat Sign", tags: ['音乐', '降号']},
+							{char: "♮", name: "还原号", ename: "Music Natural Sign", tags: ['音乐', '还原号']},
+							{char: "♯", name: "升号", ename: "Music Sharp Sign", tags: ['音乐', '升号']}
 						]
 					},
 					{
@@ -999,7 +1066,9 @@
 							{char: "🥈", name: "银牌", ename: "2nd Place Medal"},
 							{char: "🥉", name: "铜牌", ename: "3rd Place Medal"},
 							{char: "🏆", name: "奖杯", ename: "Trophy"},
-							{char: "🎯", name: "靶心", ename: "Direct Hit"}
+							{char: "🎯", name: "靶心", ename: "Direct Hit"},
+							{char: "⛷", name: "滑雪者", ename: "Skier", tags: ['滑雪', '运动']},
+							{char: "⛸", name: "冰鞋", ename: "Ice Skate", tags: ['冰鞋', '运动']}
 						]
 					},
 					{
@@ -1450,9 +1519,28 @@
 
 									{char: "♠", name: "黑桃", ename: "Black Spade Suit"},
 									{char: "♡", name: "红心", ename: "White Heart Suit"},
-									{char: "♣", name: "梅花", ename: "Black Club Suit"},
-									{char: "♢", name: "方块", ename: "White Diamond Suit"},
-
+									{char: "♢", name: "白方块", ename: "White Diamond Suit"},
+									{char: "♣", name: "黑梅花", ename: "Black Club Suit"},
+									{char: "♤", name: "白桃", ename: "White Spade Suit"},
+									{char: "♥", name: "黑心", ename: "Black Heart Suit"},
+									{char: "♦", name: "黑方块", ename: "Black Diamond Suit"},
+									{char: "♧", name: "白梅花", ename: "White Club Suit"},
+									{char: "⚀", name: "骰子1", ename: "Die Face-1", tags: ['骰子', '游戏']},
+									{char: "⚁", name: "骰子2", ename: "Die Face-2", tags: ['骰子', '游戏']},
+									{char: "⚂", name: "骰子3", ename: "Die Face-3", tags: ['骰子', '游戏']},
+									{char: "⚃", name: "骰子4", ename: "Die Face-4", tags: ['骰子', '游戏']},
+									{char: "⚄", name: "骰子5", ename: "Die Face-5", tags: ['骰子', '游戏']},
+									{char: "⚅", name: "骰子6", ename: "Die Face-6", tags: ['骰子', '游戏']},
+									{char: "⛀", name: "白跳棋", ename: "White Draughts Man", tags: ['跳棋', '游戏']},
+									{char: "⛁", name: "白跳棋王", ename: "White Draughts King", tags: ['跳棋', '游戏']},
+									{char: "⛂", name: "黑跳棋", ename: "Black Draughts Man", tags: ['跳棋', '游戏']},
+									{char: "⛃", name: "黑跳棋王", ename: "Black Draughts King", tags: ['跳棋', '游戏']},
+									{char: "⛉", name: "翻转白将棋", ename: "Turned White Shogi Piece", tags: ['将棋', '游戏']},
+									{char: "⛊", name: "翻转黑将棋", ename: "Turned Black Shogi Piece", tags: ['将棋', '游戏']},
+									{char: "⚽", name: "足球", ename: "Soccer Ball", tags: ['足球', '运动']},
+									{char: "⚾", name: "棒球", ename: "Baseball", tags: ['棒球', '运动']},
+									{char: "⛹", name: "持球人", ename: "Person with Ball", tags: ['人', '球']},
+									{char: "⛳", name: "洞中旗", ename: "Flag In Hole", tags: ['旗', '洞']},
 									{char: "♤", name: "反色黑桃", ename: "White Spade Suit"},
 									{char: "♥", name: "反色红心", ename: "Red Heart Suit"},
 									{char: "♧", name: "反色梅花", ename: "White Club Suit"},
@@ -1845,6 +1933,18 @@
 									{char: "𝍖", name: "養", ename: "Tetragram for Fostering"}
 								]
 							}
+						]
+					},
+					{
+						name: '其他',
+						symbols: [
+							{char: "⚆", name: "右点白圆", ename: "White Circle with Dot Right", tags: ['圆', '点']},
+							{char: "⚇", name: "双点白圆", ename: "White Circle with Two Dots", tags: ['圆', '点']},
+							{char: "⚈", name: "右白点黑圆", ename: "Black Circle with White Dot Right", tags: ['圆', '点']},
+							{char: "⚉", name: "双白点黑圆", ename: "Black Circle with Two White Dots", tags: ['圆', '点']},
+							{char: "⚞", name: "右聚三线", ename: "Three Lines Converging Right", tags: ['线', '汇聚']},
+							{char: "⚟", name: "左聚三线", ename: "Three Lines Converging Left", tags: ['线', '汇聚']},
+							{char: "⛛", name: "重白下指三角", ename: "Heavy White Down-Pointing Triangle", tags: ['三角', '指向']}
 						]
 					}
 				]
