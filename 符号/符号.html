@@ -21,7 +21,7 @@
 <style>
 	@font-face {
 		font-family: 'Noto Sans Symbols 2';
-		src: url('lib/fonts/NotoSansSymbols2-Regular.ttf') format('truetype');
+		src: url('../lib/fonts/NotoSansSymbols2-Regular.ttf') format('truetype');
 		font-weight: normal;
 		font-style: normal;
 		font-display: swap;
@@ -52,8 +52,8 @@
 	}
 
 	.symbols {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+		display: flex;
+		flex-wrap: wrap;
 		gap: 0.5rem;
 	}
 
@@ -63,11 +63,13 @@
 		justify-content: start;
 		align-items: center;
 		height: 120px;
+		width: 90px;
 		cursor: pointer;
 		border-radius: 4px;
 		transition: background-color 0.3s;
 		padding: 4px;
 		box-sizing: border-box;
+		flex-shrink: 0;
 	}
 
 	.symbol:hover {
@@ -100,6 +102,27 @@
 		font-size: 0.65rem;
 		color: var(--el-text-color-placeholder);
 		text-transform: capitalize;
+	}
+
+	.loading-placeholder {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 100px;
+		color: var(--el-text-color-placeholder);
+	}
+
+	.subgroup {
+		margin-bottom: 1.5rem;
+	}
+
+	.subgroup .subgroup-name {
+		font-size: 1rem;
+		font-weight: 500;
+		color: var(--el-text-color-regular);
+		margin-bottom: 0.75rem;
+		padding-left: 8px;
+		border-left: 3px solid var(--el-color-primary);
 	}
 </style>
 </head>
@@ -151,33 +174,40 @@
 
 		<div class="symbol-groups">
 			<el-collapse v-model="activeGroupNames">
-				<el-collapse-item v-for="group in filteredSymbolGroups" :key="group.name" :name="group.name">
+				<el-collapse-item v-for="group in groups" :key="group" :name="group">
 					<template #title>
-						<h3 class="name">{{ group.name }}</h3>
+						<h3 class="name">{{ group }}</h3>
 					</template>
 
-					<div v-if="group.symbols" class="symbols">
-						<div class="symbol" v-for="s in group.symbols" :key="s.char" @click="copySymbol(s)"
-								 :title="getSymbolTitle(s)">
-							<span class="char">{{ s.char }}</span>
-							<span class="name">{{ s.name }}</span>
-							<span class="ename">{{ s.ename }}</span>
+					<div v-if="!loadedGroups[group]" class="loading-placeholder">
+						<el-button @click="loadGroup(group)" type="primary" :loading="loadingGroups[group]">
+							{{ loadingGroups[group] ? '加载中...' : '点击加载' }}
+						</el-button>
+					</div>
+
+					<div v-else-if="loadedGroups[group] && filteredSymbolGroups[group]">
+						<div v-if="filteredSymbolGroups[group].groups" class="subgroups">
+							<div v-for="subgroup in filteredSymbolGroups[group].groups" :key="subgroup.name" class="subgroup">
+								<h4 class="subgroup-name">{{ subgroup.name }}</h4>
+								<div class="symbols">
+									<div class="symbol" v-for="s in subgroup.symbols" :key="s.char" @click="copySymbol(s)"
+											 :title="getSymbolTitle(s)">
+										<span class="char">{{ s.char }}</span>
+										<span class="name">{{ s.name }}</span>
+										<span class="ename">{{ s.ename }}</span>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div v-else-if="filteredSymbolGroups[group].symbols" class="symbols">
+							<div class="symbol" v-for="s in filteredSymbolGroups[group].symbols" :key="s.char" @click="copySymbol(s)"
+									 :title="getSymbolTitle(s)">
+								<span class="char">{{ s.char }}</span>
+								<span class="name">{{ s.name }}</span>
+								<span class="ename">{{ s.ename }}</span>
+							</div>
 						</div>
 					</div>
-
-					<div v-if="group.groups">
-						<section class="symbol-group" v-for="subgroup in group.groups" :key="subgroup.name">
-							<h4 class="name">{{ subgroup.name }}</h4>
-							<div class="symbols">
-								<div class="symbol" v-for="s in subgroup.symbols" :key="s.char" @click="copySymbol(s)"
-										 :title="getSymbolTitle(s)">
-									<span class="char">{{ s.char }}</span>
-									<span class="name">{{ s.name }}</span>
-									<span class="ename">{{ s.ename }}</span>
-								</div>
-						</section>
-					</div>
-
 				</el-collapse-item>
 			</el-collapse>
 		</div>
@@ -211,19 +241,20 @@
 		'体育',
 		'语文、语言学、标点符号',
 		'数学',
-		'自然、科学',
+		'自然',
 		'哲学、宗教、神秘学',
 		'其他'
 	];
-
-	const symbolGroups=[];
 
 	const app = createApp({
 		data() {
 			return {
 				searchQuery: '',
-				activeGroupNames: ['天文'],
-				symbolGroups
+				activeGroupNames: [],
+				groups,
+				symbolGroups: {},
+				loadedGroups: {},
+				loadingGroups: {}
 			};
 		},
 		computed: {
@@ -232,9 +263,11 @@
 					return this.symbolGroups;
 				}
 				const query = this.searchQuery.toLowerCase();
-				const result = [];
+				const result = {};
 
-				for (const group of this.symbolGroups) {
+				for (const [groupName, group] of Object.entries(this.symbolGroups)) {
+					if (!group) continue;
+
 					const filterSymbols = symbols => {
 						return symbols.filter(s => {
 							const tags = s.tags || [];
@@ -248,7 +281,7 @@
 					if (group.symbols) {
 						const filtered = filterSymbols(group.symbols);
 						if (filtered.length > 0) {
-							result.push({...group, symbols: filtered});
+							result[groupName] = {...group, symbols: filtered};
 						}
 					} else if (group.groups) {
 						const filteredSubgroups = [];
@@ -259,7 +292,7 @@
 							}
 						}
 						if (filteredSubgroups.length > 0) {
-							result.push({...group, groups: filteredSubgroups});
+							result[groupName] = {...group, groups: filteredSubgroups};
 						}
 					}
 				}
@@ -267,6 +300,38 @@
 			}
 		},
 		methods: {
+			async loadGroup(groupName) {
+				if (this.loadedGroups[groupName] || this.loadingGroups[groupName]) {
+					return;
+				}
+
+				this.loadingGroups[groupName] = true;
+
+				try {
+					const response = await fetch(`${groupName}.js`);
+					if (!response.ok) {
+						throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+					}
+					const jsContent = await response.text();
+
+					// 使用Function构造函数在隔离的作用域中执行代码，并返回data变量
+					// 这样更安全，不会污染全局作用域
+					const getData = new Function(jsContent + '\nreturn data;');
+					const data = getData();
+
+					if (typeof data !== 'undefined') {
+						this.symbolGroups[groupName] = data;
+						this.loadedGroups[groupName] = true;
+					} else {
+						throw new Error('数据加载失败：JS文件中未找到data变量');
+					}
+				} catch (error) {
+					console.error(`加载${groupName}组失败:`, error);
+					ElementPlus.ElMessage.error(`加载${groupName}组失败: ${error.message}`);
+				} finally {
+					this.loadingGroups[groupName] = false;
+				}
+			},
 			copySymbol(symbol) {
 				navigator.clipboard.writeText(symbol.char).then(() => {
 					ElementPlus.ElMessage.success(`“${symbol.name || symbol.char}”已复制`);
@@ -281,6 +346,16 @@
 				return `${s.name || ''} / ${s.ename || ''}
 ${code} / ${htmlEntity}
 点击复制: ${s.char}`;
+			}
+		},
+		watch: {
+			activeGroupNames(newNames) {
+				// 当展开某个组时，自动加载数据
+				for (const groupName of newNames) {
+					if (!this.loadedGroups[groupName] && !this.loadingGroups[groupName]) {
+						this.loadGroup(groupName);
+					}
+				}
 			}
 		}
 	})

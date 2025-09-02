@@ -1,6 +1,6 @@
 const data = {
 	name: "体育",
-	group: [{
+	groups: [{
 		name: "国际象棋",
 		symbols: [
 			{char: "♔", name: "白国王", ename: "White Chess King", tags: ['国际象棋']},
