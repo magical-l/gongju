@@ -73,7 +73,13 @@ const data = {
 		{
 			name: '几何图形',
 			symbols: [
-				{char: "⛛", name: "重白下指三角", ename: "Heavy White Down-Pointing Triangle", tags: ['指向']}
+				{char: "⚪", name: "白圆", ename: "Medium White Circle", tags: ['圆形', '白色']},
+				{char: "⚫", name: "黑圆", ename: "Medium Black Circle", tags: ['圆形', '黑色']},
+				{char: "⛛", name: "重白下指三角", ename: "Heavy White Down-Pointing Triangle", tags: ['指向']},
+				{char: "⚆", name: "白圆右点", ename: "White Circle with Dot Right", tags: ['圆形', '点']},
+				{char: "⚇", name: "白圆双点", ename: "White Circle with Two Dots", tags: ['圆形', '点']},
+				{char: "⚈", name: "黑圆右点", ename: "Black Circle with White Dot Right", tags: ['圆形', '点']},
+				{char: "⚉", name: "黑圆双点", ename: "Black Circle with Two White Dots", tags: ['圆形', '点']},
 			]
 		}
 	]

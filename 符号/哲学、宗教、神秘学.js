@@ -181,7 +181,7 @@ const data = {
 			]
 		},
 		{
-			name:'其他',
+			name: '其他',
 			symbols: [
 				{char: "☥", name: "生命之符", ename: "Ankh", tags: ['安卡', '安克', '埃及']},
 				{char: "☤", name: "商神杖", ename: "Caduceus", tags: ['墨丘利的节杖', '古希腊']},
@@ -205,15 +205,15 @@ const data = {
 				{char: "⛥", name: "右手交织五角星", ename: "Right-Handed Interlaced Pentagram", tags: ['神秘学', '炼金术']},
 				{char: "⛦", name: "左手交织五角星", ename: "Left-Handed Interlaced Pentagram", tags: ['基督教', '东正教']},
 				{char: "⛧", name: "倒五角星", ename: "Inverted Pentagram", tags: ['倒置', '基督教']},
-				{char: "⛨", name: "盾牌黑十字", ename: "Black Cross On Shield", tags: [ '盾牌']},
-				{char: "⛩", name: "神道教神社", ename: "Shinto Shrine", tags: ['宗教']},
-				{char: "⛪", name: "教堂", ename: "Church", tags: ['宗教']},
+				{char: "⛨", name: "盾牌黑十字", ename: "Black Cross On Shield", tags: ['盾牌']},
+				{char: "⛩", name: "神道教神社", ename: "Shinto Shrine", tags: []},
+				{char: "⛪", name: "教堂", ename: "Church", tags: []},
 
-				{char: "⚸", name: "黑月莉莉丝", ename: "Black Moon Lilith", tags: ['黑月', '占星']},
-				{char: "⚹", name: "六分相", ename: "Sextile", tags: ['六分相', '占星']},
-				{char: "⚺", name: "半六分相", ename: "Semisextile", tags: ['半六分相', '占星']},
-				{char: "⚻", name: "梅花相", ename: "Quincunx", tags: ['梅花相', '占星']},
-				{char: "⚼", name: "倍半四分相", ename: "Sesquiquadrate", tags: ['倍半四分相', '占星']}
+				{char: "⚸", name: "黑月莉莉丝", ename: "Black Moon Lilith", tags: ['黑月', '占星术']},
+				{char: "⚹", name: "六分相", ename: "Sextile", tags: ['六分相', '占星术']},
+				{char: "⚺", name: "半六分相", ename: "Semisextile", tags: ['半六分相', '占星术']},
+				{char: "⚻", name: "梅花相", ename: "Quincunx", tags: ['梅花相', '占星术']},
+				{char: "⚼", name: "倍半四分相", ename: "Sesquiquadrate", tags: ['倍半四分相', '占星术']}
 			]
 		}
 	]

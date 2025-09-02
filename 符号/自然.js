@@ -3,13 +3,19 @@ const data = {
 	groups: [
 		{
 			name: '物理、化学',
-			symbols: []
+			symbols: [
+				{char: "⚛", name: "原子符号", ename: "Atom Symbol", tags: ['原子', '科学']},
+				{char: "☢", name: "放射性标志", ename: "Radioactive Sign", tags: ['辐射']},
+				{char: "⚡", name: "高压", ename: "High Voltage Sign", tags: ['电力', '危险']},
+			]
 		},
 		{
 			name: '生物',
 			symbols: [
 				{char: "☘", name: "三叶草", ename: "Shamrock"},
-				{char: "☙", name: "反向旋转花心", ename: "Reversed Rotated Floral Heart Bullet"}
+				{char: "⚜", name: "鸢尾花", ename: "Fleur-De-Lis", tags: ['花', '装饰']},
+				{char: "☙", name: "反向旋转花心", ename: "Reversed Rotated Floral Heart Bullet"},
+				{char: "☣", name: "生物危害标志", ename: "Biohazard Sign", tags: ['生化']},
 			]
 		},
 		{
@@ -131,6 +137,7 @@ const data = {
 				{char: "⁑", name: "竖排双星号", ename: "Two Asterisks Aligned Vertically"},
 				{char: "⌑", name: "凹正方形", ename: "Square Lozenge", tags: ['方菱形']},
 				{char: "⍣", name: "星形分音符", ename: "APL Functional Symbol Star Diaeresis"},
+				{char: "⚝", name: "白星", ename: "Outlined White Star", tags: ['星形', '白色']},
 				{char: "⛤", name: "五角星", ename: "Pentagram", tags: ['五角星', '魔法']},
 				{
 					char: "⛥",
@@ -154,13 +161,19 @@ const data = {
 				{char: "☼", name: "白太阳", ename: "White Sun with Rays"},
 				{char: "☁", name: "云", ename: "Cloud"},
 				{char: "❄", name: "雪花", ename: "Snowflake"},
+				{char: "⚡", name: "高压", ename: "High Voltage Sign", tags: ['电力', '危险', '闪电', '雷电']},
 				{char: "☇", name: "闪电", ename: "Lightning"},
 				{char: "☈", name: "雷暴", ename: "Thunderstorm"},
 				{char: "⛅", name: "云后太阳", ename: "Sun Behind Cloud", tags: ['多云']},
 				{char: "⛆", name: "雨", ename: "Rain", tags: []},
 				{char: "⛉", name: "雾", ename: "Fog", tags: []},
 				{char: "⛊", name: "雾", ename: "Fog", tags: []},
-				{char: "⛋", name: "雾", ename: "Fog", tags: []}
+				{char: "⛋", name: "雾", ename: "Fog", tags: []},
+				{char: "☂", name: "雨伞", ename: "Umbrella", tags: ['雨伞', '雨具']},
+				{char: "☔", name: "带雨滴的雨伞", ename: "Umbrella with Rain Drops", tags: ['雨伞', '雨具', '下雨']},
+				{char: "☃", name: "雪人", ename: "Snowman", tags: ['雪人', '冬天', '雪']},
+				{char: "⛇", name: "黑雪人", ename: "Black Snowman", tags: ['雪人', '冬天', '雪']},
+				{char: "⛄", name: "雪人无雪", ename: "Snowman Without Snow", tags: ['雪人', '冬天']}
 			]
 		},
 		{

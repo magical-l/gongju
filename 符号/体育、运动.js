@@ -503,19 +503,19 @@ const data = {
 				{char: "🥈", name: "银牌", ename: "2nd Place Medal"},
 				{char: "🥉", name: "铜牌", ename: "3rd Place Medal"},
 				{char: "🏆", name: "奖杯", ename: "Trophy"},
-				{char: "🎯", name: "靶心", ename: "Direct Hit"},
-				{char: "⛷", name: "滑雪者", ename: "Skier", tags: ['滑雪', '运动']},
-				{char: "⛸", name: "冰鞋", ename: "Ice Skate", tags: ['冰鞋', '运动']},
+				{char: "🎯", name: "靶心", ename: "Direct Hit", tags: ['射箭', '射击']},
+				{char: "⛷", name: "滑雪者", ename: "Skier", tags: ['运动']},
+				{char: "⛸", name: "冰鞋", ename: "Ice Skate", tags: ['运动']},
 				{char: "⛵", name: "帆船", ename: "Sailboat", tags: []},
-				{char: "⛀", name: "白跳棋", ename: "White Draughts Man", tags: ['跳棋', '游戏']},
-				{char: "⛁", name: "白跳棋王", ename: "White Draughts King", tags: ['跳棋', '游戏']},
-				{char: "⛂", name: "黑跳棋", ename: "Black Draughts Man", tags: ['跳棋', '游戏']},
-				{char: "⛃", name: "黑跳棋王", ename: "Black Draughts King", tags: ['跳棋', '游戏']},
-				{char: "⛉", name: "翻转白将棋", ename: "Turned White Shogi Piece", tags: ['将棋', '游戏']},
-				{char: "⛊", name: "翻转黑将棋", ename: "Turned Black Shogi Piece", tags: ['将棋', '游戏']},
-				{char: "⛹", name: "持球人", ename: "Person with Ball", tags: ['人', '球']},
-				{char: "⛳", name: "洞中旗", ename: "Flag In Hole", tags: ['旗', '洞']}
-
+				{char: "⛀", name: "白跳棋", ename: "White Draughts Man", tags: []},
+				{char: "⛁", name: "白跳棋王", ename: "White Draughts King", tags: []},
+				{char: "⛂", name: "黑跳棋", ename: "Black Draughts Man", tags: []},
+				{char: "⛃", name: "黑跳棋王", ename: "Black Draughts King", tags: ['跳棋']},
+				{char: "⛉", name: "翻转白将棋", ename: "Turned White Shogi Piece", tags: ['将棋']},
+				{char: "⛊", name: "翻转黑将棋", ename: "Turned Black Shogi Piece", tags: ['将棋']},
+				{char: "⛹", name: "持球人", ename: "Person with Ball", tags: []},
+				{char: "⛳", name: "洞中旗", ename: "Flag In Hole", tags: ['高尔夫球']},
+				{char: "⛺", name: "帐篷", ename: "Tent", tags: ['露营', '户外']}
 			]
 		}
 	]
