@@ -126,15 +126,14 @@
 
 	.symbol-detail-floater {
 		position: fixed;
-		top: 120px;
-		right: 30px;
+		bottom: 100px;
+		right: 10px;
 		z-index: 100;
-		width: 300px;
+		width: 330px;
 		box-shadow: var(--el-box-shadow-light);
 		background-color: #fff;
 		border: 1px solid var(--el-border-color-light);
 		border-radius: 8px;
-		padding: 1rem;
 		opacity: 0;
 		pointer-events: none;
 		transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
@@ -147,9 +146,8 @@
 	}
 
 	.symbol-detail-floater .char-preview {
-		font-size: 10rem;
+		font-size: 5rem;
 		text-align: center;
-		margin-bottom: 1rem;
 		font-family: 'Noto Sans Symbols 2', sans-serif;
 		line-height: 1;
 	}
@@ -178,24 +176,13 @@
 		font-size: 0.9em;
 	}
 
-	.alignment-preview {
-		font-size: 2rem;
-		display: flex;
-		align-items: baseline;
-		justify-content: center;
-		padding: 1rem;
-		border: 1px solid var(--el-border-color-lighter);
-		border-radius: 4px;
-		margin-bottom: 1rem;
-	}
-
-	.alignment-preview .placeholder-char {
+	.symbol-detail-floater .placeholder-char {
 		font-family: sans-serif;
-		color: var(--el-text-color-placeholder);
+		color: #eee;
 		user-select: none;
 	}
 
-	.alignment-preview .symbol-char {
+	.symbol-detail-floater .symbol-char {
 		font-family: 'Noto Sans Symbols 2', sans-serif;
 		margin: 0 2px;
 	}
@@ -244,8 +231,7 @@
 
 	<article v-cloak>
 		<div class="symbol-detail-floater" :class="{'is-visible': hoveredSymbol}" v-if="hoveredSymbol">
-			<div class="char-preview">{{ hoveredSymbol.char }}</div>
-			<div class="alignment-preview">
+			<div class="char-preview">
 				<span class="placeholder-char">文</span><span class="symbol-char">{{ hoveredSymbol.char }}</span><span class="placeholder-char">字</span>
 			</div>
 			<div class="details">
@@ -343,7 +329,7 @@
 				symbolGroups: {},
 				loadedGroups: {},
 				loadingGroups: {},
-				hoveredSymbol: null
+				hoveredSymbol: {char: "🃎", name: "方块K", ename: "Playing Card King of Diamonds"}
 			};
 		},
 		computed: {
