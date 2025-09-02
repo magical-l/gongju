@@ -52,9 +52,8 @@
 	}
 
 	.symbols {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
+		display: grid;
+		grid-template-columns: repeat(10, 1fr);
 	}
 
 	.symbol {
@@ -124,6 +123,60 @@
 		padding-left: 8px;
 		border-left: 3px solid var(--el-color-primary);
 	}
+
+	.symbol-detail-floater {
+		position: fixed;
+		top: 120px;
+		right: 30px;
+		z-index: 100;
+		width: 300px;
+		box-shadow: var(--el-box-shadow-light);
+		background-color: #fff;
+		border: 1px solid var(--el-border-color-light);
+		border-radius: 8px;
+		padding: 1rem;
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+		transform: translateX(10px);
+	}
+
+	.symbol-detail-floater.is-visible {
+		opacity: 1;
+		transform: translateX(0);
+	}
+
+	.symbol-detail-floater .char-preview {
+		font-size: 10rem;
+		text-align: center;
+		margin-bottom: 1rem;
+		font-family: 'Noto Sans Symbols 2', sans-serif;
+		line-height: 1;
+	}
+
+	.symbol-detail-floater .details {
+		text-align: center;
+	}
+
+	.symbol-detail-floater .details .name {
+		font-size: 1.2rem;
+		font-weight: 600;
+		color: var(--el-text-color-primary);
+	}
+
+	.symbol-detail-floater .details .ename {
+		font-size: 0.9rem;
+		color: var(--el-text-color-placeholder);
+		text-transform: capitalize;
+		margin-top: 4px;
+	}
+
+	.symbol-detail-floater .details .code {
+		font-family: monospace;
+		color: var(--el-text-color-secondary);
+		margin-top: 0.75rem;
+		font-size: 0.9em;
+	}
 </style>
 </head>
 <body class="grid 反叵字形">
@@ -168,6 +221,16 @@
 	</header>
 
 	<article v-cloak>
+		<div class="symbol-detail-floater" :class="{'is-visible': hoveredSymbol}" v-if="hoveredSymbol">
+			<div class="char-preview">{{ hoveredSymbol.char }}</div>
+			<div class="details">
+				<div class="name">{{ hoveredSymbol.name || hoveredSymbol.char }}</div>
+				<div v-if="hoveredSymbol.ename" class="ename">{{ hoveredSymbol.ename }}</div>
+				<div class="code">U+{{ hoveredSymbol.char.codePointAt(0).toString(16).toUpperCase() }}</div>
+				<div class="code">&#{{ hoveredSymbol.char.codePointAt(0) }};</div>
+			</div>
+		</div>
+
 		<section class="search-bar">
 			<el-input v-model="searchQuery" placeholder="输入中文、英文或拼音搜索符号..." clearable size="large"></el-input>
 		</section>
@@ -190,42 +253,22 @@
 							<div v-for="subgroup in filteredSymbolGroups[group].groups" :key="subgroup.name" class="subgroup">
 								<h4 class="subgroup-name">{{ subgroup.name }}</h4>
 								<div class="symbols">
-									<el-popover v-for="s in subgroup.symbols" :key="s.char" placement="top" trigger="hover" :width="220">
-										<template #reference>
-											<div class="symbol" @click="copySymbol(s)">
-												<span class="char">{{ s.char }}</span>
-												<span class="name">{{ s.name }}</span>
-												<span class="ename">{{ s.ename }}</span>
-											</div>
-										</template>
-										<div style="text-align: center; line-height: 1.5;">
-											<div style="font-size: 1.1em; font-weight: 600;">{{ s.name || s.char }}</div>
-											<div v-if="s.ename" style="font-size: 0.8em; color: #666; text-transform: capitalize;">{{ s.ename }}</div>
-											<div style="font-family: monospace; color: #999; margin-top: 8px; font-size: .9em;">
-												{{ 'U+' + s.char.codePointAt(0).toString(16).toUpperCase() }} / &amp;#{{ s.char.codePointAt(0) }};
-											</div>
-										</div>
-									</el-popover>
-								</div>
-							</div>
-						</div>
-						<div v-else-if="filteredSymbolGroups[group].symbols" class="symbols">
-							<el-popover v-for="s in filteredSymbolGroups[group].symbols" :key="s.char" placement="top" trigger="hover" :width="220">
-								<template #reference>
-									<div class="symbol" @click="copySymbol(s)">
+									<div class="symbol" v-for="s in subgroup.symbols" :key="s.char" @click="copySymbol(s)" title="点击复制"
+											 @mouseenter="setHoveredSymbol(s)" @mouseleave="clearHoveredSymbol">
 										<span class="char">{{ s.char }}</span>
 										<span class="name">{{ s.name }}</span>
 										<span class="ename">{{ s.ename }}</span>
 									</div>
-								</template>
-								<div style="text-align: center; line-height: 1.5;">
-									<div style="font-size: 1.1em; font-weight: 600;">{{ s.name || s.char }}</div>
-									<div v-if="s.ename" style="font-size: 0.8em; color: #666; text-transform: capitalize;">{{ s.ename }}</div>
-									<div style="font-family: monospace; color: #999; margin-top: 8px; font-size: .9em;">
-										{{ 'U+' + s.char.codePointAt(0).toString(16).toUpperCase() }} / &amp;#{{ s.char.codePointAt(0) }};
-									</div>
 								</div>
-							</el-popover>
+							</div>
+						</div>
+						<div v-else-if="filteredSymbolGroups[group].symbols" class="symbols">
+							<div class="symbol" v-for="s in filteredSymbolGroups[group].symbols" :key="s.char" @click="copySymbol(s)"
+									 @mouseenter="setHoveredSymbol(s)" @mouseleave="clearHoveredSymbol" title="点击复制">
+								<span class="char">{{ s.char }}</span>
+								<span class="name">{{ s.name }}</span>
+								<span class="ename">{{ s.ename }}</span>
+							</div>
 						</div>
 					</div>
 				</el-collapse-item>
@@ -274,7 +317,8 @@
 				groups,
 				symbolGroups: {},
 				loadedGroups: {},
-				loadingGroups: {}
+				loadingGroups: {},
+				hoveredSymbol: null
 			};
 		},
 		computed: {
@@ -286,7 +330,9 @@
 				const result = {};
 
 				for (const [groupName, group] of Object.entries(this.symbolGroups)) {
-					if (!group) continue;
+					if (!group) {
+						continue;
+					}
 
 					const filterSymbols = symbols => {
 						return symbols.filter(s => {
@@ -320,6 +366,12 @@
 			}
 		},
 		methods: {
+			setHoveredSymbol(symbol) {
+				this.hoveredSymbol = symbol;
+			},
+			clearHoveredSymbol() {
+				this.hoveredSymbol = null;
+			},
 			async loadGroup(groupName) {
 				if (this.loadedGroups[groupName] || this.loadingGroups[groupName]) {
 					return;
