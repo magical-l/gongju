@@ -75,7 +75,7 @@
 		background-color: var(--el-color-primary-light-9);
 	}
 
-		.symbol .char {
+	.symbol .char {
 		font-family: 'Noto Sans Symbols 2', sans-serif;
 		font-size: 1.8rem;
 		flex-basis: 40px;
@@ -126,7 +126,7 @@
 
 	.symbol-detail-floater {
 		position: fixed;
-		bottom: 100px;
+		bottom: 200px;
 		right: 10px;
 		z-index: 100;
 		width: 330px;
@@ -141,7 +141,7 @@
 	}
 
 	.symbol-detail-floater.is-visible {
-		opacity: 1;
+		opacity: 0.8;
 		transform: translateX(0);
 	}
 
@@ -232,7 +232,8 @@
 	<article v-cloak>
 		<div class="symbol-detail-floater" :class="{'is-visible': hoveredSymbol}" v-if="hoveredSymbol">
 			<div class="char-preview">
-				<span class="placeholder-char">文</span><span class="symbol-char">{{ hoveredSymbol.char }}</span><span class="placeholder-char">字</span>
+				<span class="placeholder-char">文</span><span class="symbol-char">{{ hoveredSymbol.char }}</span><span
+					class="placeholder-char">字</span>
 			</div>
 			<div class="details">
 				<div class="name">{{ hoveredSymbol.name || hoveredSymbol.char }}</div>
@@ -264,7 +265,8 @@
 							<div v-for="subgroup in filteredSymbolGroups[group].groups" :key="subgroup.name" class="subgroup">
 								<h4 class="subgroup-name">{{ subgroup.name }}</h4>
 								<div class="symbols">
-									<div class="symbol" v-for="s in subgroup.symbols" :key="s.char" @click="copySymbol(s)" title="点击复制"
+									<div class="symbol" v-for="s in subgroup.symbols" :key="s.char" @click="copySymbol(s)"
+											 title="点击复制"
 											 @mouseenter="setHoveredSymbol(s)" @mouseleave="clearHoveredSymbol">
 										<span class="char">{{ s.char }}</span>
 										<span class="name">{{ s.name }}</span>
@@ -329,7 +331,7 @@
 				symbolGroups: {},
 				loadedGroups: {},
 				loadingGroups: {},
-				hoveredSymbol: {char: "🃎", name: "方块K", ename: "Playing Card King of Diamonds"}
+				hoveredSymbol: {char: "☺", name: "白笑脸", ename: "WHITE SMILING FACE", tags: ['高兴', '开心']}
 			};
 		},
 		computed: {
@@ -341,7 +343,9 @@
 				const result = {};
 
 				for (const [groupName, group] of Object.entries(this.symbolGroups)) {
-					if (!group) continue;
+					if (!group) {
+						continue;
+					}
 
 					// If group name matches, add entire group and continue
 					if (groupName.toLowerCase().includes(query)) {
@@ -353,9 +357,9 @@
 						return symbols.filter(s => {
 							const tags = s.tags || [];
 							return s.char.toLowerCase().includes(query)
-									 || s.name.toLowerCase().includes(query)
-									 || s.ename.toLowerCase().includes(query)
-									 || tags.some(t => t.toLowerCase().includes(query));
+										 || s.name.toLowerCase().includes(query)
+										 || s.ename.toLowerCase().includes(query)
+										 || tags.some(t => t.toLowerCase().includes(query));
 						});
 					};
 

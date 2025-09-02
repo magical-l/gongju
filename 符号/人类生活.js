@@ -34,10 +34,8 @@ const data = {
 				{char: "☑", name: "带勾的投票框", ename: "Ballot Box with Check"},
 				{char: "☒", name: "带叉的投票框", ename: "Ballot Box with X"},
 				{char: "⛲", name: "喷泉", ename: "Fountain", tags: ['喷泉', '水']},
-				{char: "☠", name: "骷髅和交叉骨", ename: "Skull and Crossbones", tags: ['海盗']},
-				{char: "☡", name: "警告标志", ename: "Caution Sign"},
-				{char: "☢", name: "放射性标志", ename: "Radioactive Sign", tags: ['辐射']},
-				{char: "☣", name: "生物危害标志", ename: "Biohazard Sign", tags: ['生化']},
+
+				{char: "☮", name: "和平", ename: "Peace Symbol"},
 				{char: "♲", name: "回收符号", ename: "Universal Recycling Symbol", tags: ['环保', '回收']},
 				{char: "♳", name: "回收符号", ename: "Recycling Symbol for Type-1 Plastics", tags: ['环保', '回收', '塑料']},
 				{char: "♴", name: "回收符号", ename: "Recycling Symbol for Type-2 Plastics", tags: ['环保', '回收', '塑料']},
@@ -97,6 +95,16 @@ const data = {
 			]
 		},
 		{
+			name: '警告、危险',
+			symbols: [
+				{char: "⚠", name: "警告标志", ename: "WARNING SIGN", tags: []},
+				{char: "☢", name: "放射性标志", ename: "Radioactive Sign", tags: ['辐射']},
+				{char: "☣", name: "生物危害标志", ename: "Biohazard Sign", tags: ['生化']},
+				{char: "☠", name: "骷髅和交叉骨", ename: "Skull and Crossbones", tags: ['海盗']},
+				{char: "☡", name: "警告标志", ename: "Caution Sign"}
+			]
+		},
+		{
 			name: "经济、商业、货币",
 			symbols: [
 				{char: "⚚", name: "墨丘利之杖", ename: "Staff of Hermes", tags: ['古希腊', "神话", '商神杖', "商业", "沟通"]},
@@ -149,8 +157,8 @@ const data = {
 		{
 			name: '饮食',
 			symbols: [
-				{char: "⛾", name: "黑方块上的杯子", ename: "CUP ON BLACK SQUARE", tags: ["物品", "符号"]},
-				{char: "☕", name: "热饮", ename: "Hot Beverage", tags: ["咖啡"]}
+				{char: "⛾", name: "黑底白杯", ename: "CUP ON BLACK SQUARE", tags: ["杯子", '饮料']},
+				{char: "☕", name: "热饮", ename: "Hot Beverage", tags: ["咖啡", '饮料']}
 			]
 		},
 		{
@@ -158,7 +166,7 @@ const data = {
 			symbols: [
 				{char: "☂", name: "雨伞", ename: "Umbrella"},
 				{char: "☔", name: "带雨滴的雨伞", ename: "Umbrella with Rain Drops"},
-				{char: "⛱", name: "地面雨伞", ename: "Umbrella On Ground", tags: ['雨伞', '地面']},
+				{char: "⛱", name: "地面雨伞", ename: "Umbrella On Ground", tags: ['沙滩', '度假']},
 				{char: "⛟", name: "黑色卡车", ename: "BLACK TRUCK", tags: ["交通", "车辆"]},
 				{char: "⛴", name: "渡轮", ename: "FERRY", tags: ["交通", "航海"]},
 				{char: "⛺", name: "帐篷", ename: "Tent", tags: ['帐篷', '露营']},

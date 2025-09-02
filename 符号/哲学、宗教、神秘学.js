@@ -202,7 +202,6 @@ const data = {
 				{char: "☬", name: "坎达（锡克教符号）", ename: "Khanda", tags: ['印度']},
 				{char: "☭", name: "镰刀锤子", ename: "Hammer and Sickle", tags: ['共产党', '苏维埃', '苏联']},
 
-				{char: "☮", name: "和平", ename: "Peace Symbol"},
 				{char: "⛤", name: "五角星", ename: "Pentagram", tags: ['五角星', '魔法']},
 				{char: "⛥", name: "右手交织五角星", ename: "Right-Handed Interlaced Pentagram", tags: ['神秘学', '炼金术']},
 				{char: "⛦", name: "左手交织五角星", ename: "Left-Handed Interlaced Pentagram", tags: ['基督教', '东正教']},

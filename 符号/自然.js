@@ -4,10 +4,10 @@ const data = {
 		{
 			name: '物理、化学',
 			symbols: [
-				{char: "⚛", name: "原子符号", ename: "Atom Symbol", tags: ['原子', '科学']},
+				{char: "⚛", name: "原子符号", ename: "Atom Symbol", tags: ['科学']},
 				{char: "☢", name: "放射性标志", ename: "Radioactive Sign", tags: ['辐射']},
 				{char: "⚡", name: "高压", ename: "High Voltage Sign", tags: ['电力', '危险']},
-				{char: "⚗", name: "蒸馏器", ename: "Alembic", tags: ["化学", "实验", "科学"]},
+				{char: "⚗", name: "蒸馏器", ename: "Alembic", tags: ["实验", '仪器']}
 			]
 		},
 		{
@@ -17,7 +17,7 @@ const data = {
 				{char: "☘", name: "三叶草", ename: "Shamrock"},
 				{char: "⚜", name: "鸢尾花", ename: "Fleur-De-Lis", tags: ['花', '装饰']},
 				{char: "☙", name: "反向旋转花心", ename: "Reversed Rotated Floral Heart Bullet"},
-				{char: "☣", name: "生物危害标志", ename: "Biohazard Sign", tags: ['生化']},
+				{char: "☣", name: "生物危害标志", ename: "Biohazard Sign", tags: ['生化']}
 			]
 		},
 		{
@@ -115,19 +115,9 @@ const data = {
 				{char: "✡", name: "大卫之星", ename: "Star of David", tags: ["六角星", '六芒星']},
 				{char: "✦", name: "黑四角星", ename: "Black Four Pointed Star", tags: ["四角星", '四芒星']},
 				{char: "✧", name: "白四角星", ename: "White Four Pointed Star", tags: ["四角星", '四芒星']},
-				{
-					char: "✩",
-					name: "轮廓白星",
-					ename: "Stress Outlined White Star",
-					tags: ["五角星", '五芒星', "旋转星"]
-				},
+				{char: "✩", name: "轮廓白星", ename: "Stress Outlined White Star", tags: ["五角星", '五芒星', "旋转星"]},
 				{char: "✪", name: "黑圆白星", ename: "Circled White Star", tags: ["五角星", '五芒星', "带圈星"]},
-				{
-					char: "⍟",
-					name: "白圆黑星",
-					ename: "APL Functional Symbol Circle Star",
-					tags: ["五角星", '五芒星', '圈内星']
-				},
+				{char: "⍟", name: "白圆黑星", ename: "APL Functional Symbol Circle Star", tags: ["五角星", '五芒星', '圈内星']},
 				{char: "✫", name: "黑星白圆", ename: "Open Centre Black Star", tags: ["五角星", '五芒星']},
 				{char: "✬", name: "白星黑圆", ename: "Black Centre White Star", tags: ["五角星", '五芒星']},
 				{char: "✭", name: "描边黑星", ename: "Outlined Black Star", tags: ["五角星", '五芒星']},
@@ -141,18 +131,8 @@ const data = {
 				{char: "⍣", name: "星形分音符", ename: "APL Functional Symbol Star Diaeresis"},
 				{char: "⚝", name: "白星", ename: "Outlined White Star", tags: ['星形', '白色']},
 				{char: "⛤", name: "五角星", ename: "Pentagram", tags: ['五角星', '魔法']},
-				{
-					char: "⛥",
-					name: "右手交织五角星",
-					ename: "Right-Handed Interlaced Pentagram",
-					tags: ['五角星', '交织']
-				},
-				{
-					char: "⛦",
-					name: "左手交织五角星",
-					ename: "Left-Handed Interlaced Pentagram",
-					tags: ['五角星', '交织']
-				},
+				{char: "⛥", name: "右手交织五角星", ename: "Right-Handed Interlaced Pentagram", tags: ['五角星', '交织']},
+				{char: "⛦", name: "左手交织五角星", ename: "Left-Handed Interlaced Pentagram", tags: ['五角星', '交织']},
 				{char: "⛧", name: "倒五角星", ename: "Inverted Pentagram", tags: ['五角星', '倒置']}
 			]
 		},
@@ -176,7 +156,7 @@ const data = {
 				{char: "☔", name: "带雨滴的雨伞", ename: "Umbrella with Rain Drops", tags: ['雨伞', '雨具', '下雨']},
 				{char: "☃", name: "雪人", ename: "Snowman", tags: ['雪人', '冬天', '雪']},
 				{char: "⛇", name: "黑雪人", ename: "Black Snowman", tags: ['雪人', '冬天', '雪']},
-				{char: "⛄", name: "雪人无雪", ename: "Snowman Without Snow", tags: ['雪人', '冬天']},
+				{char: "⛄", name: "雪人无雪", ename: "Snowman Without Snow", tags: ['雪人', '冬天']}
 			]
 		},
 		{

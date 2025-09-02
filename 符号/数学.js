@@ -36,19 +36,19 @@ const data = {
 				{char: "×", name: "乘号", ename: "Multiplication Sign"},
 				{char: "÷", name: "除号", ename: "Division Sign"},
 				{char: "±", name: "正负号", ename: "Plus-Minus Sign"},
-				{char: "≠", name: "不等于号", ename: "Not Equal To"},
+				{char: "≠", name: "不等于号", ename: "Not Equal To", tags: ['不等号']},
 				{char: "≈", name: "约等于号", ename: "Almost Equal To"},
 				{char: "≅", name: "全等于号", ename: "Congruent To"},
 				{char: "≡", name: "恒等于号", ename: "Identical To"},
 				{char: "∝", name: "正比于", ename: "Proportional To"},
-				{char: "≤", name: "小于等于号", ename: "Less-Than or Equal To"},
-				{char: "≥", name: "大于等于号", ename: "Greater-Than or Equal To"},
+				{char: "≤", name: "小于等于号", ename: "Less-Than or Equal To", tags: ['不大于']},
+				{char: "≥", name: "大于等于号", ename: "Greater-Than or Equal To", tags: ['不小于']},
 				{char: "∞", name: "无穷大", ename: "Infinity"},
 				{char: "∫", name: "积分", ename: "Integral"},
 				{char: "∑", name: "求和", ename: "N-Ary Summation"},
 				{char: "∏", name: "求积", ename: "N-Ary Product"},
-				{char: "√", name: "平方根", ename: "Square Root"},
-				{char: "∛", name: "立方根", ename: "Cube Root"},
+				{char: "√", name: "开方/平方根", ename: "Square Root"},
+				{char: "∛", name: "开立方/立方根", ename: "Cube Root"},
 				{char: "∜", name: "四次方根", ename: "Fourth Root"},
 				{char: "∠", name: "角", ename: "Angle"},
 				{char: "⊥", name: "垂直", ename: "Up Tack"},
@@ -81,7 +81,7 @@ const data = {
 				{char: "⚈", name: "黑圆右点", ename: "Black Circle with White Dot Right", tags: ['圆形', '点']},
 				{char: "⚉", name: "黑圆双点", ename: "Black Circle with Two White Dots", tags: ['圆形', '点']},
 				{char: "⛋", name: "正方形内接菱形", ename: "WHITE DIAMOND IN SQUARE", tags: ['圆形', '点']},
-				{char: "⛶", name: "四角方框", ename: "SQUARE FOUR CORNERS", tags: ["符号", "几何"]},
+				{char: "⛶", name: "四角方框", ename: "SQUARE FOUR CORNERS", tags: ["符号", "几何"]}
 			]
 		}
 	]
