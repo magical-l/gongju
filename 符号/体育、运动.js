@@ -1,199 +1,225 @@
 const data = {
 	name: "体育",
 	groups: [{
-		name: "国际象棋",
+		name: '围棋',
 		symbols: [
-			{char: "♔", name: "白国王", ename: "White Chess King", tags: ['国际象棋']},
-			{char: "♕", name: "白王后", ename: "White Chess Queen", tags: ['国际象棋']},
-			{char: "♖", name: "白战车", ename: "White Chess Rook", tags: ['国际象棋']},
-			{char: "♗", name: "白主教", ename: "White Chess Bishop", tags: ['国际象棋']},
-			{char: "♘", name: "白骑士", ename: "White Chess Knight", tags: ['国际象棋']},
-			{char: "♙", name: "白兵", ename: "White Chess Pawn", tags: ['国际象棋']},
-			{char: "♚", name: "黑国王", ename: "Black Chess King", tags: ['国际象棋']},
-			{char: "♛", name: "黑王后", ename: "Black Chess Queen", tags: ['国际象棋']},
-			{char: "♜", name: "黑战车", ename: "Black Chess Rook", tags: ['国际象棋']},
-			{char: "♝", name: "黑主教", ename: "Black Chess Bishop", tags: ['国际象棋']},
-			{char: "♞", name: "黑骑士", ename: "Black Chess Knight", tags: ['国际象棋']},
-			{char: "♟", name: "黑兵", ename: "Black Chess Pawn", tags: ['国际象棋']},
-			{char: "🨀", name: "中性国王", ename: "Neutral Chess King", tags: ['国际象棋']},
-			{char: "🨁", name: "中性王后", ename: "Neutral Chess Queen", tags: ['国际象棋']},
-			{char: "🨂", name: "中性战车", ename: "Neutral Chess Rook", tags: ['国际象棋']},
-			{char: "🨃", name: "中性主教", ename: "Neutral Chess Bishop", tags: ['国际象棋']},
-			{char: "🨄", name: "中性骑士", ename: "Neutral Chess Knight", tags: ['国际象棋']},
-			{char: "🨅", name: "中性兵", ename: "Neutral Chess Pawn", tags: ['国际象棋']},
-
-			{char: "🨉", name: "白国王旋转90°", ename: "White Chess King Rotated Ninety Degrees", tags: ['国际象棋']},
-			{char: "🨊", name: "白王后旋转90°", ename: "White Chess Queen Rotated Ninety Degrees", tags: ['国际象棋']},
-			{char: "🨋", name: "白战车旋转90°", ename: "White Chess Rook Rotated Ninety Degrees", tags: ['国际象棋']},
-			{char: "🨌", name: "白主教旋转90°", ename: "White Chess Bishop Rotated Ninety Degrees", tags: ['国际象棋']},
-			{char: "🨍", name: "白骑士旋转90°", ename: "White Chess Knight Rotated Ninety Degrees", tags: ['国际象棋']},
-			{char: "🨎", name: "白兵旋转90°", ename: "White Chess Pawn Rotated Ninety Degrees", tags: ['国际象棋']},
-			{char: "🨏", name: "黑国王旋转90°", ename: "Black Chess King Rotated Ninety Degrees", tags: ['国际象棋']},
-			{char: "🨐", name: "黑王后旋转90°", ename: "Black Chess Queen Rotated Ninety Degrees", tags: ['国际象棋']},
-			{char: "🨑", name: "黑战车旋转90°", ename: "Black Chess Rook Rotated Ninety Degrees", tags: ['国际象棋']},
-			{char: "🨒", name: "黑主教旋转90°", ename: "Black Chess Bishop Rotated Ninety Degrees", tags: ['国际象棋']},
-			{char: "🨓", name: "黑骑士旋转90°", ename: "Black Chess Knight Rotated Ninety Degrees", tags: ['国际象棋']},
-			{char: "🨔", name: "黑兵旋转90°", ename: "Black Chess Pawn Rotated Ninety Degrees", tags: ['国际象棋']},
-			{char: "🨕", name: "中性国王旋转90°", ename: "Neutral Chess King Rotated Ninety Degrees", tags: ['国际象棋']},
-			{char: "🨖", name: "中性王后旋转90°", ename: "Neutral Chess Queen Rotated Ninety Degrees", tags: ['国际象棋']},
-			{char: "🨗", name: "中性战车旋转90°", ename: "Neutral Chess Rook Rotated Ninety Degrees", tags: ['国际象棋']},
-			{char: "🨘", name: "中性主教旋转90°", ename: "Neutral Chess Bishop Rotated Ninety Degrees", tags: ['国际象棋']},
-			{char: "🨙", name: "中性骑士旋转90°", ename: "Neutral Chess Knight Rotated Ninety Degrees", tags: ['国际象棋']},
-			{char: "🨚", name: "中性兵旋转90°", ename: "Neutral Chess Pawn Rotated Ninety Degrees", tags: ['国际象棋']},
-
-			{char: "🨞", name: "白国王镜像", ename: "White Chess Turned King", tags: ['国际象棋']},
-			{char: "🨟", name: "白王后镜像", ename: "White Chess Turned Queen", tags: ['国际象棋']},
-			{char: "🨠", name: "白战车镜像", ename: "White Chess Turned Rook", tags: ['国际象棋']},
-			{char: "🨡", name: "白主教镜像", ename: "White Chess Turned Bishop", tags: ['国际象棋']},
-			{char: "🨢", name: "白骑士镜像", ename: "White Chess Turned Knight", tags: ['国际象棋']},
-			{char: "🨣", name: "白兵镜像", ename: "White Chess Turned Pawn", tags: ['国际象棋']},
-			{char: "🨤", name: "黑国王镜像", ename: "Black Chess Turned King", tags: ['国际象棋']},
-			{char: "🨥", name: "黑王后镜像", ename: "Black Chess Turned Queen", tags: ['国际象棋']},
-			{char: "🨦", name: "黑战车镜像", ename: "Black Chess Turned Rook", tags: ['国际象棋']},
-			{char: "🨧", name: "黑主教镜像", ename: "Black Chess Turned Bishop", tags: ['国际象棋']},
-			{char: "🨨", name: "黑骑士镜像", ename: "Black Chess Turned Knight", tags: ['国际象棋']},
-			{char: "🨩", name: "黑兵镜像", ename: "Black Chess Turned Pawn", tags: ['国际象棋']},
-			{char: "🨪", name: "中性国王镜像", ename: "Neutral Chess Turned King", tags: ['国际象棋']},
-			{char: "🨫", name: "中性王后镜像", ename: "Neutral Chess Turned Queen", tags: ['国际象棋']},
-			{char: "🨬", name: "中性战车镜像", ename: "Neutral Chess Turned Rook", tags: ['国际象棋']},
-			{char: "🨭", name: "中性主教镜像", ename: "Neutral Chess Turned Bishop", tags: ['国际象棋']},
-			{char: "🨮", name: "中性骑士镜像", ename: "Neutral Chess Turned Knight", tags: ['国际象棋']},
-			{char: "🨯", name: "中性兵镜像", ename: "Neutral Chess Turned Pawn", tags: ['国际象棋']},
-
-			{
-				char: "🨳", name: "白国王旋转270°", ename: "White Chess King Rotated Two Hundred Seventy Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🨴", name: "白王后旋转270°", ename: "White Chess Queen Rotated Two Hundred Seventy Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🨵", name: "白战车旋转270°", ename: "White Chess Rook Rotated Two Hundred Seventy Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🨶",
-				name: "白主教旋转270°",
-				ename: "White Chess Bishop Rotated Two Hundred Seventy Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🨷", name: "白骑士旋转270°", ename: "White Chess Knight Rotated Two Hundred Seventy Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🨸", name: "白兵旋转270°", ename: "White Chess Pawn Rotated Two Hundred Seventy Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🨹", name: "黑国王旋转270°", ename: "Black Chess King Rotated Two Hundred Seventy Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🨺", name: "黑王后旋转270°", ename: "Black Chess Queen Rotated Two Hundred Seventy Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🨻", name: "黑战车旋转270°", ename: "Black Chess Rook Rotated Two Hundred Seventy Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🨼", name: "黑主教旋转270°", ename: "Black Chess Bishop Rotated Two Hundred Seventy Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🨽", name: "黑骑士旋转270°", ename: "Black Chess Knight Rotated Two Hundred Seventy Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🨾", name: "黑兵旋转270°", ename: "Black Chess Pawn Rotated Two Hundred Seventy Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🨿", name: "中性国王旋转270°", ename: "Neutral Chess King Rotated Two Hundred Seventy Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🩀", name: "中性王后旋转270°", ename: "Neutral Chess Queen Rotated Two Hundred Seventy Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🩁", name: "中性战车旋转270°", ename: "Neutral Chess Rook Rotated Two Hundred Seventy Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🩂", name: "中性主教旋转270°", ename: "Neutral Chess Bishop Rotated Two Hundred Seventy Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🩃", name: "中性骑士旋转270°", ename: "Neutral Chess Knight Rotated Two Hundred Seventy Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🩄", name: "中性兵旋转270°", ename: "Neutral Chess Pawn Rotated Two Hundred Seventy Degrees",
-				tags: ['国际象棋']
-			},
-
-			{char: "🨆", name: "白骑士旋转45°", ename: "White Chess Knight Rotated Forty-Five Degrees", tags: ['国际象棋']},
-			{char: "🨇", name: "黑骑士旋转45°", ename: "Black Chess Knight Rotated Forty-Five Degrees", tags: ['国际象棋']},
-			{
-				char: "🨈", name: "中性骑士旋转45°", ename: "Neutral Chess Knight Rotated Forty-Five Degrees", tags: ['国际象棋']
-			},
-			{
-				char: "🨛", name: "白骑士旋转135°", ename: "White Chess Knight Rotated One Hundred Thirty-Five Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🨜", name: "黑骑士旋转135°", ename: "Black Chess Knight Rotated One Hundred Thirty-Five Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🨝", name: "中性骑士旋转135°", ename: "Neutral Chess Knight Rotated One Hundred Thirty-Five Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🨰", name: "白骑士旋转225°", ename: "White Chess Knight Rotated Two Hundred Twenty-Five Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🨱", name: "黑骑士旋转225°", ename: "Black Chess Knight Rotated Two Hundred Twenty-Five Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🨲", name: "中性骑士旋转225°", ename: "Neutral Chess Knight Rotated Two Hundred Twenty-Five Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🩅", name: "白骑士旋转315°", ename: "White Chess Knight Rotated Three Hundred Fifteen Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🩆", name: "黑骑士旋转315°", ename: "Black Chess Knight Rotated Three Hundred Fifteen Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🩇", name: "中性骑士旋转315°", ename: "Neutral Chess Knight Rotated Three Hundred Fifteen Degrees",
-				tags: ['国际象棋']
-			},
-
-			{char: "🩈", name: "白等跳马", ename: "White Chess Equihopper", tags: ['国际象棋']},
-			{char: "🩉", name: "黑等跳马", ename: "Black Chess Equihopper", tags: ['国际象棋']},
-			{char: "🩊", name: "中性等跳马", ename: "Neutral Chess Equihopper", tags: ['国际象棋']},
-			{char: "🩋", name: "白等跳马旋转90°", ename: "White Chess Equihopper Rotated Ninety Degrees", tags: ['国际象棋']},
-			{char: "🩌", name: "黑等跳马旋转90°", ename: "Black Chess Equihopper Rotated Ninety Degrees", tags: ['国际象棋']},
-			{
-				char: "🩍", name: "中性等跳马旋转90°", ename: "Neutral Chess Equihopper Rotated Ninety Degrees",
-				tags: ['国际象棋']
-			},
-			{char: "🩎", name: "白骑士王后", ename: "White Chess Knight-Queen", tags: ['国际象棋']},
-			{char: "🩏", name: "白骑士战车", ename: "White Chess Knight-Rook", tags: ['国际象棋']},
-			{char: "🩐", name: "白骑士主教", ename: "White Chess Knight-Bishop", tags: ['国际象棋']},
-			{char: "🩑", name: "黑骑士王后", ename: "Black Chess Knight-Queen", tags: ['国际象棋']},
-			{char: "🩒", name: "黑骑士战车", ename: "Black Chess Knight-Rook", tags: ['国际象棋']},
-			{char: "🩓", name: "黑骑士主教", ename: "Black Chess Knight-Bishop", tags: ['国际象棋']}
+			{char: "●", name: "黑子", ename: "BLACK CIRCLE", tags: ['黑棋']},
+			{char: "○", name: "白子", ename: "WHITE CIRCLE", tags: ['白棋']},
+			{char: "☆", name: "星位、天元", ename: "WHITE STAR", tags: []},
+			{char: "⚆", name: "棋谱·有提子的白子", ename: "White Circle with Dot Right", tags: ['记谱', '白棋']},
+			{char: "⚇", name: "棋谱·提多子的白子", ename: "White Circle with Two Dots", tags: ['记谱', '白棋', '块提']},
+			{char: "⚈", name: "棋谱·有提子的黑子", ename: "Black Circle with White Dot Right", tags: ['记谱', '黑棋']},
+			{char: "⚉", name: "棋谱·提多子的黑子", ename: "Black Circle with Two White Dots", tags: ['记谱', '黑棋', '块提']},
+			{char: "⛣", name: "棋谱·提多子的白子", ename: "WHITE CIRCLE WITH DOT RIGHT", tags: ['记谱', '白棋', '块提']}
 		]
 	},
+		{
+			name: "国际象棋",
+			symbols: [
+				{char: "♔", name: "白国王", ename: "White Chess King", tags: []},
+				{char: "♕", name: "白王后", ename: "White Chess Queen", tags: []},
+				{char: "♖", name: "白战车", ename: "White Chess Rook", tags: []},
+				{char: "♗", name: "白主教", ename: "White Chess Bishop", tags: []},
+				{char: "♘", name: "白骑士", ename: "White Chess Knight", tags: []},
+				{char: "♙", name: "白兵", ename: "White Chess Pawn", tags: []},
+				{char: "♚", name: "黑国王", ename: "Black Chess King", tags: []},
+				{char: "♛", name: "黑王后", ename: "Black Chess Queen", tags: []},
+				{char: "♜", name: "黑战车", ename: "Black Chess Rook", tags: []},
+				{char: "♝", name: "黑主教", ename: "Black Chess Bishop", tags: []},
+				{char: "♞", name: "黑骑士", ename: "Black Chess Knight", tags: []},
+				{char: "♟", name: "黑兵", ename: "Black Chess Pawn", tags: []},
+				{char: "🨀", name: "中性国王", ename: "Neutral Chess King", tags: []},
+				{char: "🨁", name: "中性王后", ename: "Neutral Chess Queen", tags: []},
+				{char: "🨂", name: "中性战车", ename: "Neutral Chess Rook", tags: []},
+				{char: "🨃", name: "中性主教", ename: "Neutral Chess Bishop", tags: []},
+				{char: "🨄", name: "中性骑士", ename: "Neutral Chess Knight", tags: []},
+				{char: "🨅", name: "中性兵", ename: "Neutral Chess Pawn", tags: []},
+
+				{char: "🨉", name: "白国王旋转90°", ename: "White Chess King Rotated Ninety Degrees", tags: []},
+				{char: "🨊", name: "白王后旋转90°", ename: "White Chess Queen Rotated Ninety Degrees", tags: []},
+				{char: "🨋", name: "白战车旋转90°", ename: "White Chess Rook Rotated Ninety Degrees", tags: []},
+				{char: "🨌", name: "白主教旋转90°", ename: "White Chess Bishop Rotated Ninety Degrees", tags: []},
+				{char: "🨍", name: "白骑士旋转90°", ename: "White Chess Knight Rotated Ninety Degrees", tags: []},
+				{char: "🨎", name: "白兵旋转90°", ename: "White Chess Pawn Rotated Ninety Degrees", tags: []},
+				{char: "🨏", name: "黑国王旋转90°", ename: "Black Chess King Rotated Ninety Degrees", tags: []},
+				{char: "🨐", name: "黑王后旋转90°", ename: "Black Chess Queen Rotated Ninety Degrees", tags: []},
+				{char: "🨑", name: "黑战车旋转90°", ename: "Black Chess Rook Rotated Ninety Degrees", tags: []},
+				{char: "🨒", name: "黑主教旋转90°", ename: "Black Chess Bishop Rotated Ninety Degrees", tags: []},
+				{char: "🨓", name: "黑骑士旋转90°", ename: "Black Chess Knight Rotated Ninety Degrees", tags: []},
+				{char: "🨔", name: "黑兵旋转90°", ename: "Black Chess Pawn Rotated Ninety Degrees", tags: []},
+				{char: "🨕", name: "中性国王旋转90°", ename: "Neutral Chess King Rotated Ninety Degrees", tags: []},
+				{char: "🨖", name: "中性王后旋转90°", ename: "Neutral Chess Queen Rotated Ninety Degrees", tags: []},
+				{char: "🨗", name: "中性战车旋转90°", ename: "Neutral Chess Rook Rotated Ninety Degrees", tags: []},
+				{char: "🨘", name: "中性主教旋转90°", ename: "Neutral Chess Bishop Rotated Ninety Degrees", tags: []},
+				{char: "🨙", name: "中性骑士旋转90°", ename: "Neutral Chess Knight Rotated Ninety Degrees", tags: []},
+				{char: "🨚", name: "中性兵旋转90°", ename: "Neutral Chess Pawn Rotated Ninety Degrees", tags: []},
+
+				{char: "🨞", name: "白国王镜像", ename: "White Chess Turned King", tags: []},
+				{char: "🨟", name: "白王后镜像", ename: "White Chess Turned Queen", tags: []},
+				{char: "🨠", name: "白战车镜像", ename: "White Chess Turned Rook", tags: []},
+				{char: "🨡", name: "白主教镜像", ename: "White Chess Turned Bishop", tags: []},
+				{char: "🨢", name: "白骑士镜像", ename: "White Chess Turned Knight", tags: []},
+				{char: "🨣", name: "白兵镜像", ename: "White Chess Turned Pawn", tags: []},
+				{char: "🨤", name: "黑国王镜像", ename: "Black Chess Turned King", tags: []},
+				{char: "🨥", name: "黑王后镜像", ename: "Black Chess Turned Queen", tags: []},
+				{char: "🨦", name: "黑战车镜像", ename: "Black Chess Turned Rook", tags: []},
+				{char: "🨧", name: "黑主教镜像", ename: "Black Chess Turned Bishop", tags: []},
+				{char: "🨨", name: "黑骑士镜像", ename: "Black Chess Turned Knight", tags: []},
+				{char: "🨩", name: "黑兵镜像", ename: "Black Chess Turned Pawn", tags: []},
+				{char: "🨪", name: "中性国王镜像", ename: "Neutral Chess Turned King", tags: []},
+				{char: "🨫", name: "中性王后镜像", ename: "Neutral Chess Turned Queen", tags: []},
+				{char: "🨬", name: "中性战车镜像", ename: "Neutral Chess Turned Rook", tags: []},
+				{char: "🨭", name: "中性主教镜像", ename: "Neutral Chess Turned Bishop", tags: []},
+				{char: "🨮", name: "中性骑士镜像", ename: "Neutral Chess Turned Knight", tags: []},
+				{char: "🨯", name: "中性兵镜像", ename: "Neutral Chess Turned Pawn", tags: []},
+
+				{
+					char: "🨳", name: "白国王旋转270°", ename: "White Chess King Rotated Two Hundred Seventy Degrees",
+					tags: []
+				},
+				{
+					char: "🨴", name: "白王后旋转270°", ename: "White Chess Queen Rotated Two Hundred Seventy Degrees",
+					tags: []
+				},
+				{
+					char: "🨵", name: "白战车旋转270°", ename: "White Chess Rook Rotated Two Hundred Seventy Degrees",
+					tags: []
+				},
+				{
+					char: "🨶",
+					name: "白主教旋转270°",
+					ename: "White Chess Bishop Rotated Two Hundred Seventy Degrees",
+					tags: []
+				},
+				{
+					char: "🨷", name: "白骑士旋转270°", ename: "White Chess Knight Rotated Two Hundred Seventy Degrees",
+					tags: []
+				},
+				{
+					char: "🨸", name: "白兵旋转270°", ename: "White Chess Pawn Rotated Two Hundred Seventy Degrees",
+					tags: []
+				},
+				{
+					char: "🨹", name: "黑国王旋转270°", ename: "Black Chess King Rotated Two Hundred Seventy Degrees",
+					tags: []
+				},
+				{
+					char: "🨺", name: "黑王后旋转270°", ename: "Black Chess Queen Rotated Two Hundred Seventy Degrees",
+					tags: []
+				},
+				{
+					char: "🨻", name: "黑战车旋转270°", ename: "Black Chess Rook Rotated Two Hundred Seventy Degrees",
+					tags: []
+				},
+				{
+					char: "🨼", name: "黑主教旋转270°", ename: "Black Chess Bishop Rotated Two Hundred Seventy Degrees",
+					tags: []
+				},
+				{
+					char: "🨽", name: "黑骑士旋转270°", ename: "Black Chess Knight Rotated Two Hundred Seventy Degrees",
+					tags: []
+				},
+				{
+					char: "🨾", name: "黑兵旋转270°", ename: "Black Chess Pawn Rotated Two Hundred Seventy Degrees",
+					tags: []
+				},
+				{
+					char: "🨿", name: "中性国王旋转270°", ename: "Neutral Chess King Rotated Two Hundred Seventy Degrees",
+					tags: []
+				},
+				{
+					char: "🩀", name: "中性王后旋转270°", ename: "Neutral Chess Queen Rotated Two Hundred Seventy Degrees",
+					tags: []
+				},
+				{
+					char: "🩁", name: "中性战车旋转270°", ename: "Neutral Chess Rook Rotated Two Hundred Seventy Degrees",
+					tags: []
+				},
+				{
+					char: "🩂", name: "中性主教旋转270°", ename: "Neutral Chess Bishop Rotated Two Hundred Seventy Degrees",
+					tags: []
+				},
+				{
+					char: "🩃", name: "中性骑士旋转270°", ename: "Neutral Chess Knight Rotated Two Hundred Seventy Degrees",
+					tags: []
+				},
+				{
+					char: "🩄", name: "中性兵旋转270°", ename: "Neutral Chess Pawn Rotated Two Hundred Seventy Degrees",
+					tags: []
+				},
+
+				{char: "🨆", name: "白骑士旋转45°", ename: "White Chess Knight Rotated Forty-Five Degrees", tags: []},
+				{char: "🨇", name: "黑骑士旋转45°", ename: "Black Chess Knight Rotated Forty-Five Degrees", tags: []},
+				{
+					char: "🨈",
+					name: "中性骑士旋转45°",
+					ename: "Neutral Chess Knight Rotated Forty-Five Degrees",
+					tags: []
+				},
+				{
+					char: "🨛", name: "白骑士旋转135°", ename: "White Chess Knight Rotated One Hundred Thirty-Five Degrees",
+					tags: []
+				},
+				{
+					char: "🨜", name: "黑骑士旋转135°", ename: "Black Chess Knight Rotated One Hundred Thirty-Five Degrees",
+					tags: []
+				},
+				{
+					char: "🨝", name: "中性骑士旋转135°", ename: "Neutral Chess Knight Rotated One Hundred Thirty-Five Degrees",
+					tags: []
+				},
+				{
+					char: "🨰", name: "白骑士旋转225°", ename: "White Chess Knight Rotated Two Hundred Twenty-Five Degrees",
+					tags: []
+				},
+				{
+					char: "🨱", name: "黑骑士旋转225°", ename: "Black Chess Knight Rotated Two Hundred Twenty-Five Degrees",
+					tags: []
+				},
+				{
+					char: "🨲", name: "中性骑士旋转225°", ename: "Neutral Chess Knight Rotated Two Hundred Twenty-Five Degrees",
+					tags: []
+				},
+				{
+					char: "🩅", name: "白骑士旋转315°", ename: "White Chess Knight Rotated Three Hundred Fifteen Degrees",
+					tags: []
+				},
+				{
+					char: "🩆", name: "黑骑士旋转315°", ename: "Black Chess Knight Rotated Three Hundred Fifteen Degrees",
+					tags: []
+				},
+				{
+					char: "🩇", name: "中性骑士旋转315°", ename: "Neutral Chess Knight Rotated Three Hundred Fifteen Degrees",
+					tags: []
+				},
+
+				{char: "🩈", name: "白等跳马", ename: "White Chess Equihopper", tags: []},
+				{char: "🩉", name: "黑等跳马", ename: "Black Chess Equihopper", tags: []},
+				{char: "🩊", name: "中性等跳马", ename: "Neutral Chess Equihopper", tags: []},
+				{
+					char: "🩋",
+					name: "白等跳马旋转90°",
+					ename: "White Chess Equihopper Rotated Ninety Degrees",
+					tags: []
+				},
+				{
+					char: "🩌",
+					name: "黑等跳马旋转90°",
+					ename: "Black Chess Equihopper Rotated Ninety Degrees",
+					tags: []
+				},
+				{
+					char: "🩍", name: "中性等跳马旋转90°", ename: "Neutral Chess Equihopper Rotated Ninety Degrees",
+					tags: []
+				},
+				{char: "🩎", name: "白骑士王后", ename: "White Chess Knight-Queen", tags: []},
+				{char: "🩏", name: "白骑士战车", ename: "White Chess Knight-Rook", tags: []},
+				{char: "🩐", name: "白骑士主教", ename: "White Chess Knight-Bishop", tags: []},
+				{char: "🩑", name: "黑骑士王后", ename: "Black Chess Knight-Queen", tags: []},
+				{char: "🩒", name: "黑骑士战车", ename: "Black Chess Knight-Rook", tags: []},
+				{char: "🩓", name: "黑骑士主教", ename: "Black Chess Knight-Bishop", tags: []}
+			]
+		},
 		{
 			name: "中国象棋",
 			symbols: [
@@ -277,8 +303,11 @@ const data = {
 				{char: "🃌", name: "方块骑士", ename: "Playing Card Knight of Diamonds"},
 
 				{char: "🃏", name: "黑小丑", ename: "Playing Card Black Joker", tags: ['百搭', '鬼牌', '王牌']},
-				{char: "🃟", name: "白小丑", ename: "Playing Card White Joker"},
-				{char: "🂿", name: "红小丑（第三王）", ename: "Playing Card Red Joker(used as the third joker)"},
+				{char: "🃟", name: "白小丑", ename: "Playing Card White Joker", tags: ['百搭', '鬼牌', '王牌']},
+				{
+					char: "🂿", name: "红小丑（第三王）", ename: "Playing Card Red Joker(used as the third joker)",
+					tags: ['百搭', '鬼牌', '王牌']
+				},
 
 				{char: "♠", name: "黑桃", ename: "Black Spade Suit"},
 				{char: "♡", name: "红心", ename: "White Heart Suit"},
@@ -318,50 +347,50 @@ const data = {
 		{
 			name: "麻将",
 			symbols: [
-				{char: "🀀", name: "东风", ename: "Mahjong Tile East Wind", tags: ['麻将牌']},
-				{char: "🀁", name: "南风", ename: "Mahjong Tile South Wind", tags: ['麻将牌']},
-				{char: "🀂", name: "西风", ename: "Mahjong Tile West Wind", tags: ['麻将牌']},
-				{char: "🀃", name: "北风", ename: "Mahjong Tile North Wind", tags: ['麻将牌']},
-				{char: "🀄", name: "红中", ename: "Mahjong Tile Red Dragon", tags: ['麻将牌']},
-				{char: "🀅", name: "发财", ename: "Mahjong Tile Green Dragon", tags: ['麻将牌']},
-				{char: "🀆", name: "白板", ename: "Mahjong Tile White Dragon", tags: ['麻将牌']},
-				{char: "🀇", name: "一万", ename: "Mahjong Tile One of Characters", tags: ['麻将牌']},
-				{char: "🀈", name: "二万", ename: "Mahjong Tile Two of Characters", tags: ['麻将牌']},
-				{char: "🀉", name: "三万", ename: "Mahjong Tile Three of Characters", tags: ['麻将牌']},
-				{char: "🀊", name: "四万", ename: "Mahjong Tile Four of Characters", tags: ['麻将牌']},
-				{char: "🀋", name: "五万", ename: "Mahjong Tile Five of Characters", tags: ['麻将牌']},
-				{char: "🀌", name: "六万", ename: "Mahjong Tile Six of Characters", tags: ['麻将牌']},
-				{char: "🀍", name: "七万", ename: "Mahjong Tile Seven of Characters", tags: ['麻将牌']},
-				{char: "🀎", name: "八万", ename: "Mahjong Tile Eight of Characters", tags: ['麻将牌']},
-				{char: "🀏", name: "九万", ename: "Mahjong Tile Nine of Characters", tags: ['麻将牌']},
-				{char: "🀐", name: "一索", ename: "Mahjong Tile One of Bamboos", tags: ['麻将牌', '一条', '麻雀']},
-				{char: "🀑", name: "二索", ename: "Mahjong Tile Two of Bamboos", tags: ['麻将牌', '二条']},
-				{char: "🀒", name: "三索", ename: "Mahjong Tile Three of Bamboos", tags: ['麻将牌', '三条']},
-				{char: "🀓", name: "四索", ename: "Mahjong Tile Four of Bamboos", tags: ['麻将牌', '四条']},
-				{char: "🀔", name: "五索", ename: "Mahjong Tile Five of Bamboos", tags: ['麻将牌', '五条']},
-				{char: "🀕", name: "六索", ename: "Mahjong Tile Six of Bamboos", tags: ['麻将牌', '六条']},
-				{char: "🀖", name: "七索", ename: "Mahjong Tile Seven of Bamboos", tags: ['麻将牌', '七条']},
-				{char: "🀗", name: "八索", ename: "Mahjong Tile Eight of Bamboos", tags: ['麻将牌', '八条']},
-				{char: "🀘", name: "九索", ename: "Mahjong Tile Nine of Bamboos", tags: ['麻将牌', '九条']},
-				{char: "🀙", name: "一筒", ename: "Mahjong Tile One of Circles", tags: ['麻将牌', '一饼']},
-				{char: "🀚", name: "二筒", ename: "Mahjong Tile Two of Circles", tags: ['麻将牌', '二饼']},
-				{char: "🀛", name: "三筒", ename: "Mahjong Tile Three of Circles", tags: ['麻将牌', '三饼']},
-				{char: "🀜", name: "四筒", ename: "Mahjong Tile Four of Circles", tags: ['麻将牌', '四饼']},
-				{char: "🀝", name: "五筒", ename: "Mahjong Tile Five of Circles", tags: ['麻将牌', '五饼']},
-				{char: "🀞", name: "六筒", ename: "Mahjong Tile Six of Circles", tags: ['麻将牌', '六饼']},
-				{char: "🀟", name: "七筒", ename: "Mahjong Tile Seven of Circles", tags: ['麻将牌', '七饼']},
-				{char: "🀠", name: "八筒", ename: "Mahjong Tile Eight of Circles", tags: ['麻将牌', '八饼']},
-				{char: "🀡", name: "九筒", ename: "Mahjong Tile Nine of Circles", tags: ['麻将牌', '九饼']},
-				{char: "🀦", name: "梅", ename: "Mahjong Tile Plum", tags: ['麻将牌']},
-				{char: "🀧", name: "兰", ename: "Mahjong Tile Orchid", tags: ['麻将牌']},
-				{char: "🀨", name: "竹", ename: "Mahjong Tile Bamboo", tags: ['麻将牌']},
-				{char: "🀩", name: "菊", ename: "Mahjong Tile Chrysanthemum", tags: ['麻将牌']},
-				{char: "🀢", name: "春", ename: "Mahjong Tile Spring", tags: ['麻将牌']},
-				{char: "🀣", name: "夏", ename: "Mahjong Tile Summer", tags: ['麻将牌']},
-				{char: "🀤", name: "秋", ename: "Mahjong Tile Autumn", tags: ['麻将牌']},
-				{char: "🀥", name: "冬", ename: "Mahjong Tile Winter", tags: ['麻将牌']},
-				{char: "🀪", name: "百搭", ename: "Mahjong Tile Joker", tags: ['麻将牌']},
-				{char: "🀫", name: "背面", ename: "Mahjong Tile Back", tags: ['麻将牌']}
+				{char: "🀀", name: "东风", ename: "Mahjong Tile East Wind", tags: []},
+				{char: "🀁", name: "南风", ename: "Mahjong Tile South Wind", tags: []},
+				{char: "🀂", name: "西风", ename: "Mahjong Tile West Wind", tags: []},
+				{char: "🀃", name: "北风", ename: "Mahjong Tile North Wind", tags: []},
+				{char: "🀄", name: "红中", ename: "Mahjong Tile Red Dragon", tags: []},
+				{char: "🀅", name: "发财", ename: "Mahjong Tile Green Dragon", tags: []},
+				{char: "🀆", name: "白板", ename: "Mahjong Tile White Dragon", tags: []},
+				{char: "🀇", name: "一万", ename: "Mahjong Tile One of Characters", tags: []},
+				{char: "🀈", name: "二万", ename: "Mahjong Tile Two of Characters", tags: []},
+				{char: "🀉", name: "三万", ename: "Mahjong Tile Three of Characters", tags: []},
+				{char: "🀊", name: "四万", ename: "Mahjong Tile Four of Characters", tags: []},
+				{char: "🀋", name: "五万", ename: "Mahjong Tile Five of Characters", tags: []},
+				{char: "🀌", name: "六万", ename: "Mahjong Tile Six of Characters", tags: []},
+				{char: "🀍", name: "七万", ename: "Mahjong Tile Seven of Characters", tags: []},
+				{char: "🀎", name: "八万", ename: "Mahjong Tile Eight of Characters", tags: []},
+				{char: "🀏", name: "九万", ename: "Mahjong Tile Nine of Characters", tags: []},
+				{char: "🀐", name: "一索", ename: "Mahjong Tile One of Bamboos", tags: ['一条', '麻雀']},
+				{char: "🀑", name: "二索", ename: "Mahjong Tile Two of Bamboos", tags: ['二条']},
+				{char: "🀒", name: "三索", ename: "Mahjong Tile Three of Bamboos", tags: ['三条']},
+				{char: "🀓", name: "四索", ename: "Mahjong Tile Four of Bamboos", tags: ['四条']},
+				{char: "🀔", name: "五索", ename: "Mahjong Tile Five of Bamboos", tags: ['五条']},
+				{char: "🀕", name: "六索", ename: "Mahjong Tile Six of Bamboos", tags: ['六条']},
+				{char: "🀖", name: "七索", ename: "Mahjong Tile Seven of Bamboos", tags: ['七条']},
+				{char: "🀗", name: "八索", ename: "Mahjong Tile Eight of Bamboos", tags: ['八条']},
+				{char: "🀘", name: "九索", ename: "Mahjong Tile Nine of Bamboos", tags: ['九条']},
+				{char: "🀙", name: "一筒", ename: "Mahjong Tile One of Circles", tags: ['一饼']},
+				{char: "🀚", name: "二筒", ename: "Mahjong Tile Two of Circles", tags: ['二饼']},
+				{char: "🀛", name: "三筒", ename: "Mahjong Tile Three of Circles", tags: ['三饼']},
+				{char: "🀜", name: "四筒", ename: "Mahjong Tile Four of Circles", tags: ['四饼']},
+				{char: "🀝", name: "五筒", ename: "Mahjong Tile Five of Circles", tags: ['五饼']},
+				{char: "🀞", name: "六筒", ename: "Mahjong Tile Six of Circles", tags: ['六饼']},
+				{char: "🀟", name: "七筒", ename: "Mahjong Tile Seven of Circles", tags: ['七饼']},
+				{char: "🀠", name: "八筒", ename: "Mahjong Tile Eight of Circles", tags: ['八饼']},
+				{char: "🀡", name: "九筒", ename: "Mahjong Tile Nine of Circles", tags: ['九饼']},
+				{char: "🀦", name: "梅", ename: "Mahjong Tile Plum", tags: []},
+				{char: "🀧", name: "兰", ename: "Mahjong Tile Orchid", tags: []},
+				{char: "🀨", name: "竹", ename: "Mahjong Tile Bamboo", tags: []},
+				{char: "🀩", name: "菊", ename: "Mahjong Tile Chrysanthemum", tags: []},
+				{char: "🀢", name: "春", ename: "Mahjong Tile Spring", tags: []},
+				{char: "🀣", name: "夏", ename: "Mahjong Tile Summer", tags: []},
+				{char: "🀤", name: "秋", ename: "Mahjong Tile Autumn", tags: []},
+				{char: "🀥", name: "冬", ename: "Mahjong Tile Winter", tags: []},
+				{char: "🀪", name: "百搭", ename: "Mahjong Tile Joker", tags: []},
+				{char: "🀫", name: "背面", ename: "Mahjong Tile Back", tags: []}
 			]
 		},
 		{
@@ -504,18 +533,19 @@ const data = {
 				{char: "🥉", name: "铜牌", ename: "3rd Place Medal"},
 				{char: "🏆", name: "奖杯", ename: "Trophy"},
 				{char: "🎯", name: "靶心", ename: "Direct Hit", tags: ['射箭', '射击']},
-				{char: "⛷", name: "滑雪者", ename: "Skier", tags: ['运动']},
-				{char: "⛸", name: "冰鞋", ename: "Ice Skate", tags: ['运动']},
 				{char: "⛵", name: "帆船", ename: "Sailboat", tags: []},
 				{char: "⛀", name: "白跳棋", ename: "White Draughts Man", tags: []},
 				{char: "⛁", name: "白跳棋王", ename: "White Draughts King", tags: []},
 				{char: "⛂", name: "黑跳棋", ename: "Black Draughts Man", tags: []},
 				{char: "⛃", name: "黑跳棋王", ename: "Black Draughts King", tags: ['跳棋']},
-				{char: "⛉", name: "翻转白将棋", ename: "Turned White Shogi Piece", tags: ['将棋']},
-				{char: "⛊", name: "翻转黑将棋", ename: "Turned Black Shogi Piece", tags: ['将棋']},
-				{char: "⛹", name: "持球人", ename: "Person with Ball", tags: []},
+				{char: "⛉", name: "翻转白将棋", ename: "Turned White Shogi Piece", tags: []},
+				{char: "⛊", name: "翻转黑将棋", ename: "Turned Black Shogi Piece", tags: []},
 				{char: "⛳", name: "洞中旗", ename: "Flag In Hole", tags: ['高尔夫球']},
-				{char: "⛺", name: "帐篷", ename: "Tent", tags: ['露营', '户外']}
+				{char: "⛺", name: "帐篷", ename: "Tent", tags: ['露营', '户外']},
+				{char: "⚔", name: "击剑", ename: "CROSSED SWORDS", tags: []},
+				{char: "⛷", name: "滑雪者", ename: "SKIER", tags: ["运动", "人物"]},
+				{char: "⛸", name: "冰鞋", ename: "ICE SKATE", tags: ["运动", "器材"]},
+				{char: "⛹", name: "玩球的人", ename: "PERSON WITH BALL", tags: ["运动", "人物"]}
 			]
 		}
 	]

@@ -7,11 +7,13 @@ const data = {
 				{char: "⚛", name: "原子符号", ename: "Atom Symbol", tags: ['原子', '科学']},
 				{char: "☢", name: "放射性标志", ename: "Radioactive Sign", tags: ['辐射']},
 				{char: "⚡", name: "高压", ename: "High Voltage Sign", tags: ['电力', '危险']},
+				{char: "⚗", name: "蒸馏器", ename: "Alembic", tags: ["化学", "实验", "科学"]},
 			]
 		},
 		{
 			name: '生物',
 			symbols: [
+				{char: "⚘", name: "花卉", ename: "Flower", tags: []},
 				{char: "☘", name: "三叶草", ename: "Shamrock"},
 				{char: "⚜", name: "鸢尾花", ename: "Fleur-De-Lis", tags: ['花', '装饰']},
 				{char: "☙", name: "反向旋转花心", ename: "Reversed Rotated Floral Heart Bullet"},
@@ -166,6 +168,7 @@ const data = {
 				{char: "☈", name: "雷暴", ename: "Thunderstorm"},
 				{char: "⛅", name: "云后太阳", ename: "Sun Behind Cloud", tags: ['多云']},
 				{char: "⛆", name: "雨", ename: "Rain", tags: []},
+				{char: "⛈", name: "暴风雨", ename: "THUNDER CLOUD AND RAIN", tags: []},
 				{char: "⛉", name: "雾", ename: "Fog", tags: []},
 				{char: "⛊", name: "雾", ename: "Fog", tags: []},
 				{char: "⛋", name: "雾", ename: "Fog", tags: []},
@@ -173,7 +176,7 @@ const data = {
 				{char: "☔", name: "带雨滴的雨伞", ename: "Umbrella with Rain Drops", tags: ['雨伞', '雨具', '下雨']},
 				{char: "☃", name: "雪人", ename: "Snowman", tags: ['雪人', '冬天', '雪']},
 				{char: "⛇", name: "黑雪人", ename: "Black Snowman", tags: ['雪人', '冬天', '雪']},
-				{char: "⛄", name: "雪人无雪", ename: "Snowman Without Snow", tags: ['雪人', '冬天']}
+				{char: "⛄", name: "雪人无雪", ename: "Snowman Without Snow", tags: ['雪人', '冬天']},
 			]
 		},
 		{

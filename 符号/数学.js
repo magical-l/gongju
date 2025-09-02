@@ -80,6 +80,8 @@ const data = {
 				{char: "⚇", name: "白圆双点", ename: "White Circle with Two Dots", tags: ['圆形', '点']},
 				{char: "⚈", name: "黑圆右点", ename: "Black Circle with White Dot Right", tags: ['圆形', '点']},
 				{char: "⚉", name: "黑圆双点", ename: "Black Circle with Two White Dots", tags: ['圆形', '点']},
+				{char: "⛋", name: "正方形内接菱形", ename: "WHITE DIAMOND IN SQUARE", tags: ['圆形', '点']},
+				{char: "⛶", name: "四角方框", ename: "SQUARE FOUR CORNERS", tags: ["符号", "几何"]},
 			]
 		}
 	]

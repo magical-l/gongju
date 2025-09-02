@@ -183,6 +183,7 @@ const data = {
 		{
 			name: '其他',
 			symbols: [
+				{char: "☸", name: "佛教法轮", ename: "WHEEL OF DHARMA", tags: []},
 				{char: "☥", name: "生命之符", ename: "Ankh", tags: ['安卡', '安克', '埃及']},
 				{char: "☤", name: "商神杖", ename: "Caduceus", tags: ['墨丘利的节杖', '古希腊']},
 
@@ -193,6 +194,7 @@ const data = {
 				{char: "☩", name: "耶路撒冷十字", ename: "Cross of Jerusalem", tags: ['基督教']},
 				{char: "♰", name: "西叙利亚十字", ename: "West Syriac Cross", tags: ['十字', '基督教']},
 				{char: "♱", name: "东叙利亚十字", ename: "East Syriac Cross", tags: ['十字', '基督教']},
+				{char: "⛝", name: "交叉十字", ename: "SQUARED SALTIRE", tags: ["符号", "宗教"]},
 
 				{char: "☪", name: "星月", ename: "Star and Crescent", tags: ['伊斯兰教']},
 				{char: "☫", name: "法拉瓦哈", ename: "Faravahar", tags: ['伊朗']},
@@ -211,9 +213,9 @@ const data = {
 
 				{char: "⚸", name: "黑月莉莉丝", ename: "Black Moon Lilith", tags: ['黑月', '占星术']},
 				{char: "⚹", name: "六分相", ename: "Sextile", tags: ['六分相', '占星术']},
-				{char: "⚺", name: "半六分相", ename: "Semisextile", tags: ['半六分相', '占星术']},
+				{char: "⚺", name: "十二分相", ename: "Semisextile", tags: ['半六分相', '占星术']},
 				{char: "⚻", name: "梅花相", ename: "Quincunx", tags: ['梅花相', '占星术']},
-				{char: "⚼", name: "倍半四分相", ename: "Sesquiquadrate", tags: ['倍半四分相', '占星术']}
+				{char: "⚼", name: "倍八分相", ename: "Sesquiquadrate", tags: ['倍半四分相', '占星术']}
 			]
 		}
 	]
