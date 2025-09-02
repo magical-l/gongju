@@ -313,7 +313,7 @@
 		data() {
 			return {
 				searchQuery: '',
-				activeGroupNames: [],
+				activeGroupNames: ['人类生活'],
 				groups,
 				symbolGroups: {},
 				loadedGroups: {},
@@ -330,9 +330,7 @@
 				const result = {};
 
 				for (const [groupName, group] of Object.entries(this.symbolGroups)) {
-					if (!group) {
-						continue;
-					}
+					if (!group) continue;
 
 					const filterSymbols = symbols => {
 						return symbols.filter(s => {
@@ -364,6 +362,11 @@
 				}
 				return result;
 			}
+		},
+		mounted() {
+			this.groups.forEach(groupName => {
+				this.loadGroup(groupName);
+			});
 		},
 		methods: {
 			setHoveredSymbol(symbol) {

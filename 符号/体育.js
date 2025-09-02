@@ -21,11 +21,7 @@ const data = {
 			{char: "🨃", name: "中性主教", ename: "Neutral Chess Bishop", tags: ['国际象棋']},
 			{char: "🨄", name: "中性骑士", ename: "Neutral Chess Knight", tags: ['国际象棋']},
 			{char: "🨅", name: "中性兵", ename: "Neutral Chess Pawn", tags: ['国际象棋']},
-			{char: "🨆", name: "白骑士旋转45°", ename: "White Chess Knight Rotated Forty-Five Degrees", tags: ['国际象棋']},
-			{char: "🨇", name: "黑骑士旋转45°", ename: "Black Chess Knight Rotated Forty-Five Degrees", tags: ['国际象棋']},
-			{
-				char: "🨈", name: "中性骑士旋转45°", ename: "Neutral Chess Knight Rotated Forty-Five Degrees", tags: ['国际象棋']
-			},
+
 			{char: "🨉", name: "白国王旋转90°", ename: "White Chess King Rotated Ninety Degrees", tags: ['国际象棋']},
 			{char: "🨊", name: "白王后旋转90°", ename: "White Chess Queen Rotated Ninety Degrees", tags: ['国际象棋']},
 			{char: "🨋", name: "白战车旋转90°", ename: "White Chess Rook Rotated Ninety Degrees", tags: ['国际象棋']},
@@ -44,18 +40,7 @@ const data = {
 			{char: "🨘", name: "中性主教旋转90°", ename: "Neutral Chess Bishop Rotated Ninety Degrees", tags: ['国际象棋']},
 			{char: "🨙", name: "中性骑士旋转90°", ename: "Neutral Chess Knight Rotated Ninety Degrees", tags: ['国际象棋']},
 			{char: "🨚", name: "中性兵旋转90°", ename: "Neutral Chess Pawn Rotated Ninety Degrees", tags: ['国际象棋']},
-			{
-				char: "🨛", name: "白骑士旋转135°", ename: "White Chess Knight Rotated One Hundred Thirty-Five Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🨜", name: "黑骑士旋转135°", ename: "Black Chess Knight Rotated One Hundred Thirty-Five Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🨝", name: "中性骑士旋转135°", ename: "Neutral Chess Knight Rotated One Hundred Thirty-Five Degrees",
-				tags: ['国际象棋']
-			},
+
 			{char: "🨞", name: "白国王镜像", ename: "White Chess Turned King", tags: ['国际象棋']},
 			{char: "🨟", name: "白王后镜像", ename: "White Chess Turned Queen", tags: ['国际象棋']},
 			{char: "🨠", name: "白战车镜像", ename: "White Chess Turned Rook", tags: ['国际象棋']},
@@ -74,40 +59,17 @@ const data = {
 			{char: "🨭", name: "中性主教镜像", ename: "Neutral Chess Turned Bishop", tags: ['国际象棋']},
 			{char: "🨮", name: "中性骑士镜像", ename: "Neutral Chess Turned Knight", tags: ['国际象棋']},
 			{char: "🨯", name: "中性兵镜像", ename: "Neutral Chess Turned Pawn", tags: ['国际象棋']},
+
 			{
-				char: "🨰",
-				name: "白骑士旋转225°",
-				ename: "White Chess Knight Rotated Two Hundred Twenty-Five Degrees",
+				char: "🨳", name: "白国王旋转270°", ename: "White Chess King Rotated Two Hundred Seventy Degrees",
 				tags: ['国际象棋']
 			},
 			{
-				char: "🨱",
-				name: "黑骑士旋转225°",
-				ename: "Black Chess Knight Rotated Two Hundred Twenty-Five Degrees",
+				char: "🨴", name: "白王后旋转270°", ename: "White Chess Queen Rotated Two Hundred Seventy Degrees",
 				tags: ['国际象棋']
 			},
 			{
-				char: "🨲",
-				name: "中性骑士旋转225°",
-				ename: "Neutral Chess Knight Rotated Two Hundred Twenty-Five Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🨳",
-				name: "白国王旋转270°",
-				ename: "White Chess King Rotated Two Hundred Seventy Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🨴",
-				name: "白王后旋转270°",
-				ename: "White Chess Queen Rotated Two Hundred Seventy Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🨵",
-				name: "白战车旋转270°",
-				ename: "White Chess Rook Rotated Two Hundred Seventy Degrees",
+				char: "🨵", name: "白战车旋转270°", ename: "White Chess Rook Rotated Two Hundred Seventy Degrees",
 				tags: ['国际象棋']
 			},
 			{
@@ -117,126 +79,111 @@ const data = {
 				tags: ['国际象棋']
 			},
 			{
-				char: "🨷",
-				name: "白骑士旋转270°",
-				ename: "White Chess Knight Rotated Two Hundred Seventy Degrees",
+				char: "🨷", name: "白骑士旋转270°", ename: "White Chess Knight Rotated Two Hundred Seventy Degrees",
 				tags: ['国际象棋']
 			},
 			{
-				char: "🨸",
-				name: "白兵旋转270°",
-				ename: "White Chess Pawn Rotated Two Hundred Seventy Degrees",
+				char: "🨸", name: "白兵旋转270°", ename: "White Chess Pawn Rotated Two Hundred Seventy Degrees",
 				tags: ['国际象棋']
 			},
 			{
-				char: "🨹",
-				name: "黑国王旋转270°",
-				ename: "Black Chess King Rotated Two Hundred Seventy Degrees",
+				char: "🨹", name: "黑国王旋转270°", ename: "Black Chess King Rotated Two Hundred Seventy Degrees",
 				tags: ['国际象棋']
 			},
 			{
-				char: "🨺",
-				name: "黑王后旋转270°",
-				ename: "Black Chess Queen Rotated Two Hundred Seventy Degrees",
+				char: "🨺", name: "黑王后旋转270°", ename: "Black Chess Queen Rotated Two Hundred Seventy Degrees",
 				tags: ['国际象棋']
 			},
 			{
-				char: "🨻",
-				name: "黑战车旋转270°",
-				ename: "Black Chess Rook Rotated Two Hundred Seventy Degrees",
+				char: "🨻", name: "黑战车旋转270°", ename: "Black Chess Rook Rotated Two Hundred Seventy Degrees",
 				tags: ['国际象棋']
 			},
 			{
-				char: "🨼",
-				name: "黑主教旋转270°",
-				ename: "Black Chess Bishop Rotated Two Hundred Seventy Degrees",
+				char: "🨼", name: "黑主教旋转270°", ename: "Black Chess Bishop Rotated Two Hundred Seventy Degrees",
 				tags: ['国际象棋']
 			},
 			{
-				char: "🨽",
-				name: "黑骑士旋转270°",
-				ename: "Black Chess Knight Rotated Two Hundred Seventy Degrees",
+				char: "🨽", name: "黑骑士旋转270°", ename: "Black Chess Knight Rotated Two Hundred Seventy Degrees",
 				tags: ['国际象棋']
 			},
 			{
-				char: "🨾",
-				name: "黑兵旋转270°",
-				ename: "Black Chess Pawn Rotated Two Hundred Seventy Degrees",
+				char: "🨾", name: "黑兵旋转270°", ename: "Black Chess Pawn Rotated Two Hundred Seventy Degrees",
 				tags: ['国际象棋']
 			},
 			{
-				char: "🨿",
-				name: "中性国王旋转270°",
-				ename: "Neutral Chess King Rotated Two Hundred Seventy Degrees",
+				char: "🨿", name: "中性国王旋转270°", ename: "Neutral Chess King Rotated Two Hundred Seventy Degrees",
 				tags: ['国际象棋']
 			},
 			{
-				char: "🩀",
-				name: "中性王后旋转270°",
-				ename: "Neutral Chess Queen Rotated Two Hundred Seventy Degrees",
+				char: "🩀", name: "中性王后旋转270°", ename: "Neutral Chess Queen Rotated Two Hundred Seventy Degrees",
 				tags: ['国际象棋']
 			},
 			{
-				char: "🩁",
-				name: "中性战车旋转270°",
-				ename: "Neutral Chess Rook Rotated Two Hundred Seventy Degrees",
+				char: "🩁", name: "中性战车旋转270°", ename: "Neutral Chess Rook Rotated Two Hundred Seventy Degrees",
 				tags: ['国际象棋']
 			},
 			{
-				char: "🩂",
-				name: "中性主教旋转270°",
-				ename: "Neutral Chess Bishop Rotated Two Hundred Seventy Degrees",
+				char: "🩂", name: "中性主教旋转270°", ename: "Neutral Chess Bishop Rotated Two Hundred Seventy Degrees",
 				tags: ['国际象棋']
 			},
 			{
-				char: "🩃",
-				name: "中性骑士旋转270°",
-				ename: "Neutral Chess Knight Rotated Two Hundred Seventy Degrees",
+				char: "🩃", name: "中性骑士旋转270°", ename: "Neutral Chess Knight Rotated Two Hundred Seventy Degrees",
 				tags: ['国际象棋']
 			},
 			{
-				char: "🩄",
-				name: "中性兵旋转270°",
-				ename: "Neutral Chess Pawn Rotated Two Hundred Seventy Degrees",
+				char: "🩄", name: "中性兵旋转270°", ename: "Neutral Chess Pawn Rotated Two Hundred Seventy Degrees",
+				tags: ['国际象棋']
+			},
+
+			{char: "🨆", name: "白骑士旋转45°", ename: "White Chess Knight Rotated Forty-Five Degrees", tags: ['国际象棋']},
+			{char: "🨇", name: "黑骑士旋转45°", ename: "Black Chess Knight Rotated Forty-Five Degrees", tags: ['国际象棋']},
+			{
+				char: "🨈", name: "中性骑士旋转45°", ename: "Neutral Chess Knight Rotated Forty-Five Degrees", tags: ['国际象棋']
+			},
+			{
+				char: "🨛", name: "白骑士旋转135°", ename: "White Chess Knight Rotated One Hundred Thirty-Five Degrees",
 				tags: ['国际象棋']
 			},
 			{
-				char: "🩅",
-				name: "白骑士旋转315°",
-				ename: "White Chess Knight Rotated Three Hundred Fifteen Degrees",
+				char: "🨜", name: "黑骑士旋转135°", ename: "Black Chess Knight Rotated One Hundred Thirty-Five Degrees",
 				tags: ['国际象棋']
 			},
 			{
-				char: "🩆",
-				name: "黑骑士旋转315°",
-				ename: "Black Chess Knight Rotated Three Hundred Fifteen Degrees",
+				char: "🨝", name: "中性骑士旋转135°", ename: "Neutral Chess Knight Rotated One Hundred Thirty-Five Degrees",
 				tags: ['国际象棋']
 			},
 			{
-				char: "🩇",
-				name: "中性骑士旋转315°",
-				ename: "Neutral Chess Knight Rotated Three Hundred Fifteen Degrees",
+				char: "🨰", name: "白骑士旋转225°", ename: "White Chess Knight Rotated Two Hundred Twenty-Five Degrees",
 				tags: ['国际象棋']
 			},
+			{
+				char: "🨱", name: "黑骑士旋转225°", ename: "Black Chess Knight Rotated Two Hundred Twenty-Five Degrees",
+				tags: ['国际象棋']
+			},
+			{
+				char: "🨲", name: "中性骑士旋转225°", ename: "Neutral Chess Knight Rotated Two Hundred Twenty-Five Degrees",
+				tags: ['国际象棋']
+			},
+			{
+				char: "🩅", name: "白骑士旋转315°", ename: "White Chess Knight Rotated Three Hundred Fifteen Degrees",
+				tags: ['国际象棋']
+			},
+			{
+				char: "🩆", name: "黑骑士旋转315°", ename: "Black Chess Knight Rotated Three Hundred Fifteen Degrees",
+				tags: ['国际象棋']
+			},
+			{
+				char: "🩇", name: "中性骑士旋转315°", ename: "Neutral Chess Knight Rotated Three Hundred Fifteen Degrees",
+				tags: ['国际象棋']
+			},
+
 			{char: "🩈", name: "白等跳马", ename: "White Chess Equihopper", tags: ['国际象棋']},
 			{char: "🩉", name: "黑等跳马", ename: "Black Chess Equihopper", tags: ['国际象棋']},
 			{char: "🩊", name: "中性等跳马", ename: "Neutral Chess Equihopper", tags: ['国际象棋']},
+			{char: "🩋", name: "白等跳马旋转90°", ename: "White Chess Equihopper Rotated Ninety Degrees", tags: ['国际象棋']},
+			{char: "🩌", name: "黑等跳马旋转90°", ename: "Black Chess Equihopper Rotated Ninety Degrees", tags: ['国际象棋']},
 			{
-				char: "🩋",
-				name: "白等跳马旋转90°",
-				ename: "White Chess Equihopper Rotated Ninety Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🩌",
-				name: "黑等跳马旋转90°",
-				ename: "Black Chess Equihopper Rotated Ninety Degrees",
-				tags: ['国际象棋']
-			},
-			{
-				char: "🩍",
-				name: "中性等跳马旋转90°",
-				ename: "Neutral Chess Equihopper Rotated Ninety Degrees",
+				char: "🩍", name: "中性等跳马旋转90°", ename: "Neutral Chess Equihopper Rotated Ninety Degrees",
 				tags: ['国际象棋']
 			},
 			{char: "🩎", name: "白骑士王后", ename: "White Chess Knight-Queen", tags: ['国际象棋']},
@@ -567,7 +514,7 @@ const data = {
 				{char: "⛉", name: "翻转白将棋", ename: "Turned White Shogi Piece", tags: ['将棋', '游戏']},
 				{char: "⛊", name: "翻转黑将棋", ename: "Turned Black Shogi Piece", tags: ['将棋', '游戏']},
 				{char: "⛹", name: "持球人", ename: "Person with Ball", tags: ['人', '球']},
-				{char: "⛳", name: "洞中旗", ename: "Flag In Hole", tags: ['旗', '洞']},
+				{char: "⛳", name: "洞中旗", ename: "Flag In Hole", tags: ['旗', '洞']}
 
 			]
 		}
