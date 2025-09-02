@@ -190,22 +190,42 @@
 							<div v-for="subgroup in filteredSymbolGroups[group].groups" :key="subgroup.name" class="subgroup">
 								<h4 class="subgroup-name">{{ subgroup.name }}</h4>
 								<div class="symbols">
-									<div class="symbol" v-for="s in subgroup.symbols" :key="s.char" @click="copySymbol(s)"
-											 :title="getSymbolTitle(s)">
-										<span class="char">{{ s.char }}</span>
-										<span class="name">{{ s.name }}</span>
-										<span class="ename">{{ s.ename }}</span>
-									</div>
+									<el-popover v-for="s in subgroup.symbols" :key="s.char" placement="top" trigger="hover" :width="220">
+										<template #reference>
+											<div class="symbol" @click="copySymbol(s)">
+												<span class="char">{{ s.char }}</span>
+												<span class="name">{{ s.name }}</span>
+												<span class="ename">{{ s.ename }}</span>
+											</div>
+										</template>
+										<div style="text-align: center; line-height: 1.5;">
+											<div style="font-size: 1.1em; font-weight: 600;">{{ s.name || s.char }}</div>
+											<div v-if="s.ename" style="font-size: 0.8em; color: #666; text-transform: capitalize;">{{ s.ename }}</div>
+											<div style="font-family: monospace; color: #999; margin-top: 8px; font-size: .9em;">
+												{{ 'U+' + s.char.codePointAt(0).toString(16).toUpperCase() }} / &amp;#{{ s.char.codePointAt(0) }};
+											</div>
+										</div>
+									</el-popover>
 								</div>
 							</div>
 						</div>
 						<div v-else-if="filteredSymbolGroups[group].symbols" class="symbols">
-							<div class="symbol" v-for="s in filteredSymbolGroups[group].symbols" :key="s.char" @click="copySymbol(s)"
-									 :title="getSymbolTitle(s)">
-								<span class="char">{{ s.char }}</span>
-								<span class="name">{{ s.name }}</span>
-								<span class="ename">{{ s.ename }}</span>
-							</div>
+							<el-popover v-for="s in filteredSymbolGroups[group].symbols" :key="s.char" placement="top" trigger="hover" :width="220">
+								<template #reference>
+									<div class="symbol" @click="copySymbol(s)">
+										<span class="char">{{ s.char }}</span>
+										<span class="name">{{ s.name }}</span>
+										<span class="ename">{{ s.ename }}</span>
+									</div>
+								</template>
+								<div style="text-align: center; line-height: 1.5;">
+									<div style="font-size: 1.1em; font-weight: 600;">{{ s.name || s.char }}</div>
+									<div v-if="s.ename" style="font-size: 0.8em; color: #666; text-transform: capitalize;">{{ s.ename }}</div>
+									<div style="font-family: monospace; color: #999; margin-top: 8px; font-size: .9em;">
+										{{ 'U+' + s.char.codePointAt(0).toString(16).toUpperCase() }} / &amp;#{{ s.char.codePointAt(0) }};
+									</div>
+								</div>
+							</el-popover>
 						</div>
 					</div>
 				</el-collapse-item>
@@ -338,14 +358,6 @@
 				}).catch(err => {
 					ElementPlus.ElMessage.error('复制失败: ' + err);
 				});
-			},
-			getSymbolTitle(s) {
-				const codePoint = s.char.codePointAt(0);
-				const code = 'U+' + codePoint.toString(16).toUpperCase();
-				const htmlEntity = '&#' + codePoint + ';';
-				return `${s.name || ''} / ${s.ename || ''}
-${code} / ${htmlEntity}
-点击复制: ${s.char}`;
 			}
 		},
 		watch: {
