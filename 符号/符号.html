@@ -232,7 +232,7 @@
 		</div>
 
 		<section class="search-bar">
-			<el-input v-model="searchQuery" placeholder="输入中文、英文或拼音搜索符号..." clearable size="large"></el-input>
+			<el-input v-model="searchQuery" placeholder="输入中文/英文搜索组/符号..." clearable size="large"></el-input>
 		</section>
 
 		<div class="symbol-groups">
@@ -332,13 +332,19 @@
 				for (const [groupName, group] of Object.entries(this.symbolGroups)) {
 					if (!group) continue;
 
+					// If group name matches, add entire group and continue
+					if (groupName.toLowerCase().includes(query)) {
+						result[groupName] = group;
+						continue;
+					}
+
 					const filterSymbols = symbols => {
 						return symbols.filter(s => {
 							const tags = s.tags || [];
 							return s.char.toLowerCase().includes(query)
-										 || s.name.toLowerCase().includes(query)
-										 || s.ename.toLowerCase().includes(query)
-										 || tags.some(t => t.toLowerCase().includes(query));
+									 || s.name.toLowerCase().includes(query)
+									 || s.ename.toLowerCase().includes(query)
+									 || tags.some(t => t.toLowerCase().includes(query));
 						});
 					};
 
@@ -350,6 +356,13 @@
 					} else if (group.groups) {
 						const filteredSubgroups = [];
 						for (const subgroup of group.groups) {
+							// If subgroup name matches, add the entire subgroup
+							if (subgroup.name.toLowerCase().includes(query)) {
+								filteredSubgroups.push(subgroup);
+								continue;
+							}
+
+							// Otherwise, filter symbols inside the subgroup
 							const filtered = filterSymbols(subgroup.symbols);
 							if (filtered.length > 0) {
 								filteredSubgroups.push({...subgroup, symbols: filtered});
@@ -423,6 +436,13 @@
 						this.loadGroup(groupName);
 					}
 				}
+			},
+			filteredSymbolGroups(newFilteredGroups) {
+				if (this.searchQuery) {
+					this.activeGroupNames = Object.keys(newFilteredGroups);
+				} else {
+					this.activeGroupNames = ['人类生活']; // Reset to default when search is cleared
+				}
 			}
 		}
 	})
@@ -458,6 +478,10 @@
 	<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true"
 			 data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
 	<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
+</body>
+</html>
+
 </div>
 </body>
 </html>
