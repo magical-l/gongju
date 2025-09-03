@@ -57,6 +57,73 @@
 		font-size: 0.9em;
 		color: #606266;
 	}
+
+	/* new styles */
+	.one.block.expandable {
+		cursor: pointer;
+	}
+
+	.one.block.expandable:hover {
+		box-shadow: var(--el-box-shadow-light);
+		border-color: var(--el-color-primary);
+	}
+
+	.el-row.has-expanded-child {
+		position: relative;
+	}
+
+	.character-display-wrapper {
+		position: absolute;
+		z-index: 10;
+		padding: 1rem 6px 0; /* 1rem top to clear the block, 6px horizontal to match el-col padding */
+		box-sizing: border-box;
+		/* left and width will be set by JS */
+	}
+
+	.character-display-container {
+		position: relative; /* For close button positioning */
+		background-color: #f5f7fa;
+		border: 1px solid var(--el-border-color-lighter);
+		border-radius: 4px;
+		padding: 1em;
+		box-shadow: var(--el-box-shadow-light);
+	}
+
+	.character-display { /* This is the grid inside */
+		display: flex;
+		flex-wrap: wrap;
+		gap: 4px;
+	}
+
+	.character-display .char-cell {
+		width: 60px;
+		height: 60px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border: 1px solid var(--el-border-color);
+		border-radius: 4px;
+		font-size: 1.2em;
+		cursor: pointer;
+	}
+
+	.character-display .char-cell:hover {
+		border-color: var(--el-color-primary);
+		background: #fff;
+	}
+
+	.char-display-close-btn {
+		position: absolute;
+		top: 1em;
+		right: 1em;
+		font-size: 1.2em;
+		cursor: pointer;
+		color: #909399;
+	}
+
+	.char-display-close-btn:hover {
+		color: var(--el-color-primary);
+	}
 </style>
 </head>
 <body class="grid 反叵字形">
@@ -2583,14 +2650,158 @@
 <div class="js container">
 	<script src="../../lib/vue/3.5.18/vue.global.js"></script>
 	<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
-	<script src="../../resources/util.js?v=250801"></script>
+	<!--	<script src="../../resources/util.js?v=250801"></script>-->
 	<script src="../../resources/biz-util.js?v=250801"></script>
 </div>
 <script>
 	const {createApp, ref} = Vue;
-	createApp({})
-	.use(ElementPlus)
-	.mount('main');
+	const {ElMessage} = ElementPlus;
+
+	createApp({
+		mounted() {
+			let activeDisplay = {element: null, ownerCard: null, pushedElement: null, ownerRow: null};
+
+			const documentClickHandler = (event) => {
+				// If the click is outside the display container AND not on an expandable card, clean up.
+				if (!event.target.closest('.character-display-container') && !event.target.closest('.expandable')) {
+					cleanup();
+				}
+			};
+
+			const cleanup = () => {
+				if (activeDisplay.element) activeDisplay.element.remove();
+				if (activeDisplay.pushedElement) activeDisplay.pushedElement.style.marginTop = '';
+				if (activeDisplay.ownerRow) activeDisplay.ownerRow.classList.remove('has-expanded-child');
+				activeDisplay = {element: null, ownerCard: null, pushedElement: null, ownerRow: null};
+				document.removeEventListener('click', documentClickHandler);
+			}
+
+			const isAssigned = (char) => {
+				const unassignedRegex = /^(\p{Cn}|\p{Cs})$/u;
+				return !unassignedRegex.test(char);
+			}
+
+			const blocks = document.querySelectorAll('.one.block');
+			const excludedKeywords = ['CJK', '标点', '中日韩'];
+			const characterThreshold = 256;
+
+			blocks.forEach(blockCard => {
+				const header = blockCard.querySelector('header');
+				if (!header) return;
+
+				const nameEl = header.querySelector('.name');
+				const nameText = nameEl ? nameEl.textContent.trim() : '';
+
+				const statsEl = blockCard.querySelector('.block-stats');
+				if (!statsEl) return;
+
+				const countEl = statsEl.querySelector('.character.count');
+				const countText = countEl ? countEl.textContent : '字符数：0';
+				const characterCount = parseInt(countText.replace(/[^0-9]/g, '') || '0');
+
+				const enNameEl = nameEl ? nameEl.querySelector('.en') : null;
+				const enNameText = enNameEl ? enNameEl.textContent.trim().toLowerCase() : '';
+				const isExcluded = excludedKeywords.some(keyword => nameText.includes(keyword)) ||
+						enNameText.includes('cjk') ||
+						enNameText.includes('punctuation') ||
+						enNameText.includes('ideograph');
+
+				if (characterCount > 0 && characterCount <= characterThreshold && !isExcluded) {
+					blockCard.classList.add('expandable');
+
+					blockCard.addEventListener('click', (event) => {
+						// Do not trigger when clicking the copy-able cells or the close button
+						if (event.target.closest('.char-cell, .char-display-close-btn')) {
+							return;
+						}
+
+						const wasActive = activeDisplay.ownerCard === blockCard;
+						cleanup();
+
+						if (wasActive) {
+							return; // Toggled off
+						}
+
+						const rangeEl = statsEl.querySelector('.range');
+						const rangeText = rangeEl ? rangeEl.textContent : '';
+						const matches = rangeText.match(/U\+([0-9A-F]+)\s*~\s*U\+([0-9A-F]+)/i);
+
+						if (matches) {
+							const start = parseInt(matches[1], 16);
+							const end = parseInt(matches[2], 16);
+
+							const displayGrid = document.createElement('div');
+							displayGrid.className = 'character-display';
+
+							for (let i = start; i <= end; i++) {
+								const char = String.fromCodePoint(i);
+								if (isAssigned(char)) {
+									const charCell = document.createElement('span');
+									charCell.className = 'char-cell';
+									charCell.textContent = char;
+									charCell.title = 'U+' + i.toString(16).toUpperCase().padStart(4, '0') + ' (点击复制)';
+									charCell.addEventListener('click', () => {
+										navigator.clipboard.writeText(char).then(() => {
+											ElMessage({message: `字符 '${char}' 已复制`, type: 'success', duration: 2000});
+										}).catch(err => {
+											console.error('复制失败: ', err);
+											ElMessage.error('复制失败');
+										});
+									});
+									displayGrid.appendChild(charCell);
+								}
+							}
+
+							if (displayGrid.childElementCount === 0) return;
+
+							const parentCol = blockCard.closest('.el-col');
+							const parentRow = blockCard.closest('.el-row');
+							parentRow.classList.add('has-expanded-child');
+
+							const displayWrapper = document.createElement('div');
+							displayWrapper.className = 'character-display-wrapper';
+							displayWrapper.style.left = '0';
+							displayWrapper.style.width = '100%';
+							displayWrapper.style.top = (parentCol.offsetTop + parentCol.offsetHeight - 16) + 'px';
+
+							const displayContainer = document.createElement('div');
+							displayContainer.className = 'character-display-container';
+
+							const closeBtn = document.createElement('i');
+							closeBtn.className = 'el-icon char-display-close-btn';
+							closeBtn.innerHTML = '<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M764.288 214.592 512 466.88 259.712 214.592a31.936 31.936 0 0 0-45.12 45.12L466.88 512 214.592 764.288a31.936 31.936 0 1 0 45.12 45.12L512 557.12l252.288 252.288a31.936 31.936 0 0 0 45.12-45.12L557.12 512l252.288-252.288a31.936 31.936 0 1 0-45.12-45.12z"></path></svg>';
+							closeBtn.addEventListener('click', cleanup);
+
+							displayContainer.appendChild(closeBtn);
+							displayContainer.appendChild(displayGrid);
+							displayWrapper.appendChild(displayContainer);
+							parentRow.appendChild(displayWrapper);
+
+							let pushedElement = parentRow.nextElementSibling;
+							if (pushedElement) {
+								requestAnimationFrame(() => {
+									const height = displayWrapper.offsetHeight;
+									pushedElement.style.marginTop = height + 'px';
+								});
+							}
+
+							activeDisplay = {
+								element: displayWrapper,
+								ownerCard: blockCard,
+								ownerRow: parentRow,
+								pushedElement: pushedElement
+							};
+
+							// Add global listener, with a timeout to prevent the opening click from being caught.
+							setTimeout(() => document.addEventListener('click', documentClickHandler), 0);
+						}
+					});
+				}
+			});
+
+			window.addEventListener('resize', cleanup);
+		}
+	}).use(ElementPlus).mount('main');
 </script>
 </body>
 </html>
