@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>unicode</title>
+
+<link href="../../lib/element-plus/2.10.7/index.css" rel="stylesheet">
+<link href="../../resources/el-plus.css" rel="stylesheet">
+<link href="../../resources/common.css?v=250821" rel="stylesheet">
+<link href="../../resources/layout.css?v=0821" rel="stylesheet">
+<link href="../../resources/biz.css?v=250821" rel="stylesheet">
+<link href="../../resources/花活.css" rel="stylesheet">
+<style>
+	.plane {
+		margin-bottom: 2em;
+	}
+	.el-card__header {
+		padding: 10px 15px;
+	}
+	.el-card__body {
+		padding: 15px;
+	}
+	.el-card small {
+		color: #999;
+	}
+</style>
+</head>
+<body class="grid 反叵字形">
+<main id="app" v-cloak>
+	<article>
+		<el-card v-for="(plane,planeIndex) in planes" :key="plane.name_en" class="plane">
+			<template #header>
+				<h2>平面{{planeIndex}}：{{ plane.name_zh }} <small>{{ plane.name_en }}</small></h2>
+				<p><b>范围:</b> {{ plane.range }}</p>
+				<p>{{ plane.intro_zh }}</p>
+			</template>
+			<el-row :gutter="12">
+				<el-col :xs="12" :sm="8" :md="6" v-for="(block,blockIndex) in plane.blocks" :key="block.name_en" style="margin-bottom: 12px;">
+					<el-card>
+						<template #header>
+							<div>
+								<span>{{ block.name_zh }}</span>
+								<br>
+								<small>{{ block.name_en }}</small>
+							</div>
+						</template>
+						<div><b>范围:</b> {{ block.range }}</div>
+					</el-card>
+				</el-col>
+			</el-row>
+		</el-card>
+	</article>
+</main>
+
+<aside class="right-sidebar">
+</aside>
+
+<div class="js container">
+	<script src="../../lib/vue/3.5.18/vue.global.js"></script>
+	<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
+	<script src="../../resources/util.js?v=250801"></script>
+	<script src="../../resources/biz-util.js?v=250801"></script>
+	</div>
+<script>
+	const { createApp, ref } = Vue
+
+	const unicodeData = {
+		planes: [
+			{
+				name_en: 'Basic Multilingual Plane (BMP)',
+				name_zh: '基本多文种平面',
+				range: 'U+0000 to U+FFFF',
+				intro_zh: '包含绝大多数现代语言的字符，以及大量符号。',
+				intro_en: 'Contains characters for almost all modern languages, and a large number of symbols.',
+				blocks: [
+					{ name_en: 'Basic Latin', name_zh: '基本拉丁文', range: 'U+0000–U+007F' },
+					{ name_en: 'Latin-1 Supplement', name_zh: '拉丁文-1 补充', range: 'U+0080–U+00FF' },
+					{ name_en: 'IPA Extensions', name_zh: '国际音标扩展', range: 'U+0250–U+02AF' },
+					{ name_en: 'General Punctuation', name_zh: '广义标点', range: 'U+2000–U+206F' },
+					{ name_en: 'CJK Radicals Supplement', name_zh: 'CJK 部首补充', range: 'U+2E80–U+2EFF' },
+					{ name_en: 'CJK Unified Ideographs', name_zh: 'CJK 统一表意文字', range: 'U+4E00–U+9FFF' },
+				]
+			},
+			{
+				name_en: 'Supplementary Multilingual Plane (SMP)',
+				name_zh: '辅助多文种平面',
+				range: 'U+10000 to U+1FFFF',
+				intro_zh: '包含历史文字、象形文字（如埃及圣书体）和各种符号。',
+				intro_en: 'Contains historic scripts, pictographic scripts (like Egyptian hieroglyphs), and various symbols.',
+				blocks: [
+					{ name_en: 'Linear B Syllabary', name_zh: '线性文字 B 音节文字', range: 'U+10000–U+1007F' },
+					{ name_en: 'Ancient Greek Numbers', name_zh: '古希腊数字', range: 'U+10140–U+1018F' },
+					{ name_en: 'Playing Cards', name_zh: '扑克牌', range: 'U+1F0A0–U+1F0FF' },
+					{ name_en: 'Mahjong Tiles', name_zh: '麻将牌', range: 'U+1F000–U+1F02F' }
+				]
+			},
+			{
+				name_en: 'Supplementary Ideographic Plane (SIP)',
+				name_zh: '辅助表意文字平面',
+				range: 'U+20000 to U+2FFFF',
+				intro_zh: '包含大量的罕见汉字。',
+				intro_en: 'Contains a large number of rare CJK ideographs.',
+				blocks: [
+					{ name_en: 'CJK Unified Ideographs Extension B', name_zh: 'CJK 统一表意文字扩展 B 区', range: 'U+20000–U+2A6DF' },
+					{ name_en: 'CJK Unified Ideographs Extension C', name_zh: 'CJK 统一表意文字扩展 C 区', range: 'U+2A700–U+2B73F' }
+				]
+			},
+			{ name_en: 'Tertiary Ideographic Plane (TIP)', range: 'U+30000-U+3FFFF', name_zh: '第三表意文字平面', intro_zh: '用于存储甲骨文、金文、小篆等古汉字。', intro_en: 'Used for ancient Chinese characters like Oracle Bone Script, Bronze inscriptions, and Small Seal Script.', blocks: [] },
+			{ name_en: 'Plane 4 (unassigned)', range: 'U+40000-U+4FFFF', name_zh: '第4平面（未分配）', intro_zh: '', intro_en: '', blocks: [] },
+			{ name_en: 'Plane 5 (unassigned)', range: 'U+50000-U+5FFFF', name_zh: '第5平面（未分配）', intro_zh: '', intro_en: '', blocks: [] },
+			{ name_en: 'Plane 6 (unassigned)', range: 'U+60000-U+6FFFF', name_zh: '第6平面（未分配）', intro_zh: '', intro_en: '', blocks: [] },
+			{ name_en: 'Plane 7 (unassigned)', range: 'U+70000-U+7FFFF', name_zh: '第7平面（未分配）', intro_zh: '', intro_en: '', blocks: [] },
+			{ name_en: 'Plane 8 (unassigned)', range: 'U+80000-U+8FFFF', name_zh: '第8平面（未分配）', intro_zh: '', intro_en: '', blocks: [] },
+			{ name_en: 'Plane 9 (unassigned)', range: 'U+90000-U+9FFFF', name_zh: '第9平面（未分配）', intro_zh: '', intro_en: '', blocks: [] },
+			{ name_en: 'Plane 10 (unassigned)', range: 'U+A0000-U+AFFFF', name_zh: '第10平面（未分配）', intro_zh: '', intro_en: '', blocks: [] },
+			{ name_en: 'Plane 11 (unassigned)', range: 'U+B0000-U+BFFFF', name_zh: '第11平面（未分配）', intro_zh: '', intro_en: '', blocks: [] },
+			{ name_en: 'Plane 12 (unassigned)', range: 'U+C0000-U+CFFFF', name_zh: '第12平面（未分配）', intro_zh: '', intro_en: '', blocks: [] },
+			{ name_en: 'Plane 13 (unassigned)', range: 'U+D0000-U+DFFFF', name_zh: '第13平面（未分配）', intro_zh: '', intro_en: '', blocks: [] },
+			{ name_en: 'Supplementary Special-purpose Plane (SSP)', range: 'U+E0000-U+EFFFF', name_zh: '辅助特殊用途平面', intro_zh: '包含一些非图形字符，如标签和变体选择符。', intro_en: 'Contains non-graphical characters, such as tags and variation selectors.', blocks: [] },
+			{ name_en: 'Private Use Area-A (PUA-A)', range: 'U+F0000-U+FFFFF', name_zh: '私人使用区A', intro_zh: '供用户自行定义和使用字符。', intro_en: 'For private use, for users to define their own characters.', blocks: [] },
+			{ name_en: 'Private Use Area-B (PUA-B)', range: 'U+100000-U+10FFFF', name_zh: '私人使用区B', intro_zh: '供用户自行定义和使用字符。', intro_en: 'For private use, for users to define their own characters.', blocks: [] }
+		]
+	};
+
+	createApp({
+		data() {
+			return {
+				planes: unicodeData.planes
+			}
+		}
+	}).use(ElementPlus).mount('main');
+</script>
+</body>
+</html>
