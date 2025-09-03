@@ -124,6 +124,19 @@
 	.char-display-close-btn:hover {
 		color: var(--el-color-primary);
 	}
+
+	.character-display .char-cell.invisible {
+		background-color: #f8f8f8;
+		background-image: repeating-linear-gradient(45deg, #ddd, #ddd 1px, transparent 1px, transparent 6px);
+		cursor: not-allowed;
+		color: #aaa;
+	}
+
+	.character-display .char-cell.invisible:hover {
+		border-color: var(--el-border-color);
+		background-color: #f8f8f8;
+		background-image: repeating-linear-gradient(45deg, #ddd, #ddd 1px, transparent 1px, transparent 6px);
+	}
 </style>
 </head>
 <body class="grid 反叵字形">
@@ -2681,6 +2694,12 @@
 				return !unassignedRegex.test(char);
 			}
 
+			const isTrulyInvisible = (char) => {
+				// Cc: Control, Cf: Format. These are generally not rendered and not useful to copy.
+				const invisibleRegex = /^(\p{Cc}|\p{Cf})$/u;
+				return invisibleRegex.test(char);
+			};
+
 			const blocks = document.querySelectorAll('.one.block');
 			const excludedKeywords = ['CJK', '标点', '中日韩'];
 			const characterThreshold = 256;
@@ -2739,15 +2758,22 @@
 									const charCell = document.createElement('span');
 									charCell.className = 'char-cell';
 									charCell.textContent = char;
-									charCell.title = 'U+' + i.toString(16).toUpperCase().padStart(4, '0') + ' (点击复制)';
-									charCell.addEventListener('click', () => {
-										navigator.clipboard.writeText(char).then(() => {
-											ElMessage({message: `字符 '${char}' 已复制`, type: 'success', duration: 2000});
-										}).catch(err => {
-											console.error('复制失败: ', err);
-											ElMessage.error('复制失败');
+
+									const isInvisible = isTrulyInvisible(char);
+									if (isInvisible) {
+										charCell.classList.add('invisible');
+										charCell.title = 'U+' + i.toString(16).toUpperCase().padStart(4, '0') + ' (不可见字符)';
+									} else {
+										charCell.title = 'U+' + i.toString(16).toUpperCase().padStart(4, '0') + ' (点击复制)';
+										charCell.addEventListener('click', () => {
+											navigator.clipboard.writeText(char).then(() => {
+												ElMessage({message: `字符 '${char}' 已复制`, type: 'success', duration: 2000});
+											}).catch(err => {
+												console.error('复制失败: ', err);
+												ElMessage.error('复制失败');
+											});
 										});
-									});
+									}
 									displayGrid.appendChild(charCell);
 								}
 							}
