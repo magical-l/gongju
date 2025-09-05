@@ -12,7 +12,7 @@ const 七曜日 = {
 	]
 };
 
-const 科学单位合字 = {
+const 通用科学单位合字 = {
 	name: '科学单位合字',
 	intro: '科学单位合并成一个字符，比如㎐（赫兹）、㏀（千欧）等。东亚特供，多见于日文。（西方直接写那几个字母，不合并）',
 	parts: [
@@ -307,7 +307,7 @@ const 汉字系统 = {
 		},
 		{name: '笔画', ename: 'CJK Strokes', parts: [{from: 0x31C0, to: 0x31EF}]},
 		汉字标点,
-		科学单位合字,
+		通用科学单位合字,
 		{
 			name: '汉语拼音',
 			parts: [
@@ -434,7 +434,7 @@ const 汉字系统 = {
 			parts: [
 				{name: '甲骨文', parts: []},
 				{name: '金文', parts: []},
-				{name: '小篆', parts: []},
+				{name: '小篆', parts: []}
 			]
 		}
 	]
@@ -457,38 +457,32 @@ const 日文系统 = {
 			name: '假名系统',
 			intro: '平假名和片假名',
 			parts: [
+				{name: '常用平假名', parts: [{from: 0x3041, to: 0x3096}]},//平假名/Hiragana
+				{name: '常用片假名', parts: [{from: 0x30A1, to: 0x30FA}]},//片假名/Katakana
 				{
-					name: '平假名',
+					name: '半角假名',
+					intro: '假名的半角形式，多用于兼容老系统',
+					parts: [{from: 0xFF66, to: 0xFF9D}]
+				},
+				{
+					name: '假名注音符号',
 					parts: [
-						{from: 0x3041, to: 0x3096}, // 基本平假名
-						{from: 0x309D, to: 0x309F}, // 平假名迭代标记
-						{from: 0x1B000, to: 0x1B0FF} // 平假名扩展
+						0x309B,//全角浊点/Voiced Sound Mark (Fullwidth)
+						0x309C,//全角半浊点/Semi-Voiced Sound Mark (Fullwidth)
+						0xFF9E,//半角浊点/Halfwidth Voiced Sound Mark
+						0xFF9F,//半角半浊点/Halfwidth Semi-Voiced Sound Mark
+						0x3099,//组合用浊点/Combining Voiced Sound Mark，使清音变浊音（か→が）。
+						0x309A//组合用半浊点/Combining Semi-Voiced Sound Mark，使清音变半浊音（は→ぱ）。
 					]
 				},
 				{
-					name: '片假名',
+					name: '生僻假名',
 					parts: [
-						{from: 0x30A1, to: 0x30FA}, // 基本片假名
-						{from: 0x30FD, to: 0x30FF}, // 片假名迭代标记
-						{from: 0x31F0, to: 0x31FF}, // 片假名音标扩展
-						{from: 0x1B100, to: 0x1B12F}, // 假名补充扩展
-						{from: 0xFF66, to: 0xFF9F}  // 半角片假名（作为变体）
-					]
-				},
-				{
-					name: '振假名',
-					parts: [
-						{from: 0x3099, to: 0x309C}, // 假名发音符
-						{from: 0xFF9E, to: 0xFF9F}  // 半角假名发音符
-					]
-				},
-				{
-					name: '冷僻假名',
-					parts: [
-						{from: 0x1B000, to: 0x1B0FF},//Kana Supplement
-						{from: 0x1B100, to: 0x1B12F},//Kana Extended-A
-						{from: 0x1AFF0, to: 0x1AFFF},//Kana Extended-B
-						{from: 0x1B130, to: 0x1B16F}//Small Kana Extension
+						{from: 0x1B000, to: 0x1B0FF},//假名补充/Kana Supplement
+						{from: 0x1B100, to: 0x1B12F},//假名扩展A/Kana Extended-A
+						{from: 0x31F0, to: 0x31FF},//片假名音标扩展/Katakana Phonetic Extensions
+						{from: 0x1AFF0, to: 0x1AFFF},//假名扩展B/Kana Extended-B
+						{from: 0x1B130, to: 0x1B16F}//小型假名扩展/Small Kana Extension
 					]
 				},
 				日文合略假名
@@ -519,9 +513,13 @@ const 日文系统 = {
 					intro: '在汉字标点外额外创造的标点。',
 					parts: [
 						{from: 0x301D, to: 0x301F},//日文双引号
+						'゠',//30A0，片假名双杠连接符/Katakana Double Hyphen，功能类似破折号，不属于任何音节。
+						'・',//30FB，平假名中点/Katakana Middle Dot，用于分隔词语（如“ペン・ギン”）。
+						'･',//FF65，半角平假名中点/HALFWIDTH KATAKANA MIDDLE DOT，是30FB的半角版本。
+						'ー',//30FC，长音符号
+						'ｰ',//FF70，半角平假名片假名长音符号/Halfwidth Katakana-Hiragana Prolonged Sound Mark，是30FC的半角版本。
 						'〜',//301C，波浪线
-						'〰',//3030，波浪线变体
-						'ー'//30FC (长音符号)
+						'〰'//3030，波浪线变体
 					]
 				}
 			]
@@ -530,11 +528,15 @@ const 日文系统 = {
 			name: '文本功能标记',
 			intro: '用于文本编辑、结构表示和特殊功能的标记',
 			parts: [
-				'〆', //3006 结束标记
-				'〓', //3013 代字符号
+				'〆',//3006 结束标记
+				'〓',//3013 代字符号
 				{from: 0x3031, to: 0x3035},//竖排假名重复标记
-				'〽', // 303D Part Alternation Mark（部分交替标记），主要用于日本民歌（民谣）的乐谱中。
-				'〼' //303C：枡标记，代表日本传统的木制计量容器“枡”（masu）。有时在菜单、招牌或传统风格的描述中用作装饰或缩写，表示食物或清酒的一份（一杯）。
+				'〽',//303D Part Alternation Mark（部分交替标记），主要用于日本民歌（民谣）的乐谱中。
+				'〼',//303C：枡标记，代表日本传统的木制计量容器“枡”（masu）。有时在菜单、招牌或传统风格的描述中用作装饰或缩写，表示食物或清酒的一份（一杯）。
+				'ゝ',//309D，平假名叠字符号/Hiragana Iteration Mark，表示重复前一个平假名。
+				'ゞ',//309E，平假名浊点叠字符号/Hiragana Voiced Iteration Mark，带浊点的平假名重复标记。
+				'ヽ',//30FD，KATAKANA ITERATION MARK，片假名重复标记，表示重复前一个片假名。
+				'ヾ',//30FE，KATAKANA VOICED ITERATION MARK，带浊点的片假名重复标记。
 			]
 		},
 		{
@@ -561,7 +563,7 @@ const 日文系统 = {
 			name: '科学单位合字',
 			parts: [
 				{from: 0x3300, to: 0x3357},//假名拼写的科学单位的合字。
-				科学单位合字
+				...通用科学单位合字.parts
 			]
 		},
 		{
@@ -580,46 +582,42 @@ const 朝鲜文系统 = {
 	parts: [
 		汉字,
 		{
-			name: '谚文系统',
+			name: '谚文',
 			intro: '朝鲜文特有的表音文字',
 			parts: [
 				{
-					name: '谚文字母',
+					name: '常用谚文字母',
 					parts: [
-						{from: 0x1100, to: 0x11FF}, // 基本谚文字母
-						{from: 0xA960, to: 0xA97F}, // 谚文字母扩展A
-						{from: 0xD7B0, to: 0xD7FF}, // 谚文字母扩展B
-						{from: 0xFFA0, to: 0xFFDC}, // 半角谚文字母
-						{from: 0x3130, to: 0x318F}  // 谚文兼容字母
+						{from: 0x1100, to: 0x11FF},//谚文字母/Hangul Jamo
 					]
 				},
 				{
 					name: '谚文音节',
 					intro: '用谚文字母拼好的音节',
 					parts: [{from: 0xAC00, to: 0xD7A3}]
-				},
+				},//谚文音节/Hangul Syllables
+				{name:'半角谚文字母', parts:[{from: 0xFFA0, to: 0xFFDC}]},//半角字母/Halfwidth Jamo
 				{
-					name: '谚文发音符号',//似乎现在已废弃
-					parts: [
-						0x302E,//〮：Hangul Single Dot Tone Mark 谚文单点声调标记
-						0x302F//〯：Hangul Double Dot Tone Mark 谚文双点声调标记
+					name:'生僻谚文字母',
+					parts:[
+						{from: 0xA960, to: 0xA97F},//谚文字母扩展A/Hangul Jamo Extended-A
+						{from: 0xD7B0, to: 0xD7FF},//谚文字母扩展B/Hangul Jamo Extended-B
 					]
-				}
+				},
+				{name:'谚文兼容字母',parts:[{from: 0x3130, to: 0x318F}]}//谚文兼容字母
 			]
 		},
 		{
 			name: '计数计量',
 			intro: '在朝鲜文中用来计数、计量的字符',
-			parts: [
-				汉语普通数字, 汉语大写数字, 天干, 地支, 月份汉字合字, 日期汉字合字, 钟点汉字合字
-			]
+			parts: [汉语普通数字, 汉语大写数字, 天干, 地支, 月份汉字合字, 日期汉字合字, 钟点汉字合字]
 		},
-		汉字变体符号,//引用
+		汉字变体符号,
 		{
-			name: '谚文字母变体符号',
+			name: '谚文变体符号',
 			parts: [
-				{from: 0x3200, to: 0x321E}, // 括号谚文字母
-				{from: 0x3260, to: 0x327F} // 带圈谚文字母
+				{from: 0x3200, to: 0x321E},//带括号谚文字母
+				{from: 0x3260, to: 0x327F}//带圈谚文字母
 			]
 		},
 		汉字标点,
@@ -630,11 +628,17 @@ const 朝鲜文系统 = {
 				'㉿'//327F：KOREAN STANDARD SYMBOL，韩国标准标志
 			]
 		},
+		通用科学单位合字,
 		{
-			name: '科学单位合字',
-			parts: [
-				{from: 0x3300, to: 0x3357},//假名拼写的科学单位的合字。
-				科学单位合字
+			name:'古文字和古符号',
+			parts:[
+				{
+					name: '谚文发音符号',//现在已废弃
+					parts: [
+						0x302E,//谚文单点声调标记/Hangul Single Dot Tone Mark。是附着字符
+						0x302F//谚文双点声调标记/Hangul Double Dot Tone Mark。是附着字符。
+					]
+				}
 			]
 		}
 	]
