@@ -31,6 +31,12 @@ const 汉字标点 = {
 	]
 };
 
+//--- Kanbun：主要用于处理日本对中文古典文本的注释符号。如㆕、㆖、㆚、㆝。
+const Kanbun={from: 0x3190, to: 0x319F};//比Kanbu汉字多了两个日文字符
+const Kanbun汉字 = {from: 0x3192, to: 0x319F};
+
+//#############################
+
 const 汉字变体符号 = {
 	id: 103,
 	name: '汉字变体符号',
@@ -58,6 +64,20 @@ const 汉字变体符号 = {
 				'㍻', '㍼', '㍽', '㍾', // 日本几个天皇年号符号 337B~337E
 				'㋿',//32FF
 				'㍿'//337F
+			]
+		},
+		{
+			name: '草书',
+			parts: [
+				//实际上源于一些‘假名’区，收录的是古籍中的‘假名’，它们本身就源于汉字草书且尚未简化。
+				{from: 0x1B000, to: 0x1B0FF},//Kana Supplement
+				{from: 0x1B100, to: 0x1B12F}//Kana Extended-A
+			]
+		},
+		{
+			name: '汉字用作标记',
+			parts: [
+				Kanbun汉字
 			]
 		}
 	]
@@ -172,7 +192,8 @@ const 汉字 = {
 		{from: 0x31350, to: 0x3139f},//扩展H
 		{from: 0x2EBF0, to: 0x2EC3F},//扩展I
 		{from: 0xF900, to: 0xFAFF},//兼容表意文字
-		{from: 0x2F800, to: 0x2FA1F}//兼容补充
+		{from: 0x2F800, to: 0x2FA1F},//兼容补充
+		Kanbun汉字
 	]
 };
 
@@ -403,8 +424,17 @@ const 日文系统 = {
 					name: '合略假名',
 					intro: '变体假名的一种特殊形式，它是将两个或以上的假名（或汉字）通过草书笔迹巧妙地连笔、简化，合并成一个字符的书写形式。现已废弃。',
 					parts: [
-						'ゟ',//309F (より)
-						'ヿ'//30FF (コト)
+						'ゟ',//309F：より (yori)
+						'ヿ'//30FF：コト (koto)
+					]
+				},
+				{
+					name: '冷僻假名',
+					parts: [
+						{from: 0x1B000, to: 0x1B0FF},//Kana Supplement
+						{from: 0x1B100, to: 0x1B12F},//Kana Extended-A
+						{from: 0x1AFF0, to: 0x1AFFF},//Kana Extended-B
+						{from: 0x1B130, to: 0x1B16F}//Small Kana Extension
 					]
 				}
 			]
@@ -480,6 +510,12 @@ const 日文系统 = {
 			parts: [
 				{from: 0x3300, to: 0x3357},//假名拼写的科学单位的合字。
 				科学单位合字
+			]
+		},
+		{
+			name: '古文字和古符号',
+			parts: [
+				Kanbun
 			]
 		}
 	]
