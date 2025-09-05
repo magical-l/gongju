@@ -1,65 +1,122 @@
 // 〾 //303E Ideographic Variation Indicator 异体字标识符，不可见
 
-const 月份汉字合字 = {id: 10205, name: '月份', parts: [{from: 0x32C0, to: 0x32CB}]};// ㋀~㋋
-const 日期汉字合字 = {id: 10206, name: '日期', parts: [{from: 0x33E0, to: 0x33FE}]};// ㏠~㏾
-const 钟点汉字合字 = {id: 10207, name: '钟点', parts: [{from: 0x3358, to: 0x3370}]};// ㍘~㍰
+const 月份汉字合字 = {name: '月份', intro: '阿拉伯数字与汉字‘月’的合字', parts: [{from: 0x32C0, to: 0x32CB}]};// ㋀~㋋
+const 日期汉字合字 = {name: '日期', intro: '阿拉伯数字与汉字‘日’的合字', parts: [{from: 0x33E0, to: 0x33FE}]};// ㏠~㏾
+const 钟点汉字合字 = {name: '钟点', intro: '阿拉伯数字与汉字‘点’的合字', parts: [{from: 0x3358, to: 0x3370}]};// ㍘~㍰
+const 七曜日 = {
+	name: '星期几的名称',
+	intro: '中国唐代从摩尼教引进，七曜日（日曜日=周日，月曜日=周一，火曜日=周二，水曜日=周三，木曜日=周四，金曜日=周五，土曜日=周六）作为一周七天的注释存在，未广泛流行。现在在日本使用较广。',
+	parts: [
+		{from: 0x322A, to: 0x3230},//带括号的月火水木金土日
+		{from: 0x328A, to: 0x3290}//带圈的月火水木金土日
+	]
+};
+
 const 科学单位合字 = {
-	//科学单位合并成一个字符，比如㎐（赫兹）、㏀（千欧）等。东亚特供，多见于日文。（西方直接写那几个字母，不合并）
 	name: '科学单位合字',
+	intro: '科学单位合并成一个字符，比如㎐（赫兹）、㏀（千欧）等。东亚特供，多见于日文。（西方直接写那几个字母，不合并）',
 	parts: [
 		{from: 0x3380, to: 0x33CF},
 		{from: 0x32CC, to: 0x32CE}//Hg（汞柱）、erg（尔格，能量单位）、eV（电子伏特）
 	]
 };
 
+const 古汉字标点 = {
+	name: '古汉字标点',
+	parts: [
+		0x16FE2,//古汉语句读钩标记/OLD CHINESE HOOK MARK，在中国古代文献（如竹简、抄本）中用作标点，表示一个停顿或断句。
+		0x16FE3//古汉字叠字符号/OLD CHINESE ITERATION MARK，在中国古代文献中使用的叠字标记，其功能等价于“々”(3005)和竖排的“〻”(303B)。
+	]
+};
 const 汉字标点 = {
 	name: '标点',
 	parts: [//按常用程度排序
-		//todo：逗号等，在 Halfwidth and Fullwidth Forms
-		'。',//3002
-		'、',//3001
-		'　',//3000 Ideographic Space，全角空格
-		'〿',//303F Ideographic Half Fill Space（表意文字半宽空格），与全角空格对应。
-		{from: 0x3008, to: 0x301B, exclude: ['〒', '〓']},
-		'〃', //3003 ‘同上’标记
-		'々', //3005 横排汉字叠字标记
-		{from: 0xFE10, to: 0xFE1F}, // 竖排形式
-		'〻',//303B 垂直汉字叠字标记
-		{from: 0xFE30, to: 0xFE4F},// CJK Compatibility Forms，兼容其他编码集的竖排中文标点。
-		{from: 0xFE10, to: 0xFE19},//Vertical Forms，竖排标点
-		{from: 0xFE50, to: 0xFE6B}//Small Form Variants，缩小的标点变体，多数是竖排用。
+		{
+			name: '普通横排标点',
+			parts: [
+				'，',//FF0C
+				'。',//3002
+				'、',//3001
+				'！',//FF01
+				'？',//FF1F
+				'：',//FF1A
+				'；',//FF1B
+				'“',//201C
+				'”',//201D
+				'‘',//2018
+				'’',//2019
+				'—',//2014：破折号的一半
+				'…',//2026：省略号的一半
+				'（',//FF08
+				'）',//FF09
+				{from: 0x3008, to: 0x301B, exclude: ['〒', '〓']},//
+				'　',//3000：全角空格/Ideographic Space
+				'〃', //3003：‘同上’标记
+				'々' //3005：横排汉字叠字标记/IDEOGRAPHIC ITERATION MARK
+			]
+		},
+		{
+			name: '普通竖排标点',
+			parts: [
+				{from: 0xFE10, to: 0xFE1F}, //竖排形式/Vertical Forms，目前只到FE09，后面几个位置还空着。
+				'　',//3000：全角空格/Ideographic Space
+				'〻'//303B：竖排汉字叠字标记/VERTICAL IDEOGRAPHIC ITERATION MARK，相当于竖排的‘々’
+			]
+		},
+		{
+			name: '普通横排标点变体',
+			parts: [
+				//todo：一些奇怪的逗号、句号等的变体。
+				'〿'//303F：半角空格/Ideographic Half Fill Space，象形文字的半宽空格，与全角空格对应，跟32‘ ’不一样。
+			]
+		},
+		{
+			name: '普通竖排标点变体',
+			parts: [
+				{from: 0xFE50, to: 0xFE6B},//小型变体/Small Form Variants，多数是竖排用。
+				{from: 0xFE30, to: 0xFE4F},//中日朝兼容形式/CJK Compatibility Forms，兼容其他编码集的竖排中文标点。
+				'〿'//303F：半角空格/Ideographic Half Fill Space，象形文字的半宽空格，与全角空格对应，跟32‘ ’不一样。
+			]
+		},
+		古汉字标点
 	]
 };
 
-//--- Kanbun：主要用于处理日本对中文古典文本的注释符号。如㆕、㆖、㆚、㆝。
-const Kanbun={from: 0x3190, to: 0x319F};//比Kanbu汉字多了两个日文字符
 const Kanbun汉字 = {from: 0x3192, to: 0x319F};
+const Kanbun = {
+	name: 'Kanbun',
+	intro: '主要用于处理日本对中文古典文本的注释符号。如㆕、㆖、㆚、㆝。',
+	parts: [
+		{from: 0x3190, to: 0x3191},
+		Kanbun汉字
+	]
+};//比Kanbu汉字多了两个日文字符
 
 //#############################
 
 const 汉字变体符号 = {
-	id: 103,
 	name: '汉字变体符号',
 	intro: '由汉字产生的符号化变体',
 	parts: [
 		{
-			name: '单字变体',
+			name: '装饰',
+			intro: '带有装饰符号（如圈、方框、括号）的汉字',
 			parts: [
 				{from: 0x3220, to: 0x3247}, // 带括号汉字
 				{from: 0x3280, to: 0x32B0}, // 带圈汉字
 				{from: 0x1F210, to: 0x1F251}, // 带框汉字
 				{from: 0x1FA60, to: 0x1FA6D}, // 象棋棋子
 				{from: 0x1F000, to: 0x1F005}, // 麻将风向牌
-				{from: 0x1F022, to: 0x1F029},  // 麻将花牌
-				{from: 0x1F210, to: 0x1F265, exclude: [0x1F213]}//Enclosed Ideographic Supplement
+				{from: 0x1F007, to: 0x1F00F}, // 麻将萬字牌
+				{from: 0x1F022, to: 0x1F02A},  // 麻将花牌、百搭
+				{from: 0x1F210, to: 0x1F265, exclude: [0x1F213]}//装饰象形文字补充/Enclosed Ideographic Supplement
 			]
 		},
 		{
-			id: 10302,
 			name: '合字',
 			parts: [
 				{from: 0x1F007, to: 0x1F00F}, // 麻将萬字牌
-				{from: 0x1F02A, to: 0x1F02A},  // 麻将百搭牌
+				0x1F02A,  // 麻将百搭牌
 				...月份汉字合字.parts, ...日期汉字合字.parts, ...钟点汉字合字.parts,//只引入月份、日期、钟点的字符，不作为独立的子级分组。
 				'㍻', '㍼', '㍽', '㍾', // 日本几个天皇年号符号 337B~337E
 				'㋿',//32FF
@@ -68,14 +125,14 @@ const 汉字变体符号 = {
 		},
 		{
 			name: '草书',
+			intro: '实际上源于一些‘假名’区，收录的是古籍中的‘假名’，它们本身就源于汉字草书且尚未简化。',
 			parts: [
-				//实际上源于一些‘假名’区，收录的是古籍中的‘假名’，它们本身就源于汉字草书且尚未简化。
-				{from: 0x1B000, to: 0x1B0FF},//Kana Supplement
-				{from: 0x1B100, to: 0x1B12F}//Kana Extended-A
+				{from: 0x1B000, to: 0x1B0FF},//假名补充/Kana Supplement
+				{from: 0x1B100, to: 0x1B12F}//假名扩展A/Kana Extended-A
 			]
 		},
 		{
-			name: '汉字用作标记',
+			name: '用作标记',
 			parts: [
 				Kanbun汉字
 			]
@@ -84,7 +141,7 @@ const 汉字变体符号 = {
 };
 
 const 汉语普通数字 = {
-	id: 10201, name: '普通数字',
+	name: '普通数字',
 	parts: [
 		'零',//96F6
 		'一',//4E00
@@ -119,26 +176,27 @@ const 汉语普通数字 = {
 	]
 };
 const 汉语大写数字 = {
-	id: 10202, name: '大写数字',
+	name: '大写数字',
 	parts: [
-		{from: 0x58F9, to: 0x58F9}, // 壹
-		{from: 0x8D30, to: 0x8D30}, // 贰
-		{from: 0x53C1, to: 0x53C1}, // 叁
-		{from: 0x8086, to: 0x8086}, // 肆
-		{from: 0x4F0D, to: 0x4F0D}, // 伍
-		{from: 0x9646, to: 0x9646}, // 陆
-		{from: 0x67D2, to: 0x67D2}, // 柒
-		{from: 0x634C, to: 0x634C}, // 捌
-		{from: 0x7396, to: 0x7396}, // 玖
-		{from: 0x62FE, to: 0x62FE},  // 拾
-		{from: 0x4F70},//佰
-		{from: 0x4EDF},//仟
-		{from: 0x842C},//萬
-		{from: 0x5104}//億。更大的计数单位无大写数字
+		'壹',//58F9
+		'贰',//8D30
+		'叁',//53C1
+		'肆',//8086
+		'伍',//4F0D
+		'陆',//9646
+		'柒',//67D2
+		'捌',//634C
+		'玖',//7396
+		'拾',//62FE
+		'佰',//4F70
+		'仟',//4EDF
+		'萬',//842C
+		'億'//5104
+		// 更大的计数单位无大写数字
 	]
 };
 const 天干 = {
-	id: 10203, name: '天干',
+	name: '天干',
 	parts: [
 		'甲',//7532
 		'乙',//4E59
@@ -153,7 +211,7 @@ const 天干 = {
 	]
 };
 const 地支 = {
-	id: 10204, name: '地支',
+	name: '地支',
 	parts: [
 		'子',//5B50
 		'丑',//4E11
@@ -171,29 +229,44 @@ const 地支 = {
 };
 
 const 汉字 = {
+	//todo：中日朝汉字是混放的，只有根据‘IRG 源’才能判断：
+	//kIRG_GSource: 来源为中国大陆 (Mainland China - G)
+	//kIRG_JSource: 来源为日本 (Japan - J)
+	//kIRG_KSource: 来源为韩国 (Korea - K)
+	//kIRG_TSource: 来源为台湾 (Taiwan - T)
+	//kIRG_VSource: 来源为越南 (Vietnam - V)
+	// 例如，汉字“辻” (U+8FBB，意为十字路口)，其 kIRG_JSource字段会显示它来自日本的 JIS 标准。
 	name: '汉字',
 	intro: '任何能当成单个汉字用的字符',
 	parts: [
-		//todo：中日朝汉字是混放的，只有根据‘IRG 源’才能判断：
-		//kIRG_GSource: 来源为中国大陆 (Mainland China - G)
-		//kIRG_JSource: 来源为日本 (Japan - J)
-		//kIRG_KSource: 来源为韩国 (Korea - K)
-		//kIRG_TSource: 来源为台湾 (Taiwan - T)
-		//kIRG_VSource: 来源为越南 (Vietnam - V)
-		// 例如，汉字“辻” (U+8FBB，意为十字路口)，其 kIRG_JSource字段会显示它来自日本的 JIS 标准。
-		{from: 0x4E00, to: 0x9FFF},
-		{from: 0x3400, to: 0x4DBF},//扩展A
-		{from: 0x20000, to: 0x2A6DF},//扩展B
-		{from: 0x2A700, to: 0x2B73F},//扩展C
-		{from: 0x2B740, to: 0x2B81F},//扩展D
-		{from: 0x2B820, to: 0x2CEAF},//扩展E
-		{from: 0x2CEB0, to: 0x2EBEF},//扩展F
-		{from: 0x30000, to: 0x3134A},//扩展G
-		{from: 0x31350, to: 0x3139f},//扩展H
-		{from: 0x2EBF0, to: 0x2EC3F},//扩展I
-		{from: 0xF900, to: 0xFAFF},//兼容表意文字
-		{from: 0x2F800, to: 0x2FA1F},//兼容补充
-		Kanbun汉字
+		{
+			name: '常用字',
+			parts: [
+				{from: 0x4E00, to: 0x9FFF}
+			]
+		},
+		{
+			name: '生僻字',
+			parts: [
+				{from: 0x3400, to: 0x4DBF},//扩展A，以‘㐀’开头。
+				{from: 0x20000, to: 0x2A6DF},//扩展B，以‘𠀀’开头。
+				{from: 0x2A700, to: 0x2B73F},//扩展C，以‘𪜀’开头。
+				{from: 0x2B740, to: 0x2B81F},//扩展D，以‘𫝀’开头。
+				{from: 0x2B820, to: 0x2CEAF},//扩展E，以‘𫠠’开头。
+				{from: 0x2CEB0, to: 0x2EBEF},//扩展F，以‘𬺰’开头。
+				{from: 0x30000, to: 0x3134A},//扩展G，以‘𰀀’开头。
+				{from: 0x31350, to: 0x323AF},//扩展H
+				{from: 0x2EBF0, to: 0x2EE5F}//扩展I
+			]
+		},
+		{
+			name: '兼容汉字',
+			intro: '逻辑上unicode已收录该字，但又收录了一些变体字符，可能字形略有不同。',
+			parts: [
+				{from: 0xF900, to: 0xFAFF},//兼容表意文字
+				{from: 0x2F800, to: 0x2FA1F}//兼容补充
+			]
+		}
 	]
 };
 
@@ -206,7 +279,7 @@ const 汉字系统 = {
 			name: '计数计量',
 			intro: '在汉语中用来计数、计量的字符',
 			parts: [
-				汉语普通数字, 汉语大写数字, 天干, 地支, 月份汉字合字, 日期汉字合字, 钟点汉字合字,
+				汉语普通数字, 汉语大写数字, 天干, 地支, 月份汉字合字, 日期汉字合字, 钟点汉字合字, 七曜日,
 				{
 					name: '苏州码子',
 					parts: [
@@ -222,12 +295,12 @@ const 汉字系统 = {
 		{
 			name: '偏旁部首',
 			parts: [
-				{from: 0x2F00, to: 0x2FDF},//康熙部首
-				{from: 0x2E80, to: 0x2EFF}//部首补充
+				{from: 0x2F00, to: 0x2FDF},//康熙部首/CJK Radicals / Kangxi Radicals，《康熙字典》中收录的部首，皆为繁体，比如2FD3‘⿓’（跟作为汉字的9F8D‘龍’不同）。
+				{from: 0x2E80, to: 0x2EFF}//部首补充/CJK Radicals Supplement，包括简化的部首，比如2EF0‘⻰’（跟作为汉字9F99‘龙’不同）。
 			]
 		},
 		{
-			name: '汉字结构描述字符',
+			name: '汉字结构符',
 			ename: 'Ideographic Description Characters',
 			intro: '每个都代表一种特定的汉字结构关系',
 			parts: [{from: 0x2FF0, to: 0x2FFF}]//⿰⿱⿲⿳⿴⿵⿶⿷⿸⿹⿺⿻等
@@ -341,8 +414,8 @@ const 汉字系统 = {
 			ename: 'Bopomofo',
 			intro: '理论上也分声母韵母，音调同拼音的，但有点复杂，先不管。',
 			parts: [
-				{from: 0x3100, to: 0x312F}, // 注音符号：ㄅㄆㄇㄈ等
-				{from: 0x31A0, to: 0x31BF}  // 注音符号扩展
+				{from: 0x3100, to: 0x312F},//注音符号/Bopomofo：ㄅㄆㄇㄈ等
+				{from: 0x31A0, to: 0x31BF}//注音符号扩展/Bopomofo Extended
 			]
 		},
 		{
@@ -357,40 +430,29 @@ const 汉字系统 = {
 		},
 		{
 			name: '古文字',
-			intro: '甲骨文、金文、小篆等古文字。目前unicode尚未正式收录',
+			intro: '古汉字。是现代汉字的老祖宗（比如甲骨文、金文、小篆等），不包括旁亲（比如西夏文、契丹文等）。目前unicode尚未正式收录。',
 			parts: [
 				{name: '甲骨文', parts: []},
 				{name: '金文', parts: []},
-				{name: '小篆', parts: []}
+				{name: '小篆', parts: []},
 			]
 		}
 	]
 };//汉字系统
 
+const 日文合略假名 = {
+	name: '合略假名',
+	intro: '变体假名的一种特殊形式，它是将两个或以上的假名（或汉字）通过草书笔迹巧妙地连笔、简化，合并成一个字符的书写形式。现已废弃。',
+	parts: [
+		'ゟ',//309F：より (yori)
+		'ヿ'//30FF：コト (koto)
+	]
+};
 const 日文系统 = {
 	name: '日文系统',
 	intro: '包含日语书面材料可能用到的所有字符、符号和标记',
 	parts: [
-		{
-			name: '日本汉字',
-			intro: '在日语中使用的汉字字符',
-			parts: [
-				汉字
-				// {
-				// 	name: '日本国字',
-				// 	intro: '日本特有的汉字',
-				// 	parts: [
-				// 		//todo：中日朝汉字是混放的，只有根据‘IRG 源’才能判断：
-				// 		//kIRG_GSource: 来源为中国大陆 (Mainland China - G)
-				// 		//kIRG_JSource: 来源为日本 (Japan - J)
-				// 		//kIRG_KSource: 来源为韩国 (Korea - K)
-				// 		//kIRG_TSource: 来源为台湾 (Taiwan - T)
-				// 		//kIRG_VSource: 来源为越南 (Vietnam - V)
-				// 		// 例如，汉字“辻” (U+8FBB，意为十字路口)，其 kIRG_JSource字段会显示它来自日本的 JIS 标准。
-				// 	]
-				// }
-			]
-		},
+		汉字,
 		{
 			name: '假名系统',
 			intro: '平假名和片假名',
@@ -421,14 +483,6 @@ const 日文系统 = {
 					]
 				},
 				{
-					name: '合略假名',
-					intro: '变体假名的一种特殊形式，它是将两个或以上的假名（或汉字）通过草书笔迹巧妙地连笔、简化，合并成一个字符的书写形式。现已废弃。',
-					parts: [
-						'ゟ',//309F：より (yori)
-						'ヿ'//30FF：コト (koto)
-					]
-				},
-				{
 					name: '冷僻假名',
 					parts: [
 						{from: 0x1B000, to: 0x1B0FF},//Kana Supplement
@@ -436,22 +490,14 @@ const 日文系统 = {
 						{from: 0x1AFF0, to: 0x1AFFF},//Kana Extended-B
 						{from: 0x1B130, to: 0x1B16F}//Small Kana Extension
 					]
-				}
+				},
+				日文合略假名
 			]
 		},
 		{
 			name: '计数计量',
 			intro: '在日文中用来计数、计量的字符',
-			parts: [
-				汉语普通数字, 汉语大写数字, 天干, 地支, 月份汉字合字, 日期汉字合字, 钟点汉字合字,
-				{
-					name: '日文星期几的名称',
-					parts: [
-						{from: 0x322A, to: 0x3230},//带括号的月火水木金土日
-						{from: 0x328A, to: 0x3290}//带圈的月火水木金土日
-					]
-				}
-			]
+			parts: [汉语普通数字, 汉语大写数字, 天干, 地支, 月份汉字合字, 日期汉字合字, 钟点汉字合字, 七曜日]
 		},
 		汉字变体符号,//引用
 		{
@@ -468,10 +514,16 @@ const 日文系统 = {
 			name: '标点',
 			parts: [
 				...汉字标点.parts,
-				{from: 0x301D, to: 0x301F},//日文双引号
-				'〜',//301C，波浪线
-				'〰',//3030，波浪线变体
-				'ー'//30FC (长音符号)
+				{
+					name: '日文专用标点',
+					intro: '在汉字标点外额外创造的标点。',
+					parts: [
+						{from: 0x301D, to: 0x301F},//日文双引号
+						'〜',//301C，波浪线
+						'〰',//3030，波浪线变体
+						'ー'//30FC (长音符号)
+					]
+				}
 			]
 		},
 		{
@@ -515,6 +567,7 @@ const 日文系统 = {
 		{
 			name: '古文字和古符号',
 			parts: [
+				日文合略假名,
 				Kanbun
 			]
 		}
@@ -525,26 +578,7 @@ const 朝鲜文系统 = {
 	name: '朝鲜文系统',
 	intro: '包含朝鲜语（韩语）书面材料可能用到的所有字符、符号和标记',
 	parts: [
-		{
-			name: '朝鲜文汉字',
-			intro: '在朝鲜文中使用的汉字字符',
-			parts: [
-				汉字
-				// {
-				// 	name: '韩国国字',
-				// 	intro: '韩国特有的汉字',
-				// 	parts: [
-				// 		//todo：中日朝汉字是混放的，只有根据‘IRG 源’才能判断：
-				// 		//kIRG_GSource: 来源为中国大陆 (Mainland China - G)
-				// 		//kIRG_JSource: 来源为日本 (Japan - J)
-				// 		//kIRG_KSource: 来源为韩国 (Korea - K)
-				// 		//kIRG_TSource: 来源为台湾 (Taiwan - T)
-				// 		//kIRG_VSource: 来源为越南 (Vietnam - V)
-				// 		// 例如，汉字“辻” (U+8FBB，意为十字路口)，其 kIRG_JSource字段会显示它来自日本的 JIS 标准。
-				// 	]
-				// }
-			]
-		},
+		汉字,
 		{
 			name: '谚文系统',
 			intro: '朝鲜文特有的表音文字',
