@@ -1,7 +1,16 @@
 // 〾 //303E Ideographic Variation Indicator 异体字标识符，不可见
 
-//0x302E,//Hangul Single Dot Tone Mark 谚文单点声调标记
-//0x302F,//Hangul Double Dot Tone Mark 谚文双点声调标记
+const 月份汉字合字 = {id: 10205, name: '月份', parts: [{from: 0x32C0, to: 0x32CB}]};// ㋀~㋋
+const 日期汉字合字 = {id: 10206, name: '日期', parts: [{from: 0x33E0, to: 0x33FE}]};// ㏠~㏾
+const 钟点汉字合字 = {id: 10207, name: '钟点', parts: [{from: 0x3358, to: 0x3370}]};// ㍘~㍰
+const 科学单位合字 = {
+	//科学单位合并成一个字符，比如㎐（赫兹）、㏀（千欧）等。东亚特供，多见于日文。（西方直接写那几个字母，不合并）
+	name: '科学单位合字',
+	parts: [
+		{from: 0x3380, to: 0x33CF},
+		{from: 0x32CC, to: 0x32CE}//Hg（汞柱）、erg（尔格，能量单位）、eV（电子伏特）
+	]
+};
 
 const 汉字标点 = {
 	name: '标点',
@@ -22,9 +31,6 @@ const 汉字标点 = {
 	]
 };
 
-const 月份 = {id: 10205, name: '月份', parts: [{from: 0x32C0, to: 0x32CB}]};// ㋀~㋋
-const 日期 = {id: 10206, name: '日期', parts: [{from: 0x33E0, to: 0x33FE}]};// ㏠~㏾
-const 钟点 = {id: 10207, name: '钟点', parts: [{from: 0x3358, to: 0x3370}]};// ㍘~㍰
 const 汉字变体符号 = {
 	id: 103,
 	name: '汉字变体符号',
@@ -48,20 +54,12 @@ const 汉字变体符号 = {
 			parts: [
 				{from: 0x1F007, to: 0x1F00F}, // 麻将萬字牌
 				{from: 0x1F02A, to: 0x1F02A},  // 麻将百搭牌
-				...月份.parts, ...日期.parts, ...钟点.parts,//只引入月份、日期、钟点的字符，不作为独立的子级分组。
+				...月份汉字合字.parts, ...日期汉字合字.parts, ...钟点汉字合字.parts,//只引入月份、日期、钟点的字符，不作为独立的子级分组。
 				'㍻', '㍼', '㍽', '㍾', // 日本几个天皇年号符号 337B~337E
 				'㋿',//32FF
 				'㍿'//337F
 			]
 		}
-	]
-};
-const 科学单位合字 = {
-	//科学单位合并成一个字符，比如㎐（赫兹）、㏀（千欧）等。东亚特供，多见于日文。（西方直接写那几个字母，不合并）
-	name: '科学单位合字',
-	parts: [
-		{from: 0x3380, to: 0x33CF},
-		{from: 0x32CC, to: 0x32CE}//Hg（汞柱）、erg（尔格，能量单位）、eV（电子伏特）
 	]
 };
 
@@ -152,40 +150,42 @@ const 地支 = {
 	]
 };
 
-const 中日韩统一表意文字 = {from: 0x4E00, to: 0x9FFF};
-const 中日韩扩展A = {from: 0x3400, to: 0x4DBF};
+const 汉字 = {
+	name: '汉字',
+	intro: '任何能当成单个汉字用的字符',
+	parts: [
+		//todo：中日朝汉字是混放的，只有根据‘IRG 源’才能判断：
+		//kIRG_GSource: 来源为中国大陆 (Mainland China - G)
+		//kIRG_JSource: 来源为日本 (Japan - J)
+		//kIRG_KSource: 来源为韩国 (Korea - K)
+		//kIRG_TSource: 来源为台湾 (Taiwan - T)
+		//kIRG_VSource: 来源为越南 (Vietnam - V)
+		// 例如，汉字“辻” (U+8FBB，意为十字路口)，其 kIRG_JSource字段会显示它来自日本的 JIS 标准。
+		{from: 0x4E00, to: 0x9FFF},
+		{from: 0x3400, to: 0x4DBF},//扩展A
+		{from: 0x20000, to: 0x2A6DF},//扩展B
+		{from: 0x2A700, to: 0x2B73F},//扩展C
+		{from: 0x2B740, to: 0x2B81F},//扩展D
+		{from: 0x2B820, to: 0x2CEAF},//扩展E
+		{from: 0x2CEB0, to: 0x2EBEF},//扩展F
+		{from: 0x30000, to: 0x3134A},//扩展G
+		{from: 0x31350, to: 0x3139f},//扩展H
+		{from: 0x2EBF0, to: 0x2EC3F},//扩展I
+		{from: 0xF900, to: 0xFAFF},//兼容表意文字
+		{from: 0x2F800, to: 0x2FA1F}//兼容补充
+	]
+};
 
 const 汉字系统 = {
 	name: '汉字系统',
 	intro: '包含汉语书面材料可能用到的任何文字类字符、符号、标记和标点',
 	parts: [
-		{
-			name: '汉字',
-			intro: '任何能当成单个汉字用的字符',
-			parts: [
-				中日韩统一表意文字,
-				中日韩扩展A,
-				{from: 0x20000, to: 0x2A6DF}, // 扩展B
-				{from: 0x2A700, to: 0x2B73F}, // 扩展C
-				{from: 0x2B740, to: 0x2B81F}, // 扩展D
-				{from: 0x2B820, to: 0x2CEAF}, // 扩展E
-				{from: 0x2CEB0, to: 0x2EBEF}, // 扩展F
-				{from: 0x30000, to: 0x3134A}, // 扩展G
-				{from: 0x31350, to: 0x3139f},//扩展H
-				{from: 0x2EBF0, to: 0x2EC3F},//扩展I
-				{from: 0xF900, to: 0xFAFF}, // 兼容表意文字
-				{from: 0x2F800, to: 0x2FA1F} // 兼容补充
-			]
-		},
+		汉字,
 		{
 			name: '计数计量',
 			intro: '在汉语中用来计数、计量的字符',
 			parts: [
-				汉语普通数字,
-				汉语大写数字,
-				天干,
-				地支,
-				月份, 日期, 钟点,
+				汉语普通数字, 汉语大写数字, 天干, 地支, 月份汉字合字, 日期汉字合字, 钟点汉字合字,
 				{
 					name: '苏州码子',
 					parts: [
@@ -201,15 +201,15 @@ const 汉字系统 = {
 		{
 			name: '偏旁部首',
 			parts: [
-				{from: 0x2F00, to: 0x2FDF},  // 康熙部首
-				{from: 0x2E80, to: 0x2EFF} // CJK部首补充
+				{from: 0x2F00, to: 0x2FDF},//康熙部首
+				{from: 0x2E80, to: 0x2EFF}//部首补充
 			]
 		},
 		{
 			name: '汉字结构描述字符',
 			ename: 'Ideographic Description Characters',
 			intro: '每个都代表一种特定的汉字结构关系',
-			parts: [{from: 0x2FF0, to: 0x2FFF}]// ⿰⿱⿲⿳⿴⿵⿶⿷⿸⿹⿺⿻等
+			parts: [{from: 0x2FF0, to: 0x2FFF}]//⿰⿱⿲⿳⿴⿵⿶⿷⿸⿹⿺⿻等
 		},
 		{name: '笔画', ename: 'CJK Strokes', parts: [{from: 0x31C0, to: 0x31EF}]},
 		汉字标点,
@@ -328,10 +328,10 @@ const 汉字系统 = {
 			name: '中古汉语声调符号',
 			intro: '平上去入四声的标调符，需要结合另一个字符来用',
 			parts: [
-				0x302A,//Ideographic Level Tone Mark 平声
-				0x302B,//Ideographic Rising Tone Mark 上声
-				0x302C,//Ideographic Departing Tone Mark 去声
-				0x302D//Ideographic Entering Tone Mark 入声
+				0x302A,//平声/Ideographic Level Tone Mark
+				0x302B,//上声/Ideographic Rising Tone Mark
+				0x302C,//去声/Ideographic Departing Tone Mark
+				0x302D//入声/Ideographic Entering Tone Mark
 			]
 		},
 		{
@@ -354,16 +354,20 @@ const 日文系统 = {
 			name: '日本汉字',
 			intro: '在日语中使用的汉字字符',
 			parts: [
-				{name: '常用汉字', parts: [中日韩统一表意文字, 中日韩扩展A]},
-				{
-					name: '日本国字',
-					intro: '日本特有的汉字',
-					parts: [
-						'㐀',//3400
-						{from: 0xFA40, to: 0xFA6D}, // 兼容汉字中的日本国字
-						{from: 0x2F800, to: 0x2FA1F} // 兼容补充中的日本国字
-					]
-				}
+				汉字
+				// {
+				// 	name: '日本国字',
+				// 	intro: '日本特有的汉字',
+				// 	parts: [
+				// 		//todo：中日朝汉字是混放的，只有根据‘IRG 源’才能判断：
+				// 		//kIRG_GSource: 来源为中国大陆 (Mainland China - G)
+				// 		//kIRG_JSource: 来源为日本 (Japan - J)
+				// 		//kIRG_KSource: 来源为韩国 (Korea - K)
+				// 		//kIRG_TSource: 来源为台湾 (Taiwan - T)
+				// 		//kIRG_VSource: 来源为越南 (Vietnam - V)
+				// 		// 例如，汉字“辻” (U+8FBB，意为十字路口)，其 kIRG_JSource字段会显示它来自日本的 JIS 标准。
+				// 	]
+				// }
 			]
 		},
 		{
@@ -397,7 +401,7 @@ const 日文系统 = {
 				},
 				{
 					name: '合略假名',
-					intro:'变体假名的一种特殊形式，它是将两个或以上的假名（或汉字）通过草书笔迹巧妙地连笔、简化，合并成一个字符的书写形式。现已废弃。',
+					intro: '变体假名的一种特殊形式，它是将两个或以上的假名（或汉字）通过草书笔迹巧妙地连笔、简化，合并成一个字符的书写形式。现已废弃。',
 					parts: [
 						'ゟ',//309F (より)
 						'ヿ'//30FF (コト)
@@ -409,7 +413,7 @@ const 日文系统 = {
 			name: '计数计量',
 			intro: '在日文中用来计数、计量的字符',
 			parts: [
-				汉语普通数字, 汉语大写数字, 天干, 地支, 月份, 日期, 钟点,
+				汉语普通数字, 汉语大写数字, 天干, 地支, 月份汉字合字, 日期汉字合字, 钟点汉字合字,
 				{
 					name: '日文星期几的名称',
 					parts: [
@@ -480,6 +484,91 @@ const 日文系统 = {
 		}
 	]
 };//日文系统
+
+const 朝鲜文系统 = {
+	name: '朝鲜文系统',
+	intro: '包含朝鲜语（韩语）书面材料可能用到的所有字符、符号和标记',
+	parts: [
+		{
+			name: '朝鲜文汉字',
+			intro: '在朝鲜文中使用的汉字字符',
+			parts: [
+				汉字
+				// {
+				// 	name: '韩国国字',
+				// 	intro: '韩国特有的汉字',
+				// 	parts: [
+				// 		//todo：中日朝汉字是混放的，只有根据‘IRG 源’才能判断：
+				// 		//kIRG_GSource: 来源为中国大陆 (Mainland China - G)
+				// 		//kIRG_JSource: 来源为日本 (Japan - J)
+				// 		//kIRG_KSource: 来源为韩国 (Korea - K)
+				// 		//kIRG_TSource: 来源为台湾 (Taiwan - T)
+				// 		//kIRG_VSource: 来源为越南 (Vietnam - V)
+				// 		// 例如，汉字“辻” (U+8FBB，意为十字路口)，其 kIRG_JSource字段会显示它来自日本的 JIS 标准。
+				// 	]
+				// }
+			]
+		},
+		{
+			name: '谚文系统',
+			intro: '朝鲜文特有的表音文字',
+			parts: [
+				{
+					name: '谚文字母',
+					parts: [
+						{from: 0x1100, to: 0x11FF}, // 基本谚文字母
+						{from: 0xA960, to: 0xA97F}, // 谚文字母扩展A
+						{from: 0xD7B0, to: 0xD7FF}, // 谚文字母扩展B
+						{from: 0xFFA0, to: 0xFFDC}, // 半角谚文字母
+						{from: 0x3130, to: 0x318F}  // 谚文兼容字母
+					]
+				},
+				{
+					name: '谚文音节',
+					intro: '用谚文字母拼好的音节',
+					parts: [{from: 0xAC00, to: 0xD7A3}]
+				},
+				{
+					name: '谚文发音符号',//似乎现在已废弃
+					parts: [
+						0x302E,//〮：Hangul Single Dot Tone Mark 谚文单点声调标记
+						0x302F//〯：Hangul Double Dot Tone Mark 谚文双点声调标记
+					]
+				}
+			]
+		},
+		{
+			name: '计数计量',
+			intro: '在朝鲜文中用来计数、计量的字符',
+			parts: [
+				汉语普通数字, 汉语大写数字, 天干, 地支, 月份汉字合字, 日期汉字合字, 钟点汉字合字
+			]
+		},
+		汉字变体符号,//引用
+		{
+			name: '谚文字母变体符号',
+			parts: [
+				{from: 0x3200, to: 0x321E}, // 括号谚文字母
+				{from: 0x3260, to: 0x327F} // 带圈谚文字母
+			]
+		},
+		汉字标点,
+		{
+			name: '专用标记',
+			parts: [
+				'㉾',//327E：CIRCLED HANGUL IEUNG U，postal code mark，韩国邮政标志
+				'㉿'//327F：KOREAN STANDARD SYMBOL，韩国标准标志
+			]
+		},
+		{
+			name: '科学单位合字',
+			parts: [
+				{from: 0x3300, to: 0x3357},//假名拼写的科学单位的合字。
+				科学单位合字
+			]
+		}
+	]
+};//朝鲜文系统
 
 // 辅助函数：查找分组
 function findGroupById(root, id) {
