@@ -536,7 +536,7 @@ const 日文系统 = {
 				'ゝ',//309D，平假名叠字符号/Hiragana Iteration Mark，表示重复前一个平假名。
 				'ゞ',//309E，平假名浊点叠字符号/Hiragana Voiced Iteration Mark，带浊点的平假名重复标记。
 				'ヽ',//30FD，KATAKANA ITERATION MARK，片假名重复标记，表示重复前一个片假名。
-				'ヾ',//30FE，KATAKANA VOICED ITERATION MARK，带浊点的片假名重复标记。
+				'ヾ'//30FE，KATAKANA VOICED ITERATION MARK，带浊点的片假名重复标记。
 			]
 		},
 		{
@@ -588,7 +588,7 @@ const 朝鲜文系统 = {
 				{
 					name: '常用谚文字母',
 					parts: [
-						{from: 0x1100, to: 0x11FF},//谚文字母/Hangul Jamo
+						{from: 0x1100, to: 0x11FF}//谚文字母/Hangul Jamo
 					]
 				},
 				{
@@ -596,15 +596,15 @@ const 朝鲜文系统 = {
 					intro: '用谚文字母拼好的音节',
 					parts: [{from: 0xAC00, to: 0xD7A3}]
 				},//谚文音节/Hangul Syllables
-				{name:'半角谚文字母', parts:[{from: 0xFFA0, to: 0xFFDC}]},//半角字母/Halfwidth Jamo
+				{name: '半角谚文字母', parts: [{from: 0xFFA0, to: 0xFFDC}]},//半角字母/Halfwidth Jamo
 				{
-					name:'生僻谚文字母',
-					parts:[
+					name: '生僻谚文字母',
+					parts: [
 						{from: 0xA960, to: 0xA97F},//谚文字母扩展A/Hangul Jamo Extended-A
-						{from: 0xD7B0, to: 0xD7FF},//谚文字母扩展B/Hangul Jamo Extended-B
+						{from: 0xD7B0, to: 0xD7FF}//谚文字母扩展B/Hangul Jamo Extended-B
 					]
 				},
-				{name:'谚文兼容字母',parts:[{from: 0x3130, to: 0x318F}]}//谚文兼容字母
+				{name: '谚文兼容字母', parts: [{from: 0x3130, to: 0x318F}]}//谚文兼容字母
 			]
 		},
 		{
@@ -630,8 +630,8 @@ const 朝鲜文系统 = {
 		},
 		通用科学单位合字,
 		{
-			name:'古文字和古符号',
-			parts:[
+			name: '古文字和古符号',
+			parts: [
 				{
 					name: '谚文发音符号',//现在已废弃
 					parts: [
@@ -643,6 +643,99 @@ const 朝鲜文系统 = {
 		}
 	]
 };//朝鲜文系统
+
+//================================西文
+const 希腊文字系统 = {
+	name: '希腊文字系统',
+	parts: [
+		{
+			name: '希腊字母',
+			parts: [
+				{name: '大写字母', parts: [{from: 0x0391, to: 0x03A9}]},
+				{name: '小写字母', parts: [{from: 0x03B1, to: 0x03C9}]},
+				{
+					name: '带音调大写字母',
+					parts: [
+						'Ά',//0386
+						{from: 0x0388, to: 0x038F},
+						0x03AA, 0x03AB
+					]
+				},
+				{
+					name: '带音调小写字母',
+					parts: [
+						'ΐ',//0390,
+						{from: 0x03AC, to: 0x03B0},
+						{from: 0x03CA, to: 0x03CE}
+					]
+				},
+				{
+					name: '现代正字法变体',
+					parts: [
+						'ς'//03C2，Final Sigma，σ在词尾的变体形式
+					]
+				},
+				{
+					name: '连字',
+					parts: [
+						'Ϗ',//03CF，GREEK CAPITAL KAI SYMBOL，και 的连字。
+						'ϗ',//03D7，Greek Kai Symbol，Ϗ的小写。
+						0x03DA, 0x03DB//Greek Stigma，στ 的连字，用于数字6
+					]
+				},
+				{name: '注音符号', parts: [0x037A, 0x0384, 0x0385]}
+			]
+		},
+		{
+			name: '计数计量',
+			parts: [
+				0x0374, 0x0375//长数字分割符，类似英文里用逗号。
+			]
+		},
+		{
+			name: '标点',
+			parts: [
+				';',//037E，GREEK QUESTION MARK，希腊字母的问号是一个分号，但跟半角分号003B‘;’不一样。
+				0x0387//中点
+			]
+		},
+		{
+			name: '专用符号',
+			parts: [
+				{from: 0x037B, to: 0x037D},//编辑符号，用于校勘古籍，小写形式。
+				{from: 0x03FD, to: 0x03FF}//编辑符号，用于校勘古籍，大写形式。
+			]
+		},
+		{
+			name: '古文字和古符号',
+			parts: [
+				{
+					name: '古字母及相关符号',
+					parts: [
+						{from: 0x0370, to: 0x0373},//ͰͱͲͳ (Heta, 古数字符号)
+						{from: 0x0376, to: 0x0377},//Ͷͷ (Pamphylian Digamma)
+						{from: 0x03D0, to: 0x03D6},//各种字母变体，现多用于科学领域
+						{from: 0x03D8, to: 0x03E1},//
+						{from: 0x03F0, to: 0x03F2},//
+						{from: 0x03F4, to: 0x03FC},//
+						{from: 0x1F00, to: 0x1FFF}//希腊字母扩展/Greek Extended，古希腊气符。
+					]
+				},
+				{
+					name: '古希腊数字及相关符号',
+					parts: [
+						{from: 0x10140, to: 0x1018F},//古希腊数字/Ancient Greek Numbers
+						{from: 0x0374, to: 0x0375},//长数字分割符，类似英文里用逗号。
+						{from: 0x03E0, to: 0x03E1}//Sampi，表示900
+					]
+				},
+				{name: '古希腊音乐符号', parts: [{from: 0x1D200, to: 0x1D24F}]}//古希腊音乐符号/Ancient Greek Musical Notation
+			]
+		}
+	]
+};
+
+//#############################################################################
 
 // 辅助函数：查找分组
 function findGroupById(root, id) {
