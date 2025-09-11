@@ -235,14 +235,13 @@
 				return classes;
 			},
 			handleCellClick(r, c) {
-				if (!this.game) return;
-				// 将点击事件委托给当前玩家
-				this.game.currentPlayer.handleCellClick(r, c);
+				if (!this.game || this.game.isGameOver) return;
+				// 将点击事件委托给当前回合的玩家
+				this.game.currentTurn.currentPlayer.handleCellClick(r, c);
 
 				// 更新可移动位置的显示
 				if (this.game.selectedUnit) {
-					const moveSkill = this.game.selectedUnit.getSkill(Move);
-					this.validMoves = moveSkill ? moveSkill.getValidTargets() : [];
+					this.validMoves = this.game.ruleEngine.getValidMovesForUnit(this.game.selectedUnit);
 				} else {
 					this.validMoves = [];
 				}
