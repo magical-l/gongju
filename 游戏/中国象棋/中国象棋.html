@@ -22,12 +22,16 @@
 
 	.cell {
 		position: relative;
+		display: flex;
+		justify-content: center;
+		align-items: center;
 	}
 
 	.cell .texture.container {
-		position: relative;
+		position: absolute;
 		width: 100%;
 		height: 100%;
+		z-index: 1;
 	}
 
 	.cell .texture.part {
@@ -105,6 +109,48 @@
 	.row-9.红五路.cell .texture.part.right.top, .row-9.红五路.cell .texture.part.left.bottom {
 		background: url('left-bottom-to-right-top.svg');
 	}
+
+	/* 棋子样式 */
+	.piece {
+		position: relative;
+		z-index: 10;
+		width: 80%;
+		height: 80%;
+		border-radius: 50%;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		font-size: calc(var(--min-cell-len) * 0.5);
+		font-weight: bold;
+		cursor: pointer;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, .3);
+	}
+
+	.piece.red {
+		background-color: #fdd;
+		border: 2px solid #d43d3d;
+		color: #d43d3d;
+	}
+
+	.piece.black {
+		background-color: #eee;
+		border: 2px solid #333;
+		color: #333;
+	}
+
+	.piece.selected {
+		border-color: #007bff;
+		box-shadow: 0 0 10px 3px #007bff;
+	}
+
+	.valid-move-indicator {
+		position: absolute;
+		z-index: 20;
+		width: 40%;
+		height: 40%;
+		background-color: rgba(40, 167, 69, 0.5);
+		border-radius: 50%;
+	}
 </style>
 </head>
 <body class="grid 反叵字形">
@@ -112,7 +158,7 @@
 	<article class="game-wrapper , 反叵字形 grid" v-cloak>
 		<article class="chess board , grid">
 			<template v-for="r in 10">
-				<div class="cell" v-for="c in 9" :class="cellClasses(r,c)">
+				<div class="cell" v-for="c in 9" :class="cellClasses(r,c)" @click="handleCellClick(r, c)">
 					<div class="texture container">
 						<div class="texture part vertical top"></div>
 						<div class="texture part horizon right"></div>
@@ -123,7 +169,10 @@
 						<div class="texture part right bottom corner"></div>
 						<div class="texture part left bottom corner"></div>
 					</div>
-					<div class="position"></div>
+					<div v-if="getPieceAt(r,c)" :class="getPieceClasses(getPieceAt(r,c))">
+						{{ getPieceAt(r, c).name }}
+					</div>
+					<div v-if="isValidMove(r,c)" class="valid-move-indicator"></div>
 				</div>
 			</template>
 		</article>
@@ -138,13 +187,21 @@
 	<script src="../../lib/vue/3.5.18/vue.global.js"></script>
 	<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
 	<script src="../../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
+	<script src="game.js"></script>
 </div>
 <script>
-	const {createApp} = Vue;
+	const {createApp, reactive} = Vue;
 
 	const app = createApp({
 		data() {
-			return {};
+			return {
+				game: null,
+				validMoves: []
+			};
+		},
+		mounted() {
+			// 使用Vue的reactive来包装game对象，使其内部属性（如board）的变化能够被Vue检测到
+			this.game = reactive(new Game());
 		},
 		methods: {
 			cellClasses(r, c) {
@@ -165,6 +222,33 @@
 					}
 				}
 				return rt;
+			},
+			getPieceAt(r, c) {
+				return this.game?.getUnitAt(r, c);
+			},
+			getPieceClasses(piece) {
+				if (!piece) return [];
+				const classes = piece.cssClass;
+				if (this.game.selectedUnit && this.game.selectedUnit.id === piece.id) {
+					classes.push('selected');
+				}
+				return classes;
+			},
+			handleCellClick(r, c) {
+				if (!this.game) return;
+				// 将点击事件委托给当前玩家
+				this.game.currentPlayer.handleCellClick(r, c);
+
+				// 更新可移动位置的显示
+				if (this.game.selectedUnit) {
+					const moveSkill = this.game.selectedUnit.getSkill(Move);
+					this.validMoves = moveSkill ? moveSkill.getValidTargets() : [];
+				} else {
+					this.validMoves = [];
+				}
+			},
+			isValidMove(r, c) {
+				return this.validMoves.some(move => move[0] === r && move[1] === c);
 			}
 		}
 	});
