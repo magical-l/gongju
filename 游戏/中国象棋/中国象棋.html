@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title itemprop="name">中国象棋 | 工具兽 - 在线玩经典的棋类游戏</title>
 
-<link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
-<link href="../resources/el-plus.css" rel="stylesheet">
-<link href="../resources/common.css?v=250821" rel="stylesheet">
-<link href="../resources/layout.css?v=0821" rel="stylesheet">
-<link href="../resources/biz.css?v=250821" rel="stylesheet">
-<link href="../resources/花活.css?v=250821" rel="stylesheet">
+<link href="../../lib/element-plus/2.10.7/index.css" rel="stylesheet">
+<link href="../../resources/el-plus.css" rel="stylesheet">
+<link href="../../resources/common.css?v=250821" rel="stylesheet">
+<link href="../../resources/layout.css?v=0821" rel="stylesheet">
+<link href="../../resources/biz.css?v=250821" rel="stylesheet">
+<link href="../../resources/花活.css?v=250821" rel="stylesheet">
 <style>
 	.chess.board {
 		--min-cell-len: 60px;
@@ -24,124 +24,86 @@
 		position: relative;
 	}
 
-	.cell .texture {
+	.cell .texture.container {
+		position: relative;
 		width: 100%;
 		height: 100%;
-		display: grid;
-		grid-template-rows: 50% 50%;
-		grid-template-columns: 50% 50%;
 	}
 
 	.cell .texture.part {
-		position: relative;
-		border: 0 solid var(--line-color);
+		position: absolute;
+		width: 100%;
+		height: 100%;
 	}
 
-	/* 普通格子的线 */
 	.cell .texture.part.left {
-		border-right-width: 1px;
+		left: 0;
 	}
 
 	.cell .texture.part.right {
-		border-left-width: 1px;
+		left: 50%;
 	}
 
 	.cell .texture.part.top {
-		border-bottom-width: 1px;
+		top: 0;
 	}
 
 	.cell .texture.part.bottom {
-		border-top-width: 1px;
+		top: 50%;
 	}
 
-	/* 第一行、最后一行、河上下沿 */
-	.row-1 .texture.part.top, .row-10 .texture.part.bottom,
-	.row-5:not(.红九路):not(.红一路) .texture.part.bottom,
-	.row-6:not(.红九路):not(.红一路) .texture.part.top {
-		border-left-width: 0;
-		border-right-width: 0;
+	/* 普通格子的线 */
+	.cell .texture.part.left, .cell .texture.part.right {
+		width: 50%;
+		background: url('h-line.svg') center;
 	}
 
-	/* 最左列、最右列 */
-	.红九路 .texture.part.left, .红一路 .texture.part.right {
-		border-top-width: 0;
-		border-bottom-width: 0;
+	.cell .texture.part.top, .cell .texture.part.bottom {
+		height: 50%;
+		background: url('v-line.svg') center;
 	}
 
 	/* 炮位、兵卒位 */
-	.炮位 .texture.part::after, .兵卒位 .texture.part::after {
-		position: absolute;
-		width: 60%;
-		height: 60%;
-		border: 0 solid var(--line-color);
-		content: '';
+	.炮位.cell .texture.part.corner, .兵卒位:not(.红九路) .texture.part.corner, .兵卒位:not(.红一路) .texture.part.corner {
+		background: url('折线.svg');
 	}
 
-	.炮位 .texture.part.left::after, .兵卒位:not(.红九路) .texture.part.left::after {
-		left: 20%;
-		border-right-width: 1px;
+	.cell .texture.part.corner, /* 边角 */
+	.row-1.cell .texture.part.top, /* 第一行上部 */
+	.row-10.cell .texture.part.bottom, /* 最后一行下部 */
+	.row-5.cell:not(.红九路):not(.红一路) .texture.part.bottom, /* 河上沿中段下部 */
+	.row-6.cell:not(.红九路):not(.红一路) .texture.part.top, /* 河下沿中段上部 */
+	.红九路.cell .texture.part.left, /* 最左列左部 */
+	.红一路.cell .texture.part.right /* 最右列右部 */ {
+		background: none;
 	}
 
-	.炮位 .texture.part.right::after, .兵卒位:not(.红一路) .texture.part.right::after {
-		left: 20%;
-		border-left-width: 1px;
+	.炮位.cell .texture.part.right.top, .兵卒位.cell .texture.part.right.top {
+		rotate: 90deg;
 	}
 
-	.炮位 .texture.part.top::after, .兵卒位 .texture.part.top::after {
-		top: 20%;
-		border-bottom-width: 1px;
+	.炮位.cell .texture.part.right.bottom, .兵卒位.cell .texture.part.right.bottom {
+		rotate: 180deg;
 	}
 
-	.炮位 .texture.part.bottom::after, .兵卒位 .texture.part.bottom::after {
-		top: 20%;
-		border-top-width: 1px;
+	.炮位.cell .texture.part.left.bottom, .兵卒位.cell .texture.part.left.bottom {
+		rotate: 270deg;
 	}
 
-	.红九路.兵卒位 .texture.part.left.top::after, .红九路.兵卒位 .texture.part.left.bottom::after,
-	.红一路.兵卒位 .texture.part.right.top::after, .红一路.兵卒位 .texture.part.right.bottom::after {
-		border: 0;
+	/* 九宫 左上-右下斜线 */
+	.row-1.红六路.cell .texture.part.right.bottom, .row-3.红四路.cell .texture.part.left.top,
+	.row-2.红五路.cell .texture.part.left.top, .row-2.红五路.cell .texture.part.right.bottom,
+	.row-8.红六路.cell .texture.part.right.bottom, .row-10.红四路.cell .texture.part.left.top,
+	.row-9.红五路.cell .texture.part.left.top, .row-9.红五路.cell .texture.part.right.bottom {
+		background: url('left-top-to-right-bottom.svg');
 	}
 
-	.row-1.红六路 .texture.part.right.bottom::after, .row-3.红四路 .texture.part.left.top::after,
-	.row-2.红五路 .texture.part.left.top::after, .row-2.红五路 .texture.part.right.bottom::after,
-	.row-8.红六路 .texture.part.right.bottom::after, .row-10.红四路 .texture.part.left.top::after,
-	.row-9.红五路 .texture.part.left.top::after, .row-9.红五路 .texture.part.right.bottom::after {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: calc(var(--sqrt2) * var(--min-cell-len) / 2);
-		height: 1px;
-		background-color: var(--line-color);
-		transform: rotate(45deg);
-		transform-origin: top left;
-		content: '';
-	}
-
-	.row-1.红四路 .texture.part.left.bottom::after, .row-3.红六路 .texture.part.right.top::after,
-	.row-2.红五路 .texture.part.right.top::after, .row-2.红五路 .texture.part.left.bottom::after,
-	.row-8.红四路 .texture.part.left.bottom::after, .row-10.红六路 .texture.part.right.top::after,
-	.row-9.红五路 .texture.part.right.top::after, .row-9.红五路 .texture.part.left.bottom::after {
-		position: absolute;
-		/*top: 0;*/
-		/*right: 0;*/
-		/*width: calc(var(--sqrt2) * var(--cell-len) / 2);*/
-		width:100%;
-		height: 100%;
-		/*background-color: var(--line-color);*/
-		/*transform: rotate(-45deg);*/
-		/*transform-origin: top right;*/
-		background:
-				linear-gradient(to bottom right,
-				transparent calc(50% - 0.5px),
-				#333 calc(50% - 0.5px),
-				#333 calc(50% + 0.5px),
-				transparent calc(50% + 0.5px)),
-				linear-gradient(to bottom left,
-				transparent calc(50% - 0.5px),
-				#333 calc(50% - 0.5px),
-				#333 calc(50% + 0.5px),
-				transparent calc(50% + 0.5px));
-		content: '';
+	/* 九宫 右上-左下斜线 */
+	.row-1.红四路.cell .texture.part.left.bottom, .row-3.红六路.cell .texture.part.right.top,
+	.row-2.红五路.cell .texture.part.right.top, .row-2.红五路.cell .texture.part.left.bottom,
+	.row-8.红四路.cell .texture.part.left.bottom, .row-10.红六路.cell .texture.part.right.top,
+	.row-9.红五路.cell .texture.part.right.top, .row-9.红五路.cell .texture.part.left.bottom {
+		background: url('left-bottom-to-right-top.svg');
 	}
 </style>
 </head>
@@ -151,11 +113,15 @@
 		<article class="chess board , grid">
 			<template v-for="r in 10">
 				<div class="cell" v-for="c in 9" :class="cellClasses(r,c)">
-					<div class="texture">
-						<div class="texture part left top"></div>
-						<div class="texture part right top"></div>
-						<div class="texture part left bottom"></div>
-						<div class="texture part right bottom"></div>
+					<div class="texture container">
+						<div class="texture part vertical top"></div>
+						<div class="texture part horizon right"></div>
+						<div class="texture part vertical bottom"></div>
+						<div class="texture part horizon left"></div>
+						<div class="texture part left top corner"></div>
+						<div class="texture part right top corner"></div>
+						<div class="texture part right bottom corner"></div>
+						<div class="texture part left bottom corner"></div>
 					</div>
 					<div class="position"></div>
 				</div>
@@ -165,13 +131,13 @@
 </main>
 
 <div class="js container">
-	<script src="../resources/math.js"></script>
-	<script src="../lib/jquery-3.4.1.min.js"></script>
-	<script src="../lib/toastr.min.js"></script>
-	<script src="../resources/util.js"></script>
-	<script src="../lib/vue/3.5.18/vue.global.js"></script>
-	<script src="../lib/element-plus/2.10.7/index.full.js"></script>
-	<script src="../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
+	<script src="../../resources/math.js"></script>
+	<script src="../../lib/jquery-3.4.1.min.js"></script>
+	<script src="../../lib/toastr.min.js"></script>
+	<script src="../../resources/util.js"></script>
+	<script src="../../lib/vue/3.5.18/vue.global.js"></script>
+	<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
+	<script src="../../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
 </div>
 <script>
 	const {createApp} = Vue;
