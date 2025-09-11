@@ -236,8 +236,8 @@
 			},
 			handleCellClick(r, c) {
 				if (!this.game || this.game.isGameOver) return;
-				// 将点击事件委托给当前回合的玩家
-				this.game.currentTurn.currentPlayer.handleCellClick(r, c);
+				// 点击事件总是委托给游戏当前的活跃玩家
+				this.game.currentPlayer.handleCellClick(r, c);
 
 				// 更新可移动位置的显示
 				if (this.game.selectedUnit) {

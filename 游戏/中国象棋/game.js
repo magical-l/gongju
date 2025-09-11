@@ -7,12 +7,29 @@
 
 // #region ############# 核心类：回合、玩家、游戏 #############
 
-// 回合类
-class Turn {
-	constructor(number, player) {
+// 回合 (Round) 类
+class Round {
+	constructor(number, game) {
 		this.number = number;
-		this.currentPlayer = player;
+		this.game = game;
 		this.moves = []; // 记录本回合发生的所有移动
+		this.activePlayer = game.players[0]; // 红方 (player 1) 总是先开始一个回合
+	}
+
+	/**
+	 * 在一步棋走完后，推进回合状态
+	 * @returns {boolean} - true: 回合结束, false: 回合继续（轮到对方走）
+	 */
+	advance() {
+		if (this.activePlayer.id === 1) {
+			// 红方走完了，轮到黑方
+			this.activePlayer = this.game.players[1];
+			return false;
+		} else {
+			// 黑方走完了，回合结束
+			this.activePlayer = null;
+			return true;
+		}
 	}
 }
 
@@ -63,13 +80,17 @@ class Game {
 		this.players = [new Player(1, this), new Player(2, this)];
 		this.board = this.createBoard();
 		this.ruleEngine = new RuleEngine(this);
-		this.turns = [];
-		this.currentTurn = null;
+		this.rounds = [];
+		this.currentRound = null;
 		this.selectedUnit = null;
 		this.isGameOver = false;
 
 		this.initUnits();
-		this.startNewTurn();
+		this.startNewRound();
+	}
+
+	get currentPlayer() {
+		return this.currentRound ? this.currentRound.activePlayer : null;
 	}
 
 	createBoard() {
@@ -145,25 +166,25 @@ class Game {
 		this.board[oldR - 1][oldC - 1] = null;
 		unit.moveTo(r, c);
 		this.board[r - 1][c - 1] = unit;
-		this.currentTurn.moves.push({unit, from: [oldR, oldC], to: [r, c]});
+		this.currentRound.moves.push({unit, from: [oldR, oldC], to: [r, c]});
 
 		this.deselectUnit();
 
-		// 检查游戏是否结束
 		if (this.ruleEngine.isGameOver()) {
 			this.isGameOver = true;
-			console.log(`游戏结束! 玩家 ${this.currentTurn.currentPlayer.id} 胜利!`);
+			console.log(`游戏结束! 玩家 ${this.currentPlayer.id} 胜利!`);
 		} else {
-			this.startNewTurn();
+			const roundCompleted = this.currentRound.advance();
+			if (roundCompleted) {
+				this.startNewRound();
+			}
 		}
 	}
 
-	startNewTurn() {
-		const nextPlayerId = this.currentTurn ? (this.currentTurn.currentPlayer.id === 1 ? 2 : 1) : 1;
-		const nextPlayer = this.players.find(p => p.id === nextPlayerId);
-		const newTurnNumber = this.turns.length + 1;
-		this.currentTurn = new Turn(newTurnNumber, nextPlayer);
-		this.turns.push(this.currentTurn);
+	startNewRound() {
+		const newRoundNumber = this.rounds.length + 1;
+		this.currentRound = new Round(newRoundNumber, this);
+		this.rounds.push(this.currentRound);
 	}
 }
 
@@ -271,7 +292,7 @@ class LineOfSightRule extends Rule {
         }
 
         const screens = [];
-        const distance = Math.abs(r - startR) + Math.abs(c - startC);
+        const distance = Math.max(Math.abs(r - startR), Math.abs(c - startC));
         const stepR = (r - startR) / distance;
         const stepC = (c - startC) / distance;
 
@@ -304,9 +325,9 @@ class LineOfSightRule extends Rule {
 
 // 规则3: 不能吃掉己方棋子
 class FriendlyFireRule extends Rule {
-	evaluate({r, c}) {
+	evaluate({unit, r, c}) {
 		const targetUnit = this.game.getUnitAt(r, c);
-		if (targetUnit && targetUnit.player === this.game.currentTurn.currentPlayer) {
+		if (targetUnit && targetUnit.player === unit.player) {
 			return false;
 		}
 		return true;
