@@ -162,7 +162,7 @@
 	<article class="game-wrapper , 反叵字形 grid" v-cloak>
 		<article class="chess board , grid">
 			<template v-for="r in 10">
-				<div class="cell" v-for="c in 9" :class="cellClasses(r,c)" @click="handleCellClick(r, c)">
+				<div class="cell" v-for="c in 9" :class="cellClasses(r,c)" @click="clickCell(r, c)">
 					<div class="texture container">
 						<div class="texture part vertical top"></div>
 						<div class="texture part horizon right"></div>
@@ -199,74 +199,84 @@
 	const app = createApp({
 		data() {
 			return {
-				game: null, // 游戏逻辑核心
-				board: []  // 用于UI渲染的响应式棋盘数据
+				game: null, // 游戏逻辑核心，现在将成为响应式对象
+				updateCounter: 0, // 用于强制更新的虚拟计数器
 			};
+		},
+		computed: {
+			// 计算属性，用于简化模板中的访问
+			currentRound(){
+				return this.game?.currentRound;
+			},
+			currentAction() {
+				console.log("[调试] Vue.computed: currentAction 正在重新计算");
+				return this.currentRound?.currentPlayerAction;
+			},
+			selectedUnit() {
+				return this.currentAction?.selectedUnit;
+			},
+			validMoves() {
+				return this.currentAction?.validMoves || [];
+			}
 		},
 		mounted() {
 			const launcher = new GameLauncher();
-			this.game = launcher.launch();
-			this.board = this.game.board;
+			// 将整个game对象包裹在reactive中，使其所有属性都具有深度响应性
+			this.game = reactive(launcher.launch());
 
-			// 从当前游戏实例获取其专属的事件总线
-			const eventBus = this.game.eventBus;
+			// 确保onPlayerInput方法绑定到响应式实例，以便Vue可以追踪状态变化
+			this.game.eventBus.on('player:input', this.game.onPlayerInput.bind(this.game));
 
-			// 监听棋盘更新事件
-			eventBus.on('board:updated', newBoard => this.board = newBoard);
+			// 启动游戏循环
+			this.game.start();
 
-			// 监听游戏结束事件
-			eventBus.on('game:over', ({winner}) => {
+			// game.eventBus现在是game对象的一部分，所以可以直接访问
+			this.game.eventBus.on('game:over', ({winner}) => {
 				ElementPlus.ElMessage({
 					message: `游戏结束! 玩家 ${winner.id} 胜利!`,
 					type: 'success',
 					duration: 5000
 				});
 			});
+
+			// 监视游戏内部事件，并在发生时通过更改一个虚拟data属性来强制Vue刷新UI
+			// 这是因为游戏引擎的内部状态修改目前没有通过Vue的响应式系统进行
+			this.game.eventBus.on('unit:after-move', () => this.updateCounter++);
+			this.game.eventBus.on('unit:selected', () => this.updateCounter++);
+			this.game.eventBus.on('unit:deselected', () => this.updateCounter++);
 		},
 		methods: {
 			cellClasses(r, c) {
 				const rt = [`row-` + r, `红` + ChineseNum.digitsFromArabic(10 - c) + `路`, `黑${c}路`];
-				if ((r === 3 || r === 8) && (c === 2 || c === 8)) {
-					rt.push('炮位');
-				}
-				if ((r === 4 || r === 7) && c % 2 === 1) {
-					rt.push('兵卒位');
-				}
+				if ((r === 3 || r === 8) && (c === 2 || c === 8)) rt.push('炮位');
+				if ((r === 4 || r === 7) && c % 2 === 1) rt.push('兵卒位');
 				if ((r <= 3 || r >= 8) && (c >= 4 && c <= 6)) {
 					rt.push('九宫');
-					if ((r === 2 || r === 9) && c === 5) {
-						rt.push('窝心');
-					}
-					if ((r === 3 || r === 8) && (c === 4 || c === 6)) {
-						rt.push('士角');
-					}
+					if ((r === 2 || r === 9) && c === 5) rt.push('窝心');
+					if ((r === 3 || r === 8) && (c === 4 || c === 6)) rt.push('士角');
 				}
 				return rt;
 			},
 			getPieceAt(r, c) {
-				return this.board[r - 1]?.[c - 1] || null;
+				// game对象已是响应式，可以直接从game.board读取
+				return this.game?.board[r - 1]?.[c - 1] || null;
 			},
 			getPieceClasses(piece) {
-				if (!piece) {
-					return [];
-				}
+				if (!piece) return [];
 				const classes = [...piece.cssClass];
-				if (this.game.selectedUnit && this.game.selectedUnit.id === piece.id) {
+				// 使用计算属性 this.selectedUnit
+				if (this.selectedUnit && this.selectedUnit.id === piece.id) {
 					classes.push('selected');
 				}
 				return classes;
 			},
-			handleCellClick(r, c) {
-				if (!this.game || this.game.isGameOver) {
-					return;
-				}
-				this.game.currentRound.currentPlayerAction.player.action(r, c);
+			clickCell(r, c) {
+				if (!this.game || this.game.isGameOver || !this.currentAction) return;
+				this.currentAction.player.play(r, c);
 			},
 			isValidMove(r, c) {
-				if (!this.game || !this.game.validMoves) {
-					return false;
-				}
-				return this.game.validMoves.some(move => move[0] === r && move[1] === c);
+				// 使用计算属性 this.validMoves
+				return this.validMoves.some(move => move[0] === r && move[1] === c);
 			}
 		}
 	});

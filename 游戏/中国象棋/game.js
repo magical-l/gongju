@@ -79,7 +79,7 @@ class GameLauncher {
 		const config = {boardSetup: DEFAULT_BOARD_SETUP};
 		const eventBus = new EventBus();
 		const game = new Game(config, eventBus);
-		game.start(); // 启动游戏主循环，但由于是async，它不会阻塞后续代码
+
 		return game;
 	}
 }
@@ -92,24 +92,23 @@ class Game {
 		this.units = [];
 		this.rounds = [];
 		this.currentRound = null;
-		this.selectedUnit = null;
-		this.validMoves = [];
 		this.isGameOver = false;
 		this.initUnits(config.boardSetup);
 		this.registerGameRules();
-		this.eventBus.on('player:input', this.handlePlayerInput.bind(this));
+		this.winner = null;
 	}
 
 	async start() {
 		this.eventBus.emit('game:starting', {game: this});
-		// 异步主循环
 		while (!this.isGameOver) {
 			const round = this.newRound();
 			this.rounds.push(round);
 			this.currentRound = round;
-			await round.play(); // 等待回合结束
+			console.log(`[调试] Game.start: 开始等待 Round ${round.id}`);
+			await this.currentRound.start();
+			console.log(`[调试] Game.start: Round ${round.id} 已结束`);
 		}
-		this.eventBus.emit('game:over', {game: this});
+		this.eventBus.emit('game:over', {game: this, winner: this.winner});
 	}
 
 	newRound() {
@@ -117,35 +116,37 @@ class Game {
 		return new Round(roundId, this);
 	}
 
-	handlePlayerInput({r, c}) {
-		if (this.isGameOver || !this.currentRound.currentPlayerAction) {
+	onPlayerInput({r, c}) {
+		const currentAction = this.currentRound.currentPlayerAction;
+		if (this.isGameOver || !currentAction) {
 			return;
 		}
-		const unitAtPos = this.getUnitAt(r, c);
-		const currentPlayer = this.currentRound.currentPlayerAction.player;
 
-		if (!this.selectedUnit) {
+		const unitAtPos = this.getUnitAt(r, c);
+		const currentPlayer = currentAction.player;
+
+		if (!currentAction.selectedUnit) {
 			if (unitAtPos && unitAtPos.player === currentPlayer) {
-				this.selectedUnit = unitAtPos;
-				this.eventBus.emit('unit:selected', {game: this, unit: this.selectedUnit});
+				currentAction.selectedUnit = unitAtPos;
+				this.eventBus.emit('unit:selected', {game: this, action: currentAction});
 			}
 		} else {
 			if (unitAtPos && unitAtPos.player === currentPlayer) {
-				this.selectedUnit = unitAtPos;
-				this.eventBus.emit('unit:selected', {game: this, unit: this.selectedUnit});
+				currentAction.selectedUnit = unitAtPos;
+				this.eventBus.emit('unit:selected', {game: this, action: currentAction});
 				return;
 			}
-			const isMoveValid = this.validMoves.some(move => move[0] === r && move[1] === c);
+			const isMoveValid = currentAction.validMoves.some(move => move[0] === r && move[1] === c);
 			if (!isMoveValid) {
-				this.selectedUnit = null;
-				this.validMoves = [];
-				this.eventBus.emit('unit:deselected', {game: this});
+				currentAction.selectedUnit = null;
+				currentAction.validMoves = [];
+				this.eventBus.emit('unit:deselected', {game: this, action: currentAction});
 				return;
 			}
 
-			const from = {r: this.selectedUnit.r, c: this.selectedUnit.c};
+			const from = {r: currentAction.selectedUnit.r, c: currentAction.selectedUnit.c};
 			const targetUnit = this.getUnitAt(r, c);
-			const movedUnit = this.selectedUnit;
+			const movedUnit = currentAction.selectedUnit;
 
 			const newBoard = this.board.map(row => [...row]);
 			movedUnit.moveTo(r, c);
@@ -207,33 +208,21 @@ class Round {
 		this.currentPlayerAction = null;
 	}
 
-	play() {
-		return new Promise(resolve => {
-			const onPlayerActionEnded = context => {
-				if (context.action !== this.currentPlayerAction) {
-					return;
-				}
-				if (this.playerActions.length === 1) {
-					this.nextPlayerAction(this.game.players[1]);
-				} else {
-					this.game.eventBus.off('player-action:ended', onPlayerActionEnded);
-					this.game.eventBus.emit('round:ended', {game: this.game, round: this});
-					resolve(); // 解决Promise，让Game.start的循环继续
-				}
-			};
-			this.game.eventBus.on('player-action:ended', onPlayerActionEnded);
-			this.start();
-		});
-	}
-
-	start() {
-		this.nextPlayerAction(this.game.players[0]);
-	}
-
-	nextPlayerAction(player) {
-		this.currentPlayerAction = new PlayerAction(player, this.game);
-		this.playerActions.push(this.currentPlayerAction);
-		this.currentPlayerAction.start();
+	async start() {
+		this.game.eventBus.emit('round:starting', {game: this.game, round: this});
+		for (const player of this.game.players) {
+			console.log(`[调试] Round.start: 轮到玩家 ${player.id} 行动`);
+			if (this.game.isGameOver) {
+				break;
+			}
+			const playerAction = new PlayerAction(player, this.game);
+			this.playerActions.push(playerAction);
+			this.currentPlayerAction = playerAction;
+			console.log(`[调试] Round.start: currentAction 已更新为玩家 ${this.currentPlayerAction.player.id} 的行动`);
+			await playerAction.execute();
+			console.log(`[调试] Round.start: 玩家 ${player.id} 的行动已结束`);
+		}
+		this.game.eventBus.emit('round:ended', {game: this.game, round: this});
 	}
 }
 
@@ -241,14 +230,27 @@ class PlayerAction {
 	constructor(player, game) {
 		this.player = player;
 		this.game = game;
+		this.selectedUnit = null;
+		this.validMoves = [];
 	}
 
-	start() {
+	execute() {
+		return new Promise(resolve => {
+			console.log(`[调试] PlayerAction.execute: 开始等待玩家 ${this.player.id} 的移动...`);
+			this.game.eventBus.emit('player-action:starting', {game: this.game, action: this});
+			const onMoveMade = () => {
+				console.log(`[调试] PlayerAction.execute: 'unit:after-move' 事件被捕获，玩家 ${this.player.id} 的行动即将结束`);
+				this.game.eventBus.off('unit:after-move', onMoveMade);
+				this.end();
+				resolve();
+			};
+			this.game.eventBus.on('unit:after-move', onMoveMade);
+		});
 	}
 
 	end() {
-		this.game.selectedUnit = null;
-		this.game.validMoves = [];
+		this.selectedUnit = null;
+		this.validMoves = [];
 		this.game.eventBus.emit('player-action:ended', {game: this.game, action: this});
 	}
 }
@@ -259,8 +261,10 @@ class Player {
 		this.game = game;
 	}
 
-	action(r, c) {
-		if (this.game.currentRound && this.game.currentRound.currentPlayerAction.player === this) {
+	play(r, c) {
+		const expectedPlayer = this.game.currentRound.currentPlayerAction.player;
+		console.log(`[调试] Player.play: play()方法被玩家 ${this.id} 调用。游戏期望的玩家是 ${expectedPlayer.id}`);
+		if (expectedPlayer === this) {
 			this.game.eventBus.emit('player:input', {r, c});
 		} else {
 			console.warn(`非玩家 ${this.id} 的行动时间，操作无效。`);
@@ -278,10 +282,10 @@ class MoveRule {
 	constructor(game) {
 		this.game = game;
 		this.game.eventBus.on('unit:selected', this.onUnitSelected.bind(this));
-		this.game.eventBus.on('unit:after-move', this.onAfterMove.bind(this));
 	}
 
-	onUnitSelected({game, unit}) {
+	onUnitSelected({game, action}) {
+		const unit = action.selectedUnit;
 		let potentialMoves = [];
 		const moveSkill = unit.getSkill(Move);
 		if (moveSkill) {
@@ -289,14 +293,8 @@ class MoveRule {
 		}
 		const context = {game, unit, potentialMoves};
 		this.game.eventBus.emit('moveset:filter', context);
-		game.validMoves = context.potentialMoves;
-		this.game.eventBus.emit('moveset:finalized', {game, unit, validMoves: game.validMoves});
-	}
-
-	onAfterMove({game}) {
-		if (game.currentRound && game.currentRound.currentPlayerAction) {
-			game.currentRound.currentPlayerAction.end();
-		}
+		action.validMoves = context.potentialMoves;
+		this.game.eventBus.emit('moveset:finalized', {game, action: action});
 	}
 }
 
@@ -323,8 +321,7 @@ class GameOverRule {
 	onUnitCaptured({game, captured}) {
 		if (captured instanceof Jiang) {
 			game.isGameOver = true;
-			const winner = captured.player.id === 1 ? game.players[1] : game.players[0];
-			this.game.eventBus.emit('game:over', {game, winner});
+			game.winner = game.currentRound.currentPlayerAction.player;// captured.player.id === 1 ? game.players[1] : game.players[0];
 		}
 	}
 }
@@ -558,7 +555,7 @@ class BingMove extends Move {
 	getPotentialMoves() {
 		const {r, c, player} = this.unit;
 		const f = player.id === 1 ? -1 : 1;
-		const river = player.id === 1 && r <= 5 || player.id === 2 && r >= 6;
+		const river = (player.id === 1 && r <= 5) || (player.id === 2 && r >= 6);
 		const m = [[r + f, c]];
 		if (river) {
 			m.push([r, c - 1], [r, c + 1]);
