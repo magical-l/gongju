@@ -199,22 +199,24 @@
 	const app = createApp({
 		data() {
 			return {
-				game: null, // 游戏逻辑核心，非响应式
-				board: [],  // 专门用于UI渲染的响应式棋盘数据
+				game: null, // 游戏逻辑核心
+				board: [],  // 用于UI渲染的响应式棋盘数据
 			};
 		},
 		mounted() {
 			const launcher = new GameLauncher();
 			this.game = launcher.launch();
-			// 初始化UI棋盘
 			this.board = this.game.board;
 
-			// 监听来自游戏核心的棋盘更新事件
+            // 从当前游戏实例获取其专属的事件总线
+            const eventBus = this.game.eventBus;
+
+			// 监听棋盘更新事件
 			eventBus.on('board:updated', (newBoard) => {
 				this.board = newBoard;
 			});
 
-			// 监听游戏结束事件，显示结果
+			// 监听游戏结束事件
 			eventBus.on('game:over', ({ winner }) => {
 				ElementPlus.ElMessage({
 					message: `游戏结束! 玩家 ${winner.id} 胜利!`,
@@ -236,7 +238,6 @@
 				return rt;
 			},
 			getPieceAt(r, c) {
-				// 直接从组件自身的、响应式的board数据中读取
 				return this.board[r - 1]?.[c - 1] || null;
 			},
 			getPieceClasses(piece) {

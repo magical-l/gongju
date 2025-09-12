@@ -12,9 +12,12 @@ class EventBus {
         this.listeners[event].push(callback);
     }
     off(event, callback) {
-        if (this.listeners[event]) { this.listeners[event] = this.listeners[event].filter(cb => cb !== callback); }
+        if (this.listeners[event]) {
+            this.listeners[event] = this.listeners[event].filter(cb => cb !== callback);
+        }
     }
     emit(event, data) {
+        console.log(`[事件]: ${event}`, data);
         if (this.listeners[event]) {
             this.listeners[event].slice().forEach(callback => {
                 try { callback(data); } catch (e) { console.error(`事件 ${event} 的监听器执行出错:`, e); }
@@ -22,7 +25,6 @@ class EventBus {
         }
     }
 }
-const eventBus = new EventBus();
 
 /**
  * =================================================================================
@@ -66,14 +68,16 @@ const DEFAULT_BOARD_SETUP = [
 class GameLauncher {
     launch() {
         const config = { boardSetup: DEFAULT_BOARD_SETUP };
-        const game = new Game(config);
+        const eventBus = new EventBus();
+        const game = new Game(config, eventBus);
         game.start();
         return game;
     }
 }
 
 class Game {
-    constructor(config) {
+    constructor(config, eventBus) {
+        this.eventBus = eventBus;
         this.players = [new Player(1, this), new Player(2, this)];
         this.board = this.createBoard();
         this.units = [];
@@ -84,12 +88,12 @@ class Game {
         this.isGameOver = false;
         this.initUnits(config.boardSetup);
         this.registerGameRules();
-        eventBus.on('player:input', this.handlePlayerInput.bind(this));
-        eventBus.on('round:ended', this.nextRound.bind(this));
+        this.eventBus.on('player:input', this.handlePlayerInput.bind(this));
+        this.eventBus.on('round:ended', this.nextRound.bind(this));
     }
 
     start() {
-        eventBus.emit('game:starting', { game: this });
+        this.eventBus.emit('game:starting', { game: this });
         this.nextRound();
     }
 
@@ -109,19 +113,19 @@ class Game {
         if (!this.selectedUnit) {
             if (unitAtPos && unitAtPos.player === currentPlayer) {
                 this.selectedUnit = unitAtPos;
-                eventBus.emit('unit:selected', { game: this, unit: this.selectedUnit });
+                this.eventBus.emit('unit:selected', { game: this, unit: this.selectedUnit });
             }
         } else {
             if (unitAtPos && unitAtPos.player === currentPlayer) {
                 this.selectedUnit = unitAtPos;
-                eventBus.emit('unit:selected', { game: this, unit: this.selectedUnit });
+                this.eventBus.emit('unit:selected', { game: this, unit: this.selectedUnit });
                 return;
             }
             const isMoveValid = this.validMoves.some(move => move[0] === r && move[1] === c);
             if (!isMoveValid) {
                 this.selectedUnit = null;
                 this.validMoves = [];
-                eventBus.emit('unit:deselected', { game: this });
+                this.eventBus.emit('unit:deselected', { game: this });
                 return;
             }
 
@@ -129,18 +133,14 @@ class Game {
             const targetUnit = this.getUnitAt(r, c);
             const movedUnit = this.selectedUnit;
 
-            // 更新棋盘状态
             const newBoard = this.board.map(row => [...row]);
             movedUnit.moveTo(r, c);
             newBoard[from.r - 1][from.c - 1] = null;
             newBoard[r - 1][c - 1] = movedUnit;
             this.board = newBoard;
 
-            // 发出棋盘更新事件，通知UI
-            eventBus.emit('board:updated', this.board);
-
-            // 发出移动后事件，以触发吃子等逻辑
-            eventBus.emit('unit:after-move', { game: this, unit: movedUnit, captured: targetUnit });
+            this.eventBus.emit('board:updated', this.board);
+            this.eventBus.emit('unit:after-move', { game: this, unit: movedUnit, captured: targetUnit });
         }
     }
 
@@ -172,20 +172,20 @@ class Game {
     }
 
     registerGameRules() {
-        new MoveRule();
-        new CaptureRule();
-        new GameOverRule();
+        new MoveRule(this);
+        new CaptureRule(this);
+        new GameOverRule(this);
+        registerFilterRules(this);
     }
 }
 
-// 回合类 (管理一红一黑两个行动)
 class Round {
     constructor(number, game) {
         this.number = number;
         this.game = game;
         this.playerActions = [];
         this.currentPlayerAction = null;
-        eventBus.on('player-action:ended', this.onPlayerActionEnded.bind(this));
+        this.game.eventBus.on('player-action:ended', this.onPlayerActionEnded.bind(this));
     }
 
     start() {
@@ -208,12 +208,11 @@ class Round {
     }
 
     end() {
-        eventBus.off('player-action:ended', this.onPlayerActionEnded.bind(this));
-        eventBus.emit('round:ended', { game: this.game, round: this });
+        this.game.eventBus.off('player-action:ended', this.onPlayerActionEnded.bind(this));
+        this.game.eventBus.emit('round:ended', { game: this.game, round: this });
     }
 }
 
-// 玩家行动类 (原Ply)
 class PlayerAction {
     constructor(player, game) {
         this.player = player;
@@ -223,7 +222,7 @@ class PlayerAction {
     end() {
         this.game.selectedUnit = null;
         this.game.validMoves = [];
-        eventBus.emit('player-action:ended', { game: this.game, action: this });
+        this.game.eventBus.emit('player-action:ended', { game: this.game, action: this });
     }
 }
 
@@ -234,7 +233,7 @@ class Player {
     }
     action(r, c) {
         if (this.game.currentRound && this.game.currentRound.currentPlayerAction.player === this) {
-            eventBus.emit('player:input', { r, c });
+            this.game.eventBus.emit('player:input', { r, c });
         } else {
             console.warn(`非玩家 ${this.id} 的行动时间，操作无效。`);
         }
@@ -248,18 +247,19 @@ class Player {
  */
 
 class MoveRule {
-    constructor() {
-        eventBus.on('unit:selected', this.onUnitSelected.bind(this));
-        eventBus.on('unit:after-move', this.onAfterMove.bind(this));
+    constructor(game) {
+        this.game = game;
+        this.game.eventBus.on('unit:selected', this.onUnitSelected.bind(this));
+        this.game.eventBus.on('unit:after-move', this.onAfterMove.bind(this));
     }
     onUnitSelected({ game, unit }) {
         let potentialMoves = [];
         const moveSkill = unit.getSkill(Move);
         if (moveSkill) potentialMoves = moveSkill.getPotentialMoves();
         const context = { game, unit, potentialMoves };
-        eventBus.emit('moveset:filter', context);
+        this.game.eventBus.emit('moveset:filter', context);
         game.validMoves = context.potentialMoves;
-        eventBus.emit('moveset:finalized', { game, unit, validMoves: game.validMoves });
+        this.game.eventBus.emit('moveset:finalized', { game, unit, validMoves: game.validMoves });
     }
     onAfterMove({ game }) {
         if (game.currentRound && game.currentRound.currentPlayerAction) {
@@ -269,123 +269,127 @@ class MoveRule {
 }
 
 class CaptureRule {
-    constructor() {
-        eventBus.on('unit:after-move', this.onAfterMove.bind(this));
+    constructor(game) {
+        this.game = game;
+        this.game.eventBus.on('unit:after-move', this.onAfterMove.bind(this));
     }
     onAfterMove({ game, captured }) {
         if (captured) {
             game.removeUnitFromList(captured);
-            eventBus.emit('unit:captured', { game, captured });
+            this.game.eventBus.emit('unit:captured', { game, captured });
         }
     }
 }
 
 class GameOverRule {
-    constructor() {
-        eventBus.on('unit:captured', this.onUnitCaptured.bind(this));
+    constructor(game) {
+        this.game = game;
+        this.game.eventBus.on('unit:captured', this.onUnitCaptured.bind(this));
     }
     onUnitCaptured({ game, captured }) {
         if (captured instanceof Jiang) {
             game.isGameOver = true;
             const winner = captured.player.id === 1 ? game.players[1] : game.players[0];
-            eventBus.emit('game:over', { game, winner });
+            this.game.eventBus.emit('game:over', { game, winner });
         }
     }
 }
 
-// --- 注册具体过滤规则 ---
-eventBus.on('moveset:filter', (context) => {
-    const { game, unit, potentialMoves } = context;
-    context.potentialMoves = potentialMoves.filter(([r, c]) => {
-        const targetUnit = game.getUnitAt(r, c);
-        return !targetUnit || targetUnit.player !== unit.player;
+function registerFilterRules(game) {
+    const eventBus = game.eventBus;
+    eventBus.on('moveset:filter', (context) => {
+        const { game, unit, potentialMoves } = context;
+        context.potentialMoves = potentialMoves.filter(([r, c]) => {
+            const targetUnit = game.getUnitAt(r, c);
+            return !targetUnit || targetUnit.player !== unit.player;
+        });
     });
-});
-eventBus.on('moveset:filter', (context) => {
-    const { game, unit, potentialMoves } = context;
-    if (!(unit instanceof Ma)) return;
-    context.potentialMoves = potentialMoves.filter(([r, c]) => {
-        const dr = r - unit.r, dc = c - unit.c;
-        let legR, legC;
-        if (Math.abs(dr) === 2 && Math.abs(dc) === 1) {
-            legR = unit.r + dr / 2; legC = unit.c;
-        } else if (Math.abs(dr) === 1 && Math.abs(dc) === 2) {
-            legR = unit.r; legC = unit.c + dc / 2;
-        } else { return true; }
-        return !game.getUnitAt(legR, legC);
+    eventBus.on('moveset:filter', (context) => {
+        const { game, unit, potentialMoves } = context;
+        if (!(unit instanceof Ma)) return;
+        context.potentialMoves = potentialMoves.filter(([r, c]) => {
+            const dr = r - unit.r, dc = c - unit.c;
+            let legR, legC;
+            if (Math.abs(dr) === 2 && Math.abs(dc) === 1) {
+                legR = unit.r + dr / 2; legC = unit.c;
+            } else if (Math.abs(dr) === 1 && Math.abs(dc) === 2) {
+                legR = unit.r; legC = unit.c + dc / 2;
+            } else { return true; }
+            return !game.getUnitAt(legR, legC);
+        });
     });
-});
-eventBus.on('moveset:filter', (context) => {
-    const { game, unit, potentialMoves } = context;
-    if (!(unit instanceof Xiang)) return;
-    context.potentialMoves = potentialMoves.filter(([r, c]) => {
-        const eyeR = (unit.r + r) / 2, eyeC = (unit.c + c) / 2;
-        return !game.getUnitAt(eyeR, eyeC);
+    eventBus.on('moveset:filter', (context) => {
+        const { game, unit, potentialMoves } = context;
+        if (!(unit instanceof Xiang)) return;
+        context.potentialMoves = potentialMoves.filter(([r, c]) => {
+            const eyeR = (unit.r + r) / 2, eyeC = (unit.c + c) / 2;
+            return !game.getUnitAt(eyeR, eyeC);
+        });
     });
-});
-eventBus.on('moveset:filter', (context) => {
-    const { unit, potentialMoves } = context;
-    if (unit instanceof Jiang || unit instanceof Shi) {
-        const palace = unit.player.id === 1 ? { minR: 8, maxR: 10, minC: 4, maxC: 6 } : { minR: 1, maxR: 3, minC: 4, maxC: 6 };
-        context.potentialMoves = potentialMoves.filter(([r, c]) => r >= palace.minR && r <= palace.maxR && c >= palace.minC && c <= palace.maxC);
-    }
-    if (unit instanceof Xiang) {
-        context.potentialMoves = potentialMoves.filter(([r, c]) => !((unit.player.id === 1 && r < 6) || (unit.player.id === 2 && r > 5)));
-    }
-});
-eventBus.on('moveset:filter', (context) => {
-    const { game, unit, potentialMoves } = context;
-    if (!(unit instanceof Pao)) return;
-    context.potentialMoves = potentialMoves.filter(([r, c]) => {
-        const { r: startR, c: startC } = unit, screens = [];
-        const distance = Math.max(Math.abs(r - startR), Math.abs(c - startC));
-        const stepR = distance === 0 ? 0 : (r - startR) / distance, stepC = distance === 0 ? 0 : (c - startC) / distance;
-        for (let i = 1; i < distance; i++) {
-            if (game.getUnitAt(startR + i * stepR, startC + i * stepC)) screens.push(1);
+    eventBus.on('moveset:filter', (context) => {
+        const { unit, potentialMoves } = context;
+        if (unit instanceof Jiang || unit instanceof Shi) {
+            const palace = unit.player.id === 1 ? { minR: 8, maxR: 10, minC: 4, maxC: 6 } : { minR: 1, maxR: 3, minC: 4, maxC: 6 };
+            context.potentialMoves = potentialMoves.filter(([r, c]) => r >= palace.minR && r <= palace.maxR && c >= palace.minC && c <= palace.maxC);
         }
-        const targetUnit = game.getUnitAt(r, c);
-        return targetUnit ? screens.length === 1 : screens.length === 0;
-    });
-});
-eventBus.on('moveset:filter', (context) => {
-    const { game, unit, potentialMoves } = context;
-    if (!(unit instanceof Che)) return;
-    context.potentialMoves = potentialMoves.filter(([r, c]) => {
-        const { r: startR, c: startC } = unit;
-        const distance = Math.max(Math.abs(r - startR), Math.abs(c - startC));
-        const stepR = distance === 0 ? 0 : (r - startR) / distance, stepC = distance === 0 ? 0 : (c - startC) / distance;
-        for (let i = 1; i < distance; i++) {
-            if (game.getUnitAt(startR + i * stepR, startC + i * stepC)) return false;
+        if (unit instanceof Xiang) {
+            context.potentialMoves = potentialMoves.filter(([r, c]) => !((unit.player.id === 1 && r < 6) || (unit.player.id === 2 && r > 5)));
         }
-        return true;
     });
-});
-eventBus.on('moveset:filter', (context) => {
-    const { game, unit, potentialMoves } = context;
-    context.potentialMoves = potentialMoves.filter(([r, c]) => {
-        const tempBoard = game.board.map(row => [...row]);
-        const getUnitAtOnTemp = (tr, tc) => tempBoard[tr - 1]?.[tc - 1] || null;
-        tempBoard[unit.r - 1][unit.c - 1] = null;
-        tempBoard[r - 1][c - 1] = unit;
-        const generals = [];
-        for (let i = 0; i < 10; i++) {
-            for (let j = 0; j < 9; j++) {
-                const p = tempBoard[i][j];
-                if (p && p instanceof Jiang) generals.push(p);
+    eventBus.on('moveset:filter', (context) => {
+        const { game, unit, potentialMoves } = context;
+        if (!(unit instanceof Pao)) return;
+        context.potentialMoves = potentialMoves.filter(([r, c]) => {
+            const { r: startR, c: startC } = unit, screens = [];
+            const distance = Math.max(Math.abs(r - startR), Math.abs(c - startC));
+            const stepR = distance === 0 ? 0 : (r - startR) / distance, stepC = distance === 0 ? 0 : (c - startC) / distance;
+            for (let i = 1; i < distance; i++) {
+                if (game.getUnitAt(startR + i * stepR, startC + i * stepC)) screens.push(1);
             }
-        }
-        let isFlyingGeneral = false;
-        if (generals.length === 2 && generals[0].c === generals[1].c) {
-            const [g1, g2] = generals, col = g1.c, minR = Math.min(g1.r, g2.r), maxR = Math.max(g1.r, g2.r);
-            let hasScreen = false;
-            for (let i = minR + 1; i < maxR; i++) {
-                if (getUnitAtOnTemp(i, col)) { hasScreen = true; break; }
-            }
-            if (!hasScreen) isFlyingGeneral = true;
-        }
-        return !isFlyingGeneral;
+            const targetUnit = game.getUnitAt(r, c);
+            return targetUnit ? screens.length === 1 : screens.length === 0;
+        });
     });
-});
+    eventBus.on('moveset:filter', (context) => {
+        const { game, unit, potentialMoves } = context;
+        if (!(unit instanceof Che)) return;
+        context.potentialMoves = potentialMoves.filter(([r, c]) => {
+            const { r: startR, c: startC } = unit;
+            const distance = Math.max(Math.abs(r - startR), Math.abs(c - startC));
+            const stepR = distance === 0 ? 0 : (r - startR) / distance, stepC = distance === 0 ? 0 : (c - startC) / distance;
+            for (let i = 1; i < distance; i++) {
+                if (game.getUnitAt(startR + i * stepR, startC + i * stepC)) return false;
+            }
+            return true;
+        });
+    });
+    eventBus.on('moveset:filter', (context) => {
+        const { game, unit, potentialMoves } = context;
+        context.potentialMoves = potentialMoves.filter(([r, c]) => {
+            const tempBoard = game.board.map(row => [...row]);
+            const getUnitAtOnTemp = (tr, tc) => tempBoard[tr - 1]?.[tc - 1] || null;
+            tempBoard[unit.r - 1][unit.c - 1] = null;
+            tempBoard[r - 1][c - 1] = unit;
+            const generals = [];
+            for (let i = 0; i < 10; i++) {
+                for (let j = 0; j < 9; j++) {
+                    const p = tempBoard[i][j];
+                    if (p && p instanceof Jiang) generals.push(p);
+                }
+            }
+            let isFlyingGeneral = false;
+            if (generals.length === 2 && generals[0].c === generals[1].c) {
+                const [g1, g2] = generals, col = g1.c, minR = Math.min(g1.r, g2.r), maxR = Math.max(g1.r, g2.r);
+                let hasScreen = false;
+                for (let i = minR + 1; i < maxR; i++) {
+                    if (getUnitAtOnTemp(i, col)) { hasScreen = true; break; }
+                }
+                if (!hasScreen) isFlyingGeneral = true;
+            }
+            return !isFlyingGeneral;
+        });
+    });
+}
 
 /**
  * =================================================================================
