@@ -205,12 +205,12 @@
 		},
 		computed: {
 			// 计算属性，用于简化模板中的访问
-			currentRound(){
-				return this.game?.currentRound;
+			curRound(){
+				return this.game?.curRound;
 			},
 			currentAction() {
 				console.log("[调试] Vue.computed: currentAction 正在重新计算");
-				return this.currentRound?.currentPlayerAction;
+				return this.currentRound?.curPlayerAction;
 			},
 			selectedUnit() {
 				return this.currentAction?.selectedUnit;

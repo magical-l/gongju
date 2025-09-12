@@ -1,32 +1,27 @@
-/**
- * =================================================================================
- * 新架构核心：事件总线 (Event Bus)
- * =================================================================================
- */
 class EventBus {
 	constructor() {
 		this.listeners = {};
 	}
 
-	on(event, callback) {
+	on(event, listener) {
 		if (!this.listeners[event]) {
 			this.listeners[event] = [];
 		}
-		this.listeners[event].push(callback);
+		this.listeners[event].push(listener);
 	}
 
-	off(event, callback) {
+	off(event, listener) {
 		if (this.listeners[event]) {
-			this.listeners[event] = this.listeners[event].filter(cb => cb !== callback);
+			this.listeners[event] = this.listeners[event].filter(cb => cb !== listener);
 		}
 	}
 
-	emit(event, data) {
-		console.log(`[事件]: ${event}`, data);
+	emit(event, context) {
+		console.log(`[事件]: ${event}`, context);
 		if (this.listeners[event]) {
-			this.listeners[event].slice().forEach(callback => {
+			this.listeners[event].forEach(listener => {
 				try {
-					callback(data);
+					listener(context);
 				} catch (e) {
 					console.error(`事件 ${event} 的监听器执行出错:`, e);
 				}
@@ -77,10 +72,7 @@ const DEFAULT_BOARD_SETUP = [
 class GameLauncher {
 	launch() {
 		const config = {boardSetup: DEFAULT_BOARD_SETUP};
-		const eventBus = new EventBus();
-		const game = new Game(config, eventBus);
-
-		return game;
+		return new Game(config, new EventBus());
 	}
 }
 
@@ -91,11 +83,11 @@ class Game {
 		this.board = this.createBoard();
 		this.units = [];
 		this.rounds = [];
-		this.currentRound = null;
+		this.curRound = null;
 		this.isGameOver = false;
+		this.winner = null;
 		this.initUnits(config.boardSetup);
 		this.registerGameRules();
-		this.winner = null;
 	}
 
 	async start() {
@@ -103,9 +95,9 @@ class Game {
 		while (!this.isGameOver) {
 			const round = this.newRound();
 			this.rounds.push(round);
-			this.currentRound = round;
+			this.curRound = round;
 			console.log(`[调试] Game.start: 开始等待 Round ${round.id}`);
-			await this.currentRound.start();
+			await this.curRound.start();
 			console.log(`[调试] Game.start: Round ${round.id} 已结束`);
 		}
 		this.eventBus.emit('game:over', {game: this, winner: this.winner});
@@ -117,36 +109,31 @@ class Game {
 	}
 
 	onPlayerInput({r, c}) {
-		const currentAction = this.currentRound.currentPlayerAction;
-		if (this.isGameOver || !currentAction) {
+		const curAction = this.curRound.curPlayerAction;
+		if (this.isGameOver || !curAction) {
 			return;
 		}
 
-		const unitAtPos = this.getUnitAt(r, c);
-		const currentPlayer = currentAction.player;
+		const unitAtPosition = this.getUnitAt(r, c);
+		const curPlayer = curAction.player;
 
-		if (!currentAction.selectedUnit) {
-			if (unitAtPos && unitAtPos.player === currentPlayer) {
-				currentAction.selectedUnit = unitAtPos;
-				this.eventBus.emit('unit:selected', {game: this, action: currentAction});
-			}
-		} else {
-			if (unitAtPos && unitAtPos.player === currentPlayer) {
-				currentAction.selectedUnit = unitAtPos;
-				this.eventBus.emit('unit:selected', {game: this, action: currentAction});
+		if (curAction.selectedUnit) {
+			if (unitAtPosition && unitAtPosition.player === curPlayer) {
+				curAction.selectedUnit = unitAtPosition;
+				this.eventBus.emit('unit:selected', {game: this, action: curAction});
 				return;
 			}
-			const isMoveValid = currentAction.validMoves.some(move => move[0] === r && move[1] === c);
-			if (!isMoveValid) {
-				currentAction.selectedUnit = null;
-				currentAction.validMoves = [];
-				this.eventBus.emit('unit:deselected', {game: this, action: currentAction});
+			const isPositionValid = curAction.validPositions.some(position => position[0] === r && position[1] === c);
+			if (!isPositionValid) {
+				curAction.selectedUnit = null;
+				curAction.validPositions = [];
+				this.eventBus.emit('unit:deselected', {game: this, action: curAction});
 				return;
 			}
 
-			const from = {r: currentAction.selectedUnit.r, c: currentAction.selectedUnit.c};
+			const from = {r: curAction.selectedUnit.r, c: curAction.selectedUnit.c};
 			const targetUnit = this.getUnitAt(r, c);
-			const movedUnit = currentAction.selectedUnit;
+			const movedUnit = curAction.selectedUnit;
 
 			const newBoard = this.board.map(row => [...row]);
 			movedUnit.moveTo(r, c);
@@ -156,6 +143,11 @@ class Game {
 
 			this.eventBus.emit('board:updated', this.board);
 			this.eventBus.emit('unit:after-move', {game: this, unit: movedUnit, captured: targetUnit});
+		} else {
+			if (unitAtPosition && unitAtPosition.player === curPlayer) {
+				curAction.selectedUnit = unitAtPosition;
+				this.eventBus.emit('unit:selected', {game: this, action: curAction});
+			}
 		}
 	}
 
@@ -205,7 +197,7 @@ class Round {
 		this.id = id;
 		this.game = game;
 		this.playerActions = [];
-		this.currentPlayerAction = null;
+		this.curPlayerAction = null;
 	}
 
 	async start() {
@@ -217,8 +209,8 @@ class Round {
 			}
 			const playerAction = new PlayerAction(player, this.game);
 			this.playerActions.push(playerAction);
-			this.currentPlayerAction = playerAction;
-			console.log(`[调试] Round.start: currentAction 已更新为玩家 ${this.currentPlayerAction.player.id} 的行动`);
+			this.curPlayerAction = playerAction;
+			console.log(`[调试] Round.start: currentAction 已更新为玩家 ${this.curPlayerAction.player.id} 的行动`);
 			await playerAction.execute();
 			console.log(`[调试] Round.start: 玩家 ${player.id} 的行动已结束`);
 		}
@@ -231,26 +223,26 @@ class PlayerAction {
 		this.player = player;
 		this.game = game;
 		this.selectedUnit = null;
-		this.validMoves = [];
+		this.validPositions = [];
 	}
 
 	execute() {
 		return new Promise(resolve => {
 			console.log(`[调试] PlayerAction.execute: 开始等待玩家 ${this.player.id} 的移动...`);
 			this.game.eventBus.emit('player-action:starting', {game: this.game, action: this});
-			const onMoveMade = () => {
+			const onMoved = () => {
 				console.log(`[调试] PlayerAction.execute: 'unit:after-move' 事件被捕获，玩家 ${this.player.id} 的行动即将结束`);
-				this.game.eventBus.off('unit:after-move', onMoveMade);
+				this.game.eventBus.off('unit:after-move', onMoved);
 				this.end();
 				resolve();
 			};
-			this.game.eventBus.on('unit:after-move', onMoveMade);
+			this.game.eventBus.on('unit:after-move', onMoved);
 		});
 	}
 
 	end() {
 		this.selectedUnit = null;
-		this.validMoves = [];
+		this.validPositions = [];
 		this.game.eventBus.emit('player-action:ended', {game: this.game, action: this});
 	}
 }
@@ -262,7 +254,7 @@ class Player {
 	}
 
 	play(r, c) {
-		const expectedPlayer = this.game.currentRound.currentPlayerAction.player;
+		const expectedPlayer = this.game.curRound.curPlayerAction.player;
 		console.log(`[调试] Player.play: play()方法被玩家 ${this.id} 调用。游戏期望的玩家是 ${expectedPlayer.id}`);
 		if (expectedPlayer === this) {
 			this.game.eventBus.emit('player:input', {r, c});
@@ -286,14 +278,14 @@ class MoveRule {
 
 	onUnitSelected({game, action}) {
 		const unit = action.selectedUnit;
-		let potentialMoves = [];
+		let potentialPositions = [];
 		const moveSkill = unit.getSkill(Move);
 		if (moveSkill) {
-			potentialMoves = moveSkill.getPotentialMoves();
+			potentialPositions = moveSkill.getPotentialPositions();
 		}
-		const context = {game, unit, potentialMoves};
+		const context = {game, unit, potentialPositions};
 		this.game.eventBus.emit('moveset:filter', context);
-		action.validMoves = context.potentialMoves;
+		action.validPositions = context.potentialPositions;
 		this.game.eventBus.emit('moveset:finalized', {game, action: action});
 	}
 }
@@ -321,7 +313,7 @@ class GameOverRule {
 	onUnitCaptured({game, captured}) {
 		if (captured instanceof Jiang) {
 			game.isGameOver = true;
-			game.winner = game.currentRound.currentPlayerAction.player;// captured.player.id === 1 ? game.players[1] : game.players[0];
+			game.winner = game.curRound.curPlayerAction.player;// captured.player.id === 1 ? game.players[1] : game.players[0];
 		}
 	}
 }
@@ -329,18 +321,18 @@ class GameOverRule {
 function registerFilterRules(game) {
 	const eventBus = game.eventBus;
 	eventBus.on('moveset:filter', context => {
-		const {game, unit, potentialMoves} = context;
-		context.potentialMoves = potentialMoves.filter(([r, c]) => {
+		const {game, unit, potentialPositions} = context;
+		context.potentialPositions = potentialPositions.filter(([r, c]) => {
 			const targetUnit = game.getUnitAt(r, c);
 			return !targetUnit || targetUnit.player !== unit.player;
 		});
 	});
 	eventBus.on('moveset:filter', context => {
-		const {game, unit, potentialMoves} = context;
+		const {game, unit, potentialPositions} = context;
 		if (!(unit instanceof Ma)) {
 			return;
 		}
-		context.potentialMoves = potentialMoves.filter(([r, c]) => {
+		context.potentialPositions = potentialPositions.filter(([r, c]) => {
 			const dr = r - unit.r, dc = c - unit.c;
 			let legR, legC;
 			if (Math.abs(dr) === 2 && Math.abs(dc) === 1) {
@@ -356,17 +348,17 @@ function registerFilterRules(game) {
 		});
 	});
 	eventBus.on('moveset:filter', context => {
-		const {game, unit, potentialMoves} = context;
+		const {game, unit, potentialPositions} = context;
 		if (!(unit instanceof Xiang)) {
 			return;
 		}
-		context.potentialMoves = potentialMoves.filter(([r, c]) => {
+		context.potentialPositions = potentialPositions.filter(([r, c]) => {
 			const eyeR = (unit.r + r) / 2, eyeC = (unit.c + c) / 2;
 			return !game.getUnitAt(eyeR, eyeC);
 		});
 	});
 	eventBus.on('moveset:filter', context => {
-		const {unit, potentialMoves} = context;
+		const {unit, potentialPositions} = context;
 		if (unit instanceof Jiang || unit instanceof Shi) {
 			const palace = unit.player.id === 1 ? {minR: 8, maxR: 10, minC: 4, maxC: 6} : {
 				minR: 1,
@@ -374,20 +366,20 @@ function registerFilterRules(game) {
 				minC: 4,
 				maxC: 6
 			};
-			context.potentialMoves = potentialMoves.filter(
+			context.potentialPositions = potentialPositions.filter(
 				([r, c]) => r >= palace.minR && r <= palace.maxR && c >= palace.minC && c <= palace.maxC);
 		}
 		if (unit instanceof Xiang) {
-			context.potentialMoves = potentialMoves.filter(
+			context.potentialPositions = potentialPositions.filter(
 				([r, c]) => !(unit.player.id === 1 && r < 6 || unit.player.id === 2 && r > 5));
 		}
 	});
 	eventBus.on('moveset:filter', context => {
-		const {game, unit, potentialMoves} = context;
+		const {game, unit, potentialPositions} = context;
 		if (!(unit instanceof Pao)) {
 			return;
 		}
-		context.potentialMoves = potentialMoves.filter(([r, c]) => {
+		context.potentialPositions = potentialPositions.filter(([r, c]) => {
 			const {r: startR, c: startC} = unit, screens = [];
 			const distance = Math.max(Math.abs(r - startR), Math.abs(c - startC));
 			const stepR = distance === 0 ? 0 : (r - startR) / distance, stepC = distance === 0 ? 0 : (c - startC) / distance;
@@ -401,11 +393,11 @@ function registerFilterRules(game) {
 		});
 	});
 	eventBus.on('moveset:filter', context => {
-		const {game, unit, potentialMoves} = context;
+		const {game, unit, potentialPositions} = context;
 		if (!(unit instanceof Che)) {
 			return;
 		}
-		context.potentialMoves = potentialMoves.filter(([r, c]) => {
+		context.potentialPositions = potentialPositions.filter(([r, c]) => {
 			const {r: startR, c: startC} = unit;
 			const distance = Math.max(Math.abs(r - startR), Math.abs(c - startC));
 			const stepR = distance === 0 ? 0 : (r - startR) / distance, stepC = distance === 0 ? 0 : (c - startC) / distance;
@@ -418,8 +410,8 @@ function registerFilterRules(game) {
 		});
 	});
 	eventBus.on('moveset:filter', context => {
-		const {game, unit, potentialMoves} = context;
-		context.potentialMoves = potentialMoves.filter(([r, c]) => {
+		const {game, unit, potentialPositions} = context;
+		context.potentialPositions = potentialPositions.filter(([r, c]) => {
 			const tempBoard = game.board.map(row => [...row]);
 			const getUnitAtOnTemp = (tr, tc) => tempBoard[tr - 1]?.[tc - 1] || null;
 			tempBoard[unit.r - 1][unit.c - 1] = null;
@@ -465,7 +457,7 @@ class Skill {
 }
 
 class Move extends Skill {
-	getPotentialMoves() {
+	getPotentialPositions() {
 		return [];
 	}
 }
@@ -500,7 +492,7 @@ class Unit {
 }
 
 class CheMove extends Move {
-	getPotentialMoves() {
+	getPotentialPositions() {
 		const m = [];
 		for (let i = 1; i <= 10; i++) {
 			if (i !== this.unit.r) {
@@ -519,16 +511,16 @@ class CheMove extends Move {
 class PaoMove extends CheMove {
 }
 
-class MaMove extends Move {
-	getPotentialMoves() {
+class 马行日 extends Move {
+	getPotentialPositions() {
 		const {r, c} = this.unit;
 		return [[r - 2, c - 1], [r - 2, c + 1], [r + 2, c - 1], [r + 2, c + 1], [r - 1, c - 2], [r - 1, c + 2],
 			[r + 1, c - 2], [r + 1, c + 2]].filter(([tr, tc]) => tr >= 1 && tr <= 10 && tc >= 1 && tc <= 9);
 	}
 }
 
-class XiangMove extends Move {
-	getPotentialMoves() {
+class 象行田 extends Move {
+	getPotentialPositions() {
 		const {r, c} = this.unit;
 		return [[r - 2, c - 2], [r - 2, c + 2], [r + 2, c - 2], [r + 2, c + 2]].filter(
 			([tr, tc]) => tr >= 1 && tr <= 10 && tc >= 1 && tc <= 9);
@@ -536,7 +528,7 @@ class XiangMove extends Move {
 }
 
 class ShiMove extends Move {
-	getPotentialMoves() {
+	getPotentialPositions() {
 		const {r, c} = this.unit;
 		return [[r - 1, c - 1], [r - 1, c + 1], [r + 1, c - 1], [r + 1, c + 1]].filter(
 			([tr, tc]) => tr >= 1 && tr <= 10 && tc >= 1 && tc <= 9);
@@ -544,7 +536,7 @@ class ShiMove extends Move {
 }
 
 class JiangMove extends Move {
-	getPotentialMoves() {
+	getPotentialPositions() {
 		const {r, c} = this.unit;
 		return [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]].filter(
 			([tr, tc]) => tr >= 1 && tr <= 10 && tc >= 1 && tc <= 9);
@@ -552,10 +544,10 @@ class JiangMove extends Move {
 }
 
 class BingMove extends Move {
-	getPotentialMoves() {
+	getPotentialPositions() {
 		const {r, c, player} = this.unit;
 		const f = player.id === 1 ? -1 : 1;
-		const river = (player.id === 1 && r <= 5) || (player.id === 2 && r >= 6);
+		const river = player.id === 1 && r <= 5 || player.id === 2 && r >= 6;
 		const m = [[r + f, c]];
 		if (river) {
 			m.push([r, c - 1], [r, c + 1]);
@@ -590,7 +582,7 @@ class Ma extends Unit {
 	}
 
 	initSkills() {
-		this.skills.push(new MaMove(this));
+		this.skills.push(new 马行日(this));
 	}
 }
 
@@ -600,7 +592,7 @@ class Xiang extends Unit {
 	}
 
 	initSkills() {
-		this.skills.push(new XiangMove(this));
+		this.skills.push(new 象行田(this));
 	}
 }
 
