@@ -174,7 +174,7 @@
 						<div class="texture part left bottom corner"></div>
 					</div>
 					<div v-if="getPieceAt(r,c)" :class="getPieceClasses(getPieceAt(r,c))">
-						{{ getPieceAt(r, c).name }}
+						{{ getPieceAt(r, c).label }}
 					</div>
 					<div v-if="isValidMove(r,c)" class="valid-move-indicator"></div>
 				</div>
@@ -210,7 +210,7 @@
 			},
 			currentAction() {
 				console.log("[调试] Vue.computed: currentAction 正在重新计算");
-				return this.currentRound?.curPlayerAction;
+				return this.game?.curRound?.curPlayerAction;
 			},
 			selectedUnit() {
 				return this.currentAction?.selectedUnit;

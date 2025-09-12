@@ -35,33 +35,6 @@ class EventBus {
  * 游戏坐标与棋子定义
  * =================================================================================
  */
-const PIECE_MAP = {
-	Che: (player, r, c) => new Che(player, r, c),
-	Ma: (player, r, c) => new Ma(player, r, c),
-	Xiang: (player, r, c) => new Xiang(player, r, c),
-	Shi: (player, r, c) => new Shi(player, r, c),
-	Jiang: (player, r, c) => new Jiang(player, r, c),
-	Pao: (player, r, c) => new Pao(player, r, c),
-	Bing: (player, r, c) => new Bing(player, r, c)
-};
-const DEFAULT_BOARD_SETUP = [
-	{piece: 'Che', player: 1, r: 10, c: 1}, {piece: 'Ma', player: 1, r: 10, c: 2},
-	{piece: 'Xiang', player: 1, r: 10, c: 3}, {piece: 'Shi', player: 1, r: 10, c: 4},
-	{piece: 'Jiang', player: 1, r: 10, c: 5}, {piece: 'Shi', player: 1, r: 10, c: 6},
-	{piece: 'Xiang', player: 1, r: 10, c: 7}, {piece: 'Ma', player: 1, r: 10, c: 8},
-	{piece: 'Che', player: 1, r: 10, c: 9}, {piece: 'Pao', player: 1, r: 8, c: 2},
-	{piece: 'Pao', player: 1, r: 8, c: 8}, {piece: 'Bing', player: 1, r: 7, c: 1},
-	{piece: 'Bing', player: 1, r: 7, c: 3}, {piece: 'Bing', player: 1, r: 7, c: 5},
-	{piece: 'Bing', player: 1, r: 7, c: 7}, {piece: 'Bing', player: 1, r: 7, c: 9},
-	{piece: 'Che', player: 2, r: 1, c: 1}, {piece: 'Ma', player: 2, r: 1, c: 2},
-	{piece: 'Xiang', player: 2, r: 1, c: 3}, {piece: 'Shi', player: 2, r: 1, c: 4},
-	{piece: 'Jiang', player: 2, r: 1, c: 5}, {piece: 'Shi', player: 2, r: 1, c: 6},
-	{piece: 'Xiang', player: 2, r: 1, c: 7}, {piece: 'Ma', player: 2, r: 1, c: 8},
-	{piece: 'Che', player: 2, r: 1, c: 9}, {piece: 'Pao', player: 2, r: 3, c: 2},
-	{piece: 'Pao', player: 2, r: 3, c: 8}, {piece: 'Bing', player: 2, r: 4, c: 1},
-	{piece: 'Bing', player: 2, r: 4, c: 3}, {piece: 'Bing', player: 2, r: 4, c: 5},
-	{piece: 'Bing', player: 2, r: 4, c: 7}, {piece: 'Bing', player: 2, r: 4, c: 9}
-];
 
 /**
  * =================================================================================
@@ -160,7 +133,8 @@ class Game {
 			const {piece, player, r, c} = pieceConfig;
 			const playerInstance = this.players.find(p => p.id === player);
 			if (playerInstance) {
-				const unit = PIECE_MAP[piece](playerInstance, r, c);
+				const pieceDef = PIECE_DEFINITIONS[piece]; // Get definition by character
+				const unit = new pieceDef.constructor(playerInstance, pieceDef.label, r, c); // Pass label as name
 				this.board[r - 1][c - 1] = unit;
 				this.units.push(unit);
 			}
@@ -211,7 +185,7 @@ class Round {
 			this.playerActions.push(playerAction);
 			this.curPlayerAction = playerAction;
 			console.log(`[调试] Round.start: currentAction 已更新为玩家 ${this.curPlayerAction.player.id} 的行动`);
-			await playerAction.execute();
+			await this.curPlayerAction.execute();
 			console.log(`[调试] Round.start: 玩家 ${player.id} 的行动已结束`);
 		}
 		this.game.eventBus.emit('round:ended', {game: this.game, round: this});
@@ -463,13 +437,13 @@ class Move extends Skill {
 }
 
 class Unit {
-	constructor(player, name, r, c) {
+	constructor(player, label, r, c) {
 		this.player = player;
-		this.name = name;
+		this.label = label;
 		this.r = r;
 		this.c = c;
 		this.skills = [];
-		this.id = `p${player.id}_${name}_${Date.now()}_${Math.random()}`;
+		this.id = `p${player.id}_${label}_${Date.now()}_${Math.random()}`;
 		this.initSkills();
 	}
 
@@ -557,8 +531,8 @@ class BingMove extends Move {
 }
 
 class Che extends Unit {
-	constructor(p, r, c) {
-		super(p, p.id === 1 ? '\u{1FA64}' : '\u{1FA6B}', r, c);
+	constructor(p, label, r, c) {
+		super(p, label, r, c);
 	}
 
 	initSkills() {
@@ -567,8 +541,8 @@ class Che extends Unit {
 }
 
 class Pao extends Unit {
-	constructor(p, r, c) {
-		super(p, p.id === 1 ? '\u{1FA65}' : '\u{1FA6C}', r, c);
+	constructor(p, label, r, c) {
+		super(p, label, r, c);
 	}
 
 	initSkills() {
@@ -577,8 +551,8 @@ class Pao extends Unit {
 }
 
 class Ma extends Unit {
-	constructor(p, r, c) {
-		super(p, p.id === 1 ? '\u{1FA63}' : '\u{1FA6A}', r, c);
+	constructor(p, label, r, c) {
+		super(p, label, r, c);
 	}
 
 	initSkills() {
@@ -587,8 +561,8 @@ class Ma extends Unit {
 }
 
 class Xiang extends Unit {
-	constructor(p, r, c) {
-		super(p, p.id === 1 ? '\u{1FA62}' : '\u{1FA69}', r, c);
+	constructor(p, label, r, c) {
+		super(p, label, r, c);
 	}
 
 	initSkills() {
@@ -597,8 +571,8 @@ class Xiang extends Unit {
 }
 
 class Shi extends Unit {
-	constructor(p, r, c) {
-		super(p, p.id === 1 ? '\u{1FA61}' : '\u{1FA68}', r, c);
+	constructor(p, label, r, c) {
+		super(p, label, r, c);
 	}
 
 	initSkills() {
@@ -607,8 +581,8 @@ class Shi extends Unit {
 }
 
 class Jiang extends Unit {
-	constructor(p, r, c) {
-		super(p, p.id === 1 ? '\u{1FA60}' : '\u{1FA67}', r, c);
+	constructor(p, label, r, c) {
+		super(p, label, r, c);
 	}
 
 	initSkills() {
@@ -617,11 +591,62 @@ class Jiang extends Unit {
 }
 
 class Bing extends Unit {
-	constructor(p, r, c) {
-		super(p, p.id === 1 ? '\u{1FA66}' : '\u{1FA6D}', r, c);
+	constructor(p, label, r, c) {
+		super(p, label, r, c);
 	}
 
 	initSkills() {
 		this.skills.push(new BingMove(this));
 	}
 }
+
+const PIECE_DEFINITIONS = {
+	'车': {constructor: Che, player: 2, label: '\u{1FA6B}'},
+	'马': {constructor: Ma, player: 2, label: '\u{1FA6A}'},
+	'象': {constructor: Xiang, player: 2, label: '\u{1FA69}'},
+	'士': {constructor: Shi, player: 2, label: '\u{1FA68}'},
+	'将': {constructor: Jiang, player: 2, label: '\u{1FA67}'},
+	'炮': {constructor: Pao, player: 2, label: '\u{1FA6C}'},
+	'兵': {constructor: Bing, player: 2, label: '\u{1FA6D}'},
+
+	'俥': {constructor: Che, player: 1, label: '\u{1FA64}'},
+	'傌': {constructor: Ma, player: 1, label: '\u{1FA63}'},
+	'相': {constructor: Xiang, player: 1, label: '\u{1FA62}'},
+	'仕': {constructor: Shi, player: 1, label: '\u{1FA61}'},
+	'帅': {constructor: Jiang, player: 1, label: '\u{1FA60}'},
+	'砲': {constructor: Pao, player: 1, label: '\u{1FA65}'},
+	'卒': {constructor: Bing, player: 1, label: '\u{1FA66}'},
+
+	'空': null // 空位，无棋子
+};
+
+const VISUAL_BOARD_LAYOUT = [
+	"车马象士将士象马车", // 1 (黑方)
+	"空空空空空空空空空", // 2
+	"空炮空空空空空炮空", // 3
+	"兵空兵空兵空兵空兵", // 4 (黑方兵)
+	"空空空空空空空空空", // 5 (河界)
+	"空空空空空空空空空", // 6 (河界)
+	"卒空卒空卒空卒空卒", // 7 (红方卒)
+	"空砲空空空空空砲空", // 8
+	"空空空空空空空空空", // 9
+	"俥傌相仕帅仕相傌俥"  // 10 (红方)
+];
+
+function parseBoardSetup(visualSetup) {
+	const setup = [];
+	visualSetup.forEach((rowStr, rIdx) => {
+		rowStr.split('').forEach((char, cIdx) => {
+			const pieceDef = PIECE_DEFINITIONS[char];
+			if (pieceDef) {
+				// rIdx 是 0-9，cIdx 是 0-8。棋盘是 1-10，1-9。
+				const r = rIdx + 1;
+				const c = cIdx + 1;
+				setup.push({piece: char, player: pieceDef.player, r: r, c: c});
+			}
+		});
+	});
+	return setup;
+}
+
+const DEFAULT_BOARD_SETUP = parseBoardSetup(VISUAL_BOARD_LAYOUT);
