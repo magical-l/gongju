@@ -199,40 +199,49 @@
 	const app = createApp({
 		data() {
 			return {
-				game: null,
-				validMoves: []
+				game: null, // 游戏逻辑核心，非响应式
+				board: [],  // 专门用于UI渲染的响应式棋盘数据
 			};
 		},
 		mounted() {
-			// 使用Vue的reactive来包装game对象，使其内部属性（如board）的变化能够被Vue检测到
-			this.game = reactive(new Game());
+			const launcher = new GameLauncher();
+			this.game = launcher.launch();
+			// 初始化UI棋盘
+			this.board = this.game.board;
+
+			// 监听来自游戏核心的棋盘更新事件
+			eventBus.on('board:updated', (newBoard) => {
+				this.board = newBoard;
+			});
+
+			// 监听游戏结束事件，显示结果
+			eventBus.on('game:over', ({ winner }) => {
+				ElementPlus.ElMessage({
+					message: `游戏结束! 玩家 ${winner.id} 胜利!`,
+					type: 'success',
+					duration: 5000
+				});
+			});
 		},
 		methods: {
 			cellClasses(r, c) {
 				const rt = [`row-` + r, `红` + ChineseNum.digitsFromArabic(10 - c) + `路`, `黑${c}路`];
-				if ((r === 3 || r === 8) && (c === 2 || c === 8)) {
-					rt.push('炮位');
-				}
-				if ((r === 4 || r === 7) && c % 2 === 1) {
-					rt.push('兵卒位');
-				}
+				if ((r === 3 || r === 8) && (c === 2 || c === 8)) rt.push('炮位');
+				if ((r === 4 || r === 7) && c % 2 === 1) rt.push('兵卒位');
 				if ((r <= 3 || r >= 8) && (c >= 4 && c <= 6)) {
 					rt.push('九宫');
-					if ((r === 2 || r === 9) && c === 5) {
-						rt.push('窝心');
-					}
-					if ((r === 3 || r === 8) && (c === 4 || c === 6)) {
-						rt.push('士角');
-					}
+					if ((r === 2 || r === 9) && c === 5) rt.push('窝心');
+					if ((r === 3 || r === 8) && (c === 4 || c === 6)) rt.push('士角');
 				}
 				return rt;
 			},
 			getPieceAt(r, c) {
-				return this.game?.getUnitAt(r, c);
+				// 直接从组件自身的、响应式的board数据中读取
+				return this.board[r - 1]?.[c - 1] || null;
 			},
 			getPieceClasses(piece) {
 				if (!piece) return [];
-				const classes = piece.cssClass;
+				const classes = [...piece.cssClass];
 				if (this.game.selectedUnit && this.game.selectedUnit.id === piece.id) {
 					classes.push('selected');
 				}
@@ -240,18 +249,11 @@
 			},
 			handleCellClick(r, c) {
 				if (!this.game || this.game.isGameOver) return;
-				// 点击事件总是委托给游戏当前的活跃玩家
-				this.game.currentPlayer.handleCellClick(r, c);
-
-				// 更新可移动位置的显示
-				if (this.game.selectedUnit) {
-					this.validMoves = this.game.ruleEngine.getValidMovesForUnit(this.game.selectedUnit);
-				} else {
-					this.validMoves = [];
-				}
+				this.game.currentRound.currentPlayerAction.player.action(r, c);
 			},
 			isValidMove(r, c) {
-				return this.validMoves.some(move => move[0] === r && move[1] === c);
+				if (!this.game || !this.game.validMoves) return false;
+				return this.game.validMoves.some(move => move[0] === r && move[1] === c);
 			}
 		}
 	});
