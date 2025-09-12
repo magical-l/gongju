@@ -12,6 +12,11 @@
 <link href="../../resources/biz.css?v=250821" rel="stylesheet">
 <link href="../../resources/花活.css?v=250821" rel="stylesheet">
 <style>
+	@font-face {
+		font-family: 'NotoSansSymbols2';
+		src: url('../../lib/fonts/NotoSansSymbols2-Regular.ttf') format('truetype');
+	}
+
 	.chess.board {
 		--min-cell-len: 60px;
 		--line-color: #333;
@@ -113,34 +118,33 @@
 	/* 棋子样式 */
 	.piece {
 		position: relative;
-		z-index: 10;
-		width: 80%;
-		height: 80%;
+		z-index: 10; /* 确保棋子在棋盘线之上 */
+		width: 90%;
+		height: 90%;
 		border-radius: 50%;
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		font-size: calc(var(--min-cell-len) * 0.5);
-		font-weight: bold;
+		font-family: 'NotoSansSymbols2', sans-serif;
+		font-size: calc(var(--min-cell-len) * 0.7);
 		cursor: pointer;
-		box-shadow: 0 2px 4px rgba(0, 0, 0, .3);
+		box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+
+		/* 黑方默认样式 */
+		background-color: #f0f0f0;
+		border: 1px solid #888;
+		color: black;
 	}
 
 	.piece.red {
 		background-color: #fdd;
-		border: 2px solid #d43d3d;
-		color: #d43d3d;
-	}
-
-	.piece.black {
-		background-color: #eee;
-		border: 2px solid #333;
-		color: #333;
+		border-color: #d43d3d;
+		color: red; /* 明确指定红色 */
 	}
 
 	.piece.selected {
-		border-color: #007bff;
-		box-shadow: 0 0 10px 3px #007bff;
+		/* 选中效果：一个不透明的蓝色轮廓 */
+		outline: 3px solid #007bff;
 	}
 
 	.valid-move-indicator {

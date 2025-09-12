@@ -5,6 +5,37 @@
  * c 列, 1-9,  红方视角，1为最右边，9为最左边
  */
 
+const PIECE_MAP = {
+    Che: (player, r, c) => new Che(player, r, c),
+    Ma: (player, r, c) => new Ma(player, r, c),
+    Xiang: (player, r, c) => new Xiang(player, r, c),
+    Shi: (player, r, c) => new Shi(player, r, c),
+    Jiang: (player, r, c) => new Jiang(player, r, c),
+    Pao: (player, r, c) => new Pao(player, r, c),
+    Bing: (player, r, c) => new Bing(player, r, c),
+};
+
+const DEFAULT_BOARD_SETUP = [
+    // Red
+    { piece: 'Che', player: 1, r: 10, c: 1 }, { piece: 'Ma', player: 1, r: 10, c: 2 },
+    { piece: 'Xiang', player: 1, r: 10, c: 3 }, { piece: 'Shi', player: 1, r: 10, c: 4 },
+    { piece: 'Jiang', player: 1, r: 10, c: 5 }, { piece: 'Shi', player: 1, r: 10, c: 6 },
+    { piece: 'Xiang', player: 1, r: 10, c: 7 }, { piece: 'Ma', player: 1, r: 10, c: 8 },
+    { piece: 'Che', player: 1, r: 10, c: 9 }, { piece: 'Pao', player: 1, r: 8, c: 2 },
+    { piece: 'Pao', player: 1, r: 8, c: 8 }, { piece: 'Bing', player: 1, r: 7, c: 1 },
+    { piece: 'Bing', player: 1, r: 7, c: 3 }, { piece: 'Bing', player: 1, r: 7, c: 5 },
+    { piece: 'Bing', player: 1, r: 7, c: 7 }, { piece: 'Bing', player: 1, r: 7, c: 9 },
+    // Black
+    { piece: 'Che', player: 2, r: 1, c: 1 }, { piece: 'Ma', player: 2, r: 1, c: 2 },
+    { piece: 'Xiang', player: 2, r: 1, c: 3 }, { piece: 'Shi', player: 2, r: 1, c: 4 },
+    { piece: 'Jiang', player: 2, r: 1, c: 5 }, { piece: 'Shi', player: 2, r: 1, c: 6 },
+    { piece: 'Xiang', player: 2, r: 1, c: 7 }, { piece: 'Ma', player: 2, r: 1, c: 8 },
+    { piece: 'Che', player: 2, r: 1, c: 9 }, { piece: 'Pao', player: 2, r: 3, c: 2 },
+    { piece: 'Pao', player: 2, r: 3, c: 8 }, { piece: 'Bing', player: 2, r: 4, c: 1 },
+    { piece: 'Bing', player: 2, r: 4, c: 3 }, { piece: 'Bing', player: 2, r: 4, c: 5 },
+    { piece: 'Bing', player: 2, r: 4, c: 7 }, { piece: 'Bing', player: 2, r: 4, c: 9 },
+];
+
 // #region ############# 核心类：回合、玩家、游戏 #############
 
 // 回合 (Round) 类
@@ -47,6 +78,9 @@ class Player {
 	 */
 	handleCellClick(r, c) {
 		const game = this.game;
+		// 只有轮到当前玩家时，才响应操作
+		if (game.currentPlayer !== this) return;
+
 		const targetUnit = game.getUnitAt(r, c);
 		const selectedUnit = game.selectedUnit;
 
@@ -76,7 +110,7 @@ class Player {
 
 // 游戏主类
 class Game {
-	constructor() {
+	constructor(config = {}) {
 		this.players = [new Player(1, this), new Player(2, this)];
 		this.board = this.createBoard();
 		this.ruleEngine = new RuleEngine(this);
@@ -85,7 +119,7 @@ class Game {
 		this.selectedUnit = null;
 		this.isGameOver = false;
 
-		this.initUnits();
+		this.initUnits(config.boardSetup || DEFAULT_BOARD_SETUP);
 		this.startNewRound();
 	}
 
@@ -97,44 +131,17 @@ class Game {
 		return Array(10).fill(null).map(() => Array(9).fill(null));
 	}
 
-	initUnits() {
-		const red = this.players[0];
-		const black = this.players[1];
-
-		// ... (棋子初始化代码和之前一样)
-		this.addUnit(new Che(red, 10, 1));
-		this.addUnit(new Ma(red, 10, 2));
-		this.addUnit(new Xiang(red, 10, 3));
-		this.addUnit(new Shi(red, 10, 4));
-		this.addUnit(new Jiang(red, 10, 5));
-		this.addUnit(new Shi(red, 10, 6));
-		this.addUnit(new Xiang(red, 10, 7));
-		this.addUnit(new Ma(red, 10, 8));
-		this.addUnit(new Che(red, 10, 9));
-		this.addUnit(new Pao(red, 8, 2));
-		this.addUnit(new Pao(red, 8, 8));
-		this.addUnit(new Bing(red, 7, 1));
-		this.addUnit(new Bing(red, 7, 3));
-		this.addUnit(new Bing(red, 7, 5));
-		this.addUnit(new Bing(red, 7, 7));
-		this.addUnit(new Bing(red, 7, 9));
-
-		this.addUnit(new Che(black, 1, 1));
-		this.addUnit(new Ma(black, 1, 2));
-		this.addUnit(new Xiang(black, 1, 3));
-		this.addUnit(new Shi(black, 1, 4));
-		this.addUnit(new Jiang(black, 1, 5));
-		this.addUnit(new Shi(black, 1, 6));
-		this.addUnit(new Xiang(black, 1, 7));
-		this.addUnit(new Ma(black, 1, 8));
-		this.addUnit(new Che(black, 1, 9));
-		this.addUnit(new Pao(black, 3, 2));
-		this.addUnit(new Pao(black, 3, 8));
-		this.addUnit(new Bing(black, 4, 1));
-		this.addUnit(new Bing(black, 4, 3));
-		this.addUnit(new Bing(black, 4, 5));
-		this.addUnit(new Bing(black, 4, 7));
-		this.addUnit(new Bing(black, 4, 9));
+	initUnits(setup) {
+		for (const pieceConfig of setup) {
+			const { piece, player, r, c } = pieceConfig;
+			const createPiece = PIECE_MAP[piece];
+			if (createPiece) {
+				const playerInstance = this.players.find(p => p.id === player);
+				if (playerInstance) {
+					this.addUnit(createPiece(playerInstance, r, c));
+				}
+			}
+		}
 	}
 
 	addUnit(unit) {
@@ -537,7 +544,8 @@ class BingMove extends Move {
 
 class Che extends Unit {
 	constructor(player, r, c) {
-		super(player, '车', r, c);
+		// 红: 🩤 (U+1FA64), 黑: 🩫 (U+1FA6B)
+		super(player, player.id === 1 ? '\u{1FA64}' : '\u{1FA6B}', r, c);
 	}
 	initSkills() {
 		this.skills.push(new CheMove(this));
@@ -546,7 +554,8 @@ class Che extends Unit {
 
 class Pao extends Unit {
 	constructor(player, r, c) {
-		super(player, '炮', r, c);
+		// 红: 🩥 (U+1FA65), 黑: 🩬 (U+1FA6C)
+		super(player, player.id === 1 ? '\u{1FA65}' : '\u{1FA6C}', r, c);
 	}
 	initSkills() {
 		this.skills.push(new PaoMove(this));
@@ -555,7 +564,8 @@ class Pao extends Unit {
 
 class Ma extends Unit {
 	constructor(player, r, c) {
-		super(player, '马', r, c);
+		// 红: 🩣 (U+1FA63), 黑: 🩪 (U+1FA6A)
+		super(player, player.id === 1 ? '\u{1FA63}' : '\u{1FA6A}', r, c);
 	}
 	initSkills() {
 		this.skills.push(new MaMove(this));
@@ -564,7 +574,8 @@ class Ma extends Unit {
 
 class Xiang extends Unit {
 	constructor(player, r, c) {
-		super(player, player.id === 1 ? '相' : '象', r, c);
+		// 红: 🩢 (U+1FA62), 黑: 🩩 (U+1FA69)
+		super(player, player.id === 1 ? '\u{1FA62}' : '\u{1FA69}', r, c);
 	}
 	initSkills() {
 		this.skills.push(new XiangMove(this));
@@ -573,7 +584,8 @@ class Xiang extends Unit {
 
 class Shi extends Unit {
 	constructor(player, r, c) {
-		super(player, player.id === 1 ? '仕' : '士', r, c);
+		// 红: 🩡 (U+1FA61), 黑: 🩨 (U+1FA68)
+		super(player, player.id === 1 ? '\u{1FA61}' : '\u{1FA68}', r, c);
 	}
 	initSkills() {
 		this.skills.push(new ShiMove(this));
@@ -582,7 +594,8 @@ class Shi extends Unit {
 
 class Jiang extends Unit {
 	constructor(player, r, c) {
-		super(player, player.id === 1 ? '帅' : '将', r, c);
+		// 红: 🩠 (U+1FA60), 黑: 🩧 (U+1FA67)
+		super(player, player.id === 1 ? '\u{1FA60}' : '\u{1FA67}', r, c);
 	}
 	initSkills() {
 		this.skills.push(new JiangMove(this));
@@ -591,7 +604,8 @@ class Jiang extends Unit {
 
 class Bing extends Unit {
 	constructor(player, r, c) {
-		super(player, player.id === 1 ? '兵' : '卒', r, c);
+		// 红: 🩦 (U+1FA66), 黑: 🩭 (U+1FA6D)
+		super(player, player.id === 1 ? '\u{1FA66}' : '\u{1FA6D}', r, c);
 	}
 	initSkills() {
 		this.skills.push(new BingMove(this));
