@@ -4,12 +4,25 @@
  * ====================================
  */
 
-const FACTION_RED = new Team(1, '红方');
-const FACTION_BLACK = new Team(2, '黑方');
+const 红方 = new Team(1, '红方');
+const 黑方 = new Team(2, '黑方');
+
+// 具体的二维坐标实现
+class XiangqiPosition extends Position {
+	constructor(r, c) {
+		super();
+		this.r = r;
+		this.c = c;
+	}
+
+	toString() {
+		return `${this.r},${this.c}`;
+	}
+}
 
 class XiangqiGame extends Game {
 	createMap(config) {
-		return new GameMap(10, 9);
+		return new GameMap();
 	}
 
 	initUnits(setup) {
@@ -18,8 +31,9 @@ class XiangqiGame extends Game {
 			const playerInstance = this.players.find(p => p.id === player);
 			if (playerInstance) {
 				const unitDef = UNIT_DEFINITIONS[unit];
-				const newUnit = new unitDef.constructor(playerInstance, unitDef.label, r, c);
-				this.map.addUnit(newUnit, r, c);
+				const position = new XiangqiPosition(r, c);
+				const newUnit = new unitDef.constructor(playerInstance, unitDef.label, position);
+				this.map.addUnit(newUnit, position);
 				this.units.push(newUnit);
 			}
 		}
@@ -33,6 +47,87 @@ class XiangqiGame extends Game {
 		registerFilterRules(this);
 	}
 
+	// 内部使用的、不触发事件的移动计算方法
+	_getValidMovesForUnit_internal(unit) {
+		const moveSkill = unit.getSkill(Move);
+		if (!moveSkill) {
+			return [];
+		}
+
+		let potentialPositions = moveSkill.getPotentialPositions();
+
+		// 手动执行所有过滤规则，但不触发事件
+		potentialPositions = potentialPositions.filter(pos => {
+			const targetUnits = this.getUnitsAt(pos);
+			return !targetUnits.some(u => u.player === unit.player);
+		});
+
+		if (unit instanceof Ma) {
+			potentialPositions = potentialPositions.filter(pos => {
+				const dr = pos.r - unit.position.r, dc = pos.c - unit.position.c;
+				let legR, legC;
+				if (Math.abs(dr) === 2 && Math.abs(dc) === 1) {
+					legR = unit.position.r + dr / 2;
+					legC = unit.position.c;
+				} else if (Math.abs(dr) === 1 && Math.abs(dc) === 2) {
+					legR = unit.position.r;
+					legC = unit.position.c + dc / 2;
+				} else {
+					return true;
+				}
+				return this.getUnitsAt(new XiangqiPosition(legR, legC)).length === 0;
+			});
+		}
+
+		if (unit instanceof Xiang) {
+			potentialPositions = potentialPositions.filter(pos => {
+				const eyeR = (unit.position.r + pos.r) / 2, eyeC = (unit.position.c + pos.c) / 2;
+				return this.getUnitsAt(new XiangqiPosition(eyeR, eyeC)).length === 0;
+			});
+		}
+
+		if (unit instanceof Jiang || unit instanceof Shi) {
+			const palace = unit.player.team.id === 1 ? {minR: 8, maxR: 10, minC: 4, maxC: 6} : {
+				minR: 1,
+				maxR: 3,
+				minC: 4,
+				maxC: 6
+			};
+			potentialPositions = potentialPositions.filter(
+				pos => pos.r >= palace.minR && pos.r <= palace.maxR && pos.c >= palace.minC && pos.c <= palace.maxC);
+		}
+		if (unit instanceof Xiang) {
+			potentialPositions = potentialPositions.filter(
+				pos => !((unit.player.team.id === 1 && pos.r < 6) || (unit.player.team.id === 2 && pos.r > 5)));
+		}
+
+		if (unit instanceof Pao || unit instanceof Che) {
+			potentialPositions = potentialPositions.filter(pos => {
+				const {r: startR, c: startC} = unit.position;
+				const distance = Math.max(Math.abs(pos.r - startR), Math.abs(pos.c - startC));
+				const stepR = distance === 0 ? 0 : (pos.r - startR) / distance,
+					stepC = distance === 0 ? 0 : (pos.c - startC) / distance;
+				let screens = 0;
+				for (let i = 1; i < distance; i++) {
+					if (this.getUnitsAt(new XiangqiPosition(startR + i * stepR, startC + i * stepC)).length > 0) {
+						screens++;
+					}
+				}
+				const targetUnits = this.getUnitsAt(pos);
+				if (unit instanceof Che) {
+					return screens === 0;
+				}
+				if (unit instanceof Pao) {
+					return (targetUnits.length > 0 && screens === 1) || (targetUnits.length === 0
+																															 && screens === 0);
+				}
+				return false;
+			});
+		}
+
+		return potentialPositions;
+	}
+
 	isKingInCheck(player) {
 		const king = this.units.find(u => u instanceof Jiang && u.player === player);
 		if (!king) {
@@ -41,18 +136,10 @@ class XiangqiGame extends Game {
 
 		const opponents = this.units.filter(u => u.player !== player);
 		for (const opponentUnit of opponents) {
-			const moveSkill = opponentUnit.getSkill(Move);
-			if (!moveSkill) {
-				continue;
-			}
-
-			let potentialPositions = moveSkill.getPotentialPositions();
-			const context = {game: this, unit: opponentUnit, potentialPositions};
-			this.eventBus.emit('moveset:filter', context);
-			const validMoves = context.potentialPositions;
-
-			if (validMoves.some(move => move[0] === king.r && move[1] === king.c)) {
-				console.log(`[将军!] ${player.id}号玩家的王被 ${opponentUnit.label} 将军了`);
+			// 使用不触发事件的内部方法来计算攻击范围
+			const validAttacks = this._getValidMovesForUnit_internal(opponentUnit);
+			if (validAttacks.some(pos => pos.isEqualTo(king.position))) {
+				console.log(`[将军!] ${player.name} 的王被 ${opponentUnit.label} 将军了`);
 				return true;
 			}
 		}
@@ -64,8 +151,8 @@ class XiangqiGame extends Game {
 class GameLauncher {
 	launch() {
 		const players = [
-			new Player(1, '红方玩家', FACTION_RED),
-			new Player(2, '黑方玩家', FACTION_BLACK)
+			new Player(1, '红方玩家', 红方),
+			new Player(2, '黑方玩家', 黑方)
 		];
 		const config = {
 			players: players,
@@ -146,48 +233,42 @@ class CheckManager {
 function registerFilterRules(game) {
 	const eventBus = game.eventBus;
 
+	// 注意：这里的规则顺序很重要
+
+	// 规则1：基础移动过滤 (己方、边界等)
 	eventBus.on('moveset:filter', context => {
 		const {unit, potentialPositions} = context;
-		context.potentialPositions = potentialPositions.filter(([r, c]) => {
-			const targetUnits = game.getUnitsAt(r, c);
+		context.potentialPositions = potentialPositions.filter(pos => {
+			const targetUnits = game.getUnitsAt(pos);
 			return !targetUnits.some(u => u.player === unit.player);
 		});
 	});
 
+	// 规则2：棋子专属规则 (马腿, 象眼, 九宫等)
 	eventBus.on('moveset:filter', context => {
 		const {unit, potentialPositions} = context;
-		if (!(unit instanceof Ma)) {
-			return;
+		if (unit instanceof Ma) {
+			context.potentialPositions = potentialPositions.filter(pos => {
+				const dr = pos.r - unit.position.r, dc = pos.c - unit.position.c;
+				let legR, legC;
+				if (Math.abs(dr) === 2 && Math.abs(dc) === 1) {
+					legR = unit.position.r + dr / 2;
+					legC = unit.position.c;
+				} else if (Math.abs(dr) === 1 && Math.abs(dc) === 2) {
+					legR = unit.position.r;
+					legC = unit.position.c + dc / 2;
+				} else {
+					return true;
+				}
+				return game.getUnitsAt(new XiangqiPosition(legR, legC)).length === 0;
+			});
 		}
-		context.potentialPositions = potentialPositions.filter(([r, c]) => {
-			const dr = r - unit.r, dc = c - unit.c;
-			let legR, legC;
-			if (Math.abs(dr) === 2 && Math.abs(dc) === 1) {
-				legR = unit.r + dr / 2;
-				legC = unit.c;
-			} else if (Math.abs(dr) === 1 && Math.abs(dc) === 2) {
-				legR = unit.r;
-				legC = unit.c + dc / 2;
-			} else {
-				return true;
-			}
-			return game.getUnitsAt(legR, legC).length === 0;
-		});
-	});
-
-	eventBus.on('moveset:filter', context => {
-		const {unit, potentialPositions} = context;
-		if (!(unit instanceof Xiang)) {
-			return;
+		if (unit instanceof Xiang) {
+			context.potentialPositions = potentialPositions.filter(pos => {
+				const eyeR = (unit.position.r + pos.r) / 2, eyeC = (unit.position.c + pos.c) / 2;
+				return game.getUnitsAt(new XiangqiPosition(eyeR, eyeC)).length === 0;
+			});
 		}
-		context.potentialPositions = potentialPositions.filter(([r, c]) => {
-			const eyeR = (unit.r + r) / 2, eyeC = (unit.c + c) / 2;
-			return game.getUnitsAt(eyeR, eyeC).length === 0;
-		});
-	});
-
-	eventBus.on('moveset:filter', context => {
-		const {unit, potentialPositions} = context;
 		if (unit instanceof Jiang || unit instanceof Shi) {
 			const palace = unit.player.team.id === 1 ? {minR: 8, maxR: 10, minC: 4, maxC: 6} : {
 				minR: 1,
@@ -196,62 +277,66 @@ function registerFilterRules(game) {
 				maxC: 6
 			};
 			context.potentialPositions = potentialPositions.filter(
-				([r, c]) => r >= palace.minR && r <= palace.maxR && c >= palace.minC && c <= palace.maxC);
+				pos => pos.r >= palace.minR && pos.r <= palace.maxR && pos.c >= palace.minC && pos.c <= palace.maxC);
 		}
 		if (unit instanceof Xiang) {
 			context.potentialPositions = potentialPositions.filter(
-				([r, c]) => !((unit.player.team.id === 1 && r < 6) || (unit.player.team.id === 2 && r > 5)));
+				pos => !((unit.player.team.id === 1 && pos.r < 6) || (unit.player.team.id === 2 && pos.r > 5)));
 		}
 	});
 
+	// 规则3：车、炮的路径
 	eventBus.on('moveset:filter', context => {
-		const {unit, potentialPositions} = context;
+		const {game, unit, potentialPositions} = context;
 		if (!(unit instanceof Pao) && !(unit instanceof Che)) {
 			return;
 		}
-		console.log(`[调试] 开始为 ${unit.label} 计算直线路径规则...`);
-		context.potentialPositions = potentialPositions.filter(([r, c]) => {
-			const {r: startR, c: startC} = unit;
-			const distance = Math.max(Math.abs(r - startR), Math.abs(c - startC));
-			const stepR = distance === 0 ? 0 : (r - startR) / distance, stepC = distance === 0 ? 0 : (c - startC) / distance;
+		context.potentialPositions = potentialPositions.filter(pos => {
+			const {r: startR, c: startC} = unit.position;
+			const distance = Math.max(Math.abs(pos.r - startR), Math.abs(pos.c - startC));
+			const stepR = distance === 0 ? 0 : (pos.r - startR) / distance,
+				stepC = distance === 0 ? 0 : (pos.c - startC) / distance;
 			let screens = 0;
 			for (let i = 1; i < distance; i++) {
-				if (game.getUnitsAt(startR + i * stepR, startC + i * stepC).length > 0) {
+				if (game.getUnitsAt(new XiangqiPosition(startR + i * stepR, startC + i * stepC)).length > 0) {
 					screens++;
 				}
 			}
-			const targetUnits = game.getUnitsAt(r, c);
-			let result = false;
+			const targetUnits = game.getUnitsAt(pos);
 			if (unit instanceof Che) {
-				result = screens === 0;
-			} else if (unit instanceof Pao) {
-				result = (targetUnits.length > 0 && screens === 1) || (targetUnits.length === 0 && screens === 0);
+				return screens === 0;
 			}
-			console.log(
-				`[调试] ${unit.label} at (${startR},${startC}) -> (${r},${c}): screens=${screens}, targetUnits=${targetUnits.length}, result=${result}`);
-			return result;
+			if (unit instanceof Pao) {
+				return (targetUnits.length > 0 && screens === 1) || (targetUnits.length === 0 && screens
+																														 === 0);
+			}
+			return false;
 		});
 	});
 
+	// 规则4：最终规则 - 不能“送将”或“应将”
 	eventBus.on('moveset:filter', context => {
 		const {game, unit, potentialPositions} = context;
-		context.potentialPositions = potentialPositions.filter(([r, c]) => {
-			const tempMap = new GameMap(10, 9);
-			game.units.forEach(u => tempMap.addUnit(new u.constructor(u.player), u.r, u.c));
-			const movedUnit = tempMap.getUnitsAt(unit.r, unit.c)[0];
-			tempMap.moveUnit(movedUnit, r, c);
-			const generals = tempMap.grid.flat().flat().filter(u => u instanceof Jiang);
-			if (generals.length < 2 || generals[0].c !== generals[1].c) {
-				return true;
+		const player = unit.player;
+		context.potentialPositions = potentialPositions.filter(pos => {
+			const originalPos = unit.position;
+			const targetUnits = game.getUnitsAt(pos);
+			const capturedUnit = targetUnits[0];
+
+			if (capturedUnit) {
+				game.removeUnitFromGame(capturedUnit);
 			}
-			const [g1, g2] = generals;
-			const minR = Math.min(g1.r, g2.r), maxR = Math.max(g1.r, g2.r);
-			for (let i = minR + 1; i < maxR; i++) {
-				if (tempMap.getUnitsAt(i, g1.c).length > 0) {
-					return true;
-				}
+			game.map.moveUnit(unit, pos);
+
+			const isSelfInCheck = game.isKingInCheck(player);
+
+			game.map.moveUnit(unit, originalPos);
+			if (capturedUnit) {
+				game.units.push(capturedUnit);
+				game.map.addUnit(capturedUnit, pos);
 			}
-			return false;
+
+			return !isSelfInCheck;
 		});
 	});
 }
@@ -268,15 +353,15 @@ class XiangqiUnit extends Unit {
 
 class CheMove extends Move {
 	getPotentialPositions() {
-		const m = [], {r, c} = this.unit;
+		const m = [], {r, c} = this.unit.position;
 		for (let i = 1; i <= 10; i++) {
 			if (i !== r) {
-				m.push([i, c]);
+				m.push(new XiangqiPosition(i, c));
 			}
 		}
 		for (let i = 1; i <= 9; i++) {
 			if (i !== c) {
-				m.push([r, i]);
+				m.push(new XiangqiPosition(r, i));
 			}
 		}
 		return m;
@@ -288,52 +373,55 @@ class PaoMove extends CheMove {
 
 class MaMove extends Move {
 	getPotentialPositions() {
-		const {r, c} = this.unit;
+		const {r, c} = this.unit.position;
 		return [[r - 2, c - 1], [r - 2, c + 1], [r + 2, c - 1], [r + 2, c + 1], [r - 1, c - 2], [r - 1, c + 2],
-			[r + 1, c - 2], [r + 1, c + 2]].filter(([tr, tc]) => tr >= 1 && tr <= 10 && tc >= 1 && tc <= 9);
+			[r + 1, c - 2], [r + 1, c + 2]].filter(([tr, tc]) => tr >= 1 && tr <= 10 && tc >= 1 && tc <= 9)
+		.map(([tr, tc]) => new XiangqiPosition(tr, tc));
 	}
 }
 
 class XiangMove extends Move {
 	getPotentialPositions() {
-		const {r, c} = this.unit;
+		const {r, c} = this.unit.position;
 		return [[r - 2, c - 2], [r - 2, c + 2], [r + 2, c - 2], [r + 2, c + 2]].filter(
-			([tr, tc]) => tr >= 1 && tr <= 10 && tc >= 1 && tc <= 9);
+			([tr, tc]) => tr >= 1 && tr <= 10 && tc >= 1 && tc <= 9).map(([tr, tc]) => new XiangqiPosition(tr, tc));
 	}
 }
 
 class ShiMove extends Move {
 	getPotentialPositions() {
-		const {r, c} = this.unit;
+		const {r, c} = this.unit.position;
 		return [[r - 1, c - 1], [r - 1, c + 1], [r + 1, c - 1], [r + 1, c + 1]].filter(
-			([tr, tc]) => tr >= 1 && tr <= 10 && tc >= 1 && tc <= 9);
+			([tr, tc]) => tr >= 1 && tr <= 10 && tc >= 1 && tc <= 9).map(([tr, tc]) => new XiangqiPosition(tr, tc));
 	}
 }
 
 class JiangMove extends Move {
 	getPotentialPositions() {
-		const {r, c} = this.unit;
+		const {r, c} = this.unit.position;
 		return [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]].filter(
-			([tr, tc]) => tr >= 1 && tr <= 10 && tc >= 1 && tc <= 9);
+			([tr, tc]) => tr >= 1 && tr <= 10 && tc >= 1 && tc <= 9).map(([tr, tc]) => new XiangqiPosition(tr, tc));
 	}
 }
 
 class BingMove extends Move {
 	getPotentialPositions() {
-		const {r, c, player} = this.unit;
+		const {r, c} = this.unit.position;
+		const player = this.unit.player;
 		const f = player.team.id === 1 ? -1 : 1;
 		const river = (player.team.id === 1 && r <= 5) || (player.team.id === 2 && r >= 6);
-		const m = [[r + f, c]];
+		const m = [new XiangqiPosition(r + f, c)];
 		if (river) {
-			m.push([r, c - 1], [r, c + 1]);
+			m.push(new XiangqiPosition(r, c - 1));
+			m.push(new XiangqiPosition(r, c + 1));
 		}
-		return m.filter(([tr, tc]) => tr >= 1 && tr <= 10 && tc >= 1 && tc <= 9);
+		return m.filter(pos => pos.r >= 1 && pos.r <= 10 && pos.c >= 1 && pos.c <= 9);
 	}
 }
 
 class Che extends XiangqiUnit {
-	constructor(p, l, r, c) {
-		super(p, l, r, c);
+	constructor(p, l, pos) {
+		super(p, l, pos);
 	}
 
 	initSkills() {
@@ -342,8 +430,8 @@ class Che extends XiangqiUnit {
 }
 
 class Pao extends XiangqiUnit {
-	constructor(p, l, r, c) {
-		super(p, l, r, c);
+	constructor(p, l, pos) {
+		super(p, l, pos);
 	}
 
 	initSkills() {
@@ -352,8 +440,8 @@ class Pao extends XiangqiUnit {
 }
 
 class Ma extends XiangqiUnit {
-	constructor(p, l, r, c) {
-		super(p, l, r, c);
+	constructor(p, l, pos) {
+		super(p, l, pos);
 	}
 
 	initSkills() {
@@ -362,8 +450,8 @@ class Ma extends XiangqiUnit {
 }
 
 class Xiang extends XiangqiUnit {
-	constructor(p, l, r, c) {
-		super(p, l, r, c);
+	constructor(p, l, pos) {
+		super(p, l, pos);
 	}
 
 	initSkills() {
@@ -372,8 +460,8 @@ class Xiang extends XiangqiUnit {
 }
 
 class Shi extends XiangqiUnit {
-	constructor(p, l, r, c) {
-		super(p, l, r, c);
+	constructor(p, l, pos) {
+		super(p, l, pos);
 	}
 
 	initSkills() {
@@ -382,8 +470,8 @@ class Shi extends XiangqiUnit {
 }
 
 class Jiang extends XiangqiUnit {
-	constructor(p, l, r, c) {
-		super(p, l, r, c);
+	constructor(p, l, pos) {
+		super(p, l, pos);
 	}
 
 	initSkills() {
@@ -392,8 +480,8 @@ class Jiang extends XiangqiUnit {
 }
 
 class Bing extends XiangqiUnit {
-	constructor(p, l, r, c) {
-		super(p, l, r, c);
+	constructor(p, l, pos) {
+		super(p, l, pos);
 	}
 
 	initSkills() {

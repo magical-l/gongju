@@ -215,7 +215,6 @@
 <main>
 	<article class="game-wrapper , 反叵字形 grid" v-cloak>
 		<article class="chess board , grid">
-			<!-- ... (棋盘渲染代码) ... -->
 			<template v-for="r in 10">
 				<div class="cell" v-for="c in 9" :class="cellClasses(r,c)" @click="clickCell(r, c)">
 					<div class="texture container">
@@ -281,7 +280,7 @@
 				if (!this.isGameOver || !this.game.winner) {
 					return '';
 				}
-				return this.game.winner.name; // 显示获胜势力的名字，如‘红方’
+				return this.game.winner.name;
 			},
 			currentPlayerTurn() {
 				return this.game?.curRound?.curPlayerTurn;
@@ -300,19 +299,13 @@
 			launchGame() {
 				const launcher = new GameLauncher();
 				this.game = reactive(launcher.launch());
-				this.game.start();
-
 				this.game.eventBus.on('game:check', () => {
 					this.showCheck = true;
 					setTimeout(() => {
 						this.showCheck = false;
 					}, 1000);
 				});
-
-				// 强制UI更新
-				this.game.eventBus.on('unit:after-move', () => this.updateCounter++);
-				this.game.eventBus.on('unit:selected', () => this.updateCounter++);
-				this.game.eventBus.on('unit:deselected', () => this.updateCounter++);
+				this.game.start();
 			},
 			restartGame() {
 				this.showCheck = false;
@@ -338,7 +331,7 @@
 				return rt;
 			},
 			getUnitsAt(r, c) {
-				return this.game?.getUnitsAt(r, c) || [];
+				return this.game?.getUnitsAt(new XiangqiPosition(r, c)) || [];
 			},
 			getUnitClasses(unit) {
 				if (!unit) {
@@ -354,10 +347,11 @@
 				if (!this.game || this.isGameOver) {
 					return;
 				}
-				this.game.eventBus.emit('player:input', {r, c});
+				this.game.eventBus.emit('player:input', {position: new XiangqiPosition(r, c)});
 			},
 			isValidMove(r, c) {
-				return this.validMoves.some(move => move[0] === r && move[1] === c);
+				const targetPos = new XiangqiPosition(r, c);
+				return this.validMoves.some(pos => pos.isEqualTo(targetPos));
 			}
 		}
 	});

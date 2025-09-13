@@ -1,3 +1,9 @@
+/**
+ * ====================================
+ * 通用回合制游戏框架 (Turn-based Game Framework)
+ * ====================================
+ */
+
 class EventBus {
 	constructor() {
 		this.listeners = {};
@@ -74,8 +80,8 @@ class Game {
 		throw new Error("registerGameRules() must be implemented by subclass");
 	}
 
-	getUnitsAt(r, c) {
-		return this.map.getUnitsAt(r, c);
+	getUnitsAt(position) {
+		return this.map.getUnitsAt(position);
 	}
 
 	removeUnitFromGame(unit) {
@@ -104,10 +110,17 @@ class Round {
 			if (this.game.isGameOver) {
 				break;
 			}
+
 			const playerTurn = new PlayerTurn(player, this.game);
 			this.playerTurns.push(playerTurn);
 			this.curPlayerTurn = playerTurn;
-			await this.curPlayerTurn.execute();
+
+			const inputHandler = context => player.handleInput(context.position);
+			this.game.eventBus.on('player:input', inputHandler);
+
+			await playerTurn.execute();
+
+			this.game.eventBus.off('player:input', inputHandler);
 		}
 		this.game.eventBus.emit('round:ended', {game: this.game, round: this});
 	}
@@ -124,12 +137,7 @@ class PlayerTurn {
 	execute() {
 		return new Promise(resolve => {
 			this.game.eventBus.emit('player-turn:starting', {game: this.game, action: this});
-
-			const inputHandler = this.player.handleInput.bind(this.player);
-			this.game.eventBus.on('player:input', inputHandler);
-
 			const onMoved = () => {
-				this.game.eventBus.off('player:input', inputHandler);
 				this.game.eventBus.off('unit:after-move', onMoved);
 				this.end();
 				resolve();
@@ -160,16 +168,15 @@ class Player {
 		this.game = null;
 	}
 
-	handleInput({r, c}) {
+	handleInput(position) {
 		const game = this.game;
 		const curTurn = game.curRound.curPlayerTurn;
 
-		// 检查是否是当前玩家在行动
 		if (curTurn.player.id !== this.id) {
 			return;
 		}
 
-		const unitsAtPosition = [...game.map.getUnitsAt(r, c)];
+		const unitsAtPosition = [...game.map.getUnitsAt(position)];
 
 		if (curTurn.selectedUnit) {
 			const targetUnit = unitsAtPosition[0];
@@ -178,7 +185,7 @@ class Player {
 				game.eventBus.emit('unit:selected', {game: game, action: curTurn});
 				return;
 			}
-			const isPositionValid = curTurn.validPositions.some(pos => pos[0] === r && pos[1] === c);
+			const isPositionValid = curTurn.validPositions.some(pos => pos.isEqualTo(position));
 			if (!isPositionValid) {
 				curTurn.selectedUnit = null;
 				curTurn.validPositions = [];
@@ -187,7 +194,7 @@ class Player {
 			}
 
 			const movedUnit = curTurn.selectedUnit;
-			game.map.moveUnit(movedUnit, r, c);
+			game.map.moveUnit(movedUnit, position);
 			game.eventBus.emit('map:updated', game.map);
 			game.eventBus.emit('unit:after-move', {game: game, unit: movedUnit, captured: unitsAtPosition});
 		} else {
@@ -200,52 +207,59 @@ class Player {
 	}
 }
 
+class Position {
+	toString() {
+		throw new Error("toString() must be implemented by subclass for use as a Map key.");
+	}
+
+	isEqualTo(otherPosition) {
+		return this.toString() === otherPosition.toString();
+	}
+}
+
 class GameMap {
-	constructor(rows, cols) {
-		this.rows = rows;
-		this.cols = cols;
-		this.grid = Array(rows).fill(null).map(() => Array(cols).fill(null).map(() => []));
+	constructor() {
+		this.units = new Map(); // 使用Map来存储单位，key为Position的字符串，value为Unit数组
 	}
 
-	getUnitsAt(r, c) {
-		if (r < 1 || r > this.rows || c < 1 || c > this.cols) {
-			return [];
-		}
-		return this.grid[r - 1][c - 1];
+	getUnitsAt(position) {
+		return this.units.get(position.toString()) || [];
 	}
 
-	addUnit(unit, r, c) {
-		if (r < 1 || r > this.rows || c < 1 || c > this.cols) {
-			return;
+	addUnit(unit, position) {
+		const posKey = position.toString();
+		if (!this.units.has(posKey)) {
+			this.units.set(posKey, []);
 		}
-		unit.r = r;
-		unit.c = c;
-		this.grid[r - 1][c - 1].push(unit);
+		this.units.get(posKey).push(unit);
+		unit.position = position;
 	}
 
 	removeUnit(unit) {
-		if (!unit || !unit.r) {
+		if (!unit || !unit.position) {
 			return;
 		}
-		const units = this.getUnitsAt(unit.r, unit.c);
-		const index = units.findIndex(u => u.id === unit.id);
-		if (index > -1) {
-			units.splice(index, 1);
+		const posKey = unit.position.toString();
+		const unitsAtPos = this.units.get(posKey);
+		if (unitsAtPos) {
+			const index = unitsAtPos.findIndex(u => u.id === unit.id);
+			if (index > -1) {
+				unitsAtPos.splice(index, 1);
+			}
 		}
 	}
 
-	moveUnit(unit, r, c) {
+	moveUnit(unit, newPosition) {
 		this.removeUnit(unit);
-		this.addUnit(unit, r, c);
+		this.addUnit(unit, newPosition);
 	}
 }
 
 class Unit {
-	constructor(player, label, r, c) {
+	constructor(player, label, position) {
 		this.player = player;
 		this.label = label;
-		this.r = r;
-		this.c = c;
+		this.position = position;
 		this.skills = [];
 		this.id = `u_${player.id}_${label}_${Date.now()}_${Math.random()}`;
 		this.initSkills();
@@ -259,9 +273,8 @@ class Unit {
 		return this.skills.find(s => s instanceof skillClass);
 	}
 
-	moveTo(r, c) {
-		this.r = r;
-		this.c = c;
+	moveTo(newPosition) {
+		this.position = newPosition;
 	}
 
 	get cssClass() {
