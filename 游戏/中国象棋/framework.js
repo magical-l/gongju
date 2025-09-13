@@ -1,9 +1,3 @@
-/**
- * ====================================
- * 通用回合制游戏框架 (Turn-based Game Framework)
- * ====================================
- */
-
 class EventBus {
 	constructor() {
 		this.listeners = {};
@@ -214,6 +208,18 @@ class Position {
 
 	isEqualTo(otherPosition) {
 		return this.toString() === otherPosition.toString();
+	}
+}
+
+class 棋盘点位 extends Position {
+	constructor(r, c) {
+		super();
+		this.r = r;
+		this.c = c;
+	}
+
+	toString() {
+		return `${this.r},${this.c}`;
 	}
 }
 

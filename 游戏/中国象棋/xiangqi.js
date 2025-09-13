@@ -1,26 +1,7 @@
-/**
- * ====================================
- * 中国象棋 (Xiangqi) - 游戏实现
- * ====================================
- */
-
 const 红方 = new Team(1, '红方');
 const 黑方 = new Team(2, '黑方');
 
-// 具体的二维坐标实现
-class XiangqiPosition extends Position {
-	constructor(r, c) {
-		super();
-		this.r = r;
-		this.c = c;
-	}
-
-	toString() {
-		return `${this.r},${this.c}`;
-	}
-}
-
-class XiangqiGame extends Game {
+class 象棋 extends Game {
 	createMap(config) {
 		return new GameMap();
 	}
@@ -31,7 +12,7 @@ class XiangqiGame extends Game {
 			const playerInstance = this.players.find(p => p.id === player);
 			if (playerInstance) {
 				const unitDef = UNIT_DEFINITIONS[unit];
-				const position = new XiangqiPosition(r, c);
+				const position = new 棋盘点位(r, c);
 				const newUnit = new unitDef.constructor(playerInstance, unitDef.label, position);
 				this.map.addUnit(newUnit, position);
 				this.units.push(newUnit);
@@ -75,14 +56,14 @@ class XiangqiGame extends Game {
 				} else {
 					return true;
 				}
-				return this.getUnitsAt(new XiangqiPosition(legR, legC)).length === 0;
+				return this.getUnitsAt(new 棋盘点位(legR, legC)).length === 0;
 			});
 		}
 
 		if (unit instanceof Xiang) {
 			potentialPositions = potentialPositions.filter(pos => {
 				const eyeR = (unit.position.r + pos.r) / 2, eyeC = (unit.position.c + pos.c) / 2;
-				return this.getUnitsAt(new XiangqiPosition(eyeR, eyeC)).length === 0;
+				return this.getUnitsAt(new 棋盘点位(eyeR, eyeC)).length === 0;
 			});
 		}
 
@@ -98,7 +79,7 @@ class XiangqiGame extends Game {
 		}
 		if (unit instanceof Xiang) {
 			potentialPositions = potentialPositions.filter(
-				pos => !((unit.player.team.id === 1 && pos.r < 6) || (unit.player.team.id === 2 && pos.r > 5)));
+				pos => !(unit.player.team.id === 1 && pos.r < 6 || unit.player.team.id === 2 && pos.r > 5));
 		}
 
 		if (unit instanceof Pao || unit instanceof Che) {
@@ -109,7 +90,7 @@ class XiangqiGame extends Game {
 					stepC = distance === 0 ? 0 : (pos.c - startC) / distance;
 				let screens = 0;
 				for (let i = 1; i < distance; i++) {
-					if (this.getUnitsAt(new XiangqiPosition(startR + i * stepR, startC + i * stepC)).length > 0) {
+					if (this.getUnitsAt(new 棋盘点位(startR + i * stepR, startC + i * stepC)).length > 0) {
 						screens++;
 					}
 				}
@@ -118,8 +99,8 @@ class XiangqiGame extends Game {
 					return screens === 0;
 				}
 				if (unit instanceof Pao) {
-					return (targetUnits.length > 0 && screens === 1) || (targetUnits.length === 0
-																															 && screens === 0);
+					return targetUnits.length > 0 && screens === 1 || targetUnits.length === 0
+								 && screens === 0;
 				}
 				return false;
 			});
@@ -158,7 +139,7 @@ class GameLauncher {
 			players: players,
 			setup: parseMapSetup(VISUAL_MAP_LAYOUT)
 		};
-		const game = new XiangqiGame(config, new EventBus());
+		const game = new 象棋(config, new EventBus());
 		players.forEach(p => p.game = game);
 		return game;
 	}
@@ -188,23 +169,21 @@ class MoveRule {
 
 class CaptureRule {
 	constructor(game) {
-		this.game = game;
-		this.game.eventBus.on('unit:after-move', this.onAfterMove.bind(this));
+		game.eventBus.on('unit:after-move', this.onAfterMove.bind(this));
 	}
 
 	onAfterMove({game, captured}) {
 		const capturedUnit = captured[0];
 		if (capturedUnit) {
 			game.removeUnitFromGame(capturedUnit);
-			this.game.eventBus.emit('unit:captured', {game, captured: capturedUnit});
+			game.eventBus.emit('unit:captured', {game, captured: capturedUnit});
 		}
 	}
 }
 
 class GameOverRule {
 	constructor(game) {
-		this.game = game;
-		this.game.eventBus.on('unit:captured', this.onUnitCaptured.bind(this));
+		game.eventBus.on('unit:captured', this.onUnitCaptured.bind(this));
 	}
 
 	onUnitCaptured({game, captured}) {
@@ -218,8 +197,7 @@ class GameOverRule {
 
 class CheckManager {
 	constructor(game) {
-		this.game = game;
-		this.game.eventBus.on('player-turn:starting', this.onPlayerTurnStart.bind(this));
+		game.eventBus.on('player-turn:starting', this.onPlayerTurnStart.bind(this));
 	}
 
 	onPlayerTurnStart({game, action}) {
@@ -260,13 +238,13 @@ function registerFilterRules(game) {
 				} else {
 					return true;
 				}
-				return game.getUnitsAt(new XiangqiPosition(legR, legC)).length === 0;
+				return game.getUnitsAt(new 棋盘点位(legR, legC)).length === 0;
 			});
 		}
 		if (unit instanceof Xiang) {
 			context.potentialPositions = potentialPositions.filter(pos => {
 				const eyeR = (unit.position.r + pos.r) / 2, eyeC = (unit.position.c + pos.c) / 2;
-				return game.getUnitsAt(new XiangqiPosition(eyeR, eyeC)).length === 0;
+				return game.getUnitsAt(new 棋盘点位(eyeR, eyeC)).length === 0;
 			});
 		}
 		if (unit instanceof Jiang || unit instanceof Shi) {
@@ -281,7 +259,7 @@ function registerFilterRules(game) {
 		}
 		if (unit instanceof Xiang) {
 			context.potentialPositions = potentialPositions.filter(
-				pos => !((unit.player.team.id === 1 && pos.r < 6) || (unit.player.team.id === 2 && pos.r > 5)));
+				pos => !(unit.player.team.id === 1 && pos.r < 6 || unit.player.team.id === 2 && pos.r > 5));
 		}
 	});
 
@@ -298,7 +276,7 @@ function registerFilterRules(game) {
 				stepC = distance === 0 ? 0 : (pos.c - startC) / distance;
 			let screens = 0;
 			for (let i = 1; i < distance; i++) {
-				if (game.getUnitsAt(new XiangqiPosition(startR + i * stepR, startC + i * stepC)).length > 0) {
+				if (game.getUnitsAt(new 棋盘点位(startR + i * stepR, startC + i * stepC)).length > 0) {
 					screens++;
 				}
 			}
@@ -307,45 +285,45 @@ function registerFilterRules(game) {
 				return screens === 0;
 			}
 			if (unit instanceof Pao) {
-				return (targetUnits.length > 0 && screens === 1) || (targetUnits.length === 0 && screens
-																														 === 0);
+				return targetUnits.length > 0 && screens === 1 || targetUnits.length === 0 && screens
+							 === 0;
 			}
 			return false;
 		});
 	});
 
 	// 规则4：最终规则 - 不能“送将”或“应将”
-	eventBus.on('moveset:filter', context => {
-		const {game, unit, potentialPositions} = context;
-		const player = unit.player;
-		context.potentialPositions = potentialPositions.filter(pos => {
-			const originalPos = unit.position;
-			const targetUnits = game.getUnitsAt(pos);
-			const capturedUnit = targetUnits[0];
-
-			if (capturedUnit) {
-				game.removeUnitFromGame(capturedUnit);
-			}
-			game.map.moveUnit(unit, pos);
-
-			const isSelfInCheck = game.isKingInCheck(player);
-
-			game.map.moveUnit(unit, originalPos);
-			if (capturedUnit) {
-				game.units.push(capturedUnit);
-				game.map.addUnit(capturedUnit, pos);
-			}
-
-			return !isSelfInCheck;
-		});
-	});
+	// eventBus.on('moveset:filter', context => {
+	// 	const {game, unit, potentialPositions} = context;
+	// 	const player = unit.player;
+	// 	context.potentialPositions = potentialPositions.filter(pos => {
+	// 		const originalPos = unit.position;
+	// 		const targetUnits = game.getUnitsAt(pos);
+	// 		const capturedUnit = targetUnits[0];
+	//
+	// 		if (capturedUnit) {
+	// 			game.removeUnitFromGame(capturedUnit);
+	// 		}
+	// 		game.map.moveUnit(unit, pos);
+	//
+	// 		const isSelfInCheck = game.isKingInCheck(player);
+	//
+	// 		game.map.moveUnit(unit, originalPos);
+	// 		if (capturedUnit) {
+	// 			game.units.push(capturedUnit);
+	// 			game.map.addUnit(capturedUnit, pos);
+	// 		}
+	//
+	// 		return !isSelfInCheck;
+	// 	});
+	// });
 }
 
 // #endregion
 
 // #region ############# 象棋棋子和技能定义 #############
 
-class XiangqiUnit extends Unit {
+class 棋子 extends Unit {
 	get cssClass() {
 		return ['unit', this.player.team.id === 1 ? 'red' : 'black'];
 	}
@@ -356,12 +334,12 @@ class CheMove extends Move {
 		const m = [], {r, c} = this.unit.position;
 		for (let i = 1; i <= 10; i++) {
 			if (i !== r) {
-				m.push(new XiangqiPosition(i, c));
+				m.push(new 棋盘点位(i, c));
 			}
 		}
 		for (let i = 1; i <= 9; i++) {
 			if (i !== c) {
-				m.push(new XiangqiPosition(r, i));
+				m.push(new 棋盘点位(r, i));
 			}
 		}
 		return m;
@@ -374,17 +352,22 @@ class PaoMove extends CheMove {
 class MaMove extends Move {
 	getPotentialPositions() {
 		const {r, c} = this.unit.position;
-		return [[r - 2, c - 1], [r - 2, c + 1], [r + 2, c - 1], [r + 2, c + 1], [r - 1, c - 2], [r - 1, c + 2],
-			[r + 1, c - 2], [r + 1, c + 2]].filter(([tr, tc]) => tr >= 1 && tr <= 10 && tc >= 1 && tc <= 9)
-		.map(([tr, tc]) => new XiangqiPosition(tr, tc));
+		return [
+			[r - 2, c - 1], [r - 2, c + 1],
+			[r + 2, c - 1], [r + 2, c + 1],
+			[r - 1, c - 2], [r - 1, c + 2],
+			[r + 1, c - 2], [r + 1, c + 2]
+		].filter(([tr, tc]) => tr >= 1 && tr <= 10 && tc >= 1 && tc <= 9)
+		.map(([tr, tc]) => new 棋盘点位(tr, tc));
 	}
 }
 
 class XiangMove extends Move {
 	getPotentialPositions() {
 		const {r, c} = this.unit.position;
-		return [[r - 2, c - 2], [r - 2, c + 2], [r + 2, c - 2], [r + 2, c + 2]].filter(
-			([tr, tc]) => tr >= 1 && tr <= 10 && tc >= 1 && tc <= 9).map(([tr, tc]) => new XiangqiPosition(tr, tc));
+		return [[r - 2, c - 2], [r - 2, c + 2], [r + 2, c - 2], [r + 2, c + 2]]
+		.filter(
+			([tr, tc]) => tr >= 1 && tr <= 10 && tc >= 1 && tc <= 9).map(([tr, tc]) => new 棋盘点位(tr, tc));
 	}
 }
 
@@ -392,7 +375,7 @@ class ShiMove extends Move {
 	getPotentialPositions() {
 		const {r, c} = this.unit.position;
 		return [[r - 1, c - 1], [r - 1, c + 1], [r + 1, c - 1], [r + 1, c + 1]].filter(
-			([tr, tc]) => tr >= 1 && tr <= 10 && tc >= 1 && tc <= 9).map(([tr, tc]) => new XiangqiPosition(tr, tc));
+			([tr, tc]) => tr >= 1 && tr <= 10 && tc >= 1 && tc <= 9).map(([tr, tc]) => new 棋盘点位(tr, tc));
 	}
 }
 
@@ -400,7 +383,7 @@ class JiangMove extends Move {
 	getPotentialPositions() {
 		const {r, c} = this.unit.position;
 		return [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]].filter(
-			([tr, tc]) => tr >= 1 && tr <= 10 && tc >= 1 && tc <= 9).map(([tr, tc]) => new XiangqiPosition(tr, tc));
+			([tr, tc]) => tr >= 1 && tr <= 10 && tc >= 1 && tc <= 9).map(([tr, tc]) => new 棋盘点位(tr, tc));
 	}
 }
 
@@ -409,17 +392,17 @@ class BingMove extends Move {
 		const {r, c} = this.unit.position;
 		const player = this.unit.player;
 		const f = player.team.id === 1 ? -1 : 1;
-		const river = (player.team.id === 1 && r <= 5) || (player.team.id === 2 && r >= 6);
-		const m = [new XiangqiPosition(r + f, c)];
+		const river = player.team.id === 1 && r <= 5 || player.team.id === 2 && r >= 6;
+		const m = [new 棋盘点位(r + f, c)];
 		if (river) {
-			m.push(new XiangqiPosition(r, c - 1));
-			m.push(new XiangqiPosition(r, c + 1));
+			m.push(new 棋盘点位(r, c - 1));
+			m.push(new 棋盘点位(r, c + 1));
 		}
 		return m.filter(pos => pos.r >= 1 && pos.r <= 10 && pos.c >= 1 && pos.c <= 9);
 	}
 }
 
-class Che extends XiangqiUnit {
+class Che extends 棋子 {
 	constructor(p, l, pos) {
 		super(p, l, pos);
 	}
@@ -429,7 +412,7 @@ class Che extends XiangqiUnit {
 	}
 }
 
-class Pao extends XiangqiUnit {
+class Pao extends 棋子 {
 	constructor(p, l, pos) {
 		super(p, l, pos);
 	}
@@ -439,7 +422,7 @@ class Pao extends XiangqiUnit {
 	}
 }
 
-class Ma extends XiangqiUnit {
+class Ma extends 棋子 {
 	constructor(p, l, pos) {
 		super(p, l, pos);
 	}
@@ -449,7 +432,7 @@ class Ma extends XiangqiUnit {
 	}
 }
 
-class Xiang extends XiangqiUnit {
+class Xiang extends 棋子 {
 	constructor(p, l, pos) {
 		super(p, l, pos);
 	}
@@ -459,7 +442,7 @@ class Xiang extends XiangqiUnit {
 	}
 }
 
-class Shi extends XiangqiUnit {
+class Shi extends 棋子 {
 	constructor(p, l, pos) {
 		super(p, l, pos);
 	}
@@ -469,7 +452,7 @@ class Shi extends XiangqiUnit {
 	}
 }
 
-class Jiang extends XiangqiUnit {
+class Jiang extends 棋子 {
 	constructor(p, l, pos) {
 		super(p, l, pos);
 	}
@@ -479,7 +462,7 @@ class Jiang extends XiangqiUnit {
 	}
 }
 
-class Bing extends XiangqiUnit {
+class Bing extends 棋子 {
 	constructor(p, l, pos) {
 		super(p, l, pos);
 	}

@@ -236,7 +236,7 @@
 		</article>
 
 		<!-- 提示覆盖层 -->
-		<div class="game-overlay" v-if="showCheck || isGameOver" :class="{ 'game-over': isGameOver }">
+		<div class="game-overlay" v-if="showCheck || isGameOver" :class="{ 'game-over': isGameOver }" v-cloak>
 			<div class="overlay-content">
 				<div class="check-text" v-if="showCheck">将</div>
 				<div class="game-over-text" v-if="isGameOver">
@@ -246,7 +246,6 @@
 				</div>
 			</div>
 		</div>
-
 	</article>
 </main>
 
@@ -301,9 +300,7 @@
 				this.game = reactive(launcher.launch());
 				this.game.eventBus.on('game:check', () => {
 					this.showCheck = true;
-					setTimeout(() => {
-						this.showCheck = false;
-					}, 1000);
+					setTimeout(() => this.showCheck = false, 1000);
 				});
 				this.game.start();
 			},
@@ -331,7 +328,7 @@
 				return rt;
 			},
 			getUnitsAt(r, c) {
-				return this.game?.getUnitsAt(new XiangqiPosition(r, c)) || [];
+				return this.game?.getUnitsAt(new 棋盘点位(r, c)) || [];
 			},
 			getUnitClasses(unit) {
 				if (!unit) {
@@ -347,10 +344,10 @@
 				if (!this.game || this.isGameOver) {
 					return;
 				}
-				this.game.eventBus.emit('player:input', {position: new XiangqiPosition(r, c)});
+				this.game.eventBus.emit('player:input', {position: new 棋盘点位(r, c)});
 			},
 			isValidMove(r, c) {
-				const targetPos = new XiangqiPosition(r, c);
+				const targetPos = new 棋盘点位(r, c);
 				return this.validMoves.some(pos => pos.isEqualTo(targetPos));
 			}
 		}
