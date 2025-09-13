@@ -37,7 +37,7 @@ class EventBus {
 }
 
 class Game {
-	constructor(config, eventBus) {
+		constructor(config, eventBus) {
 		this.eventBus = eventBus;
 		this.players = config.players || [];
 		this.map = this.createMap(config);

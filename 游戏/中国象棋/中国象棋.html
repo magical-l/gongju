@@ -118,7 +118,7 @@
 		/* 单位样式 */
 		.unit {
 			position: relative;
-			z-index: 10; /* 确保单位在棋盘线之上 */
+			z-index: 10;
 			width: 90%;
 			height: 90%;
 			border-radius: 50%;
@@ -129,8 +129,6 @@
 			font-size: calc(var(--min-cell-len) * 0.7);
 			cursor: pointer;
 			box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-
-			/* 黑方默认样式 */
 			background-color: #f0f0f0;
 			border: 1px solid #888;
 			color: black;
@@ -139,11 +137,10 @@
 		.unit.red {
 			background-color: #fdd;
 			border-color: #d43d3d;
-			color: red; /* 明确指定红色 */
+			color: red;
 		}
 
 		.unit.selected {
-			/* 选中效果：一个不透明的蓝色轮廓 */
 			outline: 3px solid #007bff;
 		}
 
@@ -155,12 +152,70 @@
 			background-color: rgba(40, 167, 69, 0.5);
 			border-radius: 50%;
 		}
+
+		/* 游戏提示覆盖层 */
+		.game-overlay {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			/* background-color: rgba(0, 0, 0, 0.5); */ /* 按要求移除遮罩层背景 */
+			z-index: 100;
+			pointer-events: none; /* 将军动画不应阻挡操作 */
+		}
+
+		.game-overlay.game-over {
+			pointer-events: auto; /* 游戏结束时，不允许操作棋盘 */
+		}
+
+		.overlay-content {
+			text-align: center;
+			color: white;
+		}
+
+		@keyframes check-animation {
+			0% { transform: scale(1); opacity: 1; }
+			50% { transform: scale(1.5); opacity: 0.7; }
+			100% { transform: scale(2); opacity: 0; }
+		}
+
+		.check-text {
+			font-size: 120px;
+			font-weight: bold;
+			color: #ffc107;
+			text-shadow: 0 0 15px red, 0 0 25px red;
+			animation: check-animation 1s ease-out;
+		}
+
+		.game-over-text {
+			font-size: 80px;
+			font-weight: bold;
+			color: #4caf50;
+			text-shadow: 0 0 10px white;
+		}
+
+		.winner-text {
+			font-size: 40px;
+			margin-top: 10px;
+		}
+
+		.overlay-content button {
+			margin-top: 30px;
+			padding: 10px 30px;
+			font-size: 20px;
+			cursor: pointer;
+		}
 	</style>
 </head>
 <body class="grid 反叵字形">
 <main>
 	<article class="game-wrapper , 反叵字形 grid" v-cloak>
 		<article class="chess board , grid">
+			<!-- ... (棋盘渲染代码) ... -->
 			<template v-for="r in 10">
 				<div class="cell" v-for="c in 9" :class="cellClasses(r,c)" @click="clickCell(r, c)">
 					<div class="texture container">
@@ -180,6 +235,19 @@
 				</div>
 			</template>
 		</article>
+
+		<!-- 提示覆盖层 -->
+		<div class="game-overlay" v-if="showCheck || isGameOver" :class="{ 'game-over': isGameOver }">
+			<div class="overlay-content">
+				<div class="check-text" v-if="showCheck">将</div>
+				<div class="game-over-text" v-if="isGameOver">
+					<div>游戏结束</div>
+					<div class="winner-text">{{ winnerName }} 胜利</div>
+					<el-button type="primary" size="large" @click="restartGame">新游戏</el-button>
+				</div>
+			</div>
+		</div>
+
 	</article>
 </main>
 
@@ -202,9 +270,17 @@
 			return {
 				game: null,
 				updateCounter: 0,
+				showCheck: false,
 			};
 		},
 		computed: {
+			isGameOver() {
+				return this.game?.isGameOver || false;
+			},
+			winnerName() {
+				if (!this.isGameOver) return '';
+				return this.game.winner.id === 1 ? '红方' : '黑方';
+			},
 			currentAction() {
 				return this.game?.curRound?.curPlayerAction;
 			},
@@ -216,25 +292,33 @@
 			}
 		},
 		mounted() {
-			const launcher = new GameLauncher();
-			this.game = reactive(launcher.launch());
-			this.game.eventBus.on('player:input', this.game.onPlayerInput.bind(this.game));
-			this.game.start();
-
-			this.game.eventBus.on('game:over', ({winner}) => {
-				ElementPlus.ElMessage({
-					message: `游戏结束! 玩家 ${winner.id} 胜利!`,
-					type: 'success',
-					duration: 5000
-				});
-			});
-
-			// 强制UI更新
-			this.game.eventBus.on('unit:after-move', () => this.updateCounter++);
-			this.game.eventBus.on('unit:selected', () => this.updateCounter++);
-			this.game.eventBus.on('unit:deselected', () => this.updateCounter++);
+			this.launchGame();
 		},
 		methods: {
+			launchGame(){
+				const launcher = new GameLauncher();
+				this.game = reactive(launcher.launch());
+				this.game.eventBus.on('player:input', this.game.onPlayerInput.bind(this.game));
+				this.game.start();
+
+				this.game.eventBus.on('game:check', () => {
+					this.showCheck = true;
+					setTimeout(() => { this.showCheck = false; }, 1000);
+				});
+
+				this.game.eventBus.on('game:over', ({winner}) => {
+					// ElMessage is good, but the overlay is better.
+				});
+
+				// 强制UI更新
+				this.game.eventBus.on('unit:after-move', () => this.updateCounter++);
+				this.game.eventBus.on('unit:selected', () => this.updateCounter++);
+				this.game.eventBus.on('unit:deselected', () => this.updateCounter++);
+			},
+			restartGame(){
+				this.showCheck = false;
+				this.launchGame();
+			},
 			cellClasses(r, c) {
 				const rt = [`row-` + r, `红` + ChineseNum.digitsFromArabic(10 - c) + `路`, `黑${c}路`];
 				if ((r === 3 || r === 8) && (c === 2 || c === 8)) rt.push('炮位');
@@ -258,7 +342,7 @@
 				return classes;
 			},
 			clickCell(r, c) {
-				if (!this.game || this.game.isGameOver || !this.currentAction) return;
+				if (!this.game || this.isGameOver || !this.currentAction) return;
 				this.currentAction.player.play(r, c);
 			},
 			isValidMove(r, c) {

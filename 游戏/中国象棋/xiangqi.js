@@ -26,7 +26,33 @@ class XiangqiGame extends Game {
 		new MoveRule(this);
 		new CaptureRule(this);
 		new GameOverRule(this);
+		new CheckManager(this); // 添加将军判断管理器
 		registerFilterRules(this);
+	}
+
+	isKingInCheck(player) {
+		const king = this.units.find(u => u instanceof Jiang && u.player === player);
+		if (!king) return false; // 王被吃了，游戏已结束
+
+		const opponents = this.units.filter(u => u.player !== player);
+		for (const opponentUnit of opponents) {
+			const moveSkill = opponentUnit.getSkill(Move);
+			if (!moveSkill) continue;
+
+			// "模拟"计算该棋子的所有合法走位
+			let potentialPositions = moveSkill.getPotentialPositions();
+			const context = {game: this, unit: opponentUnit, potentialPositions};
+			this.eventBus.emit('moveset:filter', context);
+			const validMoves = context.potentialPositions;
+
+			// 检查合法走位是否包含王的位置
+			if (validMoves.some(move => move[0] === king.r && move[1] === king.c)) {
+				console.log(`[将军!] ${player.id}号玩家的王被 ${opponentUnit.label} 将军了`);
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
 
@@ -90,6 +116,21 @@ class GameOverRule {
 		if (captured instanceof Jiang) {
 			game.isGameOver = true;
 			game.winner = game.curRound.curPlayerAction.player;
+		}
+	}
+}
+
+class CheckManager {
+	constructor(game) {
+		this.game = game;
+		// 轮到一方行动时，检查他是否被将军
+		this.game.eventBus.on('player-action:starting', this.onPlayerActionStart.bind(this));
+	}
+
+	onPlayerActionStart({game, action}) {
+		const player = action.player;
+		if (game.isKingInCheck(player)) {
+			game.eventBus.emit('game:check', {player});
 		}
 	}
 }
