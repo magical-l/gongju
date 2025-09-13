@@ -40,16 +40,16 @@ class Game {
 	constructor(config, eventBus) {
 		this.eventBus = eventBus;
 		this.players = config.players || [];
-		this.board = this.createBoard();
+		this.map = this.createMap(config);
 		this.units = [];
 		this.rounds = [];
 		this.curRound = null;
 		this.isGameOver = false;
 		this.winner = null;
+		this.selectedUnit = null;
 
-		// 模板方法：由子类实现具体逻辑
-		this.initUnits(config.boardSetup);
-		this.registerGameRules();
+		this.initUnits(config.setup);
+		this.registerGameRules(config);
 	}
 
 	async start() {
@@ -68,37 +68,33 @@ class Game {
 		return new Round(roundId, this);
 	}
 
-	// 模板方法，由子类实现
-	createBoard() {
-		throw new Error("createBoard() must be implemented by subclass");
+	createMap(config) {
+		throw new Error("createMap() must be implemented by subclass");
 	}
 
-	// 模板方法，由子类实现
 	initUnits(setup) {
 		throw new Error("initUnits() must be implemented by subclass");
 	}
 
-	// 模板方法，由子类实现
-	registerGameRules() {
+	registerGameRules(config) {
 		throw new Error("registerGameRules() must be implemented by subclass");
 	}
 
 	onPlayerInput({r, c}) {
 		const curAction = this.curRound.curPlayerAction;
-		if (this.isGameOver || !curAction) {
-			return;
-		}
+		if (this.isGameOver || !curAction) return;
 
-		const unitAtPosition = this.getUnitAt(r, c);
+		const unitsAtPosition = [...this.map.getUnitsAt(r, c)]; // 创建一个浅拷贝，防止引用污染
 		const curPlayer = curAction.player;
 
 		if (curAction.selectedUnit) {
-			if (unitAtPosition && unitAtPosition.player === curPlayer) {
-				curAction.selectedUnit = unitAtPosition;
+			const targetUnit = unitsAtPosition[0];
+			if (targetUnit && targetUnit.player === curPlayer) {
+				curAction.selectedUnit = targetUnit;
 				this.eventBus.emit('unit:selected', {game: this, action: curAction});
 				return;
 			}
-			const isPositionValid = curAction.validPositions.some(position => position[0] === r && position[1] === c);
+			const isPositionValid = curAction.validPositions.some(pos => pos[0] === r && pos[1] === c);
 			if (!isPositionValid) {
 				curAction.selectedUnit = null;
 				curAction.validPositions = [];
@@ -106,37 +102,26 @@ class Game {
 				return;
 			}
 
-			const from = {r: curAction.selectedUnit.r, c: curAction.selectedUnit.c};
-			const targetUnit = this.getUnitAt(r, c);
 			const movedUnit = curAction.selectedUnit;
-
-			const newBoard = this.board.map(row => [...row]);
-			movedUnit.moveTo(r, c);
-			newBoard[from.r - 1][from.c - 1] = null;
-			newBoard[r - 1][c - 1] = movedUnit;
-			this.board = newBoard;
-
-			this.eventBus.emit('board:updated', this.board);
-			this.eventBus.emit('unit:after-move', {game: this, unit: movedUnit, captured: targetUnit});
+			this.map.moveUnit(movedUnit, r, c);
+			this.eventBus.emit('map:updated', this.map);
+			this.eventBus.emit('unit:after-move', {game: this, unit: movedUnit, captured: unitsAtPosition});
 		} else {
-			if (unitAtPosition && unitAtPosition.player === curPlayer) {
-				curAction.selectedUnit = unitAtPosition;
+			const targetUnit = unitsAtPosition[0];
+			if (targetUnit && targetUnit.player === curPlayer) {
+				curAction.selectedUnit = targetUnit;
 				this.eventBus.emit('unit:selected', {game: this, action: curAction});
 			}
 		}
 	}
 
-	getUnitAt(r, c) {
-		if (r < 1 || r > this.board.length || c < 1 || c > this.board[0].length) {
-			return null;
-		}
-		return this.board[r - 1][c - 1];
+	getUnitsAt(r, c) {
+		return this.map.getUnitsAt(r, c);
 	}
 
-	removeUnitFromList(unit) {
-		if (!unit) {
-			return;
-		}
+	removeUnitFromGame(unit) {
+		if (!unit) return;
+		this.map.removeUnit(unit);
 		const index = this.units.findIndex(u => u.id === unit.id);
 		if (index > -1) {
 			this.units.splice(index, 1);
@@ -155,9 +140,7 @@ class Round {
 	async start() {
 		this.game.eventBus.emit('round:starting', {game: this.game, round: this});
 		for (const player of this.game.players) {
-			if (this.game.isGameOver) {
-				break;
-			}
+			if (this.game.isGameOver) break;
 			const playerAction = new PlayerAction(player, this.game);
 			this.playerActions.push(playerAction);
 			this.curPlayerAction = playerAction;
@@ -197,7 +180,7 @@ class PlayerAction {
 class Player {
 	constructor(id) {
 		this.id = id;
-		this.game = null; // 由 Game 类在构造时注入
+		this.game = null;
 	}
 
 	play(r, c) {
@@ -210,6 +193,40 @@ class Player {
 	}
 }
 
+class GameMap {
+	constructor(rows, cols) {
+		this.rows = rows;
+		this.cols = cols;
+		this.grid = Array(rows).fill(null).map(() => Array(cols).fill(null).map(() => []));
+	}
+
+	getUnitsAt(r, c) {
+		if (r < 1 || r > this.rows || c < 1 || c > this.cols) return [];
+		return this.grid[r - 1][c - 1];
+	}
+
+	addUnit(unit, r, c) {
+		if (r < 1 || r > this.rows || c < 1 || c > this.cols) return;
+		unit.r = r;
+		unit.c = c;
+		this.grid[r - 1][c - 1].push(unit);
+	}
+
+	removeUnit(unit) {
+		if (!unit || !unit.r) return;
+		const units = this.getUnitsAt(unit.r, unit.c);
+		const index = units.findIndex(u => u.id === unit.id);
+		if (index > -1) {
+			units.splice(index, 1);
+		}
+	}
+
+	moveUnit(unit, r, c) {
+		this.removeUnit(unit);
+		this.addUnit(unit, r, c);
+	}
+}
+
 class Unit {
 	constructor(player, label, r, c) {
 		this.player = player;
@@ -217,7 +234,7 @@ class Unit {
 		this.r = r;
 		this.c = c;
 		this.skills = [];
-		this.id = `p${player.id}_${label}_${Date.now()}_${Math.random()}`;
+		this.id = `u_${player.id}_${label}_${Date.now()}_${Math.random()}`;
 		this.initSkills();
 	}
 
@@ -235,7 +252,7 @@ class Unit {
 	}
 
 	get cssClass() {
-		return ['piece', `player-${this.player.id}`];
+		return ['unit', `player-${this.player.id}`];
 	}
 }
 

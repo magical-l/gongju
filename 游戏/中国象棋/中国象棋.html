@@ -1,161 +1,161 @@
 <!DOCTYPE html>
 <html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title itemprop="name">中国象棋 | 工具兽 - 在线玩经典的棋类游戏</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title itemprop="name">中国象棋 | 工具兽 - 在线玩经典的棋类游戏</title>
 
-<link href="../../lib/element-plus/2.10.7/index.css" rel="stylesheet">
-<link href="../../resources/el-plus.css" rel="stylesheet">
-<link href="../../resources/common.css?v=250821" rel="stylesheet">
-<link href="../../resources/layout.css?v=0821" rel="stylesheet">
-<link href="../../resources/biz.css?v=250821" rel="stylesheet">
-<link href="../../resources/花活.css?v=250821" rel="stylesheet">
-<style>
-	@font-face {
-		font-family: 'NotoSansSymbols2';
-		src: url('../../lib/fonts/NotoSansSymbols2-Regular.ttf') format('truetype');
-	}
+	<link href="../../lib/element-plus/2.10.7/index.css" rel="stylesheet">
+	<link href="../../resources/el-plus.css" rel="stylesheet">
+	<link href="../../resources/common.css?v=250821" rel="stylesheet">
+	<link href="../../resources/layout.css?v=0821" rel="stylesheet">
+	<link href="../../resources/biz.css?v=250821" rel="stylesheet">
+	<link href="../../resources/花活.css?v=250821" rel="stylesheet">
+	<style>
+		@font-face {
+			font-family: 'NotoSansSymbols2';
+			src: url('../../lib/fonts/NotoSansSymbols2-Regular.ttf') format('truetype');
+		}
 
-	.chess.board {
-		--min-cell-len: 60px;
-		--line-color: #333;
-		grid-template-rows: repeat(10, var(--min-cell-len));
-		grid-template-columns: repeat(9, var(--min-cell-len));
-		background-color: aliceblue;
-	}
+		.chess.board {
+			--min-cell-len: 60px;
+			--line-color: #333;
+			grid-template-rows: repeat(10, var(--min-cell-len));
+			grid-template-columns: repeat(9, var(--min-cell-len));
+			background-color: aliceblue;
+		}
 
-	.cell {
-		position: relative;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-	}
+		.cell {
+			position: relative;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
 
-	.cell .texture.container {
-		position: absolute;
-		width: 100%;
-		height: 100%;
-		z-index: 1;
-	}
+		.cell .texture.container {
+			position: absolute;
+			width: 100%;
+			height: 100%;
+			z-index: 1;
+		}
 
-	.cell .texture.part {
-		position: absolute;
-		width: 100%;
-		height: 100%;
-	}
+		.cell .texture.part {
+			position: absolute;
+			width: 100%;
+			height: 100%;
+		}
 
-	.cell .texture.part.left {
-		left: 0;
-	}
+		.cell .texture.part.left {
+			left: 0;
+		}
 
-	.cell .texture.part.right {
-		left: 50%;
-	}
+		.cell .texture.part.right {
+			left: 50%;
+		}
 
-	.cell .texture.part.top {
-		top: 0;
-	}
+		.cell .texture.part.top {
+			top: 0;
+		}
 
-	.cell .texture.part.bottom {
-		top: 50%;
-	}
+		.cell .texture.part.bottom {
+			top: 50%;
+		}
 
-	/* 普通格子的线 */
-	.cell .texture.part.left, .cell .texture.part.right {
-		width: 50%;
-		background: url('h-line.svg') center;
-	}
+		/* 普通格子的线 */
+		.cell .texture.part.left, .cell .texture.part.right {
+			width: 50%;
+			background: url('h-line.svg') center;
+		}
 
-	.cell .texture.part.top, .cell .texture.part.bottom {
-		height: 50%;
-		background: url('v-line.svg') center;
-	}
+		.cell .texture.part.top, .cell .texture.part.bottom {
+			height: 50%;
+			background: url('v-line.svg') center;
+		}
 
-	/* 炮位、兵卒位 */
-	.炮位.cell .texture.part.corner, .兵卒位:not(.红九路) .texture.part.corner, .兵卒位:not(.红一路) .texture.part.corner {
-		background: url('折线.svg');
-	}
+		/* 炮位、兵卒位 */
+		.炮位.cell .texture.part.corner, .兵卒位:not(.红九路) .texture.part.corner, .兵卒位:not(.红一路) .texture.part.corner {
+			background: url('折线.svg');
+		}
 
-	.cell .texture.part.corner, /* 边角 */
-	.row-1.cell .texture.part.top, /* 第一行上部 */
-	.row-10.cell .texture.part.bottom, /* 最后一行下部 */
-	.row-5.cell:not(.红九路):not(.红一路) .texture.part.bottom, /* 河上沿中段下部 */
-	.row-6.cell:not(.红九路):not(.红一路) .texture.part.top, /* 河下沿中段上部 */
-	.红九路.cell .texture.part.left, /* 最左列左部 */
-	.红一路.cell .texture.part.right /* 最右列右部 */ {
-		background: none;
-	}
+		.cell .texture.part.corner, /* 边角 */
+		.row-1.cell .texture.part.top, /* 第一行上部 */
+		.row-10.cell .texture.part.bottom, /* 最后一行下部 */
+		.row-5.cell:not(.红九路):not(.红一路) .texture.part.bottom, /* 河上沿中段下部 */
+		.row-6.cell:not(.红九路):not(.红一路) .texture.part.top, /* 河下沿中段上部 */
+		.红九路.cell .texture.part.left, /* 最左列左部 */
+		.红一路.cell .texture.part.right /* 最右列右部 */ {
+			background: none;
+		}
 
-	.炮位.cell .texture.part.right.top, .兵卒位.cell .texture.part.right.top {
-		rotate: 90deg;
-	}
+		.炮位.cell .texture.part.right.top, .兵卒位.cell .texture.part.right.top {
+			rotate: 90deg;
+		}
 
-	.炮位.cell .texture.part.right.bottom, .兵卒位.cell .texture.part.right.bottom {
-		rotate: 180deg;
-	}
+		.炮位.cell .texture.part.right.bottom, .兵卒位.cell .texture.part.right.bottom {
+			rotate: 180deg;
+		}
 
-	.炮位.cell .texture.part.left.bottom, .兵卒位.cell .texture.part.left.bottom {
-		rotate: 270deg;
-	}
+		.炮位.cell .texture.part.left.bottom, .兵卒位.cell .texture.part.left.bottom {
+			rotate: 270deg;
+		}
 
-	/* 九宫 左上-右下斜线 */
-	.row-1.红六路.cell .texture.part.right.bottom, .row-3.红四路.cell .texture.part.left.top,
-	.row-2.红五路.cell .texture.part.left.top, .row-2.红五路.cell .texture.part.right.bottom,
-	.row-8.红六路.cell .texture.part.right.bottom, .row-10.红四路.cell .texture.part.left.top,
-	.row-9.红五路.cell .texture.part.left.top, .row-9.红五路.cell .texture.part.right.bottom {
-		background: url('left-top-to-right-bottom.svg');
-	}
+		/* 九宫 左上-右下斜线 */
+		.row-1.红六路.cell .texture.part.right.bottom, .row-3.红四路.cell .texture.part.left.top,
+		.row-2.红五路.cell .texture.part.left.top, .row-2.红五路.cell .texture.part.right.bottom,
+		.row-8.红六路.cell .texture.part.right.bottom, .row-10.红四路.cell .texture.part.left.top,
+		.row-9.红五路.cell .texture.part.left.top, .row-9.红五路.cell .texture.part.right.bottom {
+			background: url('left-top-to-right-bottom.svg');
+		}
 
-	/* 九宫 右上-左下斜线 */
-	.row-1.红四路.cell .texture.part.left.bottom, .row-3.红六路.cell .texture.part.right.top,
-	.row-2.红五路.cell .texture.part.right.top, .row-2.红五路.cell .texture.part.left.bottom,
-	.row-8.红四路.cell .texture.part.left.bottom, .row-10.红六路.cell .texture.part.right.top,
-	.row-9.红五路.cell .texture.part.right.top, .row-9.红五路.cell .texture.part.left.bottom {
-		background: url('left-bottom-to-right-top.svg');
-	}
+		/* 九宫 右上-左下斜线 */
+		.row-1.红四路.cell .texture.part.left.bottom, .row-3.红六路.cell .texture.part.right.top,
+		.row-2.红五路.cell .texture.part.right.top, .row-2.红五路.cell .texture.part.left.bottom,
+		.row-8.红四路.cell .texture.part.left.bottom, .row-10.红六路.cell .texture.part.right.top,
+		.row-9.红五路.cell .texture.part.right.top, .row-9.红五路.cell .texture.part.left.bottom {
+			background: url('left-bottom-to-right-top.svg');
+		}
 
-	/* 棋子样式 */
-	.piece {
-		position: relative;
-		z-index: 10; /* 确保棋子在棋盘线之上 */
-		width: 90%;
-		height: 90%;
-		border-radius: 50%;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		font-family: 'NotoSansSymbols2', sans-serif;
-		font-size: calc(var(--min-cell-len) * 0.7);
-		cursor: pointer;
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+		/* 单位样式 */
+		.unit {
+			position: relative;
+			z-index: 10; /* 确保单位在棋盘线之上 */
+			width: 90%;
+			height: 90%;
+			border-radius: 50%;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			font-family: 'NotoSansSymbols2', sans-serif;
+			font-size: calc(var(--min-cell-len) * 0.7);
+			cursor: pointer;
+			box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 
-		/* 黑方默认样式 */
-		background-color: #f0f0f0;
-		border: 1px solid #888;
-		color: black;
-	}
+			/* 黑方默认样式 */
+			background-color: #f0f0f0;
+			border: 1px solid #888;
+			color: black;
+		}
 
-	.piece.red {
-		background-color: #fdd;
-		border-color: #d43d3d;
-		color: red; /* 明确指定红色 */
-	}
+		.unit.red {
+			background-color: #fdd;
+			border-color: #d43d3d;
+			color: red; /* 明确指定红色 */
+		}
 
-	.piece.selected {
-		/* 选中效果：一个不透明的蓝色轮廓 */
-		outline: 3px solid #007bff;
-	}
+		.unit.selected {
+			/* 选中效果：一个不透明的蓝色轮廓 */
+			outline: 3px solid #007bff;
+		}
 
-	.valid-move-indicator {
-		position: absolute;
-		z-index: 20;
-		width: 40%;
-		height: 40%;
-		background-color: rgba(40, 167, 69, 0.5);
-		border-radius: 50%;
-	}
-</style>
+		.valid-move-indicator {
+			position: absolute;
+			z-index: 20;
+			width: 40%;
+			height: 40%;
+			background-color: rgba(40, 167, 69, 0.5);
+			border-radius: 50%;
+		}
+	</style>
 </head>
 <body class="grid 反叵字形">
 <main>
@@ -173,8 +173,8 @@
 						<div class="texture part right bottom corner"></div>
 						<div class="texture part left bottom corner"></div>
 					</div>
-					<div v-if="getPieceAt(r,c)" :class="getPieceClasses(getPieceAt(r,c))">
-						{{ getPieceAt(r, c).label }}
+					<div v-for="unit in getUnitsAt(r,c)" :key="unit.id" :class="getUnitClasses(unit)">
+						{{ unit.label }}
 					</div>
 					<div v-if="isValidMove(r,c)" class="valid-move-indicator"></div>
 				</div>
@@ -200,38 +200,27 @@
 	const app = createApp({
 		data() {
 			return {
-				game: null, // 游戏逻辑核心，现在将成为响应式对象
-				updateCounter: 0, // 用于强制更新的虚拟计数器
+				game: null,
+				updateCounter: 0,
 			};
 		},
 		computed: {
-			// 计算属性，用于简化模板中的访问
-			curRound(){
-				return this.game?.curRound;
-			},
 			currentAction() {
-				console.log("[调试] Vue.computed: currentAction 正在重新计算");
 				return this.game?.curRound?.curPlayerAction;
 			},
 			selectedUnit() {
 				return this.currentAction?.selectedUnit;
 			},
 			validMoves() {
-				return this.currentAction?.validMoves || [];
+				return this.currentAction?.validPositions || [];
 			}
 		},
 		mounted() {
 			const launcher = new GameLauncher();
-			// 将整个game对象包裹在reactive中，使其所有属性都具有深度响应性
 			this.game = reactive(launcher.launch());
-
-			// 确保onPlayerInput方法绑定到响应式实例，以便Vue可以追踪状态变化
 			this.game.eventBus.on('player:input', this.game.onPlayerInput.bind(this.game));
-
-			// 启动游戏循环
 			this.game.start();
 
-			// game.eventBus现在是game对象的一部分，所以可以直接访问
 			this.game.eventBus.on('game:over', ({winner}) => {
 				ElementPlus.ElMessage({
 					message: `游戏结束! 玩家 ${winner.id} 胜利!`,
@@ -240,8 +229,7 @@
 				});
 			});
 
-			// 监视游戏内部事件，并在发生时通过更改一个虚拟data属性来强制Vue刷新UI
-			// 这是因为游戏引擎的内部状态修改目前没有通过Vue的响应式系统进行
+			// 强制UI更新
 			this.game.eventBus.on('unit:after-move', () => this.updateCounter++);
 			this.game.eventBus.on('unit:selected', () => this.updateCounter++);
 			this.game.eventBus.on('unit:deselected', () => this.updateCounter++);
@@ -258,15 +246,13 @@
 				}
 				return rt;
 			},
-			getPieceAt(r, c) {
-				// game对象已是响应式，可以直接从game.board读取
-				return this.game?.board[r - 1]?.[c - 1] || null;
+			getUnitsAt(r, c) {
+				return this.game?.getUnitsAt(r, c) || [];
 			},
-			getPieceClasses(piece) {
-				if (!piece) return [];
-				const classes = [...piece.cssClass];
-				// 使用计算属性 this.selectedUnit
-				if (this.selectedUnit && this.selectedUnit.id === piece.id) {
+			getUnitClasses(unit) {
+				if (!unit) return [];
+				const classes = [...unit.cssClass];
+				if (this.selectedUnit && this.selectedUnit.id === unit.id) {
 					classes.push('selected');
 				}
 				return classes;
@@ -276,7 +262,6 @@
 				this.currentAction.player.play(r, c);
 			},
 			isValidMove(r, c) {
-				// 使用计算属性 this.validMoves
 				return this.validMoves.some(move => move[0] === r && move[1] === c);
 			}
 		}
