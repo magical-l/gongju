@@ -1,215 +1,215 @@
 <!DOCTYPE html>
 <html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title itemprop="name">中国象棋 | 工具兽 - 在线玩经典的棋类游戏</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title itemprop="name">中国象棋 | 工具兽 - 在线玩经典的棋类游戏</title>
 
-	<link href="../../lib/element-plus/2.10.7/index.css" rel="stylesheet">
-	<link href="../../resources/el-plus.css" rel="stylesheet">
-	<link href="../../resources/common.css?v=250821" rel="stylesheet">
-	<link href="../../resources/layout.css?v=0821" rel="stylesheet">
-	<link href="../../resources/biz.css?v=250821" rel="stylesheet">
-	<link href="../../resources/花活.css?v=250821" rel="stylesheet">
-	<style>
-		@font-face {
-			font-family: 'NotoSansSymbols2';
-			src: url('../../lib/fonts/NotoSansSymbols2-Regular.ttf') format('truetype');
-		}
+<link href="../../lib/element-plus/2.10.7/index.css" rel="stylesheet">
+<link href="../../resources/el-plus.css" rel="stylesheet">
+<link href="../../resources/common.css?v=250821" rel="stylesheet">
+<link href="../../resources/layout.css?v=0821" rel="stylesheet">
+<link href="../../resources/biz.css?v=250821" rel="stylesheet">
+<link href="../../resources/花活.css?v=250821" rel="stylesheet">
+<style>
+	@font-face {
+		font-family: 'NotoSansSymbols2';
+		src: url('../../lib/fonts/NotoSansSymbols2-Regular.ttf') format('truetype');
+	}
 
-		.chess.board {
-			--min-cell-len: 60px;
-			--line-color: #333;
-			grid-template-rows: repeat(10, var(--min-cell-len));
-			grid-template-columns: repeat(9, var(--min-cell-len));
-			background-color: aliceblue;
-		}
+	.chess.board {
+		--min-cell-len: 60px;
+		--line-color: #333;
+		grid-template-rows: repeat(10, var(--min-cell-len));
+		grid-template-columns: repeat(9, var(--min-cell-len));
+		background-color: aliceblue;
+	}
 
-		.cell {
-			position: relative;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-		}
+	.cell {
+		position: relative;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
 
-		.cell .texture.container {
-			position: absolute;
-			width: 100%;
-			height: 100%;
-			z-index: 1;
-		}
+	.cell .texture.container {
+		position: absolute;
+		width: 100%;
+		height: 100%;
+		z-index: 1;
+	}
 
-		.cell .texture.part {
-			position: absolute;
-			width: 100%;
-			height: 100%;
-		}
+	.cell .texture.part {
+		position: absolute;
+		width: 100%;
+		height: 100%;
+	}
 
-		.cell .texture.part.left {
-			left: 0;
-		}
+	.cell .texture.part.left {
+		left: 0;
+	}
 
-		.cell .texture.part.right {
-			left: 50%;
-		}
+	.cell .texture.part.right {
+		left: 50%;
+	}
 
-		.cell .texture.part.top {
-			top: 0;
-		}
+	.cell .texture.part.top {
+		top: 0;
+	}
 
-		.cell .texture.part.bottom {
-			top: 50%;
-		}
+	.cell .texture.part.bottom {
+		top: 50%;
+	}
 
-		/* 普通格子的线 */
-		.cell .texture.part.left, .cell .texture.part.right {
-			width: 50%;
-			background: url('h-line.svg') center;
-		}
+	/* 普通格子的线 */
+	.cell .texture.part.left, .cell .texture.part.right {
+		width: 50%;
+		background: url('h-line.svg') center;
+	}
 
-		.cell .texture.part.top, .cell .texture.part.bottom {
-			height: 50%;
-			background: url('v-line.svg') center;
-		}
+	.cell .texture.part.top, .cell .texture.part.bottom {
+		height: 50%;
+		background: url('v-line.svg') center;
+	}
 
-		/* 炮位、兵卒位 */
-		.炮位.cell .texture.part.corner, .兵卒位:not(.红九路) .texture.part.corner, .兵卒位:not(.红一路) .texture.part.corner {
-			background: url('折线.svg');
-		}
+	/* 炮位、兵卒位 */
+	.炮位.cell .texture.part.corner, .兵卒位:not(.红九路) .texture.part.corner, .兵卒位:not(.红一路) .texture.part.corner {
+		background: url('折线.svg');
+	}
 
-		.cell .texture.part.corner, /* 边角 */
-		.row-1.cell .texture.part.top, /* 第一行上部 */
-		.row-10.cell .texture.part.bottom, /* 最后一行下部 */
-		.row-5.cell:not(.红九路):not(.红一路) .texture.part.bottom, /* 河上沿中段下部 */
-		.row-6.cell:not(.红九路):not(.红一路) .texture.part.top, /* 河下沿中段上部 */
-		.红九路.cell .texture.part.left, /* 最左列左部 */
-		.红一路.cell .texture.part.right /* 最右列右部 */ {
-			background: none;
-		}
+	.cell .texture.part.corner, /* 边角 */
+	.row-1.cell .texture.part.top, /* 第一行上部 */
+	.row-10.cell .texture.part.bottom, /* 最后一行下部 */
+	.row-5.cell:not(.红九路):not(.红一路) .texture.part.bottom, /* 河上沿中段下部 */
+	.row-6.cell:not(.红九路):not(.红一路) .texture.part.top, /* 河下沿中段上部 */
+	.红九路.cell .texture.part.left, /* 最左列左部 */
+	.红一路.cell .texture.part.right /* 最右列右部 */ {
+		background: none;
+	}
 
-		.炮位.cell .texture.part.right.top, .兵卒位.cell .texture.part.right.top {
-			rotate: 90deg;
-		}
+	.炮位.cell .texture.part.right.top, .兵卒位.cell .texture.part.right.top {
+		rotate: 90deg;
+	}
 
-		.炮位.cell .texture.part.right.bottom, .兵卒位.cell .texture.part.right.bottom {
-			rotate: 180deg;
-		}
+	.炮位.cell .texture.part.right.bottom, .兵卒位.cell .texture.part.right.bottom {
+		rotate: 180deg;
+	}
 
-		.炮位.cell .texture.part.left.bottom, .兵卒位.cell .texture.part.left.bottom {
-			rotate: 270deg;
-		}
+	.炮位.cell .texture.part.left.bottom, .兵卒位.cell .texture.part.left.bottom {
+		rotate: 270deg;
+	}
 
-		/* 九宫 左上-右下斜线 */
-		.row-1.红六路.cell .texture.part.right.bottom, .row-3.红四路.cell .texture.part.left.top,
-		.row-2.红五路.cell .texture.part.left.top, .row-2.红五路.cell .texture.part.right.bottom,
-		.row-8.红六路.cell .texture.part.right.bottom, .row-10.红四路.cell .texture.part.left.top,
-		.row-9.红五路.cell .texture.part.left.top, .row-9.红五路.cell .texture.part.right.bottom {
-			background: url('left-top-to-right-bottom.svg');
-		}
+	/* 九宫 左上-右下斜线 */
+	.row-1.红六路.cell .texture.part.right.bottom, .row-3.红四路.cell .texture.part.left.top,
+	.row-2.红五路.cell .texture.part.left.top, .row-2.红五路.cell .texture.part.right.bottom,
+	.row-8.红六路.cell .texture.part.right.bottom, .row-10.红四路.cell .texture.part.left.top,
+	.row-9.红五路.cell .texture.part.left.top, .row-9.红五路.cell .texture.part.right.bottom {
+		background: url('left-top-to-right-bottom.svg');
+	}
 
-		/* 九宫 右上-左下斜线 */
-		.row-1.红四路.cell .texture.part.left.bottom, .row-3.红六路.cell .texture.part.right.top,
-		.row-2.红五路.cell .texture.part.right.top, .row-2.红五路.cell .texture.part.left.bottom,
-		.row-8.红四路.cell .texture.part.left.bottom, .row-10.红六路.cell .texture.part.right.top,
-		.row-9.红五路.cell .texture.part.right.top, .row-9.红五路.cell .texture.part.left.bottom {
-			background: url('left-bottom-to-right-top.svg');
-		}
+	/* 九宫 右上-左下斜线 */
+	.row-1.红四路.cell .texture.part.left.bottom, .row-3.红六路.cell .texture.part.right.top,
+	.row-2.红五路.cell .texture.part.right.top, .row-2.红五路.cell .texture.part.left.bottom,
+	.row-8.红四路.cell .texture.part.left.bottom, .row-10.红六路.cell .texture.part.right.top,
+	.row-9.红五路.cell .texture.part.right.top, .row-9.红五路.cell .texture.part.left.bottom {
+		background: url('left-bottom-to-right-top.svg');
+	}
 
-		/* 单位样式 */
-		.unit {
-			position: relative;
-			z-index: 10;
-			width: 90%;
-			height: 90%;
-			border-radius: 50%;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			font-family: 'NotoSansSymbols2', sans-serif;
-			font-size: calc(var(--min-cell-len) * 0.7);
-			cursor: pointer;
-			box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-			background-color: #f0f0f0;
-			border: 1px solid #888;
-			color: black;
-		}
+	/* 单位样式 */
+	.unit {
+		position: relative;
+		z-index: 10;
+		width: 90%;
+		height: 90%;
+		border-radius: 50%;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		font-family: 'NotoSansSymbols2', sans-serif;
+		font-size: calc(var(--min-cell-len) * 0.7);
+		cursor: pointer;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+		background-color: #f0f0f0;
+		border: 1px solid #888;
+		color: black;
+	}
 
-		.unit.red {
-			background-color: #fdd;
-			border-color: #d43d3d;
-			color: red;
-		}
+	.unit.red {
+		background-color: #fdd;
+		border-color: #d43d3d;
+		color: red;
+	}
 
-		.unit.selected {
-			outline: 3px solid #007bff;
-		}
+	.unit.selected {
+		outline: 3px solid #007bff;
+	}
 
-		.valid-move-indicator {
-			position: absolute;
-			z-index: 20;
-			width: 40%;
-			height: 40%;
-			background-color: rgba(40, 167, 69, 0.5);
-			border-radius: 50%;
-		}
+	.valid-move-indicator {
+		position: absolute;
+		z-index: 20;
+		width: 40%;
+		height: 40%;
+		background-color: rgba(40, 167, 69, 0.5);
+		border-radius: 50%;
+	}
 
-		/* 游戏提示覆盖层 */
-		.game-overlay {
-			position: absolute;
-			top: 0;
-			left: 0;
-			width: 100%;
-			height: 100%;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			/* background-color: rgba(0, 0, 0, 0.5); */ /* 按要求移除遮罩层背景 */
-			z-index: 100;
-			pointer-events: none; /* 将军动画不应阻挡操作 */
-		}
+	/* 游戏提示覆盖层 */
+	.game-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		/* background-color: rgba(0, 0, 0, 0.5); */ /* 按要求移除遮罩层背景 */
+		z-index: 100;
+		pointer-events: none; /* 将军动画不应阻挡操作 */
+	}
 
-		.game-overlay.game-over {
-			pointer-events: auto; /* 游戏结束时，不允许操作棋盘 */
-		}
+	.game-overlay.game-over {
+		pointer-events: auto; /* 游戏结束时，不允许操作棋盘 */
+	}
 
-		.overlay-content {
-			text-align: center;
-			color: white;
-		}
+	.overlay-content {
+		text-align: center;
+		color: white;
+	}
 
-		@keyframes check-animation {
-			0% { transform: scale(1); opacity: 1; }
-			50% { transform: scale(1.5); opacity: 0.7; }
-			100% { transform: scale(2); opacity: 0; }
-		}
+	@keyframes check-animation {
+		0% { transform: scale(1); opacity: 1; }
+		50% { transform: scale(1.5); opacity: 0.7; }
+		100% { transform: scale(2); opacity: 0; }
+	}
 
-		.check-text {
-			font-size: 120px;
-			font-weight: bold;
-			color: #ffc107;
-			text-shadow: 0 0 15px red, 0 0 25px red;
-			animation: check-animation 1s ease-out;
-		}
+	.check-text {
+		font-size: 120px;
+		font-weight: bold;
+		color: #ffc107;
+		text-shadow: 0 0 15px red, 0 0 25px red;
+		animation: check-animation 1s ease-out;
+	}
 
-		.game-over-text {
-			font-size: 80px;
-			font-weight: bold;
-			color: #4caf50;
-			text-shadow: 0 0 10px white;
-		}
+	.game-over-text {
+		font-size: 80px;
+		font-weight: bold;
+		color: #4caf50;
+		text-shadow: 0 0 10px white;
+	}
 
-		.winner-text {
-			font-size: 40px;
-			margin-top: 10px;
-		}
+	.winner-text {
+		font-size: 40px;
+		margin-top: 10px;
+	}
 
-		.overlay-content button {
-			margin-top: 30px;
-			padding: 10px 30px;
-			font-size: 20px;
-			cursor: pointer;
-		}
-	</style>
+	.overlay-content button {
+		margin-top: 30px;
+		padding: 10px 30px;
+		font-size: 20px;
+		cursor: pointer;
+	}
+</style>
 </head>
 <body class="grid 反叵字形">
 <main>
@@ -270,7 +270,7 @@
 			return {
 				game: null,
 				updateCounter: 0,
-				showCheck: false,
+				showCheck: false
 			};
 		},
 		computed: {
@@ -278,36 +278,35 @@
 				return this.game?.isGameOver || false;
 			},
 			winnerName() {
-				if (!this.isGameOver) return '';
-				return this.game.winner.id === 1 ? '红方' : '黑方';
+				if (!this.isGameOver || !this.game.winner) {
+					return '';
+				}
+				return this.game.winner.name; // 显示获胜势力的名字，如‘红方’
 			},
-			currentAction() {
-				return this.game?.curRound?.curPlayerAction;
+			currentPlayerTurn() {
+				return this.game?.curRound?.curPlayerTurn;
 			},
 			selectedUnit() {
-				return this.currentAction?.selectedUnit;
+				return this.currentPlayerTurn?.selectedUnit;
 			},
 			validMoves() {
-				return this.currentAction?.validPositions || [];
+				return this.currentPlayerTurn?.validPositions || [];
 			}
 		},
 		mounted() {
 			this.launchGame();
 		},
 		methods: {
-			launchGame(){
+			launchGame() {
 				const launcher = new GameLauncher();
 				this.game = reactive(launcher.launch());
-				this.game.eventBus.on('player:input', this.game.onPlayerInput.bind(this.game));
 				this.game.start();
 
 				this.game.eventBus.on('game:check', () => {
 					this.showCheck = true;
-					setTimeout(() => { this.showCheck = false; }, 1000);
-				});
-
-				this.game.eventBus.on('game:over', ({winner}) => {
-					// ElMessage is good, but the overlay is better.
+					setTimeout(() => {
+						this.showCheck = false;
+					}, 1000);
 				});
 
 				// 强制UI更新
@@ -315,18 +314,26 @@
 				this.game.eventBus.on('unit:selected', () => this.updateCounter++);
 				this.game.eventBus.on('unit:deselected', () => this.updateCounter++);
 			},
-			restartGame(){
+			restartGame() {
 				this.showCheck = false;
 				this.launchGame();
 			},
 			cellClasses(r, c) {
 				const rt = [`row-` + r, `红` + ChineseNum.digitsFromArabic(10 - c) + `路`, `黑${c}路`];
-				if ((r === 3 || r === 8) && (c === 2 || c === 8)) rt.push('炮位');
-				if ((r === 4 || r === 7) && c % 2 === 1) rt.push('兵卒位');
+				if ((r === 3 || r === 8) && (c === 2 || c === 8)) {
+					rt.push('炮位');
+				}
+				if ((r === 4 || r === 7) && c % 2 === 1) {
+					rt.push('兵卒位');
+				}
 				if ((r <= 3 || r >= 8) && (c >= 4 && c <= 6)) {
 					rt.push('九宫');
-					if ((r === 2 || r === 9) && c === 5) rt.push('窝心');
-					if ((r === 3 || r === 8) && (c === 4 || c === 6)) rt.push('士角');
+					if ((r === 2 || r === 9) && c === 5) {
+						rt.push('窝心');
+					}
+					if ((r === 3 || r === 8) && (c === 4 || c === 6)) {
+						rt.push('士角');
+					}
 				}
 				return rt;
 			},
@@ -334,7 +341,9 @@
 				return this.game?.getUnitsAt(r, c) || [];
 			},
 			getUnitClasses(unit) {
-				if (!unit) return [];
+				if (!unit) {
+					return [];
+				}
 				const classes = [...unit.cssClass];
 				if (this.selectedUnit && this.selectedUnit.id === unit.id) {
 					classes.push('selected');
@@ -342,8 +351,10 @@
 				return classes;
 			},
 			clickCell(r, c) {
-				if (!this.game || this.isGameOver || !this.currentAction) return;
-				this.currentAction.player.play(r, c);
+				if (!this.game || this.isGameOver) {
+					return;
+				}
+				this.game.eventBus.emit('player:input', {r, c});
 			},
 			isValidMove(r, c) {
 				return this.validMoves.some(move => move[0] === r && move[1] === c);

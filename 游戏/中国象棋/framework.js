@@ -1,9 +1,3 @@
-/**
- * ====================================
- * 通用回合制游戏框架 (Turn-based Game Framework)
- * ====================================
- */
-
 class EventBus {
 	constructor() {
 		this.listeners = {};
@@ -37,7 +31,7 @@ class EventBus {
 }
 
 class Game {
-		constructor(config, eventBus) {
+	constructor(config, eventBus) {
 		this.eventBus = eventBus;
 		this.players = config.players || [];
 		this.map = this.createMap(config);
@@ -80,47 +74,14 @@ class Game {
 		throw new Error("registerGameRules() must be implemented by subclass");
 	}
 
-	onPlayerInput({r, c}) {
-		const curAction = this.curRound.curPlayerAction;
-		if (this.isGameOver || !curAction) return;
-
-		const unitsAtPosition = [...this.map.getUnitsAt(r, c)]; // 创建一个浅拷贝，防止引用污染
-		const curPlayer = curAction.player;
-
-		if (curAction.selectedUnit) {
-			const targetUnit = unitsAtPosition[0];
-			if (targetUnit && targetUnit.player === curPlayer) {
-				curAction.selectedUnit = targetUnit;
-				this.eventBus.emit('unit:selected', {game: this, action: curAction});
-				return;
-			}
-			const isPositionValid = curAction.validPositions.some(pos => pos[0] === r && pos[1] === c);
-			if (!isPositionValid) {
-				curAction.selectedUnit = null;
-				curAction.validPositions = [];
-				this.eventBus.emit('unit:deselected', {game: this, action: curAction});
-				return;
-			}
-
-			const movedUnit = curAction.selectedUnit;
-			this.map.moveUnit(movedUnit, r, c);
-			this.eventBus.emit('map:updated', this.map);
-			this.eventBus.emit('unit:after-move', {game: this, unit: movedUnit, captured: unitsAtPosition});
-		} else {
-			const targetUnit = unitsAtPosition[0];
-			if (targetUnit && targetUnit.player === curPlayer) {
-				curAction.selectedUnit = targetUnit;
-				this.eventBus.emit('unit:selected', {game: this, action: curAction});
-			}
-		}
-	}
-
 	getUnitsAt(r, c) {
 		return this.map.getUnitsAt(r, c);
 	}
 
 	removeUnitFromGame(unit) {
-		if (!unit) return;
+		if (!unit) {
+			return;
+		}
 		this.map.removeUnit(unit);
 		const index = this.units.findIndex(u => u.id === unit.id);
 		if (index > -1) {
@@ -133,24 +94,26 @@ class Round {
 	constructor(id, game) {
 		this.id = id;
 		this.game = game;
-		this.playerActions = [];
-		this.curPlayerAction = null;
+		this.playerTurns = [];
+		this.curPlayerTurn = null;
 	}
 
 	async start() {
 		this.game.eventBus.emit('round:starting', {game: this.game, round: this});
 		for (const player of this.game.players) {
-			if (this.game.isGameOver) break;
-			const playerAction = new PlayerAction(player, this.game);
-			this.playerActions.push(playerAction);
-			this.curPlayerAction = playerAction;
-			await this.curPlayerAction.execute();
+			if (this.game.isGameOver) {
+				break;
+			}
+			const playerTurn = new PlayerTurn(player, this.game);
+			this.playerTurns.push(playerTurn);
+			this.curPlayerTurn = playerTurn;
+			await this.curPlayerTurn.execute();
 		}
 		this.game.eventBus.emit('round:ended', {game: this.game, round: this});
 	}
 }
 
-class PlayerAction {
+class PlayerTurn {
 	constructor(player, game) {
 		this.player = player;
 		this.game = game;
@@ -160,8 +123,13 @@ class PlayerAction {
 
 	execute() {
 		return new Promise(resolve => {
-			this.game.eventBus.emit('player-action:starting', {game: this.game, action: this});
+			this.game.eventBus.emit('player-turn:starting', {game: this.game, action: this});
+
+			const inputHandler = this.player.handleInput.bind(this.player);
+			this.game.eventBus.on('player:input', inputHandler);
+
 			const onMoved = () => {
+				this.game.eventBus.off('player:input', inputHandler);
 				this.game.eventBus.off('unit:after-move', onMoved);
 				this.end();
 				resolve();
@@ -173,22 +141,61 @@ class PlayerAction {
 	end() {
 		this.selectedUnit = null;
 		this.validPositions = [];
-		this.game.eventBus.emit('player-action:ended', {game: this.game, action: this});
+		this.game.eventBus.emit('player-turn:ended', {game: this.game, action: this});
+	}
+}
+
+class Team {
+	constructor(id, name) {
+		this.id = id;
+		this.name = name;
 	}
 }
 
 class Player {
-	constructor(id) {
+	constructor(id, name, team) {
 		this.id = id;
+		this.name = name;
+		this.team = team;
 		this.game = null;
 	}
 
-	play(r, c) {
-		const expectedPlayer = this.game.curRound.curPlayerAction.player;
-		if (expectedPlayer === this) {
-			this.game.eventBus.emit('player:input', {r, c});
+	handleInput({r, c}) {
+		const game = this.game;
+		const curTurn = game.curRound.curPlayerTurn;
+
+		// 检查是否是当前玩家在行动
+		if (curTurn.player.id !== this.id) {
+			return;
+		}
+
+		const unitsAtPosition = [...game.map.getUnitsAt(r, c)];
+
+		if (curTurn.selectedUnit) {
+			const targetUnit = unitsAtPosition[0];
+			if (targetUnit && targetUnit.player === this) {
+				curTurn.selectedUnit = targetUnit;
+				game.eventBus.emit('unit:selected', {game: game, action: curTurn});
+				return;
+			}
+			const isPositionValid = curTurn.validPositions.some(pos => pos[0] === r && pos[1] === c);
+			if (!isPositionValid) {
+				curTurn.selectedUnit = null;
+				curTurn.validPositions = [];
+				game.eventBus.emit('unit:deselected', {game: game, action: curTurn});
+				return;
+			}
+
+			const movedUnit = curTurn.selectedUnit;
+			game.map.moveUnit(movedUnit, r, c);
+			game.eventBus.emit('map:updated', game.map);
+			game.eventBus.emit('unit:after-move', {game: game, unit: movedUnit, captured: unitsAtPosition});
 		} else {
-			console.warn(`非玩家 ${this.id} 的行动时间，操作无效。`);
+			const targetUnit = unitsAtPosition[0];
+			if (targetUnit && targetUnit.player === this) {
+				curTurn.selectedUnit = targetUnit;
+				game.eventBus.emit('unit:selected', {game: game, action: curTurn});
+			}
 		}
 	}
 }
@@ -201,19 +208,25 @@ class GameMap {
 	}
 
 	getUnitsAt(r, c) {
-		if (r < 1 || r > this.rows || c < 1 || c > this.cols) return [];
+		if (r < 1 || r > this.rows || c < 1 || c > this.cols) {
+			return [];
+		}
 		return this.grid[r - 1][c - 1];
 	}
 
 	addUnit(unit, r, c) {
-		if (r < 1 || r > this.rows || c < 1 || c > this.cols) return;
+		if (r < 1 || r > this.rows || c < 1 || c > this.cols) {
+			return;
+		}
 		unit.r = r;
 		unit.c = c;
 		this.grid[r - 1][c - 1].push(unit);
 	}
 
 	removeUnit(unit) {
-		if (!unit || !unit.r) return;
+		if (!unit || !unit.r) {
+			return;
+		}
 		const units = this.getUnitsAt(unit.r, unit.c);
 		const index = units.findIndex(u => u.id === unit.id);
 		if (index > -1) {
