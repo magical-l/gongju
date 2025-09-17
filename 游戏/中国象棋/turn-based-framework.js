@@ -195,7 +195,7 @@ class Player extends GamingPart {
 				const units = this.selectedUnits;
 				this.selectedUnits = [];
 				this.validMovesForSelection = [];
-				this.gaming.bulletin.notice('玩家取消选择棋子', {player: this, units});
+				this.gaming.bulletin.notice('玩家取消选择单位', {player: this, units});
 			};
 
 			const endTurn = () => {
