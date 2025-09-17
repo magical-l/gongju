@@ -159,6 +159,7 @@ class Team extends GamingPart {
 }
 
 class Player extends GamingPart {
+	id;
 	team;
 	name;
 	units = [];
@@ -333,15 +334,20 @@ class Game {
 class Gaming {
 	cfg;
 	bulletin = new Bulletin();
-	teams = [];
+	teams = {};
 	globalRules = [];
 	battlefield;
 	situation;
+	playerTurnSequence = [];
 
 	constructor(cfg) {
 		this.cfg = cfg;
 		this._build();
 		this._start(); // 游戏创建后自动开始
+	}
+
+	get teamList() {
+		return Object.values(this.teams);
 	}
 
 	_build() {
@@ -353,36 +359,43 @@ class Gaming {
 				.forEach(([topicName, watcher]) => this.bulletin.watch(topicName, watcher.bind(rule))));
 		this.battlefield = this._buildBattlefield();
 		this.situation = this._buildSituation();
+		this.playerTurnSequence = this._buildPlayerTurnSequence();
 		this.bulletin.notice('inited', {gaming: this});
 	}
 
 	_buildTeams() {
-		const teamsCfg = this.cfg.teams || [];
+		const teamsCfg = this.cfg.teams || {};
 		this.bulletin.notice('building teams', {teamsCfg});
-		const rt = teamsCfg.map(teamCfg => this._buildTeam(teamCfg));
+		const rt = Object.fromEntries(
+			Object.entries(teamsCfg)
+				.map(([id, teamCfg]) => [id, this._buildTeam(id, teamCfg)]),
+		);
 		this.bulletin.notice('built teams', {teams: rt});
 		return rt;
 	}
 
-	_buildTeam(teamCfg) {
+	_buildTeam(id, teamCfg) {
 		const TeamClass = teamCfg.class ?? this.cfg.TeamClass ?? Team;
-		this.bulletin.notice('building team', {gaming: this, teamCfg, class: TeamClass});
-		const team = new TeamClass(this, teamCfg);
-		team.players = this._buildPlayers(teamCfg.players || [], team);
+		this.bulletin.notice('building team', {gaming: this, id, teamCfg, class: TeamClass});
+		const team = new TeamClass(this, {id, ...teamCfg});
+		team.players = this._buildPlayers(teamCfg.players || {}, team);
 		return team;
 	}
 
 	_buildPlayers(playerCfgs, team) {
 		this.bulletin.notice('building players', {team, playerCfgs});
-		const rt = playerCfgs.map(playerCfg => this._buildPlayer(playerCfg, team));
+		const rt = Object.fromEntries(
+			Object.entries(playerCfgs)
+				.map(([id, cfg]) => [id, this._buildPlayer(id, cfg, team)]),
+		);
 		this.bulletin.notice('built players', {team, players: rt});
 		return rt;
 	}
 
-	_buildPlayer(playerCfg, team) {
+	_buildPlayer(id, playerCfg, team) {
 		const PlayerClass = playerCfg.class ?? this.cfg.PlayerClass ?? Player;
 		this.bulletin.notice('building player', {team, playerCfg, class: PlayerClass});
-		const rt = new PlayerClass(team, playerCfg);
+		const rt = new PlayerClass(team, {id, ...playerCfg});
 		this.bulletin.notice('built player', {player: rt});
 		return rt;
 	}
@@ -436,9 +449,8 @@ class Gaming {
 		const rt = skillsCfg.map(skillCfg => {
 			const skill = this._buildSkill(owner, skillCfg);
 			if (skill.watchers) {
-				Object.entries(skill.watchers).forEach(([topic, watcher]) => {
-					this.bulletin.watch(topic, watcher.bind(skill));
-				});
+				Object.entries(skill.watchers)
+					.forEach(([topic, watcher]) => this.bulletin.watch(topic, watcher.bind(skill)));
 			}
 			return skill;
 		});
@@ -462,40 +474,29 @@ class Gaming {
 		return rt;
 	}
 
+	_buildPlayerTurnSequence() {
+		const playerIdMap = Object.fromEntries(
+			this.teamList.flatMap(e => e.players)
+				.map(player => [player.id, player]),
+		);
+		this.playerTurnSequence = this.cfg.playerTurnSequence.map(playerId => playerIdMap[playerId]);
+	}
+
 	_start() {
 		// 使用IIFE（立即调用函数表达式）来启动异步游戏循环，避免构造函数变成异步
 		(async () => {
 			this.situation.isStarted = true;
 			this.bulletin.notice('game:start', {gaming: this});
 
-			const players = this.teams.flatMap(t => t.players);
-			// todo: 从配置决定先手玩家
-			let playerIndex = 0;
-
 			while (!this.situation.isEnded) {
 				const round = new Round(this, this.situation.rounds.length + 1);
 				this.situation.rounds.push(round);
-				await round.start(players, playerIndex);
-
-				if (this.situation.isEnded) {
-					break;
-				}
-
-				// 轮到下一位玩家
-				playerIndex = (playerIndex + 1) % players.length;
+				await round.start();
 			}
 
+			this.situation.isEnded = true;
 			this.bulletin.notice('game:end', {winner: this.situation.winner});
 		})().catch(console.error);
-	}
-
-	endGame(winner) {
-		if (this.situation.isEnded) {
-			return;
-		}
-		this.situation.isEnded = true;
-		this.situation.winner = winner;
-		this.bulletin.notice('game:end', {winner});
 	}
 }
 
@@ -507,13 +508,13 @@ class Round extends GamingPart {
 
 	/**
 	 * 开始一个回合，即一个玩家的行动轮次
-	 * @param {Player[]} players - 所有玩家的列表
-	 * @param {number} activePlayerIndex - 当前行动的玩家索引
 	 */
-	async start(players, activePlayerIndex) {
+	async start() {
 		const currentPlayer = players[activePlayerIndex];
 		this.gaming.bulletin.notice('turn:start', {player: currentPlayer});
-		await currentPlayer.play();
+		this.gaming.playerTurnSequence.forEach(async player => {
+			await player.play();
+		});
 		this.gaming.bulletin.notice('turn:end', {player: currentPlayer});
 	}
 }

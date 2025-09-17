@@ -98,32 +98,29 @@ class 棋局 extends Gaming {
 		const battlefield = super._buildBattlefield();
 
 		this.bulletin.notice('parsing board layout');
-		const layout = this.cfg.棋盘.trim().split(/\s+/);
-		const unitNameMapping = {};
+		const layout = this.cfg.battlefield.trim().split(/\s+/);
+		const unitTypes = this.cfg.unitTypes;
 
-		// 从玩家的棋子定义（unitPrototypes）来构建映射
-		this.teams.forEach(team => {
-			team.players.forEach(player => {
-				if (player.unitPrototypes) {
-					Object.entries(player.unitPrototypes)
-						.forEach(([name, unitCfg]) => {
-							unitNameMapping[name] = {player, unitCfg};
-						});
-				}
-			});
-		});
+		// 您的translateConfig已将teams和players转为对象结构，这里假定父类的构造过程能正确处理。
+		// 我们从扁平的玩家列表中建立一个按ID索引的映射，以方便查找。
+		const allPlayers = this.teams ? Object.values(this.teams).flatMap(t => Object.values(t.players)) : [];
+		const playersById = Object.fromEntries(allPlayers.map(p => [p.name, p]));
 
 		// 根据布局字符串，创建单位实例并放置到棋盘上
 		layout.forEach((rowStr, r) => {
 			rowStr.split('').forEach((char, c) => {
 				if (char !== '空') {
-					const mapping = unitNameMapping[char];
-					if (mapping) {
-						const {player, unitCfg} = mapping;
-						const unit = this._buildUnit(player, {name: char, ...unitCfg});
-						player.units.push(unit);
-						const position = new 棋盘点位(r + 1, c + 1);
-						battlefield.addUnitToPosition(unit, position);
+					const unitCfg = unitTypes[char];
+					if (unitCfg) {
+						const player = playersById[unitCfg.player];
+						if (player) {
+							const unit = this._buildUnit(player, { name: char, ...unitCfg });
+							player.units.push(unit);
+							const position = new 棋盘点位(r + 1, c + 1);
+							battlefield.addUnitToPosition(unit, position);
+						} else {
+							console.warn(`未能根据ID找到玩家: ${unitCfg.player}`);
+						}
 					}
 				}
 			});
