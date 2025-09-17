@@ -510,12 +510,16 @@ class Round extends GamingPart {
 	 * 开始一个回合，即一个玩家的行动轮次
 	 */
 	async start() {
-		const currentPlayer = players[activePlayerIndex];
-		this.gaming.bulletin.notice('turn:start', {player: currentPlayer});
-		this.gaming.playerTurnSequence.forEach(async player => {
-			await player.play();
-		});
-		this.gaming.bulletin.notice('turn:end', {player: currentPlayer});
+		// 修正：移除不必要的 currentPlayer 变量，并使用 for...of 循环确保玩家顺序行动
+		this.gaming.bulletin.notice('round:start', { round: this }); // 通知回合开始
+
+		for (const player of this.gaming.playerTurnSequence) {
+			this.gaming.bulletin.notice('turn:start', { player }); // 通知玩家回合开始
+			await player.play(); // 等待当前玩家的回合结束
+			this.gaming.bulletin.notice('turn:end', { player }); // 通知玩家回合结束
+		}
+
+		this.gaming.bulletin.notice('round:end', { round: this }); // 通知回合结束
 	}
 }
 
@@ -543,23 +547,6 @@ class Board extends Battlefield {
 	}
 
 	//todo：已知棋盘是二维的，可以简化父类的一些工具方法的算法
-}
-
-/**
- * 通用移动修改者：边界检查
- */
-class BoundaryModifier extends Rule {
-	get watchers() {
-		return {'filter:move_targets': this.onFilter};
-	}
-
-	onFilter({targets}) {
-		const width = this.gaming.config.battlefield.width;
-		const height = this.gaming.config.battlefield.height;
-		const finalTargets = targets.filter(t => t.rowNum >= 0 && t.rowNum < width && t.colNum >= 0 && t.colNum < height);
-		targets.length = 0;
-		targets.push(...finalTargets);
-	}
 }
 
 class 棋盘点位 extends Position {
