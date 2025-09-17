@@ -150,8 +150,47 @@ const 内置规则集 = {
 			super(gaming, {
 				name: '王不见王', intro: '将帅不能碰见对方将帅，否则输棋。', tip: '将帅不能位于同一列且中间无其他棋子遮挡。',
 				watchers: {
+					'inited': () => {
+						const allUnits = Array.from(this.gaming.battlefield.positionUnitsMapping.values()).flat();
+						this.kingRed = allUnits.find(u => u.name === '帅');
+						this.kingBlack = allUnits.find(u => u.name === '将');
+					},
+					'单位阵亡': ({unit}) => {
+						if (unit === this.kingRed) this.kingRed = null;
+						if (unit === this.kingBlack) this.kingBlack = null;
+					},
 					'已获取可移动位置集': ({unit, availableTargetPositions}) => {
-						//todo：实现将帅不能位于同一列且中间无其他棋子遮挡。
+						// 检查移动单位是否是将帅，以及对方将帅是否存在
+						if (!((unit === this.kingRed && this.kingBlack) || (unit === this.kingBlack && this.kingRed))) {
+							return;
+						}
+
+						const otherKing = unit === this.kingRed ? this.kingBlack : this.kingRed;
+						const otherKingPos = otherKing.position;
+
+						const filtered = availableTargetPositions.filter(targetPos => {
+							// 如果目标位置与对方将/帅不在同一列，则该移动合法
+							if (targetPos.colNum !== otherKingPos.colNum) {
+								return true;
+							}
+
+							// 如果在同一列，则检查两者之间是否有其他棋子
+							const minRow = Math.min(targetPos.rowNum, otherKingPos.rowNum);
+							const maxRow = Math.max(targetPos.rowNum, otherKingPos.rowNum);
+
+							for (let r = minRow + 1; r < maxRow; r++) {
+								const p = new 棋盘点位(r, targetPos.colNum);
+								if (this.gaming.battlefield.getUnitsAt(p).length > 0) {
+									return true; // 中间有子，移动合法
+								}
+							}
+
+							return false; // 中间无子，移动非法
+						});
+
+						// 用过滤后的结果替换原可移动位置列表
+						availableTargetPositions.length = 0;
+						availableTargetPositions.push(...filtered);
 					},
 				},
 				...cfg,

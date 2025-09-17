@@ -327,24 +327,25 @@ class 过河卒 extends Skill {
 	constructor(cfg) {
 		super({
 			name: '过河卒', intro: '过河之后，可以横向移动。', ...cfg,
-			watchers: {
-				'单位移动': ({unit}) => {
-					if (unit !== this.owner) {
-						return;
-					}
-
-					const isRed = unit.owner.team.name === '红方';
-					const riverCrossed = isRed ? unit.position.rowNum <= 5 : unit.position.rowNum >= 6;
-
-					if (riverCrossed && !this.owner.skills.some(s => s instanceof 横冲直撞)) {
-						this.owner.skills.push(new 横冲直撞({owner: this.owner, gaming: this.gaming}));
-						// 可以选择移除自己，避免重复添加
-						this.owner.skills = this.owner.skills.filter(s => s !== this);
-						this.gaming.bulletin.unwatch('单位移动', this.watchers['单位移动']);
-					}
-				},
-			},
 		});
+		// 单独处理watcher，确保能正确解绑
+		this.onUnitMove = this._onUnitMove.bind(this);
+		this.watchers = {'单位移动': this.onUnitMove};
+	}
+
+	_onUnitMove({unit}) {
+		if (unit !== this.owner) {
+			return;
+		}
+
+		const isRed = unit.owner.team.name === '红方';
+		const riverCrossed = isRed ? unit.position.rowNum <= 5 : unit.position.rowNum >= 6;
+
+		if (riverCrossed && !this.owner.skills.some(s => s instanceof 横冲直撞)) {
+			this.owner.skills.push(new 横冲直撞({owner: this.owner, gaming: this.gaming}));
+			// 成功添加新技能后，彻底移除此技能的监听器
+			this.gaming.bulletin.unwatch('单位移动', this.onUnitMove);
+		}
 	}
 }
 

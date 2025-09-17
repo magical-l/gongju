@@ -78,7 +78,7 @@ class Battlefield extends GamingPart {
 	}
 
 	_initPositionUnitsMapping() {
-		this.positions.forEach(p => this.positionUnitsMapping.set(p, []));
+		this.positions.flat().forEach(p => this.positionUnitsMapping.set(p.toString(), []));
 	}
 
 	moveUnit(unit, position) {
