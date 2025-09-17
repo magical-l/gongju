@@ -297,7 +297,7 @@ class 勇往直前 extends Move {
 	}
 
 	getAvailableTargetPositions() {
-		const forward = this.owner.owner.team.forwardDirection;
+		const forward = this.gaming.battlefield.forwardDirection(this.owner.owner);
 		return [new 棋盘点位(this.owner.position.rowNum + forward, this.owner.position.colNum)];
 	}
 }

@@ -85,7 +85,7 @@ class Battlefield extends GamingPart {
 		if (unit.owner && unit.owner.units) {
 			unit.owner.units = unit.owner.units.filter(u => u !== unit);
 		}
-		this.gaming.notice('unit:destroyed', {unit});
+		this.gaming.bulletin.notice('unit:destroyed', {unit});
 	}
 
 	addUnitToPosition(unit, position) {
@@ -168,6 +168,7 @@ class Player extends GamingPart {
 	constructor(team, cfg) {
 		super(team.gaming);
 		Object.assign(this, cfg);
+		this.team = team;
 		//todo: this.inputChannel this.outputChannel
 	}
 
@@ -435,10 +436,10 @@ class Gaming {
 		return rt;
 	}
 
-	_buildUnit(unitCfg) {
+	_buildUnit(owner, unitCfg) {
 		const UnitClass = unitCfg.class ?? this.cfg.UnitClass ?? Unit;
 		this.bulletin.notice('building unit', {unitCfg, class: UnitClass});
-		const unit = new UnitClass({...unitCfg});
+		const unit = new UnitClass({owner, ...unitCfg});
 		unit.skills = this._buildSkills(unitCfg.skills || [], unit);
 		this.bulletin.notice('built unit', {unit: unit});
 		return unit;
@@ -475,11 +476,10 @@ class Gaming {
 	}
 
 	_buildPlayerTurnSequence() {
-		const playerIdMap = Object.fromEntries(
-			this.teamList.flatMap(e => e.players)
-				.map(player => [player.id, player]),
-		);
-		this.playerTurnSequence = this.cfg.playerTurnSequence.map(playerId => playerIdMap[playerId]);
+		const playerIdMap = {};
+		this.teamList.flatMap(team => Object.values(team.players))
+			.forEach(player => playerIdMap[player.id] = player);
+		return this.cfg.playerTurnSequence.map(playerId => playerIdMap[playerId]);
 	}
 
 	_start() {
@@ -511,15 +511,15 @@ class Round extends GamingPart {
 	 */
 	async start() {
 		// 修正：移除不必要的 currentPlayer 变量，并使用 for...of 循环确保玩家顺序行动
-		this.gaming.bulletin.notice('round:start', { round: this }); // 通知回合开始
+		this.gaming.bulletin.notice('round:start', {round: this}); // 通知回合开始
 
 		for (const player of this.gaming.playerTurnSequence) {
-			this.gaming.bulletin.notice('turn:start', { player }); // 通知玩家回合开始
+			this.gaming.bulletin.notice('turn:start', {player}); // 通知玩家回合开始
 			await player.play(); // 等待当前玩家的回合结束
-			this.gaming.bulletin.notice('turn:end', { player }); // 通知玩家回合结束
+			this.gaming.bulletin.notice('turn:end', {player}); // 通知玩家回合结束
 		}
 
-		this.gaming.bulletin.notice('round:end', { round: this }); // 通知回合结束
+		this.gaming.bulletin.notice('round:end', {round: this}); // 通知回合结束
 	}
 }
 

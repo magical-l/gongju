@@ -240,7 +240,7 @@
 						<div class="texture part left bottom corner"></div>
 					</div>
 					<div v-for="(unit, index) in getUnitsAt(r,c)" :key="index" :class="getUnitClasses(unit)">
-						{{ unit.显示 }}
+						{{ unit.display }}
 					</div>
 					<div v-if="isValidMove(r,c)" class="valid-move-indicator"></div>
 				</div>
@@ -270,6 +270,7 @@
 	<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
 	<script src="../../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
 	<script src="turn-based-framework.js"></script>
+	<script src="skills.js"></script>
 	<script src="xiangqi2.js"></script>
 </div>
 <script>
@@ -302,7 +303,10 @@
 		},
 		methods: {
 			launchGame() {
-				const gaming = reactive(new 中国象棋(this.gameCfg).newGaming());
+				const gaming = reactive(
+						new 中国象棋(this.gameCfg, '红方玩家', '黑方玩家')//以后玩家名字可以从用户输入中获取。
+								.newGaming(),
+				);
 				this.game = gaming;
 
 				// 监听游戏事件来更新UI
@@ -369,11 +373,10 @@
 				return this.game?.battlefield?.getUnitsAt(new 棋盘点位(r, c)) || [];
 			},
 			getUnitClasses(unit) {
-				if (!unit) return [];
-				const classes = ['unit'];
-				if (unit.owner.team.color) {
-					classes.push(unit.owner.team.color);
+				if (!unit) {
+					return [];
 				}
+				const classes = ['unit'];
 				if (this.selectedUnit && this.selectedUnit === unit) {
 					classes.push('selected');
 				}
@@ -388,8 +391,8 @@
 			isValidMove(r, c) {
 				const targetPos = new 棋盘点位(r, c);
 				return this.validMoves.some(pos => pos.isEqualTo(targetPos));
-			}
-		}
+			},
+		},
 	});
 
 	app.use(ElementPlus);

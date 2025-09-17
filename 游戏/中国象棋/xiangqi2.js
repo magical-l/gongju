@@ -37,25 +37,25 @@ const 中国象棋默认配置 = {
 };
 
 class 中国象棋 extends Game {
-	constructor(cfg = {}) {
-		super(中国象棋.translateConfig({...中国象棋默认配置, ...cfg}));
+	constructor(cfg = {}, 红方名字, 黑方名字) {
+		super(中国象棋.translateConfig({...中国象棋默认配置, ...cfg}, 红方名字, 黑方名字));
 		this.cfg.GamingClass = 棋局;
 		this.cfg.BattlefieldClass = 棋盘;
 	}
 
-	static translateConfig(cfg) {
+	static translateConfig(cfg, 红方名字, 黑方名字) {
 		return {
 			battlefield: cfg.棋盘,//现在是在‘棋局’里自行实现了_buildBattlefield。可以考虑凑父类的逻辑。
 			teams: {
-				[红方id]: {name: 红方id, color: 'red', players: {[红方玩家id]: {name: cfg.玩家.红方.名字}}},//以后可以给玩家加技能，比如‘走两步’
-				[黑方id]: {name: 黑方id, color: 'black', players: {[黑方玩家id]: {name: cfg.玩家.黑方.名字}}},
+				[红方id]: {name: 红方id, color: 'red', players: {[红方玩家id]: {name: 红方名字}}},//以后可以给玩家加技能，比如‘走两步’
+				[黑方id]: {name: 黑方id, color: 'black', players: {[黑方玩家id]: {name: 黑方名字}}},
 			},
 			unitTypes: Object.fromEntries(
 				Object.entries(cfg.棋子类型)
 					.map(([棋子名, 棋子]) =>
 						[棋子名, {display: 棋子.显示, skills: 棋子.技能, player: 棋子.玩家, ...棋子}]),
 			),
-			playerTurn: cfg.先手 === 红方id ? [红方玩家id, 黑方玩家id] : [黑方玩家id, 红方玩家id],
+			playerTurnSequence: cfg.先手 === 红方id ? [红方玩家id, 黑方玩家id] : [黑方玩家id, 红方玩家id],
 			...cfg,//带上原始数据
 		};
 	}
@@ -87,7 +87,7 @@ class 棋盘 extends Board {
 	 * @param player
 	 */
 	forwardDirection(player) {
-		return player.team === '红方' ? -1 : 1;
+		return player.team.id === 红方id ? -1 : 1;
 	}
 
 	//todo：更多针对中国象棋棋盘的便捷方法。
@@ -114,7 +114,7 @@ class 棋局 extends Gaming {
 					if (unitCfg) {
 						const player = playersById[unitCfg.player];
 						if (player) {
-							const unit = this._buildUnit(player, { name: char, ...unitCfg });
+							const unit = this._buildUnit(player, {name: char, ...unitCfg});
 							player.units.push(unit);
 							const position = new 棋盘点位(r + 1, c + 1);
 							battlefield.addUnitToPosition(unit, position);
