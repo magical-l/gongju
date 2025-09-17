@@ -12,6 +12,11 @@
 <link href="../../resources/biz.css?v=250821" rel="stylesheet">
 <link href="../../resources/花活.css?v=250821" rel="stylesheet">
 <style>
+	body {
+		--red-color: #d43d3d;
+		--black-color: #333;
+	}
+
 	@font-face {
 		font-family: 'NotoSansSymbols2';
 		src: url('../../lib/fonts/NotoSansSymbols2-Regular.ttf') format('truetype');
@@ -23,6 +28,7 @@
 		grid-template-rows: repeat(10, var(--min-cell-len));
 		grid-template-columns: repeat(9, var(--min-cell-len));
 		background-color: aliceblue;
+		position: relative;
 	}
 
 	.cell {
@@ -88,15 +94,15 @@
 	}
 
 	.炮位.cell .texture.part.right.top, .兵卒位.cell .texture.part.right.top {
-		rotate: 90deg;
+		transform: rotate(90deg);
 	}
 
 	.炮位.cell .texture.part.right.bottom, .兵卒位.cell .texture.part.right.bottom {
-		rotate: 180deg;
+		transform: rotate(180deg);
 	}
 
 	.炮位.cell .texture.part.left.bottom, .兵卒位.cell .texture.part.left.bottom {
-		rotate: 270deg;
+		transform: rotate(270deg);
 	}
 
 	/* 九宫 左上-右下斜线 */
@@ -131,17 +137,18 @@
 		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 		background-color: #f0f0f0;
 		border: 1px solid #888;
-		color: black;
+		color: var(--black-color);
 	}
 
 	.unit.red {
 		background-color: #fdd;
-		border-color: #d43d3d;
-		color: red;
+		border-color: var(--red-color);
+		color: var(--red-color);
 	}
 
 	.unit.selected {
 		outline: 3px solid #007bff;
+		box-shadow: 0 0 10px #007bff;
 	}
 
 	.valid-move-indicator {
@@ -151,6 +158,7 @@
 		height: 40%;
 		background-color: rgba(40, 167, 69, 0.5);
 		border-radius: 50%;
+		pointer-events: none;
 	}
 
 	/* 游戏提示覆盖层 */
@@ -231,8 +239,8 @@
 						<div class="texture part right bottom corner"></div>
 						<div class="texture part left bottom corner"></div>
 					</div>
-					<div v-for="unit in getUnitsAt(r,c)" :key="unit.id" :class="getUnitClasses(unit)">
-						{{ unit.label }}
+					<div v-for="(unit, index) in getUnitsAt(r,c)" :key="index" :class="getUnitClasses(unit)">
+						{{ unit.显示 }}
 					</div>
 					<div v-if="isValidMove(r,c)" class="valid-move-indicator"></div>
 				</div>
@@ -261,57 +269,79 @@
 	<script src="../../lib/vue/3.5.18/vue.global.js"></script>
 	<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
 	<script src="../../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
-	<!--	<script src="framework.js"></script>-->
 	<script src="turn-based-framework.js"></script>
-	<!--	<script src="xiangqi.js"></script>-->
+	<script src="xiangqi2.js"></script>
 </div>
 <script>
-	const {createApp, reactive} = Vue;
+	const {createApp, reactive, ref, computed} = Vue;
 
 	const app = createApp({
 		data() {
 			return {
-				gameCfg:{},
-				// launcher: null,
+				gameCfg: {},
 				game: null,
-				updateCounter: 0,
-				showCheck: false
+				updateCounter: 0, // 用于强制刷新棋盘
+				showCheck: false,
+				selectedUnit: null,
+				validMoves: [],
 			};
 		},
 		computed: {
 			isGameOver() {
-				return this.game?.isGameOver || false;
+				return this.game?.situation.isEnded || false;
 			},
 			winnerName() {
-				if (!this.isGameOver || !this.game.winner) {
+				if (!this.isGameOver || !this.game.situation.winner) {
 					return '';
 				}
-				return this.game.winner.name;
+				return this.game.situation.winner.name;
 			},
-			currentPlayerTurn() {
-				return this.game?.curRound?.curPlayerTurn;
-			},
-			selectedUnit() {
-				return this.currentPlayerTurn?.selectedUnit;
-			},
-			validMoves() {
-				return this.currentPlayerTurn?.validPositions || [];
-			}
 		},
 		mounted() {
 			this.launchGame();
 		},
 		methods: {
 			launchGame() {
-				const gaming = reactive(new 中国象棋(this.cfg).newGaming());
+				const gaming = reactive(new 中国象棋(this.gameCfg).newGaming());
 				this.game = gaming;
+
+				// 监听游戏事件来更新UI
 				gaming.bulletin.watch('将军', () => {
 					this.showCheck = true;
 					setTimeout(() => this.showCheck = false, 1000);
 				});
+
+				gaming.bulletin.watch('player:units_selected', ({units}) => {
+					this.selectedUnit = units[0];
+					const moveSkills = this.selectedUnit.skills.filter(s => s instanceof Move);
+					if (moveSkills.length > 0) {
+						let targets = moveSkills.flatMap(s => s.getAvailableTargetPositions());
+						// 发布事件，让其他技能（如塞象眼、绊马脚）可以修改目标位置
+						const payload = {unit: this.selectedUnit, availableTargetPositions: targets};
+						gaming.bulletin.notice('已获取可移动位置集', payload);
+						this.validMoves = gaming.battlefield.keepValidPositions(payload.availableTargetPositions);
+					} else {
+						this.validMoves = [];
+					}
+				});
+
+				gaming.bulletin.watch('player:selection_cleared', () => {
+					this.selectedUnit = null;
+					this.validMoves = [];
+				});
+
+				const rerender = () => {
+					this.selectedUnit = null;
+					this.validMoves = [];
+					this.updateCounter++;
+				};
+				gaming.bulletin.watch('单位已移动', rerender);
+				gaming.bulletin.watch('unit:destroyed', rerender);
 			},
 			restartGame() {
 				this.showCheck = false;
+				this.selectedUnit = null;
+				this.validMoves = [];
 				this.launchGame();
 			},
 			cellClasses(r, c) {
@@ -334,14 +364,17 @@
 				return rt;
 			},
 			getUnitsAt(r, c) {
-				return this.game?.getUnitsAt(new 棋盘点位(r, c)) || [];
+				// 依赖 updateCounter 来强制重新计算
+				const _ = this.updateCounter;
+				return this.game?.battlefield?.getUnitsAt(new 棋盘点位(r, c)) || [];
 			},
 			getUnitClasses(unit) {
-				if (!unit) {
-					return [];
+				if (!unit) return [];
+				const classes = ['unit'];
+				if (unit.owner.team.color) {
+					classes.push(unit.owner.team.color);
 				}
-				const classes = [...unit.cssClass];
-				if (this.selectedUnit && this.selectedUnit.id === unit.id) {
+				if (this.selectedUnit && this.selectedUnit === unit) {
 					classes.push('selected');
 				}
 				return classes;
@@ -350,7 +383,7 @@
 				if (!this.game || this.isGameOver) {
 					return;
 				}
-				this.game.eventBus.emit('player:input', {position: new 棋盘点位(r, c)});
+				this.game.bulletin.notice('ui:input', new 棋盘点位(r, c));
 			},
 			isValidMove(r, c) {
 				const targetPos = new 棋盘点位(r, c);

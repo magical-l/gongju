@@ -77,7 +77,7 @@ class Battlefield extends GamingPart {
 	moveUnit(unit, position) {
 		this.removeUnitFromPosition(unit);
 		this.addUnitToPosition(unit, position);
-		this.gaming.notice('单位已移动', {unit, to: position});
+		this.gaming.bulletin.notice('单位已移动', {unit}); // payload中不包含to，因为unit.position已是最新
 	}
 
 	destroyUnit(unit) {
@@ -94,7 +94,7 @@ class Battlefield extends GamingPart {
 			this.positions.set(key, []);
 		}
 		this.positions.get(key).push(unit);
-		unit.position = position;
+		unit._position = position; // 直接修改内部属性，避免触发setter递归
 	}
 
 	_positionKey(position) {
@@ -116,7 +116,7 @@ class Battlefield extends GamingPart {
 				}
 			}
 		}
-		unit.position = null;
+		unit._position = null; // 直接修改内部属性，避免触发setter递归
 	}
 
 	getUnitsAt(position) {
@@ -128,19 +128,6 @@ class Battlefield extends GamingPart {
 	 */
 	keepValidPositions(positions) {
 		return positions;
-	}
-
-	/**
-	 * 确保指定单位在指定位置。若已在则忽略。
-	 * @param newPosition
-	 * @param unit
-	 */
-	ensurePosition(unit, newPosition) {
-		const oldPosition = unit.position;
-		if (!oldPosition.isEqualTo(newPosition)) {
-			this.removeUnitFromPosition(unit);
-			this.addUnitToPosition(unit, newPosition);
-		}
 	}
 
 	//todo：需要增加许多关于位置的方法。比如计算两个单位的距离、获取距离某个单位为x的位置集……
@@ -183,28 +170,71 @@ class Player extends GamingPart {
 		//todo: this.inputChannel this.outputChannel
 	}
 
+	/**
+	 * 轮到本玩家行动。返回一个Promise，在回合结束时resolve。
+	 * @returns {Promise<void>}
+	 */
 	async play() {
-		//todo:等待玩家输入（从inputChannel读取指令）
+		return new Promise(resolve => {
+			const unwatchers = [];
 
-		//todo：下面的逻辑是象棋专用的
-		this._playXiangqi();
-	}
+			const endTurn = () => {
+				unwatchers.forEach(u => u());
+				this.selectedUnits = []; // 回合结束，清空选择
+				resolve();
+			};
 
-	_playXiangqi() {
-		const watcher = (topicName, payload) => {
-			//期望payload是一个坐标
-			const units = this.gaming.battlefield.getUnitsAt(payload);
-			if (units) {
-				this.selectedUnits = [...units];
-				this.gaming.bulletin.notice('selected units', this.selectedUnits);
-				// this.selectedSkill = units[0].skills.find(e=>e instanceof MoveAction);
-			} else {
-				this.selectedUnits = [];
-				// this.selectedSkill = null;
-			}
-			//todo:本玩家回合结束时，清掉这个watcher。
-		};
-		this.gaming.bulletin.watch('ui:input', watcher);
+			// 处理来自UI的输入（点击棋盘格子）
+			const onInput = position => {
+				const unitsAtPos = this.gaming.battlefield.getUnitsAt(position);
+
+				if (this.selectedUnits.length > 0) {
+					// 已有棋子被选中，本次点击视为选择目标位置
+					const selectedUnit = this.selectedUnits[0];
+					const moveSkills = selectedUnit.skills.filter(s => s instanceof Move);
+
+					if (moveSkills.length > 0) {
+						// 检查点击位置是否是有效移动目标
+						let availableTargets = moveSkills.flatMap(s => s.getAvailableTargetPositions());
+						// 发布事件，让其他技能（如塞象眼、绊马脚）可以修改目标位置
+						const payload = {unit: selectedUnit, availableTargetPositions: availableTargets};
+						this.gaming.bulletin.notice('已获取可移动位置集', payload);
+						const validTargets = this.gaming.battlefield.keepValidPositions(payload.availableTargetPositions);
+
+						if (validTargets.find(p => p.isEqualTo(position))) {
+							// 是有效移动，执行移动。移动后，onMove处理器会结束回合。
+							selectedUnit.position = position;
+						} else {
+							// 无效移动。如果点的是自己的另一个棋子，则切换选择。否则取消选择。
+							if (unitsAtPos.length > 0 && unitsAtPos[0].owner === this) {
+								this.selectedUnits = unitsAtPos;
+								this.gaming.bulletin.notice('player:units_selected', {units: this.selectedUnits});
+							} else {
+								this.selectedUnits = [];
+							}
+						}
+					}
+				} else {
+					// 没有棋子被选中，本次点击视为选择棋子
+					if (unitsAtPos.length > 0 && unitsAtPos[0].owner === this) {
+						this.selectedUnits = unitsAtPos;
+						this.gaming.bulletin.notice('player:units_selected', {units: this.selectedUnits});
+					}
+				}
+			};
+
+			// 棋子移动后，当前玩家回合结束
+			const onMove = ({unit}) => {
+				if (unit.owner === this) {
+					endTurn();
+				}
+			};
+
+			this.gaming.bulletin.watch('ui:input', onInput);
+			this.gaming.bulletin.watch('单位已移动', onMove);
+			unwatchers.push(() => this.gaming.bulletin.unwatch('ui:input', onInput));
+			unwatchers.push(() => this.gaming.bulletin.unwatch('单位已移动', onMove));
+		});
 	}
 }
 
@@ -253,18 +283,14 @@ class Skill extends GamingPart {
 class Unit extends GamingPart {
 	name;
 	intro = '';
-	display = name;
-	player;
+	显示 = name;
+	owner; // player
 	skills = [];
-	_position;
+	_position = null;
 
 	constructor(cfg) {
 		super(cfg.owner?.gaming);
 		Object.assign(this, cfg);
-		//cfg.skills将是Skill或其子类的类型对象（constructor）
-		if (cfg.skills) {
-			this.skills = cfg.skills.map(skill => new skill({owner: this}));
-		}
 	}
 
 	get position() {
@@ -272,10 +298,11 @@ class Unit extends GamingPart {
 	}
 
 	set position(p) {
-		if (!this._position.isEqualTo(p)) {
-			this.gaming.battlefield.ensurePosition(this, p);
-			this._position = p;
+		if (this._position && this._position.isEqualTo(p)) {
+			return;
 		}
+		// setter作为移动指令的入口，通知战场来移动棋子
+		this.gaming.battlefield.moveUnit(this, p);
 	}
 
 	static define(defaultCfg) {
@@ -286,43 +313,6 @@ class Unit extends GamingPart {
 		};
 	}
 }
-
-// class Skill extends Rule {
-// 	constructor(owner, config) {
-// 		super(owner.gaming, config);
-// 		this.owner = owner;
-// 	}
-//
-// 	/**
-// 	 * 检查技能当前是否可用。UI可以调用此方法来决定是否将技能显示为可点击。
-// 	 * @returns {boolean}
-// 	 */
-// 	get isEnabled() {
-// 		return true; // 默认可用，子类可重写此逻辑（如检查冷却、魔法值等）
-// 	}
-//
-// 	/**
-// 	 * 当玩家在UI上点击并选中此技能时，由框架调用。
-// 	 * @returns {Position[] | null}
-// 	 * - 如果技能需要选择目标（如移动、攻击），则计算并返回可用目标数组。
-// 	 * - 如果技能不需要选择目标（如原地buff），则直接执行并返回null。
-// 	 */
-// 	onSelected() {
-// 		// 默认行为：如果技能需要目标，它应该重写此方法。
-// 		// 如果是不需要目标的技能，它可以重写此方法以直接执行动作。
-// 		console.warn(`技能 ${this.name} 没有实现 onSelected 方法。`);
-// 		return null;
-// 	}
-//
-// 	/**
-// 	 * 当玩家选择了目标后，由框架调用以执行技能。
-// 	 * @param {Position} target 玩家选择的目标
-// 	 */
-// 	execute(target) {
-// 		// 默认行为：需要目标的技能应该重写此方法。
-// 		console.warn(`技能 ${this.name} 没有实现 execute 方法。`);
-// 	}
-// }
 
 class Game {
 	cfg;
@@ -351,7 +341,7 @@ class Gaming {
 	constructor(cfg) {
 		this.cfg = cfg;
 		this._build();
-		this._start();
+		this._start(); // 游戏创建后自动开始
 	}
 
 	_build() {
@@ -359,14 +349,15 @@ class Gaming {
 		this.teams = this._buildTeams();
 		this.globalRules = this._buildGlobalRules();
 		this.globalRules.forEach(rule =>
-			Object.entries(rule.watchers).forEach(([topicName, watcher]) => this.bulletin.watch(topicName, watcher)));
+			Object.entries(rule.watchers)
+				.forEach(([topicName, watcher]) => this.bulletin.watch(topicName, watcher.bind(rule))));
 		this.battlefield = this._buildBattlefield();
 		this.situation = this._buildSituation();
 		this.bulletin.notice('inited', {gaming: this});
 	}
 
 	_buildTeams() {
-		const teamsCfg = this.cfg.teams;
+		const teamsCfg = this.cfg.teams || [];
 		this.bulletin.notice('building teams', {teamsCfg});
 		const rt = teamsCfg.map(teamCfg => this._buildTeam(teamCfg));
 		this.bulletin.notice('built teams', {teams: rt});
@@ -377,14 +368,14 @@ class Gaming {
 		const TeamClass = teamCfg.class ?? this.cfg.TeamClass ?? Team;
 		this.bulletin.notice('building team', {gaming: this, teamCfg, class: TeamClass});
 		const team = new TeamClass(this, teamCfg);
-		this._buildPlayers(teamCfg.players, team).forEach(e => team.players.push(e));
+		team.players = this._buildPlayers(teamCfg.players || [], team);
 		return team;
 	}
 
 	_buildPlayers(playerCfgs, team) {
 		this.bulletin.notice('building players', {team, playerCfgs});
 		const rt = playerCfgs.map(playerCfg => this._buildPlayer(playerCfg, team));
-		this.bulletin.notice('built players', {team, playerCfgs});
+		this.bulletin.notice('built players', {team, players: rt});
 		return rt;
 	}
 
@@ -392,50 +383,7 @@ class Gaming {
 		const PlayerClass = playerCfg.class ?? this.cfg.PlayerClass ?? Player;
 		this.bulletin.notice('building player', {team, playerCfg, class: PlayerClass});
 		const rt = new PlayerClass(team, playerCfg);
-		const unitsCfg = playerCfg.units || [];
-		this._buildUnits(unitsCfg, rt).forEach(e => rt.units.push(e));
 		this.bulletin.notice('built player', {player: rt});
-		return rt;
-	}
-
-	_buildUnits(unitsCfg, owner) {
-		this.bulletin.notice('building units', {unitsCfg, owner});
-		const rt = unitsCfg.map(unitCfg => {
-			return this._buildUnit(rt, unitCfg);
-			// if (unitCfg.position) {
-			// 	// 注意：这里的position应该是 {x, y} 对象，我们需要将它转换为Position实例
-			// 	const pos = new 棋盘点位(unitCfg.position.rowNum, unitCfg.position.colNum);
-			// 	this.battlefield.addUnitToPosition(unit, pos);
-			// }
-		});
-		this.bulletin.notice('built units', {rt});
-		return rt;
-	}
-
-	_buildUnit(owner, unitCfg) {
-		const UnitClass = unitCfg.class ?? this.cfg.UnitClass ?? Unit;
-		this.bulletin.notice('building unit', {owner, unitCfg, class: UnitClass});
-		const rt = new UnitClass({...unitCfg, owner});
-		const skillsCfg = unitCfg.skills;
-		if (skillsCfg) {
-			this._buildSkills(skillsCfg, rt).forEach(e => rt.skills.add(e));
-		}
-		this.bulletin.notice('built unit', {unit: rt});
-		return rt;
-	}
-
-	_buildSkills(skillsCfg, owner) {
-		this.bulletin.notice('building skills', {owner, skillsCfg});
-		const rt = skillsCfg.map(skillCfg => this._buildSkill(owner, skillCfg));
-		this.bulletin.notice('built skills', {rt});
-		return rt;
-	}
-
-	_buildSkill(owner, skillCfg) {
-		const SkillClass = skillCfg.class ?? this.cfg.SkillClass ?? Skill;
-		this.bulletin.notice('building skill', {owner, skillCfg, class: SkillClass});
-		const rt = new SkillClass(skillCfg);
-		this.bulletin.notice('built skill', {skill: rt});
 		return rt;
 	}
 
@@ -456,10 +404,53 @@ class Gaming {
 	}
 
 	_buildBattlefield() {
+		const battlefieldCfg = this.cfg.battlefieldCfg || {};
 		const BattlefieldClass = this.cfg.BattlefieldClass ?? Battlefield;
-		this.bulletin.notice('building battlefield', {gaming: this, class: BattlefieldClass});
+		this.bulletin.notice('building battlefield', {gaming: this, battlefieldCfg, class: BattlefieldClass});
 		const rt = new BattlefieldClass(this);
+		if (battlefieldCfg.units) {
+			this._buildUnits(battlefieldCfg.units);
+		}
 		this.bulletin.notice('built battlefield', {battlefield: rt});
+		return rt;
+	}
+
+	_buildUnits(unitsCfg) {
+		this.bulletin.notice('building units', {unitsCfg});
+		const rt = unitsCfg.map(unitCfg => this._buildUnit(unitCfg));
+		this.bulletin.notice('built units', {rt});
+		return rt;
+	}
+
+	_buildUnit(unitCfg) {
+		const UnitClass = unitCfg.class ?? this.cfg.UnitClass ?? Unit;
+		this.bulletin.notice('building unit', {unitCfg, class: UnitClass});
+		const unit = new UnitClass({...unitCfg});
+		unit.skills = this._buildSkills(unitCfg.skills || [], unit);
+		this.bulletin.notice('built unit', {unit: unit});
+		return unit;
+	}
+
+	_buildSkills(skillsCfg, owner) {
+		this.bulletin.notice('building skills', {owner, skillsCfg});
+		const rt = skillsCfg.map(skillCfg => {
+			const skill = this._buildSkill(owner, skillCfg);
+			if (skill.watchers) {
+				Object.entries(skill.watchers).forEach(([topic, watcher]) => {
+					this.bulletin.watch(topic, watcher.bind(skill));
+				});
+			}
+			return skill;
+		});
+		this.bulletin.notice('built skills', {rt});
+		return rt;
+	}
+
+	_buildSkill(owner, skillCfg) {
+		const SkillClass = skillCfg.class ?? this.cfg.SkillClass ?? Skill;
+		this.bulletin.notice('building skill', {owner, skillCfg, class: SkillClass});
+		const rt = new SkillClass({owner, gaming: this});
+		this.bulletin.notice('built skill', {skill: rt});
 		return rt;
 	}
 
@@ -472,69 +463,30 @@ class Gaming {
 	}
 
 	_start() {
-		while (!this.situation.isEnded) {
-			const index = this.situation.rounds.length + 1;
-			const round = new Round(this, index);
-			this.situation.rounds.push(round);
-			round.start();
-		}
-	}
+		// 使用IIFE（立即调用函数表达式）来启动异步游戏循环，避免构造函数变成异步
+		(async () => {
+			this.situation.isStarted = true;
+			this.bulletin.notice('game:start', {gaming: this});
 
-	// 交互流程: selectUnit -> selectSkill -> selectTarget
-	selectUnit(unit) {
-		if (unit.owner !== this.getCurrentPlayer()) {
-			return;
-		}
-		this.selectedUnit = unit;
-		this.selectedSkill = null;
-		this.notice('ui:unit_selected', {unit});
-	}
+			const players = this.teams.flatMap(t => t.players);
+			// todo: 从配置决定先手玩家
+			let playerIndex = 0;
 
-	selectSkill(skill) {
-		if (!this.selectedUnit || !this.selectedUnit.skills.includes(skill) || !skill.isEnabled) {
-			return;
-		}
-		this.selectedSkill = skill;
-		this.notice('ui:skill_selected', {skill});
+			while (!this.situation.isEnded) {
+				const round = new Round(this, this.situation.rounds.length + 1);
+				this.situation.rounds.push(round);
+				await round.start(players, playerIndex);
 
-		// 调用技能的onSelected，由技能决定下一步
-		const targets = skill.onSelected();
+				if (this.situation.isEnded) {
+					break;
+				}
 
-		// 如果 onSelected 返回 null，说明技能已直接执行，回合可能结束
-		if (targets === null) {
-			this.endTurn();
-		} else {
-			// 否则，通知UI层显示可用目标
-			this.notice('ui:show_targets', {targets});
-		}
-	}
+				// 轮到下一位玩家
+				playerIndex = (playerIndex + 1) % players.length;
+			}
 
-	selectTarget(target) {
-		if (!this.selectedSkill) {
-			return;
-		}
-
-		// 执行技能
-		this.selectedSkill.execute(target);
-
-		// 清理状态并结束回合
-		this.selectedUnit = null;
-		this.selectedSkill = null;
-		this.notice('ui:selection_cleared');
-		this.endTurn();
-	}
-
-	getCurrentPlayer() {
-		return this.players[this.activePlayerIndex];
-	}
-
-	endTurn() {
-		this.notice('turn:end', {player: this.getCurrentPlayer()});
-		if (this.situation.isEnded) {
-			return;
-		}
-		this.activePlayerIndex = (this.activePlayerIndex + 1) % this.players.length;
-		this.notice('turn:start', {player: this.getCurrentPlayer()});
+			this.bulletin.notice('game:end', {winner: this.situation.winner});
+		})().catch(console.error);
 	}
 
 	endGame(winner) {
@@ -543,17 +495,26 @@ class Gaming {
 		}
 		this.situation.isEnded = true;
 		this.situation.winner = winner;
-		this.notice('game:end', {winner});
+		this.bulletin.notice('game:end', {winner});
 	}
 }
 
 class Round extends GamingPart {
 	constructor(gaming, index) {
 		super(gaming);
+		this.index = index;
 	}
 
-	start() {
-		this.gaming.players.each(player => player.play());
+	/**
+	 * 开始一个回合，即一个玩家的行动轮次
+	 * @param {Player[]} players - 所有玩家的列表
+	 * @param {number} activePlayerIndex - 当前行动的玩家索引
+	 */
+	async start(players, activePlayerIndex) {
+		const currentPlayer = players[activePlayerIndex];
+		this.gaming.bulletin.notice('turn:start', {player: currentPlayer});
+		await currentPlayer.play();
+		this.gaming.bulletin.notice('turn:end', {player: currentPlayer});
 	}
 }
 
@@ -565,8 +526,9 @@ class Board extends Battlefield {
 
 	constructor(gaming) {
 		super(gaming);
-		this.colSize = gaming.cfg.board.colSize;
-		this.rowSize = gaming.cfg.board.rowSize;
+		const rows = gaming.cfg.棋盘.trim().split(/\s+/);
+		this.rowSize = rows.length;
+		this.colSize = rows[0]?.length || 0;
 		for (let r = 0; r < this.rowSize; r++) {
 			for (let c = 0; c < this.colSize; c++) {
 				this.positions.set(new 棋盘点位(r + 1, c + 1), []);
@@ -575,7 +537,7 @@ class Board extends Battlefield {
 	}
 
 	keepValidPositions(positions) {
-		return positions.keepIf(p => p.rowNum > 0 && p.rowNum <= this.rowSize
+		return positions.filter(p => p.rowNum > 0 && p.rowNum <= this.rowSize
 																 && p.colNum > 0 && p.colNum <= this.colSize);
 	}
 
