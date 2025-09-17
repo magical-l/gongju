@@ -289,13 +289,13 @@
 		},
 		computed: {
 			isGameOver() {
-				return this.game?.situation.isEnded || false;
+				return this.game?.value?.situation.isEnded || false;
 			},
 			winnerName() {
-				if (!this.isGameOver || !this.game.situation.winner) {
+				if (!this.isGameOver || !this.game.value?.situation.winner) {
 					return '';
 				}
-				return this.game.situation.winner.name;
+				return this.game.value.situation.winner.name;
 			},
 		},
 		mounted() {
@@ -303,11 +303,15 @@
 		},
 		methods: {
 			launchGame() {
-				const gaming = reactive(
+				//使用 ref 包装整个 Gaming 实例，使其顶层引用可响应式替换
+				const gamingRef = ref(
 						new 中国象棋(this.gameCfg, '红方玩家', '黑方玩家')//以后玩家名字可以从用户输入中获取。
 								.newGaming(),
 				);
-				this.game = gaming;
+				this.game = gamingRef; // 将 ref 对象赋值给 this.game
+
+				// 获取实际的 Gaming 实例，供内部使用，避免后续代码大量修改 .value
+				const gaming = gamingRef.value;
 
 				// 监听游戏事件来更新UI
 				gaming.bulletin.watch('将军', () => {
@@ -370,23 +374,25 @@
 			getUnitsAt(r, c) {
 				// 依赖 updateCounter 来强制重新计算
 				const _ = this.updateCounter;
-				return this.game?.battlefield?.getUnitsAt(new 棋盘点位(r, c)) || [];
+				return this.game?.value?.battlefield?.getUnitsAt(new 棋盘点位(r, c)) || [];
 			},
 			getUnitClasses(unit) {
 				if (!unit) {
 					return [];
 				}
 				const classes = ['unit'];
-				if (this.selectedUnit && this.selectedUnit === unit) {
+				// 修正：使用唯一的id进行比较，避免Vue响应式代理的引用问题
+				// 确保unit和selectedUnit都有id属性，以防万一
+				if (this.selectedUnit && this.selectedUnit.id && unit.id && this.selectedUnit.id === unit.id) {
 					classes.push('selected');
 				}
 				return classes;
 			},
 			clickCell(r, c) {
-				if (!this.game || this.isGameOver) {
+				if (!this.game?.value || this.isGameOver) {
 					return;
 				}
-				this.game.bulletin.notice('ui:input', new 棋盘点位(r, c));
+				this.game.value.bulletin.notice('ui:input', new 棋盘点位(r, c));
 			},
 			isValidMove(r, c) {
 				const targetPos = new 棋盘点位(r, c);

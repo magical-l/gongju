@@ -214,7 +214,7 @@ class Player extends GamingPart {
 								this.gaming.bulletin.notice('player:units_selected', {units: this.selectedUnits});
 							} else {
 								this.selectedUnits = [];
-								this.gaming.bulletin.notice('player:selection_cleared'); // 新增：通知UI选择已清除
+								this.gaming.bulletin.notice('player:selection_cleared');
 							}
 						}
 					}
@@ -225,7 +225,7 @@ class Player extends GamingPart {
 						this.gaming.bulletin.notice('player:units_selected', {units: this.selectedUnits});
 					} else {
 						this.selectedUnits = [];
-						this.gaming.bulletin.notice('player:selection_cleared'); // 新增：通知UI选择已清除
+						this.gaming.bulletin.notice('player:selection_cleared');
 					}
 				}
 			};
@@ -515,16 +515,15 @@ class Round extends GamingPart {
 	 * 开始一个回合，即一个玩家的行动轮次
 	 */
 	async start() {
-		// 修正：移除不必要的 currentPlayer 变量，并使用 for...of 循环确保玩家顺序行动
-		this.gaming.bulletin.notice('round:start', {round: this}); // 通知回合开始
+		this.gaming.bulletin.notice('round:start', {round: this});
 
 		for (const player of this.gaming.playerTurnSequence) {
-			this.gaming.bulletin.notice('turn:start', {player}); // 通知玩家回合开始
+			this.gaming.bulletin.notice('turn:start', {player});
 			await player.play(); // 等待当前玩家的回合结束
-			this.gaming.bulletin.notice('turn:end', {player}); // 通知玩家回合结束
+			this.gaming.bulletin.notice('turn:end', {player});
 		}
 
-		this.gaming.bulletin.notice('round:end', {round: this}); // 通知回合结束
+		this.gaming.bulletin.notice('round:end', {round: this});
 	}
 }
 
