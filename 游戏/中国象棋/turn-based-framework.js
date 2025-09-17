@@ -295,7 +295,9 @@ class Skill extends GamingPart {
 	}
 }
 
+let nextUnitId = 1;
 class Unit extends GamingPart {
+	id;
 	name;
 	intro = '';
 	显示 = name;
@@ -305,6 +307,7 @@ class Unit extends GamingPart {
 
 	constructor(cfg) {
 		super(cfg.owner?.gaming);
+		this.id = nextUnitId++;
 		Object.assign(this, cfg);
 	}
 
@@ -488,11 +491,14 @@ class Gaming {
 		return rt;
 	}
 
+	_getPlayersById() {
+		const allPlayers = this.teamList.flatMap(team => Object.values(team.players));
+		return Object.fromEntries(allPlayers.map(p => [p.id, p]));
+	}
+
 	_buildPlayerTurnSequence() {
-		const playerIdMap = {};
-		this.teamList.flatMap(team => Object.values(team.players))
-			.forEach(player => playerIdMap[player.id] = player);
-		return this.cfg.playerTurnSequence.map(playerId => playerIdMap[playerId]);
+		const playersById = this._getPlayersById();
+		return this.cfg.playerTurnSequence.map(playerId => playersById[playerId]);
 	}
 
 	_start() {

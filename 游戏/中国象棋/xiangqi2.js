@@ -106,8 +106,7 @@ class 棋局 extends Gaming {
 
 		// 您的translateConfig已将teams和players转为对象结构，这里假定父类的构造过程能正确处理。
 		// 我们从扁平的玩家列表中建立一个按ID索引的映射，以方便查找。
-		const allPlayers = this.teams ? Object.values(this.teams).flatMap(t => Object.values(t.players)) : [];
-		const playersById = Object.fromEntries(allPlayers.map(p => [p.name, p]));
+		const playersById = this._getPlayersById();
 
 		// 根据布局字符串，创建单位实例并放置到棋盘上
 		layout.forEach((rowStr, r) => {
