@@ -166,8 +166,7 @@ const 内置规则集 = {
 				watchers: {
 					'单位阵亡': ({unit, killer}) => {
 						if (unit.name === '将' || unit.name === '帅') {
-							gaming.situation.winner = killer.owner.team;
-							throw Error('游戏结束');
+							gaming.bulletin.notice('game:over', {winner: killer.owner});
 						}
 					},
 				},

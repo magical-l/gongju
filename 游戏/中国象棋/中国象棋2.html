@@ -295,14 +295,17 @@
 			positions() {
 				return this.battlefield?.positions;
 			},
+			situation(){
+				return this.gaming?.situation;
+			},
 			isGameOver() {
-				return this.gaming?.situation.isEnded || false;
+				return this.situation?.isEnded || false;
 			},
 			winnerName() {
-				if (!this.isGameOver || !this.gaming?.situation.winner) {
+				if (!this.isGameOver || !this.situation?.winner) {
 					return '';
 				}
-				return this.gaming.situation.winner.name;
+				return this.situation.winner.name;
 			},
 		},
 		mounted() {
@@ -413,7 +416,7 @@
 	for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 		app.component(key, component);
 	}
-	app.mount('main>article');
+	window.app = app.mount('main>article');
 </script>
 </body>
 </html>
