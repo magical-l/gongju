@@ -104,9 +104,7 @@ class 棋局 extends Gaming {
 		const layout = this.cfg.棋盘.trim().split(/\s+/);
 		const unitTypes = this.cfg.unitTypes;
 
-		// 您的translateConfig已将teams和players转为对象结构，这里假定父类的构造过程能正确处理。
-		// 我们从扁平的玩家列表中建立一个按ID索引的映射，以方便查找。
-		const playersById = this._getPlayersById();
+		const playersById = this._getPlayersIdMap();
 
 		// 根据布局字符串，创建单位实例并放置到棋盘上
 		layout.forEach((rowStr, r) => {
@@ -161,7 +159,7 @@ const 内置规则集 = {
 					},
 					'已获取可移动位置集': ({unit, availableTargetPositions}) => {
 						// 检查移动单位是否是将帅，以及对方将帅是否存在
-						if (!((unit === this.kingRed && this.kingBlack) || (unit === this.kingBlack && this.kingRed))) {
+						if (!(unit === this.kingRed && this.kingBlack || unit === this.kingBlack && this.kingRed)) {
 							return;
 						}
 

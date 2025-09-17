@@ -84,7 +84,7 @@ class Battlefield extends GamingPart {
 	moveUnit(unit, position) {
 		this.removeUnitFromPosition(unit);
 		this.addUnitToPosition(unit, position);
-		this.gaming.bulletin.notice('单位移动', {unit}); // payload中不包含to，因为unit.position已是最新
+		this.gaming.bulletin.notice('单位移动', {unit});
 	}
 
 	destroyUnit(unit) {
@@ -92,7 +92,6 @@ class Battlefield extends GamingPart {
 		if (unit.owner && unit.owner.units) {
 			unit.owner.units = unit.owner.units.filter(u => u !== unit);
 		}
-		this.gaming.bulletin.notice('unit:destroyed', {unit});
 	}
 
 	addUnitToPosition(unit, position) {
@@ -188,23 +187,15 @@ class Player extends GamingPart {
 		return new Promise(resolve => {
 			const unwatchers = [];
 
-			const selectUnitAndCalcMoves = (unit) => {
-				this.selectedUnits = [unit];
-				const moveSkills = unit.skills.filter(s => s instanceof Move);
-				let targets = moveSkills.flatMap(s => s.getAvailableTargetPositions());
-				const payload = {unit: unit, availableTargetPositions: targets};
-				this.gaming.bulletin.notice('已获取可移动位置集', payload);
-				this.validMovesForSelection = this.gaming.battlefield.keepValidPositions(payload.availableTargetPositions);
-				this.gaming.bulletin.notice('valid-moves-updated', {
-					moves: this.validMovesForSelection,
-					selectedUnit: unit,
-				});
+			const onValidMovesUpdated = ({moves}) => {
+				this.validMovesForSelection = moves;
 			};
 
 			const clearSelection = () => {
+				const units = this.selectedUnits;
 				this.selectedUnits = [];
 				this.validMovesForSelection = [];
-				this.gaming.bulletin.notice('player:selection_cleared');
+				this.gaming.bulletin.notice('玩家取消选择棋子', {player: this, units});
 			};
 
 			const endTurn = () => {
@@ -222,14 +213,17 @@ class Player extends GamingPart {
 					if (this.validMovesForSelection.find(p => p.isEqualTo(position))) {
 						this.selectedUnits[0].position = position; // 合法移动，会通过'单位移动'事件结束回合
 					} else if (clickedUnit && clickedUnit.owner === this) {
-						selectUnitAndCalcMoves(clickedUnit); // 重新选择另一个己方棋子
+						// 重新选择另一个己方棋子
+						this.selectedUnits = [clickedUnit];
+						this.gaming.bulletin.notice('玩家选择单位', {player: this, unit: clickedUnit});
 					} else {
 						clearSelection(); // 无效移动，清空选择
 					}
 				} else {
 					// 尚无选择，本次点击是选择棋子
 					if (clickedUnit && clickedUnit.owner === this) {
-						selectUnitAndCalcMoves(clickedUnit);
+						this.selectedUnits = [clickedUnit];
+						this.gaming.bulletin.notice('玩家选择单位', {player: this, unit: clickedUnit});
 					}
 				}
 			};
@@ -243,8 +237,11 @@ class Player extends GamingPart {
 
 			this.gaming.bulletin.watch('ui:input', onInput);
 			this.gaming.bulletin.watch('单位移动', onMove);
+			this.gaming.bulletin.watch('系统更新可用走位', onValidMovesUpdated);
+
 			unwatchers.push(() => this.gaming.bulletin.unwatch('ui:input', onInput));
 			unwatchers.push(() => this.gaming.bulletin.unwatch('单位移动', onMove));
+			unwatchers.push(() => this.gaming.bulletin.unwatch('系统更新可用走位', onValidMovesUpdated));
 		});
 	}
 }
@@ -293,6 +290,7 @@ class Skill extends GamingPart {
 }
 
 let nextUnitId = 1;
+
 class Unit extends GamingPart {
 	id;
 	name;
@@ -370,7 +368,7 @@ class Gaming {
 		this.globalRules = this._buildGlobalRules();
 		this.globalRules.forEach(rule =>
 			Object.entries(rule.watchers)
-				.forEach(([topicName, watcher]) => this.bulletin.watch(topicName, watcher.bind(rule))));
+			.forEach(([topicName, watcher]) => this.bulletin.watch(topicName, watcher.bind(rule))));
 		this.battlefield = this._buildBattlefield();
 		this.situation = this._buildSituation();
 		this.playerTurnSequence = this._buildPlayerTurnSequence();
@@ -382,7 +380,7 @@ class Gaming {
 		this.bulletin.notice('building teams', {teamsCfg});
 		const rt = Object.fromEntries(
 			Object.entries(teamsCfg)
-				.map(([id, teamCfg]) => [id, this._buildTeam(id, teamCfg)]),
+			.map(([id, teamCfg]) => [id, this._buildTeam(id, teamCfg)])
 		);
 		this.bulletin.notice('built teams', {teams: rt});
 		return rt;
@@ -400,7 +398,7 @@ class Gaming {
 		this.bulletin.notice('building players', {team, playerCfgs});
 		const rt = Object.fromEntries(
 			Object.entries(playerCfgs)
-				.map(([id, cfg]) => [id, this._buildPlayer(id, cfg, team)]),
+			.map(([id, cfg]) => [id, this._buildPlayer(id, cfg, team)])
 		);
 		this.bulletin.notice('built players', {team, players: rt});
 		return rt;
@@ -464,7 +462,7 @@ class Gaming {
 			const skill = this._buildSkill(owner, skillCfg);
 			if (skill.watchers) {
 				Object.entries(skill.watchers)
-					.forEach(([topic, watcher]) => this.bulletin.watch(topic, watcher.bind(skill)));
+				.forEach(([topic, watcher]) => this.bulletin.watch(topic, watcher.bind(skill)));
 			}
 			return skill;
 		});
@@ -488,21 +486,21 @@ class Gaming {
 		return rt;
 	}
 
-	_getPlayersById() {
+	_getPlayersIdMap() {
 		const allPlayers = this.teamList.flatMap(team => Object.values(team.players));
 		return Object.fromEntries(allPlayers.map(p => [p.id, p]));
 	}
 
 	_buildPlayerTurnSequence() {
-		const playersById = this._getPlayersById();
+		const playersById = this._getPlayersIdMap();
 		return this.cfg.playerTurnSequence.map(playerId => playersById[playerId]);
 	}
 
 	_start() {
-        this.bulletin.watch('game:over', ({winner}) => {
-            this.situation.isEnded = true;
-            this.situation.winner = winner;
-        });
+		this.bulletin.watch('game:over', ({winner}) => {
+			this.situation.isEnded = true;
+			this.situation.winner = winner;
+		});
 		// 使用IIFE（立即调用函数表达式）来启动异步游戏循环，避免构造函数变成异步
 		(async () => {
 			this.situation.isStarted = true;

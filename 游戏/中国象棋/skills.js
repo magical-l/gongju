@@ -10,22 +10,47 @@ class 杀敌 extends Skill {
 				'单位移动': ({unit}) => {
 					if (unit === this.owner) {
 						this.gaming.battlefield.getUnitsAt(unit.position)
-							.filter(e => e !== unit && e.owner.team !== unit.owner.team)
-							.forEach(u => {
-								this.gaming.battlefield.destroyUnit(u);
-								this.gaming.bulletin.notice('单位阵亡', {unit: u, killer: unit});
-							});
+						.filter(e => e !== unit && e.owner.team !== unit.owner.team)
+						.forEach(u => {
+							this.gaming.battlefield.destroyUnit(u);
+							this.gaming.bulletin.notice('单位阵亡', {unit: u, killer: unit});
+						});
 					}
-				},
-			},
+				}
+			}
 		});
 	}
 }
 
 class Move extends Skill {
 	constructor(overrideCfg = {}) {
-		super({name: '移动', ...overrideCfg});
+		super({
+			name: '移动',
+			...overrideCfg,
+			watchers:{
+				'turn:start':({player}) => {
+					if (player === this.owner.owner) {
+						this.gaming.bulletin.watch('玩家选择单位', this.onUnitSelected);
+					}
+				},
+				'turn:end':({player}) => {
+					if (player === this.owner.owner) {
+						this.gaming.bulletin.unwatch('玩家选择单位', this.onUnitSelected);
+					}
+				}
+			}
+		});
 	}
+
+	onUnitSelected = ({unit}) => {
+		if (unit === this.owner) {
+			let targets = this.getAvailableTargetPositions();
+			const eventPayload = {unit: this.owner, availableTargetPositions: targets};
+			this.gaming.bulletin.notice('已获取可移动位置集', eventPayload);
+			const finalMoves = this.gaming.battlefield.keepValidPositions(eventPayload.availableTargetPositions);
+			this.gaming.bulletin.notice('系统更新可用走位', {moves: finalMoves, selectedUnit: this.owner});
+		}
+	};
 
 	getAvailableTargetPositions() {
 		// 默认实现：返回棋盘上所有位置，通常子类会重写
@@ -42,7 +67,7 @@ class 步战四方 extends Move {
 		const {rowNum, colNum} = this.owner.position;
 		return [
 			new 棋盘点位(rowNum - 1, colNum), new 棋盘点位(rowNum + 1, colNum),
-			new 棋盘点位(rowNum, colNum - 1), new 棋盘点位(rowNum, colNum + 1),
+			new 棋盘点位(rowNum, colNum - 1), new 棋盘点位(rowNum, colNum + 1)
 		];
 	}
 }
@@ -62,8 +87,8 @@ class 守营 extends Skill {
 						availableTargetPositions.length = 0;
 						availableTargetPositions.push(...filtered);
 					}
-				},
-			},
+				}
+			}
 		});
 	}
 }
@@ -73,7 +98,7 @@ class 护卫 extends Move {
 		super({
 			name: '护卫',
 			intro: '斜刺里冲出，护卫将帅。',
-			tip: '可以向左前方、右前方、左后方、右后方斜线移动至一格对角线方向。', ...cfg,
+			tip: '可以向左前方、右前方、左后方、右后方斜线移动至一格对角线方向。', ...cfg
 		});
 	}
 
@@ -81,7 +106,7 @@ class 护卫 extends Move {
 		const {rowNum, colNum} = this.owner.position;
 		return [
 			new 棋盘点位(rowNum - 1, colNum - 1), new 棋盘点位(rowNum - 1, colNum + 1),
-			new 棋盘点位(rowNum + 1, colNum - 1), new 棋盘点位(rowNum + 1, colNum + 1),
+			new 棋盘点位(rowNum + 1, colNum - 1), new 棋盘点位(rowNum + 1, colNum + 1)
 		];
 	}
 }
@@ -95,7 +120,7 @@ class 象行田 extends Move {
 		const {rowNum, colNum} = this.owner.position;
 		return [
 			new 棋盘点位(rowNum - 2, colNum - 2), new 棋盘点位(rowNum - 2, colNum + 2),
-			new 棋盘点位(rowNum + 2, colNum - 2), new 棋盘点位(rowNum + 2, colNum + 2),
+			new 棋盘点位(rowNum + 2, colNum - 2), new 棋盘点位(rowNum + 2, colNum + 2)
 		];
 	}
 }
@@ -115,8 +140,8 @@ class 塞象眼 extends Skill {
 						availableTargetPositions.length = 0;
 						availableTargetPositions.push(...filtered);
 					}
-				},
-			},
+				}
+			}
 		});
 	}
 }
@@ -133,8 +158,8 @@ class 水太深 extends Skill {
 						availableTargetPositions.length = 0;
 						availableTargetPositions.push(...filtered);
 					}
-				},
-			},
+				}
+			}
 		});
 	}
 }
@@ -150,7 +175,7 @@ class 马行日 extends Move {
 			new 棋盘点位(rowNum - 2, colNum - 1), new 棋盘点位(rowNum - 2, colNum + 1),
 			new 棋盘点位(rowNum + 2, colNum - 1), new 棋盘点位(rowNum + 2, colNum + 1),
 			new 棋盘点位(rowNum - 1, colNum - 2), new 棋盘点位(rowNum - 1, colNum + 2),
-			new 棋盘点位(rowNum + 1, colNum - 2), new 棋盘点位(rowNum + 1, colNum + 2),
+			new 棋盘点位(rowNum + 1, colNum - 2), new 棋盘点位(rowNum + 1, colNum + 2)
 		];
 	}
 }
@@ -177,8 +202,8 @@ class 绊马脚 extends Skill {
 						availableTargetPositions.length = 0;
 						availableTargetPositions.push(...filtered);
 					}
-				},
-			},
+				}
+			}
 		});
 	}
 }
@@ -261,8 +286,8 @@ class 挡我者死 extends Skill {
 							}
 						}
 					});
-				},
-			},
+				}
+			}
 		});
 	}
 }
@@ -306,8 +331,8 @@ class 隔山打牛 extends Skill {
 							}
 						}
 					});
-				},
-			},
+				}
+			}
 		});
 	}
 }
@@ -325,15 +350,11 @@ class 勇往直前 extends Move {
 
 class 过河卒 extends Skill {
 	constructor(cfg) {
-		super({
-			name: '过河卒', intro: '过河之后，可以横向移动。', ...cfg,
-		});
-		// 单独处理watcher，确保能正确解绑
-		this.onUnitMove = this._onUnitMove.bind(this);
-		this.watchers = {'单位移动': this.onUnitMove};
+		super({name: '过河卒', intro: '过河之后，可以横向移动。', ...cfg});
+		this.watchers['单位移动'] = this.addSkillAfterMove;
 	}
 
-	_onUnitMove({unit}) {
+	addSkillAfterMove = ({unit}) => {
 		if (unit !== this.owner) {
 			return;
 		}
@@ -344,9 +365,9 @@ class 过河卒 extends Skill {
 		if (riverCrossed && !this.owner.skills.some(s => s instanceof 横冲直撞)) {
 			this.owner.skills.push(new 横冲直撞({owner: this.owner, gaming: this.gaming}));
 			// 成功添加新技能后，彻底移除此技能的监听器
-			this.gaming.bulletin.unwatch('单位移动', this.onUnitMove);
+			this.gaming.bulletin.unwatch('单位移动', this.addSkillAfterMove);
 		}
-	}
+	};
 }
 
 class 横冲直撞 extends Move {
@@ -359,7 +380,7 @@ class 横冲直撞 extends Move {
 		// 注意：横冲直撞是额外增加的移动能力，原来的“勇往直前”还在
 		return [
 			new 棋盘点位(rowNum, colNum - 1),
-			new 棋盘点位(rowNum, colNum + 1),
+			new 棋盘点位(rowNum, colNum + 1)
 		];
 	}
 }
@@ -367,6 +388,6 @@ class 横冲直撞 extends Move {
 const 内置技能集 = {};//明确声明是个{:}。
 [
 	杀敌, 步战四方, 守营, 护卫, 象行田, 塞象眼, 水太深, 马行日, 绊马脚, 轮子, 挡我者死, 隔山打牛, 勇往直前, 过河卒,
-	横冲直撞,
+	横冲直撞
 ]
-	.forEach(e => 内置技能集[e.name] = e);//用于展示
+.forEach(e => 内置技能集[e.name] = e);

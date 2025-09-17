@@ -320,7 +320,6 @@
 				const gamingRef = ref(gamingInstance);
 				this.gaming = gamingRef; // 将 ref 对象赋值给 this.gaming
 
-				// 获取实际的 Gaming 实例，供内部使用，避免后续代码大量修改 .value
 				const gaming = gamingRef.value;
 
 				// 监听游戏事件来更新UI
@@ -329,13 +328,12 @@
 					setTimeout(() => this.showCheck = false, 1000);
 				});
 
-				gaming.bulletin.watch('valid-moves-updated', ({moves, selectedUnit}) => {
+				gaming.bulletin.watch('系统更新可用走位', ({moves, selectedUnit}) => {
 					this.validMoves = moves;
 					this.selectedUnit = selectedUnit;
 				});
 
-				// 'selection_cleared' 事件现在是清空UI状态的唯一来源
-				gaming.bulletin.watch('player:selection_cleared', () => {
+				gaming.bulletin.watch('玩家取消选择棋子', () => {
 					this.selectedUnit = null;
 					this.validMoves = [];
 				});
@@ -346,7 +344,7 @@
 					this.updateCounter++;
 				};
 				gaming.bulletin.watch('单位移动', rerender);
-				gaming.bulletin.watch('unit:destroyed', rerender);
+				gaming.bulletin.watch('单位阵亡', rerender);
 				this.updateCounter++; // 强制更新UI以显示初始棋子
 			},
 			restartGame() {
@@ -386,8 +384,6 @@
 					return [];
 				}
 				const classes = ['unit'];
-				// 修正：使用唯一的id进行比较，避免Vue响应式代理的引用问题
-				// 确保unit和selectedUnit都有id属性，以防万一
 				if (this.selectedUnit && this.selectedUnit.id && unit.id && this.selectedUnit.id === unit.id) {
 					classes.push('selected');
 				}
