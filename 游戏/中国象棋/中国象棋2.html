@@ -349,7 +349,7 @@
 					this.validMoves = [];
 					this.updateCounter++;
 				};
-				gaming.bulletin.watch('单位已移动', rerender);
+				gaming.bulletin.watch('单位移动', rerender);
 				gaming.bulletin.watch('unit:destroyed', rerender);
 				this.updateCounter++; // 强制更新UI以显示初始棋子
 			},

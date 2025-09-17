@@ -34,6 +34,7 @@ const 中国象棋默认配置 = {
 		'卒': {显示: '\u{1FA6D}', 技能: ['勇往直前', '过河卒', '杀敌'], 玩家: '黑方玩家'},
 	},
 	先手: 红方id,
+	规则: ['王不见王', '斩将'],
 };
 
 class 中国象棋 extends Game {
@@ -57,6 +58,7 @@ class 中国象棋 extends Game {
 						[棋子名, {display: 棋子.显示, skills: 棋子.技能, player: 棋子.玩家, ...棋子}]),
 			),
 			playerTurnSequence: cfg.先手 === 红方id ? [红方玩家id, 黑方玩家id] : [黑方玩家id, 红方玩家id],
+			globalRules: cfg.规则,
 			...cfg,//带上原始数据
 		};
 	}
@@ -99,7 +101,7 @@ class 棋局 extends Gaming {
 		const battlefield = super._buildBattlefield();
 
 		this.bulletin.notice('parsing board layout');
-			const layout = this.cfg.棋盘.trim().split(/\s+/);
+		const layout = this.cfg.棋盘.trim().split(/\s+/);
 		const unitTypes = this.cfg.unitTypes;
 
 		// 您的translateConfig已将teams和players转为对象结构，这里假定父类的构造过程能正确处理。
@@ -134,13 +136,43 @@ class 棋局 extends Gaming {
 	_buildSkill(owner, skillCfg) {
 		// skillCfg 在此游戏中是一个字符串，如 '马行日'
 		const SkillClass = 内置技能集[skillCfg];
-		if (SkillClass) {
-			this.bulletin.notice('building skill', {owner, skillCfg, class: SkillClass});
-			const rt = new SkillClass({owner, gaming: this});
-			this.bulletin.notice('built skill', {skill: rt});
-			return rt;
-		}
-		console.warn(`未找到技能: ${skillCfg}`);
-		return null; // 或者返回一个空的Skill实例
+		return super._buildSkill(owner, {class: SkillClass});
+	}
+
+	_buildGlobalRule(ruleCfg) {
+		const RuleClass = 内置规则集[ruleCfg];
+		return super._buildGlobalRule({class: RuleClass});
 	}
 }
+
+const 内置规则集 = {
+	'王不见王': class extends Rule {
+		constructor(gaming, cfg) {
+			super(gaming, {
+				name: '王不见王', intro: '将帅不能碰见对方将帅，否则输棋。', tip: '将帅不能位于同一列且中间无其他棋子遮挡。',
+				watchers: {
+					'已获取可移动位置集': ({unit, availableTargetPositions}) => {
+						//todo：实现将帅不能位于同一列且中间无其他棋子遮挡。
+					},
+				},
+				...cfg,
+			});
+		}
+	},
+	'斩将': class extends Rule {
+		constructor(gaming, cfg) {
+			super(gaming, {
+				name: '斩将', intro: '将帅阵亡则输棋。', tip: '保护好将帅。',
+				watchers: {
+					'单位阵亡': ({unit, killer}) => {
+						if (unit.name === '将' || unit.name === '帅') {
+							gaming.situation.winner = killer.owner.team;
+							throw Error('游戏结束');
+						}
+					},
+				},
+				...cfg,
+			});
+		}
+	},
+};

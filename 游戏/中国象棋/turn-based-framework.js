@@ -84,7 +84,7 @@ class Battlefield extends GamingPart {
 	moveUnit(unit, position) {
 		this.removeUnitFromPosition(unit);
 		this.addUnitToPosition(unit, position);
-		this.gaming.bulletin.notice('单位已移动', {unit}); // payload中不包含to，因为unit.position已是最新
+		this.gaming.bulletin.notice('单位移动', {unit}); // payload中不包含to，因为unit.position已是最新
 	}
 
 	destroyUnit(unit) {
@@ -245,9 +245,9 @@ class Player extends GamingPart {
 			};
 
 			this.gaming.bulletin.watch('ui:input', onInput);
-			this.gaming.bulletin.watch('单位已移动', onMove);
+			this.gaming.bulletin.watch('单位移动', onMove);
 			unwatchers.push(() => this.gaming.bulletin.unwatch('ui:input', onInput));
-			unwatchers.push(() => this.gaming.bulletin.unwatch('单位已移动', onMove));
+			unwatchers.push(() => this.gaming.bulletin.unwatch('单位移动', onMove));
 		});
 	}
 }
@@ -255,13 +255,14 @@ class Player extends GamingPart {
 /**
  * 规则：有一定业务含义，若干个相关的逻辑片段的封装。这些逻辑片段是监听器（watchers）
  */
-class Rule {
+class Rule extends GamingPart {
 	name;
 	intro = '';
 	tip = '';
 	watchers = {};
 
-	constructor(cfg) {
+	constructor(gaming, cfg) {
+		super(gaming);
 		Object.assign(this, cfg);
 	}
 }
@@ -424,7 +425,7 @@ class Gaming {
 	_buildGlobalRule(ruleCfg) {
 		const RuleClass = ruleCfg.class ?? this.cfg.RuleClass ?? Rule;
 		this.bulletin.notice('building global rule', {gaming: this, ruleCfg, class: RuleClass});
-		const rt = new RuleClass(ruleCfg);
+		const rt = new RuleClass(this, ruleCfg);
 		this.bulletin.notice('built global rule', {globalRule: rt});
 		return rt;
 	}
