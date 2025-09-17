@@ -45,7 +45,8 @@ class 中国象棋 extends Game {
 
 	static translateConfig(cfg, 红方名字, 黑方名字) {
 		return {
-			battlefield: cfg.棋盘,//现在是在‘棋局’里自行实现了_buildBattlefield。可以考虑凑父类的逻辑。
+			棋盘: cfg.棋盘,
+			battlefieldCfg: {rowSize: 10, colSize: 9},//现在是在‘棋局’里自行实现了_buildBattlefield。可以考虑凑父类的逻辑。
 			teams: {
 				[红方id]: {name: 红方id, color: 'red', players: {[红方玩家id]: {name: 红方名字}}},//以后可以给玩家加技能，比如‘走两步’
 				[黑方id]: {name: 黑方id, color: 'black', players: {[黑方玩家id]: {name: 黑方名字}}},
@@ -62,8 +63,8 @@ class 中国象棋 extends Game {
 }
 
 class 棋盘 extends Board {
-	constructor(cfg) {
-		super(cfg);
+	constructor(gaming, cfg) {
+		super(gaming, cfg);
 	}
 
 	/**
@@ -98,7 +99,7 @@ class 棋局 extends Gaming {
 		const battlefield = super._buildBattlefield();
 
 		this.bulletin.notice('parsing board layout');
-		const layout = this.cfg.battlefield.trim().split(/\s+/);
+			const layout = this.cfg.棋盘.trim().split(/\s+/);
 		const unitTypes = this.cfg.unitTypes;
 
 		// 您的translateConfig已将teams和players转为对象结构，这里假定父类的构造过程能正确处理。

@@ -68,10 +68,17 @@ class GamingPart {
  * 战场。主要是地图、环境、单位等的实时情况。
  */
 class Battlefield extends GamingPart {
-	positions = new Map(); // Map<Position的key, Unit[]>
+	positions = [];
+	positionUnitsMapping = new Map(); // Map<Position的key, Unit[]>
 
-	constructor(gaming) {
+	constructor(gaming, cfg = {}) {
 		super(gaming);
+		Object.assign(this, cfg);
+		this._initPositionUnitsMapping();
+	}
+
+	_initPositionUnitsMapping() {
+		this.positions.forEach(p => this.positionUnitsMapping.set(p, []));
 	}
 
 	moveUnit(unit, position) {
@@ -90,10 +97,10 @@ class Battlefield extends GamingPart {
 
 	addUnitToPosition(unit, position) {
 		const key = this._positionKey(position);
-		if (!this.positions.has(key)) {
-			this.positions.set(key, []);
+		if (!this.positionUnitsMapping.has(key)) {
+			this.positionUnitsMapping.set(key, []);
 		}
-		this.positions.get(key).push(unit);
+		this.positionUnitsMapping.get(key).push(unit);
 		unit._position = position; // 直接修改内部属性，避免触发setter递归
 	}
 
@@ -106,13 +113,13 @@ class Battlefield extends GamingPart {
 			return;
 		}
 		const key = this._positionKey(unit.position);
-		const unitsAtPos = this.positions.get(key);
+		const unitsAtPos = this.positionUnitsMapping.get(key);
 		if (unitsAtPos) {
 			const index = unitsAtPos.indexOf(unit);
 			if (index > -1) {
 				unitsAtPos.splice(index, 1);
 				if (unitsAtPos.length === 0) {
-					this.positions.delete(key);
+					this.positionUnitsMapping.delete(key);
 				}
 			}
 		}
@@ -120,7 +127,7 @@ class Battlefield extends GamingPart {
 	}
 
 	getUnitsAt(position) {
-		return this.positions.get(this._positionKey(position)) || [];
+		return this.positionUnitsMapping.get(this._positionKey(position)) || [];
 	}
 
 	/**
@@ -426,7 +433,7 @@ class Gaming {
 		const battlefieldCfg = this.cfg.battlefieldCfg || {};
 		const BattlefieldClass = this.cfg.BattlefieldClass ?? Battlefield;
 		this.bulletin.notice('building battlefield', {gaming: this, battlefieldCfg, class: BattlefieldClass});
-		const rt = new BattlefieldClass(this);
+		const rt = new BattlefieldClass(this, battlefieldCfg);
 		if (battlefieldCfg.units) {
 			this._buildUnits(battlefieldCfg.units);
 		}
@@ -533,16 +540,22 @@ class Board extends Battlefield {
 	colSize;
 	rowSize;
 
-	constructor(gaming) {
-		super(gaming);
-		const rows = gaming.cfg.棋盘.trim().split(/\s+/);
-		this.rowSize = rows.length;
-		this.colSize = rows[0]?.length || 0;
-		for (let r = 0; r < this.rowSize; r++) {
-			for (let c = 0; c < this.colSize; c++) {
-				this.positions.set(new 棋盘点位(r + 1, c + 1), []);
+	constructor(gaming, cfg = {}) {
+		super(gaming, {positions: Board.buildPositions(cfg.rowSize, cfg.colSize), ...cfg});
+		this.rowSize = cfg.rowSize;
+		this.colSize = cfg.colSize;
+	}
+
+	static buildPositions(rowSize, colSize) {
+		const rt = [];
+		for (let i = 0; i < rowSize; i++) {
+			const row = [];
+			rt.push(row);
+			for (let j = 0; j < colSize; j++) {
+				row.push(new 棋盘点位(i + 1, j + 1));
 			}
 		}
+		return rt;
 	}
 
 	keepValidPositions(positions) {

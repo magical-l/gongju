@@ -227,8 +227,9 @@
 		</article>
 
 		<article class="chess board , grid">
-			<template v-for="r in 10">
-				<div class="cell" v-for="c in 9" :class="cellClasses(r,c)" @click="clickCell(r, c)">
+			<template v-for="(row,rIndex) of positions" :key="rIndex">
+				<div class="cell" v-for="(position,cIndex) in row" :key="rIndex + ',' + cIndex"
+						 :class="cellClasses(rIndex,cIndex)" @click="clickCell(position)">
 					<div class="texture container">
 						<div class="texture part vertical top"></div>
 						<div class="texture part horizon right"></div>
@@ -239,10 +240,10 @@
 						<div class="texture part right bottom corner"></div>
 						<div class="texture part left bottom corner"></div>
 					</div>
-					<div v-for="(unit, index) in getUnitsAt(r,c)" :key="index" :class="getUnitClasses(unit)">
+					<div v-for="(unit, uIndex) in getUnitsAt(position)" :key="uIndex" :class="getUnitClasses(unit)">
 						{{ unit.display }}
 					</div>
-					<div v-if="isValidMove(r,c)" class="valid-move-indicator"></div>
+					<div v-if="isValidMove(position)" class="valid-move-indicator"></div>
 				</div>
 			</template>
 		</article>
@@ -280,7 +281,7 @@
 		data() {
 			return {
 				gameCfg: {},
-				game: null,
+				gaming: null,
 				updateCounter: 0, // 用于强制刷新棋盘
 				showCheck: false,
 				selectedUnit: null,
@@ -288,14 +289,20 @@
 			};
 		},
 		computed: {
+			battlefield() {
+				return this.gaming?.battlefield;
+			},
+			positions() {
+				return this.battlefield?.positions;
+			},
 			isGameOver() {
-				return this.game?.value?.situation.isEnded || false;
+				return this.gaming?.situation.isEnded || false;
 			},
 			winnerName() {
-				if (!this.isGameOver || !this.game.value?.situation.winner) {
+				if (!this.isGameOver || !this.gaming?.situation.winner) {
 					return '';
 				}
-				return this.game.value.situation.winner.name;
+				return this.gaming.situation.winner.name;
 			},
 		},
 		mounted() {
@@ -306,9 +313,8 @@
 				//使用 ref 包装整个 Gaming 实例，使其顶层引用可响应式替换
 				const gamingRef = ref(
 						new 中国象棋(this.gameCfg, '红方玩家', '黑方玩家')//以后玩家名字可以从用户输入中获取。
-								.newGaming(),
-				);
-				this.game = gamingRef; // 将 ref 对象赋值给 this.game
+								.newGaming());
+				this.gaming = gamingRef; // 将 ref 对象赋值给 this.gaming
 
 				// 获取实际的 Gaming 实例，供内部使用，避免后续代码大量修改 .value
 				const gaming = gamingRef.value;
@@ -345,6 +351,7 @@
 				};
 				gaming.bulletin.watch('单位已移动', rerender);
 				gaming.bulletin.watch('unit:destroyed', rerender);
+				this.updateCounter++; // 强制更新UI以显示初始棋子
 			},
 			restartGame() {
 				this.showCheck = false;
@@ -352,7 +359,9 @@
 				this.validMoves = [];
 				this.launchGame();
 			},
-			cellClasses(r, c) {
+			cellClasses(rIndex, cIndex) {
+				const r = rIndex + 1;
+				const c = cIndex + 1;
 				const rt = [`row-` + r, `红` + ChineseNum.digitsFromArabic(10 - c) + `路`, `黑${c}路`];
 				if ((r === 3 || r === 8) && (c === 2 || c === 8)) {
 					rt.push('炮位');
@@ -371,10 +380,10 @@
 				}
 				return rt;
 			},
-			getUnitsAt(r, c) {
+			getUnitsAt(position) {
 				// 依赖 updateCounter 来强制重新计算
 				const _ = this.updateCounter;
-				return this.game?.value?.battlefield?.getUnitsAt(new 棋盘点位(r, c)) || [];
+				return this.battlefield?.getUnitsAt(position) || [];
 			},
 			getUnitClasses(unit) {
 				if (!unit) {
@@ -388,15 +397,14 @@
 				}
 				return classes;
 			},
-			clickCell(r, c) {
-				if (!this.game?.value || this.isGameOver) {
+			clickCell(position) {
+				if (!this.gaming || this.isGameOver) {
 					return;
 				}
-				this.game.value.bulletin.notice('ui:input', new 棋盘点位(r, c));
+				this.gaming.bulletin.notice('ui:input', position);
 			},
-			isValidMove(r, c) {
-				const targetPos = new 棋盘点位(r, c);
-				return this.validMoves.some(pos => pos.isEqualTo(targetPos));
+			isValidMove(position) {
+				return this.validMoves.some(pos => pos.isEqualTo(position));
 			},
 		},
 	});
