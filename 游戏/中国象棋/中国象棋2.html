@@ -314,9 +314,10 @@
 		methods: {
 			launchGame() {
 				//使用 ref 包装整个 Gaming 实例，使其顶层引用可响应式替换
-				const gamingRef = ref(
-						new 中国象棋(this.gameCfg, '红方玩家', '黑方玩家')//以后玩家名字可以从用户输入中获取。
-								.newGaming());
+				const gamingInstance = new 中国象棋(this.gameCfg, '红方玩家', '黑方玩家').newGaming();
+				// 确保 gamingInstance.situation 是响应式的
+				gamingInstance.situation = reactive(gamingInstance.situation);
+				const gamingRef = ref(gamingInstance);
 				this.gaming = gamingRef; // 将 ref 对象赋值给 this.gaming
 
 				// 获取实际的 Gaming 实例，供内部使用，避免后续代码大量修改 .value

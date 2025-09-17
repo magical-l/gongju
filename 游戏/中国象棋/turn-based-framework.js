@@ -496,10 +496,10 @@ class Gaming {
 	}
 
 	_start() {
-		this.bulletin.watch('game:over', ({winner}) => {
-			this.situation.isEnded = true;
-			this.situation.winner = winner;
-		});
+        this.bulletin.watch('game:over', ({winner}) => {
+            this.situation.isEnded = true;
+            this.situation.winner = winner;
+        });
 		// 使用IIFE（立即调用函数表达式）来启动异步游戏循环，避免构造函数变成异步
 		(async () => {
 			this.situation.isStarted = true;
