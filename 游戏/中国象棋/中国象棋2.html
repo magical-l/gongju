@@ -329,20 +329,12 @@
 					setTimeout(() => this.showCheck = false, 1000);
 				});
 
-				gaming.bulletin.watch('player:units_selected', ({units}) => {
-					this.selectedUnit = units[0];
-					const moveSkills = this.selectedUnit.skills.filter(s => s instanceof Move);
-					if (moveSkills.length > 0) {
-						let targets = moveSkills.flatMap(s => s.getAvailableTargetPositions());
-						// 发布事件，让其他技能（如塞象眼、绊马脚）可以修改目标位置
-						const payload = {unit: this.selectedUnit, availableTargetPositions: targets};
-						gaming.bulletin.notice('已获取可移动位置集', payload);
-						this.validMoves = gaming.battlefield.keepValidPositions(payload.availableTargetPositions);
-					} else {
-						this.validMoves = [];
-					}
+				gaming.bulletin.watch('valid-moves-updated', ({moves, selectedUnit}) => {
+					this.validMoves = moves;
+					this.selectedUnit = selectedUnit;
 				});
 
+				// 'selection_cleared' 事件现在是清空UI状态的唯一来源
 				gaming.bulletin.watch('player:selection_cleared', () => {
 					this.selectedUnit = null;
 					this.validMoves = [];

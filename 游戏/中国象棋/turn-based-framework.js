@@ -171,6 +171,7 @@ class Player extends GamingPart {
 	name;
 	units = [];
 	selectedUnits = [];
+	validMovesForSelection = [];
 
 	constructor(team, cfg) {
 		super(team.gaming);
@@ -187,52 +188,48 @@ class Player extends GamingPart {
 		return new Promise(resolve => {
 			const unwatchers = [];
 
+			const selectUnitAndCalcMoves = (unit) => {
+				this.selectedUnits = [unit];
+				const moveSkills = unit.skills.filter(s => s instanceof Move);
+				let targets = moveSkills.flatMap(s => s.getAvailableTargetPositions());
+				const payload = {unit: unit, availableTargetPositions: targets};
+				this.gaming.bulletin.notice('已获取可移动位置集', payload);
+				this.validMovesForSelection = this.gaming.battlefield.keepValidPositions(payload.availableTargetPositions);
+				this.gaming.bulletin.notice('valid-moves-updated', {
+					moves: this.validMovesForSelection,
+					selectedUnit: unit,
+				});
+			};
+
+			const clearSelection = () => {
+				this.selectedUnits = [];
+				this.validMovesForSelection = [];
+				this.gaming.bulletin.notice('player:selection_cleared');
+			};
+
 			const endTurn = () => {
 				unwatchers.forEach(u => u());
-				this.selectedUnits = []; // 回合结束，清空选择
-				this.gaming.bulletin.notice('player:selection_cleared');
+				clearSelection();
 				resolve();
 			};
 
-			// 处理来自UI的输入（点击棋盘格子）
 			const onInput = position => {
 				const unitsAtPos = this.gaming.battlefield.getUnitsAt(position);
+				const clickedUnit = unitsAtPos[0];
 
 				if (this.selectedUnits.length > 0) {
-					// 已有棋子被选中，本次点击视为选择目标位置
-					const selectedUnit = this.selectedUnits[0];
-					const moveSkills = selectedUnit.skills.filter(s => s instanceof Move);
-
-					if (moveSkills.length > 0) {
-						// 检查点击位置是否是有效移动目标
-						let availableTargets = moveSkills.flatMap(s => s.getAvailableTargetPositions());
-						// 发布事件，让其他技能（如塞象眼、绊马脚）可以修改目标位置
-						const payload = {unit: selectedUnit, availableTargetPositions: availableTargets};
-						this.gaming.bulletin.notice('已获取可移动位置集', payload);
-						const validTargets = this.gaming.battlefield.keepValidPositions(payload.availableTargetPositions);
-
-						if (validTargets.find(p => p.isEqualTo(position))) {
-							// 是有效移动，执行移动。移动后，onMove处理器会结束回合。
-							selectedUnit.position = position;
-						} else {
-							// 无效移动。如果点的是自己的另一个棋子，则切换选择。否则取消选择。
-							if (unitsAtPos.length > 0 && unitsAtPos[0].owner === this) {
-								this.selectedUnits = unitsAtPos;
-								this.gaming.bulletin.notice('player:units_selected', {units: this.selectedUnits});
-							} else {
-								this.selectedUnits = [];
-								this.gaming.bulletin.notice('player:selection_cleared');
-							}
-						}
+					// 已有选择，本次点击是移动或重新选择
+					if (this.validMovesForSelection.find(p => p.isEqualTo(position))) {
+						this.selectedUnits[0].position = position; // 合法移动，会通过'单位移动'事件结束回合
+					} else if (clickedUnit && clickedUnit.owner === this) {
+						selectUnitAndCalcMoves(clickedUnit); // 重新选择另一个己方棋子
+					} else {
+						clearSelection(); // 无效移动，清空选择
 					}
 				} else {
-					// 没有棋子被选中，本次点击视为选择棋子
-					if (unitsAtPos.length > 0 && unitsAtPos[0].owner === this) {
-						this.selectedUnits = unitsAtPos;
-						this.gaming.bulletin.notice('player:units_selected', {units: this.selectedUnits});
-					} else {
-						this.selectedUnits = [];
-						this.gaming.bulletin.notice('player:selection_cleared');
+					// 尚无选择，本次点击是选择棋子
+					if (clickedUnit && clickedUnit.owner === this) {
+						selectUnitAndCalcMoves(clickedUnit);
 					}
 				}
 			};
