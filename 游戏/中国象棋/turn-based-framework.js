@@ -183,6 +183,7 @@ class Player extends GamingPart {
 			const endTurn = () => {
 				unwatchers.forEach(u => u());
 				this.selectedUnits = []; // 回合结束，清空选择
+				this.gaming.bulletin.notice('player:selection_cleared');
 				resolve();
 			};
 
@@ -213,6 +214,7 @@ class Player extends GamingPart {
 								this.gaming.bulletin.notice('player:units_selected', {units: this.selectedUnits});
 							} else {
 								this.selectedUnits = [];
+								this.gaming.bulletin.notice('player:selection_cleared'); // 新增：通知UI选择已清除
 							}
 						}
 					}
@@ -221,6 +223,9 @@ class Player extends GamingPart {
 					if (unitsAtPos.length > 0 && unitsAtPos[0].owner === this) {
 						this.selectedUnits = unitsAtPos;
 						this.gaming.bulletin.notice('player:units_selected', {units: this.selectedUnits});
+					} else {
+						this.selectedUnits = [];
+						this.gaming.bulletin.notice('player:selection_cleared'); // 新增：通知UI选择已清除
 					}
 				}
 			};
