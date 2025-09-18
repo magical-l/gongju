@@ -172,6 +172,11 @@ const 内置规则集 = {
 							const movingUnit = unit;
 							const fromPos = movingUnit.position;
 
+							// 如果目标位置是对方将帅，则此规则不应阻止将军或绝杀
+							if (targetPos.isEqualTo(this.kingRed.position) || targetPos.isEqualTo(this.kingBlack.position)) {
+								return true;
+							}
+
 							// 推算移动后的将帅位置
 							const futureKingRedPos = (movingUnit === this.kingRed) ? targetPos : this.kingRed.position;
 							const futureKingBlackPos = (movingUnit === this.kingBlack) ? targetPos : this.kingBlack.position;
