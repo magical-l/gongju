@@ -210,7 +210,8 @@ const 内置规则集 = {
 				name: '王不见王', intro: '将帅不能碰见对方将帅，否则输棋。', tip: '将帅不能位于同一列且中间无其他棋子遮挡。',
 				watchers: {
 					'inited': () => {
-						const allUnits = Array.from(this.gaming.battlefield.positionUnitsMapping.values()).flat();
+						// 从Player的单位列表中获取所有单位，而不是从棋盘的映射中
+						const allUnits = this.gaming.teamList.flatMap(team => Object.values(team.players)).flatMap(player => player.units);
 						this.kingRed = allUnits.find(u => u.name === '帅');
 						this.kingBlack = allUnits.find(u => u.name === '将');
 					},
