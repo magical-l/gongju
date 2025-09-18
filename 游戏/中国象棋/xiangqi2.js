@@ -84,13 +84,17 @@ class 棋盘 extends Board {
 	 */
 	areaOf(player) {
 		const allPositions = this.positions.flat();
-		if (player.team.id === 红方id) {
-			// 红方地盘是6-10行
+		// 根据棋盘上记录的上下方位来判断
+		if (this.playerDown && player === this.playerDown) {
+			// “下方”玩家的地盘是6-10行
 			return allPositions.filter(p => p.rowNum >= 6);
-		} else {
-			// 黑方地盘是1-5行
+		}
+		if (this.playerUp && player === this.playerUp) {
+			// “上方”玩家的地盘是1-5行
 			return allPositions.filter(p => p.rowNum <= 5);
 		}
+		// 提供一个默认值作为兼容
+		return [];
 	}
 
 	/**
@@ -98,6 +102,14 @@ class 棋盘 extends Board {
 	 * @param player
 	 */
 	forwardDirection(player) {
+		// “下方”玩家（帅在下）的进攻方向是-1，“上方”玩家（将在上）的进攻方向是1
+		if (this.playerDown && player === this.playerDown) {
+			return -1;
+		}
+		if (this.playerUp && player === this.playerUp) {
+			return 1;
+		}
+		// 如果出现意外情况，提供一个默认值作为兼容
 		return player.team.id === 红方id ? -1 : 1;
 	}
 
@@ -135,6 +147,22 @@ class 棋局 extends Gaming {
 		});
 
 		this.bulletin.notice('board parsed');
+
+		// 根据将帅初始位置，决定双方的方位
+		const allUnits = Array.from(battlefield.positionUnitsMapping.values()).flat();
+		const kingRed = allUnits.find(u => u.name === '帅');
+		const kingBlack = allUnits.find(u => u.name === '将');
+
+		if (kingRed && kingBlack) {
+			if (kingRed.position.rowNum > kingBlack.position.rowNum) {
+				battlefield.playerDown = kingRed.owner;
+				battlefield.playerUp = kingBlack.owner;
+			} else {
+				battlefield.playerDown = kingBlack.owner;
+				battlefield.playerUp = kingRed.owner;
+			}
+		}
+
 		return battlefield;
 	}
 
