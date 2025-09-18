@@ -38,13 +38,14 @@ class Move extends Skill {
 
 class 横冲直撞 extends Move {
 	constructor(cfg) {
-		super({name: '横冲直撞', intro: '可以横向移动。', ...cfg});
+		super({name: '横冲直撞', intro: '可以横向或向前移动一格。', ...cfg});
 	}
 
 	getAvailableTargetPositions() {
 		const {rowNum, colNum} = this.owner.position;
-		// 注意：横冲直撞是额外增加的移动能力，原来的“勇往直前”还在
+		const forward = this.gaming.battlefield.forwardDirection(this.owner.owner);
 		return [
+			new 棋盘点位(rowNum + forward, colNum),
 			new 棋盘点位(rowNum, colNum - 1),
 			new 棋盘点位(rowNum, colNum + 1)
 		];
@@ -381,9 +382,15 @@ const 内置技能集 = {
 			const riverCrossed = isRed ? unit.position.rowNum <= 5 : unit.position.rowNum >= 6;
 
 			if (riverCrossed && !this.owner.skills.some(s => s instanceof 横冲直撞)) {
-				this.owner.skills.push(new 横冲直撞({owner: this.owner, gaming: this.gaming}));
-				// 成功添加新技能后，彻底移除此技能的监听器
-				this.gaming.bulletin.unwatch('单位移动', this.addSkillAfterMove);
+				// 找出所有移动类技能并移除
+				const moveSkills = this.owner.skills.filter(s => s instanceof Move);
+				moveSkills.forEach(s => this.owner.removeSkill(s));
+
+				// 添加新的移动技能
+				this.owner.addSkill(new 横冲直撞({owner: this.owner, gaming: this.gaming}));
+
+				// 此技能已完成使命，可以移除自身
+				this.owner.removeSkill(this);
 			}
 		};
 	},

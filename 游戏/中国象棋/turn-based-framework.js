@@ -318,6 +318,46 @@ class Unit extends GamingPart {
 		this.gaming.battlefield.moveUnit(this, p);
 	}
 
+	addSkill(skill) {
+		if (!skill || this.skills.includes(skill)) {
+			return;
+		}
+
+		skill._boundWatchers = {};
+
+		if (skill.watchers) {
+			Object.entries(skill.watchers).forEach(([topic, watcher]) => {
+				const boundWatcher = watcher.bind(skill);
+				skill._boundWatchers[topic] = skill._boundWatchers[topic] || [];
+				skill._boundWatchers[topic].push(boundWatcher);
+				this.gaming.bulletin.watch(topic, boundWatcher);
+			});
+		}
+		this.skills.push(skill);
+	}
+
+	removeSkill(skillOrClass) {
+		const skillIndex = typeof skillOrClass === 'function'
+			? this.skills.findIndex(s => s instanceof skillOrClass)
+			: this.skills.findIndex(s => s === skillOrClass);
+
+		if (skillIndex === -1) {
+			return;
+		}
+
+		const skill = this.skills[skillIndex];
+
+		if (skill._boundWatchers) {
+			Object.entries(skill._boundWatchers).forEach(([topic, boundWatchers]) => {
+				boundWatchers.forEach(boundWatcher => {
+					this.gaming.bulletin.unwatch(topic, boundWatcher);
+				});
+			});
+		}
+
+		this.skills.splice(skillIndex, 1);
+	}
+
 	static define(defaultCfg) {
 		return class extends this {
 			constructor(overrideCfg = {}) {
@@ -451,7 +491,8 @@ class Gaming {
 		const UnitClass = unitCfg.class ?? this.cfg.UnitClass ?? Unit;
 		this.bulletin.notice('building unit', {unitCfg, class: UnitClass});
 		const unit = new UnitClass({owner, ...unitCfg});
-		unit.skills = this._buildSkills(unitCfg.skills || [], unit);
+		const skills = this._buildSkills(unitCfg.skills || [], unit);
+		skills.forEach(skill => unit.addSkill(skill));
 		this.bulletin.notice('built unit', {unit: unit});
 		return unit;
 	}
@@ -460,10 +501,6 @@ class Gaming {
 		this.bulletin.notice('building skills', {owner, skillsCfg});
 		const rt = skillsCfg.map(skillCfg => {
 			const skill = this._buildSkill(owner, skillCfg);
-			if (skill.watchers) {
-				Object.entries(skill.watchers)
-				.forEach(([topic, watcher]) => this.bulletin.watch(topic, watcher.bind(skill)));
-			}
 			return skill;
 		});
 		this.bulletin.notice('built skills', {rt});

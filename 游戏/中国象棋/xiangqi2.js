@@ -158,37 +158,60 @@ const 内置规则集 = {
 						if (unit === this.kingBlack) this.kingBlack = null;
 					},
 					'已获取可移动位置集': ({unit, availableTargetPositions}) => {
-						// 检查移动单位是否是将帅，以及对方将帅是否存在
-						if (!(unit === this.kingRed && this.kingBlack || unit === this.kingBlack && this.kingRed)) {
-							return;
+						// 任何棋子移动后，都不能造成将帅对面的情况
+						if (!this.kingRed || !this.kingBlack) {
+							return; // 将帅不齐，不检查
 						}
 
-						const otherKing = unit === this.kingRed ? this.kingBlack : this.kingRed;
-						const otherKingPos = otherKing.position;
+						const filteredPositions = availableTargetPositions.filter(targetPos => {
+							const battlefield = this.gaming.battlefield;
+							const movingUnit = unit;
+							const fromPos = movingUnit.position;
 
-						const filtered = availableTargetPositions.filter(targetPos => {
-							// 如果目标位置与对方将/帅不在同一列，则该移动合法
-							if (targetPos.colNum !== otherKingPos.colNum) {
+							// 推算移动后的将帅位置
+							const futureKingRedPos = (movingUnit === this.kingRed) ? targetPos : this.kingRed.position;
+							const futureKingBlackPos = (movingUnit === this.kingBlack) ? targetPos : this.kingBlack.position;
+
+							// 如果移动后将帅不在同一列，则移动合法
+							if (futureKingRedPos.colNum !== futureKingBlackPos.colNum) {
 								return true;
 							}
 
 							// 如果在同一列，则检查两者之间是否有其他棋子
-							const minRow = Math.min(targetPos.rowNum, otherKingPos.rowNum);
-							const maxRow = Math.max(targetPos.rowNum, otherKingPos.rowNum);
+							const col = futureKingRedPos.colNum;
+							const minRow = Math.min(futureKingRedPos.rowNum, futureKingBlackPos.rowNum);
+							const maxRow = Math.max(futureKingRedPos.rowNum, futureKingBlackPos.rowNum);
 
 							for (let r = minRow + 1; r < maxRow; r++) {
-								const p = new 棋盘点位(r, targetPos.colNum);
-								if (this.gaming.battlefield.getUnitsAt(p).length > 0) {
-									return true; // 中间有子，移动合法
+								const p = new 棋盘点位(r, col);
+
+								// 如果有棋子要移动到将帅之间的位置，该移动合法，因为移动的棋子本身会成为遮挡物
+								if (targetPos.isEqualTo(p)) {
+									return true;
+								}
+
+								// 如果有棋子正从将帅之间的位置移开
+								if (fromPos && fromPos.isEqualTo(p)) {
+									// 如果该位置上还有其他棋子（虽然中国象棋里不常见），则移动合法
+									if (battlefield.getUnitsAt(p).length > 1) {
+										return true;
+									}
+									// 否则，该位置变为空，相当于少了一个遮挡物，继续检查下一行
+								} else {
+									// 检查棋盘上本来就在那里的棋子
+									if (battlefield.getUnitsAt(p).length > 0) {
+										return true; // 发现遮挡物，移动合法
+									}
 								}
 							}
 
-							return false; // 中间无子，移动非法
+							// 遍历结束，未发现任何遮挡物，故移动非法
+							return false;
 						});
 
 						// 用过滤后的结果替换原可移动位置列表
 						availableTargetPositions.length = 0;
-						availableTargetPositions.push(...filtered);
+						availableTargetPositions.push(...filteredPositions);
 					},
 				},
 				...cfg,
