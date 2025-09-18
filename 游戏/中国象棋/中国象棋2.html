@@ -79,17 +79,17 @@
 	}
 
 	/* 炮位、兵卒位 */
-	.炮位.cell .texture.part.corner, .兵卒位:not(.红九路) .texture.part.corner, .兵卒位:not(.红一路) .texture.part.corner {
+	.炮位.cell .texture.part.corner, .兵卒位:not(.col-1) .texture.part.corner, .兵卒位:not(.col-9) .texture.part.corner {
 		background: url('折线.svg');
 	}
 
 	.cell .texture.part.corner, /* 边角 */
 	.row-1.cell .texture.part.top, /* 第一行上部 */
 	.row-10.cell .texture.part.bottom, /* 最后一行下部 */
-	.row-5.cell:not(.红九路):not(.红一路) .texture.part.bottom, /* 河上沿中段下部 */
-	.row-6.cell:not(.红九路):not(.红一路) .texture.part.top, /* 河下沿中段上部 */
-	.红九路.cell .texture.part.left, /* 最左列左部 */
-	.红一路.cell .texture.part.right /* 最右列右部 */ {
+	.row-5.cell:not(.col-1):not(.col-9) .texture.part.bottom, /* 河上沿中段下部 */
+	.row-6.cell:not(.col-1):not(.col-9) .texture.part.top, /* 河下沿中段上部 */
+	.col-1.cell .texture.part.left, /* 最左列左部 */
+	.col-9.cell .texture.part.right /* 最右列右部 */ {
 		background: none;
 	}
 
@@ -106,18 +106,18 @@
 	}
 
 	/* 九宫 左上-右下斜线 */
-	.row-1.红六路.cell .texture.part.right.bottom, .row-3.红四路.cell .texture.part.left.top,
-	.row-2.红五路.cell .texture.part.left.top, .row-2.红五路.cell .texture.part.right.bottom,
-	.row-8.红六路.cell .texture.part.right.bottom, .row-10.红四路.cell .texture.part.left.top,
-	.row-9.红五路.cell .texture.part.left.top, .row-9.红五路.cell .texture.part.right.bottom {
+	.row-1.col-4.cell .texture.part.right.bottom, .row-3.col-6.cell .texture.part.left.top,
+	.row-2.col-5.cell .texture.part.left.top, .row-2.col-5.cell .texture.part.right.bottom,
+	.row-8.col-4.cell .texture.part.right.bottom, .row-10.col-6.cell .texture.part.left.top,
+	.row-9.col-5.cell .texture.part.left.top, .row-9.col-5.cell .texture.part.right.bottom {
 		background: url('left-top-to-right-bottom.svg');
 	}
 
 	/* 九宫 右上-左下斜线 */
-	.row-1.红四路.cell .texture.part.left.bottom, .row-3.红六路.cell .texture.part.right.top,
-	.row-2.红五路.cell .texture.part.right.top, .row-2.红五路.cell .texture.part.left.bottom,
-	.row-8.红四路.cell .texture.part.left.bottom, .row-10.红六路.cell .texture.part.right.top,
-	.row-9.红五路.cell .texture.part.right.top, .row-9.红五路.cell .texture.part.left.bottom {
+	.row-1.col-6.cell .texture.part.left.bottom, .row-3.col-4.cell .texture.part.right.top,
+	.row-2.col-5.cell .texture.part.right.top, .row-2.col-5.cell .texture.part.left.bottom,
+	.row-8.col-6.cell .texture.part.left.bottom, .row-10.col-4.cell .texture.part.right.top,
+	.row-9.col-5.cell .texture.part.right.top, .row-9.col-5.cell .texture.part.left.bottom {
 		background: url('left-bottom-to-right-top.svg');
 	}
 
@@ -226,27 +226,50 @@
 			todo
 		</article>
 
-		<article class="chess board , grid">
-			<template v-for="(row,rIndex) of positions" :key="rIndex">
-				<div class="cell" v-for="(position,cIndex) in row" :key="rIndex + ',' + cIndex"
-						 :class="cellClasses(rIndex,cIndex)" @click="clickCell(position)">
-					<div class="texture container">
-						<div class="texture part vertical top"></div>
-						<div class="texture part horizon right"></div>
-						<div class="texture part vertical bottom"></div>
-						<div class="texture part horizon left"></div>
-						<div class="texture part left top corner"></div>
-						<div class="texture part right top corner"></div>
-						<div class="texture part right bottom corner"></div>
-						<div class="texture part left bottom corner"></div>
+		<div style="display: flex; justify-content: center; gap: 30px;">
+			<article class="chess board , grid">
+				<template v-for="(row,rIndex) of positions" :key="rIndex">
+					<div class="cell" v-for="(position,cIndex) in row" :key="rIndex + ',' + cIndex"
+						 :class="cellClasses(rIndex, cIndex, position)" @click="clickCell(position)">
+						<div class="texture container">
+							<div class="texture part vertical top"></div>
+							<div class="texture part horizon right"></div>
+							<div class="texture part vertical bottom"></div>
+							<div class="texture part horizon left"></div>
+							<div class="texture part left top corner"></div>
+							<div class="texture part right top corner"></div>
+							<div class="texture part right bottom corner"></div>
+							<div class="texture part left bottom corner"></div>
+						</div>
+						<div v-for="(unit, uIndex) in getUnitsAt(position)" :key="uIndex" :class="getUnitClasses(unit)">
+							{{ unit.display }}
+						</div>
+						<div v-if="isValidMove(position)" class="valid-move-indicator"></div>
 					</div>
-					<div v-for="(unit, uIndex) in getUnitsAt(position)" :key="uIndex" :class="getUnitClasses(unit)">
-						{{ unit.display }}
+				</template>
+			</article>
+			<article class="chess board reversed-board , grid">
+				<template v-for="(row,rIndex) of reversedPositions" :key="rIndex">
+					<div class="cell" v-for="(position,cIndex) in row" :key="rIndex + ',' + cIndex"
+							 :class="cellClasses(rIndex, cIndex, position)" @click="clickCell(position)">
+						<div class="texture container">
+							<div class="texture part vertical top"></div>
+							<div class="texture part horizon right"></div>
+							<div class="texture part vertical bottom"></div>
+							<div class="texture part horizon left"></div>
+							<div class="texture part left top corner"></div>
+							<div class="texture part right top corner"></div>
+							<div class="texture part right bottom corner"></div>
+							<div class="texture part left bottom corner"></div>
+						</div>
+						<div v-for="(unit, uIndex) in getUnitsAt(position)" :key="uIndex" :class="getUnitClasses(unit)">
+							{{ unit.display }}
+						</div>
+						<div v-if="isValidMove(position)" class="valid-move-indicator"></div>
 					</div>
-					<div v-if="isValidMove(position)" class="valid-move-indicator"></div>
-				</div>
-			</template>
-		</article>
+				</template>
+			</article>
+		</div>
 
 		<!-- 提示覆盖层 -->
 		<div class="game-overlay" v-if="showCheck || isGameOver" :class="{ 'game-over': isGameOver }" v-cloak>
@@ -294,6 +317,9 @@
 			},
 			positions() {
 				return this.battlefield?.positions;
+			},
+			reversedPositions() {
+				return this.battlefield?.revert ? this.battlefield.revert() : [];
 			},
 			situation(){
 				return this.gaming?.situation;
@@ -353,26 +379,38 @@
 				this.validMoves = [];
 				this.launchGame();
 			},
-			cellClasses(rIndex, cIndex) {
-				const r = rIndex + 1;
-				const c = cIndex + 1;
-				const rt = [`row-` + r, `红` + ChineseNum.digitsFromArabic(10 - c) + `路`, `黑${c}路`];
+			cellClasses(rIndex, cIndex, position) {
+				// Fallback for safety if position is not passed
+				if (!position) {
+					position = { rowNum: rIndex + 1, colNum: cIndex + 1 };
+				}
+				// 1. 逻辑类：基于棋盘绝对坐标，用于游戏逻辑判断
+				const r = position.rowNum;
+				const c = position.colNum;
+				const logicalClasses = [
+					`红${ChineseNum.digitsFromArabic(10 - c)}路`, // 红方从右往左数
+					`黑${c}路`  // 黑方从左往右数
+				];
 				if ((r === 3 || r === 8) && (c === 2 || c === 8)) {
-					rt.push('炮位');
+					logicalClasses.push('炮位');
 				}
 				if ((r === 4 || r === 7) && c % 2 === 1) {
-					rt.push('兵卒位');
+					logicalClasses.push('兵卒位');
 				}
 				if ((r <= 3 || r >= 8) && (c >= 4 && c <= 6)) {
-					rt.push('九宫');
+					logicalClasses.push('九宫');
 					if ((r === 2 || r === 9) && c === 5) {
-						rt.push('窝心');
+						logicalClasses.push('窝心');
 					}
 					if ((r === 3 || r === 8) && (c === 4 || c === 6)) {
-						rt.push('士角');
+						logicalClasses.push('士角');
 					}
 				}
-				return rt;
+
+				// 2. 视觉类：基于渲染索引，用于CSS样式（如边框）
+				const visualClasses = [`row-${rIndex + 1}`, `col-${cIndex + 1}`];
+
+				return [...logicalClasses, ...visualClasses];
 			},
 			getUnitsAt(position) {
 				// 依赖 updateCounter 来强制重新计算
