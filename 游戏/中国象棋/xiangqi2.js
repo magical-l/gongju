@@ -31,10 +31,10 @@ const 中国象棋默认配置 = {
 		'馬': {显示: '\u{1FA6A}', 技能: ['马行日', '绊马脚', '杀敌'], 玩家: '黑方玩家'},
 		'車': {显示: '\u{1FA6B}', 技能: ['轮子', '挡我者死', '杀敌'], 玩家: '黑方玩家'},
 		'砲': {显示: '\u{1FA6C}', 技能: ['轮子', '隔山打牛', '杀敌'], 玩家: '黑方玩家'},
-		'卒': {显示: '\u{1FA6D}', 技能: ['勇往直前', '过河卒', '杀敌'], 玩家: '黑方玩家'},
+		'卒': {显示: '\u{1FA6D}', 技能: ['勇往直前', '过河卒', '杀敌'], 玩家: '黑方玩家'}
 	},
 	先手: 红方id,
-	规则: ['王不见王', '斩将'],
+	规则: ['不能叠加棋子', '王不见王', '斩将']
 };
 
 class 中国象棋 extends Game {
@@ -50,16 +50,16 @@ class 中国象棋 extends Game {
 			battlefieldCfg: {rowSize: 10, colSize: 9},//现在是在‘棋局’里自行实现了_buildBattlefield。可以考虑凑父类的逻辑。
 			teams: {
 				[红方id]: {name: 红方id, color: 'red', players: {[红方玩家id]: {name: 红方名字}}},//以后可以给玩家加技能，比如‘走两步’
-				[黑方id]: {name: 黑方id, color: 'black', players: {[黑方玩家id]: {name: 黑方名字}}},
+				[黑方id]: {name: 黑方id, color: 'black', players: {[黑方玩家id]: {name: 黑方名字}}}
 			},
 			unitTypes: Object.fromEntries(
 				Object.entries(cfg.棋子类型)
-					.map(([棋子名, 棋子]) =>
-						[棋子名, {display: 棋子.显示, skills: 棋子.技能, player: 棋子.玩家, ...棋子}]),
+				.map(([棋子名, 棋子]) =>
+					[棋子名, {display: 棋子.显示, skills: 棋子.技能, player: 棋子.玩家, ...棋子}])
 			),
 			playerTurnSequence: cfg.先手 === 红方id ? [红方玩家id, 黑方玩家id] : [黑方玩家id, 红方玩家id],
 			globalRules: cfg.规则,
-			...cfg,//带上原始数据
+			...cfg//带上原始数据
 		};
 	}
 }
@@ -154,8 +154,12 @@ const 内置规则集 = {
 						this.kingBlack = allUnits.find(u => u.name === '将');
 					},
 					'单位阵亡': ({unit}) => {
-						if (unit === this.kingRed) this.kingRed = null;
-						if (unit === this.kingBlack) this.kingBlack = null;
+						if (unit === this.kingRed) {
+							this.kingRed = null;
+						}
+						if (unit === this.kingBlack) {
+							this.kingBlack = null;
+						}
 					},
 					'已获取可移动位置集': ({unit, availableTargetPositions}) => {
 						// 任何棋子移动后，都不能造成将帅对面的情况
@@ -212,9 +216,9 @@ const 内置规则集 = {
 						// 用过滤后的结果替换原可移动位置列表
 						availableTargetPositions.length = 0;
 						availableTargetPositions.push(...filteredPositions);
-					},
+					}
 				},
-				...cfg,
+				...cfg
 			});
 		}
 	},
@@ -227,9 +231,33 @@ const 内置规则集 = {
 						if (unit.name === '将' || unit.name === '帅') {
 							gaming.bulletin.notice('game:over', {winner: killer.owner});
 						}
-					},
+					}
 				},
+				...cfg
+			});
+		}
+	},
+
+	'不能叠加棋子': class extends Rule {
+		constructor(gaming, cfg) {
+			super(gaming, {
+				name: '不能叠加棋子',
+				intro: '棋子不能移动到已有己方棋子的位置。',
 				...cfg,
+				watchers: {
+					'已获取可移动位置集': ({unit, availableTargetPositions}) => {
+						if (!unit) {
+							return;
+						}
+						const myTeam = unit.owner.team;
+						const filtered = availableTargetPositions.filter(p => {
+							const unitsAtTarget = this.gaming.battlefield.getUnitsAt(p);
+							return unitsAtTarget.length === 0 || unitsAtTarget[0].owner.team !== myTeam;
+						});
+						availableTargetPositions.length = 0;
+						availableTargetPositions.push(...filtered);
+					}
+				}
 			});
 		}
 	},

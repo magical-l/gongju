@@ -22,25 +22,10 @@ class Move extends Skill {
 
 	onUnitSelected = ({unit}) => {
 		if (unit === this.owner) {
-			// 1. 获取所有子类定义的潜在移动位置
 			let targets = this.getAvailableTargetPositions();
 			const eventPayload = {unit: this.owner, availableTargetPositions: targets};
-
-			// 2. 发布事件，让其他技能（如“绊马脚”、“塞象眼”）过滤位置
 			this.gaming.bulletin.notice('已获取可移动位置集', eventPayload);
-
-			// 3. 从被其他技能过滤后的结果中，再次过滤掉己方棋子所在的位置
-			const myTeam = this.owner.owner.team;
-			const validTargets = eventPayload.availableTargetPositions.filter(p => {
-				const unitsAtTarget = this.gaming.battlefield.getUnitsAt(p);
-				// 目标位置有效，当且仅当该位置为空，或上面的棋子不属于我方
-				return unitsAtTarget.length === 0 || unitsAtTarget[0].owner.team !== myTeam;
-			});
-
-			// 4. 最后，让战场过滤掉出界的位置
-			const finalMoves = this.gaming.battlefield.keepValidPositions(validTargets);
-
-			// 5. 发布最终的可用走位
+			const finalMoves = this.gaming.battlefield.keepValidPositions(eventPayload.availableTargetPositions);
 			this.gaming.bulletin.notice('系统更新可用走位', {moves: finalMoves, selectedUnit: this.owner});
 		}
 	};
