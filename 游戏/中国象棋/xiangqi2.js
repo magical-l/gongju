@@ -113,7 +113,32 @@ class 棋盘 extends Board {
 		return player.team.id === 红方id ? -1 : 1;
 	}
 
-	//todo：更多针对中国象棋棋盘的便捷方法。
+	/**
+	 * 检查一个点位是否在九宫格内
+	 * @param {棋盘点位} position
+	 * @returns {boolean}
+	 */
+	isInPalace(position) {
+		if (position.colNum < 4 || position.colNum > 6) {
+			return false;
+		}
+		return (position.rowNum >= 1 && position.rowNum <= 3) || (position.rowNum >= 8 && position.rowNum <= 10);
+	}
+
+	/**
+	 * 检查一个点位对指定玩家来说是否算“已过河”
+	 * @param {棋盘点位} position
+	 * @param {Player} player
+	 * @returns {boolean}
+	 */
+	isAcrossRiver(position, player) {
+		const forward = this.forwardDirection(player);
+		if (forward === -1) { // Player is at bottom, moving up
+			return position.rowNum <= 5;
+		} else { // Player is at top, moving down
+			return position.rowNum >= 6;
+		}
+	}
 }
 
 class 棋局 extends Gaming {

@@ -97,12 +97,9 @@ const 内置技能集 = {
 				watchers: {
 					'已获取可移动位置集': ({unit, availableTargetPositions}) => {
 						if (unit === this.owner) {
-							const forward = this.gaming.battlefield.forwardDirection(unit.owner);
-							// forward为-1的玩家在下方，九宫在8,9,10行；forward为1的玩家在上方，九宫在1,2,3行
-							const validRows = (forward === -1) ? [8, 9, 10] : [1, 2, 3];
-							const validCols = [4, 5, 6];
 							const filtered = availableTargetPositions.filter(
-								p => validRows.includes(p.rowNum) && validCols.includes(p.colNum));
+								p => this.gaming.battlefield.isInPalace(p)
+							);
 							availableTargetPositions.length = 0;
 							availableTargetPositions.push(...filtered);
 						}
@@ -172,10 +169,9 @@ const 内置技能集 = {
 				watchers: {
 					'已获取可移动位置集': ({unit, availableTargetPositions}) => {
 						if (unit === this.owner) {
-							const forward = this.gaming.battlefield.forwardDirection(unit.owner);
-							// forward为-1的玩家在下方（6-10行），不能过河到5行及以下
-							// forward为1的玩家在上方（1-5行），不能过河到6行及以上
-							const filtered = availableTargetPositions.filter(p => (forward === -1) ? p.rowNum >= 6 : p.rowNum <= 5);
+							const filtered = availableTargetPositions.filter(
+								p => !this.gaming.battlefield.isAcrossRiver(p, unit.owner)
+							);
 							availableTargetPositions.length = 0;
 							availableTargetPositions.push(...filtered);
 						}
@@ -381,10 +377,7 @@ const 内置技能集 = {
 				return;
 			}
 
-			const forward = this.gaming.battlefield.forwardDirection(unit.owner);
-			// forward为-1的玩家在下方，过河意味着行数<=5
-			// forward为1的玩家在上方，过河意味着行数>=6
-			const riverCrossed = (forward === -1) ? unit.position.rowNum <= 5 : unit.position.rowNum >= 6;
+			const riverCrossed = this.gaming.battlefield.isAcrossRiver(unit.position, unit.owner);
 
 			if (riverCrossed && !this.owner.skills.some(s => s instanceof 横冲直撞)) {
 				// 找出所有移动类技能并移除
