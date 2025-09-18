@@ -2,19 +2,40 @@
 
 class Move extends Skill {
 	constructor(overrideCfg = {}) {
-		// 移除 watchers，不再监听 ‘玩家选择单位’ 事件
 		super({
 			name: '移动',
-			...overrideCfg
+			...overrideCfg,
+			watchers: {
+				// 只在轮到自己的回合时，才监听选择单位事件
+				'turn:start': ({player}) => {
+					if (player === this.owner.owner) {
+						this.gaming.bulletin.watch('玩家选择了单位', this.onUnitSelected);
+					}
+				},
+				'turn:end': ({player}) => {
+					if (player === this.owner.owner) {
+						this.gaming.bulletin.unwatch('玩家选择了单位', this.onUnitSelected);
+					}
+				}
+			}
 		});
 	}
+
+	onUnitSelected = ({unit}) => {
+		if (unit === this.owner) {
+			// 监听到自己的主人被选中，就主动去设置玩家的当前技能
+			unit.owner.setSelectedSkill(this);
+		}
+	};
 
 	getAvailableTargets() {
 		// 1. 从子类获取原始移动位置
 		let targets = this.getRawTargetPositions();
 		const eventPayload = {unit: this.owner, availableTargetPositions: targets};
+
 		// 2. 发布事件，让其他技能（如“绊马脚”、“塞象眼”）过滤位置
 		this.gaming.bulletin.notice('已获取可移动位置集', eventPayload);
+
 		// 3. 从被其他技能过滤后的结果中，再次过滤掉己方棋子所在的位置
 		const myTeam = this.owner.owner.team;
 		const validTargets = eventPayload.availableTargetPositions.filter(p => {
@@ -22,6 +43,7 @@ class Move extends Skill {
 			// 目标位置有效，当且仅当该位置为空，或上面的棋子不属于我方
 			return unitsAtTarget.length === 0 || unitsAtTarget[0].owner.team !== myTeam;
 		});
+
 		// 4. 最后，让战场过滤掉出界的位置，返回最终结果
 		return this.gaming.battlefield.keepValidPositions(validTargets);
 	}

@@ -169,13 +169,21 @@ class Player extends GamingPart {
 	team;
 	name;
 	units = [];
-	selectedUnits = [];
 	selectedSkill = null;
 
 	constructor(team, cfg) {
 		super(team.gaming);
 		Object.assign(this, cfg);
 		this.team = team;
+	}
+
+	setSelectedSkill(skill) {
+		this.selectedSkill = skill;
+		if (skill) {
+			this.gaming.bulletin.notice('玩家选择了一个技能', {player: this, unit: skill.owner, skill: skill});
+		} else {
+			this.gaming.bulletin.notice('玩家取消选择单位', {player: this});
+		}
 	}
 
 	/**
@@ -186,16 +194,9 @@ class Player extends GamingPart {
 		return new Promise(resolve => {
 			const unwatchers = [];
 
-			const clearSelection = () => {
-				const units = this.selectedUnits;
-				this.selectedUnits = [];
-				this.selectedSkill = null; // 清空所选技能
-				this.gaming.bulletin.notice('玩家取消选择单位', {player: this, units});
-			};
-
 			const endTurn = () => {
 				unwatchers.forEach(u => u());
-				clearSelection();
+				this.setSelectedSkill(null); // 回合结束时清空技能选择
 				resolve();
 			};
 
@@ -211,26 +212,16 @@ class Player extends GamingPart {
 						this.selectedSkill.owner.position = position;
 					} else {
 						// 否则，取消当前选择
-						clearSelection();
+						this.setSelectedSkill(null);
 						// 如果本次点击的是另一个己方单位，则立即开始新的选择
 						if (clickedUnit && clickedUnit.owner === this) {
-							const moveSkill = clickedUnit.skills.find(s => s instanceof Move);
-							if (moveSkill) {
-								this.selectedUnits = [clickedUnit];
-								this.selectedSkill = moveSkill;
-								this.gaming.bulletin.notice('玩家选择了一个技能', {player: this, unit: clickedUnit, skill: moveSkill});
-							}
+							this.gaming.bulletin.notice('玩家选择了单位', {player: this, unit: clickedUnit});
 						}
 					}
 				} else {
-					// 未选择任何技能，本次点击是尝试选择一个单位和它的移动技能
+					// 未选择任何技能，本次点击是尝试选择一个单位
 					if (clickedUnit && clickedUnit.owner === this) {
-						const moveSkill = clickedUnit.skills.find(s => s instanceof Move);
-						if (moveSkill) {
-							this.selectedUnits = [clickedUnit];
-							this.selectedSkill = moveSkill;
-							this.gaming.bulletin.notice('玩家选择了一个技能', {player: this, unit: clickedUnit, skill: moveSkill});
-						}
+						this.gaming.bulletin.notice('玩家选择了单位', {player: this, unit: clickedUnit});
 					}
 				}
 			};
@@ -244,7 +235,6 @@ class Player extends GamingPart {
 
 			this.gaming.bulletin.watch('ui:input', onInput);
 			this.gaming.bulletin.watch('单位移动', onMove);
-			// 不再监听 '系统更新可用走位'
 
 			unwatchers.push(() => this.gaming.bulletin.unwatch('ui:input', onInput));
 			unwatchers.push(() => this.gaming.bulletin.unwatch('单位移动', onMove));
