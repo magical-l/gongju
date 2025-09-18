@@ -344,7 +344,7 @@
 				// 确保 gamingInstance.situation 是响应式的
 				gamingInstance.situation = reactive(gamingInstance.situation);
 				const gamingRef = ref(gamingInstance);
-				this.gaming = gamingRef; // 将 ref 对象赋值给 this.gaming
+				this.gaming = gamingRef;
 
 				const gaming = gamingRef.value;
 
@@ -354,9 +354,10 @@
 					setTimeout(() => this.showCheck = false, 1000);
 				});
 
-				gaming.bulletin.watch('系统更新可用走位', ({moves, selectedUnit}) => {
-					this.validMoves = moves;
-					this.selectedUnit = selectedUnit;
+				gaming.bulletin.watch('玩家选择了一个技能', ({unit, skill}) => {
+					this.selectedUnit = unit;
+					// 主动从技能获取可移动位置用于UI显示
+					this.validMoves = skill.getAvailableTargets();
 				});
 
 				gaming.bulletin.watch('玩家取消选择单位', () => {
@@ -380,7 +381,6 @@
 				this.launchGame();
 			},
 			cellClasses(rIndex, cIndex, position) {
-				// Fallback for safety if position is not passed
 				if (!position) {
 					position = { rowNum: rIndex + 1, colNum: cIndex + 1 };
 				}

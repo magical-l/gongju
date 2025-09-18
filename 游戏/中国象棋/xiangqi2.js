@@ -122,7 +122,7 @@ class 棋盘 extends Board {
 		if (position.colNum < 4 || position.colNum > 6) {
 			return false;
 		}
-		return (position.rowNum >= 1 && position.rowNum <= 3) || (position.rowNum >= 8 && position.rowNum <= 10);
+		return position.rowNum >= 1 && position.rowNum <= 3 || position.rowNum >= 8 && position.rowNum <= 10;
 	}
 
 	/**
@@ -133,9 +133,9 @@ class 棋盘 extends Board {
 	 */
 	isAcrossRiver(position, player) {
 		const forward = this.forwardDirection(player);
-		if (forward === -1) { // Player is at bottom, moving up
+		if (forward === -1) {
 			return position.rowNum <= 5;
-		} else { // Player is at top, moving down
+		} else {
 			return position.rowNum >= 6;
 		}
 	}
@@ -239,8 +239,8 @@ const 内置规则集 = {
 							}
 
 							// 推算移动后的将帅位置
-							const futureKingRedPos = (movingUnit === this.kingRed) ? targetPos : this.kingRed.position;
-							const futureKingBlackPos = (movingUnit === this.kingBlack) ? targetPos : this.kingBlack.position;
+							const futureKingRedPos = movingUnit === this.kingRed ? targetPos : this.kingRed.position;
+							const futureKingBlackPos = movingUnit === this.kingBlack ? targetPos : this.kingBlack.position;
 
 							// 如果移动后将帅不在同一列，则移动合法
 							if (futureKingRedPos.colNum !== futureKingBlackPos.colNum) {
@@ -288,6 +288,7 @@ const 内置规则集 = {
 			});
 		}
 	},
+
 	'斩将': class extends Rule {
 		constructor(gaming, cfg) {
 			super(gaming, {
@@ -326,5 +327,5 @@ const 内置规则集 = {
 				}
 			});
 		}
-	},
+	}
 };

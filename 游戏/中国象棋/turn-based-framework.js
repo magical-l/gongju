@@ -170,13 +170,12 @@ class Player extends GamingPart {
 	name;
 	units = [];
 	selectedUnits = [];
-	validMovesForSelection = [];
+	selectedSkill = null;
 
 	constructor(team, cfg) {
 		super(team.gaming);
 		Object.assign(this, cfg);
 		this.team = team;
-		//todo: this.inputChannel this.outputChannel
 	}
 
 	/**
@@ -187,14 +186,10 @@ class Player extends GamingPart {
 		return new Promise(resolve => {
 			const unwatchers = [];
 
-			const onValidMovesUpdated = ({moves}) => {
-				this.validMovesForSelection = moves;
-			};
-
 			const clearSelection = () => {
 				const units = this.selectedUnits;
 				this.selectedUnits = [];
-				this.validMovesForSelection = [];
+				this.selectedSkill = null; // 清空所选技能
 				this.gaming.bulletin.notice('玩家取消选择单位', {player: this, units});
 			};
 
@@ -208,22 +203,34 @@ class Player extends GamingPart {
 				const unitsAtPos = this.gaming.battlefield.getUnitsAt(position);
 				const clickedUnit = unitsAtPos[0];
 
-				if (this.selectedUnits.length > 0) {
-					// 已有选择，本次点击是移动或重新选择
-					if (this.validMovesForSelection.find(p => p.isEqualTo(position))) {
-						this.selectedUnits[0].position = position; // 合法移动，会通过'单位移动'事件结束回合
-					} else if (clickedUnit && clickedUnit.owner === this) {
-						// 重新选择另一个己方棋子
-						this.selectedUnits = [clickedUnit];
-						this.gaming.bulletin.notice('玩家选择单位', {player: this, unit: clickedUnit});
+				if (this.selectedSkill) {
+					// 已选择一个技能（移动），判断本次点击是否为合法目标
+					const validMoves = this.selectedSkill.getAvailableTargets();
+					if (validMoves.find(p => p.isEqualTo(position))) {
+						// 合法移动，执行移动。移动后会触发'单位移动'事件，从而结束回合
+						this.selectedSkill.owner.position = position;
 					} else {
-						clearSelection(); // 无效移动，清空选择
+						// 否则，取消当前选择
+						clearSelection();
+						// 如果本次点击的是另一个己方单位，则立即开始新的选择
+						if (clickedUnit && clickedUnit.owner === this) {
+							const moveSkill = clickedUnit.skills.find(s => s instanceof Move);
+							if (moveSkill) {
+								this.selectedUnits = [clickedUnit];
+								this.selectedSkill = moveSkill;
+								this.gaming.bulletin.notice('玩家选择了一个技能', {player: this, unit: clickedUnit, skill: moveSkill});
+							}
+						}
 					}
 				} else {
-					// 尚无选择，本次点击是选择棋子
+					// 未选择任何技能，本次点击是尝试选择一个单位和它的移动技能
 					if (clickedUnit && clickedUnit.owner === this) {
-						this.selectedUnits = [clickedUnit];
-						this.gaming.bulletin.notice('玩家选择单位', {player: this, unit: clickedUnit});
+						const moveSkill = clickedUnit.skills.find(s => s instanceof Move);
+						if (moveSkill) {
+							this.selectedUnits = [clickedUnit];
+							this.selectedSkill = moveSkill;
+							this.gaming.bulletin.notice('玩家选择了一个技能', {player: this, unit: clickedUnit, skill: moveSkill});
+						}
 					}
 				}
 			};
@@ -237,11 +244,10 @@ class Player extends GamingPart {
 
 			this.gaming.bulletin.watch('ui:input', onInput);
 			this.gaming.bulletin.watch('单位移动', onMove);
-			this.gaming.bulletin.watch('系统更新可用走位', onValidMovesUpdated);
+			// 不再监听 '系统更新可用走位'
 
 			unwatchers.push(() => this.gaming.bulletin.unwatch('ui:input', onInput));
 			unwatchers.push(() => this.gaming.bulletin.unwatch('单位移动', onMove));
-			unwatchers.push(() => this.gaming.bulletin.unwatch('系统更新可用走位', onValidMovesUpdated));
 		});
 	}
 }
@@ -338,8 +344,8 @@ class Unit extends GamingPart {
 
 	removeSkill(skillOrClass) {
 		const skillIndex = typeof skillOrClass === 'function'
-			? this.skills.findIndex(s => s instanceof skillOrClass)
-			: this.skills.findIndex(s => s === skillOrClass);
+											 ? this.skills.findIndex(s => s instanceof skillOrClass)
+											 : this.skills.findIndex(s => s === skillOrClass);
 
 		if (skillIndex === -1) {
 			return;
@@ -491,6 +497,7 @@ class Gaming {
 		const UnitClass = unitCfg.class ?? this.cfg.UnitClass ?? Unit;
 		this.bulletin.notice('building unit', {unitCfg, class: UnitClass});
 		const unit = new UnitClass({owner, ...unitCfg});
+		unit.skills = []; // 清空来自配置的技能名数组，确保只包含技能实例
 		const skills = this._buildSkills(unitCfg.skills || [], unit);
 		skills.forEach(skill => unit.addSkill(skill));
 		this.bulletin.notice('built unit', {unit: unit});
@@ -618,7 +625,8 @@ class Board extends Battlefield {
 	// 重写父类方法，使用grid进行操作
 	getUnitsAt(position) {
 		// 添加边界检查以增加健壮性
-		if (position.rowNum < 1 || position.rowNum > this.rowSize || position.colNum < 1 || position.colNum > this.colSize) {
+		if (position.rowNum < 1 || position.rowNum > this.rowSize || position.colNum < 1 || position.colNum
+				> this.colSize) {
 			return [];
 		}
 		return this.grid[position.rowNum - 1][position.colNum - 1];

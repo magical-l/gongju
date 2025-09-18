@@ -2,35 +2,31 @@
 
 class Move extends Skill {
 	constructor(overrideCfg = {}) {
+		// 移除 watchers，不再监听 ‘玩家选择单位’ 事件
 		super({
 			name: '移动',
-			...overrideCfg,
-			watchers: {
-				'turn:start': ({player}) => {
-					if (player === this.owner.owner) {
-						this.gaming.bulletin.watch('玩家选择单位', this.onUnitSelected);
-					}
-				},
-				'turn:end': ({player}) => {
-					if (player === this.owner.owner) {
-						this.gaming.bulletin.unwatch('玩家选择单位', this.onUnitSelected);
-					}
-				}
-			}
+			...overrideCfg
 		});
 	}
 
-	onUnitSelected = ({unit}) => {
-		if (unit === this.owner) {
-			let targets = this.getAvailableTargetPositions();
-			const eventPayload = {unit: this.owner, availableTargetPositions: targets};
-			this.gaming.bulletin.notice('已获取可移动位置集', eventPayload);
-			const finalMoves = this.gaming.battlefield.keepValidPositions(eventPayload.availableTargetPositions);
-			this.gaming.bulletin.notice('系统更新可用走位', {moves: finalMoves, selectedUnit: this.owner});
-		}
-	};
+	getAvailableTargets() {
+		// 1. 从子类获取原始移动位置
+		let targets = this.getRawTargetPositions();
+		const eventPayload = {unit: this.owner, availableTargetPositions: targets};
+		// 2. 发布事件，让其他技能（如“绊马脚”、“塞象眼”）过滤位置
+		this.gaming.bulletin.notice('已获取可移动位置集', eventPayload);
+		// 3. 从被其他技能过滤后的结果中，再次过滤掉己方棋子所在的位置
+		const myTeam = this.owner.owner.team;
+		const validTargets = eventPayload.availableTargetPositions.filter(p => {
+			const unitsAtTarget = this.gaming.battlefield.getUnitsAt(p);
+			// 目标位置有效，当且仅当该位置为空，或上面的棋子不属于我方
+			return unitsAtTarget.length === 0 || unitsAtTarget[0].owner.team !== myTeam;
+		});
+		// 4. 最后，让战场过滤掉出界的位置，返回最终结果
+		return this.gaming.battlefield.keepValidPositions(validTargets);
+	}
 
-	getAvailableTargetPositions() {
+	getRawTargetPositions() {
 		// 默认实现：返回棋盘上所有位置，通常子类会重写
 		return Array.from(this.gaming.battlefield.positions.keys());
 	}
@@ -41,7 +37,7 @@ class 横冲直撞 extends Move {
 		super({name: '横冲直撞', intro: '可以横向或向前移动一格。', ...cfg});
 	}
 
-	getAvailableTargetPositions() {
+	getRawTargetPositions() {
 		const {rowNum, colNum} = this.owner.position;
 		const forward = this.gaming.battlefield.forwardDirection(this.owner.owner);
 		return [
@@ -81,7 +77,7 @@ const 内置技能集 = {
 			super({name: '步战四方', intro: '可以向前后左右移动一格', tip: '可以向前后左右移动一格。', ...cfg});
 		}
 
-		getAvailableTargetPositions() {
+		getRawTargetPositions() {
 			const {rowNum, colNum} = this.owner.position;
 			return [
 				new 棋盘点位(rowNum - 1, colNum), new 棋盘点位(rowNum + 1, colNum),
@@ -118,7 +114,7 @@ const 内置技能集 = {
 			});
 		}
 
-		getAvailableTargetPositions() {
+		getRawTargetPositions() {
 			const {rowNum, colNum} = this.owner.position;
 			return [
 				new 棋盘点位(rowNum - 1, colNum - 1), new 棋盘点位(rowNum - 1, colNum + 1),
@@ -132,7 +128,7 @@ const 内置技能集 = {
 			super({name: '象行田', intro: '走一个“田字形”。', tip: '可移动到斜线两格的位置（‘田字’对角线）。', ...cfg});
 		}
 
-		getAvailableTargetPositions() {
+		getRawTargetPositions() {
 			const {rowNum, colNum} = this.owner.position;
 			return [
 				new 棋盘点位(rowNum - 2, colNum - 2), new 棋盘点位(rowNum - 2, colNum + 2),
@@ -186,7 +182,7 @@ const 内置技能集 = {
 			super({name: '马行日', intro: '走一个“日字形”。', tip: '可以移动到“日字”对角线的位置', ...cfg});
 		}
 
-		getAvailableTargetPositions() {
+		getRawTargetPositions() {
 			const {rowNum, colNum} = this.owner.position;
 			return [
 				new 棋盘点位(rowNum - 2, colNum - 1), new 棋盘点位(rowNum - 2, colNum + 1),
@@ -230,7 +226,7 @@ const 内置技能集 = {
 			super({name: '轮子', intro: '在没有阻挡的情况下，可以在横向或纵向的任何位置移动。', ...cfg});
 		}
 
-		getAvailableTargetPositions() {
+		getRawTargetPositions() {
 			const {rowNum, colNum} = this.owner.position;
 			const {rowSize, colSize} = this.gaming.battlefield;
 			const rt = [];
@@ -360,7 +356,7 @@ const 内置技能集 = {
 			super({name: '勇往直前', intro: '只能向前移动一格。', ...cfg});
 		}
 
-		getAvailableTargetPositions() {
+		getRawTargetPositions() {
 			const forward = this.gaming.battlefield.forwardDirection(this.owner.owner);
 			return [new 棋盘点位(this.owner.position.rowNum + forward, this.owner.position.colNum)];
 		}
@@ -393,5 +389,5 @@ const 内置技能集 = {
 		};
 	},
 
-	'横冲直撞': 横冲直撞
+	横冲直撞
 };
