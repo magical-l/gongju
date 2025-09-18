@@ -582,11 +582,46 @@ class Round extends GamingPart {
 class Board extends Battlefield {
 	colSize;
 	rowSize;
+	grid; // 使用二维数组优化棋子存储
 
 	constructor(gaming, cfg = {}) {
+		// 仍然调用父类构造函数，以运行GamingPart的初始化等逻辑
+		// 但我们会忽略父类关于 positionUnitsMapping 的部分，用自己的grid代替
 		super(gaming, {positions: Board.buildPositions(cfg.rowSize, cfg.colSize), ...cfg});
 		this.rowSize = cfg.rowSize;
 		this.colSize = cfg.colSize;
+
+		// 初始化二维数组grid，每个格子是一个空数组，用于存放棋子
+		this.grid = Array(this.rowSize).fill(null).map(() => Array(this.colSize).fill(null).map(() => []));
+	}
+
+	// 重写父类方法，使用grid进行操作
+	addUnitToPosition(unit, position) {
+		this.grid[position.rowNum - 1][position.colNum - 1].push(unit);
+		unit._position = position; // 保持对unit._position的更新
+	}
+
+	// 重写父类方法，使用grid进行操作
+	removeUnitFromPosition(unit) {
+		if (!unit.position) {
+			return;
+		}
+		const {rowNum, colNum} = unit.position;
+		const unitsAtPos = this.grid[rowNum - 1][colNum - 1];
+		const index = unitsAtPos.indexOf(unit);
+		if (index > -1) {
+			unitsAtPos.splice(index, 1);
+		}
+		unit._position = null; // 保持对unit._position的更新
+	}
+
+	// 重写父类方法，使用grid进行操作
+	getUnitsAt(position) {
+		// 添加边界检查以增加健壮性
+		if (position.rowNum < 1 || position.rowNum > this.rowSize || position.colNum < 1 || position.colNum > this.colSize) {
+			return [];
+		}
+		return this.grid[position.rowNum - 1][position.colNum - 1];
 	}
 
 	static buildPositions(rowSize, colSize) {
@@ -606,7 +641,7 @@ class Board extends Battlefield {
 																 && p.colNum > 0 && p.colNum <= this.colSize);
 	}
 
-	//todo：已知棋盘是二维的，可以简化父类的一些工具方法的算法
+	// todo：可以继续添加更多基于二维数组的便捷方法，例如计算距离、寻路等
 }
 
 class 棋盘点位 extends Position {
