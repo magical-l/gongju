@@ -71,10 +71,11 @@ class 棋盘 extends Board {
 
 	/**
 	 * 调转棋盘。中国象棋是双方玩家面对面对弈，双方看到的棋盘恰好是180°调转。
-	 * 返回棋盘转180°的位置关系。
+	 * 返回一个包含同样棋盘点位，但是行列都颠倒的二维数组。
 	 */
 	revert() {
-		return [];//todo：实现
+		// 复制并反转所有行，然后对每一行进行复制和反转
+		return this.positions.slice().reverse().map(row => row.slice().reverse());
 	}
 
 	/**
@@ -82,7 +83,14 @@ class 棋盘 extends Board {
 	 * @param player
 	 */
 	areaOf(player) {
-		return [];//todo：实现
+		const allPositions = this.positions.flat();
+		if (player.team.id === 红方id) {
+			// 红方地盘是6-10行
+			return allPositions.filter(p => p.rowNum >= 6);
+		} else {
+			// 黑方地盘是1-5行
+			return allPositions.filter(p => p.rowNum <= 5);
+		}
 	}
 
 	/**
