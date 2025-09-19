@@ -266,10 +266,6 @@
 		cursor: pointer;
 		box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
 	}
-
-	.rules-editor .el-tag {
-		margin: 0 5px 5px 0;
-	}
 </style>
 </head>
 <body class="grid 反叵字形">
@@ -277,7 +273,7 @@
 	<article class="game-wrapper , 反叵字形 grid" v-cloak>
 		<!-- 设置弹窗 -->
 		<el-dialog class="game cfg area" v-model="showSettingsDialog" title="游戏设置" :close-on-click-modal="false"
-					 :close-on-press-escape="false" :show-close="false" width="850px">
+							 :close-on-press-escape="false" :show-close="false" width="850px">
 			<el-form :model="gameSettings" label-position="top">
 				<el-form-item label="玩家顺序">
 					<el-radio-group v-model="gameSettings.firstPlayer">
@@ -334,15 +330,9 @@
 					<span>默认</span>
 				</el-form-item>
 				<el-form-item label="全局规则">
-					<div class="rules-editor">
-						<el-tag v-for="rule in gameSettings.rules" :key="rule" closable @close="handleRemoveRule(rule)">
-							{{ rule }}
-						</el-tag>
-						<el-select v-model="ruleToAdd" placeholder="添加规则" @change="handleAddRule" clearable
-									 style="width: 150px;">
-							<el-option v-for="rule in availableRulesToAdd" :key="rule" :label="rule" :value="rule"/>
-						</el-select>
-					</div>
+					<el-checkbox-group v-model="gameSettings.rules">
+						<el-checkbox v-for="rule in allAvailableRules" :key="rule" :label="rule"/>
+					</el-checkbox-group>
 				</el-form-item>
 			</el-form>
 			<template #footer>
@@ -361,44 +351,44 @@
 				<article class="one chessboard , grid">
 					<template v-for="(row,rIndex) of positions" :key="rIndex">
 						<div class="cell" v-for="(position,cIndex) in row" :key="rIndex + ',' + cIndex"
-									 :class="cellClasses(rIndex, cIndex, position)" @click="clickCell(position)">
-								<div class="texture container">
-									<div class="texture part vertical top"></div>
-									<div class="texture part horizon right"></div>
-									<div class="texture part vertical bottom"></div>
-									<div class="texture part horizon left"></div>
-									<div class="texture part left top corner"></div>
-									<div class="texture part right top corner"></div>
-									<div class="texture part right bottom corner"></div>
-									<div class="texture part left bottom corner"></div>
-								</div>
-								<div class="unit display" v-for="(unit, uIndex) in getUnitsAt(position)" :key="uIndex"
-											 :class="getUnitClasses(unit)">
-									{{ unit.display }}
-								</div>
-								<div v-if="isValidMove(position)" class="valid-move-indicator"></div>
+								 :class="cellClasses(rIndex, cIndex, position)" @click="clickCell(position)">
+							<div class="texture container">
+								<div class="texture part vertical top"></div>
+								<div class="texture part horizon right"></div>
+								<div class="texture part vertical bottom"></div>
+								<div class="texture part horizon left"></div>
+								<div class="texture part left top corner"></div>
+								<div class="texture part right top corner"></div>
+								<div class="texture part right bottom corner"></div>
+								<div class="texture part left bottom corner"></div>
+							</div>
+							<div class="unit display" v-for="(unit, uIndex) in getUnitsAt(position)" :key="uIndex"
+									 :class="getUnitClasses(unit)">
+								{{ unit.display }}
+							</div>
+							<div v-if="isValidMove(position)" class="valid-move-indicator"></div>
 						</div>
 					</template>
 				</article>
 				<article class="one chessboard reversed-view , grid" v-if="showReversedView">
 					<template v-for="(row,rIndex) of reversedPositions" :key="rIndex">
 						<div class="cell" v-for="(position,cIndex) in row" :key="rIndex + ',' + cIndex"
-									 :class="cellClasses(rIndex, cIndex, position)" @click="clickCell(position)">
-								<div class="texture container">
-									<div class="texture part vertical top"></div>
-									<div class="texture part horizon right"></div>
-									<div class="texture part vertical bottom"></div>
-									<div class="texture part horizon left"></div>
-									<div class="texture part left top corner"></div>
-									<div class="texture part right top corner"></div>
-									<div class="texture part right bottom corner"></div>
-									<div class="texture part left bottom corner"></div>
-								</div>
-								<div class="unit display" v-for="(unit, uIndex) in getUnitsAt(position)" :key="uIndex"
-											 :class="getUnitClasses(unit)">
-									{{ unit.display }}
-								</div>
-								<div v-if="isValidMove(position)" class="valid-move-indicator"></div>
+								 :class="cellClasses(rIndex, cIndex, position)" @click="clickCell(position)">
+							<div class="texture container">
+								<div class="texture part vertical top"></div>
+								<div class="texture part horizon right"></div>
+								<div class="texture part vertical bottom"></div>
+								<div class="texture part horizon left"></div>
+								<div class="texture part left top corner"></div>
+								<div class="texture part right top corner"></div>
+								<div class="texture part right bottom corner"></div>
+								<div class="texture part left bottom corner"></div>
+							</div>
+							<div class="unit display" v-for="(unit, uIndex) in getUnitsAt(position)" :key="uIndex"
+									 :class="getUnitClasses(unit)">
+								{{ unit.display }}
+							</div>
+							<div v-if="isValidMove(position)" class="valid-move-indicator"></div>
 						</div>
 					</template>
 				</article>
@@ -408,7 +398,7 @@
 				<el-card style="margin-bottom: 20px;">
 					<template #header>当前选中:
 						<span v-if="selectedUnit" class="unit display" :class="getUnitClasses(selectedUnit)"
-									 style="width: 40px; height: 40px; font-size: 28px; display: inline-flex; vertical-align: middle;">
+									style="width: 40px; height: 40px; font-size: 28px; display: inline-flex; vertical-align: middle;">
 							{{ selectedUnit.display }}
 						</span>
 						<span v-else>无</span>
@@ -469,7 +459,7 @@
 				showSettingsDialog: true,
 				gameSettings: {
 					firstPlayer: 'red',
-					rules: [],
+					rules: []
 				},
 				gameCfg: {},
 				gaming: null,
@@ -488,14 +478,10 @@
 					selectedPiece: null // {r, c}
 				},
 				// 规则编辑器数据
-				allAvailableRules: [],
-				ruleToAdd: ''
+				allAvailableRules: []
 			};
 		},
 		computed: {
-			availableRulesToAdd() {
-				return this.allAvailableRules.filter(rule => !this.gameSettings.rules.includes(rule));
-			},
 			battlefield() {
 				return this.gaming?.battlefield;
 			},
@@ -533,6 +519,7 @@
 			}
 		},
 		created() {
+			// 初始化规则编辑器
 			this.gameSettings.rules = [...默认全局规则];
 			this.allAvailableRules = Object.keys(内置规则集);
 		},
@@ -546,14 +533,15 @@
 				if (!piece) {
 					return '';
 				}
-				return piece.玩家.includes('红') ? 'red' : 'black';
+				return piece.玩家 === 红方玩家id ? 红方默认配置.flag : 黑方默认配置.flag;
 			},
 			clearBoard() {
 				this.boardEditor.layout = Array(10).fill(0).map(() => Array(9).fill('空'));
 				this.boardEditor.selectedPiece = null;
 			},
 			resetBoard() {
-				this.boardEditor.layout = this.boardEditor.defaultBoardLayout.trim().split('\n').map(row => row.trim().split(''));
+				this.boardEditor.layout = this.boardEditor.defaultBoardLayout.trim().split('\n')
+				.map(row => row.trim().split(''));
 				this.boardEditor.selectedPiece = null;
 			},
 			dragStartPiece(type, from, r = null, c = null) {
@@ -598,17 +586,7 @@
 			removeEditorPiece(r, c) {
 				this.boardEditor.layout[r][c] = '空';
 				this.boardEditor.selectedPiece = null;
-				this.boardEditor.layout = [...this.boardEditor.layout]; // 强制更新
-			},
-			// 规则编辑器方法
-			handleRemoveRule(ruleToRemove) {
-				this.gameSettings.rules = this.gameSettings.rules.filter(rule => rule !== ruleToRemove);
-			},
-			handleAddRule() {
-				if (this.ruleToAdd && !this.gameSettings.rules.includes(this.ruleToAdd)) {
-					this.gameSettings.rules.push(this.ruleToAdd);
-				}
-				this.ruleToAdd = ''; // Reset select
+				// this.boardEditor.layout = [...this.boardEditor.layout]; // 强制更新
 			},
 			// 游戏流程方法
 			startGame() {
