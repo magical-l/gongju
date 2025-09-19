@@ -22,6 +22,7 @@
 		src: url('../../lib/fonts/NotoSansSymbols2-Regular.ttf') format('truetype');
 	}
 
+	/* ===============================棋盘=============================== */
 	.one.chess.board {
 		--min-cell-len: 60px;
 		--line-color: #333;
@@ -121,8 +122,8 @@
 		background: url('left-bottom-to-right-top.svg');
 	}
 
-	/* 单位样式 */
-	.unit {
+	/* ============================棋子======================== */
+	.unit.display {
 		position: relative;
 		z-index: 10;
 		width: 90%;
@@ -140,13 +141,13 @@
 		color: var(--black-color);
 	}
 
-	.unit.red {
+	.unit.display.red {
 		background-color: #fdd;
 		border-color: var(--red-color);
 		color: var(--red-color);
 	}
 
-	.unit.selected {
+	.chessboard .selected.unit {
 		outline: 3px solid #007bff;
 		box-shadow: 0 0 10px #007bff;
 	}
@@ -161,7 +162,7 @@
 		pointer-events: none;
 	}
 
-	/* 游戏提示覆盖层 */
+	/* ==============================游戏提示覆盖层=========================== */
 	.game-overlay {
 		position: absolute;
 		top: 0;
@@ -171,7 +172,6 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		/* background-color: rgba(0, 0, 0, 0.5); */ /* 按要求移除遮罩层背景 */
 		z-index: 100;
 		pointer-events: none; /* 将军动画不应阻挡操作 */
 	}
@@ -226,15 +226,17 @@
 			开局前的设置，比如谁先手、让子、棋盘布局等
 		</article>
 
-		<div class="toolbar one-row item">
-			<!-- todo：这里放一个开关，决定showReversedView -->
+		<div class="toolbar , one-row item , flex items-like-册" style="gap: 10px; padding: 10px;">
+			<label>镜像视角
+				<el-switch v-model="showReversedView" size="large"/>
+			</label>
 		</div>
 
 		<div class="chess board area" style="display: flex; justify-content: center; gap: 30px;">
 			<article class="one chess board , grid">
 				<template v-for="(row,rIndex) of positions" :key="rIndex">
 					<div class="cell" v-for="(position,cIndex) in row" :key="rIndex + ',' + cIndex"
-						 :class="cellClasses(rIndex, cIndex, position)" @click="clickCell(position)">
+							 :class="cellClasses(rIndex, cIndex, position)" @click="clickCell(position)">
 						<div class="texture container">
 							<div class="texture part vertical top"></div>
 							<div class="texture part horizon right"></div>
@@ -245,7 +247,8 @@
 							<div class="texture part right bottom corner"></div>
 							<div class="texture part left bottom corner"></div>
 						</div>
-						<div v-for="(unit, uIndex) in getUnitsAt(position)" :key="uIndex" :class="getUnitClasses(unit)">
+						<div class="unit display" v-for="(unit, uIndex) in getUnitsAt(position)" :key="uIndex"
+								 :class="getUnitClasses(unit)">
 							{{ unit.display }}
 						</div>
 						<div v-if="isValidMove(position)" class="valid-move-indicator"></div>
@@ -266,7 +269,8 @@
 							<div class="texture part right bottom corner"></div>
 							<div class="texture part left bottom corner"></div>
 						</div>
-						<div v-for="(unit, uIndex) in getUnitsAt(position)" :key="uIndex" :class="getUnitClasses(unit)">
+						<div class="unit display" v-for="(unit, uIndex) in getUnitsAt(position)" :key="uIndex"
+								 :class="getUnitClasses(unit)">
 							{{ unit.display }}
 						</div>
 						<div v-if="isValidMove(position)" class="valid-move-indicator"></div>
@@ -276,8 +280,28 @@
 		</div>
 
 		<article class="gaming situation , right-sidebar">
-			<!-- todo: 一个卡片，显示当前选中的棋子及其技能列表 -->
-			<!-- todo：一个卡片，放回合列表。每回合一行，一个回合是左右两栏，左栏是“红方哪个棋子移动到哪里”，右栏是黑方 -->
+			<el-card style="margin-bottom: 20px;">
+				<template #header>当前选中:
+					<span class="selected unit display" v-if="selectedUnit">{{ selectedUnit.display }}</span>
+					<span v-else>无</span>
+				</template>
+				<div style="margin-top: 10px;">
+					<strong>技能:</strong>
+					<div style="margin-top: 5px;">
+						<el-tag v-if="selectedUnit?.skills" v-for="skill in selectedUnit.skills" :key="skill.name" type="info"
+										style="margin: 2px;">
+							{{ skill.name }}
+						</el-tag>
+					</div>
+				</div>
+			</el-card>
+
+			<el-card header="回合">
+				<el-table :data="turnHistory" stripe style="width: 100%" height="400">
+					<el-table-column prop="red" label="红方"/>
+					<el-table-column prop="black" label="黑方"/>
+				</el-table>
+			</el-card>
 		</article>
 
 		<!-- 提示覆盖层 -->
@@ -319,7 +343,8 @@
 				showCheck: false,
 				selectedUnit: null,
 				validMoves: [],
-				showReversedView:false
+				showReversedView: false,
+				moveHistory: []
 			};
 		},
 		computed: {
@@ -332,7 +357,7 @@
 			reversedPositions() {
 				return this.battlefield?.revert ? this.battlefield.revert() : [];
 			},
-			situation(){
+			situation() {
 				return this.gaming?.situation;
 			},
 			isGameOver() {
@@ -344,6 +369,20 @@
 				}
 				return this.situation.winner.name;
 			},
+			turnHistory() {
+				const turns = [];
+				// 每两个动作组成一个回合
+				for (let i = 0; i < this.moveHistory.length; i += 2) {
+					const redAction = this.moveHistory[i];
+					const blackAction = (i + 1 < this.moveHistory.length) ? this.moveHistory[i + 1] : null;
+					turns.push({
+						turn: Math.floor(i / 2) + 1,
+						red: this.formatMove(redAction),
+						black: this.formatMove(blackAction)
+					});
+				}
+				return turns.reverse(); // 最新回合在最上面
+			}
 		},
 		mounted() {
 			this.launchGame();
@@ -381,7 +420,10 @@
 					this.validMoves = [];
 					this.updateCounter++;
 				};
-				gaming.bulletin.watch('单位移动', rerender);
+				gaming.bulletin.watch('单位移动', (move) => {
+					this.moveHistory.push(move);
+					rerender();
+				});
 				gaming.bulletin.watch('单位阵亡', rerender);
 				this.updateCounter++; // 强制更新UI以显示初始棋子
 			},
@@ -389,11 +431,25 @@
 				this.showCheck = false;
 				this.selectedUnit = null;
 				this.validMoves = [];
+				this.moveHistory = [];
 				this.launchGame();
+			},
+			formatMove(action) {
+				if (!action) {
+					return '';
+				}
+				// 假设 action 结构为 { unit, from, to }
+				return `${action.unit.display} ${this.formatPos(action.from)} → ${this.formatPos(action.to)}`;
+			},
+			formatPos(pos) {
+				if (!pos) {
+					return '';
+				}
+				return `(${pos.colNum},${pos.rowNum})`;
 			},
 			cellClasses(rIndex, cIndex, position) {
 				if (!position) {
-					position = { rowNum: rIndex + 1, colNum: cIndex + 1 };
+					position = {rowNum: rIndex + 1, colNum: cIndex + 1};
 				}
 				// 1. 逻辑类：基于棋盘绝对坐标，用于游戏逻辑判断
 				const r = position.rowNum;
@@ -432,7 +488,7 @@
 				if (!unit) {
 					return [];
 				}
-				const classes = ['unit'];
+				const classes = [];
 				if (this.selectedUnit && this.selectedUnit.id && unit.id && this.selectedUnit.id === unit.id) {
 					classes.push('selected');
 				}
@@ -446,8 +502,8 @@
 			},
 			isValidMove(position) {
 				return this.validMoves.some(pos => pos.isEqualTo(position));
-			},
-		},
+			}
+		}
 	});
 
 	app.use(ElementPlus);
