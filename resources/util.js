@@ -23,6 +23,16 @@ Array.prototype.randomOne = function() {
 	const randomIndex = Math.floor(Math.random() * this.length);
 	return this[randomIndex];
 };
+Array.prototype.keepIf = function(filter) {
+	let newIndex = 0;
+	for (let i = 0; i < this.length; i++) {
+		if (filter(this[i])) {
+			this[newIndex++] = this[i];
+		}
+	}
+	this.length = newIndex;
+};
+
 function celsiusToKelvin(c) {
 	return c + 273.15;
 }

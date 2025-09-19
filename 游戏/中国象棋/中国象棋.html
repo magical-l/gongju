@@ -12,6 +12,11 @@
 <link href="../../resources/biz.css?v=250821" rel="stylesheet">
 <link href="../../resources/花活.css?v=250821" rel="stylesheet">
 <style>
+	body {
+		--red-color: #d43d3d;
+		--black-color: #333;
+	}
+
 	@font-face {
 		font-family: 'NotoSansSymbols2';
 		src: url('../../lib/fonts/NotoSansSymbols2-Regular.ttf') format('truetype');
@@ -23,6 +28,7 @@
 		grid-template-rows: repeat(10, var(--min-cell-len));
 		grid-template-columns: repeat(9, var(--min-cell-len));
 		background-color: aliceblue;
+		position: relative;
 	}
 
 	.cell {
@@ -73,45 +79,45 @@
 	}
 
 	/* 炮位、兵卒位 */
-	.炮位.cell .texture.part.corner, .兵卒位:not(.红九路) .texture.part.corner, .兵卒位:not(.红一路) .texture.part.corner {
+	.炮位.cell .texture.part.corner, .兵卒位:not(.col-1) .texture.part.corner, .兵卒位:not(.col-9) .texture.part.corner {
 		background: url('折线.svg');
 	}
 
 	.cell .texture.part.corner, /* 边角 */
 	.row-1.cell .texture.part.top, /* 第一行上部 */
 	.row-10.cell .texture.part.bottom, /* 最后一行下部 */
-	.row-5.cell:not(.红九路):not(.红一路) .texture.part.bottom, /* 河上沿中段下部 */
-	.row-6.cell:not(.红九路):not(.红一路) .texture.part.top, /* 河下沿中段上部 */
-	.红九路.cell .texture.part.left, /* 最左列左部 */
-	.红一路.cell .texture.part.right /* 最右列右部 */ {
+	.row-5.cell:not(.col-1):not(.col-9) .texture.part.bottom, /* 河上沿中段下部 */
+	.row-6.cell:not(.col-1):not(.col-9) .texture.part.top, /* 河下沿中段上部 */
+	.col-1.cell .texture.part.left, /* 最左列左部 */
+	.col-9.cell .texture.part.right /* 最右列右部 */ {
 		background: none;
 	}
 
 	.炮位.cell .texture.part.right.top, .兵卒位.cell .texture.part.right.top {
-		rotate: 90deg;
+		transform: rotate(90deg);
 	}
 
 	.炮位.cell .texture.part.right.bottom, .兵卒位.cell .texture.part.right.bottom {
-		rotate: 180deg;
+		transform: rotate(180deg);
 	}
 
 	.炮位.cell .texture.part.left.bottom, .兵卒位.cell .texture.part.left.bottom {
-		rotate: 270deg;
+		transform: rotate(270deg);
 	}
 
 	/* 九宫 左上-右下斜线 */
-	.row-1.红六路.cell .texture.part.right.bottom, .row-3.红四路.cell .texture.part.left.top,
-	.row-2.红五路.cell .texture.part.left.top, .row-2.红五路.cell .texture.part.right.bottom,
-	.row-8.红六路.cell .texture.part.right.bottom, .row-10.红四路.cell .texture.part.left.top,
-	.row-9.红五路.cell .texture.part.left.top, .row-9.红五路.cell .texture.part.right.bottom {
+	.row-1.col-4.cell .texture.part.right.bottom, .row-3.col-6.cell .texture.part.left.top,
+	.row-2.col-5.cell .texture.part.left.top, .row-2.col-5.cell .texture.part.right.bottom,
+	.row-8.col-4.cell .texture.part.right.bottom, .row-10.col-6.cell .texture.part.left.top,
+	.row-9.col-5.cell .texture.part.left.top, .row-9.col-5.cell .texture.part.right.bottom {
 		background: url('left-top-to-right-bottom.svg');
 	}
 
 	/* 九宫 右上-左下斜线 */
-	.row-1.红四路.cell .texture.part.left.bottom, .row-3.红六路.cell .texture.part.right.top,
-	.row-2.红五路.cell .texture.part.right.top, .row-2.红五路.cell .texture.part.left.bottom,
-	.row-8.红四路.cell .texture.part.left.bottom, .row-10.红六路.cell .texture.part.right.top,
-	.row-9.红五路.cell .texture.part.right.top, .row-9.红五路.cell .texture.part.left.bottom {
+	.row-1.col-6.cell .texture.part.left.bottom, .row-3.col-4.cell .texture.part.right.top,
+	.row-2.col-5.cell .texture.part.right.top, .row-2.col-5.cell .texture.part.left.bottom,
+	.row-8.col-6.cell .texture.part.left.bottom, .row-10.col-4.cell .texture.part.right.top,
+	.row-9.col-5.cell .texture.part.right.top, .row-9.col-5.cell .texture.part.left.bottom {
 		background: url('left-bottom-to-right-top.svg');
 	}
 
@@ -131,17 +137,18 @@
 		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 		background-color: #f0f0f0;
 		border: 1px solid #888;
-		color: black;
+		color: var(--black-color);
 	}
 
 	.unit.red {
 		background-color: #fdd;
-		border-color: #d43d3d;
-		color: red;
+		border-color: var(--red-color);
+		color: var(--red-color);
 	}
 
 	.unit.selected {
 		outline: 3px solid #007bff;
+		box-shadow: 0 0 10px #007bff;
 	}
 
 	.valid-move-indicator {
@@ -151,6 +158,7 @@
 		height: 40%;
 		background-color: rgba(40, 167, 69, 0.5);
 		border-radius: 50%;
+		pointer-events: none;
 	}
 
 	/* 游戏提示覆盖层 */
@@ -214,26 +222,54 @@
 <body class="grid 反叵字形">
 <main>
 	<article class="game-wrapper , 反叵字形 grid" v-cloak>
-		<article class="chess board , grid">
-			<template v-for="r in 10">
-				<div class="cell" v-for="c in 9" :class="cellClasses(r,c)" @click="clickCell(r, c)">
-					<div class="texture container">
-						<div class="texture part vertical top"></div>
-						<div class="texture part horizon right"></div>
-						<div class="texture part vertical bottom"></div>
-						<div class="texture part horizon left"></div>
-						<div class="texture part left top corner"></div>
-						<div class="texture part right top corner"></div>
-						<div class="texture part right bottom corner"></div>
-						<div class="texture part left bottom corner"></div>
-					</div>
-					<div v-for="unit in getUnitsAt(r,c)" :key="unit.id" :class="getUnitClasses(unit)">
-						{{ unit.label }}
-					</div>
-					<div v-if="isValidMove(r,c)" class="valid-move-indicator"></div>
-				</div>
-			</template>
+		<article class="cfg area" v-if="false">
+			todo
 		</article>
+
+		<div style="display: flex; justify-content: center; gap: 30px;">
+			<article class="chess board , grid">
+				<template v-for="(row,rIndex) of positions" :key="rIndex">
+					<div class="cell" v-for="(position,cIndex) in row" :key="rIndex + ',' + cIndex"
+						 :class="cellClasses(rIndex, cIndex, position)" @click="clickCell(position)">
+						<div class="texture container">
+							<div class="texture part vertical top"></div>
+							<div class="texture part horizon right"></div>
+							<div class="texture part vertical bottom"></div>
+							<div class="texture part horizon left"></div>
+							<div class="texture part left top corner"></div>
+							<div class="texture part right top corner"></div>
+							<div class="texture part right bottom corner"></div>
+							<div class="texture part left bottom corner"></div>
+						</div>
+						<div v-for="(unit, uIndex) in getUnitsAt(position)" :key="uIndex" :class="getUnitClasses(unit)">
+							{{ unit.display }}
+						</div>
+						<div v-if="isValidMove(position)" class="valid-move-indicator"></div>
+					</div>
+				</template>
+			</article>
+			<article class="chess board reversed-board , grid">
+				<template v-for="(row,rIndex) of reversedPositions" :key="rIndex">
+					<div class="cell" v-for="(position,cIndex) in row" :key="rIndex + ',' + cIndex"
+							 :class="cellClasses(rIndex, cIndex, position)" @click="clickCell(position)">
+						<div class="texture container">
+							<div class="texture part vertical top"></div>
+							<div class="texture part horizon right"></div>
+							<div class="texture part vertical bottom"></div>
+							<div class="texture part horizon left"></div>
+							<div class="texture part left top corner"></div>
+							<div class="texture part right top corner"></div>
+							<div class="texture part right bottom corner"></div>
+							<div class="texture part left bottom corner"></div>
+						</div>
+						<div v-for="(unit, uIndex) in getUnitsAt(position)" :key="uIndex" :class="getUnitClasses(unit)">
+							{{ unit.display }}
+						</div>
+						<div v-if="isValidMove(position)" class="valid-move-indicator"></div>
+					</div>
+				</template>
+			</article>
+		</div>
 
 		<!-- 提示覆盖层 -->
 		<div class="game-overlay" v-if="showCheck || isGameOver" :class="{ 'game-over': isGameOver }" v-cloak>
@@ -257,107 +293,158 @@
 	<script src="../../lib/vue/3.5.18/vue.global.js"></script>
 	<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
 	<script src="../../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
-	<script src="framework.js"></script>
+	<script src="turn-based-framework.js"></script>
+	<script src="defaultSkills.js"></script>
+	<script src="defaultGlobalRules.js"></script>
 	<script src="xiangqi.js"></script>
 </div>
 <script>
-	const {createApp, reactive} = Vue;
+	const {createApp, reactive, ref, computed} = Vue;
 
 	const app = createApp({
 		data() {
 			return {
-				game: null,
-				updateCounter: 0,
-				showCheck: false
+				gameCfg: {},
+				gaming: null,
+				updateCounter: 0, // 用于强制刷新棋盘
+				showCheck: false,
+				selectedUnit: null,
+				validMoves: [],
 			};
 		},
 		computed: {
+			battlefield() {
+				return this.gaming?.battlefield;
+			},
+			positions() {
+				return this.battlefield?.positions;
+			},
+			reversedPositions() {
+				return this.battlefield?.revert ? this.battlefield.revert() : [];
+			},
+			situation(){
+				return this.gaming?.situation;
+			},
 			isGameOver() {
-				return this.game?.isGameOver || false;
+				return this.situation?.isEnded || false;
 			},
 			winnerName() {
-				if (!this.isGameOver || !this.game.winner) {
+				if (!this.isGameOver || !this.situation?.winner) {
 					return '';
 				}
-				return this.game.winner.name;
+				return this.situation.winner.name;
 			},
-			currentPlayerTurn() {
-				return this.game?.curRound?.curPlayerTurn;
-			},
-			selectedUnit() {
-				return this.currentPlayerTurn?.selectedUnit;
-			},
-			validMoves() {
-				return this.currentPlayerTurn?.validPositions || [];
-			}
 		},
 		mounted() {
 			this.launchGame();
 		},
 		methods: {
 			launchGame() {
-				const launcher = new GameLauncher();
-				this.game = reactive(launcher.launch());
-				this.game.eventBus.on('game:check', () => {
+				//使用 ref 包装整个 Gaming 实例，使其顶层引用可响应式替换
+				const gamingInstance = new 中国象棋(this.gameCfg, '红方玩家', '黑方玩家').newGaming();
+				// 确保 gamingInstance.situation 是响应式的
+				gamingInstance.situation = reactive(gamingInstance.situation);
+				const gamingRef = ref(gamingInstance);
+				this.gaming = gamingRef;
+
+				const gaming = gamingRef.value;
+
+				// 监听游戏事件来更新UI
+				gaming.bulletin.watch('将军', () => {
 					this.showCheck = true;
 					setTimeout(() => this.showCheck = false, 1000);
 				});
-				this.game.start();
+
+				gaming.bulletin.watch('玩家选择了一个技能', ({unit, skill}) => {
+					this.selectedUnit = unit;
+					// 主动从技能获取可移动位置用于UI显示
+					this.validMoves = skill.getAvailableTargets();
+				});
+
+				gaming.bulletin.watch('玩家取消选择单位', () => {
+					this.selectedUnit = null;
+					this.validMoves = [];
+				});
+
+				const rerender = () => {
+					this.selectedUnit = null;
+					this.validMoves = [];
+					this.updateCounter++;
+				};
+				gaming.bulletin.watch('单位移动', rerender);
+				gaming.bulletin.watch('单位阵亡', rerender);
+				this.updateCounter++; // 强制更新UI以显示初始棋子
 			},
 			restartGame() {
 				this.showCheck = false;
+				this.selectedUnit = null;
+				this.validMoves = [];
 				this.launchGame();
 			},
-			cellClasses(r, c) {
-				const rt = [`row-` + r, `红` + ChineseNum.digitsFromArabic(10 - c) + `路`, `黑${c}路`];
+			cellClasses(rIndex, cIndex, position) {
+				if (!position) {
+					position = { rowNum: rIndex + 1, colNum: cIndex + 1 };
+				}
+				// 1. 逻辑类：基于棋盘绝对坐标，用于游戏逻辑判断
+				const r = position.rowNum;
+				const c = position.colNum;
+				const logicalClasses = [
+					`红${ChineseNum.digitsFromArabic(10 - c)}路`, // 红方从右往左数
+					`黑${c}路`  // 黑方从左往右数
+				];
 				if ((r === 3 || r === 8) && (c === 2 || c === 8)) {
-					rt.push('炮位');
+					logicalClasses.push('炮位');
 				}
 				if ((r === 4 || r === 7) && c % 2 === 1) {
-					rt.push('兵卒位');
+					logicalClasses.push('兵卒位');
 				}
 				if ((r <= 3 || r >= 8) && (c >= 4 && c <= 6)) {
-					rt.push('九宫');
+					logicalClasses.push('九宫');
 					if ((r === 2 || r === 9) && c === 5) {
-						rt.push('窝心');
+						logicalClasses.push('窝心');
 					}
 					if ((r === 3 || r === 8) && (c === 4 || c === 6)) {
-						rt.push('士角');
+						logicalClasses.push('士角');
 					}
 				}
-				return rt;
+
+				// 2. 视觉类：基于渲染索引，用于CSS样式（如边框）
+				const visualClasses = [`row-${rIndex + 1}`, `col-${cIndex + 1}`];
+
+				return [...logicalClasses, ...visualClasses];
 			},
-			getUnitsAt(r, c) {
-				return this.game?.getUnitsAt(new 棋盘点位(r, c)) || [];
+			getUnitsAt(position) {
+				// 依赖 updateCounter 来强制重新计算
+				const _ = this.updateCounter;
+				return this.battlefield?.getUnitsAt(position) || [];
 			},
 			getUnitClasses(unit) {
 				if (!unit) {
 					return [];
 				}
-				const classes = [...unit.cssClass];
-				if (this.selectedUnit && this.selectedUnit.id === unit.id) {
+				const classes = ['unit'];
+				if (this.selectedUnit && this.selectedUnit.id && unit.id && this.selectedUnit.id === unit.id) {
 					classes.push('selected');
 				}
 				return classes;
 			},
-			clickCell(r, c) {
-				if (!this.game || this.isGameOver) {
+			clickCell(position) {
+				if (!this.gaming || this.isGameOver) {
 					return;
 				}
-				this.game.eventBus.emit('player:input', {position: new 棋盘点位(r, c)});
+				this.gaming.bulletin.notice('ui:input', position);
 			},
-			isValidMove(r, c) {
-				const targetPos = new 棋盘点位(r, c);
-				return this.validMoves.some(pos => pos.isEqualTo(targetPos));
-			}
-		}
+			isValidMove(position) {
+				return this.validMoves.some(pos => pos.isEqualTo(position));
+			},
+		},
 	});
 
 	app.use(ElementPlus);
 	for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 		app.component(key, component);
 	}
-	app.mount('main>article');
+	window.app = app.mount('main>article');
 </script>
 </body>
 </html>
