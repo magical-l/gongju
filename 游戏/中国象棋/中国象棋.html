@@ -23,7 +23,7 @@
 	}
 
 	/* ===============================棋盘=============================== */
-	.one.chess.board {
+	.one.chessboard {
 		--min-cell-len: 60px;
 		--line-color: #333;
 		grid-template-rows: repeat(10, var(--min-cell-len));
@@ -71,17 +71,17 @@
 	/* 普通格子的线 */
 	.cell .texture.part.left, .cell .texture.part.right {
 		width: 50%;
-		background: url('h-line.svg') center;
+		background: url('h-line.svg') center no-repeat;
 	}
 
 	.cell .texture.part.top, .cell .texture.part.bottom {
 		height: 50%;
-		background: url('v-line.svg') center;
+		background: url('v-line.svg') center no-repeat;
 	}
 
 	/* 炮位、兵卒位 */
 	.炮位.cell .texture.part.corner, .兵卒位:not(.col-1) .texture.part.corner, .兵卒位:not(.col-9) .texture.part.corner {
-		background: url('折线.svg');
+		background: url('折线.svg') no-repeat;
 	}
 
 	.cell .texture.part.corner, /* 边角 */
@@ -111,7 +111,7 @@
 	.row-2.col-5.cell .texture.part.left.top, .row-2.col-5.cell .texture.part.right.bottom,
 	.row-8.col-4.cell .texture.part.right.bottom, .row-10.col-6.cell .texture.part.left.top,
 	.row-9.col-5.cell .texture.part.left.top, .row-9.col-5.cell .texture.part.right.bottom {
-		background: url('left-top-to-right-bottom.svg');
+		background: url('left-top-to-right-bottom.svg') no-repeat;
 	}
 
 	/* 九宫 右上-左下斜线 */
@@ -119,7 +119,7 @@
 	.row-2.col-5.cell .texture.part.right.top, .row-2.col-5.cell .texture.part.left.bottom,
 	.row-8.col-6.cell .texture.part.left.bottom, .row-10.col-4.cell .texture.part.right.top,
 	.row-9.col-5.cell .texture.part.right.top, .row-9.col-5.cell .texture.part.left.bottom {
-		background: url('left-bottom-to-right-top.svg');
+		background: url('left-bottom-to-right-top.svg') no-repeat;
 	}
 
 	/* ============================棋子======================== */
@@ -217,6 +217,61 @@
 		font-size: 20px;
 		cursor: pointer;
 	}
+
+	/* ==============================棋盘编辑器=========================== */
+	.board-editor {
+		display: flex;
+		gap: 20px;
+		align-items: flex-start;
+	}
+
+	.piece-palette {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 10px;
+		padding: 10px;
+		background: #f5f5f5;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+	}
+
+	.piece-palette .unit.display {
+		--min-cell-len: 45px;
+		position: static;
+	}
+
+	.editor-board.one.chessboard {
+		--min-cell-len: 45px;
+		border: 1px solid #333;
+		display: grid; /* Use grid layout for the board itself */
+	}
+
+	.editor-board .cell {
+		width: var(--min-cell-len);
+		height: var(--min-cell-len);
+		box-sizing: border-box;
+	}
+
+	.editor-board .unit.display {
+		--min-cell-len: 40px;
+		position: absolute; /* Pieces should be absolutely positioned within cells for proper display */
+	}
+
+	.board-actions {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+	}
+
+	.trash-area {
+		font-size: 30px;
+		padding: 10px;
+		border: 2px dashed #ccc;
+		border-radius: 4px;
+		text-align: center;
+		cursor: pointer;
+		margin-top: 10px;
+	}
 </style>
 </head>
 <body class="grid 反叵字形">
@@ -224,16 +279,63 @@
 	<article class="game-wrapper , 反叵字形 grid" v-cloak>
 		<!-- 设置弹窗 -->
 		<el-dialog class="game cfg area" v-model="showSettingsDialog" title="游戏设置" :close-on-click-modal="false"
-							 :close-on-press-escape="false" :show-close="false" width="500px">
-			<el-form :model="gameSettings" label-width="120px">
+					 :close-on-press-escape="false" :show-close="false" width="850px">
+			<el-form :model="gameSettings" label-position="top">
 				<el-form-item label="玩家顺序">
 					<el-radio-group v-model="gameSettings.firstPlayer">
 						<el-radio value="red">红方先手</el-radio>
 						<el-radio value="black">黑方先手</el-radio>
 					</el-radio-group>
 				</el-form-item>
-				<el-form-item label="棋盘">
-					<span>默认</span>
+				<el-form-item label="棋盘布局">
+					<div class="board-editor">
+						<div class="piece-palette">
+							<div v-for="(piece, type) in availablePieceTypes"
+											 :key="type"
+											 class="unit display"
+											 :class="getEditorUnitColor(piece)"
+											 draggable="true"
+											 @dragstart="dragStartPiece(type, 'palette')">
+								{{ piece.显示 }}
+							</div>
+						</div>
+						<div class="editor-board one chessboard grid">
+							<template v-for="(row, r) in editableBoardLayout" :key="r">
+								<div v-for="(pieceName, c) in row" :key="c"
+											 class="cell"
+											 :class="cellClasses(r, c)"
+											 @dragover.prevent
+											 @drop="dropOnBoard(r, c)">
+									<div class="texture container">
+										<div class="texture part vertical top"></div>
+										<div class="texture part horizon right"></div>
+										<div class="texture part vertical bottom"></div>
+										<div class="texture part horizon left"></div>
+										<div class="texture part left top corner"></div>
+										<div class="texture part right top corner"></div>
+										<div class="texture part right bottom corner"></div>
+										<div class="texture part left bottom corner"></div>
+									</div>
+									<div v-if="pieceName !== '空'"
+											 class="unit display"
+											 :class="getEditorUnitColor(availablePieceTypes[pieceName])"
+											 draggable="true"
+											 @dragstart="dragStartPiece(pieceName, 'board', r, c)">
+										{{ availablePieceTypes[pieceName].显示 }}
+									</div>
+								</div>
+							</template>
+						</div>
+						<div class="board-actions">
+							<el-button @click="clearBoard" type="danger" plain>清空棋盘</el-button>
+							<el-button @click="resetBoard" type="info" plain>重置默认</el-button>
+							<div class="trash-area"
+									 @dragover.prevent
+									 @drop="dropOnTrash">
+								🗑️
+							</div>
+						</div>
+					</div>
 				</el-form-item>
 				<el-form-item label="棋子类型">
 					<span>默认</span>
@@ -254,11 +356,11 @@
 				</label>
 			</div>
 
-			<div class="chess board area" style="display: flex; justify-content: center; gap: 30px;">
-				<article class="one chess board , grid">
+			<div class="chessboard area" style="display: flex; justify-content: center; gap: 30px;">
+				<article class="one chessboard , grid">
 					<template v-for="(row,rIndex) of positions" :key="rIndex">
 						<div class="cell" v-for="(position,cIndex) in row" :key="rIndex + ',' + cIndex"
-								 :class="cellClasses(rIndex, cIndex, position)" @click="clickCell(position)">
+									 :class="cellClasses(rIndex, cIndex, position)" @click="clickCell(position)">
 							<div class="texture container">
 								<div class="texture part vertical top"></div>
 								<div class="texture part horizon right"></div>
@@ -270,17 +372,17 @@
 								<div class="texture part left bottom corner"></div>
 							</div>
 							<div class="unit display" v-for="(unit, uIndex) in getUnitsAt(position)" :key="uIndex"
-									 :class="getUnitClasses(unit)">
+										 :class="getUnitClasses(unit)">
 								{{ unit.display }}
 							</div>
 							<div v-if="isValidMove(position)" class="valid-move-indicator"></div>
 						</div>
 					</template>
 				</article>
-				<article class="one chess board reversed-view , grid" v-if="showReversedView">
+				<article class="one chessboard reversed-view , grid" v-if="showReversedView">
 					<template v-for="(row,rIndex) of reversedPositions" :key="rIndex">
 						<div class="cell" v-for="(position,cIndex) in row" :key="rIndex + ',' + cIndex"
-								 :class="cellClasses(rIndex, cIndex, position)" @click="clickCell(position)">
+									 :class="cellClasses(rIndex, cIndex, position)" @click="clickCell(position)">
 							<div class="texture container">
 								<div class="texture part vertical top"></div>
 								<div class="texture part horizon right"></div>
@@ -292,7 +394,7 @@
 								<div class="texture part left bottom corner"></div>
 							</div>
 							<div class="unit display" v-for="(unit, uIndex) in getUnitsAt(position)" :key="uIndex"
-									 :class="getUnitClasses(unit)">
+										 :class="getUnitClasses(unit)">
 								{{ unit.display }}
 							</div>
 							<div v-if="isValidMove(position)" class="valid-move-indicator"></div>
@@ -374,7 +476,27 @@
 				selectedUnit: null,
 				validMoves: [],
 				showReversedView: false,
-				moveHistory: []
+				moveHistory: [],
+				// 棋盘编辑器数据
+				availablePieceTypes: {
+					'帅': {显示: '\u{1FA60}', 技能: ['杀敌', '步战四方', '守营'], 玩家: '红方玩家'},
+					'仕': {显示: '\u{1FA61}', 技能: ['杀敌', '护卫', '守营'], 玩家: '红方玩家'},
+					'相': {显示: '\u{1FA62}', 技能: ['杀敌', '象行田', '塞象眼', '水太深'], 玩家: '红方玩家'},
+					'马': {显示: '\u{1FA63}', 技能: ['杀敌', '马行日', '绊马脚'], 玩家: '红方玩家'},
+					'车': {显示: '\u{1FA64}', 技能: ['杀敌', '轮子', '挡我者死'], 玩家: '红方玩家'},
+					'炮': {显示: '\u{1FA65}', 技能: ['杀敌', '轮子', '隔山打牛'], 玩家: '红方玩家'},
+					'兵': {显示: '\u{1FA66}', 技能: ['杀敌', '勇往直前', '过河卒'], 玩家: '红方玩家'},
+					'将': {显示: '\u{1FA67}', 技能: ['杀敌', '步战四方', '守营'], 玩家: '黑方玩家'},
+					'士': {显示: '\u{1FA68}', 技能: ['杀敌', '护卫', '守营'], 玩家: '黑方玩家'},
+					'象': {显示: '\u{1FA69}', 技能: ['杀敌', '象行田', '塞象眼', '水太深'], 玩家: '黑方玩家'},
+					'馬': {显示: '\u{1FA6A}', 技能: ['杀敌', '马行日', '绊马脚'], 玩家: '黑方玩家'},
+					'車': {显示: '\u{1FA6B}', 技能: ['杀敌', '轮子', '挡我者死'], 玩家: '黑方玩家'},
+					'砲': {显示: '\u{1FA6C}', 技能: ['杀敌', '轮子', '隔山打牛'], 玩家: '黑方玩家'},
+					'卒': {显示: '\u{1FA6D}', 技能: ['杀敌', '勇往直前', '过河卒'], 玩家: '黑方玩家'}
+				},
+				defaultBoardLayout: "\n					車馬象士将士象馬車\n					空空空空空空空空空\n					空砲空空空空空砲空\n					卒空卒空卒空卒空卒\n					空空空空空空空空空\n					空空空空空空空空空\n					兵空兵空兵空兵空兵\n					空炮空空空空空炮空\n					空空空空空空空空空\n					车马相仕帅仕相马车\n				".trim(),
+				editableBoardLayout: [], // 10x9 array
+				draggedPiece: null, // { type, from, r, c }
 			};
 		},
 		computed: {
@@ -401,7 +523,7 @@
 			},
 			turnHistory() {
 				const turns = [];
-				// // 每两个动作组成一个回合
+				// 每两个动作组成一个回合
 				// for (let i = 0; i < this.moveHistory.length; i += 2) {
 				// 	const redAction = this.moveHistory[i];
 				// 	const blackAction = (i + 1 < this.moveHistory.length) ? this.moveHistory[i + 1] : null;
@@ -414,10 +536,51 @@
 				return turns;
 			}
 		},
+		created() {
+			this.clearBoard(); // 按用户要求，默认显示空棋盘
+		},
 		mounted() {
 			// 等待用户设置后再启动游戏
 		},
 		methods: {
+			// 棋盘编辑器方法
+			getEditorUnitColor(piece) {
+				if (!piece) return '';
+				return piece.玩家.includes('红') ? 'red' : 'black';
+			},
+			clearBoard() {
+				this.editableBoardLayout = Array(10).fill(0).map(() => Array(9).fill('空'));
+			},
+			resetBoard() {
+				this.editableBoardLayout = this.defaultBoardLayout.split('\n').map(row => row.trim().split(''));
+			},
+			dragStartPiece(type, from, r = null, c = null) {
+				this.draggedPiece = { type, from, r, c };
+			},
+			dropOnBoard(r, c) {
+				if (!this.draggedPiece) return;
+
+				// 如果是从棋盘上拖动，先清空原来的位置
+				if (this.draggedPiece.from === 'board') {
+					this.editableBoardLayout[this.draggedPiece.r][this.draggedPiece.c] = '空';
+				}
+
+				// 在新位置上放置棋子
+				this.editableBoardLayout[r][c] = this.draggedPiece.type;
+				this.draggedPiece = null;
+				// 强制更新视图
+				this.editableBoardLayout = [...this.editableBoardLayout];
+			},
+			dropOnTrash() {
+				// 只有从棋盘上拖过来的棋子才能被删除
+				if (this.draggedPiece && this.draggedPiece.from === 'board') {
+					this.editableBoardLayout[this.draggedPiece.r][this.draggedPiece.c] = '空';
+					this.draggedPiece = null;
+					// 强制更新视图
+					this.editableBoardLayout = [...this.editableBoardLayout];
+				}
+			},
+			// 游戏流程方法
 			startGame() {
 				this.showSettingsDialog = false;
 				let playerTurnSequence;
@@ -426,8 +589,13 @@
 				} else {
 					playerTurnSequence = [黑方玩家id, 红方玩家id];
 				}
+
+				const boardString = this.editableBoardLayout.map(row => row.join('')).join('\n');
+
 				this.gameCfg = {
-					玩家顺序: playerTurnSequence
+					玩家顺序: playerTurnSequence,
+					棋盘: boardString,
+					棋子类型: this.availablePieceTypes
 				};
 				this.launchGame();
 			},
@@ -478,6 +646,7 @@
 				this.gaming = null; // 销毁游戏实例
 				this.showSettingsDialog = true; // 显示设置弹窗
 			},
+			// 游戏中的UI辅助方法
 			cellClasses(rIndex, cIndex, position) {
 				if (!position) {
 					position = {rowNum: rIndex + 1, colNum: cIndex + 1};
