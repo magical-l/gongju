@@ -147,7 +147,7 @@
 		color: var(--red-color);
 	}
 
-	.chessboard .selected.unit {
+	.selected.unit.display {
 		outline: 3px solid #007bff;
 		box-shadow: 0 0 10px #007bff;
 	}
@@ -282,13 +282,16 @@
 		<article class="gaming situation , right-sidebar">
 			<el-card style="margin-bottom: 20px;">
 				<template #header>当前选中:
-					<span class="selected unit display" v-if="selectedUnit">{{ selectedUnit.display }}</span>
+					<span v-if="selectedUnit" class="unit display" :class="getUnitClasses(selectedUnit)"
+								style="width: 40px; height: 40px; font-size: 28px; display: inline-flex; vertical-align: middle;">
+						{{ selectedUnit.display }}
+					</span>
 					<span v-else>无</span>
 				</template>
-				<div style="margin-top: 10px;">
+				<div v-if="selectedUnit" style="margin-top: 10px;">
 					<strong>技能:</strong>
 					<div style="margin-top: 5px;">
-						<el-tag v-if="selectedUnit?.skills" v-for="skill in selectedUnit.skills" :key="skill.name" type="info"
+						<el-tag v-if="selectedUnit.skills" v-for="skill in selectedUnit.skills" :key="skill.name" type="info"
 										style="margin: 2px;">
 							{{ skill.name }}
 						</el-tag>
@@ -489,6 +492,7 @@
 					return [];
 				}
 				const classes = [];
+				classes.push(unit.owner.team.flag);
 				if (this.selectedUnit && this.selectedUnit.id && unit.id && this.selectedUnit.id === unit.id) {
 					classes.push('selected');
 				}

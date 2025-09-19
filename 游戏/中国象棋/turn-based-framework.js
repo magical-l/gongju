@@ -155,7 +155,7 @@ class Situation extends GamingPart {
 
 class Team extends GamingPart {
 	name;
-	color;
+	flag;//本队旗帜
 	players = [];
 
 	constructor(gaming, cfg) {

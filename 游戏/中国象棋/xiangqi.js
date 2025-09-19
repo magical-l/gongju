@@ -49,8 +49,8 @@ class 中国象棋 extends Game {
 			棋盘: cfg.棋盘,
 			battlefieldCfg: {rowSize: 10, colSize: 9},//现在是在‘棋局’里自行实现了_buildBattlefield。可以考虑凑父类的逻辑。
 			teams: {
-				[红方id]: {name: 红方id, color: 'red', players: {[红方玩家id]: {name: 红方名字}}},//以后可以给玩家加技能，比如‘走两步’
-				[黑方id]: {name: 黑方id, color: 'black', players: {[黑方玩家id]: {name: 黑方名字}}}
+				[红方id]: {name: 红方id, flag: 'red', players: {[红方玩家id]: {name: 红方名字}}},//以后可以给玩家加技能，比如‘走两步’
+				[黑方id]: {name: 黑方id, flag: 'black', players: {[黑方玩家id]: {name: 黑方名字}}}
 			},
 			unitTypes: Object.fromEntries(
 				Object.entries(cfg.棋子类型)
