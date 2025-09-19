@@ -274,8 +274,8 @@
 
 	.piece-type-grid {
 		--min-cell-len: 50px;
-		display: grid;
-		grid-template-columns: repeat(7, var(--min-cell-len));
+		/*display: grid;*/
+		/*grid-template-columns: repeat(7, var(--min-cell-len));*/
 		gap: 10px;
 		padding: 10px;
 		background: #f5f5f5;
@@ -293,6 +293,10 @@
 		padding-left: 20px;
 		border-left: 1px solid #eee;
 	}
+
+	.el-checkbox.is-selected-for-editing {
+		border-color: var(--el-color-primary);
+	}
 </style>
 </head>
 <body class="grid 反叵字形">
@@ -308,6 +312,35 @@
 						<el-radio value="black">黑方先手</el-radio>
 					</el-radio-group>
 				</el-form-item>
+				<el-form-item label="棋子类型">
+					<div class="piece-type-editor-wrapper flex vertical">
+						<div class="piece-type-grid flex">
+							<div class="unit display" v-for="(piece, type) in boardEditor.pieceTypes" :key="type"
+									 :class="[getEditorUnitColor(piece), { 'selected': boardEditor.selectedPieceType === type }]"
+									 @click="boardEditor.selectedPieceType = (boardEditor.selectedPieceType === type ? null : type)">
+								{{ piece.显示 }}
+							</div>
+						</div>
+						<div v-if="boardEditor.selectedPieceType" class="piece-type-details">
+							<h4>正在编辑: {{ boardEditor.selectedPieceType }}</h4>
+							<el-form label-width="60px">
+								<el-form-item label="启用">
+									<el-switch v-model="isCurrentPieceEnabled"></el-switch>
+								</el-form-item>
+								<el-form-item label="显示">
+									<el-input v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].显示"
+														:input-style="{ fontFamily: 'NotoSansSymbols2, sans-serif', fontSize: '28px', textAlign: 'center' }"
+														style="width: 60px;"/>
+								</el-form-item>
+								<el-form-item label="技能">
+									<el-checkbox-group v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].技能">
+										<el-checkbox v-for="skill in allAvailableSkills" :key="skill" :label="skill"/>
+									</el-checkbox-group>
+								</el-form-item>
+							</el-form>
+						</div>
+					</div>
+				</el-form-item>
 				<el-form-item label="棋盘布局">
 					<div class="board-editor , 叵字形 grid">
 						<header class="toolbar , one row item , flex">
@@ -315,7 +348,7 @@
 							<el-button @click="clearBoard" type="danger" inline plain>清空棋盘</el-button>
 						</header>
 						<el-card body-class="piece-palette , left-sidebar , grid">
-							<div class="unit display" v-for="(piece, type) in boardEditor.availablePieceTypes" :key="type"
+							<div class="unit display" v-for="(piece, type) in palettePieceTypes" :key="type"
 									 :class="getEditorUnitColor(piece)"
 									 draggable="true" @dragstart="dragStartPiece(type, 'palette')">
 								{{ piece.显示 }}
@@ -339,10 +372,10 @@
 										</div>
 										<div v-if="pieceName !== '空'"
 												 class="unit display"
-												 :class="[getEditorUnitColor(boardEditor.availablePieceTypes[pieceName]), { 'selected': isEditorPieceSelected(r, c) }]"
+												 :class="[getEditorUnitColor(boardEditor.pieceTypes[pieceName]), { 'selected': isEditorPieceSelected(r, c) }]"
 												 draggable="true"
 												 @dragstart="dragStartPiece(pieceName, 'board', r, c)">
-											{{ boardEditor.availablePieceTypes[pieceName].显示 }}
+											{{ boardEditor.pieceTypes[pieceName].显示 }}
 											<div class="remove-piece-btn" @click.stop="removeEditorPiece(r, c)">
 												×
 											</div>
@@ -350,33 +383,6 @@
 									</div>
 								</template>
 							</div>
-						</div>
-					</div>
-				</el-form-item>
-				<el-form-item label="棋子类型">
-					<div class="piece-type-editor-wrapper flex vertical">
-						<div class="piece-type-grid">
-							<div v-for="(piece, type) in boardEditor.availablePieceTypes"
-									 :key="type"
-									 class="unit display"
-									 :class="[getEditorUnitColor(piece), { 'selected': boardEditor.selectedPieceType === type }]"
-									 @click="boardEditor.selectedPieceType = type">
-								{{ piece.显示 }}
-							</div>
-						</div>
-						<div v-if="boardEditor.selectedPieceType" class="piece-type-details">
-							<h4>正在编辑: {{ boardEditor.selectedPieceType }}</h4>
-							<el-form label-width="60px">
-								<el-form-item label="显示">
-									<el-input v-model="boardEditor.availablePieceTypes[boardEditor.selectedPieceType].显示"
-														class="unit display" style="width: 100px;"/>
-								</el-form-item>
-								<el-form-item label="技能">
-									<el-checkbox-group v-model="boardEditor.availablePieceTypes[boardEditor.selectedPieceType].技能">
-										<el-checkbox v-for="skill in allAvailableSkills" :key="skill" :label="skill"/>
-									</el-checkbox-group>
-								</el-form-item>
-							</el-form>
 						</div>
 					</div>
 				</el-form-item>
@@ -522,7 +528,8 @@
 				moveHistory: [],
 				// 棋盘编辑器数据
 				boardEditor: {
-					availablePieceTypes: 默认棋子类型,
+					pieceTypes: 默认棋子类型,
+					enabledPieceTypes: Object.keys(默认棋子类型),
 					defaultBoardLayout: 默认棋盘布局,
 					layout: [], // 10x9 array
 					draggedPiece: null, // { type, from, r, c }
@@ -536,6 +543,49 @@
 			};
 		},
 		computed: {
+			isCurrentPieceEnabled: {
+				get() {
+					if (!this.boardEditor.selectedPieceType) {
+						return false;
+					}
+					return this.boardEditor.enabledPieceTypes.includes(this.boardEditor.selectedPieceType);
+				},
+				set(newValue) {
+					const type = this.boardEditor.selectedPieceType;
+					if (!type) {
+						return;
+					}
+
+					const index = this.boardEditor.enabledPieceTypes.indexOf(type);
+					if (newValue) {
+						if (index === -1) {
+							this.boardEditor.enabledPieceTypes.push(type);
+						}
+					} else {
+						if (index > -1) {
+							this.boardEditor.enabledPieceTypes.splice(index, 1);
+							// 当一个棋子类型被禁用时，从棋盘上移除所有该类型的棋子
+							const disabledType = type;
+							for (let r = 0; r < this.boardEditor.layout.length; r++) {
+								for (let c = 0; c < this.boardEditor.layout[r].length; c++) {
+									if (this.boardEditor.layout[r][c] === disabledType) {
+										this.boardEditor.layout[r][c] = '空';
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			palettePieceTypes() {
+				const result = {};
+				this.boardEditor.enabledPieceTypes.forEach(type => {
+					if (this.boardEditor.pieceTypes[type]) {
+						result[type] = this.boardEditor.pieceTypes[type];
+					}
+				});
+				return result;
+			},
 			battlefield() {
 				return this.gaming?.battlefield;
 			},
@@ -584,6 +634,7 @@
 			this.resetBoard();
 		},
 		methods: {
+
 			// 棋盘编辑器方法
 			getEditorUnitColor(piece) {
 				if (!piece) {
@@ -659,7 +710,7 @@
 				this.gameCfg = {
 					玩家顺序: playerTurnSequence,
 					棋盘: boardString,
-					棋子类型: this.boardEditor.availablePieceTypes,
+					棋子类型: this.palettePieceTypes,
 					规则: this.gameSettings.rules
 				};
 				this.launchGame();
