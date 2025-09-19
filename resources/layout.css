@@ -178,14 +178,14 @@
 
 /*==========================================用于项目=========================================*/
 /* 为防父元素没有使用.grid类之类，所以不使用 .grid > header ，直接设置grid-area。若父元素非display:grid也没事，会被浏览器忽略。下同 */
-header {
+header, .header {
 	grid-area: header;
 	grid-row: 1;
 	grid-column: 1 / -1;
 	flex: 1 1 100%;
 }
 
-footer {
+footer, .footer {
 	grid-area: footer;
 	grid-row: -2;
 	grid-column: 1 / -1;
