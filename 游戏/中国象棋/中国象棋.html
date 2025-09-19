@@ -22,7 +22,7 @@
 		src: url('../../lib/fonts/NotoSansSymbols2-Regular.ttf') format('truetype');
 	}
 
-	.chess.board {
+	.one.chess.board {
 		--min-cell-len: 60px;
 		--line-color: #333;
 		grid-template-rows: repeat(10, var(--min-cell-len));
@@ -222,12 +222,16 @@
 <body class="grid 反叵字形">
 <main>
 	<article class="game-wrapper , 反叵字形 grid" v-cloak>
-		<article class="cfg area" v-if="false">
-			todo
+		<article class="game cfg area" v-if="false">
+			开局前的设置，比如谁先手、让子、棋盘布局等
 		</article>
 
-		<div style="display: flex; justify-content: center; gap: 30px;">
-			<article class="chess board , grid">
+		<div class="toolbar one-row item">
+			<!-- todo：这里放一个开关，决定showReversedView -->
+		</div>
+
+		<div class="chess board area" style="display: flex; justify-content: center; gap: 30px;">
+			<article class="one chess board , grid">
 				<template v-for="(row,rIndex) of positions" :key="rIndex">
 					<div class="cell" v-for="(position,cIndex) in row" :key="rIndex + ',' + cIndex"
 						 :class="cellClasses(rIndex, cIndex, position)" @click="clickCell(position)">
@@ -248,7 +252,7 @@
 					</div>
 				</template>
 			</article>
-			<article class="chess board reversed-board , grid">
+			<article class="one chess board reversed-view , grid" v-if="showReversedView">
 				<template v-for="(row,rIndex) of reversedPositions" :key="rIndex">
 					<div class="cell" v-for="(position,cIndex) in row" :key="rIndex + ',' + cIndex"
 							 :class="cellClasses(rIndex, cIndex, position)" @click="clickCell(position)">
@@ -270,6 +274,11 @@
 				</template>
 			</article>
 		</div>
+
+		<article class="gaming situation , right-sidebar">
+			<!-- todo: 一个卡片，显示当前选中的棋子及其技能列表 -->
+			<!-- todo：一个卡片，放回合列表。每回合一行，一个回合是左右两栏，左栏是“红方哪个棋子移动到哪里”，右栏是黑方 -->
+		</article>
 
 		<!-- 提示覆盖层 -->
 		<div class="game-overlay" v-if="showCheck || isGameOver" :class="{ 'game-over': isGameOver }" v-cloak>
@@ -310,6 +319,7 @@
 				showCheck: false,
 				selectedUnit: null,
 				validMoves: [],
+				showReversedView:false
 			};
 		},
 		computed: {
