@@ -222,102 +222,125 @@
 <body class="grid 反叵字形">
 <main>
 	<article class="game-wrapper , 反叵字形 grid" v-cloak>
-		<article class="game cfg area" v-if="false">
-			开局前的设置，比如谁先手、让子、棋盘布局等
-		</article>
+		<!-- 设置弹窗 -->
+		<el-dialog class="game cfg area" v-model="showSettingsDialog" title="游戏设置" :close-on-click-modal="false"
+							 :close-on-press-escape="false" :show-close="false" width="500px">
+			<el-form :model="gameSettings" label-width="120px">
+				<el-form-item label="玩家顺序">
+					<el-radio-group v-model="gameSettings.firstPlayer">
+						<el-radio value="red">红方先手</el-radio>
+						<el-radio value="black">黑方先手</el-radio>
+					</el-radio-group>
+				</el-form-item>
+				<el-form-item label="棋盘">
+					<span>默认</span>
+				</el-form-item>
+				<el-form-item label="棋子类型">
+					<span>默认</span>
+				</el-form-item>
+				<el-form-item label="全局规则">
+					<span>默认</span>
+				</el-form-item>
+			</el-form>
+			<template #footer>
+				<el-button type="primary" @click="startGame">开始游戏</el-button>
+			</template>
+		</el-dialog>
 
-		<div class="toolbar , one-row item , flex items-like-册" style="gap: 10px; padding: 10px;">
-			<label>镜像视角
-				<el-switch v-model="showReversedView" size="large"/>
-			</label>
-		</div>
+		<template v-if="gaming">
+			<div class="toolbar , one-row item , flex items-like-册" style="gap: 10px; padding: 10px;">
+				<label>镜像视角
+					<el-switch v-model="showReversedView" size="large"/>
+				</label>
+			</div>
 
-		<div class="chess board area" style="display: flex; justify-content: center; gap: 30px;">
-			<article class="one chess board , grid">
-				<template v-for="(row,rIndex) of positions" :key="rIndex">
-					<div class="cell" v-for="(position,cIndex) in row" :key="rIndex + ',' + cIndex"
-							 :class="cellClasses(rIndex, cIndex, position)" @click="clickCell(position)">
-						<div class="texture container">
-							<div class="texture part vertical top"></div>
-							<div class="texture part horizon right"></div>
-							<div class="texture part vertical bottom"></div>
-							<div class="texture part horizon left"></div>
-							<div class="texture part left top corner"></div>
-							<div class="texture part right top corner"></div>
-							<div class="texture part right bottom corner"></div>
-							<div class="texture part left bottom corner"></div>
+			<div class="chess board area" style="display: flex; justify-content: center; gap: 30px;">
+				<article class="one chess board , grid">
+					<template v-for="(row,rIndex) of positions" :key="rIndex">
+						<div class="cell" v-for="(position,cIndex) in row" :key="rIndex + ',' + cIndex"
+								 :class="cellClasses(rIndex, cIndex, position)" @click="clickCell(position)">
+							<div class="texture container">
+								<div class="texture part vertical top"></div>
+								<div class="texture part horizon right"></div>
+								<div class="texture part vertical bottom"></div>
+								<div class="texture part horizon left"></div>
+								<div class="texture part left top corner"></div>
+								<div class="texture part right top corner"></div>
+								<div class="texture part right bottom corner"></div>
+								<div class="texture part left bottom corner"></div>
+							</div>
+							<div class="unit display" v-for="(unit, uIndex) in getUnitsAt(position)" :key="uIndex"
+									 :class="getUnitClasses(unit)">
+								{{ unit.display }}
+							</div>
+							<div v-if="isValidMove(position)" class="valid-move-indicator"></div>
 						</div>
-						<div class="unit display" v-for="(unit, uIndex) in getUnitsAt(position)" :key="uIndex"
-								 :class="getUnitClasses(unit)">
-							{{ unit.display }}
+					</template>
+				</article>
+				<article class="one chess board reversed-view , grid" v-if="showReversedView">
+					<template v-for="(row,rIndex) of reversedPositions" :key="rIndex">
+						<div class="cell" v-for="(position,cIndex) in row" :key="rIndex + ',' + cIndex"
+								 :class="cellClasses(rIndex, cIndex, position)" @click="clickCell(position)">
+							<div class="texture container">
+								<div class="texture part vertical top"></div>
+								<div class="texture part horizon right"></div>
+								<div class="texture part vertical bottom"></div>
+								<div class="texture part horizon left"></div>
+								<div class="texture part left top corner"></div>
+								<div class="texture part right top corner"></div>
+								<div class="texture part right bottom corner"></div>
+								<div class="texture part left bottom corner"></div>
+							</div>
+							<div class="unit display" v-for="(unit, uIndex) in getUnitsAt(position)" :key="uIndex"
+									 :class="getUnitClasses(unit)">
+								{{ unit.display }}
+							</div>
+							<div v-if="isValidMove(position)" class="valid-move-indicator"></div>
 						</div>
-						<div v-if="isValidMove(position)" class="valid-move-indicator"></div>
+					</template>
+				</article>
+			</div>
+
+			<article class="gaming situation , right-sidebar">
+				<el-card style="margin-bottom: 20px;">
+					<template #header>当前选中:
+						<span v-if="selectedUnit" class="unit display" :class="getUnitClasses(selectedUnit)"
+									style="width: 40px; height: 40px; font-size: 28px; display: inline-flex; vertical-align: middle;">
+							{{ selectedUnit.display }}
+						</span>
+						<span v-else>无</span>
+					</template>
+					<div v-if="selectedUnit" style="margin-top: 10px;">
+						<strong>技能:</strong>
+						<div style="margin-top: 5px;">
+							<el-tag v-if="selectedUnit.skills" v-for="skill in selectedUnit.skills" :key="skill.name" type="info"
+											style="margin: 2px;">
+								{{ skill.name }}
+							</el-tag>
+						</div>
 					</div>
-				</template>
+				</el-card>
+
+				<el-card header="回合">
+					<el-table :data="turnHistory" stripe style="width: 100%" height="400">
+						<el-table-column prop="red" label="红方"/>
+						<el-table-column prop="black" label="黑方"/>
+					</el-table>
+				</el-card>
 			</article>
-			<article class="one chess board reversed-view , grid" v-if="showReversedView">
-				<template v-for="(row,rIndex) of reversedPositions" :key="rIndex">
-					<div class="cell" v-for="(position,cIndex) in row" :key="rIndex + ',' + cIndex"
-							 :class="cellClasses(rIndex, cIndex, position)" @click="clickCell(position)">
-						<div class="texture container">
-							<div class="texture part vertical top"></div>
-							<div class="texture part horizon right"></div>
-							<div class="texture part vertical bottom"></div>
-							<div class="texture part horizon left"></div>
-							<div class="texture part left top corner"></div>
-							<div class="texture part right top corner"></div>
-							<div class="texture part right bottom corner"></div>
-							<div class="texture part left bottom corner"></div>
-						</div>
-						<div class="unit display" v-for="(unit, uIndex) in getUnitsAt(position)" :key="uIndex"
-								 :class="getUnitClasses(unit)">
-							{{ unit.display }}
-						</div>
-						<div v-if="isValidMove(position)" class="valid-move-indicator"></div>
+
+			<!-- 提示覆盖层 -->
+			<div class="game-overlay" v-if="showCheck || isGameOver" :class="{ 'game-over': isGameOver }" v-cloak>
+				<div class="overlay-content">
+					<div class="check-text" v-if="showCheck">将</div>
+					<div class="game-over-text" v-if="isGameOver">
+						<div>游戏结束</div>
+						<div class="winner-text">{{ winnerName }} 胜利</div>
+						<el-button type="primary" size="large" @click="restartGame">新游戏</el-button>
 					</div>
-				</template>
-			</article>
-		</div>
-
-		<article class="gaming situation , right-sidebar">
-			<el-card style="margin-bottom: 20px;">
-				<template #header>当前选中:
-					<span v-if="selectedUnit" class="unit display" :class="getUnitClasses(selectedUnit)"
-								style="width: 40px; height: 40px; font-size: 28px; display: inline-flex; vertical-align: middle;">
-						{{ selectedUnit.display }}
-					</span>
-					<span v-else>无</span>
-				</template>
-				<div v-if="selectedUnit" style="margin-top: 10px;">
-					<strong>技能:</strong>
-					<div style="margin-top: 5px;">
-						<el-tag v-if="selectedUnit.skills" v-for="skill in selectedUnit.skills" :key="skill.name" type="info"
-										style="margin: 2px;">
-							{{ skill.name }}
-						</el-tag>
-					</div>
-				</div>
-			</el-card>
-
-			<el-card header="回合">
-				<el-table :data="turnHistory" stripe style="width: 100%" height="400">
-					<el-table-column prop="red" label="红方"/>
-					<el-table-column prop="black" label="黑方"/>
-				</el-table>
-			</el-card>
-		</article>
-
-		<!-- 提示覆盖层 -->
-		<div class="game-overlay" v-if="showCheck || isGameOver" :class="{ 'game-over': isGameOver }" v-cloak>
-			<div class="overlay-content">
-				<div class="check-text" v-if="showCheck">将</div>
-				<div class="game-over-text" v-if="isGameOver">
-					<div>游戏结束</div>
-					<div class="winner-text">{{ winnerName }} 胜利</div>
-					<el-button type="primary" size="large" @click="restartGame">新游戏</el-button>
 				</div>
 			</div>
-		</div>
+		</template>
 	</article>
 </main>
 
@@ -340,6 +363,10 @@
 	const app = createApp({
 		data() {
 			return {
+				showSettingsDialog: true,
+				gameSettings: {
+					firstPlayer: 'red'
+				},
 				gameCfg: {},
 				gaming: null,
 				updateCounter: 0, // 用于强制刷新棋盘
@@ -388,9 +415,22 @@
 			}
 		},
 		mounted() {
-			this.launchGame();
+			// 等待用户设置后再启动游戏
 		},
 		methods: {
+			startGame() {
+				this.showSettingsDialog = false;
+				let playerTurnSequence;
+				if (this.gameSettings.firstPlayer === 'red') {
+					playerTurnSequence = [红方玩家id, 黑方玩家id];
+				} else {
+					playerTurnSequence = [黑方玩家id, 红方玩家id];
+				}
+				this.gameCfg = {
+					玩家顺序: playerTurnSequence
+				};
+				this.launchGame();
+			},
 			launchGame() {
 				//使用 ref 包装整个 Gaming 实例，使其顶层引用可响应式替换
 				const gamingInstance = new 中国象棋(this.gameCfg, '红方玩家', '黑方玩家').newGaming();
@@ -435,7 +475,8 @@
 				this.selectedUnit = null;
 				this.validMoves = [];
 				this.moveHistory = [];
-				this.launchGame();
+				this.gaming = null; // 销毁游戏实例
+				this.showSettingsDialog = true; // 显示设置弹窗
 			},
 			cellClasses(rIndex, cIndex, position) {
 				if (!position) {
