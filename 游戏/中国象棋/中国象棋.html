@@ -266,6 +266,33 @@
 		cursor: pointer;
 		box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
 	}
+
+	/* ==============================棋子类型编辑器=========================== */
+	.piece-type-editor-wrapper {
+		gap: 20px;
+	}
+
+	.piece-type-grid {
+		--min-cell-len: 50px;
+		display: grid;
+		grid-template-columns: repeat(7, var(--min-cell-len));
+		gap: 10px;
+		padding: 10px;
+		background: #f5f5f5;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+	}
+
+	.piece-type-grid .unit.display {
+		width: 45px;
+		height: 45px;
+	}
+
+	.piece-type-details {
+		flex-grow: 1;
+		padding-left: 20px;
+		border-left: 1px solid #eee;
+	}
 </style>
 </head>
 <body class="grid 反叵字形">
@@ -327,7 +354,31 @@
 					</div>
 				</el-form-item>
 				<el-form-item label="棋子类型">
-					<span>默认</span>
+					<div class="piece-type-editor-wrapper flex vertical">
+						<div class="piece-type-grid">
+							<div v-for="(piece, type) in boardEditor.availablePieceTypes"
+									 :key="type"
+									 class="unit display"
+									 :class="[getEditorUnitColor(piece), { 'selected': boardEditor.selectedPieceType === type }]"
+									 @click="boardEditor.selectedPieceType = type">
+								{{ piece.显示 }}
+							</div>
+						</div>
+						<div v-if="boardEditor.selectedPieceType" class="piece-type-details">
+							<h4>正在编辑: {{ boardEditor.selectedPieceType }}</h4>
+							<el-form label-width="60px">
+								<el-form-item label="显示">
+									<el-input v-model="boardEditor.availablePieceTypes[boardEditor.selectedPieceType].显示"
+														class="unit display" style="width: 100px;"/>
+								</el-form-item>
+								<el-form-item label="技能">
+									<el-checkbox-group v-model="boardEditor.availablePieceTypes[boardEditor.selectedPieceType].技能">
+										<el-checkbox v-for="skill in allAvailableSkills" :key="skill" :label="skill"/>
+									</el-checkbox-group>
+								</el-form-item>
+							</el-form>
+						</div>
+					</div>
 				</el-form-item>
 				<el-form-item label="全局规则">
 					<el-checkbox-group v-model="gameSettings.rules">
@@ -475,10 +526,13 @@
 					defaultBoardLayout: 默认棋盘布局,
 					layout: [], // 10x9 array
 					draggedPiece: null, // { type, from, r, c }
-					selectedPiece: null // {r, c}
+					selectedPiece: null, // {r, c}
+					selectedPieceType: null // 选中的棋子类型key
 				},
 				// 规则编辑器数据
-				allAvailableRules: []
+				allAvailableRules: [],
+				// 技能编辑器数据
+				allAvailableSkills: []
 			};
 		},
 		computed: {
@@ -522,6 +576,8 @@
 			// 初始化规则编辑器
 			this.gameSettings.rules = [...默认全局规则];
 			this.allAvailableRules = Object.keys(内置规则集);
+			// 初始化技能编辑器
+			this.allAvailableSkills = Object.keys(内置技能集);
 		},
 		mounted() {
 			// 等待用户设置后再启动游戏
@@ -533,7 +589,7 @@
 				if (!piece) {
 					return '';
 				}
-				return piece.玩家 === 红方玩家id ? 红方默认配置.flag : 黑方默认配置.flag;
+				return piece.玩家 === 红方玩家id ? 'red' : 'black';
 			},
 			clearBoard() {
 				this.boardEditor.layout = Array(10).fill(0).map(() => Array(9).fill('空'));
