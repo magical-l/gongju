@@ -374,17 +374,17 @@
 			},
 			turnHistory() {
 				const turns = [];
-				// 每两个动作组成一个回合
-				for (let i = 0; i < this.moveHistory.length; i += 2) {
-					const redAction = this.moveHistory[i];
-					const blackAction = (i + 1 < this.moveHistory.length) ? this.moveHistory[i + 1] : null;
-					turns.push({
-						turn: Math.floor(i / 2) + 1,
-						red: this.formatMove(redAction),
-						black: this.formatMove(blackAction)
-					});
-				}
-				return turns.reverse(); // 最新回合在最上面
+				// // 每两个动作组成一个回合
+				// for (let i = 0; i < this.moveHistory.length; i += 2) {
+				// 	const redAction = this.moveHistory[i];
+				// 	const blackAction = (i + 1 < this.moveHistory.length) ? this.moveHistory[i + 1] : null;
+				// 	turns.push({
+				// 		turn: Math.floor(i / 2) + 1,
+				// 		red: 中国象棋.formatMoveToNotation(redAction),
+				// 		black: 中国象棋.formatMoveToNotation(blackAction)
+				// 	});
+				// }
+				return turns;
 			}
 		},
 		mounted() {
@@ -436,19 +436,6 @@
 				this.validMoves = [];
 				this.moveHistory = [];
 				this.launchGame();
-			},
-			formatMove(action) {
-				if (!action) {
-					return '';
-				}
-				// 假设 action 结构为 { unit, from, to }
-				return `${action.unit.display} ${this.formatPos(action.from)} → ${this.formatPos(action.to)}`;
-			},
-			formatPos(pos) {
-				if (!pos) {
-					return '';
-				}
-				return `(${pos.colNum},${pos.rowNum})`;
 			},
 			cellClasses(rIndex, cIndex, position) {
 				if (!position) {

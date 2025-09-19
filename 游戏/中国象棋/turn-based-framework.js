@@ -82,9 +82,10 @@ class Battlefield extends GamingPart {
 	}
 
 	moveUnit(unit, position) {
+		const oldPosition = unit.position;
 		this.removeUnitFromPosition(unit);
 		this.addUnitToPosition(unit, position);
-		this.gaming.bulletin.notice('单位移动', {unit});
+		this.gaming.bulletin.notice('单位移动', {unit, oldPosition});
 	}
 
 	destroyUnit(unit) {
