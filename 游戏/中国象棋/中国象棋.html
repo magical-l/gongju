@@ -565,10 +565,9 @@
 						if (index > -1) {
 							this.boardEditor.enabledPieceTypes.splice(index, 1);
 							// 当一个棋子类型被禁用时，从棋盘上移除所有该类型的棋子
-							const disabledType = type;
 							for (let r = 0; r < this.boardEditor.layout.length; r++) {
 								for (let c = 0; c < this.boardEditor.layout[r].length; c++) {
-									if (this.boardEditor.layout[r][c] === disabledType) {
+									if (this.boardEditor.layout[r][c] === type) {
 										this.boardEditor.layout[r][c] = '空';
 									}
 								}
@@ -608,7 +607,8 @@
 				return this.situation.winner.name;
 			},
 			turnHistory() {
-				const turns = [];
+				const turns = this.gaming.situation.roundNotations.map(round => ({red: round[0], black: round[1]}));
+				console.log(turns);
 				// 每两个动作组成一个回合
 				// for (let i = 0; i < this.moveHistory.length; i += 2) {
 				// 	const redAction = this.moveHistory[i];

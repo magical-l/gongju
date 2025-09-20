@@ -49,6 +49,7 @@ class 中国象棋 extends Game {
 		super(中国象棋.translateConfig({...中国象棋默认配置, ...cfg}, 红方名字, 黑方名字));
 		this.cfg.GamingClass = 棋局;
 		this.cfg.BattlefieldClass = 棋盘;
+		this.cfg.SituationClass = 战况;
 	}
 
 	static translateConfig(cfg, 红方名字, 黑方名字) {
@@ -68,6 +69,14 @@ class 中国象棋 extends Game {
 			globalRules: cfg.规则,
 			...cfg//带上原始数据
 		};
+	}
+}
+
+class 战况 extends Situation {
+	roundNotations = [];//[[红方行动,黑方行动],……]
+
+	constructor(gaming) {
+		super(gaming);
 	}
 }
 
@@ -149,6 +158,23 @@ class 棋盘 extends Board {
 }
 
 class 棋局 extends Gaming {
+	_build() {
+		super._build();
+
+		this.bulletin.watch('单位移动', move => {
+			const notation = this.translateToNotation(move);
+			if (move.unit.owner.team.id === 红方id) {
+				this.situation.roundNotations.push([notation]);
+			} else {
+				if (this.situation.roundNotations) {
+					this.situation.roundNotations.at(-1)[1] = notation;
+				} else {
+					this.situation.roundNotations.push(['', notation]);
+				}
+			}
+		});
+	}
+
 	_buildBattlefield() {
 		const battlefield = super._buildBattlefield();
 
@@ -207,5 +233,114 @@ class 棋局 extends Gaming {
 	_buildGlobalRule(ruleCfg) {
 		const RuleClass = 内置规则集[ruleCfg];
 		return super._buildGlobalRule({class: RuleClass});
+	}
+
+	translateToNotation(move) {
+		const {unit, oldPosition} = move;
+		const {name, position, owner} = unit;
+		const {team} = owner;
+		// 判断移动方向
+		const rowDiff = position.rowNum - oldPosition.rowNum;
+		const colDiff = position.colNum - oldPosition.colNum;
+		// 确定移动类型
+		let moveType;
+		if (colDiff === 0) {
+			// 使用正确的方向判断
+			const direction = this.battlefield.forwardDirection(owner);
+			moveType = rowDiff * direction < 0 ? 'forward' : 'backward';
+		} else {
+			moveType = 'horizontal';
+		}
+		// 获取棋子显示名称
+		const pieceName = name;
+
+		// 获取列名
+		// 辅助函数：获取列名（中文数字）- 修复红方列号计算
+		function getColumnName(colNum, team) {
+			const numbers = ['九', '八', '七', '六', '五', '四', '三', '二', '一'];
+			if (team === 红方id) {
+				// 红方从右向左编号（红方视角）：第1列是九路，第9列是一路
+				return numbers[colNum - 1];
+			} else {
+				// 黑方从左向右编号（黑方视角）：第1列是1路，第9列是9路
+				return colNum.toString();
+			}
+		}
+
+		const colName = getColumnName(oldPosition.colNum, team.id);
+		// 处理同一列有多个相同棋子的情况（如前马、后炮等）
+		// 辅助函数：查找同一列中的相同棋子
+		const findPiecesInColumn = (pieceName, colNum, team) => {
+			const pieces = [];
+			for (let row = 0; row < 10; row++) {
+				const piece = this.battlefield.grid[row][colNum - 1];
+				if (piece && piece.name === pieceName && piece.owner.team.id === team) {
+					pieces.push(piece);
+				}
+			}
+			return pieces;
+		};
+
+		let prefix = '';
+		const sameColumnPieces = findPiecesInColumn(name, oldPosition.colNum, team.id);
+		if (sameColumnPieces.length > 1) {
+			// 正确排序和确定前缀
+			if (team.id === '红方') {
+				// 红方从己方底线向前数（数值小的在前）
+				const positions = sameColumnPieces.map(p => p.position.rowNum).sort((a, b) => a - b);
+				const positionIndex = positions.indexOf(oldPosition.rowNum);
+
+				if (positionIndex === 0) {
+					prefix = '前';
+				} else if (positionIndex === 1 && positions.length > 2) {
+					prefix = '中';
+				} else if (positionIndex === positions.length - 1) {
+					prefix = '后';
+				} else {
+					prefix = '';
+				}
+			} else {
+				// 黑方从己方底线向前数（数值大的在前）
+				const positions = sameColumnPieces.map(p => p.position.rowNum).sort((a, b) => b - a);
+				const positionIndex = positions.indexOf(oldPosition.rowNum);
+
+				if (positionIndex === 0) {
+					prefix = '前';
+				} else if (positionIndex === 1 && positions.length > 2) {
+					prefix = '中';
+				} else if (positionIndex === positions.length - 1) {
+					prefix = '后';
+				} else {
+					prefix = '';
+				}
+			}
+		}
+
+		// 构建记谱文本
+		let notation = prefix + pieceName;
+
+		// 辅助函数：获取步数显示（修复：红方使用汉字数字）
+		function getStepDisplay(steps, team) {
+			const numbers = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
+			if (team === '红方') {
+				return numbers[steps];
+			} else {
+				// 黑方使用阿拉伯数字
+				return steps.toString();
+			}
+		}
+
+		if (moveType === 'forward') {
+			const steps = Math.abs(rowDiff);
+			notation += `${colName}进${getStepDisplay(steps, team.id)}`;
+		} else if (moveType === 'backward') {
+			const steps = Math.abs(rowDiff);
+			notation += `${colName}退${getStepDisplay(steps, team.id)}`;
+		} else if (moveType === 'horizontal') {
+			const newColName = getColumnName(position.colNum, team.id);
+			notation += `${colName}平${newColName}`;
+		}
+
+		return notation;
 	}
 }
