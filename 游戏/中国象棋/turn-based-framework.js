@@ -286,9 +286,8 @@ class Skill extends GamingPart {
 	}
 }
 
-let nextUnitId = 1;
-
 class Unit extends GamingPart {
+	static nextUnitId = 1;
 	id;
 	name;
 	intro = '';
@@ -299,7 +298,7 @@ class Unit extends GamingPart {
 
 	constructor(cfg) {
 		super(cfg.owner?.gaming);
-		this.id = nextUnitId++;
+		this.id = Unit.nextUnitId++;
 		Object.assign(this, cfg);
 	}
 
@@ -497,10 +496,7 @@ class Gaming {
 
 	_buildSkills(skillsCfg, owner) {
 		this.bulletin.notice('building skills', {owner, skillsCfg});
-		const rt = skillsCfg.map(skillCfg => {
-			const skill = this._buildSkill(owner, skillCfg);
-			return skill;
-		});
+		const rt = skillsCfg.map(skillCfg => this._buildSkill(owner, skillCfg));
 		this.bulletin.notice('built skills', {rt});
 		return rt;
 	}

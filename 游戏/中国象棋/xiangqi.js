@@ -239,54 +239,61 @@ class 棋局 extends Gaming {
 		const {unit, oldPosition} = move;
 		const {name, position, owner} = unit;
 		const {team} = owner;
+
 		// 判断移动方向
 		const rowDiff = position.rowNum - oldPosition.rowNum;
 		const colDiff = position.colNum - oldPosition.colNum;
+
 		// 确定移动类型
 		let moveType;
 		if (rowDiff !== 0) {
 			// 使用正确的方向判断
 			const direction = this.battlefield.forwardDirection(owner);
-			moveType = rowDiff * direction < 0 ? 'backward' : 'forward';
+			moveType = rowDiff * direction < 0 ? '退' : '进';
 		} else {
-			moveType = 'horizontal';
+			moveType = '平';
 		}
+
 		// 获取棋子显示名称
 		const pieceName = name;
 
-		// 获取列名
-		// 辅助函数：获取列名（中文数字）- 修复红方列号计算
+		// 辅助函数：获取列名
 		function getColumnName(colNum, team) {
 			const numbers = ['九', '八', '七', '六', '五', '四', '三', '二', '一'];
-			if (team === 红方id) {
-				// 红方从右向左编号（红方视角）：第1列是九路，第9列是一路
+			if (team === '红方') {
+				// 红方从右向左编号：第1列是九路，第9列是一路
 				return numbers[colNum - 1];
 			} else {
-				// 黑方从左向右编号（黑方视角）：第1列是1路，第9列是9路
+				// 黑方从左向右编号：第1列是1路，第9列是9路
 				return colNum.toString();
 			}
 		}
 
 		const colName = getColumnName(oldPosition.colNum, team.id);
-		// 处理同一列有多个相同棋子的情况（如前马、后炮等）
-		// 辅助函数：查找同一列中的相同棋子
+
+		// 处理同一列有多个相同棋子的情况
 		const findPiecesInColumn = (pieceName, colNum, team) => {
 			const pieces = [];
 			for (let row = 0; row < 10; row++) {
-				const piece = this.battlefield.grid[row][colNum - 1];
-				if (piece && piece.name === pieceName && piece.owner.team.id === team) {
-					pieces.push(piece);
+				if (row !== position.rowNum - 1 && row !== oldPosition.rowNum - 1) {//排除当前棋子的旧位置和新位置
+					const ps = this.battlefield.grid[row][colNum - 1];
+					ps.filter(piece => piece.name === pieceName && piece.owner.team.id === team)
+					.forEach(piece => pieces.push(piece));
 				}
 			}
+			// 添加移动前的棋子（因为棋盘上已经没有了）
+			pieces.push({
+				name: pieceName,
+				position: oldPosition,
+				owner: {team: {id: team}}
+			});
 			return pieces;
 		};
 
 		let prefix = '';
 		const sameColumnPieces = findPiecesInColumn(name, oldPosition.colNum, team.id);
 		if (sameColumnPieces.length > 1) {
-			// 正确排序和确定前缀
 			if (team.id === '红方') {
-				// 红方从己方底线向前数（数值小的在前）
 				const positions = sameColumnPieces.map(p => p.position.rowNum).sort((a, b) => a - b);
 				const positionIndex = positions.indexOf(oldPosition.rowNum);
 
@@ -296,11 +303,8 @@ class 棋局 extends Gaming {
 					prefix = '中';
 				} else if (positionIndex === positions.length - 1) {
 					prefix = '后';
-				} else {
-					prefix = '';
 				}
 			} else {
-				// 黑方从己方底线向前数（数值大的在前）
 				const positions = sameColumnPieces.map(p => p.position.rowNum).sort((a, b) => b - a);
 				const positionIndex = positions.indexOf(oldPosition.rowNum);
 
@@ -310,8 +314,6 @@ class 棋局 extends Gaming {
 					prefix = '中';
 				} else if (positionIndex === positions.length - 1) {
 					prefix = '后';
-				} else {
-					prefix = '';
 				}
 			}
 		}
@@ -319,24 +321,46 @@ class 棋局 extends Gaming {
 		// 构建记谱文本
 		let notation = prefix + pieceName;
 
-		// 辅助函数：获取步数显示（修复：红方使用汉字数字）
+		// 辅助函数：获取步数显示
 		function getStepDisplay(steps, team) {
 			const numbers = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
 			if (team === '红方') {
 				return numbers[steps];
 			} else {
-				// 黑方使用阿拉伯数字
 				return steps.toString();
 			}
 		}
 
-		if (moveType === 'forward') {
+		// 对于马、士、象等棋子，进/退不是看移动了几个位置，而是看落点的列位置
+		if (['馬', '马', '相', '象', '仕', '士'].includes(name)) {
+			const oldColName = getColumnName(oldPosition.colNum, team.id);
+			const newColName = getColumnName(position.colNum, team.id);
+
+			if (team.id === '红方') {
+				// 红方：数字越小越靠右（九 > 八 > ... > 一）
+				const oldColValue = 10 - oldPosition.colNum; // 九路=9, 一路=1
+				const newColValue = 10 - position.colNum;
+
+				if (newColValue > oldColValue) {
+					notation += `${oldColName}进${newColName}`;
+				} else {
+					notation += `${oldColName}退${newColName}`;
+				}
+			} else {
+				// 黑方：数字越大越靠右（1 < 2 < ... < 9）
+				if (position.colNum > oldPosition.colNum) {
+					notation += `${oldColName}进${newColName}`;
+				} else {
+					notation += `${oldColName}退${newColName}`;
+				}
+			}
+		} else if (moveType === '进') {
 			const steps = Math.abs(rowDiff);
 			notation += `${colName}进${getStepDisplay(steps, team.id)}`;
-		} else if (moveType === 'backward') {
+		} else if (moveType === '退') {
 			const steps = Math.abs(rowDiff);
 			notation += `${colName}退${getStepDisplay(steps, team.id)}`;
-		} else if (moveType === 'horizontal') {
+		} else if (moveType === '平') {
 			const newColName = getColumnName(position.colNum, team.id);
 			notation += `${colName}平${newColName}`;
 		}
