@@ -14,9 +14,9 @@ const 内置插件集 = {
 			const isAttacking = (rowDiff, forwardDirection) => Math.sign(rowDiff) === Math.sign(forwardDirection);
 			const calColName = (forwardDirection, is红方, colNum) => {
 				if (forwardDirection < 0) {//向上进攻，即玩家在下方，从右数起，列名跟colNum反向
-					return is红方 ? 汉语数字[10 - colNum] : colNum;
+					return is红方 ? 汉语数字[10 - colNum] : 10 - colNum;
 				} else {
-					return is红方 ? 汉语数字[colNum] : 10 - colNum;
+					return is红方 ? 汉语数字[colNum] : colNum;
 				}
 			};
 
@@ -28,8 +28,8 @@ const 内置插件集 = {
 						const {rowNum, colNum} = unit.position;
 						const forwardDirection = this.gaming.battlefield.forwardDirection(player);
 						//查看同玩家同列同名单位
-						for (let i = 0; i < this.gaming.battlefield.rowSize; i++) {
-							const units = this.gaming.battlefield.getUnitsAt(new 棋盘点位(i + 1, colNum));
+						for (let i = 1; i <= this.gaming.battlefield.rowSize; i++) {
+							const units = this.gaming.battlefield.getUnitsAt(new 棋盘点位(i, colNum));
 							if (units.filter(u => u.name === unit.name && u.owner === player).length) {
 								同名单位行号集.push(i);
 							}
@@ -39,16 +39,15 @@ const 内置插件集 = {
 						if (len === 1) {//只有该单位自己
 							this.unitName = unit.name + calColName(forwardDirection, is红方, colNum);
 						} else {
-							同名单位行号集.sort((a, b) => a - b);
+							同名单位行号集.sort(forwardDirection === -1 ? (a, b) => b - a : (a, b) => a - b);
 							const index = 同名单位行号集.indexOf(rowNum);
-							if (len < 4) {//2或3
-								if (index === 0) {
-									this.unitName = '前' + unit.name;
-								} else if (index === len - 1) {
-									this.unitName = '后' + unit.name;
-								} else {
-									this.unitName = '中' + unit.name;
-								}
+
+							if (index === 0) {
+								this.unitName = '前' + unit.name;
+							} else if (index === len - 1) {
+								this.unitName = '后' + unit.name;
+							} else if (len === 3) {
+								this.unitName = '中' + unit.name;
 							} else {
 								this.unitName = 汉语数字[index + 1] + unit.name;
 							}

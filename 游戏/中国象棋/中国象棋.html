@@ -616,6 +616,7 @@
 				return this.situation.winner.name;
 			},
 			turnHistory() {
+				const _ = this.updateCounter; // 依赖 updateCounter 强制更新
 				return this.gaming.roundNotations?.map((round, index) => ({
 					id: index + 1,
 					redMove: round[0] || null,
@@ -625,15 +626,15 @@
 		},
 		created() {
 			// 初始化规则编辑器
-			this.gameSettings.rules = [...默认全局规则];
 			this.allAvailableRules = Object.keys(内置规则集);
+			this.gameSettings.rules = [...默认全局规则];
 			// 初始化技能编辑器
 			this.allAvailableSkills = Object.keys(内置技能集);
-			this.gameSettings.plugins = Object.keys(内置插件集);
+			// 初始化插件编辑器
 			this.allAvailablePlugins = Object.keys(内置插件集);
+			this.gameSettings.plugins = Object.keys(内置插件集);
 		},
 		mounted() {
-			// 等待用户设置后再启动游戏
 			this.resetBoard();
 		},
 		methods: {
@@ -695,7 +696,6 @@
 			removeEditorPiece(r, c) {
 				this.boardEditor.layout[r][c] = '空';
 				this.boardEditor.selectedPiece = null;
-				// this.boardEditor.layout = [...this.boardEditor.layout]; // 强制更新
 			},
 			// 游戏流程方法
 			startGame() {
@@ -709,13 +709,14 @@
 
 				const boardString = this.boardEditor.layout.map(row => row.join('')).join('\n');
 
-				                this.gameCfg = {
-									玩家顺序: playerTurnSequence,
-									棋盘: boardString,
-									棋子类型: this.palettePieceTypes,
-									规则: this.gameSettings.rules,
-									插件: this.gameSettings.plugins
-								};				this.launchGame();
+				this.gameCfg = {
+					玩家顺序: playerTurnSequence,
+					棋盘: boardString,
+					棋子类型: this.palettePieceTypes,
+					规则: this.gameSettings.rules,
+					插件: this.gameSettings.plugins
+				};
+				this.launchGame();
 			},
 			launchGame() {
 				//使用 ref 包装整个 Gaming 实例，使其顶层引用可响应式替换
@@ -749,7 +750,7 @@
 					this.validMoves = [];
 					this.updateCounter++;
 				};
-				gaming.bulletin.watch('单位移动', (move) => {
+				gaming.bulletin.watch('单位移动', move => {
 					this.moveHistory.push(move);
 					rerender();
 				});
