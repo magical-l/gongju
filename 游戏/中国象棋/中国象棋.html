@@ -162,6 +162,34 @@
 		pointer-events: none;
 	}
 
+	.blocked-move-indicator {
+		position: absolute;
+		z-index: 20;
+		width: 40%;
+		height: 40%;
+		pointer-events: none;
+	}
+
+	.blocked-move-indicator::before, .blocked-move-indicator::after {
+		content: '';
+		position: absolute;
+		top: 50%;
+		left: 10%;
+		width: 80%;
+		height: 15%;
+		background-color: rgba(220, 53, 69, 0.7);
+		border-radius: 2px;
+		transform-origin: center;
+	}
+
+	.blocked-move-indicator::before {
+		transform: translateY(-50%) rotate(45deg);
+	}
+
+	.blocked-move-indicator::after {
+		transform: translateY(-50%) rotate(-45deg);
+	}
+
 	/* ==============================游戏提示覆盖层=========================== */
 	.game-overlay {
 		position: absolute;
@@ -429,6 +457,7 @@
 								{{ unit.display }}
 							</div>
 							<div v-if="isValidMove(position)" class="valid-move-indicator"></div>
+							<div v-if="isBlockedMove(position)" class="blocked-move-indicator"></div>
 						</div>
 					</template>
 				</article>
@@ -451,6 +480,7 @@
 								{{ unit.display }}
 							</div>
 							<div v-if="isValidMove(position)" class="valid-move-indicator"></div>
+							<div v-if="isBlockedMove(position)" class="blocked-move-indicator"></div>
 						</div>
 					</template>
 				</article>
@@ -532,6 +562,7 @@
 				showCheck: false,
 				selectedUnit: null,
 				validMoves: [],
+				blockedMoves: [],
 				showReversedView: false,
 				moveHistory: [],
 				// 棋盘编辑器数据
@@ -737,17 +768,26 @@
 				gaming.bulletin.watch('玩家选择了一个技能', ({unit, skill}) => {
 					this.selectedUnit = unit;
 					// 主动从技能获取可移动位置用于UI显示
-					this.validMoves = skill.getAvailableTargets();
+					const targets = skill.getAvailableTargets();
+					if (targets && targets.valid) { // 检查是否为新数据结构
+						this.validMoves = targets.valid;
+						this.blockedMoves = targets.blocked || [];
+					} else { // 兼容旧的数组格式
+						this.validMoves = targets;
+						this.blockedMoves = [];
+					}
 				});
 
 				gaming.bulletin.watch('玩家取消选择单位', () => {
 					this.selectedUnit = null;
 					this.validMoves = [];
+					this.blockedMoves = [];
 				});
 
 				const rerender = () => {
 					this.selectedUnit = null;
 					this.validMoves = [];
+					this.blockedMoves = [];
 					this.updateCounter++;
 				};
 				gaming.bulletin.watch('单位移动', move => {
@@ -761,6 +801,7 @@
 				this.showCheck = false;
 				this.selectedUnit = null;
 				this.validMoves = [];
+				this.blockedMoves = [];
 				this.moveHistory = [];
 				this.gaming = null; // 销毁游戏实例
 				this.showSettingsDialog = true; // 显示设置弹窗
@@ -822,6 +863,9 @@
 			},
 			isValidMove(position) {
 				return this.validMoves.some(pos => pos.isEqualTo(position));
+			},
+			isBlockedMove(position) {
+				return this.blockedMoves.some(pos => pos.isEqualTo(position));
 			}
 		}
 	});

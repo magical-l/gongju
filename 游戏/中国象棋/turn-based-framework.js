@@ -208,7 +208,7 @@ class Player extends GamingPart {
 				if (this.selectedSkill) {
 					// 已选择一个技能（移动），判断本次点击是否为合法目标
 					const validMoves = this.selectedSkill.getAvailableTargets();
-					if (validMoves.find(p => p.isEqualTo(position))) {
+					if (validMoves.valid.find(p => p.isEqualTo(position))) {
 						// 合法移动，执行移动。移动后会触发'单位移动'事件，从而结束回合
 						this.selectedSkill.owner.position = position;
 					} else {

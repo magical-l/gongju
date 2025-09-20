@@ -30,22 +30,35 @@ class Move extends Skill {
 
 	getAvailableTargets() {
 		// 1. 从子类获取原始移动位置
-		let targets = this.getRawTargetPositions();
-		const eventPayload = {unit: this.owner, availableTargetPositions: targets};
+		let rawTargets = this.getRawTargetPositions();
 
-		// 2. 发布事件，让其他技能（如“绊马脚”、“塞象眼”）过滤位置
+		// 2. 准备事件负载，增加一个用于记录被阻挡位置的数组
+		const eventPayload = {
+			unit: this.owner,
+			availableTargetPositions: [...rawTargets], // 传一个副本，因为监听器会修改它
+			blockedTargetPositions: [] // 新增
+		};
+
+		// 3. 发布事件，让其他技能（如“绊马脚”、“塞象眼”）过滤位置
 		this.gaming.bulletin.notice('已获取可移动位置集', eventPayload);
 
-		// 3. 从被其他技能过滤后的结果中，再次过滤掉己方棋子所在的位置
+		// 4. 从被其他技能过滤后的结果中，再次过滤掉己方棋子所在的位置
 		const myTeam = this.owner.owner.team;
-		const validTargets = eventPayload.availableTargetPositions.filter(p => {
+		const finalValidTargets = eventPayload.availableTargetPositions.filter(p => {
 			const unitsAtTarget = this.gaming.battlefield.getUnitsAt(p);
 			// 目标位置有效，当且仅当该位置为空，或上面的棋子不属于我方
 			return unitsAtTarget.length === 0 || unitsAtTarget[0].owner.team !== myTeam;
 		});
 
-		// 4. 最后，让战场过滤掉出界的位置，返回最终结果
-		return this.gaming.battlefield.keepValidPositions(validTargets);
+		// 5. 过滤掉出界的位置
+		const valid = this.gaming.battlefield.keepValidPositions(finalValidTargets);
+		const blocked = this.gaming.battlefield.keepValidPositions(eventPayload.blockedTargetPositions);
+
+		// 6. 返回最终结果
+		return {
+			valid: valid,
+			blocked: blocked
+		};
 	}
 
 	getRawTargetPositions() {
@@ -150,15 +163,20 @@ const 内置技能集 = {
 			super({
 				name: '塞象眼', intro: '如果“田”字中心有棋子，则无法移动过去。', ...cfg,
 				watchers: {
-					'已获取可移动位置集': ({unit, availableTargetPositions}) => {
+					'已获取可移动位置集': ({unit, availableTargetPositions, blockedTargetPositions}) => {
 						if (unit === this.owner) {
 							const {rowNum, colNum} = this.owner.position;
-							const filtered = availableTargetPositions.filter(p => {
+							const stillValid = [];
+							availableTargetPositions.forEach(p => {
 								const middlePos = new 棋盘点位((p.rowNum + rowNum) / 2, (p.colNum + colNum) / 2);
-								return this.gaming.battlefield.getUnitsAt(middlePos).length === 0;
+								if (this.gaming.battlefield.getUnitsAt(middlePos).length > 0) {
+									blockedTargetPositions.push(p);
+								} else {
+									stillValid.push(p);
+								}
 							});
 							availableTargetPositions.length = 0;
-							availableTargetPositions.push(...filtered);
+							availableTargetPositions.push(...stillValid);
 						}
 					}
 				}
@@ -206,10 +224,11 @@ const 内置技能集 = {
 			super({
 				name: '绊马脚', intro: '如果前进方向的第一个交叉点有棋子，则无法移动。', ...cfg,
 				watchers: {
-					'已获取可移动位置集': ({unit, availableTargetPositions}) => {
+					'已获取可移动位置集': ({unit, availableTargetPositions, blockedTargetPositions}) => {
 						if (unit === this.owner) {
 							const {rowNum, colNum} = this.owner.position;
-							const filtered = availableTargetPositions.filter(p => {
+							const stillValid = [];
+							availableTargetPositions.forEach(p => {
 								const dr = p.rowNum - rowNum;
 								const dc = p.colNum - colNum;
 								let blockPos;
@@ -218,10 +237,14 @@ const 内置技能集 = {
 								} else if (Math.abs(dr) === 1 && Math.abs(dc) === 2) {
 									blockPos = new 棋盘点位(rowNum, colNum + dc / 2);
 								}
-								return !blockPos || this.gaming.battlefield.getUnitsAt(blockPos).length === 0;
+								if (blockPos && this.gaming.battlefield.getUnitsAt(blockPos).length > 0) {
+									blockedTargetPositions.push(p);
+								} else {
+									stillValid.push(p);
+								}
 							});
 							availableTargetPositions.length = 0;
-							availableTargetPositions.push(...filtered);
+							availableTargetPositions.push(...stillValid);
 						}
 					}
 				}
