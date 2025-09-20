@@ -54,21 +54,7 @@ class Move extends Skill {
 	}
 }
 
-class 横冲直撞 extends Move {
-	constructor(cfg) {
-		super({name: '横冲直撞', intro: '可以横向或向前移动一格。', ...cfg});
-	}
 
-	getRawTargetPositions() {
-		const {rowNum, colNum} = this.owner.position;
-		const forward = this.gaming.battlefield.forwardDirection(this.owner.owner);
-		return [
-			new 棋盘点位(rowNum + forward, colNum),
-			new 棋盘点位(rowNum, colNum - 1),
-			new 棋盘点位(rowNum, colNum + 1)
-		];
-	}
-}
 
 const 内置技能集 = {
 	'杀敌': class extends Skill {
@@ -375,41 +361,23 @@ const 内置技能集 = {
 
 	'勇往直前': class extends Move {
 		constructor(cfg) {
-			super({name: '勇往直前', intro: '只能向前移动一格。', ...cfg});
+			super({name: '勇往直前', intro: '未过河时只能向前，过河后可横向移动。', ...cfg});
 		}
 
 		getRawTargetPositions() {
+			const {rowNum, colNum} = this.owner.position;
 			const forward = this.gaming.battlefield.forwardDirection(this.owner.owner);
-			return [new 棋盘点位(this.owner.position.rowNum + forward, this.owner.position.colNum)];
-		}
-	},
+			const moves = [
+				new 棋盘点位(rowNum + forward, colNum) // 永远可以向前
+			];
 
-	'过河卒': class extends Skill {
-		constructor(cfg) {
-			super({name: '过河卒', intro: '过河之后，可以横向移动。', ...cfg});
-			this.watchers['单位移动'] = this.addSkillAfterMove;
-		}
-
-		addSkillAfterMove = ({unit}) => {
-			if (unit !== this.owner) {
-				return;
+			const riverCrossed = this.gaming.battlefield.isAcrossRiver(this.owner.position, this.owner.owner);
+			if (riverCrossed) {
+				moves.push(new 棋盘点位(rowNum, colNum - 1)); // 向左
+				moves.push(new 棋盘点位(rowNum, colNum + 1)); // 向右
 			}
-
-			const riverCrossed = this.gaming.battlefield.isAcrossRiver(unit.position, unit.owner);
-
-			if (riverCrossed && !this.owner.skills.some(s => s instanceof 横冲直撞)) {
-				// 找出所有移动类技能并移除
-				const moveSkills = this.owner.skills.filter(s => s instanceof Move);
-				moveSkills.forEach(s => this.owner.removeSkill(s));
-
-				// 添加新的移动技能
-				this.owner.addSkill(new 横冲直撞({owner: this.owner, gaming: this.gaming}));
-
-				// 此技能已完成使命，可以移除自身
-				this.owner.removeSkill(this);
-			}
-		};
-	},
-
-	横冲直撞
+			
+			return moves;
+		}
+	}
 };
