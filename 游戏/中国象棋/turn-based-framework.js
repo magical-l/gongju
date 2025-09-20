@@ -387,6 +387,7 @@ class Gaming {
 	battlefield;
 	situation;
 	playerTurnSequence = [];
+	plugins = [];
 
 	constructor(cfg) {
 		this.cfg = cfg;
@@ -408,6 +409,10 @@ class Gaming {
 		this.battlefield = this._buildBattlefield();
 		this.situation = this._buildSituation();
 		this.playerTurnSequence = this._buildPlayerTurnSequence();
+		this.plugins = this._buildPlugins();
+		this.plugins.forEach(plugin =>
+			Object.entries(plugin.watchers)
+			.forEach(([topicName, watcher]) => this.bulletin.watch(topicName, watcher.bind(plugin))));
 		this.bulletin.notice('inited', {gaming: this});
 	}
 
@@ -527,6 +532,22 @@ class Gaming {
 		return this.cfg.playerTurnSequence.map(playerId => playersById[playerId]);
 	}
 
+	_buildPlugins() {
+		const pluginsCfg = this.cfg.plugins || [];
+		this.bulletin.notice('building plugins', {gaming: this, pluginsCfg});
+		const rt = pluginsCfg.map(pluginCfg => this._buildPlugin(pluginCfg));
+		this.bulletin.notice('built plugins', {plugins: rt});
+		return rt;
+	}
+
+	_buildPlugin(pluginCfg) {
+		const PluginClass = pluginCfg.class ?? this.cfg.PluginClass ?? Plugin;
+		this.bulletin.notice('building plugin', {gaming: this, pluginCfg, class: PluginClass});
+		const rt = new PluginClass(this, pluginCfg);
+		this.bulletin.notice('built plugin', {globalRule: rt});
+		return rt;
+	}
+
 	_start() {
 		this.bulletin.watch('game:over', ({winner}) => {
 			this.situation.isEnded = true;
@@ -568,6 +589,18 @@ class Round extends GamingPart {
 		}
 
 		this.gaming.bulletin.notice('round:end', {round: this});
+	}
+}
+
+class Plugin extends GamingPart {
+	name;
+	intro = '';
+	tip = '';
+	watchers = {};
+
+	constructor(gaming, cfg) {
+		super(gaming);
+		Object.assign(this, cfg);
 	}
 }
 

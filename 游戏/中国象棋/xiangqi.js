@@ -41,7 +41,8 @@ const 中国象棋默认配置 = {
 	棋盘: 默认棋盘布局,
 	棋子类型: 默认棋子类型,
 	玩家顺序: 默认玩家顺序,
-	规则: 默认全局规则
+	规则: 默认全局规则,
+	插件: 内置插件集
 };
 
 class 中国象棋 extends Game {
@@ -67,6 +68,7 @@ class 中国象棋 extends Game {
 			),
 			playerTurnSequence: cfg.玩家顺序,
 			globalRules: cfg.规则,
+			plugins: cfg.插件,
 			...cfg//带上原始数据
 		};
 	}
@@ -161,18 +163,18 @@ class 棋局 extends Gaming {
 	_build() {
 		super._build();
 
-		this.bulletin.watch('单位移动', move => {
-			const notation = this.translateToNotation(move);
-			if (move.unit.owner.team.id === 红方id) {
-				this.situation.roundNotations.push([notation]);
-			} else {
-				if (this.situation.roundNotations) {
-					this.situation.roundNotations.at(-1)[1] = notation;
-				} else {
-					this.situation.roundNotations.push(['', notation]);
-				}
-			}
-		});
+		// this.bulletin.watch('单位移动', move => {
+		// 	const notation = this.translateToNotation(move);
+		// 	if (move.unit.owner.team.id === 红方id) {
+		// 		this.situation.roundNotations.push([notation]);
+		// 	} else {
+		// 		if (this.situation.roundNotations) {
+		// 			this.situation.roundNotations.at(-1)[1] = notation;
+		// 		} else {
+		// 			this.situation.roundNotations.push(['', notation]);
+		// 		}
+		// 	}
+		// });
 	}
 
 	_buildBattlefield() {
@@ -233,6 +235,11 @@ class 棋局 extends Gaming {
 	_buildGlobalRule(ruleCfg) {
 		const RuleClass = 内置规则集[ruleCfg];
 		return super._buildGlobalRule({class: RuleClass});
+	}
+
+	_buildPlugin(pluginCfg) {
+		const PluginClass = 内置插件集[pluginCfg];
+		return super._buildPlugin({class: PluginClass});
 	}
 
 	translateToNotation(move) {
