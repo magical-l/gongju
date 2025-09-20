@@ -244,10 +244,10 @@ class 棋局 extends Gaming {
 		const colDiff = position.colNum - oldPosition.colNum;
 		// 确定移动类型
 		let moveType;
-		if (colDiff === 0) {
+		if (rowDiff !== 0) {
 			// 使用正确的方向判断
 			const direction = this.battlefield.forwardDirection(owner);
-			moveType = rowDiff * direction < 0 ? 'forward' : 'backward';
+			moveType = rowDiff * direction < 0 ? 'backward' : 'forward';
 		} else {
 			moveType = 'horizontal';
 		}
