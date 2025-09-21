@@ -34,14 +34,15 @@ const 默认棋子类型 = {
 	'卒': {显示: '\u{1FA6D}', 技能: ['杀敌', '勇往直前'], 玩家: 黑方玩家id}
 };
 
-const 可选全局规则 = ['不能叠加棋子', '王不见王', '斩将', '红方每轮动两次'];
+const 所有可选规则 = ['不能叠加棋子', '王不见王', '斩将', '红方动两次'];
+const 默认启用规则 = ['不能叠加棋子', '王不见王', '斩将'];
 
 //字段名将来展示于设置面板里，所以是中文。
 const 中国象棋默认配置 = {
 	棋盘: 默认棋盘布局,
 	棋子类型: 默认棋子类型,
 	玩家顺序: 默认玩家顺序,
-	规则: 可选全局规则,
+	规则: 默认启用规则,
 	插件: 内置插件集
 };
 
@@ -167,6 +168,25 @@ class 棋局 extends Gaming {
 			this._generateNotation(move);
 			this._endTurnAfterAction(move);
 		});
+
+		// 事件名适配器：将框架的英文事件名翻译为中文，供应用层使用
+		const eventTranslations = {
+			'turn:start': '轮次开始',
+			'turn:end': '轮次结束',
+			'round:start': '回合开始',
+			'round:end': '回合结束',
+			'game:start': '游戏开始',
+			'game:end': '游戏结束',
+			'player:selected-skill': '玩家选择了一个技能',
+			'player:selected-unit': '玩家选择了单位',
+			'player:deselected-unit': '玩家取消选择单位'
+		};
+
+		Object.entries(eventTranslations).forEach(([englishEvent, chineseEvent]) => {
+			this.bulletin.watch(englishEvent, (payload) => {
+				this.bulletin.notice(chineseEvent, payload);
+			});
+		});
 	}
 
 	_generateNotation(move) {
@@ -188,7 +208,7 @@ class 棋局 extends Gaming {
 
 	// 默认的回合结束逻辑：任何移动都会结束回合
 	_endTurnAfterAction({ unit }) {
-		this.bulletin.notice('轮次结束', { player: unit.owner });
+		this.bulletin.notice('turn:end', { player: unit.owner });
 	}
 
 	_buildBattlefield() {

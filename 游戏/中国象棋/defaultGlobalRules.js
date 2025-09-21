@@ -4,7 +4,7 @@ const 内置规则集 = {
 			super(gaming, {
 				name: '王不见王', intro: '将帅不能碰见对方将帅，否则输棋。', tip: '将帅不能位于同一列且中间无其他棋子遮挡。',
 				watchers: {
-					'inited': () => {
+					'初始化完成': () => {
 						// 从Player的单位列表中获取所有单位，而不是从棋盘的映射中
 						const allUnits = this.gaming.teamList.flatMap(team => Object.values(team.players))
 						.flatMap(player => player.units);
@@ -126,13 +126,13 @@ const 内置规则集 = {
 		}
 	},
 
-	'红方每轮动两次': class extends Rule {
+	'红方动两次': class extends Rule {
 		constructor(gaming, cfg) {
 			// 使用闭包来管理状态，避免`this`指向问题
 			let redExtraMoveTaken = false;
 
 			super(gaming, {
-				name: '红方每轮动两次',
+				name: '红方动两次',
 				intro: '红方在自己的每个回合中，可以连续移动两次。',
 				...cfg,
 				watchers: {

@@ -181,9 +181,9 @@ class Player extends GamingPart {
 	setSelectedSkill(skill) {
 		this.selectedSkill = skill;
 		if (skill) {
-			this.gaming.bulletin.notice('玩家选择了一个技能', {player: this, unit: skill.owner, skill: skill});
+			this.gaming.bulletin.notice('player:selected-skill', {player: this, unit: skill.owner, skill: skill});
 		} else {
-			this.gaming.bulletin.notice('玩家取消选择单位', {player: this});
+			this.gaming.bulletin.notice('player:deselected-unit', {player: this});
 		}
 	}
 
@@ -216,13 +216,13 @@ class Player extends GamingPart {
 						this.setSelectedSkill(null);
 						// 如果本次点击的是另一个己方单位，则立即开始新的选择
 						if (clickedUnit && clickedUnit.owner === this) {
-							this.gaming.bulletin.notice('玩家选择了单位', {player: this, unit: clickedUnit});
+							this.gaming.bulletin.notice('player:selected-unit', {player: this, unit: clickedUnit});
 						}
 					}
 				} else {
 					// 未选择任何技能，本次点击是尝试选择一个单位
 					if (clickedUnit && clickedUnit.owner === this) {
-						this.gaming.bulletin.notice('玩家选择了单位', {player: this, unit: clickedUnit});
+						this.gaming.bulletin.notice('player:selected-unit', {player: this, unit: clickedUnit});
 					}
 				}
 			};
@@ -235,10 +235,10 @@ class Player extends GamingPart {
 			};
 
 			this.gaming.bulletin.watch('ui:input', onInput);
-			this.gaming.bulletin.watch('轮次结束', onTurnEnd);
+			this.gaming.bulletin.watch('turn:end', onTurnEnd);
 
 			unwatchers.push(() => this.gaming.bulletin.unwatch('ui:input', onInput));
-			unwatchers.push(() => this.gaming.bulletin.unwatch('轮次结束', onTurnEnd));
+			unwatchers.push(() => this.gaming.bulletin.unwatch('turn:end', onTurnEnd));
 		});
 	}
 }
