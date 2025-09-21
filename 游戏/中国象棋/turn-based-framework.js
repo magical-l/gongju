@@ -188,58 +188,53 @@ class Player extends GamingPart {
 	}
 
 	/**
-	 * 轮到本玩家行动。返回一个Promise，在回合结束时resolve。
+	 * 轮到本玩家行动。通过循环等待并处理输入，直到回合结束。
 	 * @returns {Promise<void>}
 	 */
 	async play() {
-		return new Promise(resolve => {
-			const unwatchers = [];
+		let turnEnded = false;
+		const onTurnEnd = ({player}) => {
+			if (player === this) {
+				turnEnded = true;
+			}
+		};
+		this.gaming.bulletin.watch('turn:end', onTurnEnd);
 
-			const endTurn = () => {
-				unwatchers.forEach(u => u());
-				this.setSelectedSkill(null); // 回合结束时清空技能选择
-				resolve();
-			};
+		while (!turnEnded) {
+			const position = await this.gaming.waitForInput();
+			if (turnEnded) {
+				break;
+			}
 
-			const onInput = position => {
-				const unitsAtPos = this.gaming.battlefield.getUnitsAt(position);
-				const clickedUnit = unitsAtPos[0];
+			const unitsAtPos = this.gaming.battlefield.getUnitsAt(position);
+			const clickedUnit = unitsAtPos[0];
 
-				if (this.selectedSkill) {
-					// 已选择一个技能（移动），判断本次点击是否为合法目标
-					const validMoves = this.selectedSkill.getAvailableTargets();
-					if (validMoves.valid.find(p => p.isEqualTo(position))) {
-						// 合法移动，执行移动。移动后会触发'单位移动'事件，从而结束回合
-						this.selectedSkill.owner.position = position;
-					} else {
-						// 否则，取消当前选择
-						this.setSelectedSkill(null);
-						// 如果本次点击的是另一个己方单位，则立即开始新的选择
-						if (clickedUnit && clickedUnit.owner === this) {
-							this.gaming.bulletin.notice('player:selected-unit', {player: this, unit: clickedUnit});
-						}
-					}
+			if (this.selectedSkill) {
+				// 已选择一个技能（移动），判断本次点击是否为合法目标
+				const validMoves = this.selectedSkill.getAvailableTargets();
+				if (validMoves.valid.find(p => p.isEqualTo(position))) {
+					// 合法移动，执行移动。移动后会触发'单位移动'事件，从而结束回合
+					this.selectedSkill.owner.position = position;
+					// 移动后，turn:end事件会被触发，循环将在下一次迭代时终止
 				} else {
-					// 未选择任何技能，本次点击是尝试选择一个单位
+					// 否则，取消当前选择
+					this.setSelectedSkill(null);
+					// 如果本次点击的是另一个己方单位，则立即开始新的选择
 					if (clickedUnit && clickedUnit.owner === this) {
 						this.gaming.bulletin.notice('player:selected-unit', {player: this, unit: clickedUnit});
 					}
 				}
-			};
-
-			// 监听到结束回合的指令
-			const onTurnEnd = ({player}) => {
-				if (player === this) {
-					endTurn();
+			} else {
+				// 未选择任何技能，本次点击是尝试选择一个单位
+				if (clickedUnit && clickedUnit.owner === this) {
+					this.gaming.bulletin.notice('player:selected-unit', {player: this, unit: clickedUnit});
 				}
-			};
+			}
+		}
 
-			this.gaming.bulletin.watch('ui:input', onInput);
-			this.gaming.bulletin.watch('turn:end', onTurnEnd);
-
-			unwatchers.push(() => this.gaming.bulletin.unwatch('ui:input', onInput));
-			unwatchers.push(() => this.gaming.bulletin.unwatch('turn:end', onTurnEnd));
-		});
+		// 回合结束后清理
+		this.gaming.bulletin.unwatch('turn:end', onTurnEnd);
+		this.setSelectedSkill(null);
 	}
 }
 
@@ -546,6 +541,16 @@ class Gaming {
 		const rt = new PluginClass(this, pluginCfg);
 		this.bulletin.notice('built plugin', {globalRule: rt});
 		return rt;
+	}
+
+	waitForInput() {
+		return new Promise(resolve => {
+			const onInput = (payload) => {
+				this.bulletin.unwatch('ui:input', onInput);
+				resolve(payload);
+			};
+			this.bulletin.watch('ui:input', onInput);
+		});
 	}
 
 	_start() {
