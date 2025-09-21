@@ -163,18 +163,30 @@ class 棋局 extends Gaming {
 	_build() {
 		super._build();
 
-		// this.bulletin.watch('单位移动', move => {
-		// 	const notation = this.translateToNotation(move);
-		// 	if (move.unit.owner.team.id === 红方id) {
-		// 		this.situation.roundNotations.push([notation]);
-		// 	} else {
-		// 		if (this.situation.roundNotations) {
-		// 			this.situation.roundNotations.at(-1)[1] = notation;
-		// 		} else {
-		// 			this.situation.roundNotations.push(['', notation]);
-		// 		}
-		// 	}
-		// });
+		this.situation.roundNotations = []; // 确保 roundNotations 被初始化
+
+		// 默认的记谱逻辑
+		const defaultNotationWatcher = move => {
+			// 如果有专门的记谱插件在运行，则默认逻辑不执行
+			if (this.notationGenerator) return;
+
+			const { unit, oldPosition } = move;
+			const newPosition = unit.position;
+			const isRed = unit.owner.team.id === '红方';
+			const notation = `${unit.name}: ${oldPosition} -> ${newPosition}`;
+
+			if (isRed) {
+				this.situation.roundNotations.push([notation]);
+			} else {
+				if (this.situation.roundNotations.length > 0 && this.situation.roundNotations.at(-1).length === 1) {
+					this.situation.roundNotations.at(-1).push(notation);
+				} else {
+					this.situation.roundNotations.push([null, notation]);
+				}
+			}
+		};
+
+		this.bulletin.watch('单位移动', defaultNotationWatcher);
 	}
 
 	_buildBattlefield() {

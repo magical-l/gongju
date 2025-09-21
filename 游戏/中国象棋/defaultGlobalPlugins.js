@@ -76,14 +76,15 @@ const 内置插件集 = {
 						}
 
 						const notation = `${this.unitName}${moveType}${target}`;
+						const roundNotations = gaming.situation.roundNotations;
 
 						if (is红方) {
-							this.roundNotations.push([notation]);
+							roundNotations.push([notation]);
 						} else {
-							if (this.roundNotations) {
-								this.roundNotations.at(-1)[1] = notation;
+							if (roundNotations.length > 0 && roundNotations.at(-1).length === 1) {
+								roundNotations.at(-1).push(notation);
 							} else {
-								this.roundNotations.push(['', notation]);
+								roundNotations.push(['', notation]);
 							}
 						}
 					}
@@ -91,7 +92,10 @@ const 内置插件集 = {
 				...cfg
 			});
 
-			gaming.roundNotations = this.roundNotations;
+			// 接管记谱功能
+			gaming.notationGenerator = this;
+			// 清空默认记谱器可能已经添加的内容
+			gaming.situation.roundNotations.length = 0;
 		}
 	}
 };
