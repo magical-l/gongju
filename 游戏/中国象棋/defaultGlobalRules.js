@@ -6,7 +6,8 @@ const 内置规则集 = {
 				watchers: {
 					'inited': () => {
 						// 从Player的单位列表中获取所有单位，而不是从棋盘的映射中
-						const allUnits = this.gaming.teamList.flatMap(team => Object.values(team.players)).flatMap(player => player.units);
+						const allUnits = this.gaming.teamList.flatMap(team => Object.values(team.players))
+						.flatMap(player => player.units);
 						this.kingRed = allUnits.find(u => u.name === '帅');
 						this.kingBlack = allUnits.find(u => u.name === '将');
 					},
@@ -125,18 +126,41 @@ const 内置规则集 = {
 		}
 	},
 
-	'每轮移动一次': class extends Rule {
+	'红方每轮动两次': class extends Rule {
 		constructor(gaming, cfg) {
+			// 使用闭包来管理状态，避免`this`指向问题
+			let redExtraMoveTaken = false;
+
 			super(gaming, {
-				name: '每轮移动一次',
-				intro: '玩家每轮只能移动一次棋子。',
+				name: '红方每轮动两次',
+				intro: '红方在自己的每个回合中，可以连续移动两次。',
 				...cfg,
 				watchers: {
-					'单位移动': ({ unit }) => {
-						this.gaming.bulletin.notice('轮次结束', { player: unit.owner });
+					'turn:start': ({player}) => {
+						// 在红方的回合开始时，重置“额外行动”的标记
+						if (player.team.id === 红方id) {
+							redExtraMoveTaken = false;
+						}
 					}
 				}
 			});
+
+			// 1. 保存原始的默认逻辑
+			const originalEndTurnLogic = gaming._endTurnAfterAction.bind(gaming);
+
+			// 2. 用一个“包装”函数替换掉默认逻辑
+			gaming._endTurnAfterAction = ({unit}) => {
+				const isRed = unit.owner.team.id === 红方id;
+
+				if (isRed && !redExtraMoveTaken) {
+					// 如果是红方走第一步，则消耗掉这次“额外行动”的机会，并且不结束回合
+					redExtraMoveTaken = true;
+					return; // 直接返回，不调用原始逻辑
+				}
+
+				// 对于黑方，或者红方的第二次移动，则调用原始的、默认的“移动后结束回合”逻辑
+				originalEndTurnLogic({unit});
+			};
 		}
 	}
 };

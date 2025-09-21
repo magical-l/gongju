@@ -34,14 +34,14 @@ const 默认棋子类型 = {
 	'卒': {显示: '\u{1FA6D}', 技能: ['杀敌', '勇往直前'], 玩家: 黑方玩家id}
 };
 
-const 默认全局规则 = ['不能叠加棋子', '王不见王', '斩将', '每轮移动一次'];
+const 可选全局规则 = ['不能叠加棋子', '王不见王', '斩将', '红方每轮动两次'];
 
 //字段名将来展示于设置面板里，所以是中文。
 const 中国象棋默认配置 = {
 	棋盘: 默认棋盘布局,
 	棋子类型: 默认棋子类型,
 	玩家顺序: 默认玩家顺序,
-	规则: 默认全局规则,
+	规则: 可选全局规则,
 	插件: 内置插件集
 };
 
@@ -67,7 +67,7 @@ class 中国象棋 extends Game {
 					[棋子名, {display: 棋子.显示, skills: 棋子.技能, player: 棋子.玩家, ...棋子}])
 			),
 			playerTurnSequence: cfg.玩家顺序,
-			globalRules: cfg.规则,
+			globalRules: cfg.规则, // 核心规则已内置，这里只加载可选规则
 			plugins: cfg.插件,
 			...cfg//带上原始数据
 		};
@@ -163,7 +163,10 @@ class 棋局 extends Gaming {
 	_build() {
 		super._build();
 		this.situation.roundNotations = [];
-		this.bulletin.watch('单位移动', move => this._generateNotation(move));
+		this.bulletin.watch('单位移动', (move) => {
+			this._generateNotation(move);
+			this._endTurnAfterAction(move);
+		});
 	}
 
 	_generateNotation(move) {
@@ -181,6 +184,11 @@ class 棋局 extends Gaming {
 				this.situation.roundNotations.push([null, notation]);
 			}
 		}
+	}
+
+	// 默认的回合结束逻辑：任何移动都会结束回合
+	_endTurnAfterAction({ unit }) {
+		this.bulletin.notice('轮次结束', { player: unit.owner });
 	}
 
 	_buildBattlefield() {

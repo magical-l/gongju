@@ -577,7 +577,7 @@ class Round extends GamingPart {
 	}
 
 	/**
-	 * 开始一个回合，即一个玩家的行动轮次
+	 * 开始一个回合，玩家依次执行自己的行动轮次
 	 */
 	async start() {
 		this.gaming.bulletin.notice('round:start', {round: this});

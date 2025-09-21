@@ -405,9 +405,7 @@
 												 draggable="true"
 												 @dragstart="dragStartPiece(pieceName, 'board', r, c)">
 											{{ boardEditor.pieceTypes[pieceName].显示 }}
-											<div class="remove-piece-btn" @click.stop="removeEditorPiece(r, c)">
-												×
-											</div>
+											<div class="remove-piece-btn" @click.stop="removeEditorPiece(r, c)">×</div>
 										</div>
 									</div>
 								</template>
@@ -657,9 +655,9 @@
 			}
 		},
 		created() {
-			// 初始化规则编辑器
-			this.allAvailableRules = Object.keys(内置规则集);
-			this.gameSettings.rules = [...默认全局规则];
+			// 初始化规则编辑器，只向用户展示可选规则
+			this.allAvailableRules = [...可选全局规则];
+			this.gameSettings.rules = [...可选全局规则];
 			// 初始化技能编辑器
 			this.allAvailableSkills = Object.keys(内置技能集);
 			// 初始化插件编辑器
