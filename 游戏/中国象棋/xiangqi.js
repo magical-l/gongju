@@ -162,31 +162,25 @@ class 棋盘 extends Board {
 class 棋局 extends Gaming {
 	_build() {
 		super._build();
+		this.situation.roundNotations = [];
+		this.bulletin.watch('单位移动', move => this._generateNotation(move));
+	}
 
-		this.situation.roundNotations = []; // 确保 roundNotations 被初始化
+	_generateNotation(move) {
+		const { unit, oldPosition } = move;
+		const newPosition = unit.position;
+		const isRed = unit.owner.team.id === '红方';
+		const notation = `${unit.name}: ${oldPosition} -> ${newPosition}`;
 
-		// 默认的记谱逻辑
-		const defaultNotationWatcher = move => {
-			// 如果有专门的记谱插件在运行，则默认逻辑不执行
-			if (this.notationGenerator) return;
-
-			const { unit, oldPosition } = move;
-			const newPosition = unit.position;
-			const isRed = unit.owner.team.id === '红方';
-			const notation = `${unit.name}: ${oldPosition} -> ${newPosition}`;
-
-			if (isRed) {
-				this.situation.roundNotations.push([notation]);
+		if (isRed) {
+			this.situation.roundNotations.push([notation]);
+		} else {
+			if (this.situation.roundNotations.length > 0 && this.situation.roundNotations.at(-1).length === 1) {
+				this.situation.roundNotations.at(-1).push(notation);
 			} else {
-				if (this.situation.roundNotations.length > 0 && this.situation.roundNotations.at(-1).length === 1) {
-					this.situation.roundNotations.at(-1).push(notation);
-				} else {
-					this.situation.roundNotations.push([null, notation]);
-				}
+				this.situation.roundNotations.push([null, notation]);
 			}
-		};
-
-		this.bulletin.watch('单位移动', defaultNotationWatcher);
+		}
 	}
 
 	_buildBattlefield() {
