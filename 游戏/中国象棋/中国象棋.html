@@ -259,12 +259,12 @@
 		padding: 10px;
 	}
 
-	.editor-board.one.chessboard {
+	.one.chessboard.editor {
 		border: 1px solid #333;
 		display: grid;
 	}
 
-	.editor-board .cell {
+	.chessboard.editor .cell {
 		width: var(--min-cell-len);
 		height: var(--min-cell-len);
 		box-sizing: border-box;
@@ -383,33 +383,31 @@
 								{{ piece.显示 }}
 							</div>
 						</el-card>
-						<div class="">
-							<div class="editor-board one chessboard grid">
-								<template v-for="(row, r) in boardEditor.layout" :key="r">
-									<div class="cell" v-for="(pieceName, c) in row" :key="c"
-											 :class="cellClasses(r, c)"
-											 @dragover.prevent @drop="dropOnBoard(r, c)" @click="selectEditorPiece(r, c)">
-										<div class="texture container">
-											<div class="texture part vertical top"></div>
-											<div class="texture part horizon right"></div>
-											<div class="texture part vertical bottom"></div>
-											<div class="texture part horizon left"></div>
-											<div class="texture part left top corner"></div>
-											<div class="texture part right top corner"></div>
-											<div class="texture part right bottom corner"></div>
-											<div class="texture part left bottom corner"></div>
-										</div>
-										<div v-if="pieceName !== '空'"
-												 class="unit display"
-												 :class="[getEditorUnitColor(boardEditor.pieceTypes[pieceName]), { 'selected': isEditorPieceSelected(r, c) }]"
-												 draggable="true"
-												 @dragstart="dragStartPiece(pieceName, 'board', r, c)">
-											{{ boardEditor.pieceTypes[pieceName].显示 }}
-											<div class="remove-piece-btn" @click.stop="removeEditorPiece(r, c)">×</div>
-										</div>
+						<div class="one chessboard editor , grid">
+							<template v-for="(row, r) in boardEditor.layout" :key="r">
+								<div class="cell" v-for="(pieceName, c) in row" :key="c"
+										 :class="cellClasses(r, c)"
+										 @dragover.prevent @drop="dropOnBoard(r, c)" @click="selectEditorPiece(r, c)">
+									<div class="texture container">
+										<div class="texture part vertical top"></div>
+										<div class="texture part horizon right"></div>
+										<div class="texture part vertical bottom"></div>
+										<div class="texture part horizon left"></div>
+										<div class="texture part left top corner"></div>
+										<div class="texture part right top corner"></div>
+										<div class="texture part right bottom corner"></div>
+										<div class="texture part left bottom corner"></div>
 									</div>
-								</template>
-							</div>
+									<div v-if="pieceName !== '空'"
+											 class="unit display"
+											 :class="[getEditorUnitColor(boardEditor.pieceTypes[pieceName]), { 'selected': isEditorPieceSelected(r, c) }]"
+											 draggable="true"
+											 @dragstart="dragStartPiece(pieceName, 'board', r, c)">
+										{{ boardEditor.pieceTypes[pieceName].显示 }}
+										<div class="remove-piece-btn" @click.stop="removeEditorPiece(r, c)">×</div>
+									</div>
+								</div>
+							</template>
 						</div>
 					</div>
 				</el-form-item>
