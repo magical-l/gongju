@@ -649,11 +649,47 @@
 			},
 			turnHistory() {
 				const _ = this.updateCounter; // 依赖 updateCounter 强制更新
-				return this.gaming.roundNotations?.map((round, index) => ({
-					id: index + 1,
-					redMove: round[0] || null,
-					blackMove: round[1] || null
-				}));
+
+				if (this.gameSettings.plugins.includes('记谱')) {
+					return this.gaming.roundNotations?.map((round, index) => ({
+						id: index + 1,
+						redMove: round[0] || null,
+						blackMove: round[1] || null
+					}));
+				} else {
+					// 如果记谱插件被禁用，则生成一个简化的移动描述
+					const simpleNotations = [];
+					if (!this.moveHistory || this.moveHistory.length === 0) {
+						return [];
+					}
+
+					const formatMove = (move) => {
+						if (!move) return null;
+						// Position.toString() 的默认格式是 "row,col"
+						return `${move.unit.name}: ${move.oldPosition} -> ${move.unit.position}`;
+					};
+
+					this.moveHistory.forEach(move => {
+						const isRed = move.unit.owner.team.id === '红方';
+						const notation = formatMove(move);
+						if (isRed) {
+							simpleNotations.push([notation]);
+						} else {
+							if (simpleNotations.length > 0 && simpleNotations.at(-1).length === 1) {
+								simpleNotations.at(-1).push(notation);
+							} else {
+								// 黑方先手，或者数据不同步
+								simpleNotations.push([null, notation]);
+							}
+						}
+					});
+
+					return simpleNotations.map((round, index) => ({
+						id: index + 1,
+						redMove: round[0] || null,
+						blackMove: round[1] || null
+					}));
+				}
 			}
 		},
 		created() {
