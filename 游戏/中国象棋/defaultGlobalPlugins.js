@@ -39,7 +39,7 @@ const 内置插件集 = {
 						if (len === 1) {//只有该单位自己
 							this.unitName = unit.name + calColName(forwardDirection, is红方, colNum);
 						} else {
-							同名单位行号集.sort(forwardDirection === -1 ? (a, b) => b - a : (a, b) => a - b);
+							同名单位行号集.sort(forwardDirection === -1 ? (a, b) => a - b : (a, b) => b - a);
 							const index = 同名单位行号集.indexOf(rowNum);
 
 							if (index === 0) {
