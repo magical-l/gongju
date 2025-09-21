@@ -227,18 +227,18 @@ class Player extends GamingPart {
 				}
 			};
 
-			// 棋子移动后，当前玩家回合结束
-			const onMove = ({unit}) => {
-				if (unit.owner === this) {
+			// 监听到结束回合的指令
+			const onTurnEnd = ({player}) => {
+				if (player === this) {
 					endTurn();
 				}
 			};
 
 			this.gaming.bulletin.watch('ui:input', onInput);
-			this.gaming.bulletin.watch('单位移动', onMove);
+			this.gaming.bulletin.watch('轮次结束', onTurnEnd);
 
 			unwatchers.push(() => this.gaming.bulletin.unwatch('ui:input', onInput));
-			unwatchers.push(() => this.gaming.bulletin.unwatch('单位移动', onMove));
+			unwatchers.push(() => this.gaming.bulletin.unwatch('轮次结束', onTurnEnd));
 		});
 	}
 }

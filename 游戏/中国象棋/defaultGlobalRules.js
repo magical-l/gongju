@@ -123,5 +123,20 @@ const 内置规则集 = {
 				}
 			});
 		}
+	},
+
+	'每轮移动一次': class extends Rule {
+		constructor(gaming, cfg) {
+			super(gaming, {
+				name: '每轮移动一次',
+				intro: '玩家每轮只能移动一次棋子。',
+				...cfg,
+				watchers: {
+					'单位移动': ({ unit }) => {
+						this.gaming.bulletin.notice('轮次结束', { player: unit.owner });
+					}
+				}
+			});
+		}
 	}
 };
