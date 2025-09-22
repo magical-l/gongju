@@ -93,7 +93,7 @@ const 内置规则集 = {
 				watchers: {
 					'单位阵亡': ({unit, killer}) => {
 						if (unit.name === '将' || unit.name === '帅') {
-							gaming.bulletin.notice('game:over', {winner: killer.owner});
+							gaming.bulletin.notice('game over', {winner: killer.owner});
 						}
 					}
 				},
@@ -136,7 +136,7 @@ const 内置规则集 = {
 				intro: '红方在自己的每个回合中，可以连续移动两次。',
 				...cfg,
 				watchers: {
-					'turn:start': ({player}) => {
+					'player-turn start': ({player}) => {
 						// 在红方的回合开始时，重置“额外行动”的标记
 						if (player.team.id === 红方id) {
 							redExtraMoveTaken = false;

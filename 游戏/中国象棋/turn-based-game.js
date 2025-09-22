@@ -181,7 +181,7 @@ class Player extends GamingPart {
 
 	/**
 	 * 玩家玩游戏。在回合制游戏里，玩家在自己的轮次里操作单位施放技能。
-	 * 默认实现：不限定施放技能的次数，规则或技能可发布‘turn:end’通知告知本玩家本轮次结束。
+	 * 默认实现：不限定施放技能的次数，规则或技能可发布‘player-turn end’通知告知本玩家本轮次结束。
 	 */
 	async play() {
 		let playerPlayed = false;
@@ -254,7 +254,7 @@ class Player extends GamingPart {
 		this.selectedUnits = units;
 		this.selectedSkills = [];
 		this.selectedTargets = [];
-		this.gaming.bulletin.notice('player:selected-unit', {player: this, units});
+		this.gaming.bulletin.notice('player selected units', {player: this, units});
 	}
 
 	/**
@@ -268,7 +268,7 @@ class Player extends GamingPart {
 			const activeSkills = skills.filter(s => typeof s?.activate === 'function');
 			if (activeSkills.length > 0) {
 				this.selectedSkills = activeSkills;
-				this.gaming.bulletin.notice('player:selected-skill', {player: this, skills});
+				this.gaming.bulletin.notice('player selected skills', {player: this, skills});
 			}
 		}
 	}
@@ -281,7 +281,7 @@ class Player extends GamingPart {
 		// 必须在选定单位和技能后
 		if (this.selectedUnits?.length && this.selectedSkills?.length) {
 			this.selectedTargets = targets;
-			this.gaming.bulletin.notice('player:selected-targets', {player: this, targets});
+			this.gaming.bulletin.notice('player selected targets', {player: this, targets});
 		}
 	}
 
@@ -616,22 +616,22 @@ class Gaming {
 	waitForInput() {
 		return new Promise(resolve => {
 			const onInput = payload => {
-				this.bulletin.unwatch('ui:input', onInput);
+				this.bulletin.unwatch('ui input', onInput);
 				resolve(payload);
 			};
-			this.bulletin.watch('ui:input', onInput);
+			this.bulletin.watch('ui input', onInput);
 		});
 	}
 
 	_start() {
-		this.bulletin.watch('game:over', ({winner}) => {
+		this.bulletin.watch('game over', ({winner}) => {
 			this.situation.isEnded = true;
 			this.situation.winner = winner;
 		});
 		// 使用IIFE（立即调用函数表达式）来启动异步游戏循环，避免构造函数变成异步
 		(async () => {
 			this.situation.isStarted = true;
-			this.bulletin.notice('game:start', {gaming: this});
+			this.bulletin.notice('game start', {gaming: this});
 
 			while (!this.situation.isEnded) {
 				const round = new Round(this, this.situation.rounds.length + 1);
@@ -640,7 +640,7 @@ class Gaming {
 			}
 
 			this.situation.isEnded = true;
-			this.bulletin.notice('game:end', {winner: this.situation.winner});
+			this.bulletin.notice('game end', {winner: this.situation.winner});
 		})().catch(console.error);
 	}
 }
@@ -655,15 +655,15 @@ class Round extends GamingPart {
 	 * 开始一个回合，玩家依次执行自己的行动轮次
 	 */
 	async start() {
-		this.gaming.bulletin.notice('round:start', {round: this});
+		this.gaming.bulletin.notice('round start', {round: this});
 
 		for (const player of this.gaming.playerTurnSequence) {
-			this.gaming.bulletin.notice('turn:start', {player});
+			this.gaming.bulletin.notice('player-turn start', {player});
 			await player.play(); // 等待当前玩家的回合结束
-			this.gaming.bulletin.notice('turn:end', {player});
+			this.gaming.bulletin.notice('player-turn end', {player});
 		}
 
-		this.gaming.bulletin.notice('round:end', {round: this});
+		this.gaming.bulletin.notice('round end', {round: this});
 	}
 }
 
