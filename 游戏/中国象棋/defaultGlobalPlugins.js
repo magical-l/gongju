@@ -18,7 +18,8 @@ const 内置插件集 = {
 					name: '记谱',
 					...cfg,
 					watchers: {
-						'玩家选择了单位': ({player, unit}) => {
+						'玩家选择了单位': ({player, units}) => {
+							const unit = units[0];
 							const 同名单位行号集 = [];
 							const {rowNum, colNum} = unit.position;
 							const forwardDirection = this.gaming.battlefield.forwardDirection(player);

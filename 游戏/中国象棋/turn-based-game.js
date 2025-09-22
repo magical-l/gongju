@@ -195,6 +195,7 @@ class Player extends GamingPart {
 		this.gaming.bulletin.watch('turn:end', onTurnEnd);
 
 		while (!turnEnded) {
+			//这里算是一次‘行动’
 			const input = await this.gaming.waitForInput();
 			if (turnEnded) {
 				break;
@@ -205,7 +206,7 @@ class Player extends GamingPart {
 			if (this.selectedUnits?.length && this.selectedSkills?.length && this.selectedTargets?.length) {
 				this.activateSkills(this.selectedUnits, this.selectedSkills, this.selectedTargets);
 			}
-			//每次施放技能后只清空目标。
+			//每次行动后只清空目标。
 			this.selectedTargets = [];
 		}
 
@@ -255,6 +256,7 @@ class Player extends GamingPart {
 		this.selectedUnits = units;
 		this.selectedSkills = [];
 		this.selectedTargets = [];
+		this.gaming.bulletin.notice('player:selected-unit', {player: this, units});
 	}
 
 	/**
@@ -268,6 +270,7 @@ class Player extends GamingPart {
 			const activeSkills = skills.filter(s => typeof s?.activate === 'function');
 			if (activeSkills.length > 0) {
 				this.selectedSkills = activeSkills;
+				this.gaming.bulletin.notice('player:selected-skill', {player: this, skills});
 			}
 		}
 	}
@@ -280,6 +283,7 @@ class Player extends GamingPart {
 		// 必须在选定单位和技能后
 		if (this.selectedUnits?.length && this.selectedSkills?.length) {
 			this.selectedTargets = targets;
+			this.gaming.bulletin.notice('player:selected-targets', {player: this, targets});
 		}
 	}
 
@@ -299,6 +303,7 @@ class Player extends GamingPart {
 				if (unit.skills.includes(skill)) {
 					// 触发技能，并将目标传入
 					skill.activate(selectedTargets);
+					this.gaming.bulletin.notice('unit used skill', {unit, skill, selectedTargets});
 				}
 			});
 		});
