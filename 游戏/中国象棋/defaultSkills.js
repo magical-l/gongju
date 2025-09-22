@@ -20,60 +20,45 @@ class Move extends Skill {
 		const target = targets[0];
 		const position = target instanceof Unit ? target.position : target;
 
-		// 激活时，先获取所有合法移动位置
-		const availableMoves = this.availableTargets;
-
-		// 检查玩家选择的目标是否在合法移动位置之列
-		const isValidMove = availableMoves.valid.find(p => p.isEqualTo(position));
-
-		// 如果移动合法，则执行移动
-		if (isValidMove) {
+		if (this.isValidTargets([position])) {
 			this.owner.position = position;
 		}
-		// 如果移动不合法，则不执行任何操作
 	}
 
-	/**
-	 * 获取所有合法移动位置
-	 * @returns {{valid: 棋盘点位[], blocked: 棋盘点位[]}}
-	 */
-	get availableTargets() {
-		const {availableTargetPositions, blockedTargetPositions} = this._getFilteredRawTargets();
-		// 过滤掉出界的位置
-		const finalMovableTargets = this.gaming.battlefield.keepValidPositions(availableTargetPositions);
-		const finalBlockedTargets = this.gaming.battlefield.keepValidPositions(blockedTargetPositions);
-
-		return {
-			valid: finalMovableTargets,
-			blocked: finalBlockedTargets
+	_calculateReachablePositions() {
+		let rawTargets = this.getRawTargetPositions();
+		const eventPayload = {
+			unit: this.owner,
+			availableTargetPositions: [...rawTargets],
+			blockedTargetPositions: []
 		};
+		this.gaming.bulletin.notice('已获取可移动位置集', eventPayload);
+		return {
+			valid: this.gaming.battlefield.keepValidPositions(eventPayload.availableTargetPositions),
+			blocked: this.gaming.battlefield.keepValidPositions(eventPayload.blockedTargetPositions)
+		};
+	}
+
+	scopePositions() {
+		const {valid, blocked} = this._calculateReachablePositions();
+		return valid.concat(blocked);
+	}
+
+	get availableTargets() {
+		const {valid} = this._calculateReachablePositions();
+		return valid.filter(p => this.gaming.battlefield.getUnitsAt(p).length === 0);
+	}
+
+	get blockedTargets() {
+		return this._calculateReachablePositions().blocked;
 	}
 
 	isValidTargets(targets) {
-		const availableTargets = this.availableTargets.valid;
-		return targets.every(e => availableTargets.includes(e));
-	}
-
-	/**
-	 * 从子类获取原始移动位置，并经过通用过滤（如绊马脚、塞象眼）。
-	 * @returns {{availableTargetPositions: 棋盘点位[], blockedTargetPositions: 棋盘点位[]}}
-	 * @private
-	 */
-	_getFilteredRawTargets() {
-		// 1. 从子类获取原始移动位置
-		let rawTargets = this.getRawTargetPositions();
-
-		// 2. 准备事件负载，增加一个用于记录被阻挡位置的数组
-		const eventPayload = {
-			unit: this.owner,
-			availableTargetPositions: [...rawTargets], // 传一个副本，因为监听器会修改它
-			blockedTargetPositions: []
-		};
-
-		// 3. 发布事件，让其他技能（如“绊马脚”、“塞象眼”）过滤位置
-		this.gaming.bulletin.notice('已获取可移动位置集', eventPayload);
-
-		return eventPayload;
+		const available = this.availableTargets || []; //如果availableTargets是undefined，就给一个空数组
+		return targets.every(targetPos => {
+			const pos = targetPos instanceof Unit ? targetPos.position : targetPos;
+			return available.some(p => p.isEqualTo(pos));
+		});
 	}
 
 	getRawTargetPositions() {
@@ -93,44 +78,36 @@ class 攻击 extends Skill {
 	}
 
 	activate(targets) {
-		if (!targets || targets.length === 0) {
-			return;
-		}
-		const targetPosition = targets[0] instanceof Unit ? targets[0].position : targets[0];
-
-		const unitsAtTarget = this.gaming.battlefield.getUnitsAt(targetPosition);
-		const enemyUnit = unitsAtTarget.find(u => u.owner.team.id !== this.owner.owner.team.id);
-
-		if (enemyUnit) {
-			this.gaming.bulletin.notice('单位杀敌', {unit: this.owner, killed: enemyUnit});
-			this.gaming.battlefield.destroyUnit(enemyUnit);
-			this.gaming.bulletin.notice('单位阵亡', {unit: enemyUnit, killer: this.owner});
-		}
+		// 假设 targets 是经过验证的、可攻击的敌方单位数组
+		(targets || []).forEach(targetUnit => {
+			if (targetUnit instanceof Unit && this.availableTargets.includes(targetUnit)) {
+				this.gaming.bulletin.notice('单位杀敌', {unit: this.owner, killed: targetUnit});
+				this.gaming.battlefield.destroyUnit(targetUnit);
+				this.gaming.bulletin.notice('单位阵亡', {unit: targetUnit, killer: this.owner});
+			}
+		});
 	}
 
 	/**
-	 * 获取所有可攻击的敌方单位位置。
-	 * 对于大多数棋子，攻击范围与移动范围相同，但目标是敌方单位。
-	 * @returns {棋盘点位[]}
+	 * 攻击范围与移动范围一致
+	 * @returns {Position[]}
 	 */
-	get availableTargets() {
+	scopePositions() {
 		const moveSkill = this.owner.skills.find(s => s instanceof Move);
 		if (!moveSkill) {
 			return [];
 		}
+		// Move技能的scopePositions应返回所有可到达的位置（无论空否）
+		return moveSkill.scopePositions();
+	}
 
-		// 获取原始移动位置，并经过通用过滤（如绊马脚、塞象眼）
-		const {availableTargetPositions} = moveSkill._getFilteredRawTargets();
-
-		const myTeam = this.owner.owner.team;
-		const rt = [];
-
-		availableTargetPositions.forEach(p => {
-			const unitsAtTarget = this.gaming.battlefield.getUnitsAt(p);
-			unitsAtTarget.filter(u => u.owner.team.id !== myTeam.id).forEach(e => rt.push(e));
-		});
-
-		return rt;
+	/**
+	 * 可攻击的目标是敌方单位
+	 * @param {Unit} unit
+	 * @returns {boolean}
+	 */
+	isAvailableTarget(unit) {
+		return unit.owner.team.id !== this.owner.owner.team.id;
 	}
 }
 
@@ -147,11 +124,9 @@ const 内置技能集 = {
 			});
 		}
 
-		get availableTargets() {
+		scopePositions() {
 			const {rowNum, colNum} = this.owner.position;
-			const myTeam = this.owner.owner.team;
-			const attackTargets = [];
-
+			const scope = [];
 			const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]]; // 上下左右
 
 			directions.forEach(([dr, dc]) => {
@@ -164,14 +139,15 @@ const 内置技能集 = {
 						break; // 超出棋盘边界
 					}
 
+					scope.push(p);
+
 					const units = this.gaming.battlefield.getUnitsAt(p);
 					if (units.length > 0) {
-						units.filter(u => u.owner.team.id !== myTeam.id).forEach(e => attackTargets.push(e));
 						break; // 遇到任何棋子都阻挡，不能继续向前
 					}
 				}
 			});
-			return attackTargets;
+			return scope;
 		}
 	},
 
@@ -185,11 +161,9 @@ const 内置技能集 = {
 			});
 		}
 
-		get availableTargets() {
+		scopePositions() {
 			const {rowNum, colNum} = this.owner.position;
-			const myTeam = this.owner.owner.team;
-			const attackTargets = [];
-
+			const scope = [];
 			const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]]; // 上下左右
 
 			directions.forEach(([dr, dc]) => {
@@ -211,19 +185,13 @@ const 内置技能集 = {
 							jumpedOver = true;
 						} else {
 							// 第二次遇到棋子
-							units.filter(u => u.owner.team.id !== myTeam.id).forEach(e => attackTargets.push(e));
+							scope.push(p);
 							break; // 遇到第二个棋子后，无论敌我，都不能继续向前
-						}
-					} else {
-						// 遇到空位
-						if (jumpedOver) {
-							// 已经跳过一个棋子，但现在是空位，不能攻击
-							// 继续向前寻找第二个棋子
 						}
 					}
 				}
 			});
-			return attackTargets;
+			return scope;
 		}
 	},
 

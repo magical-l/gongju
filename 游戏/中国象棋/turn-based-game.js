@@ -343,12 +343,50 @@ class Skill extends GamingPart {
 		Object.assign(this, cfg);
 	}
 
+	/**
+	 * 技能范围内的所有位置。默认是全图。
+	 * @returns {Position[]}
+	 */
+	scopePositions() {
+		return this.gaming.battlefield.positions.flat();
+	}
+
+	/**
+	 * 技能范围内的所有单位
+	 * @returns {Unit[]}
+	 */
+	scopeUnits() {
+		const positions = this.scopePositions();
+		return positions.flatMap(p => this.gaming.battlefield.getUnitsAt(p));
+	}
+
+	/**
+	 * 判断一个单位是否是本技能的合法目标。默认返回true。
+	 * @param {Unit} unit
+	 * @returns {boolean}
+	 */
+	isAvailableTarget(unit) {
+		return true;
+	}
+
+	/**
+	 * 技能范围内可用的目标集
+	 * @returns {Unit[]}
+	 */
 	get availableTargets() {
-		return [];
+		return this.scopeUnits().filter(u => this.isAvailableTarget(u));
+	}
+
+	/**
+	 * 技能范围内不可用的目标集
+	 * @returns {Unit[]}
+	 */
+	get notAvailableTargets() {
+		return this.scopeUnits().filter(u => !this.isAvailableTarget(u));
 	}
 
 	isValidTargets(targets) {
-		const availableTargets = this.availableTargets;
+		const availableTargets = this.availableTargets || [];
 		return targets.every(target => availableTargets.some(e => target.id === e.id));
 	}
 
