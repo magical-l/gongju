@@ -142,6 +142,7 @@ class Battlefield extends GamingPart {
  * 战况。记录游戏的实时状态、已成历史的客观事实（比如操作、事件等）。
  */
 class Situation extends GamingPart {
+	curPlayer;
 	rounds = [];
 	isStarted = false;
 	isEnded = false;
@@ -658,8 +659,10 @@ class Round extends GamingPart {
 		this.gaming.bulletin.notice('round start', {round: this});
 
 		for (const player of this.gaming.playerTurnSequence) {
+			this.gaming.situation.curPlayer = player;
 			this.gaming.bulletin.notice('player-turn start', {player});
 			await player.play(); // 等待当前玩家的回合结束
+			this.gaming.situation.curPlayer = null;
 			this.gaming.bulletin.notice('player-turn end', {player});
 		}
 
