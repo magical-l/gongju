@@ -32,7 +32,6 @@ class Move extends Skill {
 		if (isValidMove) {
 			const oldPosition = this.owner.position;
 			this.owner.position = position;
-			this.gaming.bulletin.notice('单位移动', {unit: this.owner, oldPosition});
 		}
 		// 如果移动不合法，则不执行任何操作
 	}

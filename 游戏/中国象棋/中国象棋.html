@@ -786,7 +786,7 @@
 							const targets = skill.getMovementTargets();
 							this.movableTargets = targets.movable;
 							this.blockedMoves = targets.blocked;
-						} else if (skill.name === '杀敌') {
+						} else if (skill instanceof 攻击) {
 							this.attackTargets = skill.getAvailableTargets();
 						}
 					});
@@ -816,7 +816,8 @@
 			restartGame() {
 				this.showCheck = false;
 				this.selectedUnit = null;
-				this.validMoves = [];
+				this.movableTargets = [];
+				this.attackTargets = [];
 				this.blockedMoves = [];
 				this.moveHistory = [];
 				this.gaming = null; // 销毁游戏实例

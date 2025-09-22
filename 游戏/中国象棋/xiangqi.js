@@ -134,6 +134,16 @@ class 棋盘 extends Board {
 	}
 
 	/**
+	 * 检查一个点位是否在棋盘边界内。
+	 * @param {棋盘点位} position
+	 * @returns {boolean}
+	 */
+	isValidPosition(position) {
+		return position.rowNum >= 1 && position.rowNum <= this.rowSize &&
+			   position.colNum >= 1 && position.colNum <= this.colSize;
+	}
+
+	/**
 	 * 检查一个点位是否在九宫格内
 	 * @param {棋盘点位} position
 	 * @returns {boolean}
