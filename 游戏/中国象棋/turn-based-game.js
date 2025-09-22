@@ -217,16 +217,70 @@ class Player extends GamingPart {
 	}
 
 	/**
-	 * 根据输入，设置施放技能三要素。
-	 * 默认实现：
-	 * 1，若输入为技能数组，则把输入设置为已选技能。
-	 * 2，若输入为单位数组
-	 * 2.1，若未选单位，则把输入设置为已选单位。
-	 * 2.2，否则把输入设置为已选目标。
-	 * @param {*} input
+	 * 根据输入，设置施放技能三要素，并严格遵循 Unit -> Skill -> Target 的顺序。
+	 * 该方法接受单个对象或数组作为输入，并将具体选择逻辑分派到 selectUnits, selectSkills, selectTargets 方法。
+	 * @param {any|any[]} input
 	 */
 	processInput(input) {
-		//todo：实现
+		const inputs = Array.isArray(input) ? input : [input];
+		if (inputs.length === 0) {
+			return;
+		}
+		const firstItem = inputs[0];
+
+		if (firstItem instanceof Unit) {
+			// 如果已经选了技能，那么任何单位输入都是目标
+			if (this.selectedUnits?.length && this.selectedSkills?.length) {
+				this.selectTargets(inputs);
+			}
+			// 否则，是在选择行动者
+			else {
+				const ownUnits = inputs.filter(u => u.owner?.id === this.id);
+				if (ownUnits.length > 0) {
+					this.selectUnits(ownUnits);
+				}
+			}
+		} else if (firstItem instanceof Skill) {
+			this.selectSkills(inputs);
+		} else {
+			this.selectTargets(inputs);
+		}
+	}
+
+	/**
+	 * 选择行动单位。默认实现是设置选中的单位，并重置技能和目标。
+	 * @param {Unit[]} units 要选择的单位
+	 */
+	selectUnits(units) {
+		this.selectedUnits = units;
+		this.selectedSkills = [];
+		this.selectedTargets = [];
+	}
+
+	/**
+	 * 选择技能。默认实现是设置选中的技能。
+	 * 只有拥有 `activate` 方法的技能（主动技能）才能被选中。
+	 * @param {Skill[]} skills 要选择的技能
+	 */
+	selectSkills(skills) {
+		if (this.selectedUnits?.length) {
+			// 过滤出所有主动技能
+			const activeSkills = skills.filter(s => typeof s?.activate === 'function');
+			if (activeSkills.length > 0) {
+				this.selectedSkills = activeSkills;
+			}
+		}
+	}
+
+	/**
+	 * 选择目标。默认实现是设置选中的目标。
+	 * @param {any[]} targets 要选择的目标
+	 */
+	selectTargets(targets) {
+		// 必须在选定单位和技能后
+		if (this.selectedUnits?.length && this.selectedSkills?.length) {
+			this.selectedTargets = targets;
+		}
 	}
 
 	/**
@@ -237,7 +291,17 @@ class Player extends GamingPart {
 	 * @param selectedTargets
 	 */
 	activateSkills(selectedUnits, selectedSkills, selectedTargets) {
-		//todo:实现
+		// 遍历所有选中的单位
+		selectedUnits.forEach(unit => {
+			// 遍历所有选中的技能
+			selectedSkills.forEach(skill => {
+				// 确认当前单位拥有该技能
+				if (unit.skills.includes(skill)) {
+					// 触发技能，并将目标传入
+					skill.activate(selectedTargets);
+				}
+			});
+		});
 	}
 }
 
@@ -268,10 +332,6 @@ class Skill extends GamingPart {
 	constructor(cfg) {
 		super(cfg?.gaming);
 		Object.assign(this, cfg);
-	}
-
-	activate(targets) {
-		// 默认无效果，由子类实现
 	}
 
 	/**

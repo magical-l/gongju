@@ -9,9 +9,22 @@ class Move extends Skill {
 	}
 
 	activate(targets) {
-		if (targets && targets.length > 0) {
-			this.owner.position = targets[0];
+		if (!targets || targets.length === 0) {
+			return;
 		}
+		const targetPosition = targets[0];
+
+		// 激活时，先获取所有合法移动位置
+		const available = this.getAvailableTargets();
+
+		// 检查玩家选择的目标是否在合法位置之列
+		const isValid = available.valid.find(p => p.isEqualTo(targetPosition));
+
+		// 如果移动合法，则执行移动
+		if (isValid) {
+			this.owner.position = targetPosition;
+		}
+		// 如果移动不合法，则不执行任何操作
 	}
 
 	getAvailableTargets() {

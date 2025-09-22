@@ -281,5 +281,21 @@ class 棋局 extends Gaming {
 }
 
 class 棋手 extends Player {
-	//todo：需要覆盖父类一些实例方法。
+	/**
+	 * 选择棋子作为行动单位。
+	 * @override
+	 */
+	selectUnits(units) {
+		// 调用父类方法，完成基础的选择单位、重置技能和目标的操作
+		super.selectUnits(units);
+
+		// 象棋逻辑：选定棋子后，自动“选择”其默认的移动技能
+		const unit = units[0];
+		// 使用 instanceof 查找移动技能，而不是依赖顺序
+		const moveSkill = unit?.skills.find(s => s instanceof Move);
+		if (moveSkill) {
+			// 直接调用父类的 selectSkills，不走 processInput 的分派逻辑
+			super.selectSkills([moveSkill]);
+		}
+	}
 }
