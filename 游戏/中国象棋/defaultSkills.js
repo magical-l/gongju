@@ -4,7 +4,7 @@ class Move extends Skill {
 	constructor(overrideCfg = {}) {
 		super({
 			name: '移动',
-			...overrideCfg,
+			...overrideCfg
 		});
 	}
 
@@ -12,17 +12,20 @@ class Move extends Skill {
 		if (!targets || targets.length === 0) {
 			return;
 		}
-		const targetPosition = targets[0];
+		const target = targets[0];
+		const position = target instanceof Unit ? target.position : target;
 
 		// 激活时，先获取所有合法移动位置
 		const available = this.getAvailableTargets();
 
 		// 检查玩家选择的目标是否在合法位置之列
-		const isValid = available.valid.find(p => p.isEqualTo(targetPosition));
+		const isValid = available.valid.find(p => p.isEqualTo(position));
 
 		// 如果移动合法，则执行移动
 		if (isValid) {
-			this.owner.position = targetPosition;
+			const oldPosition = this.owner.position;
+			this.owner.position = position;
+			this.gaming.bulletin.notice('单位移动', {unit: this.owner, oldPosition});
 		}
 		// 如果移动不合法，则不执行任何操作
 	}
@@ -46,7 +49,7 @@ class Move extends Skill {
 		const finalValidTargets = eventPayload.availableTargetPositions.filter(p => {
 			const unitsAtTarget = this.gaming.battlefield.getUnitsAt(p);
 			// 目标位置有效，当且仅当该位置为空，或上面的棋子不属于我方
-			return unitsAtTarget.length === 0 || unitsAtTarget[0].owner.team !== myTeam;
+			return unitsAtTarget.length === 0 || unitsAtTarget[0].owner.team.id !== myTeam.id;
 		});
 
 		// 5. 过滤掉出界的位置
@@ -66,8 +69,6 @@ class Move extends Skill {
 	}
 }
 
-
-
 const 内置技能集 = {
 	'杀敌': class extends Skill {
 		constructor(cfg) {
@@ -78,9 +79,9 @@ const 内置技能集 = {
 				...cfg,
 				watchers: {
 					'单位移动': ({unit}) => {
-						if (unit === this.owner) {
+						if (unit.id === this.owner.id) {
 							this.gaming.battlefield.getUnitsAt(unit.position)
-							.filter(e => e !== unit && e.owner.team !== unit.owner.team)
+							.filter(e => e.id !== unit.id && e.owner.team.id !== unit.owner.team.id)
 							.forEach(u => {
 								this.gaming.battlefield.destroyUnit(u);
 								this.gaming.bulletin.notice('单位阵亡', {unit: u, killer: unit});
@@ -112,7 +113,7 @@ const 内置技能集 = {
 				name: '守营', intro: '有守卫大营之责，不能冲锋陷阵。', tip: '不能离开九宫格。', ...cfg,
 				watchers: {
 					'已获取可移动位置集': ({unit, availableTargetPositions}) => {
-						if (unit === this.owner) {
+						if (unit.id === this.owner.id) {
 							const filtered = availableTargetPositions.filter(
 								p => this.gaming.battlefield.isInPalace(p)
 							);
@@ -163,7 +164,7 @@ const 内置技能集 = {
 				name: '塞象眼', intro: '如果“田”字中心有棋子，则无法移动过去。', ...cfg,
 				watchers: {
 					'已获取可移动位置集': ({unit, availableTargetPositions, blockedTargetPositions}) => {
-						if (unit === this.owner) {
+						if (unit.id === this.owner.id) {
 							const {rowNum, colNum} = this.owner.position;
 							const stillValid = [];
 							availableTargetPositions.forEach(p => {
@@ -189,7 +190,7 @@ const 内置技能集 = {
 				name: '水太深', intro: '不能渡过楚河汉界。', tip: '不能过河', ...cfg,
 				watchers: {
 					'已获取可移动位置集': ({unit, availableTargetPositions}) => {
-						if (unit === this.owner) {
+						if (unit.id === this.owner.id) {
 							const filtered = availableTargetPositions.filter(
 								p => !this.gaming.battlefield.isAcrossRiver(p, unit.owner)
 							);
@@ -224,7 +225,7 @@ const 内置技能集 = {
 				name: '绊马脚', intro: '如果前进方向的第一个交叉点有棋子，则无法移动。', ...cfg,
 				watchers: {
 					'已获取可移动位置集': ({unit, availableTargetPositions, blockedTargetPositions}) => {
-						if (unit === this.owner) {
+						if (unit.id === this.owner.id) {
 							const {rowNum, colNum} = this.owner.position;
 							const stillValid = [];
 							availableTargetPositions.forEach(p => {
@@ -303,7 +304,7 @@ const 内置技能集 = {
 					name: '挡我者死', intro: '移动路径上的第一个棋子如果是敌方，可以吃掉它。', ...cfg,
 					watchers: {
 						'已获取可移动位置集': ({unit, availableTargetPositions}) => {
-							if (unit !== this.owner) {
+							if (unit.id !== this.owner.id) {
 								return;
 							}
 
@@ -323,7 +324,7 @@ const 内置技能集 = {
 									const p = new 棋盘点位(r, c);
 									const units = this.gaming.battlefield.getUnitsAt(p);
 									if (units.length > 0) {
-										if (units[0].owner.team !== myTeam) {
+										if (units[0].owner.team.id !== myTeam.id) {
 											availableTargetPositions.push(p);
 										}
 										break;
@@ -342,7 +343,7 @@ const 内置技能集 = {
 				name: '隔山打牛', intro: '可以跳过一个棋子（无论敌我），吃掉路径上的第二个敌方棋子。', ...cfg,
 				watchers: {
 					'已获取可移动位置集': ({unit, availableTargetPositions}) => {
-						if (unit !== this.owner) {
+						if (unit.id !== this.owner.id) {
 							return;
 						}
 
@@ -367,7 +368,7 @@ const 内置技能集 = {
 									if (!jump) {
 										jump = units[0];
 									} else {
-										if (units[0].owner.team !== myTeam) {
+										if (units[0].owner.team.id !== myTeam.id) {
 											availableTargetPositions.push(p);
 										}
 										break;
@@ -398,7 +399,7 @@ const 内置技能集 = {
 				moves.push(new 棋盘点位(rowNum, colNum - 1)); // 向左
 				moves.push(new 棋盘点位(rowNum, colNum + 1)); // 向右
 			}
-			
+
 			return moves;
 		}
 	}

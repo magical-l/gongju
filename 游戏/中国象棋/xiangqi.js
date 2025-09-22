@@ -165,7 +165,7 @@ class 棋局 extends Gaming {
 	_build() {
 		super._build();
 		this.situation.roundNotations = [];
-		this.bulletin.watch('单位移动', (move) => {
+		this.bulletin.watch('单位移动', move => {
 			this._generateNotation(move);
 			this._endTurnAfterAction(move);
 		});
@@ -182,14 +182,12 @@ class 棋局 extends Gaming {
 			'game:end': '游戏结束',
 			'player:selected-skill': '玩家选择了一个技能',
 			'player:selected-unit': '玩家选择了单位',
-			'player:deselected-unit': '玩家取消选择单位'
+			'player:deselected-unit': '玩家取消选择单位',
+			'unit moved':'单位移动',
 		};
 
-		Object.entries(eventTranslations).forEach(([englishEvent, chineseEvent]) => {
-			this.bulletin.watch(englishEvent, (payload) => {
-				this.bulletin.notice(chineseEvent, payload);
-			});
-		});
+		Object.entries(eventTranslations).forEach(([englishEvent, chineseEvent]) =>
+			this.bulletin.watch(englishEvent, payload => this.bulletin.notice(chineseEvent, payload)));
 	}
 
 	_generateNotation(move) {
@@ -211,7 +209,7 @@ class 棋局 extends Gaming {
 
 	// 默认的回合结束逻辑：任何移动都会结束回合
 	_endTurnAfterAction({ unit }) {
-		this.bulletin.notice('turn:end', { player: unit.owner });
+		this.bulletin.notice('player played', { player: unit.owner });
 	}
 
 	_buildBattlefield() {

@@ -82,10 +82,8 @@ class Battlefield extends GamingPart {
 	}
 
 	moveUnit(unit, position) {
-		const oldPosition = unit.position;
 		this.removeUnitFromPosition(unit);
 		this.addUnitToPosition(unit, position);
-		this.gaming.bulletin.notice('单位移动', {unit, oldPosition});
 	}
 
 	destroyUnit(unit) {
@@ -186,18 +184,18 @@ class Player extends GamingPart {
 	 * 默认实现：不限定施放技能的次数，规则或技能可发布‘turn:end’通知告知本玩家本轮次结束。
 	 */
 	async play() {
-		let turnEnded = false;
-		const onTurnEnd = ({player}) => {
-			if (player === this) {
-				turnEnded = true;
+		let playerPlayed = false;
+		const onPlayerPlayed = ({player}) => {
+			if (player.id === this.id) {
+				playerPlayed = true;
 			}
 		};
-		this.gaming.bulletin.watch('turn:end', onTurnEnd);
+		this.gaming.bulletin.watch('player played', onPlayerPlayed);
 
-		while (!turnEnded) {
+		while (!playerPlayed) {
 			//这里算是一次‘行动’
 			const input = await this.gaming.waitForInput();
-			if (turnEnded) {
+			if (playerPlayed) {
 				break;
 			}
 			//设置技能三要素
@@ -214,7 +212,7 @@ class Player extends GamingPart {
 		this.selectedSkills = [];
 		this.selectedTargets = [];
 
-		this.gaming.bulletin.unwatch('turn:end', onTurnEnd);
+		this.gaming.bulletin.unwatch('player played', onPlayerPlayed);
 	}
 
 	/**
@@ -617,7 +615,7 @@ class Gaming {
 
 	waitForInput() {
 		return new Promise(resolve => {
-			const onInput = (payload) => {
+			const onInput = payload => {
 				this.bulletin.unwatch('ui:input', onInput);
 				resolve(payload);
 			};
