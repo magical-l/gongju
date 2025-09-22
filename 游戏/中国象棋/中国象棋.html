@@ -798,11 +798,11 @@
 
 					skills.forEach(skill => {
 						if (skill instanceof Move) {
-							const targets = skill.getMovementTargets();
-							this.movableTargets = targets.movable;
+							const targets = skill.availableTargets;
+							this.movableTargets = targets.valid;
 							this.blockedMoves = targets.blocked;
 						} else if (skill instanceof 攻击) {
-							this.attackTargets = skill.getAvailableTargets();
+							this.attackTargets = skill.availableTargets;
 						}
 					});
 				});

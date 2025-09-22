@@ -340,7 +340,7 @@ class Skill extends GamingPart {
 		Object.assign(this, cfg);
 	}
 
-	getAvailableTargets() {
+	get availableTargets() {
 		return [];
 	}
 

@@ -1,5 +1,3 @@
-//=======================================技能
-
 class Move extends Skill {
 	constructor(overrideCfg = {}) {
 		super({
@@ -23,63 +21,36 @@ class Move extends Skill {
 		const position = target instanceof Unit ? target.position : target;
 
 		// 激活时，先获取所有合法移动位置
-		const availableMoves = this.getMovementTargets();
+		const availableMoves = this.availableTargets;
 
 		// 检查玩家选择的目标是否在合法移动位置之列
-		const isValidMove = availableMoves.movable.find(p => p.isEqualTo(position));
+		const isValidMove = availableMoves.valid.find(p => p.isEqualTo(position));
 
 		// 如果移动合法，则执行移动
 		if (isValidMove) {
-			const oldPosition = this.owner.position;
 			this.owner.position = position;
 		}
 		// 如果移动不合法，则不执行任何操作
 	}
 
 	/**
-	 * 获取所有可移动和被阻挡的目标位置（供 UI 使用）。
-	 * @returns {{movable: 棋盘点位[], blocked: 棋盘点位[]}}
+	 * 获取所有合法移动位置
+	 * @returns {{valid: 棋盘点位[], blocked: 棋盘点位[]}}
 	 */
-	getMovementTargets() {
-		// 1. 从子类获取原始移动位置，并经过通用过滤（如绊马脚、塞象眼）
+	get availableTargets() {
 		const {availableTargetPositions, blockedTargetPositions} = this._getFilteredRawTargets();
-
-		const myTeam = this.owner.owner.team;
-		const movableTargets = []; // 可移动的空位
-
-		availableTargetPositions.forEach(p => {
-			const unitsAtTarget = this.gaming.battlefield.getUnitsAt(p);
-			if (unitsAtTarget.length === 0) {
-				// 位置为空，可移动
-				movableTargets.push(p);
-			}
-			// 如果位置有己方或敌方单位，则不能移动到该位置
-		});
-
 		// 过滤掉出界的位置
-		const finalMovableTargets = this.gaming.battlefield.keepValidPositions(movableTargets);
+		const finalMovableTargets = this.gaming.battlefield.keepValidPositions(availableTargetPositions);
 		const finalBlockedTargets = this.gaming.battlefield.keepValidPositions(blockedTargetPositions);
 
 		return {
-			movable: finalMovableTargets,
+			valid: finalMovableTargets,
 			blocked: finalBlockedTargets
 		};
 	}
 
-	/**
-	 * 获取所有合法移动位置（兼容旧版接口）。
-	 * @returns {{valid: 棋盘点位[], blocked: 棋盘点位[]}}
-	 */
-	getAvailableTargets() {
-		const movementTargets = this.getMovementTargets();
-		return {
-			valid: movementTargets.movable,
-			blocked: movementTargets.blocked
-		};
-	}
-
 	isValidTargets(targets) {
-		const availableTargets = this.getAvailableTargets().valid;
+		const availableTargets = this.availableTargets.valid;
 		return targets.every(e => availableTargets.includes(e));
 	}
 
@@ -96,7 +67,7 @@ class Move extends Skill {
 		const eventPayload = {
 			unit: this.owner,
 			availableTargetPositions: [...rawTargets], // 传一个副本，因为监听器会修改它
-			blockedTargetPositions: [] // 新增
+			blockedTargetPositions: []
 		};
 
 		// 3. 发布事件，让其他技能（如“绊马脚”、“塞象眼”）过滤位置
@@ -111,7 +82,6 @@ class Move extends Skill {
 	}
 }
 
-// const 内置技能集 = {
 class 攻击 extends Skill {
 	constructor(cfg) {
 		super({
@@ -143,7 +113,7 @@ class 攻击 extends Skill {
 	 * 对于大多数棋子，攻击范围与移动范围相同，但目标是敌方单位。
 	 * @returns {棋盘点位[]}
 	 */
-	getAvailableTargets() {
+	get availableTargets() {
 		const moveSkill = this.owner.skills.find(s => s instanceof Move);
 		if (!moveSkill) {
 			return [];
@@ -181,9 +151,8 @@ const 内置技能集 = {
 			});
 		}
 
-		getAvailableTargets() {
+		get availableTargets() {
 			const {rowNum, colNum} = this.owner.position;
-			const {rowSize, colSize} = this.gaming.battlefield;
 			const myTeam = this.owner.owner.team;
 			const attackTargets = [];
 
@@ -224,7 +193,7 @@ const 内置技能集 = {
 			});
 		}
 
-		getAvailableTargets() {
+		get availableTargets() {
 			const {rowNum, colNum} = this.owner.position;
 			const myTeam = this.owner.owner.team;
 			const attackTargets = [];
