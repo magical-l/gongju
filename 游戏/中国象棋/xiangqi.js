@@ -52,6 +52,7 @@ class 中国象棋 extends Game {
 		this.cfg.GamingClass = 棋局;
 		this.cfg.BattlefieldClass = 棋盘;
 		this.cfg.SituationClass = 战况;
+		this.cfg.PlayerClass = 棋手;
 	}
 
 	static translateConfig(cfg, 红方名字, 黑方名字) {
@@ -171,6 +172,8 @@ class 棋局 extends Gaming {
 
 		// 事件名适配器：将框架的英文事件名翻译为中文，供应用层使用
 		const eventTranslations = {
+			'initing': '初始化中',
+			'inited': '初始化完成',
 			'turn:start': '轮次开始',
 			'turn:end': '轮次结束',
 			'round:start': '回合开始',
@@ -274,5 +277,35 @@ class 棋局 extends Gaming {
 	_buildPlugin(pluginCfg) {
 		const PluginClass = 内置插件集[pluginCfg];
 		return super._buildPlugin({class: PluginClass});
+	}
+}
+
+class 棋手 extends Player {
+	/**
+	 * 覆盖“选择单位”的逻辑
+	 */
+	async selectUnit(unit) {
+		// 如果点击的是己方单位
+		if (unit.owner === this) {
+			// 发出“玩家选择了单位”的通知
+			this.gaming.bulletin.notice('player:selected-unit', {player: this, unit: unit});
+			// 自动选择该单位的第一个“移动”类技能
+			const moveSkill = unit.skills.find(s => s instanceof Move);
+			if (moveSkill) {
+				this.setSelectedSkill(moveSkill);
+			}
+		} else {
+			// 如果点击的是敌方单位，则使用基类（Player）的默认逻辑
+			// （即：如果当前有已选技能，且敌方单位是合法目标，则攻击）
+			await super.selectUnit(unit);
+		}
+	}
+
+	/**
+	 * 覆盖“技能施放后”的钩子
+	 */
+	async onSkillActivated() {
+		// 在中国象棋中，任何技能（主要是移动）一旦施放，回合就结束
+		this.gaming.bulletin.notice('turn:end', {player: this});
 	}
 }

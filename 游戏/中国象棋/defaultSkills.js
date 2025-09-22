@@ -5,28 +5,14 @@ class Move extends Skill {
 		super({
 			name: '移动',
 			...overrideCfg,
-			watchers: {
-				// 只在轮到自己的回合时，才监听选择单位事件
-				'turn:start': ({player}) => {
-					if (player === this.owner.owner) {
-						this.gaming.bulletin.watch('玩家选择了单位', this.onUnitSelected);
-					}
-				},
-				'turn:end': ({player}) => {
-					if (player === this.owner.owner) {
-						this.gaming.bulletin.unwatch('玩家选择了单位', this.onUnitSelected);
-					}
-				}
-			}
 		});
 	}
 
-	onUnitSelected = ({unit}) => {
-		if (unit === this.owner) {
-			// 监听到自己的主人被选中，就主动去设置玩家的当前技能
-			unit.owner.setSelectedSkill(this);
+	activate(targets) {
+		if (targets && targets.length > 0) {
+			this.owner.position = targets[0];
 		}
-	};
+	}
 
 	getAvailableTargets() {
 		// 1. 从子类获取原始移动位置

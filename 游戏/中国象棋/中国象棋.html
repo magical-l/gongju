@@ -856,7 +856,14 @@
 				if (!this.gaming || this.isGameOver) {
 					return;
 				}
-				this.gaming.bulletin.notice('ui:input', position);
+				const clickedUnits = this.gaming.battlefield.getUnitsAt(position);
+				if (clickedUnits.length > 0) {
+					// 如果点击的位置有单位，则输入是单位本身
+					this.gaming.bulletin.notice('ui:input', clickedUnits[0]);
+				} else {
+					// 否则，输入是位置
+					this.gaming.bulletin.notice('ui:input', position);
+				}
 			},
 			isValidMove(position) {
 				return this.validMoves.some(pos => pos.isEqualTo(position));

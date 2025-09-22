@@ -188,8 +188,7 @@ class Player extends GamingPart {
 	}
 
 	/**
-	 * 轮到本玩家行动。通过循环等待并处理输入，直到回合结束。
-	 * @returns {Promise<void>}
+	 * 回合主循环。该方法不可覆盖，它调用可覆盖的子方法来处理具体逻辑。
 	 */
 	async play() {
 		let turnEnded = false;
@@ -201,40 +200,90 @@ class Player extends GamingPart {
 		this.gaming.bulletin.watch('turn:end', onTurnEnd);
 
 		while (!turnEnded) {
-			const position = await this.gaming.waitForInput();
+			const input = await this.gaming.waitForInput();
 			if (turnEnded) {
 				break;
 			}
-
-			const unitsAtPos = this.gaming.battlefield.getUnitsAt(position);
-			const clickedUnit = unitsAtPos[0];
-
-			if (this.selectedSkill) {
-				// 已选择一个技能（移动），判断本次点击是否为合法目标
-				const validMoves = this.selectedSkill.getAvailableTargets();
-				if (validMoves.valid.find(p => p.isEqualTo(position))) {
-					// 合法移动，执行移动。移动后会触发'单位移动'事件，从而结束回合
-					this.selectedSkill.owner.position = position;
-					// 移动后，turn:end事件会被触发，循环将在下一次迭代时终止
-				} else {
-					// 否则，取消当前选择
-					this.setSelectedSkill(null);
-					// 如果本次点击的是另一个己方单位，则立即开始新的选择
-					if (clickedUnit && clickedUnit.owner === this) {
-						this.gaming.bulletin.notice('player:selected-unit', {player: this, unit: clickedUnit});
-					}
-				}
-			} else {
-				// 未选择任何技能，本次点击是尝试选择一个单位
-				if (clickedUnit && clickedUnit.owner === this) {
-					this.gaming.bulletin.notice('player:selected-unit', {player: this, unit: clickedUnit});
-				}
-			}
+			await this.processInput(input);
 		}
 
-		// 回合结束后清理
 		this.gaming.bulletin.unwatch('turn:end', onTurnEnd);
-		this.setSelectedSkill(null);
+		this.setSelectedSkill(null); // 回合结束后自动取消技能选择
+	}
+
+	/**
+	 * 输入分发器。可覆盖以实现完全自定义的输入处理。
+	 * @param {*} input 
+	 */
+	async processInput(input) {
+		if (input instanceof Unit) {
+			await this.selectUnit(input);
+		} else if (input instanceof Position) {
+			await this.selectTarget(input);
+		} else if (input instanceof Skill) {
+			await this.selectSkill(input);
+		}
+	}
+
+	/**
+	 * 处理单位选择。子类可覆盖。
+	 * @param {Unit} unit 
+	 */
+	async selectUnit(unit) {
+		// 默认逻辑：如果点击的是敌方单位，且当前技能可对其施放，则施放技能
+		if (unit.owner !== this) {
+			if (this.selectedSkill && this.isSkillTarget(this.selectedSkill, unit)) {
+				await this.activateSkill(this.selectedSkill, [unit]);
+			}
+		} else {
+			// 如果点击的是己方单位，则通知UI，让UI或子类决定下一步操作（如选择技能）
+			this.setSelectedSkill(null);
+			this.gaming.bulletin.notice('player:selected-unit', {player: this, unit: unit});
+		}
+	}
+
+	/**
+	 * 处理目标选择（通常是空地）。子类可覆盖。
+	 * @param {*} target 
+	 */
+	async selectTarget(target) {
+		// 默认逻辑：如果当前有技能，且目标合法，则施放技能
+		if (this.selectedSkill && this.isSkillTarget(this.selectedSkill, target)) {
+			await this.activateSkill(this.selectedSkill, [target]);
+		} else {
+			// 否则，取消选择
+			this.setSelectedSkill(null);
+		}
+	}
+
+	/**
+	 * 激活技能。不建议覆盖。
+	 * @param {Skill} skill 
+	 * @param {any[]} targets 
+	 */
+	async activateSkill(skill, targets) {
+		skill.activate(targets);
+		await this.onSkillActivated();
+	}
+
+	/**
+	 * 技能施放后的钩子。子类可覆盖。
+	 */
+	async onSkillActivated() {
+		// 默认行为：技能施放后，继续等待本回合的下一次输入
+	}
+
+	/**
+	 * 检查一个目标对于一个技能是否合法。
+	 * @param {Skill} skill 
+	 * @param {*} target 
+	 * @returns {boolean}
+	 */
+	isSkillTarget(skill, target) {
+		const availableTargets = skill.getAvailableTargets();
+		// 目标可能是一个单位，也可能是一个位置
+		const targetPosition = target.position || target;
+		return availableTargets.valid.some(p => p.isEqualTo(targetPosition));
 	}
 }
 
@@ -265,6 +314,10 @@ class Skill extends GamingPart {
 	constructor(cfg) {
 		super(cfg?.gaming);
 		Object.assign(this, cfg);
+	}
+
+	activate(targets) {
+		// 默认无效果，由子类实现
 	}
 
 	/**
