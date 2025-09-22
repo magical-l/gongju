@@ -18,20 +18,20 @@ const 默认棋盘布局 = `
 	车马相仕帅仕相马车
 `;
 const 默认棋子类型 = {
-	'帅': {显示: '\u{1FA60}', 技能: ['杀敌', '步战四方', '守营'], 玩家: 红方玩家id},
-	'仕': {显示: '\u{1FA61}', 技能: ['杀敌', '护卫', '守营'], 玩家: 红方玩家id},
-	'相': {显示: '\u{1FA62}', 技能: ['杀敌', '象行田', '塞象眼', '水太深'], 玩家: 红方玩家id},
-	'马': {显示: '\u{1FA63}', 技能: ['杀敌', '马行日', '绊马脚'], 玩家: 红方玩家id},
-	'车': {显示: '\u{1FA64}', 技能: ['杀敌', '轮子', '挡我者死'], 玩家: 红方玩家id},
-	'炮': {显示: '\u{1FA65}', 技能: ['杀敌', '轮子', '隔山打牛'], 玩家: 红方玩家id},
-	'兵': {显示: '\u{1FA66}', 技能: ['杀敌', '勇往直前'], 玩家: 红方玩家id},
-	'将': {显示: '\u{1FA67}', 技能: ['杀敌', '步战四方', '守营'], 玩家: 黑方玩家id},
-	'士': {显示: '\u{1FA68}', 技能: ['杀敌', '护卫', '守营'], 玩家: 黑方玩家id},
-	'象': {显示: '\u{1FA69}', 技能: ['杀敌', '象行田', '塞象眼', '水太深'], 玩家: 黑方玩家id},
-	'馬': {显示: '\u{1FA6A}', 技能: ['杀敌', '马行日', '绊马脚'], 玩家: 黑方玩家id},
-	'車': {显示: '\u{1FA6B}', 技能: ['杀敌', '轮子', '挡我者死'], 玩家: 黑方玩家id},
-	'砲': {显示: '\u{1FA6C}', 技能: ['杀敌', '轮子', '隔山打牛'], 玩家: 黑方玩家id},
-	'卒': {显示: '\u{1FA6D}', 技能: ['杀敌', '勇往直前'], 玩家: 黑方玩家id}
+	'帅': {显示: '\u{1FA60}', 技能: ['攻击', '步战四方', '守营'], 玩家: 红方玩家id},
+	'仕': {显示: '\u{1FA61}', 技能: ['攻击', '护卫', '守营'], 玩家: 红方玩家id},
+	'相': {显示: '\u{1FA62}', 技能: ['攻击', '象行田', '塞象眼', '水太深'], 玩家: 红方玩家id},
+	'马': {显示: '\u{1FA63}', 技能: ['攻击', '马行日', '绊马脚'], 玩家: 红方玩家id},
+	'车': {显示: '\u{1FA64}', 技能: ['轮子', '挡我者死'], 玩家: 红方玩家id},
+	'炮': {显示: '\u{1FA65}', 技能: ['轮子', '隔山打牛'], 玩家: 红方玩家id},
+	'兵': {显示: '\u{1FA66}', 技能: ['攻击', '勇往直前'], 玩家: 红方玩家id},
+	'将': {显示: '\u{1FA67}', 技能: ['攻击', '步战四方', '守营'], 玩家: 黑方玩家id},
+	'士': {显示: '\u{1FA68}', 技能: ['攻击', '护卫', '守营'], 玩家: 黑方玩家id},
+	'象': {显示: '\u{1FA69}', 技能: ['攻击', '象行田', '塞象眼', '水太深'], 玩家: 黑方玩家id},
+	'馬': {显示: '\u{1FA6A}', 技能: ['攻击', '马行日', '绊马脚'], 玩家: 黑方玩家id},
+	'車': {显示: '\u{1FA6B}', 技能: ['轮子', '挡我者死'], 玩家: 黑方玩家id},
+	'砲': {显示: '\u{1FA6C}', 技能: ['轮子', '隔山打牛'], 玩家: 黑方玩家id},
+	'卒': {显示: '\u{1FA6D}', 技能: ['攻击', '勇往直前'], 玩家: 黑方玩家id}
 };
 
 const 所有可选规则 = ['不能叠加棋子', '王不见王', '斩将', '红方动两次'];
@@ -183,7 +183,7 @@ class 棋局 extends Gaming {
 			'player selected units': '玩家选择了单位',
 			'player selected skills': '玩家选择了技能',
 			'player:deselected-unit': '玩家取消选择单位',
-			'unit moved':'单位移动',
+			'unit moved': '单位移动'
 		};
 
 		Object.entries(eventTranslations).forEach(([englishEvent, chineseEvent]) =>
@@ -191,7 +191,7 @@ class 棋局 extends Gaming {
 	}
 
 	_generateNotation(move) {
-		const { unit, oldPosition } = move;
+		const {unit, oldPosition} = move;
 		const newPosition = unit.position;
 		const isRed = unit.owner.team.id === '红方';
 		const notation = `${unit.name}: ${oldPosition} -> ${newPosition}`;
@@ -208,8 +208,8 @@ class 棋局 extends Gaming {
 	}
 
 	// 默认的回合结束逻辑：任何移动都会结束回合
-	_endTurnAfterAction({ unit }) {
-		this.bulletin.notice('player played', { player: unit.owner });
+	_endTurnAfterAction({unit}) {
+		this.bulletin.notice('player played', {player: unit.owner});
 	}
 
 	_buildBattlefield() {
@@ -287,13 +287,27 @@ class 棋手 extends Player {
 		// 调用父类方法，完成基础的选择单位、重置技能和目标的操作
 		super.selectUnits(units);
 
-		// 象棋逻辑：选定棋子后，自动“选择”其默认的移动技能
-		const unit = units[0];
-		// 使用 instanceof 查找移动技能，而不是依赖顺序
-		const moveSkill = unit?.skills.find(s => s instanceof Move);
-		if (moveSkill) {
-			// 直接调用父类的 selectSkills，不走 processInput 的分派逻辑
-			super.selectSkills([moveSkill]);
+		if (this.selectedUnits.length) {
+			// 象棋逻辑：选定棋子后，自动“选择”其默认的移动和杀敌技能
+			const unit = units[0];
+			const skillsToSelect = [];
+
+			// 查找移动技能
+			const moveSkill = unit?.skills.find(s => s instanceof Move);
+			if (moveSkill) {
+				skillsToSelect.push(moveSkill);
+			}
+
+			// 查找杀敌技能
+			const killSkill = unit?.skills.find(s => s instanceof 攻击);
+			if (killSkill) {
+				skillsToSelect.push(killSkill);
+			}
+
+			if (skillsToSelect.length > 0) {
+				// 直接调用父类的 selectSkills，不走 processInput 的分派逻辑
+				super.selectSkills(skillsToSelect);
+			}
 		}
 	}
 }

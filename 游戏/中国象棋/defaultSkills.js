@@ -4,7 +4,14 @@ class Move extends Skill {
 	constructor(overrideCfg = {}) {
 		super({
 			name: '移动',
-			...overrideCfg
+			...overrideCfg,
+			watchers: {
+				'单位杀敌': ({unit, killed}) => {
+					if (unit.id === this.owner.id) {
+						this.owner.position = killed.position;
+					}
+				}
+			}
 		});
 	}
 
@@ -16,13 +23,13 @@ class Move extends Skill {
 		const position = target instanceof Unit ? target.position : target;
 
 		// 激活时，先获取所有合法移动位置
-		const available = this.getAvailableTargets();
+		const availableMoves = this.getMovementTargets();
 
-		// 检查玩家选择的目标是否在合法位置之列
-		const isValid = available.valid.find(p => p.isEqualTo(position));
+		// 检查玩家选择的目标是否在合法移动位置之列
+		const isValidMove = availableMoves.movable.find(p => p.isEqualTo(position));
 
 		// 如果移动合法，则执行移动
-		if (isValid) {
+		if (isValidMove) {
 			const oldPosition = this.owner.position;
 			this.owner.position = position;
 			this.gaming.bulletin.notice('单位移动', {unit: this.owner, oldPosition});
@@ -30,7 +37,59 @@ class Move extends Skill {
 		// 如果移动不合法，则不执行任何操作
 	}
 
+	/**
+	 * 获取所有可移动和被阻挡的目标位置（供 UI 使用）。
+	 * @returns {{movable: 棋盘点位[], blocked: 棋盘点位[]}}
+	 */
+	getMovementTargets() {
+		// 1. 从子类获取原始移动位置，并经过通用过滤（如绊马脚、塞象眼）
+		const {availableTargetPositions, blockedTargetPositions} = this._getFilteredRawTargets();
+
+		const myTeam = this.owner.owner.team;
+		const movableTargets = []; // 可移动的空位
+
+		availableTargetPositions.forEach(p => {
+			const unitsAtTarget = this.gaming.battlefield.getUnitsAt(p);
+			if (unitsAtTarget.length === 0) {
+				// 位置为空，可移动
+				movableTargets.push(p);
+			}
+			// 如果位置有己方或敌方单位，则不能移动到该位置
+		});
+
+		// 过滤掉出界的位置
+		const finalMovableTargets = this.gaming.battlefield.keepValidPositions(movableTargets);
+		const finalBlockedTargets = this.gaming.battlefield.keepValidPositions(blockedTargetPositions);
+
+		return {
+			movable: finalMovableTargets,
+			blocked: finalBlockedTargets
+		};
+	}
+
+	/**
+	 * 获取所有合法移动位置（兼容旧版接口）。
+	 * @returns {{valid: 棋盘点位[], blocked: 棋盘点位[]}}
+	 */
 	getAvailableTargets() {
+		const movementTargets = this.getMovementTargets();
+		return {
+			valid: movementTargets.movable,
+			blocked: movementTargets.blocked
+		};
+	}
+
+	isValidTargets(targets) {
+		const availableTargets = this.getAvailableTargets().valid;
+		return targets.every(e => availableTargets.includes(e));
+	}
+
+	/**
+	 * 从子类获取原始移动位置，并经过通用过滤（如绊马脚、塞象眼）。
+	 * @returns {{availableTargetPositions: 棋盘点位[], blockedTargetPositions: 棋盘点位[]}}
+	 * @private
+	 */
+	_getFilteredRawTargets() {
 		// 1. 从子类获取原始移动位置
 		let rawTargets = this.getRawTargetPositions();
 
@@ -44,23 +103,7 @@ class Move extends Skill {
 		// 3. 发布事件，让其他技能（如“绊马脚”、“塞象眼”）过滤位置
 		this.gaming.bulletin.notice('已获取可移动位置集', eventPayload);
 
-		// 4. 从被其他技能过滤后的结果中，再次过滤掉己方棋子所在的位置
-		const myTeam = this.owner.owner.team;
-		const finalValidTargets = eventPayload.availableTargetPositions.filter(p => {
-			const unitsAtTarget = this.gaming.battlefield.getUnitsAt(p);
-			// 目标位置有效，当且仅当该位置为空，或上面的棋子不属于我方
-			return unitsAtTarget.length === 0 || unitsAtTarget[0].owner.team.id !== myTeam.id;
-		});
-
-		// 5. 过滤掉出界的位置
-		const valid = this.gaming.battlefield.keepValidPositions(finalValidTargets);
-		const blocked = this.gaming.battlefield.keepValidPositions(eventPayload.blockedTargetPositions);
-
-		// 6. 返回最终结果
-		return {
-			valid: valid,
-			blocked: blocked
-		};
+		return eventPayload;
 	}
 
 	getRawTargetPositions() {
@@ -69,27 +112,160 @@ class Move extends Skill {
 	}
 }
 
+// const 内置技能集 = {
+class 攻击 extends Skill {
+	constructor(cfg) {
+		super({
+			name: '攻击',
+			intro: '击败所在位置的敌军',
+			tip: '选择敌方单位并将其击败',
+			...cfg
+		});
+	}
+
+	activate(targets) {
+		if (!targets || targets.length === 0) {
+			return;
+		}
+		const targetPosition = targets[0] instanceof Unit ? targets[0].position : targets[0];
+
+		const unitsAtTarget = this.gaming.battlefield.getUnitsAt(targetPosition);
+		const enemyUnit = unitsAtTarget.find(u => u.owner.team.id !== this.owner.owner.team.id);
+
+		if (enemyUnit) {
+			this.gaming.bulletin.notice('单位杀敌', {unit: this.owner, killed: enemyUnit});
+			this.gaming.battlefield.destroyUnit(enemyUnit);
+			this.gaming.bulletin.notice('单位阵亡', {unit: enemyUnit, killer: this.owner});
+		}
+	}
+
+	/**
+	 * 获取所有可攻击的敌方单位位置。
+	 * 对于大多数棋子，攻击范围与移动范围相同，但目标是敌方单位。
+	 * @returns {棋盘点位[]}
+	 */
+	getAvailableTargets() {
+		const moveSkill = this.owner.skills.find(s => s instanceof Move);
+		if (!moveSkill) {
+			return [];
+		}
+
+		// 获取原始移动位置，并经过通用过滤（如绊马脚、塞象眼）
+		const {availableTargetPositions} = moveSkill._getFilteredRawTargets();
+
+		const myTeam = this.owner.owner.team;
+		const attackTargets = [];
+
+		availableTargetPositions.forEach(p => {
+			const unitsAtTarget = this.gaming.battlefield.getUnitsAt(p);
+			if (unitsAtTarget.length > 0 && unitsAtTarget[0].owner.team.id !== myTeam.id) {
+				// 位置有敌方单位，可攻击
+				attackTargets.push(p);
+			}
+		});
+
+		// 过滤掉出界的位置
+		return this.gaming.battlefield.keepValidPositions(attackTargets);
+	}
+}
+
 const 内置技能集 = {
-	'杀敌': class extends Skill {
+	攻击,
+
+	'挡我者死': class extends 攻击 {
 		constructor(cfg) {
 			super({
-				name: '杀敌',
-				intro: '击败所在位置的敌军',
-				tip: '移动到新位置后，吃掉该位置的敌方棋子',
-				...cfg,
-				watchers: {
-					'单位移动': ({unit}) => {
-						if (unit.id === this.owner.id) {
-							this.gaming.battlefield.getUnitsAt(unit.position)
-							.filter(e => e.id !== unit.id && e.owner.team.id !== unit.owner.team.id)
-							.forEach(u => {
-								this.gaming.battlefield.destroyUnit(u);
-								this.gaming.bulletin.notice('单位阵亡', {unit: u, killer: unit});
-							});
+				name: '挡我者死',
+				intro: '沿直线攻击敌方单位，中间不能有阻碍。',
+				tip: '车可以沿直线攻击任何敌方单位，中间不能有其他棋子阻挡。攻击后移动到该位置。',
+				...cfg
+			});
+		}
+
+		getAvailableTargets() {
+			const {rowNum, colNum} = this.owner.position;
+			const {rowSize, colSize} = this.gaming.battlefield;
+			const myTeam = this.owner.owner.team;
+			const attackTargets = [];
+
+			const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]]; // 上下左右
+
+			directions.forEach(([dr, dc]) => {
+				for (let i = 1; ; i++) {
+					const r = rowNum + dr * i;
+					const c = colNum + dc * i;
+					const p = new 棋盘点位(r, c);
+
+					if (!this.gaming.battlefield.isValidPosition(p)) {
+						break; // 超出棋盘边界
+					}
+
+					const units = this.gaming.battlefield.getUnitsAt(p);
+					if (units.length > 0) {
+						// 遇到棋子
+						if (units[0].owner.team.id !== myTeam.id) {
+							// 遇到敌方棋子，可以攻击
+							attackTargets.push(p);
+						}
+						break; // 遇到任何棋子都阻挡，不能继续向前
+					}
+				}
+			});
+			return attackTargets;
+		}
+	},
+
+	'隔山打牛': class extends 攻击 {
+		constructor(cfg) {
+			super({
+				name: '隔山打牛',
+				intro: '隔山打炮，跳过一个棋子攻击敌方单位。',
+				tip: '炮可以跳过一个棋子（无论敌我）攻击路径上的第二个敌方棋子。攻击后移动到该位置。',
+				...cfg
+			});
+		}
+
+		getAvailableTargets() {
+			const {rowNum, colNum} = this.owner.position;
+			const myTeam = this.owner.owner.team;
+			const attackTargets = [];
+
+			const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]]; // 上下左右
+
+			directions.forEach(([dr, dc]) => {
+				let jumpedOver = false;
+				for (let i = 1; ; i++) {
+					const r = rowNum + dr * i;
+					const c = colNum + dc * i;
+					const p = new 棋盘点位(r, c);
+
+					if (!this.gaming.battlefield.isValidPosition(p)) {
+						break; // 超出棋盘边界
+					}
+
+					const units = this.gaming.battlefield.getUnitsAt(p);
+					if (units.length > 0) {
+						// 遇到棋子
+						if (!jumpedOver) {
+							// 第一次遇到棋子，这是炮架
+							jumpedOver = true;
+						} else {
+							// 第二次遇到棋子，检查是否为敌方
+							if (units[0].owner.team.id !== myTeam.id) {
+								attackTargets.push(p);
+							}
+							break; // 遇到第二个棋子后，无论敌我，都不能继续向前
+						}
+					} else {
+						// 遇到空位
+						if (jumpedOver) {
+							// 已经跳过一个棋子，但现在是空位，不能攻击
+							// 继续向前寻找第二个棋子
 						}
 					}
 				}
 			});
+			return attackTargets;
 		}
 	},
 
@@ -297,90 +473,90 @@ const 内置技能集 = {
 		}
 	},
 
-	'挡我者死':
-		class extends Skill {
-			constructor(cfg) {
-				super({
-					name: '挡我者死', intro: '移动路径上的第一个棋子如果是敌方，可以吃掉它。', ...cfg,
-					watchers: {
-						'已获取可移动位置集': ({unit, availableTargetPositions}) => {
-							if (unit.id !== this.owner.id) {
-								return;
-							}
-
-							const myTeam = this.owner.owner.team;
-							const {rowNum, colNum} = this.owner.position;
-							const {rowSize, colSize} = this.gaming.battlefield;
-
-							const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
-							directions.forEach(([dr, dc]) => {
-								for (let i = 1; ; i++) {
-									const r = rowNum + dr * i;
-									const c = colNum + dc * i;
-									if (r < 1 || r > rowSize || c < 1 || c > colSize) {
-										break;
-									}
-
-									const p = new 棋盘点位(r, c);
-									const units = this.gaming.battlefield.getUnitsAt(p);
-									if (units.length > 0) {
-										if (units[0].owner.team.id !== myTeam.id) {
-											availableTargetPositions.push(p);
-										}
-										break;
-									}
-								}
-							});
-						}
-					}
-				});
-			}
-		},
-
-	'隔山打牛': class extends Skill {
-		constructor(cfg) {
-			super({
-				name: '隔山打牛', intro: '可以跳过一个棋子（无论敌我），吃掉路径上的第二个敌方棋子。', ...cfg,
-				watchers: {
-					'已获取可移动位置集': ({unit, availableTargetPositions}) => {
-						if (unit.id !== this.owner.id) {
-							return;
-						}
-
-						const myTeam = this.owner.owner.team;
-						const {rowNum, colNum} = this.owner.position;
-						const {rowSize, colSize} = this.gaming.battlefield;
-
-						const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
-						directions.forEach(([dr, dc]) => {
-							let jump = null;
-							for (let i = 1; ; i++) {
-								const r = rowNum + dr * i;
-								const c = colNum + dc * i;
-								if (r < 1 || r > rowSize || c < 1 || c > colSize) {
-									break;
-								}
-
-								const p = new 棋盘点位(r, c);
-								const units = this.gaming.battlefield.getUnitsAt(p);
-
-								if (units.length > 0) {
-									if (!jump) {
-										jump = units[0];
-									} else {
-										if (units[0].owner.team.id !== myTeam.id) {
-											availableTargetPositions.push(p);
-										}
-										break;
-									}
-								}
-							}
-						});
-					}
-				}
-			});
-		}
-	},
+	// '挡我者死':
+	// 	class extends Skill {
+	// 		constructor(cfg) {
+	// 			super({
+	// 				name: '挡我者死', intro: '移动路径上的第一个棋子如果是敌方，可以吃掉它。', ...cfg,
+	// 				watchers: {
+	// 					'已获取可移动位置集': ({unit, availableTargetPositions}) => {
+	// 						if (unit.id !== this.owner.id) {
+	// 							return;
+	// 						}
+	//
+	// 						const myTeam = this.owner.owner.team;
+	// 						const {rowNum, colNum} = this.owner.position;
+	// 						const {rowSize, colSize} = this.gaming.battlefield;
+	//
+	// 						const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+	// 						directions.forEach(([dr, dc]) => {
+	// 							for (let i = 1; ; i++) {
+	// 								const r = rowNum + dr * i;
+	// 								const c = colNum + dc * i;
+	// 								if (r < 1 || r > rowSize || c < 1 || c > colSize) {
+	// 									break;
+	// 								}
+	//
+	// 								const p = new 棋盘点位(r, c);
+	// 								const units = this.gaming.battlefield.getUnitsAt(p);
+	// 								if (units.length > 0) {
+	// 									if (units[0].owner.team.id !== myTeam.id) {
+	// 										availableTargetPositions.push(p);
+	// 									}
+	// 									break;
+	// 								}
+	// 							}
+	// 						});
+	// 					}
+	// 				}
+	// 			});
+	// 		}
+	// 	},
+	//
+	// '隔山打牛': class extends Skill {
+	// 	constructor(cfg) {
+	// 		super({
+	// 			name: '隔山打牛', intro: '可以跳过一个棋子（无论敌我），吃掉路径上的第二个敌方棋子。', ...cfg,
+	// 			watchers: {
+	// 				'已获取可移动位置集': ({unit, availableTargetPositions}) => {
+	// 					if (unit.id !== this.owner.id) {
+	// 						return;
+	// 					}
+	//
+	// 					const myTeam = this.owner.owner.team;
+	// 					const {rowNum, colNum} = this.owner.position;
+	// 					const {rowSize, colSize} = this.gaming.battlefield;
+	//
+	// 					const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+	// 					directions.forEach(([dr, dc]) => {
+	// 						let jump = null;
+	// 						for (let i = 1; ; i++) {
+	// 							const r = rowNum + dr * i;
+	// 							const c = colNum + dc * i;
+	// 							if (r < 1 || r > rowSize || c < 1 || c > colSize) {
+	// 								break;
+	// 							}
+	//
+	// 							const p = new 棋盘点位(r, c);
+	// 							const units = this.gaming.battlefield.getUnitsAt(p);
+	//
+	// 							if (units.length > 0) {
+	// 								if (!jump) {
+	// 									jump = units[0];
+	// 								} else {
+	// 									if (units[0].owner.team.id !== myTeam.id) {
+	// 										availableTargetPositions.push(p);
+	// 									}
+	// 									break;
+	// 								}
+	// 							}
+	// 						}
+	// 					});
+	// 				}
+	// 			}
+	// 		});
+	// 	}
+	// },
 
 	'勇往直前': class extends Move {
 		constructor(cfg) {

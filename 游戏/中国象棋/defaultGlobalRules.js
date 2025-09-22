@@ -1,4 +1,18 @@
 const 内置规则集 = {
+	'杀敌后进驻': class extends Rule {
+		constructor(gaming, cfg) {
+			super(gaming, {
+				name: '杀敌后进驻', intro: '吃子后占据其位置。', tip: '消灭敌方单位后，移动到该单位原来的位置。',
+				watchers: {
+					'单位杀敌': ({unit, killed}) => {
+						if (unit.id === this.owner.id) {
+							this.owner.position = killed.position;
+						}
+					}
+				}
+			});
+		}
+	},
 	'王不见王': class extends Rule {
 		constructor(gaming, cfg) {
 			super(gaming, {

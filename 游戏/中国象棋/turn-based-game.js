@@ -229,17 +229,7 @@ class Player extends GamingPart {
 		const firstItem = inputs[0];
 
 		if (firstItem instanceof Unit) {
-			// 如果已经选了技能，那么任何单位输入都是目标
-			if (this.selectedUnits?.length && this.selectedSkills?.length) {
-				this.selectTargets(inputs);
-			}
-			// 否则，是在选择行动者
-			else {
-				const ownUnits = inputs.filter(u => u.owner?.id === this.id);
-				if (ownUnits.length > 0) {
-					this.selectUnits(ownUnits);
-				}
-			}
+			this.selectingUnits(inputs);
 		} else if (firstItem instanceof Skill) {
 			this.selectSkills(inputs);
 		} else {
@@ -247,15 +237,27 @@ class Player extends GamingPart {
 		}
 	}
 
-	/**
-	 * 选择行动单位。默认实现是设置选中的单位，并重置技能和目标。
-	 * @param {Unit[]} units 要选择的单位
-	 */
+	selectingUnits(inputs) {
+		if (this.selectedUnits?.length && this.selectedSkills?.length) {
+			const ownUnits = inputs.filter(u => u.owner?.id === this.id);
+			if (!ownUnits.length || this.selectedSkills.some(e => e.isValidTargets(inputs))) {
+				this.selectTargets(inputs);
+			} else {
+				this.selectUnits(ownUnits);
+			}
+		} else {
+			this.selectUnits(inputs);
+		}
+	}
+
 	selectUnits(units) {
-		this.selectedUnits = units;
-		this.selectedSkills = [];
-		this.selectedTargets = [];
-		this.gaming.bulletin.notice('player selected units', {player: this, units});
+		const ownUnits = units.filter(u => u.owner?.id === this.id);
+		if (ownUnits.length > 0) {
+			this.selectedUnits = ownUnits;
+			this.selectedSkills = [];
+			this.selectedTargets = [];
+			this.gaming.bulletin.notice('player selected units', {player: this, units: ownUnits});
+		}
 	}
 
 	/**
@@ -338,6 +340,14 @@ class Skill extends GamingPart {
 		Object.assign(this, cfg);
 	}
 
+	getAvailableTargets() {
+		return [];
+	}
+
+	isValidTargets(targets) {
+		return false;
+	}
+
 	/**
 	 * 定义子类
 	 * @param defaultCfg
@@ -376,8 +386,10 @@ class Unit extends GamingPart {
 		if (this._position && this._position.isEqualTo(p)) {
 			return;
 		}
+		const oldPosition = this.position;
 		// setter作为移动指令的入口，通知战场来移动棋子
 		this.gaming.battlefield.moveUnit(this, p);
+		this.gaming.bulletin.notice('单位移动', {unit: this, oldPosition});
 	}
 
 	addSkill(skill) {
