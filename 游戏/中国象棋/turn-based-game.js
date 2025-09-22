@@ -170,7 +170,10 @@ class Player extends GamingPart {
 	team;
 	name;
 	units = [];
-	selectedSkill = null;
+
+	selectedUnits = [];
+	selectedSkills = [];
+	selectedTargets = [];
 
 	constructor(team, cfg) {
 		super(team.gaming);
@@ -178,17 +181,9 @@ class Player extends GamingPart {
 		this.team = team;
 	}
 
-	setSelectedSkill(skill) {
-		this.selectedSkill = skill;
-		if (skill) {
-			this.gaming.bulletin.notice('player:selected-skill', {player: this, unit: skill.owner, skill: skill});
-		} else {
-			this.gaming.bulletin.notice('player:deselected-unit', {player: this});
-		}
-	}
-
 	/**
-	 * 回合主循环。该方法不可覆盖，它调用可覆盖的子方法来处理具体逻辑。
+	 * 玩家玩游戏。在回合制游戏里，玩家在自己的轮次里操作单位施放技能。
+	 * 默认实现：不限定施放技能的次数，规则或技能可发布‘turn:end’通知告知本玩家本轮次结束。
 	 */
 	async play() {
 		let turnEnded = false;
@@ -204,86 +199,45 @@ class Player extends GamingPart {
 			if (turnEnded) {
 				break;
 			}
-			await this.processInput(input);
+			//设置技能三要素
+			this.processInput(input);
+			//三要素齐备，开始施放技能。
+			if (this.selectedUnits?.length && this.selectedSkills?.length && this.selectedTargets?.length) {
+				this.activateSkills(this.selectedUnits, this.selectedSkills, this.selectedTargets);
+			}
+			//每次施放技能后只清空目标。
+			this.selectedTargets = [];
 		}
+
+		this.selectedUnits = [];
+		this.selectedSkills = [];
+		this.selectedTargets = [];
 
 		this.gaming.bulletin.unwatch('turn:end', onTurnEnd);
-		this.setSelectedSkill(null); // 回合结束后自动取消技能选择
 	}
 
 	/**
-	 * 输入分发器。可覆盖以实现完全自定义的输入处理。
-	 * @param {*} input 
+	 * 根据输入，设置施放技能三要素。
+	 * 默认实现：
+	 * 1，若输入为技能数组，则把输入设置为已选技能。
+	 * 2，若输入为单位数组
+	 * 2.1，若未选单位，则把输入设置为已选单位。
+	 * 2.2，否则把输入设置为已选目标。
+	 * @param {*} input
 	 */
-	async processInput(input) {
-		if (input instanceof Unit) {
-			await this.selectUnit(input);
-		} else if (input instanceof Position) {
-			await this.selectTarget(input);
-		} else if (input instanceof Skill) {
-			await this.selectSkill(input);
-		}
+	processInput(input) {
+		//todo：实现
 	}
 
 	/**
-	 * 处理单位选择。子类可覆盖。
-	 * @param {Unit} unit 
+	 * 默认实现：每个技能都触发。技能自行处理目标（比如筛除非法目标等）
+	 * 子类可覆写为只触发单个技能。
+	 * @param selectedUnits
+	 * @param selectedSkills
+	 * @param selectedTargets
 	 */
-	async selectUnit(unit) {
-		// 默认逻辑：如果点击的是敌方单位，且当前技能可对其施放，则施放技能
-		if (unit.owner !== this) {
-			if (this.selectedSkill && this.isSkillTarget(this.selectedSkill, unit)) {
-				await this.activateSkill(this.selectedSkill, [unit]);
-			}
-		} else {
-			// 如果点击的是己方单位，则通知UI，让UI或子类决定下一步操作（如选择技能）
-			this.setSelectedSkill(null);
-			this.gaming.bulletin.notice('player:selected-unit', {player: this, unit: unit});
-		}
-	}
-
-	/**
-	 * 处理目标选择（通常是空地）。子类可覆盖。
-	 * @param {*} target 
-	 */
-	async selectTarget(target) {
-		// 默认逻辑：如果当前有技能，且目标合法，则施放技能
-		if (this.selectedSkill && this.isSkillTarget(this.selectedSkill, target)) {
-			await this.activateSkill(this.selectedSkill, [target]);
-		} else {
-			// 否则，取消选择
-			this.setSelectedSkill(null);
-		}
-	}
-
-	/**
-	 * 激活技能。不建议覆盖。
-	 * @param {Skill} skill 
-	 * @param {any[]} targets 
-	 */
-	async activateSkill(skill, targets) {
-		skill.activate(targets);
-		await this.onSkillActivated();
-	}
-
-	/**
-	 * 技能施放后的钩子。子类可覆盖。
-	 */
-	async onSkillActivated() {
-		// 默认行为：技能施放后，继续等待本回合的下一次输入
-	}
-
-	/**
-	 * 检查一个目标对于一个技能是否合法。
-	 * @param {Skill} skill 
-	 * @param {*} target 
-	 * @returns {boolean}
-	 */
-	isSkillTarget(skill, target) {
-		const availableTargets = skill.getAvailableTargets();
-		// 目标可能是一个单位，也可能是一个位置
-		const targetPosition = target.position || target;
-		return availableTargets.valid.some(p => p.isEqualTo(targetPosition));
+	activateSkills(selectedUnits, selectedSkills, selectedTargets) {
+		//todo:实现
 	}
 }
 

@@ -281,31 +281,5 @@ class 棋局 extends Gaming {
 }
 
 class 棋手 extends Player {
-	/**
-	 * 覆盖“选择单位”的逻辑
-	 */
-	async selectUnit(unit) {
-		// 如果点击的是己方单位
-		if (unit.owner === this) {
-			// 发出“玩家选择了单位”的通知
-			this.gaming.bulletin.notice('player:selected-unit', {player: this, unit: unit});
-			// 自动选择该单位的第一个“移动”类技能
-			const moveSkill = unit.skills.find(s => s instanceof Move);
-			if (moveSkill) {
-				this.setSelectedSkill(moveSkill);
-			}
-		} else {
-			// 如果点击的是敌方单位，则使用基类（Player）的默认逻辑
-			// （即：如果当前有已选技能，且敌方单位是合法目标，则攻击）
-			await super.selectUnit(unit);
-		}
-	}
-
-	/**
-	 * 覆盖“技能施放后”的钩子
-	 */
-	async onSkillActivated() {
-		// 在中国象棋中，任何技能（主要是移动）一旦施放，回合就结束
-		this.gaming.bulletin.notice('turn:end', {player: this});
-	}
+	//todo：需要覆盖父类一些实例方法。
 }
