@@ -904,7 +904,7 @@
 				return this.movableTargets.some(pos => pos.isEqualTo(position));
 			},
 			isAttackableTarget(position) {
-				return this.attackTargets.some(pos => pos.isEqualTo(position));
+				return this.attackTargets.some(unit => unit.position.isEqualTo(position));
 			},
 			isBlockedMove(position) {
 				return this.blockedMoves.some(pos => pos.isEqualTo(position));

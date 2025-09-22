@@ -123,18 +123,14 @@ class 攻击 extends Skill {
 		const {availableTargetPositions} = moveSkill._getFilteredRawTargets();
 
 		const myTeam = this.owner.owner.team;
-		const attackTargets = [];
+		const rt = [];
 
 		availableTargetPositions.forEach(p => {
 			const unitsAtTarget = this.gaming.battlefield.getUnitsAt(p);
-			if (unitsAtTarget.length > 0 && unitsAtTarget[0].owner.team.id !== myTeam.id) {
-				// 位置有敌方单位，可攻击
-				attackTargets.push(p);
-			}
+			unitsAtTarget.filter(u => u.owner.team.id !== myTeam.id).forEach(e => rt.push(e));
 		});
 
-		// 过滤掉出界的位置
-		return this.gaming.battlefield.keepValidPositions(attackTargets);
+		return rt;
 	}
 }
 
@@ -170,11 +166,7 @@ const 内置技能集 = {
 
 					const units = this.gaming.battlefield.getUnitsAt(p);
 					if (units.length > 0) {
-						// 遇到棋子
-						if (units[0].owner.team.id !== myTeam.id) {
-							// 遇到敌方棋子，可以攻击
-							attackTargets.push(p);
-						}
+						units.filter(u => u.owner.team.id !== myTeam.id).forEach(e => attackTargets.push(e));
 						break; // 遇到任何棋子都阻挡，不能继续向前
 					}
 				}
@@ -218,10 +210,8 @@ const 内置技能集 = {
 							// 第一次遇到棋子，这是炮架
 							jumpedOver = true;
 						} else {
-							// 第二次遇到棋子，检查是否为敌方
-							if (units[0].owner.team.id !== myTeam.id) {
-								attackTargets.push(p);
-							}
+							// 第二次遇到棋子
+							units.filter(u => u.owner.team.id !== myTeam.id).forEach(e => attackTargets.push(e));
 							break; // 遇到第二个棋子后，无论敌我，都不能继续向前
 						}
 					} else {
@@ -441,91 +431,6 @@ const 内置技能集 = {
 		}
 	},
 
-	// '挡我者死':
-	// 	class extends Skill {
-	// 		constructor(cfg) {
-	// 			super({
-	// 				name: '挡我者死', intro: '移动路径上的第一个棋子如果是敌方，可以吃掉它。', ...cfg,
-	// 				watchers: {
-	// 					'已获取可移动位置集': ({unit, availableTargetPositions}) => {
-	// 						if (unit.id !== this.owner.id) {
-	// 							return;
-	// 						}
-	//
-	// 						const myTeam = this.owner.owner.team;
-	// 						const {rowNum, colNum} = this.owner.position;
-	// 						const {rowSize, colSize} = this.gaming.battlefield;
-	//
-	// 						const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
-	// 						directions.forEach(([dr, dc]) => {
-	// 							for (let i = 1; ; i++) {
-	// 								const r = rowNum + dr * i;
-	// 								const c = colNum + dc * i;
-	// 								if (r < 1 || r > rowSize || c < 1 || c > colSize) {
-	// 									break;
-	// 								}
-	//
-	// 								const p = new 棋盘点位(r, c);
-	// 								const units = this.gaming.battlefield.getUnitsAt(p);
-	// 								if (units.length > 0) {
-	// 									if (units[0].owner.team.id !== myTeam.id) {
-	// 										availableTargetPositions.push(p);
-	// 									}
-	// 									break;
-	// 								}
-	// 							}
-	// 						});
-	// 					}
-	// 				}
-	// 			});
-	// 		}
-	// 	},
-	//
-	// '隔山打牛': class extends Skill {
-	// 	constructor(cfg) {
-	// 		super({
-	// 			name: '隔山打牛', intro: '可以跳过一个棋子（无论敌我），吃掉路径上的第二个敌方棋子。', ...cfg,
-	// 			watchers: {
-	// 				'已获取可移动位置集': ({unit, availableTargetPositions}) => {
-	// 					if (unit.id !== this.owner.id) {
-	// 						return;
-	// 					}
-	//
-	// 					const myTeam = this.owner.owner.team;
-	// 					const {rowNum, colNum} = this.owner.position;
-	// 					const {rowSize, colSize} = this.gaming.battlefield;
-	//
-	// 					const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
-	// 					directions.forEach(([dr, dc]) => {
-	// 						let jump = null;
-	// 						for (let i = 1; ; i++) {
-	// 							const r = rowNum + dr * i;
-	// 							const c = colNum + dc * i;
-	// 							if (r < 1 || r > rowSize || c < 1 || c > colSize) {
-	// 								break;
-	// 							}
-	//
-	// 							const p = new 棋盘点位(r, c);
-	// 							const units = this.gaming.battlefield.getUnitsAt(p);
-	//
-	// 							if (units.length > 0) {
-	// 								if (!jump) {
-	// 									jump = units[0];
-	// 								} else {
-	// 									if (units[0].owner.team.id !== myTeam.id) {
-	// 										availableTargetPositions.push(p);
-	// 									}
-	// 									break;
-	// 								}
-	// 							}
-	// 						}
-	// 					});
-	// 				}
-	// 			}
-	// 		});
-	// 	}
-	// },
-
 	'勇往直前': class extends Move {
 		constructor(cfg) {
 			super({name: '勇往直前', intro: '未过河时只能向前，过河后可横向移动。', ...cfg});
@@ -534,17 +439,17 @@ const 内置技能集 = {
 		getRawTargetPositions() {
 			const {rowNum, colNum} = this.owner.position;
 			const forward = this.gaming.battlefield.forwardDirection(this.owner.owner);
-			const moves = [
+			const rt = [
 				new 棋盘点位(rowNum + forward, colNum) // 永远可以向前
 			];
 
 			const riverCrossed = this.gaming.battlefield.isAcrossRiver(this.owner.position, this.owner.owner);
 			if (riverCrossed) {
-				moves.push(new 棋盘点位(rowNum, colNum - 1)); // 向左
-				moves.push(new 棋盘点位(rowNum, colNum + 1)); // 向右
+				rt.push(new 棋盘点位(rowNum, colNum - 1)); // 向左
+				rt.push(new 棋盘点位(rowNum, colNum + 1)); // 向右
 			}
 
-			return moves;
+			return rt;
 		}
 	}
 };

@@ -229,24 +229,27 @@ class Player extends GamingPart {
 		const firstItem = inputs[0];
 
 		if (firstItem instanceof Unit) {
-			this.selectingUnits(inputs);
+			// 如果已经选择了单位和技能，那么后续的单位输入应被视为“目标”
+			if (this.selectedUnits?.length && this.selectedSkills?.length) {
+				// 检查这些“目标”对于当前选中的技能是否合法
+				if (this.selectedSkills.some(e => e.isValidTargets(inputs))) {
+					this.selectTargets(inputs);
+				} else {
+					// 如果目标不合法，则检查本次输入是否是一次全新的“选择单位”动作
+					const ownUnits = inputs.filter(u => u.owner?.id === this.id);
+					if (ownUnits.length > 0) {
+						this.selectUnits(ownUnits);
+					}
+					// 如果既不是合法目标，也不是选择新的己方单位，则忽略本次操作
+				}
+			} else {
+				// 如果尚未选择单位/技能，则本次输入为“选择单位”
+				this.selectUnits(inputs);
+			}
 		} else if (firstItem instanceof Skill) {
 			this.selectSkills(inputs);
 		} else {
 			this.selectTargets(inputs);
-		}
-	}
-
-	selectingUnits(inputs) {
-		if (this.selectedUnits?.length && this.selectedSkills?.length) {
-			const ownUnits = inputs.filter(u => u.owner?.id === this.id);
-			if (!ownUnits.length || this.selectedSkills.some(e => e.isValidTargets(inputs))) {
-				this.selectTargets(inputs);
-			} else {
-				this.selectUnits(ownUnits);
-			}
-		} else {
-			this.selectUnits(inputs);
 		}
 	}
 
@@ -345,7 +348,8 @@ class Skill extends GamingPart {
 	}
 
 	isValidTargets(targets) {
-		return false;
+		const availableTargets = this.availableTargets;
+		return targets.every(target => availableTargets.some(e => target.id === e.id));
 	}
 
 	/**
