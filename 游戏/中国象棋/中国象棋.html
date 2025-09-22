@@ -762,7 +762,7 @@
 					setTimeout(() => this.showCheck = false, 1000);
 				});
 
-				gaming.bulletin.watch('玩家选择了一个技能', ({unit, skills}) => {
+				gaming.bulletin.watch('玩家选择了技能', ({unit, skills}) => {
 					this.selectedUnit = unit;
 					// 主动从技能获取可移动位置用于UI显示
 					const targets = skills[0].getAvailableTargets();
