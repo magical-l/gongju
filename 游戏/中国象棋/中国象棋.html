@@ -153,346 +153,361 @@
 		box-shadow: 0 0 10px #007bff;
 	}
 
-		.valid-move-indicator {
-			position: absolute;
-			z-index: 20;
-			width: 40%;
-			height: 40%;
-			background-color: rgba(40, 167, 69, 0.5);
-			border-radius: 50%;
-			pointer-events: none;
-		}
-	
-		.attack-indicator {
-			position: absolute;
-			z-index: 20;
-			width: 60%;
-			height: 60%;
-			background: url('两把相交的剑.svg') center center no-repeat;
-			background-size: contain;
-			pointer-events: none;
-		}
-	
-		.blocked-move-indicator {
-			position: absolute;
-			z-index: 20;
-			width: 40%;
-			height: 40%;
-			pointer-events: none;
-		}
-	
-		.blocked-move-indicator::before, .blocked-move-indicator::after {
-			content: '';
-			position: absolute;
-			top: 50%;
-			left: 10%;
-			width: 80%;
-			height: 15%;
-			background-color: rgba(220, 53, 69, 0.7);
-			border-radius: 2px;
-			transform-origin: center;
-		}
-	
-		.blocked-move-indicator::before {
-			transform: translateY(-50%) rotate(45deg);
-		}
-	
-		.blocked-move-indicator::after {
-			transform: translateY(-50%) rotate(-45deg);
-		}
-	
-		/* ==============================游戏提示覆盖层=========================== */
-		.game-overlay {
-			position: absolute;
-			top: 0;
-			left: 0;
-			width: 100%;
-			height: 100%;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			z-index: 100;
-			pointer-events: none; /* 将军动画不应阻挡操作 */
-		}
-	
-		.game-overlay.game-over {
-			pointer-events: auto; /* 游戏结束时，不允许操作棋盘 */
-		}
-	
-		.overlay-content {
-			text-align: center;
-			color: white;
-		}
-	
-		@keyframes check-animation {
-			0% { transform: scale(1); opacity: 1; }
-			50% { transform: scale(1.5); opacity: 0.7; }
-			100% { transform: scale(2); opacity: 0; }
-		}
-	
-		.check-text {
-			font-size: 120px;
-			font-weight: bold;
-			color: #ffc107;
-			text-shadow: 0 0 15px red, 0 0 25px red;
-			animation: check-animation 1s ease-out;
-		}
-	
-		.game-over-text {
-			font-size: 80px;
-			font-weight: bold;
-			color: #4caf50;
-			text-shadow: 0 0 10px white;
-		}
-	
-		.winner-text {
-			font-size: 40px;
-			margin-top: 10px;
-		}
-	
-		.overlay-content button {
-			margin-top: 30px;
-			padding: 10px 30px;
-			font-size: 20px;
-			cursor: pointer;
-		}
-	
-		/* ==============================棋盘编辑器=========================== */
-		.board-editor {
-			--min-cell-len: 45px;
-		}
-	
-		.piece-palette {
-			grid-template-columns: repeat(2, 45px);
-			grid-template-rows: repeat(7, 45px);
-			gap: 10px;
-			padding: 10px;
-		}
-	
-		.one.chessboard.editor {
-			border: 1px solid #333;
-			display: grid;
-		}
-	
-		.chessboard.editor .cell {
-			width: var(--min-cell-len);
-			height: var(--min-cell-len);
-			box-sizing: border-box;
-		}
-	
-		.board-editor .unit.display {
-			width: 40px;
-			height: 40px;
-			font-size: 28px;
-		}
-	
-		.remove-piece-btn {
-			position: absolute;
-			top: -5px;
-			right: -5px;
-			z-index: 20;
-			width: 20px;
-			height: 20px;
-			border-radius: 50%;
-			background-color: #ff4d4f;
-			color: white;
-			border: 1px solid white;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			font-size: 14px;
-			font-weight: bold;
-			cursor: pointer;
-			box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-		}
-	
-		/* ==============================棋子类型编辑器=========================== */
-		.piece-type-editor-wrapper {
-			gap: 20px;
-		}
-	
-		.piece-type-grid {
-			--min-cell-len: 50px;
-			/*display: grid;*/
-			/*grid-template-columns: repeat(7, var(--min-cell-len));*/
-			gap: 10px;
-			padding: 10px;
-			background: #f5f5f5;
-			border: 1px solid #ddd;
-			border-radius: 4px;
-		}
-	
-		.piece-type-grid .unit.display {
-			width: 45px;
-			height: 45px;
-		}
-	
-		.piece-type-details {
-			flex-grow: 1;
-			padding-left: 20px;
-			border-left: 1px solid #eee;
-		}
-	
-		.el-checkbox.is-selected-for-editing {
-			border-color: var(--el-color-primary);
-		}
-	</style>
-	</head>
-	<body class="grid 反叵字形">
-	<main>
-		<article class="game-wrapper , 反叵字形 grid" v-cloak>
-			<!-- 设置弹窗 -->
-			<el-dialog class="game cfg area" v-model="showSettingsDialog" title="游戏设置" :close-on-click-modal="false"
+	.valid-move-indicator {
+		position: absolute;
+		z-index: 20;
+		width: 40%;
+		height: 40%;
+		background-color: rgba(40, 167, 69, 0.5);
+		border-radius: 50%;
+		pointer-events: none;
+	}
+
+	.attack-indicator {
+		position: absolute;
+		z-index: 20;
+		width: 60%;
+		height: 60%;
+		pointer-events: none;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.attack-indicator::before, .attack-indicator::after {
+		content: '';
+		position: absolute;
+		width: 80%;
+		height: 15%;
+		background-color: rgba(255, 0, 0, 0.7); /* 红色 */
+		border-radius: 2px;
+	}
+
+	.attack-indicator::before {
+		transform: rotate(45deg);
+	}
+
+	.attack-indicator::after {
+		transform: rotate(-45deg);
+	}
+
+	.blocked-move-indicator {
+		position: absolute;
+		z-index: 20;
+		width: 60%;
+		height: 60%;
+		border-radius: 50%;
+		border: 4px solid rgba(220, 53, 69, 0.9); /* 红色边框 */
+		background-color: rgba(255, 255, 255, 0.3); /* 半透明白色背景 */
+		pointer-events: none;
+		overflow: hidden; /* 确保斜线不超出圆圈 */
+	}
+
+	.blocked-move-indicator::before {
+		content: '';
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 120%; /* 确保斜线覆盖整个圆圈 */
+		height: 15%;
+		background-color: rgba(220, 53, 69, 0.9); /* 红色斜线 */
+		transform: translate(-50%, -50%) rotate(45deg);
+		border-radius: 2px;
+	}
+
+	/* ==============================游戏提示覆盖层=========================== */
+	.game-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		z-index: 100;
+		pointer-events: none; /* 将军动画不应阻挡操作 */
+	}
+
+	.game-overlay.game-over {
+		pointer-events: auto; /* 游戏结束时，不允许操作棋盘 */
+	}
+
+	.overlay-content {
+		text-align: center;
+		color: white;
+	}
+
+	@keyframes check-animation {
+		0% { transform: scale(1); opacity: 1; }
+		50% { transform: scale(1.5); opacity: 0.7; }
+		100% { transform: scale(2); opacity: 0; }
+	}
+
+	.check-text {
+		font-size: 120px;
+		font-weight: bold;
+		color: #ffc107;
+		text-shadow: 0 0 15px red, 0 0 25px red;
+		animation: check-animation 1s ease-out;
+	}
+
+	.game-over-text {
+		font-size: 80px;
+		font-weight: bold;
+		color: #4caf50;
+		text-shadow: 0 0 10px white;
+	}
+
+	.winner-text {
+		font-size: 40px;
+		margin-top: 10px;
+	}
+
+	.overlay-content button {
+		margin-top: 30px;
+		padding: 10px 30px;
+		font-size: 20px;
+		cursor: pointer;
+	}
+
+	/* ==============================棋盘编辑器=========================== */
+	.board-editor {
+		--min-cell-len: 45px;
+	}
+
+	.piece-palette {
+		grid-template-columns: repeat(2, 45px);
+		grid-template-rows: repeat(7, 45px);
+		gap: 10px;
+		padding: 10px;
+	}
+
+	.one.chessboard.editor {
+		border: 1px solid #333;
+		display: grid;
+	}
+
+	.chessboard.editor .cell {
+		width: var(--min-cell-len);
+		height: var(--min-cell-len);
+		box-sizing: border-box;
+	}
+
+	.board-editor .unit.display {
+		width: 40px;
+		height: 40px;
+		font-size: 28px;
+	}
+
+	.remove-piece-btn {
+		position: absolute;
+		top: -5px;
+		right: -5px;
+		z-index: 20;
+		width: 20px;
+		height: 20px;
+		border-radius: 50%;
+		background-color: #ff4d4f;
+		color: white;
+		border: 1px solid white;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		font-size: 14px;
+		font-weight: bold;
+		cursor: pointer;
+		box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+	}
+
+	/* ==============================棋子类型编辑器=========================== */
+	.piece-type-editor-wrapper {
+		gap: 20px;
+	}
+
+	.piece-type-grid {
+		--min-cell-len: 50px;
+		/*display: grid;*/
+		/*grid-template-columns: repeat(7, var(--min-cell-len));*/
+		gap: 10px;
+		padding: 10px;
+		background: #f5f5f5;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+	}
+
+	.piece-type-grid .unit.display {
+		width: 45px;
+		height: 45px;
+	}
+
+	.piece-type-details {
+		flex-grow: 1;
+		padding-left: 20px;
+		border-left: 1px solid #eee;
+	}
+
+	.el-checkbox.is-selected-for-editing {
+		border-color: var(--el-color-primary);
+	}
+</style>
+</head>
+<body class="grid 反叵字形">
+<main>
+	<article class="game-wrapper , 反叵字形 grid" v-cloak>
+		<!-- 设置弹窗 -->
+		<el-dialog class="game cfg area" v-model="showSettingsDialog" title="游戏设置" :close-on-click-modal="false"
 							 :close-on-press-escape="false" :show-close="false" width="850px">
-				<el-form :model="gameSettings" label-position="top">
-					<el-form-item label="玩家顺序">
-						<el-radio-group v-model="gameSettings.firstPlayer">
-							<el-radio value="red">红方先手</el-radio>
-							<el-radio value="black">黑方先手</el-radio>
-						</el-radio-group>
-					</el-form-item>
-					<el-form-item label="棋子类型">
-						<div class="piece-type-editor-wrapper flex vertical">
-							<div class="piece-type-grid flex">
-								<div class="unit display" v-for="(piece, type) in boardEditor.pieceTypes" :key="type"
-										 :class="[getEditorUnitColor(piece), { 'selected': boardEditor.selectedPieceType === type }]"
-										 @click="boardEditor.selectedPieceType = (boardEditor.selectedPieceType === type ? null : type)">
-									{{ piece.显示 }}
-								</div>
-							</div>
-							<div v-if="boardEditor.selectedPieceType" class="piece-type-details">
-								<h4>正在编辑: {{ boardEditor.selectedPieceType }}</h4>
-								<el-form label-width="60px">
-									<el-form-item label="启用">
-										<el-switch v-model="isCurrentPieceEnabled"></el-switch>
-									</el-form-item>
-									<el-form-item label="显示">
-										<el-input v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].显示"
-													 :input-style="{ fontFamily: 'NotoSansSymbols2, sans-serif', fontSize: '28px', textAlign: 'center' }"
-													 style="width: 60px;"/>
-									</el-form-item>
-									<el-form-item label="技能">
-										<el-checkbox-group v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].技能">
-											<el-checkbox v-for="skill in allAvailableSkills" :key="skill" :label="skill"/>
-										</el-checkbox-group>
-									</el-form-item>
-								</el-form>
+			<el-form :model="gameSettings" label-position="top">
+				<el-form-item label="玩家顺序">
+					<el-radio-group v-model="gameSettings.firstPlayer">
+						<el-radio value="red">红方先手</el-radio>
+						<el-radio value="black">黑方先手</el-radio>
+					</el-radio-group>
+				</el-form-item>
+				<el-form-item label="棋子类型">
+					<div class="piece-type-editor-wrapper flex vertical">
+						<div class="piece-type-grid flex">
+							<div class="unit display" v-for="(piece, type) in boardEditor.pieceTypes" :key="type"
+									 :class="[getEditorUnitColor(piece), { 'selected': boardEditor.selectedPieceType === type }]"
+									 @click="boardEditor.selectedPieceType = (boardEditor.selectedPieceType === type ? null : type)">
+								{{ piece.显示 }}
 							</div>
 						</div>
-					</el-form-item>
-					<el-form-item label="棋盘布局">
-						<div class="board-editor , 叵字形 grid">
-							<header class="toolbar , one row item , flex">
-								<el-button @click="resetBoard" type="info" inline plain>默认棋盘</el-button>
-								<el-button @click="clearBoard" type="danger" inline plain>清空棋盘</el-button>
-							</header>
-							<el-card body-class="piece-palette , left-sidebar , grid">
-								<div class="unit display" v-for="(piece, type) in palettePieceTypes" :key="type"
-										 :class="getEditorUnitColor(piece)"
-										 draggable="true" @dragstart="dragStartPiece(type, 'palette')">
-									{{ piece.显示 }}
-								</div>
-							</el-card>
-							<div class="one chessboard editor , grid">
-								<template v-for="(row, r) in boardEditor.layout" :key="r">
-									<div class="cell" v-for="(pieceName, c) in row" :key="c"
-											 :class="cellClasses(r, c)"
-											 @dragover.prevent @drop="dropOnBoard(r, c)" @click="selectEditorPiece(r, c)">
-										<div class="texture container">
-											<div class="texture part vertical top"></div>
-											<div class="texture part horizon right"></div>
-											<div class="texture part vertical bottom"></div>
-											<div class="texture part horizon left"></div>
-											<div class="texture part left top corner"></div>
-											<div class="texture part right top corner"></div>
-											<div class="texture part right bottom corner"></div>
-											<div class="texture part left bottom corner"></div>
-										</div>
-										<div v-if="pieceName !== '空'"
-												 class="unit display"
-												 :class="[getEditorUnitColor(boardEditor.pieceTypes[pieceName]), { 'selected': isEditorPieceSelected(r, c) }]"
-												 draggable="true"
-												 @dragstart="dragStartPiece(pieceName, 'board', r, c)">
-											{{ boardEditor.pieceTypes[pieceName].显示 }}
-											<div class="remove-piece-btn" @click.stop="removeEditorPiece(r, c)">×</div>
-										</div>
+						<div v-if="boardEditor.selectedPieceType" class="piece-type-details">
+							<h4>正在编辑: {{ boardEditor.selectedPieceType }}</h4>
+							<el-form label-width="60px">
+								<el-form-item label="启用">
+									<el-switch v-model="isCurrentPieceEnabled"></el-switch>
+								</el-form-item>
+								<el-form-item label="显示">
+									<el-input v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].显示"
+														:input-style="{ fontFamily: 'NotoSansSymbols2, sans-serif', fontSize: '28px', textAlign: 'center' }"
+														style="width: 60px;"/>
+								</el-form-item>
+								<el-form-item label="技能">
+									<el-checkbox-group v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].技能">
+										<el-checkbox v-for="skill in allAvailableSkills" :key="skill" :label="skill"/>
+									</el-checkbox-group>
+								</el-form-item>
+							</el-form>
+						</div>
+					</div>
+				</el-form-item>
+				<el-form-item label="棋盘布局">
+					<div class="board-editor , 叵字形 grid">
+						<header class="toolbar , one row item , flex">
+							<el-button @click="resetBoard" type="info" inline plain>默认棋盘</el-button>
+							<el-button @click="clearBoard" type="danger" inline plain>清空棋盘</el-button>
+						</header>
+						<el-card body-class="piece-palette , left-sidebar , grid">
+							<div class="unit display" v-for="(piece, type) in palettePieceTypes" :key="type"
+									 :class="getEditorUnitColor(piece)"
+									 draggable="true" @dragstart="dragStartPiece(type, 'palette')">
+								{{ piece.显示 }}
+							</div>
+						</el-card>
+						<div class="one chessboard editor , grid">
+							<template v-for="(row, r) in boardEditor.layout" :key="r">
+								<div class="cell" v-for="(pieceName, c) in row" :key="c"
+										 :class="cellClasses(r, c)"
+										 @dragover.prevent @drop="dropOnBoard(r, c)" @click="selectEditorPiece(r, c)">
+									<div class="texture container">
+										<div class="texture part vertical top"></div>
+										<div class="texture part horizon right"></div>
+										<div class="texture part vertical bottom"></div>
+										<div class="texture part horizon left"></div>
+										<div class="texture part left top corner"></div>
+										<div class="texture part right top corner"></div>
+										<div class="texture part right bottom corner"></div>
+										<div class="texture part left bottom corner"></div>
 									</div>
-								</template>
-							</div>
+									<div v-if="pieceName !== '空'"
+											 class="unit display"
+											 :class="[getEditorUnitColor(boardEditor.pieceTypes[pieceName]), { 'selected': isEditorPieceSelected(r, c) }]"
+											 draggable="true"
+											 @dragstart="dragStartPiece(pieceName, 'board', r, c)">
+										{{ boardEditor.pieceTypes[pieceName].显示 }}
+										<div class="remove-piece-btn" @click.stop="removeEditorPiece(r, c)">×</div>
+									</div>
+								</div>
+							</template>
 						</div>
-					</el-form-item>
-					<el-form-item label="全局规则">
-						<el-checkbox-group v-model="gameSettings.rules">
-							<el-checkbox v-for="rule in allAvailableRules" :key="rule" :label="rule"/>
-						</el-checkbox-group>
-					</el-form-item>
-					<el-form-item label="插件">
-						<el-checkbox-group v-model="gameSettings.plugins">
-							<el-checkbox v-for="plugin in allAvailablePlugins" :key="plugin" :label="plugin"/>
-						</el-checkbox-group>
-					</el-form-item>
-				</el-form>
-				<template #footer>
-					<el-button type="primary" @click="startGame">开始游戏</el-button>
-				</template>
-			</el-dialog>
-	
-			<template v-if="gaming">
-				<div class="toolbar , one-row item , flex items-like-册" style="gap: 10px; padding: 10px;">
-					<label>镜像视角
-						<el-switch v-model="showReversedView" size="large"/>
-					</label>
-				</div>
-	
-				<div class="chessboard area" style="display: flex; justify-content: center; gap: 30px;">
-					<article class="one chessboard , grid">
-						<template v-for="(row,rIndex) of positions" :key="rIndex">
-							<div class="cell" v-for="(position,cIndex) in row" :key="rIndex + ',' + cIndex"
-									 :class="cellClasses(rIndex, cIndex, position)" @click="clickCell(position)">
-								<div class="texture container">
-									<div class="texture part vertical top"></div>
-									<div class="texture part horizon right"></div>
-									<div class="texture part vertical bottom"></div>
-									<div class="texture part horizon left"></div>
-									<div class="texture part left top corner"></div>
-									<div class="texture part right top corner"></div>
-									<div class="texture part right bottom corner"></div>
-									<div class="texture part left bottom corner"></div>
-								</div>
-								<div class="unit display" v-for="(unit, uIndex) in getUnitsAt(position)" :key="uIndex"
-										 :class="getUnitClasses(unit)">
-									{{ unit.display }}
-								</div>
-								<div v-if="isMovableTarget(position)" class="valid-move-indicator"></div>
-								<div v-if="isAttackableTarget(position)" class="attack-indicator"></div>
-								<div v-if="isBlockedMove(position)" class="blocked-move-indicator"></div>
+					</div>
+				</el-form-item>
+				<el-form-item label="全局规则">
+					<el-checkbox-group v-model="gameSettings.rules">
+						<el-checkbox v-for="rule in allAvailableRules" :key="rule" :label="rule"/>
+					</el-checkbox-group>
+				</el-form-item>
+				<el-form-item label="插件">
+					<el-checkbox-group v-model="gameSettings.plugins">
+						<el-checkbox v-for="plugin in allAvailablePlugins" :key="plugin" :label="plugin"/>
+					</el-checkbox-group>
+				</el-form-item>
+			</el-form>
+			<template #footer>
+				<el-button type="primary" @click="startGame">开始游戏</el-button>
+			</template>
+		</el-dialog>
+
+		<template v-if="gaming">
+			<div class="toolbar , one-row item , flex items-like-册" style="gap: 10px; padding: 10px;">
+				<label>镜像视角
+					<el-switch v-model="showReversedView" size="large"/>
+				</label>
+			</div>
+
+			<div class="chessboard area" style="display: flex; justify-content: center; gap: 30px;">
+				<article class="one chessboard , grid">
+					<template v-for="(row,rIndex) of positions" :key="rIndex">
+						<div class="cell" v-for="(position,cIndex) in row" :key="rIndex + ',' + cIndex"
+								 :class="cellClasses(rIndex, cIndex, position)" @click="clickCell(position)">
+							<div class="texture container">
+								<div class="texture part vertical top"></div>
+								<div class="texture part horizon right"></div>
+								<div class="texture part vertical bottom"></div>
+								<div class="texture part horizon left"></div>
+								<div class="texture part left top corner"></div>
+								<div class="texture part right top corner"></div>
+								<div class="texture part right bottom corner"></div>
+								<div class="texture part left bottom corner"></div>
 							</div>
-						</template>
-					</article>
-					<article class="one chessboard reversed-view , grid" v-if="showReversedView">
-						<template v-for="(row,rIndex) of reversedPositions" :key="rIndex">
-							<div class="cell" v-for="(position,cIndex) in row" :key="rIndex + ',' + cIndex"
-									 :class="cellClasses(rIndex, cIndex, position)" @click="clickCell(position)">
-								<div class="texture container">
-									<div class="texture part vertical top"></div>
-									<div class="texture part horizon right"></div>
-									<div class="texture part vertical bottom"></div>
-									<div class="texture part horizon left"></div>
-									<div class="texture part left top corner"></div>
-									<div class="texture part right top corner"></div>
-									<div class="texture part right bottom corner"></div>
-									<div class="texture part left bottom corner"></div>
-								</div>
-								<div class="unit display" v-for="(unit, uIndex) in getUnitsAt(position)" :key="uIndex"
-										 :class="getUnitClasses(unit)">
-									{{ unit.display }}
-								</div>
-								<div v-if="isMovableTarget(position)" class="valid-move-indicator"></div>
-								<div v-if="isAttackableTarget(position)" class="attack-indicator"></div>
-								<div v-if="isBlockedMove(position)" class="blocked-move-indicator"></div>
+							<div class="unit display" v-for="(unit, uIndex) in getUnitsAt(position)" :key="uIndex"
+									 :class="getUnitClasses(unit)">
+								{{ unit.display }}
 							</div>
-						</template>
-					</article>			</div>
+							<div v-if="isMovableTarget(position)" class="valid-move-indicator"></div>
+							<div v-if="isAttackableTarget(position)" class="attack-indicator"></div>
+							<div v-if="isBlockedMove(position)" class="blocked-move-indicator"></div>
+						</div>
+					</template>
+				</article>
+				<article class="one chessboard reversed-view , grid" v-if="showReversedView">
+					<template v-for="(row,rIndex) of reversedPositions" :key="rIndex">
+						<div class="cell" v-for="(position,cIndex) in row" :key="rIndex + ',' + cIndex"
+								 :class="cellClasses(rIndex, cIndex, position)" @click="clickCell(position)">
+							<div class="texture container">
+								<div class="texture part vertical top"></div>
+								<div class="texture part horizon right"></div>
+								<div class="texture part vertical bottom"></div>
+								<div class="texture part horizon left"></div>
+								<div class="texture part left top corner"></div>
+								<div class="texture part right top corner"></div>
+								<div class="texture part right bottom corner"></div>
+								<div class="texture part left bottom corner"></div>
+							</div>
+							<div class="unit display" v-for="(unit, uIndex) in getUnitsAt(position)" :key="uIndex"
+									 :class="getUnitClasses(unit)">
+								{{ unit.display }}
+							</div>
+							<div v-if="isMovableTarget(position)" class="valid-move-indicator"></div>
+							<div v-if="isAttackableTarget(position)" class="attack-indicator"></div>
+							<div v-if="isBlockedMove(position)" class="blocked-move-indicator"></div>
+						</div>
+					</template>
+				</article>
+			</div>
 
 			<article class="gaming situation , right-sidebar">
 				<el-card style="margin-bottom: 20px;">
@@ -774,7 +789,7 @@
 					setTimeout(() => this.showCheck = false, 1000);
 				});
 
-				gaming.bulletin.watch('玩家选择了单位',({units})=> this.selectedUnit = units[0]);
+				gaming.bulletin.watch('玩家选择了单位', ({units}) => this.selectedUnit = units[0]);
 
 				gaming.bulletin.watch('玩家选择了技能', ({skills}) => {
 					this.movableTargets = [];
