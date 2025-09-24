@@ -77,17 +77,6 @@ const proxy = (instance, options = {}) => {
 	return new Proxy(instance, handler);
 };
 
-const createAopWrapper = (target, prop, receiver, originalGet, aopLogic) => {
-	const originalFunc = originalGet(target, prop, receiver);
-	if (typeof originalFunc !== 'function') {
-		return originalFunc;
-	}
-	return function(...args) {
-		const self = this; // 确保this指向Proxy实例
-		return aopLogic.apply(self, [originalFunc, args]);
-	}.bind(receiver);
-};
-
 class Team {
 	static #id = 0;
 
@@ -156,6 +145,29 @@ const filterValidTargetsAopLogic = (self, originalFunc, args) => {
 	return rt;
 };
 
+// AOP配置映射
+const skillAopMap = {
+	'activate': activateAopLogic,
+	'filterValidTargets': filterValidTargetsAopLogic
+};
+
+// 泛化的getSpecific处理函数
+const createClassGetSpecific = aopMap =>
+	(target, prop, receiver, originalGet) => {
+		const aopLogic = aopMap[prop];
+		if (aopLogic) {
+			const originalFunc = originalGet(target, prop, receiver);
+			if (typeof originalFunc !== 'function') {
+				return originalFunc;
+			}
+			return function(...args) {
+				const self = this; // 确保this指向Proxy实例
+				return aopLogic.apply(self, [originalFunc, args]);
+			}.bind(receiver);
+		}
+		return undefined;
+	};
+
 class Skill {
 	static #id = 0;
 	static #instanceActivateCounts = new WeakMap();
@@ -179,14 +191,7 @@ class Skill {
 		// 定义Skill特有的Proxy处理逻辑
 		// 返回一个Proxy，用于动态地为activate方法织入AOP逻辑，并代理cfg属性
 		return proxy(this, {
-			getSpecific: (target, prop, receiver, originalGet) => {
-				if (prop === 'activate') {
-					return createAopWrapper(target, prop, receiver, originalGet, activateAopLogic);
-				} else if (prop === 'filterValidTargets') {
-					return createAopWrapper(target, prop, receiver, originalGet, filterValidTargetsAopLogic);
-				}
-				return undefined;
-			}
+			getSpecific: createClassGetSpecific(skillAopMap)
 		});
 	}
 
@@ -267,37 +272,33 @@ class BuffSkill extends PassiveSkill {
 
 		// 在 Skill 的 Proxy 实例之上，再应用一层 BuffSkill 特有的 Proxy
 		const actualMe = proxy(rawMe, {
-			getSpecific: (target, prop, receiver, originalGet) => {
-				if (prop === 'activate') {
-					return createAopWrapper(target, prop, receiver, originalGet, async (self, originalActivate, args) => {
-						// BuffSkill 的一次性激活 AOP 检查
-						if (self.#isActivated) {
-							console?.warn(`BuffSkill [${self.name}] 已经激活过一次，不能再次主动使用。`);
-							return false;
-						}
+			getSpecific: createClassGetSpecific({
+				'activate': async (self, originalActivate, args) => {
+					// BuffSkill 的一次性激活 AOP 检查
+					if (self.#isActivated) {
+						console?.warn(`BuffSkill [${self.name}] 已经激活过一次，不能再次主动使用。`);
+						return false;
+					}
 
-						// 调用 Skill 层的 activate AOP (它会继续调用原始方法)
-						const result = await activateAopLogic(self, originalActivate, args); // Pass originalActivate and args
+					// 调用 Skill 层的 activate AOP (它会继续调用原始方法)
+					const result = await activateAopLogic(self, originalActivate, args); // Pass originalActivate and args
 
-						// BuffSkill 首次成功激活后，标记为已激活
-						if (result === true && !self.#isActivated) {
-							self.#isActivated = true;
-						}
-						return result;
-					});
-				} else if (prop === 'filterValidTargets') {
-					return createAopWrapper(target, prop, receiver, originalGet, (self, originalFunc, args) => {
-						// BuffSkill 的一次性激活 AOP 检查
-						if (self.#isActivated) {
-							console?.warn(`BuffSkill [${self.name}] 已经激活过一次，因此不返回任何合法目标。`);
-							return []; // 阻止过滤，直接返回空数组
-						}
-						// 调用 Skill 层的 filterValidTargets AOP
-						return filterValidTargetsAopLogic(self, originalFunc, args);
-					});
+					// BuffSkill 首次成功激活后，标记为已激活
+					if (result === true && !self.#isActivated) {
+						self.#isActivated = true;
+					}
+					return result;
+				},
+				'filterValidTargets': (self, originalFunc, args) => {
+					// BuffSkill 的一次性激活 AOP 检查
+					if (self.#isActivated) {
+						console?.warn(`BuffSkill [${self.name}] 已经激活过一次，因此不返回任何合法目标。`);
+						return []; // 阻止过滤，直接返回空数组
+					}
+					// 调用 Skill 层的 filterValidTargets AOP
+					return filterValidTargetsAopLogic(self, originalFunc, args);
 				}
-				return undefined;
-			}
+			})
 		});
 
 		// 注册监听器，确保在 BuffSkill 的 AOP 之后
