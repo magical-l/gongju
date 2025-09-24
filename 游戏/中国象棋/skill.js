@@ -158,7 +158,7 @@ class Skill {
 						const actualTargets = self.filterValidTargets(inputTargets);
 						// 2. 如果没有合法目标，则技能不发动
 						if (actualTargets.length === 0) {
-							console.warn(`技能 [${self.name}] 在提供的目标中没有找到任何合法目标，技能未发动。`);
+							console?.warn(`技能 [${self.name}] 在提供的目标中没有找到任何合法目标，技能未发动。`);
 							return false;
 						}
 						// 3. 前置通知 (AOP前置)，通知中包含的是实际将要作用的目标
@@ -271,31 +271,77 @@ class PassiveSkill extends Skill {
  * 增益技能。一种特殊的被动技，只在主人得到本技能时触发一次，给主人或相关元素增加一种状态（称为‘增益’）。
  */
 class BuffSkill extends PassiveSkill {
+	#isActivated = false;
+
 	constructor(cfg, owner) {
-		super({
-			...cfg,
-			watchers: {
-				'unit add skill end': ({unit, skill}) => {
-					if (compareWithId(this.owner, unit) && compareWithId(this, skill)) {
-						// 1. 执行初始激活 (会通过AOP)
-						this.activate(owner);
-						// 2. 初始激活后，立即覆盖filterValidTargets和activate，以防止后续的主动使用。
-						this.filterValidTargets = targets => {
-							console?.warn(`被动技能 [${this.name}] 不能被主动使用，因此不返回任何合法目标。`);
-							return [];
-						};
-						this.activate = async targets => false;
-						//此时才监听。避免没有执行过activate就deactivate。
-						watch(this, 'unit remove a skill end', ({unit, skill}) => {
-							if (compareWithId(this.owner, unit) && compareWithId(this, skill)) {
-								this.deactivate();
-								this.deactivate = async () => false;
-							}
-						});
+		// 先调用父类构造函数，获取 Skill 的 Proxy 实例
+		const rawMe = super(cfg, owner);
+
+		// 在 Skill 的 Proxy 实例之上，再应用一层 BuffSkill 特有的 Proxy
+		const actualMe = proxy(rawMe, {
+			getSpecific: (target, prop, receiver, originalGet) => {
+				// BuffSkill 的 activate 方法 AOP 逻辑
+				if (prop === 'activate') {
+					const originalActivate = originalGet(target, prop, receiver);
+					if (typeof originalActivate !== 'function') {
+						return originalActivate;
 					}
+					return async function(...args) {
+						const self = this; // 确保this指向Proxy实例
+
+						// BuffSkill 的一次性激活 AOP 检查
+						if (self.#isActivated) {
+							console?.warn(`BuffSkill [${self.name}] 已经激活过一次，不能再次主动使用。`);
+							return false;
+						}
+
+						// 调用 Skill 层的 activate AOP (它会继续调用原始方法)
+						const result = await originalActivate.apply(self, args);
+
+						// BuffSkill 首次成功激活后，标记为已激活
+						if (result === true && !self.#isActivated) { // 只有当 Skill 层的 activate 成功返回 true 时才标记
+							self.#isActivated = true;
+						}
+						return result;
+					}.bind(receiver);
+				} else if (prop === 'filterValidTargets') {
+					const originalFunc = originalGet(target, prop, receiver);
+					if (typeof originalFunc !== 'function') {
+						return originalFunc;
+					}
+					return function(...args) {
+						const self = this;
+
+						// BuffSkill 的一次性激活 AOP 检查
+						if (self.#isActivated) {
+							console?.warn(`BuffSkill [${self.name}] 已经激活过一次，因此不返回任何合法目标。`);
+							return []; // 阻止过滤，直接返回空数组
+						}
+						// 调用 Skill 层的 filterValidTargets AOP
+						return originalFunc.apply(self, args);
+					}.bind(receiver);
+				}
+				return undefined;
+			}
+		});
+
+		// 注册监听器，确保在 BuffSkill 的 AOP 之后
+		watchersWatch(actualMe, {
+			'unit add skill end': ({unit, skill}) => {
+				if (compareWithId(actualMe.owner, unit) && compareWithId(actualMe, skill)) {
+					// 1. 执行初始激活 (会通过AOP)
+					actualMe.activate(actualMe.owner);
+					// 2. 初始激活后，监听移除事件
+					watch(actualMe, 'unit remove a skill end', ({unit, skill}) => {
+						if (compareWithId(actualMe.owner, unit) && compareWithId(actualMe, skill)) {
+							actualMe.deactivate();
+						}
+					});
 				}
 			}
-		}, owner);
+		});
+
+		return actualMe;
 	}
 
 	/**
