@@ -32,30 +32,25 @@ const notice = (gamingPart, topic, content) => gamingPart.gaming?.bulletin.notic
  */
 const proxy = (instance, options = {}) => {
 	const {
-		getSpecific = (target, prop, receiver, originalGet) => undefined, // 默认不处理特定get
+		getSpecific = (self, prop, originalValue) => undefined,
 		setSpecific = (target, prop, value, receiver, originalSet) => undefined, // 默认不处理特定set
 		readOnlyCfg = true
 	} = options;
 
-	const handler = {
+	return new Proxy(instance, {
 		get: (target, prop, receiver) => {
-			// 1. 优先处理特定属性 (如Skill的activate AOP)
-			const specificResult = getSpecific(target, prop, receiver, Reflect.get);
+			const originalValue = Reflect.get(target, prop, receiver);
+			//优先处理特定属性
+			const specificResult = getSpecific(receiver, prop, originalValue);//receiver（Proxy对象）作为“this”
 			if (specificResult !== undefined) {
 				return specificResult;
 			}
-
-			// 2. 访问实例自身属性（包括getter，如id, owner, gaming, activateCount, potentialTargets, filterValidTargets）
-			if (prop in target) {
-				return Reflect.get(target, prop, receiver);
-			}
-
-			// 3. 访问#cfg属性
+			// 或者在#cfg里找找
 			if (prop in target.#cfg) {
 				const value = target.#cfg[prop];
 				return typeof value === 'object' ? {...value} : value; // 返回副本防止外部修改
 			}
-			return undefined;
+			return originalValue;
 		},
 		set: (target, prop, value, receiver) => {
 			// 1. 优先处理特定属性 (如Skill的activateCount保护)
@@ -73,8 +68,7 @@ const proxy = (instance, options = {}) => {
 			// 3. 允许设置实例自身属性或创建新属性
 			return Reflect.set(target, prop, value, receiver);
 		}
-	};
-	return new Proxy(instance, handler);
+	});
 };
 
 class Team {
@@ -153,17 +147,15 @@ const skillAopMap = {
 
 // 泛化的getSpecific处理函数
 const createClassGetSpecific = aopMap =>
-	(target, prop, receiver, originalGet) => {
+	(self, prop, originalValue) => { // Simplified signature
 		const aopLogic = aopMap[prop];
 		if (aopLogic) {
-			const originalFunc = originalGet(target, prop, receiver);
-			if (typeof originalFunc !== 'function') {
-				return originalFunc;
+			// originalValue is already fetched and passed in
+			if (typeof originalValue !== 'function') { // Check if it's a function for AOP
+				return originalValue; // Return original value if not a function
 			}
-			return function(...args) {
-				const self = this; // 确保this指向Proxy实例
-				return aopLogic.apply(self, [originalFunc, args]);
-			}.bind(receiver);
+			// Pass self (which is receiver), originalValue (as originalFunc), and args
+			return (...args) => aopLogic.apply(self, [originalValue, args]);
 		}
 		return undefined;
 	};
