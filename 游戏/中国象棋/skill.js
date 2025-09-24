@@ -1,5 +1,6 @@
 export {Skill, PassiveSkill};
 
+let __teamId = 0;
 let __skillId = 0;
 const __instanceActivateCounts = new WeakMap();
 
@@ -10,6 +11,115 @@ const __instanceActivateCounts = new WeakMap();
  * @returns {Array} - 确保是数组的返回值。
  */
 const ensureArray = value => Array.isArray(value) ? value : (value ? [value] : []);
+
+/**
+ * 公告栏(事件总线)，用于发布通知。同时也提供订阅、不再订阅的功能。
+ */
+class Bulletin {
+	constructor() {
+		this.listeners = {};
+	}
+
+	/**
+	 * 订阅一个主题
+	 * @param {string} topic 主题名
+	 * @param {Function} watcher 订阅者（回调函数）
+	 */
+	watch(topic, watcher) {
+		(this.listeners[topic] = this.listeners[topic] || []).push(watcher);
+	}
+
+	/**
+	 * 取消订阅一个主题
+	 * @param {string} topic 主题名
+	 * @param {Function} watcher 订阅者（回调函数）
+	 */
+	unwatch(topic, watcher) {
+		if (this.listeners[topic]) {
+			this.listeners[topic] = this.listeners[topic].filter(i => i !== watcher);
+		}
+	}
+
+	/**
+	 * 发出一个通知
+	 * @param {string} topic 主题名
+	 * @param {object} payload 事件荷载
+	 */
+	notice(topic, payload = {}) {
+		(this.listeners[topic] || []).forEach(cb => cb(payload));
+	}
+}
+
+class Team {
+	#id;
+	#cfg;
+	#players = [];
+	#gaming;
+
+	constructor(gaming, cfg) {
+		this.#id = ++__teamId;
+		this.#cfg = cfg;
+		this.#gaming = gaming;
+
+		return new Proxy(this, {
+			get: (target, prop, receiver) => {
+				// 1. 访问实例自身属性（包括getter，如id, gaming等）
+				if (prop in target) {
+					return Reflect.get(target, prop, receiver);
+				}
+				// 2. 访问#cfg属性
+				if (prop in target.#cfg) {
+					const value = target.#cfg[prop];
+					return typeof value === 'object' ? {...value} : value; // 返回副本防止外部修改
+				}
+				return undefined;
+			},
+			set: (target, prop, value, receiver) => {
+				// 阻止修改#cfg属性
+				if (prop in target.#cfg) {
+					console.error(`Cannot modify a read-only config property: ${prop}`);
+					return false;
+				}
+				// 允许设置实例自身属性或创建新属性
+				return Reflect.set(target, prop, value, receiver);
+			},
+			has: (target, prop) => {
+				return prop in target
+							 || prop in target.#cfg;
+			},
+			ownKeys: target => {
+				// 返回所有可访问的属性键
+				return [
+					...Reflect.ownKeys(target),
+					...Object.keys(target.#cfg)
+				];
+			},
+			getOwnPropertyDescriptor: (target, prop) => {
+				if (prop in target.#cfg) {
+					return {
+						value: target.#cfg[prop],
+						writable: false,
+						enumerable: true,
+						configurable: false
+					};
+				}
+				return Reflect.getOwnPropertyDescriptor(target, prop);
+			}
+		});
+	}
+
+	get id() {
+		return this.#id;
+	}
+
+	get players() {
+		return [...this.#players];
+	}
+
+	get gaming() {
+		return this.#gaming;
+	}
+}
 
 class Skill {
 	#id;
@@ -96,6 +206,28 @@ class Skill {
 				}
 				// 允许设置实例自身属性或创建新属性
 				return Reflect.set(target, prop, value, receiver);
+			},
+			has: (target, prop) => {
+				return prop in target
+							 || prop in target.#cfg;
+			},
+			ownKeys: target => {
+				// 返回所有可访问的属性键
+				return [
+					...Reflect.ownKeys(target),
+					...Object.keys(target.#cfg)
+				];
+			},
+			getOwnPropertyDescriptor: (target, prop) => {
+				if (prop in target.#cfg) {
+					return {
+						value: target.#cfg[prop],
+						writable: false,
+						enumerable: true,
+						configurable: false
+					};
+				}
+				return Reflect.getOwnPropertyDescriptor(target, prop);
 			}
 		});
 	}
