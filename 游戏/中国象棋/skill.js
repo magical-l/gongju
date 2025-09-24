@@ -77,6 +77,17 @@ const proxy = (instance, options = {}) => {
 	return new Proxy(instance, handler);
 };
 
+const createAopWrapper = (target, prop, receiver, originalGet, aopLogic) => {
+	const originalFunc = originalGet(target, prop, receiver);
+	if (typeof originalFunc !== 'function') {
+		return originalFunc;
+	}
+	return function(...args) {
+		const self = this; // 确保this指向Proxy实例
+		return aopLogic.apply(self, [originalFunc, args]);
+	}.bind(receiver);
+};
+
 class Team {
 	static #id = 0;
 
@@ -145,13 +156,7 @@ class Skill {
 			getSpecific: (target, prop, receiver, originalGet) => {
 				// Skill的activate方法AOP逻辑
 				if (prop === 'activate') {
-					const originalActivate = originalGet(target, prop, receiver); // 获取原型链上最具体的activate方法
-					// 如果不是函数，直接返回
-					if (typeof originalActivate !== 'function') {
-						return originalActivate;
-					}
-					// 返回一个包裹了AOP逻辑的新函数
-					return async function(...args) {
+					return createAopWrapper(target, prop, receiver, originalGet, async (originalActivate, args) => {
 						const self = this; // 确保this指向Proxy实例
 						const inputTargets = ensureArray(args[0]);
 						// 1. 调用filterValidTargets获取实际的合法目标列表
@@ -173,21 +178,16 @@ class Skill {
 						// 6. 后置通知 (AOP后置)
 						notice(self, 'unit activate a skill end', {unit: self.owner, skill: self, targets: actualTargets});
 						return true;
-					}.bind(receiver); // 关键：将包裹函数绑定到Proxy实例，确保this上下文正确
+					});
 				} else if (prop === 'filterValidTargets') {
-					const originalFunc = originalGet(target, prop, receiver); // 获取原型链上最具体的activate方法
-					// 如果不是函数，直接返回
-					if (typeof originalFunc !== 'function') {
-						return originalFunc;
-					}
-					return function(...args) {
+					return createAopWrapper(target, prop, receiver, originalGet, (originalFunc, args) => {
 						const self = this; // 确保this指向Proxy实例
 						const actualTargets = ensureArray(args[0]);
 						notice(this, 'skill filter valid targets start', {skill: this, targets: actualTargets});
 						const rt = originalFunc.apply(self, [actualTargets, ...args.slice(1)]);
 						notice(this, 'skill filter valid targets end', {skill: this, targets: actualTargets, filteredTargets: rt});
 						return rt;
-					}.bind(receiver);
+					});
 				}
 				return undefined; // 如果不是activate，则交由通用处理
 			}
@@ -282,11 +282,7 @@ class BuffSkill extends PassiveSkill {
 			getSpecific: (target, prop, receiver, originalGet) => {
 				// BuffSkill 的 activate 方法 AOP 逻辑
 				if (prop === 'activate') {
-					const originalActivate = originalGet(target, prop, receiver);
-					if (typeof originalActivate !== 'function') {
-						return originalActivate;
-					}
-					return async function(...args) {
+					return createAopWrapper(target, prop, receiver, originalGet, async (originalActivate, args) => {
 						const self = this; // 确保this指向Proxy实例
 
 						// BuffSkill 的一次性激活 AOP 检查
@@ -303,13 +299,9 @@ class BuffSkill extends PassiveSkill {
 							self.#isActivated = true;
 						}
 						return result;
-					}.bind(receiver);
+					});
 				} else if (prop === 'filterValidTargets') {
-					const originalFunc = originalGet(target, prop, receiver);
-					if (typeof originalFunc !== 'function') {
-						return originalFunc;
-					}
-					return function(...args) {
+					return createAopWrapper(target, prop, receiver, originalGet, (originalFunc, args) => {
 						const self = this;
 
 						// BuffSkill 的一次性激活 AOP 检查
@@ -319,7 +311,7 @@ class BuffSkill extends PassiveSkill {
 						}
 						// 调用 Skill 层的 filterValidTargets AOP
 						return originalFunc.apply(self, args);
-					}.bind(receiver);
+					});
 				}
 				return undefined;
 			}
