@@ -6,7 +6,7 @@ export {Team, Skill, PassiveSkill, BuffSkill};
  * @param value - 待处理的值。
  * @returns {Array} - 确保是数组的返回值。
  */
-const ensureArray = value => Array.isArray(value) ? value : (value ? [value] : []);
+const ensureArray = value => Array.isArray(value) ? value : (value !== null && value !== undefined ? [value] : []);
 const compareWithId = (a, b) => a === b || a.id && b.id && a.id === b.id;
 
 //简便方法，减少代码量
@@ -234,7 +234,7 @@ class Skill {
 	 * @returns {Array<Object>} - 过滤后的合法目标数组。
 	 */
 	filterValidTargets(targets) {
-		const potential = this.potentialTargets;
+		const potential = this.potentialTargets || [];
 		return targets.filter(t => potential.some(p => compareWithId(p, t)));
 	}
 
@@ -263,7 +263,7 @@ class PassiveSkill extends Skill {
 		super(cfg, owner);
 
 		//watchers中通常应当调用PassiveSkill.activate，需要从监听的通知的内容中组织出本技能所需目标。
-		watchersWatch(cfg.watchers);
+		watchersWatch(this, cfg.watchers);
 	}
 }
 
