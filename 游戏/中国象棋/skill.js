@@ -275,23 +275,23 @@ class BuffSkill extends PassiveSkill {
 			getSpecific: createClassGetSpecific({
 				'activate': async (self, originalActivate, args) => {
 					// BuffSkill 的一次性激活 AOP 检查
-					if (self.#isActivated) {
+					if (rawMe.#isActivated) {
 						console?.warn(`BuffSkill [${self.name}] 已经激活过一次，不能再次主动使用。`);
 						return false;
 					}
 
 					// 调用 Skill 层的 activate AOP (它会继续调用原始方法)
-					const result = await activateAopLogic(self, originalActivate, args); // Pass originalActivate and args
+					const result = await activateAopLogic(self, originalActivate, args);
 
 					// BuffSkill 首次成功激活后，标记为已激活
-					if (result === true && !self.#isActivated) {
-						self.#isActivated = true;
+					if (result === true && !rawMe.#isActivated) {
+						rawMe.#isActivated = true;
 					}
 					return result;
 				},
 				'filterValidTargets': (self, originalFunc, args) => {
 					// BuffSkill 的一次性激活 AOP 检查
-					if (self.#isActivated) {
+					if (rawMe.#isActivated) { // Access rawMe.#isActivated
 						console?.warn(`BuffSkill [${self.name}] 已经激活过一次，因此不返回任何合法目标。`);
 						return []; // 阻止过滤，直接返回空数组
 					}
