@@ -109,26 +109,52 @@ class Team {
 
 	get members() {
 		const rt = [...this.#members];
-		notice(this, 'team get members end', {team: this, members: rt});
+		notice(this, 'team getMembers end', {team: this, members: rt});
 		return rt;
 	}
 
 	addMember(member) {
-		notice(this, 'team add member start', {team: this, member});
+		notice(this, 'team addMember start', {team: this, member});
 		this.#members.push(member);
-		notice(this, 'team add member end', {team: this, member});
+		notice(this, 'team addMember end', {team: this, member});
 	}
 
 	removeMember(member) {
-		notice(this, 'team remove member start', {team: this, member});
+		notice(this, 'team removeMember start', {team: this, member});
 		this.#members = this.#members.filter(m => !compareWithId(m, member));
-		notice(this, 'team remove member end', {team: this, member});
+		notice(this, 'team removeMember end', {team: this, member});
 	}
 
 	get gaming() {
 		return this.#gaming;
 	}
 }
+
+// 通用的activate方法AOP逻辑
+const activateAopLogic = async (self, originalActivate, args) => {
+	const inputTargets = ensureArray(args[0]);
+	const actualTargets = self.filterValidTargets(inputTargets);
+	if (actualTargets.length === 0) {
+		console?.warn(`技能 [${self.name}] 在提供的目标中没有找到任何合法目标，技能未发动。`);
+		return false;
+	}
+	notice(self, 'skill activate start', {skill: self, targets: actualTargets});
+	const result = await originalActivate.apply(self, [actualTargets, ...args.slice(1)]);
+	if (result === false) {
+		return false;
+	}
+	notice(self, 'skill activate end', {skill: self, targets: actualTargets});
+	return true;
+};
+
+// 通用的filterValidTargets方法AOP逻辑
+const filterValidTargetsAopLogic = (self, originalFunc, args) => {
+	const actualTargets = ensureArray(args[0]);
+	notice(self, 'skill filterValidTargets start', {skill: self, targets: actualTargets});
+	const rt = originalFunc.apply(self, [actualTargets, ...args.slice(1)]);
+	notice(self, 'skill filterValidTargets end', {skill: self, targets: actualTargets, filteredTargets: rt});
+	return rt;
+};
 
 class Skill {
 	static #id = 0;
@@ -144,7 +170,7 @@ class Skill {
 		this.#owner = owner;
 		Skill.#instanceActivateCounts.set(this, 0); // 在构造时初始化当前实例的计数
 
-		notice(this, 'unit activate a skill end', ({skill}) => {
+		notice(this, 'skill activate end', ({skill}) => {
 			if (compareWithId(this, skill)) {
 				Skill.#instanceActivateCounts.set(this, Skill.#instanceActivateCounts.get(this) + 1);
 			}
@@ -154,59 +180,21 @@ class Skill {
 		// 返回一个Proxy，用于动态地为activate方法织入AOP逻辑，并代理cfg属性
 		return proxy(this, {
 			getSpecific: (target, prop, receiver, originalGet) => {
-				// Skill的activate方法AOP逻辑
 				if (prop === 'activate') {
-					return createAopWrapper(target, prop, receiver, originalGet, async (originalActivate, args) => {
-						const self = this; // 确保this指向Proxy实例
-						const inputTargets = ensureArray(args[0]);
-						// 1. 调用filterValidTargets获取实际的合法目标列表
-						const actualTargets = self.filterValidTargets(inputTargets);
-						// 2. 如果没有合法目标，则技能不发动
-						if (actualTargets.length === 0) {
-							console?.warn(`技能 [${self.name}] 在提供的目标中没有找到任何合法目标，技能未发动。`);
-							return false;
-						}
-						// 3. 前置通知 (AOP前置)，通知中包含的是实际将要作用的目标
-						notice(self, 'unit activate a skill start',
-							{unit: self.owner, skill: self, targets: actualTargets});
-						// 4. 调用原始的activate方法，只传入合法目标作为第一个参数
-						const result = await originalActivate.apply(self, [actualTargets, ...args.slice(1)]);
-						// 5. 检查结果并执行后置AOP
-						if (result === false) {
-							return false;
-						}
-						// 6. 后置通知 (AOP后置)
-						notice(self, 'unit activate a skill end', {unit: self.owner, skill: self, targets: actualTargets});
-						return true;
-					});
+					return createAopWrapper(target, prop, receiver, originalGet, activateAopLogic);
 				} else if (prop === 'filterValidTargets') {
-					return createAopWrapper(target, prop, receiver, originalGet, (originalFunc, args) => {
-						const self = this; // 确保this指向Proxy实例
-						const actualTargets = ensureArray(args[0]);
-						notice(this, 'skill filter valid targets start', {skill: this, targets: actualTargets});
-						const rt = originalFunc.apply(self, [actualTargets, ...args.slice(1)]);
-						notice(this, 'skill filter valid targets end', {skill: this, targets: actualTargets, filteredTargets: rt});
-						return rt;
-					});
+					return createAopWrapper(target, prop, receiver, originalGet, filterValidTargetsAopLogic);
 				}
-				return undefined; // 如果不是activate，则交由通用处理
+				return undefined;
 			}
-			// setSpecific: (target, prop, value, receiver, originalSet) => {
-			// 	// 阻止直接设置activateCount，它由内部管理，且是只读getter
-			// 	if (prop === 'activateCount') {
-			// 		console.warn('Cannot directly set activateCount. It is managed internally and is a read-only property.');
-			// 		return false;
-			// 	}
-			// 	return undefined; // 如果不是activateCount，则交由通用处理
-			// }
 		});
 	}
 
 	/**
 	 * 触发技能/技能生效。只针对参数中合法的若干个目标产生影响。若未对任何目标影响则返回false（施加影响但无效的不算在内）。
 	 * 发布通知：
-	 * 	'unit activating a skill'：若参数中无合法目标则不会发布。
-	 * 	'unit activated a skill'：参数中有合法目标，且返回true，才会发布。
+	 * 	'skill activate start'：若参数中无合法目标则不会发布。
+	 * 	'skill activate end'：参数中有合法目标，且返回true，才会发布。
 	 * 默认实现：无事发生，直接返回true。子类应重写此方法，只需要包含纯粹的技能逻辑，会自动统计触发次数、发布通知等。
 	 * @param {Array<Object>} targets - 经过filterValidTargets过滤后的合法目标数组。
 	 * @returns {boolean} - 返回true表示成功，false表示失败。
@@ -280,11 +268,8 @@ class BuffSkill extends PassiveSkill {
 		// 在 Skill 的 Proxy 实例之上，再应用一层 BuffSkill 特有的 Proxy
 		const actualMe = proxy(rawMe, {
 			getSpecific: (target, prop, receiver, originalGet) => {
-				// BuffSkill 的 activate 方法 AOP 逻辑
 				if (prop === 'activate') {
-					return createAopWrapper(target, prop, receiver, originalGet, async (originalActivate, args) => {
-						const self = this; // 确保this指向Proxy实例
-
+					return createAopWrapper(target, prop, receiver, originalGet, async (self, originalActivate, args) => {
 						// BuffSkill 的一次性激活 AOP 检查
 						if (self.#isActivated) {
 							console?.warn(`BuffSkill [${self.name}] 已经激活过一次，不能再次主动使用。`);
@@ -292,25 +277,23 @@ class BuffSkill extends PassiveSkill {
 						}
 
 						// 调用 Skill 层的 activate AOP (它会继续调用原始方法)
-						const result = await originalActivate.apply(self, args);
+						const result = await activateAopLogic(self, originalActivate, args); // Pass originalActivate and args
 
 						// BuffSkill 首次成功激活后，标记为已激活
-						if (result === true && !self.#isActivated) { // 只有当 Skill 层的 activate 成功返回 true 时才标记
+						if (result === true && !self.#isActivated) {
 							self.#isActivated = true;
 						}
 						return result;
 					});
 				} else if (prop === 'filterValidTargets') {
-					return createAopWrapper(target, prop, receiver, originalGet, (originalFunc, args) => {
-						const self = this;
-
+					return createAopWrapper(target, prop, receiver, originalGet, (self, originalFunc, args) => {
 						// BuffSkill 的一次性激活 AOP 检查
 						if (self.#isActivated) {
 							console?.warn(`BuffSkill [${self.name}] 已经激活过一次，因此不返回任何合法目标。`);
 							return []; // 阻止过滤，直接返回空数组
 						}
 						// 调用 Skill 层的 filterValidTargets AOP
-						return originalFunc.apply(self, args);
+						return filterValidTargetsAopLogic(self, originalFunc, args);
 					});
 				}
 				return undefined;
