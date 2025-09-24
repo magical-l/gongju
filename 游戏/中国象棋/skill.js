@@ -9,6 +9,97 @@ export {Team, Skill, PassiveSkill, BuffSkill};
 const ensureArray = value => Array.isArray(value) ? value : (value !== null && value !== undefined ? [value] : []);
 const compareWithId = (a, b) => a === b || a.id && b.id && a.id === b.id;
 
+/**
+ * 创建一个AOP包装函数。
+ * @param {function} rawFunc - 原始函数。
+ * @param {object} options - 配置选项。
+ * @param {function} [options.paramProcessor] - (可选) 用于处理原始参数的函数。它接收原始参数数组 `args` 和 `this` 上下文。
+ *                                    它应该返回一个值，这个值将作为 `rawFunc` 的第一个参数。
+ *                                    如果它返回 `undefined`，则表示不处理第一个参数，使用原始的 `args[0]`。
+ *                                    如果它返回 `false`，则整个包装函数会立即返回 `false`，`rawFunc` 不会被执行。
+ *                                    如果它返回其他非 `undefined` 的值，则该值将作为 `rawFunc` 的第一个参数。
+ * @param {function} [options.beforeHook] - (可选) 在 `rawFunc` 执行前调用的函数。它接收 `this` 上下文和最终传递给 `rawFunc` 的参数数组。
+ *                                    如果它返回一个非 `undefined` 的值，则该值将作为整个包装函数的最终返回值，`rawFunc` 不会被执行。
+ * @param {function} [options.afterHook] - (可选) 在 `rawFunc` 执行后调用的函数。它接收 `this` 上下文、最终传递给 `rawFunc` 的参数数组和 `rawFunc` 的返回值。
+ *                                    如果它返回一个非 `undefined` 的值，该值将作为整个包装函数的最终返回值。
+ * @param {boolean} [options.isAsync=false] - (可选) 指示包装函数是否为异步。如果为 `true`，则包装函数将是 `async` 函数，并 `await` 所有钩子和 `rawFunc`。
+ *                                    如果为 `false`，则包装函数将是同步函数，不使用 `await`。默认值为 `false`。
+ * @returns {function} - 包装后的函数。
+ */
+const aop = (rawFunc, options) => {
+	const {paramProcessor, beforeHook, afterHook, isAsync = false} = options;
+
+	if (isAsync) {
+		return async function(...args) {
+			let finalFirstArg = args[0];
+			let restArgs = args.slice(1);
+
+			if (paramProcessor) {
+				const processedResult = await paramProcessor.call(this, args);
+				if (processedResult === false) { // 明确返回false
+					return false;
+				} else if (processedResult !== undefined) { // 如果paramProcessor返回了一个值，则将其作为rawFunc的新第一个参数
+					finalFirstArg = processedResult;
+				}
+			}
+
+			const argsForRawFunc = [finalFirstArg, ...restArgs];
+
+			if (beforeHook) {
+				const beforeHookResult = await beforeHook.call(this, argsForRawFunc);
+				if (beforeHookResult !== undefined) { // 如果beforeHook返回了一个值，则将其作为最终结果并停止执行
+					return beforeHookResult;
+				}
+			}
+
+			const result = await rawFunc.apply(this, argsForRawFunc);
+
+			if (afterHook) {
+				const afterHookResult = await afterHook.call(this, argsForRawFunc, result);
+				if (afterHookResult !== undefined) { // 如果afterHook返回了一个值，则将其作为最终结果
+					return afterHookResult;
+				}
+			}
+
+			return result;
+		};
+	} else { // 同步版本
+		return function(...args) {
+			let finalFirstArg = args[0];
+			let restArgs = args.slice(1);
+
+			if (paramProcessor) {
+				const processedResult = paramProcessor.call(this, args);
+				if (processedResult === false) { // 明确返回false
+					return false;
+				} else if (processedResult !== undefined) { // 如果paramProcessor返回了一个值，则将其作为rawFunc的新第一个参数
+					finalFirstArg = processedResult;
+				}
+			}
+
+			const argsForRawFunc = [finalFirstArg, ...restArgs];
+
+			if (beforeHook) {
+				const beforeHookResult = beforeHook.call(this, argsForRawFunc);
+				if (beforeHookResult !== undefined) { // 如果beforeHook返回了一个值，则将其作为最终结果并停止执行
+					return beforeHookResult;
+				}
+			}
+
+			const result = rawFunc.apply(this, argsForRawFunc);
+
+			if (afterHook) {
+				const afterHookResult = afterHook.call(this, argsForRawFunc, result);
+				if (afterHookResult !== undefined) { // 如果afterHook返回了一个值，则将其作为最终结果
+					return afterHookResult;
+				}
+			}
+
+			return result;
+		};
+	}
+};
+
 //简便方法，减少代码量
 const watch = (gamingPart, topic, callback) => gamingPart.gaming?.bulletin.watch(topic, callback);
 const watchersWatch = (gamingPart, watchers) => {
@@ -113,30 +204,44 @@ class Skill {
 		});
 
 		const rawActivate = this.activate;
-		this.activate = async (...args) => {
-			const inputTargets = ensureArray(args[0]);
-			const actualTargets = this.filterValidTargets(inputTargets);
-			if (actualTargets.length === 0) {
-				console?.warn(`技能 [${this.name}] 在提供的目标中没有找到任何合法目标，技能未发动。`);
-				return false;
-			}
-			notice(this, 'skill activate start', {skill: this, targets: actualTargets});
-			const result = await rawActivate.apply(this, [actualTargets, ...args.slice(1)]);
-			if (result === false) {
-				return false;
-			}
-			notice(this, 'skill activate end', {skill: this, targets: actualTargets});
-			return true;
-		};
+		this.activate = aop(rawActivate, {
+			paramProcessor: originalArgs => { // 参数处理器
+				const inputTargets = ensureArray(originalArgs[0]);
+				const actualTargets = this.filterValidTargets(inputTargets);
+				if (actualTargets.length === 0) {
+					console?.warn(`技能 [${this.name}] 在提供的目标中没有找到任何合法目标，技能未发动。`);
+					return false;
+				}
+				return actualTargets;
+			},
+			beforeHook: argsForRawFunc => { // 前置行为
+				const actualTargets = argsForRawFunc[0];
+				notice(this, 'skill activate start', {skill: this, targets: actualTargets});
+			},
+			afterHook: (argsForRawFunc, result) => {
+				const actualTargets = argsForRawFunc[0];
+				if (result === false) {
+					return false;
+				}
+				notice(this, 'skill activate end', {skill: this, targets: actualTargets});
+				return true;
+			},
+			isAsync: true
+		});
 
 		const rawFilterValidTargets = this.filterValidTargets;
-		this.filterValidTargets = (...args) => {
-			const actualTargets = ensureArray(args[0]);
-			notice(this, 'skill filterValidTargets start', {skill: this, targets: actualTargets});
-			const rt = rawFilterValidTargets.apply(this, [actualTargets, ...args.slice(1)]);
-			notice(this, 'skill filterValidTargets end', {skill: this, targets: actualTargets, filteredTargets: rt});
-			return rt;
-		};
+		this.filterValidTargets = aop(rawFilterValidTargets, {
+			paramProcessor: originalArgs => ensureArray(originalArgs[0]),
+			beforeHook: argsForRawFunc => {
+				const actualTargets = argsForRawFunc[0];
+				notice(this, 'skill filterValidTargets start', {skill: this, targets: actualTargets});
+			},
+			afterHook: (argsForRawFunc, result) => {
+				const actualTargets = argsForRawFunc[0];
+				notice(this, 'skill filterValidTargets end', {skill: this, targets: actualTargets, filteredTargets: result});
+			},
+			isAsync: false
+		});
 
 		return proxy(this, this.#cfg);
 	}
@@ -216,27 +321,33 @@ class BuffSkill extends PassiveSkill {
 
 		// 在父类（已代理）的基础上，再次包装方法以加入BuffSkill的逻辑
 		const rawActivate = this.activate;
-		this.activate = async (...args) => {
-			if (this.#isActivated) {
-				console?.warn(`BuffSkill [${this.name}] 已经激活过一次，不能再次主动使用。`);
-				return false;
-			}
-			const result = await rawActivate.apply(this, args);
-			if (result === true) {
-				this.#isActivated = true;
-			}
-			return result;
-		};
+		this.activate = aop(rawActivate, {
+			beforeHook: argsForRawFunc => { // 前置行为
+				if (this.#isActivated) {
+					console?.warn(`BuffSkill [${this.name}] 已经激活过一次，不能再次主动使用。`);
+					return false;
+				}
+				return undefined; // 继续执行
+			},
+			afterHook: (argsForRawFunc, result) => {
+				if (result === true) {
+					this.#isActivated = true;
+				}
+				return undefined; // 让包装器返回原始函数的结果
+			},
+			isAsync: true
+		});
 
 		const rawFilterValidTargets = this.filterValidTargets;
-		this.filterValidTargets = (...args) => {
-			if (this.#isActivated) {
-				console?.warn(`BuffSkill [${this.name}] 已经激活过一次，因此不返回任何合法目标。`);
-				return [];
+		this.filterValidTargets = aop(rawFilterValidTargets, {
+			beforeHook: argsForRawFunc => { // 前置行为
+				if (this.#isActivated) {
+					console?.warn(`BuffSkill [${this.name}] 已经激活过一次，因此不返回任何合法目标。`);
+					return []; // 返回空数组并停止执行原始函数
+				}
+				return undefined; // 继续执行
 			}
-			return rawFilterValidTargets.apply(this, args);
-		};
-
+		});
 		// 注册监听器
 		const activateAfterAddSkill = ({unit, skill}) => {
 			if (compareWithId(this.owner, unit) && compareWithId(this, skill)) {
