@@ -20,50 +20,31 @@ const unwatch = (gamingPart, topic, callback) => gamingPart.gaming?.bulletin.unw
 const notice = (gamingPart, topic, content) => gamingPart.gaming?.bulletin.notice(topic, content);
 
 /**
- * 创建一个通用的Proxy处理器，用于代理实例属性和只读配置属性。
- * @param instance - Proxy将要包裹的实例。
- * @param options - 配置选项。
- * @param options.getSpecific - 针对特定属性的get处理函数。
- *   如果处理了该属性，应返回处理结果；否则返回undefined。
- * @param options.setSpecific - 针对特定属性的set处理函数。
- *   如果处理了该属性，应返回true/false；否则返回undefined。
- * @param [options.readOnlyCfg=true] - #cfg属性是否只读。
- * @returns {Proxy} - 返回一个Proxy实例。
+ * 创建一个代理，用于将对实例未定义属性的访问转发到其私有 #privateCfg 对象。
+ * @param {object} instance - 要代理的类实例。
+ * @param {object} privateCfg - 私有的配置对象。
+ * @returns {Proxy} - 返回配置好的代理实例。
  */
-const proxy = (instance, options = {}) => {
-	const {
-		getSpecific = (self, prop, originalValue) => undefined,
-		setSpecific = (target, prop, value, receiver, originalSet) => undefined, // 默认不处理特定set
-		readOnlyCfg = true
-	} = options;
-
+const proxy = (instance, privateCfg) => {
 	return new Proxy(instance, {
 		get: (target, prop, receiver) => {
-			const originalValue = Reflect.get(target, prop, receiver);
-			//优先处理特定属性
-			const specificResult = getSpecific(receiver, prop, originalValue);//receiver（Proxy对象）作为“this”
-			if (specificResult !== undefined) {
-				return specificResult;
+			// 优先返回实例或原型链上已有的属性（包括被包装过的方法）
+			if (prop in target) {
+				return Reflect.get(target, prop, receiver);
 			}
-			// 或者在#cfg里找找
-			if (prop in target.#cfg) {
-				const value = target.#cfg[prop];
-				return typeof value === 'object' ? {...value} : value; // 返回副本防止外部修改
+			// 否则，在 privateCfg 中查找
+			if (prop in privateCfg) {
+				const value = privateCfg[prop];
+				return typeof value === 'object' && value !== null ? {...value} : value;
 			}
-			return originalValue;
+			return undefined;
 		},
 		set: (target, prop, value, receiver) => {
-			// 1. 优先处理特定属性 (如Skill的activateCount保护)
-			const specificResult = setSpecific(target, prop, value, receiver, Reflect.set);
-			if (specificResult !== undefined) { // 如果特定处理函数返回了结果，则使用它
-				return specificResult;
-			}
-			// 2. 阻止修改#cfg属性
-			if (readOnlyCfg && prop in target.#cfg) {
+			// 保护cfg属性不被外部修改
+			if (prop in privateCfg) {
 				console.error(`Cannot modify a read-only config property: ${prop}`);
 				return false;
 			}
-			// 3. 允许设置实例自身属性或创建新属性
 			return Reflect.set(target, prop, value, receiver);
 		}
 	});
@@ -81,7 +62,7 @@ class Team {
 		this.#id = ++Team.#id;
 		this.#cfg = cfg;
 		this.#gaming = gaming;
-		return proxy(this);
+		return proxy(this, this.#cfg);
 	}
 
 	get id() {
@@ -111,46 +92,6 @@ class Team {
 	}
 }
 
-// 泛化的getSpecific处理函数
-const createGetSpecificFromAopMap = aopMap =>
-	(self, prop, originalValue) => {
-		const aopLogic = aopMap[prop];
-		if (aopLogic) {
-			if (typeof originalValue !== 'function') {
-				return originalValue;
-			}
-			return (...args) => aopLogic.apply(self, [originalValue, args]);
-		}
-		return undefined;
-	};
-
-
-// 通用的activate方法AOP逻辑
-const commonActivateAopLogic = async (self, originalActivate, args) => {
-	const inputTargets = ensureArray(args[0]);
-	const actualTargets = self.filterValidTargets(inputTargets);
-	if (actualTargets.length === 0) {
-		console?.warn(`技能 [${self.name}] 在提供的目标中没有找到任何合法目标，技能未发动。`);
-		return false;
-	}
-	notice(self, 'skill activate start', {skill: self, targets: actualTargets});
-	const result = await originalActivate.apply(self, [actualTargets, ...args.slice(1)]);
-	if (result === false) {
-		return false;
-	}
-	notice(self, 'skill activate end', {skill: self, targets: actualTargets});
-	return true;
-};
-
-// 通用的filterValidTargets方法AOP逻辑
-const commonFilterValidTargetsAopLogic = (self, originalFunc, args) => {
-	const actualTargets = ensureArray(args[0]);
-	notice(self, 'skill filterValidTargets start', {skill: self, targets: actualTargets});
-	const rt = originalFunc.apply(self, [actualTargets, ...args.slice(1)]);
-	notice(self, 'skill filterValidTargets end', {skill: self, targets: actualTargets, filteredTargets: rt});
-	return rt;
-};
-
 class Skill {
 	static #id = 0;
 	static #instanceActivateCounts = new WeakMap();
@@ -171,14 +112,33 @@ class Skill {
 			}
 		});
 
-		// 定义Skill特有的Proxy处理逻辑
-		// 返回一个Proxy，用于动态地为activate方法织入AOP逻辑，并代理cfg属性
-		return proxy(this, {
-			getSpecific: createGetSpecificFromAopMap({
-				'activate': commonActivateAopLogic,
-				'filterValidTargets': commonFilterValidTargetsAopLogic
-			})
-		});
+		const rawActivate = this.activate;
+		this.activate = async (...args) => {
+			const inputTargets = ensureArray(args[0]);
+			const actualTargets = this.filterValidTargets(inputTargets);
+			if (actualTargets.length === 0) {
+				console?.warn(`技能 [${this.name}] 在提供的目标中没有找到任何合法目标，技能未发动。`);
+				return false;
+			}
+			notice(this, 'skill activate start', {skill: this, targets: actualTargets});
+			const result = await rawActivate.apply(this, [actualTargets, ...args.slice(1)]);
+			if (result === false) {
+				return false;
+			}
+			notice(this, 'skill activate end', {skill: this, targets: actualTargets});
+			return true;
+		};
+
+		const rawFilterValidTargets = this.filterValidTargets;
+		this.filterValidTargets = (...args) => {
+			const actualTargets = ensureArray(args[0]);
+			notice(this, 'skill filterValidTargets start', {skill: this, targets: actualTargets});
+			const rt = rawFilterValidTargets.apply(this, [actualTargets, ...args.slice(1)]);
+			notice(this, 'skill filterValidTargets end', {skill: this, targets: actualTargets, filteredTargets: rt});
+			return rt;
+		};
+
+		return proxy(this, this.#cfg);
 	}
 
 	/**
@@ -240,7 +200,6 @@ class Skill {
 class PassiveSkill extends Skill {
 	constructor(cfg, owner) {
 		super(cfg, owner);
-
 		//watchers中通常应当调用PassiveSkill.activate，需要从监听的通知的内容中组织出本技能所需目标。
 		watchersWatch(this, cfg.watchers);
 	}
@@ -253,59 +212,46 @@ class BuffSkill extends PassiveSkill {
 	#isActivated = false;
 
 	constructor(cfg, owner) {
-		// 先调用父类构造函数，获取 Skill 的 Proxy 实例
-		const rawMe = super(cfg, owner);
+		super(cfg, owner);
 
-		// 在 Skill 的 Proxy 实例之上，再应用一层 BuffSkill 特有的 Proxy
-		const actualMe = proxy(rawMe, {
-			getSpecific: createGetSpecificFromAopMap({
-				'activate': async (self, originalActivate, args) => {
-					// BuffSkill 的一次性激活 AOP 检查
-					if (rawMe.#isActivated) {
-						console?.warn(`BuffSkill [${self.name}] 已经激活过一次，不能再次主动使用。`);
-						return false;
-					}
+		// 在父类（已代理）的基础上，再次包装方法以加入BuffSkill的逻辑
+		const rawActivate = this.activate;
+		this.activate = async (...args) => {
+			if (this.#isActivated) {
+				console?.warn(`BuffSkill [${this.name}] 已经激活过一次，不能再次主动使用。`);
+				return false;
+			}
+			const result = await rawActivate.apply(this, args);
+			if (result === true) {
+				this.#isActivated = true;
+			}
+			return result;
+		};
 
-					// 调用 Skill 层的 activate AOP (它会继续调用原始方法)
-					const result = await commonActivateAopLogic(self, originalActivate, args);
+		const rawFilterValidTargets = this.filterValidTargets;
+		this.filterValidTargets = (...args) => {
+			if (this.#isActivated) {
+				console?.warn(`BuffSkill [${this.name}] 已经激活过一次，因此不返回任何合法目标。`);
+				return [];
+			}
+			return rawFilterValidTargets.apply(this, args);
+		};
 
-					// BuffSkill 首次成功激活后，标记为已激活
-					if (result === true && !rawMe.#isActivated) {
-						rawMe.#isActivated = true;
-					}
-					return result;
-				},
-				'filterValidTargets': (self, originalFunc, args) => {
-					// BuffSkill 的一次性激活 AOP 检查
-					if (rawMe.#isActivated) { // Access rawMe.#isActivated
-						console?.warn(`BuffSkill [${self.name}] 已经激活过一次，因此不返回任何合法目标。`);
-						return []; // 阻止过滤，直接返回空数组
-					}
-					// 调用 Skill 层的 filterValidTargets AOP
-					return commonFilterValidTargetsAopLogic(self, originalFunc, args);
-				}
-			})
-		});
-
-		// 注册监听器，确保在 BuffSkill 的 AOP 之后
+		// 注册监听器
 		const activateAfterAddSkill = ({unit, skill}) => {
-			if (compareWithId(actualMe.owner, unit) && compareWithId(actualMe, skill)) {
-				// 1. 执行初始激活 (会通过AOP)
-				actualMe.activate(actualMe.owner);
-				// 2. 初始激活后，监听移除事件
-				watch(actualMe, 'unit remove a skill end', ({unit, skill}) => {
-					if (compareWithId(actualMe.owner, unit) && compareWithId(actualMe, skill)) {
-						actualMe.deactivate();
+			if (compareWithId(this.owner, unit) && compareWithId(this, skill)) {
+				this.activate(this.owner);
+				watch(this, 'unit remove a skill end', ({unit, skill}) => {
+					if (compareWithId(this.owner, unit) && compareWithId(this, skill)) {
+						this.deactivate();
 					}
 					unwatch(this, 'unit add skill end', activateAfterAddSkill);
 				});
 			}
 		};
-		watchersWatch(actualMe, {
+		watchersWatch(this, {
 			'unit add skill end': activateAfterAddSkill
 		});
-
-		return actualMe;
 	}
 
 	/**
