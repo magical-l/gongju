@@ -62,6 +62,23 @@ class Team {
 		this.#id = ++Team.#id;
 		this.#cfg = cfg;
 		this.#gaming = gaming;
+
+		const rawAddMember = this.addMember;
+		this.addMember = (...args) => {
+			notice(this, 'team addMember start', {team: this, member: args[0]});
+			const result = rawAddMember.apply(this, args);
+			notice(this, 'team addMember end', {team: this, member: args[0]});
+			return result;
+		};
+
+		const rawRemoveMember = this.removeMember;
+		this.removeMember = (...args) => {
+			notice(this, 'team removeMember start', {team: this, member: args[0]});
+			const result = rawRemoveMember.apply(this, args);
+			notice(this, 'team removeMember end', {team: this, member: args[0]});
+			return result;
+		};
+
 		return proxy(this, this.#cfg);
 	}
 
@@ -76,15 +93,11 @@ class Team {
 	}
 
 	addMember(member) {
-		notice(this, 'team addMember start', {team: this, member});
 		this.#members.push(member);
-		notice(this, 'team addMember end', {team: this, member});
 	}
 
 	removeMember(member) {
-		notice(this, 'team removeMember start', {team: this, member});
 		this.#members = this.#members.filter(m => !compareWithId(m, member));
-		notice(this, 'team removeMember end', {team: this, member});
 	}
 
 	get gaming() {
