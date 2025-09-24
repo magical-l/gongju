@@ -1,119 +1,112 @@
-export {Skill, PassiveSkill};
-
-let __teamId = 0;
-let __skillId = 0;
-const __instanceActivateCounts = new WeakMap();
+export {Skill, BuffSkill, Team};
 
 /**
- * 工具方法：确保输入总是一个数组。
- * 如果输入是数组，直接返回；如果是非空值，封装成单元素数组；否则返回空数组。
- * @param {*} value - 待处理的值。
+ * 工具方法：确保总是得到一个数组。
+ * 如果参数是数组，直接返回；如果是非空值，封装成单元素数组；否则返回空数组。
+ * @param value - 待处理的值。
  * @returns {Array} - 确保是数组的返回值。
  */
 const ensureArray = value => Array.isArray(value) ? value : (value ? [value] : []);
+const compareWithId = (a, b) => a === b || a.id && b.id && a.id === b.id;
+
+//简便方法，减少代码量
+const watch = (gamingPart, topic, callback) => gamingPart.gaming?.bulletin.watch(topic, callback);
+const unwatch = (gamingPart, topic, callback) => gamingPart.gaming?.bulletin.unwatch(topic, callback);
+const notice = (gamingPart, topic, content) => gamingPart.gaming?.bulletin.notice(topic, content);
 
 /**
- * 公告栏(事件总线)，用于发布通知。同时也提供订阅、不再订阅的功能。
+ * 创建一个通用的Proxy处理器，用于代理实例属性和只读配置属性。
+ * @param instance - Proxy将要包裹的实例。
+ * @param options - 配置选项。
+ * @param options.getSpecific - 针对特定属性的get处理函数。
+ *   如果处理了该属性，应返回处理结果；否则返回undefined。
+ * @param options.setSpecific - 针对特定属性的set处理函数。
+ *   如果处理了该属性，应返回true/false；否则返回undefined。
+ * @param [options.readOnlyCfg=true] - #cfg属性是否只读。
+ * @returns {Proxy} - 返回一个Proxy实例。
  */
-class Bulletin {
-	constructor() {
-		this.listeners = {};
-	}
+const proxy = (instance, options = {}) => {
+	const {
+		getSpecific = (target, prop, receiver, originalGet) => undefined, // 默认不处理特定get
+		setSpecific = (target, prop, value, receiver, originalSet) => undefined, // 默认不处理特定set
+		readOnlyCfg = true
+	} = options;
 
-	/**
-	 * 订阅一个主题
-	 * @param {string} topic 主题名
-	 * @param {Function} watcher 订阅者（回调函数）
-	 */
-	watch(topic, watcher) {
-		(this.listeners[topic] = this.listeners[topic] || []).push(watcher);
-	}
+	const handler = {
+		get: (target, prop, receiver) => {
+			// 1. 优先处理特定属性 (如Skill的activate AOP)
+			const specificResult = getSpecific(target, prop, receiver, Reflect.get);
+			if (specificResult !== undefined) {
+				return specificResult;
+			}
 
-	/**
-	 * 取消订阅一个主题
-	 * @param {string} topic 主题名
-	 * @param {Function} watcher 订阅者（回调函数）
-	 */
-	unwatch(topic, watcher) {
-		if (this.listeners[topic]) {
-			this.listeners[topic] = this.listeners[topic].filter(i => i !== watcher);
+			// 2. 访问实例自身属性（包括getter，如id, owner, gaming, activateCount, potentialTargets, filterValidTargets）
+			if (prop in target) {
+				return Reflect.get(target, prop, receiver);
+			}
+
+			// 3. 访问#cfg属性
+			if (prop in target.#cfg) {
+				const value = target.#cfg[prop];
+				return typeof value === 'object' ? {...value} : value; // 返回副本防止外部修改
+			}
+			return undefined;
+		},
+		set: (target, prop, value, receiver) => {
+			// 1. 优先处理特定属性 (如Skill的activateCount保护)
+			const specificResult = setSpecific(target, prop, value, receiver, Reflect.set);
+			if (specificResult !== undefined) { // 如果特定处理函数返回了结果，则使用它
+				return specificResult;
+			}
+
+			// 2. 阻止修改#cfg属性
+			if (readOnlyCfg && prop in target.#cfg) {
+				console.error(`Cannot modify a read-only config property: ${prop}`);
+				return false;
+			}
+
+			// 3. 允许设置实例自身属性或创建新属性
+			return Reflect.set(target, prop, value, receiver);
 		}
-	}
-
-	/**
-	 * 发出一个通知
-	 * @param {string} topic 主题名
-	 * @param {object} payload 事件荷载
-	 */
-	notice(topic, payload = {}) {
-		(this.listeners[topic] || []).forEach(cb => cb(payload));
-	}
-}
+	};
+	return new Proxy(instance, handler);
+};
 
 class Team {
+	static #id = 0;
+
 	#id;
 	#cfg;
-	#players = [];
+	#members = [];
 	#gaming;
 
-	constructor(gaming, cfg) {
-		this.#id = ++__teamId;
+	constructor(cfg, gaming) {
+		this.#id = ++Team.#id;
 		this.#cfg = cfg;
 		this.#gaming = gaming;
-
-		return new Proxy(this, {
-			get: (target, prop, receiver) => {
-				// 1. 访问实例自身属性（包括getter，如id, gaming等）
-				if (prop in target) {
-					return Reflect.get(target, prop, receiver);
-				}
-				// 2. 访问#cfg属性
-				if (prop in target.#cfg) {
-					const value = target.#cfg[prop];
-					return typeof value === 'object' ? {...value} : value; // 返回副本防止外部修改
-				}
-				return undefined;
-			},
-			set: (target, prop, value, receiver) => {
-				// 阻止修改#cfg属性
-				if (prop in target.#cfg) {
-					console.error(`Cannot modify a read-only config property: ${prop}`);
-					return false;
-				}
-				// 允许设置实例自身属性或创建新属性
-				return Reflect.set(target, prop, value, receiver);
-			},
-			has: (target, prop) => {
-				return prop in target
-							 || prop in target.#cfg;
-			},
-			ownKeys: target => {
-				// 返回所有可访问的属性键
-				return [
-					...Reflect.ownKeys(target),
-					...Object.keys(target.#cfg)
-				];
-			},
-			getOwnPropertyDescriptor: (target, prop) => {
-				if (prop in target.#cfg) {
-					return {
-						value: target.#cfg[prop],
-						writable: false,
-						enumerable: true,
-						configurable: false
-					};
-				}
-				return Reflect.getOwnPropertyDescriptor(target, prop);
-			}
-		});
+		return proxy(this);
 	}
 
 	get id() {
 		return this.#id;
 	}
 
-	get players() {
-		return [...this.#players];
+	get members() {
+		const rt = [...this.#members];
+		notice(this, 'team get members end', {team: this, members: rt});
+		return rt;
+	}
+
+	addMember(member) {
+		notice(this, 'team add member start', {team: this, member});
+		this.#members.push(member);
+		notice(this, 'team add member end', {team: this, member});
+	}
+
+	removeMember(member) {
+		notice(this, 'team remove member start', {team: this, member});
+		this.#members = this.#members.filter(m => !compareWithId(m, member));
+		notice(this, 'team remove member end', {team: this, member});
 	}
 
 	get gaming() {
@@ -122,22 +115,26 @@ class Team {
 }
 
 class Skill {
+	static #id = 0;
+	static #instanceActivateCounts = new WeakMap();
+
 	#id;
 	#owner;
 	#cfg;
 
 	constructor(cfg, owner) {
-		this.#id = ++__skillId;
+		this.#id = ++Skill.#id;
 		this.#cfg = cfg;
 		this.#owner = owner;
-		__instanceActivateCounts.set(this, 0); // 在构造时初始化当前实例的计数
+		Skill.#instanceActivateCounts.set(this, 0); // 在构造时初始化当前实例的计数
 
+		// 定义Skill特有的Proxy处理逻辑
 		// 返回一个Proxy，用于动态地为activate方法织入AOP逻辑，并代理cfg属性
-		return new Proxy(this, {
-			get: (target, prop, receiver) => {
-				// 如果是访问activate方法，则动态织入AOP逻辑
+		return proxy(this, {
+			getSpecific: (target, prop, receiver, originalGet) => {
+				// Skill的activate方法AOP逻辑
 				if (prop === 'activate') {
-					const originalActivate = Reflect.get(target, prop, receiver); // 获取原型链上最具体的activate方法
+					const originalActivate = originalGet(target, prop, receiver); // 获取原型链上最具体的activate方法
 
 					// 如果不是函数，直接返回
 					if (typeof originalActivate !== 'function') {
@@ -171,7 +168,7 @@ class Skill {
 						}
 
 						// 6. 递增计数 (AOP后置)
-						__instanceActivateCounts.set(self, __instanceActivateCounts.get(self) + 1);
+						Skill.#instanceActivateCounts.set(self, Skill.#instanceActivateCounts.get(self) + 1);
 
 						// 7. 后置通知 (AOP后置)
 						self.gaming?.bulletin.notice('unit activated a skill',
@@ -180,89 +177,57 @@ class Skill {
 						return true;
 					}.bind(receiver); // 关键：将包裹函数绑定到Proxy实例，确保this上下文正确
 				}
-
-				// 其他属性的访问：优先访问实例自身属性，然后是#cfg属性
-				// 1. 访问实例自身属性（包括getter，如id, owner, gaming等）
-				if (prop in target) {
-					return Reflect.get(target, prop, receiver);
-				}
-				// 2. 访问#cfg属性
-				if (prop in target.#cfg) {
-					const value = target.#cfg[prop];
-					return typeof value === 'object' ? {...value} : value; // 返回副本防止外部修改
-				}
-				return undefined;
-			},
-			set: (target, prop, value, receiver) => {
-				// 阻止直接设置activateCount，它由内部管理，且是只读getter
-				// if (prop === 'activateCount') {
-				// 	console.warn('Cannot directly set activateCount. It is managed internally and is a read-only property.');
-				// 	return false;
-				// }
-				// 阻止修改#cfg属性
-				if (prop in target.#cfg) {
-					console.error(`Cannot modify a read-only config property: ${prop}`);
-					return false;
-				}
-				// 允许设置实例自身属性或创建新属性
-				return Reflect.set(target, prop, value, receiver);
-			},
-			has: (target, prop) => {
-				return prop in target
-							 || prop in target.#cfg;
-			},
-			ownKeys: target => {
-				// 返回所有可访问的属性键
-				return [
-					...Reflect.ownKeys(target),
-					...Object.keys(target.#cfg)
-				];
-			},
-			getOwnPropertyDescriptor: (target, prop) => {
-				if (prop in target.#cfg) {
-					return {
-						value: target.#cfg[prop],
-						writable: false,
-						enumerable: true,
-						configurable: false
-					};
-				}
-				return Reflect.getOwnPropertyDescriptor(target, prop);
+				return undefined; // 如果不是activate，则交由通用处理
 			}
+			// setSpecific: (target, prop, value, receiver, originalSet) => {
+			// 	// 阻止直接设置activateCount，它由内部管理，且是只读getter
+			// 	if (prop === 'activateCount') {
+			// 		console.warn('Cannot directly set activateCount. It is managed internally and is a read-only property.');
+			// 		return false;
+			// 	}
+			// 	return undefined; // 如果不是activateCount，则交由通用处理
+			// }
 		});
 	}
 
 	/**
-	 * 技能的核心效果。子类应重写此方法。
-	 * 此方法只包含纯粹的技能逻辑，不包含任何AOP相关的通知、校验或计数。
+	 * 触发技能/技能生效。只针对参数中合法的若干个目标产生影响。若未对任何目标影响则返回false（施加影响但无效的不算在内）。
+	 * 发布通知：
+	 * 	'unit activating a skill'：若参数中无合法目标则不会发布。
+	 * 	'unit activated a skill'：参数中有合法目标，且返回true，才会发布。
+	 * 默认实现：无事发生，直接返回true。子类应重写此方法，只需要包含纯粹的技能逻辑，会自动统计触发次数、发布通知等。
 	 * @param {Array<Object>} targets - 经过filterValidTargets过滤后的合法目标数组。
 	 * @returns {boolean} - 返回true表示成功，false表示失败。
 	 */
 	async activate(targets) {
-		// 基类默认无效果，直接成功
 		return true;
 	}
 
 	/**
 	 * 获取所有潜在的可用目标。子类应重写此方法以提供具体的寻目标逻辑。
-	 * @returns {Array<Object>} - 潜在目标对象的数组。
+	 * 默认实现：返回undefined（未定义可用目标）
+	 * @returns {Array<Object>} - 潜在目标对象的数组。undefined照本意，表示‘未定义（可用目标）’，即不能获取或不能列举可用目标。null同[]，表示无可用目标。
 	 */
 	get potentialTargets() {
-		// 默认实现，例如返回空数组，或只返回自身
-		return [];
+		notice(this, 'skill get potential targets start', {skill: this});
+		const rt = undefined;
+		notice(this, 'skill get potential targets end', {skill: this, targets: rt});
+		return rt;
 	}
 
 	/**
 	 * 过滤传入的目标列表，返回其中合法的目标。子类可重写以提供更复杂的过滤规则。
+	 * 默认实现：使用potentialTargets过滤。
 	 * @param {Array<Object>} targets - 待过滤的目标数组。
 	 * @returns {Array<Object>} - 过滤后的合法目标数组。
 	 */
 	filterValidTargets(targets) {
-		const processedTargets = ensureArray(targets);
-		const potential = this.potentialTargets; // 获取所有潜在的合法目标
-		// 默认实现：检查传入的每个目标是否在potentialTargets列表中
-		// 使用.some()进行对象比较，以防对象引用不同但内容相同的情况（如果目标有唯一ID）
-		return processedTargets.filter(t => potential.some(p => p === t || p.id && p.id === t.id));
+		const actualTargets = ensureArray(targets);
+		notice(this, 'skill filter valid targets start', {skill: this, targets});
+		const potential = this.potentialTargets;
+		const rt = actualTargets.filter(t => potential.some(p => compareWithId(p, t)));
+		notice(this, 'skill filter valid targets end', {skill: this, targets, filteredTargets: rt});
+		return rt;
 	}
 
 	get id() {
@@ -278,29 +243,37 @@ class Skill {
 	}
 
 	get activateCount() {
-		return __instanceActivateCounts.get(this);
+		return Skill.#instanceActivateCounts.get(this);
 	}
 }
 
 /**
- * 被动技。被动技是不需要游戏主流程主动触发的技能。所以单位获得被动技时就会触发，且只触发一次。
- * @type {PassiveSkill}
+ * 被动技。主动技是由游戏主进程主动触发的技能，被动技则在自身定义的时机触发，一般游戏主进程不应主动触发。
  */
-const PassiveSkill = class extends Skill {
+class PassiveSkill extends Skill {
+	constructor(cfg, owner) {
+		super(cfg, owner);
+	}
+
+}
+
+/**
+ * 增益技能。一种特殊的被动技，只在主人得到本技能时触发一次，给主人或相关元素增加一种状态（称为‘增益’）。
+ */
+class BuffSkill extends PassiveSkill {
 	constructor(cfg, owner) {
 		super(cfg, owner);
 
 		// 1. 执行初始激活 (会通过AOP)
-		// 此时，PassiveSkill.prototype.filterValidTargets会被调用，它需要允许owner通过
 		this.activate(owner);
 
 		// 2. 初始激活后，立即覆盖filterValidTargets，以阻止后续的主动使用
 		this.filterValidTargets = targets => {
-			console.warn(`被动技能 [${this.name}] 不能被主动使用，因此不返回任何合法目标。`);
+			console?.warn(`被动技能 [${this.name}] 不能被主动使用，因此不返回任何合法目标。`);
 			return [];
 		};
 
-		this.gaming?.bulletin.watch('unit lost a skill', ({unit, skill}) => {
+		watch(this, 'unit lost a skill', ({unit, skill}) => {
 			if (unit.id === this.owner.id && skill.id === this.id) {
 				this.deactivate();
 			}
@@ -308,33 +281,17 @@ const PassiveSkill = class extends Skill {
 	}
 
 	/**
-	 * 被动技能的核心效果。通常被动技能不通过activate方法主动触发效果。
-	 * 如果有需要，子类可以重写此方法，但它不会被主动调用。
-	 * @param {Array<Object>} targets - 经过filterValidTargets过滤后的合法目标数组。
-	 * @returns {boolean} - 返回true表示成功，false表示失败。
-	 */
-	async activate(targets) {
-		return true;
-	}
-
-	/**
-	 * 被动技能的filterValidTargets实现。
+	 * 增益技能的filterValidTargets实现。
 	 * 在构造函数中调用activate时，它需要允许owner通过。
 	 * 之后，它会被覆盖以阻止主动使用。
 	 * @param {Array<Object>} targets - 待过滤的目标数组。
 	 * @returns {Array<Object>} - 过滤后的合法目标数组。
 	 */
 	filterValidTargets(targets) {
-		// 默认情况下，被动技能的初始激活只针对自身owner
-		const processedTargets = Skill.__ensureArray(targets);
-		return processedTargets.filter(t => t === this.owner);
+		const processedTargets = ensureArray(targets);
+		return processedTargets.filter(t => compareWithId(t, this.owner));
 	}
 
-	/**
-	 * 技能失效。主人失去本技能时会被触发，移除本技能给主人附加的效果。
-	 * 默认实现无事发生。
-	 * @returns {Promise<void>}
-	 */
 	async deactivate() {
 	}
-};
+}
