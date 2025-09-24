@@ -1,4 +1,4 @@
-export {Skill, BuffSkill, Team};
+export {Team, Skill, PassiveSkill, BuffSkill};
 
 /**
  * 工具方法：确保总是得到一个数组。
@@ -11,6 +11,11 @@ const compareWithId = (a, b) => a === b || a.id && b.id && a.id === b.id;
 
 //简便方法，减少代码量
 const watch = (gamingPart, topic, callback) => gamingPart.gaming?.bulletin.watch(topic, callback);
+const watchersWatch = (gamingPart, watchers) => {
+	if (watchers) {
+		Object.entries(watchers).forEach(([topic, callback]) => watch(gamingPart, topic, callback));
+	}
+};
 const unwatch = (gamingPart, topic, callback) => gamingPart.gaming?.bulletin.unwatch(topic, callback);
 const notice = (gamingPart, topic, content) => gamingPart.gaming?.bulletin.notice(topic, content);
 
@@ -128,6 +133,12 @@ class Skill {
 		this.#owner = owner;
 		Skill.#instanceActivateCounts.set(this, 0); // 在构造时初始化当前实例的计数
 
+		notice(this, 'unit activate a skill end', ({skill}) => {
+			if (compareWithId(this, skill)) {
+				Skill.#instanceActivateCounts.set(this, Skill.#instanceActivateCounts.get(this) + 1);
+			}
+		});
+
 		// 定义Skill特有的Proxy处理逻辑
 		// 返回一个Proxy，用于动态地为activate方法织入AOP逻辑，并代理cfg属性
 		return proxy(this, {
@@ -135,47 +146,48 @@ class Skill {
 				// Skill的activate方法AOP逻辑
 				if (prop === 'activate') {
 					const originalActivate = originalGet(target, prop, receiver); // 获取原型链上最具体的activate方法
-
 					// 如果不是函数，直接返回
 					if (typeof originalActivate !== 'function') {
 						return originalActivate;
 					}
-
 					// 返回一个包裹了AOP逻辑的新函数
 					return async function(...args) {
 						const self = this; // 确保this指向Proxy实例
 						const inputTargets = ensureArray(args[0]);
-
 						// 1. 调用filterValidTargets获取实际的合法目标列表
 						const actualTargets = self.filterValidTargets(inputTargets);
-
 						// 2. 如果没有合法目标，则技能不发动
 						if (actualTargets.length === 0) {
 							console.warn(`技能 [${self.name}] 在提供的目标中没有找到任何合法目标，技能未发动。`);
 							return false;
 						}
-
 						// 3. 前置通知 (AOP前置)，通知中包含的是实际将要作用的目标
-						self.gaming?.bulletin.notice('unit activating a skill',
+						notice(self, 'unit activate a skill start',
 							{unit: self.owner, skill: self, targets: actualTargets});
-
 						// 4. 调用原始的activate方法，只传入合法目标作为第一个参数
 						const result = await originalActivate.apply(self, [actualTargets, ...args.slice(1)]);
-
 						// 5. 检查结果并执行后置AOP
 						if (result === false) {
 							return false;
 						}
-
-						// 6. 递增计数 (AOP后置)
-						Skill.#instanceActivateCounts.set(self, Skill.#instanceActivateCounts.get(self) + 1);
-
-						// 7. 后置通知 (AOP后置)
-						self.gaming?.bulletin.notice('unit activated a skill',
-							{unit: self.owner, skill: self, targets: actualTargets});
-
+						// 6. 后置通知 (AOP后置)
+						notice(self, 'unit activate a skill end', {unit: self.owner, skill: self, targets: actualTargets});
 						return true;
 					}.bind(receiver); // 关键：将包裹函数绑定到Proxy实例，确保this上下文正确
+				} else if (prop === 'filterValidTargets') {
+					const originalFunc = originalGet(target, prop, receiver); // 获取原型链上最具体的activate方法
+					// 如果不是函数，直接返回
+					if (typeof originalFunc !== 'function') {
+						return originalFunc;
+					}
+					return function(...args) {
+						const self = this; // 确保this指向Proxy实例
+						const actualTargets = ensureArray(args[0]);
+						notice(this, 'skill filter valid targets start', {skill: this, targets: actualTargets});
+						const rt = originalFunc.apply(self, [actualTargets, ...args.slice(1)]);
+						notice(this, 'skill filter valid targets end', {skill: this, targets: actualTargets, filteredTargets: rt});
+						return rt;
+					}.bind(receiver);
 				}
 				return undefined; // 如果不是activate，则交由通用处理
 			}
@@ -222,12 +234,8 @@ class Skill {
 	 * @returns {Array<Object>} - 过滤后的合法目标数组。
 	 */
 	filterValidTargets(targets) {
-		const actualTargets = ensureArray(targets);
-		notice(this, 'skill filter valid targets start', {skill: this, targets});
 		const potential = this.potentialTargets;
-		const rt = actualTargets.filter(t => potential.some(p => compareWithId(p, t)));
-		notice(this, 'skill filter valid targets end', {skill: this, targets, filteredTargets: rt});
-		return rt;
+		return targets.filter(t => potential.some(p => compareWithId(p, t)));
 	}
 
 	get id() {
@@ -253,8 +261,10 @@ class Skill {
 class PassiveSkill extends Skill {
 	constructor(cfg, owner) {
 		super(cfg, owner);
-	}
 
+		//watchers中通常应当调用PassiveSkill.activate，需要从监听的通知的内容中组织出本技能所需目标。
+		watchersWatch(cfg.watchers);
+	}
 }
 
 /**
@@ -262,22 +272,30 @@ class PassiveSkill extends Skill {
  */
 class BuffSkill extends PassiveSkill {
 	constructor(cfg, owner) {
-		super(cfg, owner);
-
-		// 1. 执行初始激活 (会通过AOP)
-		this.activate(owner);
-
-		// 2. 初始激活后，立即覆盖filterValidTargets，以阻止后续的主动使用
-		this.filterValidTargets = targets => {
-			console?.warn(`被动技能 [${this.name}] 不能被主动使用，因此不返回任何合法目标。`);
-			return [];
-		};
-
-		watch(this, 'unit lost a skill', ({unit, skill}) => {
-			if (unit.id === this.owner.id && skill.id === this.id) {
-				this.deactivate();
+		super({
+			...cfg,
+			watchers: {
+				'unit add skill end': ({unit, skill}) => {
+					if (compareWithId(this.owner, unit) && compareWithId(this, skill)) {
+						// 1. 执行初始激活 (会通过AOP)
+						this.activate(owner);
+						// 2. 初始激活后，立即覆盖filterValidTargets和activate，以防止后续的主动使用。
+						this.filterValidTargets = targets => {
+							console?.warn(`被动技能 [${this.name}] 不能被主动使用，因此不返回任何合法目标。`);
+							return [];
+						};
+						this.activate = async targets => false;
+						//此时才监听。避免没有执行过activate就deactivate。
+						watch(this, 'unit remove a skill end', ({unit, skill}) => {
+							if (compareWithId(this.owner, unit) && compareWithId(this, skill)) {
+								this.deactivate();
+								this.deactivate = async () => false;
+							}
+						});
+					}
+				}
 			}
-		});
+		}, owner);
 	}
 
 	/**
@@ -293,5 +311,6 @@ class BuffSkill extends PassiveSkill {
 	}
 
 	async deactivate() {
+		return true;
 	}
 }
