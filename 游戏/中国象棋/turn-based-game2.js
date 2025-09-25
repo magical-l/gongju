@@ -1,5 +1,5 @@
 export {
-	Gaming, Rule,
+	Gaming, Rule, Battlefield, Situation,
 	Team, Player, Unit,
 	Skill, PassiveSkill, BuffSkill,
 	Plugin,
@@ -418,21 +418,86 @@ class Gaming {
 }
 
 /**
- * 规则：有一定业务含义，若干个相关的逻辑片段的封装。这些逻辑片段是监听器（watchers）
+ * 战场。主要是地图、环境、单位等的实时情况。
  */
-class Rule {
+class Battlefield {
 	#cfg;
 	#gaming;
 
-	constructor(gaming, cfg) {
-		this.#cfg = cfg;
+	#positions = [];
+	#positionUnitsMapping = new Map(); // Map<Position的key, Unit[]>
+
+	constructor(gaming, cfg = {}) {
 		this.#gaming = gaming;
+		this.#cfg = cfg;
 		const self = proxy(this, this.#cfg);
-		watchersWatch(self, self.watchers);
+		self._initPositionUnitsMapping();
 		return self;
 	}
 
 	get gaming() { return this.#gaming; }
+
+	get positions() { return [...this.#positions]; }
+
+	_initPositionUnitsMapping() {
+		this.#positions.flat().forEach(p => this.#positionUnitsMapping.set(p.toString(), []));
+	}
+
+	moveUnit(unit, position) {
+		this.removeUnitFromPosition(unit);
+		this.addUnitToPosition(unit, position);
+	}
+
+	destroyUnit(unit) {
+		this.removeUnitFromPosition(unit);
+		if (unit.owner && unit.owner.units) {
+			unit.owner.units = unit.owner.units.filter(u => u !== unit);
+		}
+	}
+
+	addUnitToPosition(unit, position) {
+		const key = this._positionKey(position);
+		if (!this.#positionUnitsMapping.has(key)) {
+			this.#positionUnitsMapping.set(key, []);
+		}
+		this.#positionUnitsMapping.get(key).push(unit);
+		unit._position = position; // 直接修改内部属性，避免触发setter递归
+	}
+
+	_positionKey(position) {
+		return position.toString();
+	}
+
+	removeUnitFromPosition(unit) {
+		if (!unit.position) {
+			return;
+		}
+		const key = this._positionKey(unit.position);
+		const unitsAtPos = this.#positionUnitsMapping.get(key);
+		if (unitsAtPos) {
+			const index = unitsAtPos.indexOf(unit);
+			if (index > -1) {
+				unitsAtPos.splice(index, 1);
+				if (unitsAtPos.length === 0) {
+					this.#positionUnitsMapping.delete(key);
+				}
+			}
+		}
+		unit._position = null; // 直接修改内部属性，避免触发setter递归
+	}
+
+	getUnitsAt(position) {
+		return this.#positionUnitsMapping.get(this._positionKey(position)) || [];
+	}
+
+	/**
+	 * 移除出界的位置。
+	 */
+	keepValidPositions(positions) {
+		return positions.filter(p => this.#positions.some(p2 => compareWithId(p, p2)));
+	}
+
+	//todo：需要增加许多关于位置的方法。比如计算两个单位的距离、获取距离某个单位为x的位置集……
 }
 
 /**
@@ -767,6 +832,24 @@ class Unit {
 
 		this.skills.splice(skillIndex, 1);
 	}
+}
+
+/**
+ * 规则：有一定业务含义，若干个相关的逻辑片段的封装。这些逻辑片段是监听器（watchers）
+ */
+class Rule {
+	#cfg;
+	#gaming;
+
+	constructor(gaming, cfg) {
+		this.#cfg = cfg;
+		this.#gaming = gaming;
+		const self = proxy(this, this.#cfg);
+		watchersWatch(self, self.watchers);
+		return self;
+	}
+
+	get gaming() { return this.#gaming; }
 }
 
 class Skill {
