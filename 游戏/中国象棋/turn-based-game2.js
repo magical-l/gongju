@@ -393,9 +393,7 @@ class Gaming {
 			notice(this, 'gaming start', {gaming: this});
 
 			while (!this.situation.isEnded) {
-				const round = new Round(this, this.situation.rounds.length + 1);
-				this.situation.rounds.push(round);
-				await round.start();
+				await this.situation.startRound();
 			}
 
 			this.situation.isEnded = true;
@@ -411,6 +409,61 @@ class Gaming {
 			};
 			watch(this, 'ui input', onInput);
 		});
+	}
+}
+
+/**
+ * 战况。记录游戏的实时状态、已成历史的客观事实（比如操作、事件等）。
+ */
+class Situation {
+	#gaming;
+	#rounds = [];
+	curPlayer;
+	isStarted = false;
+	isEnded = false;
+	winner;
+
+	constructor(gaming) {
+		this.#gaming = gaming;
+	}
+
+	get gaming() { return this.#gaming; }
+
+	get rounds() { return this.#rounds; }
+
+	async startRound() {
+		const round = new Round(this.gaming, this.#rounds.length + 1);
+		this.situation.rounds.push(round);
+		await round.start();
+	}
+}
+
+class Round {
+	#gaming;
+	#index;
+
+	constructor(gaming, index) {
+		this.#gaming = gaming;
+		this.#index = index;
+
+		aopMethod(this, 'start');
+	}
+
+	get gaming() { return this.#gaming; }
+
+	get index() { return this.#index; }
+
+	/**
+	 * 开始一个回合，玩家依次执行自己的行动轮次
+	 */
+	async start() {
+		for (const player of this.gaming.playerTurnSequence) {
+			this.gaming.situation.curPlayer = player;
+			this.gaming.bulletin.notice('player-turn start', {player});
+			await player.play(); // 等待当前玩家的回合结束
+			this.gaming.situation.curPlayer = null;
+			this.gaming.bulletin.notice('player-turn end', {player});
+		}
 	}
 }
 
@@ -443,6 +496,175 @@ class Team {
 	removeMember(member) { this.#members = this.#members.filter(m => !compareWithId(m, member)); }
 
 	get gaming() { return this.#gaming; }
+}
+
+class Player {
+	static #id = 0;
+
+	#cfg;
+	#id;
+	#team;
+	#units = [];
+
+	#selectedUnits = [];
+	#selectedSkills = [];
+	#selectedTargets = [];
+
+	constructor(team, cfg) {
+		this.#cfg = cfg;
+		this.#id = 'id' in cfg ? cfg.id : ++Player.#id;
+		this.#units = 'units' in cfg ? cfg.units : [];
+		this.#team = team;
+
+		aopMethod(this,'addUnit')
+
+		return proxy(this, this.#cfg);
+	}
+
+	get id() { return this.#id; }
+
+	get team() { return this.#team; }
+
+	get units() { return this.#units; }
+
+	get gaming() { return this.#team.gaming; }
+
+	addUnit(unit) { this.#units.push(unit); }
+
+	removeUnit(unit) { this.#units = this.#units.filter(e => compareWithId(e, unit));}
+
+	/**
+	 * 玩家玩游戏。在回合制游戏里，玩家在自己的轮次里操作单位施放技能。
+	 * 默认实现：不限定施放技能的次数，规则或技能可发布‘player-turn end’通知告知本玩家本轮次结束。
+	 */
+	async play() {
+		let playerPlayed = false;
+		const onPlayerPlayed = ({player}) => {
+			if (player.id === this.id) {
+				playerPlayed = true;
+			}
+		};
+		this.gaming.bulletin.watch('player played', onPlayerPlayed);
+
+		while (!playerPlayed) {
+			//这里算是一次‘行动’
+			const input = await this.gaming.waitForInput();
+			if (playerPlayed) {
+				break;
+			}
+			//设置技能三要素
+			this.processInput(input);
+			//三要素齐备，开始施放技能。
+			if (this.selectedUnits?.length && this.selectedSkills?.length && this.selectedTargets?.length) {
+				this.activateSkills(this.selectedUnits, this.selectedSkills, this.selectedTargets);
+			}
+			//每次行动后只清空目标。
+			this.selectedTargets = [];
+		}
+
+		this.selectedUnits = [];
+		this.selectedSkills = [];
+		this.selectedTargets = [];
+
+		this.gaming.bulletin.unwatch('player played', onPlayerPlayed);
+	}
+
+	/**
+	 * 根据输入，设置施放技能三要素，并严格遵循 Unit -> Skill -> Target 的顺序。
+	 * 该方法接受单个对象或数组作为输入，并将具体选择逻辑分派到 selectUnits, selectSkills, selectTargets 方法。
+	 * @param {any|any[]} input
+	 */
+	processInput(input) {
+		const inputs = Array.isArray(input) ? input : [input];
+		if (inputs.length === 0) {
+			return;
+		}
+		const firstItem = inputs[0];
+
+		if (firstItem instanceof Unit) {
+			// 如果已经选择了单位和技能，那么后续的单位输入应被视为“目标”
+			if (this.selectedUnits?.length && this.selectedSkills?.length) {
+				// 检查这些“目标”对于当前选中的技能是否合法
+				if (this.selectedSkills.some(e => e.isValidTargets(inputs))) {
+					this.selectTargets(inputs);
+				} else {
+					// 如果目标不合法，则检查本次输入是否是一次全新的“选择单位”动作
+					const ownUnits = inputs.filter(u => u.owner?.id === this.id);
+					if (ownUnits.length > 0) {
+						this.selectUnits(ownUnits);
+					}
+					// 如果既不是合法目标，也不是选择新的己方单位，则忽略本次操作
+				}
+			} else {
+				// 如果尚未选择单位/技能，则本次输入为“选择单位”
+				this.selectUnits(inputs);
+			}
+		} else if (firstItem instanceof Skill) {
+			this.selectSkills(inputs);
+		} else {
+			this.selectTargets(inputs);
+		}
+	}
+
+	selectUnits(units) {
+		const ownUnits = units.filter(u => u.owner?.id === this.id);
+		if (ownUnits.length > 0) {
+			this.selectedUnits = ownUnits;
+			this.selectedSkills = [];
+			this.selectedTargets = [];
+			this.gaming.bulletin.notice('player selected units', {player: this, units: ownUnits});
+		}
+	}
+
+	/**
+	 * 选择技能。默认实现是设置选中的技能。
+	 * 只有拥有 `activate` 方法的技能（主动技能）才能被选中。
+	 * @param {Skill[]} skills 要选择的技能
+	 */
+	selectSkills(skills) {
+		if (this.selectedUnits?.length) {
+			// 过滤出所有主动技能
+			const activeSkills = skills.filter(s => typeof s?.activate === 'function');
+			if (activeSkills.length > 0) {
+				this.selectedSkills = activeSkills;
+				this.gaming.bulletin.notice('player selected skills', {player: this, skills});
+			}
+		}
+	}
+
+	/**
+	 * 选择目标。默认实现是设置选中的目标。
+	 * @param {any[]} targets 要选择的目标
+	 */
+	selectTargets(targets) {
+		// 必须在选定单位和技能后
+		if (this.selectedUnits?.length && this.selectedSkills?.length) {
+			this.selectedTargets = targets;
+			this.gaming.bulletin.notice('player selected targets', {player: this, targets});
+		}
+	}
+
+	/**
+	 * 默认实现：每个技能都触发。技能自行处理目标（比如筛除非法目标等）
+	 * 子类可覆写为只触发单个技能。
+	 * @param selectedUnits
+	 * @param selectedSkills
+	 * @param selectedTargets
+	 */
+	activateSkills(selectedUnits, selectedSkills, selectedTargets) {
+		// 遍历所有选中的单位
+		selectedUnits.forEach(unit => {
+			// 遍历所有选中的技能
+			selectedSkills.forEach(skill => {
+				// 确认当前单位拥有该技能
+				if (unit.skills.includes(skill)) {
+					// 触发技能，并将目标传入
+					skill.activate(selectedTargets);
+					this.gaming.bulletin.notice('unit used skill', {unit, skill, selectedTargets});
+				}
+			});
+		});
+	}
 }
 
 class Skill {
