@@ -112,6 +112,56 @@ const aopForNotice = (self, methodName,
 	};
 };
 
+/**
+ * 为实例的 getter 属性添加 AOP 效果，在 getter 访问前后发布通知。
+ * @param {Object} self - 要代理的实例。
+ * @param {string} propertyName - 要包装的 getter 属性名。
+ * @param {Object} [options] - 配置选项。
+ * @param {Function} [options.noticePayloadBuilder] - 可选。一个函数，用于构建通知的额外 payload。它接收实例作为参数。
+ * @param {string} [options.typeName] - 可选。用于通知主题的类型名称。如果未提供，将通过 getClassHierarchy 自动获取。
+ */
+const aopGetter = (self, propertyName, options = {noticePayloadBuilder: undefined, typeName: ''}) => {
+	const {noticePayloadBuilder, typeName} = options;
+	// 1. 获取原始的 getter 函数的属性描述符
+	// 首先在原型链上查找，因为 getter 通常定义在类的原型上
+	let descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(self), propertyName);
+
+	// 如果在原型链上找不到，尝试在实例自身查找（尽管对于 getter 来说不常见）
+	if (!descriptor) {
+		descriptor = Object.getOwnPropertyDescriptor(self, propertyName);
+	}
+
+	// 检查是否确实是一个 getter
+	if (!descriptor || !descriptor.get) {
+		console?.warn(`属性 '${propertyName}' 在实例上不是一个 getter 或不存在，无法应用 aopGetter。`);
+		return;
+	}
+
+	const originalGetter = descriptor.get; // 获取原始的 getter 函数
+
+	// 2. 重新定义该属性的 getter
+	Object.defineProperty(self, propertyName, {
+		get: function() {
+			const typeName_ = typeName ?? getClassHierarchy(this).at(-1);
+			// noticePayloadBuilder 可以选择接收实例作为参数，用于构建通知的额外数据
+			const noticePayload = noticePayloadBuilder ? noticePayloadBuilder(self) : {};
+			noticePayload[typeName_] = self; // 自动添加实例本身到 payload
+
+			notice(this, typeName_ + ' get ' + propertyName + ' start', noticePayload);
+
+			// 调用原始 getter 获取结果
+			const result = originalGetter.call(this);
+
+			noticePayload.result = result;
+			notice(this, typeName_ + ' get ' + propertyName + ' end', noticePayload);
+			return result;
+		},
+		// 保持原始的属性描述符配置，如可枚举性、可配置性
+		configurable: descriptor.configurable,
+		enumerable: descriptor.enumerable,
+	});
+};
+
 class Team {
 	static #id = 0;
 
@@ -125,19 +175,16 @@ class Team {
 		this.#cfg = cfg;
 		this.#gaming = gaming;
 
-		aopForNotice(self, 'addMember', {noticePayloadBuilder: args => ({member: args[0]})});
-		aopForNotice(self, 'removeMember', {noticePayloadBuilder: args => ({member: args[0]})});
+		aopForNotice(this, 'addMember', {noticePayloadBuilder: args => ({member: args[0]})});
+		aopForNotice(this, 'removeMember', {noticePayloadBuilder: args => ({member: args[0]})});
+		aopGetter(this, 'members', {typeName: 'team'});
 
 		return proxy(this, this.#cfg);
 	}
 
 	get id() { return this.#id; }
 
-	get members() {
-		const rt = [...this.#members];
-		notice(this, 'team getMembers end', {team: this, members: rt});
-		return rt;
-	}
+	get members() { return [...this.#members]; }
 
 	addMember(member) { this.#members.push(member); }
 
@@ -167,14 +214,15 @@ class Skill {
 		});
 
 		//方法只声明了1个参数，对应args[0]。由于js不限制调用方提供多少个参数，args后面的元素就是调用方额外提供的参数，也许子类重写的方法里会用，所以也要传。
-		aopForNotice(self, 'filterValidTargets', {
+		aopForNotice(this, 'filterValidTargets', {
 			argsResolver: args => [ensureArray(args[0]), ...args.slice(1)],
 			noticePayloadBuilder: args => ({targets: args[0]}),
 		});
-		aopForNotice(self, 'activate', {
+		aopForNotice(this, 'activate', {
 			argsResolver: args => [this.filterValidTargets(ensureArray(args[0])), ...args.slice(1)],
 			noticePayloadBuilder: args => ({targets: args[0]}),
 		});
+		aopGetter(this, 'potentialTargets', {typeName: 'skill'});
 
 		return proxy(this, this.#cfg);
 	}
@@ -195,12 +243,7 @@ class Skill {
 	 * 默认实现：返回undefined（未定义可用目标）
 	 * @returns {Array<Object>} - 潜在目标对象的数组。undefined照本意，表示‘未定义（可用目标）’，即不能获取或不能列举可用目标。null同[]，表示无可用目标。
 	 */
-	get potentialTargets() {
-		notice(this, 'skill get potential targets start', {skill: this});
-		const rt = undefined;
-		notice(this, 'skill get potential targets end', {skill: this, targets: rt});
-		return rt;
-	}
+	get potentialTargets() { return undefined; }
 
 	/**
 	 * 过滤传入的目标列表，返回其中合法的目标。子类可重写以提供更复杂的过滤规则。
