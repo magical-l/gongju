@@ -1,11 +1,13 @@
-import {
-	Game, Gaming, Rule, Battlefield, Situation,
-	Team, Player, Unit,
-	Skill, PassiveSkill, BuffSkill,
-	Plugin, Board, 棋盘点位, notice,
-} from './turn-based-game.esm.js';
+import {notice} from './kit.esm.js';
+import {Board, Game, Gaming, Player, Plugin, Rule, Situation, Skill, Unit, 棋盘点位} from './turn-based-game.esm.js';
 
-//========================xiangqi.esm.js========================
+export {
+	红方id, 黑方id, 红方默认配置, 黑方默认配置, 红方玩家id, 黑方玩家id, 默认玩家顺序, 默认棋盘布局, 默认棋子类型,
+	所有可选规则, 默认启用规则, 中国象棋默认配置,
+	中国象棋, 战况, 棋盘, 棋局, 棋手,
+	Move, 攻击,
+	内置技能集, 内置规则集, 内置插件集,
+};
 
 const 红方id = '红方';
 const 黑方id = '黑方';
@@ -42,284 +44,8 @@ const 默认棋子类型 = {
 	'砲': {显示: '\u{1FA6C}', 技能: ['轮子', '隔山打牛'], 玩家: 黑方玩家id},
 	'卒': {显示: '\u{1FA6D}', 技能: ['攻击', '勇往直前'], 玩家: 黑方玩家id},
 };
-
 const 所有可选规则 = ['不能叠加棋子', '王不见王', '斩将', '红方动两次'];
 const 默认启用规则 = ['不能叠加棋子', '王不见王', '斩将'];
-
-//字段名将来展示于设置面板里，所以是中文。
-const 中国象棋默认配置 = {
-	棋盘: 默认棋盘布局,
-	棋子类型: 默认棋子类型,
-	玩家顺序: 默认玩家顺序,
-	规则: 默认启用规则,
-	插件: 内置插件集,
-};
-
-class 中国象棋 extends Game {
-	constructor(cfg = {}, 红方名字, 黑方名字) {
-		super(中国象棋.translateConfig({...中国象棋默认配置, ...cfg}, 红方名字, 黑方名字));
-		this.cfg.GamingClass = 棋局;
-		this.cfg.BattlefieldClass = 棋盘;
-		this.cfg.SituationClass = 战况;
-		this.cfg.PlayerClass = 棋手;
-	}
-
-	static translateConfig(cfg, 红方名字, 黑方名字) {
-		return {
-			棋盘: cfg.棋盘,
-			battlefieldCfg: {rowSize: 10, colSize: 9},//现在是在‘棋局’里自行实现了_buildBattlefield。可以考虑凑父类的逻辑。
-			teams: {
-				[红方id]: {...红方默认配置, players: {[红方玩家id]: {name: 红方名字}}},//以后可以给玩家加技能，比如‘走两步’
-				[黑方id]: {...黑方默认配置, players: {[黑方玩家id]: {name: 黑方名字}}},
-			},
-			unitTypes: Object.fromEntries(
-				Object.entries(cfg.棋子类型)
-				.map(([棋子名, 棋子]) =>
-					[棋子名, {display: 棋子.显示, skills: 棋子.技能, player: 棋子.玩家, ...棋子}]),
-			),
-			playerTurnSequence: cfg.玩家顺序,
-			globalRules: cfg.规则, 
-			plugins: cfg.插件,
-			...cfg,//带上原始数据
-		};
-	}
-}
-
-class 战况 extends Situation {
-	roundNotations = [];//[[红方行动,黑方行动],……]
-
-	constructor(gaming) {
-		super(gaming);
-	}
-}
-
-class 棋盘 extends Board {
-	constructor(gaming, cfg) {
-		super(gaming, cfg);
-	}
-
-	/**
-	 * 调转棋盘。中国象棋是双方玩家面对面对弈，双方看到的棋盘恰好是180°调转。
-	 * 返回一个包含同样棋盘点位，但是行列都颠倒的二维数组。
-	 */
-	revert() {
-		// 复制并反转所有行，然后对每一行进行复制和反转
-		return this.positions.slice().reverse().map(row => row.slice().reverse());
-	}
-
-	/**
-	 * 返回指定玩家的‘地盘’（位置列表）。在经典棋盘里，红方占据下半边，黑方占据上半边。
-	 * @param player
-	 */
-	areaOf(player) {
-		const allPositions = this.positions.flat();
-		// 根据棋盘上记录的上下方位来判断
-		if (this.playerDown && player === this.playerDown) {
-			return allPositions.filter(p => p.rowNum >= 6);
-		}
-		if (this.playerUp && player === this.playerUp) {
-			return allPositions.filter(p => p.rowNum <= 5);
-		}
-		// 提供一个默认值作为兼容
-		return [];
-	}
-
-	/**
-	 * 返回指定玩家的进攻方向：1表示向下，-1表示向上，可以加到rowNum上。在经典棋盘里，红方为-1，黑方为1。
-	 * @param player
-	 */
-	forwardDirection(player) {
-		// “下方”玩家（帅在下）的进攻方向是-1，“上方”玩家（将在上）的进攻方向是1
-		if (this.playerDown && player === this.playerDown) {
-			return -1;
-		}
-		if (this.playerUp && player === this.playerUp) {
-			return 1;
-		}
-		// 如果出现意外情况，提供一个默认值作为兼容
-		return player.team.id === 红方id ? -1 : 1;
-	}
-
-	/**
-	 * 检查一个点位是否在棋盘边界内。
-	 * @param {棋盘点位} position
-	 * @returns {boolean}
-	 */
-	isValidPosition(position) {
-		return position.rowNum >= 1 && position.rowNum <= this.rowSize &&
-					 position.colNum >= 1 && position.colNum <= this.colSize;
-	}
-
-	/**
-	 * 检查一个点位是否在九宫格内
-	 * @param {棋盘点位} position
-	 * @returns {boolean}
-	 */
-	isInPalace(position) {
-		if (position.colNum < 4 || position.colNum > 6) {
-			return false;
-		}
-		return position.rowNum >= 1 && position.rowNum <= 3 || position.rowNum >= 8 && position.rowNum <= 10;
-	}
-
-	/**
-	 * 检查一个点位对指定玩家来说是否算“已过河”
-	 * @param {棋盘点位} position
-	 * @param {Player} player
-	 * @returns {boolean}
-	 */
-	isAcrossRiver(position, player) {
-		const forward = this.forwardDirection(player);
-		if (forward === -1) {
-			return position.rowNum <= 5;
-		} else {
-			return position.rowNum >= 6;
-		}
-	}
-}
-
-class 棋局 extends Gaming {
-	_build() {
-		super._build();
-		this.situation.roundNotations = [];
-		this.bulletin.watch('单位移动', move => this._generateNotation(move));
-
-		// 事件名适配器：将框架的英文事件名翻译为中文，供应用层使用
-		const eventTranslations = {
-			'initing': '初始化中',
-			'inited': '初始化完成',
-			'game start': '游戏开始',
-			'game end': '游戏结束',
-			'round start': '回合开始',
-			'round end': '回合结束',
-			'player-turn start': '轮次开始',
-			'player-turn end': '轮次结束',
-			'player selected units': '玩家选择了单位',
-			'player selected skills': '玩家选择了技能',
-			'player:deselected-unit': '玩家取消选择单位',
-			'unit moved': '单位移动',
-		};
-
-		Object.entries(eventTranslations)
-		.forEach(([englishEvent, chineseEvent]) =>
-			this.bulletin.watch(englishEvent, payload => this.bulletin.notice(chineseEvent, payload)));
-	}
-
-	_generateNotation(move) {
-		const {unit, oldPosition} = move;
-		const newPosition = unit.position;
-		const isRed = unit.owner.team.id === '红方';
-		const notation = `${unit.name}: ${oldPosition} -> ${newPosition}`;
-
-		if (isRed) {
-			this.situation.roundNotations.push([notation]);
-		} else {
-			if (this.situation.roundNotations.length > 0 && this.situation.roundNotations.at(-1).length === 1) {
-				this.situation.roundNotations.at(-1).push(notation);
-			} else {
-				this.situation.roundNotations.push([null, notation]);
-			}
-		}
-	}
-
-	_buildBattlefield() {
-		const battlefield = super._buildBattlefield();
-
-		this.bulletin.notice('parsing board layout');
-		const layout = this.cfg.棋盘.trim().split(/\s+/);
-		const unitTypes = this.cfg.unitTypes;
-
-		const playersById = this.playersIdMap;
-
-		// 根据布局字符串，创建单位实例并放置到棋盘上
-		layout.forEach((rowStr, r) => {
-			rowStr.split('').forEach((char, c) => {
-				if (char !== '空') {
-					const unitCfg = unitTypes[char];
-					if (unitCfg) {
-						const player = playersById[unitCfg.player];
-						if (player) {
-							const unit = this._buildUnit(player, {name: char, ...unitCfg});
-							const position = new 棋盘点位(r + 1, c + 1);
-							battlefield.addUnitToPosition(unit, position);
-						} else {
-							console.warn(`未能根据ID找到玩家: ${unitCfg.player}`);
-						}
-					}
-				}
-			});
-		});
-
-		this.bulletin.notice('board parsed');
-
-		// 根据将帅初始位置，决定双方的方位
-		const allUnits = battlefield.positions.flat().flatMap(p => battlefield.getUnitsAt(p));
-		const kingRed = allUnits.find(u => u.name === '帅');
-		const kingBlack = allUnits.find(u => u.name === '将');
-
-		if (kingRed && kingBlack) {
-			if (kingRed.position.rowNum > kingBlack.position.rowNum) {
-				battlefield.playerDown = kingRed.owner;
-				battlefield.playerUp = kingBlack.owner;
-			} else {
-				battlefield.playerDown = kingBlack.owner;
-				battlefield.playerUp = kingRed.owner;
-			}
-		}
-
-		return battlefield;
-	}
-
-	_buildSkill(owner, skillCfg) {
-		// skillCfg 在此游戏中是一个字符串，如 '马行日'
-		const SkillClass = 内置技能集[skillCfg];
-		return super._buildSkill(owner, {class: SkillClass});
-	}
-
-	_buildGlobalRule(ruleCfg) {
-		const RuleClass = 内置规则集[ruleCfg];
-		return super._buildGlobalRule({class: RuleClass});
-	}
-
-	_buildPlugin(pluginCfg) {
-		const PluginClass = 内置插件集[pluginCfg];
-		return super._buildPlugin({class: PluginClass});
-	}
-}
-
-class 棋手 extends Player {
-	/**
-	 * 选择棋子作为行动单位。
-	 * @override
-	 */
-	selectUnits(units) {
-		// 调用父类方法，完成基础的选择单位、重置技能和目标的操作
-		super.selectUnits(units);
-
-		if (this.selectedUnits.length) {
-			// 象棋逻辑：选定棋子后，自动“选择”其默认的移动和杀敌技能
-			const unit = units[0];
-			const skillsToSelect = [];
-
-			// 查找移动技能
-			const moveSkill = unit?.skills.find(s => s instanceof Move);
-			if (moveSkill) {
-				skillsToSelect.push(moveSkill);
-			}
-
-			// 查找杀敌技能
-			const killSkill = unit?.skills.find(s => s instanceof 攻击);
-			if (killSkill) {
-				skillsToSelect.push(killSkill);
-			}
-
-			if (skillsToSelect.length > 0) {
-				// 直接调用父类的 selectSkills，不走 processInput 的分派逻辑
-				super.selectSkills(skillsToSelect);
-			}
-		}
-	}
-}
 
 class Move extends Skill {
 	constructor(overrideCfg = {}) {
@@ -426,14 +152,12 @@ class 攻击 extends Skill {
 
 const 内置技能集 = {
 	攻击,
-
 	'挡我者死': class extends 攻击 {
 		constructor(cfg) {
 			super({
 				name: '挡我者死',
 				intro: '沿直线攻击敌方单位，中间不能有阻碍。',
-				tip: '车可以沿直线攻击任何敌方单位，中间不能有其他棋子阻挡。攻击后移动到该位置。',
-				...cfg,
+				tip: '车可以沿直线攻击任何敌方单位，中间不能有其他棋子阻挡。攻击后移动到该位置。', ...cfg,
 			});
 		}
 
@@ -441,21 +165,14 @@ const 内置技能集 = {
 			const {rowNum, colNum} = this.owner.position;
 			const scope = [];
 			const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
-
 			directions.forEach(([dr, dc]) => {
 				for (let i = 1; ; i++) {
-					const r = rowNum + dr * i;
-					const c = colNum + dc * i;
-					const p = new 棋盘点位(r, c);
-
+					const r = rowNum + dr * i, c = colNum + dc * i, p = new 棋盘点位(r, c);
 					if (!this.gaming.battlefield.isValidPosition(p)) {
 						break;
 					}
-
 					scope.push(p);
-
-					const units = this.gaming.battlefield.getUnitsAt(p);
-					if (units.length > 0) {
+					if (this.gaming.battlefield.getUnitsAt(p).length > 0) {
 						break;
 					}
 				}
@@ -463,14 +180,12 @@ const 内置技能集 = {
 			return scope;
 		}
 	},
-
 	'隔山打牛': class extends 攻击 {
 		constructor(cfg) {
 			super({
 				name: '隔山打牛',
 				intro: '隔山打炮，跳过一个棋子攻击敌方单位。',
-				tip: '炮可以跳过一个棋子（无论敌我）攻击路径上的第二个敌方棋子。攻击后移动到该位置。',
-				...cfg,
+				tip: '炮可以跳过一个棋子（无论敌我）攻击路径上的第二个敌方棋子。攻击后移动到该位置。', ...cfg,
 			});
 		}
 
@@ -478,18 +193,13 @@ const 内置技能集 = {
 			const {rowNum, colNum} = this.owner.position;
 			const scope = [];
 			const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
-
 			directions.forEach(([dr, dc]) => {
 				let jumpedOver = false;
 				for (let i = 1; ; i++) {
-					const r = rowNum + dr * i;
-					const c = colNum + dc * i;
-					const p = new 棋盘点位(r, c);
-
+					const r = rowNum + dr * i, c = colNum + dc * i, p = new 棋盘点位(r, c);
 					if (!this.gaming.battlefield.isValidPosition(p)) {
 						break;
 					}
-
 					const units = this.gaming.battlefield.getUnitsAt(p);
 					if (units.length > 0) {
 						if (!jumpedOver) {
@@ -504,7 +214,6 @@ const 内置技能集 = {
 			return scope;
 		}
 	},
-
 	'步战四方': class extends Move {
 		constructor(cfg) {
 			super({name: '步战四方', intro: '可以向前后左右移动一格', tip: '可以向前后左右移动一格。', ...cfg});
@@ -512,23 +221,17 @@ const 内置技能集 = {
 
 		getRawTargetPositions() {
 			const {rowNum, colNum} = this.owner.position;
-			return [
-				new 棋盘点位(rowNum - 1, colNum), new 棋盘点位(rowNum + 1, colNum),
-				new 棋盘点位(rowNum, colNum - 1), new 棋盘点位(rowNum, colNum + 1),
-			];
+			return [new 棋盘点位(rowNum - 1, colNum), new 棋盘点位(rowNum + 1, colNum), new 棋盘点位(rowNum, colNum - 1),
+							new 棋盘点位(rowNum, colNum + 1)];
 		}
 	},
-
 	'守营': class extends Skill {
 		constructor(cfg) {
 			super({
-				name: '守营', intro: '有守卫大营之责，不能冲锋陷阵。', tip: '不能离开九宫格。', ...cfg,
-				watchers: {
+				name: '守营', intro: '有守卫大营之责，不能冲锋陷阵。', tip: '不能离开九宫格。', ...cfg, watchers: {
 					'已获取可移动位置集': ({unit, availableTargetPositions}) => {
 						if (unit.id === this.owner.id) {
-							const filtered = availableTargetPositions.filter(
-								p => this.gaming.battlefield.isInPalace(p),
-							);
+							const filtered = availableTargetPositions.filter(p => this.gaming.battlefield.isInPalace(p));
 							availableTargetPositions.length = 0;
 							availableTargetPositions.push(...filtered);
 						}
@@ -537,7 +240,6 @@ const 内置技能集 = {
 			});
 		}
 	},
-
 	'护卫': class extends Move {
 		constructor(cfg) {
 			super({
@@ -549,13 +251,10 @@ const 内置技能集 = {
 
 		getRawTargetPositions() {
 			const {rowNum, colNum} = this.owner.position;
-			return [
-				new 棋盘点位(rowNum - 1, colNum - 1), new 棋盘点位(rowNum - 1, colNum + 1),
-				new 棋盘点位(rowNum + 1, colNum - 1), new 棋盘点位(rowNum + 1, colNum + 1),
-			];
+			return [new 棋盘点位(rowNum - 1, colNum - 1), new 棋盘点位(rowNum - 1, colNum + 1),
+							new 棋盘点位(rowNum + 1, colNum - 1), new 棋盘点位(rowNum + 1, colNum + 1)];
 		}
 	},
-
 	'象行田': class extends Move {
 		constructor(cfg) {
 			super({name: '象行田', intro: '走一个“田字形”。', tip: '可移动到斜线两格的位置（‘田字’对角线）。', ...cfg});
@@ -563,18 +262,14 @@ const 内置技能集 = {
 
 		getRawTargetPositions() {
 			const {rowNum, colNum} = this.owner.position;
-			return [
-				new 棋盘点位(rowNum - 2, colNum - 2), new 棋盘点位(rowNum - 2, colNum + 2),
-				new 棋盘点位(rowNum + 2, colNum - 2), new 棋盘点位(rowNum + 2, colNum + 2),
-			];
+			return [new 棋盘点位(rowNum - 2, colNum - 2), new 棋盘点位(rowNum - 2, colNum + 2),
+							new 棋盘点位(rowNum + 2, colNum - 2), new 棋盘点位(rowNum + 2, colNum + 2)];
 		}
 	},
-
 	'塞象眼': class extends Skill {
 		constructor(cfg) {
 			super({
-				name: '塞象眼', intro: '如果“田”字中心有棋子，则无法移动过去。', ...cfg,
-				watchers: {
+				name: '塞象眼', intro: '如果“田”字中心有棋子，则无法移动过去。', ...cfg, watchers: {
 					'已获取可移动位置集': ({unit, availableTargetPositions, blockedTargetPositions}) => {
 						if (unit.id === this.owner.id) {
 							const {rowNum, colNum} = this.owner.position;
@@ -595,17 +290,14 @@ const 内置技能集 = {
 			});
 		}
 	},
-
 	'水太深': class extends Skill {
 		constructor(cfg) {
 			super({
-				name: '水太深', intro: '不能渡过楚河汉界。', tip: '不能过河', ...cfg,
-				watchers: {
+				name: '水太深', intro: '不能渡过楚河汉界。', tip: '不能过河', ...cfg, watchers: {
 					'已获取可移动位置集': ({unit, availableTargetPositions}) => {
 						if (unit.id === this.owner.id) {
 							const filtered = availableTargetPositions.filter(
-								p => !this.gaming.battlefield.isAcrossRiver(p, unit.owner),
-							);
+								p => !this.gaming.battlefield.isAcrossRiver(p, unit.owner));
 							availableTargetPositions.length = 0;
 							availableTargetPositions.push(...filtered);
 						}
@@ -614,35 +306,27 @@ const 内置技能集 = {
 			});
 		}
 	},
-
 	'马行日': class extends Move {
-		constructor(cfg) {
-			super({name: '马行日', intro: '走一个“日字形”。', tip: '可以移动到“日字”对角线的位置', ...cfg});
-		}
+		constructor(cfg) { super({name: '马行日', intro: '走一个“日字形”。', tip: '可以移动到“日字”对角线的位置', ...cfg}); }
 
 		getRawTargetPositions() {
 			const {rowNum, colNum} = this.owner.position;
-			return [
-				new 棋盘点位(rowNum - 2, colNum - 1), new 棋盘点位(rowNum - 2, colNum + 1),
-				new 棋盘点位(rowNum + 2, colNum - 1), new 棋盘点位(rowNum + 2, colNum + 1),
-				new 棋盘点位(rowNum - 1, colNum - 2), new 棋盘点位(rowNum - 1, colNum + 2),
-				new 棋盘点位(rowNum + 1, colNum - 2), new 棋盘点位(rowNum + 1, colNum + 2),
-			];
+			return [new 棋盘点位(rowNum - 2, colNum - 1), new 棋盘点位(rowNum - 2, colNum + 1),
+							new 棋盘点位(rowNum + 2, colNum - 1), new 棋盘点位(rowNum + 2, colNum + 1),
+							new 棋盘点位(rowNum - 1, colNum - 2), new 棋盘点位(rowNum - 1, colNum + 2),
+							new 棋盘点位(rowNum + 1, colNum - 2), new 棋盘点位(rowNum + 1, colNum + 2)];
 		}
 	},
-
 	'绊马脚': class extends Skill {
 		constructor(cfg) {
 			super({
-				name: '绊马脚', intro: '如果前进方向的第一个交叉点有棋子，则无法移动。', ...cfg,
-				watchers: {
+				name: '绊马脚', intro: '如果前进方向的第一个交叉点有棋子，则无法移动。', ...cfg, watchers: {
 					'已获取可移动位置集': ({unit, availableTargetPositions, blockedTargetPositions}) => {
 						if (unit.id === this.owner.id) {
 							const {rowNum, colNum} = this.owner.position;
 							const stillValid = [];
 							availableTargetPositions.forEach(p => {
-								const dr = p.rowNum - rowNum;
-								const dc = p.colNum - colNum;
+								const dr = p.rowNum - rowNum, dc = p.colNum - colNum;
 								let blockPos;
 								if (Math.abs(dr) === 2 && Math.abs(dc) === 1) {
 									blockPos = new 棋盘点位(rowNum + dr / 2, colNum);
@@ -663,16 +347,11 @@ const 内置技能集 = {
 			});
 		}
 	},
-
 	'轮子': class extends Move {
-		constructor(cfg) {
-			super({name: '轮子', intro: '在没有阻挡的情况下，可以在横向或纵向的任何位置移动。', ...cfg});
-		}
+		constructor(cfg) { super({name: '轮子', intro: '在没有阻挡的情况下，可以在横向或纵向的任何位置移动。', ...cfg}); }
 
 		getRawTargetPositions() {
-			const {rowNum, colNum} = this.owner.position;
-			const {rowSize, colSize} = this.gaming.battlefield;
-			const rt = [];
+			const {rowNum, colNum} = this.owner.position, {rowSize, colSize} = this.gaming.battlefield, rt = [];
 			for (let r = rowNum - 1; r >= 1; r--) {
 				const p = new 棋盘点位(r, colNum);
 				if (this.gaming.battlefield.getUnitsAt(p).length > 0) {
@@ -704,25 +383,17 @@ const 内置技能集 = {
 			return rt;
 		}
 	},
-
 	'勇往直前': class extends Move {
-		constructor(cfg) {
-			super({name: '勇往直前', intro: '未过河时只能向前，过河后可横向移动。', ...cfg});
-		}
+		constructor(cfg) { super({name: '勇往直前', intro: '未过河时只能向前，过河后可横向移动。', ...cfg}); }
 
 		getRawTargetPositions() {
-			const {rowNum, colNum} = this.owner.position;
-			const forward = this.gaming.battlefield.forwardDirection(this.owner.owner);
-			const rt = [
-				new 棋盘点位(rowNum + forward, colNum),
-			];
-
-			const riverCrossed = this.gaming.battlefield.isAcrossRiver(this.owner.position, this.owner.owner);
-			if (riverCrossed) {
+			const {rowNum, colNum} = this.owner.position,
+				forward = this.gaming.battlefield.forwardDirection(this.owner.owner),
+				rt = [new 棋盘点位(rowNum + forward, colNum)];
+			if (this.gaming.battlefield.isAcrossRiver(this.owner.position, this.owner.owner)) {
 				rt.push(new 棋盘点位(rowNum, colNum - 1));
 				rt.push(new 棋盘点位(rowNum, colNum + 1));
 			}
-
 			return rt;
 		}
 	},
@@ -732,68 +403,63 @@ const 内置规则集 = {
 	'杀敌后进驻': class extends Rule {
 		constructor(gaming, cfg) {
 			super(gaming, {
-				name: '杀敌后进驻', intro: '吃子后占据其位置。', tip: '消灭敌方单位后，移动到该单位原来的位置。',
+				name: '杀敌后进驻',
+				intro: '吃子后占据其位置。',
+				tip: '消灭敌方单位后，移动到该单位原来的位置。',
 				watchers: {
 					'单位杀敌': ({unit, killed}) => {
 						if (unit.id === this.owner.id) {
 							this.owner.position = killed.position;
 						}
-					}
-				}
+					},
+				},
 			});
 		}
 	},
 	'王不见王': class extends Rule {
 		constructor(gaming, cfg) {
 			super(gaming, {
-				name: '王不见王', intro: '将帅不能碰见对方将帅，否则输棋。', tip: '将帅不能位于同一列且中间无其他棋子遮挡。',
+				name: '王不见王',
+				intro: '将帅不能碰见对方将帅，否则输棋。',
+				tip: '将帅不能位于同一列且中间无其他棋子遮挡。',
 				watchers: {
 					'初始化完成': () => {
 						const allUnits = this.gaming.teamList.flatMap(team => Object.values(team.players))
 						.flatMap(player => player.units);
 						this.kingRed = allUnits.find(u => u.name === '帅');
 						this.kingBlack = allUnits.find(u => u.name === '将');
-					},
-					'单位阵亡': ({unit}) => {
+					}, '单位阵亡': ({unit}) => {
 						if (unit === this.kingRed) {
 							this.kingRed = null;
 						}
 						if (unit === this.kingBlack) {
 							this.kingBlack = null;
 						}
-					},
-					'已获取可移动位置集': ({unit, availableTargetPositions}) => {
+					}, '已获取可移动位置集': ({unit, availableTargetPositions}) => {
 						if (!this.kingRed || !this.kingBlack) {
 							return;
 						}
-
 						const filteredPositions = availableTargetPositions.filter(targetPos => {
-							const battlefield = this.gaming.battlefield;
-							const movingUnit = unit;
-							const fromPos = movingUnit.position;
-
-							if (targetPos.isEqualTo(this.kingRed.position) || targetPos.isEqualTo(this.kingBlack.position)) {
+							const battlefield = this.gaming.battlefield,
+								movingUnit = unit,
+								fromPos = movingUnit.position;
+							if (targetPos.isEqualTo(this.kingRed.position) || targetPos.isEqualTo(
+								this.kingBlack.position)) {
 								return true;
 							}
-
-							const futureKingRedPos = movingUnit === this.kingRed ? targetPos : this.kingRed.position;
-							const futureKingBlackPos = movingUnit === this.kingBlack ? targetPos : this.kingBlack.position;
-
+							const futureKingRedPos = movingUnit === this.kingRed ? targetPos : this.kingRed.position,
+								futureKingBlackPos = movingUnit === this.kingBlack ? targetPos : this.kingBlack.position;
 							if (futureKingRedPos.colNum !== futureKingBlackPos.colNum) {
 								return true;
 							}
-
-							const col = futureKingRedPos.colNum;
-							const minRow = Math.min(futureKingRedPos.rowNum, futureKingBlackPos.rowNum);
-							const maxRow = Math.max(futureKingRedPos.rowNum, futureKingBlackPos.rowNum);
-
+							const col = futureKingRedPos.colNum,
+								minRow = Math.min(futureKingRedPos.rowNum, futureKingBlackPos.rowNum),
+								maxRow = Math.max(futureKingRedPos.rowNum, futureKingBlackPos.rowNum);
 							for (let r = minRow + 1; r < maxRow; r++) {
 								const p = new 棋盘点位(r, col);
-
 								if (targetPos.isEqualTo(p)) {
 									return true;
 								}
-
 								if (fromPos && fromPos.isEqualTo(p)) {
 									if (battlefield.getUnitsAt(p).length > 1) {
 										return true;
@@ -804,41 +470,36 @@ const 内置规则集 = {
 									}
 								}
 							}
-
 							return false;
 						});
-
 						availableTargetPositions.length = 0;
 						availableTargetPositions.push(...filteredPositions);
-					}
-				},
-				...cfg
+					},
+				}, ...cfg,
 			});
 		}
 	},
-
 	'斩将': class extends Rule {
 		constructor(gaming, cfg) {
 			super(gaming, {
-				name: '斩将', intro: '将帅阵亡则输棋。', tip: '保护好将帅。',
+				name: '斩将',
+				intro: '将帅阵亡则输棋。',
+				tip: '保护好将帅。',
 				watchers: {
 					'单位阵亡': ({unit, killer}) => {
 						if (unit.name === '将' || unit.name === '帅') {
 							gaming.bulletin.notice('game over', {winner: killer.owner});
 						}
-					}
-				},
-				...cfg
+					},
+				}, ...cfg,
 			});
 		}
 	},
-
 	'不能叠加棋子': class extends Rule {
 		constructor(gaming, cfg) {
 			super(gaming, {
 				name: '不能叠加棋子',
-				intro: '棋子不能移动到已有己方棋子的位置。',
-				...cfg,
+				intro: '棋子不能移动到已有己方棋子的位置。', ...cfg,
 				watchers: {
 					'已获取可移动位置集': ({unit, availableTargetPositions}) => {
 						if (!unit) {
@@ -851,33 +512,31 @@ const 内置规则集 = {
 						});
 						availableTargetPositions.length = 0;
 						availableTargetPositions.push(...filtered);
-					}
-				}
+					},
+				},
 			});
 		}
 	},
-
 	'红方动两次': class extends Rule {
 		constructor(gaming, cfg) {
 			super(gaming, {
 				name: '红方动两次',
-				intro: '红方在自己的每个回合中，可以连续移动两次。',
-				...cfg,
+				intro: '红方在自己的每个回合中，可以连续移动两次。', ...cfg,
 				watchers: {
-					'player-turn start': ({ player }) => {
+					'player-turn start': ({player}) => {
 						if (player.team.id === 红方id) {
 							player.actionsPerTurn = 2;
 						}
 					},
-					'player-turn end': ({ player }) => {
+					'player-turn end': ({player}) => {
 						if (player.team.id === 红方id) {
 							player.actionsPerTurn = 1;
 						}
-					}
-				}
+					},
+				},
 			});
 		}
-	}
+	},
 };
 
 const 内置插件集 = {
@@ -887,7 +546,9 @@ const 内置插件集 = {
 			if (forwardDirection < 0) {
 				return is红方 ? 汉语数字[10 - colNum] : 10 - colNum;
 			} else {
-				return is红方 ? 汉语数字[colNum] : colNum;
+				return is红方
+							 ? 汉语数字[colNum]
+							 : colNum;
 			}
 		};
 		return class extends Plugin {
@@ -896,22 +557,20 @@ const 内置插件集 = {
 
 			constructor(gaming, cfg) {
 				super(gaming, {
-					name: '记谱',
-					...cfg,
+					name: '记谱', ...cfg,
 					watchers: {
 						'玩家选择了单位': ({player, units}) => {
-							const unit = units[0];
-							const 同名单位行号集 = [];
-							const {rowNum, colNum} = unit.position;
-							const forwardDirection = this.gaming.battlefield.forwardDirection(player);
+							const unit = units[0], 同名单位行号集 = [], {
+								rowNum,
+								colNum,
+							} = unit.position, forwardDirection = this.gaming.battlefield.forwardDirection(player);
 							for (let i = 1; i <= this.gaming.battlefield.rowSize; i++) {
 								const units = this.gaming.battlefield.getUnitsAt(new 棋盘点位(i, colNum));
 								if (units.filter(u => u.name === unit.name && u.owner === player).length) {
 									同名单位行号集.push(i);
 								}
 							}
-							const is红方 = player.team.id === 红方id;
-							const len = 同名单位行号集.length;
+							const is红方 = player.team.id === 红方id, len = 同名单位行号集.length;
 							if (len === 1) {
 								this.unitName = unit.name + calColName(forwardDirection, is红方, colNum);
 							} else {
@@ -920,32 +579,32 @@ const 内置插件集 = {
 								if (index === 0) {
 									this.unitName = '前' + unit.name;
 								} else if (index === len - 1) {
-									this.unitName = '后' + unit.name;
-								} else if (len === 3) {
-									this.unitName = '中' + unit.name;
+									this.unitName = '后'
+																	+ unit.name;
+								} else if (len
+													 === 3) {
+									this.unitName
+										= '中' + unit.name;
 								} else {
 									this.unitName = 汉语数字[index + 1] + unit.name;
 								}
 							}
-						}
-					}
+						},
+					},
 				});
-
 				gaming._generateNotation = this.generatePluginNotation.bind(this);
 				gaming.situation.roundNotations.length = 0;
 			}
 
 			generatePluginNotation(move) {
 				const isAttacking = (rowDiff, forwardDirection) => Math.sign(rowDiff) === Math.sign(forwardDirection);
-				const {unit, oldPosition} = move;
-				const newPosition = unit.position;
-				const rowDiff = newPosition.rowNum - oldPosition.rowNum;
-				const newColNum = newPosition.colNum;
-				const is红方 = unit.owner.team.id === 红方id;
-				const forwardDirection = this.gaming.battlefield.forwardDirection(unit.owner);
-				let moveType;
-				let target;
-
+				const {unit, oldPosition} = move,
+					newPosition = unit.position,
+					rowDiff = newPosition.rowNum - oldPosition.rowNum,
+					newColNum = newPosition.colNum,
+					is红方 = unit.owner.team.id === 红方id,
+					forwardDirection = this.gaming.battlefield.forwardDirection(unit.owner);
+				let moveType, target;
 				if (rowDiff === 0) {
 					moveType = '平';
 					target = calColName(forwardDirection, is红方, newColNum);
@@ -954,23 +613,219 @@ const 内置插件集 = {
 					if (newColNum !== oldPosition.colNum) {
 						target = calColName(forwardDirection, is红方, newColNum);
 					} else {
-						target = is红方 ? 汉语数字[Math.abs(rowDiff)] : Math.abs(rowDiff);
+						target
+							= is红方 ? 汉语数字[Math.abs(rowDiff)] : Math.abs(rowDiff);
 					}
 				}
-
-				const notation = `${this.unitName}${moveType}${target}`;
-				const roundNotations = this.gaming.situation.roundNotations;
-
-				if (is红方) {
-					roundNotations.push([notation]);
-				} else {
+				const notation = `${this.unitName}${moveType}${target}`, roundNotations = this.gaming.situation.roundNotations;
+				if (is红方) { roundNotations.push([notation]); } else {
 					if (roundNotations.length > 0 && roundNotations.at(-1).length === 1) {
-						roundNotations.at(-1).push(notation);
+						roundNotations.at(-1)
+						.push(notation);
 					} else {
 						roundNotations.push(['', notation]);
 					}
 				}
 			}
-		}
-	})()
+		};
+	})(),
 };
+
+const 中国象棋默认配置 = {
+	棋盘: 默认棋盘布局,
+	棋子类型: 默认棋子类型,
+	玩家顺序: 默认玩家顺序,
+	规则: 默认启用规则,
+	插件: Object.keys(内置插件集),
+};
+
+class 中国象棋 extends Game {
+	constructor(cfg = {}, 红方名字, 黑方名字) {
+		super(中国象棋.translateConfig({...中国象棋默认配置, ...cfg}, 红方名字, 黑方名字));
+		this.cfg.GamingClass = 棋局;
+		this.cfg.BattlefieldClass = 棋盘;
+		this.cfg.SituationClass = 战况;
+		this.cfg.PlayerClass = 棋手;
+	}
+
+	static translateConfig(cfg, 红方名字, 黑方名字) {
+		return {
+			棋盘: cfg.棋盘,
+			battlefieldCfg: {rowSize: 10, colSize: 9},
+			teams: {
+				[红方id]: {...红方默认配置, players: {[红方玩家id]: {name: 红方名字}}},
+				[黑方id]: {...黑方默认配置, players: {[黑方玩家id]: {name: 黑方名字}}},
+			},
+			unitTypes: Object.fromEntries(Object.entries(cfg.棋子类型)
+			.map(([棋子名, 棋子]) => [棋子名, {display: 棋子.显示, skills: 棋子.技能, player: 棋子.玩家, ...棋子}])),
+			playerTurnSequence: cfg.玩家顺序,
+			globalRules: cfg.规则,
+			plugins: cfg.插件,
+			...cfg,
+		};
+	}
+}
+
+class 战况 extends Situation {
+	roundNotations = [];
+
+	constructor(gaming) { super(gaming); }
+}
+
+class 棋盘 extends Board {
+	constructor(gaming, cfg) { super(gaming, cfg); }
+
+	revert() { return this.positions.slice().reverse().map(row => row.slice().reverse()); }
+
+	areaOf(player) {
+		const allPositions = this.positions.flat();
+		if (this.playerDown && player === this.playerDown) {
+			return allPositions.filter(p => p.rowNum >= 6);
+		}
+		if (this.playerUp && player === this.playerUp) {
+			return allPositions.filter(p => p.rowNum <= 5);
+		}
+		return [];
+	}
+
+	forwardDirection(player) {
+		if (this.playerDown && player === this.playerDown) {
+			return -1;
+		}
+		if (this.playerUp && player === this.playerUp) {
+			return 1;
+		}
+		return player.team.id === 红方id ? -1 : 1;
+	}
+
+	isValidPosition(position) {
+		return position.rowNum >= 1 && position.rowNum <= this.rowSize && position.colNum >= 1 && position.colNum
+					 <= this.colSize;
+	}
+
+	isInPalace(position) {
+		if (position.colNum < 4 || position.colNum > 6) {
+			return false;
+		}
+		return position.rowNum >= 1 && position.rowNum <= 3 || position.rowNum >= 8 && position.rowNum <= 10;
+	}
+
+	isAcrossRiver(position, player) {
+		const forward = this.forwardDirection(player);
+		if (forward === -1) {
+			return position.rowNum <= 5;
+		} else {
+			return position.rowNum >= 6;
+		}
+	}
+}
+
+class 棋局 extends Gaming {
+	_build() {
+		super._build();
+		this.situation.roundNotations = [];
+		this.bulletin.watch('单位移动', move => this._generateNotation(move));
+		const eventTranslations = {
+			'initing': '初始化中',
+			'inited': '初始化完成',
+			'game start': '游戏开始',
+			'game end': '游戏结束',
+			'round start': '回合开始',
+			'round end': '回合结束',
+			'player-turn start': '轮次开始',
+			'player-turn end': '轮次结束',
+			'player selected units': '玩家选择了单位',
+			'player selected skills': '玩家选择了技能',
+			'player:deselected-unit': '玩家取消选择单位',
+			'unit moved': '单位移动',
+		};
+		Object.entries(eventTranslations).forEach(([englishEvent, chineseEvent]) => this.bulletin.watch(englishEvent,
+			payload => this.bulletin.notice(chineseEvent, payload)));
+	}
+
+	_generateNotation(move) {
+		const {unit, oldPosition} = move,
+			newPosition = unit.position,
+			isRed = unit.owner.team.id === '红方',
+			notation = `${unit.name}: ${oldPosition} -> ${newPosition}`;
+		if (isRed) { this.situation.roundNotations.push([notation]); } else {
+			if (this.situation.roundNotations.length > 0 && this.situation.roundNotations.at(-1).length
+					=== 1) {
+				this.situation.roundNotations.at(-1).push(notation);
+			} else {
+				this.situation.roundNotations.push(
+					[null, notation]);
+			}
+		}
+	}
+
+	_buildBattlefield() {
+		const battlefield = super._buildBattlefield();
+		this.bulletin.notice('parsing board layout');
+		const layout = this.cfg.棋盘.trim().split(/\s+/), unitTypes = this.cfg.unitTypes, playersById = this.playersIdMap;
+		layout.forEach((rowStr, r) => {
+			rowStr.split('').forEach((char, c) => {
+				if (char !== '空') {
+					const unitCfg = unitTypes[char];
+					if (unitCfg) {
+						const player = playersById[unitCfg.player];
+						if (player) {
+							const unit = this._buildUnit(player, {name: char, ...unitCfg}),
+								position = new 棋盘点位(r + 1, c + 1);
+							battlefield.addUnitToPosition(unit, position);
+						} else { console.warn(`未能根据ID找到玩家: ${unitCfg.player}`); }
+					}
+				}
+			});
+		});
+		this.bulletin.notice('board parsed');
+		const allUnits = battlefield.positions.flat().flatMap(p => battlefield.getUnitsAt(p)),
+			kingRed = allUnits.find(u => u.name === '帅'),
+			kingBlack = allUnits.find(u => u.name === '将');
+		if (kingRed && kingBlack) {
+			if (kingRed.position.rowNum > kingBlack.position.rowNum) {
+				battlefield.playerDown = kingRed.owner;
+				battlefield.playerUp = kingBlack.owner;
+			} else {
+				battlefield.playerDown = kingBlack.owner;
+				battlefield.playerUp = kingRed.owner;
+			}
+		}
+		return battlefield;
+	}
+
+	_buildSkill(owner, skillCfg) {
+		const SkillClass = 内置技能集[skillCfg];
+		return super._buildSkill(owner, {class: SkillClass});
+	}
+
+	_buildGlobalRule(ruleCfg) {
+		const RuleClass = 内置规则集[ruleCfg];
+		return super._buildGlobalRule({class: RuleClass});
+	}
+
+	_buildPlugin(pluginCfg) {
+		const PluginClass = 内置插件集[pluginCfg];
+		return super._buildPlugin({class: PluginClass});
+	}
+}
+
+class 棋手 extends Player {
+	selectUnits(units) {
+		super.selectUnits(units);
+		if (this.selectedUnits.length) {
+			const unit = units[0], skillsToSelect = [];
+			const moveSkill = unit?.skills.find(s => s instanceof Move);
+			if (moveSkill) {
+				skillsToSelect.push(moveSkill);
+			}
+			const killSkill = unit?.skills.find(s => s instanceof 攻击);
+			if (killSkill) {
+				skillsToSelect.push(killSkill);
+			}
+			if (skillsToSelect.length > 0) {
+				super.selectSkills(skillsToSelect);
+			}
+		}
+	}
+}

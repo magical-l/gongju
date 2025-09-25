@@ -9,6 +9,23 @@ export {
 	Board, 棋盘点位,
 };
 
+/**
+ * 位置的抽象基类。强制子类实现toString()，用于在Map中作为唯一的key。
+ */
+class Position {
+	get id() {
+		return this.toString();
+	}
+
+	toString() {
+		throw new Error("子类必须实现toString()");
+	}
+
+	isEqualTo(otherPosition) {
+		return otherPosition && this.toString() === otherPosition.toString();
+	}
+}
+
 class Game {
 	#cfg;
 
@@ -388,7 +405,7 @@ class Round {
 }
 
 class Team {
-	static #id = 1;
+	static #nextId = 1;
 
 	#id;
 	#cfg;
@@ -396,7 +413,7 @@ class Team {
 	#gaming;
 
 	constructor(cfg, gaming) {
-		this.#id = 'id' in cfg ? cfg.id : Team.#id++;
+		this.#id = 'id' in cfg ? cfg.id : Team.#nextId++;
 		this.#cfg = cfg;
 		this.#gaming = gaming;
 
@@ -421,7 +438,7 @@ class Team {
 }
 
 class Player {
-	static #id = 1;
+	static #nextId = 1;
 
 	#cfg;
 	#id;
@@ -434,7 +451,7 @@ class Player {
 
 	constructor(team, cfg) {
 		this.#cfg = cfg;
-		this.#id = 'id' in cfg ? cfg.id : Player.#id++;
+		this.#id = 'id' in cfg ? cfg.id : Player.#nextId++;
 		this.#units = 'units' in cfg ? cfg.units : [];
 		this.#team = team;
 		this.actionsPerTurn = cfg.actionsPerTurn || 1; // 从配置或默认值初始化
@@ -617,7 +634,7 @@ class Player {
 }
 
 class Unit {
-	static #id = 1;
+	static #nextId = 1;
 
 	#cfg;
 	#id;
@@ -633,7 +650,7 @@ class Unit {
 	 */
 	constructor(cfg) {
 		this.#cfg = cfg;
-		this.#id = 'id' in cfg ? cfg.id : Unit.#id++;
+		this.#id = 'id' in cfg ? cfg.id : Unit.#nextId++;
 
 		const self = proxy(this, this.#cfg);
 
@@ -731,7 +748,7 @@ class Rule {
 }
 
 class Skill {
-	static #id = 1;
+	static #nextId = 1;
 	static #instanceActivateCounts = new WeakMap();
 
 	#id;
@@ -739,7 +756,7 @@ class Skill {
 	#cfg;
 
 	constructor(cfg, owner) {
-		this.#id = 'id' in cfg ? cfg.id : Skill.#id++;
+		this.#id = 'id' in cfg ? cfg.id : Skill.#nextId++;
 		this.#cfg = cfg;
 		this.#owner = owner;
 		Skill.#instanceActivateCounts.set(this, 0); // 在构造时初始化当前实例的计数
