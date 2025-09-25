@@ -1,4 +1,4 @@
-export {Team, Skill, PassiveSkill, BuffSkill};
+export {Gaming, Bulletin, Team, Skill, PassiveSkill, BuffSkill};
 
 /**
  * 获取实例的完整类继承链
