@@ -468,7 +468,7 @@ class Round {
 }
 
 class Team {
-	static #id = 0;
+	static #id = 1;
 
 	#id;
 	#cfg;
@@ -476,7 +476,7 @@ class Team {
 	#gaming;
 
 	constructor(cfg, gaming) {
-		this.#id = ++Team.#id;
+		this.#id = 'id' in cfg ? cfg.id : Team.#id++;
 		this.#cfg = cfg;
 		this.#gaming = gaming;
 
@@ -499,7 +499,7 @@ class Team {
 }
 
 class Player {
-	static #id = 0;
+	static #id = 1;
 
 	#cfg;
 	#id;
@@ -512,11 +512,11 @@ class Player {
 
 	constructor(team, cfg) {
 		this.#cfg = cfg;
-		this.#id = 'id' in cfg ? cfg.id : ++Player.#id;
+		this.#id = 'id' in cfg ? cfg.id : Player.#id++;
 		this.#units = 'units' in cfg ? cfg.units : [];
 		this.#team = team;
 
-		aopMethod(this,'addUnit')
+		aopMethod(this, 'addUnit');
 
 		return proxy(this, this.#cfg);
 	}
@@ -667,8 +667,87 @@ class Player {
 	}
 }
 
+class Unit {
+	static #id = 1;
+
+	#cfg;
+	#id;
+	#owner; // player
+	#skills = [];
+	#position = null;
+
+	#skillBoundWatchers = new WeakMap();
+
+	constructor(cfg, owner) {
+		this.#cfg = cfg;
+		this.#owner = owner;
+		this.#id = 'id' in cfg ? cfg.id : Unit.#id++;
+
+		return proxy(this, this.#cfg);
+	}
+
+	get id() { return this.#id; }
+
+	get owner() { return this.#owner; }
+
+	get display() { return this.#cfg.display ?? this.name; }
+
+	get skills() { return [...this.#skills]; }
+
+	get position() { return this.#position; }
+
+	set position(p) {
+		if (this.#position && this.#position.isEqualTo(p)) {
+			return;
+		}
+		const oldPosition = this.position;
+		// setter作为移动指令的入口，通知战场来移动棋子
+		this.gaming.battlefield.moveUnit(this, p);
+		this.gaming.bulletin.notice('单位移动', {unit: this, oldPosition});
+	}
+
+	addSkill(skill) {
+		if (!skill || this.skills.includes(skill)) {
+			return;
+		}
+
+		if (skill.watchers) {
+			const _boundWatchers = {};
+			Object.entries(skill.watchers).forEach(([topic, watcher]) => {
+				const boundWatcher = watcher.bind(skill);
+				_boundWatchers[topic] = _boundWatchers[topic] || [];
+				_boundWatchers[topic].push(boundWatcher);
+				this.gaming.bulletin.watch(topic, boundWatcher);
+			});
+			this.#skillBoundWatchers.set(skill, _boundWatchers);
+		}
+		this.skills.push(skill);
+	}
+
+	removeSkill(skillOrClass) {
+		const skillIndex = typeof skillOrClass === 'function'
+											 ? this.skills.findIndex(s => s instanceof skillOrClass)
+											 : this.skills.findIndex(s => s === skillOrClass);
+		if (skillIndex === -1) {
+			return;
+		}
+
+		const skill = this.skills[skillIndex];
+
+		if (this.#skillBoundWatchers.has(skill)) {
+			Object.entries(this.#skillBoundWatchers.get(skill))
+			.forEach(([topic, boundWatchers]) =>
+				boundWatchers.forEach(boundWatcher =>
+					this.gaming.bulletin.unwatch(topic, boundWatcher)));
+			this.#skillBoundWatchers.delete(skill);
+		}
+
+		this.skills.splice(skillIndex, 1);
+	}
+}
+
 class Skill {
-	static #id = 0;
+	static #id = 1;
 	static #instanceActivateCounts = new WeakMap();
 
 	#id;
@@ -676,7 +755,7 @@ class Skill {
 	#cfg;
 
 	constructor(cfg, owner) {
-		this.#id = ++Skill.#id;
+		this.#id = 'id' in cfg ? cfg.id : Skill.#id++;
 		this.#cfg = cfg;
 		this.#owner = owner;
 		Skill.#instanceActivateCounts.set(this, 0); // 在构造时初始化当前实例的计数
