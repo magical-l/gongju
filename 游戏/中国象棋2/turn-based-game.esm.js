@@ -436,6 +436,7 @@ class Player {
 		this.#id = 'id' in cfg ? cfg.id : Player.#id++;
 		this.#units = 'units' in cfg ? cfg.units : [];
 		this.#team = team;
+		this.actionsPerTurn = cfg.actionsPerTurn || 1; // 从配置或默认值初始化
 
 		const self = proxy(this, this.#cfg);
 
@@ -486,12 +487,17 @@ class Player {
 
 	/**
 	 * 玩家玩游戏。在回合制游戏里，玩家在自己的轮次里操作单位施放技能。
-	 * 默认实现：执行一次有效行动后，本轮次结束。
+	 * 默认实现：执行N次有效行动后（N由actionsPerTurn决定），本轮次结束。
 	 */
 	async play() {
-		while (true) {
-			//这里算是一次‘行动’
+		let actionsTaken = 0;
+		while (actionsTaken < this.actionsPerTurn) {
 			const input = await this.gaming.waitForInput();
+
+			// 允许玩家通过特定输入提前结束回合
+			if (input?.action === 'END_TURN') {
+				break;
+			}
 
 			//设置技能三要素
 			this.processInput(input);
@@ -500,11 +506,10 @@ class Player {
 			if (this.#selectedUnits?.length && this.#selectedSkills?.length && this.#selectedTargets?.length) {
 				const actionPerformed = this.activateSkills(this.#selectedUnits, this.#selectedSkills, this.#selectedTargets);
 				if (actionPerformed) {
-					break; // 执行了有效动作，结束回合
+					actionsTaken++; // 成功行动，计数器加一
+					this.#selectedTargets = []; // 成功行动后，清空目标，以便进行下一次行动
 				}
 			}
-			//每次行动后只清空目标。
-			this.#selectedTargets = [];
 		}
 
 		this.#selectedUnits = [];
