@@ -90,7 +90,7 @@ const proxy = (instance, privateCfg) => {
  * @param methodName
  * @param options
  */
-const aopForNotice = (self, methodName,
+const aopMethod = (self, methodName,
 											options = {argsResolver: undefined, noticePayloadBuilder: undefined, typeName: ''}) => {
 	const {argsResolver, noticePayloadBuilder, typeName} = options;
 	const rawMethod = self[methodName];
@@ -175,8 +175,8 @@ class Team {
 		this.#cfg = cfg;
 		this.#gaming = gaming;
 
-		aopForNotice(this, 'addMember', {noticePayloadBuilder: args => ({member: args[0]})});
-		aopForNotice(this, 'removeMember', {noticePayloadBuilder: args => ({member: args[0]})});
+		aopMethod(this, 'addMember', {noticePayloadBuilder: args => ({member: args[0]})});
+		aopMethod(this, 'removeMember', {noticePayloadBuilder: args => ({member: args[0]})});
 		aopGetter(this, 'members', {typeName: 'team'});
 
 		return proxy(this, this.#cfg);
@@ -214,11 +214,11 @@ class Skill {
 		});
 
 		//方法只声明了1个参数，对应args[0]。由于js不限制调用方提供多少个参数，args后面的元素就是调用方额外提供的参数，也许子类重写的方法里会用，所以也要传。
-		aopForNotice(this, 'filterValidTargets', {
+		aopMethod(this, 'filterValidTargets', {
 			argsResolver: args => [ensureArray(args[0]), ...args.slice(1)],
 			noticePayloadBuilder: args => ({targets: args[0]}),
 		});
-		aopForNotice(this, 'activate', {
+		aopMethod(this, 'activate', {
 			argsResolver: args => [this.filterValidTargets(ensureArray(args[0])), ...args.slice(1)],
 			noticePayloadBuilder: args => ({targets: args[0]}),
 		});
