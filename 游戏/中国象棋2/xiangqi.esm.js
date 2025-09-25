@@ -1,9 +1,7 @@
-import {
-	Game, Gaming, Rule, Battlefield, Situation,
-	Team, Player, Unit,
-	Skill, PassiveSkill, BuffSkill,
-	Plugin,
-} from './turn-based-game.esm.js';
+import {Board, Game, Gaming, Player, Situation, 棋盘点位} from './turn-based-game.esm.js';
+import {内置插件集} from './defaultGlobalPlugins.esm.js';
+import {内置规则集} from './defaultGlobalRules.esm.js';
+import {Move, 内置技能集, 攻击} from './defaultSkills.esm.js';
 
 const 红方id = '红方';
 const 黑方id = '黑方';
@@ -182,10 +180,7 @@ class 棋局 extends Gaming {
 	_build() {
 		super._build();
 		this.situation.roundNotations = [];
-		this.bulletin.watch('单位移动', move => {
-			this._generateNotation(move);
-			this._endTurnAfterAction(move);
-		});
+		this.bulletin.watch('单位移动', move => this._generateNotation(move));
 
 		// 事件名适配器：将框架的英文事件名翻译为中文，供应用层使用
 		const eventTranslations = {
@@ -203,7 +198,8 @@ class 棋局 extends Gaming {
 			'unit moved': '单位移动',
 		};
 
-		Object.entries(eventTranslations).forEach(([englishEvent, chineseEvent]) =>
+		Object.entries(eventTranslations)
+		.forEach(([englishEvent, chineseEvent]) =>
 			this.bulletin.watch(englishEvent, payload => this.bulletin.notice(chineseEvent, payload)));
 	}
 
@@ -224,11 +220,6 @@ class 棋局 extends Gaming {
 		}
 	}
 
-	// 默认的回合结束逻辑：任何移动都会结束回合
-	_endTurnAfterAction({unit}) {
-		this.bulletin.notice('player played', {player: unit.owner});
-	}
-
 	_buildBattlefield() {
 		const battlefield = super._buildBattlefield();
 
@@ -236,7 +227,7 @@ class 棋局 extends Gaming {
 		const layout = this.cfg.棋盘.trim().split(/\s+/);
 		const unitTypes = this.cfg.unitTypes;
 
-		const playersById = this._getPlayersIdMap();
+		const playersById = this.playersIdMap;
 
 		// 根据布局字符串，创建单位实例并放置到棋盘上
 		layout.forEach((rowStr, r) => {
@@ -247,7 +238,6 @@ class 棋局 extends Gaming {
 						const player = playersById[unitCfg.player];
 						if (player) {
 							const unit = this._buildUnit(player, {name: char, ...unitCfg});
-							player.units.push(unit);
 							const position = new 棋盘点位(r + 1, c + 1);
 							battlefield.addUnitToPosition(unit, position);
 						} else {
@@ -261,7 +251,7 @@ class 棋局 extends Gaming {
 		this.bulletin.notice('board parsed');
 
 		// 根据将帅初始位置，决定双方的方位
-		const allUnits = Array.from(battlefield.positionUnitsMapping.values()).flat();
+		const allUnits = battlefield.positions.flat().flatMap(p => battlefield.getUnitsAt(p));
 		const kingRed = allUnits.find(u => u.name === '帅');
 		const kingBlack = allUnits.find(u => u.name === '将');
 

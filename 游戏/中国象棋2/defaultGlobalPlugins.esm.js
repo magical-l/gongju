@@ -1,4 +1,6 @@
-const 内置插件集 = {
+import {Plugin} from './turn-based-game.esm.js';
+
+export const 内置插件集 = {
 	'记谱': (() => {
 		const 汉语数字 = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
 		const calColName = (forwardDirection, is红方, colNum) => {

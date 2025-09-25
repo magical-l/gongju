@@ -1,4 +1,6 @@
-const 内置规则集 = {
+import {Rule} from './turn-based-game.esm.js';
+
+export const 内置规则集 = {
 	'杀敌后进驻': class extends Rule {
 		constructor(gaming, cfg) {
 			super(gaming, {
@@ -142,39 +144,25 @@ const 内置规则集 = {
 
 	'红方动两次': class extends Rule {
 		constructor(gaming, cfg) {
-			// 使用闭包来管理状态，避免`this`指向问题
-			let redExtraMoveTaken = false;
-
 			super(gaming, {
 				name: '红方动两次',
 				intro: '红方在自己的每个回合中，可以连续移动两次。',
 				...cfg,
 				watchers: {
-					'player-turn start': ({player}) => {
-						// 在红方的回合开始时，重置“额外行动”的标记
+					'player-turn start': ({ player }) => {
+						// 在玩家回合开始时，检查是否是红方
 						if (player.team.id === 红方id) {
-							redExtraMoveTaken = false;
+							player.actionsPerTurn = 2;
+						}
+					},
+					'player-turn end': ({ player }) => {
+						// 在回合结束时，恢复为1，以防影响其他逻辑
+						if (player.team.id === 红方id) {
+							player.actionsPerTurn = 1;
 						}
 					}
 				}
 			});
-
-			// 1. 保存原始的默认逻辑
-			const originalEndTurnLogic = gaming._endTurnAfterAction.bind(gaming);
-
-			// 2. 用一个“包装”函数替换掉默认逻辑
-			gaming._endTurnAfterAction = ({unit}) => {
-				const isRed = unit.owner.team.id === 红方id;
-
-				if (isRed && !redExtraMoveTaken) {
-					// 如果是红方走第一步，则消耗掉这次“额外行动”的机会，并且不结束回合
-					redExtraMoveTaken = true;
-					return; // 直接返回，不调用原始逻辑
-				}
-
-				// 对于黑方，或者红方的第二次移动，则调用原始的、默认的“移动后结束回合”逻辑
-				originalEndTurnLogic({unit});
-			};
 		}
 	}
 };
