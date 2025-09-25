@@ -1,6 +1,40 @@
 export {Team, Skill, PassiveSkill, BuffSkill};
 
 /**
+ * 获取实例的完整类继承链
+ * @param {Object} instance - 要检查的实例
+ * @param {Object} [options] - 配置选项
+ * @param {boolean} [options.includeObject=false] - 是否包含Object基类
+ * @param {boolean} [options.reverse=false] - 是否反转顺序（从基类到子类）
+ * @returns {string[]} 类名数组
+ */
+const getClassHierarchy = (instance, options = {includeObject: false, reverse: false}) => {
+	const {includeObject = false, reverse = false} = options;
+	const classes = [];
+	let proto = Object.getPrototypeOf(instance);
+
+	while (proto) {
+		if (!includeObject && proto === Object.prototype) {
+			break;
+		}
+		if (proto === null) {
+			break;
+		}
+		const constructor = proto.constructor;
+		if (constructor) {
+			const name = constructor.name ||
+									 constructor.toString().match(/function\s*([^\s(]+)/)?.[1] ||
+									 '(anonymous)';
+			classes.push(name);
+		}
+
+		proto = Object.getPrototypeOf(proto);
+	}
+
+	return reverse ? classes.reverse() : classes;
+};
+
+/**
  * 工具方法：确保总是得到一个数组。
  * 如果参数是数组，直接返回；如果是非空值，封装成单元素数组；否则返回空数组。
  * @param value - 待处理的值。
@@ -48,6 +82,19 @@ const proxy = (instance, privateCfg) => {
 			return Reflect.set(target, prop, value, receiver);
 		}
 	});
+};
+
+const aop = (self, methodName, payloadBuilder, _typeName_) => {
+	const method = self[methodName];
+	self[methodName] = (...args) => {
+		const typeName = _typeName_ ?? getClassHierarchy(self).at(-1);
+		const noticePayload = payloadBuilder ? {...payloadBuilder(args)} : {};
+		noticePayload[typeName] = self;
+		notice(self, typeName + ' ' + methodName + ' start', noticePayload);
+		const result = method.apply(self, args);
+		notice(self, typeName + ' ' + methodName + ' end', {...noticePayload, result});
+		return result;
+	};
 };
 
 class Team {
