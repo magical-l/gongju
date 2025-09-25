@@ -1,4 +1,9 @@
-export {Gaming, Bulletin, Team, Skill, PassiveSkill, BuffSkill};
+export {
+	Gaming, Rule,
+	Team, Player, Unit,
+	Skill, PassiveSkill, BuffSkill,
+	Plugin,
+};
 
 /**
  * 获取实例的完整类继承链
@@ -410,6 +415,24 @@ class Gaming {
 			watch(this, 'ui input', onInput);
 		});
 	}
+}
+
+/**
+ * 规则：有一定业务含义，若干个相关的逻辑片段的封装。这些逻辑片段是监听器（watchers）
+ */
+class Rule {
+	#cfg;
+	#gaming;
+
+	constructor(gaming, cfg) {
+		this.#cfg = cfg;
+		this.#gaming = gaming;
+		const self = proxy(this, this.#cfg);
+		watchersWatch(self, self.watchers);
+		return self;
+	}
+
+	get gaming() { return this.#gaming; }
 }
 
 /**
@@ -890,4 +913,19 @@ class BuffSkill extends PassiveSkill {
 	}
 
 	async deactivate() { return true; }
+}
+
+class Plugin {
+	#cfg;
+	#gaming;
+
+	constructor(gaming, cfg) {
+		this.#cfg = cfg;
+		this.#gaming = gaming;
+		const self = proxy(this, this.#cfg);
+		watchersWatch(self, self.watchers);
+		return self;
+	}
+
+	get gaming() { return this.#gaming; }
 }
