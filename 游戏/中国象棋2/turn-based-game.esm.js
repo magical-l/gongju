@@ -90,7 +90,7 @@ class Gaming {
 	_buildTeam(id, teamCfg) {
 		const TeamClass = teamCfg.class ?? this.cfg.TeamClass ?? Team;
 		notice(this, 'gaming buildTeam start', {gaming: this, id, teamCfg, class: TeamClass});
-		const team = new TeamClass(this, {id, ...teamCfg});
+		const team = new TeamClass({id, ...teamCfg}, this);
 		team.players = this._buildPlayers(teamCfg.players || {}, team);
 		return team;
 	}
@@ -143,7 +143,7 @@ class Gaming {
 
 	_buildUnits(unitsCfg) {
 		notice(this, 'gaming buildUnits start', {unitsCfg});
-		const rt = unitsCfg.map(unitCfg => this._buildUnit(unitCfg));
+		const rt = unitsCfg.map(unitCfg => this._buildUnit(this.playersIdMap[unitCfg.owner], unitCfg));
 		notice(this, 'gaming buildUnits end', {rt});
 		return rt;
 	}
@@ -169,7 +169,7 @@ class Gaming {
 	_buildSkill(owner, skillCfg) {
 		const SkillClass = skillCfg.class ?? this.cfg.SkillClass ?? Skill;
 		notice(this, 'gaming buildSkill start', {owner, skillCfg, class: SkillClass});
-		const rt = new SkillClass({owner, gaming: this});
+		const rt = new SkillClass(skillCfg, owner);
 		notice(this, 'gaming buildSkill end', {skill: rt});
 		return rt;
 	}
@@ -536,7 +536,7 @@ class Player {
 			// 如果已经选择了单位和技能，那么后续的单位输入应被视为“目标”
 			if (this.#selectedUnits?.length && this.#selectedSkills?.length) {
 				// 检查这些“目标”对于当前选中的技能是否合法
-				if (this.selectedSkills.some(e => e.isValidTargets(inputs))) {
+				if (this.#selectedSkills.some(e => e.filterValidTargets(inputs).length > 0)) {
 					this.selectTargets(inputs);
 				} else {
 					// 如果目标不合法，则检查本次输入是否是一次全新的“选择单位”动作
@@ -576,7 +576,7 @@ class Player {
 			// 过滤出所有主动技能
 			const activeSkills = skills.filter(s => typeof s?.activate === 'function');
 			if (activeSkills.length > 0) {
-				this.selectedSkills = activeSkills;
+				this.#selectedSkills = activeSkills;
 			}
 		}
 	}
