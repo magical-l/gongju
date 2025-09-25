@@ -116,6 +116,27 @@ const aopMethod = (self, methodName,
 		return result;
 	};
 };
+const aopAsyncMethod = (self, methodName,
+												options = {argsResolver: undefined, noticePayloadBuilder: undefined, typeName: ''}) => {
+	const {argsResolver, noticePayloadBuilder, typeName} = options;
+	const rawMethod = self[methodName];
+	self[methodName] = async (..._args_) => {
+		//可以额外地先处理参数，比如把单个对象包装成数组
+		const args = argsResolver ? argsResolver(_args_) : _args_;
+		//获取继承链中的顶级父类的名字，也可以通过typeName自行指定。用于通知主题的主语。
+		const typeName_ = typeName ?? getClassHierarchy(self).at(-1);
+
+		const noticePayload = noticePayloadBuilder ? noticePayloadBuilder(args) : {};
+		noticePayload[typeName_] = self;//通知内容里加入主语
+		notice(self, typeName_ + ' ' + methodName + ' start', noticePayload);
+
+		const result = await rawMethod.apply(self, args);//执行写在代码里的原始方法代码
+
+		noticePayload.result = result;//通知内容里加入方法执行结果
+		notice(self, typeName_ + ' ' + methodName + ' end', noticePayload);
+		return result;
+	};
+};
 
 /**
  * 为实例的 getter 属性添加 AOP 效果，在 getter 访问前后发布通知。
@@ -432,6 +453,23 @@ class Battlefield {
 		this.#cfg = cfg;
 		const self = proxy(this, this.#cfg);
 		self._initPositionUnitsMapping();
+
+		aopMethod(self, 'addUnitToPosition', {
+			noticePayloadBuilder: args => ({unit: args[0], position: args[1]}),
+		});
+		aopMethod(self, 'removeUnitFromPosition', {
+			noticePayloadBuilder: args => ({unit: args[0], position: args[1]}),
+		});
+		aopMethod(self, 'getUnitsAt', {
+			noticePayloadBuilder: args => ({position: args[0]}),
+		});
+		aopMethod(self, 'destroyUnit', {
+			noticePayloadBuilder: args => ({unit: args[0]}),
+		});
+		aopMethod(self, 'moveUnit', {
+			noticePayloadBuilder: args => ({unit: args[0], from: args[0].position, to: args[1]}),
+		});
+
 		return self;
 	}
 
@@ -443,16 +481,16 @@ class Battlefield {
 		this.#positions.flat().forEach(p => this.#positionUnitsMapping.set(p.toString(), []));
 	}
 
-	moveUnit(unit, position) {
+	moveUnit(unit, toPosition) {
 		this.removeUnitFromPosition(unit);
-		this.addUnitToPosition(unit, position);
+		this.addUnitToPosition(unit, toPosition);
 	}
 
 	destroyUnit(unit) {
 		this.removeUnitFromPosition(unit);
-		if (unit.owner && unit.owner.units) {
-			unit.owner.units = unit.owner.units.filter(u => u !== unit);
-		}
+		// if (unit.owner && unit.owner.units) {
+		// 	unit.owner.units = unit.owner.units.filter(u => u !== unit);
+		// }
 	}
 
 	addUnitToPosition(unit, position) {
@@ -461,14 +499,14 @@ class Battlefield {
 			this.#positionUnitsMapping.set(key, []);
 		}
 		this.#positionUnitsMapping.get(key).push(unit);
-		unit._position = position; // 直接修改内部属性，避免触发setter递归
+		// unit._position = position; // 直接修改内部属性，避免触发setter递归
 	}
 
 	_positionKey(position) {
 		return position.toString();
 	}
 
-	removeUnitFromPosition(unit) {
+	removeUnitFromPosition(unit, position = unit.position) {
 		if (!unit.position) {
 			return;
 		}
@@ -478,12 +516,9 @@ class Battlefield {
 			const index = unitsAtPos.indexOf(unit);
 			if (index > -1) {
 				unitsAtPos.splice(index, 1);
-				if (unitsAtPos.length === 0) {
-					this.#positionUnitsMapping.delete(key);
-				}
 			}
 		}
-		unit._position = null; // 直接修改内部属性，避免触发setter递归
+		// unit._position = null; // 直接修改内部属性，避免触发setter递归
 	}
 
 	getUnitsAt(position) {
@@ -534,7 +569,7 @@ class Round {
 		this.#gaming = gaming;
 		this.#index = index;
 
-		aopMethod(this, 'start');
+		aopAsyncMethod(this, 'start');
 	}
 
 	get gaming() { return this.#gaming; }
@@ -568,11 +603,13 @@ class Team {
 		this.#cfg = cfg;
 		this.#gaming = gaming;
 
-		aopMethod(this, 'addMember', {noticePayloadBuilder: args => ({member: args[0]})});
-		aopMethod(this, 'removeMember', {noticePayloadBuilder: args => ({member: args[0]})});
-		aopGetter(this, 'members', {typeName: 'team'});
+		const self = proxy(this, this.#cfg);
 
-		return proxy(this, this.#cfg);
+		aopMethod(self, 'addMember', {noticePayloadBuilder: args => ({member: args[0]})});
+		aopMethod(self, 'removeMember', {noticePayloadBuilder: args => ({member: args[0]})});
+		aopGetter(self, 'members', {typeName: 'team'});
+
+		return self;
 	}
 
 	get id() { return this.#id; }
@@ -592,7 +629,7 @@ class Player {
 	#cfg;
 	#id;
 	#team;
-	#units = [];
+	#units = [];//拥有的单位的缓存
 
 	#selectedUnits = [];
 	#selectedSkills = [];
@@ -604,9 +641,39 @@ class Player {
 		this.#units = 'units' in cfg ? cfg.units : [];
 		this.#team = team;
 
-		aopMethod(this, 'addUnit');
+		const self = proxy(this, this.#cfg);
 
-		return proxy(this, this.#cfg);
+		aopMethod(self, 'addUnit', {
+			noticePayloadBuilder: args => ({unit: args[0]}),
+		});
+		aopMethod(self, 'removeUnit', {
+			noticePayloadBuilder: args => ({unit: args[0]}),
+		});
+		aopMethod(self, 'selectUnits', {
+			noticePayloadBuilder: args => ({units: args[0]}),
+		});
+		aopMethod(self, 'selectSkills', {
+			noticePayloadBuilder: args => ({skills: args[0]}),
+		});
+		aopMethod(self, 'selectTargets', {
+			noticePayloadBuilder: args => ({targets: args[0]}),
+		});
+
+		//单位的权威数据在Battlefield。本类监听Battlefield处理单位的通知，更新自己的单位缓存。
+		watch(self, 'Battlefield addUnitToPosition', ({unit, position}) => {
+			if (compareWithId(self, unit.owner)) {
+				if (!self.#units.some(u => compareWithId(u, unit))) {
+					self.addUnit(unit);
+				}
+			}
+		});
+		watch(self, 'Battlefield destroyUnit end', ({unit}) => {
+			if (compareWithId(self, unit.owner)) {
+				self.removeUnit(unit);
+			}
+		});
+
+		return self;
 	}
 
 	get id() { return this.#id; }
@@ -632,7 +699,8 @@ class Player {
 				playerPlayed = true;
 			}
 		};
-		this.gaming.bulletin.watch('player played', onPlayerPlayed);
+		//这里有点挫：player played通知竟然不是player发布的，是由其他因素决定的。
+		watch(this, 'player played', onPlayerPlayed);
 
 		while (!playerPlayed) {
 			//这里算是一次‘行动’
@@ -654,7 +722,7 @@ class Player {
 		this.#selectedSkills = [];
 		this.#selectedTargets = [];
 
-		this.gaming.bulletin.unwatch('player played', onPlayerPlayed);
+		unwatch(this, 'player played', onPlayerPlayed);
 	}
 
 	/**
@@ -700,7 +768,6 @@ class Player {
 			this.#selectedUnits = ownUnits;
 			this.#selectedSkills = [];
 			this.#selectedTargets = [];
-			this.gaming.bulletin.notice('player selected units', {player: this, units: ownUnits});
 		}
 	}
 
@@ -715,7 +782,6 @@ class Player {
 			const activeSkills = skills.filter(s => typeof s?.activate === 'function');
 			if (activeSkills.length > 0) {
 				this.selectedSkills = activeSkills;
-				this.gaming.bulletin.notice('player selected skills', {player: this, skills});
 			}
 		}
 	}
@@ -728,7 +794,6 @@ class Player {
 		// 必须在选定单位和技能后
 		if (this.#selectedUnits?.length && this.#selectedSkills?.length) {
 			this.#selectedTargets = targets;
-			this.gaming.bulletin.notice('player selected targets', {player: this, targets});
 		}
 	}
 
@@ -748,7 +813,6 @@ class Player {
 				if (unit.skills.includes(skill)) {
 					// 触发技能，并将目标传入
 					skill.activate(selectedTargets);
-					this.gaming.bulletin.notice('unit used skill', {unit, skill, selectedTargets});
 				}
 			});
 		});
@@ -761,7 +825,7 @@ class Unit {
 	#cfg;
 	#id;
 	#skills = [];
-	#position = null;
+	#position = null;//位置作为缓存
 
 	#skillBoundWatchers = new WeakMap();
 
@@ -774,7 +838,22 @@ class Unit {
 		this.#cfg = cfg;
 		this.#id = 'id' in cfg ? cfg.id : Unit.#id++;
 
-		return proxy(this, this.#cfg);
+		const self = proxy(this, this.#cfg);
+
+		aopMethod(self, 'addSkill', {
+			noticePayloadBuilder: args => ({skill: args[0]}),
+		});
+		aopMethod(self, 'removeSkill', {
+			noticePayloadBuilder: args => ({skill: args[0]}),
+		});
+
+		watch(self, 'Battlefield moveUnit end', ({unit, to}) => {
+			if (compareWithId(self, unit)) {
+				self.#position = to;
+			}
+		});
+
+		return self;
 	}
 
 	get id() { return this.#id; }
@@ -787,15 +866,15 @@ class Unit {
 
 	get position() { return this.#position; }
 
-	set position(p) {
-		if (this.#position && this.#position.isEqualTo(p)) {
-			return;
-		}
-		const oldPosition = this.position;
-		// setter作为移动指令的入口，通知战场来移动单位
-		this.gaming.battlefield.moveUnit(this, p);
-		this.gaming.bulletin.notice('单位移动', {unit: this, oldPosition});
-	}
+	// set position(p) {
+	// 	if (this.#position && this.#position.isEqualTo(p)) {
+	// 		return;
+	// 	}
+	// 	const oldPosition = this.position;
+	// 	// setter作为移动指令的入口，通知战场来移动单位
+	// 	this.gaming.battlefield.moveUnit(this, p);
+	// 	this.gaming.bulletin.notice('单位移动', {unit: this, oldPosition});
+	// }
 
 	addSkill(skill) {
 		if (!skill || this.skills.includes(skill)) {
@@ -879,7 +958,7 @@ class Skill {
 			argsResolver: args => [ensureArray(args[0]), ...args.slice(1)],
 			noticePayloadBuilder: args => ({targets: args[0]}),
 		});
-		aopMethod(this, 'activate', {
+		aopAsyncMethod(this, 'activate', {
 			argsResolver: args => [this.filterValidTargets(ensureArray(args[0])), ...args.slice(1)],
 			noticePayloadBuilder: args => ({targets: args[0]}),
 		});
@@ -972,16 +1051,16 @@ class BuffSkill extends PassiveSkill {
 		const activateAfterAddSkill = ({unit, skill}) => {
 			if (compareWithId(this.owner, unit) && compareWithId(this, skill)) {
 				this.activate(this.owner);
-				watch(this, 'unit removeSkill end', ({unit, skill}) => {
+				watch(this, 'Unit removeSkill end', ({unit, skill}) => {
 					if (compareWithId(this.owner, unit) && compareWithId(this, skill)) {
 						this.deactivate();
-						unwatch(this, 'unit addSkill end', activateAfterAddSkill);
+						unwatch(this, 'Unit addSkill end', activateAfterAddSkill);
 					}
 				});
 			}
 		};
 		watchersWatch(this, {
-			'unit addSkill end': activateAfterAddSkill,
+			'Unit addSkill end': activateAfterAddSkill,
 		});
 	}
 
