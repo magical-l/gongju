@@ -91,7 +91,7 @@ const proxy = (instance, privateCfg) => {
  * @param options
  */
 const aopMethod = (self, methodName,
-											options = {argsResolver: undefined, noticePayloadBuilder: undefined, typeName: ''}) => {
+									 options = {argsResolver: undefined, noticePayloadBuilder: undefined, typeName: ''}) => {
 	const {argsResolver, noticePayloadBuilder, typeName} = options;
 	const rawMethod = self[methodName];
 	self[methodName] = (..._args_) => {
@@ -161,6 +161,255 @@ const aopGetter = (self, propertyName, options = {noticePayloadBuilder: undefine
 		enumerable: descriptor.enumerable,
 	});
 };
+
+/**
+ * 公告栏(事件总线)，用于发布通知。同时也提供订阅、不再订阅的功能。
+ */
+class Bulletin {
+	constructor() {
+		this.listeners = {};
+	}
+
+	/**
+	 * 订阅一个主题
+	 * @param {string} topic 主题名
+	 * @param {Function} watcher 订阅者（回调函数）
+	 */
+	watch(topic, watcher) {
+		(this.listeners[topic] = this.listeners[topic] || []).push(watcher);
+	}
+
+	/**
+	 * 取消订阅一个主题
+	 * @param {string} topic 主题名
+	 * @param {Function} watcher 订阅者（回调函数）
+	 */
+	unwatch(topic, watcher) {
+		if (this.listeners[topic]) {
+			this.listeners[topic] = this.listeners[topic].filter(i => i !== watcher);
+		}
+	}
+
+	/**
+	 * 发出一个通知
+	 * @param {string} topic 主题名
+	 * @param {object} payload 事件荷载
+	 */
+	notice(topic, payload = {}) {
+		(this.listeners[topic] || []).forEach(cb => cb(payload));
+	}
+}
+
+/**
+ * 一场游戏。
+ */
+class Gaming {
+	#cfg;
+	#bulletin = new Bulletin();
+	#globalRules = [];
+	#plugins = [];
+	#battlefield;
+	#situation;
+	#teams = {};
+	#playerTurnSequence = [];
+
+	constructor(cfg) {
+		this.#cfg = cfg;
+		this._build();
+		this._start(); // 游戏创建后自动开始
+		return proxy(this, this.#cfg);
+	}
+
+	get gaming() { return this; }
+
+	get bulletin() { return this.#bulletin; }
+
+	get battlefield() { return this.#battlefield; }
+
+	get situation() { return this.#situation; }
+
+	get teamList() { return Object.values(this.#teams); }
+
+	get playersIdMap() {
+		const allPlayers = this.teamList.flatMap(team => Object.values(team.players));
+		return Object.fromEntries(allPlayers.map(p => [p.id, p]));
+	}
+
+	_build() {
+		notice(this, 'gaming build start', {gaming: this});
+		this.#teams = this._buildTeams();
+		this.#globalRules = this._buildGlobalRules();
+		this.#globalRules.forEach(rule =>
+			Object.entries(rule.watchers)
+			.forEach(([topicName, watcher]) => this.bulletin.watch(topicName, watcher.bind(rule))));
+		this.#battlefield = this._buildBattlefield();
+		this.#situation = this._buildSituation();
+		this.#playerTurnSequence = this._buildPlayerTurnSequence();
+		this.#plugins = this._buildPlugins();
+		this.#plugins.forEach(plugin =>
+			Object.entries(plugin.watchers)
+			.forEach(([topicName, watcher]) => this.bulletin.watch(topicName, watcher.bind(plugin))));
+		notice(this, 'gaming build end', {gaming: this});
+	}
+
+	_buildTeams() {
+		const teamsCfg = this.cfg.teams || {};
+		notice(this, 'gaming buildTeams start', {teamsCfg});
+		const rt = Object.fromEntries(
+			Object.entries(teamsCfg)
+			.map(([id, teamCfg]) => [id, this._buildTeam(id, teamCfg)]),
+		);
+		notice(this, 'gaming buildTeams end', {teams: rt});
+		return rt;
+	}
+
+	_buildTeam(id, teamCfg) {
+		const TeamClass = teamCfg.class ?? this.cfg.TeamClass ?? Team;
+		notice(this, 'gaming buildTeam start', {gaming: this, id, teamCfg, class: TeamClass});
+		const team = new TeamClass(this, {id, ...teamCfg});
+		team.players = this._buildPlayers(teamCfg.players || {}, team);
+		return team;
+	}
+
+	_buildPlayers(playerCfgs, team) {
+		notice(this, 'gaming buildPlayers start', {team, playerCfgs});
+		const rt = Object.fromEntries(
+			Object.entries(playerCfgs)
+			.map(([id, cfg]) => [id, this._buildPlayer(id, cfg, team)]),
+		);
+		notice(this, 'gaming buildPlayers end', {team, players: rt});
+		return rt;
+	}
+
+	_buildPlayer(id, playerCfg, team) {
+		const PlayerClass = playerCfg.class ?? this.cfg.PlayerClass ?? Player;
+		notice(this, 'gaming buildPlayer start', {team, playerCfg, class: PlayerClass});
+		const rt = new PlayerClass(team, {id, ...playerCfg});
+		notice(this, 'gaming buildPlayer end', {player: rt});
+		return rt;
+	}
+
+	_buildGlobalRules() {
+		const rulesCfg = this.cfg.globalRules || [];
+		notice(this, 'gaming buildGlobalRules start', {gaming: this, rulesCfg});
+		const rt = rulesCfg.map(ruleCfg => this._buildGlobalRule(ruleCfg));
+		notice(this, 'gaming buildGlobalRules end', {globalRules: rt});
+		return rt;
+	}
+
+	_buildGlobalRule(ruleCfg) {
+		const RuleClass = ruleCfg.class ?? this.cfg.RuleClass ?? Rule;
+		notice(this, 'gaming buildGlobalRule start', {gaming: this, ruleCfg, class: RuleClass});
+		const rt = new RuleClass(this, ruleCfg);
+		notice(this, 'gaming buildGlobalRule end', {globalRule: rt});
+		return rt;
+	}
+
+	_buildBattlefield() {
+		const battlefieldCfg = this.cfg.battlefieldCfg || {};
+		const BattlefieldClass = this.cfg.BattlefieldClass ?? Battlefield;
+		notice(this, 'gaming buildBattlefield start', {gaming: this, battlefieldCfg, class: BattlefieldClass});
+		const rt = new BattlefieldClass(this, battlefieldCfg);
+		if (battlefieldCfg.units) {
+			this._buildUnits(battlefieldCfg.units);
+		}
+		notice(this, 'gaming buildBattlefield end', {battlefield: rt});
+		return rt;
+	}
+
+	_buildUnits(unitsCfg) {
+		notice(this, 'gaming buildUnits start', {unitsCfg});
+		const rt = unitsCfg.map(unitCfg => this._buildUnit(unitCfg));
+		notice(this, 'gaming buildUnits end', {rt});
+		return rt;
+	}
+
+	_buildUnit(owner, unitCfg) {
+		const UnitClass = unitCfg.class ?? this.cfg.UnitClass ?? Unit;
+		notice(this, 'gaming buildUnit start', {unitCfg, class: UnitClass});
+		const unit = new UnitClass({owner, ...unitCfg});
+		unit.skills = []; // 清空来自配置的技能名数组，确保只包含技能实例
+		const skills = this._buildSkills(unitCfg.skills || [], unit);
+		skills.forEach(skill => unit.addSkill(skill));
+		notice(this, 'gaming buildUnit end', {unit: unit});
+		return unit;
+	}
+
+	_buildSkills(skillsCfg, owner) {
+		notice(this, 'gaming buildSkills start', {owner, skillsCfg});
+		const rt = skillsCfg.map(skillCfg => this._buildSkill(owner, skillCfg));
+		notice(this, 'gaming buildSkills end', {rt});
+		return rt;
+	}
+
+	_buildSkill(owner, skillCfg) {
+		const SkillClass = skillCfg.class ?? this.cfg.SkillClass ?? Skill;
+		notice(this, 'gaming buildSkill start', {owner, skillCfg, class: SkillClass});
+		const rt = new SkillClass({owner, gaming: this});
+		notice(this, 'gaming buildSkill end', {skill: rt});
+		return rt;
+	}
+
+	_buildSituation() {
+		const SituationClass = this.cfg.SituationClass ?? Situation;
+		notice(this, 'gaming buildSituation start', {gaming: this});
+		const rt = new SituationClass(this);
+		notice(this, 'gaming buildSituation end', {situation: rt});
+		return rt;
+	}
+
+	_buildPlayerTurnSequence() {
+		const playersIdMap = this.playersIdMap;
+		return this.cfg.playerTurnSequence.map(playerId => playersIdMap[playerId]);
+	}
+
+	_buildPlugins() {
+		const pluginsCfg = this.cfg.plugins || [];
+		notice(this, 'gaming buildPlugins start', {gaming: this, pluginsCfg});
+		const rt = pluginsCfg.map(pluginCfg => this._buildPlugin(pluginCfg));
+		notice(this, 'gaming buildPlugins end', {plugins: rt});
+		return rt;
+	}
+
+	_buildPlugin(pluginCfg) {
+		const PluginClass = pluginCfg.class ?? this.cfg.PluginClass ?? Plugin;
+		notice(this, 'gaming buildPlugin start', {gaming: this, pluginCfg, class: PluginClass});
+		const rt = new PluginClass(this, pluginCfg);
+		notice(this, 'gaming buildPlugin end', {globalRule: rt});
+		return rt;
+	}
+
+	_start() {
+		this.bulletin.watch('game over', ({winner}) => {
+			this.situation.isEnded = true;
+			this.situation.winner = winner;
+		});
+		// 使用IIFE（立即调用函数表达式）来启动异步游戏循环，避免构造函数变成异步
+		(async () => {
+			this.situation.isStarted = true;
+			notice(this, 'gaming start', {gaming: this});
+
+			while (!this.situation.isEnded) {
+				const round = new Round(this, this.situation.rounds.length + 1);
+				this.situation.rounds.push(round);
+				await round.start();
+			}
+
+			this.situation.isEnded = true;
+			notice(this, 'gaming end', {winner: this.situation.winner});
+		})().catch(console.error);
+	}
+
+	waitForInput() {
+		return new Promise(resolve => {
+			const onInput = payload => {
+				unwatch(this, 'ui input', onInput);
+				resolve(payload);
+			};
+			watch(this, 'ui input', onInput);
+		});
+	}
+}
 
 class Team {
 	static #id = 0;
