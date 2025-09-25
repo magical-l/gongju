@@ -80,19 +80,34 @@ const proxy = (instance, privateCfg) => {
 				return false;
 			}
 			return Reflect.set(target, prop, value, receiver);
-		}
+		},
 	});
 };
 
-const aop = (self, methodName, payloadBuilder, _typeName_) => {
-	const method = self[methodName];
-	self[methodName] = (...args) => {
-		const typeName = _typeName_ ?? getClassHierarchy(self).at(-1);
-		const noticePayload = payloadBuilder ? {...payloadBuilder(args)} : {};
-		noticePayload[typeName] = self;
-		notice(self, typeName + ' ' + methodName + ' start', noticePayload);
-		const result = method.apply(self, args);
-		notice(self, typeName + ' ' + methodName + ' end', {...noticePayload, result});
+/**
+ * 用于实际执行前后发通知的aop便捷工具方法。复杂逻辑的aop就自己写吧
+ * @param self
+ * @param methodName
+ * @param options
+ */
+const aopForNotice = (self, methodName,
+											options = {argsResolver: undefined, noticePayloadBuilder: undefined, typeName: ''}) => {
+	const {argsResolver, noticePayloadBuilder, typeName} = options;
+	const rawMethod = self[methodName];
+	self[methodName] = (..._args_) => {
+		//可以额外地先处理参数，比如把单个对象包装成数组
+		const args = argsResolver ? argsResolver(_args_) : _args_;
+		//获取继承链中的顶级父类的名字，也可以通过typeName自行指定。用于通知主题的主语。
+		const typeName_ = typeName ?? getClassHierarchy(self).at(-1);
+
+		const noticePayload = noticePayloadBuilder ? noticePayloadBuilder(args) : {};
+		noticePayload[typeName_] = self;//通知内容里加入主语
+		notice(self, typeName_ + ' ' + methodName + ' start', noticePayload);
+
+		const result = rawMethod.apply(self, args);//执行写在代码里的原始方法代码
+
+		noticePayload.result = result;//通知内容里加入方法执行结果
+		notice(self, typeName_ + ' ' + methodName + ' end', noticePayload);
 		return result;
 	};
 };
@@ -110,28 +125,13 @@ class Team {
 		this.#cfg = cfg;
 		this.#gaming = gaming;
 
-		const rawAddMember = this.addMember;
-		this.addMember = (...args) => {
-			notice(this, 'team addMember start', {team: this, member: args[0]});
-			const result = rawAddMember.apply(this, args);
-			notice(this, 'team addMember end', {team: this, member: args[0]});
-			return result;
-		};
-
-		const rawRemoveMember = this.removeMember;
-		this.removeMember = (...args) => {
-			notice(this, 'team removeMember start', {team: this, member: args[0]});
-			const result = rawRemoveMember.apply(this, args);
-			notice(this, 'team removeMember end', {team: this, member: args[0]});
-			return result;
-		};
+		aopForNotice(self, 'addMember', {noticePayloadBuilder: args => ({member: args[0]})});
+		aopForNotice(self, 'removeMember', {noticePayloadBuilder: args => ({member: args[0]})});
 
 		return proxy(this, this.#cfg);
 	}
 
-	get id() {
-		return this.#id;
-	}
+	get id() { return this.#id; }
 
 	get members() {
 		const rt = [...this.#members];
@@ -139,17 +139,11 @@ class Team {
 		return rt;
 	}
 
-	addMember(member) {
-		this.#members.push(member);
-	}
+	addMember(member) { this.#members.push(member); }
 
-	removeMember(member) {
-		this.#members = this.#members.filter(m => !compareWithId(m, member));
-	}
+	removeMember(member) { this.#members = this.#members.filter(m => !compareWithId(m, member)); }
 
-	get gaming() {
-		return this.#gaming;
-	}
+	get gaming() { return this.#gaming; }
 }
 
 class Skill {
@@ -172,31 +166,15 @@ class Skill {
 			}
 		});
 
-		const rawActivate = this.activate;
-		this.activate = async (...args) => {
-			const inputTargets = ensureArray(args[0]);
-			const actualTargets = this.filterValidTargets(inputTargets);
-			if (actualTargets.length === 0) {
-				console?.warn(`技能 [${this.name}] 在提供的目标中没有找到任何合法目标，技能未发动。`);
-				return false;
-			}
-			notice(this, 'skill activate start', {skill: this, targets: actualTargets});
-			const result = await rawActivate.apply(this, [actualTargets, ...args.slice(1)]);
-			if (result === false) {
-				return false;
-			}
-			notice(this, 'skill activate end', {skill: this, targets: actualTargets});
-			return true;
-		};
-
-		const rawFilterValidTargets = this.filterValidTargets;
-		this.filterValidTargets = (...args) => {
-			const actualTargets = ensureArray(args[0]);
-			notice(this, 'skill filterValidTargets start', {skill: this, targets: actualTargets});
-			const rt = rawFilterValidTargets.apply(this, [actualTargets, ...args.slice(1)]);
-			notice(this, 'skill filterValidTargets end', {skill: this, targets: actualTargets, filteredTargets: rt});
-			return rt;
-		};
+		//方法只声明了1个参数，对应args[0]。由于js不限制调用方提供多少个参数，args后面的元素就是调用方额外提供的参数，也许子类重写的方法里会用，所以也要传。
+		aopForNotice(self, 'filterValidTargets', {
+			argsResolver: args => [ensureArray(args[0]), ...args.slice(1)],
+			noticePayloadBuilder: args => ({targets: args[0]}),
+		});
+		aopForNotice(self, 'activate', {
+			argsResolver: args => [this.filterValidTargets(ensureArray(args[0])), ...args.slice(1)],
+			noticePayloadBuilder: args => ({targets: args[0]}),
+		});
 
 		return proxy(this, this.#cfg);
 	}
@@ -210,9 +188,7 @@ class Skill {
 	 * @param {Array<Object>} targets - 经过filterValidTargets过滤后的合法目标数组。
 	 * @returns {boolean} - 返回true表示成功，false表示失败。
 	 */
-	async activate(targets) {
-		return true;
-	}
+	async activate(targets) { return true; }
 
 	/**
 	 * 获取所有潜在的可用目标。子类应重写此方法以提供具体的寻目标逻辑。
@@ -237,21 +213,13 @@ class Skill {
 		return targets.filter(t => potential.some(p => compareWithId(p, t)));
 	}
 
-	get id() {
-		return this.#id;
-	}
+	get id() { return this.#id; }
 
-	get owner() {
-		return this.#owner;
-	}
+	get owner() { return this.#owner; }
 
-	get gaming() {
-		return this.owner?.gaming;
-	}
+	get gaming() { return this.owner?.gaming; }
 
-	get activateCount() {
-		return Skill.#instanceActivateCounts.get(this);
-	}
+	get activateCount() { return Skill.#instanceActivateCounts.get(this); }
 }
 
 /**
@@ -309,7 +277,7 @@ class BuffSkill extends PassiveSkill {
 			}
 		};
 		watchersWatch(this, {
-			'unit add skill end': activateAfterAddSkill
+			'unit add skill end': activateAfterAddSkill,
 		});
 	}
 
@@ -325,7 +293,5 @@ class BuffSkill extends PassiveSkill {
 		return processedTargets.filter(t => compareWithId(t, this.owner));
 	}
 
-	async deactivate() {
-		return true;
-	}
+	async deactivate() { return true; }
 }
