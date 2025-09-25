@@ -215,9 +215,10 @@ class Gaming {
 
 	constructor(cfg) {
 		this.#cfg = cfg;
-		this._build();
-		this._start(); // 游戏创建后自动开始
-		return proxy(this, this.#cfg);
+		const self = proxy(this, this.#cfg);
+		self._build();
+		self._start(); // 游戏创建后自动开始
+		return self;
 	}
 
 	get gaming() { return this; }
@@ -229,6 +230,8 @@ class Gaming {
 	get situation() { return this.#situation; }
 
 	get teamList() { return Object.values(this.#teams); }
+
+	get playerTurnSequence() { return [...this.#playerTurnSequence]; }
 
 	get playersIdMap() {
 		const allPlayers = this.teamList.flatMap(team => Object.values(team.players));
