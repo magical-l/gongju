@@ -1,5 +1,5 @@
 export {
-	Gaming, Rule, Battlefield, Situation,
+	Game, Gaming, Rule, Battlefield, Situation,
 	Team, Player, Unit,
 	Skill, PassiveSkill, BuffSkill,
 	Plugin,
@@ -223,6 +223,19 @@ class Bulletin {
 	 */
 	notice(topic, payload = {}) {
 		(this.listeners[topic] || []).forEach(cb => cb(payload));
+	}
+}
+
+class Game {
+	#cfg;
+
+	constructor(cfg = {}) {
+		this.#cfg = cfg;
+	}
+
+	newGaming() {
+		const GamingClass = this.#cfg.GamingClass ?? Gaming;
+		return new GamingClass(this.#cfg);
 	}
 }
 

@@ -46,6 +46,10 @@ class Bulletin {
  * 位置的抽象基类。强制子类实现toString()，用于在Map中作为唯一的key。
  */
 class Position {
+	get id() {
+		return this.toString();
+	}
+
 	toString() {
 		throw new Error("子类必须实现toString()");
 	}
@@ -154,6 +158,7 @@ class Situation extends GamingPart {
 }
 
 class Team extends GamingPart {
+	id;
 	name;
 	flag;//本队旗帜
 	players = [];
