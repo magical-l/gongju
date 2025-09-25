@@ -521,7 +521,7 @@ class Situation {
 
 	async startRound() {
 		const round = new Round(this.gaming, this.#rounds.length + 1);
-		this.situation.rounds.push(round);
+		this.#rounds.push(round);
 		await round.start();
 	}
 }
@@ -643,16 +643,16 @@ class Player {
 			//设置技能三要素
 			this.processInput(input);
 			//三要素齐备，开始施放技能。
-			if (this.selectedUnits?.length && this.selectedSkills?.length && this.selectedTargets?.length) {
-				this.activateSkills(this.selectedUnits, this.selectedSkills, this.selectedTargets);
+			if (this.#selectedUnits?.length && this.#selectedSkills?.length && this.#selectedTargets?.length) {
+				this.activateSkills(this.#selectedUnits, this.#selectedSkills, this.#selectedTargets);
 			}
 			//每次行动后只清空目标。
-			this.selectedTargets = [];
+			this.#selectedTargets = [];
 		}
 
-		this.selectedUnits = [];
-		this.selectedSkills = [];
-		this.selectedTargets = [];
+		this.#selectedUnits = [];
+		this.#selectedSkills = [];
+		this.#selectedTargets = [];
 
 		this.gaming.bulletin.unwatch('player played', onPlayerPlayed);
 	}
@@ -671,7 +671,7 @@ class Player {
 
 		if (firstItem instanceof Unit) {
 			// 如果已经选择了单位和技能，那么后续的单位输入应被视为“目标”
-			if (this.selectedUnits?.length && this.selectedSkills?.length) {
+			if (this.#selectedUnits?.length && this.#selectedSkills?.length) {
 				// 检查这些“目标”对于当前选中的技能是否合法
 				if (this.selectedSkills.some(e => e.isValidTargets(inputs))) {
 					this.selectTargets(inputs);
@@ -697,9 +697,9 @@ class Player {
 	selectUnits(units) {
 		const ownUnits = units.filter(u => u.owner?.id === this.id);
 		if (ownUnits.length > 0) {
-			this.selectedUnits = ownUnits;
-			this.selectedSkills = [];
-			this.selectedTargets = [];
+			this.#selectedUnits = ownUnits;
+			this.#selectedSkills = [];
+			this.#selectedTargets = [];
 			this.gaming.bulletin.notice('player selected units', {player: this, units: ownUnits});
 		}
 	}
@@ -710,7 +710,7 @@ class Player {
 	 * @param {Skill[]} skills 要选择的技能
 	 */
 	selectSkills(skills) {
-		if (this.selectedUnits?.length) {
+		if (this.#selectedUnits?.length) {
 			// 过滤出所有主动技能
 			const activeSkills = skills.filter(s => typeof s?.activate === 'function');
 			if (activeSkills.length > 0) {
@@ -726,8 +726,8 @@ class Player {
 	 */
 	selectTargets(targets) {
 		// 必须在选定单位和技能后
-		if (this.selectedUnits?.length && this.selectedSkills?.length) {
-			this.selectedTargets = targets;
+		if (this.#selectedUnits?.length && this.#selectedSkills?.length) {
+			this.#selectedTargets = targets;
 			this.gaming.bulletin.notice('player selected targets', {player: this, targets});
 		}
 	}
@@ -760,15 +760,18 @@ class Unit {
 
 	#cfg;
 	#id;
-	#owner; // player
 	#skills = [];
 	#position = null;
 
 	#skillBoundWatchers = new WeakMap();
 
-	constructor(cfg, owner) {
+	/**
+	 * cfg:{id?,name,intro?,display?,owner?,skills}
+	 * @param cfg
+	 * @returns {Proxy}
+	 */
+	constructor(cfg) {
 		this.#cfg = cfg;
-		this.#owner = owner;
 		this.#id = 'id' in cfg ? cfg.id : Unit.#id++;
 
 		return proxy(this, this.#cfg);
@@ -776,11 +779,11 @@ class Unit {
 
 	get id() { return this.#id; }
 
-	get owner() { return this.#owner; }
-
 	get display() { return this.#cfg.display ?? this.name; }
 
 	get skills() { return [...this.#skills]; }
+
+	get gaming() { return this.owner?.gaming; }
 
 	get position() { return this.#position; }
 
@@ -789,7 +792,7 @@ class Unit {
 			return;
 		}
 		const oldPosition = this.position;
-		// setter作为移动指令的入口，通知战场来移动棋子
+		// setter作为移动指令的入口，通知战场来移动单位
 		this.gaming.battlefield.moveUnit(this, p);
 		this.gaming.bulletin.notice('单位移动', {unit: this, oldPosition});
 	}
@@ -798,18 +801,17 @@ class Unit {
 		if (!skill || this.skills.includes(skill)) {
 			return;
 		}
+		this.#skills.push(skill);
 
 		if (skill.watchers) {
 			const _boundWatchers = {};
 			Object.entries(skill.watchers).forEach(([topic, watcher]) => {
-				const boundWatcher = watcher.bind(skill);
-				_boundWatchers[topic] = _boundWatchers[topic] || [];
-				_boundWatchers[topic].push(boundWatcher);
-				this.gaming.bulletin.watch(topic, boundWatcher);
+				_boundWatchers[topic] = _boundWatchers[topic] ?? [];
+				_boundWatchers[topic].push(watcher);
+				this.gaming.bulletin.watch(topic, watcher);
 			});
 			this.#skillBoundWatchers.set(skill, _boundWatchers);
 		}
-		this.skills.push(skill);
 	}
 
 	removeSkill(skillOrClass) {
@@ -830,7 +832,7 @@ class Unit {
 			this.#skillBoundWatchers.delete(skill);
 		}
 
-		this.skills.splice(skillIndex, 1);
+		this.#skills.splice(skillIndex, 1);
 	}
 }
 
@@ -866,7 +868,7 @@ class Skill {
 		this.#owner = owner;
 		Skill.#instanceActivateCounts.set(this, 0); // 在构造时初始化当前实例的计数
 
-		notice(this, 'skill activate end', ({skill}) => {
+		watch(this, 'skill activate end', ({skill}) => {
 			if (compareWithId(this, skill)) {
 				Skill.#instanceActivateCounts.set(this, Skill.#instanceActivateCounts.get(this) + 1);
 			}
@@ -970,16 +972,16 @@ class BuffSkill extends PassiveSkill {
 		const activateAfterAddSkill = ({unit, skill}) => {
 			if (compareWithId(this.owner, unit) && compareWithId(this, skill)) {
 				this.activate(this.owner);
-				watch(this, 'unit remove a skill end', ({unit, skill}) => {
+				watch(this, 'unit removeSkill end', ({unit, skill}) => {
 					if (compareWithId(this.owner, unit) && compareWithId(this, skill)) {
 						this.deactivate();
+						unwatch(this, 'unit addSkill end', activateAfterAddSkill);
 					}
-					unwatch(this, 'unit add skill end', activateAfterAddSkill);
 				});
 			}
 		};
 		watchersWatch(this, {
-			'unit add skill end': activateAfterAddSkill,
+			'unit addSkill end': activateAfterAddSkill,
 		});
 	}
 
