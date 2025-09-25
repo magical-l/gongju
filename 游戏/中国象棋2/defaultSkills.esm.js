@@ -1,9 +1,7 @@
-import {
-	Game, Gaming, Rule, Battlefield, Situation,
-	Team, Player, Unit,
-	Skill, PassiveSkill, BuffSkill,
-	Plugin,
-} from './turn-based-game.esm.js';
+import {notice} from './kit.esm.js';
+import {Skill, Unit} from './turn-based-game.esm.js';
+
+export {Move, 攻击, 内置技能集};
 
 class Move extends Skill {
 	constructor(overrideCfg = {}) {
@@ -15,8 +13,8 @@ class Move extends Skill {
 					if (unit.id === this.owner.id) {
 						this.owner.position = killed.position;
 					}
-				}
-			}
+				},
+			},
 		});
 	}
 
@@ -38,12 +36,12 @@ class Move extends Skill {
 		const eventPayload = {
 			unit: this.owner,
 			availableTargetPositions: [...rawTargets],
-			blockedTargetPositions: []
+			blockedTargetPositions: [],
 		};
-		this.gaming.bulletin.notice('已获取可移动位置集', eventPayload);
+		notice(this, '已获取可移动位置集', eventPayload);
 		return {
 			valid: this.gaming.battlefield.keepValidPositions(eventPayload.availableTargetPositions),
-			blocked: this.gaming.battlefield.keepValidPositions(eventPayload.blockedTargetPositions)
+			blocked: this.gaming.battlefield.keepValidPositions(eventPayload.blockedTargetPositions),
 		};
 	}
 
@@ -81,7 +79,7 @@ class 攻击 extends Skill {
 			name: '攻击',
 			intro: '击败所在位置的敌军',
 			tip: '选择敌方单位并将其击败',
-			...cfg
+			...cfg,
 		});
 	}
 
@@ -90,9 +88,9 @@ class 攻击 extends Skill {
 		const availableTargets = this.availableTargets;
 		(targets || []).forEach(targetUnit => {
 			if (targetUnit instanceof Unit && availableTargets.includes(targetUnit)) {
-				this.gaming.bulletin.notice('单位杀敌', {unit: this.owner, killed: targetUnit});
+				notice(this, '单位杀敌', {unit: this.owner, killed: targetUnit});
 				this.gaming.battlefield.destroyUnit(targetUnit);
-				this.gaming.bulletin.notice('单位阵亡', {unit: targetUnit, killer: this.owner});
+				notice(this, '单位阵亡', {unit: targetUnit, killer: this.owner});
 			}
 		});
 	}
@@ -129,7 +127,7 @@ const 内置技能集 = {
 				name: '挡我者死',
 				intro: '沿直线攻击敌方单位，中间不能有阻碍。',
 				tip: '车可以沿直线攻击任何敌方单位，中间不能有其他棋子阻挡。攻击后移动到该位置。',
-				...cfg
+				...cfg,
 			});
 		}
 
@@ -166,7 +164,7 @@ const 内置技能集 = {
 				name: '隔山打牛',
 				intro: '隔山打炮，跳过一个棋子攻击敌方单位。',
 				tip: '炮可以跳过一个棋子（无论敌我）攻击路径上的第二个敌方棋子。攻击后移动到该位置。',
-				...cfg
+				...cfg,
 			});
 		}
 
@@ -213,7 +211,7 @@ const 内置技能集 = {
 			const {rowNum, colNum} = this.owner.position;
 			return [
 				new 棋盘点位(rowNum - 1, colNum), new 棋盘点位(rowNum + 1, colNum),
-				new 棋盘点位(rowNum, colNum - 1), new 棋盘点位(rowNum, colNum + 1)
+				new 棋盘点位(rowNum, colNum - 1), new 棋盘点位(rowNum, colNum + 1),
 			];
 		}
 	},
@@ -226,13 +224,13 @@ const 内置技能集 = {
 					'已获取可移动位置集': ({unit, availableTargetPositions}) => {
 						if (unit.id === this.owner.id) {
 							const filtered = availableTargetPositions.filter(
-								p => this.gaming.battlefield.isInPalace(p)
+								p => this.gaming.battlefield.isInPalace(p),
 							);
 							availableTargetPositions.length = 0;
 							availableTargetPositions.push(...filtered);
 						}
-					}
-				}
+					},
+				},
 			});
 		}
 	},
@@ -242,7 +240,7 @@ const 内置技能集 = {
 			super({
 				name: '护卫',
 				intro: '斜刺里冲出，护卫将帅。',
-				tip: '可以向左前方、右前方、左后方、右后方斜线移动至一格对角线方向。', ...cfg
+				tip: '可以向左前方、右前方、左后方、右后方斜线移动至一格对角线方向。', ...cfg,
 			});
 		}
 
@@ -250,7 +248,7 @@ const 内置技能集 = {
 			const {rowNum, colNum} = this.owner.position;
 			return [
 				new 棋盘点位(rowNum - 1, colNum - 1), new 棋盘点位(rowNum - 1, colNum + 1),
-				new 棋盘点位(rowNum + 1, colNum - 1), new 棋盘点位(rowNum + 1, colNum + 1)
+				new 棋盘点位(rowNum + 1, colNum - 1), new 棋盘点位(rowNum + 1, colNum + 1),
 			];
 		}
 	},
@@ -264,7 +262,7 @@ const 内置技能集 = {
 			const {rowNum, colNum} = this.owner.position;
 			return [
 				new 棋盘点位(rowNum - 2, colNum - 2), new 棋盘点位(rowNum - 2, colNum + 2),
-				new 棋盘点位(rowNum + 2, colNum - 2), new 棋盘点位(rowNum + 2, colNum + 2)
+				new 棋盘点位(rowNum + 2, colNum - 2), new 棋盘点位(rowNum + 2, colNum + 2),
 			];
 		}
 	},
@@ -289,8 +287,8 @@ const 内置技能集 = {
 							availableTargetPositions.length = 0;
 							availableTargetPositions.push(...stillValid);
 						}
-					}
-				}
+					},
+				},
 			});
 		}
 	},
@@ -303,13 +301,13 @@ const 内置技能集 = {
 					'已获取可移动位置集': ({unit, availableTargetPositions}) => {
 						if (unit.id === this.owner.id) {
 							const filtered = availableTargetPositions.filter(
-								p => !this.gaming.battlefield.isAcrossRiver(p, unit.owner)
+								p => !this.gaming.battlefield.isAcrossRiver(p, unit.owner),
 							);
 							availableTargetPositions.length = 0;
 							availableTargetPositions.push(...filtered);
 						}
-					}
-				}
+					},
+				},
 			});
 		}
 	},
@@ -325,7 +323,7 @@ const 内置技能集 = {
 				new 棋盘点位(rowNum - 2, colNum - 1), new 棋盘点位(rowNum - 2, colNum + 1),
 				new 棋盘点位(rowNum + 2, colNum - 1), new 棋盘点位(rowNum + 2, colNum + 1),
 				new 棋盘点位(rowNum - 1, colNum - 2), new 棋盘点位(rowNum - 1, colNum + 2),
-				new 棋盘点位(rowNum + 1, colNum - 2), new 棋盘点位(rowNum + 1, colNum + 2)
+				new 棋盘点位(rowNum + 1, colNum - 2), new 棋盘点位(rowNum + 1, colNum + 2),
 			];
 		}
 	},
@@ -357,8 +355,8 @@ const 内置技能集 = {
 							availableTargetPositions.length = 0;
 							availableTargetPositions.push(...stillValid);
 						}
-					}
-				}
+					},
+				},
 			});
 		}
 	},
@@ -417,7 +415,7 @@ const 内置技能集 = {
 			const {rowNum, colNum} = this.owner.position;
 			const forward = this.gaming.battlefield.forwardDirection(this.owner.owner);
 			const rt = [
-				new 棋盘点位(rowNum + forward, colNum) // 永远可以向前
+				new 棋盘点位(rowNum + forward, colNum), // 永远可以向前
 			];
 
 			const riverCrossed = this.gaming.battlefield.isAcrossRiver(this.owner.position, this.owner.owner);
@@ -428,5 +426,5 @@ const 内置技能集 = {
 
 			return rt;
 		}
-	}
+	},
 };
