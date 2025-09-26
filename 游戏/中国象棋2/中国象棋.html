@@ -403,7 +403,7 @@
 						<el-card body-class="piece-palette , left-sidebar , grid">
 							<div class="unit display" v-for="(piece, type) in palettePieceTypes" :key="type"
 									 :class="getEditorUnitColor(piece)"
-									 draggable="true" @dragstart="dragStartPiece(type, 'palette')">
+									 draggable="true" @dragstart="dragStartPiece(type, 'palette')" @dragend="clearDraggedPiece">
 								{{ piece.显示 }}
 							</div>
 						</el-card>
@@ -426,7 +426,7 @@
 											 class="unit display"
 											 :class="[getEditorUnitColor(boardEditor.pieceTypes[pieceName]), { 'selected': isEditorPieceSelected(r, c) }]"
 											 draggable="true"
-											 @dragstart="dragStartPiece(pieceName, 'board', r, c)">
+											 @dragstart="dragStartPiece(pieceName, 'board', r, c)" @dragend="clearDraggedPiece">
 										{{ boardEditor.pieceTypes[pieceName].显示 }}
 										<div class="remove-piece-btn" @click.stop="removeEditorPiece(r, c)">×</div>
 									</div>
@@ -645,6 +645,8 @@
 									}
 								}
 							}
+							// 强制更新视图以确保移除的棋子在编辑器棋盘上消失
+							this.boardEditor.layout = [...this.boardEditor.layout];
 						}
 					}
 				},
@@ -760,6 +762,9 @@
 			removeEditorPiece(r, c) {
 				this.boardEditor.layout[r][c] = '空';
 				this.boardEditor.selectedPiece = null;
+			},
+			clearDraggedPiece() {
+				this.boardEditor.draggedPiece = null;
 			},
 			// 游戏流程方法
 			startGame() {
