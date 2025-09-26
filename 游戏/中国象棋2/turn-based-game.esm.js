@@ -1003,7 +1003,7 @@ class Board extends Battlefield {
 		}
 		const {rowNum, colNum} = unit.position;
 		const unitsAtPos = this._grid[rowNum - 1][colNum - 1];
-		const index = unitsAtPos.indexOf(unit);
+		const index = unitsAtPos.findIndex(e => compareWithId(e, unit));
 		if (index > -1) {
 			unitsAtPos.splice(index, 1);
 		}
