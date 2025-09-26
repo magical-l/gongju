@@ -224,9 +224,9 @@ class Battlefield {
 		aopMethod(this, 'removeUnitFromPosition', {
 			noticePayloadBuilder: args => ({unit: args[0], position: args[1]}),
 		});
-		aopMethod(this, 'getUnitsAt', {
-			noticePayloadBuilder: args => ({position: args[0]}),
-		});
+		// aopMethod(this, 'getUnitsAt', {//这个调用太频繁了，不发通知了。
+		// 	noticePayloadBuilder: args => ({position: args[0]}),
+		// });
 		aopMethod(this, 'destroyUnit', {
 			noticePayloadBuilder: args => ({unit: args[0]}),
 		});
@@ -688,7 +688,6 @@ class Unit {
 	/**
 	 * cfg:{id?,name,intro?,display?,owner?,skills}
 	 * @param cfg
-	 * @returns {Proxy}
 	 */
 	constructor(cfg) {
 		this._cfg = cfg;

@@ -735,7 +735,7 @@
 			},
 			resetBoard() {
 				this.boardEditor.layout = this.boardEditor.defaultBoardLayout.trim().split('\n')
-				.map(row => row.trim().split(''));
+																			.map(row => row.trim().split(''));
 				this.boardEditor.selectedPiece = null;
 			},
 			dragStartPiece(type, from, r = null, c = null) {

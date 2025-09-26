@@ -55,7 +55,7 @@ const watchersWatch = (gamingPart, watchers) => {
 	}
 };
 const unwatch = (gamingPart, topic, callback) => gamingPart.gaming?.bulletin.unwatch(topic, callback);
-const notice = (gamingPart, topic, content) => gamingPart.gaming?.bulletin.notice(topic, content);
+const notice = (gamingPart, topic, payload) => gamingPart.gaming?.bulletin.notice(topic, payload);
 
 const addCfgProps = (instance, privateCfg) => {
 	if (!privateCfg) {

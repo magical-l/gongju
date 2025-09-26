@@ -1,4 +1,4 @@
-import {notice, watch} from './kit.esm.js';
+import {compareWithId, notice, watch} from './kit.esm.js';
 import {Board, Game, Gaming, Player, Plugin, Rule, Situation, Skill, Unit, 棋盘点位} from './turn-based-game.esm.js';
 
 export {
@@ -53,9 +53,9 @@ class Move extends Skill {
 			name: '移动',
 			...overrideCfg,
 			watchers: {
-				'单位杀敌': ({unit, killed}) => {
+				'单位杀敌': ({unit, killed, place}) => {
 					if (unit.id === this.owner.id) {
-						this.owner.position = killed.position;
+						this.gaming.battlefield.moveUnit(this.owner, place);
 					}
 				},
 			},
@@ -129,12 +129,18 @@ class 攻击 extends Skill {
 	activate(targets) {
 		const availableTargets = this.availableTargets;
 		(targets || []).forEach(targetUnit => {
-			if (targetUnit instanceof Unit && availableTargets.includes(targetUnit)) {
-				notice(this, '单位杀敌', {unit: this.owner, killed: targetUnit});
+			if (targetUnit instanceof Unit && availableTargets.some(e => compareWithId(e, targetUnit))) {
+				const place = targetUnit.position;
+				const payload = {unit: this.owner, killed: targetUnit, place};
+				notice(this, '单位杀敌', payload);
 				this.gaming.battlefield.destroyUnit(targetUnit);
-				notice(this, '单位阵亡', {unit: targetUnit, killer: this.owner});
+				notice(this, '单位杀敌', payload);
 			}
 		});
+	}
+
+	get availableTargets() {
+		return this.scopePositions().flatMap(p => this.gaming.battlefield.getUnitsAt(p));
 	}
 
 	scopePositions() {
@@ -486,9 +492,9 @@ const 内置规则集 = {
 				intro: '将帅阵亡则输棋。',
 				tip: '保护好将帅。',
 				watchers: {
-					'单位阵亡': ({unit, killer}) => {
-						if (unit.name === '将' || unit.name === '帅') {
-							gaming.bulletin.notice('game over', {winner: killer.owner});
+					'单位杀敌': ({unit, killed}) => {
+						if (killed.name === '将' || killed.name === '帅') {
+							gaming.bulletin.notice('game over', {winner: unit.owner});
 						}
 					},
 				}, ...cfg,
@@ -560,10 +566,10 @@ const 内置插件集 = {
 					name: '记谱', ...cfg,
 					watchers: {
 						'玩家选择了单位': ({player, units}) => {
-							const unit = units[0], 同名单位行号集 = [], {
-								rowNum,
-								colNum,
-							} = unit.position, forwardDirection = this.gaming.battlefield.forwardDirection(player);
+							const unit = units[0],
+								同名单位行号集 = [],
+								{rowNum, colNum} = unit.position,
+								forwardDirection = this.gaming.battlefield.forwardDirection(player);
 							for (let i = 1; i <= this.gaming.battlefield.rowSize; i++) {
 								const units = this.gaming.battlefield.getUnitsAt(new 棋盘点位(i, colNum));
 								if (units.filter(u => u.name === unit.name && u.owner === player).length) {
@@ -598,9 +604,9 @@ const 内置插件集 = {
 
 			generatePluginNotation(move) {
 				const isAttacking = (rowDiff, forwardDirection) => Math.sign(rowDiff) === Math.sign(forwardDirection);
-				const {unit, oldPosition} = move,
+				const {unit, from} = move,
 					newPosition = unit.position,
-					rowDiff = newPosition.rowNum - oldPosition.rowNum,
+					rowDiff = newPosition.rowNum - from.rowNum,
 					newColNum = newPosition.colNum,
 					is红方 = unit.owner.team.id === 红方id,
 					forwardDirection = this.gaming.battlefield.forwardDirection(unit.owner);
@@ -610,7 +616,7 @@ const 内置插件集 = {
 					target = calColName(forwardDirection, is红方, newColNum);
 				} else {
 					moveType = isAttacking(rowDiff, forwardDirection) ? '进' : '退';
-					if (newColNum !== oldPosition.colNum) {
+					if (newColNum !== from.colNum) {
 						target = calColName(forwardDirection, is红方, newColNum);
 					} else {
 						target
@@ -696,27 +702,6 @@ class 棋盘 extends Board {
 
 	_initUnitsPositions() {
 		super._initUnitsPositions();
-		// notice(this, 'parsing board layout');
-		// const layout = this._cfg.棋盘.trim().split(/\s+/);
-		// const unitTypes = this.gaming._cfg.unitTypes;
-		// const playersById = this.gaming.playersIdMap;
-		// layout.forEach((rowStr, r) => {
-		// 	rowStr.split('').forEach((char, c) => {
-		// 		if (char !== '空') {
-		// 			const unitCfg = unitTypes[char];
-		// 			if (unitCfg) {
-		// 				const player = playersById[unitCfg.player];
-		// 				if (player) {
-		// 					const unit = this._buildUnit(player, {name: char, ...unitCfg}),
-		// 						position = new 棋盘点位(r + 1, c + 1);
-		// 					this.addUnitToPosition(unit, position);
-		// 				} else { console.warn(`未能根据ID找到玩家: ${unitCfg.player}`); }
-		// 			}
-		// 		}
-		// 	});
-		// });
-		// notice(this, 'board parsed');
-
 		//确定双方进攻方向
 		const allUnits = this.positions.flat().flatMap(p => this.getUnitsAt(p)),
 			kingRed = allUnits.find(u => u.name === '帅'),
@@ -795,7 +780,7 @@ class 棋局 extends Gaming {
 			'player selectUnits end': '玩家选择了单位',
 			'player selectSkills end': '玩家选择了技能',
 			'player:deselected-unit': '玩家取消选择单位',
-			'unit moved': '单位移动',
+			'battlefield moveUnit end': '单位移动',
 		};
 		Object.entries(eventTranslations)
 					.forEach(([enTopiName, cnTopicName]) =>
