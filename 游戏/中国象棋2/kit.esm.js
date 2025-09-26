@@ -1,7 +1,7 @@
 export {
 	getClassHierarchy, ensureArray, compareWithId,
 	watch, watchersWatch, unwatch, notice,
-	proxy, aopMethod, aopAsyncMethod, aopGetter,
+	addCfgProps, aopMethod, aopAsyncMethod, aopGetter,
 	Bulletin,
 };
 /**
@@ -57,35 +57,19 @@ const watchersWatch = (gamingPart, watchers) => {
 const unwatch = (gamingPart, topic, callback) => gamingPart.gaming?.bulletin.unwatch(topic, callback);
 const notice = (gamingPart, topic, content) => gamingPart.gaming?.bulletin.notice(topic, content);
 
-/**
- * 创建一个代理，用于将对实例未定义属性的访问转发到其私有 #privateCfg 对象。
- * @param {object} instance - 要代理的类实例。
- * @param {object} privateCfg - 私有的配置对象。
- * @returns {Proxy} - 返回配置好的代理实例。
- */
-const proxy = (instance, privateCfg) => {
-	return new Proxy(instance, {
-		get: (target, prop, receiver) => {
-			// 优先返回实例或原型链上已有的属性（包括被包装过的方法）
-			if (prop in target) {
-				return Reflect.get(target, prop, receiver);
-			}
-			// 否则，在 privateCfg 中查找
-			if (prop in privateCfg) {
-				const value = privateCfg[prop];
-				return typeof value === 'object' && value !== null ? {...value} : value;
-			}
-			return undefined;
-		},
-		set: (target, prop, value, receiver) => {
-			// 保护cfg属性不被外部修改
-			if (prop in privateCfg) {
-				console.error(`Cannot modify a read-only config property: ${prop}`);
-				return false;
-			}
-			return Reflect.set(target, prop, value, receiver);
-		},
-	});
+const addCfgProps = (instance, privateCfg) => {
+	if (!privateCfg) {
+		return;
+	}
+	for (const key in privateCfg) {
+		if (!(key in instance)) {
+			Object.defineProperty(instance, key, {
+				get: () => privateCfg[key],
+				enumerable: true,
+				configurable: true,
+			});
+		}
+	}
 };
 
 /**
@@ -221,6 +205,7 @@ class Bulletin {
 	 * @param {object} payload 事件荷载
 	 */
 	notice(topic, payload = {}) {
+		console?.log('通知：', topic, payload);
 		(this.listeners[topic] || []).forEach(cb => cb(payload));
 	}
 }

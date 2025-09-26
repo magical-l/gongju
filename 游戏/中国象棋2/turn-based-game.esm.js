@@ -1,5 +1,5 @@
 import {
-	aopAsyncMethod, aopGetter, aopMethod, Bulletin, compareWithId, ensureArray, notice, proxy, unwatch, watch,
+	addCfgProps, aopAsyncMethod, aopGetter, aopMethod, Bulletin, compareWithId, ensureArray, notice, unwatch, watch,
 	watchersWatch,
 } from './kit.esm.js';
 
@@ -27,15 +27,15 @@ class Position {
 }
 
 class Game {
-	#cfg;
+	cfg;
 
 	constructor(cfg = {}) {
-		this.#cfg = cfg;
+		this.cfg = cfg;
 	}
 
 	newGaming() {
-		const GamingClass = this.#cfg.GamingClass ?? Gaming;
-		return new GamingClass(this.#cfg);
+		const GamingClass = this.cfg.GamingClass ?? Gaming;
+		return new GamingClass(this.cfg);
 	}
 }
 
@@ -54,11 +54,12 @@ class Gaming {
 
 	constructor(cfg) {
 		this.#cfg = cfg;
-		const self = proxy(this, this.#cfg);
-		self._build();
-		self._start(); // 游戏创建后自动开始
-		return self;
+		addCfgProps(this, this.#cfg);
+		this._build();
+		this._start(); // 游戏创建后自动开始
 	}
+
+	get cfg() {return this.#cfg;}
 
 	get gaming() { return this; }
 
@@ -109,27 +110,27 @@ class Gaming {
 		const TeamClass = teamCfg.class ?? this.cfg.TeamClass ?? Team;
 		notice(this, 'gaming buildTeam start', {gaming: this, id, teamCfg, class: TeamClass});
 		const team = new TeamClass({id, ...teamCfg}, this);
-		team.players = this._buildPlayers(teamCfg.players || {}, team);
+		// team.players = this._buildPlayers(teamCfg.players || {}, team);//todo：这里有一个设置team.players，但它是只读的
 		return team;
 	}
 
-	_buildPlayers(playerCfgs, team) {
-		notice(this, 'gaming buildPlayers start', {team, playerCfgs});
-		const rt = Object.fromEntries(
-			Object.entries(playerCfgs)
-			.map(([id, cfg]) => [id, this._buildPlayer(id, cfg, team)]),
-		);
-		notice(this, 'gaming buildPlayers end', {team, players: rt});
-		return rt;
-	}
-
-	_buildPlayer(id, playerCfg, team) {
-		const PlayerClass = playerCfg.class ?? this.cfg.PlayerClass ?? Player;
-		notice(this, 'gaming buildPlayer start', {team, playerCfg, class: PlayerClass});
-		const rt = new PlayerClass(team, {id, ...playerCfg});
-		notice(this, 'gaming buildPlayer end', {player: rt});
-		return rt;
-	}
+	// _buildPlayers(playerCfgs, team) {
+	// 	notice(this, 'gaming buildPlayers start', {team, playerCfgs});
+	// 	const rt = Object.fromEntries(
+	// 		Object.entries(playerCfgs)
+	// 		.map(([id, cfg]) => [id, this._buildPlayer(id, cfg, team)]),
+	// 	);
+	// 	notice(this, 'gaming buildPlayers end', {team, players: rt});
+	// 	return rt;
+	// }
+	//
+	// _buildPlayer(id, playerCfg, team) {
+	// 	const PlayerClass = playerCfg.class ?? this.cfg.PlayerClass ?? Player;
+	// 	notice(this, 'gaming buildPlayer start', {team, playerCfg, class: PlayerClass});
+	// 	const rt = new PlayerClass(team, {id, ...playerCfg});
+	// 	notice(this, 'gaming buildPlayer end', {player: rt});
+	// 	return rt;
+	// }
 
 	_buildGlobalRules() {
 		const rulesCfg = this.cfg.globalRules || [];
@@ -265,26 +266,24 @@ class Battlefield {
 		this.#gaming = gaming;
 		this.#cfg = cfg;
 		this.#positions = cfg.positions || []; // 显式地从配置中初始化 positions
-		const self = proxy(this, this.#cfg);
-		self._initPositionUnitsMapping();
+		addCfgProps(this, this.#cfg);
+		this._initPositionUnitsMapping();
 
-		aopMethod(self, 'addUnitToPosition', {
+		aopMethod(this, 'addUnitToPosition', {
 			noticePayloadBuilder: args => ({unit: args[0], position: args[1]}),
 		});
-		aopMethod(self, 'removeUnitFromPosition', {
+		aopMethod(this, 'removeUnitFromPosition', {
 			noticePayloadBuilder: args => ({unit: args[0], position: args[1]}),
 		});
-		aopMethod(self, 'getUnitsAt', {
+		aopMethod(this, 'getUnitsAt', {
 			noticePayloadBuilder: args => ({position: args[0]}),
 		});
-		aopMethod(self, 'destroyUnit', {
+		aopMethod(this, 'destroyUnit', {
 			noticePayloadBuilder: args => ({unit: args[0]}),
 		});
-		aopMethod(self, 'moveUnit', {
+		aopMethod(this, 'moveUnit', {
 			noticePayloadBuilder: args => ({unit: args[0], from: args[0].position, to: args[1]}),
 		});
-
-		return self;
 	}
 
 	get gaming() { return this.#gaming; }
@@ -417,13 +416,33 @@ class Team {
 		this.#cfg = cfg;
 		this.#gaming = gaming;
 
-		const self = proxy(this, this.#cfg);
+		addCfgProps(this, this.#cfg);
 
-		aopMethod(self, 'addMember', {noticePayloadBuilder: args => ({member: args[0]})});
-		aopMethod(self, 'removeMember', {noticePayloadBuilder: args => ({member: args[0]})});
-		aopGetter(self, 'members', {typeName: 'team'});
+		this._buildPlayers(cfg.players, this);
 
-		return self;
+		aopMethod(this, 'addMember', {noticePayloadBuilder: args => ({member: args[0]})});
+		aopMethod(this, 'removeMember', {noticePayloadBuilder: args => ({member: args[0]})});
+		aopGetter(this, 'members', {typeName: 'team'});
+	}
+
+	get cfg() { return this.#cfg; }
+
+	_buildPlayers(playerCfgs, team) {
+		notice(this, 'gaming buildPlayers start', {team, playerCfgs});
+		const rt = Object.fromEntries(
+			Object.entries(playerCfgs)
+			.map(([id, cfg]) => [id, this._buildPlayer(id, cfg, team)]),
+		);
+		notice(this, 'gaming buildPlayers end', {team, players: rt});
+		return rt;
+	}
+
+	_buildPlayer(id, playerCfg, team) {
+		const PlayerClass = playerCfg.class ?? this.cfg.PlayerClass ?? Player;
+		notice(this, 'gaming buildPlayer start', {team, playerCfg, class: PlayerClass});
+		const rt = new PlayerClass(team, {id, ...playerCfg});
+		notice(this, 'gaming buildPlayer end', {player: rt});
+		return rt;
 	}
 
 	get id() { return this.#id; }
@@ -456,39 +475,37 @@ class Player {
 		this.#team = team;
 		this.actionsPerTurn = cfg.actionsPerTurn || 1; // 从配置或默认值初始化
 
-		const self = proxy(this, this.#cfg);
+		addCfgProps(this, this.#cfg);
 
-		aopMethod(self, 'addUnit', {
+		aopMethod(this, 'addUnit', {
 			noticePayloadBuilder: args => ({unit: args[0]}),
 		});
-		aopMethod(self, 'removeUnit', {
+		aopMethod(this, 'removeUnit', {
 			noticePayloadBuilder: args => ({unit: args[0]}),
 		});
-		aopMethod(self, 'selectUnits', {
+		aopMethod(this, 'selectUnits', {
 			noticePayloadBuilder: args => ({units: args[0]}),
 		});
-		aopMethod(self, 'selectSkills', {
+		aopMethod(this, 'selectSkills', {
 			noticePayloadBuilder: args => ({skills: args[0]}),
 		});
-		aopMethod(self, 'selectTargets', {
+		aopMethod(this, 'selectTargets', {
 			noticePayloadBuilder: args => ({targets: args[0]}),
 		});
 
 		//单位的权威数据在Battlefield。本类监听Battlefield处理单位的通知，更新自己的单位缓存。
-		watch(self, 'Battlefield addUnitToPosition', ({unit, position}) => {
-			if (compareWithId(self, unit.owner)) {
-				if (!self.#units.some(u => compareWithId(u, unit))) {
-					self.addUnit(unit);
+		watch(this, 'Battlefield addUnitToPosition', ({unit, position}) => {
+			if (compareWithId(this, unit.owner)) {
+				if (!this.#units.some(u => compareWithId(u, unit))) {
+					this.addUnit(unit);
 				}
 			}
 		});
-		watch(self, 'Battlefield destroyUnit end', ({unit}) => {
-			if (compareWithId(self, unit.owner)) {
-				self.removeUnit(unit);
+		watch(this, 'Battlefield destroyUnit end', ({unit}) => {
+			if (compareWithId(this, unit.owner)) {
+				this.removeUnit(unit);
 			}
 		});
-
-		return self;
 	}
 
 	get id() { return this.#id; }
@@ -652,22 +669,20 @@ class Unit {
 		this.#cfg = cfg;
 		this.#id = 'id' in cfg ? cfg.id : Unit.#nextId++;
 
-		const self = proxy(this, this.#cfg);
+		addCfgProps(this, this.#cfg);
 
-		aopMethod(self, 'addSkill', {
+		aopMethod(this, 'addSkill', {
 			noticePayloadBuilder: args => ({skill: args[0]}),
 		});
-		aopMethod(self, 'removeSkill', {
+		aopMethod(this, 'removeSkill', {
 			noticePayloadBuilder: args => ({skill: args[0]}),
 		});
 
-		watch(self, 'Battlefield moveUnit end', ({unit, to}) => {
-			if (compareWithId(self, unit)) {
-				self.#position = to;
+		watch(this, 'Battlefield moveUnit end', ({unit, to}) => {
+			if (compareWithId(this, unit)) {
+				this.#position = to;
 			}
 		});
-
-		return self;
 	}
 
 	get id() { return this.#id; }
@@ -739,9 +754,8 @@ class Rule {
 	constructor(gaming, cfg) {
 		this.#cfg = cfg;
 		this.#gaming = gaming;
-		const self = proxy(this, this.#cfg);
-		watchersWatch(self, self.watchers);
-		return self;
+		addCfgProps(this, this.#cfg);
+		watchersWatch(this, this.watchers);
 	}
 
 	get gaming() { return this.#gaming; }
@@ -778,7 +792,7 @@ class Skill {
 		});
 		aopGetter(this, 'potentialTargets', {typeName: 'skill'});
 
-		return proxy(this, this.#cfg);
+		addCfgProps(this, this.#cfg);
 	}
 
 	/**
@@ -900,9 +914,8 @@ class Plugin {
 	constructor(gaming, cfg) {
 		this.#cfg = cfg;
 		this.#gaming = gaming;
-		const self = proxy(this, this.#cfg);
-		watchersWatch(self, self.watchers);
-		return self;
+		addCfgProps(this, this.#cfg);
+		watchersWatch(this, this.watchers);
 	}
 
 	get gaming() { return this.#gaming; }
