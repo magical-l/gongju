@@ -43,35 +43,35 @@ class Game {
  * 一场游戏。
  */
 class Gaming {
-	#cfg;
-	#bulletin = new Bulletin();
-	#globalRules = [];
-	#plugins = [];
-	#battlefield;
-	#situation;
-	#teams = {};
-	#playerTurnSequence = [];
+	_cfg;
+	_bulletin = new Bulletin();
+	_globalRules = [];
+	_plugins = [];
+	_battlefield;
+	_situation;
+	_teams = {};
+	_playerTurnSequence = [];
 
 	constructor(cfg) {
-		this.#cfg = cfg;
-		addCfgProps(this, this.#cfg);
+		this._cfg = cfg;
+		addCfgProps(this, this._cfg);
 		this._build();
 		this._start(); // 游戏创建后自动开始
 	}
 
-	get cfg() {return this.#cfg;}
+	get cfg() {return this._cfg;}
 
 	get gaming() { return this; }
 
-	get bulletin() { return this.#bulletin; }
+	get bulletin() { return this._bulletin; }
 
-	get battlefield() { return this.#battlefield; }
+	get battlefield() { return this._battlefield; }
 
-	get situation() { return this.#situation; }
+	get situation() { return this._situation; }
 
-	get teamList() { return Object.values(this.#teams); }
+	get teamList() { return Object.values(this._teams); }
 
-	get playerTurnSequence() { return [...this.#playerTurnSequence]; }
+	get playerTurnSequence() { return [...this._playerTurnSequence]; }
 
 	get playersIdMap() {
 		const allPlayers = this.teamList.flatMap(team => Object.values(team.players));
@@ -80,16 +80,16 @@ class Gaming {
 
 	_build() {
 		notice(this, 'gaming build start', {gaming: this});
-		this.#teams = this._buildTeams();
-		this.#globalRules = this._buildGlobalRules();
-		this.#globalRules.forEach(rule =>
+		this._teams = this._buildTeams();
+		this._globalRules = this._buildGlobalRules();
+		this._globalRules.forEach(rule =>
 			Object.entries(rule.watchers)
 			.forEach(([topicName, watcher]) => this.bulletin.watch(topicName, watcher.bind(rule))));
-		this.#battlefield = this._buildBattlefield();
-		this.#situation = this._buildSituation();
-		this.#playerTurnSequence = this._buildPlayerTurnSequence();
-		this.#plugins = this._buildPlugins();
-		this.#plugins.forEach(plugin =>
+		this._battlefield = this._buildBattlefield();
+		this._situation = this._buildSituation();
+		this._playerTurnSequence = this._buildPlayerTurnSequence();
+		this._plugins = this._buildPlugins();
+		this._plugins.forEach(plugin =>
 			Object.entries(plugin.watchers)
 			.forEach(([topicName, watcher]) => this.bulletin.watch(topicName, watcher.bind(plugin))));
 		notice(this, 'gaming build end', {gaming: this});
@@ -256,17 +256,17 @@ class Gaming {
  * 战场。主要是地图、环境、单位等的实时情况。
  */
 class Battlefield {
-	#cfg;
-	#gaming;
+	_cfg;
+	_gaming;
 
-	#positions = [];
-	#positionUnitsMapping = new Map(); // Map<Position的key, Unit[]>
+	_positions = [];
+	_positionUnitsMapping = new Map(); // Map<Position的key, Unit[]>
 
 	constructor(gaming, cfg = {}) {
-		this.#gaming = gaming;
-		this.#cfg = cfg;
-		this.#positions = cfg.positions || []; // 显式地从配置中初始化 positions
-		addCfgProps(this, this.#cfg);
+		this._gaming = gaming;
+		this._cfg = cfg;
+		this._positions = cfg.positions || []; // 显式地从配置中初始化 positions
+		addCfgProps(this, this._cfg);
 		this._initPositionUnitsMapping();
 
 		aopMethod(this, 'addUnitToPosition', {
@@ -286,12 +286,12 @@ class Battlefield {
 		});
 	}
 
-	get gaming() { return this.#gaming; }
+	get gaming() { return this._gaming; }
 
-	get positions() { return [...this.#positions]; }
+	get positions() { return [...this._positions]; }
 
 	_initPositionUnitsMapping() {
-		this.#positions.flat().forEach(p => this.#positionUnitsMapping.set(p.toString(), []));
+		this._positions.flat().forEach(p => this._positionUnitsMapping.set(p.toString(), []));
 	}
 
 	moveUnit(unit, toPosition) {
@@ -308,10 +308,10 @@ class Battlefield {
 
 	addUnitToPosition(unit, position) {
 		const key = this._positionKey(position);
-		if (!this.#positionUnitsMapping.has(key)) {
-			this.#positionUnitsMapping.set(key, []);
+		if (!this._positionUnitsMapping.has(key)) {
+			this._positionUnitsMapping.set(key, []);
 		}
-		this.#positionUnitsMapping.get(key).push(unit);
+		this._positionUnitsMapping.get(key).push(unit);
 		// unit._position = position; // 直接修改内部属性，避免触发setter递归
 	}
 
@@ -324,7 +324,7 @@ class Battlefield {
 			return;
 		}
 		const key = this._positionKey(unit.position);
-		const unitsAtPos = this.#positionUnitsMapping.get(key);
+		const unitsAtPos = this._positionUnitsMapping.get(key);
 		if (unitsAtPos) {
 			const index = unitsAtPos.indexOf(unit);
 			if (index > -1) {
@@ -335,14 +335,14 @@ class Battlefield {
 	}
 
 	getUnitsAt(position) {
-		return this.#positionUnitsMapping.get(this._positionKey(position)) || [];
+		return this._positionUnitsMapping.get(this._positionKey(position)) || [];
 	}
 
 	/**
 	 * 移除出界的位置。
 	 */
 	keepValidPositions(positions) {
-		return positions.filter(p => this.#positions.some(p2 => compareWithId(p, p2)));
+		return positions.filter(p => this._positions.some(p2 => compareWithId(p, p2)));
 	}
 
 	//todo：需要增加许多关于位置的方法。比如计算两个单位的距离、获取距离某个单位为x的位置集……
@@ -352,42 +352,42 @@ class Battlefield {
  * 战况。记录游戏的实时状态、已成历史的客观事实（比如操作、事件等）。
  */
 class Situation {
-	#gaming;
-	#rounds = [];
+	_gaming;
+	_rounds = [];
 	curPlayer;
 	isStarted = false;
 	isEnded = false;
 	winner;
 
 	constructor(gaming) {
-		this.#gaming = gaming;
+		this._gaming = gaming;
 	}
 
-	get gaming() { return this.#gaming; }
+	get gaming() { return this._gaming; }
 
-	get rounds() { return this.#rounds; }
+	get rounds() { return this._rounds; }
 
 	async startRound() {
-		const round = new Round(this.gaming, this.#rounds.length + 1);
-		this.#rounds.push(round);
+		const round = new Round(this.gaming, this._rounds.length + 1);
+		this._rounds.push(round);
 		await round.start();
 	}
 }
 
 class Round {
-	#gaming;
-	#index;
+	_gaming;
+	_index;
 
 	constructor(gaming, index) {
-		this.#gaming = gaming;
-		this.#index = index;
+		this._gaming = gaming;
+		this._index = index;
 
 		aopAsyncMethod(this, 'start');
 	}
 
-	get gaming() { return this.#gaming; }
+	get gaming() { return this._gaming; }
 
-	get index() { return this.#index; }
+	get index() { return this._index; }
 
 	/**
 	 * 开始一个回合，玩家依次执行自己的行动轮次
@@ -404,28 +404,28 @@ class Round {
 }
 
 class Team {
-	static #nextId = 1;
+	static _nextId = 1;
 
-	#id;
-	#cfg;
-	#members = [];
-	#gaming;
+	_id;
+	_cfg;
+	_members = [];
+	_gaming;
 
 	constructor(cfg, gaming) {
-		this.#id = 'id' in cfg ? cfg.id : Team.#nextId++;
-		this.#cfg = cfg;
-		this.#gaming = gaming;
+		this._id = 'id' in cfg ? cfg.id : Team._nextId++;
+		this._cfg = cfg;
+		this._gaming = gaming;
 
-		addCfgProps(this, this.#cfg);
+		addCfgProps(this, this._cfg);
 
-		this._buildPlayers(cfg.players, this);
+		this._members = this._buildPlayers(cfg.players, this);
 
 		aopMethod(this, 'addMember', {noticePayloadBuilder: args => ({member: args[0]})});
 		aopMethod(this, 'removeMember', {noticePayloadBuilder: args => ({member: args[0]})});
 		aopGetter(this, 'members', {typeName: 'team'});
 	}
 
-	get cfg() { return this.#cfg; }
+	get cfg() { return this._cfg; }
 
 	_buildPlayers(playerCfgs, team) {
 		notice(this, 'gaming buildPlayers start', {team, playerCfgs});
@@ -445,37 +445,39 @@ class Team {
 		return rt;
 	}
 
-	get id() { return this.#id; }
+	get id() { return this._id; }
 
-	get members() { return [...this.#members]; }
+	get members() { return {...this._members}; }
 
-	addMember(member) { this.#members.push(member); }
+	get players() { return this.members; }
 
-	removeMember(member) { this.#members = this.#members.filter(m => !compareWithId(m, member)); }
+	addMember(member) { this._members.push(member); }
 
-	get gaming() { return this.#gaming; }
+	removeMember(member) { this._members = this._members.filter(m => !compareWithId(m, member)); }
+
+	get gaming() { return this._gaming; }
 }
 
 class Player {
-	static #nextId = 1;
+	static _nextId = 1;
 
-	#cfg;
-	#id;
-	#team;
-	#units = [];//拥有的单位的缓存
+	_cfg;
+	_id;
+	_team;
+	_units = [];//拥有的单位的缓存
 
-	#selectedUnits = [];
-	#selectedSkills = [];
-	#selectedTargets = [];
+	_selectedUnits = [];
+	_selectedSkills = [];
+	_selectedTargets = [];
 
 	constructor(team, cfg) {
-		this.#cfg = cfg;
-		this.#id = 'id' in cfg ? cfg.id : Player.#nextId++;
-		this.#units = 'units' in cfg ? cfg.units : [];
-		this.#team = team;
+		this._cfg = cfg;
+		this._id = 'id' in cfg ? cfg.id : Player._nextId++;
+		this._units = 'units' in cfg ? cfg.units : [];
+		this._team = team;
 		this.actionsPerTurn = cfg.actionsPerTurn || 1; // 从配置或默认值初始化
 
-		addCfgProps(this, this.#cfg);
+		addCfgProps(this, this._cfg);
 
 		aopMethod(this, 'addUnit', {
 			noticePayloadBuilder: args => ({unit: args[0]}),
@@ -496,7 +498,7 @@ class Player {
 		//单位的权威数据在Battlefield。本类监听Battlefield处理单位的通知，更新自己的单位缓存。
 		watch(this, 'Battlefield addUnitToPosition', ({unit, position}) => {
 			if (compareWithId(this, unit.owner)) {
-				if (!this.#units.some(u => compareWithId(u, unit))) {
+				if (!this._units.some(u => compareWithId(u, unit))) {
 					this.addUnit(unit);
 				}
 			}
@@ -508,17 +510,17 @@ class Player {
 		});
 	}
 
-	get id() { return this.#id; }
+	get id() { return this._id; }
 
-	get team() { return this.#team; }
+	get team() { return this._team; }
 
-	get units() { return this.#units; }
+	get units() { return this._units; }
 
-	get gaming() { return this.#team.gaming; }
+	get gaming() { return this._team.gaming; }
 
-	addUnit(unit) { this.#units.push(unit); }
+	addUnit(unit) { this._units.push(unit); }
 
-	removeUnit(unit) { this.#units = this.#units.filter(e => compareWithId(e, unit));}
+	removeUnit(unit) { this._units = this._units.filter(e => compareWithId(e, unit));}
 
 	/**
 	 * 玩家玩游戏。在回合制游戏里，玩家在自己的轮次里操作单位施放技能。
@@ -538,18 +540,18 @@ class Player {
 			this.processInput(input);
 
 			//三要素齐备，开始施放技能。
-			if (this.#selectedUnits?.length && this.#selectedSkills?.length && this.#selectedTargets?.length) {
-				const actionPerformed = this.activateSkills(this.#selectedUnits, this.#selectedSkills, this.#selectedTargets);
+			if (this._selectedUnits?.length && this._selectedSkills?.length && this._selectedTargets?.length) {
+				const actionPerformed = this.activateSkills(this._selectedUnits, this._selectedSkills, this._selectedTargets);
 				if (actionPerformed) {
 					actionsTaken++; // 成功行动，计数器加一
-					this.#selectedTargets = []; // 成功行动后，清空目标，以便进行下一次行动
+					this._selectedTargets = []; // 成功行动后，清空目标，以便进行下一次行动
 				}
 			}
 		}
 
-		this.#selectedUnits = [];
-		this.#selectedSkills = [];
-		this.#selectedTargets = [];
+		this._selectedUnits = [];
+		this._selectedSkills = [];
+		this._selectedTargets = [];
 	}
 
 	/**
@@ -566,9 +568,9 @@ class Player {
 
 		if (firstItem instanceof Unit) {
 			// 如果已经选择了单位和技能，那么后续的单位输入应被视为“目标”
-			if (this.#selectedUnits?.length && this.#selectedSkills?.length) {
+			if (this._selectedUnits?.length && this._selectedSkills?.length) {
 				// 检查这些“目标”对于当前选中的技能是否合法
-				if (this.#selectedSkills.some(e => e.filterValidTargets(inputs).length > 0)) {
+				if (this._selectedSkills.some(e => e.filterValidTargets(inputs).length > 0)) {
 					this.selectTargets(inputs);
 				} else {
 					// 如果目标不合法，则检查本次输入是否是一次全新的“选择单位”动作
@@ -592,9 +594,9 @@ class Player {
 	selectUnits(units) {
 		const ownUnits = units.filter(u => u.owner?.id === this.id);
 		if (ownUnits.length > 0) {
-			this.#selectedUnits = ownUnits;
-			this.#selectedSkills = [];
-			this.#selectedTargets = [];
+			this._selectedUnits = ownUnits;
+			this._selectedSkills = [];
+			this._selectedTargets = [];
 		}
 	}
 
@@ -604,11 +606,11 @@ class Player {
 	 * @param {Skill[]} skills 要选择的技能
 	 */
 	selectSkills(skills) {
-		if (this.#selectedUnits?.length) {
+		if (this._selectedUnits?.length) {
 			// 过滤出所有主动技能
 			const activeSkills = skills.filter(s => typeof s?.activate === 'function');
 			if (activeSkills.length > 0) {
-				this.#selectedSkills = activeSkills;
+				this._selectedSkills = activeSkills;
 			}
 		}
 	}
@@ -619,8 +621,8 @@ class Player {
 	 */
 	selectTargets(targets) {
 		// 必须在选定单位和技能后
-		if (this.#selectedUnits?.length && this.#selectedSkills?.length) {
-			this.#selectedTargets = targets;
+		if (this._selectedUnits?.length && this._selectedSkills?.length) {
+			this._selectedTargets = targets;
 		}
 	}
 
@@ -651,14 +653,14 @@ class Player {
 }
 
 class Unit {
-	static #nextId = 1;
+	static _nextId = 1;
 
-	#cfg;
-	#id;
-	#skills = [];
-	#position = null;//位置作为缓存
+	_cfg;
+	_id;
+	_skills = [];
+	_position = null;//位置作为缓存
 
-	#skillBoundWatchers = new WeakMap();
+	_skillBoundWatchers = new WeakMap();
 
 	/**
 	 * cfg:{id?,name,intro?,display?,owner?,skills}
@@ -666,10 +668,10 @@ class Unit {
 	 * @returns {Proxy}
 	 */
 	constructor(cfg) {
-		this.#cfg = cfg;
-		this.#id = 'id' in cfg ? cfg.id : Unit.#nextId++;
+		this._cfg = cfg;
+		this._id = 'id' in cfg ? cfg.id : Unit._nextId++;
 
-		addCfgProps(this, this.#cfg);
+		addCfgProps(this, this._cfg);
 
 		aopMethod(this, 'addSkill', {
 			noticePayloadBuilder: args => ({skill: args[0]}),
@@ -680,23 +682,23 @@ class Unit {
 
 		watch(this, 'Battlefield moveUnit end', ({unit, to}) => {
 			if (compareWithId(this, unit)) {
-				this.#position = to;
+				this._position = to;
 			}
 		});
 	}
 
-	get id() { return this.#id; }
+	get id() { return this._id; }
 
-	get display() { return this.#cfg.display ?? this.name; }
+	get display() { return this._cfg.display ?? this.name; }
 
-	get skills() { return [...this.#skills]; }
+	get skills() { return [...this._skills]; }
 
 	get gaming() { return this.owner?.gaming; }
 
-	get position() { return this.#position; }
+	get position() { return this._position; }
 
 	// set position(p) {
-	// 	if (this.#position && this.#position.isEqualTo(p)) {
+	// 	if (this._position && this._position.isEqualTo(p)) {
 	// 		return;
 	// 	}
 	// 	const oldPosition = this.position;
@@ -709,7 +711,7 @@ class Unit {
 		if (!skill || this.skills.includes(skill)) {
 			return;
 		}
-		this.#skills.push(skill);
+		this._skills.push(skill);
 
 		if (skill.watchers) {
 			const _boundWatchers = {};
@@ -718,7 +720,7 @@ class Unit {
 				_boundWatchers[topic].push(watcher);
 				this.gaming.bulletin.watch(topic, watcher);
 			});
-			this.#skillBoundWatchers.set(skill, _boundWatchers);
+			this._skillBoundWatchers.set(skill, _boundWatchers);
 		}
 	}
 
@@ -732,15 +734,15 @@ class Unit {
 
 		const skill = this.skills[skillIndex];
 
-		if (this.#skillBoundWatchers.has(skill)) {
-			Object.entries(this.#skillBoundWatchers.get(skill))
+		if (this._skillBoundWatchers.has(skill)) {
+			Object.entries(this._skillBoundWatchers.get(skill))
 			.forEach(([topic, boundWatchers]) =>
 				boundWatchers.forEach(boundWatcher =>
 					this.gaming.bulletin.unwatch(topic, boundWatcher)));
-			this.#skillBoundWatchers.delete(skill);
+			this._skillBoundWatchers.delete(skill);
 		}
 
-		this.#skills.splice(skillIndex, 1);
+		this._skills.splice(skillIndex, 1);
 	}
 }
 
@@ -748,36 +750,36 @@ class Unit {
  * 规则：有一定业务含义，若干个相关的逻辑片段的封装。这些逻辑片段是监听器（watchers）
  */
 class Rule {
-	#cfg;
-	#gaming;
+	_cfg;
+	_gaming;
 
 	constructor(gaming, cfg) {
-		this.#cfg = cfg;
-		this.#gaming = gaming;
-		addCfgProps(this, this.#cfg);
+		this._cfg = cfg;
+		this._gaming = gaming;
+		addCfgProps(this, this._cfg);
 		watchersWatch(this, this.watchers);
 	}
 
-	get gaming() { return this.#gaming; }
+	get gaming() { return this._gaming; }
 }
 
 class Skill {
-	static #nextId = 1;
-	static #instanceActivateCounts = new WeakMap();
+	static _nextId = 1;
+	static _instanceActivateCounts = new WeakMap();
 
-	#id;
-	#owner;
-	#cfg;
+	_id;
+	_owner;
+	_cfg;
 
 	constructor(cfg, owner) {
-		this.#id = 'id' in cfg ? cfg.id : Skill.#nextId++;
-		this.#cfg = cfg;
-		this.#owner = owner;
-		Skill.#instanceActivateCounts.set(this, 0); // 在构造时初始化当前实例的计数
+		this._id = 'id' in cfg ? cfg.id : Skill._nextId++;
+		this._cfg = cfg;
+		this._owner = owner;
+		Skill._instanceActivateCounts.set(this, 0); // 在构造时初始化当前实例的计数
 
 		watch(this, 'skill activate end', ({skill}) => {
 			if (compareWithId(this, skill)) {
-				Skill.#instanceActivateCounts.set(this, Skill.#instanceActivateCounts.get(this) + 1);
+				Skill._instanceActivateCounts.set(this, Skill._instanceActivateCounts.get(this) + 1);
 			}
 		});
 
@@ -792,7 +794,7 @@ class Skill {
 		});
 		aopGetter(this, 'potentialTargets', {typeName: 'skill'});
 
-		addCfgProps(this, this.#cfg);
+		addCfgProps(this, this._cfg);
 	}
 
 	/**
@@ -824,13 +826,13 @@ class Skill {
 		return targets.filter(t => potential.some(p => compareWithId(p, t)));
 	}
 
-	get id() { return this.#id; }
+	get id() { return this._id; }
 
-	get owner() { return this.#owner; }
+	get owner() { return this._owner; }
 
 	get gaming() { return this.owner?.gaming; }
 
-	get activateCount() { return Skill.#instanceActivateCounts.get(this); }
+	get activateCount() { return Skill._instanceActivateCounts.get(this); }
 }
 
 /**
@@ -848,7 +850,7 @@ class PassiveSkill extends Skill {
  * 增益技能。一种特殊的被动技，只在主人得到本技能时触发一次，给主人或相关元素增加一种状态（称为‘增益’）。
  */
 class BuffSkill extends PassiveSkill {
-	#isActivated = false;
+	_isActivated = false;
 
 	constructor(cfg, owner) {
 		super(cfg, owner);
@@ -856,20 +858,20 @@ class BuffSkill extends PassiveSkill {
 		// 在父类（已代理）的基础上，再次包装方法以加入BuffSkill的逻辑
 		const rawActivate = this.activate;
 		this.activate = async (...args) => {
-			if (this.#isActivated) {
+			if (this._isActivated) {
 				console?.warn(`BuffSkill [${this.name}] 已经激活过一次，不能再次主动使用。`);
 				return false;
 			}
 			const result = await rawActivate.apply(this, args);
 			if (result === true) {
-				this.#isActivated = true;
+				this._isActivated = true;
 			}
 			return result;
 		};
 
 		const rawFilterValidTargets = this.filterValidTargets;
 		this.filterValidTargets = (...args) => {
-			if (this.#isActivated) {
+			if (this._isActivated) {
 				console?.warn(`BuffSkill [${this.name}] 已经激活过一次，因此不返回任何合法目标。`);
 				return [];
 			}
@@ -908,17 +910,17 @@ class BuffSkill extends PassiveSkill {
 }
 
 class Plugin {
-	#cfg;
-	#gaming;
+	_cfg;
+	_gaming;
 
 	constructor(gaming, cfg) {
-		this.#cfg = cfg;
-		this.#gaming = gaming;
-		addCfgProps(this, this.#cfg);
+		this._cfg = cfg;
+		this._gaming = gaming;
+		addCfgProps(this, this._cfg);
 		watchersWatch(this, this.watchers);
 	}
 
-	get gaming() { return this.#gaming; }
+	get gaming() { return this._gaming; }
 }
 
 //========================棋盘类游戏的类
