@@ -84,14 +84,14 @@ class Gaming {
 		this._globalRules = this._buildGlobalRules();
 		this._globalRules.forEach(rule =>
 			Object.entries(rule.watchers)
-			.forEach(([topicName, watcher]) => this.bulletin.watch(topicName, watcher.bind(rule))));
+						.forEach(([topicName, watcher]) => this.bulletin.watch(topicName, watcher.bind(rule))));
 		this._battlefield = this._buildBattlefield();
 		this._situation = this._buildSituation();
 		this._playerTurnSequence = this._buildPlayerTurnSequence();
 		this._plugins = this._buildPlugins();
 		this._plugins.forEach(plugin =>
 			Object.entries(plugin.watchers)
-			.forEach(([topicName, watcher]) => this.bulletin.watch(topicName, watcher.bind(plugin))));
+						.forEach(([topicName, watcher]) => this.bulletin.watch(topicName, watcher.bind(plugin))));
 		notice(this, 'gaming build end', {gaming: this});
 	}
 
@@ -100,7 +100,7 @@ class Gaming {
 		notice(this, 'gaming buildTeams start', {teamsCfg});
 		const rt = Object.fromEntries(
 			Object.entries(teamsCfg)
-			.map(([id, teamCfg]) => [id, this._buildTeam(id, teamCfg)]),
+						.map(([id, teamCfg]) => [id, this._buildTeam(id, teamCfg)]),
 		);
 		notice(this, 'gaming buildTeams end', {teams: rt});
 		return rt;
@@ -196,6 +196,10 @@ class Gaming {
 			watch(this, 'ui input', onInput);
 		});
 	}
+
+	get unitTypes() {
+		return this._cfg.unitTypes;
+	}
 }
 
 /**
@@ -211,9 +215,8 @@ class Battlefield {
 	constructor(gaming, cfg = {}) {
 		this._gaming = gaming;
 		this._cfg = cfg;
-		this._positions = cfg.positions || []; // 显式地从配置中初始化 positions
-		this._positions.flat().forEach(p => this._positionUnitsMapping.set(p.toString(), []));
-		this._buildUnits();
+		this._positions = this._buildPositions(cfg); // 显式地从配置中初始化 positions
+		this._initPositionUnitsMapping();
 
 		addCfgProps(this, this._cfg);
 
@@ -234,24 +237,56 @@ class Battlefield {
 		});
 	}
 
+	_buildPositions(cfg) {
+		return cfg.positions || [];
+	}
+
+	_initPositionUnitsMapping() {
+		this._positions.flat().forEach(p => this._positionUnitsMapping.set(p.toString(), []));
+	}
+
 	get gaming() { return this._gaming; }
 
 	get positions() { return [...this._positions]; }
 
-	_buildUnits() {//todo：这个方法挫
-		const unitsCfg = this._cfg.unitsCfg;
-		notice(this, 'gaming buildUnits start', {unitsCfg});
-		const rt = unitsCfg.map(unitCfg => this._buildUnit(this.playersIdMap[unitCfg.owner], unitCfg));
-		notice(this, 'gaming buildUnits end', {rt});
+	_initUnitsPositions() {
+		const unitsPositionCfg = this._cfg.unitsPositionCfg;
+		notice(this, 'buildUnitsPositions start', {unitsPositionCfg});
+		Object.entries(unitsPositionCfg)
+					.forEach(([positionDescription, unitCfgs]) => {
+						const units = this._buildUnits(unitCfgs);
+						units.forEach(u => this.addUnitToPosition(u, this.toPosition(positionDescription)));
+					});
+		const rt = unitsPositionCfg.map(unitCfg => this._buildUnit(this.playersIdMap[unitCfg.owner], unitCfg));
+		notice(this, 'buildUnitsPositions end', {rt});
+		return rt;
+	}
+
+	_buildUnits(unitCfgs) {
+		notice(this, 'buildUnits start', {unitCfgs});
+		const rt = unitCfgs.map(unitCfg => this._buildUnit(this.playersIdMap[unitCfg.owner], unitCfg));
+		notice(this, 'buildUnits end', {rt});
 		return rt;
 	}
 
 	_buildUnit(owner, unitCfg) {
 		const UnitClass = unitCfg.class ?? this._cfg.UnitClass ?? Unit;
-		notice(this, 'gaming buildUnit start', {unitCfg, class: UnitClass});
-		const unit = new UnitClass({owner, ...unitCfg});
-		notice(this, 'gaming buildUnit end', {unit: unit});
+		notice(this, 'buildUnit start', {unitCfg, class: UnitClass});
+
+		const unitType = this.gaming.unitTypes[unitCfg.name];
+		const unit = new UnitClass({owner, ...unitType, ...unitCfg});
+		notice(this, 'buildUnit end', {unit: unit});
 		return unit;
+	}
+
+	/**
+	 * 默认实现：尝试把参数解析为数值，当成this.positions的坐标。兜底返回第一个坐标。
+	 * @param positionDescription
+	 * @returns {*}
+	 */
+	toPosition(positionDescription) {
+		//todo：实现
+		return this.positions[parseInt(positionDescription)];
 	}
 
 	moveUnit(unit, toPosition) {
@@ -388,7 +423,7 @@ class Team {
 		notice(this, 'gaming buildPlayers start', {team, playerCfgs});
 		const rt = Object.fromEntries(
 			Object.entries(playerCfgs)
-			.map(([id, cfg]) => [id, this._buildPlayer(id, cfg, team)]),
+						.map(([id, cfg]) => [id, this._buildPlayer(id, cfg, team)]),
 		);
 		notice(this, 'gaming buildPlayers end', {team, players: rt});
 		return rt;
@@ -712,9 +747,9 @@ class Unit {
 
 		if (this._skillBoundWatchers.has(skill)) {
 			Object.entries(this._skillBoundWatchers.get(skill))
-			.forEach(([topic, boundWatchers]) =>
-				boundWatchers.forEach(boundWatcher =>
-					this.gaming.bulletin.unwatch(topic, boundWatcher)));
+						.forEach(([topic, boundWatchers]) =>
+							boundWatchers.forEach(boundWatcher =>
+								this.gaming.bulletin.unwatch(topic, boundWatcher)));
 			this._skillBoundWatchers.delete(skill);
 		}
 

@@ -425,7 +425,7 @@ const 内置规则集 = {
 				watchers: {
 					'初始化完成': () => {
 						const allUnits = this.gaming.teamList.flatMap(team => Object.values(team.players))
-						.flatMap(player => player.units);
+																 .flatMap(player => player.units);
 						this.kingRed = allUnits.find(u => u.name === '帅');
 						this.kingBlack = allUnits.find(u => u.name === '将');
 					}, '单位阵亡': ({unit}) => {
@@ -621,7 +621,7 @@ const 内置插件集 = {
 				if (is红方) { roundNotations.push([notation]); } else {
 					if (roundNotations.length > 0 && roundNotations.at(-1).length === 1) {
 						roundNotations.at(-1)
-						.push(notation);
+													.push(notation);
 					} else {
 						roundNotations.push(['', notation]);
 					}
@@ -650,14 +650,33 @@ class 中国象棋 extends Game {
 	}
 
 	static translateConfig(cfg, 红方名字, 黑方名字) {
+		const unitsPositionCfg = {};
+		const layout = cfg.棋盘.trim().split(/\s+/);
+		for (let i = 0; i < layout.length; i++) {
+			const ps = layout[i].split('');
+			for (let j = 0; j < ps.length; j++) {
+				const unitTypeName = ps[j];
+				if (unitTypeName && unitTypeName !== '空') {
+					const positionDescription = `(${i + 1},${j + 1})`;
+					unitsPositionCfg[positionDescription] = unitTypeName;
+				}
+			}
+		}
 		return {
-			battlefieldCfg: {rowSize: 10, colSize: 9, 棋盘: cfg.棋盘},//todo：这里挫，cfg的字段→battlefield的字段，看看怎么改好。
+			battlefieldCfg: {
+				rowSize: 10,
+				colSize: 9,
+				棋盘: cfg.棋盘,//todo：这里挫，cfg的字段→battlefield的字段，看看怎么改好。
+				unitsPositionCfg,
+			},
 			teams: {
 				[红方id]: {...红方默认配置, players: {[红方玩家id]: {name: 红方名字}}},
 				[黑方id]: {...黑方默认配置, players: {[黑方玩家id]: {name: 黑方名字}}},
 			},
-			unitTypes: Object.fromEntries(Object.entries(cfg.棋子类型)
-			.map(([棋子名, 棋子]) => [棋子名, {display: 棋子.显示, skills: 棋子.技能, player: 棋子.玩家, ...棋子}])),
+			unitTypes: Object.fromEntries(
+				Object.entries(cfg.棋子类型)
+							.map(([棋子名, 棋子]) =>
+								[棋子名, {display: 棋子.显示, skills: 棋子.技能, player: 棋子.玩家, ...棋子}])),
 			playerTurnSequence: cfg.玩家顺序,
 			globalRules: cfg.规则,
 			plugins: cfg.插件,
@@ -675,27 +694,30 @@ class 战况 extends Situation {
 class 棋盘 extends Board {
 	constructor(gaming, cfg) { super(gaming, cfg); }
 
-	_buildUnits() {
-		notice(this, 'parsing board layout');
-		const layout = this._cfg.棋盘.trim().split(/\s+/);
-		const unitTypes = this.gaming._cfg.unitTypes;
-		const playersById = this.gaming.playersIdMap;
-		layout.forEach((rowStr, r) => {
-			rowStr.split('').forEach((char, c) => {
-				if (char !== '空') {
-					const unitCfg = unitTypes[char];
-					if (unitCfg) {
-						const player = playersById[unitCfg.player];
-						if (player) {
-							const unit = this._buildUnit(player, {name: char, ...unitCfg}),
-								position = new 棋盘点位(r + 1, c + 1);
-							this.addUnitToPosition(unit, position);
-						} else { console.warn(`未能根据ID找到玩家: ${unitCfg.player}`); }
-					}
-				}
-			});
-		});
-		notice(this, 'board parsed');
+	_initUnitsPositions() {
+		super._initUnitsPositions();
+		// notice(this, 'parsing board layout');
+		// const layout = this._cfg.棋盘.trim().split(/\s+/);
+		// const unitTypes = this.gaming._cfg.unitTypes;
+		// const playersById = this.gaming.playersIdMap;
+		// layout.forEach((rowStr, r) => {
+		// 	rowStr.split('').forEach((char, c) => {
+		// 		if (char !== '空') {
+		// 			const unitCfg = unitTypes[char];
+		// 			if (unitCfg) {
+		// 				const player = playersById[unitCfg.player];
+		// 				if (player) {
+		// 					const unit = this._buildUnit(player, {name: char, ...unitCfg}),
+		// 						position = new 棋盘点位(r + 1, c + 1);
+		// 					this.addUnitToPosition(unit, position);
+		// 				} else { console.warn(`未能根据ID找到玩家: ${unitCfg.player}`); }
+		// 			}
+		// 		}
+		// 	});
+		// });
+		// notice(this, 'board parsed');
+
+		//确定双方进攻方向
 		const allUnits = this.positions.flat().flatMap(p => this.getUnitsAt(p)),
 			kingRed = allUnits.find(u => u.name === '帅'),
 			kingBlack = allUnits.find(u => u.name === '将');
