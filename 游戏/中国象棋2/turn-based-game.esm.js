@@ -735,15 +735,15 @@ class Unit {
 	_buildSkills(skillsCfg) {
 		const owner = this;
 		notice(this, 'gaming buildSkills start', {owner, skillsCfg});
-		const rt = skillsCfg.map(skillCfg => this._buildSkill(owner, skillCfg));
+		const rt = skillsCfg.map(skillCfg => this._buildSkill(skillCfg));
 		notice(this, 'gaming buildSkills end', {rt});
 		return rt;
 	}
 
-	_buildSkill(owner, skillCfg) {
+	_buildSkill(skillCfg) {
 		const SkillClass = skillCfg.class ?? this.gaming._cfg.SkillClass ?? Skill;
-		notice(this, 'gaming buildSkill start', {owner, skillCfg, class: SkillClass});
-		const rt = new SkillClass(skillCfg, owner);
+		notice(this, 'gaming buildSkill start', {owner: this, skillCfg, class: SkillClass});
+		const rt = new SkillClass({...skillCfg, owner: this});
 		notice(this, 'gaming buildSkill end', {skill: rt});
 		return rt;
 	}
@@ -812,10 +812,10 @@ class Skill {
 	_owner;
 	_cfg;
 
-	constructor(cfg, owner) {
+	constructor(cfg) {
 		this._id = 'id' in cfg ? cfg.id : Skill._nextId++;
 		this._cfg = cfg;
-		this._owner = owner;
+		this._owner = cfg.owner;
 		Skill._instanceActivateCounts.set(this, 0); // 在构造时初始化当前实例的计数
 
 		watch(this, 'skill activate end', ({skill}) => {
@@ -833,7 +833,7 @@ class Skill {
 			argsResolver: args => [this.filterValidTargets(ensureArray(args[0])), ...args.slice(1)],
 			noticePayloadBuilder: args => ({targets: args[0]}),
 		});
-		aopGetter(this, 'potentialTargets', {typeName: 'skill'});
+		aopGetter(this, 'availableTargets', {typeName: 'skill'});
 
 		addCfgProps(this, this._cfg);
 	}
@@ -854,16 +854,16 @@ class Skill {
 	 * 默认实现：返回undefined（未定义可用目标）
 	 * @returns {Array<Object>} - 潜在目标对象的数组。undefined照本意，表示‘未定义（可用目标）’，即不能获取或不能列举可用目标。null同[]，表示无可用目标。
 	 */
-	get potentialTargets() { return undefined; }
+	get availableTargets() { return undefined; }
 
 	/**
 	 * 过滤传入的目标列表，返回其中合法的目标。子类可重写以提供更复杂的过滤规则。
-	 * 默认实现：使用potentialTargets过滤。
+	 * 默认实现：使用availableTargets过滤。
 	 * @param {Array<Object>} targets - 待过滤的目标数组。
 	 * @returns {Array<Object>} - 过滤后的合法目标数组。
 	 */
 	filterValidTargets(targets) {
-		const potential = this.potentialTargets || [];
+		const potential = this.availableTargets || [];
 		return targets.filter(t => potential.some(p => compareWithId(p, t)));
 	}
 

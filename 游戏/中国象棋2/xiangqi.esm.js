@@ -851,8 +851,8 @@ class 棋手 extends Player {
 
 class 棋子 extends Unit {
 
-	_buildSkill(owner, skillCfg) {
+	_buildSkill(skillCfg) {//skillCfg是skill的名字
 		const SkillClass = 内置技能集[skillCfg];
-		return super._buildSkill(owner, {class: SkillClass});
+		return super._buildSkill({class: SkillClass});
 	}
 }
