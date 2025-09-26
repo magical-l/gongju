@@ -215,8 +215,6 @@ class Battlefield {
 	constructor(gaming, cfg = {}) {
 		this._gaming = gaming;
 		this._cfg = cfg;
-		this._positions = this._buildPositions(cfg); // 显式地从配置中初始化 positions
-		this._initPositionUnitsMapping();
 
 		addCfgProps(this, this._cfg);
 
@@ -235,6 +233,10 @@ class Battlefield {
 		aopMethod(this, 'moveUnit', {
 			noticePayloadBuilder: args => ({unit: args[0], from: args[0].position, to: args[1]}),
 		});
+
+		this._positions = this._buildPositions(cfg); // 显式地从配置中初始化 positions
+		this._initPositionUnitsMapping();
+		this._initUnitsPositions();
 	}
 
 	_buildPositions(cfg) {
@@ -251,26 +253,49 @@ class Battlefield {
 
 	_initUnitsPositions() {
 		const unitsPositionCfg = this._cfg.unitsPositionCfg;
+		if (!unitsPositionCfg) {
+			return [];
+		}
+
 		notice(this, 'buildUnitsPositions start', {unitsPositionCfg});
-		Object.entries(unitsPositionCfg)
-					.forEach(([positionDescription, unitCfgs]) => {
-						const units = this._buildUnits(unitCfgs);
-						units.forEach(u => this.addUnitToPosition(u, this.toPosition(positionDescription)));
-					});
-		const rt = unitsPositionCfg.map(unitCfg => this._buildUnit(this.playersIdMap[unitCfg.owner], unitCfg));
-		notice(this, 'buildUnitsPositions end', {rt});
-		return rt;
+
+		const createdUnits = [];
+
+		Object.entries(unitsPositionCfg).forEach(([positionDescription, unitTypeName]) => {
+			const unitType = this.gaming.unitTypes[unitTypeName];
+			if (!unitType) {
+				console.warn(`Unknown unit type name: ${unitTypeName}`);
+				return;
+			}
+
+			const player = this.gaming.playersIdMap[unitType.player];
+			if (!player) {
+				console.warn(`Could not find player for unit type: ${unitTypeName}`);
+				return;
+			}
+
+			const unit = this._buildUnit(player, {name: unitTypeName, ...unitType});
+			const position = this.toPosition(positionDescription);
+
+			if (unit && position) {
+				this.addUnitToPosition(unit, position);
+				createdUnits.push(unit);
+			}
+		});
+
+		notice(this, 'buildUnitsPositions end', {rt: createdUnits});
+		return createdUnits;
 	}
 
 	_buildUnits(unitCfgs) {
 		notice(this, 'buildUnits start', {unitCfgs});
-		const rt = unitCfgs.map(unitCfg => this._buildUnit(this.playersIdMap[unitCfg.owner], unitCfg));
+		const rt = unitCfgs.map(unitCfg => this._buildUnit(this.gaming.playersIdMap[unitCfg.owner], unitCfg));
 		notice(this, 'buildUnits end', {rt});
 		return rt;
 	}
 
 	_buildUnit(owner, unitCfg) {
-		const UnitClass = unitCfg.class ?? this._cfg.UnitClass ?? Unit;
+		const UnitClass = unitCfg.class ?? this.gaming._cfg.UnitClass ?? Unit;
 		notice(this, 'buildUnit start', {unitCfg, class: UnitClass});
 
 		const unitType = this.gaming.unitTypes[unitCfg.name];
@@ -663,17 +688,16 @@ class Unit {
 		this._cfg = cfg;
 		this._id = 'id' in cfg ? cfg.id : Unit._nextId++;
 
-		const skills = this._buildSkills(cfg.skills || []);
-		skills.forEach(skill => this.addSkill(skill));
-
 		addCfgProps(this, this._cfg);
-
 		aopMethod(this, 'addSkill', {
 			noticePayloadBuilder: args => ({skill: args[0]}),
 		});
 		aopMethod(this, 'removeSkill', {
 			noticePayloadBuilder: args => ({skill: args[0]}),
 		});
+
+		const skills = this._buildSkills(cfg.skills || []);
+		skills.forEach(skill => this.addSkill(skill));
 
 		watch(this, 'Battlefield moveUnit end', ({unit, to}) => {
 			if (compareWithId(this, unit)) {
@@ -937,24 +961,33 @@ class Plugin {
 //========================棋盘类游戏的类
 
 class Board extends Battlefield {
-	colSize;
-	rowSize;
-	grid; // 使用二维数组优化棋子存储
+	// _colSize;
+	// _rowSize;
+	// _grid; // 使用二维数组优化棋子存储
 
 	constructor(gaming, cfg = {}) {
 		// 仍然调用父类构造函数，以运行GamingPart的初始化等逻辑
 		// 但我们会忽略父类关于 positionUnitsMapping 的部分，用自己的grid代替
 		super(gaming, {positions: Board.buildPositions(cfg.rowSize, cfg.colSize), ...cfg});
-		this.rowSize = cfg.rowSize;
-		this.colSize = cfg.colSize;
+	}
 
+	get rowSize() { return this._rowSize; }
+
+	get colSize() { return this._colSize; }
+
+	get grid() { return this._grid; }
+
+	_initPositionUnitsMapping() {
+		super._initPositionUnitsMapping();
+		this._rowSize = this._cfg.rowSize;
+		this._colSize = this._cfg.colSize;
 		// 初始化二维数组grid，每个格子是一个空数组，用于存放棋子
-		this.grid = Array(this.rowSize).fill(null).map(() => Array(this.colSize).fill(null).map(() => []));
+		this._grid = Array(this._rowSize).fill(null).map(() => Array(this._colSize).fill(null).map(() => []));
 	}
 
 	// 重写父类方法，使用grid进行操作
 	addUnitToPosition(unit, position) {
-		this.grid[position.rowNum - 1][position.colNum - 1].push(unit);
+		this._grid[position.rowNum - 1][position.colNum - 1].push(unit);
 		unit._position = position; // 保持对unit._position的更新
 	}
 
@@ -964,7 +997,7 @@ class Board extends Battlefield {
 			return;
 		}
 		const {rowNum, colNum} = unit.position;
-		const unitsAtPos = this.grid[rowNum - 1][colNum - 1];
+		const unitsAtPos = this._grid[rowNum - 1][colNum - 1];
 		const index = unitsAtPos.indexOf(unit);
 		if (index > -1) {
 			unitsAtPos.splice(index, 1);
@@ -975,11 +1008,28 @@ class Board extends Battlefield {
 	// 重写父类方法，使用grid进行操作
 	getUnitsAt(position) {
 		// 添加边界检查以增加健壮性
-		if (position.rowNum < 1 || position.rowNum > this.rowSize || position.colNum < 1 || position.colNum
-				> this.colSize) {
+		if (position.rowNum < 1 || position.rowNum > this._rowSize || position.colNum < 1 || position.colNum
+				> this._colSize) {
 			return [];
 		}
-		return this.grid[position.rowNum - 1][position.colNum - 1];
+		return this._grid[position.rowNum - 1][position.colNum - 1];
+	}
+
+	/**
+	 * positionDescription格式为“(rowNum,colNum)”，都从1开始，表示第几行第几列
+	 * @param positionDescription
+	 * @returns {棋盘点位}
+	 */
+	toPosition(positionDescription) {
+		const match = positionDescription.match(/\((\d+),(\d+)\)/);
+		if (match) {
+			const rowNum = parseInt(match[1], 10);
+			const colNum = parseInt(match[2], 10);
+			if (this.positions[rowNum - 1] && this.positions[rowNum - 1][colNum - 1]) {
+				return this.positions[rowNum - 1][colNum - 1];
+			}
+		}
+		return null;
 	}
 
 	static buildPositions(rowSize, colSize) {
@@ -995,8 +1045,8 @@ class Board extends Battlefield {
 	}
 
 	keepValidPositions(positions) {
-		return positions.filter(p => p.rowNum > 0 && p.rowNum <= this.rowSize
-																 && p.colNum > 0 && p.colNum <= this.colSize);
+		return positions.filter(p => p.rowNum > 0 && p.rowNum <= this._rowSize
+																 && p.colNum > 0 && p.colNum <= this._colSize);
 	}
 
 	// todo：可以继续添加更多基于二维数组的便捷方法，例如计算距离、寻路等

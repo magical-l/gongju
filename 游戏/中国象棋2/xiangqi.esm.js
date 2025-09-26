@@ -757,8 +757,8 @@ class 棋盘 extends Board {
 	}
 
 	isValidPosition(position) {
-		return position.rowNum >= 1 && position.rowNum <= this.rowSize && position.colNum >= 1 && position.colNum
-					 <= this.colSize;
+		return position.rowNum >= 1 && position.rowNum <= this._rowSize && position.colNum >= 1 && position.colNum
+					 <= this._colSize;
 	}
 
 	isInPalace(position) {
