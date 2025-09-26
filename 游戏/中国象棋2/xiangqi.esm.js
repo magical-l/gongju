@@ -1,4 +1,4 @@
-import {notice} from './kit.esm.js';
+import {notice, watch} from './kit.esm.js';
 import {Board, Game, Gaming, Player, Plugin, Rule, Situation, Skill, Unit, 棋盘点位} from './turn-based-game.esm.js';
 
 export {
@@ -792,13 +792,14 @@ class 棋局 extends Gaming {
 			'round end': '回合结束',
 			'player-turn start': '轮次开始',
 			'player-turn end': '轮次结束',
-			'player selected units': '玩家选择了单位',
-			'player selected skills': '玩家选择了技能',
+			'player selectUnits end': '玩家选择了单位',
+			'player selectSkills end': '玩家选择了技能',
 			'player:deselected-unit': '玩家取消选择单位',
 			'unit moved': '单位移动',
 		};
-		Object.entries(eventTranslations).forEach(([englishEvent, chineseEvent]) => this.bulletin.watch(englishEvent,
-			payload => this.bulletin.notice(chineseEvent, payload)));
+		Object.entries(eventTranslations)
+					.forEach(([enTopiName, cnTopicName]) =>
+						watch(this, enTopiName, payload => notice(this, cnTopicName, payload)));
 	}
 
 	_generateNotation(move) {

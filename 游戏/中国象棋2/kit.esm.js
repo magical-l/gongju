@@ -86,7 +86,7 @@ const aopMethod = (self, methodName,
 		//可以额外地先处理参数，比如把单个对象包装成数组
 		const args = argsResolver ? argsResolver(_args_) : _args_;
 		//获取继承链中的顶级父类的名字，也可以通过typeName自行指定。用于通知主题的主语。
-		const typeName_ = typeName ?? getClassHierarchy(self).at(-1);
+		const typeName_ = typeName ?? getClassHierarchy(self).at(-1).toLowerCase();
 
 		const noticePayload = noticePayloadBuilder ? noticePayloadBuilder(args) : {};
 		noticePayload[typeName_] = self;//通知内容里加入主语
@@ -107,7 +107,7 @@ const aopAsyncMethod = (self, methodName,
 		//可以额外地先处理参数，比如把单个对象包装成数组
 		const args = argsResolver ? argsResolver(_args_) : _args_;
 		//获取继承链中的顶级父类的名字，也可以通过typeName自行指定。用于通知主题的主语。
-		const typeName_ = typeName ?? getClassHierarchy(self).at(-1);
+		const typeName_ = typeName ?? getClassHierarchy(self).at(-1).toLowerCase();
 
 		const noticePayload = noticePayloadBuilder ? noticePayloadBuilder(args) : {};
 		noticePayload[typeName_] = self;//通知内容里加入主语

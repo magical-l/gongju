@@ -455,7 +455,7 @@ class Team {
 	}
 
 	_buildPlayer(id, playerCfg, team) {
-		const PlayerClass = playerCfg.class ?? this._cfg.PlayerClass ?? Player;
+		const PlayerClass = playerCfg.class ?? this.gaming._cfg.PlayerClass ?? Player;
 		notice(this, 'gaming buildPlayer start', {team, playerCfg, class: PlayerClass});
 		const rt = new PlayerClass(team, {id, ...playerCfg});
 		notice(this, 'gaming buildPlayer end', {player: rt});
@@ -534,6 +534,12 @@ class Player {
 	get units() { return this._units; }
 
 	get gaming() { return this._team.gaming; }
+
+	get selectedUnits() { return this._selectedUnits; }
+
+	get selectedSkills() { return this._selectedSkills; }
+
+	get selectedTargets() { return this._selectedTargets; }
 
 	addUnit(unit) { this._units.push(unit); }
 
@@ -735,7 +741,7 @@ class Unit {
 	}
 
 	_buildSkill(owner, skillCfg) {
-		const SkillClass = skillCfg.class ?? this._cfg.SkillClass ?? Skill;
+		const SkillClass = skillCfg.class ?? this.gaming._cfg.SkillClass ?? Skill;
 		notice(this, 'gaming buildSkill start', {owner, skillCfg, class: SkillClass});
 		const rt = new SkillClass(skillCfg, owner);
 		notice(this, 'gaming buildSkill end', {skill: rt});
