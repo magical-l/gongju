@@ -82,9 +82,6 @@ class Gaming {
 		notice(this, 'gaming build start', {gaming: this});
 		this._teams = this._buildTeams();
 		this._globalRules = this._buildGlobalRules();
-		this._globalRules.forEach(rule =>
-			Object.entries(rule.watchers)
-						.forEach(([topicName, watcher]) => this.bulletin.watch(topicName, watcher.bind(rule))));
 		this._battlefield = this._buildBattlefield();
 		this._situation = this._buildSituation();
 		this._playerTurnSequence = this._buildPlayerTurnSequence();

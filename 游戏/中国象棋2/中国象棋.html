@@ -844,7 +844,7 @@
 					this.moveHistory.push(move);
 					this.syncGameState();
 				});
-				gaming.bulletin.watch('单位阵亡', () => this.syncGameState());
+				gaming.bulletin.watch('单位杀敌', () => this.syncGameState());
 				this.syncGameState(); // 初始渲染
 			},
 			restartGame() {

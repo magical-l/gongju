@@ -44,21 +44,19 @@ const 默认棋子类型 = {
 	'砲': {显示: '\u{1FA6C}', 技能: ['轮子', '隔山打牛'], 玩家: 黑方玩家id},
 	'卒': {显示: '\u{1FA6D}', 技能: ['攻击', '勇往直前'], 玩家: 黑方玩家id},
 };
-const 所有可选规则 = ['不能叠加棋子', '王不见王', '斩将', '红方动两次'];
-const 默认启用规则 = ['不能叠加棋子', '王不见王', '斩将'];
 
 class Move extends Skill {
 	constructor(overrideCfg = {}) {
 		super({
 			name: '移动',
 			...overrideCfg,
-			watchers: {
-				'单位杀敌': ({unit, killed, place}) => {
-					if (unit.id === this.owner.id) {
-						this.gaming.battlefield.moveUnit(this.owner, place);
-					}
-				},
-			},
+			// watchers: {
+			// 	'单位杀敌': ({unit, killed, place}) => {
+			// 		if (unit.id === this.owner.id) {
+			// 			this.gaming.battlefield.moveUnit(this.owner, place);
+			// 		}
+			// 	},
+			// },
 		});
 	}
 
@@ -132,7 +130,6 @@ class 攻击 extends Skill {
 			if (targetUnit instanceof Unit && availableTargets.some(e => compareWithId(e, targetUnit))) {
 				const place = targetUnit.position;
 				const payload = {unit: this.owner, killed: targetUnit, place};
-				notice(this, '单位杀敌', payload);
 				this.gaming.battlefield.destroyUnit(targetUnit);
 				notice(this, '单位杀敌', payload);
 			}
@@ -413,10 +410,9 @@ const 内置规则集 = {
 				intro: '吃子后占据其位置。',
 				tip: '消灭敌方单位后，移动到该单位原来的位置。',
 				watchers: {
-					'单位杀敌': ({unit, killed}) => {
-						if (unit.id === this.owner.id) {
-							this.owner.position = killed.position;
-						}
+					'单位杀敌': ({unit, killed, place}) => {
+						this.gaming.battlefield.moveUnit(unit, place);
+						// this.owner.position = killed.position;
 					},
 				},
 			});
@@ -434,14 +430,16 @@ const 内置规则集 = {
 																 .flatMap(player => player.units);
 						this.kingRed = allUnits.find(u => u.name === '帅');
 						this.kingBlack = allUnits.find(u => u.name === '将');
-					}, '单位阵亡': ({unit}) => {
-						if (unit === this.kingRed) {
+					},
+					'单位杀敌': ({killed}) => {
+						if (killed === this.kingRed) {
 							this.kingRed = null;
 						}
-						if (unit === this.kingBlack) {
+						if (killed === this.kingBlack) {
 							this.kingBlack = null;
 						}
-					}, '已获取可移动位置集': ({unit, availableTargetPositions}) => {
+					},
+					'已获取可移动位置集': ({unit, availableTargetPositions}) => {
 						if (!this.kingRed || !this.kingBlack) {
 							return;
 						}
@@ -544,6 +542,8 @@ const 内置规则集 = {
 		}
 	},
 };
+const 所有可选规则 = Object.keys(内置规则集);
+const 默认启用规则 = ['不能叠加棋子', '王不见王', '斩将', '杀敌后进驻'];
 
 const 内置插件集 = {
 	'记谱': (() => {
