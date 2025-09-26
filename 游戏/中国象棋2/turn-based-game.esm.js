@@ -96,7 +96,7 @@ class Gaming {
 	}
 
 	_buildTeams() {
-		const teamsCfg = this.cfg.teams || {};
+		const teamsCfg = this._cfg.teams || {};
 		notice(this, 'gaming buildTeams start', {teamsCfg});
 		const rt = Object.fromEntries(
 			Object.entries(teamsCfg)
@@ -107,33 +107,15 @@ class Gaming {
 	}
 
 	_buildTeam(id, teamCfg) {
-		const TeamClass = teamCfg.class ?? this.cfg.TeamClass ?? Team;
+		const TeamClass = teamCfg.class ?? this._cfg.TeamClass ?? Team;
 		notice(this, 'gaming buildTeam start', {gaming: this, id, teamCfg, class: TeamClass});
 		const team = new TeamClass({id, ...teamCfg}, this);
-		// team.players = this._buildPlayers(teamCfg.players || {}, team);//todo：这里有一个设置team.players，但它是只读的
+		notice(this, 'gaming buildTeam end', {gaming: this, id, teamCfg, class: TeamClass});
 		return team;
 	}
 
-	// _buildPlayers(playerCfgs, team) {
-	// 	notice(this, 'gaming buildPlayers start', {team, playerCfgs});
-	// 	const rt = Object.fromEntries(
-	// 		Object.entries(playerCfgs)
-	// 		.map(([id, cfg]) => [id, this._buildPlayer(id, cfg, team)]),
-	// 	);
-	// 	notice(this, 'gaming buildPlayers end', {team, players: rt});
-	// 	return rt;
-	// }
-	//
-	// _buildPlayer(id, playerCfg, team) {
-	// 	const PlayerClass = playerCfg.class ?? this.cfg.PlayerClass ?? Player;
-	// 	notice(this, 'gaming buildPlayer start', {team, playerCfg, class: PlayerClass});
-	// 	const rt = new PlayerClass(team, {id, ...playerCfg});
-	// 	notice(this, 'gaming buildPlayer end', {player: rt});
-	// 	return rt;
-	// }
-
 	_buildGlobalRules() {
-		const rulesCfg = this.cfg.globalRules || [];
+		const rulesCfg = this._cfg.globalRules || [];
 		notice(this, 'gaming buildGlobalRules start', {gaming: this, rulesCfg});
 		const rt = rulesCfg.map(ruleCfg => this._buildGlobalRule(ruleCfg));
 		notice(this, 'gaming buildGlobalRules end', {globalRules: rt});
@@ -141,7 +123,7 @@ class Gaming {
 	}
 
 	_buildGlobalRule(ruleCfg) {
-		const RuleClass = ruleCfg.class ?? this.cfg.RuleClass ?? Rule;
+		const RuleClass = ruleCfg.class ?? this._cfg.RuleClass ?? Rule;
 		notice(this, 'gaming buildGlobalRule start', {gaming: this, ruleCfg, class: RuleClass});
 		const rt = new RuleClass(this, ruleCfg);
 		notice(this, 'gaming buildGlobalRule end', {globalRule: rt});
@@ -149,52 +131,16 @@ class Gaming {
 	}
 
 	_buildBattlefield() {
-		const battlefieldCfg = this.cfg.battlefieldCfg || {};
-		const BattlefieldClass = this.cfg.BattlefieldClass ?? Battlefield;
+		const battlefieldCfg = this._cfg.battlefieldCfg || {};
+		const BattlefieldClass = this._cfg.BattlefieldClass ?? Battlefield;
 		notice(this, 'gaming buildBattlefield start', {gaming: this, battlefieldCfg, class: BattlefieldClass});
 		const rt = new BattlefieldClass(this, battlefieldCfg);
-		if (battlefieldCfg.units) {
-			this._buildUnits(battlefieldCfg.units);
-		}
 		notice(this, 'gaming buildBattlefield end', {battlefield: rt});
 		return rt;
 	}
 
-	_buildUnits(unitsCfg) {
-		notice(this, 'gaming buildUnits start', {unitsCfg});
-		const rt = unitsCfg.map(unitCfg => this._buildUnit(this.playersIdMap[unitCfg.owner], unitCfg));
-		notice(this, 'gaming buildUnits end', {rt});
-		return rt;
-	}
-
-	_buildUnit(owner, unitCfg) {
-		const UnitClass = unitCfg.class ?? this.cfg.UnitClass ?? Unit;
-		notice(this, 'gaming buildUnit start', {unitCfg, class: UnitClass});
-		const unit = new UnitClass({owner, ...unitCfg});
-		unit.skills = []; // 清空来自配置的技能名数组，确保只包含技能实例
-		const skills = this._buildSkills(unitCfg.skills || [], unit);
-		skills.forEach(skill => unit.addSkill(skill));
-		notice(this, 'gaming buildUnit end', {unit: unit});
-		return unit;
-	}
-
-	_buildSkills(skillsCfg, owner) {
-		notice(this, 'gaming buildSkills start', {owner, skillsCfg});
-		const rt = skillsCfg.map(skillCfg => this._buildSkill(owner, skillCfg));
-		notice(this, 'gaming buildSkills end', {rt});
-		return rt;
-	}
-
-	_buildSkill(owner, skillCfg) {
-		const SkillClass = skillCfg.class ?? this.cfg.SkillClass ?? Skill;
-		notice(this, 'gaming buildSkill start', {owner, skillCfg, class: SkillClass});
-		const rt = new SkillClass(skillCfg, owner);
-		notice(this, 'gaming buildSkill end', {skill: rt});
-		return rt;
-	}
-
 	_buildSituation() {
-		const SituationClass = this.cfg.SituationClass ?? Situation;
+		const SituationClass = this._cfg.SituationClass ?? Situation;
 		notice(this, 'gaming buildSituation start', {gaming: this});
 		const rt = new SituationClass(this);
 		notice(this, 'gaming buildSituation end', {situation: rt});
@@ -203,11 +149,11 @@ class Gaming {
 
 	_buildPlayerTurnSequence() {
 		const playersIdMap = this.playersIdMap;
-		return this.cfg.playerTurnSequence.map(playerId => playersIdMap[playerId]);
+		return this._cfg.playerTurnSequence.map(playerId => playersIdMap[playerId]);
 	}
 
 	_buildPlugins() {
-		const pluginsCfg = this.cfg.plugins || [];
+		const pluginsCfg = this._cfg.plugins || [];
 		notice(this, 'gaming buildPlugins start', {gaming: this, pluginsCfg});
 		const rt = pluginsCfg.map(pluginCfg => this._buildPlugin(pluginCfg));
 		notice(this, 'gaming buildPlugins end', {plugins: rt});
@@ -215,7 +161,7 @@ class Gaming {
 	}
 
 	_buildPlugin(pluginCfg) {
-		const PluginClass = pluginCfg.class ?? this.cfg.PluginClass ?? Plugin;
+		const PluginClass = pluginCfg.class ?? this._cfg.PluginClass ?? Plugin;
 		notice(this, 'gaming buildPlugin start', {gaming: this, pluginCfg, class: PluginClass});
 		const rt = new PluginClass(this, pluginCfg);
 		notice(this, 'gaming buildPlugin end', {globalRule: rt});
@@ -266,8 +212,10 @@ class Battlefield {
 		this._gaming = gaming;
 		this._cfg = cfg;
 		this._positions = cfg.positions || []; // 显式地从配置中初始化 positions
+		this._positions.flat().forEach(p => this._positionUnitsMapping.set(p.toString(), []));
+		this._buildUnits();
+
 		addCfgProps(this, this._cfg);
-		this._initPositionUnitsMapping();
 
 		aopMethod(this, 'addUnitToPosition', {
 			noticePayloadBuilder: args => ({unit: args[0], position: args[1]}),
@@ -290,8 +238,20 @@ class Battlefield {
 
 	get positions() { return [...this._positions]; }
 
-	_initPositionUnitsMapping() {
-		this._positions.flat().forEach(p => this._positionUnitsMapping.set(p.toString(), []));
+	_buildUnits() {//todo：这个方法挫
+		const unitsCfg = this._cfg.unitsCfg;
+		notice(this, 'gaming buildUnits start', {unitsCfg});
+		const rt = unitsCfg.map(unitCfg => this._buildUnit(this.playersIdMap[unitCfg.owner], unitCfg));
+		notice(this, 'gaming buildUnits end', {rt});
+		return rt;
+	}
+
+	_buildUnit(owner, unitCfg) {
+		const UnitClass = unitCfg.class ?? this._cfg.UnitClass ?? Unit;
+		notice(this, 'gaming buildUnit start', {unitCfg, class: UnitClass});
+		const unit = new UnitClass({owner, ...unitCfg});
+		notice(this, 'gaming buildUnit end', {unit: unit});
+		return unit;
 	}
 
 	moveUnit(unit, toPosition) {
@@ -301,9 +261,6 @@ class Battlefield {
 
 	destroyUnit(unit) {
 		this.removeUnitFromPosition(unit);
-		// if (unit.owner && unit.owner.units) {
-		// 	unit.owner.units = unit.owner.units.filter(u => u !== unit);
-		// }
 	}
 
 	addUnitToPosition(unit, position) {
@@ -438,7 +395,7 @@ class Team {
 	}
 
 	_buildPlayer(id, playerCfg, team) {
-		const PlayerClass = playerCfg.class ?? this.cfg.PlayerClass ?? Player;
+		const PlayerClass = playerCfg.class ?? this._cfg.PlayerClass ?? Player;
 		notice(this, 'gaming buildPlayer start', {team, playerCfg, class: PlayerClass});
 		const rt = new PlayerClass(team, {id, ...playerCfg});
 		notice(this, 'gaming buildPlayer end', {player: rt});
@@ -671,6 +628,9 @@ class Unit {
 		this._cfg = cfg;
 		this._id = 'id' in cfg ? cfg.id : Unit._nextId++;
 
+		const skills = this._buildSkills(cfg.skills || []);
+		skills.forEach(skill => this.addSkill(skill));
+
 		addCfgProps(this, this._cfg);
 
 		aopMethod(this, 'addSkill', {
@@ -706,6 +666,22 @@ class Unit {
 	// 	this.gaming.battlefield.moveUnit(this, p);
 	// 	this.gaming.bulletin.notice('单位移动', {unit: this, oldPosition});
 	// }
+
+	_buildSkills(skillsCfg) {
+		const owner = this;
+		notice(this, 'gaming buildSkills start', {owner, skillsCfg});
+		const rt = skillsCfg.map(skillCfg => this._buildSkill(owner, skillCfg));
+		notice(this, 'gaming buildSkills end', {rt});
+		return rt;
+	}
+
+	_buildSkill(owner, skillCfg) {
+		const SkillClass = skillCfg.class ?? this._cfg.SkillClass ?? Skill;
+		notice(this, 'gaming buildSkill start', {owner, skillCfg, class: SkillClass});
+		const rt = new SkillClass(skillCfg, owner);
+		notice(this, 'gaming buildSkill end', {skill: rt});
+		return rt;
+	}
 
 	addSkill(skill) {
 		if (!skill || this.skills.includes(skill)) {

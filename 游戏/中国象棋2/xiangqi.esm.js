@@ -646,12 +646,12 @@ class 中国象棋 extends Game {
 		this.cfg.BattlefieldClass = 棋盘;
 		this.cfg.SituationClass = 战况;
 		this.cfg.PlayerClass = 棋手;
+		this.cfg.UnitClass = 棋子;
 	}
 
 	static translateConfig(cfg, 红方名字, 黑方名字) {
 		return {
-			棋盘: cfg.棋盘,
-			battlefieldCfg: {rowSize: 10, colSize: 9},
+			battlefieldCfg: {rowSize: 10, colSize: 9, 棋盘: cfg.棋盘},//todo：这里挫，cfg的字段→battlefield的字段，看看怎么改好。
 			teams: {
 				[红方id]: {...红方默认配置, players: {[红方玩家id]: {name: 红方名字}}},
 				[黑方id]: {...黑方默认配置, players: {[黑方玩家id]: {name: 黑方名字}}},
@@ -674,6 +674,42 @@ class 战况 extends Situation {
 
 class 棋盘 extends Board {
 	constructor(gaming, cfg) { super(gaming, cfg); }
+
+	_buildUnits() {
+		notice(this, 'parsing board layout');
+		const layout = this._cfg.棋盘.trim().split(/\s+/);
+		const unitTypes = this.gaming._cfg.unitTypes;
+		const playersById = this.gaming.playersIdMap;
+		layout.forEach((rowStr, r) => {
+			rowStr.split('').forEach((char, c) => {
+				if (char !== '空') {
+					const unitCfg = unitTypes[char];
+					if (unitCfg) {
+						const player = playersById[unitCfg.player];
+						if (player) {
+							const unit = this._buildUnit(player, {name: char, ...unitCfg}),
+								position = new 棋盘点位(r + 1, c + 1);
+							this.addUnitToPosition(unit, position);
+						} else { console.warn(`未能根据ID找到玩家: ${unitCfg.player}`); }
+					}
+				}
+			});
+		});
+		notice(this, 'board parsed');
+		const allUnits = this.positions.flat().flatMap(p => this.getUnitsAt(p)),
+			kingRed = allUnits.find(u => u.name === '帅'),
+			kingBlack = allUnits.find(u => u.name === '将');
+		if (kingRed && kingBlack) {
+			if (kingRed.position.rowNum > kingBlack.position.rowNum) {
+				this.playerDown = kingRed.owner;
+				this.playerUp = kingBlack.owner;
+			} else {
+				this.playerDown = kingBlack.owner;
+				this.playerUp = kingRed.owner;
+			}
+		}
+		return allUnits;
+	}
 
 	revert() { return this.positions.slice().reverse().map(row => row.slice().reverse()); }
 
@@ -759,46 +795,6 @@ class 棋局 extends Gaming {
 		}
 	}
 
-	_buildBattlefield() {
-		const battlefield = super._buildBattlefield();
-		this.bulletin.notice('parsing board layout');
-		const layout = this.cfg.棋盘.trim().split(/\s+/), unitTypes = this.cfg.unitTypes, playersById = this.playersIdMap;
-		layout.forEach((rowStr, r) => {
-			rowStr.split('').forEach((char, c) => {
-				if (char !== '空') {
-					const unitCfg = unitTypes[char];
-					if (unitCfg) {
-						const player = playersById[unitCfg.player];
-						if (player) {
-							const unit = this._buildUnit(player, {name: char, ...unitCfg}),
-								position = new 棋盘点位(r + 1, c + 1);
-							battlefield.addUnitToPosition(unit, position);
-						} else { console.warn(`未能根据ID找到玩家: ${unitCfg.player}`); }
-					}
-				}
-			});
-		});
-		this.bulletin.notice('board parsed');
-		const allUnits = battlefield.positions.flat().flatMap(p => battlefield.getUnitsAt(p)),
-			kingRed = allUnits.find(u => u.name === '帅'),
-			kingBlack = allUnits.find(u => u.name === '将');
-		if (kingRed && kingBlack) {
-			if (kingRed.position.rowNum > kingBlack.position.rowNum) {
-				battlefield.playerDown = kingRed.owner;
-				battlefield.playerUp = kingBlack.owner;
-			} else {
-				battlefield.playerDown = kingBlack.owner;
-				battlefield.playerUp = kingRed.owner;
-			}
-		}
-		return battlefield;
-	}
-
-	_buildSkill(owner, skillCfg) {
-		const SkillClass = 内置技能集[skillCfg];
-		return super._buildSkill(owner, {class: SkillClass});
-	}
-
 	_buildGlobalRule(ruleCfg) {
 		const RuleClass = 内置规则集[ruleCfg];
 		return super._buildGlobalRule({class: RuleClass});
@@ -827,5 +823,13 @@ class 棋手 extends Player {
 				super.selectSkills(skillsToSelect);
 			}
 		}
+	}
+}
+
+class 棋子 extends Unit {
+
+	_buildSkill(owner, skillCfg) {
+		const SkillClass = 内置技能集[skillCfg];
+		return super._buildSkill(owner, {class: SkillClass});
 	}
 }
