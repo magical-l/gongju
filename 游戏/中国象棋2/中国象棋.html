@@ -473,7 +473,7 @@
 								<div class="texture part right bottom corner"></div>
 								<div class="texture part left bottom corner"></div>
 							</div>
-							<div class="unit display" v-for="(unit, uIndex) in getUnitsAt(position)" :key="uIndex"
+							<div class="unit display" v-for="(unit, uIndex) in boardForRender[rIndex][cIndex]" :key="uIndex"
 									 :class="getUnitClasses(unit)">
 								{{ unit.display }}
 							</div>
@@ -497,7 +497,7 @@
 								<div class="texture part right bottom corner"></div>
 								<div class="texture part left bottom corner"></div>
 							</div>
-							<div class="unit display" v-for="(unit, uIndex) in getUnitsAt(position)" :key="uIndex"
+							<div class="unit display" v-for="(unit, uIndex) in boardForRender[rIndex][cIndex]" :key="uIndex"
 									 :class="getUnitClasses(unit)">
 								{{ unit.display }}
 							</div>
@@ -590,7 +590,8 @@
 				},
 				gameCfg: {},
 				gaming: null,
-				updateCounter: 0, // 用于强制刷新棋盘
+				boardForRender: [], // 用于渲染棋盘的二维数组
+				turnHistoryForRender: [], // 用于渲染回合历史的数组
 				showCheck: false,
 				selectedUnit: null,
 				movableTargets: [], // 可移动的目标位置
@@ -682,12 +683,7 @@
 				return this.situation.winner.name;
 			},
 			turnHistory() {
-				const _ = this.updateCounter; // 依赖 updateCounter 强制更新
-				return this.situation?.roundNotations?.map((round, index) => ({
-					id: index + 1,
-					redMove: round[0] || null,
-					blackMove: round[1] || null,
-				}));
+				return this.turnHistoryForRender;
 			},
 		},
 		created() {
@@ -704,6 +700,28 @@
 			this.resetBoard();
 		},
 		methods: {
+			syncGameState() {
+				if (!this.gaming) {
+					return;
+				}
+				// 更新棋盘渲染数据
+				this.boardForRender = this.gaming.battlefield.positions.map(row => {
+					return row.map(pos => this.gaming.battlefield.getUnitsAt(pos));
+				});
+
+				// 更新回合历史
+				this.turnHistoryForRender = this.gaming.situation?.roundNotations?.map((round, index) => ({
+					id: index + 1,
+					redMove: round[0] || null,
+					blackMove: round[1] || null,
+				}));
+
+				// 清理选择状态
+				this.selectedUnit = null;
+				this.movableTargets = [];
+				this.attackTargets = [];
+				this.blockedMoves = [];
+			},
 			// 棋盘编辑器方法
 			getEditorUnitColor(piece) {
 				if (!piece) {
@@ -789,7 +807,7 @@
 			},
 			launchGame() {
 				const gamingInstance = new 中国象棋(this.gameCfg, '红方玩家', '黑方玩家').newGaming();
-				this.gaming = reactive(gamingInstance);
+				this.gaming = gamingInstance; // 不再使用 reactive 包裹
 
 				const gaming = this.gaming;
 
@@ -822,19 +840,12 @@
 					this.blockedMoves = [];
 				});
 
-				const rerender = () => {
-					this.selectedUnit = null;
-					this.movableTargets = [];
-					this.attackTargets = [];
-					this.blockedMoves = [];
-					this.updateCounter++;
-				};
 				gaming.bulletin.watch('单位移动', move => {
 					this.moveHistory.push(move);
-					rerender();
+					this.syncGameState();
 				});
-				gaming.bulletin.watch('单位阵亡', rerender);
-				this.updateCounter++; // 强制更新UI以显示初始棋子
+				gaming.bulletin.watch('单位阵亡', () => this.syncGameState());
+				this.syncGameState(); // 初始渲染
 			},
 			restartGame() {
 				this.showCheck = false;
@@ -878,11 +889,6 @@
 				const visualClasses = [`row-${rIndex + 1}`, `col-${cIndex + 1}`];
 
 				return [...logicalClasses, ...visualClasses];
-			},
-			getUnitsAt(position) {
-				// 依赖 updateCounter 来强制重新计算
-				const _ = this.updateCounter;
-				return this.battlefield?.getUnitsAt(position) || [];
 			},
 			getUnitClasses(unit) {
 				if (!unit) {
