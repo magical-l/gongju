@@ -413,6 +413,10 @@ class Round {
 			await player.play(); // 等待当前玩家的回合结束
 			this.gaming.situation.curPlayer = null;
 			this.gaming.bulletin.notice('player-turn end', {player});
+			// 如果当前玩家的回合导致游戏结束，则立即中断回合
+			if (this.gaming.situation.isEnded) {
+				break;
+			}
 		}
 	}
 }
