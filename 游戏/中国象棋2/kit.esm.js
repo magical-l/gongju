@@ -131,16 +131,16 @@ const aopAsyncMethod = (self, methodName,
  */
 const aopGetter = (self, propertyName, options = {noticePayloadBuilder: undefined, typeName: ''}) => {
 	const {noticePayloadBuilder, typeName} = options;
-	// 1. 获取原始的 getter 函数的属性描述符
-	// 首先在原型链上查找，因为 getter 通常定义在类的原型上
-	let descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(self), propertyName);
 
-	// 如果在原型链上找不到，尝试在实例自身查找（尽管对于 getter 来说不常见）
-	if (!descriptor) {
-		descriptor = Object.getOwnPropertyDescriptor(self, propertyName);
+	// 1. 沿着原型链向上查找，直到找到属性描述符为止
+	let descriptor;
+	let proto = self;
+	while (proto && !descriptor) {
+		descriptor = Object.getOwnPropertyDescriptor(proto, propertyName);
+		proto = Object.getPrototypeOf(proto);
 	}
 
-	// 检查是否确实是一个 getter
+	// 2. 检查是否确实是一个 getter
 	if (!descriptor || !descriptor.get) {
 		console?.warn(`属性 '${propertyName}' 在实例上不是一个 getter 或不存在，无法应用 aopGetter。`);
 		return;
@@ -148,24 +148,21 @@ const aopGetter = (self, propertyName, options = {noticePayloadBuilder: undefine
 
 	const originalGetter = descriptor.get; // 获取原始的 getter 函数
 
-	// 2. 重新定义该属性的 getter
+	// 3. 重新定义该属性的 getter
 	Object.defineProperty(self, propertyName, {
 		get: function() {
 			const typeName_ = typeName ?? getClassHierarchy(this).at(-1);
-			// noticePayloadBuilder 可以选择接收实例作为参数，用于构建通知的额外数据
 			const noticePayload = noticePayloadBuilder ? noticePayloadBuilder(self) : {};
-			noticePayload[typeName_] = self; // 自动添加实例本身到 payload
+			noticePayload[typeName_] = self;
 
 			notice(this, typeName_ + ' get ' + propertyName + ' start', noticePayload);
 
-			// 调用原始 getter 获取结果
 			const result = originalGetter.call(this);
 
 			noticePayload.result = result;
 			notice(this, typeName_ + ' get ' + propertyName + ' end', noticePayload);
 			return result;
 		},
-		// 保持原始的属性描述符配置，如可枚举性、可配置性
 		configurable: descriptor.configurable,
 		enumerable: descriptor.enumerable,
 	});
