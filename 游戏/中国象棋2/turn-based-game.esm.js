@@ -146,7 +146,7 @@ class Gaming {
 
 	_buildPlayerTurnSequence() {
 		const playersIdMap = this.playersIdMap;
-		return this._cfg.playerTurnSequence.map(playerId => playersIdMap[playerId]);
+		return this._cfg.playerTurnSequence.map(playerId => playersIdMap[playerId]).filter(p => p);
 	}
 
 	_buildPlugins() {
@@ -326,7 +326,6 @@ class Battlefield {
 			this._positionUnitsMapping.set(key, []);
 		}
 		this._positionUnitsMapping.get(key).push(unit);
-		// unit._position = position; // 直接修改内部属性，避免触发setter递归
 	}
 
 	_positionKey(position) {
@@ -345,7 +344,6 @@ class Battlefield {
 				unitsAtPos.splice(index, 1);
 			}
 		}
-		// unit._position = null; // 直接修改内部属性，避免触发setter递归
 	}
 
 	getUnitsAt(position) {
@@ -357,6 +355,10 @@ class Battlefield {
 	 */
 	keepValidPositions(positions) {
 		return positions.filter(p => this._positions.some(p2 => compareWithId(p, p2)));
+	}
+
+	get allUnitsInBattlefield(){
+		return [...this._positionUnitsMapping.values()].flatMap(e=>e);
 	}
 
 	//todo：需要增加许多关于位置的方法。比如计算两个单位的距离、获取距离某个单位为x的位置集……
@@ -514,14 +516,19 @@ class Player {
 		});
 
 		//单位的权威数据在Battlefield。本类监听Battlefield处理单位的通知，更新自己的单位缓存。
-		watch(this, 'Battlefield addUnitToPosition', ({unit, position}) => {
+		const __addUnitToUnits = unit => {
 			if (compareWithId(this, unit.owner)) {
 				if (!this._units.some(u => compareWithId(u, unit))) {
 					this.addUnit(unit);
 				}
 			}
+		};
+		watch(this, 'gaming build end', () => {
+			this.gaming.battlefield.allUnitsInBattlefield.forEach(unit => __addUnitToUnits(unit));
+			//游戏构建完成后才监听addUnitToPosition，只看游戏中新增的单位
+			watch(this, 'battlefield addUnitToPosition end', ({unit, position}) => __addUnitToUnits(unit));
 		});
-		watch(this, 'Battlefield destroyUnit end', ({unit}) => {
+		watch(this, 'battlefield destroyUnit end', ({unit}) => {
 			if (compareWithId(this, unit.owner)) {
 				this.removeUnit(unit);
 			}
@@ -705,7 +712,7 @@ class Unit {
 		const skills = this._buildSkills(cfg.skills || []);
 		skills.forEach(skill => this.addSkill(skill));
 
-		watch(this, 'Battlefield moveUnit end', ({unit, to}) => {
+		watch(this, 'battlefield moveUnit end', ({unit, to}) => {
 			if (compareWithId(this, unit)) {
 				this._position = to;
 			}
