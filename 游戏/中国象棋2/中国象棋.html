@@ -153,65 +153,64 @@
 		box-shadow: 0 0 10px #007bff;
 	}
 
-	.valid-move-indicator {
-		position: absolute;
-		z-index: 20;
-		width: 40%;
-		height: 40%;
-		background-color: rgba(40, 167, 69, 0.5);
-		border-radius: 50%;
-		pointer-events: none;
-	}
-
-	.attack-indicator {
-		position: absolute;
-		z-index: 20;
-		width: 60%;
-		height: 60%;
-		pointer-events: none;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-	}
-
-	.attack-indicator::before, .attack-indicator::after {
+	/* 统一用伪元素实现提示图标 */
+	.cell.movable::after,
+	.cell.attack::before, .cell.attack::after,
+	.cell.blocked::before, .cell.blocked::after {
 		content: '';
 		position: absolute;
-		width: 80%;
+		z-index: 20;
+		pointer-events: none;
+		box-sizing: border-box;
+	}
+
+	/* 可移动 */
+	.cell.movable::after {
+		width: 40%;
+		height: 40%;
+		top: 30%;
+		left: 30%;
+		background-color: rgba(40, 167, 69, 0.5);
+		border-radius: 50%;
+	}
+
+	/* 攻击 */
+	.cell.attack::before,
+	.cell.attack::after {
+		width: 60%;
 		height: 15%;
-		background-color: rgba(255, 0, 0, 0.7); /* 红色 */
+		top: 42.5%;
+		left: 20%;
+		background-color: rgba(255, 0, 0, 0.7);
 		border-radius: 2px;
 	}
 
-	.attack-indicator::before {
+	.cell.attack::before {
 		transform: rotate(45deg);
 	}
 
-	.attack-indicator::after {
+	.cell.attack::after {
 		transform: rotate(-45deg);
 	}
 
-	.blocked-move-indicator {
-		position: absolute;
-		z-index: 20;
+	/* 阻挡 */
+	.cell.blocked::after { /* 圆圈 */
 		width: 60%;
 		height: 60%;
+		top: 20%;
+		left: 20%;
 		border-radius: 50%;
-		border: 4px solid rgba(220, 53, 69, 0.9); /* 红色边框 */
-		background-color: rgba(255, 255, 255, 0.3); /* 半透明白色背景 */
-		pointer-events: none;
-		overflow: hidden; /* 确保斜线不超出圆圈 */
+		border: 4px solid rgba(220, 53, 69, 0.9);
+		background-color: rgba(255, 255, 255, 0.3);
 	}
 
-	.blocked-move-indicator::before {
-		content: '';
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		width: 120%; /* 确保斜线覆盖整个圆圈 */
+	.cell.blocked::before { /* 斜线 */
+		width: 70%;
 		height: 15%;
-		background-color: rgba(220, 53, 69, 0.9); /* 红色斜线 */
-		transform: translate(-50%, -50%) rotate(45deg);
+		top: 42.5%;
+		left: 15%;
+		background-color: rgba(220, 53, 69, 0.9);
+		transform: rotate(45deg);
 		border-radius: 2px;
 	}
 
@@ -462,7 +461,8 @@
 				<article class="one chessboard , grid">
 					<template v-for="(row,rIndex) of positions" :key="rIndex">
 						<div class="cell" v-for="(position,cIndex) in row" :key="rIndex + ',' + cIndex"
-								 :class="cellClasses(rIndex, cIndex, position)" @click="clickCell(position)">
+								 :class="[cellClasses(rIndex, cIndex, position), targetMarkers[position.toString()]]"
+								 @click="clickCell(position)">
 							<div class="texture container">
 								<div class="texture part vertical top"></div>
 								<div class="texture part horizon right"></div>
@@ -477,16 +477,14 @@
 									 :class="getUnitClasses(unit)">
 								{{ unit.display }}
 							</div>
-							<div v-if="isMovableTarget(position)" class="valid-move-indicator"></div>
-							<div v-if="isAttackableTarget(position)" class="attack-indicator"></div>
-							<div v-if="isBlockedMove(position)" class="blocked-move-indicator"></div>
 						</div>
 					</template>
 				</article>
 				<article class="one chessboard reversed-view , grid" v-if="showReversedView">
 					<template v-for="(row,rIndex) of reversedPositions" :key="rIndex">
 						<div class="cell" v-for="(position,cIndex) in row" :key="rIndex + ',' + cIndex"
-								 :class="cellClasses(rIndex, cIndex, position)" @click="clickCell(position)">
+								 :class="[cellClasses(rIndex, cIndex, position), targetMarkers[position.toString()]]"
+								 @click="clickCell(position)">
 							<div class="texture container">
 								<div class="texture part vertical top"></div>
 								<div class="texture part horizon right"></div>
@@ -501,9 +499,6 @@
 									 :class="getUnitClasses(unit)">
 								{{ unit.display }}
 							</div>
-							<div v-if="isMovableTarget(position)" class="valid-move-indicator"></div>
-							<div v-if="isAttackableTarget(position)" class="attack-indicator"></div>
-							<div v-if="isBlockedMove(position)" class="blocked-move-indicator"></div>
 						</div>
 					</template>
 				</article>
@@ -684,8 +679,34 @@
 			turnHistory() {
 				return this.turnHistoryForRender;
 			},
-		},
-		created() {
+			targetMarkers() {
+				const markers = {};
+				const curPlayerTeam = this.gaming?.situation.curPlayer?.team;
+
+				// 可移动到空点
+				this.movableTargets.forEach(pos => {
+					markers[pos.toString()] = 'movable';
+				});
+
+				// 被阻挡的点位（如绊马脚、塞象眼）
+				this.blockedMoves.forEach(pos => {
+					markers[pos.toString()] = 'blocked';
+				});
+
+				// 可攻击的单位（会覆盖上面的movable和blocked）
+				if (curPlayerTeam) {
+					this.attackTargets.forEach(unit => {
+						const posStr = unit.position.toString();
+						if (unit.owner.team.id !== curPlayerTeam.id) {
+							markers[posStr] = 'attack'; // 敌方单位
+						} else {
+							markers[posStr] = 'blocked'; // 己方单位
+						}
+					});
+				}
+				return markers;
+			},
+		}, created() {
 			// 初始化规则编辑器，只向用户展示可选规则
 			this.allAvailableRules = [...所有可选规则];
 			this.gameSettings.rules = [...默认启用规则];
@@ -708,18 +729,18 @@
 					return row.map(pos => this.gaming.battlefield.getUnitsAt(pos));
 				});
 
-				                // 更新回合历史
-				                this.turnHistoryForRender = this.gaming.situation?.roundNotations?.map((round, index) => ({
-				                    id: index + 1,
-				                    redMove: round[0] || null,
-				                    blackMove: round[1] || null,
-				                }));
-				
-				                // 更新游戏结束状态
-				                this.isGameOverForRender = this.gaming.situation?.isEnded || false;
-				                this.winnerNameForRender = this.gaming.situation?.winner?.name || '';
-				
-				                // 清理选择状态				this.selectedUnit = null;
+				// 更新回合历史
+				this.turnHistoryForRender = this.gaming.situation?.roundNotations?.map((round, index) => ({
+					id: index + 1,
+					redMove: round[0] || null,
+					blackMove: round[1] || null,
+				}));
+
+				// 更新游戏结束状态
+				this.isGameOverForRender = this.gaming.situation?.isEnded || false;
+				this.winnerNameForRender = this.gaming.situation?.winner?.name || '';
+
+				// 清理选择状态				this.selectedUnit = null;
 				this.movableTargets = [];
 				this.attackTargets = [];
 				this.blockedMoves = [];
@@ -918,15 +939,6 @@
 					// 否则，输入是位置
 					this.gaming.bulletin.notice('ui input', position);
 				}
-			},
-			isMovableTarget(position) {
-				return this.movableTargets.some(pos => pos.isEqualTo(position));
-			},
-			isAttackableTarget(position) {
-				return this.attackTargets.some(unit => unit.position.isEqualTo(position));
-			},
-			isBlockedMove(position) {
-				return this.blockedMoves.some(pos => pos.isEqualTo(position));
 			},
 		},
 	});
