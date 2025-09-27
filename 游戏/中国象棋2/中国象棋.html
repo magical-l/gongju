@@ -685,14 +685,10 @@
 				const curPlayerTeam = this.gaming?.situation.curPlayer?.team;
 
 				// 可移动到空点
-				this.movableTargets.forEach(pos => {
-					markers[pos.toString()] = 'movable';
-				});
+				this.movableTargets.forEach(pos => markers[pos.toString()] = 'movable');
 
 				// 被阻挡的点位（如绊马脚、塞象眼）
-				this.blockedMoves.forEach(pos => {
-					markers[pos.toString()] = 'blocked';
-				});
+				this.blockedMoves.forEach(pos => markers[pos.toString()] = 'blocked');
 
 				// 可攻击的单位（会覆盖上面的movable和blocked）
 				if (curPlayerTeam) {
@@ -892,30 +888,32 @@
 				// 1. 逻辑类：基于棋盘绝对坐标，用于游戏逻辑判断
 				const r = position.rowNum;
 				const c = position.colNum;
-				const logicalClasses = [
-					`红${ChineseNum.digitsFromArabic(10 - c)}路`, // 红方从右往左数
-					`黑${c}路`,  // 黑方从左往右数
+				const rt = [`row-${rIndex + 1}`, `col-${cIndex + 1}`,
+										`红${ChineseNum.digitsFromArabic(10 - c)}路`, // 红方从右往左数
+										`黑${c}路`,  // 黑方从左往右数
 				];
 				if ((r === 3 || r === 8) && (c === 2 || c === 8)) {
-					logicalClasses.push('炮位');
+					rt.push('炮位');
 				}
 				if ((r === 4 || r === 7) && c % 2 === 1) {
-					logicalClasses.push('兵卒位');
+					rt.push('兵卒位');
 				}
 				if ((r <= 3 || r >= 8) && (c >= 4 && c <= 6)) {
-					logicalClasses.push('九宫');
+					rt.push('九宫');
 					if ((r === 2 || r === 9) && c === 5) {
-						logicalClasses.push('窝心');
+						rt.push('窝心');
 					}
 					if ((r === 3 || r === 8) && (c === 4 || c === 6)) {
-						logicalClasses.push('士角');
+						rt.push('士角');
 					}
 				}
 
-				// 2. 视觉类：基于渲染索引，用于CSS样式（如边框）
-				const visualClasses = [`row-${rIndex + 1}`, `col-${cIndex + 1}`];
+				const markers = this.targetMarkers[position];
+				if (markers) {
+					rt.push(markers);
+				}
 
-				return [...logicalClasses, ...visualClasses];
+				return rt;
 			},
 			getUnitClasses(unit) {
 				if (!unit) {
