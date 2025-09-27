@@ -69,8 +69,9 @@ class Move extends Skill {
 
 		if (this.isValidTargets([position])) {
 			this.gaming.battlefield.moveUnit(this.owner, position);
+			return true;
 		}
-		return true;
+		return false;
 	}
 
 	_calculateReachablePositions() {
@@ -126,14 +127,16 @@ class 攻击 extends Skill {
 
 	activate(targets) {
 		const availableTargets = this.availableTargets;
-		(targets || []).forEach(targetUnit => {
+		return (targets || []).map(targetUnit => {
 			if (targetUnit instanceof Unit && availableTargets.some(e => compareWithId(e, targetUnit))) {
 				const place = targetUnit.position;
 				const payload = {unit: this.owner, killed: targetUnit, place};
 				this.gaming.battlefield.destroyUnit(targetUnit);
 				notice(this, '单位杀敌', payload);
+				return true;
 			}
-		});
+			return false;
+		}).reduce((pre, cur) => pre || cur, false);
 	}
 
 	get availableTargets() {
@@ -799,8 +802,8 @@ class 棋局 extends Gaming {
 		const eventTranslations = {
 			'gaming build start': '游戏构建开始',
 			'gaming build end': '游戏构建结束',
-			'buildUnit start':'构建单位开始',
-			'buildUnit end':'构建单位结束',
+			'buildUnit start': '构建单位开始',
+			'buildUnit end': '构建单位结束',
 			'gaming start': '游戏开始',
 			'gaming end': '游戏结束',
 			'round start': '回合开始',

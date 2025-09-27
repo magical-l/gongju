@@ -357,8 +357,8 @@ class Battlefield {
 		return positions.filter(p => this._positions.some(p2 => compareWithId(p, p2)));
 	}
 
-	get allUnitsInBattlefield(){
-		return [...this._positionUnitsMapping.values()].flatMap(e=>e);
+	get allUnitsInBattlefield() {
+		return [...this._positionUnitsMapping.values()].flatMap(e => e);
 	}
 
 	//todo：需要增加许多关于位置的方法。比如计算两个单位的距离、获取距离某个单位为x的位置集……
@@ -572,7 +572,7 @@ class Player {
 
 			//三要素齐备，开始施放技能。
 			if (this._selectedUnits?.length && this._selectedSkills?.length && this._selectedTargets?.length) {
-				const actionPerformed = this.activateSkills(this._selectedUnits, this._selectedSkills, this._selectedTargets);
+				const actionPerformed = await this.activateSkills(this._selectedUnits, this._selectedSkills, this._selectedTargets);
 				if (actionPerformed) {
 					actionsTaken++; // 成功行动，计数器加一
 					this._selectedTargets = []; // 成功行动后，清空目标，以便进行下一次行动
@@ -665,20 +665,19 @@ class Player {
 	 * @param selectedTargets
 	 * @returns {boolean} 是否成功触发了至少一个技能
 	 */
-	activateSkills(selectedUnits, selectedSkills, selectedTargets) {
+	async activateSkills(selectedUnits, selectedSkills, selectedTargets) {
 		let activated = false;
 		// 遍历所有选中的单位
-		selectedUnits.forEach(unit => {
+		for (const unit of selectedUnits) {
 			// 遍历所有选中的技能
-			selectedSkills.forEach(skill => {
+			for (const skill of selectedSkills) {
 				// 确认当前单位拥有该技能
 				if (unit.skills.includes(skill)) {
 					// 触发技能，并将目标传入
-					skill.activate(selectedTargets);
-					activated = true;
+					activated = activated || await skill.activate(selectedTargets);
 				}
-			});
-		});
+			}
+		}
 		return activated;
 	}
 }
