@@ -1,5 +1,7 @@
 import {compareWithId, notice, watch} from './kit.esm.js';
-import {Board, TurnBasedGame, TurnBasedGaming, Player, Plugin, Rule, Situation, Skill, Unit, 棋盘点位} from './turn-based-game.esm.js';
+import {
+	Board, Player, Plugin, Rule, Situation, Skill, TurnBasedGame, TurnBasedGaming, Unit, 棋盘点位,
+} from './turn-based-game.esm.js';
 
 export {
 	红方id, 黑方id, 红方默认配置, 黑方默认配置, 红方玩家id, 黑方玩家id, 默认玩家顺序, 默认棋盘布局, 默认棋子类型,
@@ -15,6 +17,7 @@ const 红方默认配置 = {name: 红方id, flag: 'red'};
 const 黑方默认配置 = {name: 黑方id, flag: 'black'};
 const 红方玩家id = 红方id + '玩家';
 const 黑方玩家id = 黑方id + '玩家';
+const is红方 = player => player.id === 红方玩家id;
 const 默认玩家顺序 = [红方玩家id, 黑方玩家id];
 const 默认棋盘布局 = `
 	車馬象士将士象馬車
@@ -47,17 +50,7 @@ const 默认棋子类型 = {
 
 class Move extends Skill {
 	constructor(overrideCfg = {}) {
-		super({
-			name: '移动',
-			...overrideCfg,
-			// watchers: {
-			// 	'单位杀敌': ({unit, killed, place}) => {
-			// 		if (unit.id === this.owner.id) {
-			// 			this.gaming.battlefield.moveUnit(this.owner, place);
-			// 		}
-			// 	},
-			// },
-		});
+		super({name: '移动', ...overrideCfg});
 	}
 
 	activate(targets) {
@@ -152,7 +145,7 @@ class 攻击 extends Skill {
 	}
 
 	isAvailableTarget(unit) {
-		return unit.owner.team.id !== this.owner.owner.team.id;
+		return unit.owner.id !== this.owner.owner.id;
 	}
 }
 
@@ -458,9 +451,10 @@ const 内置规则集 = {
 				...cfg,
 				watchers: {
 					'构建单位结束': ({unit}) => {
-						if (unit.name === '帅' && unit.owner.team.id === 红方id) {
+						const is红方_ = is红方(unit.owner);
+						if (unit.name === '帅' && is红方_) {
 							this.kingRed = unit;
-						} else if (unit.name === '将' && unit.owner.team.id === 黑方id) {
+						} else if (unit.name === '将' && !is红方_) {
 							this.kingBlack = unit;
 						}
 					},
@@ -543,10 +537,9 @@ const 内置规则集 = {
 						if (!unit) {
 							return;
 						}
-						const myTeam = unit.owner.team;
 						const filtered = availableTargetPositions.filter(p => {
 							const unitsAtTarget = this.gaming.battlefield.getUnitsAt(p);
-							return unitsAtTarget.length === 0 || unitsAtTarget[0].owner.team !== myTeam;
+							return unitsAtTarget.length === 0 || compareWithId(unitsAtTarget[0].owner, unit.owner);
 						});
 						availableTargetPositions.length = 0;
 						availableTargetPositions.push(...filtered);
@@ -562,12 +555,12 @@ const 内置规则集 = {
 				intro: '红方在自己的每个回合中，可以连续移动两次。', ...cfg,
 				watchers: {
 					'player-turn start': ({player}) => {
-						if (player.team.id === 红方id) {
+						if (is红方(player)) {
 							player.actionsPerTurn = 2;
 						}
 					},
 					'player-turn end': ({player}) => {
-						if (player.team.id === 红方id) {
+						if (is红方(player)) {
 							player.actionsPerTurn = 1;
 						}
 					},
@@ -609,10 +602,9 @@ const 内置插件集 = {
 									同名单位行号集.push(i);
 								}
 							}
-							const is红方 = player.team.id === 红方id,
-								len = 同名单位行号集.length;
+							const len = 同名单位行号集.length;
 							if (len === 1) {
-								this.unitName = unit.name + calColName(forwardDirection, is红方, colNum);
+								this.unitName = unit.name + calColName(forwardDirection, is红方(player), colNum);
 							} else {
 								同名单位行号集.sort(forwardDirection === -1 ? (a, b) => a - b : (a, b) => b - a);
 								const index = 同名单位行号集.indexOf(rowNum);
@@ -639,24 +631,24 @@ const 内置插件集 = {
 					newPosition = unit.position,
 					rowDiff = newPosition.rowNum - from.rowNum,
 					newColNum = newPosition.colNum,
-					is红方 = unit.owner.team.id === 红方id,
+					is红方_ = is红方(unit.owner),
 					forwardDirection = this.gaming.battlefield.forwardDirection(unit.owner);
 				let moveType, target;
 				if (rowDiff === 0) {
 					moveType = '平';
-					target = calColName(forwardDirection, is红方, newColNum);
+					target = calColName(forwardDirection, is红方_, newColNum);
 				} else {
 					moveType = isAttacking(rowDiff, forwardDirection) ? '进' : '退';
 					if (newColNum !== from.colNum) {
-						target = calColName(forwardDirection, is红方, newColNum);
+						target = calColName(forwardDirection, is红方_, newColNum);
 					} else {
 						target
-							= is红方 ? 汉语数字[Math.abs(rowDiff)] : Math.abs(rowDiff);
+							= is红方_ ? 汉语数字[Math.abs(rowDiff)] : Math.abs(rowDiff);
 					}
 				}
 				const notation = `${this.unitName}${moveType}${target}`,
 					roundNotations = this.gaming.situation.roundNotations;
-				if (is红方) {
+				if (is红方_) {
 					roundNotations.push([notation]);
 				} else {
 					if (roundNotations.length > 0 && roundNotations.at(-1).length === 1) {
@@ -707,15 +699,13 @@ class 中国象棋 extends TurnBasedGame {
 				colSize: 9,
 				unitsPositionCfg,
 			},
-			teams: {
-				[红方id]: {...红方默认配置, players: {[红方玩家id]: {name: 红方名字}}},
-				[黑方id]: {...黑方默认配置, players: {[黑方玩家id]: {name: 黑方名字}}},
-			},
 			unitTypes: Object.fromEntries(
 				Object.entries(cfg.棋子类型)
 							.map(([棋子名, 棋子]) =>
 								[棋子名, {display: 棋子.显示, skills: 棋子.技能, player: 棋子.玩家, ...棋子}])),
-			playerTurnSequence: cfg.玩家顺序,
+			playerTurnSequence: cfg.玩家顺序.map(playerId =>
+				playerId === 红方玩家id ? {id: 红方玩家id, name: 红方名字, team: 红方默认配置}
+																: {id: 黑方玩家id, name: 黑方名字, team: 黑方默认配置}),
 			globalRules: cfg.规则,
 			plugins: cfg.插件,
 			...cfg,
@@ -764,13 +754,13 @@ class 棋盘 extends Board {
 	}
 
 	forwardDirection(player) {
-		if (this.playerDown && player === this.playerDown) {
+		if (this.playerDown && compareWithId(player, this.playerDown)) {
 			return -1;
 		}
-		if (this.playerUp && player === this.playerUp) {
+		if (this.playerUp && compareWithId(player, this.playerUp)) {
 			return 1;
 		}
-		return player.team.id === 红方id ? -1 : 1;
+		return is红方(player) ? -1 : 1;
 	}
 
 	isValidPosition(position) {
@@ -826,9 +816,8 @@ class 棋局 extends TurnBasedGaming {
 	_generateNotation(move) {
 		const {unit, oldPosition} = move,
 			newPosition = unit.position,
-			isRed = unit.owner.team.id === '红方',
 			notation = `${unit.name}: ${oldPosition} -> ${newPosition}`;
-		if (isRed) {
+		if (is红方(unit.owner)) {
 			this.situation.roundNotations.push([notation]);
 		} else {
 			if (this.situation.roundNotations.length > 0 && this.situation.roundNotations.at(-1).length === 1) {

@@ -572,6 +572,7 @@
 		Move,
 		攻击,
 	} from './xiangqi.esm.js';
+	import {compareWithId} from './kit.esm.js';
 
 	const {createApp, reactive, ref, computed} = Vue;
 
@@ -682,7 +683,6 @@
 			},
 			targetMarkers() {
 				const markers = {};
-				const curPlayerTeam = this.gaming?.situation.curPlayer?.team;
 
 				// 可移动到空点
 				this.movableTargets.forEach(pos => markers[pos.toString()] = 'movable');
@@ -691,10 +691,11 @@
 				this.blockedMoves.forEach(pos => markers[pos.toString()] = 'blocked');
 
 				// 可攻击的单位（会覆盖上面的movable和blocked）
-				if (curPlayerTeam) {
+				const curPlayer = this.getCurPlayer();
+				if (curPlayer) {
 					this.attackTargets.forEach(unit => {
 						const posStr = unit.position.toString();
-						if (unit.owner.team.id !== curPlayerTeam.id) {
+						if (unit.owner.id !== curPlayer.id) {
 							markers[posStr] = 'attack'; // 敌方单位
 						} else {
 							markers[posStr] = 'blocked'; // 己方单位
@@ -703,7 +704,8 @@
 				}
 				return markers;
 			},
-		}, created() {
+		},
+		created() {
 			// 初始化规则编辑器，只向用户展示可选规则
 			this.allAvailableRules = [...所有可选规则];
 			this.gameSettings.rules = [...默认启用规则];
@@ -717,6 +719,9 @@
 			this.resetBoard();
 		},
 		methods: {
+			getCurPlayer() {
+				return this.gaming?.situation.curPlayer;
+			},
 			syncGameState() {
 				if (!this.gaming) {
 					return;
@@ -921,7 +926,7 @@
 				}
 				const classes = [];
 				classes.push(unit.owner.team.flag);
-				if (this.selectedUnit && this.selectedUnit.id && unit.id && this.selectedUnit.id === unit.id) {
+				if (this.selectedUnit && compareWithId(this.selectedUnit, unit)) {
 					classes.push('selected');
 				}
 				return classes;

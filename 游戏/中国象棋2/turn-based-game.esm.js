@@ -5,7 +5,7 @@ import {
 
 export {
 	TurnBasedGame, TurnBasedGaming, Rule, Battlefield, Situation,
-	Team, Player, Unit, Skill, PassiveSkill, BuffSkill, Plugin,
+	Player, Unit, Skill, PassiveSkill, BuffSkill, Plugin,
 	Board, 棋盘点位,
 };
 
@@ -18,7 +18,10 @@ class TurnBasedGame {
 
 	newGaming() {
 		const GamingClass = this.cfg.GamingClass ?? TurnBasedGaming;
-		return new GamingClass(this.cfg);
+		const rt = new GamingClass(this.cfg);
+		rt._build();
+		rt._start();
+		return rt;
 	}
 }
 
@@ -32,14 +35,12 @@ class TurnBasedGaming {
 	_plugins = [];
 	_battlefield;
 	_situation;
-	_teams = {};
-	_playerTurnSequence = [];
+	_players = {}; // 存储所有玩家实例的映射
+	_playerTurnSequence = []; // 存储有序的玩家实例列表
 
 	constructor(cfg) {
 		this._cfg = cfg;
 		addCfgProps(this, this._cfg);
-		this._build();
-		this._start(); // 游戏创建后自动开始
 	}
 
 	get cfg() {return this._cfg;}
@@ -52,22 +53,19 @@ class TurnBasedGaming {
 
 	get situation() { return this._situation; }
 
-	get teamList() { return Object.values(this._teams); }
-
 	get playerTurnSequence() { return [...this._playerTurnSequence]; }
 
 	get playersIdMap() {
-		const allPlayers = this.teamList.flatMap(team => Object.values(team.players));
-		return Object.fromEntries(allPlayers.map(p => [p.id, p]));
+		return {...this._players};
 	}
 
 	_build() {
 		notice(this, 'gaming build start', {gaming: this});
-		this._teams = this._buildTeams();
+		this._playerTurnSequence = this._buildPlayerTurnSequence();
+		this._players = this._buildPlayers();
 		this._globalRules = this._buildGlobalRules();
 		this._battlefield = this._buildBattlefield();
 		this._situation = this._buildSituation();
-		this._playerTurnSequence = this._buildPlayerTurnSequence();
 		this._plugins = this._buildPlugins();
 		this._plugins.forEach(plugin =>
 			Object.entries(plugin.watchers)
@@ -75,23 +73,22 @@ class TurnBasedGaming {
 		notice(this, 'gaming build end', {gaming: this});
 	}
 
-	_buildTeams() {
-		const teamsCfg = this._cfg.teams || {};
-		notice(this, 'gaming buildTeams start', {teamsCfg});
-		const rt = Object.fromEntries(
-			Object.entries(teamsCfg)
-						.map(([id, teamCfg]) => [id, this._buildTeam(id, teamCfg)]),
-		);
-		notice(this, 'gaming buildTeams end', {teams: rt});
+	_buildPlayerTurnSequence() {
+		const playerTurnSequence = this._cfg.playerTurnSequence;
+		notice(this, 'gaming buildPlayerTurnSequence start', {playerTurnSequence});
+		const rt = playerTurnSequence.map(playerCfg => {
+			const PlayerClass = playerCfg.class ?? this._cfg.PlayerClass ?? Player;
+			return new PlayerClass(this, playerCfg);
+		});
+		notice(this, 'gaming buildPlayerTurnSequence end', {playerTurnSequence: rt});
 		return rt;
 	}
 
-	_buildTeam(id, teamCfg) {
-		const TeamClass = teamCfg.class ?? this._cfg.TeamClass ?? Team;
-		notice(this, 'gaming buildTeam start', {gaming: this, id, teamCfg, class: TeamClass});
-		const team = new TeamClass({id, ...teamCfg}, this);
-		notice(this, 'gaming buildTeam end', {gaming: this, id, teamCfg, class: TeamClass});
-		return team;
+	_buildPlayers() {
+		notice(this, 'gaming buildPlayers start', {playerTurnSequence: this.playerTurnSequence});
+		const rt = Object.fromEntries(this._playerTurnSequence.map(player => [player.id, player]));
+		notice(this, 'gaming buildPlayers end', {players: rt});
+		return rt;
 	}
 
 	_buildGlobalRules() {
@@ -125,11 +122,6 @@ class TurnBasedGaming {
 		const rt = new SituationClass(this);
 		notice(this, 'gaming buildSituation end', {situation: rt});
 		return rt;
-	}
-
-	_buildPlayerTurnSequence() {
-		const playersIdMap = this.playersIdMap;
-		return this._cfg.playerTurnSequence.map(playerId => playersIdMap[playerId]).filter(p => p);
 	}
 
 	_buildPlugins() {
@@ -423,66 +415,12 @@ class Round {
 	}
 }
 
-class Team {
-	static _nextId = 1;
-
-	_id;
-	_cfg;
-	_members = [];
-	_gaming;
-
-	constructor(cfg, gaming) {
-		this._id = 'id' in cfg ? cfg.id : Team._nextId++;
-		this._cfg = cfg;
-		this._gaming = gaming;
-
-		addCfgProps(this, this._cfg);
-
-		this._members = this._buildPlayers(cfg.players, this);
-
-		aopMethod(this, 'addMember', {noticePayloadBuilder: args => ({member: args[0]})});
-		aopMethod(this, 'removeMember', {noticePayloadBuilder: args => ({member: args[0]})});
-		aopGetter(this, 'members', {typeName: 'team'});
-	}
-
-	get cfg() { return this._cfg; }
-
-	_buildPlayers(playerCfgs, team) {
-		notice(this, 'gaming buildPlayers start', {team, playerCfgs});
-		const rt = Object.fromEntries(
-			Object.entries(playerCfgs)
-						.map(([id, cfg]) => [id, this._buildPlayer(id, cfg, team)]),
-		);
-		notice(this, 'gaming buildPlayers end', {team, players: rt});
-		return rt;
-	}
-
-	_buildPlayer(id, playerCfg, team) {
-		const PlayerClass = playerCfg.class ?? this.gaming._cfg.PlayerClass ?? Player;
-		notice(this, 'gaming buildPlayer start', {team, playerCfg, class: PlayerClass});
-		const rt = new PlayerClass(team, {id, ...playerCfg});
-		notice(this, 'gaming buildPlayer end', {player: rt});
-		return rt;
-	}
-
-	get id() { return this._id; }
-
-	get members() { return {...this._members}; }
-
-	get players() { return this.members; }
-
-	addMember(member) { this._members.push(member); }
-
-	removeMember(member) { this._members = this._members.filter(m => !compareWithId(m, member)); }
-
-	get gaming() { return this._gaming; }
-}
-
 class Player {
 	static _nextId = 1;
 
 	_cfg;
 	_id;
+	_gaming;
 	_team;
 	_units = [];//拥有的单位的缓存
 
@@ -490,11 +428,12 @@ class Player {
 	_selectedSkills = [];
 	_selectedTargets = [];
 
-	constructor(team, cfg) {
+	constructor(gaming, cfg) {
 		this._cfg = cfg;
 		this._id = 'id' in cfg ? cfg.id : Player._nextId++;
 		this._units = 'units' in cfg ? cfg.units : [];
-		this._team = team;
+		this._gaming = gaming;
+		this._team = cfg.team;
 		this.actionsPerTurn = cfg.actionsPerTurn || 1; // 从配置或默认值初始化
 
 		addCfgProps(this, this._cfg);
@@ -541,7 +480,7 @@ class Player {
 
 	get units() { return this._units; }
 
-	get gaming() { return this._team.gaming; }
+	get gaming() { return this._gaming; }
 
 	get selectedUnits() { return this._selectedUnits; }
 
