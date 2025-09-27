@@ -705,7 +705,6 @@ class 中国象棋 extends Game {
 			battlefieldCfg: {
 				rowSize: 10,
 				colSize: 9,
-				棋盘: cfg.棋盘,//todo：这里挫，cfg的字段→battlefield的字段，看看怎么改好。
 				unitsPositionCfg,
 			},
 			teams: {

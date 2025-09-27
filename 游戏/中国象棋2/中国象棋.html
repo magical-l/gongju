@@ -817,21 +817,25 @@
 					setTimeout(() => this.showCheck = false, 1000);
 				});
 
-				gaming.bulletin.watch('玩家选择了单位', ({units}) => this.selectedUnit = units[0]);
-
-				gaming.bulletin.watch('玩家选择了技能', ({skills}) => {
+				gaming.bulletin.watch('玩家选择了单位', ({units}) => {
+					this.selectedUnit = units[0];
+					// 清空旧提示
 					this.movableTargets = [];
 					this.attackTargets = [];
 					this.blockedMoves = [];
-
-					skills.forEach(skill => {
-						if (skill instanceof Move) {
-							this.movableTargets = skill.availableTargets;
-							this.blockedMoves = skill.blockedTargets;
-						} else if (skill instanceof 攻击) {
-							this.attackTargets = skill.availableTargets;
-						}
+					// 主动访问技能的 getter 以触发通知
+					this.selectedUnit.skills.forEach(skill => {
+						const _ = skill.availableTargets;
 					});
+				});
+
+				gaming.bulletin.watch('skill get availableTargets end', ({skill, result}) => {
+					if (skill instanceof Move) {
+						this.movableTargets = result || [];
+						this.blockedMoves = skill.blockedTargets || [];
+					} else if (skill instanceof 攻击) {
+						this.attackTargets = result || [];
+					}
 				});
 				gaming.bulletin.watch('玩家取消选择单位', () => {
 					this.selectedUnit = null;
