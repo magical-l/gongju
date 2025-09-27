@@ -592,6 +592,8 @@
 				gaming: null,
 				boardForRender: [], // 用于渲染棋盘的二维数组
 				turnHistoryForRender: [], // 用于渲染回合历史的数组
+				isGameOverForRender: false,
+				winnerNameForRender: '',
 				showCheck: false,
 				selectedUnit: null,
 				movableTargets: [], // 可移动的目标位置
@@ -674,13 +676,10 @@
 				return this.gaming?.situation;
 			},
 			isGameOver() {
-				return this.situation?.isEnded || false;
+				return this.isGameOverForRender;
 			},
 			winnerName() {
-				if (!this.isGameOver || !this.situation?.winner) {
-					return '';
-				}
-				return this.situation.winner.name;
+				return this.winnerNameForRender;
 			},
 			turnHistory() {
 				return this.turnHistoryForRender;
@@ -709,15 +708,18 @@
 					return row.map(pos => this.gaming.battlefield.getUnitsAt(pos));
 				});
 
-				// 更新回合历史
-				this.turnHistoryForRender = this.gaming.situation?.roundNotations?.map((round, index) => ({
-					id: index + 1,
-					redMove: round[0] || null,
-					blackMove: round[1] || null,
-				}));
-
-				// 清理选择状态
-				this.selectedUnit = null;
+				                // 更新回合历史
+				                this.turnHistoryForRender = this.gaming.situation?.roundNotations?.map((round, index) => ({
+				                    id: index + 1,
+				                    redMove: round[0] || null,
+				                    blackMove: round[1] || null,
+				                }));
+				
+				                // 更新游戏结束状态
+				                this.isGameOverForRender = this.gaming.situation?.isEnded || false;
+				                this.winnerNameForRender = this.gaming.situation?.winner?.name || '';
+				
+				                // 清理选择状态				this.selectedUnit = null;
 				this.movableTargets = [];
 				this.attackTargets = [];
 				this.blockedMoves = [];
@@ -806,10 +808,8 @@
 				this.launchGame();
 			},
 			launchGame() {
-				const gamingInstance = new 中国象棋(this.gameCfg, '红方玩家', '黑方玩家').newGaming();
-				this.gaming = gamingInstance; // 不再使用 reactive 包裹
-
-				const gaming = this.gaming;
+				const gaming = new 中国象棋(this.gameCfg, '红方玩家', '黑方玩家').newGaming();
+				this.gaming = gaming;
 
 				// 监听游戏事件来更新UI
 				gaming.bulletin.watch('将军', () => {
@@ -845,6 +845,7 @@
 					this.syncGameState();
 				});
 				gaming.bulletin.watch('单位杀敌', () => this.syncGameState());
+				gaming.bulletin.watch('游戏结束', () => this.syncGameState());
 				this.syncGameState(); // 初始渲染
 			},
 			restartGame() {

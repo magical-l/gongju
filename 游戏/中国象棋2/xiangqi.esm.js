@@ -771,8 +771,8 @@ class 棋局 extends Gaming {
 		const eventTranslations = {
 			'initing': '初始化中',
 			'inited': '初始化完成',
-			'game start': '游戏开始',
-			'game end': '游戏结束',
+			'gaming start': '游戏开始',
+			'gaming end': '游戏结束',
 			'round start': '回合开始',
 			'round end': '回合结束',
 			'player-turn start': '轮次开始',
