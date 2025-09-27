@@ -5,7 +5,7 @@ export {
 	Bulletin,
 };
 /**
- * 获取实例的完整类继承链
+ * 获取实例的完整类继承链的类名列表。默认为从该类到其祖先类。
  * @param {Object} instance - 要检查的实例
  * @param {Object} [options] - 配置选项
  * @param {boolean} [options.includeObject=false] - 是否包含Object基类

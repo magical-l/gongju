@@ -4,29 +4,12 @@ import {
 } from './kit.esm.js';
 
 export {
-	Game, Gaming, Rule, Battlefield, Situation,
+	TurnBasedGame, TurnBasedGaming, Rule, Battlefield, Situation,
 	Team, Player, Unit, Skill, PassiveSkill, BuffSkill, Plugin,
 	Board, 棋盘点位,
 };
 
-/**
- * 位置的抽象基类。强制子类实现toString()，用于在Map中作为唯一的key。
- */
-class Position {
-	get id() {
-		return this.toString();
-	}
-
-	toString() {
-		throw new Error("子类必须实现toString()");
-	}
-
-	isEqualTo(otherPosition) {
-		return otherPosition && this.toString() === otherPosition.toString();
-	}
-}
-
-class Game {
+class TurnBasedGame {
 	cfg;
 
 	constructor(cfg = {}) {
@@ -34,7 +17,7 @@ class Game {
 	}
 
 	newGaming() {
-		const GamingClass = this.cfg.GamingClass ?? Gaming;
+		const GamingClass = this.cfg.GamingClass ?? TurnBasedGaming;
 		return new GamingClass(this.cfg);
 	}
 }
@@ -42,7 +25,7 @@ class Game {
 /**
  * 一场游戏。
  */
-class Gaming {
+class TurnBasedGaming {
 	_cfg;
 	_bulletin = new Bulletin();
 	_globalRules = [];
@@ -200,6 +183,23 @@ class Gaming {
 }
 
 /**
+ * 位置的抽象基类。强制子类实现toString()，用于在Map中作为唯一的key。
+ */
+class Position {
+	get id() {
+		return this.toString();
+	}
+
+	toString() {
+		throw new Error("子类必须实现toString()");
+	}
+
+	isEqualTo(otherPosition) {
+		return otherPosition && this.toString() === otherPosition.toString();
+	}
+}
+
+/**
  * 战场。主要是地图、环境、单位等的实时情况。
  */
 class Battlefield {
@@ -329,7 +329,7 @@ class Battlefield {
 	}
 
 	_positionKey(position) {
-		return position.toString();
+		return position.id;
 	}
 
 	removeUnitFromPosition(unit, position = unit.position) {
@@ -572,7 +572,8 @@ class Player {
 
 			//三要素齐备，开始施放技能。
 			if (this._selectedUnits?.length && this._selectedSkills?.length && this._selectedTargets?.length) {
-				const actionPerformed = await this.activateSkills(this._selectedUnits, this._selectedSkills, this._selectedTargets);
+				const actionPerformed = await this.activateSkills(this._selectedUnits, this._selectedSkills,
+					this._selectedTargets);
 				if (actionPerformed) {
 					actionsTaken++; // 成功行动，计数器加一
 					this._selectedTargets = []; // 成功行动后，清空目标，以便进行下一次行动

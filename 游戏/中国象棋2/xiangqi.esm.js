@@ -1,5 +1,5 @@
 import {compareWithId, notice, watch} from './kit.esm.js';
-import {Board, Game, Gaming, Player, Plugin, Rule, Situation, Skill, Unit, 棋盘点位} from './turn-based-game.esm.js';
+import {Board, TurnBasedGame, TurnBasedGaming, Player, Plugin, Rule, Situation, Skill, Unit, 棋盘点位} from './turn-based-game.esm.js';
 
 export {
 	红方id, 黑方id, 红方默认配置, 黑方默认配置, 红方玩家id, 黑方玩家id, 默认玩家顺序, 默认棋盘布局, 默认棋子类型,
@@ -678,7 +678,7 @@ const 中国象棋默认配置 = {
 	插件: Object.keys(内置插件集),
 };
 
-class 中国象棋 extends Game {
+class 中国象棋 extends TurnBasedGame {
 	constructor(cfg = {}, 红方名字, 黑方名字) {
 		super(中国象棋.translateConfig({...中国象棋默认配置, ...cfg}, 红方名字, 黑方名字));
 		this.cfg.GamingClass = 棋局;
@@ -795,7 +795,7 @@ class 棋盘 extends Board {
 	}
 }
 
-class 棋局 extends Gaming {
+class 棋局 extends TurnBasedGaming {
 	_build() {
 		//先监听，有些时机在super._build内部
 		const eventTranslations = {
