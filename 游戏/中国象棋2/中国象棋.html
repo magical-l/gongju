@@ -495,7 +495,8 @@
 								<div class="texture part right bottom corner"></div>
 								<div class="texture part left bottom corner"></div>
 							</div>
-							<div class="unit display" v-for="(unit, uIndex) in boardForRender[rIndex][cIndex]" :key="uIndex"
+							<div class="unit display"
+									 v-for="(unit, uIndex) in boardForRender[position.rowNum - 1][position.colNum - 1]" :key="uIndex"
 									 :class="getUnitClasses(unit)">
 								{{ unit.display }}
 							</div>
