@@ -33,10 +33,10 @@ class TurnBasedGaming {
 	_bulletin = new Bulletin();
 	_globalRules = [];
 	_plugins = [];
-	_battlefield;
 	_situation;
-	_players = {}; // 存储所有玩家实例的映射
 	_playerTurnSequence = []; // 存储有序的玩家实例列表
+	_playersIdMap = {}; // 存储所有玩家实例的映射
+	_battlefield;
 
 	constructor(cfg) {
 		this._cfg = cfg;
@@ -56,20 +56,20 @@ class TurnBasedGaming {
 	get playerTurnSequence() { return [...this._playerTurnSequence]; }
 
 	get playersIdMap() {
-		return {...this._players};
+		return {...this._playersIdMap};
 	}
 
 	_build() {
 		notice(this, 'gaming build start', {gaming: this});
-		this._playerTurnSequence = this._buildPlayerTurnSequence();
-		this._players = this._buildPlayers();
 		this._globalRules = this._buildGlobalRules();
-		this._battlefield = this._buildBattlefield();
-		this._situation = this._buildSituation();
 		this._plugins = this._buildPlugins();
 		this._plugins.forEach(plugin =>
 			Object.entries(plugin.watchers)
 						.forEach(([topicName, watcher]) => this.bulletin.watch(topicName, watcher.bind(plugin))));
+		this._playerTurnSequence = this._buildPlayerTurnSequence();
+		this._playersIdMap = Object.fromEntries(this._playerTurnSequence.map(player => [player.id, player]));
+		this._situation = this._buildSituation();
+		this._battlefield = this._buildBattlefield();
 		notice(this, 'gaming build end', {gaming: this});
 	}
 
@@ -81,13 +81,6 @@ class TurnBasedGaming {
 			return new PlayerClass(this, playerCfg);
 		});
 		notice(this, 'gaming buildPlayerTurnSequence end', {playerTurnSequence: rt});
-		return rt;
-	}
-
-	_buildPlayers() {
-		notice(this, 'gaming buildPlayers start', {playerTurnSequence: this.playerTurnSequence});
-		const rt = Object.fromEntries(this._playerTurnSequence.map(player => [player.id, player]));
-		notice(this, 'gaming buildPlayers end', {players: rt});
 		return rt;
 	}
 
