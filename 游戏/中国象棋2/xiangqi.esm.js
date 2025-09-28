@@ -1,6 +1,6 @@
 import {compareWithId, notice, watch} from './kit.esm.js';
 import {
-	Board, Player, Plugin, Rule, Situation, Skill, TurnBasedGame, TurnBasedGaming, Unit, 棋盘点位,
+	Board, Player, Rule, Situation, Skill, TurnBasedGame, TurnBasedGaming, Unit, 棋盘点位,
 } from './turn-based-game.esm.js';
 
 export {
@@ -9,6 +9,15 @@ export {
 	中国象棋, 战况, 棋盘, 棋局, 棋手,
 	Move, 攻击,
 	内置技能集, 内置规则集, 内置插件集,
+};
+
+const 汉语数字 = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
+const calColName = (forwardDirection, is红方, colNum) => {
+	if (forwardDirection < 0) {
+		return is红方 ? 汉语数字[10 - colNum] : 10 - colNum;
+	} else {
+		return is红方 ? 汉语数字[colNum] : colNum;
+	}
 };
 
 const 红方id = '红方';
@@ -572,95 +581,7 @@ const 内置规则集 = {
 const 所有可选规则 = Object.keys(内置规则集);
 const 默认启用规则 = ['不能叠加棋子', '王不见王', '斩将', '杀敌后进驻'];
 
-const 内置插件集 = {
-	'记谱': (() => {
-		const 汉语数字 = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
-		const calColName = (forwardDirection, is红方, colNum) => {
-			if (forwardDirection < 0) {
-				return is红方 ? 汉语数字[10 - colNum] : 10 - colNum;
-			} else {
-				return is红方 ? 汉语数字[colNum] : colNum;
-			}
-		};
-		return class extends Plugin {
-			unitName;
-			roundNotations = [];
-
-			constructor(gaming, cfg) {
-				super(gaming, {
-					name: '记谱',
-					...cfg,
-					watchers: {
-						'玩家选择了单位': ({player, units}) => {
-							const unit = units[0],
-								同名单位行号集 = [],
-								{rowNum, colNum} = unit.position,
-								forwardDirection = this.gaming.battlefield.forwardDirection(player);
-							for (let i = 1; i <= this.gaming.battlefield.rowSize; i++) {
-								const units = this.gaming.battlefield.getUnitsAt(new 棋盘点位(i, colNum));
-								if (units.filter(u => u.name === unit.name && u.owner === player).length) {
-									同名单位行号集.push(i);
-								}
-							}
-							const len = 同名单位行号集.length;
-							if (len === 1) {
-								this.unitName = unit.name + calColName(forwardDirection, is红方(player), colNum);
-							} else {
-								同名单位行号集.sort(forwardDirection === -1 ? (a, b) => a - b : (a, b) => b - a);
-								const index = 同名单位行号集.indexOf(rowNum);
-								if (index === 0) {
-									this.unitName = '前' + unit.name;
-								} else if (index === len - 1) {
-									this.unitName = '后' + unit.name;
-								} else if (len === 3) {
-									this.unitName = '中' + unit.name;
-								} else {
-									this.unitName = 汉语数字[index + 1] + unit.name;
-								}
-							}
-						},
-					},
-				});
-				gaming._generateNotation = this.generatePluginNotation.bind(this);
-				gaming.situation.roundNotations.length = 0;
-			}
-
-			generatePluginNotation(move) {
-				const isAttacking = (rowDiff, forwardDirection) => Math.sign(rowDiff) === Math.sign(forwardDirection);
-				const {unit, from} = move,
-					newPosition = unit.position,
-					rowDiff = newPosition.rowNum - from.rowNum,
-					newColNum = newPosition.colNum,
-					is红方_ = is红方(unit.owner),
-					forwardDirection = this.gaming.battlefield.forwardDirection(unit.owner);
-				let moveType, target;
-				if (rowDiff === 0) {
-					moveType = '平';
-					target = calColName(forwardDirection, is红方_, newColNum);
-				} else {
-					moveType = isAttacking(rowDiff, forwardDirection) ? '进' : '退';
-					if (newColNum !== from.colNum) {
-						target = calColName(forwardDirection, is红方_, newColNum);
-					} else {
-						target
-							= is红方_ ? 汉语数字[Math.abs(rowDiff)] : Math.abs(rowDiff);
-					}
-				}
-				const notation = `${this.unitName}${moveType}${target}`,
-					roundNotations = this.gaming.situation.roundNotations;
-				if (is红方_) {
-					roundNotations.push([notation]);
-				} else {
-					if (roundNotations.length > 0 && roundNotations.at(-1).length === 1) {
-						roundNotations.at(-1).push(notation);
-					} else {
-						roundNotations.push(['', notation]);
-					}
-				}
-			}
-		};
-	})(),
-};
+const 内置插件集 = {};
 
 const 中国象棋默认配置 = {
 	棋盘: 默认棋盘布局,
@@ -714,9 +635,80 @@ class 中国象棋 extends TurnBasedGame {
 }
 
 class 战况 extends Situation {
-	roundNotations = [];
+	_unitName;
+	_roundNotations = [];
+	get roundNotations() {
+		return this._roundNotations;
+	}
 
-	constructor(gaming) { super(gaming); }
+	constructor(gaming) {
+		super(gaming);
+
+		watch(this, '玩家选择了单位', ({player, units}) => {
+				const unit = units[0],
+					同名单位行号集 = [],
+					{rowNum, colNum} = unit.position,
+					forwardDirection = this.gaming.battlefield.forwardDirection(player);
+				for (let i = 1; i <= this.gaming.battlefield.rowSize; i++) {
+					const units = this.gaming.battlefield.getUnitsAt(new 棋盘点位(i, colNum));
+					if (units.filter(u => u.name === unit.name && u.owner === player).length) {
+						同名单位行号集.push(i);
+					}
+				}
+				const len = 同名单位行号集.length;
+				if (len === 1) {
+					this._unitName = unit.name + calColName(forwardDirection, is红方(player), colNum);
+				} else {
+					同名单位行号集.sort(forwardDirection === -1 ? (a, b) => a - b : (a, b) => b - a);
+					const index = 同名单位行号集.indexOf(rowNum);
+					if (index === 0) {
+						this._unitName = '前' + unit.name;
+					} else if (index === len - 1) {
+						this._unitName = '后' + unit.name;
+					} else if (len === 3) {
+						this._unitName = '中' + unit.name;
+					} else {
+						this._unitName = 汉语数字[index + 1] + unit.name;
+					}
+				}
+			},
+		);
+		watch(this, '单位移动', move => this._generateNotation(move));
+	}
+
+	_generateNotation(move) {
+		const isAttacking = (rowDiff, forwardDirection) => Math.sign(rowDiff) === Math.sign(forwardDirection);
+		const {unit, from} = move,
+			newPosition = unit.position,
+			rowDiff = newPosition.rowNum - from.rowNum,
+			newColNum = newPosition.colNum,
+			is红方_ = is红方(unit.owner),
+			forwardDirection = this.gaming.battlefield.forwardDirection(unit.owner);
+		let moveType, target;
+		if (rowDiff === 0) {
+			moveType = '平';
+			target = calColName(forwardDirection, is红方_, newColNum);
+		} else {
+			moveType = isAttacking(rowDiff, forwardDirection) ? '进' : '退';
+			if (newColNum !== from.colNum) {
+				target = calColName(forwardDirection, is红方_, newColNum);
+			} else {
+				target
+					= is红方_ ? 汉语数字[Math.abs(rowDiff)] : Math.abs(rowDiff);
+			}
+		}
+		const notation = `${this._unitName}${moveType}${target}`,
+			roundNotations = this._roundNotations;
+		if (is红方_) {
+			roundNotations.push([notation]);
+		} else {
+			if (roundNotations.length > 0 && roundNotations.at(-1).length === 1) {
+				roundNotations.at(-1).push(notation);
+			} else {
+				roundNotations.push(['', notation]);
+			}
+		}
+	}
 }
 
 class 棋盘 extends Board {
@@ -809,23 +801,6 @@ class 棋局 extends TurnBasedGaming {
 						watch(this, enTopiName, payload => notice(this, cnTopicName, payload)));
 
 		super._build();
-
-		this.bulletin.watch('单位移动', move => this._generateNotation(move));
-	}
-
-	_generateNotation(move) {
-		const {unit, oldPosition} = move,
-			newPosition = unit.position,
-			notation = `${unit.name}: ${oldPosition} -> ${newPosition}`;
-		if (is红方(unit.owner)) {
-			this.situation.roundNotations.push([notation]);
-		} else {
-			if (this.situation.roundNotations.length > 0 && this.situation.roundNotations.at(-1).length === 1) {
-				this.situation.roundNotations.at(-1).push(notation);
-			} else {
-				this.situation.roundNotations.push([null, notation]);
-			}
-		}
 	}
 
 	_buildGlobalRule(ruleCfg) {

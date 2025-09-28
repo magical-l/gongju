@@ -760,7 +760,7 @@
 				});
 
 				// 更新回合历史
-				this.turnHistoryForRender = this.gaming.situation?.roundNotations?.map((round, index) => ({
+				this.turnHistoryForRender = this.gaming.situation?._roundNotations?.map((round, index) => ({
 					id: index + 1,
 					redMove: round[0] || null,
 					blackMove: round[1] || null,
