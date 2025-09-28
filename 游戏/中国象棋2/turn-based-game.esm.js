@@ -30,33 +30,32 @@ class TurnBasedGame {
  */
 class TurnBasedGaming {
 	_cfg;
+	get cfg() {return this._cfg;}
+
+	get unitTypes() { return this._cfg.unitTypes; }
+
 	_bulletin = new Bulletin();
+	get bulletin() { return this._bulletin; }
+
 	_globalRules = [];
 	_plugins = [];
 	_situation;
+	get situation() { return this._situation; }
+
 	_playerTurnSequence = []; // 存储有序的玩家实例列表
+	get playerTurnSequence() { return [...this._playerTurnSequence]; }
+
 	_playersIdMap = {}; // 存储所有玩家实例的映射
+	get playersIdMap() { return {...this._playersIdMap}; }
+
 	_battlefield;
+	get battlefield() { return this._battlefield; }
+
+	get gaming() { return this; }
 
 	constructor(cfg) {
 		this._cfg = cfg;
 		addCfgProps(this, this._cfg);
-	}
-
-	get cfg() {return this._cfg;}
-
-	get gaming() { return this; }
-
-	get bulletin() { return this._bulletin; }
-
-	get battlefield() { return this._battlefield; }
-
-	get situation() { return this._situation; }
-
-	get playerTurnSequence() { return [...this._playerTurnSequence]; }
-
-	get playersIdMap() {
-		return {...this._playersIdMap};
 	}
 
 	_build() {
@@ -161,27 +160,17 @@ class TurnBasedGaming {
 			watch(this, 'ui input', onInput);
 		});
 	}
-
-	get unitTypes() {
-		return this._cfg.unitTypes;
-	}
 }
 
 /**
  * 位置的抽象基类。强制子类实现toString()，用于在Map中作为唯一的key。
  */
 class Position {
-	get id() {
-		return this.toString();
-	}
+	get id() { return this.toString(); }
 
-	toString() {
-		throw new Error("子类必须实现toString()");
-	}
+	toString() { throw new Error("子类必须实现toString()"); }
 
-	isEqualTo(otherPosition) {
-		return otherPosition && this.toString() === otherPosition.toString();
-	}
+	isEqualTo(otherPosition) { return otherPosition && this.toString() === otherPosition.toString(); }
 }
 
 /**
@@ -190,9 +179,13 @@ class Position {
 class Battlefield {
 	_cfg;
 	_gaming;
+	get gaming() { return this._gaming; }
 
 	_positions = [];
+	get positions() { return [...this._positions]; }
+
 	_positionUnitsMapping = new Map(); // Map<Position的key, Unit[]>
+	get allUnitsInBattlefield() { return [...this._positionUnitsMapping.values()].flatMap(e => e); }
 
 	constructor(gaming, cfg = {}) {
 		this._gaming = gaming;
@@ -228,10 +221,6 @@ class Battlefield {
 	_initPositionUnitsMapping() {
 		this._positions.flat().forEach(p => this._positionUnitsMapping.set(p.toString(), []));
 	}
-
-	get gaming() { return this._gaming; }
-
-	get positions() { return [...this._positions]; }
 
 	_initUnitsPositions() {
 		const unitsPositionCfg = this._cfg.unitsPositionCfg;
@@ -342,10 +331,6 @@ class Battlefield {
 		return positions.filter(p => this._positions.some(p2 => compareWithId(p, p2)));
 	}
 
-	get allUnitsInBattlefield() {
-		return [...this._positionUnitsMapping.values()].flatMap(e => e);
-	}
-
 	//todo：需要增加许多关于位置的方法。比如计算两个单位的距离、获取距离某个单位为x的位置集……
 }
 
@@ -354,19 +339,17 @@ class Battlefield {
  */
 class Situation {
 	_gaming;
+	get gaming() { return this._gaming; }
+
 	_rounds = [];
+	get rounds() { return this._rounds; }
+
 	curPlayer;
 	isStarted = false;
 	isEnded = false;
 	winner;
 
-	constructor(gaming) {
-		this._gaming = gaming;
-	}
-
-	get gaming() { return this._gaming; }
-
-	get rounds() { return this._rounds; }
+	constructor(gaming) { this._gaming = gaming; }
 
 	async startRound() {
 		const round = new Round(this.gaming, this._rounds.length + 1);
@@ -377,7 +360,10 @@ class Situation {
 
 class Round {
 	_gaming;
+	get gaming() { return this._gaming; }
+
 	_index;
+	get index() { return this._index; }
 
 	constructor(gaming, index) {
 		this._gaming = gaming;
@@ -385,10 +371,6 @@ class Round {
 
 		aopAsyncMethod(this, 'start');
 	}
-
-	get gaming() { return this._gaming; }
-
-	get index() { return this._index; }
 
 	/**
 	 * 开始一个回合，玩家依次执行自己的行动轮次
@@ -413,13 +395,25 @@ class Player {
 
 	_cfg;
 	_id;
+	get id() { return this._id; }
+
 	_gaming;
+	get gaming() { return this._gaming; }
+
 	_team;
+	get team() { return this._team; }
+
 	_units = [];//拥有的单位的缓存
+	get units() { return this._units; }
 
 	_selectedUnits = [];
+	get selectedUnits() { return this._selectedUnits; }
+
 	_selectedSkills = [];
+	get selectedSkills() { return this._selectedSkills; }
+
 	_selectedTargets = [];
+	get selectedTargets() { return this._selectedTargets; }
 
 	constructor(gaming, cfg) {
 		this._cfg = cfg;
@@ -466,20 +460,6 @@ class Player {
 			}
 		});
 	}
-
-	get id() { return this._id; }
-
-	get team() { return this._team; }
-
-	get units() { return this._units; }
-
-	get gaming() { return this._gaming; }
-
-	get selectedUnits() { return this._selectedUnits; }
-
-	get selectedSkills() { return this._selectedSkills; }
-
-	get selectedTargets() { return this._selectedTargets; }
 
 	addUnit(unit) { this._units.push(unit); }
 
@@ -619,9 +599,19 @@ class Unit {
 	static _nextId = 1;
 
 	_cfg;
+
+	get display() { return this._cfg.display ?? this.name; }
+
+	get gaming() { return this.owner?.gaming; }
+
 	_id;
+	get id() { return this._id; }
+
 	_skills = [];
+	get skills() { return [...this._skills]; }
+
 	_position = null;//位置作为缓存
+	get position() { return this._position; }
 
 	_skillBoundWatchers = new WeakMap();
 
@@ -650,16 +640,6 @@ class Unit {
 			}
 		});
 	}
-
-	get id() { return this._id; }
-
-	get display() { return this._cfg.display ?? this.name; }
-
-	get skills() { return [...this._skills]; }
-
-	get gaming() { return this.owner?.gaming; }
-
-	get position() { return this._position; }
 
 	// set position(p) {
 	// 	if (this._position && this._position.isEqualTo(p)) {
@@ -732,6 +712,7 @@ class Unit {
 class Rule {
 	_cfg;
 	_gaming;
+	get gaming() { return this._gaming; }
 
 	constructor(gaming, cfg) {
 		this._cfg = cfg;
@@ -739,17 +720,30 @@ class Rule {
 		addCfgProps(this, this._cfg);
 		watchersWatch(this, this.watchers);
 	}
-
-	get gaming() { return this._gaming; }
 }
 
 class Skill {
 	static _nextId = 1;
 	static _instanceActivateCounts = new WeakMap();
 
+	get activateCount() { return Skill._instanceActivateCounts.get(this); }
+
 	_id;
+	get id() { return this._id; }
+
 	_owner;
+	get owner() { return this._owner; }
+
 	_cfg;
+
+	get gaming() { return this.owner?.gaming; }
+
+	/**
+	 * 获取所有潜在的可用目标。子类应重写此方法以提供具体的寻目标逻辑。
+	 * 默认实现：返回undefined（未定义可用目标）
+	 * @returns {Array<Object>} - 潜在目标对象的数组。undefined照本意，表示‘未定义（可用目标）’，即不能获取或不能列举可用目标。null同[]，表示无可用目标。
+	 */
+	get availableTargets() { return undefined; }
 
 	constructor(cfg) {
 		this._id = 'id' in cfg ? cfg.id : Skill._nextId++;
@@ -789,13 +783,6 @@ class Skill {
 	async activate(targets) { return true; }
 
 	/**
-	 * 获取所有潜在的可用目标。子类应重写此方法以提供具体的寻目标逻辑。
-	 * 默认实现：返回undefined（未定义可用目标）
-	 * @returns {Array<Object>} - 潜在目标对象的数组。undefined照本意，表示‘未定义（可用目标）’，即不能获取或不能列举可用目标。null同[]，表示无可用目标。
-	 */
-	get availableTargets() { return undefined; }
-
-	/**
 	 * 过滤传入的目标列表，返回其中合法的目标。子类可重写以提供更复杂的过滤规则。
 	 * 默认实现：使用availableTargets过滤。
 	 * @param {Array<Object>} targets - 待过滤的目标数组。
@@ -805,14 +792,6 @@ class Skill {
 		const potential = this.availableTargets || [];
 		return targets.filter(t => potential.some(p => compareWithId(p, t)));
 	}
-
-	get id() { return this._id; }
-
-	get owner() { return this._owner; }
-
-	get gaming() { return this.owner?.gaming; }
-
-	get activateCount() { return Skill._instanceActivateCounts.get(this); }
 }
 
 /**
@@ -892,6 +871,7 @@ class BuffSkill extends PassiveSkill {
 class Plugin {
 	_cfg;
 	_gaming;
+	get gaming() { return this._gaming; }
 
 	constructor(gaming, cfg) {
 		this._cfg = cfg;
@@ -899,28 +879,26 @@ class Plugin {
 		addCfgProps(this, this._cfg);
 		watchersWatch(this, this.watchers);
 	}
-
-	get gaming() { return this._gaming; }
 }
 
 //========================棋盘类游戏的类
 
 class Board extends Battlefield {
+	//不能声明属性，否则在super里初始化好的属性又被重新初始化了。
 	// _colSize;
 	// _rowSize;
 	// _grid; // 使用二维数组优化棋子存储
+	get rowSize() { return this._rowSize; }
+
+	get colSize() { return this._colSize; }
+
+	get grid() { return this._grid; }
 
 	constructor(gaming, cfg = {}) {
 		// 仍然调用父类构造函数，以运行GamingPart的初始化等逻辑
 		// 但我们会忽略父类关于 positionUnitsMapping 的部分，用自己的grid代替
 		super(gaming, {positions: Board.buildPositions(cfg.rowSize, cfg.colSize), ...cfg});
 	}
-
-	get rowSize() { return this._rowSize; }
-
-	get colSize() { return this._colSize; }
-
-	get grid() { return this._grid; }
 
 	_initPositionUnitsMapping() {
 		super._initPositionUnitsMapping();
@@ -998,6 +976,9 @@ class Board extends Battlefield {
 }
 
 class 棋盘点位 extends Position {
+	rowNum;
+	colNum;
+
 	constructor(rowNum, colNum) {
 		super();
 		this.rowNum = rowNum;
