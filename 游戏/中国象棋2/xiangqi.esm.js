@@ -119,9 +119,8 @@ class 攻击 extends Skill {
 	}
 
 	activate(targets) {
-		const availableTargets = this.availableTargets;
 		return (targets || []).map(targetUnit => {
-			if (targetUnit instanceof Unit && availableTargets.some(e => compareWithId(e, targetUnit))) {
+			if (targetUnit instanceof Unit) {
 				const place = targetUnit.position;
 				const payload = {unit: this.owner, killed: targetUnit, place};
 				this.gaming.battlefield.destroyUnit(targetUnit);
@@ -133,7 +132,8 @@ class 攻击 extends Skill {
 	}
 
 	get availableTargets() {
-		return this.scopePositions().flatMap(p => this.gaming.battlefield.getUnitsAt(p));
+		const unitsInScope = this.scopePositions().flatMap(p => this.gaming.battlefield.getUnitsAt(p));
+		return unitsInScope.filter(unit => this.isAvailableTarget(unit));
 	}
 
 	scopePositions() {
@@ -539,7 +539,7 @@ const 内置规则集 = {
 						}
 						const filtered = availableTargetPositions.filter(p => {
 							const unitsAtTarget = this.gaming.battlefield.getUnitsAt(p);
-							return unitsAtTarget.length === 0 || compareWithId(unitsAtTarget[0].owner, unit.owner);
+							return unitsAtTarget.length === 0 || !compareWithId(unitsAtTarget[0].owner, unit.owner);
 						});
 						availableTargetPositions.length = 0;
 						availableTargetPositions.push(...filtered);
