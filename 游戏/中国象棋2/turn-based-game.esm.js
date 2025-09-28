@@ -4,8 +4,9 @@ import {
 } from './kit.esm.js';
 
 export {
-	TurnBasedGame, TurnBasedGaming, Rule, Battlefield, Situation,
-	Player, Unit, Skill, PassiveSkill, BuffSkill, Plugin,
+	TurnBasedGame, TurnBasedGaming, BattlefieldBasedGaming, Rule, Battlefield, Situation,
+	Player, Unit, Skill, PassiveSkill, BuffSkill,
+	Plugin, Module, BattlefieldModule,
 	Board, 棋盘点位,
 };
 
@@ -39,6 +40,7 @@ class TurnBasedGaming {
 
 	_globalRules = [];
 	_plugins = [];
+	_modules = []; // 新增
 	_situation;
 	get situation() { return this._situation; }
 
@@ -47,9 +49,6 @@ class TurnBasedGaming {
 
 	_playersIdMap = {}; // 存储所有玩家实例的映射
 	get playersIdMap() { return {...this._playersIdMap}; }
-
-	_battlefield;
-	get battlefield() { return this._battlefield; }
 
 	get gaming() { return this; }
 
@@ -60,6 +59,7 @@ class TurnBasedGaming {
 
 	_build() {
 		notice(this, 'gaming build start', {gaming: this});
+		//规则、插件通常是注册一些监听器
 		this._globalRules = this._buildGlobalRules();
 		this._plugins = this._buildPlugins();
 		this._plugins.forEach(plugin =>
@@ -68,7 +68,8 @@ class TurnBasedGaming {
 		this._playerTurnSequence = this._buildPlayerTurnSequence();
 		this._playersIdMap = Object.fromEntries(this._playerTurnSequence.map(player => [player.id, player]));
 		this._situation = this._buildSituation();
-		this._battlefield = this._buildBattlefield();
+
+		this._modules = this._buildModules();
 		notice(this, 'gaming build end', {gaming: this});
 	}
 
@@ -99,15 +100,6 @@ class TurnBasedGaming {
 		return rt;
 	}
 
-	_buildBattlefield() {
-		const battlefieldCfg = this._cfg.battlefieldCfg || {};
-		const BattlefieldClass = this._cfg.BattlefieldClass ?? Battlefield;
-		notice(this, 'gaming buildBattlefield start', {gaming: this, battlefieldCfg, class: BattlefieldClass});
-		const rt = new BattlefieldClass(this, battlefieldCfg);
-		notice(this, 'gaming buildBattlefield end', {battlefield: rt});
-		return rt;
-	}
-
 	_buildSituation() {
 		const SituationClass = this._cfg.SituationClass ?? Situation;
 		notice(this, 'gaming buildSituation start', {gaming: this});
@@ -128,7 +120,23 @@ class TurnBasedGaming {
 		const PluginClass = pluginCfg.class ?? this._cfg.PluginClass ?? Plugin;
 		notice(this, 'gaming buildPlugin start', {gaming: this, pluginCfg, class: PluginClass});
 		const rt = new PluginClass(this, pluginCfg);
-		notice(this, 'gaming buildPlugin end', {globalRule: rt});
+		notice(this, 'gaming buildPlugin end', {plugin: rt});
+		return rt;
+	}
+
+	_buildModules() {
+		const modulesCfg = this._cfg.modules || [];
+		notice(this, 'gaming buildModules start', {gaming: this, modulesCfg});
+		const rt = modulesCfg.map(moduleCfg => this._buildModule(moduleCfg));
+		notice(this, 'gaming buildModules end', {modules: rt});
+		return rt;
+	}
+
+	_buildModule(moduleCfg) {
+		const ModuleClass = moduleCfg.class ?? this._cfg.ModuleClass ?? Module;
+		notice(this, 'gaming buildModule start', {gaming: this, moduleCfg, class: ModuleClass});
+		const rt = new ModuleClass(this, moduleCfg);
+		notice(this, 'gaming buildModule end', {module: rt});
 		return rt;
 	}
 
@@ -878,6 +886,41 @@ class Plugin {
 		this._gaming = gaming;
 		addCfgProps(this, this._cfg);
 		watchersWatch(this, this.watchers);
+	}
+}
+
+class Module {
+	_cfg;
+	_gaming;
+	get gaming() { return this._gaming; }
+
+	constructor(gaming, cfg) {
+		this._cfg = cfg;
+		this._gaming = gaming;
+		addCfgProps(this, this._cfg);
+		watchersWatch(this, this.watchers);
+	}
+}
+
+class BattlefieldModule extends Module {
+	constructor(gaming, cfg) {
+		super(gaming, cfg);
+		const BattlefieldClass = cfg.battlefieldClass ?? gaming._cfg.BattlefieldClass ?? Battlefield;
+		notice(this, 'gaming buildBattlefield start', {gaming: gaming, battlefieldCfg: cfg, class: BattlefieldClass});
+		const battlefield = new BattlefieldClass(gaming, cfg);
+		notice(this, 'gaming buildBattlefield end', {battlefield});
+		gaming.battlefield = battlefield;
+	}
+}
+
+class BattlefieldBasedGaming extends TurnBasedGaming {
+	constructor(cfg) {
+		cfg.modules = cfg.modules || [];
+		//如果modules里没有BattlefieldModule，就默认给它加上
+		if (!cfg.modules.some(m => m.class === BattlefieldModule)) {
+			cfg.modules.push({class: BattlefieldModule, ...cfg.battlefieldCfg});
+		}
+		super(cfg);
 	}
 }
 

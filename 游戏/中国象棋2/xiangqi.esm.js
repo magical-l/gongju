@@ -1,6 +1,6 @@
 import {compareWithId, notice, watch} from './kit.esm.js';
 import {
-	Board, Player, Rule, Situation, Skill, TurnBasedGame, TurnBasedGaming, Unit, 棋盘点位,
+	BattlefieldBasedGaming, BattlefieldModule, Board, Player, Rule, Situation, Skill, TurnBasedGame, Unit, 棋盘点位,
 } from './turn-based-game.esm.js';
 
 export {
@@ -615,11 +615,15 @@ class 中国象棋 extends TurnBasedGame {
 			}
 		}
 		return {
-			battlefieldCfg: {
-				rowSize: 10,
-				colSize: 9,
-				unitsPositionCfg,
-			},
+			modules: [
+				{
+					class: BattlefieldModule,
+					battlefieldClass: 棋盘,
+					rowSize: 10,
+					colSize: 9,
+					unitsPositionCfg,
+				},
+			],
 			unitTypes: Object.fromEntries(
 				Object.entries(cfg.棋子类型)
 							.map(([棋子名, 棋子]) =>
@@ -777,7 +781,7 @@ class 棋盘 extends Board {
 	}
 }
 
-class 棋局 extends TurnBasedGaming {
+class 棋局 extends BattlefieldBasedGaming {
 	_build() {
 		//先监听，有些时机在super._build内部
 		const eventTranslations = {
