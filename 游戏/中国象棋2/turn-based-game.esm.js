@@ -20,8 +20,8 @@ class TurnBasedGame {
 	newGaming() {
 		const GamingClass = this.cfg.GamingClass ?? TurnBasedGaming;
 		const rt = new GamingClass(this.cfg);
-		rt._build();
-		rt._start();
+		rt.build();
+		rt.start();
 		return rt;
 	}
 }
@@ -57,7 +57,7 @@ class TurnBasedGaming {
 		addCfgProps(this, this._cfg);
 	}
 
-	_build() {
+	build() {
 		notice(this, 'gaming build start', {gaming: this});
 		//规则、插件通常是注册一些监听器
 		this._globalRules = this._buildGlobalRules();
@@ -140,7 +140,7 @@ class TurnBasedGaming {
 		return rt;
 	}
 
-	_start() {
+	start() {
 		this.bulletin.watch('game over', ({winner}) => {
 			this.situation.isEnded = true;
 			this.situation.winner = winner;
@@ -165,7 +165,7 @@ class TurnBasedGaming {
 				unwatch(this, 'ui input', onInput);
 				resolve(payload);
 			};
-			watch(this, 'ui input', onInput);
+			watch(this, 'ui input', onInput, {watchHistory: false});
 		});
 	}
 }

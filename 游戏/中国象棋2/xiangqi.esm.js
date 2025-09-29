@@ -782,7 +782,7 @@ class 棋盘 extends Board {
 }
 
 class 棋局 extends BattlefieldBasedGaming {
-	_build() {
+	build() {
 		//先监听，有些时机在super._build内部
 		const eventTranslations = {
 			'gaming build start': '游戏构建开始',
@@ -804,7 +804,7 @@ class 棋局 extends BattlefieldBasedGaming {
 					.forEach(([enTopiName, cnTopicName]) =>
 						watch(this, enTopiName, payload => notice(this, cnTopicName, payload)));
 
-		super._build();
+		super.build();
 	}
 
 	_buildGlobalRule(ruleCfg) {

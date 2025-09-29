@@ -48,14 +48,14 @@ const ensureArray = value => Array.isArray(value) ? value : (value !== null && v
 const compareWithId = (a, b) => a === b || a.id && b.id && a.id === b.id;
 
 //简便方法，减少代码量
-const watch = (gamingPart, topic, callback) => gamingPart.gaming?.bulletin.watch(topic, callback);
-const watchersWatch = (gamingPart, watchers) => {
+const watch = (gamingPart, topic, callback, options) => gamingPart.gaming?.bulletin.watch(topic, callback, options);
+const watchersWatch = (gamingPart, watchers, options) => {
 	if (watchers) {
-		Object.entries(watchers).forEach(([topic, callback]) => watch(gamingPart, topic, callback));
+		Object.entries(watchers).forEach(([topic, callback]) => watch(gamingPart, topic, callback, options));
 	}
 };
 const unwatch = (gamingPart, topic, callback) => gamingPart.gaming?.bulletin.unwatch(topic, callback);
-const notice = (gamingPart, topic, payload) => gamingPart.gaming?.bulletin.notice(topic, payload);
+const notice = (gamingPart, topic, payload, options) => gamingPart.gaming?.bulletin.notice(topic, payload, options);
 
 const addCfgProps = (instance, privateCfg) => {
 	if (!privateCfg) {
@@ -172,17 +172,26 @@ const aopGetter = (self, propertyName, options = {noticePayloadBuilder: undefine
  * 公告栏(事件总线)，用于发布通知。同时也提供订阅、不再订阅的功能。
  */
 class Bulletin {
-	constructor() {
-		this.listeners = {};
-	}
+	_listeners = {};
+	get listeners() { return this._listeners; }
+
+	_historyNotices = [];
+	get historyNotices() { return this._historyNotices; }
 
 	/**
 	 * 订阅一个主题
 	 * @param {string} topic 主题名
 	 * @param {Function} watcher 订阅者（回调函数）
+	 * @param options
 	 */
-	watch(topic, watcher) {
-		(this.listeners[topic] = this.listeners[topic] || []).push(watcher);
+	watch(topic, watcher, options = {watchHistory: true}) {
+		// 正常注册，用于接收未来事件
+		(this._listeners[topic] = this._listeners[topic] || []).push(watcher);
+
+		// 检查历史事件并立即“回溯”
+		if (options.watchHistory) {
+			this._historyNotices.filter(notice => notice.topic === topic).forEach(event => watcher(event.payload));
+		}
 	}
 
 	/**
@@ -191,8 +200,8 @@ class Bulletin {
 	 * @param {Function} watcher 订阅者（回调函数）
 	 */
 	unwatch(topic, watcher) {
-		if (this.listeners[topic]) {
-			this.listeners[topic] = this.listeners[topic].filter(i => i !== watcher);
+		if (this._listeners[topic]) {
+			this._listeners[topic] = this._listeners[topic].filter(i => i !== watcher);
 		}
 	}
 
@@ -200,9 +209,13 @@ class Bulletin {
 	 * 发出一个通知
 	 * @param {string} topic 主题名
 	 * @param {object} payload 事件荷载
+	 * @param {object} options 配置项，{ replayable: boolean }，默认为false
 	 */
-	notice(topic, payload = {}) {
+	notice(topic, payload = {}, options = {replayable: true}) {
 		console?.log('通知：', topic, payload);
-		(this.listeners[topic] || []).forEach(cb => cb(payload));
+		if (options.replayable) {
+			this._historyNotices.push({topic, payload});
+		}
+		(this._listeners[topic] || []).forEach(cb => cb(payload));
 	}
 }
