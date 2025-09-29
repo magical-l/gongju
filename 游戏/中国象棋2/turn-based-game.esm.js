@@ -275,25 +275,6 @@ class Player {
 		aopMethod(this, 'selectTargets', {
 			noticePayloadBuilder: args => ({targets: args[0]}),
 		});
-
-		//单位的权威数据在Battlefield。本类监听Battlefield处理单位的通知，更新自己的单位缓存。
-		const __addUnitToUnits = unit => {
-			if (compareWithId(this, unit.owner)) {
-				if (!this._units.some(u => compareWithId(u, unit))) {
-					this.addUnit(unit);
-				}
-			}
-		};
-		watch(this, 'gaming build end', () => {
-			this.gaming.battlefield.allUnitsInBattlefield.forEach(unit => __addUnitToUnits(unit));
-			//游戏构建完成后才监听addUnitToPosition，只看游戏中新增的单位
-			watch(this, 'battlefield addUnitToPosition end', ({unit, position}) => __addUnitToUnits(unit));
-		});
-		watch(this, 'battlefield destroyUnit end', ({unit}) => {
-			if (compareWithId(this, unit.owner)) {
-				this.removeUnit(unit);
-			}
-		});
 	}
 
 	addUnit(unit) { this._units.push(unit); }
@@ -445,9 +426,6 @@ class Unit {
 	_skills = [];
 	get skills() { return [...this._skills]; }
 
-	_position = null;//位置作为缓存
-	get position() { return this._position; }
-
 	_skillBoundWatchers = new WeakMap();
 
 	/**
@@ -468,12 +446,6 @@ class Unit {
 
 		const skills = this._buildSkills(cfg.skills || []);
 		skills.forEach(skill => this.addSkill(skill));
-
-		watch(this, 'battlefield moveUnit end', ({unit, to}) => {
-			if (compareWithId(this, unit)) {
-				this._position = to;
-			}
-		});
 	}
 
 	// set position(p) {

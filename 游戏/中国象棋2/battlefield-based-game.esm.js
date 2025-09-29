@@ -1,13 +1,8 @@
-import {
-	addCfgProps, aopMethod, compareWithId, notice,
-} from './kit.esm.js';
-import { TurnBasedGaming, Module, Unit } from './turn-based-game.esm.js';
+import {addCfgProps, aopMethod, compareWithId, notice, watch} from './kit.esm.js';
+import {Module, TurnBasedGaming, Unit} from './turn-based-game.esm.js';
 
 export {
-	BattlefieldBasedGaming,
-	Battlefield,
-	Position,
-	BattlefieldModule,
+	BattlefieldBasedGaming, Battlefield, Position, BattlefieldModule,
 	Board, 棋盘点位,
 };
 
@@ -77,34 +72,37 @@ class Battlefield {
 			return [];
 		}
 
-		notice(this, 'buildUnitsPositions start', {unitsPositionCfg});
+		notice(this, 'initUnitsPositions start', {unitsPositionCfg});
 
 		const createdUnits = [];
 
-		Object.entries(unitsPositionCfg).forEach(([positionDescription, unitTypeName]) => {
-			const unitType = this.gaming.unitTypes[unitTypeName];
-			if (!unitType) {
-				console.warn(`Unknown unit type name: ${unitTypeName}`);
-				return;
-			}
+		Object.entries(unitsPositionCfg)
+					.forEach(([positionDescription, unitTypeName]) => {
+						const unitType = this.gaming.unitTypes[unitTypeName];
+						if (!unitType) {
+							console.warn(`Unknown unit type name: ${unitTypeName}`);
+							return;
+						}
 
-			const player = this.gaming.playersIdMap[unitType.player];
-			if (!player) {
-				console.warn(`Could not find player for unit type: ${unitTypeName}`);
-				return;
-			}
+						const player = this.gaming.playersIdMap[unitType.player];
+						if (!player) {
+							console.warn(`Could not find player for unit type: ${unitTypeName}`);
+							return;
+						}
 
-			const unit = this._buildUnit(player, {name: unitTypeName, ...unitType});
-			const position = this.toPosition(positionDescription);
+						const unit = this._buildUnit(player, {name: unitTypeName, ...unitType});
+						const position = this.toPosition(positionDescription);
 
-			if (unit && position) {
-				this.addUnitToPosition(unit, position);
-				createdUnits.push(unit);
-			}
-		});
+						if (unit && position) {
+							this.addUnitToPosition(unit, position);
+							//给Unit附加position属性。
+							unit.position = position;
+							unit.owner.addUnit(unit);
+							createdUnits.push(unit);
+						}
+					});
 
-		notice(this, 'buildUnitsPositions end', {rt: createdUnits});
-		return createdUnits;
+		notice(this, 'initUnitsPositions end', {createdUnits});
 	}
 
 	_buildUnits(unitCfgs) {
@@ -191,6 +189,23 @@ class BattlefieldModule extends Module {
 		const battlefield = new BattlefieldClass(gaming, cfg);
 		notice(this, 'gaming buildBattlefield end', {battlefield});
 		gaming.battlefield = battlefield;
+
+		watch(this, 'battlefield addUnitToPosition end', ({unit, position}) => unit.position = position);
+		watch(this, 'battlefield moveUnit end', ({unit, to}) => unit.position = to);
+		watch(this, 'battlefield removeUnitFromPosition end', ({unit}) => unit.position = null);
+
+		watch(this, 'gaming build end', () => {
+			this.gaming.battlefield.allUnitsInBattlefield.forEach(unit => {
+				if (unit.owner && !unit.owner.units.includes(unit)) {
+					unit.owner.addUnit(unit);
+				}
+			});
+		});
+		watch(this, 'battlefield destroyUnit end', ({unit}) => {
+			if (unit && unit.owner) {
+				unit.owner.removeUnit(unit);
+			}
+		});
 	}
 }
 
@@ -234,22 +249,22 @@ class Board extends Battlefield {
 
 	// 重写父类方法，使用grid进行操作
 	addUnitToPosition(unit, position) {
+		super.addUnitToPosition(unit, position);
 		this._grid[position.rowNum - 1][position.colNum - 1].push(unit);
-		unit._position = position; // 保持对unit._position的更新
 	}
 
 	// 重写父类方法，使用grid进行操作
-	removeUnitFromPosition(unit) {
-		if (!unit.position) {
+	removeUnitFromPosition(unit, position = unit.position) {
+		if (!position) {
 			return;
 		}
-		const {rowNum, colNum} = unit.position;
+		super.removeUnitFromPosition(unit, position);
+		const {rowNum, colNum} = position;
 		const unitsAtPos = this._grid[rowNum - 1][colNum - 1];
 		const index = unitsAtPos.findIndex(e => compareWithId(e, unit));
 		if (index > -1) {
 			unitsAtPos.splice(index, 1);
 		}
-		unit._position = null; // 保持对unit._position的更新
 	}
 
 	// 重写父类方法，使用grid进行操作
