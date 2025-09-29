@@ -31,6 +31,8 @@ class Battlefield {
 	_positionUnitsMapping = new Map(); // Map<Position的key, Unit[]>
 	get allUnitsInBattlefield() { return [...this._positionUnitsMapping.values()].flatMap(e => e); }
 
+	_unitPositionMapping = new Map();
+
 	constructor(gaming, cfg = {}) {
 		this._gaming = gaming;
 		this._cfg = cfg;
@@ -72,6 +74,8 @@ class Battlefield {
 			return [];
 		}
 
+		const __battlefield = this;
+
 		notice(this, 'initUnitsPositions start', {unitsPositionCfg});
 
 		const createdUnits = [];
@@ -96,7 +100,14 @@ class Battlefield {
 						if (unit && position) {
 							this.addUnitToPosition(unit, position);
 							//给Unit附加position属性。
-							unit.position = position;
+							Object.defineProperty(unit, 'position', {
+								get() {
+									return __battlefield._unitPositionMapping.get(unit.id);
+								},
+								set(newPosition) {
+									__battlefield.addUnitToPosition(unit, newPosition);
+								},
+							});
 							unit.owner.addUnit(unit);
 							createdUnits.push(unit);
 						}
@@ -147,6 +158,7 @@ class Battlefield {
 			this._positionUnitsMapping.set(key, []);
 		}
 		this._positionUnitsMapping.get(key).push(unit);
+		this._unitPositionMapping.set(unit.id, position);
 	}
 
 	_positionKey(position) {
@@ -157,12 +169,12 @@ class Battlefield {
 		if (!unit.position) {
 			return;
 		}
-		const key = this._positionKey(unit.position);
-		const unitsAtPos = this._positionUnitsMapping.get(key);
+		const unitsAtPos = this._positionUnitsMapping.get(unit.position.id);
 		if (unitsAtPos) {
 			const index = unitsAtPos.indexOf(unit);
 			if (index > -1) {
 				unitsAtPos.splice(index, 1);
+				this._unitPositionMapping.delete(unit.id);
 			}
 		}
 	}
@@ -190,9 +202,9 @@ class BattlefieldModule extends Module {
 		notice(this, 'gaming buildBattlefield end', {battlefield});
 		gaming.battlefield = battlefield;
 
-		watch(this, 'battlefield addUnitToPosition end', ({unit, position}) => unit.position = position);
-		watch(this, 'battlefield moveUnit end', ({unit, to}) => unit.position = to);
-		watch(this, 'battlefield removeUnitFromPosition end', ({unit}) => unit.position = null);
+		// watch(this, 'battlefield addUnitToPosition end', ({unit, position}) => unit.position = position);
+		// watch(this, 'battlefield moveUnit end', ({unit, to}) => unit.position = to);
+		// watch(this, 'battlefield removeUnitFromPosition end', ({unit}) => unit.position = null);
 
 		watch(this, 'gaming build end', () => {
 			this.gaming.battlefield.allUnitsInBattlefield.forEach(unit => {

@@ -448,16 +448,6 @@ class Unit {
 		skills.forEach(skill => this.addSkill(skill));
 	}
 
-	// set position(p) {
-	// 	if (this._position && this._position.isEqualTo(p)) {
-	// 		return;
-	// 	}
-	// 	const oldPosition = this.position;
-	// 	// setter作为移动指令的入口，通知战场来移动单位
-	// 	this.gaming.battlefield.moveUnit(this, p);
-	// 	this.gaming.bulletin.notice('单位移动', {unit: this, oldPosition});
-	// }
-
 	_buildSkills(skillsCfg) {
 		const owner = this;
 		notice(this, 'gaming buildSkills start', {owner, skillsCfg});
