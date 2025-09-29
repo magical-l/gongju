@@ -57,7 +57,6 @@ class Battlefield {
 
 		this._positions = this._buildPositions(cfg); // 显式地从配置中初始化 positions
 		this._initPositionUnitsMapping();
-		// _initUnitsPositions() is now called from BattlefieldModule to ensure listeners are attached first.
 	}
 
 	_buildPositions(cfg) {
@@ -68,13 +67,13 @@ class Battlefield {
 		this._positions.flat().forEach(p => this._positionUnitsMapping.set(p.toString(), []));
 	}
 
-	_initUnitsPositions() {
+	initUnitsPositions() {
 		const unitsPositionCfg = this._cfg.unitsPositionCfg;
 		if (!unitsPositionCfg) {
 			return [];
 		}
 
-		notice(this, 'initUnitsPositions start', {unitsPositionCfg});
+		notice(this, 'battlefield initUnitsPositions start', {unitsPositionCfg});
 
 		const createdUnits = [];
 
@@ -101,14 +100,7 @@ class Battlefield {
 						}
 					});
 
-		notice(this, 'initUnitsPositions end', {createdUnits});
-	}
-
-	_buildUnits(unitCfgs) {
-		notice(this, 'buildUnits start', {unitCfgs});
-		const rt = unitCfgs.map(unitCfg => this._buildUnit(this.gaming.playersIdMap[unitCfg.owner], unitCfg));
-		notice(this, 'buildUnits end', {rt});
-		return rt;
+		notice(this, 'battlefield initUnitsPositions end', {createdUnits});
 	}
 
 	_buildUnit(owner, unitCfg) {
@@ -190,22 +182,18 @@ class BattlefieldModule extends Module {
 		notice(this, 'gaming buildBattlefield end', {battlefield});
 		gaming.battlefield = battlefield;
 
-		// Listen to unit creation to dynamically attach the position pseudo-property.
-		watch(this, 'buildUnit end', ({ unit }) => {
-			if (unit) {
-				Object.defineProperty(unit, 'position', {
-					get: () => {
-						return this.gaming.battlefield._unitPositionMapping.get(unit.id);
-					},
-					set: (newPosition) => {
-						this.gaming.battlefield.moveUnit(unit, newPosition);
-					},
-					configurable: true
-				});
-			}
-		});
+		if (!Object.getOwnPropertyDescriptor(Unit.prototype, 'position')) {
+			Object.defineProperty(Unit.prototype, 'position', {
+				get: function() {
+					return this.gaming.battlefield._unitPositionMapping.get(this.id);
+				},
+				set: function(newPosition) {
+					this.gaming.battlefield.moveUnit(this, newPosition);
+				},
+				configurable: true,
+			});
+		}
 
-		// Synchronize player's unit list.
 		watch(this, 'gaming build end', () => {
 			this.gaming.battlefield.allUnitsInBattlefield.forEach(unit => {
 				if (unit.owner && !unit.owner.units.includes(unit)) {
@@ -213,14 +201,13 @@ class BattlefieldModule extends Module {
 				}
 			});
 		});
-		watch(this, 'battlefield destroyUnit end', ({ unit }) => {
+		watch(this, 'battlefield destroyUnit end', ({unit}) => {
 			if (unit && unit.owner) {
 				unit.owner.removeUnit(unit);
 			}
 		});
 
-		// Now that listeners are attached, initialize the units on the board.
-		gaming.battlefield._initUnitsPositions();
+		gaming.battlefield.initUnitsPositions();
 	}
 }
 
