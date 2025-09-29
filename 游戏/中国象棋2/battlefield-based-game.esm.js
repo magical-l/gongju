@@ -128,21 +128,14 @@ class Battlefield {
 		this.addUnitToPosition(unit, toPosition);
 	}
 
-	destroyUnit(unit) {
-		this.removeUnitFromPosition(unit);
-	}
+	destroyUnit(unit) { this.removeUnitFromPosition(unit); }
 
 	addUnitToPosition(unit, position) {
-		const key = this._positionKey(position);
-		if (!this._positionUnitsMapping.has(key)) {
-			this._positionUnitsMapping.set(key, []);
+		if (!this._positionUnitsMapping.has(position.id)) {
+			this._positionUnitsMapping.set(position.id, []);
 		}
-		this._positionUnitsMapping.get(key).push(unit);
+		this._positionUnitsMapping.get(position.id).push(unit);
 		this._unitPositionMapping.set(unit.id, position);
-	}
-
-	_positionKey(position) {
-		return position.id;
 	}
 
 	removeUnitFromPosition(unit, position = unit.position) {
@@ -159,16 +152,12 @@ class Battlefield {
 		}
 	}
 
-	getUnitsAt(position) {
-		return this._positionUnitsMapping.get(this._positionKey(position)) || [];
-	}
+	getUnitsAt(position) { return this._positionUnitsMapping.get(position.id) || []; }
 
 	/**
 	 * 移除出界的位置。
 	 */
-	keepValidPositions(positions) {
-		return positions.filter(p => this._positions.some(p2 => compareWithId(p, p2)));
-	}
+	keepValidPositions(positions) { return positions.filter(p => this._positions.some(p2 => compareWithId(p, p2))); }
 
 	//todo：需要增加许多关于位置的方法。比如计算两个单位的距离、获取距离某个单位为x的位置集……
 }
@@ -194,6 +183,7 @@ class BattlefieldModule extends Module {
 			});
 		}
 
+		//把战场上的单位都加到对应的Player.units里，做便捷访问入口
 		watch(this, 'gaming build end', () => {
 			this.gaming.battlefield.allUnitsInBattlefield.forEach(unit => {
 				if (unit.owner && !unit.owner.units.includes(unit)) {
@@ -201,6 +191,7 @@ class BattlefieldModule extends Module {
 				}
 			});
 		});
+		//单位被消灭时从玩家实例里移除。
 		watch(this, 'battlefield destroyUnit end', ({unit}) => {
 			if (unit && unit.owner) {
 				unit.owner.removeUnit(unit);
