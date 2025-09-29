@@ -1,7 +1,6 @@
 import {compareWithId, notice, watch} from './kit.esm.js';
-import {
-	BattlefieldBasedGaming, BattlefieldModule, Board, Player, Rule, Situation, Skill, TurnBasedGame, Unit, 棋盘点位,
-} from './turn-based-game.esm.js';
+import {Player, Rule, Situation, Skill, TurnBasedGame, Unit} from './turn-based-game.esm.js';
+import {BattlefieldBasedGaming, BattlefieldModule, Board, 棋盘点位} from './battlefield-based-game.esm.js';
 
 export {
 	红方id, 黑方id, 红方默认配置, 黑方默认配置, 红方玩家id, 黑方玩家id, 默认玩家顺序, 默认棋盘布局, 默认棋子类型,
