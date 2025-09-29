@@ -1,4 +1,4 @@
-import {addCfgProps, aopMethod, compareWithId, notice, watch} from './kit.esm.js';
+import {addCfgProps, aopMethod, compareWithId, ensureArray, notice, watch} from './kit.esm.js';
 import {Module, TurnBasedGaming, Unit} from './turn-based-game.esm.js';
 
 export {
@@ -183,10 +183,13 @@ class BattlefieldModule extends Module {
 			});
 		}
 
+		// --- NEW: Upgrade players to Model 2 ---
+		this.upgradePlayersToUnitBased(gaming.playerTurnSequence);
+
 		//把战场上的单位都加到对应的Player.units里，做便捷访问入口
 		watch(this, 'gaming build end', () => {
 			this.gaming.battlefield.allUnitsInBattlefield.forEach(unit => {
-				if (unit.owner && !unit.owner.units.includes(unit)) {
+				if (unit.owner && (!unit.owner.units || !unit.owner.units.includes(unit))) {
 					unit.owner.addUnit(unit);
 				}
 			});
@@ -199,6 +202,141 @@ class BattlefieldModule extends Module {
 		});
 
 		gaming.battlefield.initUnitsPositions();
+	}
+
+	_playerIdUnitsMap = new Map();
+	_playerIdSelectedUnits = new Map();
+
+	upgradePlayersToUnitBased(players) {
+		players.forEach(player => {
+			Object.defineProperty(player, 'units', {
+				get: () => { return this._playerIdUnitsMap.get(player.id); },
+				configurable: true,
+			});
+			Object.defineProperty(player, 'selectedUnits', {
+				get: () => { return this._playerIdSelectedUnits.get(player.id); },
+				set: units => {
+					this._playerIdSelectedUnits.set(player.id, units);
+					return true;
+				},
+				configurable: true,
+			});
+
+			player.addUnit = unit => {
+				if (!this._playerIdUnitsMap.has(player.id)) {
+					this._playerIdUnitsMap.set(player.id, []);
+				}
+				this._playerIdUnitsMap.get(player.id).push(unit);
+			};
+			player.removeUnit = unit => {
+				if (this._playerIdUnitsMap.has(player.id)) {
+					const units = this._playerIdUnitsMap.get(player.id);
+					this._playerIdUnitsMap.set(player.id, units.filter(e => !compareWithId(e, unit)));
+				}
+			};
+
+			player.selectUnits = units => {
+				const ownUnits = units.filter(u => compareWithId(u.owner, player));
+				if (ownUnits.length > 0) {
+					player.selectedUnits = ownUnits;
+					player.selectedSkills = [];
+					player.selectedTargets = [];
+				}
+			};
+
+			aopMethod(player, 'addUnit', {noticePayloadBuilder: args => ({unit: args[0]})});
+			aopMethod(player, 'removeUnit', {noticePayloadBuilder: args => ({unit: args[0]})});
+			aopMethod(player, 'selectUnits', {noticePayloadBuilder: args => ({units: args[0]})});
+
+			//覆盖‘processInput’方法
+			const originalProcessInput = player.processInput;
+			player.processInput = (...args)=> {
+				const inputs =ensureArray(args[0]);
+				if (inputs.length === 0) {
+					return;
+				}
+				const firstItem = inputs[0];
+
+				let unitToSelect = null;
+				if (firstItem instanceof Unit) {
+					unitToSelect = firstItem;
+				} else {
+					const potentialId = firstItem?.id ?? firstItem;
+					const foundUnit = player.gaming.battlefield.allUnitsInBattlefield.find(u => u.id === potentialId);
+					if (foundUnit) {
+						unitToSelect = foundUnit;
+					}
+				}
+
+				if (unitToSelect) {
+					const unitsToProcess = [unitToSelect];
+
+					if (player.selectedUnits?.length && player.selectedSkills?.length) {
+						if (player.selectedSkills.some(e => e.filterValidTargets(unitsToProcess).length > 0)) {
+							player.selectTargets(unitsToProcess);
+						} else {
+							const ownUnits = unitsToProcess.filter(u => u.owner?.id === player.id);
+							if (ownUnits.length > 0) {
+								player.selectUnits(ownUnits);
+							}
+						}
+					} else {
+						player.selectUnits(unitsToProcess);
+					}
+					return;
+				}
+
+				return originalProcessInput.apply(player, args);
+			};
+
+			//覆盖‘选择技能’方法
+			const originalSelectSkills = player.selectSkills;
+			player.selectSkills = function(...args) {
+				if (!player.selectedUnits?.length) {
+					return;
+				}
+				return originalSelectSkills.apply(player, args);
+			};
+
+			//覆盖‘使用技能’方法
+			player.activateSkills = async (...args)=> {
+				const [selectedSkills, selectedTargets] = args;
+				let activated = false;
+				if (player.selectedUnits) {
+					for (const unit of player.selectedUnits) {
+						for (const skill of selectedSkills) {
+							if (unit.skills.includes(skill)) {
+								activated = activated || await skill.activate(selectedTargets);
+							}
+						}
+					}
+				}
+				return activated;
+			};
+
+			//覆盖‘play’方法
+			player.play = async (...args)=> {
+				let actionsTaken = 0;
+				while (actionsTaken < player.actionsPerTurn) {
+					const input = await player.gaming.waitForInput();
+					if (input?.action === 'END_TURN') {
+						break;
+					}
+					player.processInput(input);
+					//三要素齐备，开始施放技能。
+					if (player.selectedUnits?.length && player.selectedSkills?.length && player.selectedTargets?.length) {
+						const actionPerformed = await player.activateSkills(player.selectedSkills, player.selectedTargets);
+						if (actionPerformed) {
+							actionsTaken++;
+							player.selectedTargets = [];//每次施放技能后只清空目标
+						}
+					}
+				}
+				player.selectedUnits = [];
+				player.selectedSkills = [];
+				player.selectedTargets = [];
+			};
+		});
 	}
 }
 

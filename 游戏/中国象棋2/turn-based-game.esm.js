@@ -238,51 +238,99 @@ class Player {
 	_team;
 	get team() { return this._team; }
 
-	_units = [];//拥有的单位的缓存
-	get units() { return this._units; }
+	_skills = [];
+	get skills() { return [...this._skills]; }
 
-	_selectedUnits = [];
-	get selectedUnits() { return this._selectedUnits; }
+	_skillBoundWatchers = new WeakMap();
 
-	_selectedSkills = [];
-	get selectedSkills() { return this._selectedSkills; }
-
-	_selectedTargets = [];
-	get selectedTargets() { return this._selectedTargets; }
+	selectedSkills = [];
+	selectedTargets = [];
 
 	constructor(gaming, cfg) {
 		this._cfg = cfg;
 		this._id = 'id' in cfg ? cfg.id : Player._nextId++;
-		this._units = 'units' in cfg ? cfg.units : [];
 		this._gaming = gaming;
 		this._team = cfg.team;
 		this.actionsPerTurn = cfg.actionsPerTurn || 1; // 从配置或默认值初始化
 
 		addCfgProps(this, this._cfg);
 
-		aopMethod(this, 'addUnit', {
-			noticePayloadBuilder: args => ({unit: args[0]}),
+		// AOP for skill management
+		aopMethod(this, 'addSkill', {
+			noticePayloadBuilder: args => ({skill: args[0]}),
 		});
-		aopMethod(this, 'removeUnit', {
-			noticePayloadBuilder: args => ({unit: args[0]}),
+		aopMethod(this, 'removeSkill', {
+			noticePayloadBuilder: args => ({skill: args[0]}),
 		});
-		aopMethod(this, 'selectUnits', {
-			noticePayloadBuilder: args => ({units: args[0]}),
-		});
+		// AOP for selection
 		aopMethod(this, 'selectSkills', {
 			noticePayloadBuilder: args => ({skills: args[0]}),
 		});
 		aopMethod(this, 'selectTargets', {
 			noticePayloadBuilder: args => ({targets: args[0]}),
 		});
+
+		// Build skills from config
+		const skills = this._buildSkills(cfg.skills || []);
+		skills.forEach(skill => this.addSkill(skill));
 	}
 
-	addUnit(unit) { this._units.push(unit); }
+	_buildSkills(skillsCfg) {
+		const owner = this;
+		notice(this, 'player buildSkills start', {owner, skillsCfg});
+		const rt = skillsCfg.map(skillCfg => this._buildSkill(skillCfg));
+		notice(this, 'player buildSkills end', {rt});
+		return rt;
+	}
 
-	removeUnit(unit) { this._units = this._units.filter(e => compareWithId(e, unit));}
+	_buildSkill(skillCfg) {
+		const SkillClass = skillCfg.class ?? this.gaming._cfg.SkillClass ?? Skill;
+		notice(this, 'player buildSkill start', {owner: this, skillCfg, class: SkillClass});
+		const rt = new SkillClass({...skillCfg, owner: this});
+		notice(this, 'player buildSkill end', {skill: rt});
+		return rt;
+	}
+
+	addSkill(skill) {
+		if (!skill || this.skills.includes(skill)) {
+			return;
+		}
+		this._skills.push(skill);
+
+		if (skill.watchers) {
+			const _boundWatchers = {};
+			Object.entries(skill.watchers).forEach(([topic, watcher]) => {
+				_boundWatchers[topic] = _boundWatchers[topic] ?? [];
+				_boundWatchers[topic].push(watcher);
+				this.gaming.bulletin.watch(topic, watcher);
+			});
+			this._skillBoundWatchers.set(skill, _boundWatchers);
+		}
+	}
+
+	removeSkill(skillOrClass) {
+		const skillIndex = typeof skillOrClass === 'function'
+											 ? this.skills.findIndex(s => s instanceof skillOrClass)
+											 : this.skills.findIndex(s => s === skillOrClass);
+		if (skillIndex === -1) {
+			return;
+		}
+
+		const skill = this.skills[skillIndex];
+
+		if (this._skillBoundWatchers.has(skill)) {
+			Object.entries(this._skillBoundWatchers.get(skill))
+						.forEach(([topic, boundWatchers]) =>
+							boundWatchers.forEach(boundWatcher =>
+								this.gaming.bulletin.unwatch(topic, boundWatcher)));
+			this._skillBoundWatchers.delete(skill);
+		}
+
+		this._skills.splice(skillIndex, 1);
+	}
 
 	/**
-	 * 玩家玩游戏。在回合制游戏里，玩家在自己的轮次里操作单位施放技能。
+	 * 玩家玩游戏。在回合制游戏里，玩家在自己的轮次里施放技能。
 	 * 默认实现：执行N次有效行动后（N由actionsPerTurn决定），本轮次结束。
 	 */
 	async play() {
@@ -290,33 +338,28 @@ class Player {
 		while (actionsTaken < this.actionsPerTurn) {
 			const input = await this.gaming.waitForInput();
 
-			// 允许玩家通过特定输入提前结束回合
 			if (input?.action === 'END_TURN') {
 				break;
 			}
 
-			//设置技能三要素
 			this.processInput(input);
 
-			//三要素齐备，开始施放技能。
-			if (this._selectedUnits?.length && this._selectedSkills?.length && this._selectedTargets?.length) {
-				const actionPerformed = await this.activateSkills(this._selectedUnits, this._selectedSkills,
-					this._selectedTargets);
+			//要素齐备，开始施放技能。
+			if (this.selectedSkills?.length && this.selectedTargets?.length) {
+				const actionPerformed = await this.activateSkills(this.selectedSkills, this.selectedTargets);
 				if (actionPerformed) {
 					actionsTaken++; // 成功行动，计数器加一
-					this._selectedTargets = []; // 成功行动后，清空目标，以便进行下一次行动
+					this.selectedTargets = []; // 成功行动后，清空目标，以便进行下一次行动
 				}
 			}
 		}
 
-		this._selectedUnits = [];
-		this._selectedSkills = [];
-		this._selectedTargets = [];
+		this.selectedSkills = [];
+		this.selectedTargets = [];
 	}
 
 	/**
-	 * 根据输入，设置施放技能三要素，并严格遵循 Unit -> Skill -> Target 的顺序。
-	 * 该方法接受单个对象或数组作为输入，并将具体选择逻辑分派到 selectUnits, selectSkills, selectTargets 方法。
+	 * 根据输入，设置施放技能的要素，顺序： Skill -> Target。
 	 * @param {any|any[]} input
 	 */
 	processInput(input) {
@@ -326,37 +369,10 @@ class Player {
 		}
 		const firstItem = inputs[0];
 
-		if (firstItem instanceof Unit) {
-			// 如果已经选择了单位和技能，那么后续的单位输入应被视为“目标”
-			if (this._selectedUnits?.length && this._selectedSkills?.length) {
-				// 检查这些“目标”对于当前选中的技能是否合法
-				if (this._selectedSkills.some(e => e.filterValidTargets(inputs).length > 0)) {
-					this.selectTargets(inputs);
-				} else {
-					// 如果目标不合法，则检查本次输入是否是一次全新的“选择单位”动作
-					const ownUnits = inputs.filter(u => u.owner?.id === this.id);
-					if (ownUnits.length > 0) {
-						this.selectUnits(ownUnits);
-					}
-					// 如果既不是合法目标，也不是选择新的己方单位，则忽略本次操作
-				}
-			} else {
-				// 如果尚未选择单位/技能，则本次输入为“选择单位”
-				this.selectUnits(inputs);
-			}
-		} else if (firstItem instanceof Skill) {
+		if (firstItem instanceof Skill) {
 			this.selectSkills(inputs);
 		} else {
 			this.selectTargets(inputs);
-		}
-	}
-
-	selectUnits(units) {
-		const ownUnits = units.filter(u => u.owner?.id === this.id);
-		if (ownUnits.length > 0) {
-			this._selectedUnits = ownUnits;
-			this._selectedSkills = [];
-			this._selectedTargets = [];
 		}
 	}
 
@@ -366,12 +382,11 @@ class Player {
 	 * @param {Skill[]} skills 要选择的技能
 	 */
 	selectSkills(skills) {
-		if (this._selectedUnits?.length) {
-			// 过滤出所有主动技能
-			const activeSkills = skills.filter(s => typeof s?.activate === 'function');
-			if (activeSkills.length > 0) {
-				this._selectedSkills = activeSkills;
-			}
+		// 过滤出所有主动技能
+		const activeSkills = skills.filter(s => typeof s?.activate === 'function');
+		if (activeSkills.length > 0) {
+			this.selectedSkills = activeSkills;
+			this.selectedTargets = []; // 重置目标
 		}
 	}
 
@@ -380,31 +395,25 @@ class Player {
 	 * @param {any[]} targets 要选择的目标
 	 */
 	selectTargets(targets) {
-		// 必须在选定单位和技能后
-		if (this._selectedUnits?.length && this._selectedSkills?.length) {
-			this._selectedTargets = targets;
+		// 必须在选定技能后
+		if (this.selectedSkills?.length) {
+			this.selectedTargets = targets;
 		}
 	}
 
 	/**
 	 * 默认实现：每个技能都触发。技能自行处理目标（比如筛除非法目标等）
-	 * 子类可覆写为只触发单个技能。
-	 * @param selectedUnits
 	 * @param selectedSkills
 	 * @param selectedTargets
 	 * @returns {boolean} 是否成功触发了至少一个技能
 	 */
-	async activateSkills(selectedUnits, selectedSkills, selectedTargets) {
+	async activateSkills(selectedSkills, selectedTargets) {
 		let activated = false;
-		// 遍历所有选中的单位
-		for (const unit of selectedUnits) {
-			// 遍历所有选中的技能
-			for (const skill of selectedSkills) {
-				// 确认当前单位拥有该技能
-				if (unit.skills.includes(skill)) {
-					// 触发技能，并将目标传入
-					activated = activated || await skill.activate(selectedTargets);
-				}
+		for (const skill of selectedSkills) {
+			// 确认当前玩家拥有该技能
+			if (this.skills.includes(skill)) {
+				// 触发技能，并将目标传入
+				activated = activated || await skill.activate(selectedTargets);
 			}
 		}
 		return activated;
@@ -450,17 +459,17 @@ class Unit {
 
 	_buildSkills(skillsCfg) {
 		const owner = this;
-		notice(this, 'gaming buildSkills start', {owner, skillsCfg});
+		notice(this, 'unit buildSkills start', {owner, skillsCfg});
 		const rt = skillsCfg.map(skillCfg => this._buildSkill(skillCfg));
-		notice(this, 'gaming buildSkills end', {rt});
+		notice(this, 'unit buildSkills end', {rt});
 		return rt;
 	}
 
 	_buildSkill(skillCfg) {
 		const SkillClass = skillCfg.class ?? this.gaming._cfg.SkillClass ?? Skill;
-		notice(this, 'gaming buildSkill start', {owner: this, skillCfg, class: SkillClass});
+		notice(this, 'unit buildSkill start', {owner: this, skillCfg, class: SkillClass});
 		const rt = new SkillClass({...skillCfg, owner: this});
-		notice(this, 'gaming buildSkill end', {skill: rt});
+		notice(this, 'unit buildSkill end', {skill: rt});
 		return rt;
 	}
 

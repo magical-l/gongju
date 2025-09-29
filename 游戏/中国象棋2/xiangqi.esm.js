@@ -804,6 +804,25 @@ class 棋局 extends BattlefieldBasedGaming {
 					.forEach(([enTopiName, cnTopicName]) =>
 						watch(this, enTopiName, payload => notice(this, cnTopicName, payload)));
 
+		// 监听单位选择事件，并自动选择技能
+		watch(this, 'player selectUnits end', ({ player, units }) => {
+			if (units && units.length > 0) {
+				const unit = units[0];
+				const skillsToSelect = [];
+				const moveSkill = unit?.skills.find(s => s instanceof Move);
+				if (moveSkill) {
+					skillsToSelect.push(moveSkill);
+				}
+				const killSkill = unit?.skills.find(s => s instanceof 攻击);
+				if (killSkill) {
+					skillsToSelect.push(killSkill);
+				}
+				if (skillsToSelect.length > 0) {
+					player.selectSkills(skillsToSelect);
+				}
+			}
+		});
+
 		super.build();
 
 		notice(this, '棋局 build end', {gaming: this});
@@ -821,24 +840,7 @@ class 棋局 extends BattlefieldBasedGaming {
 }
 
 class 棋手 extends Player {
-	selectUnits(units) {
-		super.selectUnits(units);
-		if (this.selectedUnits.length) {
-			const unit = units[0],
-				skillsToSelect = [],
-				moveSkill = unit?.skills.find(s => s instanceof Move);
-			if (moveSkill) {
-				skillsToSelect.push(moveSkill);
-			}
-			const killSkill = unit?.skills.find(s => s instanceof 攻击);
-			if (killSkill) {
-				skillsToSelect.push(killSkill);
-			}
-			if (skillsToSelect.length > 0) {
-				super.selectSkills(skillsToSelect);
-			}
-		}
-	}
+	//此类现在是空的，所有特定于象棋的逻辑都通过事件监听来实现，以实现更好的解耦。
 }
 
 class 棋子 extends Unit {
