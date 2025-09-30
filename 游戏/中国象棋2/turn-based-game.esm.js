@@ -225,6 +225,64 @@ class Round {
 	}
 }
 
+const SkillHolder = {
+	_buildSkills(skillsCfg) {
+		const owner = this;
+		const typeName = this.constructor.name.toLowerCase();
+		notice(this, `${typeName} buildSkills start`, {owner, skillsCfg});
+		const rt = skillsCfg.map(skillCfg => this._buildSkill(skillCfg));
+		notice(this, `${typeName} buildSkills end`, {rt});
+		return rt;
+	},
+
+	_buildSkill(skillCfg) {
+		const typeName = this.constructor.name.toLowerCase();
+		const SkillClass = skillCfg.class ?? this.gaming._cfg.SkillClass ?? Skill;
+		notice(this, `${typeName} buildSkill start`, {owner: this, skillCfg, class: SkillClass});
+		const rt = new SkillClass({...skillCfg, owner: this});
+		notice(this, `${typeName} buildSkill end`, {skill: rt});
+		return rt;
+	},
+
+	addSkill(skill) {
+		if (!skill || this.skills.includes(skill)) {
+			return;
+		}
+		this._skills.push(skill);
+
+		if (skill.watchers) {
+			const _boundWatchers = {};
+			Object.entries(skill.watchers).forEach(([topic, watcher]) => {
+				_boundWatchers[topic] = _boundWatchers[topic] ?? [];
+				_boundWatchers[topic].push(watcher);
+				this.gaming.bulletin.watch(topic, watcher);
+			});
+			this._skillBoundWatchers.set(skill, _boundWatchers);
+		}
+	},
+
+	removeSkill(skillOrClass) {
+		const skillIndex = typeof skillOrClass === 'function'
+											 ? this.skills.findIndex(s => s instanceof skillOrClass)
+											 : this.skills.findIndex(s => s === skillOrClass);
+		if (skillIndex === -1) {
+			return;
+		}
+
+		const skill = this.skills[skillIndex];
+
+		if (this._skillBoundWatchers.has(skill)) {
+			Object.entries(this._skillBoundWatchers.get(skill))
+						.forEach(([topic, boundWatchers]) =>
+							boundWatchers.forEach(boundWatcher =>
+								this.gaming.bulletin.unwatch(topic, boundWatcher)));
+			this._skillBoundWatchers.delete(skill);
+		}
+
+		this._skills.splice(skillIndex, 1);
+	},
+};
+
 class Player {
 	static _nextId = 1;
 
@@ -272,60 +330,6 @@ class Player {
 
 		const skills = this._buildSkills(cfg.skills || []);
 		skills.forEach(skill => this.addSkill(skill));
-	}
-
-	_buildSkills(skillsCfg) {
-		const owner = this;
-		notice(this, 'player buildSkills start', {owner, skillsCfg});
-		const rt = skillsCfg.map(skillCfg => this._buildSkill(skillCfg));
-		notice(this, 'player buildSkills end', {rt});
-		return rt;
-	}
-
-	_buildSkill(skillCfg) {
-		const SkillClass = skillCfg.class ?? this.gaming._cfg.SkillClass ?? Skill;
-		notice(this, 'player buildSkill start', {owner: this, skillCfg, class: SkillClass});
-		const rt = new SkillClass({...skillCfg, owner: this});
-		notice(this, 'player buildSkill end', {skill: rt});
-		return rt;
-	}
-
-	addSkill(skill) {
-		if (!skill || this.skills.includes(skill)) {
-			return;
-		}
-		this._skills.push(skill);
-
-		if (skill.watchers) {
-			const _boundWatchers = {};
-			Object.entries(skill.watchers).forEach(([topic, watcher]) => {
-				_boundWatchers[topic] = _boundWatchers[topic] ?? [];
-				_boundWatchers[topic].push(watcher);
-				this.gaming.bulletin.watch(topic, watcher);
-			});
-			this._skillBoundWatchers.set(skill, _boundWatchers);
-		}
-	}
-
-	removeSkill(skillOrClass) {
-		const skillIndex = typeof skillOrClass === 'function'
-											 ? this.skills.findIndex(s => s instanceof skillOrClass)
-											 : this.skills.findIndex(s => s === skillOrClass);
-		if (skillIndex === -1) {
-			return;
-		}
-
-		const skill = this.skills[skillIndex];
-
-		if (this._skillBoundWatchers.has(skill)) {
-			Object.entries(this._skillBoundWatchers.get(skill))
-						.forEach(([topic, boundWatchers]) =>
-							boundWatchers.forEach(boundWatcher =>
-								this.gaming.bulletin.unwatch(topic, boundWatcher)));
-			this._skillBoundWatchers.delete(skill);
-		}
-
-		this._skills.splice(skillIndex, 1);
 	}
 
 	/**
@@ -424,6 +428,7 @@ class Player {
 		return this.selectedSkills?.length && this.selectedTargets?.length;
 	}
 }
+Object.assign(Player.prototype, SkillHolder);
 
 class Unit {
 	static _nextId = 1;
@@ -461,61 +466,8 @@ class Unit {
 		const skills = this._buildSkills(cfg.skills || []);
 		skills.forEach(skill => this.addSkill(skill));
 	}
-
-	_buildSkills(skillsCfg) {
-		const owner = this;
-		notice(this, 'unit buildSkills start', {owner, skillsCfg});
-		const rt = skillsCfg.map(skillCfg => this._buildSkill(skillCfg));
-		notice(this, 'unit buildSkills end', {rt});
-		return rt;
-	}
-
-	_buildSkill(skillCfg) {
-		const SkillClass = skillCfg.class ?? this.gaming._cfg.SkillClass ?? Skill;
-		notice(this, 'unit buildSkill start', {owner: this, skillCfg, class: SkillClass});
-		const rt = new SkillClass({...skillCfg, owner: this});
-		notice(this, 'unit buildSkill end', {skill: rt});
-		return rt;
-	}
-
-	addSkill(skill) {
-		if (!skill || this.skills.includes(skill)) {
-			return;
-		}
-		this._skills.push(skill);
-
-		if (skill.watchers) {
-			const _boundWatchers = {};
-			Object.entries(skill.watchers).forEach(([topic, watcher]) => {
-				_boundWatchers[topic] = _boundWatchers[topic] ?? [];
-				_boundWatchers[topic].push(watcher);
-				this.gaming.bulletin.watch(topic, watcher);
-			});
-			this._skillBoundWatchers.set(skill, _boundWatchers);
-		}
-	}
-
-	removeSkill(skillOrClass) {
-		const skillIndex = typeof skillOrClass === 'function'
-											 ? this.skills.findIndex(s => s instanceof skillOrClass)
-											 : this.skills.findIndex(s => s === skillOrClass);
-		if (skillIndex === -1) {
-			return;
-		}
-
-		const skill = this.skills[skillIndex];
-
-		if (this._skillBoundWatchers.has(skill)) {
-			Object.entries(this._skillBoundWatchers.get(skill))
-						.forEach(([topic, boundWatchers]) =>
-							boundWatchers.forEach(boundWatcher =>
-								this.gaming.bulletin.unwatch(topic, boundWatcher)));
-			this._skillBoundWatchers.delete(skill);
-		}
-
-		this._skills.splice(skillIndex, 1);
-	}
 }
+Object.assign(Unit.prototype, SkillHolder);
 
 /**
  * 规则：有一定业务含义，若干个相关的逻辑片段的封装。这些逻辑片段是监听器（watchers）
