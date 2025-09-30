@@ -307,20 +307,26 @@ class BattlefieldModule extends Module {
 		const rawFilterSelectableSkills = Player.prototype.filterSelectableSkills;
 		Player.prototype.filterSelectableSkills = function(skills) {
 			skills = ensureArray(skills);
-			const rt = [];
+			const finalSkills = new Set();
+
+			// 首先，获取属于玩家的技能（原始逻辑）
+			const playerSkills = rawFilterSelectableSkills.call(this, skills);
+			if (playerSkills) {
+				playerSkills.forEach(skill => finalSkills.add(skill));
+			}
+
+			// 然后，添加属于选中单位的技能
 			if (this.selectedUnits?.length) {
-				rt.push(...skills.filter(skill => this.selectedUnits.some(unit => compareWithId(unit, skill.owner))));
+				const unitSkills = skills.filter(skill => this.selectedUnits.some(unit => compareWithId(unit, skill.owner)));
+				unitSkills.forEach(skill => finalSkills.add(skill));
 			}
-			const rawResult = rawFilterSelectableSkills.apply(this, skills);
-			if (rawResult) {
-				rt.push(...rawResult);
-			}
-			return rt;
+
+			return [...finalSkills];
 		};
 
 		const rawIsReadyToActivateSkills = Player.prototype.isReadyToActivateSkills;
 		Player.prototype.isReadyToActivateSkills = function() {
-			return this.selectedUnits?.length && rawIsReadyToActivateSkills.apply(this);
+			return this.selectedUnits?.length && rawIsReadyToActivateSkills.call(this);
 		};
 
 		// Player.prototype.activateSkills = async function(...args) {
