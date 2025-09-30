@@ -281,9 +281,10 @@ class BattlefieldModule extends Module {
 					if (player.selectedSkills.some(e => e.filterValidTargets(unitsToProcess).length > 0)) {
 						player.selectTargets(unitsToProcess);
 					} else {
-						const ownUnits = unitsToProcess.filter(u => u.owner?.id === player.id);
-						if (ownUnits.length > 0) {
-							player.selectUnits(ownUnits);
+						// 如果点击的单位不是有效目标，但它是玩家自己的单位，
+						// 则取消技能选择，改为选中这个新单位。
+						if (unitToSelect.owner?.id === player.id) {
+							player.selectUnits([unitToSelect]);
 						}
 					}
 				} else {

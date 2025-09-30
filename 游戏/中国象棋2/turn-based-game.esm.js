@@ -424,7 +424,7 @@ class Player {
 	}
 
 	isReadyToActivateSkills() {
-		return !this.selectedSkills?.length || !this.selectedTargets?.length;
+		return this.selectedSkills?.length && this.selectedTargets?.length;
 	}
 }
 
