@@ -255,14 +255,12 @@ class Player {
 
 		addCfgProps(this, this._cfg);
 
-		// AOP for skill management
 		aopMethod(this, 'addSkill', {
 			noticePayloadBuilder: args => ({skill: args[0]}),
 		});
 		aopMethod(this, 'removeSkill', {
 			noticePayloadBuilder: args => ({skill: args[0]}),
 		});
-		// AOP for selection
 		aopMethod(this, 'selectSkills', {
 			noticePayloadBuilder: args => ({skills: args[0]}),
 		});
@@ -270,7 +268,8 @@ class Player {
 			noticePayloadBuilder: args => ({targets: args[0]}),
 		});
 
-		// Build skills from config
+		aopMethod(this, 'play');
+
 		const skills = this._buildSkills(cfg.skills || []);
 		skills.forEach(skill => this.addSkill(skill));
 	}
@@ -344,13 +343,10 @@ class Player {
 
 			this.processInput(input);
 
-			//要素齐备，开始施放技能。
-			if (this.selectedSkills?.length && this.selectedTargets?.length) {
-				const actionPerformed = await this.activateSkills(this.selectedSkills, this.selectedTargets);
-				if (actionPerformed) {
-					actionsTaken++; // 成功行动，计数器加一
-					this.selectedTargets = []; // 成功行动后，清空目标，以便进行下一次行动
-				}
+			const actionPerformed = await this.activateSkills();
+			if (actionPerformed) {
+				actionsTaken++; // 成功行动，计数器加一
+				this.selectedTargets = []; // 成功行动后，清空目标，以便进行下一次行动
 			}
 		}
 
@@ -363,7 +359,7 @@ class Player {
 	 * @param {any|any[]} input
 	 */
 	processInput(input) {
-		const inputs = Array.isArray(input) ? input : [input];
+		const inputs = ensureArray(input);
 		if (inputs.length === 0) {
 			return;
 		}
@@ -383,11 +379,17 @@ class Player {
 	 */
 	selectSkills(skills) {
 		// 过滤出所有主动技能
-		const activeSkills = skills.filter(s => typeof s?.activate === 'function');
+		skills = ensureArray(skills);
+		const activeSkills = this.filterSelectableSkills(skills.filter(s => typeof s?.activate === 'function'));
 		if (activeSkills.length > 0) {
 			this.selectedSkills = activeSkills;
 			this.selectedTargets = []; // 重置目标
 		}
+	}
+
+	filterSelectableSkills(skills) {
+		skills = ensureArray(skills);
+		return skills.filter(s => this.skills.includes(s));
 	}
 
 	/**
@@ -403,20 +405,26 @@ class Player {
 
 	/**
 	 * 默认实现：每个技能都触发。技能自行处理目标（比如筛除非法目标等）
-	 * @param selectedSkills
-	 * @param selectedTargets
 	 * @returns {boolean} 是否成功触发了至少一个技能
 	 */
-	async activateSkills(selectedSkills, selectedTargets) {
+	async activateSkills() {
+		if (!this.isReadyToActivateSkills()) {
+			return false;
+		}
+		//要素齐备，开始施放技能。
 		let activated = false;
-		for (const skill of selectedSkills) {
+		for (const skill of this.selectedSkills) {
 			// 确认当前玩家拥有该技能
-			if (this.skills.includes(skill)) {
-				// 触发技能，并将目标传入
-				activated = activated || await skill.activate(selectedTargets);
-			}
+			// if (this.skills.includes(skill)) {
+			// 触发技能，并将目标传入
+			activated = activated || await skill.activate(this.selectedTargets);
+			// }
 		}
 		return activated;
+	}
+
+	isReadyToActivateSkills() {
+		return !this.selectedSkills?.length || !this.selectedTargets?.length;
 	}
 }
 
