@@ -29,7 +29,8 @@ class Battlefield {
 	get positions() { return [...this._positions]; }
 
 	_positionUnitsMapping = new Map(); // Map<Position的key, Unit[]>
-	get allUnitsInBattlefield() { return [...this._positionUnitsMapping.values()].flatMap(e => e); }
+	_unitsById = new Map();
+	get allUnitsInBattlefield() { return [...this._unitsById.values()]; }
 
 	_unitPositionMapping = new Map();
 
@@ -136,6 +137,7 @@ class Battlefield {
 		}
 		this._positionUnitsMapping.get(position.id).push(unit);
 		this._unitPositionMapping.set(unit.id, position);
+		this._unitsById.set(unit.id, unit);
 	}
 
 	removeUnitFromPosition(unit, position = unit.position) {
@@ -148,11 +150,14 @@ class Battlefield {
 			if (index > -1) {
 				unitsAtPos.splice(index, 1);
 				this._unitPositionMapping.delete(unit.id);
+				this._unitsById.delete(unit.id);
 			}
 		}
 	}
 
 	getUnitsAt(position) { return this._positionUnitsMapping.get(position.id) || []; }
+
+	getUnitById(id) { return this._unitsById.get(id); }
 
 	/**
 	 * 移除出界的位置。
@@ -268,7 +273,7 @@ class BattlefieldModule extends Module {
 				unitToSelect = firstItem;
 			} else {
 				const potentialId = firstItem?.id ?? firstItem;
-				const foundUnit = player.gaming.battlefield.allUnitsInBattlefield.find(u => u.id === potentialId);
+				const foundUnit = player.gaming.battlefield.getUnitById(potentialId);
 				if (foundUnit) {
 					unitToSelect = foundUnit;
 				}

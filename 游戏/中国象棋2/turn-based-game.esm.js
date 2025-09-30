@@ -414,11 +414,8 @@ class Player {
 		//要素齐备，开始施放技能。
 		let activated = false;
 		for (const skill of this.selectedSkills) {
-			// 确认当前玩家拥有该技能
-			// if (this.skills.includes(skill)) {
 			// 触发技能，并将目标传入
 			activated = activated || await skill.activate(this.selectedTargets);
-			// }
 		}
 		return activated;
 	}
