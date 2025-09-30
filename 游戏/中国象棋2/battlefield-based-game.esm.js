@@ -1,5 +1,8 @@
 import {addCfgProps, aopMethod, compareWithId, ensureArray, notice, watch} from './kit.esm.js';
-import {Module, Player, TurnBasedGaming, Unit} from './turn-based-game.esm.js';
+import {
+	Module, Player, TurnBasedGaming, Unit, Skill,
+	SelectUnitCommand, SelectSkillCommand, SelectTargetCommand,
+} from './turn-based-game.esm.js';
 
 export {
 	BattlefieldBasedGaming, Battlefield, Position, BattlefieldModule,
@@ -258,13 +261,12 @@ class BattlefieldModule extends Module {
 			}
 		};
 
-		const rawProcessInput = Player.prototype.processInput;
-		Player.prototype.processInput = function(...args) {
+		const rawInterpretInput = Player.prototype.interpretInput;
+		Player.prototype.interpretInput = function(input) {
 			const player = this;
-			const input = args[0];
 			const inputs = ensureArray(input);
 			if (inputs.length === 0) {
-				return;
+				return null;
 			}
 			const firstItem = inputs[0];
 
@@ -284,21 +286,21 @@ class BattlefieldModule extends Module {
 
 				if (player.selectedUnits?.length && player.selectedSkills?.length) {
 					if (player.selectedSkills.some(e => e.filterValidTargets(unitsToProcess).length > 0)) {
-						player.selectTargets(unitsToProcess);
+						return new SelectTargetCommand(player, unitsToProcess);
 					} else {
 						// 如果点击的单位不是有效目标，但它是玩家自己的单位，
 						// 则取消技能选择，改为选中这个新单位。
 						if (unitToSelect.owner?.id === player.id) {
-							player.selectUnits([unitToSelect]);
+							return new SelectUnitCommand(player, [unitToSelect]);
 						}
 					}
 				} else {
-					player.selectUnits(unitsToProcess);
+					return new SelectUnitCommand(player, unitsToProcess);
 				}
-				return;
+				return null;
 			}
 
-			return rawProcessInput.apply(this, args);
+			return rawInterpretInput.call(this, input);
 		};
 
 		const rawSelectSkills = Player.prototype.selectSkills;

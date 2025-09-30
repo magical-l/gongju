@@ -7,6 +7,7 @@ export {
 	TurnBasedGame, TurnBasedGaming, Rule, Situation,
 	Player, Unit, Skill, PassiveSkill, BuffSkill,
 	Plugin, Module,
+	Command, SelectUnitCommand, SelectSkillCommand, SelectTargetCommand, EndTurnCommand,
 };
 
 class TurnBasedGame {
@@ -225,6 +226,48 @@ class Round {
 	}
 }
 
+class Command {
+	constructor(player) { this.player = player; }
+	async execute() { return false; }
+}
+
+class SelectUnitCommand extends Command {
+	constructor(player, units) {
+		super(player);
+		this.units = units;
+	}
+	async execute() {
+		this.player.selectUnits(this.units);
+		return false; // Selecting is not a consummated action
+	}
+}
+
+class SelectSkillCommand extends Command {
+	constructor(player, skills) {
+		super(player);
+		this.skills = skills;
+	}
+	async execute() {
+		this.player.selectSkills(this.skills);
+		return false; // Selecting is not a consummated action
+	}
+}
+
+class SelectTargetCommand extends Command {
+	constructor(player, targets) {
+		super(player);
+		this.targets = targets;
+	}
+	async execute() {
+		this.player.selectTargets(this.targets);
+		return await this.player.activateSkills();
+	}
+}
+
+class EndTurnCommand extends Command {
+	constructor(player) { super(player); }
+}
+
 const SkillHolder = {
 	_buildSkills(skillsCfg) {
 		const owner = this;
@@ -345,9 +388,16 @@ class Player {
 				break;
 			}
 
-			this.processInput(input);
+			const command = this.interpretInput(input);
+			if (!command) {
+				continue;
+			}
 
-			const actionPerformed = await this.activateSkills();
+			if (command instanceof EndTurnCommand) {
+				break;
+			}
+
+			const actionPerformed = await command.execute();
 			if (actionPerformed) {
 				actionsTaken++; // 成功行动，计数器加一
 				this.selectedTargets = []; // 成功行动后，清空目标，以便进行下一次行动
@@ -359,20 +409,22 @@ class Player {
 	}
 
 	/**
-	 * 根据输入，设置施放技能的要素，顺序： Skill -> Target。
-	 * @param {any|any[]} input
+	 * 将用户的原始输入（比如点击）解释为具体的游戏指令（Command）。
+	 * 子类或模块可以重写此方法以支持更复杂的输入，例如选择单位。
+	 * @param {any} input 用户的原始输入
+	 * @returns {Command|null}
 	 */
-	processInput(input) {
+	interpretInput(input) {
 		const inputs = ensureArray(input);
 		if (inputs.length === 0) {
-			return;
+			return null;
 		}
 		const firstItem = inputs[0];
 
 		if (firstItem instanceof Skill) {
-			this.selectSkills(inputs);
+			return new SelectSkillCommand(this, inputs);
 		} else {
-			this.selectTargets(inputs);
+			return new SelectTargetCommand(this, inputs);
 		}
 	}
 
