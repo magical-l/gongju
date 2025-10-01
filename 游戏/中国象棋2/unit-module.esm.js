@@ -39,15 +39,7 @@ class Unit {
 		this._id = 'id' in cfg ? cfg.id : Unit._nextId++;
 
 		addCfgProps(this, this._cfg);
-		aopMethod(this, 'addSkill', {
-			noticePayloadBuilder: args => ({skillHolder: this, skill: args[0]}),
-		});
-		aopMethod(this, 'removeSkill', {
-			noticePayloadBuilder: args => ({skillHolder: this, skill: args[0]}),
-		});
-
-		const skills = this._buildSkills(cfg.skills || []);
-		skills.forEach(skill => this.addSkill(skill));
+		this._initializeSkills(cfg);
 	}
 }
 

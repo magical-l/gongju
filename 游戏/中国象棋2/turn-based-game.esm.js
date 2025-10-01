@@ -260,6 +260,18 @@ class EndTurnCommand extends Command {
 }
 
 const SkillHolder = {
+	_initializeSkills(cfg) {
+		aopMethod(this, 'addSkill', {
+			noticePayloadBuilder: args => ({skillHolder: this, skill: args[0]}),
+		});
+		aopMethod(this, 'removeSkill', {
+			noticePayloadBuilder: args => ({skillHolder: this, skill: args[0]}),
+		});
+
+		const skills = this._buildSkills(cfg.skills || []);
+		skills.forEach(skill => this.addSkill(skill));
+	},
+
 	_buildSkills(skillsCfg) {
 		const owner = this;
 		const typeName = this.constructor.name.toLowerCase();
@@ -347,12 +359,6 @@ class Player {
 
 		addCfgProps(this, this._cfg);
 
-		aopMethod(this, 'addSkill', {
-			noticePayloadBuilder: args => ({skillHolder: this, skill: args[0]}),
-		});
-		aopMethod(this, 'removeSkill', {
-			noticePayloadBuilder: args => ({skillHolder: this, skill: args[0]}),
-		});
 		aopMethod(this, 'selectSkills', {
 			noticePayloadBuilder: args => ({skillHolder: this, skills: args[0]}),
 		});
@@ -362,8 +368,7 @@ class Player {
 
 		aopMethod(this, 'play');
 
-		const skills = this._buildSkills(cfg.skills || []);
-		skills.forEach(skill => this.addSkill(skill));
+		this._initializeSkills(cfg);
 	}
 
 	/**
