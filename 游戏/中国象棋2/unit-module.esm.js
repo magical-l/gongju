@@ -1,8 +1,8 @@
-import {addCfgProps, aopMethod, compareWithId, ensureArray, unwatch, watch, watchersWatch} from './kit.esm.js';
-import {Command, Module, PassiveSkill, Player, SkillHolder} from './turn-based-game.esm.js';
+import {addCfgProps, aopMethod, compareWithId} from './kit.esm.js';
+import {Command, Module, Player, SkillHolder} from './turn-based-game.esm.js';
 
 export {
-	Unit, BuffSkill, UnitModule, SelectUnitCommand,
+	Unit, UnitModule, SelectUnitCommand,
 };
 
 class SelectUnitCommand extends Command {
@@ -44,58 +44,6 @@ class Unit {
 }
 
 Object.assign(Unit.prototype, SkillHolder);
-
-class BuffSkill extends PassiveSkill {
-	_isActivated = false;
-
-	constructor(cfg, owner) {
-		super(cfg, owner);
-
-		const rawActivate = this.activate;
-		this.activate = async (...args) => {
-			if (this._isActivated) {
-				console?.warn(`BuffSkill [${this.name}] 已经激活过一次，不能再次主动使用。`);
-				return false;
-			}
-			const result = await rawActivate.apply(this, args);
-			if (result === true) {
-				this._isActivated = true;
-			}
-			return result;
-		};
-
-		const rawFilterValidTargets = this.filterValidTargets;
-		this.filterValidTargets = (...args) => {
-			if (this._isActivated) {
-				console?.warn(`BuffSkill [${this.name}] 已经激活过一次，因此不返回任何合法目标。`);
-				return [];
-			}
-			return rawFilterValidTargets.apply(this, args);
-		};
-
-		const activateAfterAddSkill = ({skillHolder, skill}) => {
-			if (compareWithId(this.owner, skillHolder) && compareWithId(this, skill)) {
-				this.activate(this.owner);
-				watch(this, '* removeSkill end', ({unit, skill}) => {
-					if (compareWithId(this.owner, unit) && compareWithId(this, skill)) {
-						this.deactivate();
-						unwatch(this, '* addSkill end', activateAfterAddSkill);
-					}
-				});
-			}
-		};
-		watchersWatch(this, {
-			'* addSkill end': activateAfterAddSkill,
-		});
-	}
-
-	filterValidTargets(targets) {
-		const processedTargets = ensureArray(targets);
-		return processedTargets.filter(t => compareWithId(t, this.owner));
-	}
-
-	async deactivate() { return true; }
-}
 
 class UnitModule extends Module {
 	constructor(gaming, cfg) {

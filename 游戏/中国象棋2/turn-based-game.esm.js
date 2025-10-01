@@ -5,7 +5,7 @@ import {
 
 export {
 	TurnBasedGame, TurnBasedGaming, Rule, Situation,
-	Player, Skill, PassiveSkill, SkillHolder,
+	Player, Skill, PassiveSkill, BuffSkill, SkillHolder,
 	Plugin, Module,
 	Command, SelectSkillCommand, SelectTargetCommand, EndTurnCommand,
 };
@@ -228,16 +228,16 @@ class Round {
 
 class Command {
 	constructor(player) { this.player = player; }
+
 	async execute() { return false; }
 }
-
-
 
 class SelectSkillCommand extends Command {
 	constructor(player, skills) {
 		super(player);
 		this.skills = skills;
 	}
+
 	async execute() {
 		this.player.selectSkills(this.skills);
 		return false;
@@ -249,6 +249,7 @@ class SelectTargetCommand extends Command {
 		super(player);
 		this.targets = targets;
 	}
+
 	async execute() {
 		this.player.selectTargets(this.targets);
 		return await this.player.activateSkills();
@@ -476,6 +477,7 @@ class Player {
 		return this.selectedSkills?.length && this.selectedTargets?.length;
 	}
 }
+
 Object.assign(Player.prototype, SkillHolder);
 
 class Rule {
@@ -572,6 +574,58 @@ class PassiveSkill extends Skill {
 		//watchers中通常应当调用PassiveSkill.activate，需要从监听的通知的内容中组织出本技能所需目标。
 		watchersWatch(this, cfg.watchers);
 	}
+}
+
+class BuffSkill extends PassiveSkill {
+	_isActivated = false;
+
+	constructor(cfg, owner) {
+		super(cfg, owner);
+
+		const rawActivate = this.activate;
+		this.activate = async (...args) => {
+			if (this._isActivated) {
+				console?.warn(`BuffSkill [${this.name}] 已经激活过一次，不能再次主动使用。`);
+				return false;
+			}
+			const result = await rawActivate.apply(this, args);
+			if (result === true) {
+				this._isActivated = true;
+			}
+			return result;
+		};
+
+		const rawFilterValidTargets = this.filterValidTargets;
+		this.filterValidTargets = (...args) => {
+			if (this._isActivated) {
+				console?.warn(`BuffSkill [${this.name}] 已经激活过一次，因此不返回任何合法目标。`);
+				return [];
+			}
+			return rawFilterValidTargets.apply(this, args);
+		};
+
+		const activateAfterAddSkill = ({skillHolder, skill}) => {
+			if (compareWithId(this.owner, skillHolder) && compareWithId(this, skill)) {
+				this.activate(this.owner);
+				watch(this, '* removeSkill end', ({unit, skill}) => {
+					if (compareWithId(this.owner, unit) && compareWithId(this, skill)) {
+						this.deactivate();
+						unwatch(this, '* addSkill end', activateAfterAddSkill);
+					}
+				});
+			}
+		};
+		watchersWatch(this, {
+			'* addSkill end': activateAfterAddSkill,
+		});
+	}
+
+	filterValidTargets(targets) {
+		const processedTargets = ensureArray(targets);
+		return processedTargets.filter(t => compareWithId(t, this.owner));
+	}
+
+	async deactivate() { return true; }
 }
 
 class Plugin {
