@@ -178,9 +178,17 @@ class Bulletin {
 	_historyNotices = [];
 	get historyNotices() { return this._historyNotices; }
 
+	_topicMatchesPattern(topic, pattern) {
+		if (pattern.includes('*')) {
+			const regex = new RegExp(`^${pattern.replace(/\*/g, '.*?')}$`);
+			return regex.test(topic);
+		}
+		return topic === pattern;
+	}
+
 	/**
 	 * 订阅一个主题
-	 * @param {string} topic 主题名
+	 * @param {string} topic 主题名，支持'*'通配符
 	 * @param {Function} watcher 订阅者（回调函数）
 	 * @param options
 	 */
@@ -190,7 +198,9 @@ class Bulletin {
 
 		// 检查历史事件并立即“回溯”
 		if (options.watchHistory) {
-			this._historyNotices.filter(notice => notice.topic === topic).forEach(event => watcher(event.payload));
+			this._historyNotices
+				.filter(notice => this._topicMatchesPattern(notice.topic, topic))
+				.forEach(event => watcher(event.payload));
 		}
 	}
 
@@ -216,6 +226,11 @@ class Bulletin {
 		if (options.replayable) {
 			this._historyNotices.push({topic, payload});
 		}
-		(this._listeners[topic] || []).forEach(cb => cb(payload));
+
+		Object.keys(this._listeners).forEach(pattern => {
+			if (this._topicMatchesPattern(topic, pattern)) {
+				this._listeners[pattern].forEach(cb => cb(payload));
+			}
+		});
 	}
 }
