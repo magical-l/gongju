@@ -1,6 +1,6 @@
 import {addCfgProps, aopMethod, compareWithId, ensureArray, notice, watch} from './kit.esm.js';
 import {Module, Player, SelectTargetCommand, TurnBasedGaming} from './turn-based-game.esm.js';
-import {SelectUnitCommand, Unit} from './unit-module.esm.js';
+import {SelectUnitCommand, Unit, UnitModule} from './unit-module.esm.js';
 
 export {
 	BattlefieldBasedGaming, Battlefield, Position, BattlefieldModule,
@@ -325,6 +325,9 @@ class BattlefieldBasedGaming extends TurnBasedGaming {
 	constructor(cfg) {
 		cfg.modules = cfg.modules || [];
 		//如果modules里没有BattlefieldModule，就默认给它加上
+		if (!cfg.modules.some(m => m.class === UnitModule)) {//依赖单位模块
+			cfg.modules.push({class: UnitModule});
+		}
 		if (!cfg.modules.some(m => m.class === BattlefieldModule)) {
 			cfg.modules.push({class: BattlefieldModule, ...cfg.battlefieldCfg});
 		}
