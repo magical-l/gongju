@@ -1,6 +1,7 @@
 import {compareWithId, notice, watch} from './kit.esm.js';
-import {Player, Rule, Situation, Skill, TurnBasedGame, Unit} from './turn-based-game.esm.js';
-import {BattlefieldBasedGaming, BattlefieldModule, Board, 棋盘点位} from './battlefield-based-game.esm.js';
+import {Player, Rule, Situation, Skill, TurnBasedGame} from './turn-based-game.esm.js';
+import {Unit, UnitModule} from './unit-module.esm.js';
+import {BattlefieldBasedGaming, BattlefieldModule, Board, 棋盘点位} from './battlefield-module.esm.js';
 
 export {
 	红方id, 黑方id, 红方默认配置, 黑方默认配置, 红方玩家id, 黑方玩家id, 默认玩家顺序, 默认棋盘布局, 默认棋子类型,
@@ -615,6 +616,7 @@ class 中国象棋 extends TurnBasedGame {
 		}
 		return {
 			modules: [
+				{class: UnitModule},
 				{
 					class: BattlefieldModule,
 					battlefieldClass: 棋盘,
@@ -805,7 +807,7 @@ class 棋局 extends BattlefieldBasedGaming {
 						watch(this, enTopiName, payload => notice(this, cnTopicName, payload)));
 
 		// 监听单位选择事件，并自动选择技能
-		watch(this, 'player selectUnits end', ({ player, units }) => {
+		watch(this, 'player selectUnits end', ({player, units}) => {
 			if (units && units.length > 0) {
 				const unit = units[0];
 				const skillsToSelect = [];

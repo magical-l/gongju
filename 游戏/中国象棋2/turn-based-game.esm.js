@@ -5,9 +5,9 @@ import {
 
 export {
 	TurnBasedGame, TurnBasedGaming, Rule, Situation,
-	Player, Unit, Skill, PassiveSkill, BuffSkill,
+	Player, Skill, PassiveSkill, SkillHolder,
 	Plugin, Module,
-	Command, SelectUnitCommand, SelectSkillCommand, SelectTargetCommand, EndTurnCommand,
+	Command, SelectSkillCommand, SelectTargetCommand, EndTurnCommand,
 };
 
 class TurnBasedGame {
@@ -40,14 +40,14 @@ class TurnBasedGaming {
 
 	_globalRules = [];
 	_plugins = [];
-	_modules = []; // 新增
+	_modules = [];
 	_situation;
 	get situation() { return this._situation; }
 
-	_playerTurnSequence = []; // 存储有序的玩家实例列表
+	_playerTurnSequence = [];
 	get playerTurnSequence() { return [...this._playerTurnSequence]; }
 
-	_playersIdMap = {}; // 存储所有玩家实例的映射
+	_playersIdMap = {};
 	get playersIdMap() { return {...this._playersIdMap}; }
 
 	get gaming() { return this; }
@@ -231,16 +231,7 @@ class Command {
 	async execute() { return false; }
 }
 
-class SelectUnitCommand extends Command {
-	constructor(player, units) {
-		super(player);
-		this.units = units;
-	}
-	async execute() {
-		this.player.selectUnits(this.units);
-		return false; // Selecting is not a consummated action
-	}
-}
+
 
 class SelectSkillCommand extends Command {
 	constructor(player, skills) {
@@ -249,7 +240,7 @@ class SelectSkillCommand extends Command {
 	}
 	async execute() {
 		this.player.selectSkills(this.skills);
-		return false; // Selecting is not a consummated action
+		return false;
 	}
 }
 
@@ -482,48 +473,6 @@ class Player {
 }
 Object.assign(Player.prototype, SkillHolder);
 
-class Unit {
-	static _nextId = 1;
-
-	_cfg;
-
-	get display() { return this._cfg.display ?? this.name; }
-
-	get gaming() { return this.owner?.gaming; }
-
-	_id;
-	get id() { return this._id; }
-
-	_skills = [];
-	get skills() { return [...this._skills]; }
-
-	_skillBoundWatchers = new WeakMap();
-
-	/**
-	 * cfg:{id?,name,intro?,display?,owner?,skills}
-	 * @param cfg
-	 */
-	constructor(cfg) {
-		this._cfg = cfg;
-		this._id = 'id' in cfg ? cfg.id : Unit._nextId++;
-
-		addCfgProps(this, this._cfg);
-		aopMethod(this, 'addSkill', {
-			noticePayloadBuilder: args => ({skill: args[0]}),
-		});
-		aopMethod(this, 'removeSkill', {
-			noticePayloadBuilder: args => ({skill: args[0]}),
-		});
-
-		const skills = this._buildSkills(cfg.skills || []);
-		skills.forEach(skill => this.addSkill(skill));
-	}
-}
-Object.assign(Unit.prototype, SkillHolder);
-
-/**
- * 规则：有一定业务含义，若干个相关的逻辑片段的封装。这些逻辑片段是监听器（watchers）
- */
 class Rule {
 	_cfg;
 	_gaming;
@@ -618,69 +567,6 @@ class PassiveSkill extends Skill {
 		//watchers中通常应当调用PassiveSkill.activate，需要从监听的通知的内容中组织出本技能所需目标。
 		watchersWatch(this, cfg.watchers);
 	}
-}
-
-/**
- * 增益技能。一种特殊的被动技，只在主人得到本技能时触发一次，给主人或相关元素增加一种状态（称为‘增益’）。
- */
-class BuffSkill extends PassiveSkill {
-	_isActivated = false;
-
-	constructor(cfg, owner) {
-		super(cfg, owner);
-
-		// 在父类（已代理）的基础上，再次包装方法以加入BuffSkill的逻辑
-		const rawActivate = this.activate;
-		this.activate = async (...args) => {
-			if (this._isActivated) {
-				console?.warn(`BuffSkill [${this.name}] 已经激活过一次，不能再次主动使用。`);
-				return false;
-			}
-			const result = await rawActivate.apply(this, args);
-			if (result === true) {
-				this._isActivated = true;
-			}
-			return result;
-		};
-
-		const rawFilterValidTargets = this.filterValidTargets;
-		this.filterValidTargets = (...args) => {
-			if (this._isActivated) {
-				console?.warn(`BuffSkill [${this.name}] 已经激活过一次，因此不返回任何合法目标。`);
-				return [];
-			}
-			return rawFilterValidTargets.apply(this, args);
-		};
-		// 注册监听器
-		const activateAfterAddSkill = ({unit, skill}) => {
-			if (compareWithId(this.owner, unit) && compareWithId(this, skill)) {
-				this.activate(this.owner);
-				watch(this, 'Unit removeSkill end', ({unit, skill}) => {
-					if (compareWithId(this.owner, unit) && compareWithId(this, skill)) {
-						this.deactivate();
-						unwatch(this, 'Unit addSkill end', activateAfterAddSkill);
-					}
-				});
-			}
-		};
-		watchersWatch(this, {
-			'Unit addSkill end': activateAfterAddSkill,
-		});
-	}
-
-	/**
-	 * 增益技能的filterValidTargets实现。
-	 * 在构造函数中调用activate时，它需要允许owner通过。
-	 * 之后，它会被覆盖以阻止主动使用。
-	 * @param {Array<Object>} targets - 待过滤的目标数组。
-	 * @returns {Array<Object>} - 过滤后的合法目标数组。
-	 */
-	filterValidTargets(targets) {
-		const processedTargets = ensureArray(targets);
-		return processedTargets.filter(t => compareWithId(t, this.owner));
-	}
-
-	async deactivate() { return true; }
 }
 
 class Plugin {

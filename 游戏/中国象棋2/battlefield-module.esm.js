@@ -1,8 +1,6 @@
 import {addCfgProps, aopMethod, compareWithId, ensureArray, notice, watch} from './kit.esm.js';
-import {
-	Module, Player, TurnBasedGaming, Unit, Skill,
-	SelectUnitCommand, SelectSkillCommand, SelectTargetCommand,
-} from './turn-based-game.esm.js';
+import {Module, Player, SelectTargetCommand, TurnBasedGaming} from './turn-based-game.esm.js';
+import {SelectUnitCommand, Unit} from './unit-module.esm.js';
 
 export {
 	BattlefieldBasedGaming, Battlefield, Position, BattlefieldModule,
@@ -33,6 +31,7 @@ class Battlefield {
 
 	_positionUnitsMapping = new Map(); // Map<Position的key, Unit[]>
 	_unitsById = new Map();
+
 	get allUnitsInBattlefield() { return [...this._unitsById.values()]; }
 
 	_unitPositionMapping = new Map();
@@ -237,29 +236,12 @@ class BattlefieldModule extends Module {
 	}
 
 	_upgradePlayerClass() {
-		if (Player.prototype._unitBasedUpgraded) {
+		if (Player.prototype._battlefieldBasedUpgraded) { // Use a more specific flag
 			return;
 		}
-		Player.prototype._unitBasedUpgraded = true;
+		Player.prototype._battlefieldBasedUpgraded = true;
 
-		Player.prototype.addUnit = function(unit) {
-			this.units.push(unit);
-		};
-		Player.prototype.removeUnit = function(unit) {
-			const index = this.units.findIndex(e => compareWithId(e, unit));
-			if (index > -1) {
-				this.units.splice(index, 1);
-			}
-		};
-
-		Player.prototype.selectUnits = function(units) {
-			const ownUnits = units.filter(u => compareWithId(u.owner, this));
-			if (ownUnits.length > 0) {
-				this.selectedUnits = ownUnits;
-				this.selectedSkills = [];
-				this.selectedTargets = [];
-			}
-		};
+		// addUnit, removeUnit, selectUnits are now handled by UnitModule
 
 		const rawInterpretInput = Player.prototype.interpretInput;
 		Player.prototype.interpretInput = function(input) {
@@ -336,46 +318,6 @@ class BattlefieldModule extends Module {
 		Player.prototype.isReadyToActivateSkills = function() {
 			return this.selectedUnits?.length && rawIsReadyToActivateSkills.call(this);
 		};
-
-		// Player.prototype.activateSkills = async function(...args) {
-		// 	const player = this;
-		// 	const [selectedSkills, selectedTargets] = args;
-		// 	let activated = false;
-		// 	if (player.selectedUnits) {
-		// 		for (const unit of player.selectedUnits) {
-		// 			for (const skill of selectedSkills) {
-		// 				if (unit.skills.includes(skill)) {
-		// 					activated = activated || await skill.activate(selectedTargets);
-		// 				}
-		// 			}
-		// 		}
-		// 	}
-		// 	return activated;
-		// };
-
-		// Player.prototype.play = async function(...args) {
-		// 	const player = this;
-		// 	let actionsTaken = 0;
-		// 	while (actionsTaken < player.actionsPerTurn) {
-		// 		const input = await player.gaming.waitForInput();
-		// 		if (input?.action === 'END_TURN') {
-		// 			break;
-		// 		}
-		//
-		// 		player.processInput(input);
-		// 		//三要素齐备，开始施放技能。
-		// 		if (player.selectedUnits?.length && player.selectedSkills?.length && player.selectedTargets?.length) {
-		// 			const actionPerformed = await player.activateSkills(player.selectedSkills, player.selectedTargets);
-		// 			if (actionPerformed) {
-		// 				actionsTaken++;
-		// 				player.selectedTargets = [];//每次使用技能后清除目标
-		// 			}
-		// 		}
-		// 	}
-		// 	player.selectedUnits = [];
-		// 	player.selectedSkills = [];
-		// 	player.selectedTargets = [];
-		// };
 	}
 }
 
