@@ -40,10 +40,10 @@ class Unit {
 
 		addCfgProps(this, this._cfg);
 		aopMethod(this, 'addSkill', {
-			noticePayloadBuilder: args => ({skill: args[0]}),
+			noticePayloadBuilder: args => ({skillHolder: this, skill: args[0]}),
 		});
 		aopMethod(this, 'removeSkill', {
-			noticePayloadBuilder: args => ({skill: args[0]}),
+			noticePayloadBuilder: args => ({skillHolder: this, skill: args[0]}),
 		});
 
 		const skills = this._buildSkills(cfg.skills || []);
@@ -81,19 +81,19 @@ class BuffSkill extends PassiveSkill {
 			return rawFilterValidTargets.apply(this, args);
 		};
 
-		const activateAfterAddSkill = ({unit, skill}) => {
-			if (compareWithId(this.owner, unit) && compareWithId(this, skill)) {
+		const activateAfterAddSkill = ({skillHolder, skill}) => {
+			if (compareWithId(this.owner, skillHolder) && compareWithId(this, skill)) {
 				this.activate(this.owner);
-				watch(this, 'Unit removeSkill end', ({unit, skill}) => {
+				watch(this, '* removeSkill end', ({unit, skill}) => {
 					if (compareWithId(this.owner, unit) && compareWithId(this, skill)) {
 						this.deactivate();
-						unwatch(this, 'Unit addSkill end', activateAfterAddSkill);
+						unwatch(this, '* addSkill end', activateAfterAddSkill);
 					}
 				});
 			}
 		};
 		watchersWatch(this, {
-			'Unit addSkill end': activateAfterAddSkill,
+			'* addSkill end': activateAfterAddSkill,
 		});
 	}
 

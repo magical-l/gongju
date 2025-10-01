@@ -348,16 +348,16 @@ class Player {
 		addCfgProps(this, this._cfg);
 
 		aopMethod(this, 'addSkill', {
-			noticePayloadBuilder: args => ({skill: args[0]}),
+			noticePayloadBuilder: args => ({skillHolder: this, skill: args[0]}),
 		});
 		aopMethod(this, 'removeSkill', {
-			noticePayloadBuilder: args => ({skill: args[0]}),
+			noticePayloadBuilder: args => ({skillHolder: this, skill: args[0]}),
 		});
 		aopMethod(this, 'selectSkills', {
-			noticePayloadBuilder: args => ({skills: args[0]}),
+			noticePayloadBuilder: args => ({skillHolder: this, skills: args[0]}),
 		});
 		aopMethod(this, 'selectTargets', {
-			noticePayloadBuilder: args => ({targets: args[0]}),
+			noticePayloadBuilder: args => ({skillHolder: this, targets: args[0]}),
 		});
 
 		aopMethod(this, 'play');
