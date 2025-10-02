@@ -26,6 +26,7 @@
 	.one.chessboard {
 		--min-cell-len: 60px;
 		--line-color: #333;
+		--line-stroke-width: 1px; /* 定义棋盘线条的粗细 */
 		grid-template-rows: repeat(10, var(--min-cell-len));
 		grid-template-columns: repeat(9, var(--min-cell-len));
 		background-color: aliceblue;
@@ -39,87 +40,98 @@
 		align-items: center;
 	}
 
-	.cell .texture.container {
+	.cell .texture {
 		position: absolute;
 		width: 100%;
 		height: 100%;
 		z-index: 1;
+		background-image: url('棋盘纹理-十字.svg'); /* 默认所有内部格子使用十字交叉 */
+		stroke-width: var(--line-stroke-width); /* 通过CSS变量控制线条粗细 */
+		background-size: 100% 100%; /* 确保SVG缩放以填充 */
+		background-repeat: no-repeat;
 	}
 
-	.cell .texture.part {
+	/* -------------边框线------------ */
+	.row-1 .texture, .row-6 .texture {
+		background-image: url('棋盘纹理-顶边.svg');
+	}
+
+	.row-10 .texture, .row-5 .texture {
+		background-image: url('棋盘纹理-底边.svg');
+	}
+
+	.col-1 .texture {
+		background-image: url('棋盘纹理-左边.svg');
+	}
+
+	.col-9 .texture {
+		background-image: url('棋盘纹理-右边.svg');
+	}
+
+	/* -------------角------------- */
+	.row-1.col-1 .texture {
+		background-image: url('棋盘纹理-角.svg');
+	}
+
+	.row-1.col-9 .texture {
+		background-image: url('棋盘纹理-角.svg');
+		rotate: 90deg;
+	}
+
+	.row-10.col-1 .texture {
+		background-image: url('棋盘纹理-角.svg');
+		rotate: -90deg;
+	}
+
+	.row-10.col-9 .texture {
+		background-image: url('棋盘纹理-角.svg');
+		rotate: 180deg;
+	}
+
+	/* -------九宫格、炮位、兵卒位------- */
+	.九宫 .texture::after,
+	.炮位.cell .texture::before, .兵卒位.cell .texture::before,
+	.炮位 .texture::after, .兵卒位 .texture::after {
 		position: absolute;
 		width: 100%;
 		height: 100%;
+		display: block;
 	}
 
-	.cell .texture.part.left {
-		left: 0;
+	.row-1.col-4 .texture::after, .row-8.col-4 .texture::after {
+		content: url('棋盘纹理-半斜线.svg');
+		rotate: 180deg;
 	}
 
-	.cell .texture.part.right {
-		left: 50%;
+	.row-1.col-6 .texture::after, .row-8.col-6 .texture::after {
+		content: url('棋盘纹理-半斜线.svg');
+		rotate: -90deg;
 	}
 
-	.cell .texture.part.top {
-		top: 0;
+	.row-3.col-4 .texture::after, .row-10.col-4 .texture::after {
+		content: url('棋盘纹理-半斜线.svg');
+		rotate: 90deg;
 	}
 
-	.cell .texture.part.bottom {
-		top: 50%;
+	.row-3.col-6 .texture::after, .row-10.col-6 .texture::after {
+		content: url('棋盘纹理-半斜线.svg');
 	}
 
-	/* 普通格子的线 */
-	.cell .texture.part.left, .cell .texture.part.right {
-		width: 50%;
-		background: url('h-line.svg') center no-repeat;
+	/* 窝心 */
+	.row-2.col-5 .texture::after, .row-9.col-5 .texture::after {
+		content: url('棋盘纹理-交叉.svg');
 	}
 
-	.cell .texture.part.top, .cell .texture.part.bottom {
-		height: 50%;
-		background: url('v-line.svg') center no-repeat;
+	.炮位.cell .texture::before, .兵卒位.cell .texture::before {
+		content: url('棋盘纹理-左花.svg');
 	}
 
-	/* 炮位、兵卒位 */
-	.炮位.cell .texture.part.corner, .兵卒位:not(.col-1) .texture.part.corner, .兵卒位:not(.col-9) .texture.part.corner {
-		background: url('折线.svg') no-repeat;
+	.炮位.cell .texture::after, .兵卒位.cell .texture::after {
+		content: url('棋盘纹理-右花.svg');
 	}
 
-	.cell .texture.part.corner, /* 边角 */
-	.row-1.cell .texture.part.top, /* 第一行上部 */
-	.row-10.cell .texture.part.bottom, /* 最后一行下部 */
-	.row-5.cell:not(.col-1):not(.col-9) .texture.part.bottom, /* 河上沿中段下部 */
-	.row-6.cell:not(.col-1):not(.col-9) .texture.part.top, /* 河下沿中段上部 */
-	.col-1.cell .texture.part.left, /* 最左列左部 */
-	.col-9.cell .texture.part.right /* 最右列右部 */ {
-		background: none;
-	}
-
-	.炮位.cell .texture.part.right.top, .兵卒位.cell .texture.part.right.top {
-		transform: rotate(90deg);
-	}
-
-	.炮位.cell .texture.part.right.bottom, .兵卒位.cell .texture.part.right.bottom {
-		transform: rotate(180deg);
-	}
-
-	.炮位.cell .texture.part.left.bottom, .兵卒位.cell .texture.part.left.bottom {
-		transform: rotate(270deg);
-	}
-
-	/* 九宫 左上-右下斜线 */
-	.row-1.col-4.cell .texture.part.right.bottom, .row-3.col-6.cell .texture.part.left.top,
-	.row-2.col-5.cell .texture.part.left.top, .row-2.col-5.cell .texture.part.right.bottom,
-	.row-8.col-4.cell .texture.part.right.bottom, .row-10.col-6.cell .texture.part.left.top,
-	.row-9.col-5.cell .texture.part.left.top, .row-9.col-5.cell .texture.part.right.bottom {
-		background: url('left-top-to-right-bottom.svg') no-repeat;
-	}
-
-	/* 九宫 右上-左下斜线 */
-	.row-1.col-6.cell .texture.part.left.bottom, .row-3.col-4.cell .texture.part.right.top,
-	.row-2.col-5.cell .texture.part.right.top, .row-2.col-5.cell .texture.part.left.bottom,
-	.row-8.col-6.cell .texture.part.left.bottom, .row-10.col-4.cell .texture.part.right.top,
-	.row-9.col-5.cell .texture.part.right.top, .row-9.col-5.cell .texture.part.left.bottom {
-		background: url('left-bottom-to-right-top.svg') no-repeat;
+	.兵卒位.cell.col-1 .texture::before, .兵卒位.cell.col-9 .texture::after {
+		content: none;
 	}
 
 	/* ============================棋子======================== */
@@ -427,16 +439,7 @@
 								<div class="cell" v-for="(pieceName, c) in row" :key="c"
 										 :class="cellClasses(r, c)"
 										 @dragover.prevent @drop="dropOnBoard(r, c)" @click="selectEditorPiece(r, c)">
-									<div class="texture container">
-										<div class="texture part vertical top"></div>
-										<div class="texture part horizon right"></div>
-										<div class="texture part vertical bottom"></div>
-										<div class="texture part horizon left"></div>
-										<div class="texture part left top corner"></div>
-										<div class="texture part right top corner"></div>
-										<div class="texture part right bottom corner"></div>
-										<div class="texture part left bottom corner"></div>
-									</div>
+									<div class="texture"></div>
 									<div v-if="pieceName !== '空'"
 											 class="unit display"
 											 :class="[getEditorUnitColor(boardEditor.pieceTypes[pieceName]), { 'selected': isEditorPieceSelected(r, c) }]"
@@ -479,16 +482,7 @@
 						<div class="cell" v-for="(position,cIndex) in row" :key="rIndex + ',' + cIndex"
 								 :class="[cellClasses(rIndex, cIndex, position), targetMarkers[position.toString()]]"
 								 @click="clickCell(position)">
-							<div class="texture container">
-								<div class="texture part vertical top"></div>
-								<div class="texture part horizon right"></div>
-								<div class="texture part vertical bottom"></div>
-								<div class="texture part horizon left"></div>
-								<div class="texture part left top corner"></div>
-								<div class="texture part right top corner"></div>
-								<div class="texture part right bottom corner"></div>
-								<div class="texture part left bottom corner"></div>
-							</div>
+							<div class="texture"></div>
 							<div class="unit display" v-for="(unit, uIndex) in boardForRender[rIndex][cIndex]" :key="uIndex"
 									 :class="getUnitClasses(unit)">
 								{{ unit.display }}
@@ -501,16 +495,7 @@
 						<div class="cell" v-for="(position,cIndex) in row" :key="rIndex + ',' + cIndex"
 								 :class="[cellClasses(rIndex, cIndex, position), targetMarkers[position.toString()]]"
 								 @click="clickCell(position)">
-							<div class="texture container">
-								<div class="texture part vertical top"></div>
-								<div class="texture part horizon right"></div>
-								<div class="texture part vertical bottom"></div>
-								<div class="texture part horizon left"></div>
-								<div class="texture part left top corner"></div>
-								<div class="texture part right top corner"></div>
-								<div class="texture part right bottom corner"></div>
-								<div class="texture part left bottom corner"></div>
-							</div>
+							<div class="texture"></div>
 							<div class="unit display"
 									 v-for="(unit, uIndex) in boardForRender[position.rowNum - 1][position.colNum - 1]" :key="uIndex"
 									 :class="getUnitClasses(unit)">
