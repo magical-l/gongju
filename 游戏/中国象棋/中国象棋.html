@@ -242,6 +242,7 @@
 
 	.game-overlay.game-over {
 		pointer-events: auto; /* 游戏结束时，不允许操作棋盘 */
+		background-color: rgba(0, 0, 0, 0.7); /* 遮罩 */
 	}
 
 	.overlay-content {
@@ -280,6 +281,30 @@
 		padding: 10px 30px;
 		font-size: 20px;
 		cursor: pointer;
+	}
+
+	.game-over-panel {
+		background: #f9f9f9;
+		color: #303133;
+		padding: 30px 50px;
+		border-radius: 8px;
+		position: relative;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+		min-width: 420px;
+		border: 1px solid #e4e7ed;
+	}
+
+	.game-over-panel .close-btn {
+		position: absolute;
+		top: 10px;
+		right: 10px;
+	}
+
+	.game-over-panel .button-group {
+		margin-top: 30px;
+		display: flex;
+		gap: 15px;
+		justify-content: center;
 	}
 
 	/* ==============================棋盘编辑器=========================== */
@@ -539,10 +564,16 @@
 			<div class="game-overlay" v-if="showCheck || isGameOver" :class="{ 'game-over': isGameOver }" v-cloak>
 				<div class="overlay-content">
 					<div class="check-text" v-if="showCheck">将</div>
-					<div class="game-over-text" v-if="isGameOver">
-						<div>游戏结束</div>
+					<div v-if="isGameOver" class="game-over-panel">
+						<el-button class="close-btn" @click="isGameOverForRender = false" text title="关闭">关闭</el-button>
+						<div class="game-over-text">游戏结束</div>
 						<div class="winner-text">{{ winnerName }} 胜利</div>
-						<el-button type="primary" size="large" @click="restartGame">新游戏</el-button>
+						<div class="button-group">
+							<el-button type="primary" size="large" @click="restartGame">重新开局</el-button>
+							<el-button type="info" size="large" @click="downloadNotation">记谱</el-button>
+							<el-button type="warning" size="large" disabled>悔棋</el-button>
+							<el-button size="large" @click="returnToSettings">返回设置</el-button>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -888,7 +919,7 @@
 				gaming.bulletin.watch('游戏结束', () => this.syncGameState());
 				this.syncGameState(); // 初始渲染
 			},
-			restartGame() {
+			returnToSettings() {
 				this.showCheck = false;
 				this.selectedUnit = null;
 				this.movableTargets = [];
@@ -897,6 +928,32 @@
 				this.moveHistory = [];
 				this.gaming = null; // 销毁游戏实例
 				this.showSettingsDialog = true; // 显示设置弹窗
+			},
+			restartGame() {
+				this.showCheck = false;
+				this.selectedUnit = null;
+				this.movableTargets = [];
+				this.attackTargets = [];
+				this.blockedMoves = [];
+				this.moveHistory = [];
+				this.gaming = null; // 销毁游戏实例
+				this.launchGame(); // 使用之前的配置重新开始游戏
+			},
+			downloadNotation() {
+				const notations = this.turnHistoryForRender.map((turn, index) => {
+					const redMove = turn.redMove ? turn.redMove.padEnd(8) : ' '.repeat(8);
+					const blackMove = turn.blackMove || '';
+					return `${(index + 1).toString().padStart(3)}. ${redMove}${blackMove}`;
+				}).join('\n');
+				const fileContent = `游戏配置:\n${JSON.stringify(this.gameCfg, null, 2)}\n\n记谱:\n${notations}`;
+				const blob = new Blob([fileContent], {type: 'text/plain;charset=utf-8'});
+				const link = document.createElement('a');
+				link.href = URL.createObjectURL(blob);
+				link.download = '中国象棋记谱.txt';
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+				URL.revokeObjectURL(link.href);
 			},
 			// 游戏中的UI辅助方法
 			cellClasses(rIndex, cIndex, position) {
