@@ -386,19 +386,9 @@
 	.el-checkbox.is-selected-for-editing {
 		border-color: var(--el-color-primary);
 	}
-
-	.game-settings-form {
-		padding: 10px 20px;
-	}
-
-	.main-content {
-		background-color: #fff;
-		border-radius: 4px;
-		border: 1px solid #e4e7ed;
-	}
 </style>
 </head>
-<body class="grid 反叵字形">
+<body class="grid 目字形">
 <header>
 	<h1 class="website name" title="工具人（gongju.ren）域名太贵买不起">工具兽</h1>
 	<nav>
@@ -417,197 +407,189 @@
 </header>
 <main>
 	<article class="game-wrapper , 反叵字形 grid" v-cloak>
-		<div class="main-content">
-					<div class="main-content-grid-item">
-						<!-- 配置模式下的独有UI配件 -->
+		<div class="toolbar , one-row item , flex items-like-册" style="gap: 10px; padding: 10px;">
+			<label>镜像视角
+				<el-switch v-model="showReversedView" size="large"/>
+			</label>
+		</div>
+
+		<div class="chessboard-container flex">
+			<article class="one chessboard , grid" :class="{ editor: !isGaming, area: isGaming }">
+				<template v-for="(row, r) in (isGaming ? positions : boardEditor.layout)">
+					<div class="cell"
+							 v-for="(item, c) in row"
+							 :key="isGaming ? item.toString() : `${r}-${c}`"
+							 :class="getDynamicCellClasses(r, c, item)"
+							 @click="handleCellClick(r, c, item)"
+							 @dragover.prevent
+							 @drop="handleCellDrop(r, c)">
+
+						<div class="texture"></div>
+
+						<!-- 编辑模式的棋子 -->
 						<template v-if="!isGaming">
-							<el-form :model="gameSettings" label-position="top" class="game-settings-form">
-								<el-form-item label="玩家顺序">
-									<el-radio-group v-model="gameSettings.firstPlayer">
-										<el-radio value="red">红方先手</el-radio>
-										<el-radio value="black">黑方先手</el-radio>
-									</el-radio-group>
-								</el-form-item>
-								<div class="board-editor-controls">
-									<header class="toolbar , one row item , flex">
-										<el-button @click="resetBoard" type="info" inline plain>默认棋盘</el-button>
-										<el-button @click="clearBoard" type="danger" inline plain>清空棋盘</el-button>
-									</header>
-									<el-card body-class="piece-palette , grid">
-										<div class="unit display" v-for="(piece, type) in palettePieceTypes" :key="type"
-												:class="getEditorUnitColor(piece)"
-												draggable="true" @dragstart="dragStartPiece(type, 'palette')" @dragend="clearDraggedPiece">
-											{{ piece.显示 }}
-										</div>
-									</el-card>
-								</div>
-							</el-form>
-						</template>
-						<!-- 游戏模式下的独有UI配件 -->
-						<template v-if="isGaming">
-							<div class="toolbar , one-row item , flex items-like-册" style="gap: 10px; padding: 10px;">
-								<label>镜像视角
-									<el-switch v-model="showReversedView" size="large"/>
-								</label>
+							<div v-if="item !== '空'"
+									 class="unit display"
+									 :class="getEditorPieceClasses(item, r, c)"
+									 draggable="true"
+									 @dragstart="dragStartPiece(item, 'board', r, c)"
+									 @dragend="clearDraggedPiece">
+								{{ boardEditor.pieceTypes[item].显示 }}
+								<div class="remove-piece-btn" @click.stop="removeEditorPiece(r, c)">×</div>
 							</div>
 						</template>
-			
-						<!-- ======================= 统一的、拥有双重人格的棋盘 ======================= -->
-						<div class="chessboard-container" :class="{ 'in-game': isGaming }">
-							<article class="one chessboard , grid" :class="{ editor: !isGaming, area: isGaming }">
-								<template v-for="(row, r) in (isGaming ? positions : boardEditor.layout)">
-									<div class="cell"
-										 v-for="(item, c) in row"
-										 :key="isGaming ? item.toString() : `${r}-${c}`"
-										 :class="getDynamicCellClasses(r, c, item)"
-										 @click="handleCellClick(r, c, item)"
-										 @dragover.prevent
-										 @drop="handleCellDrop(r, c)">
-			
-										<div class="texture"></div>
-			
-										<!-- 编辑模式的棋子 -->
-										<template v-if="!isGaming">
-											<div v-if="item !== '空'"
-												 class="unit display"
-												 :class="getEditorPieceClasses(item, r, c)"
-												 draggable="true"
-												 @dragstart="dragStartPiece(item, 'board', r, c)"
-												 @dragend="clearDraggedPiece">
-												{{ boardEditor.pieceTypes[item].显示 }}
-												<div class="remove-piece-btn" @click.stop="removeEditorPiece(r, c)">×</div>
-											</div>
-										</template>
-										<!-- 游戏模式的棋子 -->
-										<template v-else>
-											<div class="unit display"
-												 v-for="unit in boardForRender[r][c]"
-												 :key="unit.id"
-												 :class="getUnitClasses(unit)">
-												{{ unit.display }}
-											</div>
-										</template>
-									</div>
-								</template>
-							</article>
-							<!-- 游戏模式下的镜像棋盘 -->
-							<article class="one chessboard reversed-view , grid" v-if="isGaming && showReversedView">
-								<template v-for="(row,rIndex) of reversedPositions" :key="rIndex">
-									<div class="cell" v-for="(position,cIndex) in row" :key="rIndex + ',' + cIndex"
-											 :class="[getDynamicCellClasses(rIndex, cIndex, position), targetMarkers[position.toString()]]"
-											 @click="clickCell(position)">
-										<div class="texture"></div>
-										<div class="unit display"
-												 v-for="(unit, uIndex) in boardForRender[position.rowNum - 1][position.colNum - 1]" :key="uIndex"
-												 :class="getUnitClasses(unit)">
-											{{ unit.display }}
-										</div>
-									</div>
-								</template>
-							</article>
-						</div>
-						<!-- 开始游戏按钮 -->
-						<div v-if="!isGaming" style="padding: 20px;">
-							<el-button type="primary" size="large" @click="startGame" style="width: 100%;">开始游戏</el-button>
+						<!-- 游戏模式的棋子 -->
+						<template v-else>
+							<div class="unit display"
+									 v-for="unit in boardForRender[r][c]"
+									 :key="unit.id"
+									 :class="getUnitClasses(unit)">
+								{{ unit.display }}
+							</div>
+						</template>
+					</div>
+				</template>
+			</article>
+			<!-- 镜像棋盘 -->
+			<article class="one chessboard reversed-view , grid" v-if="showReversedView">
+				<template v-for="(row,rIndex) of reversedPositions" :key="rIndex">
+					<div class="cell" v-for="(position,cIndex) in row" :key="rIndex + ',' + cIndex"
+							 :class="[getDynamicCellClasses(rIndex, cIndex, position), targetMarkers[position.toString()]]"
+							 @click="clickCell(position)">
+						<div class="texture"></div>
+						<div class="unit display"
+								 v-for="(unit, uIndex) in boardForRender[position.rowNum - 1][position.colNum - 1]" :key="uIndex"
+								 :class="getUnitClasses(unit)">
+							{{ unit.display }}
 						</div>
 					</div>
-			
-					<aside class="right-sidebar">
-						<!-- 配置模式下的右侧栏 -->
-						<template v-if="!isGaming">
-							<el-card header="棋子类型编辑器">
-								<div class="piece-type-editor-wrapper flex vertical">
-									<div class="piece-type-grid flex">
-										<div class="unit display" v-for="(piece, type) in boardEditor.pieceTypes" :key="type"
-												 :class="[getEditorUnitColor(piece), { 'selected': boardEditor.selectedPieceType === type }]"
-												 @click="boardEditor.selectedPieceType = (boardEditor.selectedPieceType === type ? null : type)">
-											{{ piece.显示 }}
-										</div>
-									</div>
-									<div v-if="boardEditor.selectedPieceType" class="piece-type-details">
-										<h4>正在编辑: {{ boardEditor.selectedPieceType }}</h4>
-										<el-form label-width="60px">
-											<el-form-item label="启用">
-												<el-switch v-model="isCurrentPieceEnabled"></el-switch>
-											</el-form-item>
-											<el-form-item label="显示">
-												<el-input v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].显示"
-															:input-style="{ fontFamily: 'NotoSansSymbols2, sans-serif', fontSize: '28px', textAlign: 'center' }"
-															style="width: 60px;"/>
-											</el-form-item>
-											<el-form-item label="技能">
-												<el-checkbox-group v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].技能">
-													<el-checkbox v-for="skill in allAvailableSkills" :key="skill" :label="skill"/>
-												</el-checkbox-group>
-											</el-form-item>
-										</el-form>
-									</div>
-								</div>
-							</el-card>
-							<el-card header="全局规则" style="margin-top: 20px;">
-								<el-checkbox-group v-model="gameSettings.rules">
-									<el-checkbox v-for="rule in allAvailableRules" :key="rule" :label="rule"/>
-								</el-checkbox-group>
-							</el-card>
-							<el-card header="插件" style="margin-top: 20px;">
-								<el-checkbox-group v-model="gameSettings.plugins">
-									<el-checkbox v-for="plugin in allAvailablePlugins" :key="plugin" :label="plugin"/>
-								</el-checkbox-group>
-							</el-card>
-						</template>
-						<!-- 游戏模式下的右侧栏 -->
-						<template v-else>
-							<article class="gaming situation">
-								<el-card style="margin-bottom: 20px;">
-									<template #header>当前选中:
-										<span v-if="selectedUnit" class="unit display" :class="getUnitClasses(selectedUnit)"
-													style="width: 40px; height: 40px; font-size: 28px; display: inline-flex; vertical-align: middle;">
-											{{ selectedUnit.display }}
-										</span>
-										<span v-else>无</span>
-									</template>
-									<div v-if="selectedUnit" style="margin-top: 10px;">
-										<strong>技能:</strong>
-										<div style="margin-top: 5px;">
-											<el-tag v-if="selectedUnit.skills" v-for="skill in selectedUnit.skills" :key="skill.name" type="info"
-															style="margin: 2px;">
-												{{ skill.name }}
-											</el-tag>
-										</div>
-									</div>
-								</el-card>
-			
-								<el-card header="回合">
-									<el-table :data="turnHistory" row-key="id" stripe style="width: 100%" height="400" empty-text="尚未走棋">
-										<el-table-column prop="id" label="回合" width="60"></el-table-column>
-										<el-table-column prop="redMove" label="红方"></el-table-column>
-										<el-table-column prop="blackMove" label="黑方"></el-table-column>
-									</el-table>
-								</el-card>
-							</article>
-						</template>
-					</aside>
-			
-					<!-- 游戏结束覆盖层 -->
-					<div class="game-overlay" v-if="isGaming && (showCheck || isGameOver)" :class="{ 'game-over': isGameOver }" v-cloak>
-						<div class="overlay-content">
-							<div class="check-text" v-if="showCheck">将</div>
-							<div v-if="isGameOver" class="game-over-panel">
-								<el-button class="close-btn" @click="isGameOverForRender = false" text title="关闭">关闭</el-button>
-								<div class="game-over-text">游戏结束</div>
-								<div class="winner-text">{{ winnerName }} 胜利</div>
-								<div class="button-group">
-									<el-button type="primary" size="large" @click="restartGame">重新开局</el-button>
-									<el-button type="info" size="large" @click="downloadNotation">记谱</el-button>
-									<el-button type="warning" size="large" disabled>悔棋</el-button>
-									<el-button size="large" @click="returnToSettings">返回设置</el-button>
-								</div>
+				</template>
+			</article>
+		</div>
+		<!-- 开始游戏按钮 -->
+		<div v-if="!isGaming" style="padding: 20px;">
+			<el-button type="primary" size="large" @click="startGame" style="width: 100%;">开始游戏</el-button>
+		</div>
+
+		<aside class="right-sidebar">
+			<!-- 配置模式下的右侧栏 -->
+			<template v-if="!isGaming">
+				<el-form :model="gameSettings" label-position="top" class="game-settings-form">
+					<el-form-item label="玩家顺序">
+						<el-radio-group v-model="gameSettings.firstPlayer">
+							<el-radio value="red">红方先手</el-radio>
+							<el-radio value="black">黑方先手</el-radio>
+						</el-radio-group>
+					</el-form-item>
+					<div class="board-editor-controls">
+						<header class="toolbar , one row item , flex">
+							<el-button @click="resetBoard" type="info" inline plain>默认棋盘</el-button>
+							<el-button @click="clearBoard" type="danger" inline plain>清空棋盘</el-button>
+						</header>
+						<el-card body-class="piece-palette , grid">
+							<div class="unit display" v-for="(piece, type) in palettePieceTypes" :key="type"
+									 :class="getEditorUnitColor(piece)"
+									 draggable="true" @dragstart="dragStartPiece(type, 'palette')" @dragend="clearDraggedPiece">
+								{{ piece.显示 }}
+							</div>
+						</el-card>
+					</div>
+				</el-form>
+				<el-card header="棋子类型编辑器">
+					<div class="piece-type-editor-wrapper flex vertical">
+						<div class="piece-type-grid flex">
+							<div class="unit display" v-for="(piece, type) in boardEditor.pieceTypes" :key="type"
+									 :class="[getEditorUnitColor(piece), { 'selected': boardEditor.selectedPieceType === type }]"
+									 @click="boardEditor.selectedPieceType = (boardEditor.selectedPieceType === type ? null : type)">
+								{{ piece.显示 }}
 							</div>
 						</div>
-					</div>	</article>
+						<div v-if="boardEditor.selectedPieceType" class="piece-type-details">
+							<h4>正在编辑: {{ boardEditor.selectedPieceType }}</h4>
+							<el-form label-width="60px">
+								<el-form-item label="启用">
+									<el-switch v-model="isCurrentPieceEnabled"></el-switch>
+								</el-form-item>
+								<el-form-item label="显示">
+									<el-input v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].显示"
+														:input-style="{ fontFamily: 'NotoSansSymbols2, sans-serif', fontSize: '28px', textAlign: 'center' }"
+														style="width: 60px;"/>
+								</el-form-item>
+								<el-form-item label="技能">
+									<el-checkbox-group v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].技能">
+										<el-checkbox v-for="skill in allAvailableSkills" :key="skill" :label="skill"/>
+									</el-checkbox-group>
+								</el-form-item>
+							</el-form>
+						</div>
+					</div>
+				</el-card>
+				<el-card header="全局规则" style="margin-top: 20px;">
+					<el-checkbox-group v-model="gameSettings.rules">
+						<el-checkbox v-for="rule in allAvailableRules" :key="rule" :label="rule"/>
+					</el-checkbox-group>
+				</el-card>
+				<el-card header="插件" style="margin-top: 20px;">
+					<el-checkbox-group v-model="gameSettings.plugins">
+						<el-checkbox v-for="plugin in allAvailablePlugins" :key="plugin" :label="plugin"/>
+					</el-checkbox-group>
+				</el-card>
+			</template>
+			<!-- 游戏模式下的右侧栏 -->
+			<template v-else>
+				<article class="gaming situation">
+					<el-card style="margin-bottom: 20px;">
+						<template #header>当前选中:
+							<span v-if="selectedUnit" class="unit display" :class="getUnitClasses(selectedUnit)"
+										style="width: 40px; height: 40px; font-size: 28px; display: inline-flex; vertical-align: middle;">
+											{{ selectedUnit.display }}
+										</span>
+							<span v-else>无</span>
+						</template>
+						<div v-if="selectedUnit" style="margin-top: 10px;">
+							<strong>技能:</strong>
+							<div style="margin-top: 5px;">
+								<el-tag v-if="selectedUnit.skills" v-for="skill in selectedUnit.skills" :key="skill.name" type="info"
+												style="margin: 2px;">
+									{{ skill.name }}
+								</el-tag>
+							</div>
+						</div>
+					</el-card>
+
+					<el-card header="回合">
+						<el-table :data="turnHistory" row-key="id" stripe style="width: 100%" height="400" empty-text="尚未走棋">
+							<el-table-column prop="id" label="回合" width="60"></el-table-column>
+							<el-table-column prop="redMove" label="红方"></el-table-column>
+							<el-table-column prop="blackMove" label="黑方"></el-table-column>
+						</el-table>
+					</el-card>
+				</article>
+			</template>
+		</aside>
+
+		<!-- 游戏结束覆盖层 -->
+		<div class="game-overlay" v-if="isGaming && (showCheck || isGameOver)" :class="{ 'game-over': isGameOver }"
+				 v-cloak>
+			<div class="overlay-content">
+				<div class="check-text" v-if="showCheck">将</div>
+				<div v-if="isGameOver" class="game-over-panel">
+					<el-button class="close-btn" @click="isGameOverForRender = false" text title="关闭">关闭</el-button>
+					<div class="game-over-text">游戏结束</div>
+					<div class="winner-text">{{ winnerName }} 胜利</div>
+					<div class="button-group">
+						<el-button type="primary" size="large" @click="restartGame">重新开局</el-button>
+						<el-button type="info" size="large" @click="downloadNotation">记谱</el-button>
+						<el-button type="warning" size="large" disabled>悔棋</el-button>
+						<el-button size="large" @click="returnToSettings">返回设置</el-button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</article>
 </main>
 
-<aside class="right-sidebar">
+<footer>
 	<article class="website info">
 		<section class="patronage area">
 			<img class="qr-code" src="../../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
@@ -617,7 +599,7 @@
 		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
 		</section>
 	</article>
-</aside>
+</footer>
 
 <div class="js container">
 	<script src="../../resources/math.js"></script>
@@ -989,8 +971,8 @@
 					const rNum = position.rowNum;
 					const cNum = position.colNum;
 					const rt = [`row-${r + 1}`, `col-${c + 1}`,
-						`红${ChineseNum.digitsFromArabic(10 - cNum)}路`, // 红方从右往左数
-						`黑${cNum}路`,  // 黑方从左往右数
+											`红${ChineseNum.digitsFromArabic(10 - cNum)}路`, // 红方从右往左数
+											`黑${cNum}路`,  // 黑方从左往右数
 					];
 					if ((rNum === 3 || rNum === 8) && (cNum === 2 || cNum === 8)) {
 						rt.push('炮位');
@@ -1018,7 +1000,7 @@
 					const rNum = position.rowNum;
 					const cNum = position.colNum;
 					const rt = [`row-${r + 1}`, `col-${c + 1}`];
-					 if ((rNum === 3 || rNum === 8) && (cNum === 2 || cNum === 8)) {
+					if ((rNum === 3 || rNum === 8) && (cNum === 2 || cNum === 8)) {
 						rt.push('炮位');
 					}
 					if ((rNum === 4 || rNum === 7) && cNum % 2 === 1) {
@@ -1040,7 +1022,7 @@
 				const piece = this.boardEditor.pieceTypes[pieceName];
 				const color = this.getEditorUnitColor(piece);
 				const selected = this.isEditorPieceSelected(r, c);
-				return [color, { selected }];
+				return [color, {selected}];
 			},
 			handleCellClick(r, c, item) {
 				if (this.isGaming) {
