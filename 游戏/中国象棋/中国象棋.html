@@ -375,15 +375,6 @@
 		width: 45px;
 		height: 45px;
 	}
-
-	.piece-type-details {
-		flex-grow: 1;
-		padding: 15px;
-		border: 1px solid #ebeef5;
-		border-radius: 4px;
-		background-color: #fff;
-		box-shadow: 0 2px 12px 0 rgba(0, 0, 0, .1);
-	}
 </style>
 </head>
 <body class="grid 目字形">
@@ -435,25 +426,19 @@
 		</div>
 
 		<!-- 统一棋盘容器 -->
-		<div class="chessboard-container flex" style="justify-content: center; gap: 20px;" :class="{ 'dual-view': showReversedView }">
+		<div class="chessboard-container flex" style="justify-content: center; gap: 20px;"
+				 :class="{ 'dual-view': showReversedView }">
 			<article class="one chessboard , grid" :class="{ editor: !isGaming, area: isGaming }">
 				<template v-if="positions && positions.length > 0" v-for="(row, r) in positions">
-					<div class="cell"
-							 v-for="(position, c) in row"
-							 :key="position.toString()"
+					<div class="cell" v-for="(position, c) in row" :key="position.toString()"
 							 :class="getDynamicCellClasses(r, c, position)"
 							 @click="handleCellClick(r, c, position)"
-							 @dragover.prevent
-							 @drop="handleCellDrop(r, c, position)">
-
+							 @dragover.prevent @drop="handleCellDrop(r, c, position)">
 						<div class="texture"></div>
-
-						<div v-for="unit in boardForRender[r][c]" :key="unit.id"
-								 class="unit display"
-								 :class="isGaming ? getUnitClasses(unit) : getEditorPieceClasses(unit.name, r, c)"
+						<div class="unit display" :class="isGaming ? getUnitClasses(unit) : getEditorPieceClasses(unit.name, r, c)"
+								 v-for="unit in boardForRender[r][c]" :key="unit.id"
 								 :draggable="!isGaming"
-								 @dragstart="dragStartPiece(unit.name, 'board', r, c)"
-								 @dragend="clearDraggedPiece">
+								 @dragstart="dragStartPiece(unit.name, 'board', r, c)" @dragend="clearDraggedPiece">
 							{{ unit.display }}
 							<div v-if="!isGaming" class="remove-piece-btn" @click.stop="removeEditorPiece(r, c)">×</div>
 						</div>
@@ -476,85 +461,90 @@
 			</article>
 		</div>
 
-
 		<aside class="right-sidebar">
-			<!-- 配置模式下的右侧栏 -->
-			<template v-if="!isGaming">
-				<el-form :model="gameSettings" label-position="top" class="game-settings-form">
-
-				</el-form>
-				<el-card header="棋子库">
-					<div class="piece-type-editor-wrapper flex vertical">
-						<div class="piece-type-grid piece-palette grid" style="--min-cell-len: 45px">
-							<div class="unit display" v-for="(piece, type) in boardEditor.pieceTypes" :key="type"
-									 :class="[getEditorUnitColor(piece), { 'selected': boardEditor.selectedPieceType === type }]"
-									 @click="boardEditor.selectedPieceType = (boardEditor.selectedPieceType === type ? null : type)"
-									 draggable="true" @dragstart="dragStartPiece(type, 'palette')" @dragend="clearDraggedPiece">
-								{{ piece.显示 }}
-							</div>
-						</div>
-						<div v-if="boardEditor.selectedPieceType" class="piece-type-details">
-							<h4>正在编辑: {{ boardEditor.selectedPieceType }}</h4>
-							<el-form label-width="60px">
-								<el-form-item label="启用">
-									<el-switch v-model="isCurrentPieceEnabled"></el-switch>
-								</el-form-item>
-								<el-form-item label="显示">
-									<el-input v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].显示"
-														:input-style="{ fontFamily: 'NotoSansSymbols2, sans-serif', fontSize: '28px', textAlign: 'center' }"
-														style="width: 60px;"/>
-								</el-form-item>
-								<el-form-item label="技能">
-									<el-checkbox-group v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].技能">
-										<el-checkbox v-for="skill in allAvailableSkills" :key="skill" :label="skill"/>
-									</el-checkbox-group>
-								</el-form-item>
-							</el-form>
+			<el-card header="棋子库" v-if="!isGaming" style="margin-bottom: 20px;">
+				<div class="piece-type-editor-wrapper flex vertical">
+					<div class="piece-type-grid piece-palette grid" style="--min-cell-len: 45px">
+						<div class="unit display" v-for="(piece, type) in boardEditor.pieceTypes" :key="type"
+								 :class="[getEditorUnitColor(piece), { 'selected': boardEditor.selectedPieceType === type }]"
+								 @click="boardEditor.selectedPieceType = (boardEditor.selectedPieceType === type ? null : type)"
+								 draggable="true" @dragstart="dragStartPiece(type, 'palette')" @dragend="clearDraggedPiece">
+							{{ piece.显示 }}
 						</div>
 					</div>
-				</el-card>
-				<el-card header="全局规则" style="margin-top: 20px;">
-					<el-checkbox-group v-model="gameSettings.rules">
-						<el-checkbox v-for="rule in allAvailableRules" :key="rule" :label="rule"/>
-					</el-checkbox-group>
-				</el-card>
-				<el-card header="插件" style="margin-top: 20px;">
-					<el-checkbox-group v-model="gameSettings.plugins">
-						<el-checkbox v-for="plugin in allAvailablePlugins" :key="plugin" :label="plugin"/>
-					</el-checkbox-group>
-				</el-card>
-			</template>
-			<!-- 游戏模式下的右侧栏 -->
-			<template v-else>
-				<article class="gaming situation">
-					<el-card style="margin-bottom: 20px;">
-						<template #header>当前选中:
-							<span v-if="selectedUnit" class="unit display" :class="getUnitClasses(selectedUnit)"
-										style="width: 40px; height: 40px; font-size: 28px; display: inline-flex; vertical-align: middle;">
-								{{ selectedUnit.display }}
-							</span>
-							<span v-else>无</span>
-						</template>
-						<div v-if="selectedUnit" style="margin-top: 10px;">
-							<strong>技能:</strong>
-							<div style="margin-top: 5px;">
-								<el-tag v-if="selectedUnit.skills" v-for="skill in selectedUnit.skills" :key="skill.name" type="info"
-												style="margin: 2px;">
-									{{ skill.name }}
-								</el-tag>
-							</div>
-						</div>
-					</el-card>
+				</div>
+			</el-card>
+			<el-card style="margin-bottom: 20px;">
+				<template #header>
+					<div style="display: flex; align-items: center; gap: 10px;">
+						<span>当前选中:</span>
 
-					<el-card header="回合">
-						<el-table :data="turnHistory" row-key="id" stripe style="width: 100%" height="400" empty-text="尚未走棋">
-							<el-table-column prop="id" label="回合" width="60"></el-table-column>
-							<el-table-column prop="redMove" label="红方"></el-table-column>
-							<el-table-column prop="blackMove" label="黑方"></el-table-column>
-						</el-table>
-					</el-card>
-				</article>
-			</template>
+						<span v-if="isGaming && selectedUnit" class="unit display" :class="getUnitClasses(selectedUnit)"
+									style="width: 40px; height: 40px; font-size: 28px; display: inline-flex; vertical-align: middle;">
+							{{ selectedUnit.display }}</span>
+						<span v-if="!isGaming && boardEditor.selectedPieceType" class="unit display"
+									:class="getEditorUnitColor(boardEditor.pieceTypes[boardEditor.selectedPieceType])"
+									style="width: 40px; height: 40px; font-size: 28px; display: inline-flex; vertical-align: middle;">
+							{{ boardEditor.pieceTypes[boardEditor.selectedPieceType].显示 }}</span>
+						<span v-if="isGaming ? !selectedUnit : !boardEditor.selectedPieceType">无</span>
+					</div>
+				</template>
+
+				<div v-if="isGaming">
+					<div v-if="selectedUnit" style="margin-top: 10px;">
+						<strong>技能:</strong>
+						<div style="margin-top: 5px;">
+							<el-tag v-if="selectedUnit.skills" v-for="skill in selectedUnit.skills" :key="skill.name" type="info"
+											style="margin: 2px;">
+								{{ skill.name }}
+							</el-tag>
+						</div>
+					</div>
+				</div>
+
+				<div v-if="!isGaming">
+					<div v-if="boardEditor.selectedPieceType">
+						<el-form label-width="60px">
+							<el-form-item label="启用">
+								<el-switch v-model="isCurrentPieceEnabled"></el-switch>
+							</el-form-item>
+							<el-form-item label="显示">
+								<el-input v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].显示"
+													:input-style="{ fontFamily: 'NotoSansSymbols2, sans-serif', fontSize: '28px', textAlign: 'center' }"
+													style="width: 60px;"/>
+							</el-form-item>
+							<el-form-item label="技能">
+								<el-checkbox-group v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].技能">
+									<el-checkbox v-for="skill in allAvailableSkills" :key="skill" :label="skill"/>
+								</el-checkbox-group>
+							</el-form-item>
+						</el-form>
+					</div>
+					<div v-else>
+						<span>从上方棋子库中选择一个棋子进行编辑</span>
+					</div>
+				</div>
+			</el-card>
+
+			<el-card header="全局规则" v-if="!isGaming" style="margin-bottom: 20px;">
+				<el-checkbox-group v-model="gameSettings.rules">
+					<el-checkbox v-for="rule in allAvailableRules" :key="rule" :label="rule"/>
+				</el-checkbox-group>
+			</el-card>
+
+			<el-card header="插件" v-if="!isGaming" style="margin-bottom: 20px;">
+				<el-checkbox-group v-model="gameSettings.plugins">
+					<el-checkbox v-for="plugin in allAvailablePlugins" :key="plugin" :label="plugin"/>
+				</el-checkbox-group>
+			</el-card>
+
+			<el-card header="回合" v-if="isGaming">
+				<el-table :data="turnHistory" row-key="id" stripe style="width: 100%" height="400" empty-text="尚未走棋">
+					<el-table-column prop="id" label="回合" width="60"></el-table-column>
+					<el-table-column prop="redMove" label="红方"></el-table-column>
+					<el-table-column prop="blackMove" label="黑方"></el-table-column>
+				</el-table>
+			</el-card>
 		</aside>
 
 		<!-- 游戏结束覆盖层 -->
@@ -642,7 +632,7 @@
 					pieceTypes: 默认棋子类型,
 					enabledPieceTypes: Object.keys(默认棋子类型),
 					defaultBoardLayout: 默认棋盘布局,
-					layout: [], // 10x9 array
+					layout: [],
 					editorPositions: [],
 					editorBoardForRender: [],
 					draggedPiece: null, // { type, from, r, c }
@@ -884,7 +874,7 @@
 						if (pieceName && pieceName !== '空') {
 							const pieceType = this.boardEditor.pieceTypes[pieceName];
 							renderRow.push([{
-								id: `${r}-${c}`, // Fake ID for editor
+								id: `${r}-${c}`,
 								name: pieceName,
 								display: pieceType.显示,
 								owner: {team: {flag: pieceType.玩家 === 红方玩家id ? 'red' : 'black'}},

@@ -17,4 +17,32 @@
 /* .el-form-item自带底部外边距 */
 .toolbar .el-form-item {margin-bottom: 0;}
 
-.el-radio-group>.el-radio {margin-right: 0;}
+/* 原本居然有30px的右外边距，当同组的两个radio并排时，显得不亲，还不如跟其他元素亲近。 */
+.el-radio-group > .el-radio {margin-right: 0;}
+
+/* type="info"的按钮也是灰色的，看起来像禁用 */
+.el-button--info {
+	background-color: #ffffff; /* 纯白背景 */
+	border-color: #dcdfe6; /* 默认边框色 */
+	color: #606266; /* 默认文字色 */
+}
+
+.el-button--info:hover,
+.el-button--info:focus {
+	background-color: #f5f7fa; /* 悬停时浅灰 */
+	border-color: #c8c9cc;
+	color: #303133; /* 悬停时文字稍深 */
+}
+
+.el-button--info.is-plain {
+	background-color: #ffffff; /* 纯白背景 */
+	border-color: #dcdfe6; /* 默认边框色 */
+	color: #606266; /* 默认文字色 */
+}
+
+.el-button--info.is-plain:hover,
+.el-button--info.is-plain:focus {
+	background-color: #f5f7fa; /* 悬停时浅灰 */
+	border-color: #c8c9cc;
+	color: #303133;
+}
