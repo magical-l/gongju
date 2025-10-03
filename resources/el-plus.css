@@ -46,3 +46,7 @@
 	border-color: #c8c9cc;
 	color: #303133;
 }
+
+.compact {
+	--el-card-padding: 10px;
+}

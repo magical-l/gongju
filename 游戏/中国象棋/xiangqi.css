@@ -44,11 +44,13 @@
 }
 
 /* -------------边框线------------ */
-.one.chessboard .row-1 .texture, .row-6 .texture {
+.one.chessboard .row-1 .texture,
+.one.chessboard .row-6 .texture {
 	background-image: url('棋盘纹理-顶边.svg');
 }
 
-.one.chessboard .row-10 .texture, .row-5 .texture {
+.one.chessboard .row-10 .texture,
+.one.chessboard .row-5 .texture {
 	background-image: url('棋盘纹理-底边.svg');
 }
 
