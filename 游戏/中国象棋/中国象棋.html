@@ -313,8 +313,7 @@
 	}
 
 	.piece-palette {
-		grid-template-columns: repeat(2, 45px);
-		grid-template-rows: repeat(7, 45px);
+		grid-template-columns: repeat(auto-fill, 45px);
 		gap: 10px;
 		padding: 10px;
 	}
@@ -362,9 +361,8 @@
 	}
 
 	.piece-type-grid {
-		--min-cell-len: 50px;
-		/*display: grid;*/
-		/*grid-template-columns: repeat(7, var(--min-cell-len));*/
+		display: grid;
+		grid-template-columns: repeat(auto-fill, 50px);
 		gap: 10px;
 		padding: 10px;
 		background: #f5f5f5;
@@ -381,10 +379,6 @@
 		flex-grow: 1;
 		padding-left: 20px;
 		border-left: 1px solid #eee;
-	}
-
-	.el-checkbox.is-selected-for-editing {
-		border-color: var(--el-color-primary);
 	}
 </style>
 </head>
@@ -405,61 +399,54 @@
 		<a href="../点灯.html">点灯</a>
 	</nav>
 </header>
-<main>
+<main style="display: flex; justify-content: center;">
 	<article class="game-wrapper , 反叵字形 grid" v-cloak>
+		<!-- 模式工具栏 -->
 		<div class="toolbar , one-row item , flex items-like-册" style="gap: 10px; padding: 10px;">
+			<template v-if="!isGaming">
+				<el-button @click="resetBoard" type="info" inline plain>默认棋盘</el-button>
+				<el-button @click="clearBoard" type="danger" inline plain>清空棋盘</el-button>
+			</template>
 			<label>镜像视角
 				<el-switch v-model="showReversedView" size="large"/>
 			</label>
 		</div>
 
-		<div class="chessboard-container flex">
+		<!-- 统一棋盘容器 -->
+		<div class="chessboard-container flex" style="justify-content: center;">
 			<article class="one chessboard , grid" :class="{ editor: !isGaming, area: isGaming }">
-				<template v-for="(row, r) in (isGaming ? positions : boardEditor.layout)">
+				<template v-if="positions && positions.length > 0" v-for="(row, r) in positions">
 					<div class="cell"
-							 v-for="(item, c) in row"
-							 :key="isGaming ? item.toString() : `${r}-${c}`"
-							 :class="getDynamicCellClasses(r, c, item)"
-							 @click="handleCellClick(r, c, item)"
+							 v-for="(position, c) in row"
+							 :key="position.toString()"
+							 :class="getDynamicCellClasses(r, c, position)"
+							 @click="handleCellClick(r, c, position)"
 							 @dragover.prevent
-							 @drop="handleCellDrop(r, c)">
+							 @drop="handleCellDrop(r, c, position)">
 
 						<div class="texture"></div>
 
-						<!-- 编辑模式的棋子 -->
-						<template v-if="!isGaming">
-							<div v-if="item !== '空'"
-									 class="unit display"
-									 :class="getEditorPieceClasses(item, r, c)"
-									 draggable="true"
-									 @dragstart="dragStartPiece(item, 'board', r, c)"
-									 @dragend="clearDraggedPiece">
-								{{ boardEditor.pieceTypes[item].显示 }}
-								<div class="remove-piece-btn" @click.stop="removeEditorPiece(r, c)">×</div>
-							</div>
-						</template>
-						<!-- 游戏模式的棋子 -->
-						<template v-else>
-							<div class="unit display"
-									 v-for="unit in boardForRender[r][c]"
-									 :key="unit.id"
-									 :class="getUnitClasses(unit)">
-								{{ unit.display }}
-							</div>
-						</template>
+						<div v-for="unit in boardForRender[r][c]" :key="unit.id"
+								 class="unit display"
+								 :class="isGaming ? getUnitClasses(unit) : getEditorPieceClasses(unit.name, r, c)"
+								 :draggable="!isGaming"
+								 @dragstart="dragStartPiece(unit.name, 'board', r, c)"
+								 @dragend="clearDraggedPiece">
+							{{ unit.display }}
+							<div v-if="!isGaming" class="remove-piece-btn" @click.stop="removeEditorPiece(r, c)">×</div>
+						</div>
 					</div>
 				</template>
 			</article>
-			<!-- 镜像棋盘 -->
-			<article class="one chessboard reversed-view , grid" v-if="showReversedView">
-				<template v-for="(row,rIndex) of reversedPositions" :key="rIndex">
-					<div class="cell" v-for="(position,cIndex) in row" :key="rIndex + ',' + cIndex"
-							 :class="[getDynamicCellClasses(rIndex, cIndex, position), targetMarkers[position.toString()]]"
-							 @click="clickCell(position)">
+			<article class="one chessboard reversed-view , grid" v-if="showReversedView && positions && positions.length > 0">
+				<template v-for="(row,rIndex) of reversedPositions">
+					<div class="cell" v-for="(position,cIndex) in row" :key="position.toString()"
+							 :class="getDynamicCellClasses(9-rIndex, 8-cIndex, position)"
+							 @click="handleCellClick(9-rIndex, 8-cIndex, position)">
 						<div class="texture"></div>
 						<div class="unit display"
-								 v-for="(unit, uIndex) in boardForRender[position.rowNum - 1][position.colNum - 1]" :key="uIndex"
-								 :class="getUnitClasses(unit)">
+								 v-for="unit in boardForRender[position.rowNum - 1][position.colNum - 1]" :key="unit.id"
+								 :class="isGaming ? getUnitClasses(unit) : getEditorPieceClasses(unit.name, position.rowNum - 1, position.colNum - 1)">
 							{{ unit.display }}
 						</div>
 					</div>
@@ -481,26 +468,14 @@
 							<el-radio value="black">黑方先手</el-radio>
 						</el-radio-group>
 					</el-form-item>
-					<div class="board-editor-controls">
-						<header class="toolbar , one row item , flex">
-							<el-button @click="resetBoard" type="info" inline plain>默认棋盘</el-button>
-							<el-button @click="clearBoard" type="danger" inline plain>清空棋盘</el-button>
-						</header>
-						<el-card body-class="piece-palette , grid">
-							<div class="unit display" v-for="(piece, type) in palettePieceTypes" :key="type"
-									 :class="getEditorUnitColor(piece)"
-									 draggable="true" @dragstart="dragStartPiece(type, 'palette')" @dragend="clearDraggedPiece">
-								{{ piece.显示 }}
-							</div>
-						</el-card>
-					</div>
 				</el-form>
-				<el-card header="棋子类型编辑器">
+				<el-card header="棋子库">
 					<div class="piece-type-editor-wrapper flex vertical">
-						<div class="piece-type-grid flex">
+						<div class="piece-type-grid piece-palette grid">
 							<div class="unit display" v-for="(piece, type) in boardEditor.pieceTypes" :key="type"
 									 :class="[getEditorUnitColor(piece), { 'selected': boardEditor.selectedPieceType === type }]"
-									 @click="boardEditor.selectedPieceType = (boardEditor.selectedPieceType === type ? null : type)">
+									 @click="boardEditor.selectedPieceType = (boardEditor.selectedPieceType === type ? null : type)"
+									 draggable="true" @dragstart="dragStartPiece(type, 'palette')" @dragend="clearDraggedPiece">
 								{{ piece.显示 }}
 							</div>
 						</div>
@@ -542,8 +517,8 @@
 						<template #header>当前选中:
 							<span v-if="selectedUnit" class="unit display" :class="getUnitClasses(selectedUnit)"
 										style="width: 40px; height: 40px; font-size: 28px; display: inline-flex; vertical-align: middle;">
-											{{ selectedUnit.display }}
-										</span>
+								{{ selectedUnit.display }}
+							</span>
 							<span v-else>无</span>
 						</template>
 						<div v-if="selectedUnit" style="margin-top: 10px;">
@@ -569,8 +544,7 @@
 		</aside>
 
 		<!-- 游戏结束覆盖层 -->
-		<div class="game-overlay" v-if="isGaming && (showCheck || isGameOver)" :class="{ 'game-over': isGameOver }"
-				 v-cloak>
+		<div class="game-overlay" v-if="isGaming && (showCheck || isGameOver)" :class="{ 'game-over': isGameOver }" v-cloak>
 			<div class="overlay-content">
 				<div class="check-text" v-if="showCheck">将</div>
 				<div v-if="isGameOver" class="game-over-panel">
@@ -624,6 +598,7 @@
 		Move,
 		攻击,
 	} from './xiangqi.esm.js';
+	import {棋盘点位} from './battlefield-module.esm.js';
 	import {compareWithId} from './kit.esm.js';
 
 	const {createApp, reactive, ref, computed} = Vue;
@@ -638,7 +613,6 @@
 				},
 				gameCfg: {},
 				gaming: null,
-				boardForRender: [], // 用于渲染棋盘的二维数组
 				turnHistoryForRender: [], // 用于渲染回合历史的数组
 				isGameOverForRender: false,
 				winnerNameForRender: '',
@@ -655,6 +629,8 @@
 					enabledPieceTypes: Object.keys(默认棋子类型),
 					defaultBoardLayout: 默认棋盘布局,
 					layout: [], // 10x9 array
+					editorPositions: [],
+					editorBoardForRender: [],
 					draggedPiece: null, // { type, from, r, c }
 					selectedPiece: null, // {r, c}
 					selectedPieceType: null, // 选中的棋子类型key
@@ -699,8 +675,7 @@
 									}
 								}
 							}
-							// 强制更新视图以确保移除的棋子在编辑器棋盘上消失
-							this.boardEditor.layout = [...this.boardEditor.layout];
+							this.updateEditorRenderData();
 						}
 					}
 				},
@@ -714,14 +689,26 @@
 				});
 				return result;
 			},
-			battlefield() {
-				return this.gaming?.battlefield;
-			},
 			positions() {
-				return this.battlefield?.positions;
+				return this.isGaming ? this.gaming?.battlefield?.positions : this.boardEditor.editorPositions;
 			},
 			reversedPositions() {
-				return this.battlefield?.revert ? this.battlefield.revert() : [];
+				if (this.isGaming) {
+					return this.gaming?.battlefield?.revert ? this.gaming.battlefield.revert() : [];
+				}
+				if (!this.boardEditor.editorPositions || this.boardEditor.editorPositions.length === 0) {
+					return [];
+				}
+				return this.boardEditor.editorPositions.slice().reverse().map(row => row.slice().reverse());
+			},
+			boardForRender() {
+				if (this.isGaming) {
+					if (!this.gaming?.battlefield?.positions) {
+						return [];
+					}
+					return this.gaming.battlefield.positions.map(row => row.map(pos => this.gaming.battlefield.getUnitsAt(pos)));
+				}
+				return this.boardEditor.editorBoardForRender;
 			},
 			situation() {
 				return this.gaming?.situation;
@@ -737,11 +724,14 @@
 			},
 			targetMarkers() {
 				const markers = {};
+				if (!this.isGaming) {
+					return markers;
+				}
 
 				// 可移动到空点
 				this.movableTargets.forEach(pos => markers[pos.toString()] = 'movable');
 
-				// 被阻挡的点位（如绊马脚、塞象眼）
+				// 被阻碍的点位（如绊马脚、塞象眼）
 				this.blockedMoves.forEach(pos => markers[pos.toString()] = 'blocked');
 
 				// 可攻击的单位（会覆盖上面的movable和blocked）
@@ -780,10 +770,7 @@
 				if (!this.gaming) {
 					return;
 				}
-				// 更新棋盘渲染数据
-				this.boardForRender = this.gaming.battlefield.positions.map(row => {
-					return row.map(pos => this.gaming.battlefield.getUnitsAt(pos));
-				});
+				// boardForRender 已被提升为计算属性，无需手动更新
 
 				// 更新回合历史
 				this.turnHistoryForRender = this.gaming.situation?._roundNotations?.map((round, index) => ({
@@ -796,7 +783,8 @@
 				this.isGameOverForRender = this.gaming.situation?.isEnded || false;
 				this.winnerNameForRender = this.gaming.situation?.winner?.name || '';
 
-				// 清理选择状态				this.selectedUnit = null;
+				// 清理选择状态
+				this.selectedUnit = null;
 				this.movableTargets = [];
 				this.attackTargets = [];
 				this.blockedMoves = [];
@@ -811,11 +799,13 @@
 			clearBoard() {
 				this.boardEditor.layout = Array(10).fill(0).map(() => Array(9).fill('空'));
 				this.boardEditor.selectedPiece = null;
+				this.updateEditorRenderData();
 			},
 			resetBoard() {
 				this.boardEditor.layout = this.boardEditor.defaultBoardLayout.trim().split('\n')
 																			.map(row => row.trim().split(''));
 				this.boardEditor.selectedPiece = null;
+				this.updateEditorRenderData();
 			},
 			dragStartPiece(type, from, r = null, c = null) {
 				this.boardEditor.draggedPiece = {type, from, r, c};
@@ -836,6 +826,7 @@
 				this.boardEditor.draggedPiece = null;
 				// 强制更新视图
 				this.boardEditor.layout = [...this.boardEditor.layout];
+				this.updateEditorRenderData();
 			},
 			selectEditorPiece(r, c) {
 				const selected = this.boardEditor.selectedPiece;
@@ -859,9 +850,40 @@
 			removeEditorPiece(r, c) {
 				this.boardEditor.layout[r][c] = '空';
 				this.boardEditor.selectedPiece = null;
+				this.updateEditorRenderData();
 			},
 			clearDraggedPiece() {
 				this.boardEditor.draggedPiece = null;
+			},
+			updateEditorRenderData() {
+				const newPositions = [];
+				const newBoardForRender = [];
+				if (!this.boardEditor.layout || this.boardEditor.layout.length === 0) {
+					this.boardEditor.layout = Array(10).fill(0).map(() => Array(9).fill('空'));
+				}
+				for (let r = 0; r < 10; r++) {
+					const row = [];
+					const renderRow = [];
+					for (let c = 0; c < 9; c++) {
+						row.push(new 棋盘点位(r + 1, c + 1));
+						const pieceName = this.boardEditor.layout[r]?.[c];
+						if (pieceName && pieceName !== '空') {
+							const pieceType = this.boardEditor.pieceTypes[pieceName];
+							renderRow.push([{
+								id: `${r}-${c}`, // Fake ID for editor
+								name: pieceName,
+								display: pieceType.显示,
+								owner: {team: {flag: pieceType.玩家 === 红方玩家id ? 'red' : 'black'}},
+							}]);
+						} else {
+							renderRow.push([]);
+						}
+					}
+					newPositions.push(row);
+					newBoardForRender.push(renderRow);
+				}
+				this.boardEditor.editorPositions = newPositions;
+				this.boardEditor.editorBoardForRender = newBoardForRender;
 			},
 			// 游戏流程方法
 			startGame() {
@@ -876,7 +898,7 @@
 
 				this.gameCfg = {
 					玩家顺序: playerTurnSequence,
-					棋盘: boardString,//todo：放到 battlefield 对应的cfg里
+					棋盘: boardString,
 					棋子类型: this.palettePieceTypes,
 					规则: this.gameSettings.rules,
 					插件: this.gameSettings.plugins,
@@ -965,58 +987,46 @@
 			},
 			// 游戏中的UI辅助方法
 			getDynamicCellClasses(r, c, item) {
+				let position;
 				if (this.isGaming) {
-					const position = item;
-					// 1. 逻辑类：基于棋盘绝对坐标，用于游戏逻辑判断
-					const rNum = position.rowNum;
-					const cNum = position.colNum;
-					const rt = [`row-${r + 1}`, `col-${c + 1}`,
-											`红${ChineseNum.digitsFromArabic(10 - cNum)}路`, // 红方从右往左数
-											`黑${cNum}路`,  // 黑方从左往右数
-					];
-					if ((rNum === 3 || rNum === 8) && (cNum === 2 || cNum === 8)) {
-						rt.push('炮位');
+					position = item;
+				} else {
+					position = this.boardEditor.editorPositions[r]?.[c];
+				}
+				if (!position) {
+					return [];
+				}
+
+				const rNum = position.rowNum;
+				const cNum = position.colNum;
+				const rt = [`row-${rNum}`, `col-${cNum}`,
+										`红${ChineseNum.digitsFromArabic(10 - cNum)}路`, // 红方从右往左数
+										`黑${cNum}路`,  // 黑方从左往右数
+				];
+				if ((rNum === 3 || rNum === 8) && (cNum === 2 || cNum === 8)) {
+					rt.push('炮位');
+				}
+				if ((rNum === 4 || rNum === 7) && cNum % 2 === 1) {
+					rt.push('兵卒位');
+				}
+				if ((rNum <= 3 || rNum >= 8) && (cNum >= 4 && cNum <= 6)) {
+					rt.push('九宫');
+					if ((rNum === 2 || rNum === 9) && cNum === 5) {
+						rt.push('窝心');
 					}
-					if ((rNum === 4 || rNum === 7) && cNum % 2 === 1) {
-						rt.push('兵卒位');
+					if ((rNum === 3 || rNum === 8) && (cNum === 4 || cNum === 6)) {
+						rt.push('士角');
 					}
-					if ((rNum <= 3 || rNum >= 8) && (cNum >= 4 && cNum <= 6)) {
-						rt.push('九宫');
-						if ((rNum === 2 || rNum === 9) && cNum === 5) {
-							rt.push('窝心');
-						}
-						if ((rNum === 3 || rNum === 8) && (cNum === 4 || cNum === 6)) {
-							rt.push('士角');
-						}
-					}
+				}
+
+				if (this.isGaming) {
 					const markers = this.targetMarkers[position.toString()];
 					if (markers) {
 						rt.push(markers);
 					}
-					return rt;
-				} else {
-					// Editor mode classes
-					const position = {rowNum: r + 1, colNum: c + 1};
-					const rNum = position.rowNum;
-					const cNum = position.colNum;
-					const rt = [`row-${r + 1}`, `col-${c + 1}`];
-					if ((rNum === 3 || rNum === 8) && (cNum === 2 || cNum === 8)) {
-						rt.push('炮位');
-					}
-					if ((rNum === 4 || rNum === 7) && cNum % 2 === 1) {
-						rt.push('兵卒位');
-					}
-					if ((rNum <= 3 || rNum >= 8) && (cNum >= 4 && cNum <= 6)) {
-						rt.push('九宫');
-						if ((rNum === 2 || rNum === 9) && cNum === 5) {
-							rt.push('窝心');
-						}
-						if ((rNum === 3 || rNum === 8) && (cNum === 4 || cNum === 6)) {
-							rt.push('士角');
-						}
-					}
-					return rt;
 				}
+
+				return rt;
 			},
 			getEditorPieceClasses(pieceName, r, c) {
 				const piece = this.boardEditor.pieceTypes[pieceName];
@@ -1032,7 +1042,7 @@
 					this.selectEditorPiece(r, c);
 				}
 			},
-			handleCellDrop(r, c) {
+			handleCellDrop(r, c, position) {
 				if (!this.isGaming) {
 					this.dropOnBoard(r, c);
 				}
