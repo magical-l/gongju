@@ -16,3 +16,5 @@
 
 /* .el-form-item自带底部外边距 */
 .toolbar .el-form-item {margin-bottom: 0;}
+
+.el-radio-group>.el-radio {margin-right: 0;}
