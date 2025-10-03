@@ -394,7 +394,7 @@
 					defaultBoardLayout: 默认棋盘布局,
 					layout: [],
 					editorPositions: [],
-					editorBoardForRender: [],
+
 					draggedPiece: null, // { type, from, r, c }
 					selectedPiece: null, // {r, c}
 					selectedPieceType: null, // 选中的棋子类型key
@@ -433,7 +433,27 @@
 					}
 					return this.gaming.battlefield.positions.map(row => row.map(pos => this.gaming.battlefield.getUnitsAt(pos)));
 				}
-				return this.boardEditor.editorBoardForRender;
+				// 编辑模式下，根据布局和棋子类型动态生成渲染数据
+				const newBoardForRender = [];
+				for (let r = 0; r < 10; r++) {
+					const renderRow = [];
+					for (let c = 0; c < 9; c++) {
+						const pieceName = this.boardEditor.layout[r]?.[c];
+						if (pieceName && pieceName !== '空') {
+							const pieceType = this.boardEditor.pieceTypes[pieceName];
+							renderRow.push([{
+								id: `${r}-${c}`,
+								name: pieceName,
+								display: pieceType.显示,
+								owner: {team: {flag: pieceType.玩家 === 红方玩家id ? 'red' : 'black'}},
+							}]);
+						} else {
+							renderRow.push([]);
+						}
+					}
+					newBoardForRender.push(renderRow);
+				}
+				return newBoardForRender;
 			},
 			situation() {
 				return this.gaming?.situation;
@@ -582,33 +602,17 @@
 			},
 			updateEditorRenderData() {
 				const newPositions = [];
-				const newBoardForRender = [];
 				if (!this.boardEditor.layout || this.boardEditor.layout.length === 0) {
 					this.boardEditor.layout = Array(10).fill(0).map(() => Array(9).fill('空'));
 				}
 				for (let r = 0; r < 10; r++) {
 					const row = [];
-					const renderRow = [];
 					for (let c = 0; c < 9; c++) {
 						row.push(new 棋盘点位(r + 1, c + 1));
-						const pieceName = this.boardEditor.layout[r]?.[c];
-						if (pieceName && pieceName !== '空') {
-							const pieceType = this.boardEditor.pieceTypes[pieceName];
-							renderRow.push([{
-								id: `${r}-${c}`,
-								name: pieceName,
-								display: pieceType.显示,
-								owner: {team: {flag: pieceType.玩家 === 红方玩家id ? 'red' : 'black'}},
-							}]);
-						} else {
-							renderRow.push([]);
-						}
 					}
 					newPositions.push(row);
-					newBoardForRender.push(renderRow);
 				}
 				this.boardEditor.editorPositions = newPositions;
-				this.boardEditor.editorBoardForRender = newBoardForRender;
 			},
 			// 游戏流程方法
 			startGame() {
