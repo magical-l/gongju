@@ -125,7 +125,7 @@
 
 	.piece-type-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, 30px);
+		grid-template-columns: repeat(auto-fill, 40px);
 		gap: 10px;
 		padding: 10px;
 		background: #f5f5f5;
@@ -136,6 +136,51 @@
 	.piece-type-grid .unit.display {
 		width: 45px;
 		height: 45px;
+	}
+
+	.toolbar {
+		gap: 10px;
+		padding: 10px;
+		align-items: center;
+	}
+
+	.right-sidebar > .el-card:not(:last-child) {
+		margin-bottom: 20px;
+	}
+
+	.selected-unit-preview {
+		width: 40px;
+		height: 40px;
+		font-size: 28px;
+		display: inline-flex;
+		vertical-align: middle;
+	}
+
+	main {
+		display: flex;
+		justify-content: center;
+	}
+
+	.chessboard-container {
+		justify-content: center;
+		gap: 20px;
+	}
+
+	.card-header-content {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
+
+	.player-turn-selector {
+		display: flex;
+		align-items: center;
+		margin-left: 10px;
+		gap: 10px;
+	}
+
+	.push-right {
+		margin-left: auto;
 	}
 </style>
 </head>
@@ -156,10 +201,10 @@
 		<a href="../点灯.html">点灯</a>
 	</nav>
 </header>
-<main style="display: flex; justify-content: center;">
+<main>
 	<article class="game-wrapper , 反叵字形 grid" v-cloak>
 		<!-- 模式工具栏 -->
-		<div class="toolbar , one-row item , flex items-like-册" style="gap: 10px; padding: 10px; align-items: center;">
+		<div class="toolbar , one-row item , flex items-like-册">
 			<label>对面视角
 				<el-switch v-model="showReversedView" size="large"/>
 			</label>
@@ -167,14 +212,14 @@
 				<el-button @click="resetBoard" type="info" inline plain>默认棋盘</el-button>
 				<el-button @click="clearBoard" type="danger" inline plain>清空棋盘</el-button>
 				<!-- 玩家顺序 -->
-				<div style="display: flex; align-items: center; margin-left: 10px; gap: 10px;">
+				<div class="player-turn-selector">
 					<el-radio-group v-model="gameSettings.firstPlayer">
 						<el-radio value="red" border>红先</el-radio>
 						<el-radio value="black" border>黑先</el-radio>
 					</el-radio-group>
 				</div>
 				<!-- 开始游戏 -->
-				<el-button type="primary" size="large" @click="startGame" style="margin-left: auto;">开始游戏</el-button>
+				<el-button type="primary" size="large" @click="startGame" class="push-right">开始游戏</el-button>
 			</template>
 			<template v-else>
 				<!-- 游戏操作 -->
@@ -188,7 +233,7 @@
 		</div>
 
 		<!-- 统一棋盘容器 -->
-		<div class="chessboard-container flex" style="justify-content: center; gap: 20px;"
+		<div class="chessboard-container flex"
 				 :class="{ 'dual-view': showReversedView }">
 			<article class="one chessboard , grid" :class="{ editor: !isGaming, area: isGaming }">
 				<template v-if="positions && positions.length > 0" v-for="(row, r) in positions">
@@ -225,28 +270,24 @@
 
 		<aside class="right-sidebar">
 			<el-card header="棋子库" v-if="!isGaming" shadow="never" class="compact">
-				<div class="piece-type-editor-wrapper flex vertical">
-					<div class="piece-type-grid piece-palette grid" style="--min-cell-len: 45px">
-						<div class="unit display" v-for="(piece, type) in boardEditor.pieceTypes" :key="type"
-								 :class="[getEditorUnitColor(piece), { 'selected': boardEditor.selectedPieceType === type }]"
-								 @click="boardEditor.selectedPieceType = (boardEditor.selectedPieceType === type ? null : type)"
-								 draggable="true" @dragstart="dragStartPiece(type, 'palette')" @dragend="clearDraggedPiece">
-							{{ piece.显示 }}
-						</div>
+				<div class="piece-type-grid piece-palette grid flex vertical" style="--min-cell-len: 45px">
+					<div class="unit display" v-for="(piece, type) in boardEditor.pieceTypes" :key="type"
+							 :class="[getEditorUnitColor(piece), { 'selected': boardEditor.selectedPieceType === type }]"
+							 @click="boardEditor.selectedPieceType = (boardEditor.selectedPieceType === type ? null : type)"
+							 draggable="true" @dragstart="dragStartPiece(type, 'palette')" @dragend="clearDraggedPiece">
+						{{ piece.显示 }}
 					</div>
 				</div>
 			</el-card>
-			<el-card shadow="never" class="compact" style="margin-bottom: 20px;">
+			<el-card shadow="never" class="compact">
 				<template #header>
-					<div style="display: flex; align-items: center; gap: 10px;">
+					<div class="card-header-content">
 						<span>当前选中:</span>
 
-						<span v-if="isGaming && selectedUnit" class="unit display" :class="getUnitClasses(selectedUnit)"
-									style="width: 40px; height: 40px; font-size: 28px; display: inline-flex; vertical-align: middle;">
+						<span v-if="isGaming && selectedUnit" class="unit display selected-unit-preview" :class="getUnitClasses(selectedUnit)">
 							{{ selectedUnit.display }}</span>
-						<span v-if="!isGaming && boardEditor.selectedPieceType" class="unit display"
-									:class="getEditorUnitColor(boardEditor.pieceTypes[boardEditor.selectedPieceType])"
-									style="width: 40px; height: 40px; font-size: 28px; display: inline-flex; vertical-align: middle;">
+						<span v-if="!isGaming && boardEditor.selectedPieceType" class="unit display selected-unit-preview"
+									:class="getEditorUnitColor(boardEditor.pieceTypes[boardEditor.selectedPieceType])">
 							{{ boardEditor.pieceTypes[boardEditor.selectedPieceType].显示 }}</span>
 						<span v-if="isGaming ? !selectedUnit : !boardEditor.selectedPieceType">无</span>
 					</div>
@@ -286,13 +327,13 @@
 				</div>
 			</el-card>
 
-			<el-card header="全局规则" v-if="!isGaming" class="compact" shadow="never" style="margin-bottom: 20px;">
+			<el-card header="全局规则" v-if="!isGaming" class="compact" shadow="never">
 				<el-checkbox-group v-model="gameSettings.rules">
 					<el-checkbox v-for="rule in allAvailableRules" :key="rule" :label="rule"/>
 				</el-checkbox-group>
 			</el-card>
 
-			<el-card header="插件" v-if="!isGaming" class="compact" shadow="never" style="margin-bottom: 20px;">
+			<el-card header="插件" v-if="!isGaming" class="compact" shadow="never">
 				<el-checkbox-group v-model="gameSettings.plugins">
 					<el-checkbox v-for="plugin in allAvailablePlugins" :key="plugin" :label="plugin"/>
 				</el-checkbox-group>
