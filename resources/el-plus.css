@@ -50,3 +50,7 @@
 .compact {
 	--el-card-padding: 10px;
 }
+
+.right-sidebar > .el-card:not(:last-child) {
+	margin-bottom: 20px;
+}
