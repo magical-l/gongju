@@ -4,9 +4,9 @@ import {
 } from './kit.esm.js';
 
 export {
-	TurnBasedGame, TurnBasedGaming, Rule, Situation,
-	Player, Skill, PassiveSkill, BuffSkill, SkillHolder,
-	Plugin, Module,
+	TurnBasedGame, TurnBasedGaming, Module, Plugin, Rule, Situation,
+	SkillHolder, Skill, PassiveSkill, BuffSkill,
+	Player, PlayerTurn, Round,
 	Command, SelectSkillCommand, SelectTargetCommand, EndTurnCommand,
 };
 
@@ -52,9 +52,33 @@ class TurnBasedGaming {
 
 	get gaming() { return this; }
 
+	_isCollectingChanges = false;
+	_changeLog = [];
+
 	constructor(cfg) {
 		this._cfg = cfg;
 		addCfgProps(this, this._cfg);
+	}
+
+	startChangeCollection() {
+		this._changeLog = [];
+		this._isCollectingChanges = true;
+
+	}
+
+	stopChangeCollection() {
+		this._isCollectingChanges = false;
+
+		return this._changeLog;
+	}
+
+	collectChange(change) {
+		if (this._isCollectingChanges) {
+			this._changeLog.push(change);
+
+		} else {
+
+		}
 	}
 
 	build() {
@@ -146,24 +170,82 @@ class TurnBasedGaming {
 			this.situation.isEnded = true;
 			this.situation.winner = winner;
 		});
-		// 使用IIFE（立即调用函数表达式）来启动异步游戏循环，避免构造函数变成异步
-		(async () => {
-			this.situation.isStarted = true;
-			notice(this, 'gaming start', {gaming: this});
 
-			while (!this.situation.isEnded) {
-				await this.situation.startRound();
+		// 监听输入并直接调用当前玩家的play方法
+		this.bulletin.watch('ui input', input => {
+			if (this.situation.isEnded) {
+				return;
 			}
 
-			this.situation.isEnded = true;
-			notice(this, 'gaming end', {winner: this.situation.winner});
-		})().catch(console.error);
+			// 检查是否是特殊控制动作
+			if (input?.action === 'INTERRUPT_TURN') {
+				return;
+			}
+
+			// 普通输入：直接调用当前玩家的play方法
+			if (this.situation.curPlayer) {
+				this._handlePlayerInput(input);
+			}
+		});
+
+		// 启动游戏
+		this.situation.isStarted = true;
+		notice(this, 'gaming start', {gaming: this});
+
+		// 开始第一个回合
+		this.situation.startRound();
+	}
+
+	async _handlePlayerInput(input) {
+		if (!this.situation.curPlayer) {
+			return;
+		}
+
+		const player = this.situation.curPlayer;
+
+		// 调用玩家的play方法处理输入
+		const actionPerformed = await player.play(input);
+
+		// 如果玩家完成了行动，检查是否需要轮转
+		if (actionPerformed) {
+			await this._checkTurnEnd(player);
+		}
+	}
+
+	async _checkTurnEnd(currentPlayer) {
+		// 检查当前玩家是否完成了所有行动
+		// 这里可以根据具体游戏规则来判断
+		// 暂时简化：每次行动后都轮转
+
+		// 找到下一个玩家
+		const currentIndex = this.playerTurnSequence.indexOf(currentPlayer);
+		const nextIndex = (currentIndex + 1) % this.playerTurnSequence.length;
+		const nextPlayer = this.playerTurnSequence[nextIndex];
+
+		// 结束当前玩家的轮次
+		this.bulletin.notice('player-turn end', {player: currentPlayer});
+
+		// 如果游戏未结束，开始下一个玩家的轮次
+		if (!this.situation.isEnded) {
+			this.situation.curPlayer = nextPlayer;
+			nextPlayer._actionsTakenThisTurn = 0; // 重置下一个玩家的行动计数
+			this.bulletin.notice('player-turn start', {player: nextPlayer});
+		}
 	}
 
 	waitForInput() {
 		return new Promise(resolve => {
 			const onInput = payload => {
 				unwatch(this, 'ui input', onInput);
+
+				// 检查是否是特殊控制动作
+				if (payload?.action === 'INTERRUPT_TURN') {
+					resolve(payload);
+					return;
+				}
+
+				// 一般情况：转发为 player adapter input
+				notice(this, 'player adapter input', payload);
 				resolve(payload);
 			};
 			watch(this, 'ui input', onInput, {watchHistory: false});
@@ -178,20 +260,110 @@ class Situation {
 	_gaming;
 	get gaming() { return this._gaming; }
 
-	_rounds = [];
-	get rounds() { return this._rounds; }
+	_historyRoot; // 历史树的根节点
+	_currentNode; // 指向当前状态的节点
+
+	_currentRoundIndex = 0;
+	get currentRoundIndex() { return this._currentRoundIndex; }
 
 	curPlayer;
 	isStarted = false;
 	isEnded = false;
 	winner;
 
-	constructor(gaming) { this._gaming = gaming; }
+	constructor(gaming) {
+		this._gaming = gaming;
+		this._historyRoot = new HistoryNode(null); // 根节点不包含任何轮次信息
+		this._currentNode = this._historyRoot;
+	}
 
 	async startRound() {
-		const round = new Round(this.gaming, this._rounds.length + 1);
-		this._rounds.push(round);
-		await round.start();
+		this._currentRoundIndex++;
+		this.gaming.bulletin.notice('round start', {roundIndex: this._currentRoundIndex});
+		// 此处保留了旧的开始回合逻辑，即设置第一个玩家
+		if (this.gaming.playerTurnSequence.length > 0) {
+			this.gaming.situation.curPlayer = this.gaming.playerTurnSequence[0];
+			this.gaming.situation.curPlayer._actionsTakenThisTurn = 0; // 重置第一个玩家的行动计数
+			this.gaming.bulletin.notice('player-turn start', {player: this.gaming.situation.curPlayer});
+		}
+	}
+
+	recordTurn(player, command, result) {
+		const playerTurn = new PlayerTurn(this._currentRoundIndex, player, command, result);
+		const newNode = new HistoryNode(playerTurn, this._currentNode);
+		this._currentNode.children.push(newNode);
+		this._currentNode = newNode;
+		return newNode;
+	}
+
+	rewind(steps = 1) {
+		let moved = 0;
+		for (let i = 0; i < steps; i++) {
+			if (this._currentNode.parent) {
+				const undoneTurn = this._currentNode.data;
+				this._currentNode = this._currentNode.parent;
+				// 框架层提供完整的轮次信息，包括变更记录
+				this.gaming.bulletin.notice('history-step-rewind', {
+					turn: undoneTurn,
+					changes: undoneTurn?.changes || [],
+					success: undoneTurn?.success || false,
+				});
+				moved++;
+			} else {
+				break; // 到达根节点
+			}
+		}
+		if (moved > 0) {
+			this.gaming.bulletin.notice('history-navigation-end', {
+				to: this._currentNode.data,
+				gaming: this.gaming,
+				stepsMoved: moved,
+			});
+		}
+		return this._currentNode;
+	}
+
+	fastForward({branchIndex = 0, steps = 1} = {}) {
+		let moved = 0;
+		for (let i = 0; i < steps; i++) {
+			const targetNode = this._currentNode.children[branchIndex];
+			if (targetNode) {
+				this._currentNode = targetNode;
+				// 框架层提供完整的轮次信息，包括变更记录
+				this.gaming.bulletin.notice('history-step-fastforward', {
+					turn: this._currentNode.data,
+					changes: this._currentNode.data?.changes || [],
+					success: this._currentNode.data?.success || false,
+				});
+				moved++;
+			} else {
+				break; // 没有更多子节点
+			}
+		}
+		if (moved > 0) {
+			this.gaming.bulletin.notice('history-navigation-end', {
+				to: this._currentNode.data,
+				gaming: this.gaming,
+				stepsMoved: moved,
+			});
+		}
+		return this._currentNode;
+	}
+
+	canRewind() {
+		return this._currentNode && !!this._currentNode.parent;
+	}
+
+	canFastForward() {
+		return this._currentNode && this._currentNode.children.length > 0;
+	}
+}
+
+class HistoryNode {
+	constructor(playerTurn, parent = null) {
+		this.data = playerTurn; // PlayerTurn 对象, 或者 null (对于根节点)
+		this.parent = parent;
+		this.children = [];
 	}
 }
 
@@ -213,17 +385,67 @@ class Round {
 	 * 开始一个回合
 	 */
 	async start() {
-		for (const player of this.gaming.playerTurnSequence) {
-			this.gaming.situation.curPlayer = player;
-			this.gaming.bulletin.notice('player-turn start', {player});
-			await player.play(); // 等待当前玩家的回合结束
-			this.gaming.situation.curPlayer = null;
-			this.gaming.bulletin.notice('player-turn end', {player});
-			// 如果当前玩家的回合导致游戏结束，则立即中断回合
-			if (this.gaming.situation.isEnded) {
-				break;
-			}
+		// 核心逻辑已移至 Situation.startRound
+		// 此处可以保留用于发布通知等辅助操作
+	}
+}
+
+class PlayerTurn {
+	_roundIndex;
+	_player;
+	_command;
+	_result;
+	_timestamp;
+
+	get roundIndex() { return this._roundIndex; }
+
+	get player() { return this._player; }
+
+	get command() { return this._command; }
+
+	get result() { return this._result; }
+
+	get timestamp() { return this._timestamp; }
+
+	constructor(roundIndex, player, command, result) {
+		this._roundIndex = roundIndex;
+		this._player = player;
+		this._command = command;
+		this._result = result;
+		this._timestamp = Date.now();
+	}
+
+	/**
+	 * 获取此轮次产生的变更记录
+	 * 框架层只负责存储，具体的使用由应用层决定
+	 */
+	get changes() {
+		return this._result?.changes || [];
+	}
+
+	/**
+	 * 获取此轮次是否成功执行
+	 */
+	get success() {
+		return this._result?.success || false;
+	}
+
+	/**
+	 * 获取此轮次的记谱信息（由应用层设置）
+	 * 框架层只提供存储，具体格式由应用层决定
+	 */
+	get notation() {
+		return this._result?.notation || null;
+	}
+
+	/**
+	 * 设置记谱信息（由应用层调用）
+	 */
+	setNotation(notation) {
+		if (!this._result) {
+			this._result = {};
 		}
+		this._result.notation = notation;
 	}
 }
 
@@ -358,6 +580,7 @@ class Player {
 		this._gaming = gaming;
 		this._team = cfg.team;
 		this.actionsPerTurn = cfg.actionsPerTurn || 1; // 从配置或默认值初始化
+		this._actionsTakenThisTurn = 0;
 
 		addCfgProps(this, this._cfg);
 
@@ -371,39 +594,57 @@ class Player {
 		aopMethod(this, 'play');
 
 		this._initializeSkills(cfg);
+
 	}
 
 	/**
 	 * 玩家玩游戏。在回合制游戏里，玩家在自己的轮次里施放技能。
 	 * 默认实现：执行N次有效行动后（N由actionsPerTurn决定），本轮次结束。
 	 */
-	async play() {
-		let actionsTaken = 0;
-		while (actionsTaken < this.actionsPerTurn) {
-			const input = await this.gaming.waitForInput();
-
-			if (input?.action === 'END_TURN') {
-				break;
-			}
-
-			const command = this.interpretInput(input);
-			if (!command) {
-				continue;
-			}
-
-			if (command instanceof EndTurnCommand) {
-				break;
-			}
-
-			const actionPerformed = await command.execute();
-			if (actionPerformed) {
-				actionsTaken++; // 成功行动，计数器加一
-				this.selectedTargets = []; // 成功行动后，清空目标，以便进行下一次行动
-			}
+	async play(input) {
+		// 如果没有输入，返回false表示没有行动
+		if (!input) {
+			return false;
 		}
 
-		this.selectedSkills = [];
-		this.selectedTargets = [];
+		// 检查是否是结束轮次
+		if (input?.action === 'END_TURN') {
+			return true; // 表示轮次结束
+		}
+
+		// 处理输入
+		const command = this.interpretInput(input);
+		if (!command) {
+			return false;
+		}
+
+		if (command instanceof EndTurnCommand) {
+			return true; // 表示轮次结束
+		}
+
+		this.gaming.startChangeCollection();
+
+		const actionPerformed = await command.execute();
+		const changes = this.gaming.stopChangeCollection();
+
+		// 将操作记录到集中的历史树中
+		this.gaming.situation.recordTurn(this, command, {success: actionPerformed, changes});
+
+		if (actionPerformed) {
+			this.selectedTargets = []; // 成功行动后，清空目标
+			this._actionsTakenThisTurn++; // 增加已执行行动计数
+		}
+
+		// 判断是否结束本轮次：
+		// 1. 玩家主动选择结束轮次 (已在上面处理)
+		// 2. 玩家已执行的行动次数达到或超过了本轮次允许的最大行动次数
+		const turnShouldEnd = actionPerformed && this._actionsTakenThisTurn >= this.actionsPerTurn;
+
+		if (turnShouldEnd) {
+			this.selectedSkills = []; // 回合结束时清空选中的技能
+		}
+
+		return turnShouldEnd;
 	}
 
 	/**
@@ -443,7 +684,7 @@ class Player {
 
 	filterSelectableSkills(skills) {
 		skills = ensureArray(skills);
-		return skills.filter(s => this.skills.includes(s));
+		return skills.filter(s => this.skills.includes(s) && s.isOwnerActive());
 	}
 
 	/**
@@ -468,6 +709,11 @@ class Player {
 		//要素齐备，开始施放技能。
 		let activated = false;
 		for (const skill of this.selectedSkills) {
+			// 检查技能拥有者是否活跃
+			if (!skill.isOwnerActive()) {
+				console?.warn(`技能 [${skill.id}] 的拥有者不活跃，无法激活。`);
+				continue; // 跳过不活跃拥有者的技能
+			}
 			// 触发技能，并将目标传入
 			activated = activated || await skill.activate(this.selectedTargets);
 		}
@@ -516,6 +762,16 @@ class Skill {
 	 * @returns {Array<Object>} - 潜在目标对象的数组。undefined照本意，表示‘未定义（可用目标）’，即不能获取或不能列举可用目标。null同[]，表示无可用目标。
 	 */
 	get availableTargets() { return undefined; }
+
+	/**
+	 * 检查技能的拥有者（通常是游戏中的某个单位或棋子）是否处于活跃状态，
+	 * 即是否可以被激活。子类可以重写此方法以提供具体的检查逻辑。
+	 * 默认实现：总是返回 true。
+	 * @returns {boolean} - 如果拥有者活跃，则返回 true；否则返回 false。
+	 */
+	isOwnerActive() {
+		return true;
+	}
 
 	constructor(cfg) {
 		this._id = 'id' in cfg ? cfg.id : Skill._nextId++;
