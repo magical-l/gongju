@@ -496,6 +496,18 @@ const SkillHolder = {
 		skills.forEach(skill => this.addSkill(skill));
 	},
 
+	_isAvailable: true,
+	get isAvailable() {
+		return this._isAvailable;
+	},
+	set isAvailable(value) {
+		if (this._isAvailable === value) {
+			return;
+		}
+		this._isAvailable = value;
+		notice(this, 'skill-holder set isAvailable', {skillHolder: this, isAvailable: value});
+	},
+
 	_buildSkills(skillsCfg) {
 		const owner = this;
 		const typeName = this.constructor.name.toLowerCase();
@@ -770,7 +782,8 @@ class Skill {
 	 * @returns {boolean} - 如果拥有者活跃，则返回 true；否则返回 false。
 	 */
 	isOwnerActive() {
-		return true;
+		// 检查技能拥有者（SkillHolder）是否可用
+		return this.owner?.isAvailable ?? false;
 	}
 
 	constructor(cfg) {
