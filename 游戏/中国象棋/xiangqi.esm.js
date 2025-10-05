@@ -1,7 +1,7 @@
 import {compareWithId, notice, watch} from './kit.esm.js';
 import {Player, Plugin, Rule, Situation, Skill, TurnBasedGame} from './turn-based-game.esm.js';
 import {Unit, UnitModule} from './unit-module.esm.js';
-import {BattlefieldBasedGaming, BattlefieldModule, Board, Move, 棋盘点位} from './battlefield-module.esm.js';
+import {BattlefieldBasedGaming, BattlefieldModule, Board, Move, 攻击, 棋盘点位} from './battlefield-module.esm.js';
 
 export {
 	红方id, 黑方id, 红方默认配置, 黑方默认配置, 红方玩家id, 黑方玩家id, 默认玩家顺序, 默认棋盘布局, 默认棋子类型,
@@ -62,47 +62,6 @@ const 默认棋子类型 = {
 	'砲': {显示: '\u{1FA6C}', 技能: ['轮子', '隔山打牛'], 玩家: 黑方玩家id},
 	'卒': {显示: '\u{1FA6D}', 技能: ['攻击', '勇往直前'], 玩家: 黑方玩家id},
 };
-
-class 攻击 extends Skill {
-	constructor(cfg) {
-		super({
-			name: '攻击',
-			intro: '击败所在位置的敌军',
-			tip: '选择敌方单位并将其击败',
-			...cfg,
-		});
-	}
-
-	activate(targets) {
-		return (targets || []).map(targetUnit => {
-			if (targetUnit instanceof Unit) {
-				const place = targetUnit.position;
-				const payload = {unit: this.owner, killed: targetUnit, place};
-				this.gaming.battlefield.destroyUnit(targetUnit);
-				notice(this, '单位杀敌', payload);
-				return true;
-			}
-			return false;
-		}).reduce((pre, cur) => pre || cur, false);
-	}
-
-	get availableTargets() {
-		const unitsInScope = this.scopePositions().flatMap(p => this.gaming.battlefield.getUnitsAt(p));
-		return unitsInScope.filter(unit => this.isAvailableTarget(unit));
-	}
-
-	scopePositions() {
-		const moveSkill = this.owner.skills.find(s => s instanceof Move);
-		if (!moveSkill) {
-			return [];
-		}
-		return moveSkill.scopePositions();
-	}
-
-	isAvailableTarget(unit) {
-		return unit.owner.id !== this.owner.owner.id;
-	}
-}
 
 const 内置技能集 = {
 	攻击,
@@ -181,103 +140,103 @@ const 内置技能集 = {
 																												 new 棋盘点位(rowNum, colNum + 1)]);
 		}
 	},
-		'守营': class extends Skill {
-			constructor(cfg) {
-				super({
-					name: '守营',
-					intro: '有守卫大营之责，不能冲锋陷阵。',
-					tip: '不能离开九宫格。',
-					...cfg,
-					watchers: {
-						'已获取可移动位置集': ({unit, availableTargetPositions}) => {
-							if (unit.id === this.owner.id) {
-								filterInPlace(availableTargetPositions, p => this.gaming.battlefield.isInPalace(p));
-							}
-						},
+	'守营': class extends Skill {
+		constructor(cfg) {
+			super({
+				name: '守营',
+				intro: '有守卫大营之责，不能冲锋陷阵。',
+				tip: '不能离开九宫格。',
+				...cfg,
+				watchers: {
+					'已获取可移动位置集': ({unit, availableTargetPositions}) => {
+						if (unit.id === this.owner.id) {
+							filterInPlace(availableTargetPositions, p => this.gaming.battlefield.isInPalace(p));
+						}
 					},
-				});
-			}
-		},
-		'护卫': class extends Move {
-			constructor(cfg) {
-				super({
-					name: '护卫',
-					intro: '斜刺里冲出，护卫将帅。',
-					tip: '可以向左前方、右前方、左后方、右后方斜线移动至一格对角线方向。', ...cfg,
-				});
-			}
-	
-			getRawTargetPositions() {
-				const {rowNum, colNum} = this.owner.position;
-				return this.gaming.battlefield.keepValidPositions([new 棋盘点位(rowNum - 1, colNum - 1),
-																							 new 棋盘点位(rowNum - 1, colNum + 1),
-																							 new 棋盘点位(rowNum + 1, colNum - 1),
-																							 new 棋盘点位(rowNum + 1, colNum + 1)]);
-			}
-		},
-		'象行田': class extends Move {
-			constructor(cfg) {
-				super({
-					name: '象行田',
-					intro: '走一个“田字形”。',
-					tip: '可移动到斜线两格的位置（‘田字’对角线）。',
-					...cfg,
-				});
-			}
-	
-			getRawTargetPositions() {
-				const {rowNum, colNum} = this.owner.position;
-				return this.gaming.battlefield.keepValidPositions([new 棋盘点位(rowNum - 2, colNum - 2),
-																							 new 棋盘点位(rowNum - 2, colNum + 2),
-																							 new 棋盘点位(rowNum + 2, colNum - 2),
-																							 new 棋盘点位(rowNum + 2, colNum + 2)]);
-			}
-		},
-		'塞象眼': class extends Skill {
-			constructor(cfg) {
-				super({
-					name: '塞象眼',
-					intro: '如果“田”字中心有棋子，则无法移动过去。',
-					...cfg,
-					watchers: {
-						'已获取可移动位置集': ({unit, availableTargetPositions, blockedTargetPositions}) => {
-							if (unit.id === this.owner.id) {
-								const {rowNum, colNum} = this.owner.position;
-								const stillValid = [];
-								availableTargetPositions.forEach(p => {
-									const middlePos = new 棋盘点位((p.rowNum + rowNum) / 2, (p.colNum + colNum) / 2);
-									if (this.gaming.battlefield.getUnitsAt(middlePos).length > 0) {
-										blockedTargetPositions.push(p);
-									} else {
-										stillValid.push(p);
-									}
-								});
-								availableTargetPositions.length = 0;
-								availableTargetPositions.push(...stillValid);
-							}
-						},
+				},
+			});
+		}
+	},
+	'护卫': class extends Move {
+		constructor(cfg) {
+			super({
+				name: '护卫',
+				intro: '斜刺里冲出，护卫将帅。',
+				tip: '可以向左前方、右前方、左后方、右后方斜线移动至一格对角线方向。', ...cfg,
+			});
+		}
+
+		getRawTargetPositions() {
+			const {rowNum, colNum} = this.owner.position;
+			return this.gaming.battlefield.keepValidPositions([new 棋盘点位(rowNum - 1, colNum - 1),
+																												 new 棋盘点位(rowNum - 1, colNum + 1),
+																												 new 棋盘点位(rowNum + 1, colNum - 1),
+																												 new 棋盘点位(rowNum + 1, colNum + 1)]);
+		}
+	},
+	'象行田': class extends Move {
+		constructor(cfg) {
+			super({
+				name: '象行田',
+				intro: '走一个“田字形”。',
+				tip: '可移动到斜线两格的位置（‘田字’对角线）。',
+				...cfg,
+			});
+		}
+
+		getRawTargetPositions() {
+			const {rowNum, colNum} = this.owner.position;
+			return this.gaming.battlefield.keepValidPositions([new 棋盘点位(rowNum - 2, colNum - 2),
+																												 new 棋盘点位(rowNum - 2, colNum + 2),
+																												 new 棋盘点位(rowNum + 2, colNum - 2),
+																												 new 棋盘点位(rowNum + 2, colNum + 2)]);
+		}
+	},
+	'塞象眼': class extends Skill {
+		constructor(cfg) {
+			super({
+				name: '塞象眼',
+				intro: '如果“田”字中心有棋子，则无法移动过去。',
+				...cfg,
+				watchers: {
+					'已获取可移动位置集': ({unit, availableTargetPositions, blockedTargetPositions}) => {
+						if (unit.id === this.owner.id) {
+							const {rowNum, colNum} = this.owner.position;
+							const stillValid = [];
+							availableTargetPositions.forEach(p => {
+								const middlePos = new 棋盘点位((p.rowNum + rowNum) / 2, (p.colNum + colNum) / 2);
+								if (this.gaming.battlefield.getUnitsAt(middlePos).length > 0) {
+									blockedTargetPositions.push(p);
+								} else {
+									stillValid.push(p);
+								}
+							});
+							availableTargetPositions.length = 0;
+							availableTargetPositions.push(...stillValid);
+						}
 					},
-				});
-			}
-		},
-		'水太深': class extends Skill {
-			constructor(cfg) {
-				super({
-					name: '水太深',
-					intro: '不能渡过楚河汉界。',
-					tip: '不能过河',
-					...cfg,
-					watchers: {
-						'已获取可移动位置集': ({unit, availableTargetPositions}) => {
-							if (unit.id === this.owner.id) {
-								filterInPlace(availableTargetPositions,
-									p => !this.gaming.battlefield.isAcrossRiver(p, unit.owner));
-							}
-						},
+				},
+			});
+		}
+	},
+	'水太深': class extends Skill {
+		constructor(cfg) {
+			super({
+				name: '水太深',
+				intro: '不能渡过楚河汉界。',
+				tip: '不能过河',
+				...cfg,
+				watchers: {
+					'已获取可移动位置集': ({unit, availableTargetPositions}) => {
+						if (unit.id === this.owner.id) {
+							filterInPlace(availableTargetPositions,
+								p => !this.gaming.battlefield.isAcrossRiver(p, unit.owner));
+						}
 					},
-				});
-			}
-		},	'马行日': class extends Move {
+				},
+			});
+		}
+	}, '马行日': class extends Move {
 		constructor(cfg) { super({name: '马行日', intro: '走一个“日字形”。', tip: '可以移动到“日字”对角线的位置', ...cfg}); }
 
 		getRawTargetPositions() {
@@ -552,10 +511,10 @@ class 中国象棋 extends TurnBasedGame {
 			],
 			unitTypes: Object.fromEntries(
 				Object.entries(cfg.棋子类型)
-					.map(([棋子名, 棋子]) => {
-						const {显示, 技能, 玩家, ...rest} = 棋子;
-						return [棋子名, {display: 显示, skills: 技能, player: 玩家, ...rest}];
-					})),
+							.map(([棋子名, 棋子]) => {
+								const {显示, 技能, 玩家, ...rest} = 棋子;
+								return [棋子名, {display: 显示, skills: 技能, player: 玩家, ...rest}];
+							})),
 			playerTurnSequence: cfg.玩家顺序.map(playerId =>
 				playerId === 红方玩家id ? {id: 红方玩家id, name: 红方名字, team: 红方默认配置}
 																: {id: 黑方玩家id, name: 黑方名字, team: 黑方默认配置}),

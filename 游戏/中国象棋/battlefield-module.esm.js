@@ -4,7 +4,7 @@ import {SelectUnitCommand, Unit, UnitModule} from './unit-module.esm.js';
 
 export {
 	BattlefieldBasedGaming, Battlefield, Position, BattlefieldModule,
-	Board, 棋盘点位, Move,
+	Board, 棋盘点位, Move, 攻击,
 };
 
 /**
@@ -378,6 +378,47 @@ class Move extends Skill {
 
 	getRawTargetPositions() {
 		return Array.from(this.gaming.battlefield.positions.keys());
+	}
+}
+
+class 攻击 extends Skill {
+	constructor(cfg) {
+		super({
+			name: '攻击',
+			intro: '击败所在位置的敌军',
+			tip: '选择敌方单位并将其击败',
+			...cfg,
+		});
+	}
+
+	activate(targets) {
+		return (targets || []).map(targetUnit => {
+			if (targetUnit instanceof Unit) {
+				const place = targetUnit.position;
+				const payload = {unit: this.owner, killed: targetUnit, place};
+				this.gaming.battlefield.destroyUnit(targetUnit);
+				notice(this, '单位杀敌', payload);
+				return true;
+			}
+			return false;
+		}).reduce((pre, cur) => pre || cur, false);
+	}
+
+	get availableTargets() {
+		const unitsInScope = this.scopePositions().flatMap(p => this.gaming.battlefield.getUnitsAt(p));
+		return unitsInScope.filter(unit => this.isAvailableTarget(unit));
+	}
+
+	scopePositions() {
+		const moveSkill = this.owner.skills.find(s => s instanceof Move);
+		if (!moveSkill) {
+			return [];
+		}
+		return moveSkill.scopePositions();
+	}
+
+	isAvailableTarget(unit) {
+		return unit.owner.id !== this.owner.owner.id;
 	}
 }
 
