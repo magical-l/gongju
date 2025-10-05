@@ -669,20 +669,19 @@ class 棋盘 extends Board {
 	}
 }
 
-const eventTranslations = {
+const noticeTranslations = {
 	'gaming build start': '游戏构建开始',
 	'gaming build end': '游戏构建结束',
 	'buildUnit start': '构建单位开始',
 	'buildUnit end': '构建单位结束',
 	'gaming start': '游戏开始',
-	'gaming end': '游戏结束',
+	'game over': '游戏结束',
 	'round start': '回合开始',
 	'round end': '回合结束',
-	'player-turn start': '轮次开始',
-	'player-turn end': '轮次结束',
+	'playerTurn start': '轮次开始',
+	'playerTurn end': '轮次结束',
 	'player selectUnits end': '玩家选择了单位',
 	'player selectSkills end': '玩家选择了技能',
-	'player:deselected-unit': '玩家取消选择单位',
 	'battlefield moveUnit end': '单位移动',
 	'unit attack end': '单位杀敌',
 	'unit get movable targets': '已获取可移动位置集',
@@ -692,7 +691,7 @@ class 棋局 extends BattlefieldBasedGaming {
 	build() {
 		notice(this, '棋局 build start', {gaming: this});
 		//先监听，有些时机在super._build内部
-		Object.entries(eventTranslations)
+		Object.entries(noticeTranslations)
 					.forEach(([enTopiName, cnTopicName]) =>
 						watch(this, enTopiName, payload => notice(this, cnTopicName, payload)));
 

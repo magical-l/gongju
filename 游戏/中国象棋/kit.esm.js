@@ -1,5 +1,5 @@
 export {
-	getClassHierarchy, ensureArray, compareWithId,
+	getClassHierarchy, ensureArray, compareWithId, lowerFirstLetter,
 	watch, watchersWatch, unwatch, notice,
 	addCfgProps, aopMethod, aopAsyncMethod, aopGetter,
 	Bulletin,
@@ -47,6 +47,14 @@ const getClassHierarchy = (instance, options = {includeObject: false, reverse: f
 const ensureArray = value => Array.isArray(value) ? value : (value !== null && value !== undefined ? [value] : []);
 const compareWithId = (a, b) => a === b || a.id && b.id && a.id === b.id;
 
+const lowerFirstLetter = str => {
+    if (typeof str !== 'string' || str.length === 0) {
+        return str;
+    }
+    return str.charAt(0).toLowerCase() + str.slice(1);
+};
+
+
 //简便方法，减少代码量
 const watch = (gamingPart, topic, callback, options) => gamingPart.gaming?.bulletin.watch(topic, callback, options);
 const watchersWatch = (gamingPart, watchers, options) => {
@@ -86,7 +94,7 @@ const aopMethod = (self, methodName,
 		//可以额外地先处理参数，比如把单个对象包装成数组
 		const args = argsResolver ? argsResolver(_args_) : _args_;
 		//获取继承链中的顶级父类的名字，也可以通过typeName自行指定。用于通知主题的主语。
-		const typeName_ = typeName ?? getClassHierarchy(self).at(-1).toLowerCase();
+		const typeName_ = typeName ?? lowerFirstLetter(getClassHierarchy(self).at(-1));
 
 		const noticePayload = noticePayloadBuilder ? noticePayloadBuilder(args) : {};
 		noticePayload[typeName_] = self;//通知内容里加入主语
@@ -107,7 +115,7 @@ const aopAsyncMethod = (self, methodName,
 		//可以额外地先处理参数，比如把单个对象包装成数组
 		const args = argsResolver ? argsResolver(_args_) : _args_;
 		//获取继承链中的顶级父类的名字，也可以通过typeName自行指定。用于通知主题的主语。
-		const typeName_ = typeName ?? getClassHierarchy(self).at(-1).toLowerCase();
+		const typeName_ = typeName ?? lowerFirstLetter(getClassHierarchy(self).at(-1));
 
 		const noticePayload = noticePayloadBuilder ? noticePayloadBuilder(args) : {};
 		noticePayload[typeName_] = self;//通知内容里加入主语

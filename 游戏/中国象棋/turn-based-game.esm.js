@@ -1,6 +1,6 @@
 import {
-	addCfgProps, aopAsyncMethod, aopGetter, aopMethod, Bulletin, compareWithId, ensureArray, notice, unwatch, watch,
-	watchersWatch,
+	addCfgProps, aopAsyncMethod, aopGetter, aopMethod, Bulletin, compareWithId, ensureArray, lowerFirstLetter, notice,
+	unwatch, watch, watchersWatch,
 } from './kit.esm.js';
 
 export {
@@ -223,13 +223,13 @@ class TurnBasedGaming {
 		const nextPlayer = this.playerTurnSequence[nextIndex];
 
 		// 结束当前玩家的轮次
-		this.bulletin.notice('player-turn end', {player: currentPlayer});
+		notice(this, 'playerTurn end', {player: currentPlayer});
 
 		// 如果游戏未结束，开始下一个玩家的轮次
 		if (!this.situation.isEnded) {
 			this.situation.curPlayer = nextPlayer;
 			nextPlayer._actionsTakenThisTurn = 0; // 重置下一个玩家的行动计数
-			this.bulletin.notice('player-turn start', {player: nextPlayer});
+			notice(this, 'playerTurn start', {player: nextPlayer});
 		}
 	}
 
@@ -284,7 +284,7 @@ class Situation {
 		if (this.gaming.playerTurnSequence.length > 0) {
 			this.gaming.situation.curPlayer = this.gaming.playerTurnSequence[0];
 			this.gaming.situation.curPlayer._actionsTakenThisTurn = 0; // 重置第一个玩家的行动计数
-			this.gaming.bulletin.notice('player-turn start', {player: this.gaming.situation.curPlayer});
+			this.gaming.bulletin.notice('playerTurn start', {player: this.gaming.situation.curPlayer});
 		}
 	}
 
@@ -505,12 +505,12 @@ const SkillHolder = {
 			return;
 		}
 		this._isAvailable = value;
-		notice(this, 'skill-holder set isAvailable', {skillHolder: this, isAvailable: value});
+		notice(this, 'skillHolder set isAvailable', {skillHolder: this, isAvailable: value});
 	},
 
 	_buildSkills(skillsCfg) {
 		const owner = this;
-		const typeName = this.constructor.name.toLowerCase();
+		const typeName = lowerFirstLetter(this.constructor.name);
 		notice(this, `${typeName} buildSkills start`, {owner, skillsCfg});
 		const rt = skillsCfg.map(skillCfg => this._buildSkill(skillCfg));
 		notice(this, `${typeName} buildSkills end`, {rt});
@@ -518,7 +518,7 @@ const SkillHolder = {
 	},
 
 	_buildSkill(skillCfg) {
-		const typeName = this.constructor.name.toLowerCase();
+		const typeName = lowerFirstLetter(this.constructor.name);
 		const SkillClass = skillCfg.class ?? this.gaming._cfg.SkillClass ?? Skill;
 		notice(this, `${typeName} buildSkill start`, {owner: this, skillCfg, class: SkillClass});
 		const rt = new SkillClass({...skillCfg, owner: this});
