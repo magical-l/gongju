@@ -1,10 +1,10 @@
 import {addCfgProps, aopMethod, compareWithId, ensureArray, notice, watch} from './kit.esm.js';
-import {Module, Player, SelectTargetCommand, TurnBasedGaming} from './turn-based-game.esm.js';
+import {Module, Player, SelectTargetCommand, Skill, TurnBasedGaming} from './turn-based-game.esm.js';
 import {SelectUnitCommand, Unit, UnitModule} from './unit-module.esm.js';
 
 export {
 	BattlefieldBasedGaming, Battlefield, Position, BattlefieldModule,
-	Board, 棋盘点位,
+	Board, 棋盘点位, Move,
 };
 
 /**
@@ -318,6 +318,66 @@ class BattlefieldModule extends Module {
 		Player.prototype.isReadyToActivateSkills = function() {
 			return this.selectedUnits?.length && rawIsReadyToActivateSkills.call(this);
 		};
+	}
+}
+
+class Move extends Skill {
+	constructor(overrideCfg = {}) {
+		super({name: '移动', ...overrideCfg});
+	}
+
+	activate(targets) {
+		if (!targets || targets.length === 0) {
+			return false;
+		}
+		const target = targets[0];
+		const position = target instanceof Unit ? target.position : target;
+
+		if (this.isValidTargets([position])) {
+			this.gaming.battlefield.moveUnit(this.owner, position);
+			return true;
+		}
+		return false;
+	}
+
+	_calculateReachablePositions() {
+		let rawTargets = this.getRawTargetPositions();
+		const eventPayload = {
+			unit: this.owner,
+			availableTargetPositions: [...rawTargets],
+			blockedTargetPositions: [],
+		};
+		notice(this, '已获取可移动位置集', eventPayload);
+		return {
+			valid: this.gaming.battlefield.keepValidPositions(eventPayload.availableTargetPositions),
+			blocked: this.gaming.battlefield.keepValidPositions(eventPayload.blockedTargetPositions),
+		};
+	}
+
+	scopePositions() {
+		const {valid, blocked} = this._calculateReachablePositions();
+		return valid.concat(blocked);
+	}
+
+	get availableTargets() {
+		const {valid} = this._calculateReachablePositions();
+		return valid.filter(p => this.gaming.battlefield.getUnitsAt(p).length === 0);
+	}
+
+	get blockedTargets() {
+		return this._calculateReachablePositions().blocked;
+	}
+
+	isValidTargets(targets) {
+		const available = this.availableTargets || [];
+		return targets.every(targetPos => {
+			const pos = targetPos instanceof Unit ? targetPos.position : targetPos;
+			return available.some(p => p.isEqualTo(pos));
+		});
+	}
+
+	getRawTargetPositions() {
+		return Array.from(this.gaming.battlefield.positions.keys());
 	}
 }
 

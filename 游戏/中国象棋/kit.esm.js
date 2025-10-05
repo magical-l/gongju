@@ -222,7 +222,7 @@ class Bulletin {
 	 * @param {object} options 配置项，{ replayable: boolean }，默认为false
 	 */
 	notice(topic, payload = {}, options = {replayable: true}) {
-		console?.log('通知：', topic, payload);
+		console?.debug('通知：', topic, payload);
 		if (options.replayable) {
 			this._historyNotices.push({topic, payload});
 		}

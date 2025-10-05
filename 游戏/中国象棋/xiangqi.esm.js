@@ -1,7 +1,7 @@
 import {compareWithId, notice, watch} from './kit.esm.js';
-import {Player, Rule, Situation, Skill, TurnBasedGame} from './turn-based-game.esm.js';
+import {Player, Plugin, Rule, Situation, Skill, TurnBasedGame} from './turn-based-game.esm.js';
 import {Unit, UnitModule} from './unit-module.esm.js';
-import {BattlefieldBasedGaming, BattlefieldModule, Board, 棋盘点位} from './battlefield-module.esm.js';
+import {BattlefieldBasedGaming, BattlefieldModule, Board, Move, 棋盘点位} from './battlefield-module.esm.js';
 
 export {
 	红方id, 黑方id, 红方默认配置, 黑方默认配置, 红方玩家id, 黑方玩家id, 默认玩家顺序, 默认棋盘布局, 默认棋子类型,
@@ -62,66 +62,6 @@ const 默认棋子类型 = {
 	'砲': {显示: '\u{1FA6C}', 技能: ['轮子', '隔山打牛'], 玩家: 黑方玩家id},
 	'卒': {显示: '\u{1FA6D}', 技能: ['攻击', '勇往直前'], 玩家: 黑方玩家id},
 };
-
-class Move extends Skill {
-	constructor(overrideCfg = {}) {
-		super({name: '移动', ...overrideCfg});
-	}
-
-	activate(targets) {
-		if (!targets || targets.length === 0) {
-			return false;
-		}
-		const target = targets[0];
-		const position = target instanceof Unit ? target.position : target;
-
-		if (this.isValidTargets([position])) {
-			this.gaming.battlefield.moveUnit(this.owner, position);
-			return true;
-		}
-		return false;
-	}
-
-	_calculateReachablePositions() {
-		let rawTargets = this.getRawTargetPositions();
-		const eventPayload = {
-			unit: this.owner,
-			availableTargetPositions: [...rawTargets],
-			blockedTargetPositions: [],
-		};
-		notice(this, '已获取可移动位置集', eventPayload);
-		return {
-			valid: this.gaming.battlefield.keepValidPositions(eventPayload.availableTargetPositions),
-			blocked: this.gaming.battlefield.keepValidPositions(eventPayload.blockedTargetPositions),
-		};
-	}
-
-	scopePositions() {
-		const {valid, blocked} = this._calculateReachablePositions();
-		return valid.concat(blocked);
-	}
-
-	get availableTargets() {
-		const {valid} = this._calculateReachablePositions();
-		return valid.filter(p => this.gaming.battlefield.getUnitsAt(p).length === 0);
-	}
-
-	get blockedTargets() {
-		return this._calculateReachablePositions().blocked;
-	}
-
-	isValidTargets(targets) {
-		const available = this.availableTargets || [];
-		return targets.every(targetPos => {
-			const pos = targetPos instanceof Unit ? targetPos.position : targetPos;
-			return available.some(p => p.isEqualTo(pos));
-		});
-	}
-
-	getRawTargetPositions() {
-		return Array.from(this.gaming.battlefield.positions.keys());
-	}
-}
 
 class 攻击 extends Skill {
 	constructor(cfg) {
