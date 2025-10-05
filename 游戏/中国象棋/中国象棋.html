@@ -190,6 +190,7 @@
 			<template v-else>
 				<!-- 游戏操作 -->
 				<el-button type="primary" @click="restartGame">重来</el-button>
+				<el-button type="warning" @click="undoMove" :disabled="!isUndoAvailable">悔棋</el-button>
 				<el-button type="info" @click="returnToSettings">换一盘</el-button>
 				<!-- 玩家顺序信息 -->
 				<div style="margin-left: 10px; color: #606266; font-size: 14px;">
@@ -328,7 +329,7 @@
 				<el-button type="primary" size="large" @click="restartGame">重来</el-button>
 				<el-button type="info" size="large" @click="returnToSettings">换一盘</el-button>
 				<el-button type="info" size="large" @click="downloadNotation">记谱</el-button>
-				<el-button type="warning" size="large" disabled>悔棋</el-button>
+				<el-button type="warning" size="large" @click="undoMove" :disabled="!isUndoAvailable">悔棋</el-button>
 			</footer>
 		</el-dialog>
 	</article>
@@ -377,6 +378,7 @@
 	const app = createApp({
 		data() {
 			return {
+				isUndoAvailable: false,
 				gameSettings: {
 					firstPlayer: 'red',
 					rules: [],
@@ -522,6 +524,7 @@
 				if (!this.gaming) {
 					return;
 				}
+				this.isUndoAvailable = this.gaming.situation.canRewind();
 				// boardForRender 已被提升为计算属性，无需手动更新
 
 				// 更新回合历史
@@ -621,6 +624,11 @@
 				}
 				this.boardEditor.editorPositions = newPositions;
 			},
+			undoMove() {
+				if (this.gaming) {
+					this.gaming.situation.rewind(1);
+				}
+			},
 			// 游戏流程方法
 			startGame() {
 				let playerTurnSequence;
@@ -678,12 +686,16 @@
 					this.blockedMoves = [];
 				});
 
+				gaming.bulletin.watch('history-navigation-end', () => {
+					this.syncGameState();
+				});
+
 				gaming.bulletin.watch('单位移动', move => {
 					this.moveHistory.push(move);
-					this.syncGameState();
 				});
 				gaming.bulletin.watch('单位杀敌', () => this.syncGameState());
 				gaming.bulletin.watch('游戏结束', () => this.syncGameState());
+				gaming.bulletin.watch('轮次结束', () => this.syncGameState());
 				// 初始渲染不再立即调用 syncGameState，而是依赖事件监听器
 			},
 			returnToSettings() {
@@ -694,6 +706,7 @@
 				this.attackTargets = [];
 				this.blockedMoves = [];
 				this.moveHistory = [];
+				this.turnHistoryForRender = [];
 				this.gaming = null; // 销毁游戏实例
 			},
 			restartGame() {
@@ -704,6 +717,7 @@
 				this.attackTargets = [];
 				this.blockedMoves = [];
 				this.moveHistory = [];
+				this.turnHistoryForRender = [];
 				this.gaming = null; // 销毁游戏实例
 				this.launchGame(); // 使用之前的配置重新开始游戏
 			},
