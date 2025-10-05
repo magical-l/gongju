@@ -366,7 +366,7 @@
 		红方玩家id,
 		黑方玩家id,
 		Move,
-		攻击,
+		Attack,
 	} from './xiangqi.esm.js';
 	import {棋盘点位} from './battlefield-module.esm.js';
 	import {compareWithId} from './kit.esm.js';
@@ -666,7 +666,7 @@
 					if (skill instanceof Move) {
 						this.movableTargets = result || [];
 						this.blockedMoves = skill.blockedTargets || [];
-					} else if (skill instanceof 攻击) {
+					} else if (skill instanceof Attack) {
 						this.attackTargets = result || [];
 					}
 				});

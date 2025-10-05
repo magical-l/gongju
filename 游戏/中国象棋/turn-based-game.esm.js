@@ -148,12 +148,12 @@ class TurnBasedGaming {
 		});
 		// 使用IIFE（立即调用函数表达式）来启动异步游戏循环，避免构造函数变成异步
 		(async () => {
-		this.situation.isStarted = true;
-		notice(this, 'gaming start', {gaming: this});
+			this.situation.isStarted = true;
+			notice(this, 'gaming start', {gaming: this});
 
 			while (!this.situation.isEnded) {
 				await this.situation.startRound();
-		}
+			}
 
 			this.situation.isEnded = true;
 			notice(this, 'gaming end', {winner: this.situation.winner});
@@ -222,8 +222,8 @@ class Round {
 			// 如果当前玩家的回合导致游戏结束，则立即中断回合
 			if (this.gaming.situation.isEnded) {
 				break;
-}
-	}
+			}
+		}
 	}
 }
 
@@ -382,21 +382,21 @@ class Player {
 		while (actionsTaken < this.actionsPerTurn) {
 			const input = await this.gaming.waitForInput();
 
-		if (input?.action === 'END_TURN') {
+			if (input?.action === 'END_TURN') {
 				break;
-		}
+			}
 
-		const command = this.interpretInput(input);
-		if (!command) {
+			const command = this.interpretInput(input);
+			if (!command) {
 				continue;
-		}
+			}
 
-		if (command instanceof EndTurnCommand) {
+			if (command instanceof EndTurnCommand) {
 				break;
-		}
+			}
 
-		const actionPerformed = await command.execute();
-		if (actionPerformed) {
+			const actionPerformed = await command.execute();
+			if (actionPerformed) {
 				actionsTaken++; // 成功行动，计数器加一
 				this.selectedTargets = []; // 成功行动后，清空目标，以便进行下一次行动
 			}

@@ -1,13 +1,13 @@
 import {compareWithId, notice, watch} from './kit.esm.js';
 import {Player, Plugin, Rule, Situation, Skill, TurnBasedGame} from './turn-based-game.esm.js';
 import {Unit, UnitModule} from './unit-module.esm.js';
-import {BattlefieldBasedGaming, BattlefieldModule, Board, Move, 攻击, 棋盘点位} from './battlefield-module.esm.js';
+import {Attack, BattlefieldBasedGaming, BattlefieldModule, Board, Move, 棋盘点位} from './battlefield-module.esm.js';
 
 export {
 	红方id, 黑方id, 红方默认配置, 黑方默认配置, 红方玩家id, 黑方玩家id, 默认玩家顺序, 默认棋盘布局, 默认棋子类型,
 	所有可选规则, 默认启用规则, 中国象棋默认配置,
 	中国象棋, 战况, 棋盘, 棋局, 棋手,
-	Move, 攻击,
+	Move, Attack,
 	内置技能集, 内置规则集, 内置插件集,
 };
 
@@ -64,8 +64,8 @@ const 默认棋子类型 = {
 };
 
 const 内置技能集 = {
-	攻击,
-	'挡我者死': class extends 攻击 {
+	攻击: Attack,
+	'挡我者死': class extends Attack {
 		constructor(cfg) {
 			super({
 				name: '挡我者死',
@@ -93,7 +93,7 @@ const 内置技能集 = {
 			return scope;
 		}
 	},
-	'隔山打牛': class extends 攻击 {
+	'隔山打牛': class extends Attack {
 		constructor(cfg) {
 			super({
 				name: '隔山打牛',
@@ -236,7 +236,8 @@ const 内置技能集 = {
 				},
 			});
 		}
-	}, '马行日': class extends Move {
+	},
+	'马行日': class extends Move {
 		constructor(cfg) { super({name: '马行日', intro: '走一个“日字形”。', tip: '可以移动到“日字”对角线的位置', ...cfg}); }
 
 		getRawTargetPositions() {
@@ -668,26 +669,29 @@ class 棋盘 extends Board {
 	}
 }
 
+const eventTranslations = {
+	'gaming build start': '游戏构建开始',
+	'gaming build end': '游戏构建结束',
+	'buildUnit start': '构建单位开始',
+	'buildUnit end': '构建单位结束',
+	'gaming start': '游戏开始',
+	'gaming end': '游戏结束',
+	'round start': '回合开始',
+	'round end': '回合结束',
+	'player-turn start': '轮次开始',
+	'player-turn end': '轮次结束',
+	'player selectUnits end': '玩家选择了单位',
+	'player selectSkills end': '玩家选择了技能',
+	'player:deselected-unit': '玩家取消选择单位',
+	'battlefield moveUnit end': '单位移动',
+	'unit attack end': '单位杀敌',
+	'unit get movable targets': '已获取可移动位置集',
+};
+
 class 棋局 extends BattlefieldBasedGaming {
 	build() {
 		notice(this, '棋局 build start', {gaming: this});
 		//先监听，有些时机在super._build内部
-		const eventTranslations = {
-			'gaming build start': '游戏构建开始',
-			'gaming build end': '游戏构建结束',
-			'buildUnit start': '构建单位开始',
-			'buildUnit end': '构建单位结束',
-			'gaming start': '游戏开始',
-			'gaming end': '游戏结束',
-			'round start': '回合开始',
-			'round end': '回合结束',
-			'player-turn start': '轮次开始',
-			'player-turn end': '轮次结束',
-			'player selectUnits end': '玩家选择了单位',
-			'player selectSkills end': '玩家选择了技能',
-			'player:deselected-unit': '玩家取消选择单位',
-			'battlefield moveUnit end': '单位移动',
-		};
 		Object.entries(eventTranslations)
 					.forEach(([enTopiName, cnTopicName]) =>
 						watch(this, enTopiName, payload => notice(this, cnTopicName, payload)));
@@ -701,7 +705,7 @@ class 棋局 extends BattlefieldBasedGaming {
 				if (moveSkill) {
 					skillsToSelect.push(moveSkill);
 				}
-				const killSkill = unit?.skills.find(s => s instanceof 攻击);
+				const killSkill = unit?.skills.find(s => s instanceof Attack);
 				if (killSkill) {
 					skillsToSelect.push(killSkill);
 				}

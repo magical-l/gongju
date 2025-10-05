@@ -4,7 +4,7 @@ import {SelectUnitCommand, Unit, UnitModule} from './unit-module.esm.js';
 
 export {
 	BattlefieldBasedGaming, Battlefield, Position, BattlefieldModule,
-	Board, 棋盘点位, Move, 攻击,
+	Board, 棋盘点位, Move, Attack,
 };
 
 /**
@@ -193,7 +193,6 @@ class BattlefieldModule extends Module {
 
 		this._upgradePlayerClass();
 		gaming.playerTurnSequence.forEach(player => {
-			this._applyAopToPlayer(player);
 			// 为每个玩家实例初始化属性
 			if (player.units === undefined) {
 				player.units = [];
@@ -225,23 +224,11 @@ class BattlefieldModule extends Module {
 		gaming.battlefield.initUnitsPositions();
 	}
 
-	_applyAopToPlayer(player) {
-		if (player._unitBasedAopApplied) {
-			return;
-		}
-		aopMethod(player, 'addUnit', {noticePayloadBuilder: args => ({unit: args[0]})});
-		aopMethod(player, 'removeUnit', {noticePayloadBuilder: args => ({unit: args[0]})});
-		aopMethod(player, 'selectUnits', {noticePayloadBuilder: args => ({units: args[0]})});
-		player._unitBasedAopApplied = true;
-	}
-
 	_upgradePlayerClass() {
-		if (Player.prototype._battlefieldBasedUpgraded) { // Use a more specific flag
+		if (Player.prototype._battlefieldBasedUpgraded) {
 			return;
 		}
 		Player.prototype._battlefieldBasedUpgraded = true;
-
-		// addUnit, removeUnit, selectUnits are now handled by UnitModule
 
 		const rawInterpretInput = Player.prototype.interpretInput;
 		Player.prototype.interpretInput = function(input) {
@@ -322,9 +309,7 @@ class BattlefieldModule extends Module {
 }
 
 class Move extends Skill {
-	constructor(overrideCfg = {}) {
-		super({name: '移动', ...overrideCfg});
-	}
+	constructor(overrideCfg = {}) { super({name: 'Move', ...overrideCfg}); }
 
 	activate(targets) {
 		if (!targets || targets.length === 0) {
@@ -342,15 +327,15 @@ class Move extends Skill {
 
 	_calculateReachablePositions() {
 		let rawTargets = this.getRawTargetPositions();
-		const eventPayload = {
+		const noticePayload = {
 			unit: this.owner,
 			availableTargetPositions: [...rawTargets],
 			blockedTargetPositions: [],
 		};
-		notice(this, '已获取可移动位置集', eventPayload);
+		notice(this, 'unit get movable targets', noticePayload);
 		return {
-			valid: this.gaming.battlefield.keepValidPositions(eventPayload.availableTargetPositions),
-			blocked: this.gaming.battlefield.keepValidPositions(eventPayload.blockedTargetPositions),
+			valid: this.gaming.battlefield.keepValidPositions(noticePayload.availableTargetPositions),
+			blocked: this.gaming.battlefield.keepValidPositions(noticePayload.blockedTargetPositions),
 		};
 	}
 
@@ -381,15 +366,8 @@ class Move extends Skill {
 	}
 }
 
-class 攻击 extends Skill {
-	constructor(cfg) {
-		super({
-			name: '攻击',
-			intro: '击败所在位置的敌军',
-			tip: '选择敌方单位并将其击败',
-			...cfg,
-		});
-	}
+class Attack extends Skill {
+	constructor(cfg) { super({name: 'Attack', ...cfg}); }
 
 	activate(targets) {
 		return (targets || []).map(targetUnit => {
@@ -397,7 +375,7 @@ class 攻击 extends Skill {
 				const place = targetUnit.position;
 				const payload = {unit: this.owner, killed: targetUnit, place};
 				this.gaming.battlefield.destroyUnit(targetUnit);
-				notice(this, '单位杀敌', payload);
+				notice(this, 'unit attack end', payload);
 				return true;
 			}
 			return false;
