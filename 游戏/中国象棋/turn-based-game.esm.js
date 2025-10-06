@@ -296,7 +296,7 @@ class Situation {
 		return newNode;
 	}
 
-	rewind(steps = 1) {
+	rewind(steps = 1) {//todo：本方法大规模耦合了‘移动’概念（在 battlefield module里）
 		let moved = 0;
 		for (let i = 0; i < steps; i++) {
 			if (this._currentNode.parent) {
@@ -639,8 +639,8 @@ class Player {
 		const actionPerformed = await command.execute();
 		const changes = this.gaming.stopChangeCollection();
 
-		// 将操作记录到集中的历史树中
-		this.gaming.situation.recordTurn(this, command, {success: actionPerformed, changes});
+		const result = {success: actionPerformed, changes};
+		this.gaming.situation.recordTurn(this, command, result);
 
 		if (actionPerformed) {
 			this.selectedTargets = []; // 成功行动后，清空目标

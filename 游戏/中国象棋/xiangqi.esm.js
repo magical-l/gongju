@@ -1,5 +1,5 @@
 import {compareWithId, notice, watch} from './kit.esm.js';
-import {Player, Plugin, Rule, Situation, Skill, TurnBasedGame} from './turn-based-game.esm.js';
+import {Player, Rule, Situation, Skill, TurnBasedGame} from './turn-based-game.esm.js';
 import {Unit, UnitModule} from './unit-module.esm.js';
 import {Attack, BattlefieldBasedGaming, BattlefieldModule, Board, Move, 棋盘点位} from './battlefield-module.esm.js';
 
@@ -536,36 +536,41 @@ class 战况 extends Situation {
 	constructor(gaming) {
 		super(gaming);
 
-		watch(this, '玩家选择了单位', ({player, units}) => {
-				const unit = units[0],
-					同名单位行号集 = [],
-					{rowNum, colNum} = unit.position,
-					forwardDirection = this.gaming.battlefield.forwardDirection(player);
-				for (let i = 1; i <= this.gaming.battlefield.rowSize; i++) {
-					const units = this.gaming.battlefield.getUnitsAt(new 棋盘点位(i, colNum));
-					if (units.filter(u => u.name === unit.name && u.owner === player).length) {
-						同名单位行号集.push(i);
-					}
-				}
-				const len = 同名单位行号集.length;
-				if (len === 1) {
-					this._unitName = unit.name + calColName(forwardDirection, is红方(player), colNum);
-				} else {
-					同名单位行号集.sort(forwardDirection === -1 ? (a, b) => a - b : (a, b) => b - a);
-					const index = 同名单位行号集.indexOf(rowNum);
-					if (index === 0) {
-						this._unitName = '前' + unit.name;
-					} else if (index === len - 1) {
-						this._unitName = '后' + unit.name;
-					} else if (len === 3) {
-						this._unitName = '中' + unit.name;
-					} else {
-						this._unitName = 汉语数字[index + 1] + unit.name;
-					}
-				}
-			},
-		);
+		// watch(this, '玩家选择了单位', ({player, units}) => {
+		// 		// 该逻辑已被移至 _getUnitNotationName 方法，在生成记谱时按需调用，以解决悔棋时的状态问题
+		// 	},
+		// );
 		watch(this, '单位移动', move => this._generateNotation(move));
+	}
+
+	_getUnitNotationName(unit, player) {
+		const 同名单位行号集 = [];
+		const {rowNum, colNum} = unit.position;
+		const forwardDirection = this.gaming.battlefield.forwardDirection(player);
+
+		for (let i = 1; i <= this.gaming.battlefield.rowSize; i++) {
+			const unitsOnPos = this.gaming.battlefield.getUnitsAt(new 棋盘点位(i, colNum));
+			if (unitsOnPos.some(u => u.name === unit.name && u.owner === player)) {
+				同名单位行号集.push(i);
+			}
+		}
+
+		const len = 同名单位行号集.length;
+		if (len <= 1) {
+			return unit.name + calColName(forwardDirection, is红方(player), colNum);
+		} else {
+			同名单位行号集.sort(forwardDirection === -1 ? (a, b) => a - b : (a, b) => b - a);
+			const index = 同名单位行号集.indexOf(rowNum);
+			if (index === 0) {
+				return '前' + unit.name;
+			} else if (index === len - 1) {
+				return '后' + unit.name;
+			} else if (len === 3) {
+				return '中' + unit.name;
+			} else {
+				return 汉语数字[index + 1] + unit.name;
+			}
+		}
 	}
 
 	_generateNotation(move) {
@@ -576,6 +581,7 @@ class 战况 extends Situation {
 			newColNum = newPosition.colNum,
 			is红方_ = is红方(unit.owner),
 			forwardDirection = this.gaming.battlefield.forwardDirection(unit.owner);
+		const unitName = this._getUnitNotationName(unit, unit.owner);
 		let moveType, target;
 		if (rowDiff === 0) {
 			moveType = '平';
@@ -589,7 +595,7 @@ class 战况 extends Situation {
 					= is红方_ ? 汉语数字[Math.abs(rowDiff)] : Math.abs(rowDiff);
 			}
 		}
-		const notation = `${this._unitName}${moveType}${target}`,
+		const notation = `${unitName}${moveType}${target}`,
 			roundNotations = this._roundNotations;
 		if (is红方_) {
 			roundNotations.push([notation]);
@@ -682,7 +688,7 @@ const noticeTranslations = {
 	'playerTurn end': '轮次结束',
 	'player selectUnits end': '玩家选择了单位',
 	'player selectSkills end': '玩家选择了技能',
-	'battlefield moveUnit end': '单位移动',
+	'battlefield moveUnit end': '棋盘移动棋子',
 	'unit attack end': '单位杀敌',
 	'unit get movable targets': '已获取可移动位置集',
 };
@@ -693,7 +699,10 @@ class 棋局 extends BattlefieldBasedGaming {
 		//先监听，有些时机在super._build内部
 		Object.entries(noticeTranslations)
 					.forEach(([enTopiName, cnTopicName]) =>
-						watch(this, enTopiName, payload => notice(this, cnTopicName, payload)));
+						watch(this, enTopiName, payload => {
+							notice(this, cnTopicName, payload);
+							this.collectChange({topic: enTopiName, payload});
+						}));
 
 		// 监听单位选择事件，并自动选择技能
 		watch(this, 'player selectUnits end', ({player, units}) => {
@@ -710,6 +719,65 @@ class 棋局 extends BattlefieldBasedGaming {
 				}
 				if (skillsToSelect.length > 0) {
 					player.selectSkills(skillsToSelect);
+				}
+			}
+		});
+
+		this._pendingMove = null;
+		watch(this, 'skill activate start', ({skill, targets}) => {
+			if ((skill instanceof Move || skill instanceof Attack) && targets?.length > 0) {
+				this._pendingMove = {unit: skill.owner, from: skill.owner.position};
+			}
+		});
+
+		watch(this, 'skill activate end', ({skill, result, targets}) => {
+			if (this._pendingMove && compareWithId(this._pendingMove.unit, skill.owner)) {
+				if (result) {
+					const {unit, from} = this._pendingMove;
+					const to = skill.owner.position;
+					// 只有当位置确实发生变化时才记谱
+					if (from && to && !from.isEqualTo(to)) {
+						this.bulletin.notice('单位移动', {unit, from, to});
+					}
+				}
+				this._pendingMove = null; // 无论成功与否，都清除
+			}
+		});
+
+		watch(this, 'playerTurn end', () => {
+			this._pendingMove = null;
+		});
+
+		watch(this, 'history-step-rewind', ({turn}) => {
+			// 恢复当前玩家
+			this.situation.curPlayer = turn.player;
+
+			// 恢复记谱
+			const roundNotations = this.situation._roundNotations;
+			if (roundNotations && roundNotations.length > 0) {
+				const lastRound = roundNotations.at(-1);
+				if (is红方(turn.player)) {
+					roundNotations.pop();
+				} else {
+					if (lastRound.length > 1) {
+						lastRound.pop();
+					}
+				}
+			}
+
+			// 恢复棋子位置和状态
+			const changes = turn.changes || [];
+			for (let i = changes.length - 1; i >= 0; i--) {
+				const change = changes[i];
+				const topic = change.topic;
+				const payload = change.payload;
+
+				if (topic === 'unit attack end') {
+					const {killed, place} = payload;
+					this.battlefield.addUnit(killed, place);
+					killed.isAvailable = true;
+				} else if (topic === 'battlefield moveUnit end') {
+					this.battlefield.moveUnit(payload.unit, payload.from);
 				}
 			}
 		});
