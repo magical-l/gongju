@@ -543,13 +543,13 @@ class 战况 extends Situation {
 		watch(this, '单位移动', move => this._generateNotation(move));
 	}
 
-	_getUnitNotationName(unit, player) {
+	_getUnitNotationName(unit, player, fromColNum) {
 		const 同名单位行号集 = [];
-		const {rowNum, colNum} = unit.position;
+		const {rowNum} = unit.position;
 		const forwardDirection = this.gaming.battlefield.forwardDirection(player);
 
 		for (let i = 1; i <= this.gaming.battlefield.rowSize; i++) {
-			const unitsOnPos = this.gaming.battlefield.getUnitsAt(new 棋盘点位(i, colNum));
+			const unitsOnPos = this.gaming.battlefield.getUnitsAt(new 棋盘点位(i, fromColNum));
 			if (unitsOnPos.some(u => u.name === unit.name && u.owner === player)) {
 				同名单位行号集.push(i);
 			}
@@ -557,7 +557,7 @@ class 战况 extends Situation {
 
 		const len = 同名单位行号集.length;
 		if (len <= 1) {
-			return unit.name + calColName(forwardDirection, is红方(player), colNum);
+			return unit.name + calColName(forwardDirection, is红方(player), fromColNum);
 		} else {
 			同名单位行号集.sort(forwardDirection === -1 ? (a, b) => a - b : (a, b) => b - a);
 			const index = 同名单位行号集.indexOf(rowNum);
@@ -581,7 +581,7 @@ class 战况 extends Situation {
 			newColNum = newPosition.colNum,
 			is红方_ = is红方(unit.owner),
 			forwardDirection = this.gaming.battlefield.forwardDirection(unit.owner);
-		const unitName = this._getUnitNotationName(unit, unit.owner);
+		const unitName = this._getUnitNotationName(unit, unit.owner, from.colNum);
 		let moveType, target;
 		if (rowDiff === 0) {
 			moveType = '平';
