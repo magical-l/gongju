@@ -621,7 +621,7 @@ class Player {
 
 		// 检查是否是结束轮次
 		if (input?.action === 'END_TURN') {
-			return true; // 表示轮次结束
+			return true; // 主动结束轮次
 		}
 
 		// 处理输入
@@ -631,16 +631,13 @@ class Player {
 		}
 
 		if (command instanceof EndTurnCommand) {
-			return true; // 表示轮次结束
+			return true; // 主动结束轮次
 		}
 
 		this.gaming.startChangeCollection();
 
 		const actionPerformed = await command.execute();
 		const changes = this.gaming.stopChangeCollection();
-
-		const result = {success: actionPerformed, changes};
-		this.gaming.situation.recordTurn(this, command, result);
 
 		if (actionPerformed) {
 			this.selectedTargets = []; // 成功行动后，清空目标
@@ -653,6 +650,8 @@ class Player {
 		const turnShouldEnd = actionPerformed && this._actionsTakenThisTurn >= this.actionsPerTurn;
 
 		if (turnShouldEnd) {
+			const result = {success: actionPerformed, changes};
+			this.gaming.situation.recordTurn(this, command, result);
 			this.selectedSkills = []; // 回合结束时清空选中的技能
 		}
 
