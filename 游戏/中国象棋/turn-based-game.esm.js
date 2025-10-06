@@ -218,7 +218,7 @@ class TurnBasedGaming {
 		// 暂时简化：每次行动后都轮转
 
 		// 找到下一个玩家
-		const currentIndex = this.playerTurnSequence.indexOf(currentPlayer);
+		const currentIndex = this.playerTurnSequence.findIndex(p => p.id === currentPlayer.id);
 		const nextIndex = (currentIndex + 1) % this.playerTurnSequence.length;
 		const nextPlayer = this.playerTurnSequence[nextIndex];
 
