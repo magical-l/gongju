@@ -13,7 +13,7 @@ class SelectUnitCommand extends Command {
 
 	async execute() {
 		this.player.selectUnits(this.units);
-		return false; //选择不是消费行为，所以返回false
+		return {success: false, changes: []}; //选择不是消费行为，所以返回false
 	}
 }
 

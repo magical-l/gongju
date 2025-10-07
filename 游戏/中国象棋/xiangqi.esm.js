@@ -774,7 +774,7 @@ class 棋局 extends BattlefieldBasedGaming {
 
 				if (topic === 'unit attack end') {
 					const {killed, place} = payload;
-					this.battlefield.addUnit(killed, place);
+					this.battlefield.addUnitToPosition(killed, place);
 					killed.isAvailable = true;
 				} else if (topic === 'battlefield moveUnit end') {
 					this.battlefield.moveUnit(payload.unit, payload.from);

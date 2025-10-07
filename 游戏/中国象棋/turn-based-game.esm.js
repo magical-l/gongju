@@ -452,7 +452,7 @@ class PlayerTurn {
 class Command {
 	constructor(player) { this.player = player; }
 
-	async execute() { return false; }
+	async execute() { return {success: false, changes: []}; }
 }
 
 class SelectSkillCommand extends Command {
@@ -463,7 +463,7 @@ class SelectSkillCommand extends Command {
 
 	async execute() {
 		this.player.selectSkills(this.skills);
-		return false;
+		return {success: false, changes: []};
 	}
 }
 
@@ -475,7 +475,11 @@ class SelectTargetCommand extends Command {
 
 	async execute() {
 		this.player.selectTargets(this.targets);
-		return await this.player.activateSkills();
+		const gaming = this.player.gaming;
+		gaming.startChangeCollection();
+		const actionPerformed = await this.player.activateSkills();
+		const changes = gaming.stopChangeCollection();
+		return {success: actionPerformed, changes};
 	}
 }
 
@@ -593,6 +597,7 @@ class Player {
 		this._team = cfg.team;
 		this.actionsPerTurn = cfg.actionsPerTurn || 1; // 从配置或默认值初始化
 		this._actionsTakenThisTurn = 0;
+		this._currentTurnResults = [];
 
 		addCfgProps(this, this._cfg);
 
@@ -634,10 +639,9 @@ class Player {
 			return true; // 主动结束轮次
 		}
 
-		this.gaming.startChangeCollection();
-
-		const actionPerformed = await command.execute();
-		const changes = this.gaming.stopChangeCollection();
+		const result = await command.execute();
+		this._currentTurnResults.push(result);
+		const actionPerformed = result.success;
 
 		if (actionPerformed) {
 			this.selectedTargets = []; // 成功行动后，清空目标
@@ -650,8 +654,12 @@ class Player {
 		const turnShouldEnd = actionPerformed && this._actionsTakenThisTurn >= this.actionsPerTurn;
 
 		if (turnShouldEnd) {
-			const result = {success: actionPerformed, changes};
-			this.gaming.situation.recordTurn(this, command, result);
+			const allChanges = this._currentTurnResults.flatMap(r => r.changes);
+			const aggregatedResult = {success: true, changes: allChanges};
+			this.gaming.situation.recordTurn(this, command, aggregatedResult);
+
+			// 为下个回合做准备
+			this._currentTurnResults = [];
 			this.selectedSkills = []; // 回合结束时清空选中的技能
 		}
 
