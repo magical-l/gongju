@@ -421,7 +421,6 @@
 			isGaming() {
 				return !!this.gaming;
 			},
-
 			palettePieceTypes() {
 				return this.boardEditor.pieceTypes;
 			},
@@ -652,7 +651,7 @@
 				this.launchGame();
 			},
 			launchGame() {
-				const gaming = new 中国象棋(this.gameCfg, '红方玩家', '黑方玩家').newGaming();
+				const gaming = new 中国象棋(this.gameCfg, 红方玩家id, 黑方玩家id).newGaming();
 				this.gaming = gaming;
 
 				// 监听游戏事件来更新UI
@@ -688,13 +687,9 @@
 					this.blockedMoves = [];
 				});
 
-				gaming.bulletin.watch('history-navigation-end', () => {
-					this.syncGameState();
-				});
+				gaming.bulletin.watch('history-navigation-end', () => this.syncGameState());
 
-				gaming.bulletin.watch('单位移动', move => {
-					this.moveHistory.push(move);
-				});
+				gaming.bulletin.watch('单位移动', move => this.moveHistory.push(move));
 				gaming.bulletin.watch('单位杀敌', () => this.syncGameState());
 				gaming.bulletin.watch('游戏结束', () => this.syncGameState());
 				gaming.bulletin.watch('轮次结束', () => this.syncGameState());
@@ -839,12 +834,6 @@
 		app.component(key, component);
 	}
 	window.app = app.mount('main>article');
-</script>
-</body>
-</html> Object.entries(ElementPlusIconsVue)) {
-app.component(key, component);
-}
-window.app = app.mount('main>article');
 </script>
 </body>
 </html>

@@ -296,14 +296,14 @@ class Situation {
 		return newNode;
 	}
 
-	rewind(steps = 1) {//todo：本方法大规模耦合了‘移动’概念（在 battlefield module里）
+	rewind(steps = 1) {
 		let moved = 0;
 		for (let i = 0; i < steps; i++) {
 			if (this._currentNode.parent) {
 				const undoneTurn = this._currentNode.data;
 				this._currentNode = this._currentNode.parent;
 				// 框架层提供完整的轮次信息，包括变更记录
-				this.gaming.bulletin.notice('history-step-rewind', {
+				notice(this, 'history-step-rewind', {
 					turn: undoneTurn,
 					changes: undoneTurn?.changes || [],
 					success: undoneTurn?.success || false,
@@ -314,9 +314,8 @@ class Situation {
 			}
 		}
 		if (moved > 0) {
-			this.gaming.bulletin.notice('history-navigation-end', {
+			notice(this, 'history-navigation-end', {
 				to: this._currentNode.data,
-				gaming: this.gaming,
 				stepsMoved: moved,
 			});
 		}
@@ -341,7 +340,7 @@ class Situation {
 			}
 		}
 		if (moved > 0) {
-			this.gaming.bulletin.notice('history-navigation-end', {
+			notice(this, 'history-navigation-end', {
 				to: this._currentNode.data,
 				gaming: this.gaming,
 				stepsMoved: moved,
@@ -655,7 +654,7 @@ class Player {
 
 		if (turnShouldEnd) {
 			const allChanges = this._currentTurnResults.flatMap(r => r.changes || []);
-			const aggregatedResult = { actionsConsumed: this._actionsTakenThisTurn, changes: allChanges };
+			const aggregatedResult = {actionsConsumed: this._actionsTakenThisTurn, changes: allChanges};
 			this.gaming.situation.recordTurn(this, command, aggregatedResult);
 
 			// 为下个回合做准备
