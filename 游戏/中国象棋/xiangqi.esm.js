@@ -749,6 +749,12 @@ class 棋局 extends BattlefieldBasedGaming {
 		});
 
 		watch(this, 'history-step-rewind', ({turn}) => {
+			// 如果游戏已结束，悔棋时需要重置结束状态
+			if (this.situation.isEnded) {
+				this.situation.isEnded = false;
+				this.situation.winner = null;
+			}
+
 			// 恢复当前玩家
 			this.situation.curPlayer = turn.player;
 
