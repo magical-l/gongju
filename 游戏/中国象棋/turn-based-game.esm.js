@@ -452,7 +452,7 @@ class PlayerTurn {
 class Command {
 	constructor(player) { this.player = player; }
 
-	async execute() { return {success: false, changes: []}; }
+	async execute() { return {actionsConsumed: 0, changes: []}; }
 }
 
 class SelectSkillCommand extends Command {
@@ -463,7 +463,7 @@ class SelectSkillCommand extends Command {
 
 	async execute() {
 		this.player.selectSkills(this.skills);
-		return {success: false, changes: []};
+		return {actionsConsumed: 0, changes: []};
 	}
 }
 
@@ -477,9 +477,9 @@ class SelectTargetCommand extends Command {
 		this.player.selectTargets(this.targets);
 		const gaming = this.player.gaming;
 		gaming.startChangeCollection();
-		const actionPerformed = await this.player.activateSkills();
+		const success = await this.player.activateSkills();
 		const changes = gaming.stopChangeCollection();
-		return {success: actionPerformed, changes};
+		return {actionsConsumed: success ? 1 : 0, changes};
 	}
 }
 
@@ -641,21 +641,21 @@ class Player {
 
 		const result = await command.execute();
 		this._currentTurnResults.push(result);
-		const actionPerformed = result.success;
+		const actionsConsumed = result.actionsConsumed || 0;
 
-		if (actionPerformed) {
+		if (actionsConsumed > 0) {
 			this.selectedTargets = []; // 成功行动后，清空目标
-			this._actionsTakenThisTurn++; // 增加已执行行动计数
+			this._actionsTakenThisTurn += actionsConsumed; // 增加已执行行动计数
 		}
 
 		// 判断是否结束本轮次：
 		// 1. 玩家主动选择结束轮次 (已在上面处理)
 		// 2. 玩家已执行的行动次数达到或超过了本轮次允许的最大行动次数
-		const turnShouldEnd = actionPerformed && this._actionsTakenThisTurn >= this.actionsPerTurn;
+		const turnShouldEnd = (actionsConsumed > 0) && this._actionsTakenThisTurn >= this.actionsPerTurn;
 
 		if (turnShouldEnd) {
-			const allChanges = this._currentTurnResults.flatMap(r => r.changes);
-			const aggregatedResult = {success: true, changes: allChanges};
+			const allChanges = this._currentTurnResults.flatMap(r => r.changes || []);
+			const aggregatedResult = { actionsConsumed: this._actionsTakenThisTurn, changes: allChanges };
 			this.gaming.situation.recordTurn(this, command, aggregatedResult);
 
 			// 为下个回合做准备
