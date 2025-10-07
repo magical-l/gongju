@@ -136,6 +136,7 @@
 		display: flex;
 		align-items: center;
 		gap: 10px;
+		min-height: 40px;
 	}
 
 	.player.turn.selector {
@@ -147,6 +148,10 @@
 
 	.push-right {
 		margin-left: auto;
+	}
+
+	.selected-unit-panel {
+		min-height: 160px;
 	}
 </style>
 </head>
@@ -246,18 +251,16 @@
 					</div>
 				</div>
 			</el-card>
-			<el-card shadow="never" class="compact">
+			<el-card shadow="never" class="compact selected-unit-panel">
 				<template #header>
 					<div class="card header content">
 						<span>当前选中:</span>
-
 						<span v-if="isGaming && selectedUnit" class="unit display selected unit preview"
 									:class="getUnitClasses(selectedUnit)">
 							{{ selectedUnit.display }}</span>
 						<span v-if="!isGaming && boardEditor.selectedPieceType" class="unit display selected unit preview"
 									:class="getEditorUnitColor(boardEditor.pieceTypes[boardEditor.selectedPieceType])">
 							{{ boardEditor.pieceTypes[boardEditor.selectedPieceType].显示 }}</span>
-						<span v-if="isGaming ? !selectedUnit : !boardEditor.selectedPieceType">无</span>
 					</div>
 				</template>
 
@@ -266,8 +269,7 @@
 						<strong>技能:</strong>
 						<div style="margin-top: 5px;">
 							<el-tag v-if="selectedUnit.skills" v-for="skill in selectedUnit.skills" :key="skill.name" type="info"
-											style="margin: 2px;">
-								{{ skill.name }}
+											style="margin: 2px;">{{ skill.name }}
 							</el-tag>
 						</div>
 					</div>
@@ -278,7 +280,7 @@
 						<el-form label-width="60px">
 
 							<el-form-item label="显示">
-								<el-input v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].显示"
+								<el-input v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].显示" autofocus
 													:input-style="{ fontFamily: 'NotoSansSymbols2, sans-serif', fontSize: '28px', textAlign: 'center' }"
 													style="width: 60px;"/>
 							</el-form-item>
@@ -837,6 +839,12 @@
 		app.component(key, component);
 	}
 	window.app = app.mount('main>article');
+</script>
+</body>
+</html> Object.entries(ElementPlusIconsVue)) {
+app.component(key, component);
+}
+window.app = app.mount('main>article');
 </script>
 </body>
 </html>
