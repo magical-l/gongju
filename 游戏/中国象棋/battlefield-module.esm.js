@@ -175,7 +175,7 @@ class Battlefield {
 class BattlefieldModule extends Module {
 	get watchers() {
 		return {
-			'interpret-input-request': (payload) => {
+			'player interpretInput start': (payload) => {
 				const {player, input, command} = payload;
 				if (command) {
 					return;
@@ -210,6 +210,24 @@ class BattlefieldModule extends Module {
 						payload.command = new SelectUnitCommand(player, unitsToProcess);
 					}
 				}
+			},
+			'player selectSkills start': (payload) => {
+				const {player} = payload;
+				if (!player.selectedUnits?.length) {
+					payload.canProceed = false;
+				}
+			},
+			'player filterSelectableSkills end': (payload) => {
+				const {player, allSkills, selectableSkills} = payload;
+				const finalSkills = new Set(selectableSkills);
+
+				if (player.selectedUnits?.length) {
+					const unitSkills = allSkills.filter(
+						skill => player.selectedUnits.some(unit => compareWithId(unit, skill.owner)));
+					unitSkills.forEach(skill => finalSkills.add(skill));
+				}
+
+				payload.selectableSkills = [...finalSkills];
 			},
 		};
 	}
@@ -273,17 +291,6 @@ class BattlefieldModule extends Module {
 			return;
 		}
 		Player.prototype._battlefieldBasedUpgraded = true;
-
-
-
-		const rawSelectSkills = Player.prototype.selectSkills;
-		Player.prototype.selectSkills = function(...args) {
-			if (!this.selectedUnits?.length) {
-				return;
-			}
-
-			return rawSelectSkills.apply(this, args);
-		};
 
 		const rawFilterSelectableSkills = Player.prototype.filterSelectableSkills;
 		Player.prototype.filterSelectableSkills = function(skills) {
@@ -480,17 +487,18 @@ class Board extends Battlefield {
 	 * @param positionDescription
 	 * @returns {棋盘点位}
 	 */
-	    toPosition(positionDescription) {
-	        const match = positionDescription.match(/\((\d+),(\d+)\)/);
-	        if (match) {
-	            const rowNum = parseInt(match[1], 10);
-	            const colNum = parseInt(match[2], 10);
-	            if (this.positions[rowNum - 1] && this.positions[rowNum - 1][colNum - 1]) {
-	                return this.positions[rowNum - 1][colNum - 1];
-	            }
-	        }
-	        return null;
-	    }
+	toPosition(positionDescription) {
+		const match = positionDescription.match(/\((\d+),(\d+)\)/);
+		if (match) {
+			const rowNum = parseInt(match[1], 10);
+			const colNum = parseInt(match[2], 10);
+			if (this.positions[rowNum - 1] && this.positions[rowNum - 1][colNum - 1]) {
+				return this.positions[rowNum - 1][colNum - 1];
+			}
+		}
+		return null;
+	}
+
 	static buildPositions(rowSize, colSize) {
 		const rt = [];
 		for (let i = 0; i < rowSize; i++) {

@@ -270,18 +270,20 @@ class Situation {
 
 	_currentRound;
 	get currentRound() { return this._currentRound; }
+
 	get currentRoundIndex() { return this._currentRound?.index ?? 0; }
 
 	_curPlayer;
 	get curPlayer() { return this._curPlayer; }
+
 	set curPlayer(player) {
 		if (this._curPlayer === player) {
 			return;
 		}
 		const payload = {player: player, oldPlayer: this._curPlayer};
-		notice(this,'situaton set curPlayer start', payload);
+		notice(this, 'situaton set curPlayer start', payload);
 		this._curPlayer = player;
-		notice(this,'situaton set curPlayer end', payload);
+		notice(this, 'situaton set curPlayer end', payload);
 	}
 
 	isStarted = false;
@@ -661,7 +663,7 @@ class Player {
 		}
 
 		const result = await command.execute();
-		this._currentTurnActions.push({ command, result });
+		this._currentTurnActions.push({command, result});
 		const actionsConsumed = result.actionsConsumed || 0;
 
 		if (actionsConsumed > 0) {
@@ -692,13 +694,16 @@ class Player {
 	 * @returns {Command|null}
 	 */
 	interpretInput(input) {
+		// 发布事件，允许模块优先解释输入
 		const eventPayload = {player: this, input: input, command: null};
-		notice(this.gaming, 'interpret-input-request', eventPayload);
+		notice(this.gaming, 'player interpretInput start', eventPayload);
 
+		// 如果模块创建了命令，则返回它
 		if (eventPayload.command) {
 			return eventPayload.command;
 		}
 
+		// 否则，回退到默认逻辑（处理玩家自身技能）
 		const inputs = ensureArray(input);
 		if (inputs.length === 0) {
 			return null;
@@ -718,6 +723,13 @@ class Player {
 	 * @param {Skill[]} skills 要选择的技能
 	 */
 	selectSkills(skills) {
+		// 发布“前置”事件，允许模块添加执行条件
+		const eventPayload = {player: this, skills: skills, canProceed: true};
+		notice(this.gaming, 'player selectSkills start', eventPayload);
+		if (!eventPayload.canProceed) {
+			return;
+		}
+
 		// 过滤出所有主动技能
 		skills = ensureArray(skills);
 		const activeSkills = this.filterSelectableSkills(skills.filter(s => typeof s?.activate === 'function'));
@@ -729,7 +741,14 @@ class Player {
 
 	filterSelectableSkills(skills) {
 		skills = ensureArray(skills);
-		return skills.filter(s => this.skills.includes(s) && s.isOwnerActive());
+		// 默认逻辑：先找出玩家自己的可用技能
+		let selectableSkills = skills.filter(s => this.skills.includes(s) && s.isOwnerActive());
+
+		// 发布事件，允许模块增补更多可选技能（例如来自单位的技能）
+		const eventPayload = {player: this, allSkills: skills, selectableSkills: selectableSkills};
+		notice(this.gaming, 'player filterSelectableSkills end', eventPayload);
+
+		return eventPayload.selectableSkills;
 	}
 
 	/**
