@@ -122,8 +122,9 @@ class Battlefield {
 	 * @returns {*}
 	 */
 	toPosition(positionDescription) {
-		//todo：实现
-		return this.positions[parseInt(positionDescription)];
+		// 默认实现：查找其字符串表示与描述匹配的位置。
+		// 子类可以提供更具体的解析逻辑。
+		return this.positions.find(p => p.toString() === positionDescription);
 	}
 
 	moveUnit(unit, toPosition) {
@@ -161,6 +162,8 @@ class Battlefield {
 
 	getUnitById(id) { return this._unitsById.get(id); }
 
+	getPositionOfUnit(unit) { return this._unitPositionMapping.get(unit.id); }
+
 	/**
 	 * 移除出界的位置。
 	 */
@@ -182,7 +185,7 @@ class BattlefieldModule extends Module {
 		if (!Object.getOwnPropertyDescriptor(Unit.prototype, 'position')) {
 			Object.defineProperty(Unit.prototype, 'position', {
 				get: function() {
-					return this.gaming.battlefield._unitPositionMapping.get(this.id);
+					return this.gaming.battlefield.getPositionOfUnit(this);
 				},
 				set: function(newPosition) {
 					this.gaming.battlefield.moveUnit(this, newPosition);

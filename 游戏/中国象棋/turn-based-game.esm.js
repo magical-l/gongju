@@ -233,7 +233,7 @@ class TurnBasedGaming {
 			// 否，则轮到下一个玩家
 			const nextPlayer = this.playerTurnSequence[currentIndex + 1];
 			this.situation.curPlayer = nextPlayer;
-			nextPlayer._actionsTakenThisTurn = 0;
+			nextPlayer.prepareForNewTurn();
 			notice(this, 'playerTurn start', {player: nextPlayer});
 		}
 	}
@@ -391,7 +391,7 @@ class Round {
 		if (this.gaming.playerTurnSequence.length > 0) {
 			const firstPlayer = this.gaming.playerTurnSequence[0];
 			this.gaming.situation.curPlayer = firstPlayer;
-			firstPlayer._actionsTakenThisTurn = 0; // 重置第一个玩家的行动计数
+			firstPlayer.prepareForNewTurn(); // 重置第一个玩家的行动计数
 			this.gaming.bulletin.notice('playerTurn start', {player: firstPlayer});
 		}
 	}
@@ -618,6 +618,10 @@ class Player {
 
 		this._initializeSkills(cfg);
 
+	}
+
+	prepareForNewTurn() {
+		this._actionsTakenThisTurn = 0;
 	}
 
 	/**
