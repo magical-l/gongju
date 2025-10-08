@@ -765,7 +765,7 @@ class 棋局 extends BattlefieldBasedGaming {
 			this.situation.curPlayer = turn.player;
 
 			// 恢复记谱
-			const roundNotations = this.situation._roundNotations;
+			const roundNotations = this.situation.roundNotations;
 			if (roundNotations && roundNotations.length > 0) {
 				const lastRound = roundNotations.at(-1);
 				if (is红方(turn.player)) {

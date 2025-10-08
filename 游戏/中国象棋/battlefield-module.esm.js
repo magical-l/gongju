@@ -107,7 +107,7 @@ class Battlefield {
 	}
 
 	_buildUnit(owner, unitCfg) {
-		const UnitClass = unitCfg.class ?? this.gaming._cfg.UnitClass ?? Unit;
+		const UnitClass = unitCfg.class ?? this.gaming.cfg.UnitClass ?? Unit;
 		notice(this, 'buildUnit start', {unitCfg, class: UnitClass});
 
 		const unitType = this.gaming.unitTypes[unitCfg.name];
@@ -176,7 +176,7 @@ class BattlefieldModule extends Module {
 	constructor(gaming, cfg) {
 		super(gaming, cfg);
 
-		const BattlefieldClass = cfg.battlefieldClass ?? gaming._cfg.BattlefieldClass ?? Battlefield;
+		const BattlefieldClass = cfg.battlefieldClass ?? gaming.cfg.BattlefieldClass ?? Battlefield;
 		notice(this, 'gaming buildBattlefield start', {gaming: gaming, battlefieldCfg: cfg, class: BattlefieldClass});
 		const battlefield = new BattlefieldClass(gaming, cfg);
 		notice(this, 'gaming buildBattlefield end', {battlefield});
@@ -479,18 +479,17 @@ class Board extends Battlefield {
 	 * @param positionDescription
 	 * @returns {棋盘点位}
 	 */
-	toPosition(positionDescription) {
-		const match = positionDescription.match(/\((\d+),(\d+)\)/);
-		if (match) {
-			const rowNum = parseInt(match[1], 10);
-			const colNum = parseInt(match[2], 10);
-			if (this.positions[rowNum - 1] && this.positions[rowNum - 1][colNum - 1]) {
-				return this.positions[rowNum - 1][colNum - 1];
-			}
-		}
-		return null;
-	}
-
+	    toPosition(positionDescription) {
+	        const match = positionDescription.match(/\((\d+),(\d+)\)/);
+	        if (match) {
+	            const rowNum = parseInt(match[1], 10);
+	            const colNum = parseInt(match[2], 10);
+	            if (this.positions[rowNum - 1] && this.positions[rowNum - 1][colNum - 1]) {
+	                return this.positions[rowNum - 1][colNum - 1];
+	            }
+	        }
+	        return null;
+	    }
 	static buildPositions(rowSize, colSize) {
 		const rt = [];
 		for (let i = 0; i < rowSize; i++) {

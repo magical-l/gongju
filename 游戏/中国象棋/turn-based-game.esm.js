@@ -272,7 +272,18 @@ class Situation {
 	get currentRound() { return this._currentRound; }
 	get currentRoundIndex() { return this._currentRound?.index ?? 0; }
 
-	curPlayer;
+	_curPlayer;
+	get curPlayer() { return this._curPlayer; }
+	set curPlayer(player) {
+		if (this._curPlayer === player) {
+			return;
+		}
+		const payload = {player: player, oldPlayer: this._curPlayer};
+		notice(this,'situaton set curPlayer start', payload);
+		this._curPlayer = player;
+		notice(this,'situaton set curPlayer end', payload);
+	}
+
 	isStarted = false;
 	isEnded = false;
 	winner;
@@ -529,7 +540,7 @@ const SkillHolder = {
 
 	_buildSkill(skillCfg) {
 		const typeName = lowerFirstLetter(this.constructor.name);
-		const SkillClass = skillCfg.class ?? this.gaming._cfg.SkillClass ?? Skill;
+		const SkillClass = skillCfg.class ?? this.gaming.cfg.SkillClass ?? Skill;
 		notice(this, `${typeName} buildSkill start`, {owner: this, skillCfg, class: SkillClass});
 		const rt = new SkillClass({...skillCfg, owner: this});
 		notice(this, `${typeName} buildSkill end`, {skill: rt});
