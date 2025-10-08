@@ -58,6 +58,7 @@ class TurnBasedGaming {
 	constructor(cfg) {
 		this._cfg = cfg;
 		addCfgProps(this, this._cfg);
+		this._isProcessingInput = false;
 	}
 
 	startChangeCollection() {
@@ -165,15 +166,15 @@ class TurnBasedGaming {
 		return rt;
 	}
 
-	start() {
+	async start() {
 		this.bulletin.watch('game over', ({winner}) => {
 			this.situation.isEnded = true;
 			this.situation.winner = winner;
 		});
 
 		// 监听输入并直接调用当前玩家的play方法
-		this.bulletin.watch('ui input', input => {
-			if (this.situation.isEnded) {
+		this.bulletin.watch('ui input', async input => {
+			if (this.situation.isEnded || this._isProcessingInput) {
 				return;
 			}
 
@@ -184,7 +185,12 @@ class TurnBasedGaming {
 
 			// 普通输入：直接调用当前玩家的play方法
 			if (this.situation.curPlayer) {
-				this._handlePlayerInput(input);
+				this._isProcessingInput = true;
+				try {
+					await this._handlePlayerInput(input);
+				} finally {
+					this._isProcessingInput = false;
+				}
 			}
 		});
 
@@ -193,7 +199,7 @@ class TurnBasedGaming {
 		notice(this, 'gaming start', {gaming: this});
 
 		// 开始第一个回合
-		this.situation.startRound();
+		await this.situation.startRound();
 	}
 
 	async _handlePlayerInput(input) {
@@ -386,8 +392,14 @@ class Round {
 	 * 开始一个回合
 	 */
 	async start() {
-		// 核心逻辑已移至 Situation.startRound
-		// 此处可以保留用于发布通知等辅助操作
+		this.gaming.bulletin.notice('round start', {roundIndex: this.index});
+		// 设置回合的第一个玩家
+		if (this.gaming.playerTurnSequence.length > 0) {
+			const firstPlayer = this.gaming.playerTurnSequence[0];
+			this.gaming.situation.curPlayer = firstPlayer;
+			firstPlayer._actionsTakenThisTurn = 0; // 重置第一个玩家的行动计数
+			this.gaming.bulletin.notice('playerTurn start', {player: firstPlayer});
+		}
 	}
 }
 
