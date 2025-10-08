@@ -76,9 +76,6 @@ class TurnBasedGaming {
 	collectChange(change) {
 		if (this._isCollectingChanges) {
 			this._changeLog.push(change);
-
-		} else {
-
 		}
 	}
 
@@ -271,8 +268,9 @@ class Situation {
 	_historyRoot; // 历史树的根节点
 	_currentNode; // 指向当前状态的节点
 
-	_currentRoundIndex = 0;
-	get currentRoundIndex() { return this._currentRoundIndex; }
+	_currentRound;
+	get currentRound() { return this._currentRound; }
+	get currentRoundIndex() { return this._currentRound?.index ?? 0; }
 
 	curPlayer;
 	isStarted = false;
@@ -286,18 +284,14 @@ class Situation {
 	}
 
 	async startRound() {
-		this._currentRoundIndex++;
-		this.gaming.bulletin.notice('round start', {roundIndex: this._currentRoundIndex});
-		// 此处保留了旧的开始回合逻辑，即设置第一个玩家
-		if (this.gaming.playerTurnSequence.length > 0) {
-			this.gaming.situation.curPlayer = this.gaming.playerTurnSequence[0];
-			this.gaming.situation.curPlayer._actionsTakenThisTurn = 0; // 重置第一个玩家的行动计数
-			this.gaming.bulletin.notice('playerTurn start', {player: this.gaming.situation.curPlayer});
-		}
+		const newRoundIndex = this.currentRoundIndex + 1;
+		const round = new Round(this.gaming, newRoundIndex);
+		this._currentRound = round;
+		await round.start();
 	}
 
-	recordTurn(player, command, result) {
-		const playerTurn = new PlayerTurn(this._currentRoundIndex, player, command, result);
+	recordTurn(player, actions) {
+		const playerTurn = new PlayerTurn(this.currentRoundIndex, player, actions);
 		const newNode = new HistoryNode(playerTurn, this._currentNode);
 		this._currentNode.children.push(newNode);
 		this._currentNode = newNode;
@@ -406,59 +400,58 @@ class Round {
 class PlayerTurn {
 	_roundIndex;
 	_player;
-	_command;
-	_result;
+	_actions; // Array of {command, result}
 	_timestamp;
+	_notation = null;
 
 	get roundIndex() { return this._roundIndex; }
 
 	get player() { return this._player; }
 
-	get command() { return this._command; }
-
-	get result() { return this._result; }
+	get actions() { return this._actions; }
 
 	get timestamp() { return this._timestamp; }
 
-	constructor(roundIndex, player, command, result) {
+	constructor(roundIndex, player, actions) {
 		this._roundIndex = roundIndex;
 		this._player = player;
-		this._command = command;
-		this._result = result;
+		this._actions = actions;
 		this._timestamp = Date.now();
 	}
 
 	/**
-	 * 获取此轮次产生的变更记录
-	 * 框架层只负责存储，具体的使用由应用层决定
+	 * 获取此轮次所有行动产生的变更记录
 	 */
 	get changes() {
-		return this._result?.changes || [];
+		return this._actions.flatMap(a => a.result?.changes || []);
 	}
 
 	/**
-	 * 获取此轮次是否成功执行
+	 * 获取此轮次是否成功（至少有一个行动成功）
 	 */
 	get success() {
-		return this._result?.success || false;
+		return this._actions.some(a => a.result?.actionsConsumed > 0);
 	}
 
 	/**
-	 * 获取此轮次的记谱信息（由应用层设置）
-	 * 框架层只提供存储，具体格式由应用层决定
+	 * 获取此轮次所有行动的命令
+	 */
+	get commands() {
+		return this._actions.map(a => a.command);
+	}
+
+	/**
+	 * 获取此轮次的记谱信息
 	 */
 	get notation() {
-		return this._result?.notation || null;
+		return this._notation;
 	}
 
 	/**
-	 * 设置记谱信息（由应用层调用）
+	 * 设置记谱信息
 	 */
 	setNotation(notation) {
-		if (!this._result) {
-			this._result = {};
-		}
-		this._result.notation = notation;
+		this._notation = notation;
 	}
 }
 
@@ -610,7 +603,7 @@ class Player {
 		this._team = cfg.team;
 		this.actionsPerTurn = cfg.actionsPerTurn || 1; // 从配置或默认值初始化
 		this._actionsTakenThisTurn = 0;
-		this._currentTurnResults = [];
+		this._currentTurnActions = [];
 
 		addCfgProps(this, this._cfg);
 
@@ -653,7 +646,7 @@ class Player {
 		}
 
 		const result = await command.execute();
-		this._currentTurnResults.push(result);
+		this._currentTurnActions.push({ command, result });
 		const actionsConsumed = result.actionsConsumed || 0;
 
 		if (actionsConsumed > 0) {
@@ -667,12 +660,10 @@ class Player {
 		const turnShouldEnd = (actionsConsumed > 0) && this._actionsTakenThisTurn >= this.actionsPerTurn;
 
 		if (turnShouldEnd) {
-			const allChanges = this._currentTurnResults.flatMap(r => r.changes || []);
-			const aggregatedResult = {actionsConsumed: this._actionsTakenThisTurn, changes: allChanges};
-			this.gaming.situation.recordTurn(this, command, aggregatedResult);
+			this.gaming.situation.recordTurn(this, this._currentTurnActions);
 
 			// 为下个回合做准备
-			this._currentTurnResults = [];
+			this._currentTurnActions = [];
 			this.selectedSkills = []; // 回合结束时清空选中的技能
 		}
 
