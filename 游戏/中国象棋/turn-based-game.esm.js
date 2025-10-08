@@ -692,6 +692,13 @@ class Player {
 	 * @returns {Command|null}
 	 */
 	interpretInput(input) {
+		const eventPayload = {player: this, input: input, command: null};
+		notice(this.gaming, 'interpret-input-request', eventPayload);
+
+		if (eventPayload.command) {
+			return eventPayload.command;
+		}
+
 		const inputs = ensureArray(input);
 		if (inputs.length === 0) {
 			return null;

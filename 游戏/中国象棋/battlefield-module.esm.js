@@ -173,6 +173,47 @@ class Battlefield {
 }
 
 class BattlefieldModule extends Module {
+	get watchers() {
+		return {
+			'interpret-input-request': (payload) => {
+				const {player, input, command} = payload;
+				if (command) {
+					return;
+				} // Another module already handled it.
+
+				const inputs = ensureArray(input);
+				if (inputs.length === 0) {
+					return;
+				}
+
+				const firstItem = inputs[0];
+				let unitToSelect = null;
+				if (firstItem instanceof Unit) {
+					unitToSelect = firstItem;
+				} else {
+					const potentialId = firstItem?.id ?? firstItem;
+					const foundUnit = player.gaming.battlefield.getUnitById(potentialId);
+					if (foundUnit) {
+						unitToSelect = foundUnit;
+					}
+				}
+
+				if (unitToSelect) {
+					const unitsToProcess = [unitToSelect];
+					if (player.selectedUnits?.length && player.selectedSkills?.length) {
+						if (player.selectedSkills.some(e => e.filterValidTargets(unitsToProcess).length > 0)) {
+							payload.command = new SelectTargetCommand(player, unitsToProcess);
+						} else if (unitToSelect.owner?.id === player.id) {
+							payload.command = new SelectUnitCommand(player, [unitToSelect]);
+						}
+					} else {
+						payload.command = new SelectUnitCommand(player, unitsToProcess);
+					}
+				}
+			},
+		};
+	}
+
 	constructor(gaming, cfg) {
 		super(gaming, cfg);
 
@@ -233,47 +274,7 @@ class BattlefieldModule extends Module {
 		}
 		Player.prototype._battlefieldBasedUpgraded = true;
 
-		const rawInterpretInput = Player.prototype.interpretInput;
-		Player.prototype.interpretInput = function(input) {
-			const player = this;
-			const inputs = ensureArray(input);
-			if (inputs.length === 0) {
-				return null;
-			}
-			const firstItem = inputs[0];
 
-			let unitToSelect = null;
-			if (firstItem instanceof Unit) {
-				unitToSelect = firstItem;
-			} else {
-				const potentialId = firstItem?.id ?? firstItem;
-				const foundUnit = player.gaming.battlefield.getUnitById(potentialId);
-				if (foundUnit) {
-					unitToSelect = foundUnit;
-				}
-			}
-
-			if (unitToSelect) {
-				const unitsToProcess = [unitToSelect];
-
-				if (player.selectedUnits?.length && player.selectedSkills?.length) {
-					if (player.selectedSkills.some(e => e.filterValidTargets(unitsToProcess).length > 0)) {
-						return new SelectTargetCommand(player, unitsToProcess);
-					} else {
-						// 如果点击的单位不是有效目标，但它是玩家自己的单位，
-						// 则取消技能选择，改为选中这个新单位。
-						if (unitToSelect.owner?.id === player.id) {
-							return new SelectUnitCommand(player, [unitToSelect]);
-						}
-					}
-				} else {
-					return new SelectUnitCommand(player, unitsToProcess);
-				}
-				return null;
-			}
-
-			return rawInterpretInput.call(this, input);
-		};
 
 		const rawSelectSkills = Player.prototype.selectSkills;
 		Player.prototype.selectSkills = function(...args) {
