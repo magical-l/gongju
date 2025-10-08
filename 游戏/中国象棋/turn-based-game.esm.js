@@ -213,22 +213,24 @@ class TurnBasedGaming {
 	}
 
 	async _checkTurnEnd(currentPlayer) {
-		// 检查当前玩家是否完成了所有行动
-		// 这里可以根据具体游戏规则来判断
-		// 暂时简化：每次行动后都轮转
-
-		// 找到下一个玩家
 		const currentIndex = this.playerTurnSequence.findIndex(p => p.id === currentPlayer.id);
-		const nextIndex = (currentIndex + 1) % this.playerTurnSequence.length;
-		const nextPlayer = this.playerTurnSequence[nextIndex];
-
-		// 结束当前玩家的轮次
 		notice(this, 'playerTurn end', {player: currentPlayer});
 
-		// 如果游戏未结束，开始下一个玩家的轮次
-		if (!this.situation.isEnded) {
+		if (this.situation.isEnded) {
+			return;
+		}
+
+		// 检查是否是最后一个玩家
+		if (currentIndex === this.playerTurnSequence.length - 1) {
+			// 是，则代表回合结束
+			notice(this, 'round end', {roundIndex: this.situation.currentRoundIndex});
+			// 开始新回合（内部会增加回合数并从第一个玩家开始）
+			await this.situation.startRound();
+		} else {
+			// 否，则轮到下一个玩家
+			const nextPlayer = this.playerTurnSequence[currentIndex + 1];
 			this.situation.curPlayer = nextPlayer;
-			nextPlayer._actionsTakenThisTurn = 0; // 重置下一个玩家的行动计数
+			nextPlayer._actionsTakenThisTurn = 0;
 			notice(this, 'playerTurn start', {player: nextPlayer});
 		}
 	}
