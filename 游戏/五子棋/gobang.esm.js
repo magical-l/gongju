@@ -1,13 +1,16 @@
 import {Player, Rule, TurnBasedGame} from './../turn-based-game.esm.js';
 import {BattlefieldBasedGaming, BattlefieldModule, Board, 棋盘点位} from './../battlefield-module.esm.js';
 import {Unit, UnitModule} from './../unit-module.esm.js';
+import {notice} from '../kit.esm.js';
+
+export {Gobang};
 
 // --- 核心类定义 ---
 
 /**
  * 五子棋游戏主类
  */
-export class Gobang extends TurnBasedGame {
+class Gobang extends TurnBasedGame {
 	constructor(cfg = {}) {
 		super(Gobang.translateConfig({...cfg}));
 		this.cfg.GamingClass = GobangGame;
@@ -47,7 +50,7 @@ export class Gobang extends TurnBasedGame {
 class GobangGame extends BattlefieldBasedGaming {
 	constructor(...args) {
 		super(...args);
-		this._moveNumber = 0; // Initialize move number
+		this._moveNumber = 0;
 	}
 
 	/**
@@ -87,8 +90,7 @@ class GobangPlayer extends Player {
 		}
 
 		// 返回一个落子命令
-		const command = new PlaceStoneCommand(this, input);
-		return command;
+		return new PlaceStoneCommand(this, input);
 	}
 }
 
@@ -99,10 +101,10 @@ class GobangPlayer extends Player {
 class GobangStone extends Unit {
 	constructor(cfg) {
 		super(cfg);
-		this._moveNumber = cfg.moveNumber; // Store the move number
+		this._moveNumber = cfg.moveNumber;
 	}
 
-	get moveNumber() { return this._moveNumber; } // Add a getter
+	get moveNumber() { return this._moveNumber; }
 }
 
 /**
@@ -111,8 +113,6 @@ class GobangStone extends Unit {
 class GobangBoard extends Board {
 	constructor(gaming, cfg) {
 		super(gaming, cfg);
-		// 显式存储 gaming 实例，以防基类未正确处理
-		this._gaming = gaming;
 	}
 
 	/**
@@ -121,8 +121,8 @@ class GobangBoard extends Board {
 	 * @returns {boolean} - 如果点位有效则返回 true，否则返回 false。
 	 */
 	isValidPosition(position) {
-		return position.rowNum >= 1 && position.rowNum <= this._rowSize &&
-					 position.colNum >= 1 && position.colNum <= this._colSize;
+		return position.rowNum >= 1 && position.rowNum <= this._rowSize
+					 && position.colNum >= 1 && position.colNum <= this._colSize;
 	}
 }
 
@@ -161,7 +161,7 @@ class FiveInARowRule extends Rule {
 			watchers: {
 				'buildUnit end': ({unit}) => {
 					if (this.checkWin(unit)) {
-						this.gaming.bulletin.notice('game over', {winner: unit.owner});
+						notice(this, 'game over', {winner: unit.owner});
 					}
 				},
 			},

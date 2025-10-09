@@ -5,18 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title itemprop="name">五子棋 | 工具兽 - 在线玩经典的棋类游戏</title>
 
-<meta name="description" content="在线玩经典的五子棋游戏。工具兽提供免费、无需下载的五子棋体验，支持双人对弈。立即开始你的五子棋之旅！">
+<meta name="description"
+			content="在线玩经典的五子棋游戏。工具兽提供免费、无需下载的五子棋体验，支持双人对弈。立即开始你的五子棋之旅！">
 <meta name="keywords" content="五子棋, 在线五子棋, 免费五子棋, 玩五子棋, 五子棋游戏, 棋类游戏, 工具兽">
 
 <meta property="og:title" content="五子棋 | 工具兽 - 在线玩经典的棋类游戏">
-<meta property="og:description" content="在线玩经典的五子棋游戏。工具兽提供免费、无需下载的五子棋体验，支持双人对弈。立即开始你的五子棋之旅！">
+<meta property="og:description"
+			content="在线玩经典的五子棋游戏。工具兽提供免费、无需下载的五子棋体验，支持双人对弈。立即开始你的五子棋之旅！">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://gongju.ren/游戏/五子棋/gobang.html">
 <meta property="og:image" content="https://gongju.ren/resources/gobang-share.jpg"> <!-- 假设有一个五子棋的分享图片 -->
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="五子棋 | 工具兽 - 在线玩经典的棋类游戏">
-<meta name="twitter:description" content="在线玩经典的五子棋游戏。工具兽提供免费、无需下载的五子棋体验，支持双人对弈。立即开始你的五子棋之旅！">
+<meta name="twitter:description"
+			content="在线玩经典的五子棋游戏。工具兽提供免费、无需下载的五子棋体验，支持双人对弈。立即开始你的五子棋之旅！">
 <meta name="twitter:image" content="https://gongju.ren/resources/gobang-share.jpg"> <!-- 假设有一个五子棋的分享图片 -->
 
 <link href="../../lib/element-plus/2.10.7/index.css" rel="stylesheet">
@@ -27,7 +30,7 @@
 <link href="../../resources/花活.css?v=250821" rel="stylesheet">
 <link href="gobang.css" rel="stylesheet">
 </head>
-<body class="grid 目字形">
+<body class="grid 反叵字形">
 <header>
 	<h1 class="website name" title="工具人（gongju.ren）域名太贵买不起">工具兽</h1>
 	<nav>
@@ -45,36 +48,49 @@
 		<a href="../点灯.html">点灯</a>
 	</nav>
 </header>
-<main class="flex items-near-center-x">
-	<article class="game wrapper , 反叵字形 grid" v-cloak>
-		<div class="toolbar">
+<main>
+	<header>
+		<h2 class="game name">五子棋</h2>
+		<div class="page-lv help area" v-cloak>
+			<el-button class="page-lv help btn" title="游戏介绍" @click="introVisible = true" size="small" circle>?
+			</el-button>
+			<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
+				<article class="description">
+					<h3>游戏目标</h3>
+					<p>五子棋是一种两人对弈的纯策略棋类游戏，目标是先在棋盘上形成连续的五子（横、竖、斜皆可）。</p>
+					<h3>操作方式</h3>
+					<p>
+						玩家轮流在棋盘的交叉点上放置自己的棋子。黑子先行，然后白子。当一方的棋子在横向、纵向或斜向形成连续的五子时，该方获胜。</p>
+					<h3>胜负判定</h3>
+					<p>先形成五子连线者获胜。如果棋盘被填满而没有一方形成五子连线，则为平局。</p>
+				</article>
+			</el-dialog>
+		</div>
+	</header>
+	<article class="game wrapper , flex vertical items-like-册" v-cloak>
+		<section class="toolbar">
 			<el-button v-if="!isGaming" type="primary" size="large" @click="startGame">开始新游戏</el-button>
 			<el-button v-else type="danger" size="large" @click="restartGame">重新开始</el-button>
-		</div>
 
-		<div v-if="isGaming && curPlayer" class="game-info">
-			当前玩家: {{ curPlayer.name }}
-		</div>
+			<span v-if="isGaming && curPlayer" class="game-info">当前玩家: {{ curPlayer.name }}</span>
+		</section>
 
-		<div class="one chessboard" v-if="flatPositions.length">
+		<section class="one chessboard" v-if="flatPositions.length">
 			<div v-for="wrapper in flatPositions" :key="wrapper.position.toString()"
-				 class="cell"
-				 :class="[{ hoverable: isGaming && !isGameOver && !wrapper.unit }, currentPlayerColorClass]"
-				 @click="handleCellClick(wrapper.position)">
+					 class="cell" :class="[{ hoverable: isGaming && !isGameOver && !wrapper.unit }, currentPlayerColorClass]"
+					 @click="handleCellClick(wrapper.position)">
 				<!-- 棋子渲染在 cell 内部 -->
 				<div v-if="wrapper.unit" class="unit piece display" :class="getUnitColor(wrapper.unit)">
 					<span class="piece move-number">{{ wrapper.unit.moveNumber }}</span>
 					<div v-if="lastMove && lastMove.position.isEqualTo(wrapper.position)" class="piece last-move-marker"></div>
 				</div>
 			</div>
-		</div>
+		</section>
 
 		<el-dialog v-model="isGameOver" title="游戏结束" width="300px" align-center>
 			<div style="text-align: center; font-size: 24px;">
 				<span>{{ winnerName }} 获胜!</span>
-				<div v-if="isGaming && curPlayer" class="game-info">
-					当前玩家: {{ curPlayer.name }}
-				</div>
+				<div v-if="isGaming && curPlayer" class="game-info">当前玩家: {{ curPlayer.name }}</div>
 			</div>
 			<template #footer>
 				<el-button type="primary" @click="restartGame">再来一局</el-button>
@@ -83,7 +99,7 @@
 	</article>
 </main>
 
-<footer>
+<aside class="right-sidebar">
 	<article class="website info">
 		<section class="patronage area">
 			<img class="qr-code" src="../../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
@@ -93,13 +109,12 @@
 		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
 		</section>
 	</article>
-</footer>
+</aside>
 
 <div class="js container">
 	<script src="../../resources/math.js"></script>
 	<script src="../../lib/jquery-3.4.1.min.js"></script>
 	<script src="../../lib/toastr.min.js"></script>
-	<script src="../../resources/util.js"></script>
 	<script src="../../lib/vue/3.5.18/vue.global.js"></script>
 	<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
 	<script src="../../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
@@ -180,6 +195,9 @@
 				return unit.owner.team.id === '黑方' ? 'player-black' : 'player-white';
 			},
 		},
+		mounted() {
+			this.startGame();
+		},
 	});
 
 	app.use(ElementPlus);
@@ -187,6 +205,26 @@
 		app.component(key, component);
 	}
 	window.app = app.mount('main>article');
+
+	const help = createApp({
+		data() {
+			return {
+				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname),
+			};
+		},
+		watch: {
+			introVisible(newValue) {
+				const storageKey = 'intro-hidden-' + window.location.pathname;
+				if (!newValue) {
+					localStorage.setItem(storageKey, 'true');
+				} else {
+					localStorage.removeItem(storageKey);
+				}
+			},
+		},
+	})
+	.use(ElementPlus)
+	.mount('.help.area');
 
 </script>
 </body>
