@@ -699,8 +699,8 @@ class 棋局 extends BattlefieldBasedGaming {
 		//先监听，有些时机在super._build内部
 		// 翻译框架事件为中文，并广播
 		Object.entries(noticeTranslations)
-			.forEach(([enTopiName, cnTopicName]) =>
-				watch(this, enTopiName, payload => notice(this, cnTopicName, payload)));
+					.forEach(([enTopiName, cnTopicName]) =>
+						watch(this, enTopiName, payload => notice(this, cnTopicName, payload)));
 
 		// 监听需要悔棋的事件，并记录变更
 		const undoableTopics = ['battlefield moveUnit end', 'unit attack end'];

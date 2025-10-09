@@ -1,33 +1,33 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>五子棋 | 工具兽</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>五子棋 | 工具兽</title>
 
-	<link href="../../lib/element-plus/2.10.7/index.css" rel="stylesheet">
-	<link href="../../resources/common.css?v=250821" rel="stylesheet">
-	<link href="../../resources/layout.css?v=0821" rel="stylesheet">
-	<link href="gobang.css" rel="stylesheet">
-	<style>
-		.game-wrapper {
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			gap: 20px;
-		}
+<link href="../../lib/element-plus/2.10.7/index.css" rel="stylesheet">
+<link href="../../resources/common.css?v=250821" rel="stylesheet">
+<link href="../../resources/layout.css?v=0821" rel="stylesheet">
+<link href="gobang.css" rel="stylesheet">
+<style>
+	.game-wrapper {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 20px;
+	}
 
-		.toolbar {
-			padding: 10px;
-			background: #f5f5f5;
-			border-radius: 8px;
-		}
+	.toolbar {
+		padding: 10px;
+		background: #f5f5f5;
+		border-radius: 8px;
+	}
 
-		.game-info {
-			font-size: 1.2em;
-			font-weight: bold;
-		}
-	</style>
+	.game-info {
+		font-size: 1.2em;
+		font-weight: bold;
+	}
+</style>
 </head>
 <body>
 <main id="app" class="game-wrapper" v-cloak>
@@ -40,15 +40,15 @@
 		当前玩家: {{ curPlayer.name }}
 	</div>
 
-	<div class="chessboard" v-if="flatPositions.length"> <!-- Added v-if -->
+	<div class="one chessboard" v-if="flatPositions.length">
 		<div v-for="wrapper in flatPositions" :key="wrapper.position.toString()"
 			 class="cell"
-			 :class="{ hoverable: isGaming && !isGameOver && !wrapper.unit }"
+			 :class="[{ hoverable: isGaming && !isGameOver && !wrapper.unit }, currentPlayerColorClass]"
 			 @click="handleCellClick(wrapper.position)">
 			<!-- 棋子渲染在 cell 内部 -->
-			<div v-if="wrapper.unit" class="unit display" :class="getUnitColor(wrapper.unit)">
-				<span class="move-number">{{ wrapper.unit.moveNumber }}</span>
-				<div v-if="lastMove && lastMove.position.isEqualTo(wrapper.position)" class="last-move-marker"></div>
+			<div v-if="wrapper.unit" class="unit piece display" :class="getUnitColor(wrapper.unit)">
+				<span class="piece move-number">{{ wrapper.unit.moveNumber }}</span>
+				<div v-if="lastMove && lastMove.position.isEqualTo(wrapper.position)" class="piece last-move-marker"></div>
 			</div>
 		</div>
 	</div>
@@ -69,8 +69,7 @@
 <script src="../../lib/vue/3.5.18/vue.global.js"></script>
 <script src="../../lib/element-plus/2.10.7/index.full.js"></script>
 <script type="module">
-	import {Gobang} from '../五子棋/gobang.esm.js';
-	import {棋盘点位} from '../battlefield-module.esm.js';
+	import {Gobang} from './gobang.esm.js';
 
 	const {createApp, ref, computed, nextTick} = Vue;
 
@@ -78,18 +77,24 @@
 		data() {
 			return {
 				gaming: null,
-				positions: [], // 2D array of 棋盘点位 objects
+				positions: [], //二维数组
 				flatPositions: [], // 1D array of wrapper objects { position: 棋盘点位, unit: Unit }
 				lastMove: null,
 				curPlayer: null,
 				isGameOver: false,
-				winnerName: ''
+				winnerName: '',
 			};
 		},
 		computed: {
 			isGaming() {
 				return !!this.gaming;
-			}
+			},
+			currentPlayerColorClass() {
+				if (!this.curPlayer) {
+					return '';
+				}
+				return this.curPlayer.team.id === '黑方' ? 'player-black-hover' : 'player-white-hover';
+			},
 		},
 		methods: {
 			startGame() {
@@ -99,15 +104,12 @@
 				this.winnerName = '';
 				this.lastMove = null;
 
-				// Initialize positions and flatPositions
-				this.positions = this.gaming.battlefield.positions; // This is a 2D array of 棋盘点位
-				this.flatPositions = this.positions.flat().map(pos => ({ position: pos, unit: null })); // Create wrapper objects
-				
+				this.positions = this.gaming.battlefield.positions;
+				this.flatPositions = this.positions.flat().map(pos => ({position: pos, unit: null}));
+
 				this.curPlayer = this.gaming.situation.curPlayer;
 
-				this.gaming.bulletin.watch('playerTurn start', ({player}) => {
-					this.curPlayer = player;
-				});
+				this.gaming.bulletin.watch('playerTurn start', ({player}) => this.curPlayer = player);
 
 				this.gaming.bulletin.watch('buildUnit end', ({unit}) => {
 					this.lastMove = {unit, position: unit.position};
@@ -125,25 +127,23 @@
 				this.startGame();
 			},
 			syncBoardState() {
-				if (!this.gaming) return;
-				// Update the 'unit' property of each wrapper object in flatPositions
+				if (!this.gaming) {
+					return;
+				}
 				this.flatPositions.forEach(wrapper => {
 					const unitsAtPos = this.gaming.battlefield.getUnitsAt(wrapper.position);
-					// Assuming only one unit per position for Gobang
 					wrapper.unit = unitsAtPos.length > 0 ? unitsAtPos[0] : null;
 				});
 			},
 			handleCellClick(position) {
 				if (this.isGaming && !this.isGameOver) {
 					this.gaming.bulletin.notice('ui input', position);
-				} else {
-					// console.log('Vue: handleCellClick ignored (not gaming or game over).'); // Removed console.log
 				}
 			},
 			getUnitColor(unit) {
-				return unit.owner.team.id === '黑方' ? 'black' : 'white';
-			}
-		}
+				return unit.owner.team.id === '黑方' ? 'player-black' : 'player-white';
+			},
+		},
 	});
 
 	app.use(ElementPlus);
