@@ -1,27 +1,28 @@
 @charset "utf-8";
 
 :root {
-	--朋字形-gap: 1em;
+	--gap: 1em;
+	--朋字形-gap: var(--gap);
 	--亚字形-left-sidebar-min-width: 150px;
 	--亚字形-left-sidebar-max-width: 20%;
 	--亚字形-right-sidebar-min-width: 150px;
 	--亚字形-right-sidebar-max-width: 20%;
-	--亚字形-gap: 1em;
+	--亚字形-gap: var(--gap);
 	--叵字形-left-sidebar-min-width: 150px;
 	--叵字形-left-sidebar-max-width: 20%;
 	--叵字形-right-sidebar-min-width: 150px;
 	--叵字形-right-sidebar-max-width: 20%;
-	--叵字形-gap: 1em;
+	--叵字形-gap: var(--gap);
 	--反叵字形-left-sidebar-min-width: 150px;
 	--反叵字形-left-sidebar-max-width: 20%;
 	--反叵字形-right-sidebar-min-width: 150px;
 	--反叵字形-right-sidebar-max-width: 20%;
-	--反叵字形-gap: 1em;
-	--目字形-gap: 1em;
+	--反叵字形-gap: var(--gap);
+	--目字形-gap: var(--gap);
 }
 
 /*============================flex布局===========================*/
-.flex {display: flex;}
+.flex {display: flex; gap: var(--gap);}
 
 .inline-flex, .flex.inline {display: inline-flex;}
 
@@ -69,7 +70,7 @@
 .flex > .item.no-shrink, .inline-flex > .item.no-shrink {flex-shrink: 0;}
 
 /*===============================grid布局===============================*/
-.grid {display: grid;}
+.grid {display: grid; gap: var(--gap);}
 
 .grid.inline, .inline-grid {display: inline-grid}
 
@@ -208,4 +209,8 @@ main, .main, .body {grid-area: main; flex: 1;}
 	min-height: 0; /* 防止内容溢出 */
 	will-change: flex-basis; /* 性能优化 */
 	transition: flex-basis 0.2s ease;
+}
+
+.no-gap {
+	gap: 0 !important;
 }

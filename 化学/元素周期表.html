@@ -13,14 +13,9 @@
 <link href="../resources/layout.css?v=0821" rel="stylesheet">
 <link href="../resources/biz.css?v=250821" rel="stylesheet">
 <style>
-	body {
-		--目字形-gap: 3px;
-	}
-
 	body > main {
 		--period1-row-offset: 0;
 		padding: 0;
-		gap: 3px;
 	}
 
 	body > main > header { margin: 0;}
@@ -30,7 +25,6 @@
 		flex: 1 0 100%;
 		border-bottom: 1px solid #dcdfe6;
 		padding: 0.5rem 1rem;
-		gap: 1em;
 	}
 
 	.toolbar [title='显示说明'] {
@@ -78,7 +72,6 @@
 	.periodic-table-of-chemical-element {
 		flex: 1;
 		min-width: 0; /* 防止flex项目因内容过宽而溢出 */
-		display: grid;
 		transition: all 0.5s ease-in-out;
 		overflow: auto;
 	}
@@ -314,7 +307,7 @@
 		border-radius: 8px;
 		box-shadow: 0 2px 12px 0 rgba(0, 0, 0, .1);
 		display: flex;
-		gap: 20px;
+		gap: var(--gap);
 		align-items: start;
 		justify-content: start;
 	}
@@ -330,8 +323,7 @@
 		margin: 0;
 		padding: 0;
 		display: grid;
-		grid-template-columns: repeat(2, 1fr);
-		gap: 8px;
+		gap: var(--gap);
 		min-width: 0;
 	}
 
@@ -350,7 +342,7 @@
 	.element.detail.card footer {
 		flex-direction: column;
 		align-items: start;
-		gap: 4px;
+		gap: var(--gap);
 		height: auto;
 		justify-content: start;
 	}
@@ -358,11 +350,11 @@
 	.element.detail.card > footer .tag {
 		display: flex;
 		align-items: center;
-		gap: 8px;
+		gap: var(--gap);
 	}
 </style>
 </head>
-<body class="目字形">
+<body>
 <header>
 	<h1 class="website name" title="工具人（gongju.ren）域名太贵买不起">工具兽 | 化学元素周期表</h1>
 	<nav>
@@ -426,7 +418,7 @@
 		</el-dialog>
 	</header><!-- /工具栏 -->
 
-	<article class="periodic-table-of-chemical-element" :class="tableClasses">
+	<article class="periodic-table-of-chemical-element grid" :class="tableClasses">
 		<section class="周期序号" :class="`周期`+n" v-for="n in 7" :key="n">
 			<p>{{n}}</p>
 		</section>
@@ -435,7 +427,7 @@
 			<p>{{group.name}}</p>
 		</section>-->
 
-		<section :id="element.name" class="one element"
+		<section :id="element.name" class="one element flex vertical"
 						 :class="[...element.tags, `周期`+element.period, getElementPhase(element)]"
 						 :style="[getElementStyle(element), getYearFilterStyle(element)]"
 						 v-for="element in elements" :key="element.id" @click="curElement=element">
@@ -507,7 +499,7 @@
 	<script src="../resources/util.js"></script>
 	<script src="../resources/biz-util.js?v=250801"></script>
 </div>
-<script>
+<script type="module">
 	const elements = [
 		{
 			id: 1, symbol: "H", name: "氢", 原子量: 1.008, 熔点: "-259.1", 沸点: "-252.9", period: 1, col: 1,

@@ -62,19 +62,12 @@
 		max-width: 95%;
 	}
 
-	.equation-center-group {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		gap: 16px;
-		flex-wrap: wrap;
-	}
 
 	.equation-left {
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		gap: 8px;
+		gap: var(--gap);
 		flex-wrap: wrap;
 	}
 
@@ -85,7 +78,7 @@
 		justify-content: flex-start;
 		min-width: 50px;
 		min-height: 90px;
-		gap: 10px;
+		gap: var(--gap);
 	}
 
 	.part-container .sign {
@@ -113,11 +106,6 @@
 		font-weight: 300;
 	}
 
-	.validation-area {
-		display: flex;
-		align-items: center;
-		gap: 16px;
-	}
 
 	.validation-area .icon {
 		font-size: 28px;
@@ -126,7 +114,7 @@
 	.badges {
 		display: flex;
 		flex-direction: column;
-		gap: 8px;
+		gap: var(--gap);
 	}
 </style>
 </head>
@@ -174,7 +162,7 @@
 	<article v-cloak>
 		<section class="音节">
 			<div class="显示">
-				<div class="equation-center-group">
+				<div class="equation-center-group flex near-center multi-line">
 					<div class="equation-left">
 						<div class="part-container">
 							<span class="sign">{{ 声母?.sign }}</span>
@@ -206,7 +194,7 @@
 						<span class="sign pinyin-result" :class="validity">{{result?.sign}}</span>
 					</div>
 
-					<div class="validation-area">
+					<div class="validation-area flex items-near-center-y">
 						<span v-if="validity === 'correct'" class="correct icon">✔️</span>
 						<span v-if="validity === 'incorrect'" class="incorrect icon">❌</span>
 						<span v-if="validity === 'incomplete'" class="half-correct icon">❓</span>

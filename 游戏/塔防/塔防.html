@@ -9,13 +9,12 @@
 	<link href="../../resources/common.css" rel="stylesheet">
 	<link href="../../resources/layout.css" rel="stylesheet">
 	<style>
-		.game-wrapper {
-			margin-top: 20px;
-			gap: 20px;
-			align-items: start;
-			--反叵字形-right-sidebar-max-width: 240px;
-		}
-
+			.game-wrapper {
+				margin-top: 20px;
+				gap: var(--gap);
+				align-items: start;
+				--反叵字形-right-sidebar-max-width: 240px;
+			}
 		.stat-item {
 			font-size: 1.1rem;
 			margin-bottom: 12px;
@@ -149,19 +148,18 @@
 			pointer-events: none; /* So it doesn't interfere with clicks */
 		}
 
-		.placement-popup {
-			position: absolute;
-			display: flex;
-			gap: 8px;
-			background: rgba(255, 255, 255, 0.75);
-			border-radius: 8px;
-			padding: 8px;
-			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-			z-index: 20;
-			transform: translate(-50%, 25px);
-			pointer-events: auto;
-		}
-
+			.placement-popup {
+				position: absolute;
+				display: flex;
+				gap: var(--gap);
+				background: rgba(255, 255, 255, 0.75);
+				border-radius: 8px;
+				padding: 8px;
+				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+				z-index: 20;
+				transform: translate(-50%, 25px);
+				pointer-events: auto;
+			}
 		.popup-tower-type {
 			display: flex;
 			flex-direction: column;
