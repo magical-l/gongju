@@ -178,8 +178,8 @@ const 内置技能集 = {
 		constructor(cfg) {
 			super({
 				name: '象行田',
-				intro: '走一个“田字形”。',
-				tip: '可移动到斜线两格的位置（‘田字’对角线）。',
+				intro: '走一个"田字形"。',
+				tip: '可移动到斜线两格的位置（"田字"对角线）。',
 				...cfg,
 			});
 		}
@@ -196,7 +196,7 @@ const 内置技能集 = {
 		constructor(cfg) {
 			super({
 				name: '塞象眼',
-				intro: '如果“田”字中心有棋子，则无法移动过去。',
+				intro: '如果"田"字中心有棋子，则无法移动过去。',
 				...cfg,
 				watchers: {
 					'已获取可移动位置集': ({unit, availableTargetPositions, blockedTargetPositions}) => {
@@ -238,7 +238,7 @@ const 内置技能集 = {
 		}
 	},
 	'马行日': class extends Move {
-		constructor(cfg) { super({name: '马行日', intro: '走一个“日字形”。', tip: '可以移动到“日字”对角线的位置', ...cfg}); }
+		constructor(cfg) { super({name: '马行日', intro: '走一个"日字形"。', tip: '可以移动到"日字"对角线的位置', ...cfg}); }
 
 		getRawTargetPositions() {
 			const {rowNum, colNum} = this.owner.position;
@@ -815,6 +815,11 @@ class 棋手 extends Player {
 }
 
 class 棋子 extends Unit {
+	constructor(cfg) {
+		super(cfg);
+		// 杀敌信息已移至Unit基类
+	}
+
 	_buildSkill(skillCfg) {//skillCfg是skill的名字
 		const SkillClass = 内置技能集[skillCfg];
 		return super._buildSkill({class: SkillClass});
