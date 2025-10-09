@@ -1,0 +1,121 @@
+@charset "UTF-8";
+
+:root {
+	--board-bg-color: #deb887; /* 棋盘背景色 */
+	--line-color: #333; /* 线条颜色 */
+	--cell-size: 40px; /* 棋盘格尺寸 */
+	--board-size: 15; /* 棋盘路数 */
+}
+
+.chessboard {
+	--board-total-size: calc(var(--cell-size) * var(--board-size));
+	width: var(--board-total-size);
+	height: var(--board-total-size);
+	display: grid;
+	grid-template-columns: repeat(var(--board-size), 1fr);
+	grid-template-rows: repeat(var(--board-size), 1fr);
+	background-color: var(--board-bg-color);
+	border: 1px solid var(--line-color); /* 整个棋盘的外边框 */
+	box-sizing: content-box;
+	position: relative; /* 仍然需要相对定位，因为棋子可能需要一些绝对定位的子元素，如 last-move-marker */
+}
+
+.cell {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	border-right: 1px solid var(--line-color);
+	border-bottom: 1px solid var(--line-color);
+}
+
+/* 移除最右边和最下边的边框 */
+.cell:nth-child(var(--board-size)n) {
+	border-right: none;
+}
+.cell:nth-last-child(-n + var(--board-size)) {
+	border-bottom: none;
+}
+
+/* 棋子样式 */
+.unit.display {
+	position: relative; /* Added to establish positioning context for children */
+	width: 90%;
+	height: 90%;
+	border-radius: 50%;
+	cursor: pointer;
+	box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+	/* 棋子现在是 cell 的子元素，不需要绝对定位 */
+}
+
+.unit.display.black {
+	background-color: #333;
+}
+
+.unit.display.white {
+	background-color: #f0f0f0;
+	border: 1px solid #ccc;
+}
+
+/* 预览棋子，用于悬停提示 */
+.cell.hoverable:hover::after {
+	content: '';
+	width: 90%;
+	height: 90%;
+	border-radius: 50%;
+	background-color: var(--line-color);
+	opacity: 0.3;
+	z-index: 5;
+	cursor: pointer;
+}
+
+/* 游戏结束遮罩 */
+.game.overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background-color: rgba(255, 255, 255, 0.5);
+	z-index: 100;
+}
+
+.game.over.text {
+	font-size: 50px;
+	font-weight: bold;
+	color: #d43d3d;
+	text-shadow: 0 0 10px white;
+}
+
+/* 最后一步棋的标记 */
+.last-move-marker {
+    position: absolute;
+    width: 10px; /* Fixed small size */
+    height: 10px; /* Fixed small size */
+    background-color: rgba(255, 0, 0, 0.7);
+    border-radius: 50%;
+    z-index: 15;
+    top: -5px;   /* Slightly outside top edge */
+    right: -5px; /* Slightly outside right edge */
+    /* Removed left and transform for top-right positioning */
+}
+
+/* 棋子上的数字 */
+.move-number {
+    position: absolute;
+    font-size: 0.8em; /* Adjust as needed */
+    font-weight: bold;
+    color: white; /* Contrast with piece color */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+    z-index: 10; /* Above piece, below marker */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Center the number */
+    pointer-events: none; /* Don't interfere with click events */
+}
+
+.unit.display.white .move-number {
+    color: black; /* Black number on white pieces */
+}
