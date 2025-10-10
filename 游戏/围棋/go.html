@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title itemprop="name">围棋 | 工具兽 - 在线玩经典的棋类游戏</title>
+  <meta name="description" content="在线玩经典的围棋游戏。支持9/13/19路棋盘、贴目配置。">
+  <meta name="keywords" content="围棋, 围棋在线, 围棋游戏, Go, 围棋19路, 围棋13路, 围棋9路">
+
+  <link href="../../lib/element-plus/2.10.7/index.css" rel="stylesheet">
+  <link href="../../resources/el-plus.css" rel="stylesheet">
+  <link href="../../resources/common.css?v=250821" rel="stylesheet">
+  <link href="../../resources/layout.css?v=0821" rel="stylesheet">
+  <link href="../../resources/biz.css?v=250821" rel="stylesheet">
+  <link href="../../resources/花活.css?v=250821" rel="stylesheet">
+  <link href="go.css" rel="stylesheet">
+</head>
+<body class="grid 反叵字形">
+<header>
+  <h1 class="website name">工具兽</h1>
+  <nav>
+    <a href="../中国象棋/中国象棋.html">中国象棋</a>
+    <a href="../五子棋/gobang.html">五子棋</a>
+    <a href="go.html" class="active">围棋</a>
+    <a href="../俄罗斯方块.html">俄罗斯方块</a>
+    <a href="../贪吃蛇.html">贪吃蛇</a>
+    <a href="../点灯.html">点灯</a>
+  </nav>
+</header>
+<main>
+  <header>
+    <h2 class="game name">围棋</h2>
+  </header>
+
+  <article class="game wrapper , flex vertical items-like-册" v-cloak :class="{ 'is-replaying': isReplaying }">
+    <section class="toolbar">
+      <div class="config-group">
+        <el-select v-model="pendingBoardSize" class="config-item" style="width: 84px" @change="onBoardSizeChange">
+          <el-option :value="19" label="19路"></el-option>
+          <el-option :value="13" label="13路"></el-option>
+          <el-option :value="9" label="9路"></el-option>
+        </el-select>
+        <el-radio-group v-model="pendingFirst" size="small" class="config-item">
+          <el-radio-button label="黑方">黑先</el-radio-button>
+          <el-radio-button label="白方">白先</el-radio-button>
+        </el-radio-group>
+        <el-button class="config-item" :type="isGaming ? 'danger' : 'primary'" @click="isGaming ? restartGame() : startGame()">
+          {{ isGaming ? '重开' : '开始' }}
+        </el-button>
+      </div>
+      <el-input-number v-model="komi" :step="0.5" :min="0" controls-position="right" style="width: 140px">
+        <template #prefix><span>贴目</span></template>
+      </el-input-number>
+      <span v-if="isGaming && curPlayer" class="game-info">当前玩家: {{ curPlayer.name }}</span>
+      <el-checkbox v-model="showCoords">显示坐标</el-checkbox>
+
+
+        <el-button-group>
+          <el-button @click="doPass" :disabled="isGameOver">停手</el-button>
+          <el-button type="warning" @click="doResign" :disabled="isGameOver">认输</el-button>
+        </el-button-group>
+        <el-button-group>
+					<el-button @click="doUndo" :disabled="!canUndo">悔棋</el-button>
+					<el-button @click="doRedo" :disabled="!canRedo">撤销悔棋</el-button>
+        </el-button-group>
+
+      
+    </section>
+
+    <div class="board-wrapper">
+      <!-- 顶部列坐标 -->
+      <div v-if="showCoords" class="top-labels" :style="topGridStyle">
+        <div v-for="(c, i) in colLabels" :key="'col-'+i">{{ c }}</div>
+      </div>
+      <!-- 左侧行坐标 -->
+      <div v-if="showCoords" class="left-labels" :style="leftGridStyle">
+        <div v-for="(r, i) in rowLabels" :key="'row-'+i">{{ r }}</div>
+      </div>
+
+      <!-- 棋盘 -->
+      <section class="one chessboard" :style="gridStyle">
+        <div v-if="!isGaming" class="board-overlay">
+          <el-button type="primary" @click="startGame">开始</el-button>
+        </div>
+        <div v-if="!isGaming" v-for="i in pendingBoardSize * pendingBoardSize" :key="'cell-'+i"
+             class="cell"
+             :class="edgeClass({ rowNum: Math.ceil(i / pendingBoardSize), colNum: ((i - 1) % pendingBoardSize) + 1 })">
+        </div>
+        <div v-if="isGaming" v-for="wrapper in flatPositions" :key="wrapper.position.toString()"
+             class="cell"
+             :class="[{ hoverable: isGaming && !isGameOver && isEmpty(wrapper.position) }, edgeClass(wrapper.position)]"
+             @mouseenter="setPreview(wrapper.position)"
+             @mouseleave="clearPreview()"
+             @click="handleCellClick(wrapper.position)">
+          <div v-if="starSet.has(wrapper.position.toString())" class="star"></div>
+
+          <!-- 棋子 -->
+          <div v-if="wrapper.unit" class="unit piece display" :class="getUnitColor(wrapper.unit)">
+
+            <span class="move-number">{{ wrapper.unit.moveNumber }}</span>
+          </div>
+
+          <!-- 影子棋预览 -->
+          <div v-else-if="previewPos && previewPos.isEqualTo(wrapper.position)"
+               class="preview-stone" :class="previewClass"></div>
+        </div>
+      </section>
+    </div>
+
+    <el-dialog v-model="isGameOver" title="游戏结束" width="360px" align-center>
+      <div style="text-align: center; font-size: 20px; margin-bottom: 8px;">
+        <span>{{ winnerName }} 获胜!</span>
+      </div>
+      <div v-if="resultDetail" style="font-size: 14px; line-height: 1.6;">
+        <div>黑方：{{ resultDetail.black.toFixed(1) }}（子数 {{ resultDetail.blackStones }} + 地 {{ resultDetail.blackTerritory }}）</div>
+        <div>白方：{{ resultDetail.white.toFixed(1) }}（子数 {{ resultDetail.whiteStones }} + 地 {{ resultDetail.whiteTerritory }} + 贴目 {{ resultDetail.komi }}）</div>
+      </div>
+      <template #footer>
+        <el-button type="primary" @click="restartGame">再来一局</el-button>
+      </template>
+    </el-dialog>
+  </article>
+</main>
+
+<aside class="right-sidebar">
+  <article class="website info">
+    <section class="patronage area">
+      <img class="qr-code" src="../../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+      <p class="slogan">赞助一下</p>
+    </section>
+    <section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
+    <section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p></section>
+  </article>
+</aside>
+
+<div class="js container">
+  <script src="../../lib/vue/3.5.18/vue.global.js"></script>
+  <script src="../../lib/element-plus/2.10.7/index.full.js"></script>
+  <script src="../../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
+</div>
+
+<script type="module">
+  import {Go} from './go.esm.js';
+
+  const {createApp} = Vue;
+
+  const app = createApp({
+    data() {
+      return {
+        gaming: null,
+        positions: [],
+        flatPositions: [],
+        starSet: new Set(),
+        curPlayer: null,
+        isGameOver: false,
+        winnerName: '',
+        lastMove: null,
+
+        boardSize: 19,
+        komi: 7.5,
+        first: '黑方',
+        pendingBoardSize: 19,
+        pendingFirst: '黑方',
+
+        previewPos: null,
+        resultDetail: null,
+        showCoords: true,
+        moves: [],
+        redoStack: [],
+        isReplaying: false,
+        cellPx: 30,
+      };
+    },
+    computed: {
+      isGaming() { return !!this.gaming; },
+      canUndo() { return this.moves.length > 0; },
+      canRedo() { return this.redoStack.length > 0; },
+      gridStyle() {
+        const n = this.isGaming ? this.boardSize : this.pendingBoardSize;
+        const size = this.cellPx;
+        return {
+          '--cell': `${size}px`,
+          gridTemplateColumns: `repeat(${n}, ${size}px)`,
+          gridTemplateRows: `repeat(${n}, ${size}px)`,
+        };
+      },
+      topGridStyle() {
+        const n = this.isGaming ? this.boardSize : this.pendingBoardSize;
+        const size = this.cellPx;
+        return { gridTemplateColumns: `repeat(${n}, ${size}px)` };
+      },
+      leftGridStyle() {
+        const n = this.isGaming ? this.boardSize : this.pendingBoardSize;
+        const size = this.cellPx;
+        return { gridTemplateRows: `repeat(${n}, ${size}px)` };
+      },
+      previewClass() {
+        if (!this.curPlayer) return '';
+        return this.curPlayer.team.id === '黑方' ? 'preview-black' : 'preview-white';
+      },
+      colLabels() {
+        const n = this.isGaming ? this.boardSize : this.pendingBoardSize;
+        const labels = [];
+        let codeA = 'A'.charCodeAt(0);
+        let codeI = 'I'.charCodeAt(0);
+        for (let i = 0; i < n; i++) {
+          let code = codeA + i;
+          if (code >= codeI) code++; // 跳过 I
+          labels.push(String.fromCharCode(code));
+        }
+        return labels;
+      },
+      rowLabels() {
+        const n = this.isGaming ? this.boardSize : this.pendingBoardSize;
+        return Array.from({length: n}, (_, i) => n - i); // 顶部到下方：19..1
+      },
+    },
+    methods: {
+      startGame() {
+        // 应用待选配置（首次开始或手动点击“开始/重开”时）
+        this.boardSize = this.pendingBoardSize;
+        this.first = this.pendingFirst;
+        if (!this.isReplaying) {
+          this.moves = [];
+          this.redoStack = [];
+        }
+        const game = new Go({ size: this.boardSize, komi: Number(this.komi), first: this.first });
+        this.gaming = game.newGaming();
+
+        this.isGameOver = false;
+        this.winnerName = '';
+        this.lastMove = null;
+        this.previewPos = null;
+
+        this.positions = this.gaming.battlefield.positions;
+        this.flatPositions = this.positions.flat().map(pos => ({ position: pos, unit: null }));
+
+        // 星位集合
+        const stars = this.gaming.battlefield.starPoints?.() ?? [];
+        this.starSet = new Set(stars);
+
+        this.curPlayer = this.gaming.situation.curPlayer;
+        this.gaming.bulletin.watch('playerTurn start', ({player}) => this.curPlayer = player);
+
+        this.gaming.bulletin.watch('buildUnit end', ({unit}) => {
+          this.lastMove = {unit, position: unit.position};
+          this.syncBoardState();
+          if (!this.isReplaying) {
+            this.moves.push({ type: 'place', r: unit.position.rowNum, c: unit.position.colNum });
+            this.redoStack = [];
+          }
+        });
+        // 提子后的界面同步
+        this.gaming.bulletin.watch('battlefield destroyUnit end', () => {
+          this.syncBoardState();
+        });
+
+        this.gaming.bulletin.watch('game over', ({winner, scores}) => {
+          this.isGameOver = true;
+          this.winnerName = winner?.name || '';
+          if (scores) {
+            this.resultDetail = {
+              black: scores.black,
+              white: scores.white,
+              komi: scores.komi,
+              blackStones: scores.blackStones,
+              whiteStones: scores.whiteStones,
+              blackTerritory: scores.blackTerritory,
+              whiteTerritory: scores.whiteTerritory,
+            };
+          } else {
+            this.resultDetail = null;
+          }
+        });
+
+        this.syncBoardState();
+      },
+      restartGame() {
+        // 应用待选配置并重开
+        this.boardSize = this.pendingBoardSize;
+        this.first = this.pendingFirst;
+        this.moves = [];
+        this.redoStack = [];
+        this.startGame();
+      },
+      updateCellPx() {
+        const w = window.innerWidth || document.documentElement.clientWidth || 1024;
+        const n = this.isGaming ? this.boardSize : this.pendingBoardSize;
+        let base = w <= 420 ? 22 : (w <= 768 ? 26 : 30);
+        if (n === 19 && w <= 420) base = 20;
+        this.cellPx = base;
+      },
+      onBoardSizeChange() {
+        // 切换路数：仅更新棋格尺寸，不自动重开
+        this.updateCellPx();
+      },
+      syncBoardState() {
+        if (!this.gaming) return;
+        this.flatPositions.forEach(wrapper => {
+          const unitsAtPos = this.gaming.battlefield.getUnitsAt(wrapper.position);
+          wrapper.unit = unitsAtPos.length > 0 ? unitsAtPos[0] : null;
+        });
+      },
+      handleCellClick(position) {
+        if (this.isGaming && !this.isGameOver && this.isEmpty(position)) {
+          this.gaming.bulletin.notice('ui input', position);
+          this.previewPos = null;
+        }
+      },
+      isEmpty(position) {
+        if (!this.gaming) return false;
+        return this.gaming.battlefield.getUnitsAt(position).length === 0;
+      },
+      edgeClass(p) {
+        const n = this.boardSize;
+        return {
+          'edge-top': p.rowNum === 1,
+          'edge-bottom': p.rowNum === n,
+          'edge-left': p.colNum === 1,
+          'edge-right': p.colNum === n,
+        };
+      },
+      getUnitColor(unit) {
+        return unit.owner.team.id === '黑方' ? 'player-black' : 'player-white';
+      },
+      setPreview(position) {
+        if (!this.isGaming || this.isGameOver) return;
+        if (!this.isEmpty(position)) { this.previewPos = null; return; }
+        this.previewPos = position;
+      },
+      clearPreview() {
+        this.previewPos = null;
+      },
+      doPass() {
+        if (!this.isGaming || this.isGameOver) return;
+        if (!this.isReplaying) {
+          this.moves.push({ type: 'pass' });
+          this.redoStack = [];
+        }
+        this.gaming.bulletin.notice('ui input', { action: 'PASS' });
+      },
+      doResign() {
+        if (!this.isGaming || this.isGameOver) return;
+        if (!this.isReplaying) {
+          this.moves.push({ type: 'resign' });
+          this.redoStack = [];
+        }
+        this.gaming.bulletin.notice('ui input', { action: 'RESIGN' });
+      },
+
+      // —— 撤销/重做 —— //
+      async doUndo() {
+        if (this.moves.length === 0) return;
+        const last = this.moves.pop();
+        this.redoStack.push(last);
+        await this.rebuildFromMoves(this.moves);
+        // 若此前因双Pass/认输已结束，撤销后恢复进行中状态
+        this.isGameOver = false;
+        this.winnerName = '';
+        this.resultDetail = null;
+      },
+      async doRedo() {
+        if (this.redoStack.length === 0) return;
+        const step = this.redoStack.pop();
+        this.moves.push(step);
+        await this.rebuildFromMoves(this.moves);
+      },
+      async rebuildFromMoves(moves) {
+        // 重建对局并按序回放（加强版节奏控制）
+        this.isReplaying = true;
+        // 初始化新对局以回放历史（使用当前配置：路数/贴目/先手）
+        this.startGame();
+        // 等待一帧：确保 DOM/positions/监听器就绪
+        if (Vue && Vue.nextTick) { await Vue.nextTick(); } else { await Promise.resolve(); }
+
+        const sleep = (ms = 0) => new Promise(r => setTimeout(r, ms));
+
+        for (const mv of moves) {
+          if (mv.type === 'place') {
+            const pos = this.findPos(mv.r, mv.c);
+            if (pos) this.gaming.bulletin.notice('ui input', pos);
+          } else if (mv.type === 'pass') {
+            this.gaming.bulletin.notice('ui input', { action: 'PASS' });
+          } else if (mv.type === 'resign') {
+            this.gaming.bulletin.notice('ui input', { action: 'RESIGN' });
+          }
+          // 让引擎与UI完全处理当前步，再继续下一步
+          await sleep(0);
+        }
+        this.isReplaying = false;
+        this.syncBoardState();
+      },
+      findPos(r, c) {
+        if (!this.positions || this.positions.length === 0) return null;
+        const rr = Math.max(1, Math.min(this.boardSize, r));
+        const cc = Math.max(1, Math.min(this.boardSize, c));
+        return this.positions[rr - 1]?.[cc - 1] || null;
+      },
+    },
+    mounted() {
+      this.updateCellPx();
+      window.addEventListener('resize', this.updateCellPx, { passive: true });
+      // 初始不自动开局：显示遮罩与“开始”按钮
+      // this.startGame();
+      // 确保移除 v-cloak 遮罩，避免工具栏被隐藏
+      if (this.$el && this.$el.hasAttribute && this.$el.hasAttribute('v-cloak')) {
+        this.$el.removeAttribute('v-cloak');
+      }
+    },
+    unmounted() {
+      window.removeEventListener('resize', this.updateCellPx);
+    },
+  });
+
+  app.use(ElementPlus);
+  for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+    app.component(key, component);
+  }
+  window.app = app.mount('main>article');
+</script>
+</body>
+</html>

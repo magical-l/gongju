@@ -1,0 +1,234 @@
+/* 基础布局 */
+:root { --cell: 30px; } /* 默认单元格尺寸，JS 会在 go.html 中覆盖 */
+main { padding: 1rem; }
+.game.wrapper { gap: 12px; }
+.toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.config-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid rgba(110,79,46,.35);
+  border-radius: 6px;
+  background: rgba(205,166,110,.12);
+}
+.inline-prepend {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 6px;
+  height: 28px;
+  line-height: 28px;
+  font-size: 12px;
+  color: #5a452b;
+  border: 1px solid rgba(110,79,46,.25);
+  border-radius: 4px;
+  background: rgba(255,255,255,.6);
+  margin-right: 4px;
+}
+.board-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, .35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+}
+.game-info { margin-left: 8px; }
+
+/* 棋盘容器，用于摆放坐标标注 */
+.board-wrapper {
+  position: relative;
+  width: max-content;
+  margin: 0 auto;
+}
+
+/* 顶部列坐标（A..，跳过 I） */
+.top-labels {
+  position: absolute;
+  top: calc(var(--cell) * -0.6);
+  left: 0;
+  display: grid;
+  gap: 0;
+  width: 100%;
+  font-size: 12px;
+  color: #5a452b;
+  user-select: none;
+  text-align: center;
+}
+
+/* 左侧行坐标（19..1） */
+.left-labels {
+  position: absolute;
+  top: 0;
+  left: calc(var(--cell) * -0.6);
+  display: grid;
+  gap: 0;
+  height: 100%;
+  font-size: 12px;
+  color: #5a452b;
+  user-select: none;
+  align-items: center;
+  text-align: right;
+}
+
+/* 棋盘区域 */
+.one.chessboard {
+  display: grid;
+  justify-content: center;
+  background: #cda66e;            /* 略深木纹色 */
+  border: 8px solid #6e4f2e;       /* 更深边框 */
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.18) inset;
+  margin: 0 auto;
+}
+
+/* 单元格：交叉点所在的可点击面积（含线） */
+.cell {
+  position: relative;
+  width: var(--cell);
+  height: var(--cell);
+}
+
+/* 画线：使用::before/::after生成网格线条（交叉对齐） */
+/* 网格线：每格仅绘制右半段横线与下半段竖线，自动形成四角L形 */
+.cell::before, .cell::after {
+  content: '';
+  position: absolute;
+  background: #6e4f2e;  /* 更深网格线 */
+  opacity: .9;
+}
+
+/* 横线：默认从中心到右边界；左边缘补到外侧（0→50%） */
+.cell::before {
+  left: 50%;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  transform: translateY(-.5px);
+  z-index: 1;
+}
+
+
+/* 竖线：默认从中心到底边界；上边缘补到外侧（0→50%） */
+.cell::after {
+  top: 50%;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-.5px);
+  z-index: 1;
+}
+
+.cell::before { /* 横线 */
+  left: 0; right: 0; top: 50%;
+  height: 1px; transform: translateY(-.5px);
+}
+.cell::after { /* 竖线 */
+  top: 0; bottom: 0; left: 50%;
+  width: 1px; transform: translateX(-.5px);
+}
+
+/* 棋盘边界：首/末行列仅保留“向内半段”以形成L角 */
+.cell.edge-top::after { top: 50%; bottom: 0; }
+.cell.edge-bottom::after { top: 0; bottom: 50%; }
+.cell.edge-left::before { left: 50%; right: 0; }
+.cell.edge-right::before { left: 0; right: 50%; }
+
+/* 星位点（更显眼） */
+.cell .star {
+  position: absolute;
+  width: calc(var(--cell) * 0.266); height: calc(var(--cell) * 0.266); border-radius: 50%;
+  background: #2f2f2f;
+  left: 50%; top: 50%; transform: translate(-50%, -50%);
+  box-shadow: 0 0 2px rgba(0,0,0,.35);
+}
+
+/* 棋子显示（占格约78%：30*0.78≈23.4→24px） */
+.unit.piece.display {
+  position: absolute;
+  width: calc(var(--cell) * 0.78); height: calc(var(--cell) * 0.78); border-radius: 50%;
+  left: 50%; top: 50%; transform: translate(-50%, -50%);
+  box-shadow: 0 2px 3px rgba(0,0,0,.22);
+  animation: dropIn .12s ease-out;
+  z-index: 2; /* 高于网格线 */
+}
+.unit.piece.display.player-black { background: radial-gradient(circle at 30% 30%, #444, #111); }
+.unit.piece.display.player-white { background: radial-gradient(circle at 30% 30%, #fff, #dcdcdc); }
+
+/* 棋子落子顺序编号 */
+.unit.piece.display .move-number {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: calc(var(--cell) * 0.42);
+  line-height: 1;
+  font-weight: 700;
+  pointer-events: none;
+  user-select: none;
+  text-shadow: 0 1px 1px rgba(0,0,0,.25);
+}
+.unit.piece.display.player-black .move-number {
+  color: #f5f5f5;
+  text-shadow: 0 1px 1px rgba(0,0,0,.45);
+}
+.unit.piece.display.player-white .move-number {
+  color: #2b2b2b;
+  text-shadow: 0 1px 1px rgba(255,255,255,.6), 0 0 2px rgba(0,0,0,.25);
+}
+
+/* 最近一步高亮：发光环 */
+.piece.last-move-marker {
+  position: absolute;
+  width: calc(var(--cell) * 0.33); height: calc(var(--cell) * 0.33); border-radius: 50%;
+  border: 2px solid rgba(42,133,255,.95);
+  left: 50%; top: 50%; transform: translate(-50%, -50%);
+  pointer-events: none;
+  box-shadow: 0 0 8px rgba(42,133,255,.75);
+}
+
+/* 悬停预览（影子棋更清晰） */
+.preview-stone {
+  position: absolute;
+  width: calc(var(--cell) * 0.78); height: calc(var(--cell) * 0.78); border-radius: 50%;
+  left: 50%; top: 50%; transform: translate(-50%, -50%);
+  opacity: .35; /* 0.45 → 0.35 */
+  filter: saturate(85%);
+}
+.preview-black { background: radial-gradient(circle at 30% 30%, #555, #222); }
+.preview-white { background: radial-gradient(circle at 30% 30%, #fff, #e9e9e9); }
+
+/* 悬停边框辅助 */
+.cell.hoverable:hover { outline: 2px dashed rgba(42,133,255,.30); outline-offset: -2px; }
+
+/* 触屏设备不显示 hover 虚线 */
+@media (hover: none) {
+  .cell.hoverable:hover { outline: none; }
+}
+
+/* 新落子动画 */
+@keyframes dropIn {
+  from { transform: translate(-50%, -50%) scale(0.6); opacity: .4; }
+  to   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+/* 回放/悔棋期间关闭动画与hover描边，避免整盘“闪” */
+.is-replaying .unit.piece.display {
+  animation: none !important;
+  transition: none !important;
+  box-shadow: none !important;
+}
+.is-replaying .unit.piece.display .move-number {
+  display: none !important;
+}
+.is-replaying .preview-stone {
+  display: none !important;
+}
+.is-replaying .cell.hoverable:hover {
+  outline: none !important;
+}
+
+/* 遵循减少动画偏好 */
+@media (prefers-reduced-motion: reduce) {
+  .unit.piece.display { animation: none !important; }
+}
