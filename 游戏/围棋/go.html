@@ -69,7 +69,7 @@
         <div style="min-width: 160px; max-width: 320px; display: inline-flex; align-items: center; gap: 8px; margin-left: 8px;">
           <span style="font-size:12px;color:#5a452b;">回放</span>
           <el-slider
-            :model-value="historyIndex"
+            v-model="historySeek"
             :min="0"
             :max="historyTotal"
             :step="1"
@@ -188,6 +188,7 @@
         historyVersion: 0,
         historyIndex: 0,
         historyTotal: 0,
+        historySeek: 0,
         showMoveNumbers: true,
       };
     },
@@ -300,12 +301,15 @@
           this.historyVersion++;
           this.historyIndex = (this.historyIndex || 0) + 1;
           this.historyTotal = this.historyIndex;
+          this.historySeek = this.historyIndex;
         });
         this.gaming.bulletin.watch('history-navigation-end', () => {
           // 历史导航（悔棋/撤销悔棋）结束后，以引擎状态为准刷新
           this.curPlayer = this.gaming?.situation?.curPlayer || this.curPlayer;
           this.syncBoardState();
           this.historyVersion++;
+          // 同步拖拽显示值
+          this.historySeek = this.historyIndex;
         });
 
         this.syncBoardState();
@@ -387,6 +391,7 @@
       doUndo() {
         if (!this.gaming || !this.gaming.situation || typeof this.gaming.situation.rewind !== 'function') return;
         if (this.historyIndex > 0) this.historyIndex -= 1;
+        this.historySeek = this.historyIndex;
         this.gaming.situation.rewind(1);
         // 撤一步后如果此前已结束，则恢复进行中显示
         this.isGameOver = false;
@@ -397,23 +402,24 @@
       doRedo() {
         if (!this.gaming || !this.gaming.situation || typeof this.gaming.situation.fastForward !== 'function') return;
         if (this.historyIndex < this.historyTotal) this.historyIndex += 1;
+        this.historySeek = this.historyIndex;
         this.gaming.situation.fastForward({ steps: 1 });
         this.syncBoardState();
       },
-      onSeekHistory(val) {
+      onSeekHistory() {
         if (!this.gaming || !this.gaming.situation) return;
         const cur = this.historyIndex || 0;
         const max = this.historyTotal || 0;
-        const target = Math.max(0, Math.min(max, Number(val) || 0));
+        const target = Math.max(0, Math.min(max, Number(this.historySeek) || 0));
         const diff = target - cur;
-        if (diff === 0) return;
+        if (diff === 0) { this.historySeek = cur; return; }
         if (diff > 0 && typeof this.gaming.situation.fastForward === 'function') {
           this.gaming.situation.fastForward({ steps: diff });
-          this.historyIndex = target;
         } else if (diff < 0 && typeof this.gaming.situation.rewind === 'function') {
           this.gaming.situation.rewind(-diff);
-          this.historyIndex = target;
         }
+        this.historyIndex = target;
+        this.historySeek = target;
         this.syncBoardState();
       },
       findPos(r, c) {
