@@ -207,7 +207,7 @@ class GoGame extends BattlefieldBasedGaming {
         const nbUnit = this.unitAt(nb);
         if (!nbUnit) {
           liberties.add(key(nb));
-        } else if (nbUnit.owner === startOwner) {
+        } else if (nbUnit.owner?.team?.id === startOwner?.team?.id) {
           const k = key(nb);
           if (!group.has(k)) {
             group.add(k);
@@ -424,7 +424,7 @@ class PlaceStoneCommand {
 
     for (const nb of neighbors) {
       const nbUnit = gaming.unitAt(nb);
-      if (!nbUnit || nbUnit.owner === this.player) continue;
+      if (!nbUnit || nbUnit.owner?.team?.id === this.player.team?.id) continue;
       const gk = groupKey(nb);
       if (visitedEnemyGroups.has(gk)) continue;
       visitedEnemyGroups.add(gk);
