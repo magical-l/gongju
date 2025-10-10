@@ -53,6 +53,7 @@
       </el-input-number>
       <span v-if="isGaming && curPlayer" class="game-info">当前玩家: {{ curPlayer.name }}</span>
       <el-checkbox v-model="showCoords">显示坐标</el-checkbox>
+      <el-checkbox v-model="showMoveNumbers">显示手数</el-checkbox>
 
 
         <el-button-group>
@@ -63,6 +64,21 @@
 					<el-button @click="doUndo" :disabled="!canUndo">悔棋</el-button>
 					<el-button @click="doRedo" :disabled="!canRedo">撤销悔棋</el-button>
         </el-button-group>
+
+        <!-- 回放进度条（0..historyTotal，当前位置为 historyIndex） -->
+        <div style="min-width: 160px; max-width: 320px; display: inline-flex; align-items: center; gap: 8px; margin-left: 8px;">
+          <span style="font-size:12px;color:#5a452b;">回放</span>
+          <el-slider
+            :model-value="historyIndex"
+            :min="0"
+            :max="historyTotal"
+            :step="1"
+            :show-tooltip="false"
+            style="width: 220px;"
+            @change="onSeekHistory"
+          ></el-slider>
+          <span style="font-size:12px;color:#5a452b;">{{historyIndex}}/{{historyTotal}}</span>
+        </div>
 
       
     </section>
@@ -80,7 +96,7 @@
       <!-- 棋盘 -->
       <section class="one chessboard" :style="gridStyle">
         <div v-if="!isGaming" class="board-overlay">
-          <el-button type="primary" @click="startGame">开始</el-button>
+          <el-button type="primary" @click="startGame" style="font-size: 28px; padding: 18px 28px; border-radius: 10px; min-width: 140px; min-height: 56px;">开始</el-button>
         </div>
         <div v-if="!isGaming" v-for="i in pendingBoardSize * pendingBoardSize" :key="'cell-'+i"
              class="cell"
@@ -97,7 +113,7 @@
           <!-- 棋子 -->
           <div v-if="wrapper.unit" class="unit piece display" :class="getUnitColor(wrapper.unit)">
 
-            <span class="move-number">{{ wrapper.unit.moveNumber }}</span>
+            <span v-if="showMoveNumbers" class="move-number">{{ wrapper.unit.moveNumber }}</span>
           </div>
 
           <!-- 影子棋预览 -->
@@ -170,6 +186,9 @@
         isReplaying: false,
         cellPx: 30,
         historyVersion: 0,
+        historyIndex: 0,
+        historyTotal: 0,
+        showMoveNumbers: true,
       };
     },
     computed: {
@@ -276,8 +295,12 @@
             this.resultDetail = null;
           }
         });
-        // 历史变更时推进响应，驱动 canUndo/canRedo 重算
-        this.gaming.bulletin.watch('playerTurn end', () => { this.historyVersion++; });
+        // 历史变更时推进响应：canUndo/canRedo 重算，且推进历史索引并截断未来
+        this.gaming.bulletin.watch('playerTurn end', () => {
+          this.historyVersion++;
+          this.historyIndex = (this.historyIndex || 0) + 1;
+          this.historyTotal = this.historyIndex;
+        });
         this.gaming.bulletin.watch('history-navigation-end', () => {
           // 历史导航（悔棋/撤销悔棋）结束后，以引擎状态为准刷新
           this.curPlayer = this.gaming?.situation?.curPlayer || this.curPlayer;
@@ -363,6 +386,7 @@
       // —— 撤销/重做（使用框架rewind） —— //
       doUndo() {
         if (!this.gaming || !this.gaming.situation || typeof this.gaming.situation.rewind !== 'function') return;
+        if (this.historyIndex > 0) this.historyIndex -= 1;
         this.gaming.situation.rewind(1);
         // 撤一步后如果此前已结束，则恢复进行中显示
         this.isGameOver = false;
@@ -372,7 +396,24 @@
       },
       doRedo() {
         if (!this.gaming || !this.gaming.situation || typeof this.gaming.situation.fastForward !== 'function') return;
+        if (this.historyIndex < this.historyTotal) this.historyIndex += 1;
         this.gaming.situation.fastForward({ steps: 1 });
+        this.syncBoardState();
+      },
+      onSeekHistory(val) {
+        if (!this.gaming || !this.gaming.situation) return;
+        const cur = this.historyIndex || 0;
+        const max = this.historyTotal || 0;
+        const target = Math.max(0, Math.min(max, Number(val) || 0));
+        const diff = target - cur;
+        if (diff === 0) return;
+        if (diff > 0 && typeof this.gaming.situation.fastForward === 'function') {
+          this.gaming.situation.fastForward({ steps: diff });
+          this.historyIndex = target;
+        } else if (diff < 0 && typeof this.gaming.situation.rewind === 'function') {
+          this.gaming.situation.rewind(-diff);
+          this.historyIndex = target;
+        }
         this.syncBoardState();
       },
       findPos(r, c) {

@@ -34,6 +34,27 @@ main { padding: 1rem; }
   justify-content: center;
   z-index: 3;
 }
+/* 放大遮罩层的“开始/重开”按钮 */
+.board-overlay .el-button {
+  font-size: 20px;
+  padding: 16px 32px;
+  border-radius: 12px; /* 不用超圆，改为中圆角 */
+  box-shadow: 0 6px 16px rgba(0,0,0,.25);
+}
+.board-overlay .el-button--primary {
+  filter: saturate(1.05);
+}
+.board-overlay .el-button:focus-visible {
+  outline: 3px solid rgba(42,133,255,.45);
+  outline-offset: 2px;
+}
+@media (max-width: 480px) {
+  .board-overlay .el-button {
+    font-size: 18px;
+    padding: 18px 34px; /* 移动端再大一点，易点按 */
+    border-radius: 12px;
+  }
+}
 .game-info { margin-left: 8px; }
 
 /* 棋盘容器，用于摆放坐标标注 */
