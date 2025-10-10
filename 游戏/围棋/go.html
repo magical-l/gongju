@@ -65,8 +65,13 @@
 					<el-button @click="doRedo" :disabled="!canRedo">撤销悔棋</el-button>
         </el-button-group>
 
+        <el-button-group style="margin-left: 8px;">
+          <el-button @click="exportSGF" :disabled="!isGaming">导出SGF</el-button>
+          <el-button @click="openImportSGF">导入SGF</el-button>
+        </el-button-group>
+
         <!-- 回放进度条（0..historyTotal，当前位置为 historyIndex） -->
-        <div style="min-width: 160px; max-width: 320px; display: inline-flex; align-items: center; gap: 8px; margin-left: 8px;">
+        <div style="min-width: 160px; max-width: 420px; display: inline-flex; align-items: center; gap: 8px; margin-left: 8px;">
           <span style="font-size:12px;color:#5a452b;">回放</span>
           <el-slider
             v-model="historySeek"
@@ -74,7 +79,9 @@
             :max="historyTotal"
             :step="1"
             :show-tooltip="false"
-            style="width: 220px;"
+            :show-input="true"
+            :show-input-controls="true"
+            style="width: 260px;"
             @change="onSeekHistory"
           ></el-slider>
           <span style="font-size:12px;color:#5a452b;">{{historyIndex}}/{{historyTotal}}</span>
@@ -138,6 +145,22 @@
   </article>
 </main>
 
+<el-dialog v-model="showImportDialog" title="导入 / 导出 SGF" width="560px" align-center>
+  <div style="margin-bottom: 8px; font-size: 13px; color: #5a452b;">
+    可直接粘贴SGF进行导入；导出时会自动生成文本并复制到剪贴板
+  </div>
+  <el-input
+    v-model="sgfText"
+    type="textarea"
+    :autosize="{ minRows: 10, maxRows: 16 }"
+    placeholder="在此粘贴或查看导出的SGF文本"
+  ></el-input>
+  <template #footer>
+    <el-button @click="showImportDialog = false">关闭</el-button>
+    <el-button type="primary" @click="doImportSGF">导入</el-button>
+  </template>
+</el-dialog>
+
 <aside class="right-sidebar">
   <article class="website info">
     <section class="patronage area">
@@ -190,6 +213,8 @@
         historyTotal: 0,
         historySeek: 0,
         showMoveNumbers: true,
+        showImportDialog: false,
+        sgfText: '',
       };
     },
     computed: {
@@ -421,6 +446,84 @@
         this.historyIndex = target;
         this.historySeek = target;
         this.syncBoardState();
+      },
+
+      // —— SGF 导入/导出 —— //
+      toSGFCoord(r, c) {
+        const a = 'a'.charCodeAt(0);
+        return String.fromCharCode(a + (c - 1)) + String.fromCharCode(a + (r - 1));
+      },
+      fromSGFCoord(s) {
+        if (!s || s.length < 2) return { r: null, c: null };
+        const a = 'a'.charCodeAt(0);
+        const c = s.charCodeAt(0) - a + 1;
+        const r = s.charCodeAt(1) - a + 1;
+        return { r, c };
+      },
+      exportSGF() {
+        const sz = this.boardSize || this.pendingBoardSize || 19;
+        const km = Number(this.komi ?? 0);
+        const ff = 4;
+        const header = [`(;GM[1]FF[${ff}]CA[UTF-8]AP[GJS-Go:1]SZ[${sz}]KM[${km}]PB[黑方]PW[白方]`];
+        let next = (this.first === '白方') ? 'W' : 'B';
+        const body = [];
+        for (const mv of this.moves) {
+          if (mv.type === 'place') {
+            const coord = this.toSGFCoord(mv.r, mv.c);
+            body.push(`;${next}[${coord}]`);
+          } else if (mv.type === 'pass') {
+            body.push(`;${next}[]`);
+          }
+          next = next === 'B' ? 'W' : 'B';
+        }
+        const text = header.join('') + body.join('') + ')';
+        try { navigator.clipboard?.writeText(text); } catch(e) {}
+        this.sgfText = text;
+        this.showImportDialog = true;
+        this.$message?.success?.('已生成并复制到剪贴板');
+      },
+      openImportSGF() {
+        this.sgfText = '';
+        this.showImportDialog = true;
+      },
+      async doImportSGF() {
+        try {
+          const raw = String(this.sgfText || '');
+          const szMatch = raw.match(/SZ\[(\d+)\]/i);
+          const kmMatch = raw.match(/KM\[([0-9.]+)\]/i);
+          const sz = szMatch ? parseInt(szMatch[1], 10) : (this.pendingBoardSize || 19);
+          const km = kmMatch ? parseFloat(kmMatch[1]) : (Number(this.komi) || 0);
+          const moveTokens = raw.match(/;[BW]\[[a-z]{0,2}\]/g) || [];
+          if (moveTokens.length === 0) {
+            this.$message?.warning?.('未解析到落子，已仅按设置开局');
+          }
+          this.pendingBoardSize = sz;
+          this.komi = km;
+          const firstToken = moveTokens[0] || ';B[]';
+          this.pendingFirst = firstToken.startsWith(';W') ? '白方' : '黑方';
+          this.startGame();
+
+          this.isReplaying = true;
+          for (const tk of moveTokens) {
+            const coord = tk.slice(3, -1);
+            if (coord.length === 0) {
+              this.gaming.bulletin.notice('ui input', { action: 'PASS' });
+            } else {
+              const { r, c } = this.fromSGFCoord(coord);
+              const pos = this.findPos(r, c);
+              if (pos) this.gaming.bulletin.notice('ui input', pos);
+            }
+          }
+          this.isReplaying = false;
+          this.historyIndex = this.historyTotal;
+          this.historySeek = this.historyIndex;
+          this.syncBoardState();
+          this.$message?.success?.('SGF 导入完成');
+          this.showImportDialog = false;
+        } catch (e) {
+          console.error(e);
+          this.$message?.error?.('导入失败，请检查 SGF 格式');
+        }
       },
       findPos(r, c) {
         if (!this.positions || this.positions.length === 0) return null;
