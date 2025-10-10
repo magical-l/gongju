@@ -169,12 +169,14 @@
         redoStack: [],
         isReplaying: false,
         cellPx: 30,
+        historyVersion: 0,
       };
     },
     computed: {
       isGaming() { return !!this.gaming; },
-      canUndo() { return this.moves.length > 0; },
-      canRedo() { return this.redoStack.length > 0; },
+      // 引入 historyVersion 作为依赖以触发重算
+      canUndo() { return !!this.gaming && !!this.gaming.situation && (this.historyVersion >= 0) && typeof this.gaming.situation.canRewind === 'function' && this.gaming.situation.canRewind(); },
+      canRedo() { return !!this.gaming && !!this.gaming.situation && (this.historyVersion >= 0) && typeof this.gaming.situation.canFastForward === 'function' && this.gaming.situation.canFastForward(); },
       gridStyle() {
         const n = this.isGaming ? this.boardSize : this.pendingBoardSize;
         const size = this.cellPx;
@@ -240,18 +242,20 @@
         this.starSet = new Set(stars);
 
         this.curPlayer = this.gaming.situation.curPlayer;
-        this.gaming.bulletin.watch('playerTurn start', ({player}) => this.curPlayer = player);
+        this.gaming.bulletin.watch('playerTurn start', ({player}) => {
+          if (!this.isReplaying) this.curPlayer = player;
+        });
 
         this.gaming.bulletin.watch('buildUnit end', ({unit}) => {
+          if (this.isReplaying) return;
           this.lastMove = {unit, position: unit.position};
           this.syncBoardState();
-          if (!this.isReplaying) {
-            this.moves.push({ type: 'place', r: unit.position.rowNum, c: unit.position.colNum });
-            this.redoStack = [];
-          }
+          this.moves.push({ type: 'place', r: unit.position.rowNum, c: unit.position.colNum });
+          this.redoStack = [];
         });
         // 提子后的界面同步
         this.gaming.bulletin.watch('battlefield destroyUnit end', () => {
+          if (this.isReplaying) return;
           this.syncBoardState();
         });
 
@@ -271,6 +275,14 @@
           } else {
             this.resultDetail = null;
           }
+        });
+        // 历史变更时推进响应，驱动 canUndo/canRedo 重算
+        this.gaming.bulletin.watch('playerTurn end', () => { this.historyVersion++; });
+        this.gaming.bulletin.watch('history-navigation-end', () => {
+          // 历史导航（悔棋/撤销悔棋）结束后，以引擎状态为准刷新
+          this.curPlayer = this.gaming?.situation?.curPlayer || this.curPlayer;
+          this.syncBoardState();
+          this.historyVersion++;
         });
 
         this.syncBoardState();
@@ -348,46 +360,19 @@
         this.gaming.bulletin.notice('ui input', { action: 'RESIGN' });
       },
 
-      // —— 撤销/重做 —— //
-      async doUndo() {
-        if (this.moves.length === 0) return;
-        const last = this.moves.pop();
-        this.redoStack.push(last);
-        await this.rebuildFromMoves(this.moves);
-        // 若此前因双Pass/认输已结束，撤销后恢复进行中状态
+      // —— 撤销/重做（使用框架rewind） —— //
+      doUndo() {
+        if (!this.gaming || !this.gaming.situation || typeof this.gaming.situation.rewind !== 'function') return;
+        this.gaming.situation.rewind(1);
+        // 撤一步后如果此前已结束，则恢复进行中显示
         this.isGameOver = false;
         this.winnerName = '';
         this.resultDetail = null;
+        this.syncBoardState();
       },
-      async doRedo() {
-        if (this.redoStack.length === 0) return;
-        const step = this.redoStack.pop();
-        this.moves.push(step);
-        await this.rebuildFromMoves(this.moves);
-      },
-      async rebuildFromMoves(moves) {
-        // 重建对局并按序回放（加强版节奏控制）
-        this.isReplaying = true;
-        // 初始化新对局以回放历史（使用当前配置：路数/贴目/先手）
-        this.startGame();
-        // 等待一帧：确保 DOM/positions/监听器就绪
-        if (Vue && Vue.nextTick) { await Vue.nextTick(); } else { await Promise.resolve(); }
-
-        const sleep = (ms = 0) => new Promise(r => setTimeout(r, ms));
-
-        for (const mv of moves) {
-          if (mv.type === 'place') {
-            const pos = this.findPos(mv.r, mv.c);
-            if (pos) this.gaming.bulletin.notice('ui input', pos);
-          } else if (mv.type === 'pass') {
-            this.gaming.bulletin.notice('ui input', { action: 'PASS' });
-          } else if (mv.type === 'resign') {
-            this.gaming.bulletin.notice('ui input', { action: 'RESIGN' });
-          }
-          // 让引擎与UI完全处理当前步，再继续下一步
-          await sleep(0);
-        }
-        this.isReplaying = false;
+      doRedo() {
+        if (!this.gaming || !this.gaming.situation || typeof this.gaming.situation.fastForward !== 'function') return;
+        this.gaming.situation.fastForward({ steps: 1 });
         this.syncBoardState();
       },
       findPos(r, c) {

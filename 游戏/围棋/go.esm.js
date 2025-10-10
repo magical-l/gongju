@@ -1,7 +1,7 @@
 import {TurnBasedGame, Player} from './../turn-based-game.esm.js';
 import {BattlefieldBasedGaming, BattlefieldModule, Board, 棋盘点位} from './../battlefield-module.esm.js';
 import {Unit, UnitModule} from './../unit-module.esm.js';
-import {notice} from '../kit.esm.js';
+import {notice, watch} from '../kit.esm.js';
 
 export {Go, GoGame, GoBoard, GoPlayer, GoStone};
 
@@ -48,6 +48,131 @@ class GoGame extends BattlefieldBasedGaming {
     this._moveNumber = 0;
     this._prevBoardHash = '';  // 单点劫
     this._consecutivePasses = 0; // 连续Pass计数
+  }
+
+  build() {
+    // 回退一手：若未提供 turn，则从公告历史自动提取上一手的变更集
+    watch(this, 'history-step-rewind', ({turn, n = 1} = {}) => {
+      try {
+        for (let k = 0; k < n; k++) {
+          const lastTurn = turn || this._extractLastTurnFromHistory();
+          if (!lastTurn) return;
+
+          // 清理结束状态
+          if (this.situation?.isEnded) {
+            this.situation.isEnded = false;
+            this.situation.winner = null;
+          }
+          // 恢复到上一步执手方（若有）将在回退完成后设置
+
+          const changes = lastTurn.changes || [];
+          let hadPlacement = false;
+          // 逆序撤销
+          for (let i = changes.length - 1; i >= 0; i--) {
+            const ch = changes[i];
+            const topic = ch?.topic;
+            const payload = ch?.payload || {};
+
+            // PASS 记录：仅用于状态复位
+            if (topic === 'ui input' && payload?.action === 'PASS') {
+              // 撤一手 PASS：上一手非PASS，故连PASS计数减一且回到对手
+              this._consecutivePasses = Math.max(0, (this._consecutivePasses || 0) - 1);
+              continue;
+            }
+
+            // 1) 撤销“本手新建的棋子”
+            if (topic === 'buildUnit end' && payload.unit) {
+              this.battlefield.destroyUnit(payload.unit);
+              hadPlacement = true;
+              continue;
+            }
+
+            // 2) 恢复“本手被提走的棋子”
+            if (topic === 'battlefield destroyUnit end' && payload.unit && payload.place) {
+              this.battlefield.addUnitToPosition(payload.unit, payload.place);
+              if ('isAvailable' in payload.unit) payload.unit.isAvailable = true;
+              continue;
+            }
+
+            // 3) 对称撤回（保险）
+            if (topic === 'battlefield addUnit end' && payload.unit) {
+              this.battlefield.destroyUnit(payload.unit);
+              continue;
+            }
+          }
+
+          // 若本手包含落子，则回退手数，使下一手新落子沿用被撤手的编号
+          if (hadPlacement) {
+            this._moveNumber = Math.max(0, (this._moveNumber || 0) - 1);
+          }
+
+          // 回滚后应轮到被撤手的玩家
+          if (lastTurn.player) {
+            this.situation.curPlayer = lastTurn.player;
+          }
+          // 回滚后重建劫哈希并清空连续停手累加
+          this._prevBoardHash = this.boardHash();
+          this._consecutivePasses = Math.max(0, this._consecutivePasses || 0);
+          // 下一次循环不再复用同一个turn
+          turn = undefined;
+        }
+      } catch (e) {
+        // 静默失败，避免影响基本功能
+      }
+    });
+
+    // 重做一手：按变更集顺序应用（与回退对称）
+    watch(this, 'history-step-fastforward', ({turn, changes} = {}) => {
+      try {
+        const list = changes || turn?.changes || [];
+        for (let i = 0; i < list.length; i++) {
+          const ch = list[i];
+          const topic = ch?.topic;
+          const payload = ch?.payload || {};
+
+          if (topic === 'ui input' && payload?.action === 'PASS') {
+            // PASS 的前进由命令流自然维护，这里跳过
+            continue;
+          }
+          if (topic === 'buildUnit end' && payload.unit) {
+            const place = payload.place || payload.unit?.position;
+            if (place) this.battlefield.addUnitToPosition(payload.unit, place);
+            // 同步手数为历史中该子的手数（保持对齐）
+            if (payload.unit.moveNumber) {
+              this._moveNumber = Math.max(this._moveNumber || 0, payload.unit.moveNumber);
+            }
+            continue;
+          }
+          if (topic === 'battlefield destroyUnit end' && payload.unit) {
+            this.battlefield.destroyUnit(payload.unit);
+            continue;
+          }
+        }
+        this._prevBoardHash = this.boardHash();
+      } catch (e) {}
+    });
+
+    return super.build();
+  }
+
+  // 从公告历史提取上一手：取最后一个 'playerTurn start' 之后到末尾的事件
+  _extractLastTurnFromHistory() {
+    const notices = this.gaming?.bulletin?.historyNotices || [];
+    if (notices.length === 0) return null;
+
+    // 从尾部回溯到最近一次 playerTurn start
+    let end = notices.length - 1;
+    // 跳过非回合内的纯显示性事件（可选）
+    while (end >= 0 && notices[end]?.topic === 'game over') end--;
+
+    let start = end;
+    while (start >= 0 && notices[start]?.topic !== 'playerTurn start') start--;
+    if (start < 0 || start >= end) return null;
+
+    const changes = notices.slice(start + 1, end + 1);
+    // 估计当手玩家：playerTurn start payload.player
+    const player = notices[start]?.payload?.player || this.situation?.curPlayer || null;
+    return { player, changes };
   }
 
   // —— 便捷：获取点上的单位/所属、相邻点 —— //
@@ -101,6 +226,8 @@ class GoGame extends BattlefieldBasedGaming {
     const unit = new UnitClass({owner: player, position: position, moveNumber: this._moveNumber});
     this.battlefield.addUnitToPosition(unit, position);
     this.bulletin.notice('buildUnit end', {unit});
+    // 记录变更以供 HistoryNode.changes 使用（便于 rewind/fastForward）
+    this.collectChange?.({topic: 'buildUnit end', payload: {unit, place: position}});
     return unit;
   }
 
@@ -312,6 +439,8 @@ class PlaceStoneCommand {
             const enemy = unitsAt[0];
             capturedList.push({unit: enemy, pos});
             bf.destroyUnit(enemy);
+            // 记录提子变更，用于回滚/重做
+            gaming.collectChange?.({topic: 'battlefield destroyUnit end', payload: {unit: enemy, place: pos}});
           }
         }
       }
@@ -353,15 +482,17 @@ class PassCommand {
     const gaming = this.player.gaming;
     gaming._consecutivePasses = (gaming._consecutivePasses || 0) + 1;
 
+    const passChange = {topic: 'ui input', payload: {action: 'PASS'}};
+
     if (gaming._consecutivePasses >= 2) {
       // 进入计分并结束
       const scores = gaming.computeAreaScore();
       notice(gaming, 'game over', {winner: scores.winner, scores});
       // 重置以防后续交互
       gaming._consecutivePasses = 0;
-      return {actionsConsumed: 1, changes: []};
+      return {actionsConsumed: 1, changes: [passChange]};
     }
-    return {actionsConsumed: 1, changes: []};
+    return {actionsConsumed: 1, changes: [passChange]};
   }
 }
 
@@ -376,6 +507,8 @@ class ResignCommand {
     if (winner) {
       notice(gaming, 'game over', {winner});
     }
-    return {actionsConsumed: 1, changes: []};
+    // 标记这手为“认输”以便历史记录与回滚状态复位
+    const resignChange = {topic: 'ui input', payload: {action: 'RESIGN'}};
+    return {actionsConsumed: 1, changes: [resignChange]};
   }
 }
