@@ -202,7 +202,7 @@
 				curPlayer: null,
 				isGameOver: false,
 				winnerName: '',
-				lastMove: null,
+
 
 				boardSize: 19,
 				komi: 7.5,
@@ -301,7 +301,7 @@
 
 				this.isGameOver = false;
 				this.winnerName = '';
-				this.lastMove = null;
+
 				this.previewPos = null;
 
 				this.positions = this.gaming.battlefield.positions;
@@ -318,7 +318,7 @@
 
 				this.gaming.bulletin.watch('buildUnit end', ({unit}) => {
 					if (this.isReplaying) return;
-					this.lastMove = {unit, position: unit.position};
+
 					this.syncBoardState();
 					this.moves.push({type: 'place', r: unit.position.rowNum, c: unit.position.colNum});
 					this.redoStack = [];
@@ -510,7 +510,7 @@
 					URL.revokeObjectURL(url);
 					this.$message?.success?.('已导出并下载SGF文件');
 				} catch (e) {
-					console.error(e);
+					if (window.__DEBUG__) console.error(e);
 					this.$message?.error?.('下载SGF失败');
 				}
 			},
@@ -554,7 +554,7 @@
 						}
 					}
 				} catch (e) {
-					console.error(e);
+					if (window.__DEBUG__) console.error(e);
 					this.$message?.error?.('拖拽处理失败');
 				}
 			},
@@ -596,7 +596,7 @@
 					this.$message?.success?.('SGF 导入完成');
 					this.showImportDialog = false;
 				} catch (e) {
-					console.error(e);
+					if (window.__DEBUG__) console.error(e);
 					this.$message?.error?.('导入失败，请检查 SGF 格式');
 				}
 			},
