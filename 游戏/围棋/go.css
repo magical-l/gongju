@@ -18,19 +18,7 @@ main { padding: 1rem; }
 	background: rgba(205, 166, 110, .12);
 }
 
-.inline-prepend {
-	display: inline-flex;
-	align-items: center;
-	padding: 0 6px;
-	height: 28px;
-	line-height: 28px;
-	font-size: 12px;
-	color: #5a452b;
-	border: 1px solid rgba(110, 79, 46, .25);
-	border-radius: 4px;
-	background: rgba(255, 255, 255, .6);
-	margin-right: 4px;
-}
+
 
 .board-overlay {
 	position: absolute;
@@ -132,25 +120,9 @@ main { padding: 1rem; }
 	opacity: .9;
 }
 
-/* 横线：默认从中心到右边界；左边缘补到外侧（0→50%） */
-.cell::before {
-	left: 50%;
-	right: 0;
-	top: 50%;
-	height: 1px;
-	transform: translateY(-.5px);
-	z-index: 1;
-}
 
-/* 竖线：默认从中心到底边界；上边缘补到外侧（0→50%） */
-.cell::after {
-	top: 50%;
-	bottom: 0;
-	left: 50%;
-	width: 1px;
-	transform: translateX(-.5px);
-	z-index: 1;
-}
+
+
 
 .cell::before { /* 横线 */
 	left: 0; right: 0; top: 50%;
@@ -217,15 +189,7 @@ main { padding: 1rem; }
 	text-shadow: 0 1px 1px rgba(255, 255, 255, .6), 0 0 2px rgba(0, 0, 0, .25);
 }
 
-/* 最近一步高亮：发光环 */
-.piece.last-move-marker {
-	position: absolute;
-	width: calc(var(--cell) * 0.33); height: calc(var(--cell) * 0.33); border-radius: 50%;
-	border: 2px solid rgba(42, 133, 255, .95);
-	left: 50%; top: 50%; transform: translate(-50%, -50%);
-	pointer-events: none;
-	box-shadow: 0 0 8px rgba(42, 133, 255, .75);
-}
+
 
 /* 悬停预览（影子棋更清晰） */
 .preview-stone {

@@ -192,6 +192,9 @@
 
 	const {createApp} = Vue;
 
+// 全局调试开关（默认关闭，可在控制台设置 window.__DEBUG__ = true）
+window.__DEBUG__ ??= false;
+
 	const app = createApp({
 		data() {
 			return {
@@ -214,7 +217,7 @@
 				resultDetail: null,
 				showCoords: true,
 				moves: [],
-				redoStack: [],
+
 				isReplaying: false,
 				cellPx: 30,
 				historyVersion: 0,
@@ -294,7 +297,7 @@
 
 				if (!this.isReplaying) {
 					this.moves = [];
-					this.redoStack = [];
+
 				}
 				const game = new Go({size: this.boardSize, komi: Number(this.komi), first: this.first});
 				this.gaming = game.newGaming();
@@ -321,7 +324,7 @@
 
 					this.syncBoardState();
 					this.moves.push({type: 'place', r: unit.position.rowNum, c: unit.position.colNum});
-					this.redoStack = [];
+
 				});
 				// 提子后的界面同步
 				this.gaming.bulletin.watch('battlefield destroyUnit end', () => {
@@ -366,7 +369,7 @@
 				this.boardSize = this.pendingBoardSize;
 				this.first = this.pendingFirst;
 				this.moves = [];
-				this.redoStack = [];
+
 				this.startGame();
 			},
 			updateCellPx() {
@@ -416,12 +419,12 @@
 			clearPreview() { this.previewPos = null; },
 			doPass() {
 				if (!this.isGaming || this.isGameOver) return;
-				if (!this.isReplaying) { this.moves.push({type: 'pass'}); this.redoStack = []; }
+				if (!this.isReplaying) { this.moves.push({type: 'pass'}); }
 				this.gaming.bulletin.notice('ui input', {action: 'PASS'});
 			},
 			doResign() {
 				if (!this.isGaming || this.isGameOver) return;
-				if (!this.isReplaying) { this.moves.push({type: 'resign'}); this.redoStack = []; }
+				if (!this.isReplaying) { this.moves.push({type: 'resign'}); }
 				this.gaming.bulletin.notice('ui input', {action: 'RESIGN'});
 			},
 
@@ -461,6 +464,7 @@
 			},
 
 			// —— SGF 导入/导出 —— //
+			// SGF: 采用 FF4 的最小子集；导出仅序列化落子/停手；导入使用 /;[BW]\s*\[[a-z]{0,2}\]/gi 解析手顺
 			toSGFCoord(r, c) {
 				const a = 'a'.charCodeAt(0);
 				return String.fromCharCode(a + (c - 1)) + String.fromCharCode(a + (r - 1));
