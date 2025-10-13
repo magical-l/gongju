@@ -175,7 +175,7 @@ class Battlefield {
 class BattlefieldModule extends Module {
 	get watchers() {
 		return {
-			'player interpretInput start': (payload) => {
+			'player interpretInput start': payload => {
 				const {player, input, command} = payload;
 				if (command) {
 					return;
@@ -211,13 +211,13 @@ class BattlefieldModule extends Module {
 					}
 				}
 			},
-			'player selectSkills start': (payload) => {
+			'player selectSkills start': payload => {
 				const {player} = payload;
 				if (!player.selectedUnits?.length) {
 					payload.canProceed = false;
 				}
 			},
-			'player filterSelectableSkills end': (payload) => {
+			'player filterSelectableSkills end': payload => {
 				const {player, allSkills, selectableSkills} = payload;
 				const finalSkills = new Set(selectableSkills);
 
@@ -378,26 +378,26 @@ class Move extends Skill {
 }
 
 class Attack extends Skill {
-	constructor(cfg) { 
+	constructor(cfg) {
 		super({name: 'Attack', ...cfg});
 		// 为Unit添加kills属性和相关方法
 		this.enhanceUnitWithKillAbility();
 	}
-	
+
 	// 为Unit添加kills属性和相关方法
 	enhanceUnitWithKillAbility() {
 		// 如果Unit还没有kills属性，则添加
 		if (!this.owner.hasKillAbility) {
 			// 创建kills数组
 			this.owner.kills = [];
-			
+
 			// 添加killCount getter
 			Object.defineProperty(this.owner, 'killCount', {
 				get: function() {
 					return this.kills.length;
-				}
+				},
 			});
-			
+
 			// 添加addKillRecord方法
 			this.owner.addKillRecord = function(killedUnit, place) {
 				// 获取当前回合数，通过事件系统获取
@@ -405,10 +405,10 @@ class Attack extends Skill {
 				this.kills.push({
 					unit: killedUnit,
 					place: place,
-					round: round
+					round: round,
 				});
 			};
-			
+
 			// 添加hasKillAbility标记，表示已经添加了杀敌能力
 			this.owner.hasKillAbility = true;
 		}
@@ -416,20 +416,34 @@ class Attack extends Skill {
 
 	activate(targets) {
 		return (targets || []).map(targetUnit => {
-			if (targetUnit instanceof Unit) {
-				const place = targetUnit.position;
-				const payload = {unit: this.owner, killed: targetUnit, place};
-				
-				// 添加杀敌记录
-				if (this.owner.addKillRecord) {
-					this.owner.addKillRecord(targetUnit, place);
-				}
-				
-				this.gaming.battlefield.destroyUnit(targetUnit);
-				notice(this, 'unit attack end', payload);
-				return true;
+			// 检查目标是否为Unit实例
+			if (!(targetUnit instanceof Unit)) {
+				return false;
 			}
-			return false;
+
+			// 检查目标是否仍然存在于棋盘上
+			if (!targetUnit.position) {
+				return false;
+			}
+
+			// 检查目标是否仍在攻击范围内
+			const availableTargets = this.availableTargets || [];
+			const isTargetInRange = availableTargets.some(target => compareWithId(target, targetUnit));
+			if (!isTargetInRange) {
+				return false;
+			}
+
+			const place = targetUnit.position;
+			const payload = {unit: this.owner, killed: targetUnit, place};//todo：这里是‘攻击’，未必真的杀了，应该改名。
+
+			// 添加杀敌记录
+			if (this.owner.addKillRecord) {
+				this.owner.addKillRecord(targetUnit, place);
+			}
+
+			this.gaming.battlefield.destroyUnit(targetUnit);
+			notice(this, 'unit attack end', payload);//todo 根据惯例，这里应该叫‘attack activate end’
+			return true;
 		}).reduce((pre, cur) => pre || cur, false);
 	}
 
