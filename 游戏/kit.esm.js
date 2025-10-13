@@ -45,7 +45,12 @@ const getClassHierarchy = (instance, options = {includeObject: false, reverse: f
  * @returns {Array} - 确保是数组的返回值。
  */
 const ensureArray = value => Array.isArray(value) ? value : (value !== null && value !== undefined ? [value] : []);
-const compareWithId = (a, b) => a === b || a.id && b.id && a.id === b.id;
+const compareWithId = (a, b) => {
+	if (a === b) return true;
+	if (!a || !b) return false;
+	const aId = a.id, bId = b.id;
+	return !!(aId && bId && aId === bId);
+};
 
 const lowerFirstLetter = str => {
     if (typeof str !== 'string' || str.length === 0) {

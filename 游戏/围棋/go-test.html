@@ -1,0 +1,257 @@
+<!-- 本页面仅测试用途，不应在生产中暴露 -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>围棋单元测试</title>
+  <link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-2.19.1.css">
+</head>
+<body>
+  <div id="qunit"></div>
+  <div id="qunit-fixture"></div>
+  <!-- 引入 QUnit -->
+  <script src="https://code.jquery.com/qunit/qunit-2.19.1.js"></script>
+  <!-- 测试逻辑 -->
+  <script type="module">
+    import { Go } from './go.esm.js';
+    import { 棋盘点位 } from '../battlefield-module.esm.js';
+
+    // 确保 QUnit 已加载
+    if (typeof QUnit !== 'undefined') {
+      // 添加测试完成后的回调
+      QUnit.done(function(details) {
+        console.log("测试完成:", details);
+        // 向控制台输出测试结果，供外部脚本捕获
+        console.log("[TEST] 测试完成 - 通过: " + details.passed + ", 失败: " + details.failed + ", 总计: " + details.total);
+        // 发送一个特殊消息，表示测试已完成
+        window.testCompleted = true;
+      });
+
+      QUnit.test("棋盘初始化测试", function(assert) {
+        const game = new Go({ size: 9 });
+        const gaming = game.newGaming();
+        assert.equal(gaming.battlefield.rowSize, 9, "棋盘大小应为 9");
+      });
+
+      QUnit.test("落子合法性测试", function(assert) {
+        const done = assert.async();
+        const game = new Go({ size: 9 });
+        const gaming = game.newGaming();
+        const bf = gaming.battlefield;
+        const pos = new 棋盘点位(1, 1);
+
+        let buildCount = 0;
+        gaming.bulletin.watch('buildUnit end', () => { buildCount++; });
+
+        // 第一次在空点落子，应成功
+        gaming.bulletin.notice('ui input', pos);
+        setTimeout(() => {
+          assert.equal(buildCount, 1, "首次落子应产生一个棋子");
+          assert.equal(bf.getUnitsAt(pos).length, 1, "该点应有1枚棋子");
+
+          // 再次在同一点落子，应被判定为非法（不应新增棋子）
+          gaming.bulletin.notice('ui input', pos);
+          setTimeout(() => {
+            assert.equal(buildCount, 1, "重复在同一点落子不应新增棋子");
+            assert.equal(bf.getUnitsAt(pos).length, 1, "该点仍应只有1枚棋子");
+            done();
+          }, 10);
+        }, 10);
+      });
+
+      QUnit.test("提子规则测试（围捕后被提）", function(assert) {
+        const done = assert.async();
+        const game = new Go({ size: 9 });
+        const gaming = game.newGaming();
+        const bf = gaming.battlefield;
+        const p = (r, c) => new 棋盘点位(r, c);
+
+        let captureCount = 0;
+        gaming.bulletin.watch('battlefield destroyUnit end', () => { captureCount++; });
+
+        // 黑：(2,2)
+        gaming.bulletin.notice('ui input', p(2, 2));
+        // 白：(1,2)
+        setTimeout(() => {
+          gaming.bulletin.notice('ui input', p(1, 2));
+          // 黑：打酱油
+          setTimeout(() => {
+            gaming.bulletin.notice('ui input', p(9, 9));
+            // 白：(2,1)
+            setTimeout(() => {
+              gaming.bulletin.notice('ui input', p(2, 1));
+              // 黑：打酱油
+              setTimeout(() => {
+                gaming.bulletin.notice('ui input', p(9, 8));
+                // 白：(2,3)
+                setTimeout(() => {
+                  gaming.bulletin.notice('ui input', p(2, 3));
+                  // 黑：打酱油
+                  setTimeout(() => {
+                    gaming.bulletin.notice('ui input', p(9, 7));
+                    // 白：(3,2) 完成围捕，黑(2,2)应被提
+                    setTimeout(() => {
+                      gaming.bulletin.notice('ui input', p(3, 2));
+                      setTimeout(() => {
+                        assert.ok(captureCount >= 1, "围捕完成后应产生至少1个提子事件");
+                        assert.equal(bf.getUnitsAt(p(2,2)).length, 0, "被围点(2,2)应为空");
+                        done();
+                      }, 20);
+                    }, 20);
+                  }, 20);
+                }, 20);
+              }, 20);
+            }, 20);
+          }, 20);
+        }, 20);
+      });
+
+      QUnit.test("自杀禁手测试（无提子时撤销）", function(assert) {
+        const done = assert.async();
+        const game = new Go({ size: 9 });
+        const gaming = game.newGaming();
+        const bf = gaming.battlefield;
+        const p = (r, c) => new 棋盘点位(r, c);
+
+        // 目标：让白方在(1,2)(2,1)(2,3)(3,2)四面围满，然后黑方尝试在(2,2)自杀，应被撤销
+        // 黑先手打酱油确保轮到白
+        gaming.bulletin.notice('ui input', p(9, 9)); // 黑
+        setTimeout(() => {
+          gaming.bulletin.notice('ui input', p(1, 2)); // 白
+          setTimeout(() => {
+            gaming.bulletin.notice('ui input', p(9, 8)); // 黑
+            setTimeout(() => {
+              gaming.bulletin.notice('ui input', p(2, 1)); // 白
+              setTimeout(() => {
+                gaming.bulletin.notice('ui input', p(9, 7)); // 黑
+                setTimeout(() => {
+                  gaming.bulletin.notice('ui input', p(2, 3)); // 白
+                  setTimeout(() => {
+                    gaming.bulletin.notice('ui input', p(9, 6)); // 黑打酱油
+                    setTimeout(() => {
+                      gaming.bulletin.notice('ui input', p(3, 2)); // 白补上第四面
+                      setTimeout(() => {
+                        const totalBefore = bf.allUnitsInBattlefield.length;
+                        // 轮到黑，尝试在(2,2)自杀，因无提子应撤销
+                        gaming.bulletin.notice('ui input', p(2, 2));
+                        setTimeout(() => {
+                          const totalAfter = bf.allUnitsInBattlefield.length;
+                          assert.equal(totalAfter, totalBefore, "自杀禁手：总棋子数不应增加");
+                          assert.equal(bf.getUnitsAt(p(2,2)).length, 0, "自杀点(2,2)应仍为空");
+                          done();
+                        }, 30);
+                      }, 20);
+                    }, 20);
+                  }, 20);
+                }, 20);
+              }, 20);
+            }, 20);
+          }, 20);
+        }, 20);
+      });
+
+      QUnit.test("双 PASS 结束并计分", function(assert) {
+        const done = assert.async();
+        const game = new Go({ size: 9 });
+        const gaming = game.newGaming();
+
+        let overPayload = null;
+        gaming.bulletin.watch('game over', payload => { overPayload = payload; });
+
+        // 黑 PASS
+        gaming.bulletin.notice('ui input', { action: 'PASS' });
+        // 白 PASS
+        setTimeout(() => {
+          gaming.bulletin.notice('ui input', { action: 'PASS' });
+          setTimeout(() => {
+            assert.ok(overPayload && overPayload.winner, "双 PASS 后应结束并有胜者");
+            assert.ok(overPayload.scores && typeof overPayload.scores.black === 'number', "应返回计分信息");
+            done();
+          }, 20);
+        }, 20);
+      });
+
+      QUnit.test("认输结束", function(assert) {
+        const done = assert.async();
+        const game = new Go({ size: 9 });
+        const gaming = game.newGaming();
+
+        let overPayload = null;
+        gaming.bulletin.watch('game over', payload => { overPayload = payload; });
+
+        // 当前执手认输
+        gaming.bulletin.notice('ui input', { action: 'RESIGN' });
+        setTimeout(() => {
+          assert.ok(overPayload && overPayload.winner, "认输后应立即结束并有胜者");
+          done();
+        }, 20);
+      });
+      // 撤销与快进测试
+      QUnit.test("撤销与快进（rewind/fastForward）", function(assert) {
+        const done = assert.async();
+        const game = new Go({ size: 9 });
+        const gaming = game.newGaming();
+        const bf = gaming.battlefield;
+        const p = (r, c) => new 棋盘点位(r, c);
+
+        // 下三手，然后回退两步应只剩1子，再快进两步应回到3子
+        gaming.bulletin.notice('ui input', p(1, 1)); // 1
+        setTimeout(() => {
+          gaming.bulletin.notice('ui input', p(1, 2)); // 2
+          setTimeout(() => {
+            gaming.bulletin.notice('ui input', p(1, 3)); // 3
+            setTimeout(() => {
+              const count3 = bf.allUnitsInBattlefield.length;
+              assert.equal(count3, 3, "三手落子后应有3枚棋子");
+
+              // 回退两步
+              gaming.situation.rewind(2);
+              setTimeout(() => {
+                const count1 = bf.allUnitsInBattlefield.length;
+                assert.equal(count1, 1, "回退两步后应余1枚棋子");
+
+                // 快进两步
+                gaming.situation.fastForward({ steps: 2 });
+                setTimeout(() => {
+                  const countBack3 = bf.allUnitsInBattlefield.length;
+                  assert.equal(countBack3, 3, "快进两步后应恢复到3枚棋子");
+                  done();
+                }, 20);
+              }, 20);
+            }, 20);
+          }, 20);
+        }, 20);
+      });
+
+      // 贴目计分测试：空盘双 PASS 后白方比分应比黑方高，差值≈KM
+      QUnit.test("空盘双 PASS 计分含贴目", function(assert) {
+        const done = assert.async();
+        const KM = 7.5;
+        const game = new Go({ size: 9, komi: KM });
+        const gaming = game.newGaming();
+
+        let overPayload = null;
+        gaming.bulletin.watch('game over', payload => { overPayload = payload; });
+
+        // 黑 PASS
+        gaming.bulletin.notice('ui input', { action: 'PASS' });
+        // 白 PASS
+        setTimeout(() => {
+          gaming.bulletin.notice('ui input', { action: 'PASS' });
+          setTimeout(() => {
+            assert.ok(overPayload && overPayload.scores, "应返回计分信息");
+            const s = overPayload.scores;
+            const delta = (s.white - s.black);
+            assert.ok(delta > 0, "空盘双PASS下白方比分应高于黑方");
+            assert.ok(Math.abs(delta - KM) < 0.01, "白黑分差应≈贴目KM");
+            done();
+          }, 20);
+        }, 20);
+      });
+
+    } else {
+      console.error('QUnit 未加载');
+    }
+  </script>
+</body>
+</html>
