@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>测试结果查看器</title>
+</head>
+<body>
+  <h1>五子棋测试结果</h1>
+  <div id="results"></div>
+  <script>
+    // 在这里显示测试结果
+    fetch('../测试结果/gobang-test-result.json')
+      .then(response => response.json())
+      .then(data => {
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = `
+          <p>通过: ${data.passed}</p>
+          <p>失败: ${data.failed}</p>
+          <p>总计: ${data.total}</p>
+          <p>运行时间: ${data.runtime} ms</p>
+        `;
+      })
+      .catch(error => {
+        console.error('Error loading test results:', error);
+        document.getElementById('results').innerHTML = '<p>无法加载测试结果: ' + error.message + '</p>';
+      });
+  </script>
+</body>
+</html>

@@ -261,3 +261,6 @@ public
 
 # Temporary folders
 temp/
+
+# CodeBuddy
+.codebuddy/
