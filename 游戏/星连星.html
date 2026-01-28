@@ -338,50 +338,93 @@
 				this.initCanvas();
 			},
 			generateLevel() {
-				// 使用程序生成算法：先生成不交叉的路径覆盖整个网格，然后在路径两端放置星星
+				// 保证可解：先生成一条覆盖整图的哈密顿路径，再按颜色数分段，每段头尾即为星星
 				this.gridSize = this.settings.gridSize;
 				const colorCount = this.settings.colorCount;
+				const totalCells = this.gridSize * this.gridSize;
 
-				// 生成路径（使用随机DFS分割网格）
-				const paths = this.generatePaths(this.gridSize, colorCount);
-
-				// 验证生成的路径是否覆盖所有格子
-				const covered = new Set();
-				paths.forEach(path => {
-					path.forEach(p => {
-						covered.add(`${p.row}-${p.col}`);
-					});
-				});
-
-				// 如果路径没有覆盖所有格子，重新生成（最多尝试10次）
-				let attempts = 0;
-				while (covered.size < this.gridSize * this.gridSize && attempts < 10) {
-					attempts++;
-					const newPaths = this.generatePaths(this.gridSize, colorCount);
-					covered.clear();
-					newPaths.forEach(path => {
-						path.forEach(p => {
-							covered.add(`${p.row}-${p.col}`);
-						});
-					});
-					if (covered.size === this.gridSize * this.gridSize) {
-						paths.length = 0;
-						paths.push(...newPaths);
-						break;
-					}
+				const onePath = this.generateWholeGridPath(this.gridSize);
+				const step = Math.floor(totalCells / colorCount);
+				const paths = [];
+				for (let i = 0; i < colorCount; i++) {
+					const startIdx = i * step;
+					const endIdx = i === colorCount - 1 ? totalCells : (i + 1) * step;
+					paths.push(onePath.slice(startIdx, endIdx));
 				}
 
-				// 从路径中提取星星位置
 				this.stars = [];
 				paths.forEach((path, colorIndex) => {
 					if (path.length > 0) {
-						const start = path[0];
-						const end = path[path.length - 1];
-						this.stars.push({color: colorIndex, row: start.row, col: start.col});
-						this.stars.push({color: colorIndex, row: end.row, col: end.col});
+						this.stars.push({color: colorIndex, row: path[0].row, col: path[0].col});
+						this.stars.push({color: colorIndex, row: path[path.length - 1].row, col: path[path.length - 1].col});
 					}
 				});
-
+			},
+			/** 生成一条覆盖整图的哈密顿路径（随机选一种形态，保证可解） */
+			generateWholeGridPath(size) {
+				const variants = [
+					() => this._pathSnakeRow(size),
+					() => this._pathSnakeCol(size),
+					() => this._pathSnakeRowReversed(size),
+					() => this._pathSnakeColReversed(size),
+					() => this._pathSpiralIn(size),
+					() => this._pathSpiralOut(size)
+				];
+				const pick = variants[Math.floor(Math.random() * variants.length)];
+				return pick();
+			},
+			_pathSnakeRow(size) {
+				const path = [];
+				for (let r = 0; r < size; r++) {
+					if (r % 2 === 0) for (let c = 0; c < size; c++) path.push({row: r, col: c});
+					else for (let c = size - 1; c >= 0; c--) path.push({row: r, col: c});
+				}
+				return path;
+			},
+			_pathSnakeCol(size) {
+				const path = [];
+				for (let c = 0; c < size; c++) {
+					if (c % 2 === 0) for (let r = 0; r < size; r++) path.push({row: r, col: c});
+					else for (let r = size - 1; r >= 0; r--) path.push({row: r, col: c});
+				}
+				return path;
+			},
+			_pathSnakeRowReversed(size) {
+				const path = [];
+				for (let r = size - 1; r >= 0; r--) {
+					if ((size - 1 - r) % 2 === 0) for (let c = 0; c < size; c++) path.push({row: r, col: c});
+					else for (let c = size - 1; c >= 0; c--) path.push({row: r, col: c});
+				}
+				return path;
+			},
+			_pathSnakeColReversed(size) {
+				const path = [];
+				for (let c = size - 1; c >= 0; c--) {
+					if ((size - 1 - c) % 2 === 0) for (let r = 0; r < size; r++) path.push({row: r, col: c});
+					else for (let r = size - 1; r >= 0; r--) path.push({row: r, col: c});
+				}
+				return path;
+			},
+			_pathSpiralIn(size) {
+				const path = [];
+				let r0 = 0, r1 = size - 1, c0 = 0, c1 = size - 1;
+				while (r0 <= r1 && c0 <= c1) {
+					for (let c = c0; c <= c1; c++) path.push({row: r0, col: c});
+					r0++;
+					if (r0 > r1) break;
+					for (let r = r0; r <= r1; r++) path.push({row: r, col: c1});
+					c1--;
+					if (c0 > c1) break;
+					for (let c = c1; c >= c0; c--) path.push({row: r1, col: c});
+					r1--;
+					if (r0 > r1) break;
+					for (let r = r1; r >= r0; r--) path.push({row: r, col: c0});
+					c0++;
+				}
+				return path;
+			},
+			_pathSpiralOut(size) {
+				return this._pathSpiralIn(size).slice().reverse();
 			},
 			generatePaths(size, colorCount) {
 				// 改进的生成算法：使用区域分割 + 哈密顿路径生成
@@ -422,10 +465,10 @@
 					// 使用随机DFS生成一个连通区域
 					const region = this.generateRegion(startCell, size, targetSize, used);
 
-					// 在区域内生成一条哈密顿路径
+					// 在区域内生成一条哈密顿路径（必须覆盖本区域所有格且无重复）
 					const path = this.generateHamiltonianPath(region, size);
 
-					if (path.length > 0) {
+					if (path.length > 0 && path.length === region.length) {
 						paths.push(path);
 						path.forEach(p => used.add(`${p.row}-${p.col}`));
 					}
@@ -568,12 +611,17 @@
 					}
 				} else {
 					path.push(end);
+					usedInPath.add(`${end.row}-${end.col}`);
 				}
 
+				// 必须覆盖区域内所有格且无重复，否则视为生成失败
+				if (path.length !== region.length) return [];
+				const pathSet = new Set(path.map(p => `${p.row}-${p.col}`));
+				if (pathSet.size !== path.length) return [];
 				return path;
 			},
 			findPathInRegion(start, end, size, regionSet, usedInPath) {
-				// 在region内找到两点之间的路径，使用BFS确保路径在region内
+				// 在 region 内找从 start 到 end 的路径，且不经过已占用的格（usedInPath），保证哈密顿路径不重叠
 				const queue = [[start]];
 				const visited = new Set([`${start.row}-${start.col}`]);
 
@@ -598,13 +646,14 @@
 							next.col >= 0 && next.col < size &&
 							regionSet.has(key) &&
 							!visited.has(key)) {
+							// 不能经过已在当前路径中的格（终点除外）
+							if (usedInPath.has(key) && (next.row !== end.row || next.col !== end.col)) continue;
 							visited.add(key);
 							queue.push([...path, next]);
 						}
 					}
 				}
 
-				// 如果BFS找不到路径，返回简单路径
 				return [start, end];
 			},
 			findPathBetween(start, end, size) {
