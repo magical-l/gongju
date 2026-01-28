@@ -35,11 +35,7 @@
 
 	#game-board {
 		display: grid;
-		grid-template-columns: repeat(4, 1fr);
-		grid-template-rows: repeat(4, 1fr);
 		gap: 10px;
-		width: 400px;
-		height: 400px;
 	}
 
 	.game-cell {
@@ -48,15 +44,180 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		font-size: 2.5rem;
 		font-weight: bold;
 		color: #776e65;
-		transition: all 0.15s ease-in-out;
+		font-size: var(--base-font-size, 2.5rem);
+		user-select: none;
+		-webkit-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
 	}
 
 	.game-cell.has-value {
 		background-color: #eee4da;
 		color: #776e65;
+	}
+
+	/* 移动动画 - 只应用于实际移动的块 */
+	.game-cell.moving {
+		transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+		z-index: 10;
+	}
+
+	/* 新块出现动画 */
+	.game-cell.new-tile {
+		animation: newTileAppear 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+	}
+
+	@keyframes newTileAppear {
+		0% {
+			transform: scale(0);
+			opacity: 0;
+		}
+		100% {
+			transform: scale(1);
+			opacity: 1;
+		}
+	}
+
+	/* 合并动画效果 */
+	.game-cell.merge-flip {
+		animation: mergeFlip 0.4s ease-in-out;
+	}
+
+	.game-cell.merge-scale {
+		animation: mergeScale 0.3s ease-out;
+	}
+
+	.game-cell.merge-rotate {
+		animation: mergeRotate 0.4s ease-in-out;
+	}
+
+	.game-cell.merge-bounce {
+		animation: mergeBounce 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+	}
+
+	.game-cell.merge-pulse {
+		animation: mergePulse 0.4s ease-out;
+	}
+
+	@keyframes mergeFlip {
+		0% {
+			transform: rotateY(0deg) scale(1);
+		}
+		50% {
+			transform: rotateY(90deg) scale(0.8);
+		}
+		100% {
+			transform: rotateY(0deg) scale(1);
+		}
+	}
+
+	@keyframes mergeScale {
+		0% {
+			transform: scale(1);
+		}
+		50% {
+			transform: scale(1.2);
+		}
+		100% {
+			transform: scale(1);
+		}
+	}
+
+	@keyframes mergeRotate {
+		0% {
+			transform: rotate(0deg) scale(1);
+		}
+		50% {
+			transform: rotate(180deg) scale(1.1);
+		}
+		100% {
+			transform: rotate(360deg) scale(1);
+		}
+	}
+
+	@keyframes mergeBounce {
+		0% {
+			transform: scale(1);
+		}
+		30% {
+			transform: scale(1.3);
+		}
+		60% {
+			transform: scale(0.9);
+		}
+		80% {
+			transform: scale(1.1);
+		}
+		100% {
+			transform: scale(1);
+		}
+	}
+
+	@keyframes mergePulse {
+		0% {
+			transform: scale(1);
+			box-shadow: 0 0 0 0 rgba(237, 194, 46, 0.7);
+		}
+		50% {
+			transform: scale(1.15);
+			box-shadow: 0 0 0 15px rgba(237, 194, 46, 0);
+		}
+		100% {
+			transform: scale(1);
+			box-shadow: 0 0 0 0 rgba(237, 194, 46, 0);
+		}
+	}
+
+	/* 高亮效果 */
+	.game-cell.new-tile {
+		animation: newTilePulse 0.4s ease-out;
+	}
+
+	.game-cell.merged-tile {
+		animation: mergedTilePulse 0.4s ease-out;
+	}
+
+	@keyframes newTilePulse {
+		0% {
+			transform: scale(0.8);
+			box-shadow: 0 0 0 0 rgba(237, 194, 46, 0.7);
+		}
+		50% {
+			transform: scale(1.05);
+			box-shadow: 0 0 0 8px rgba(237, 194, 46, 0);
+		}
+		100% {
+			transform: scale(1);
+			box-shadow: 0 0 0 0 rgba(237, 194, 46, 0);
+		}
+	}
+
+	@keyframes mergedTilePulse {
+		0% {
+			transform: scale(1);
+			box-shadow: 0 0 0 0 rgba(237, 194, 46, 0.8);
+		}
+		50% {
+			transform: scale(1.1);
+			box-shadow: 0 0 0 10px rgba(237, 194, 46, 0.4);
+		}
+		100% {
+			transform: scale(1);
+			box-shadow: 0 0 0 0 rgba(237, 194, 46, 0);
+		}
+	}
+
+	/* 高亮边框效果 */
+	.game-cell.highlight-new {
+		border: 2px solid rgba(237, 194, 46, 0.4);
+		box-shadow: 0 0 8px rgba(237, 194, 46, 0.3);
+	}
+
+	.game-cell.highlight-merged {
+		border: 2px solid rgba(246, 94, 59, 0.4);
+		box-shadow: 0 0 8px rgba(246, 94, 59, 0.3);
 	}
 
 	.game-cell.tile-2 { background-color: #eee4da; color: #776e65; }
@@ -65,12 +226,12 @@
 	.game-cell.tile-16 { background-color: #f59563; color: #f9f6f2; }
 	.game-cell.tile-32 { background-color: #f67c5f; color: #f9f6f2; }
 	.game-cell.tile-64 { background-color: #f65e3b; color: #f9f6f2; }
-	.game-cell.tile-128 { background-color: #edcf72; color: #f9f6f2; font-size: 2rem; }
-	.game-cell.tile-256 { background-color: #edcc61; color: #f9f6f2; font-size: 2rem; }
-	.game-cell.tile-512 { background-color: #edc850; color: #f9f6f2; font-size: 2rem; }
-	.game-cell.tile-1024 { background-color: #edc53f; color: #f9f6f2; font-size: 1.75rem; }
-	.game-cell.tile-2048 { background-color: #edc22e; color: #f9f6f2; font-size: 1.75rem; }
-	.game-cell.tile-super { background-color: #3c3a32; color: #f9f6f2; font-size: 1.5rem; }
+	.game-cell.tile-128 { background-color: #edcf72; color: #f9f6f2; font-size: calc(var(--base-font-size, 2.5rem) * 0.8); }
+	.game-cell.tile-256 { background-color: #edcc61; color: #f9f6f2; font-size: calc(var(--base-font-size, 2.5rem) * 0.8); }
+	.game-cell.tile-512 { background-color: #edc850; color: #f9f6f2; font-size: calc(var(--base-font-size, 2.5rem) * 0.8); }
+	.game-cell.tile-1024 { background-color: #edc53f; color: #f9f6f2; font-size: calc(var(--base-font-size, 2.5rem) * 0.7); }
+	.game-cell.tile-2048 { background-color: #edc22e; color: #f9f6f2; font-size: calc(var(--base-font-size, 2.5rem) * 0.7); }
+	.game-cell.tile-super { background-color: #3c3a32; color: #f9f6f2; font-size: calc(var(--base-font-size, 2.5rem) * 0.6); }
 
 	.score-item {
 		margin: 15px 0;
@@ -80,6 +241,8 @@
 	}
 
 	.one.setting {margin-bottom: 0;}
+
+	.one.setting.input.number {width: 80px;}
 
 	#game-overlay {
 		position: absolute;
@@ -109,19 +272,7 @@
 			height: 300px;
 		}
 		.game-cell {
-			font-size: 1.8rem;
-		}
-		.game-cell.tile-128,
-		.game-cell.tile-256,
-		.game-cell.tile-512 {
-			font-size: 1.5rem;
-		}
-		.game-cell.tile-1024,
-		.game-cell.tile-2048 {
-			font-size: 1.25rem;
-		}
-		.game-cell.tile-super {
-			font-size: 1rem;
+			font-size: calc(var(--base-font-size, 2.5rem) * 0.72) !important;
 		}
 	}
 </style>
@@ -163,8 +314,51 @@
 
 	<article class="gaming area , 反叵字形 grid" v-cloak>
 		<header class="toolbar , flex near-center">
+			<section class="setting list area">
+				<el-form inline>
+					<el-form-item label="棋盘尺寸" class="one setting group">
+						<el-select v-model="settings.boardSize" size="small" style="width: 80px;">
+							<el-option label="3x3" :value="3"></el-option>
+							<el-option label="4x4" :value="4"></el-option>
+							<el-option label="5x5" :value="5"></el-option>
+							<el-option label="6x6" :value="6"></el-option>
+						</el-select>
+					</el-form-item>
+					<el-form-item label="目标数字" class="one setting group">
+						<el-select v-model="settings.targetNumber" size="small" style="width: 100px;">
+							<el-option label="1024" :value="1024"></el-option>
+							<el-option label="2048" :value="2048"></el-option>
+							<el-option label="4096" :value="4096"></el-option>
+							<el-option label="8192" :value="8192"></el-option>
+							<el-option label="无限" :value="Infinity"></el-option>
+						</el-select>
+					</el-form-item>
+					<el-form-item label="初始块数" class="one setting group">
+						<el-select v-model="settings.initialTiles" size="small" style="width: 80px;">
+							<el-option label="1" :value="1"></el-option>
+							<el-option label="2" :value="2"></el-option>
+							<el-option label="3" :value="3"></el-option>
+							<el-option label="4" :value="4"></el-option>
+							<el-option label="5" :value="5"></el-option>
+						</el-select>
+					</el-form-item>
+					<el-form-item label="高亮效果" class="one setting group">
+						<el-switch v-model="settings.showHighlight" size="small"></el-switch>
+					</el-form-item>
+					<el-form-item label="合并动画" class="one setting group">
+						<el-select v-model="settings.mergeAnimation" size="small" style="width: 120px;">
+							<el-option label="翻牌" value="flip"></el-option>
+							<el-option label="缩放" value="scale"></el-option>
+							<el-option label="旋转" value="rotate"></el-option>
+							<el-option label="弹跳" value="bounce"></el-option>
+							<el-option label="脉冲" value="pulse"></el-option>
+							<el-option label="无" value="none"></el-option>
+						</el-select>
+					</el-form-item>
+				</el-form>
+			</section>
 			<section class="controller list area">
-				<el-button class="one controller : restart" @click="initGame" icon="RefreshRight" size="large">
+				<el-button class="one controller : restart" @click="initGame" icon="RefreshRight" size="small">
 					重新开始
 				</el-button>
 			</section>
@@ -173,16 +367,27 @@
 		<article class="gaming area , 反叵字形 grid">
 			<article class="main map area , one-row item , flex items-near-center-x">
 				<div id="game-board-container">
-					<div id="game-board">
-						<div v-for="(cell, index) in board" :key="index" 
-							 :class="['game-cell', cell ? `tile-${cell}` : '', cell ? 'has-value' : '']">
+					<div id="game-board" :style="boardStyle">
+						<div v-for="(cell, index) in board" :key="`cell-${index}`" 
+							 :class="['game-cell', cell ? `tile-${cell}` : '', cell ? 'has-value' : '',
+										movingCells.has(index) ? 'moving' : '',
+										newTiles.has(index) ? 'new-tile' : '',
+										settings.showHighlight && newTiles.has(index) ? 'highlight-new' : '',
+										settings.showHighlight && mergedTiles.has(index) ? 'highlight-merged' : '',
+										mergedCells.has(index) ? `merge-${settings.mergeAnimation}` : '']"
+							 :style="getCellStyle(index)">
 							{{ cell || '' }}
 						</div>
 					</div>
-					<div id="game-overlay" :class="{ hidden: !gameOver }">
-						<div>游戏结束！</div>
-						<div style="font-size: 1.2rem; margin-top: 10px;">最终得分: {{ score }}</div>
-						<el-button @click="initGame" type="primary" style="margin-top: 20px;">再玩一次</el-button>
+					<div id="game-overlay" :class="{ hidden: !gameOver && !gameWin }">
+						<div v-if="gameWin" style="color: #edc22e; font-size: 2.5rem;">🎉 恭喜！</div>
+						<div v-else>游戏结束！</div>
+						<div style="font-size: 1.2rem; margin-top: 10px;">
+							{{ gameWin ? `达到目标 ${settings.targetNumber === Infinity ? '无限' : settings.targetNumber}！` : `最终得分: ${score}` }}
+						</div>
+						<el-button @click="initGame" type="primary" style="margin-top: 20px;">
+							{{ gameWin ? '继续挑战' : '再玩一次' }}
+						</el-button>
 					</div>
 				</div>
 			</article>
@@ -192,7 +397,7 @@
 			<el-card header="记分牌" class="scoreboard section">
 				<p class="score-item">当前分数: <span>{{ score }}</span></p>
 				<p class="score-item">最高分: <span>{{ highScore }}</span></p>
-				<p class="score-item">目标: 2048</p>
+				<p class="score-item">目标: <span>{{ settings.targetNumber === Infinity ? '无限' : settings.targetNumber }}</span></p>
 			</el-card>
 			<el-card header="快捷键" class="shortcut intro section">
 				<p>↑ ↓ → ← ：移动方块</p>
@@ -225,37 +430,126 @@
 	const app = createApp({
 		data() {
 			return {
-				board: Array(16).fill(0),
+				board: [],
 				score: 0,
 				highScore: parseInt(localStorage.getItem('2048-high-score') || '0'),
-				gameOver: false
+				gameOver: false,
+				gameWin: false,
+				lastMoveDirection: '',
+				newTiles: new Set(),
+				mergedTiles: new Set(),
+				movingCells: new Set(),
+				mergedCells: new Set(),
+				cellPositions: new Map(), // 存储每个块的位置变化
+				settings: {
+					boardSize: 4,
+					targetNumber: 2048,
+					initialTiles: 2,
+					showHighlight: true,
+					mergeAnimation: 'flip'
+				}
 			};
+		},
+		computed: {
+			boardStyle() {
+				const cellSize = Math.min(400 / this.settings.boardSize, 100);
+				// 根据棋盘尺寸计算基础字体大小
+				const baseFontSize = Math.max(1.5, 3.5 - (this.settings.boardSize - 3) * 0.5);
+				return {
+					gridTemplateColumns: `repeat(${this.settings.boardSize}, 1fr)`,
+					gridTemplateRows: `repeat(${this.settings.boardSize}, 1fr)`,
+					width: `${this.settings.boardSize * cellSize}px`,
+					height: `${this.settings.boardSize * cellSize}px`,
+					'--base-font-size': `${baseFontSize}rem`
+				};
+			},
+			settingsString() {
+				// 处理Infinity，因为JSON.stringify会把Infinity变成null
+				const settingsCopy = {...this.settings};
+				if (settingsCopy.targetNumber === Infinity) {
+					settingsCopy.targetNumber = 'Infinity';
+				}
+				return JSON.stringify(settingsCopy);
+			}
 		},
 		methods: {
 			initGame() {
-				this.board = Array(16).fill(0);
+				const totalCells = this.settings.boardSize * this.settings.boardSize;
+				this.board = Array(totalCells).fill(0);
 				this.score = 0;
 				this.gameOver = false;
-				this.addRandomTile();
-				this.addRandomTile();
+				this.gameWin = false;
+				this.lastMoveDirection = '';
+				this.newTiles.clear();
+				this.mergedTiles.clear();
+				this.movingCells.clear();
+				this.mergedCells.clear();
+				this.cellPositions.clear();
+				for (let i = 0; i < this.settings.initialTiles; i++) {
+					this.addRandomTile();
+				}
+			},
+			getCellStyle(index) {
+				const pos = this.cellPositions.get(index);
+				if (pos && this.movingCells.has(index)) {
+					const size = this.settings.boardSize;
+					const cellSize = Math.min(400 / size, 100);
+					const gap = 10; // gap between cells
+					const fromRow = Math.floor(pos.from / size);
+					const fromCol = pos.from % size;
+					const toRow = Math.floor(index / size);
+					const toCol = index % size;
+					// 计算从旧位置到新位置的偏移量
+					const deltaX = (fromCol - toCol) * (cellSize + gap);
+					const deltaY = (fromRow - toRow) * (cellSize + gap);
+					
+					// 如果animating为true，说明正在动画中，transform应该从旧位置移动到0
+					// 如果animating为false，说明动画还没开始，transform应该在旧位置
+					if (pos.animating) {
+						// 动画进行中，transform逐渐变为0
+						return {
+							transform: 'translate(0, 0)'
+						};
+					} else {
+						// 动画还没开始，块在旧位置
+						return {
+							transform: `translate(${deltaX}px, ${deltaY}px)`
+						};
+					}
+				}
+				return {};
 			},
 			addRandomTile() {
 				const emptyCells = [];
-				for (let i = 0; i < 16; i++) {
+				const totalCells = this.settings.boardSize * this.settings.boardSize;
+				for (let i = 0; i < totalCells; i++) {
 					if (this.board[i] === 0) {
 						emptyCells.push(i);
 					}
 				}
 				if (emptyCells.length === 0) {
-					return;
+					return -1;
 				}
 				const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+				// 默认90%概率出现2，10%概率出现4
 				this.board[randomIndex] = Math.random() < 0.9 ? 2 : 4;
+				return randomIndex;
 			},
 			move(direction) {
 				if (this.gameOver) {
 					return;
 				}
+				// 如果已经胜利，继续游戏
+				if (this.gameWin) {
+					this.gameWin = false;
+				}
+
+				// 清除之前的状态
+				this.newTiles.clear();
+				this.mergedTiles.clear();
+				this.movingCells.clear();
+				this.mergedCells.clear();
+				this.cellPositions.clear();
 
 				const oldBoard = [...this.board];
 				let moved = false;
@@ -271,7 +565,62 @@
 				}
 
 				if (moved) {
-					this.addRandomTile();
+					// 应用移动动画
+					// 第一步：等待DOM更新，确保块已经在最终位置
+					this.$nextTick(() => {
+						// 第二步：等待一帧，让浏览器渲染
+						requestAnimationFrame(() => {
+							// 第三步：设置animating为true，触发transition
+							const movingCellsCopy = new Set(this.movingCells);
+							movingCellsCopy.forEach(index => {
+								const pos = this.cellPositions.get(index);
+								if (pos && !pos.animating) {
+									// 标记为动画中，触发transform从旧位置到0的transition
+									this.cellPositions.set(index, {
+										from: pos.from,
+										to: index,
+										animating: true
+									});
+									// 动画结束后清理
+									setTimeout(() => {
+										this.movingCells.delete(index);
+										this.cellPositions.delete(index);
+									}, 200);
+								}
+							});
+						});
+					});
+
+					// 检测合并的位置（新值等于旧值的2倍，且旧值不为0）
+					// 这样才能确保是真正的合并，而不是简单的移动
+					for (let i = 0; i < this.board.length; i++) {
+						if (this.board[i] === oldBoard[i] * 2 && oldBoard[i] !== 0) {
+							this.mergedTiles.add(i);
+							if (this.settings.mergeAnimation !== 'none') {
+								this.mergedCells.add(i);
+								setTimeout(() => {
+									this.mergedCells.delete(i);
+								}, 500);
+							}
+						}
+					}
+
+					const newTileIndex = this.addRandomTile();
+					if (newTileIndex !== -1) {
+						this.newTiles.add(newTileIndex);
+						// 新块高亮不自动消失，保留在newTiles中
+					}
+
+					// 检查是否达到目标（如果目标不是无限）
+					if (!this.gameWin && this.settings.targetNumber !== Infinity) {
+						for (let i = 0; i < this.board.length; i++) {
+							if (this.board[i] >= this.settings.targetNumber) {
+								this.gameWin = true;
+								break;
+							}
+						}
+					}
+					// 检查游戏是否结束
 					if (this.checkGameOver()) {
 						this.gameOver = true;
 					}
@@ -279,116 +628,185 @@
 			},
 			moveLeft() {
 				let moved = false;
-				for (let row = 0; row < 4; row++) {
+				const size = this.settings.boardSize;
+				for (let row = 0; row < size; row++) {
 					const line = [];
-					for (let col = 0; col < 4; col++) {
-						line.push(this.board[row * 4 + col]);
+					const originalPositions = [];
+					for (let col = 0; col < size; col++) {
+						const index = row * size + col;
+						line.push(this.board[index]);
+						originalPositions.push(index);
 					}
-					const merged = this.mergeLine(line);
-					for (let col = 0; col < 4; col++) {
+					const {merged, newPositions} = this.mergeLine(line, originalPositions);
+					for (let col = 0; col < size; col++) {
+						const newIndex = row * size + col;
 						const newValue = merged[col];
-						const oldValue = this.board[row * 4 + col];
+						const oldValue = this.board[newIndex];
 						if (newValue !== oldValue) {
 							moved = true;
 						}
-						this.board[row * 4 + col] = newValue;
+						this.board[newIndex] = newValue;
+						// 跟踪移动
+						if (newPositions[col] !== newIndex && newValue !== 0) {
+							this.movingCells.add(newIndex);
+							this.cellPositions.set(newIndex, {from: newPositions[col], to: newIndex});
+						}
 					}
 				}
 				return moved;
 			},
 			moveRight() {
 				let moved = false;
-				for (let row = 0; row < 4; row++) {
+				const size = this.settings.boardSize;
+				for (let row = 0; row < size; row++) {
 					const line = [];
-					for (let col = 3; col >= 0; col--) {
-						line.push(this.board[row * 4 + col]);
+					const originalPositions = [];
+					for (let col = size - 1; col >= 0; col--) {
+						const index = row * size + col;
+						line.push(this.board[index]);
+						originalPositions.push(index);
 					}
-					const merged = this.mergeLine(line);
-					for (let col = 0; col < 4; col++) {
-						const newValue = merged[3 - col];
-						const oldValue = this.board[row * 4 + col];
+					const {merged, newPositions} = this.mergeLine(line, originalPositions);
+					for (let col = 0; col < size; col++) {
+						const newIndex = row * size + col;
+						const newValue = merged[size - 1 - col];
+						const oldValue = this.board[newIndex];
 						if (newValue !== oldValue) {
 							moved = true;
 						}
-						this.board[row * 4 + col] = newValue;
+						this.board[newIndex] = newValue;
+						// 跟踪移动（需要转换回原始索引）
+						const reversedCol = size - 1 - col;
+						if (newPositions[reversedCol] !== originalPositions[reversedCol] && newValue !== 0) {
+							this.movingCells.add(newIndex);
+							this.cellPositions.set(newIndex, {from: originalPositions[reversedCol], to: newIndex});
+						}
 					}
 				}
 				return moved;
 			},
 			moveUp() {
 				let moved = false;
-				for (let col = 0; col < 4; col++) {
+				const size = this.settings.boardSize;
+				for (let col = 0; col < size; col++) {
 					const line = [];
-					for (let row = 0; row < 4; row++) {
-						line.push(this.board[row * 4 + col]);
+					const originalPositions = [];
+					for (let row = 0; row < size; row++) {
+						const index = row * size + col;
+						line.push(this.board[index]);
+						originalPositions.push(index);
 					}
-					const merged = this.mergeLine(line);
-					for (let row = 0; row < 4; row++) {
+					const {merged, newPositions} = this.mergeLine(line, originalPositions);
+					for (let row = 0; row < size; row++) {
+						const newIndex = row * size + col;
 						const newValue = merged[row];
-						const oldValue = this.board[row * 4 + col];
+						const oldValue = this.board[newIndex];
 						if (newValue !== oldValue) {
 							moved = true;
 						}
-						this.board[row * 4 + col] = newValue;
+						this.board[newIndex] = newValue;
+						// 跟踪移动
+						if (newPositions[row] !== newIndex && newValue !== 0) {
+							this.movingCells.add(newIndex);
+							this.cellPositions.set(newIndex, {from: newPositions[row], to: newIndex});
+						}
 					}
 				}
 				return moved;
 			},
 			moveDown() {
 				let moved = false;
-				for (let col = 0; col < 4; col++) {
+				const size = this.settings.boardSize;
+				for (let col = 0; col < size; col++) {
 					const line = [];
-					for (let row = 3; row >= 0; row--) {
-						line.push(this.board[row * 4 + col]);
+					const originalPositions = [];
+					for (let row = size - 1; row >= 0; row--) {
+						const index = row * size + col;
+						line.push(this.board[index]);
+						originalPositions.push(index);
 					}
-					const merged = this.mergeLine(line);
-					for (let row = 0; row < 4; row++) {
-						const newValue = merged[3 - row];
-						const oldValue = this.board[row * 4 + col];
+					const {merged, newPositions} = this.mergeLine(line, originalPositions);
+					for (let row = 0; row < size; row++) {
+						const newIndex = row * size + col;
+						const newValue = merged[size - 1 - row];
+						const oldValue = this.board[newIndex];
 						if (newValue !== oldValue) {
 							moved = true;
 						}
-						this.board[row * 4 + col] = newValue;
+						this.board[newIndex] = newValue;
+						// 跟踪移动（需要转换回原始索引）
+						const reversedRow = size - 1 - row;
+						if (newPositions[reversedRow] !== originalPositions[reversedRow] && newValue !== 0) {
+							this.movingCells.add(newIndex);
+							this.cellPositions.set(newIndex, {from: originalPositions[reversedRow], to: newIndex});
+						}
 					}
 				}
 				return moved;
 			},
-			mergeLine(line) {
-				// 移除零
-				let filtered = line.filter(val => val !== 0);
+			mergeLine(line, originalPositions) {
+				// 移除零，同时跟踪位置
+				let filtered = [];
+				let filteredPositions = [];
+				for (let i = 0; i < line.length; i++) {
+					if (line[i] !== 0) {
+						filtered.push(line[i]);
+						filteredPositions.push(originalPositions[i]);
+					}
+				}
 				// 合并相同数字
 				for (let i = 0; i < filtered.length - 1; i++) {
 					if (filtered[i] === filtered[i + 1]) {
 						filtered[i] *= 2;
 						this.score += filtered[i];
 						filtered[i + 1] = 0;
+						// 合并后，新位置是第一个位置
+						filteredPositions[i + 1] = filteredPositions[i];
 					}
 				}
 				// 再次移除零
-				filtered = filtered.filter(val => val !== 0);
-				// 填充到4个元素
-				while (filtered.length < 4) {
-					filtered.push(0);
+				const finalFiltered = [];
+				const finalPositions = [];
+				for (let i = 0; i < filtered.length; i++) {
+					if (filtered[i] !== 0) {
+						finalFiltered.push(filtered[i]);
+						finalPositions.push(filteredPositions[i]);
+					}
 				}
-				return filtered;
+				// 填充到指定长度
+				const size = this.settings.boardSize;
+				const newPositions = [];
+				for (let i = 0; i < size; i++) {
+					if (i < finalFiltered.length) {
+						newPositions.push(finalPositions[i]);
+					} else {
+						newPositions.push(-1); // 空位置
+					}
+				}
+				while (finalFiltered.length < size) {
+					finalFiltered.push(0);
+				}
+				return {merged: finalFiltered, newPositions};
 			},
 			checkGameOver() {
+				const size = this.settings.boardSize;
+				const totalCells = size * size;
 				// 检查是否有空格
-				for (let i = 0; i < 16; i++) {
+				for (let i = 0; i < totalCells; i++) {
 					if (this.board[i] === 0) {
 						return false;
 					}
 				}
 				// 检查是否可以合并
-				for (let row = 0; row < 4; row++) {
-					for (let col = 0; col < 4; col++) {
-						const current = this.board[row * 4 + col];
+				for (let row = 0; row < size; row++) {
+					for (let col = 0; col < size; col++) {
+						const current = this.board[row * size + col];
 						// 检查右边
-						if (col < 3 && this.board[row * 4 + col + 1] === current) {
+						if (col < size - 1 && this.board[row * size + col + 1] === current) {
 							return false;
 						}
 						// 检查下边
-						if (row < 3 && this.board[(row + 1) * 4 + col] === current) {
+						if (row < size - 1 && this.board[(row + 1) * size + col] === current) {
 							return false;
 						}
 					}
@@ -396,7 +814,7 @@
 				return true;
 			},
 			handleKeydown(e) {
-				if (this.gameOver && e.key !== 'ArrowUp' && e.key !== 'ArrowDown' && 
+				if ((this.gameOver || this.gameWin) && e.key !== 'ArrowUp' && e.key !== 'ArrowDown' && 
 						e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') {
 					return;
 				}
@@ -420,6 +838,21 @@
 					}
 					this.move(direction);
 				}
+			},
+			loadSettings() {
+				const savedSettings = localStorage.getItem('2048-settings');
+				if (savedSettings) {
+					try {
+						const parsed = JSON.parse(savedSettings);
+						// 处理Infinity
+						if (parsed.targetNumber === 'Infinity') {
+							parsed.targetNumber = Infinity;
+						}
+						Object.assign(this.settings, parsed);
+					} catch (e) {
+						console.error('加载设置失败:', e);
+					}
+				}
 			}
 		},
 		watch: {
@@ -428,9 +861,37 @@
 					this.highScore = newScore;
 					localStorage.setItem('2048-high-score', newScore);
 				}
+			},
+			settingsString(newSettingsJSON, oldSettingsJSON) {
+				if (!oldSettingsJSON) {
+					return;
+				}
+				const newSettings = JSON.parse(newSettingsJSON);
+				const oldSettings = JSON.parse(oldSettingsJSON);
+				
+				// 处理Infinity
+				if (newSettings.targetNumber === 'Infinity') {
+					newSettings.targetNumber = Infinity;
+				}
+				if (oldSettings.targetNumber === 'Infinity') {
+					oldSettings.targetNumber = Infinity;
+				}
+				
+				// 保存设置（重新序列化以包含Infinity处理）
+				const settingsCopy = {...newSettings};
+				if (settingsCopy.targetNumber === Infinity) {
+					settingsCopy.targetNumber = 'Infinity';
+				}
+				localStorage.setItem('2048-settings', JSON.stringify(settingsCopy));
+				
+				// 如果棋盘尺寸改变，需要重新初始化游戏
+				if (newSettings.boardSize !== oldSettings.boardSize) {
+					this.initGame();
+				}
 			}
 		},
 		mounted() {
+			this.loadSettings();
 			this.initGame();
 			window.addEventListener('keydown', this.handleKeydown);
 		},
