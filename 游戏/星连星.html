@@ -201,6 +201,9 @@
 					<el-form-item class="one setting group">
 						<el-button @click="restartCurrentGame" icon="RefreshRight" size="small">重来</el-button>
 					</el-form-item>
+					<el-form-item class="one setting group">
+						<el-button @click="showAnswer" :type="showAnswerOverlay ? 'primary' : 'default'" icon="Key" size="small">答案</el-button>
+					</el-form-item>
 				</el-form>
 			</section>
 		</header>
@@ -289,6 +292,8 @@
 				currentPath: null, // {color, startStar, points: [{row, col}]}
 				isDrawing: false,
 				gameWin: false,
+				solutionPaths: [], // 本局答案（生成时保存），用于「答案」展示
+				showAnswerOverlay: false,
 				settings: {
 					gridSize: 5,
 					colorCount: 3
@@ -325,6 +330,7 @@
 				this.paths = [];
 				this.currentPath = null;
 				this.isDrawing = false;
+				this.showAnswerOverlay = false;
 				this.initCanvas();
 			},
 			/** 新开一局：按当前设置重新生成地图 */
@@ -333,6 +339,7 @@
 				this.paths = [];
 				this.currentPath = null;
 				this.isDrawing = false;
+				this.showAnswerOverlay = false;
 				this.gridSize = this.settings.gridSize;
 				this.generateLevel();
 				this.initCanvas();
@@ -360,6 +367,11 @@
 						this.stars.push({color: colorIndex, row: path[path.length - 1].row, col: path[path.length - 1].col});
 					}
 				});
+				this.solutionPaths = paths.map((path, colorIndex) => ({
+					color: colorIndex,
+					points: path.map(p => ({ row: p.row, col: p.col }))
+				}));
+				this.showAnswerOverlay = false;
 			},
 			/** 生成一条覆盖整图的哈密顿路径（随机选形态 + 随机段反转打乱，保证可解） */
 			generateWholeGridPath(size) {
@@ -1163,6 +1175,27 @@
 				this.stars.forEach(star => {
 					this.drawStar(star.row, star.col, COLORS[star.color]);
 				});
+
+				// 答案：半透明虚线叠在图上
+				if (this.showAnswerOverlay && this.solutionPaths.length) {
+					this.ctx.globalAlpha = 0.6;
+					this.solutionPaths.forEach(path => {
+						this.drawPathLine(path, COLORS[path.color], true);
+					});
+					this.ctx.globalAlpha = 1;
+				}
+			},
+			showAnswer() {
+				if (this.gameWin) {
+					this.$message?.success('已经过关了');
+					return;
+				}
+				if (!this.solutionPaths.length) {
+					this.$message?.warning('暂无答案');
+					return;
+				}
+				this.showAnswerOverlay = !this.showAnswerOverlay;
+				this.draw();
 			},
 			drawPathLine(path, color, isTemporary = false) {
 				if (path.points.length < 2) return;
