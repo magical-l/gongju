@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>星连星游戏 | 在线益智连线游戏</title>
+<meta name="description" content="在线玩星连星游戏。通过绘制不相交的连线来连接同色星星，填满整个游戏区域即可通关。">
+<meta name="keywords" content="星连星, 连线游戏, 益智游戏, 在线游戏, 休闲游戏, Flow游戏">
+<meta name="author" content="工具兽">
+<meta property="og:title" content="星连星游戏 | 在线益智连线游戏">
+<meta property="og:description" content="在线玩星连星游戏。通过绘制不相交的连线来连接同色星星，填满整个游戏区域即可通关。">
+<meta property="og:type" content="game">
+
+<link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
+<link href="../resources/el-plus.css" rel="stylesheet">
+<link href="../resources/common.css?v=250821" rel="stylesheet">
+<link href="../resources/layout.css?v=0821" rel="stylesheet">
+<link href="../resources/biz.css?v=250821" rel="stylesheet">
+<link href="../resources/花活.css?v=250821" rel="stylesheet">
+<style>
+	.gaming.area {
+		margin-top: 20px;
+		gap: var(--gap);
+		align-items: start;
+	}
+
+	#game-container {
+		position: relative;
+		background-color: #f5f5f5;
+		border-radius: 10px;
+		padding: 20px;
+		box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+		display: inline-block;
+	}
+
+	#game-canvas {
+		display: block;
+		border: 2px solid #ddd;
+		border-radius: 5px;
+		cursor: crosshair;
+		touch-action: none;
+		background-color: #fff;
+	}
+
+	#game-canvas.drawing {
+		cursor: crosshair;
+	}
+
+	#game-canvas:active {
+		cursor: crosshair;
+	}
+
+	.game-info {
+		margin-top: 15px;
+		font-size: 1.1rem;
+		color: #4a4a4a;
+	}
+
+	.game-info .level-info {
+		font-weight: bold;
+		margin-bottom: 10px;
+	}
+
+	.game-info .progress {
+		margin-top: 10px;
+	}
+
+	.one.setting {
+		margin-bottom: 0;
+	}
+
+	.one.setting.input.number {
+		width: 80px;
+	}
+
+	#game-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background: rgba(255, 255, 255, 0.95);
+		border-radius: 10px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		font-size: 2rem;
+		font-weight: bold;
+		color: #4a4a4a;
+		z-index: 10;
+	}
+
+	#game-overlay.hidden {
+		display: none;
+	}
+
+	.color-palette {
+		display: flex;
+		gap: 10px;
+		margin-top: 10px;
+		flex-wrap: wrap;
+	}
+
+	.color-item {
+		width: 30px;
+		height: 30px;
+		border-radius: 50%;
+		border: 2px solid #ddd;
+		cursor: pointer;
+		transition: transform 0.2s;
+	}
+
+	.color-item:hover {
+		transform: scale(1.1);
+	}
+
+	.color-item.active {
+		border-color: #333;
+		border-width: 3px;
+		transform: scale(1.15);
+	}
+
+	@media (max-width: 600px) {
+		#game-canvas {
+			max-width: 100%;
+			height: auto;
+		}
+	}
+</style>
+</head>
+<body class="grid 反叵字形">
+<header>
+	<h1 class="website name" title="工具人（gongju.ren）域名太贵买不起">工具兽</h1>
+	<nav>
+		<a href="../文本转化.html">文本转化</a>
+		<a href="../数字转化.html">数字转化</a>
+		<a href="../符号/符号.html">符号</a>
+		<a href="../格子盘.html">格子盘</a>
+		<a href="../svg转图标.html">SVG转图标</a>
+		<a href="../化学/元素周期表.html">元素周期表</a>
+		<a href="../拼音/拼音.html">拼音</a>
+		<a href="中国象棋/中国象棋.html">中国象棋</a>
+		<a href="俄罗斯方块.html">俄罗斯方块</a>
+		<a href="贪吃蛇.html">贪吃蛇</a>
+		<a href="2048.html">2048</a>
+		<a href="点灯.html">点灯</a>
+		<a href="星连星.html" class="active">星连星</a>
+	</nav>
+</header>
+<main>
+	<header>
+		<h2 class="game name">星连星游戏</h2>
+		<div class="page-lv help area" v-cloak>
+			<el-button class="page-lv help btn" title="游戏介绍" @click="introVisible = true" size="small" circle>?
+			</el-button>
+			<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
+				<p>欢迎来到"星连星"游戏，这是一款经典的益智连线游戏。</p>
+				<p>游戏目标：通过绘制<strong>不相交的连线</strong>来连接<strong>同色星星</strong>，填满整个游戏区域即可通关。</p>
+				<p><strong>操作方式：</strong></p>
+				<ul>
+					<li>点击或触摸一颗星星开始画线</li>
+					<li>拖动到同色的另一颗星星完成连接</li>
+					<li>连线不能交叉或重叠</li>
+					<li>所有格子必须被连线覆盖</li>
+				</ul>
+				<p><strong>规则：</strong>同一根线不能重复经过任何格子，每格只能走一次；不能经过其他颜色的星星格。允许画到一半松手（不强制连到另一颗同色星）。当 A 颜色的线经过 B 颜色已占用的格子时，A 抢占该格，B 的线自动收缩到该格的上一步。</p>
+				<p><strong>提示：</strong>如果画错了，可以点击已完成的连线来清除它，然后重新绘制。</p>
+				<p>祝您玩得愉快！</p>
+			</el-dialog>
+		</div>
+	</header>
+
+	<article class="gaming area , 反叵字形 grid" v-cloak>
+		<header class="toolbar , flex near-center">
+			<section class="setting list area">
+				<el-form inline>
+					<el-form-item label="网格大小" class="one setting group">
+						<el-select v-model="settings.gridSize" @change="onSettingsChange" size="small" style="width: 80px;">
+							<el-option label="5x5" :value="5"></el-option>
+							<el-option label="6x6" :value="6"></el-option>
+							<el-option label="7x7" :value="7"></el-option>
+							<el-option label="8x8" :value="8"></el-option>
+							<el-option label="9x9" :value="9"></el-option>
+							<el-option label="10x10" :value="10"></el-option>
+						</el-select>
+					</el-form-item>
+					<el-form-item label="颜色数量" class="one setting group">
+						<el-select v-model="settings.colorCount" @change="onSettingsChange" size="small" style="width: 80px;">
+							<el-option label="3" :value="3"></el-option>
+							<el-option label="4" :value="4"></el-option>
+							<el-option label="5" :value="5"></el-option>
+							<el-option label="6" :value="6"></el-option>
+							<el-option label="7" :value="7"></el-option>
+							<el-option label="8" :value="8"></el-option>
+						</el-select>
+					</el-form-item>
+				</el-form>
+			</section>
+			<section class="controller list area">
+				<el-button class="one controller : restart" @click="restartCurrentGame" icon="RefreshRight" size="small">
+					重开本局
+				</el-button>
+				<el-button class="one controller" @click="newGame" icon="Plus" size="small">
+					新开一局
+				</el-button>
+			</section>
+		</header>
+
+		<article class="gaming area , 反叵字形 grid">
+			<article class="main map area , one-row item , flex items-near-center-x">
+				<div id="game-container">
+					<canvas id="game-canvas" :width="canvasSize" :height="canvasSize"></canvas>
+					<div id="game-overlay" :class="{ hidden: !gameWin }">
+						<div style="color: #67c23a; font-size: 2.5rem;">🎉 恭喜通关！</div>
+						<div style="font-size: 1.2rem; margin-top: 10px;">
+							本局完成！
+						</div>
+						<el-button @click="newGame" type="primary" style="margin-top: 20px;">
+							新开一局
+						</el-button>
+					</div>
+				</div>
+			</article>
+		</article>
+
+		<article class="gaming-situation , right-sidebar">
+			<el-card header="游戏信息" class="scoreboard section">
+				<div class="game-info">
+					<div class="progress">
+						<el-progress :percentage="completionPercentage" :status="gameWin ? 'success' : ''"></el-progress>
+						<div style="margin-top: 5px; font-size: 0.9rem; color: #909399;">
+							已填充: {{ filledCells }} / {{ totalCells }}
+						</div>
+					</div>
+				</div>
+			</el-card>
+			<el-card header="操作提示" class="shortcut intro section">
+				<p>在星星格或线头格按下即可开始/续画（整格有效）</p>
+				<p>可画到一半松手，也可连到同色星</p>
+				<p>拖回上一格可回退一步</p>
+				<p>不能经过其他颜色的星格；抢占他色格时他色线自动收缩</p>
+				<p>所有格子填满即通关</p>
+			</el-card>
+		</article>
+	</article>
+</main>
+
+<aside class="right-sidebar">
+	<article class="website info">
+		<section class="patronage area">
+			<img class="qr-code" src="../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+			<p class="slogan">赞助一下</p>
+		</section>
+		<section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
+		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+		</section>
+	</article>
+</aside>
+
+<div class="js container">
+	<script src="../lib/vue/3.5.18/vue.global.js"></script>
+	<script src="../lib/element-plus/2.10.7/index.full.js"></script>
+	<script src="../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
+</div>
+<script>
+	const {createApp} = Vue;
+
+	// 颜色配置
+	const COLORS = [
+		'#FF6B6B', // 红色
+		'#4ECDC4', // 青色
+		'#45B7D1', // 蓝色
+		'#FFA07A', // 橙色
+		'#98D8C8', // 绿色
+		'#F7DC6F', // 黄色
+		'#BB8FCE', // 紫色
+		'#85C1E2'  // 浅蓝
+	];
+
+	const app = createApp({
+		data() {
+			return {
+				canvas: null,
+				ctx: null,
+				canvasSize: 500,
+				gridSize: 5,
+				cellSize: 0,
+				stars: [], // [{color, row, col}]
+				paths: [], // [{color, points: [{row, col}]}]
+				currentPath: null, // {color, startStar, points: [{row, col}]}
+				isDrawing: false,
+				gameWin: false,
+				settings: {
+					gridSize: 5,
+					colorCount: 3
+				}
+			};
+		},
+		computed: {
+			totalCells() {
+				return this.gridSize * this.gridSize;
+			},
+			filledCells() {
+				const filled = new Set();
+				this.paths.forEach(path => {
+					path.points.forEach(p => {
+						filled.add(`${p.row}-${p.col}`);
+					});
+				});
+				return filled.size;
+			},
+			completionPercentage() {
+				return Math.round((this.filledCells / this.totalCells) * 100);
+			}
+		},
+		methods: {
+			initCanvas() {
+				this.canvas = document.getElementById('game-canvas');
+				this.ctx = this.canvas.getContext('2d');
+				this.cellSize = this.canvasSize / this.gridSize;
+				this.draw();
+			},
+			/** 重开本局：清空所有连线，星星不变 */
+			restartCurrentGame() {
+				this.gameWin = false;
+				this.paths = [];
+				this.currentPath = null;
+				this.isDrawing = false;
+				this.initCanvas();
+			},
+			/** 新开一局：按当前设置重新生成地图 */
+			newGame() {
+				this.gameWin = false;
+				this.paths = [];
+				this.currentPath = null;
+				this.isDrawing = false;
+				this.gridSize = this.settings.gridSize;
+				this.generateLevel();
+				this.initCanvas();
+			},
+			generateLevel() {
+				// 使用程序生成算法：先生成不交叉的路径覆盖整个网格，然后在路径两端放置星星
+				this.gridSize = this.settings.gridSize;
+				const colorCount = this.settings.colorCount;
+
+				// 生成路径（使用随机DFS分割网格）
+				const paths = this.generatePaths(this.gridSize, colorCount);
+
+				// 验证生成的路径是否覆盖所有格子
+				const covered = new Set();
+				paths.forEach(path => {
+					path.forEach(p => {
+						covered.add(`${p.row}-${p.col}`);
+					});
+				});
+
+				// 如果路径没有覆盖所有格子，重新生成（最多尝试10次）
+				let attempts = 0;
+				while (covered.size < this.gridSize * this.gridSize && attempts < 10) {
+					attempts++;
+					const newPaths = this.generatePaths(this.gridSize, colorCount);
+					covered.clear();
+					newPaths.forEach(path => {
+						path.forEach(p => {
+							covered.add(`${p.row}-${p.col}`);
+						});
+					});
+					if (covered.size === this.gridSize * this.gridSize) {
+						paths.length = 0;
+						paths.push(...newPaths);
+						break;
+					}
+				}
+
+				// 从路径中提取星星位置
+				this.stars = [];
+				paths.forEach((path, colorIndex) => {
+					if (path.length > 0) {
+						const start = path[0];
+						const end = path[path.length - 1];
+						this.stars.push({color: colorIndex, row: start.row, col: start.col});
+						this.stars.push({color: colorIndex, row: end.row, col: end.col});
+					}
+				});
+
+			},
+			generatePaths(size, colorCount) {
+				// 改进的生成算法：使用区域分割 + 哈密顿路径生成
+				// 1. 将网格分割成colorCount个连通区域
+				// 2. 每个区域生成一条哈密顿路径（覆盖该区域所有格子）
+				// 3. 在路径两端放置星星
+
+				const totalCells = size * size;
+				const cellsPerPath = Math.floor(totalCells / colorCount);
+				const paths = [];
+				const used = new Set();
+
+				// 为每个颜色生成一个区域
+				for (let colorIdx = 0; colorIdx < colorCount; colorIdx++) {
+					const isLast = colorIdx === colorCount - 1;
+					const targetSize = isLast ? totalCells - used.size : cellsPerPath;
+
+					if (targetSize <= 0) break;
+
+					// 找到一个未使用的起始点
+					let startCell = null;
+					// 随机选择起始点，增加多样性
+					const availableCells = [];
+					for (let r = 0; r < size; r++) {
+						for (let c = 0; c < size; c++) {
+							const key = `${r}-${c}`;
+							if (!used.has(key)) {
+								availableCells.push({row: r, col: c});
+							}
+						}
+					}
+
+					if (availableCells.length === 0) break;
+
+					// 随机选择一个起始点
+					startCell = availableCells[Math.floor(Math.random() * availableCells.length)];
+
+					// 使用随机DFS生成一个连通区域
+					const region = this.generateRegion(startCell, size, targetSize, used);
+
+					// 在区域内生成一条哈密顿路径
+					const path = this.generateHamiltonianPath(region, size);
+
+					if (path.length > 0) {
+						paths.push(path);
+						path.forEach(p => used.add(`${p.row}-${p.col}`));
+					}
+				}
+
+				return paths;
+			},
+			generateRegion(startCell, size, targetSize, used) {
+				// 使用随机DFS生成一个连通区域
+				const region = [startCell];
+				const regionSet = new Set([`${startCell.row}-${startCell.col}`]);
+				const visited = new Set([`${startCell.row}-${startCell.col}`]);
+
+				const dirs = [
+					{row: 0, col: 1}, {row: 0, col: -1},
+					{row: 1, col: 0}, {row: -1, col: 0}
+				];
+
+				// 随机打乱方向，增加随机性
+				const shuffledDirs = [...dirs].sort(() => Math.random() - 0.5);
+
+				while (region.length < targetSize) {
+					// 从当前区域的边界随机选择一个点扩展
+					let expanded = false;
+
+					// 随机打乱区域中的点
+					const shuffledRegion = [...region].sort(() => Math.random() - 0.5);
+
+					for (const cell of shuffledRegion) {
+						for (const dir of shuffledDirs) {
+							const next = {
+								row: cell.row + dir.row,
+								col: cell.col + dir.col
+							};
+
+							if (next.row >= 0 && next.row < size &&
+								next.col >= 0 && next.col < size) {
+								const key = `${next.row}-${next.col}`;
+
+								if (!used.has(key) && !visited.has(key)) {
+									region.push(next);
+									regionSet.add(key);
+									visited.add(key);
+									expanded = true;
+									break;
+								}
+							}
+						}
+						if (expanded) break;
+					}
+
+					if (!expanded) break; // 无法继续扩展
+				}
+
+				return region;
+			},
+			generateHamiltonianPath(region, size) {
+				// 在区域内生成一条哈密顿路径（覆盖所有点）
+				if (region.length === 0) return [];
+				if (region.length === 1) return [region[0]];
+
+				// 创建区域集合，用于快速查找
+				const regionSet = new Set(region.map(p => `${p.row}-${p.col}`));
+
+				// 使用贪心算法：从最远的两个点开始，然后逐步连接所有点
+				// 找到距离最远的两个点作为起点和终点
+				let maxDist = 0;
+				let startIdx = 0;
+				let endIdx = 0;
+
+				for (let i = 0; i < region.length; i++) {
+					for (let j = i + 1; j < region.length; j++) {
+						const dist = Math.abs(region[i].row - region[j].row) +
+									Math.abs(region[i].col - region[j].col);
+						if (dist > maxDist) {
+							maxDist = dist;
+							startIdx = i;
+							endIdx = j;
+						}
+					}
+				}
+
+				const start = region[startIdx];
+				const end = region[endIdx];
+				const remaining = region.filter((_, idx) => idx !== startIdx && idx !== endIdx);
+
+				// 使用贪心算法连接所有点，但路径必须只在region内
+				const path = [start];
+				let current = start;
+				const unvisited = [...remaining];
+				const usedInPath = new Set([`${start.row}-${start.col}`]);
+
+				// 先连接中间的点
+				while (unvisited.length > 0) {
+					let nearestIdx = 0;
+					let minDist = Infinity;
+
+					for (let i = 0; i < unvisited.length; i++) {
+						const dist = Math.abs(current.row - unvisited[i].row) +
+									Math.abs(current.col - unvisited[i].col);
+						if (dist < minDist) {
+							minDist = dist;
+							nearestIdx = i;
+						}
+					}
+
+					const target = unvisited[nearestIdx];
+					// 生成从current到target的路径，但只能在region内
+					const subPath = this.findPathInRegion(current, target, size, regionSet, usedInPath);
+					if (subPath.length > 1) {
+						// 跳过起点，添加中间点
+						for (let i = 1; i < subPath.length; i++) {
+							const p = subPath[i];
+							const key = `${p.row}-${p.col}`;
+							if (!usedInPath.has(key)) {
+								path.push(p);
+								usedInPath.add(key);
+							}
+						}
+						current = target;
+					} else {
+						// 如果无法找到路径，直接添加目标点
+						path.push(target);
+						usedInPath.add(`${target.row}-${target.col}`);
+						current = target;
+					}
+					unvisited.splice(nearestIdx, 1);
+				}
+
+				// 最后连接到终点
+				const finalPath = this.findPathInRegion(current, end, size, regionSet, usedInPath);
+				if (finalPath.length > 1) {
+					for (let i = 1; i < finalPath.length; i++) {
+						const p = finalPath[i];
+						const key = `${p.row}-${p.col}`;
+						if (!usedInPath.has(key)) {
+							path.push(p);
+							usedInPath.add(key);
+						}
+					}
+				} else {
+					path.push(end);
+				}
+
+				return path;
+			},
+			findPathInRegion(start, end, size, regionSet, usedInPath) {
+				// 在region内找到两点之间的路径，使用BFS确保路径在region内
+				const queue = [[start]];
+				const visited = new Set([`${start.row}-${start.col}`]);
+
+				while (queue.length > 0) {
+					const path = queue.shift();
+					const current = path[path.length - 1];
+
+					if (current.row === end.row && current.col === end.col) {
+						return path;
+					}
+
+					const dirs = [
+						{row: 0, col: 1}, {row: 0, col: -1},
+						{row: 1, col: 0}, {row: -1, col: 0}
+					];
+
+					for (const dir of dirs) {
+						const next = {row: current.row + dir.row, col: current.col + dir.col};
+						const key = `${next.row}-${next.col}`;
+
+						if (next.row >= 0 && next.row < size &&
+							next.col >= 0 && next.col < size &&
+							regionSet.has(key) &&
+							!visited.has(key)) {
+							visited.add(key);
+							queue.push([...path, next]);
+						}
+					}
+				}
+
+				// 如果BFS找不到路径，返回简单路径
+				return [start, end];
+			},
+			findPathBetween(start, end, size) {
+				// 简单的贪心路径查找（用于非region限制的情况）
+				const path = [start];
+				let current = start;
+
+				while (current.row !== end.row || current.col !== end.col) {
+					const dirs = [
+						{row: 0, col: 1}, {row: 0, col: -1},
+						{row: 1, col: 0}, {row: -1, col: 0}
+					];
+
+					// 随机打乱方向，增加路径的多样性
+					const shuffledDirs = [...dirs].sort(() => Math.random() - 0.5);
+
+					let bestDir = null;
+					let minDist = Infinity;
+
+					for (const dir of shuffledDirs) {
+						const next = {row: current.row + dir.row, col: current.col + dir.col};
+						if (next.row >= 0 && next.row < size && next.col >= 0 && next.col < size) {
+							const dist = Math.abs(next.row - end.row) + Math.abs(next.col - end.col);
+							if (dist < minDist) {
+								minDist = dist;
+								bestDir = next;
+							}
+						}
+					}
+
+					if (bestDir) {
+						path.push(bestDir);
+						current = bestDir;
+					} else {
+						// 如果无法继续，直接跳到终点
+						path.push(end);
+						break;
+					}
+				}
+
+				return path;
+			},
+			getCellFromPos(x, y) {
+				const rect = this.canvas.getBoundingClientRect();
+				const canvasX = x - rect.left;
+				const canvasY = y - rect.top;
+				// 按画布逻辑尺寸换算，避免 CSS 缩放导致“必须点中心”才命中
+				const logicalX = (canvasX / rect.width) * this.canvasSize;
+				const logicalY = (canvasY / rect.height) * this.canvasSize;
+				const col = Math.floor(logicalX / this.cellSize);
+				const row = Math.floor(logicalY / this.cellSize);
+				return {
+					row: Math.max(0, Math.min(this.gridSize - 1, row)),
+					col: Math.max(0, Math.min(this.gridSize - 1, col))
+				};
+			},
+			getStarAt(row, col) {
+				return this.stars.find(s => s.row === row && s.col === col);
+			},
+			getPathAt(row, col) {
+				for (let i = 0; i < this.paths.length; i++) {
+					const path = this.paths[i];
+					if (path.points.some(p => p.row === row && p.col === col)) {
+						return i;
+					}
+				}
+				return -1;
+			},
+			/** 返回终点为 (row,col) 的路径（用于从格子续画/重连），无则返回 null */
+			getPathByEndPoint(row, col) {
+				for (let i = 0; i < this.paths.length; i++) {
+					const path = this.paths[i];
+					const last = path.points[path.points.length - 1];
+					if (last && last.row === row && last.col === col) return { index: i, path };
+				}
+				return null;
+			},
+			canConnect(startStar, endStar) {
+				if (!startStar || !endStar) return false;
+				if (startStar.color !== endStar.color) return false;
+				if (startStar.row === endStar.row && startStar.col === endStar.col) return false;
+				return true;
+			},
+			/** 检查路径是否重复经过同一格子（包括起点/终点），不允许则返回 true */
+			pathHasDuplicateCells(path) {
+				const points = path.points || path;
+				const seen = new Set();
+				for (const p of points) {
+					const key = `${p.row}-${p.col}`;
+					if (seen.has(key)) return true;
+					seen.add(key);
+				}
+				return false;
+			},
+			/** 当某颜色“抢占”格子 (r,c) 时，截断其他颜色经过该格的路径：收缩到该格上一格 */
+			truncatePathsAtCell(r, c, exceptColor) {
+				const key = `${r}-${c}`;
+				for (let i = this.paths.length - 1; i >= 0; i--) {
+					const path = this.paths[i];
+					if (path.color === exceptColor) continue;
+					const idx = path.points.findIndex(p => p.row === r && p.col === c);
+					if (idx < 0) continue;
+					// 截断为 [起点, ..., 该格上一格]，即 slice(0, idx)
+					const newPoints = path.points.slice(0, idx);
+					if (newPoints.length >= 2) {
+						path.points = newPoints;
+					} else {
+						this.paths.splice(i, 1);
+					}
+				}
+			},
+			/** 提交当前路径时，对所有被占用的格子做一次截断（确保其他路径不再占用当前路径上的格） */
+			truncateOtherPathsByPath(newPath) {
+				for (let i = 1; i < newPath.points.length; i++) {
+					const p = newPath.points[i];
+					this.truncatePathsAtCell(p.row, p.col, newPath.color);
+				}
+			},
+			checkPathCollision(newPath) {
+				// 检查新路径是否与已有路径交叉或重叠
+				// 注意：起点和终点（星星位置）可以与其他路径共享
+				const newPoints = new Set();
+				const startKey = `${newPath.points[0].row}-${newPath.points[0].col}`;
+				const endKey = `${newPath.points[newPath.points.length - 1].row}-${newPath.points[newPath.points.length - 1].col}`;
+
+				// 除了起点和终点，其他点都不能重叠
+				for (let i = 1; i < newPath.points.length - 1; i++) {
+					const p = newPath.points[i];
+					newPoints.add(`${p.row}-${p.col}`);
+				}
+
+				for (const path of this.paths) {
+					// 同色路径会被替换，所以不需要检查
+					if (path.color === newPath.color) continue;
+
+					for (let i = 0; i < path.points.length; i++) {
+						const p = path.points[i];
+						const key = `${p.row}-${p.col}`;
+
+						// 如果是路径的起点或终点（星星位置），允许重叠
+						const isPathStart = i === 0;
+						const isPathEnd = i === path.points.length - 1;
+
+						if (!isPathStart && !isPathEnd && newPoints.has(key)) {
+							return true; // 发现重叠
+						}
+					}
+				}
+
+				return false;
+			},
+			checkWin() {
+				// 检查是否所有格子都被填充
+				const filled = new Set();
+				this.paths.forEach(path => {
+					path.points.forEach(p => {
+						filled.add(`${p.row}-${p.col}`);
+					});
+				});
+
+				// 星星位置也算填充
+				this.stars.forEach(star => {
+					filled.add(`${star.row}-${star.col}`);
+				});
+
+				return filled.size === this.totalCells;
+			},
+			startDrawing(e) {
+				e.preventDefault();
+				const pos = this.getCellFromPos(e.clientX || e.touches[0].clientX, e.clientY || e.touches[0].clientY);
+				const star = this.getStarAt(pos.row, pos.col);
+
+				if (star) {
+					// 点击在星星格：若该格上有已画路径则先清除该路径，再从星星开始画
+					const pathIndex = this.getPathAt(pos.row, pos.col);
+					if (pathIndex >= 0) {
+						this.paths.splice(pathIndex, 1);
+						this.draw();
+						this.checkWinCondition();
+						return;
+					}
+					this.isDrawing = true;
+					this.currentPath = {
+						color: star.color,
+						startStar: star,
+						points: [{row: pos.row, col: pos.col}]
+					};
+					this.draw();
+					return;
+				}
+
+				// 未点在星上：允许从“某条线的终点格”续画（断线重连），整格有效
+				const endPath = this.getPathByEndPoint(pos.row, pos.col);
+				if (endPath) {
+					const path = endPath.path;
+					const startCell = path.points[0];
+					const startStar = this.getStarAt(startCell.row, startCell.col);
+					if (startStar) {
+						this.paths.splice(endPath.index, 1);
+						this.isDrawing = true;
+						this.currentPath = {
+							color: path.color,
+							startStar,
+							points: [...path.points]
+						};
+						this.draw();
+					}
+				}
+			},
+			drawPath(e) {
+				if (!this.isDrawing || !this.currentPath) return;
+
+				e.preventDefault();
+				const pos = this.getCellFromPos(e.clientX || e.touches[0].clientX, e.clientY || e.touches[0].clientY);
+
+				if (pos.row < 0 || pos.row >= this.gridSize || pos.col < 0 || pos.col >= this.gridSize) {
+					return;
+				}
+
+				const lastPoint = this.currentPath.points[this.currentPath.points.length - 1];
+				const newPoint = {row: pos.row, col: pos.col};
+				const newKey = `${newPoint.row}-${newPoint.col}`;
+				const lastKey = `${lastPoint.row}-${lastPoint.col}`;
+
+				if (lastKey === newKey) return;
+
+				const rowDiff = Math.abs(pos.row - lastPoint.row);
+				const colDiff = Math.abs(pos.col - lastPoint.col);
+				const isAdjacent = (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
+				if (!isAdjacent) return;
+
+				// 回退：拖到“上一格”表示取消刚走的那一步
+				const prev = this.currentPath.points[this.currentPath.points.length - 2];
+				if (prev && prev.row === newPoint.row && prev.col === newPoint.col) {
+					this.currentPath.points.pop();
+					this.draw();
+					return;
+				}
+
+				// 不能经过其他颜色的星星格
+				const starHere = this.getStarAt(newPoint.row, newPoint.col);
+				if (starHere && starHere.color !== this.currentPath.color) return;
+
+				// 同一根线不能重复经过任何格子（除回退外）
+				const alreadyInPath = this.currentPath.points.some(
+					p => p.row === newPoint.row && p.col === newPoint.col
+				);
+				if (alreadyInPath) return;
+
+				// 若该格已被其他颜色的路径占用，先截断该路径
+				this.truncatePathsAtCell(newPoint.row, newPoint.col, this.currentPath.color);
+				this.currentPath.points.push(newPoint);
+				this.draw();
+			},
+			endDrawing(e) {
+				if (!this.isDrawing || !this.currentPath) return;
+
+				e.preventDefault();
+				const pos = this.getCellFromPos(e.clientX || (e.changedTouches && e.changedTouches[0].clientX) || 0,
+					e.clientY || (e.changedTouches && e.changedTouches[0].clientY) || 0);
+				const endStar = this.getStarAt(pos.row, pos.col);
+				const lastPoint = this.currentPath.points[this.currentPath.points.length - 1];
+
+				// 允许“画到一半”：若松手在同色终点星上且相邻，则补上终点；否则不强制连到星
+				if (endStar && endStar.color === this.currentPath.color && (endStar.row !== this.currentPath.startStar.row || endStar.col !== this.currentPath.startStar.col)) {
+					if (lastPoint.row !== endStar.row || lastPoint.col !== endStar.col) {
+						const rowDiff = Math.abs(lastPoint.row - endStar.row);
+						const colDiff = Math.abs(lastPoint.col - endStar.col);
+						if ((rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1)) {
+							this.truncatePathsAtCell(endStar.row, endStar.col, this.currentPath.color);
+							this.currentPath.points.push({row: endStar.row, col: endStar.col});
+						}
+					}
+				}
+
+				// 至少要有两格（起点 + 至少一步）才保留
+				if (this.currentPath.points.length < 2) {
+					this.isDrawing = false;
+					this.currentPath = null;
+					this.draw();
+					return;
+				}
+
+				if (this.pathHasDuplicateCells(this.currentPath)) {
+					this.isDrawing = false;
+					this.currentPath = null;
+					this.draw();
+					return;
+				}
+
+				// 提交前按当前路径抢占的格子截断其他路径
+				this.truncateOtherPathsByPath(this.currentPath);
+
+				this.paths = this.paths.filter(p => p.color !== this.currentPath.color);
+				if (!this.checkPathCollision(this.currentPath)) {
+					this.paths.push({
+						color: this.currentPath.color,
+						points: [...this.currentPath.points]
+					});
+				}
+
+				this.isDrawing = false;
+				this.currentPath = null;
+				this.draw();
+				this.checkWinCondition();
+			},
+			checkWinCondition() {
+				if (this.checkWin()) {
+					this.gameWin = true;
+				}
+			},
+			draw() {
+				if (!this.ctx) return;
+
+				this.ctx.clearRect(0, 0, this.canvasSize, this.canvasSize);
+
+				// 绘制网格
+				this.ctx.strokeStyle = '#e0e0e0';
+				this.ctx.lineWidth = 1;
+				for (let i = 0; i <= this.gridSize; i++) {
+					const pos = i * this.cellSize;
+					this.ctx.beginPath();
+					this.ctx.moveTo(pos, 0);
+					this.ctx.lineTo(pos, this.canvasSize);
+					this.ctx.stroke();
+
+					this.ctx.beginPath();
+					this.ctx.moveTo(0, pos);
+					this.ctx.lineTo(this.canvasSize, pos);
+					this.ctx.stroke();
+				}
+
+				// 绘制已完成的路径
+				this.paths.forEach(path => {
+					this.drawPathLine(path, COLORS[path.color]);
+				});
+
+				// 绘制当前正在画的路径
+				if (this.currentPath) {
+					this.drawPathLine(this.currentPath, COLORS[this.currentPath.color], true);
+				}
+
+				// 绘制星星
+				this.stars.forEach(star => {
+					this.drawStar(star.row, star.col, COLORS[star.color]);
+				});
+			},
+			drawPathLine(path, color, isTemporary = false) {
+				if (path.points.length < 2) return;
+
+				this.ctx.strokeStyle = color;
+				this.ctx.lineWidth = isTemporary ? 3 : 4;
+				this.ctx.lineCap = 'round';
+				this.ctx.lineJoin = 'round';
+				if (isTemporary) {
+					this.ctx.setLineDash([5, 5]);
+				} else {
+					this.ctx.setLineDash([]);
+				}
+
+				this.ctx.beginPath();
+				const first = path.points[0];
+				this.ctx.moveTo((first.col + 0.5) * this.cellSize, (first.row + 0.5) * this.cellSize);
+
+				for (let i = 1; i < path.points.length; i++) {
+					const p = path.points[i];
+					this.ctx.lineTo((p.col + 0.5) * this.cellSize, (p.row + 0.5) * this.cellSize);
+				}
+
+				this.ctx.stroke();
+				this.ctx.setLineDash([]);
+
+				// 绘制路径上的点
+				path.points.forEach(p => {
+					this.ctx.fillStyle = color;
+					this.ctx.beginPath();
+					this.ctx.arc((p.col + 0.5) * this.cellSize, (p.row + 0.5) * this.cellSize, 4, 0, Math.PI * 2);
+					this.ctx.fill();
+				});
+			},
+			drawStar(row, col, color) {
+				const centerX = (col + 0.5) * this.cellSize;
+				const centerY = (row + 0.5) * this.cellSize;
+				const radius = this.cellSize * 0.25;
+
+				// 绘制五角星
+				this.ctx.fillStyle = color;
+				this.ctx.strokeStyle = '#fff';
+				this.ctx.lineWidth = 2;
+
+				this.ctx.beginPath();
+				for (let i = 0; i < 5; i++) {
+					const angle = (i * 4 * Math.PI / 5) - Math.PI / 2;
+					const x = centerX + radius * Math.cos(angle);
+					const y = centerY + radius * Math.sin(angle);
+					if (i === 0) {
+						this.ctx.moveTo(x, y);
+					} else {
+						this.ctx.lineTo(x, y);
+					}
+				}
+				this.ctx.closePath();
+				this.ctx.fill();
+				this.ctx.stroke();
+			},
+			onSettingsChange() {
+				this.gridSize = this.settings.gridSize;
+				this.newGame();
+			},
+			setupEventListeners() {
+				this.canvas.addEventListener('mousedown', this.startDrawing);
+				this.canvas.addEventListener('mousemove', this.drawPath);
+				this.canvas.addEventListener('mouseup', this.endDrawing);
+				this.canvas.addEventListener('mouseleave', this.endDrawing);
+
+				// 触摸事件
+				this.canvas.addEventListener('touchstart', this.startDrawing, {passive: false});
+				this.canvas.addEventListener('touchmove', this.drawPath, {passive: false});
+				this.canvas.addEventListener('touchend', this.endDrawing, {passive: false});
+				this.canvas.addEventListener('touchcancel', this.endDrawing, {passive: false});
+			},
+			removeEventListeners() {
+				if (!this.canvas) return;
+				this.canvas.removeEventListener('mousedown', this.startDrawing);
+				this.canvas.removeEventListener('mousemove', this.drawPath);
+				this.canvas.removeEventListener('mouseup', this.endDrawing);
+				this.canvas.removeEventListener('mouseleave', this.endDrawing);
+				this.canvas.removeEventListener('touchstart', this.startDrawing);
+				this.canvas.removeEventListener('touchmove', this.drawPath);
+				this.canvas.removeEventListener('touchend', this.endDrawing);
+				this.canvas.removeEventListener('touchcancel', this.endDrawing);
+			}
+		},
+		mounted() {
+			this.newGame();
+			this.$nextTick(() => {
+				this.setupEventListeners();
+			});
+		},
+		beforeUnmount() {
+			this.removeEventListeners();
+		}
+	})
+	.use(ElementPlus);
+	for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+		app.component(key, component);
+	}
+	app.mount('main>article');
+
+	const help = createApp({
+		data() {
+			return {
+				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname)
+			};
+		},
+		watch: {
+			introVisible(newValue) {
+				const storageKey = 'intro-hidden-' + window.location.pathname;
+				if (!newValue) {
+					localStorage.setItem(storageKey, 'true');
+				} else {
+					localStorage.removeItem(storageKey);
+				}
+			}
+		}
+	})
+	.use(ElementPlus)
+	.mount('.help.area');
+</script>
+
+<div class="ad-container">
+	<!-- 谷歌广告联盟 -->
+	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"
+			crossorigin="anonymous"></script>
+	<!-- 展示广告1 -->
+	<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true"
+		 data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
+	<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
+</body>
+</html>
