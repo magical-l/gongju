@@ -352,12 +352,14 @@
 
 				let onePath = this.generateWholeGridPath(this.gridSize);
 				onePath = this._shufflePathByReversals(onePath, this.gridSize);
-				const step = Math.floor(totalCells / colorCount);
+				// 随机分段：每段至少 2 格（两颗星），总长=totalCells，降低重复感
+				const segmentLengths = this._randomSegmentLengths(totalCells, colorCount);
 				const paths = [];
+				let idx = 0;
 				for (let i = 0; i < colorCount; i++) {
-					const startIdx = i * step;
-					const endIdx = i === colorCount - 1 ? totalCells : (i + 1) * step;
-					paths.push(onePath.slice(startIdx, endIdx));
+					const len = segmentLengths[i];
+					paths.push(onePath.slice(idx, idx + len));
+					idx += len;
 				}
 
 				this.stars = [];
@@ -394,6 +396,21 @@
 			},
 			_adjacent(a, b) {
 				return Math.abs(a.row - b.row) + Math.abs(a.col - b.col) === 1;
+			},
+			/** 随机分段长度：每段至少 2 格（两颗星），总和=total，用于降低重复感 */
+			_randomSegmentLengths(total, colorCount) {
+				if (colorCount <= 0 || total < 2 * colorCount) {
+					const step = Math.max(1, Math.floor(total / colorCount));
+					return Array(colorCount).fill(0).map((_, i) =>
+						i === colorCount - 1 ? total - (colorCount - 1) * step : step);
+				}
+				const lengths = Array(colorCount).fill(2);
+				let extra = total - 2 * colorCount;
+				while (extra > 0) {
+					lengths[Math.floor(Math.random() * colorCount)]++;
+					extra--;
+				}
+				return lengths;
 			},
 			/** 对路径做多次随机“段反转”，得到仍合法的哈密顿路径，大幅降低重复感 */
 			_shufflePathByReversals(path, size) {
