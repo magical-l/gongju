@@ -345,21 +345,17 @@
 				this.initCanvas();
 			},
 			generateLevel() {
-				// 保证可解：先生成一条覆盖整图的哈密顿路径，再按颜色数分段，每段头尾即为星星
 				this.gridSize = this.settings.gridSize;
 				const colorCount = this.settings.colorCount;
 				const totalCells = this.gridSize * this.gridSize;
+				let paths;
 
-				let onePath = this.generateWholeGridPath(this.gridSize);
-				onePath = this._shufflePathByReversals(onePath, this.gridSize);
-				// 随机分段：每段至少 2 格（两颗星），总长=totalCells，降低重复感
-				const segmentLengths = this._randomSegmentLengths(totalCells, colorCount);
-				const paths = [];
-				let idx = 0;
-				for (let i = 0; i < colorCount; i++) {
-					const len = segmentLengths[i];
-					paths.push(onePath.slice(idx, idx + len));
-					idx += len;
+				// 颜色数>格子边长时无法用「条纹+转移」，退回哈密顿分段
+				if (colorCount > this.gridSize) {
+					paths = this._generateByHamiltonian(this.gridSize, colorCount, totalCells);
+				} else {
+					// 条纹+端点转移：先按行均分，再随机缩短一条、把格子转给相邻线，得到多条独立线
+					paths = this._generateByStripeAndTransfer(this.gridSize, colorCount);
 				}
 
 				this.stars = [];
@@ -374,6 +370,76 @@
 					points: path.map(p => ({ row: p.row, col: p.col }))
 				}));
 				this.showAnswerOverlay = false;
+			},
+			/** 原方案：哈密顿路径 + 随机分段（颜色数>边长时使用） */
+			_generateByHamiltonian(size, colorCount, totalCells) {
+				let onePath = this.generateWholeGridPath(size);
+				onePath = this._shufflePathByReversals(onePath, size);
+				const segmentLengths = this._randomSegmentLengths(totalCells, colorCount);
+				const paths = [];
+				let idx = 0;
+				for (let i = 0; i < colorCount; i++) {
+					const len = segmentLengths[i];
+					paths.push(onePath.slice(idx, idx + len).map(p => ({ row: p.row, col: p.col })));
+					idx += len;
+				}
+				return paths;
+			},
+			/** 条纹+端点转移：先按行均分（线头在第一列/第一行，线平行），再随机把端点格转给相邻线 */
+			_generateByStripeAndTransfer(size, colorCount) {
+				const paths = this._initialStripePaths(size, colorCount);
+				this._shuffleByEndpointTransfers(paths, size, 60 + Math.floor(size * size / 10));
+				return paths;
+			},
+			/** 初始条纹：每种颜色一行（或最后一行多行蛇形），线头在第一列，互相平行 */
+			_initialStripePaths(size, colorCount) {
+				const paths = [];
+				for (let i = 0; i < colorCount; i++) {
+					const path = [];
+					if (i < colorCount - 1) {
+						// 每色一行：从左到右或从右到左
+						const r = i;
+						if (r % 2 === 0) for (let c = 0; c < size; c++) path.push({ row: r, col: c });
+						else for (let c = size - 1; c >= 0; c--) path.push({ row: r, col: c });
+					} else {
+						// 最后一色：占满剩余行，蛇形
+						for (let r = i; r < size; r++) {
+							if ((r - i) % 2 === 0) for (let c = 0; c < size; c++) path.push({ row: r, col: c });
+							else for (let c = size - 1; c >= 0; c--) path.push({ row: r, col: c });
+						}
+					}
+					paths.push(path);
+				}
+				return paths;
+			},
+			/** 多次随机「缩短一条线、把端点格转给相邻线」：只转端点且接收方端点与之相邻，保证仍是路径 */
+			_shuffleByEndpointTransfers(paths, size, trials) {
+				const n = paths.length;
+				for (let t = 0; t < trials; t++) {
+					const a = Math.floor(Math.random() * n);
+					if (paths[a].length <= 2) continue;
+					const head = paths[a][0];
+					const tail = paths[a][paths[a].length - 1];
+					const fromHead = Math.random() < 0.5;
+					const cell = fromHead ? head : tail;
+					for (let b = 0; b < n; b++) {
+						if (b === a) continue;
+						const bHead = paths[b][0];
+						const bTail = paths[b][paths[b].length - 1];
+						if (this._adjacent(cell, bHead)) {
+							if (fromHead) paths[a].shift();
+							else paths[a].pop();
+							paths[b].unshift(cell);
+							break;
+						}
+						if (this._adjacent(cell, bTail)) {
+							if (fromHead) paths[a].shift();
+							else paths[a].pop();
+							paths[b].push(cell);
+							break;
+						}
+					}
+				}
 			},
 			/** 生成一条覆盖整图的哈密顿路径（随机选形态 + 随机段反转打乱，保证可解） */
 			generateWholeGridPath(size) {
