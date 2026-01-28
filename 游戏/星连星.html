@@ -343,7 +343,8 @@
 				const colorCount = this.settings.colorCount;
 				const totalCells = this.gridSize * this.gridSize;
 
-				const onePath = this.generateWholeGridPath(this.gridSize);
+				let onePath = this.generateWholeGridPath(this.gridSize);
+				onePath = this._shufflePathByReversals(onePath, this.gridSize);
 				const step = Math.floor(totalCells / colorCount);
 				const paths = [];
 				for (let i = 0; i < colorCount; i++) {
@@ -360,18 +361,49 @@
 					}
 				});
 			},
-			/** 生成一条覆盖整图的哈密顿路径（随机选一种形态，保证可解） */
+			/** 生成一条覆盖整图的哈密顿路径（随机选形态 + 随机段反转打乱，保证可解） */
 			generateWholeGridPath(size) {
 				const variants = [
 					() => this._pathSnakeRow(size),
 					() => this._pathSnakeCol(size),
 					() => this._pathSnakeRowReversed(size),
 					() => this._pathSnakeColReversed(size),
+					() => this._pathSnakeFromTR(size),
+					() => this._pathSnakeFromBL(size),
+					() => this._pathSnakeFromBR(size),
 					() => this._pathSpiralIn(size),
-					() => this._pathSpiralOut(size)
+					() => this._pathSpiralOut(size),
+					() => this._pathSpiralFromTR(size),
+					() => this._pathSpiralFromBL(size),
+					() => this._pathSpiralFromBR(size)
 				];
 				const pick = variants[Math.floor(Math.random() * variants.length)];
 				return pick();
+			},
+			_adjacent(a, b) {
+				return Math.abs(a.row - b.row) + Math.abs(a.col - b.col) === 1;
+			},
+			/** 对路径做多次随机“段反转”，得到仍合法的哈密顿路径，大幅降低重复感 */
+			_shufflePathByReversals(path, size) {
+				const p = path.slice();
+				const n = p.length;
+				const trials = Math.min(8 + Math.floor(n / 5), 25);
+				for (let t = 0; t < trials; t++) {
+					let i = Math.floor(Math.random() * (n - 1)) + 1;
+					let j = Math.floor(Math.random() * (n - 1)) + 1;
+					if (i > j) { const tmp = i; i = j; j = tmp; }
+					if (i === j) continue;
+					const left = p[i - 1];
+					const right = p[j + 1];
+					if (!left || !right) continue;
+					if (!this._adjacent(left, p[j]) || !this._adjacent(p[i], right)) continue;
+					for (let a = i, b = j; a < b; a++, b--) {
+						const tmp = p[a];
+						p[a] = p[b];
+						p[b] = tmp;
+					}
+				}
+				return p;
 			},
 			_pathSnakeRow(size) {
 				const path = [];
@@ -405,6 +437,30 @@
 				}
 				return path;
 			},
+			_pathSnakeFromTR(size) {
+				const path = [];
+				for (let r = 0; r < size; r++) {
+					if (r % 2 === 0) for (let c = size - 1; c >= 0; c--) path.push({row: r, col: c});
+					else for (let c = 0; c < size; c++) path.push({row: r, col: c});
+				}
+				return path;
+			},
+			_pathSnakeFromBL(size) {
+				const path = [];
+				for (let r = size - 1; r >= 0; r--) {
+					if ((size - 1 - r) % 2 === 0) for (let c = 0; c < size; c++) path.push({row: r, col: c});
+					else for (let c = size - 1; c >= 0; c--) path.push({row: r, col: c});
+				}
+				return path;
+			},
+			_pathSnakeFromBR(size) {
+				const path = [];
+				for (let r = size - 1; r >= 0; r--) {
+					if ((size - 1 - r) % 2 === 0) for (let c = size - 1; c >= 0; c--) path.push({row: r, col: c});
+					else for (let c = 0; c < size; c++) path.push({row: r, col: c});
+				}
+				return path;
+			},
 			_pathSpiralIn(size) {
 				const path = [];
 				let r0 = 0, r1 = size - 1, c0 = 0, c1 = size - 1;
@@ -425,6 +481,60 @@
 			},
 			_pathSpiralOut(size) {
 				return this._pathSpiralIn(size).slice().reverse();
+			},
+			_pathSpiralFromTR(size) {
+				const path = [];
+				let r0 = 0, r1 = size - 1, c0 = 0, c1 = size - 1;
+				while (r0 <= r1 && c0 <= c1) {
+					for (let c = c1; c >= c0; c--) path.push({row: r0, col: c});
+					r0++;
+					if (r0 > r1) break;
+					for (let r = r0; r <= r1; r++) path.push({row: r, col: c0});
+					c0++;
+					if (c0 > c1) break;
+					for (let c = c0; c <= c1; c++) path.push({row: r1, col: c});
+					r1--;
+					if (r0 > r1) break;
+					for (let r = r1; r >= r0; r--) path.push({row: r, col: c1});
+					c1--;
+				}
+				return path;
+			},
+			_pathSpiralFromBL(size) {
+				const path = [];
+				let r0 = 0, r1 = size - 1, c0 = 0, c1 = size - 1;
+				while (r0 <= r1 && c0 <= c1) {
+					for (let c = c0; c <= c1; c++) path.push({row: r1, col: c});
+					r1--;
+					if (r0 > r1) break;
+					for (let r = r1; r >= r0; r--) path.push({row: r, col: c1});
+					c1--;
+					if (c0 > c1) break;
+					for (let c = c1; c >= c0; c--) path.push({row: r0, col: c});
+					r0++;
+					if (r0 > r1) break;
+					for (let r = r0; r <= r1; r++) path.push({row: r, col: c0});
+					c0++;
+				}
+				return path;
+			},
+			_pathSpiralFromBR(size) {
+				const path = [];
+				let r0 = 0, r1 = size - 1, c0 = 0, c1 = size - 1;
+				while (r0 <= r1 && c0 <= c1) {
+					for (let c = c1; c >= c0; c--) path.push({row: r1, col: c});
+					r1--;
+					if (r0 > r1) break;
+					for (let r = r1; r >= r0; r--) path.push({row: r, col: c0});
+					c0++;
+					if (c0 > c1) break;
+					for (let c = c0; c <= c1; c++) path.push({row: r0, col: c});
+					r0++;
+					if (r0 > r1) break;
+					for (let r = r0; r <= r1; r++) path.push({row: r, col: c1});
+					c1--;
+				}
+				return path;
 			},
 			generatePaths(size, colorCount) {
 				// 改进的生成算法：使用区域分割 + 哈密顿路径生成
@@ -823,19 +933,13 @@
 				return false;
 			},
 			checkWin() {
-				// 检查是否所有格子都被填充
+				// 过关条件：所有格子都被某条路径覆盖；只算路径上的格，不单独算星星（同色星相邻未连线则星格未覆盖）
 				const filled = new Set();
 				this.paths.forEach(path => {
 					path.points.forEach(p => {
 						filled.add(`${p.row}-${p.col}`);
 					});
 				});
-
-				// 星星位置也算填充
-				this.stars.forEach(star => {
-					filled.add(`${star.row}-${star.col}`);
-				});
-
 				return filled.size === this.totalCells;
 			},
 			startDrawing(e) {
@@ -1119,8 +1223,7 @@
 				this.ctx.stroke();
 			},
 			onSettingsChange() {
-				this.gridSize = this.settings.gridSize;
-				// 不自动开局，用户点「新开」时再按当前设置生成
+				// 不自动开局、也不改当前局用的格子数，比例按本局实际 gridSize 算；用户点「新开」时再按当前设置生成
 			},
 			setupEventListeners() {
 				this.canvas.addEventListener('mousedown', this.startDrawing);
