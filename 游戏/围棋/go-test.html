@@ -16,8 +16,46 @@
     import { Go } from './go.esm.js';
     import { 棋盘点位 } from '../battlefield-module.esm.js';
 
+    // 捕获模块导入错误
+    window.addEventListener('error', function(event) {
+      console.error('模块错误:', event.error);
+      console.error('错误堆栈:', event.error?.stack);
+    });
+
     // 确保 QUnit 已加载
     if (typeof QUnit !== 'undefined') {
+      // 捕获未处理的错误
+      window.addEventListener('error', function(event) {
+        console.error('未捕获的错误:', event.error);
+        console.error('错误堆栈:', event.error?.stack);
+      });
+      window.addEventListener('unhandledrejection', function(event) {
+        console.error('未处理的Promise拒绝:', event.reason);
+        console.error('拒绝堆栈:', event.reason?.stack);
+      });
+      
+      // 添加测试开始和结束的回调来调试
+      QUnit.begin(function() {
+        console.log('[TEST] 测试开始');
+      });
+      
+      QUnit.moduleStart(function(moduleName) {
+        console.log('[TEST] 模块开始:', moduleName);
+      });
+      
+      QUnit.testStart(function(testName) {
+        console.log('[TEST] 测试开始:', testName);
+      });
+      
+      QUnit.testDone(function(details) {
+        console.log('[TEST] 测试完成:', details.name, '通过:', details.passed, '失败:', details.failed);
+      });
+      
+      QUnit.moduleDone(function(moduleName, details) {
+        // details 可能不包含 passed/failed/total，只记录模块名
+        console.log('[TEST] 模块完成:', moduleName);
+      });
+      
       // 添加测试完成后的回调
       QUnit.done(function(details) {
         console.log("测试完成:", details);
@@ -162,9 +200,22 @@
             p(11, 12)  // 白围黑2
           ], 30);
 
+          // 验证两个黑子确实存在
+          assert.equal(bf.getUnitsAt(p(10,10)).length, 1, "黑1应存在");
+          assert.equal(bf.getUnitsAt(p(10,12)).length, 1, "黑2应存在");
+          
+          // 检查黑1和黑2的气（在落子前，它们应该还有1口气，即(10,11)）
+          const {liberties: libs1} = gaming.getGroupAndLiberties(p(10, 10));
+          const {liberties: libs2} = gaming.getGroupAndLiberties(p(10, 12));
+          assert.ok(libs1.size === 1, "黑1应有1口气（即(10,11)）");
+          assert.ok(libs2.size === 1, "黑2应有1口气（即(10,11)）");
+
           const countBefore = captureCount;
           // 白在(10,11)落子，同时提掉黑1和黑2
-          await executeMoves(gaming, [{pos: p(10, 11), delay: 50}]);
+          await executeMoves(gaming, [{pos: p(10, 11), delay: 100}]);
+          
+          // 等待提子操作完成
+          await new Promise(resolve => setTimeout(resolve, 100));
 
           assert.ok(captureCount >= countBefore + 2, "应同时提掉至少2个棋子");
           assert.equal(bf.getUnitsAt(p(10,10)).length, 0, "黑1应被提");
