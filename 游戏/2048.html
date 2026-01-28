@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2048游戏 | 在线经典益智游戏</title>
+<meta name="description" content="在线玩经典的2048游戏。通过滑动合并相同数字的方块，挑战达到2048或更高分数。">
+<meta name="keywords" content="2048, 益智游戏, 在线游戏, 经典游戏, 休闲游戏, 数字游戏">
+<meta name="author" content="工具兽">
+<meta property="og:title" content="2048游戏 | 在线经典益智游戏">
+<meta property="og:description" content="在线玩经典的2048游戏。通过滑动合并相同数字的方块，挑战达到2048或更高分数。">
+<meta property="og:type" content="game">
+
+<link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
+<link href="../resources/el-plus.css" rel="stylesheet">
+<link href="../resources/common.css?v=250821" rel="stylesheet">
+<link href="../resources/layout.css?v=0821" rel="stylesheet">
+<link href="../resources/biz.css?v=250821" rel="stylesheet">
+<link href="../resources/花活.css?v=250821" rel="stylesheet">
+<style>
+	.gaming.area {
+		margin-top: 20px;
+		gap: var(--gap);
+		align-items: start;
+	}
+
+	#game-board-container {
+		position: relative;
+		background-color: #bbada0;
+		border-radius: 10px;
+		padding: 15px;
+		box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+		display: inline-block;
+	}
+
+	#game-board {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		grid-template-rows: repeat(4, 1fr);
+		gap: 10px;
+		width: 400px;
+		height: 400px;
+	}
+
+	.game-cell {
+		background-color: #cdc1b4;
+		border-radius: 5px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 2.5rem;
+		font-weight: bold;
+		color: #776e65;
+		transition: all 0.15s ease-in-out;
+	}
+
+	.game-cell.has-value {
+		background-color: #eee4da;
+		color: #776e65;
+	}
+
+	.game-cell.tile-2 { background-color: #eee4da; color: #776e65; }
+	.game-cell.tile-4 { background-color: #ede0c8; color: #776e65; }
+	.game-cell.tile-8 { background-color: #f2b179; color: #f9f6f2; }
+	.game-cell.tile-16 { background-color: #f59563; color: #f9f6f2; }
+	.game-cell.tile-32 { background-color: #f67c5f; color: #f9f6f2; }
+	.game-cell.tile-64 { background-color: #f65e3b; color: #f9f6f2; }
+	.game-cell.tile-128 { background-color: #edcf72; color: #f9f6f2; font-size: 2rem; }
+	.game-cell.tile-256 { background-color: #edcc61; color: #f9f6f2; font-size: 2rem; }
+	.game-cell.tile-512 { background-color: #edc850; color: #f9f6f2; font-size: 2rem; }
+	.game-cell.tile-1024 { background-color: #edc53f; color: #f9f6f2; font-size: 1.75rem; }
+	.game-cell.tile-2048 { background-color: #edc22e; color: #f9f6f2; font-size: 1.75rem; }
+	.game-cell.tile-super { background-color: #3c3a32; color: #f9f6f2; font-size: 1.5rem; }
+
+	.score-item {
+		margin: 15px 0;
+		font-size: 1.2rem;
+		font-weight: bold;
+		color: #4a4a4a;
+	}
+
+	.one.setting {margin-bottom: 0;}
+
+	#game-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background: rgba(238, 228, 218, 0.9);
+		border-radius: 10px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		font-size: 2rem;
+		font-weight: bold;
+		color: #776e65;
+		z-index: 10;
+	}
+
+	#game-overlay.hidden {
+		display: none;
+	}
+
+	@media (max-width: 600px) {
+		#game-board {
+			width: 300px;
+			height: 300px;
+		}
+		.game-cell {
+			font-size: 1.8rem;
+		}
+		.game-cell.tile-128,
+		.game-cell.tile-256,
+		.game-cell.tile-512 {
+			font-size: 1.5rem;
+		}
+		.game-cell.tile-1024,
+		.game-cell.tile-2048 {
+			font-size: 1.25rem;
+		}
+		.game-cell.tile-super {
+			font-size: 1rem;
+		}
+	}
+</style>
+</head>
+<body class="grid 反叵字形">
+<header>
+	<h1 class="website name" title="工具人（gongju.ren）域名太贵买不起">工具兽</h1>
+	<nav>
+		<a href="../文本转化.html">文本转化</a>
+		<a href="../数字转化.html">数字转化</a>
+		<a href="../符号/符号.html">符号</a>
+		<a href="../格子盘.html">格子盘</a>
+		<a href="../svg转图标.html">SVG转图标</a>
+		<a href="../化学/元素周期表.html">元素周期表</a>
+		<a href="../拼音/拼音.html">拼音</a>
+		<a href="中国象棋/中国象棋.html">中国象棋</a>
+		<a href="俄罗斯方块.html">俄罗斯方块</a>
+		<a href="贪吃蛇.html">贪吃蛇</a>
+		<a href="2048.html" class="active">2048</a>
+		<a href="点灯.html">点灯</a>
+	</nav>
+</header>
+<main>
+	<header>
+		<h2 class="game name">2048游戏</h2>
+		<div class="page-lv help area" v-cloak>
+			<el-button class="page-lv help btn" title="游戏介绍" @click="introVisible = true" size="small" circle>?
+			</el-button>
+			<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
+				<p>欢迎来到"2048"游戏，这是一款经典的益智数字游戏。</p>
+				<p>使用键盘的<strong>方向键 (↑, ↓, ←, →)</strong> 来移动所有方块。当两个相同数字的方块碰撞时，它们会合并成一个数字翻倍的方块。</p>
+				<p>每次移动后，会在空白位置随机出现一个新的方块（数字为2或4）。</p>
+				<p>游戏的目标是合并方块，最终达到<strong>2048</strong>或更高的数字！</p>
+				<p>当棋盘填满且无法继续移动时，游戏结束。</p>
+				<p>祝您玩得愉快，挑战更高的分数！</p>
+			</el-dialog>
+		</div>
+	</header>
+
+	<article class="gaming area , 反叵字形 grid" v-cloak>
+		<header class="toolbar , flex near-center">
+			<section class="controller list area">
+				<el-button class="one controller : restart" @click="initGame" icon="RefreshRight" size="large">
+					重新开始
+				</el-button>
+			</section>
+		</header>
+
+		<article class="gaming area , 反叵字形 grid">
+			<article class="main map area , one-row item , flex items-near-center-x">
+				<div id="game-board-container">
+					<div id="game-board">
+						<div v-for="(cell, index) in board" :key="index" 
+							 :class="['game-cell', cell ? `tile-${cell}` : '', cell ? 'has-value' : '']">
+							{{ cell || '' }}
+						</div>
+					</div>
+					<div id="game-overlay" :class="{ hidden: !gameOver }">
+						<div>游戏结束！</div>
+						<div style="font-size: 1.2rem; margin-top: 10px;">最终得分: {{ score }}</div>
+						<el-button @click="initGame" type="primary" style="margin-top: 20px;">再玩一次</el-button>
+					</div>
+				</div>
+			</article>
+		</article>
+
+		<article class="gaming-situation , right-sidebar">
+			<el-card header="记分牌" class="scoreboard section">
+				<p class="score-item">当前分数: <span>{{ score }}</span></p>
+				<p class="score-item">最高分: <span>{{ highScore }}</span></p>
+				<p class="score-item">目标: 2048</p>
+			</el-card>
+			<el-card header="快捷键" class="shortcut intro section">
+				<p>↑ ↓ → ← ：移动方块</p>
+				<p>相同数字的方块会合并</p>
+			</el-card>
+		</article>
+	</article>
+</main>
+
+<aside class="right-sidebar">
+	<article class="website info">
+		<section class="patronage area">
+			<img class="qr-code" src="../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+			<p class="slogan">赞助一下</p>
+		</section>
+		<section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
+		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+		</section>
+	</article>
+</aside>
+
+<div class="js container">
+	<script src="../lib/vue/3.5.18/vue.global.js"></script>
+	<script src="../lib/element-plus/2.10.7/index.full.js"></script>
+	<script src="../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
+</div>
+<script>
+	const {createApp} = Vue;
+
+	const app = createApp({
+		data() {
+			return {
+				board: Array(16).fill(0),
+				score: 0,
+				highScore: parseInt(localStorage.getItem('2048-high-score') || '0'),
+				gameOver: false
+			};
+		},
+		methods: {
+			initGame() {
+				this.board = Array(16).fill(0);
+				this.score = 0;
+				this.gameOver = false;
+				this.addRandomTile();
+				this.addRandomTile();
+			},
+			addRandomTile() {
+				const emptyCells = [];
+				for (let i = 0; i < 16; i++) {
+					if (this.board[i] === 0) {
+						emptyCells.push(i);
+					}
+				}
+				if (emptyCells.length === 0) {
+					return;
+				}
+				const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+				this.board[randomIndex] = Math.random() < 0.9 ? 2 : 4;
+			},
+			move(direction) {
+				if (this.gameOver) {
+					return;
+				}
+
+				const oldBoard = [...this.board];
+				let moved = false;
+
+				if (direction === 'left') {
+					moved = this.moveLeft();
+				} else if (direction === 'right') {
+					moved = this.moveRight();
+				} else if (direction === 'up') {
+					moved = this.moveUp();
+				} else if (direction === 'down') {
+					moved = this.moveDown();
+				}
+
+				if (moved) {
+					this.addRandomTile();
+					if (this.checkGameOver()) {
+						this.gameOver = true;
+					}
+				}
+			},
+			moveLeft() {
+				let moved = false;
+				for (let row = 0; row < 4; row++) {
+					const line = [];
+					for (let col = 0; col < 4; col++) {
+						line.push(this.board[row * 4 + col]);
+					}
+					const merged = this.mergeLine(line);
+					for (let col = 0; col < 4; col++) {
+						const newValue = merged[col];
+						const oldValue = this.board[row * 4 + col];
+						if (newValue !== oldValue) {
+							moved = true;
+						}
+						this.board[row * 4 + col] = newValue;
+					}
+				}
+				return moved;
+			},
+			moveRight() {
+				let moved = false;
+				for (let row = 0; row < 4; row++) {
+					const line = [];
+					for (let col = 3; col >= 0; col--) {
+						line.push(this.board[row * 4 + col]);
+					}
+					const merged = this.mergeLine(line);
+					for (let col = 0; col < 4; col++) {
+						const newValue = merged[3 - col];
+						const oldValue = this.board[row * 4 + col];
+						if (newValue !== oldValue) {
+							moved = true;
+						}
+						this.board[row * 4 + col] = newValue;
+					}
+				}
+				return moved;
+			},
+			moveUp() {
+				let moved = false;
+				for (let col = 0; col < 4; col++) {
+					const line = [];
+					for (let row = 0; row < 4; row++) {
+						line.push(this.board[row * 4 + col]);
+					}
+					const merged = this.mergeLine(line);
+					for (let row = 0; row < 4; row++) {
+						const newValue = merged[row];
+						const oldValue = this.board[row * 4 + col];
+						if (newValue !== oldValue) {
+							moved = true;
+						}
+						this.board[row * 4 + col] = newValue;
+					}
+				}
+				return moved;
+			},
+			moveDown() {
+				let moved = false;
+				for (let col = 0; col < 4; col++) {
+					const line = [];
+					for (let row = 3; row >= 0; row--) {
+						line.push(this.board[row * 4 + col]);
+					}
+					const merged = this.mergeLine(line);
+					for (let row = 0; row < 4; row++) {
+						const newValue = merged[3 - row];
+						const oldValue = this.board[row * 4 + col];
+						if (newValue !== oldValue) {
+							moved = true;
+						}
+						this.board[row * 4 + col] = newValue;
+					}
+				}
+				return moved;
+			},
+			mergeLine(line) {
+				// 移除零
+				let filtered = line.filter(val => val !== 0);
+				// 合并相同数字
+				for (let i = 0; i < filtered.length - 1; i++) {
+					if (filtered[i] === filtered[i + 1]) {
+						filtered[i] *= 2;
+						this.score += filtered[i];
+						filtered[i + 1] = 0;
+					}
+				}
+				// 再次移除零
+				filtered = filtered.filter(val => val !== 0);
+				// 填充到4个元素
+				while (filtered.length < 4) {
+					filtered.push(0);
+				}
+				return filtered;
+			},
+			checkGameOver() {
+				// 检查是否有空格
+				for (let i = 0; i < 16; i++) {
+					if (this.board[i] === 0) {
+						return false;
+					}
+				}
+				// 检查是否可以合并
+				for (let row = 0; row < 4; row++) {
+					for (let col = 0; col < 4; col++) {
+						const current = this.board[row * 4 + col];
+						// 检查右边
+						if (col < 3 && this.board[row * 4 + col + 1] === current) {
+							return false;
+						}
+						// 检查下边
+						if (row < 3 && this.board[(row + 1) * 4 + col] === current) {
+							return false;
+						}
+					}
+				}
+				return true;
+			},
+			handleKeydown(e) {
+				if (this.gameOver && e.key !== 'ArrowUp' && e.key !== 'ArrowDown' && 
+						e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') {
+					return;
+				}
+
+				if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+					e.preventDefault();
+					let direction = '';
+					switch (e.key) {
+						case 'ArrowLeft':
+							direction = 'left';
+							break;
+						case 'ArrowRight':
+							direction = 'right';
+							break;
+						case 'ArrowUp':
+							direction = 'up';
+							break;
+						case 'ArrowDown':
+							direction = 'down';
+							break;
+					}
+					this.move(direction);
+				}
+			}
+		},
+		watch: {
+			score(newScore) {
+				if (newScore > this.highScore) {
+					this.highScore = newScore;
+					localStorage.setItem('2048-high-score', newScore);
+				}
+			}
+		},
+		mounted() {
+			this.initGame();
+			window.addEventListener('keydown', this.handleKeydown);
+		},
+		beforeUnmount() {
+			window.removeEventListener('keydown', this.handleKeydown);
+		}
+	})
+	.use(ElementPlus);
+	for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+		app.component(key, component);
+	}
+	app.mount('main>article');
+
+	const help = createApp({
+		data() {
+			return {
+				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname)
+			};
+		},
+		watch: {
+			introVisible(newValue) {
+				const storageKey = 'intro-hidden-' + window.location.pathname;
+				if (!newValue) {
+					localStorage.setItem(storageKey, 'true');
+				} else {
+					localStorage.removeItem(storageKey);
+				}
+			}
+		}
+	})
+	.use(ElementPlus)
+	.mount('.help.area');
+</script>
+
+<div class="ad-container">
+	<!-- 谷歌广告联盟 -->
+	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"
+				crossorigin="anonymous"></script>
+	<!-- 展示广告1 -->
+	<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true"
+		 data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
+	<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
+</body>
+</html>
