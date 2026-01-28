@@ -216,20 +216,30 @@ class GoGame extends BattlefieldBasedGaming {
 		const group = new Set([key(startPos)]);
 		const liberties = new Set();
 		const queue = [startPos];
+		const visited = new Set(); // 记录已访问的棋子位置
 
 		while (queue.length) {
 			const cur = queue.pop();
+			const curKey = key(cur);
+			if (visited.has(curKey)) {
+				continue; // 如果已经访问过，跳过
+			}
+			visited.add(curKey);
+			
 			for (const nb of this.neighborsOf(cur)) {
+				const nbKey = key(nb);
 				const nbUnit = this.unitAt(nb);
 				if (!nbUnit) {
-					liberties.add(key(nb));
+					// 空点：加入气
+					liberties.add(nbKey);
 				} else if (nbUnit.owner?.team?.id === startOwner?.team?.id) {
-					const k = key(nb);
-					if (!group.has(k)) {
-						group.add(k);
+					// 同色棋子：加入连通块，继续遍历
+					if (!group.has(nbKey)) {
+						group.add(nbKey);
 						queue.push(nb);
 					}
 				}
+				// 异色棋子：不做处理（既不加入气，也不加入连通块）
 			}
 		}
 		return {group, liberties};

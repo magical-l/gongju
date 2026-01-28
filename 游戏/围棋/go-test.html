@@ -195,20 +195,41 @@
             p(19, 19), // 黑
             p(11, 10), // 白围黑1
             p(19, 18), // 黑
-            p(9, 12),  // 白围黑2
+            p(10, 9),  // 白围黑1（让黑1只剩1口气）
             p(19, 17), // 黑
-            p(11, 12)  // 白围黑2
-          ], 30);
+            p(9, 12),  // 白围黑2
+            p(19, 16), // 黑
+            p(11, 12), // 白围黑2
+            p(19, 15), // 黑
+            {pos: p(10, 13), delay: 50}  // 白围黑2（让黑2只剩1口气）
+          ], 50);
 
+          // 等待所有落子完成
+          await new Promise(resolve => setTimeout(resolve, 200));
+          
           // 验证两个黑子确实存在
           assert.equal(bf.getUnitsAt(p(10,10)).length, 1, "黑1应存在");
           assert.equal(bf.getUnitsAt(p(10,12)).length, 1, "黑2应存在");
           
+          // 验证围住黑1的白子都已落下
+          assert.equal(bf.getUnitsAt(p(9,10)).length, 1, "白(9,10)应存在");
+          assert.equal(bf.getUnitsAt(p(11,10)).length, 1, "白(11,10)应存在");
+          assert.equal(bf.getUnitsAt(p(10,9)).length, 1, "白(10,9)应存在");
+          // 验证围住黑2的白子都已落下
+          assert.equal(bf.getUnitsAt(p(9,12)).length, 1, "白(9,12)应存在");
+          assert.equal(bf.getUnitsAt(p(11,12)).length, 1, "白(11,12)应存在");
+          assert.equal(bf.getUnitsAt(p(10,13)).length, 1, "白(10,13)应存在");
+          // 验证(10,11)是空的
+          assert.equal(bf.getUnitsAt(p(10,11)).length, 0, "(10,11)应为空");
+          
           // 检查黑1和黑2的气（在落子前，它们应该还有1口气，即(10,11)）
           const {liberties: libs1} = gaming.getGroupAndLiberties(p(10, 10));
           const {liberties: libs2} = gaming.getGroupAndLiberties(p(10, 12));
-          assert.ok(libs1.size === 1, "黑1应有1口气（即(10,11)）");
-          assert.ok(libs2.size === 1, "黑2应有1口气（即(10,11)）");
+          // 调试：输出实际的气
+          console.log('黑1的气:', Array.from(libs1));
+          console.log('黑2的气:', Array.from(libs2));
+          assert.ok(libs1.size === 1, `黑1应有1口气（即(10,11)），实际有${libs1.size}口气：${Array.from(libs1).join(',')}`);
+          assert.ok(libs2.size === 1, `黑2应有1口气（即(10,11)），实际有${libs2.size}口气：${Array.from(libs2).join(',')}`);
 
           const countBefore = captureCount;
           // 白在(10,11)落子，同时提掉黑1和黑2
