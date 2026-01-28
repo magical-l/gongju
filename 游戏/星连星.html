@@ -195,15 +195,13 @@
 							<el-option label="8" :value="8"></el-option>
 						</el-select>
 					</el-form-item>
+					<el-form-item class="one setting group">
+						<el-button @click="newGame" icon="Plus" size="small">新开</el-button>
+					</el-form-item>
+					<el-form-item class="one setting group">
+						<el-button @click="restartCurrentGame" icon="RefreshRight" size="small">重来</el-button>
+					</el-form-item>
 				</el-form>
-			</section>
-			<section class="controller list area">
-				<el-button class="one controller : restart" @click="restartCurrentGame" icon="RefreshRight" size="small">
-					重开本局
-				</el-button>
-				<el-button class="one controller" @click="newGame" icon="Plus" size="small">
-					新开一局
-				</el-button>
 			</section>
 		</header>
 
@@ -217,7 +215,7 @@
 							本局完成！
 						</div>
 						<el-button @click="newGame" type="primary" style="margin-top: 20px;">
-							新开一局
+							新开
 						</el-button>
 					</div>
 				</div>
@@ -236,8 +234,8 @@
 				</div>
 			</el-card>
 			<el-card header="操作提示" class="shortcut intro section">
-				<p>在星星格或线头格按下即可开始/续画（整格有效）</p>
-				<p>可画到一半松手，也可连到同色星</p>
+				<p>在星星格或已有线的任意一格按下即可开始/续画</p>
+				<p>可画到一半松手，也可连到同色星（连到同色星后不能穿过该星再走）</p>
 				<p>拖回上一格可回退一步</p>
 				<p>不能经过其他颜色的星格；抢占他色格时他色线自动收缩</p>
 				<p>所有格子填满即通关</p>
@@ -321,7 +319,7 @@
 				this.cellSize = this.canvasSize / this.gridSize;
 				this.draw();
 			},
-			/** 重开本局：清空所有连线，星星不变 */
+			/** 重来：清空所有连线，星星不变 */
 			restartCurrentGame() {
 				this.gameWin = false;
 				this.paths = [];
@@ -666,6 +664,13 @@
 			getStarAt(row, col) {
 				return this.stars.find(s => s.row === row && s.col === col);
 			},
+			/** (row,col) 是否为同色的“另一颗星”（非起点星） */
+			isOtherStar(row, col, currentPath) {
+				const star = this.getStarAt(row, col);
+				if (!star || star.color !== currentPath.color) return false;
+				const start = currentPath.startStar;
+				return star.row !== start.row || star.col !== start.col;
+			},
 			getPathAt(row, col) {
 				for (let i = 0; i < this.paths.length; i++) {
 					const path = this.paths[i];
@@ -675,14 +680,24 @@
 				}
 				return -1;
 			},
-			/** 返回终点为 (row,col) 的路径（用于从格子续画/重连），无则返回 null */
-			getPathByEndPoint(row, col) {
+			/** 返回路径中某格所在路径及下标（任意一格都可从此续画），无则返回 null */
+			getPathByCell(row, col) {
 				for (let i = 0; i < this.paths.length; i++) {
 					const path = this.paths[i];
-					const last = path.points[path.points.length - 1];
-					if (last && last.row === row && last.col === col) return { index: i, path };
+					const idx = path.points.findIndex(p => p.row === row && p.col === col);
+					if (idx >= 0) return { index: i, path, cellIndex: idx };
 				}
 				return null;
+			},
+			/** 路径是否已从起点星连到终点星（同色两根星都作为端点） */
+			pathIsComplete(path) {
+				if (!path.points || path.points.length < 2) return false;
+				const first = path.points[0];
+				const last = path.points[path.points.length - 1];
+				const starFirst = this.getStarAt(first.row, first.col);
+				const starLast = this.getStarAt(last.row, last.col);
+				return starFirst && starLast && starFirst.color === path.color && starLast.color === path.color &&
+					(starFirst.row !== starLast.row || starFirst.col !== starLast.col);
 			},
 			canConnect(startStar, endStar) {
 				if (!startStar || !endStar) return false;
@@ -780,12 +795,35 @@
 				const star = this.getStarAt(pos.row, pos.col);
 
 				if (star) {
-					// 点击在星星格：若该格上有已画路径则先清除该路径，再从星星开始画
-					const pathIndex = this.getPathAt(pos.row, pos.col);
-					if (pathIndex >= 0) {
-						this.paths.splice(pathIndex, 1);
-						this.draw();
-						this.checkWinCondition();
+					const onPath = this.getPathByCell(pos.row, pos.col);
+					if (onPath) {
+						const path = onPath.path;
+						const idx = onPath.cellIndex;
+						// 特殊：若该颜色已从 a 连到 b，从 b 开始视为以 b 为起点的新线，不修改 a→b 的终点部分
+						if (this.pathIsComplete(path) && idx === path.points.length - 1) {
+							this.paths.splice(onPath.index, 1);
+							this.isDrawing = true;
+							this.currentPath = {
+								color: path.color,
+								startStar: star,
+								points: [{row: pos.row, col: pos.col}]
+							};
+							this.draw();
+							return;
+						}
+						const truncated = path.points.slice(0, idx + 1);
+						const startCell = truncated[0];
+						const startStar = this.getStarAt(startCell.row, startCell.col);
+						if (startStar) {
+							this.paths.splice(onPath.index, 1);
+							this.isDrawing = true;
+							this.currentPath = {
+								color: path.color,
+								startStar,
+								points: truncated
+							};
+							this.draw();
+						}
 						return;
 					}
 					this.isDrawing = true;
@@ -798,19 +836,21 @@
 					return;
 				}
 
-				// 未点在星上：允许从“某条线的终点格”续画（断线重连），整格有效
-				const endPath = this.getPathByEndPoint(pos.row, pos.col);
-				if (endPath) {
-					const path = endPath.path;
-					const startCell = path.points[0];
+				// 未点在星上：允许从已有线的任意一格续画（截断到该格，从该格继续画）
+				const onPath = this.getPathByCell(pos.row, pos.col);
+				if (onPath) {
+					const path = onPath.path;
+					const idx = onPath.cellIndex;
+					const truncated = path.points.slice(0, idx + 1);
+					const startCell = truncated[0];
 					const startStar = this.getStarAt(startCell.row, startCell.col);
 					if (startStar) {
-						this.paths.splice(endPath.index, 1);
+						this.paths.splice(onPath.index, 1);
 						this.isDrawing = true;
 						this.currentPath = {
 							color: path.color,
 							startStar,
-							points: [...path.points]
+							points: truncated
 						};
 						this.draw();
 					}
@@ -838,9 +878,21 @@
 				const isAdjacent = (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
 				if (!isAdjacent) return;
 
-				// 回退：拖到“上一格”表示取消刚走的那一步
 				const prev = this.currentPath.points[this.currentPath.points.length - 2];
-				if (prev && prev.row === newPoint.row && prev.col === newPoint.col) {
+				const isBacktrack = prev && prev.row === newPoint.row && prev.col === newPoint.col;
+
+				// 若路径已停在“另一颗同色星”上，则不能穿过该星再往前走，只允许回退
+				const lastIsOtherStar = this.currentPath.points.length >= 2 && this.isOtherStar(lastPoint.row, lastPoint.col, this.currentPath);
+				if (lastIsOtherStar) {
+					if (isBacktrack) {
+						this.currentPath.points.pop();
+						this.draw();
+					}
+					return;
+				}
+
+				// 回退：拖到上一格表示取消刚走的那一步
+				if (isBacktrack) {
 					this.currentPath.points.pop();
 					this.draw();
 					return;
@@ -850,14 +902,19 @@
 				const starHere = this.getStarAt(newPoint.row, newPoint.col);
 				if (starHere && starHere.color !== this.currentPath.color) return;
 
+				// 同色星不能“穿过”：只能作为终点停下；若新格是同色星则必须是“另一颗”（终点星），不能是起点星（起点星算重复格）
+				if (starHere && starHere.color === this.currentPath.color) {
+					const isOther = this.isOtherStar(newPoint.row, newPoint.col, this.currentPath);
+					if (!isOther) return; // 同色起点星不能作为新格加入（即不能绕回起点再往前，由 alreadyInPath 也会挡）
+				}
+
 				// 同一根线不能重复经过任何格子（除回退外）
 				const alreadyInPath = this.currentPath.points.some(
 					p => p.row === newPoint.row && p.col === newPoint.col
 				);
 				if (alreadyInPath) return;
 
-				// 若该格已被其他颜色的路径占用，先截断该路径
-				this.truncatePathsAtCell(newPoint.row, newPoint.col, this.currentPath.color);
+				// 画线过程中不截断其他线，只有松手提交时才截断，避免“抢了又改线”导致线 b 被误改
 				this.currentPath.points.push(newPoint);
 				this.draw();
 			},
@@ -1014,7 +1071,7 @@
 			},
 			onSettingsChange() {
 				this.gridSize = this.settings.gridSize;
-				this.newGame();
+				// 不自动开局，用户点「新开」时再按当前设置生成
 			},
 			setupEventListeners() {
 				this.canvas.addEventListener('mousedown', this.startDrawing);
