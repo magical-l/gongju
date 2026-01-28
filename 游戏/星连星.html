@@ -195,6 +195,12 @@
 							<el-option label="8" :value="8"></el-option>
 						</el-select>
 					</el-form-item>
+					<el-form-item label="生成方式" class="one setting group">
+						<el-select v-model="settings.genAlgorithm" @change="onSettingsChange" size="small" style="width: 100px;">
+							<el-option label="条纹+转移" value="stripe"></el-option>
+							<el-option label="双向延伸" value="extend"></el-option>
+						</el-select>
+					</el-form-item>
 					<el-form-item class="one setting group">
 						<el-button @click="newGame" icon="Plus" size="small">新开</el-button>
 					</el-form-item>
@@ -296,7 +302,8 @@
 				showAnswerOverlay: false,
 				settings: {
 					gridSize: 5,
-					colorCount: 3
+					colorCount: 3,
+					genAlgorithm: 'stripe' // 'stripe' | 'extend'
 				}
 			};
 		},
@@ -349,12 +356,21 @@
 				const colorCount = this.settings.colorCount;
 				const totalCells = this.gridSize * this.gridSize;
 				let paths;
+				const algo = this.settings.genAlgorithm || 'stripe';
 
-				// 颜色数>格子边长时无法用「条纹+转移」，退回哈密顿分段
-				if (colorCount > this.gridSize) {
+				const EXTEND_RETRIES = 5; // 双向延伸失败重试次数，全失败则转条纹+转移
+				if (colorCount > this.gridSize || this.gridSize <= 6) {
 					paths = this._generateByHamiltonian(this.gridSize, colorCount, totalCells);
+				} else if (algo === 'extend') {
+					for (let t = 0; t < EXTEND_RETRIES; t++) {
+						paths = this._generateByBidirectionalExtend(this.gridSize, colorCount);
+						if (paths) break;
+					}
+					if (!paths) {
+						console.warn('[星连星] 双向延伸多次失败，回退到条纹+转移');
+						paths = this._generateByStripeAndTransfer(this.gridSize, colorCount);
+					}
 				} else {
-					// 条纹+端点转移：先按行均分，再随机缩短一条、把格子转给相邻线，得到多条独立线
 					paths = this._generateByStripeAndTransfer(this.gridSize, colorCount);
 				}
 
@@ -371,6 +387,574 @@
 				}));
 				this.showAnswerOverlay = false;
 			},
+			/** 双向延伸：逐颜色放端点 → 预处理被包围格 → 候选集随机延伸（优先被包围）→ 贪吃蛇+油泡合并 */
+			_generateByBidirectionalExtend(size, numPaths) {
+				const board = Array(size).fill(null).map(() => Array(size).fill(-1));
+				const paths = [];
+				const dirs = [{ dr: 0, dc: 1 }, { dr: 1, dc: 0 }, { dr: 0, dc: -1 }, { dr: -1, dc: 0 }];
+
+				// 2.1 逐颜色放置端点（E1 无相邻空格则重选 E1，重试数次）
+				const E1_RETRIES = 10;
+				for (let i = 0; i < numPaths; i++) {
+					let placed = false;
+					for (let retry = 0; retry < E1_RETRIES && !placed; retry++) {
+						const empties = [];
+						for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) if (board[r][c] === -1) empties.push({ r, c });
+						if (empties.length < 2) return null;
+						const e1 = empties[Math.floor(Math.random() * empties.length)];
+						const neighbors = [];
+						for (const { dr, dc } of dirs) {
+							const nr = e1.r + dr, nc = e1.c + dc;
+							if (nr >= 0 && nr < size && nc >= 0 && nc < size && board[nr][nc] === -1)
+								neighbors.push({ nr, nc });
+						}
+						if (neighbors.length === 0) continue;
+						board[e1.r][e1.c] = i;
+						const e2 = neighbors[Math.floor(Math.random() * neighbors.length)];
+						board[e2.nr][e2.nc] = i;
+						paths.push([{ row: e1.r, col: e1.c }, { row: e2.nr, col: e2.nc }]);
+						placed = true;
+					}
+					if (!placed) return null;
+				}
+
+				// 2.2 预处理被包围格子
+				this._preprocessSurrounded(board, paths, size);
+
+				// 2.3/2.4 候选集随机延伸（延伸时优先选被包围空格）
+				this._extendByCandidateSet(board, paths, size);
+
+				// 2.5 填满：贪心贪吃蛇 + 油泡合并
+				if (!this._fillEmptyBySnakeAndBubbles(board, paths, size)) return null;
+
+				let emptyCount = 0;
+				for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) if (board[r][c] === -1) emptyCount++;
+				if (emptyCount > 0) return null;
+
+				// 每条路径至少 2 格，否则两颗星会重叠或缺失
+				if (paths.some(p => p.length < 2)) {
+					console.warn('[星连星] 双向延伸：存在路径长度<2，视为失败');
+					return null;
+				}
+				return paths.map(p => p.map(x => ({ row: x.row, col: x.col })));
+			},
+			/** 被包围 = 四邻均为路径格。挂到相邻端点时按块大小奇偶：奇数格延伸 1，偶数格延伸 2 */
+			_preprocessSurrounded(board, paths, n) {
+				const dirs = [{ dr: 0, dc: 1 }, { dr: 1, dc: 0 }, { dr: 0, dc: -1 }, { dr: -1, dc: 0 }];
+				let candidateSet = new Set();
+				for (let pid = 0; pid < paths.length; pid++) {
+					candidateSet.add(`0,${pid}`);
+					if (paths[pid].length > 1) candidateSet.add(`1,${pid}`);
+				}
+
+				while (true) {
+					let changed = false;
+					const emptySet = new Set();
+					for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (board[r][c] === -1) emptySet.add(`${r},${c}`);
+					const blocks = this._getEmptyBlocks(emptySet, n);
+					const blockSizeByCell = new Map();
+					for (const block of blocks)
+						for (const cell of block) blockSizeByCell.set(`${cell.row},${cell.col}`, block.length);
+
+					const nextSet = new Set(candidateSet);
+					for (const key of candidateSet) {
+						const [atHead, pid] = key.split(',').map(Number);
+						const path = paths[pid];
+						const E = atHead === 0 ? path[0] : path[path.length - 1];
+						const emptyNeighbors = [];
+						for (const { dr, dc } of dirs) {
+							const nr = E.row + dr, nc = E.col + dc;
+							if (nr >= 0 && nr < n && nc >= 0 && nc < n && board[nr][nc] === -1)
+								emptyNeighbors.push({ r: nr, c: nc });
+						}
+						for (const { r, c } of emptyNeighbors) {
+							let surrounded = true;
+							for (const { dr: d2, dc: d2c } of dirs) {
+								const nr = r + d2, nc = c + d2c;
+								if (nr >= 0 && nr < n && nc >= 0 && nc < n && board[nr][nc] === -1) {
+									surrounded = false;
+									break;
+								}
+							}
+							if (!surrounded) continue;
+							const blockSize = blockSizeByCell.get(`${r},${c}`) ?? 1;
+							const extendTwo = (blockSize % 2 === 0);
+							const adjEnds = [];
+							for (let p2 = 0; p2 < paths.length; p2++) {
+								const h = paths[p2][0], t = paths[p2][paths[p2].length - 1];
+								const cell = { row: r, col: c };
+								if (this._adjacent(cell, h)) adjEnds.push({ pid: p2, atHead: true });
+								if (paths[p2].length > 1 && this._adjacent(cell, t)) adjEnds.push({ pid: p2, atHead: false });
+							}
+							if (adjEnds.length === 0) continue;
+							const pick = adjEnds[Math.floor(Math.random() * adjEnds.length)];
+							board[r][c] = pick.pid;
+							const cell = { row: r, col: c };
+							if (pick.atHead) paths[pick.pid].unshift(cell);
+							else paths[pick.pid].push(cell);
+							nextSet.delete(`${pick.atHead ? 0 : 1},${pick.pid}`);
+							changed = true;
+							if (extendTwo) {
+								const path2 = paths[pick.pid];
+								const E2 = pick.atHead ? path2[0] : path2[path2.length - 1];
+								for (const { dr, dc } of dirs) {
+									const nr = E2.row + dr, nc = E2.col + dc;
+									if (nr < 0 || nr >= n || nc < 0 || nc >= n || board[nr][nc] !== -1) continue;
+									if (path2.some(p => p.row === nr && p.col === nc)) continue;
+									board[nr][nc] = pick.pid;
+									if (pick.atHead) path2.unshift({ row: nr, col: nc });
+									else path2.push({ row: nr, col: nc });
+									nextSet.delete(`${pick.atHead ? 0 : 1},${pick.pid}`);
+									break;
+								}
+							}
+							break;
+						}
+					}
+					candidateSet = nextSet;
+					if (!changed) break;
+				}
+			},
+			/** 候选集延伸：空白块为奇数格时延伸 1，偶数格时延伸 2（利于油泡阶段块有哈密顿环）。延伸初期块少且块大，便于按块大小决策 */
+			_extendByCandidateSet(board, paths, n) {
+				const dirs = [{ dr: 0, dc: 1 }, { dr: 1, dc: 0 }, { dr: 0, dc: -1 }, { dr: -1, dc: 0 }];
+				let candidateSet = [];
+				for (let pid = 0; pid < paths.length; pid++) {
+					const path = paths[pid];
+					for (const atHead of [true, false]) {
+						if (atHead && path.length === 1) continue;
+						const E = atHead ? path[0] : path[path.length - 1];
+						for (const { dr, dc } of dirs) {
+							const nr = E.row + dr, nc = E.col + dc;
+							if (nr >= 0 && nr < n && nc >= 0 && nc < n && board[nr][nc] === -1) {
+								candidateSet.push({ pid, atHead });
+								break;
+							}
+						}
+					}
+				}
+
+				const getEmptyList = (path, atHead) => {
+					const E = atHead ? path[0] : path[path.length - 1];
+					const emptyList = [];
+					for (const { dr, dc } of dirs) {
+						const nr = E.row + dr, nc = E.col + dc;
+						if (nr < 0 || nr >= n || nc < 0 || nc >= n || board[nr][nc] !== -1) continue;
+						let ok = true;
+						for (const p of path) {
+							if (Math.abs(p.row - nr) + Math.abs(p.col - nc) === 1 && (p.row !== E.row || p.col !== E.col)) {
+								ok = false;
+								break;
+							}
+						}
+						if (ok) {
+							let surrounded = true;
+							for (const { dr: d2, dc: d2c } of dirs) {
+								const r2 = nr + d2, c2 = nc + d2c;
+								if (r2 >= 0 && r2 < n && c2 >= 0 && c2 < n && board[r2][c2] === -1) {
+									surrounded = false;
+									break;
+								}
+							}
+							emptyList.push({ row: nr, col: nc, surrounded });
+						}
+					}
+					return emptyList;
+				};
+				const addCellToEndpoint = (path, atHead, pid, cell) => {
+					board[cell.row][cell.col] = pid;
+					const newCell = { row: cell.row, col: cell.col };
+					if (atHead) path.unshift(newCell);
+					else path.push(newCell);
+					return newCell;
+				};
+				const addOneFromEndpoint = (path, atHead, pid) => {
+					const emptyList = getEmptyList(path, atHead);
+					if (emptyList.length === 0) return null;
+					const surroundedList = emptyList.filter(x => x.surrounded);
+					const pickList = surroundedList.length > 0 ? surroundedList : emptyList;
+					const cell = pickList[Math.floor(Math.random() * pickList.length)];
+					return addCellToEndpoint(path, atHead, pid, cell);
+				};
+
+				while (candidateSet.length > 0) {
+					// 当前空白按 4 邻接成块，记录每格所属块的大小（奇→延伸1，偶→延伸2）
+					const emptySet = new Set();
+					for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (board[r][c] === -1) emptySet.add(`${r},${c}`);
+					const blocks = this._getEmptyBlocks(emptySet, n);
+					const blockSizeByCell = new Map();
+					for (const block of blocks)
+						for (const cell of block) blockSizeByCell.set(`${cell.row},${cell.col}`, block.length);
+
+					const idx = Math.floor(Math.random() * candidateSet.length);
+					const { pid, atHead } = candidateSet[idx];
+					candidateSet.splice(idx, 1);
+					const path = paths[pid];
+					const emptyList = getEmptyList(path, atHead);
+					if (emptyList.length === 0) continue;
+					const surroundedList = emptyList.filter(x => x.surrounded);
+					const pickList = surroundedList.length > 0 ? surroundedList : emptyList;
+					const firstCell = pickList[Math.floor(Math.random() * pickList.length)];
+					const blockSize = blockSizeByCell.get(`${firstCell.row},${firstCell.col}`) ?? 1;
+					const extendTwo = (blockSize % 2 === 0);
+					addCellToEndpoint(path, atHead, pid, firstCell);
+					if (extendTwo) {
+						const second = addOneFromEndpoint(path, atHead, pid);
+						// 第二格可能加不到（无合法空邻），忽略即可
+					}
+					const lastAdded = path[atHead ? 0 : path.length - 1];
+					for (const { dr, dc } of dirs) {
+						const nr = lastAdded.row + dr, nc = lastAdded.col + dc;
+						if (nr >= 0 && nr < n && nc >= 0 && nc < n && board[nr][nc] === -1) {
+							candidateSet.push({ pid, atHead });
+							break;
+						}
+					}
+				}
+			},
+			/** 填满：1 贪心贪吃蛇（只从端点延伸） 2 剩余块油泡合并（块内哈密顿，接到某线相邻两点 b,c） */
+			_fillEmptyBySnakeAndBubbles(board, paths, n) {
+				const dirs = [{ dr: 0, dc: 1 }, { dr: 1, dc: 0 }, { dr: 0, dc: -1 }, { dr: -1, dc: 0 }];
+				let emptySet = new Set();
+				for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) if (board[i][j] === -1) emptySet.add(`${i},${j}`);
+
+				// 1. 贪心贪吃蛇：与端点相邻的空格加入该端点；按该格所属空白块大小奇偶：奇数延伸 1，偶数延伸 2
+				while (true) {
+					const blocks = this._getEmptyBlocks(emptySet, n);
+					const blockSizeByCell = new Map();
+					for (const block of blocks)
+						for (const cell of block) blockSizeByCell.set(`${cell.row},${cell.col}`, block.length);
+
+					const candidates = [];
+					for (const key of emptySet) {
+						const [r, c] = key.split(',').map(Number);
+						const cell = { row: r, col: c };
+						const adjEnds = [];
+						for (let pid = 0; pid < paths.length; pid++) {
+							const path = paths[pid];
+							const head = path[0], tail = path[path.length - 1];
+							if (this._adjacent(cell, head)) adjEnds.push({ pid, atHead: true });
+							if (this._adjacent(cell, tail) && (path.length === 1 || (tail.row !== head.row || tail.col !== head.col)))
+								adjEnds.push({ pid, atHead: false });
+						}
+						if (adjEnds.length) candidates.push({ r, c, adj: adjEnds });
+					}
+					if (!candidates.length) break;
+					const pick = candidates[Math.floor(Math.random() * candidates.length)];
+					const choice = pick.adj[Math.floor(Math.random() * pick.adj.length)];
+					const { pid, atHead } = choice;
+					const blockSize = blockSizeByCell.get(`${pick.r},${pick.c}`) ?? 1;
+					const extendTwo = (blockSize % 2 === 0);
+					const cell = { row: pick.r, col: pick.c };
+					board[pick.r][pick.c] = pid;
+					emptySet.delete(`${pick.r},${pick.c}`);
+					if (atHead) paths[pid].unshift(cell);
+					else paths[pid].push(cell);
+					if (extendTwo) {
+						const path = paths[pid];
+						const E = atHead ? path[0] : path[path.length - 1];
+						for (const { dr, dc } of dirs) {
+							const nr = E.row + dr, nc = E.col + dc;
+							if (nr < 0 || nr >= n || nc < 0 || nc >= n) continue;
+							const key = `${nr},${nc}`;
+							if (!emptySet.has(key)) continue;
+							if (path.some(p => p.row === nr && p.col === nc)) continue;
+							board[nr][nc] = pid;
+							emptySet.delete(key);
+							if (atHead) path.unshift({ row: nr, col: nc });
+							else path.push({ row: nr, col: nc });
+							break;
+						}
+					}
+				}
+
+				if (emptySet.size === 0) return true;
+
+				// 2. 油泡合并：先在线与块上分别选定 d,e 和 a,b（a~d、b~e），再在块内构造 a→b 哈密顿路径并插入到 de 之间
+				const blocks = this._getEmptyBlocks(emptySet, n);
+				const DEBUG_OIL = true; // 油泡合并失败时打 log 分析原因
+				for (let bi = 0; bi < blocks.length; bi++) {
+					const block = blocks[bi];
+					let merged = false;
+					let triedDe = 0, triedAb = 0, hamiltonOk = 0;
+					for (let pid = 0; pid < paths.length && !merged; pid++) {
+						const path = paths[pid];
+						for (let i = 0; i < path.length - 1; i++) {
+							const d = path[i], e = path[i + 1];
+							if (!this._adjacent(d, e)) continue;
+							const A = block.filter(c => this._adjacent(c, d));
+							const B = block.filter(c => this._adjacent(c, e));
+							if (A.length === 0 || B.length === 0) continue;
+							triedDe++;
+							for (const a of A) {
+								for (const b of B) {
+									if (block.length === 1 && (a.row !== b.row || a.col !== b.col)) continue;
+									triedAb++;
+									let pathAB = null;
+									if (block.length === 1) pathAB = [a];
+									else if (a.row === b.row && a.col === b.col) {
+										// a===b：需要块内哈密顿环，且环的两端分别邻接 d、e
+										const cyclePath = this._hamiltonianCycleInBlock(block);
+										if (cyclePath && cyclePath.length > 0) {
+											const p0 = cyclePath[0], pL = cyclePath[cyclePath.length - 1];
+											if (this._adjacent(p0, d) && this._adjacent(pL, e)) pathAB = cyclePath;
+											else if (this._adjacent(p0, e) && this._adjacent(pL, d)) pathAB = cyclePath.slice().reverse();
+										}
+									} else pathAB = this._hamiltonianPathInBlockFromTo(block, a, b);
+									if (!pathAB) continue;
+									hamiltonOk++;
+									if (this._spliceBlockIntoPath(board, paths, pathAB)) {
+										merged = true;
+										break;
+									}
+								}
+								if (merged) break;
+							}
+							if (merged) break;
+						}
+					}
+					if (!merged) {
+						// 回退：先选接口失败时，仍试哈密顿环 + 多种起点路径
+						const cyclePath = this._hamiltonianCycleInBlock(block);
+						if (cyclePath) merged = this._spliceBlockIntoPath(board, paths, cyclePath);
+						if (!merged) {
+							for (let startIdx = 0; startIdx < block.length && !merged; startIdx++) {
+								const tempPath = startIdx === 0 ? this._hamiltonianInBlock(block) : this._hamiltonianInBlockFromStart(block, block[startIdx]);
+								if (!tempPath) continue;
+								merged = this._spliceBlockIntoPath(board, paths, tempPath);
+							}
+						}
+					}
+					if (!merged) {
+						if (DEBUG_OIL) {
+							console.warn('[星连星] 油泡合并失败', {
+								块索引: bi,
+								块大小: block.length,
+								尝试的de对数: triedDe,
+								尝试的ab对数: triedAb,
+								存在a到b哈密顿路径次数: hamiltonOk,
+								结论: triedDe === 0 ? '块未邻接任何路径的相邻两点' : (triedAb === 0 ? '无满足a~d且b~e的(a,b)' : (hamiltonOk === 0 ? '无a→b哈密顿路径' : 'splice未匹配到de(不应出现)'))
+							});
+						}
+						return false;
+					}
+				}
+				return true;
+			},
+			_getEmptyBlocks(emptySet, n) {
+				const blocks = [];
+				const seen = new Set();
+				const dirs = [{ dr: 0, dc: 1 }, { dr: 1, dc: 0 }, { dr: 0, dc: -1 }, { dr: -1, dc: 0 }];
+				for (const key of emptySet) {
+					if (seen.has(key)) continue;
+					const block = [];
+					const stack = [key];
+					seen.add(key);
+					while (stack.length) {
+						const k = stack.pop();
+						const [r, c] = k.split(',').map(Number);
+						block.push({ row: r, col: c });
+						for (const { dr, dc } of dirs) {
+							const nr = r + dr, nc = c + dc;
+							const nk = `${nr},${nc}`;
+							if (nr >= 0 && nr < n && nc >= 0 && nc < n && emptySet.has(nk) && !seen.has(nk)) {
+								seen.add(nk);
+								stack.push(nk);
+							}
+						}
+					}
+					blocks.push(block);
+				}
+				return blocks;
+			},
+			_hamiltonianInBlock(block) {
+				if (block.length === 0) return [];
+				if (block.length === 1) return block.map(p => ({ row: p.row, col: p.col }));
+				const path = [];
+				const used = new Set();
+				const backtrack = (idx) => {
+					if (idx === block.length) return true;
+					const last = path[path.length - 1];
+					for (let i = 0; i < block.length; i++) {
+						const p = block[i];
+						const key = `${p.row},${p.col}`;
+						if (used.has(key)) continue;
+						if (path.length && Math.abs(p.row - last.row) + Math.abs(p.col - last.col) !== 1) continue;
+						path.push({ row: p.row, col: p.col });
+						used.add(key);
+						if (backtrack(idx + 1)) return true;
+						used.delete(`${path[path.length - 1].row},${path[path.length - 1].col}`);
+						path.pop();
+					}
+					return false;
+				};
+				for (let start = 0; start < block.length; start++) {
+					path.length = 0;
+					used.clear();
+					const p0 = block[start];
+					path.push({ row: p0.row, col: p0.col });
+					used.add(`${p0.row},${p0.col}`);
+					if (backtrack(1)) return path;
+				}
+				return null;
+			},
+			/** 块内哈密顿环：返回一条覆盖全块的路径且首尾相邻（a、b 相邻），无则返回 null。插入时 a,b 更容易同时贴到某路径的相邻两点 d,e */
+			_hamiltonianCycleInBlock(block) {
+				if (block.length <= 1) return null;
+				if (block.length === 2) {
+					const a = block[0], b = block[1];
+					if (Math.abs(a.row - b.row) + Math.abs(a.col - b.col) === 1)
+						return [{ row: a.row, col: a.col }, { row: b.row, col: b.col }];
+					return null;
+				}
+				const path = [];
+				const used = new Set();
+				const backtrack = (idx) => {
+					if (idx === block.length) {
+						const last = path[path.length - 1], first = path[0];
+						return Math.abs(last.row - first.row) + Math.abs(last.col - first.col) === 1;
+					}
+					const last = path[path.length - 1];
+					for (let i = 0; i < block.length; i++) {
+						const p = block[i];
+						const key = `${p.row},${p.col}`;
+						if (used.has(key)) continue;
+						if (path.length && Math.abs(p.row - last.row) + Math.abs(p.col - last.col) !== 1) continue;
+						path.push({ row: p.row, col: p.col });
+						used.add(key);
+						if (backtrack(idx + 1)) return true;
+						used.delete(`${path[path.length - 1].row},${path[path.length - 1].col}`);
+						path.pop();
+					}
+					return false;
+				};
+				for (let start = 0; start < block.length; start++) {
+					path.length = 0;
+					used.clear();
+					const p0 = block[start];
+					path.push({ row: p0.row, col: p0.col });
+					used.add(`${p0.row},${p0.col}`);
+					if (backtrack(1)) return path;
+				}
+				return null;
+			},
+			/** 块内从 startCell 到 endCell 的哈密顿路径（覆盖全块），无则返回 null。用于先定接口 a,b 再构造路径 */
+			_hamiltonianPathInBlockFromTo(block, startCell, endCell) {
+				if (block.length === 0) return [];
+				if (block.length === 1) {
+					const ok = block[0].row === startCell.row && block[0].col === startCell.col && block[0].row === endCell.row && block[0].col === endCell.col;
+					return ok ? [{ row: block[0].row, col: block[0].col }] : null;
+				}
+				const path = [];
+				const used = new Set();
+				const same = (p, q) => p.row === q.row && p.col === q.col;
+				const backtrack = (idx) => {
+					if (idx === block.length) return same(path[path.length - 1], endCell);
+					const last = path[path.length - 1];
+					for (let i = 0; i < block.length; i++) {
+						const p = block[i];
+						const key = `${p.row},${p.col}`;
+						if (used.has(key)) continue;
+						if (path.length && Math.abs(p.row - last.row) + Math.abs(p.col - last.col) !== 1) continue;
+						path.push({ row: p.row, col: p.col });
+						used.add(key);
+						if (backtrack(idx + 1)) return true;
+						used.delete(`${path[path.length - 1].row},${path[path.length - 1].col}`);
+						path.pop();
+					}
+					return false;
+				};
+				const hasStart = block.some(p => same(p, startCell)), hasEnd = block.some(p => same(p, endCell));
+				if (!hasStart || !hasEnd) return null;
+				path.push({ row: startCell.row, col: startCell.col });
+				used.add(`${startCell.row},${startCell.col}`);
+				return backtrack(1) ? path : null;
+			},
+			/** 块内从 startCell 出发的哈密顿路径，无则返回 null */
+			_hamiltonianInBlockFromStart(block, startCell) {
+				if (block.length === 0) return [];
+				if (block.length === 1) return (block[0].row === startCell.row && block[0].col === startCell.col) ? [{ row: block[0].row, col: block[0].col }] : null;
+				const path = [];
+				const used = new Set();
+				const hasStart = block.some(p => p.row === startCell.row && p.col === startCell.col);
+				if (!hasStart) return null;
+				const backtrack = (idx) => {
+					if (idx === block.length) return true;
+					const last = path[path.length - 1];
+					for (let i = 0; i < block.length; i++) {
+						const p = block[i];
+						const key = `${p.row},${p.col}`;
+						if (used.has(key)) continue;
+						if (path.length && Math.abs(p.row - last.row) + Math.abs(p.col - last.col) !== 1) continue;
+						path.push({ row: p.row, col: p.col });
+						used.add(key);
+						if (backtrack(idx + 1)) return true;
+						used.delete(`${path[path.length - 1].row},${path[path.length - 1].col}`);
+						path.pop();
+					}
+					return false;
+				};
+				path.push({ row: startCell.row, col: startCell.col });
+				used.add(`${startCell.row},${startCell.col}`);
+				return backtrack(1) ? path : null;
+			},
+			/** 通用：合并块到路径。board 可为 null（仅更新 paths）。k=1 接到某路径端点；k>1 时块路径两端 P,Q 与某条路径上相邻两点 d,e 分别相邻，在 d,e 处拆开并插入块路径 */
+			_mergeBlockIntoPath(board, paths, blockPath) {
+				if (!blockPath || blockPath.length === 0) return true;
+				const P = blockPath[0], Q = blockPath[blockPath.length - 1]; // 块路径两端 a,b
+
+				if (blockPath.length === 1) {
+					// 单格：可接到端点，或插入到某路径相邻两点 d,e 之间（P 同时邻接 d、e）
+					for (let pid = 0; pid < paths.length; pid++) {
+						const path = paths[pid];
+						for (let i = 0; i < path.length - 1; i++) {
+							const d = path[i], e = path[i + 1];
+							if (this._adjacent(d, e) && this._adjacent(P, d) && this._adjacent(P, e)) {
+								if (board) board[P.row][P.col] = pid;
+								path.splice(i + 1, 0, { row: P.row, col: P.col });
+								return true;
+							}
+						}
+					}
+					const candidates = [];
+					for (let pid = 0; pid < paths.length; pid++) {
+						const path = paths[pid];
+						const head = path[0], tail = path[path.length - 1];
+						if (this._adjacent(P, head)) candidates.push({ pid, atHead: true });
+						if (path.length > 1 && this._adjacent(P, tail)) candidates.push({ pid, atHead: false });
+					}
+					if (candidates.length === 0) return false;
+					const { pid, atHead } = candidates[Math.floor(Math.random() * candidates.length)];
+					if (board) board[P.row][P.col] = pid;
+					const cell = { row: P.row, col: P.col };
+					if (atHead) paths[pid].unshift(cell);
+					else paths[pid].push(cell);
+					return true;
+				}
+
+				for (let pid = 0; pid < paths.length; pid++) {
+					const path = paths[pid];
+					for (let i = 0; i < path.length - 1; i++) {
+						const b = path[i], c = path[i + 1];
+						if (!this._adjacent(b, c)) continue;
+						if (this._adjacent(P, b) && this._adjacent(Q, c)) {
+							if (board) for (const p of blockPath) board[p.row][p.col] = pid;
+							path.splice(i + 1, 0, ...blockPath.map(p => ({ row: p.row, col: p.col })));
+							return true;
+						}
+						if (this._adjacent(P, c) && this._adjacent(Q, b)) {
+							if (board) for (const p of blockPath) board[p.row][p.col] = pid;
+							const rev = blockPath.map(p => ({ row: p.row, col: p.col })).reverse();
+							path.splice(i + 1, 0, ...rev);
+							return true;
+						}
+					}
+				}
+				return false;
+			},
+			_spliceBlockIntoPath(board, paths, tempPath) {
+				return this._mergeBlockIntoPath(board, paths, tempPath);
+			},
 			/** 原方案：哈密顿路径 + 随机分段（颜色数>边长时使用） */
 			_generateByHamiltonian(size, colorCount, totalCells) {
 				let onePath = this.generateWholeGridPath(size);
@@ -385,11 +969,33 @@
 				}
 				return paths;
 			},
-			/** 条纹+端点转移：先按行均分（线头在第一列/第一行，线平行），再随机把端点格转给相邻线 */
+			/** 条纹+端点转移：先按行均分，再大量转移；最后对每条路径做段反转「扭线」，增加穿插、兜绕感 */
 			_generateByStripeAndTransfer(size, colorCount) {
 				const paths = this._initialStripePaths(size, colorCount);
-				this._shuffleByEndpointTransfers(paths, size, 60 + Math.floor(size * size / 10));
+				const trials = 220 + Math.floor(size * size * 1.8); // 8x8≈335, 10x10≈400，大图更乱、更多穿插
+				this._shuffleByEndpointTransfers(paths, size, trials);
+				paths.forEach(p => this._twistPath(p)); // 每条线内部段反转，视觉上互相兜、绕
 				return paths;
+			},
+			/** 单条路径上做多次段反转，路径形状不变但经过顺序更扭，画出来更穿插、兜绕 */
+			_twistPath(path) {
+				const n = path.length;
+				if (n <= 2) return;
+				const trials = 10 + Math.floor(n / 3);
+				for (let t = 0; t < trials; t++) {
+					let i = Math.floor(Math.random() * (n - 1)) + 1;
+					let j = Math.floor(Math.random() * (n - 1)) + 1;
+					if (i > j) { const tmp = i; i = j; j = tmp; }
+					if (i === j) continue;
+					const left = path[i - 1], right = path[j + 1];
+					if (!left || !right) continue;
+					if (!this._adjacent(left, path[j]) || !this._adjacent(path[i], right)) continue;
+					for (let a = i, b = j; a < b; a++, b--) {
+						const tmp = path[a];
+						path[a] = path[b];
+						path[b] = tmp;
+					}
+				}
 			},
 			/** 初始条纹：每种颜色一行（或最后一行多行蛇形），线头在第一列，互相平行 */
 			_initialStripePaths(size, colorCount) {
@@ -412,33 +1018,20 @@
 				}
 				return paths;
 			},
-			/** 多次随机「缩短一条线、把端点格转给相邻线」：只转端点且接收方端点与之相邻，保证仍是路径 */
+			/** 端点转移：每轮 k=1 或 k=2（概率可配），从某条路径同一端连续缩短 k 格，调用合并块到路径；失败则回退 */
 			_shuffleByEndpointTransfers(paths, size, trials) {
 				const n = paths.length;
+				const probK2 = 0.3; // k=2 的概率，可调
 				for (let t = 0; t < trials; t++) {
 					const a = Math.floor(Math.random() * n);
 					if (paths[a].length <= 2) continue;
-					const head = paths[a][0];
-					const tail = paths[a][paths[a].length - 1];
+					const k = Math.random() < probK2 ? 2 : 1;
+					if (paths[a].length < k + 2) continue; // 缩短后至少保留 2 格，保证两颗星不重叠
 					const fromHead = Math.random() < 0.5;
-					const cell = fromHead ? head : tail;
-					for (let b = 0; b < n; b++) {
-						if (b === a) continue;
-						const bHead = paths[b][0];
-						const bTail = paths[b][paths[b].length - 1];
-						if (this._adjacent(cell, bHead)) {
-							if (fromHead) paths[a].shift();
-							else paths[a].pop();
-							paths[b].unshift(cell);
-							break;
-						}
-						if (this._adjacent(cell, bTail)) {
-							if (fromHead) paths[a].shift();
-							else paths[a].pop();
-							paths[b].push(cell);
-							break;
-						}
-					}
+					const block = fromHead ? paths[a].splice(0, k) : paths[a].splice(paths[a].length - k, k);
+					if (this._mergeBlockIntoPath(null, paths, block)) continue;
+					if (fromHead) paths[a].unshift(...block);
+					else paths[a].push(...block);
 				}
 			},
 			/** 生成一条覆盖整图的哈密顿路径（随机选形态 + 随机段反转打乱，保证可解） */
