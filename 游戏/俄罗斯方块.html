@@ -162,7 +162,7 @@
 						<span>x</span>
 						<el-input-number class="one setting : rows input number" v-model="settings.rows" :min="10" :max="30"
 														 controls-position="right"></el-input-number>
-						<el-button title="恢复默认并重开一局" @click="restoreDefaultSize" icon="RefreshLeft"></el-button>
+						<el-button title="恢复默认并新局" @click="restoreDefaultSize" icon="RefreshLeft" size="large"></el-button>
 					</el-form-item>
 					<el-form-item label="难度" class="one setting group">
 						<div class="flex items-near-start-x">
@@ -179,15 +179,13 @@
 				</el-form>
 			</section>
 			<section class="controller list area">
-				<el-button-group>
-					<el-button v-if="isPaused" class="one controller : pause" title="开始（快捷键：空格）" @click="togglePause"
-										 :disabled="isGameOver" type="primary">开始
-					</el-button>
-					<el-button v-else class="one controller : pause" title="暂停（快捷键：空格）" @click="togglePause"
-										 :disabled="isGameOver">暂停
-					</el-button>
-					<el-button class="one controller : restart" @click="startGame">重开</el-button>
-				</el-button-group>
+				<el-button v-if="isPaused" class="one controller : pause" title="开始（快捷键：空格）" @click="togglePause"
+									 :disabled="isGameOver" type="primary" size="large">开始
+				</el-button>
+				<el-button v-else class="one controller : pause" title="暂停（快捷键：空格）" @click="togglePause"
+									 :disabled="isGameOver" size="large">暂停
+				</el-button>
+				<el-button class="one controller : restart" @click="startGame" icon="RefreshRight" size="large">新局</el-button>
 			</section>
 			<section class="tool list area">
 				<el-form inline>
@@ -210,7 +208,7 @@
 				</div>
 			</section>
 		</article>
-		<article class="gaming-situation , right-sidebar">
+		<article class="situation , right-sidebar">
 			<el-card header="下一个" class="next piece section">
 				<div class="next piece container , flex near-center">
 					<div :style="nextPieceStyle">

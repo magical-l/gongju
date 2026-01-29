@@ -109,9 +109,7 @@
 		z-index: 10;
 	}
 
-	#game-overlay.hidden {
-		display: none;
-	}
+	.scoreboard section { text-align: center; }
 
 	.answer.section .answer-steps {
 		display: flex;
@@ -215,32 +213,29 @@
 			<section class="setting list area">
 				<el-form inline>
 					<el-form-item label="宽">
-						<el-select v-model="gridWidth" size="small" style="width: 64px;" @change="onSizeChange">
+						<el-select v-model="gridWidth" size="large" style="width: 72px;" @change="onSizeChange">
 							<el-option v-for="w in sizeOptions" :key="'w'+w" :label="w" :value="w" />
 						</el-select>
 					</el-form-item>
 					<el-form-item label="高">
-						<el-select v-model="gridHeight" size="small" style="width: 64px;" @change="onSizeChange">
+						<el-select v-model="gridHeight" size="large" style="width: 72px;" @change="onSizeChange">
 							<el-option v-for="h in sizeOptions" :key="'h'+h" :label="h" :value="h" />
 						</el-select>
 					</el-form-item>
 				</el-form>
 			</section>
 			<section class="controller list area">
-				<el-button class="one controller : restart" @click="initGame" icon="RefreshRight" size="small">
-					新开
+				<el-button class="one controller : restart" @click="initGame" icon="RefreshRight" size="large">
+					新局
 				</el-button>
-				<el-button class="one controller : hint" @click="showHint" icon="MagicStick" size="small">
-					提示
-				</el-button>
-				<el-button class="one controller : answer" @click="getAnswer" :loading="solving" icon="Key" size="small">
-					答案
-				</el-button>
+			</section>
+			<section class="tool list area">
+				<el-button class="one tool : hint" @click="showHint" icon="MagicStick" size="large">提示</el-button>
+				<el-button class="one tool : answer" @click="getAnswer" :loading="solving" icon="Key" size="large">答案</el-button>
 			</section>
 		</header>
 
-		<article class="gaming area , 反叵字形 grid">
-			<article class="main map area , one-row item , flex items-near-center-x">
+		<article class="main map area , flex items-near-center-x">
 				<div id="game-board-container">
 					<div id="game-board" :style="boardStyle">
 						<div v-for="(val, index) in board" :key="index"
@@ -249,18 +244,15 @@
 							{{ val || '' }}
 						</div>
 					</div>
-					<div id="game-overlay" :class="{ hidden: !isWin }">
-						<div style="color: #2ecc71;">恭喜过关！</div>
-						<div class="moves-display" style="margin-top: 8px;">共 {{ moves }} 步</div>
-						<el-button @click="initGame" type="primary" style="margin-top: 16px;">再玩一局</el-button>
-					</div>
 				</div>
-			</article>
 		</article>
 
-		<article class="gaming-situation , right-sidebar">
+		<article class="situation , right-sidebar">
 			<el-card header="记分牌" class="scoreboard section">
-				<p class="moves-display">步数: <span>{{ moves }}</span></p>
+				<section>
+					<h3>步数</h3>
+					<p>{{ moves }}</p>
+				</section>
 			</el-card>
 			<el-card v-if="solutionSteps.length || solutionError || solving" class="answer section">
 				<template #header>
@@ -286,6 +278,17 @@
 				<p>↑ ↓ ← → ：移动与空位相邻的块</p>
 				<p>点击与空位相邻的块也可移动</p>
 			</el-card>
+
+			<article class="modal-overlay fullscreen" v-if="isWin && showWinModal">
+				<section class="body">
+					<h2>恭喜过关！</h2>
+					<p>共 {{ moves }} 步</p>
+					<footer class="actions">
+						<el-button type="primary" @click="closeWinAndNew" size="large">新局</el-button>
+						<el-button @click="closeWinModal" size="large">关闭</el-button>
+					</footer>
+				</section>
+			</article>
 		</article>
 	</article>
 </main>
@@ -500,6 +503,7 @@
 				solutionIndex: 0,
 				hintIndex: -1,
 				hintTimer: null,
+				showWinModal: false,
 				sizeOptions: Array.from({ length: MAX_SIZE - MIN_SIZE + 1 }, (_, i) => MIN_SIZE + i)
 			};
 		},
@@ -571,9 +575,17 @@
 				this.solutionError = null;
 				this.moves = 0;
 				this.isWin = false;
+				this.showWinModal = false;
 				this.slidingIndex = -1;
 				this.clearHint();
 				this.$nextTick(() => this.updateMovable(this.board.indexOf(0)));
+			},
+			closeWinModal() {
+				this.showWinModal = false;
+			},
+			closeWinAndNew() {
+				this.showWinModal = false;
+				this.initGame();
 			},
 			clearHint() {
 				this.hintIndex = -1;
@@ -696,6 +708,7 @@
 						this.slidingIndex = -1;
 						if (isSolved(this.board, this.gridWidth, this.gridHeight)) {
 							this.isWin = true;
+							this.showWinModal = true;
 						}
 					}, 150);
 				});

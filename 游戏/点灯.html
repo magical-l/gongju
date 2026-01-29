@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>熄灯游戏 - Lights Out | 在线益智点灯游戏</title>
+<title>点灯/熄灯游戏 - Lights Out | 在线益智点灯/熄灯游戏</title>
 <meta name="description"
 			content="在线玩经典的点灯/熄灯（Lights On/Out）益智游戏。挑战不同大小的棋盘，通过点击格子和相邻格子来点亮/熄灭所有灯光。提供提示和答案功能。">
-<meta name="keywords" content="熄灯游戏, Lights Out, 点灯游戏, 益智游戏, 在线游戏, 逻辑游戏, 休闲游戏, 棋盘游戏">
+<meta name="keywords" content="点灯游戏, 熄灯游戏, Lights On, Lights Out, 益智游戏, 在线游戏, 逻辑游戏, 休闲游戏, 棋盘游戏">
 <meta name="author" content="工具兽">
-<meta property="og:title" content="点灯/熄灯游戏 - Lights On/Out | 在线益智点灯游戏">
+<meta property="og:title" content="点灯/熄灯游戏 - Lights On/Out | 在线益智点灯/熄灯游戏">
 <meta property="og:description"
 			content="在线玩经典的点灯/熄灯（Lights On/Out）益智游戏。挑战不同大小的棋盘，通过点击格子和相邻格子来点亮/熄灭所有灯光。提供提示和答案功能。">
 <meta property="og:type" content="game">
@@ -59,6 +59,8 @@
 	.gaming.area {
 		--反叵字形-right-sidebar-max-width: 220px;
 	}
+
+	.scoreboard section { text-align: center; }
 
 	.moves {
 		margin: 15px 0;
@@ -152,7 +154,7 @@
 			</section>
 			<section class="controller list area">
 				<el-button class="one controller : restart" @click="initGame" icon="RefreshRight" type="primary" size="large">
-					重新开始
+					新局
 				</el-button>
 			</section>
 			<section class="tool list area">
@@ -163,7 +165,7 @@
 			</section>
 		</header>
 
-		<article class="main map area , one-row item , flex items-near-center-x">
+		<article class="main map area , flex items-near-center-x">
 			<section id="main-map" class="grid" :style="{gridTemplateColumns: `repeat(${boardSize}, 1fr)`}">
 				<template v-for="(row, rowIndex) in board" :key="rowIndex">
 					<div class="cell" v-for="(cell, colIndex) in row" :key="colIndex"
@@ -174,9 +176,12 @@
 			</section>
 		</article>
 
-		<article class="gaming-situation , right-sidebar">
+		<article class="situation , right-sidebar">
 			<el-card header="记分牌" class="scoreboard section">
-				<p class="moves">移动次数: <span>{{ moveCount }}</span></p>
+				<section>
+					<h3>移动次数</h3>
+					<p>{{ moveCount }}</p>
+				</section>
 			</el-card>
 			<el-card class="round list area section" header-class="flex items-mutex items-near-center-y">
 				<template #header>
@@ -194,7 +199,7 @@
 					<h2>恭喜你，挑战成功！</h2>
 					<p>您总共使用了 {{ moveCount }} 步。</p>
 					<footer class="actions">
-						<el-button type="primary" @click="initGame" size="large">再来一局</el-button>
+						<el-button type="primary" @click="initGame" size="large">新局</el-button>
 						<el-button @click="exportRounds" size="large" icon="Download">导出回合记录</el-button>
 						<el-button @click="closeWinModal" size="large">关闭</el-button>
 					</footer>
@@ -387,7 +392,7 @@
 				const solution = solveLightsOut(this.board);
 
 				if (!solution) {
-					this.$message.error('当前局面无解！请重新开始。');
+					this.$message.error('当前局面无解！请新局或重开。');
 					this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
 					return;
 				}
@@ -440,7 +445,7 @@
 				const solution = solveLightsOut(this.board);
 
 				if (!solution) {
-					this.$message.error('当前局面无解！请重新开始。');
+					this.$message.error('当前局面无解！请新局或重开。');
 					this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
 					return;
 				}

@@ -211,7 +211,7 @@
 					<el-button @click="togglePause" class="one controller" :disabled="gameOver || gameWon" type="primary">
 						{{ pauseButtonText }}
 					</el-button>
-					<el-button @click="restartGame" class="one controller" :disabled="!currentLevelId">重新开始</el-button>
+					<el-button @click="restartGame" class="one controller" :disabled="!currentLevelId">重开</el-button>
 				</el-button-group>
 			</section>
 			<section class="tool list area">
@@ -328,7 +328,7 @@
 			</div>
 		</article>
 
-		<aside class="gaming-situation , right-sidebar">
+		<aside class="situation , right-sidebar">
 			<el-card header="战况" v-if="currentLevel">
 				<div class="stat-item"><span>❤️ 生命:</span> <span class="stat-value">{{ health }}</span></div>
 				<div class="stat-item"><span>💰 金币:</span> <span class="stat-value">{{ coins }}</span></div>
@@ -340,7 +340,7 @@
 					 :show-close="false" :close-on-click-modal="false" :close-on-press-escape="false">
 			<span>{{ gameWon ? '你成功保卫了萝卜！' : '萝卜被吃掉了，再试一次吧！' }}</span>
 			<template #footer>
-				<el-button type="primary" @click="restartGame">重新开始</el-button>
+				<el-button type="primary" @click="restartGame">重开</el-button>
 			</template>
 			</el-dialog>
 	</article>

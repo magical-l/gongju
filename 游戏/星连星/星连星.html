@@ -176,7 +176,7 @@
 			<section class="setting list area">
 				<el-form inline>
 					<el-form-item label="网格大小" class="one setting group">
-						<el-select v-model="settings.gridSize" @change="onSettingsChange" size="small" style="width: 80px;">
+						<el-select v-model="settings.gridSize" @change="onSettingsChange" size="large" style="width: 80px;">
 							<el-option label="5x5" :value="5"></el-option>
 							<el-option label="6x6" :value="6"></el-option>
 							<el-option label="7x7" :value="7"></el-option>
@@ -186,7 +186,7 @@
 						</el-select>
 					</el-form-item>
 					<el-form-item label="颜色数量" class="one setting group">
-						<el-select v-model="settings.colorCount" @change="onSettingsChange" size="small" style="width: 80px;">
+						<el-select v-model="settings.colorCount" @change="onSettingsChange" size="large" style="width: 80px;">
 							<el-option label="3" :value="3"></el-option>
 							<el-option label="4" :value="4"></el-option>
 							<el-option label="5" :value="5"></el-option>
@@ -196,13 +196,13 @@
 						</el-select>
 					</el-form-item>
 					<el-form-item class="one setting group">
-						<el-button @click="newGame" icon="Plus" size="small">新开</el-button>
+						<el-button @click="newGame" icon="Plus" size="large">新局</el-button>
 					</el-form-item>
 					<el-form-item class="one setting group">
-						<el-button @click="restartCurrentGame" icon="RefreshRight" size="small">重来</el-button>
+						<el-button @click="restartCurrentGame" icon="RefreshRight" size="large">重开</el-button>
 					</el-form-item>
 					<el-form-item class="one setting group">
-						<el-button @click="showAnswer" :type="showAnswerOverlay ? 'primary' : 'default'" icon="Key" size="small">答案</el-button>
+						<el-button @click="showAnswer" :type="showAnswerOverlay ? 'primary' : 'default'" icon="Key" size="large">答案</el-button>
 					</el-form-item>
 				</el-form>
 			</section>
@@ -218,15 +218,15 @@
 							本局完成！
 						</div>
 						<el-button @click="newGame" type="primary" style="margin-top: 20px;">
-							新开
+							新局
 						</el-button>
 					</div>
 				</div>
 			</article>
 		</article>
 
-		<article class="gaming-situation , right-sidebar">
-			<el-card header="游戏信息" class="scoreboard section">
+		<article class="situation , right-sidebar">
+			<el-card header="记分牌" class="scoreboard section">
 				<div class="game-info">
 					<div class="progress">
 						<el-progress :percentage="completionPercentage" :status="gameWin ? 'success' : ''"></el-progress>
@@ -353,7 +353,7 @@
 				this.showAnswerOverlay = false;
 				this.initCanvas();
 			},
-			/** 新开一局：按当前设置重新生成地图 */
+			/** 新局：按当前设置重新生成地图 */
 			newGame() {
 				this.gameWin = false;
 				this.paths = [];
@@ -1945,7 +1945,7 @@
 				this.ctx.stroke();
 			},
 			onSettingsChange() {
-				// 不自动开局、也不改当前局用的格子数，比例按本局实际 gridSize 算；用户点「新开」时再按当前设置生成
+				// 不自动开局、也不改当前局用的格子数，比例按本局实际 gridSize 算；用户点「新局」时再按当前设置生成
 				try {
 					localStorage.setItem(SETTINGS_KEY, JSON.stringify(this.settings));
 				} catch (e) {}

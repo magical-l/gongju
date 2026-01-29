@@ -44,6 +44,8 @@
 		color: #4a4a4a;
 	}
 
+	.scoreboard section { text-align: center; }
+
 	.one.setting {margin-bottom: 0;}
 </style>
 </head>
@@ -102,21 +104,25 @@
 					{{ isPaused ? (score === 0 && !gameOver ? '开始' : '继续') : '暂停' }}
 				</el-button>
 				<el-button class="one controller : restart" @click="initGame" icon="RefreshRight" size="large">
-					重新开始
+					新局
 				</el-button>
 			</section>
 		</header>
 
-		<article class="gaming area , 反叵字形 grid">
-			<article class="main map area , one-row item , flex items-near-center-x">
-				<canvas id="game-canvas" :width="canvasWidth" :height="canvasHeight" @click="handleCanvasClick"></canvas>
-			</article>
+		<article class="main map area , flex items-near-center-x">
+			<canvas id="game-canvas" :width="canvasWidth" :height="canvasHeight" @click="handleCanvasClick"></canvas>
 		</article>
 
-		<article class="gaming-situation , right-sidebar">
+		<article class="situation , right-sidebar">
 			<el-card header="记分牌" class="scoreboard section">
-				<p class="score-item">分数: <span>{{ score }}</span></p>
-				<p class="score-item">最高分: <span>{{ highScore }}</span></p>
+				<section>
+					<h3>分数</h3>
+					<p>{{ score }}</p>
+				</section>
+				<section>
+					<h3>最高分</h3>
+					<p>{{ highScore }}</p>
+				</section>
 			</el-card>
 			<el-card header="快捷键" class="shortcut intro section">
 				<p>↑ ↓ → ← ：控制方向，不能转向当前反方向。</p>
@@ -317,7 +323,7 @@
 						this.gridSize - 1);
 
 				if (this.gameOver) {
-					this.drawOverlay('游戏结束', `分数: ${this.score}`, '按空格或点击以重新开始');
+					this.drawOverlay('游戏结束', `分数: ${this.score}`, '按空格或点击以新局');
 				} else if (this.isPaused) {
 					const message = this.score === 0 ? '准备就绪' : '已暂停';
 					this.drawOverlay(message, '按空格或点击以开始/继续');

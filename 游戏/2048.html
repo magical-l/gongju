@@ -240,6 +240,8 @@
 		color: #4a4a4a;
 	}
 
+	.scoreboard section { text-align: center; }
+
 	.one.setting {margin-bottom: 0;}
 
 	.one.setting.input.number {width: 80px;}
@@ -318,7 +320,7 @@
 			<section class="setting list area">
 				<el-form inline>
 					<el-form-item label="棋盘尺寸" class="one setting group">
-						<el-select v-model="settings.boardSize" size="small" style="width: 80px;">
+						<el-select v-model="settings.boardSize" size="large" style="width: 88px;">
 							<el-option label="3x3" :value="3"></el-option>
 							<el-option label="4x4" :value="4"></el-option>
 							<el-option label="5x5" :value="5"></el-option>
@@ -326,7 +328,7 @@
 						</el-select>
 					</el-form-item>
 					<el-form-item label="目标数字" class="one setting group">
-						<el-select v-model="settings.targetNumber" size="small" style="width: 100px;">
+						<el-select v-model="settings.targetNumber" size="large" style="width: 108px;">
 							<el-option label="1024" :value="1024"></el-option>
 							<el-option label="2048" :value="2048"></el-option>
 							<el-option label="4096" :value="4096"></el-option>
@@ -335,7 +337,7 @@
 						</el-select>
 					</el-form-item>
 					<el-form-item label="初始块数" class="one setting group">
-						<el-select v-model="settings.initialTiles" size="small" style="width: 80px;">
+						<el-select v-model="settings.initialTiles" size="large" style="width: 88px;">
 							<el-option label="1" :value="1"></el-option>
 							<el-option label="2" :value="2"></el-option>
 							<el-option label="3" :value="3"></el-option>
@@ -344,10 +346,10 @@
 						</el-select>
 					</el-form-item>
 					<el-form-item label="高亮效果" class="one setting group">
-						<el-switch v-model="settings.showHighlight" size="small"></el-switch>
+						<el-switch v-model="settings.showHighlight" size="large"></el-switch>
 					</el-form-item>
 					<el-form-item label="合并动画" class="one setting group">
-						<el-select v-model="settings.mergeAnimation" size="small" style="width: 120px;">
+						<el-select v-model="settings.mergeAnimation" size="large" style="width: 128px;">
 							<el-option label="翻牌" value="flip"></el-option>
 							<el-option label="缩放" value="scale"></el-option>
 							<el-option label="旋转" value="rotate"></el-option>
@@ -359,14 +361,13 @@
 				</el-form>
 			</section>
 			<section class="controller list area">
-				<el-button class="one controller : restart" @click="initGame" icon="RefreshRight" size="small">
-					重新开始
+				<el-button class="one controller : restart" @click="initGame" icon="RefreshRight" size="large">
+					重开
 				</el-button>
 			</section>
 		</header>
 
-		<article class="gaming area , 反叵字形 grid">
-			<article class="main map area , one-row item , flex items-near-center-x">
+		<article class="main map area , one-row item , flex items-near-center-x">
 				<div id="game-board-container">
 					<div id="game-board" :style="boardStyle">
 						<div v-for="(cell, index) in board" :key="`cell-${index}`"
@@ -386,19 +387,27 @@
 						<div style="font-size: 1.2rem; margin-top: 10px;">
 							{{ gameWin ? `达到目标 ${settings.targetNumber === Infinity ? '无限' : settings.targetNumber}！` : `最终得分: ${score}` }}
 						</div>
-						<el-button @click="initGame" type="primary" style="margin-top: 20px;">
-							{{ gameWin ? '继续挑战' : '再玩一次' }}
+						<el-button @click="initGame" type="primary" size="large" style="margin-top: 20px;">
+							新局
 						</el-button>
 					</div>
 				</div>
-			</article>
 		</article>
 
-		<article class="gaming-situation , right-sidebar">
+		<article class="situation , right-sidebar">
 			<el-card header="记分牌" class="scoreboard section">
-				<p class="score-item">当前分数: <span>{{ score }}</span></p>
-				<p class="score-item">最高分: <span>{{ highScore }}</span></p>
-				<p class="score-item">目标: <span>{{ settings.targetNumber === Infinity ? '无限' : settings.targetNumber }}</span></p>
+				<section>
+					<h3>当前分数</h3>
+					<p>{{ score }}</p>
+				</section>
+				<section>
+					<h3>最高分</h3>
+					<p>{{ highScore }}</p>
+				</section>
+				<section>
+					<h3>目标</h3>
+					<p>{{ settings.targetNumber === Infinity ? '无限' : settings.targetNumber }}</p>
+				</section>
 			</el-card>
 			<el-card header="快捷键" class="shortcut intro section">
 				<p>↑ ↓ → ← ：移动方块</p>
