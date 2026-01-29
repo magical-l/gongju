@@ -428,6 +428,8 @@
 	// A* 求解，返回 { solution: [要点击的数字序列], error: '不可解' | '求解超时' | null }
 	// 使用最小堆 + 迭代上限，避免界面卡死
 	const SOLVE_MAX_ITERATIONS = 500000;
+	// 格子数不超过此值时，新开一局会用 A* 求最优解作为答案；更大棋盘用“打乱逆序”以免卡顿
+	const OPTIMAL_SOLUTION_MAX_N = 20;
 
 	function solvePuzzleAStar(startBoard, width, height) {
 		const n = width * height;
@@ -553,9 +555,17 @@
 				this.initGame();
 			},
 			initGame() {
-				const { board, solution } = generateFromGoal(this.gridWidth, this.gridHeight);
+				const { board, solution: scrambleSolution } = generateFromGoal(this.gridWidth, this.gridHeight);
 				this.board = board;
-				this.initialSolution = solution;
+				let initialSolution = scrambleSolution;
+				const n = this.gridWidth * this.gridHeight;
+				if (n <= OPTIMAL_SOLUTION_MAX_N) {
+					const optimal = solvePuzzleAStar([...board], this.gridWidth, this.gridHeight);
+					if (!optimal.error && optimal.solution) {
+						initialSolution = optimal.solution;
+					}
+				}
+				this.initialSolution = initialSolution;
 				this.solutionSteps = [];
 				this.solutionIndex = 0;
 				this.solutionError = null;
