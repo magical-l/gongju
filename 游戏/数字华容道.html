@@ -582,16 +582,25 @@
 					this.hintTimer = null;
 				}
 			},
+			// 剩余步骤的「当前第 0 步」：已展开答案用 solutionSteps[solutionIndex]，否则用 initialSolution[moves]
+			getNextStepValue() {
+				if (this.solutionSteps.length && this.solutionIndex < this.solutionSteps.length) {
+					return this.solutionSteps[this.solutionIndex];
+				}
+				if (this.initialSolution.length && this.moves < this.initialSolution.length) {
+					return this.initialSolution[this.moves];
+				}
+				return null;
+			},
 			showHint() {
 				this.clearHint();
-				let nextVal = null;
-				if (this.solutionSteps.length && this.solutionIndex < this.solutionSteps.length) {
-					nextVal = this.solutionSteps[this.solutionIndex];
-				} else if (this.initialSolution.length && this.moves === 0) {
-					nextVal = this.initialSolution[0];
-				}
+				const nextVal = this.getNextStepValue();
 				if (nextVal == null) {
-					this.$message.warning('请先点击「答案」获取本局解法');
+					if (this.isWin) {
+						this.$message.success('已经过关啦');
+					} else {
+						this.$message.warning('请先点击「答案」获取本局解法');
+					}
 					return;
 				}
 				const idx = this.board.indexOf(nextVal);
