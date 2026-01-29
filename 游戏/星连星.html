@@ -195,12 +195,6 @@
 							<el-option label="8" :value="8"></el-option>
 						</el-select>
 					</el-form-item>
-					<el-form-item label="生成方式" class="one setting group">
-						<el-select v-model="settings.genAlgorithm" @change="onSettingsChange" size="small" style="width: 100px;">
-							<el-option label="条纹+转移" value="stripe"></el-option>
-							<el-option label="双向延伸" value="extend"></el-option>
-						</el-select>
-					</el-form-item>
 					<el-form-item class="one setting group">
 						<el-button @click="newGame" icon="Plus" size="small">新开</el-button>
 					</el-form-item>
@@ -285,8 +279,31 @@
 		'#85C1E2'  // 浅蓝
 	];
 
+	const SETTINGS_KEY = '星连星-settings';
+	// 生成方式：切换时注释一个、取消注释另一个即可
+	const GEN_ALGORITHM = 'stripe';   // 'stripe' 条纹+转移 | 'extend' 双向延伸
+	// const GEN_ALGORITHM = 'extend';
+	const defaultSettings = () => ({
+		gridSize: 5,
+		colorCount: 3
+	});
+	const loadSettings = () => {
+		try {
+			const raw = localStorage.getItem(SETTINGS_KEY);
+			if (!raw) return defaultSettings();
+			const saved = JSON.parse(raw);
+			const def = defaultSettings();
+			const gridSize = Math.min(10, Math.max(5, Number(saved.gridSize) || def.gridSize));
+			const colorCount = Math.min(8, Math.max(3, Number(saved.colorCount) || def.colorCount));
+			return { gridSize, colorCount };
+		} catch (e) {
+			return defaultSettings();
+		}
+	};
+
 	const app = createApp({
 		data() {
+			const settings = loadSettings();
 			return {
 				canvas: null,
 				ctx: null,
@@ -300,11 +317,7 @@
 				gameWin: false,
 				solutionPaths: [], // 本局答案（生成时保存），用于「答案」展示
 				showAnswerOverlay: false,
-				settings: {
-					gridSize: 5,
-					colorCount: 3,
-					genAlgorithm: 'stripe' // 'stripe' | 'extend'
-				}
+				settings
 			};
 		},
 		computed: {
@@ -356,7 +369,7 @@
 				const colorCount = this.settings.colorCount;
 				const totalCells = this.gridSize * this.gridSize;
 				let paths;
-				const algo = this.settings.genAlgorithm || 'stripe';
+				const algo = GEN_ALGORITHM;
 
 				const EXTEND_RETRIES = 5; // 双向延伸失败重试次数，全失败则转条纹+转移
 				if (colorCount > this.gridSize || this.gridSize <= 6) {
@@ -1933,6 +1946,9 @@
 			},
 			onSettingsChange() {
 				// 不自动开局、也不改当前局用的格子数，比例按本局实际 gridSize 算；用户点「新开」时再按当前设置生成
+				try {
+					localStorage.setItem(SETTINGS_KEY, JSON.stringify(this.settings));
+				} catch (e) {}
 			},
 			setupEventListeners() {
 				this.canvas.addEventListener('mousedown', this.startDrawing);
