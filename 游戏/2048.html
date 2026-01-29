@@ -293,6 +293,7 @@
 		<a href="贪吃蛇.html">贪吃蛇</a>
 		<a href="2048.html" class="active">2048</a>
 		<a href="点灯.html">点灯</a>
+		<a href="星连星/星连星.html">星连星</a>
 	</nav>
 </header>
 <main>
@@ -368,7 +369,7 @@
 			<article class="main map area , one-row item , flex items-near-center-x">
 				<div id="game-board-container">
 					<div id="game-board" :style="boardStyle">
-						<div v-for="(cell, index) in board" :key="`cell-${index}`" 
+						<div v-for="(cell, index) in board" :key="`cell-${index}`"
 							 :class="['game-cell', cell ? `tile-${cell}` : '', cell ? 'has-value' : '',
 										movingCells.has(index) ? 'moving' : '',
 										newTiles.has(index) ? 'new-tile' : '',
@@ -502,7 +503,7 @@
 					// 计算从旧位置到新位置的偏移量
 					const deltaX = (fromCol - toCol) * (cellSize + gap);
 					const deltaY = (fromRow - toRow) * (cellSize + gap);
-					
+
 					// 如果animating为true，说明正在动画中，transform应该从旧位置移动到0
 					// 如果animating为false，说明动画还没开始，transform应该在旧位置
 					if (pos.animating) {
@@ -814,7 +815,7 @@
 				return true;
 			},
 			handleKeydown(e) {
-				if ((this.gameOver || this.gameWin) && e.key !== 'ArrowUp' && e.key !== 'ArrowDown' && 
+				if ((this.gameOver || this.gameWin) && e.key !== 'ArrowUp' && e.key !== 'ArrowDown' &&
 						e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') {
 					return;
 				}
@@ -868,7 +869,7 @@
 				}
 				const newSettings = JSON.parse(newSettingsJSON);
 				const oldSettings = JSON.parse(oldSettingsJSON);
-				
+
 				// 处理Infinity
 				if (newSettings.targetNumber === 'Infinity') {
 					newSettings.targetNumber = Infinity;
@@ -876,14 +877,14 @@
 				if (oldSettings.targetNumber === 'Infinity') {
 					oldSettings.targetNumber = Infinity;
 				}
-				
+
 				// 保存设置（重新序列化以包含Infinity处理）
 				const settingsCopy = {...newSettings};
 				if (settingsCopy.targetNumber === Infinity) {
 					settingsCopy.targetNumber = 'Infinity';
 				}
 				localStorage.setItem('2048-settings', JSON.stringify(settingsCopy));
-				
+
 				// 如果棋盘尺寸改变，需要重新初始化游戏
 				if (newSettings.boardSize !== oldSettings.boardSize) {
 					this.initGame();

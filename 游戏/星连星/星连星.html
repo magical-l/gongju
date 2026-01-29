@@ -11,12 +11,12 @@
 <meta property="og:description" content="在线玩星连星游戏。通过绘制不相交的连线来连接同色星星，填满整个游戏区域即可通关。">
 <meta property="og:type" content="game">
 
-<link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
-<link href="../resources/el-plus.css" rel="stylesheet">
-<link href="../resources/common.css?v=250821" rel="stylesheet">
-<link href="../resources/layout.css?v=0821" rel="stylesheet">
-<link href="../resources/biz.css?v=250821" rel="stylesheet">
-<link href="../resources/花活.css?v=250821" rel="stylesheet">
+<link href="../../lib/element-plus/2.10.7/index.css" rel="stylesheet">
+<link href="../../resources/el-plus.css" rel="stylesheet">
+<link href="../../resources/common.css?v=250821" rel="stylesheet">
+<link href="../../resources/layout.css?v=0821" rel="stylesheet">
+<link href="../../resources/biz.css?v=250821" rel="stylesheet">
+<link href="../../resources/花活.css?v=250821" rel="stylesheet">
 <style>
 	.gaming.area {
 		margin-top: 20px;
@@ -133,18 +133,18 @@
 <header>
 	<h1 class="website name" title="工具人（gongju.ren）域名太贵买不起">工具兽</h1>
 	<nav>
-		<a href="../文本转化.html">文本转化</a>
-		<a href="../数字转化.html">数字转化</a>
-		<a href="../符号/符号.html">符号</a>
-		<a href="../格子盘.html">格子盘</a>
-		<a href="../svg转图标.html">SVG转图标</a>
-		<a href="../化学/元素周期表.html">元素周期表</a>
-		<a href="../拼音/拼音.html">拼音</a>
-		<a href="中国象棋/中国象棋.html">中国象棋</a>
-		<a href="俄罗斯方块.html">俄罗斯方块</a>
-		<a href="贪吃蛇.html">贪吃蛇</a>
-		<a href="2048.html">2048</a>
-		<a href="点灯.html">点灯</a>
+		<a href="../../文本转化.html">文本转化</a>
+		<a href="../../数字转化.html">数字转化</a>
+		<a href="../../符号/符号.html">符号</a>
+		<a href="../../格子盘.html">格子盘</a>
+		<a href="../../svg转图标.html">SVG转图标</a>
+		<a href="../../化学/元素周期表.html">元素周期表</a>
+		<a href="../../拼音/拼音.html">拼音</a>
+		<a href="../中国象棋/中国象棋.html">中国象棋</a>
+		<a href="../俄罗斯方块.html">俄罗斯方块</a>
+		<a href="../贪吃蛇.html">贪吃蛇</a>
+		<a href="../2048.html">2048</a>
+		<a href="../点灯.html">点灯</a>
 		<a href="星连星.html" class="active">星连星</a>
 	</nav>
 </header>
@@ -250,7 +250,7 @@
 <aside class="right-sidebar">
 	<article class="website info">
 		<section class="patronage area">
-			<img class="qr-code" src="../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+			<img class="qr-code" src="../../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
 			<p class="slogan">赞助一下</p>
 		</section>
 		<section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
@@ -260,9 +260,9 @@
 </aside>
 
 <div class="js container">
-	<script src="../lib/vue/3.5.18/vue.global.js"></script>
-	<script src="../lib/element-plus/2.10.7/index.full.js"></script>
-	<script src="../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
+	<script src="../../lib/vue/3.5.18/vue.global.js"></script>
+	<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
+	<script src="../../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
 </div>
 <script>
 	const {createApp} = Vue;
@@ -281,8 +281,8 @@
 
 	const SETTINGS_KEY = '星连星-settings';
 	// 生成方式：切换时注释一个、取消注释另一个即可
-	const GEN_ALGORITHM = 'stripe';   // 'stripe' 条纹+转移 | 'extend' 双向延伸
-	// const GEN_ALGORITHM = 'extend';
+	// const GEN_ALGORITHM = 'stripe';   // 'stripe' 条纹+转移 | 'extend' 双向延伸
+	const GEN_ALGORITHM = 'extend';
 	const defaultSettings = () => ({
 		gridSize: 5,
 		colorCount: 3
