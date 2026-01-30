@@ -55,6 +55,10 @@
 						<el-form-item label="贴目" class="one setting">
 							<el-input-number v-model="komi" :step="0.5" :min="0" controls-position="right" style="width: 120px"></el-input-number>
 						</el-form-item>
+						<el-form-item class="one setting">
+							<el-button :type="isGaming ? 'danger' : 'primary'" :icon="isGaming ? 'RefreshRight' : 'VideoPlay'"
+								@click="isGaming ? restartGame() : startGame()">{{ isGaming ? '新局' : '开始' }}</el-button>
+						</el-form-item>
 					</div>
 				</el-form>
 			</el-card>
@@ -78,28 +82,6 @@
 						<el-button @click="doUndo" :disabled="!canUndo">悔棋</el-button>
 						<el-button @click="doRedo" :disabled="!canRedo">撤销悔棋</el-button>
 					</el-button-group>
-				</div>
-				<div class="one group">
-					<el-button-group>
-						<el-button @click="exportSGF" :disabled="!isGaming">导出SGF</el-button>
-						<el-button @click="openImportSGF">导入SGF</el-button>
-					</el-button-group>
-				</div>
-				<div class="one group" style="min-width: 160px; max-width: 420px; display: inline-flex; align-items: center; gap: 8px;">
-					<span style="font-size:12px;color:#5a452b;">回放</span>
-					<el-slider
-						:key="sliderKey"
-						v-model="historySeek"
-						:min="0"
-						:max="historyTotal"
-						:step="1"
-						:show-tooltip="false"
-						:show-input="true"
-						:show-input-controls="true"
-						style="width: 260px;"
-						@change="onSeekHistory"
-					></el-slider>
-					<span style="font-size:12px;color:#5a452b;">{{ historyIndex }}/{{ historyTotal }}</span>
 				</div>
 			</el-card>
 		</header>
@@ -147,6 +129,22 @@
 				</div>
 			</section>
 				</div>
+				<div v-if="showReplaySliderBar" class="replay-bar">
+					<span class="replay-bar-label">回放</span>
+					<el-slider
+						:key="sliderKey"
+						v-model="historySeek"
+						:min="0"
+						:max="historyTotal"
+						:step="1"
+						:show-tooltip="false"
+						:show-input="true"
+						:show-input-controls="true"
+						class="replay-bar-slider"
+						@change="onSeekHistory"
+					></el-slider>
+					<span class="replay-bar-index">{{ historyIndex }}/{{ historyTotal }}</span>
+				</div>
 			</article>
 		</article>
 
@@ -160,12 +158,18 @@
 						<div>手数：第 {{ historyIndex }} 手<span v-if="historyTotal > 0"> / 共 {{ historyTotal }} 手</span></div>
 					</div>
 				</el-collapse-item>
-				<el-collapse-item v-if="isGaming" name="round" title="回合">
-					<el-table :data="turnHistoryRows" row-key="id" stripe style="width: 100%" height="400" empty-text="尚未落子">
-						<el-table-column prop="id" label="手数" width="60"></el-table-column>
-						<el-table-column prop="blackMove" label="黑方"></el-table-column>
-						<el-table-column prop="whiteMove" label="白方"></el-table-column>
-					</el-table>
+				<el-collapse-item name="round" title="回合">
+					<div class="round-card-body">
+						<div class="round-actions">
+							<el-button size="small" @click="exportSGF" :disabled="!isGaming">导出SGF</el-button>
+							<el-button size="small" @click="openImportSGF">导入SGF</el-button>
+						</div>
+						<el-table :data="turnHistoryRows" row-key="id" stripe style="width: 100%" height="360" empty-text="尚未落子">
+							<el-table-column prop="id" label="手数" width="60"></el-table-column>
+							<el-table-column prop="blackMove" label="黑方"></el-table-column>
+							<el-table-column prop="whiteMove" label="白方"></el-table-column>
+						</el-table>
+					</div>
 				</el-collapse-item>
 				</el-collapse>
 			</el-card>
@@ -270,6 +274,7 @@ window.__DEBUG__ ??= false;
 				showImportDialog: false,
 				sgfText: '',
 				sliderKey: 0,
+				showReplaySliderBarFlag: false,
 				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
 				_gamingInfoCollapseKey: collapseKey,
 			};
@@ -324,6 +329,9 @@ window.__DEBUG__ ??= false;
 				const n = this.isGaming ? this.boardSize : this.pendingBoardSize;
 				return Array.from({length: n}, (_, i) => n - i); // 顶部到下方：19..1
 			},
+			showReplaySliderBar() {
+				return !!this.isGaming && this.historyTotal > 0 && (this.showReplaySliderBarFlag || this.historySeek < this.historyTotal);
+			},
 			turnHistoryRows() {
 				if (!this.isGaming || !this.moves || this.moves.length === 0) return [];
 				const n = this.boardSize;
@@ -356,6 +364,7 @@ window.__DEBUG__ ??= false;
 				this.historyTotal = 0;
 				this.historySeek = 0;
 				this.isReplaying = false;
+				this.showReplaySliderBarFlag = false;
 				this.sliderKey++;
 
 				if (!this.isReplaying) {
@@ -660,6 +669,7 @@ window.__DEBUG__ ??= false;
 					this.historyIndex = this.historyTotal;
 					this.historySeek = this.historyIndex;
 					this.syncBoardState();
+					this.showReplaySliderBarFlag = true;
 					this.$message?.success?.('SGF 导入完成');
 					this.showImportDialog = false;
 				} catch (e) {

@@ -232,7 +232,7 @@
 						:icon="isPaused ? 'VideoPlay' : 'VideoPause'">
 						{{ pauseButtonText }}
 					</el-button>
-					<el-button @click="restartGame" class="one controller" :disabled="!currentLevelId" icon="RefreshLeft">重来</el-button>
+					<el-button type="danger" @click="restartGame" class="one controller" :disabled="!currentLevelId" icon="RefreshLeft">重来</el-button>
 				</el-button-group>
 			</el-card>
 		</header>

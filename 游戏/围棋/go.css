@@ -41,6 +41,21 @@
 .game-info { margin-left: 8px; line-height: 1.6; }
 .game-info > div + div { margin-top: 4px; }
 
+.round-card-body { display: flex; flex-direction: column; gap: 10px; }
+.round-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.replay-bar {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-top: 12px;
+	padding: 8px 12px;
+	background: #f5f5f5;
+	border-radius: 6px;
+}
+.replay-bar-label, .replay-bar-index { font-size: 12px; color: #5a452b; }
+.replay-bar-slider { flex: 1; min-width: 120px; }
+
 /* 棋盘容器，用于摆放坐标标注 */
 .board-wrapper {
 	position: relative;

@@ -200,12 +200,12 @@
 						</el-form-item>
 					</div>
 					<div class="one setting group">
-						<el-button @click="newGame" icon="RefreshRight">新局</el-button>
+						<el-button type="danger" @click="newGame" icon="RefreshRight">新局</el-button>
 					</div>
 				</el-form>
 			</el-card>
 			<el-card class="controller list area" shadow="never">
-				<el-button class="one controller : restart" @click="restartCurrentGame" icon="RefreshLeft">重来</el-button>
+				<el-button type="danger" class="one controller : restart" @click="restartCurrentGame" icon="RefreshLeft">重来</el-button>
 			</el-card>
 			<el-card class="tool list area" shadow="never">
 				<el-button class="one tool : answer" @click="showAnswer" :type="showAnswerOverlay ? 'primary' : 'default'"
