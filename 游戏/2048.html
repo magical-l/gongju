@@ -269,10 +269,6 @@
 	}
 
 	@media (max-width: 600px) {
-		#game-board {
-			width: 300px;
-			height: 300px;
-		}
 		.game-cell {
 			font-size: calc(var(--base-font-size, 2.5rem) * 0.72) !important;
 		}
@@ -319,12 +315,14 @@
 		<header class="toolbar , flex near-center">
 			<section class="setting list area">
 				<el-form inline>
-					<el-form-item label="棋盘尺寸" class="one setting group">
-						<el-select v-model="settings.boardSize" size="large" style="width: 88px;">
-							<el-option label="3x3" :value="3"></el-option>
-							<el-option label="4x4" :value="4"></el-option>
-							<el-option label="5x5" :value="5"></el-option>
-							<el-option label="6x6" :value="6"></el-option>
+					<el-form-item label="宽" class="one setting group">
+						<el-select v-model="settings.boardWidth" size="large" style="width: 72px;" @change="onSizeChange">
+							<el-option v-for="w in sizeOptions" :key="'w'+w" :label="w" :value="w" />
+						</el-select>
+					</el-form-item>
+					<el-form-item label="高" class="one setting group">
+						<el-select v-model="settings.boardHeight" size="large" style="width: 72px;" @change="onSizeChange">
+							<el-option v-for="h in sizeOptions" :key="'h'+h" :label="h" :value="h" />
 						</el-select>
 					</el-form-item>
 					<el-form-item label="目标数字" class="one setting group">
@@ -452,24 +450,28 @@
 				mergedCells: new Set(),
 				cellPositions: new Map(), // 存储每个块的位置变化
 				settings: {
-					boardSize: 4,
+					boardWidth: 4,
+					boardHeight: 4,
 					targetNumber: 2048,
 					initialTiles: 2,
 					showHighlight: true,
 					mergeAnimation: 'flip'
-				}
+				},
+				sizeOptions: [3, 4, 5, 6, 7, 8]
 			};
 		},
 		computed: {
 			boardStyle() {
-				const cellSize = Math.min(400 / this.settings.boardSize, 100);
-				// 根据棋盘尺寸计算基础字体大小
-				const baseFontSize = Math.max(1.5, 3.5 - (this.settings.boardSize - 3) * 0.5);
+				const w = this.settings.boardWidth;
+				const h = this.settings.boardHeight;
+				const maxSide = Math.max(w, h);
+				const cellSize = Math.min(100, Math.floor(420 / maxSide));
+				const baseFontSize = Math.max(1.2, 3.2 - (maxSide - 3) * 0.4);
 				return {
-					gridTemplateColumns: `repeat(${this.settings.boardSize}, 1fr)`,
-					gridTemplateRows: `repeat(${this.settings.boardSize}, 1fr)`,
-					width: `${this.settings.boardSize * cellSize}px`,
-					height: `${this.settings.boardSize * cellSize}px`,
+					gridTemplateColumns: `repeat(${w}, 1fr)`,
+					gridTemplateRows: `repeat(${h}, 1fr)`,
+					width: `${w * cellSize}px`,
+					height: `${h * cellSize}px`,
 					'--base-font-size': `${baseFontSize}rem`
 				};
 			},
@@ -483,8 +485,11 @@
 			}
 		},
 		methods: {
+			onSizeChange() {
+				this.initGame();
+			},
 			initGame() {
-				const totalCells = this.settings.boardSize * this.settings.boardSize;
+				const totalCells = this.settings.boardWidth * this.settings.boardHeight;
 				this.board = Array(totalCells).fill(0);
 				this.score = 0;
 				this.gameOver = false;
@@ -502,13 +507,15 @@
 			getCellStyle(index) {
 				const pos = this.cellPositions.get(index);
 				if (pos && this.movingCells.has(index)) {
-					const size = this.settings.boardSize;
-					const cellSize = Math.min(400 / size, 100);
-					const gap = 10; // gap between cells
-					const fromRow = Math.floor(pos.from / size);
-					const fromCol = pos.from % size;
-					const toRow = Math.floor(index / size);
-					const toCol = index % size;
+					const cols = this.settings.boardWidth;
+					const rows = this.settings.boardHeight;
+					const maxSide = Math.max(cols, rows);
+					const cellSize = Math.min(100, Math.floor(420 / maxSide));
+					const gap = 10;
+					const fromRow = Math.floor(pos.from / cols);
+					const fromCol = pos.from % cols;
+					const toRow = Math.floor(index / cols);
+					const toCol = index % cols;
 					// 计算从旧位置到新位置的偏移量
 					const deltaX = (fromCol - toCol) * (cellSize + gap);
 					const deltaY = (fromRow - toRow) * (cellSize + gap);
@@ -531,7 +538,7 @@
 			},
 			addRandomTile() {
 				const emptyCells = [];
-				const totalCells = this.settings.boardSize * this.settings.boardSize;
+				const totalCells = this.settings.boardWidth * this.settings.boardHeight;
 				for (let i = 0; i < totalCells; i++) {
 					if (this.board[i] === 0) {
 						emptyCells.push(i);
@@ -638,25 +645,25 @@
 			},
 			moveLeft() {
 				let moved = false;
-				const size = this.settings.boardSize;
-				for (let row = 0; row < size; row++) {
+				const cols = this.settings.boardWidth;
+				const rows = this.settings.boardHeight;
+				for (let row = 0; row < rows; row++) {
 					const line = [];
 					const originalPositions = [];
-					for (let col = 0; col < size; col++) {
-						const index = row * size + col;
+					for (let col = 0; col < cols; col++) {
+						const index = row * cols + col;
 						line.push(this.board[index]);
 						originalPositions.push(index);
 					}
-					const {merged, newPositions} = this.mergeLine(line, originalPositions);
-					for (let col = 0; col < size; col++) {
-						const newIndex = row * size + col;
+					const {merged, newPositions} = this.mergeLine(line, originalPositions, cols);
+					for (let col = 0; col < cols; col++) {
+						const newIndex = row * cols + col;
 						const newValue = merged[col];
 						const oldValue = this.board[newIndex];
 						if (newValue !== oldValue) {
 							moved = true;
 						}
 						this.board[newIndex] = newValue;
-						// 跟踪移动
 						if (newPositions[col] !== newIndex && newValue !== 0) {
 							this.movingCells.add(newIndex);
 							this.cellPositions.set(newIndex, {from: newPositions[col], to: newIndex});
@@ -667,26 +674,26 @@
 			},
 			moveRight() {
 				let moved = false;
-				const size = this.settings.boardSize;
-				for (let row = 0; row < size; row++) {
+				const cols = this.settings.boardWidth;
+				const rows = this.settings.boardHeight;
+				for (let row = 0; row < rows; row++) {
 					const line = [];
 					const originalPositions = [];
-					for (let col = size - 1; col >= 0; col--) {
-						const index = row * size + col;
+					for (let col = cols - 1; col >= 0; col--) {
+						const index = row * cols + col;
 						line.push(this.board[index]);
 						originalPositions.push(index);
 					}
-					const {merged, newPositions} = this.mergeLine(line, originalPositions);
-					for (let col = 0; col < size; col++) {
-						const newIndex = row * size + col;
-						const newValue = merged[size - 1 - col];
+					const {merged, newPositions} = this.mergeLine(line, originalPositions, cols);
+					for (let col = 0; col < cols; col++) {
+						const newIndex = row * cols + col;
+						const newValue = merged[cols - 1 - col];
 						const oldValue = this.board[newIndex];
 						if (newValue !== oldValue) {
 							moved = true;
 						}
 						this.board[newIndex] = newValue;
-						// 跟踪移动（需要转换回原始索引）
-						const reversedCol = size - 1 - col;
+						const reversedCol = cols - 1 - col;
 						if (newPositions[reversedCol] !== originalPositions[reversedCol] && newValue !== 0) {
 							this.movingCells.add(newIndex);
 							this.cellPositions.set(newIndex, {from: originalPositions[reversedCol], to: newIndex});
@@ -697,25 +704,25 @@
 			},
 			moveUp() {
 				let moved = false;
-				const size = this.settings.boardSize;
-				for (let col = 0; col < size; col++) {
+				const cols = this.settings.boardWidth;
+				const rows = this.settings.boardHeight;
+				for (let col = 0; col < cols; col++) {
 					const line = [];
 					const originalPositions = [];
-					for (let row = 0; row < size; row++) {
-						const index = row * size + col;
+					for (let row = 0; row < rows; row++) {
+						const index = row * cols + col;
 						line.push(this.board[index]);
 						originalPositions.push(index);
 					}
-					const {merged, newPositions} = this.mergeLine(line, originalPositions);
-					for (let row = 0; row < size; row++) {
-						const newIndex = row * size + col;
+					const {merged, newPositions} = this.mergeLine(line, originalPositions, rows);
+					for (let row = 0; row < rows; row++) {
+						const newIndex = row * cols + col;
 						const newValue = merged[row];
 						const oldValue = this.board[newIndex];
 						if (newValue !== oldValue) {
 							moved = true;
 						}
 						this.board[newIndex] = newValue;
-						// 跟踪移动
 						if (newPositions[row] !== newIndex && newValue !== 0) {
 							this.movingCells.add(newIndex);
 							this.cellPositions.set(newIndex, {from: newPositions[row], to: newIndex});
@@ -726,26 +733,26 @@
 			},
 			moveDown() {
 				let moved = false;
-				const size = this.settings.boardSize;
-				for (let col = 0; col < size; col++) {
+				const cols = this.settings.boardWidth;
+				const rows = this.settings.boardHeight;
+				for (let col = 0; col < cols; col++) {
 					const line = [];
 					const originalPositions = [];
-					for (let row = size - 1; row >= 0; row--) {
-						const index = row * size + col;
+					for (let row = rows - 1; row >= 0; row--) {
+						const index = row * cols + col;
 						line.push(this.board[index]);
 						originalPositions.push(index);
 					}
-					const {merged, newPositions} = this.mergeLine(line, originalPositions);
-					for (let row = 0; row < size; row++) {
-						const newIndex = row * size + col;
-						const newValue = merged[size - 1 - row];
+					const {merged, newPositions} = this.mergeLine(line, originalPositions, rows);
+					for (let row = 0; row < rows; row++) {
+						const newIndex = row * cols + col;
+						const newValue = merged[rows - 1 - row];
 						const oldValue = this.board[newIndex];
 						if (newValue !== oldValue) {
 							moved = true;
 						}
 						this.board[newIndex] = newValue;
-						// 跟踪移动（需要转换回原始索引）
-						const reversedRow = size - 1 - row;
+						const reversedRow = rows - 1 - row;
 						if (newPositions[reversedRow] !== originalPositions[reversedRow] && newValue !== 0) {
 							this.movingCells.add(newIndex);
 							this.cellPositions.set(newIndex, {from: originalPositions[reversedRow], to: newIndex});
@@ -754,8 +761,7 @@
 				}
 				return moved;
 			},
-			mergeLine(line, originalPositions) {
-				// 移除零，同时跟踪位置
+			mergeLine(line, originalPositions, lineLength) {
 				let filtered = [];
 				let filteredPositions = [];
 				for (let i = 0; i < line.length; i++) {
@@ -764,17 +770,14 @@
 						filteredPositions.push(originalPositions[i]);
 					}
 				}
-				// 合并相同数字
 				for (let i = 0; i < filtered.length - 1; i++) {
 					if (filtered[i] === filtered[i + 1]) {
 						filtered[i] *= 2;
 						this.score += filtered[i];
 						filtered[i + 1] = 0;
-						// 合并后，新位置是第一个位置
 						filteredPositions[i + 1] = filteredPositions[i];
 					}
 				}
-				// 再次移除零
 				const finalFiltered = [];
 				const finalPositions = [];
 				for (let i = 0; i < filtered.length; i++) {
@@ -783,40 +786,35 @@
 						finalPositions.push(filteredPositions[i]);
 					}
 				}
-				// 填充到指定长度
-				const size = this.settings.boardSize;
 				const newPositions = [];
-				for (let i = 0; i < size; i++) {
+				for (let i = 0; i < lineLength; i++) {
 					if (i < finalFiltered.length) {
 						newPositions.push(finalPositions[i]);
 					} else {
-						newPositions.push(-1); // 空位置
+						newPositions.push(-1);
 					}
 				}
-				while (finalFiltered.length < size) {
+				while (finalFiltered.length < lineLength) {
 					finalFiltered.push(0);
 				}
 				return {merged: finalFiltered, newPositions};
 			},
 			checkGameOver() {
-				const size = this.settings.boardSize;
-				const totalCells = size * size;
-				// 检查是否有空格
+				const cols = this.settings.boardWidth;
+				const rows = this.settings.boardHeight;
+				const totalCells = cols * rows;
 				for (let i = 0; i < totalCells; i++) {
 					if (this.board[i] === 0) {
 						return false;
 					}
 				}
-				// 检查是否可以合并
-				for (let row = 0; row < size; row++) {
-					for (let col = 0; col < size; col++) {
-						const current = this.board[row * size + col];
-						// 检查右边
-						if (col < size - 1 && this.board[row * size + col + 1] === current) {
+				for (let row = 0; row < rows; row++) {
+					for (let col = 0; col < cols; col++) {
+						const current = this.board[row * cols + col];
+						if (col < cols - 1 && this.board[row * cols + col + 1] === current) {
 							return false;
 						}
-						// 检查下边
-						if (row < size - 1 && this.board[(row + 1) * size + col] === current) {
+						if (row < rows - 1 && this.board[(row + 1) * cols + col] === current) {
 							return false;
 						}
 					}
@@ -854,9 +852,14 @@
 				if (savedSettings) {
 					try {
 						const parsed = JSON.parse(savedSettings);
-						// 处理Infinity
 						if (parsed.targetNumber === 'Infinity') {
 							parsed.targetNumber = Infinity;
+						}
+						// 兼容旧版：boardSize -> boardWidth/boardHeight
+						if (parsed.boardSize != null && parsed.boardWidth == null) {
+							parsed.boardWidth = parsed.boardSize;
+							parsed.boardHeight = parsed.boardSize;
+							delete parsed.boardSize;
 						}
 						Object.assign(this.settings, parsed);
 					} catch (e) {
@@ -895,7 +898,8 @@
 				localStorage.setItem('2048-settings', JSON.stringify(settingsCopy));
 
 				// 如果棋盘尺寸改变，需要重新初始化游戏
-				if (newSettings.boardSize !== oldSettings.boardSize) {
+				if (newSettings.boardWidth !== oldSettings.boardWidth ||
+						newSettings.boardHeight !== oldSettings.boardHeight) {
 					this.initGame();
 				}
 			}
