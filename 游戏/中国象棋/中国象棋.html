@@ -143,70 +143,71 @@
 		display: flex;
 		align-items: center;
 		margin-left: 10px;
-gap: var(--gap);
-
-	.push-right {
-		margin-left: auto;
-	}
-
-	.selected-unit-panel {
-		min-height: 160px;
-	}
-
-	/* 杀敌信息样式 */
-	.kill.info > .header {
-		display: flex;
-		align-items: center;
 		gap: var(--gap);
-		margin-bottom: 10px;
-		border-bottom: 1px solid #eee;
-		padding-bottom: 8px;
-	}
 
-	.kill.info .count {
-		display: inline-block;
-		min-width: 24px;
-		height: 24px;
-		line-height: 24px;
-		text-align: center;
-		background-color: #f56c6c;
-		color: white;
-		border-radius: 50%;
-		font-weight: bold;
-		font-size: 16px;
-	}
+		.push-right {
+			margin-left: auto;
+		}
 
-	.kill.info .details {
-		max-height: 150px;
-		overflow-y: auto;
-	}
+		.selected-unit-panel {
+			min-height: 160px;
+		}
 
-	.kill.info .record {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		padding: 5px 0;
-		border-bottom: 1px dashed #eee;
-	}
+		/* 杀敌信息样式 */
 
-	.kill.info .unit.display {
-		--min-cell-len: 45px;
-		width: var(--min-cell-len);
-		height: var(--min-cell-len);
-		font-family: NotoSansSymbols2, sans-serif;
-	}
+		.kill.info > .header {
+			display: flex;
+			align-items: center;
+			gap: var(--gap);
+			margin-bottom: 10px;
+			border-bottom: 1px solid #eee;
+			padding-bottom: 8px;
+		}
 
-	.kill.info .meta {
-		font-size: 12px;
-		color: #909399;
-	}
+		.kill.info .count {
+			display: inline-block;
+			min-width: 24px;
+			height: 24px;
+			line-height: 24px;
+			text-align: center;
+			background-color: #f56c6c;
+			color: white;
+			border-radius: 50%;
+			font-weight: bold;
+			font-size: 16px;
+		}
 
-	.no-kills {
-		color: #909399;
-		font-style: italic;
-		padding: 10px 0;
-		text-align: center;
-	}
+		.kill.info .details {
+			max-height: 150px;
+			overflow-y: auto;
+		}
+
+		.kill.info .record {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: 5px 0;
+			border-bottom: 1px dashed #eee;
+		}
+
+		.kill.info .unit.display {
+			--min-cell-len: 45px;
+			width: var(--min-cell-len);
+			height: var(--min-cell-len);
+			font-family: NotoSansSymbols2, sans-serif;
+		}
+
+		.kill.info .meta {
+			font-size: 12px;
+			color: #909399;
+		}
+
+		.no-kills {
+			color: #909399;
+			font-style: italic;
+			padding: 10px 0;
+			text-align: center;
+		}
 </style>
 </head>
 <body class="grid 目字形">
@@ -229,34 +230,43 @@ gap: var(--gap);
 <main class="flex items-near-center-x">
 	<article class="game wrapper , 反叵字形 grid" v-cloak>
 		<!-- 模式工具栏 -->
-		<div class="toolbar , one-row item , flex items-like-册">
-			<label>对面视角
-				<el-switch v-model="showReversedView" size="large"/>
-			</label>
-			<template v-if="!isGaming">
-				<el-button @click="resetBoard" type="info" inline plain>默认棋盘</el-button>
-				<el-button @click="clearBoard" type="danger" inline plain>清空棋盘</el-button>
-				<!-- 玩家顺序 -->
-				<div class="player turn selector">
-					<el-radio-group v-model="gameSettings.firstPlayer">
-						<el-radio value="red" border>红先</el-radio>
-						<el-radio value="black" border>黑先</el-radio>
-					</el-radio-group>
+		<header class="toolbar , flex items-near-center-x items-stretch">
+			<section class="setting list area">
+				<el-form inline>
+					<div v-if="isGaming" class="one setting group">
+						<el-button type="info" @click="returnToSettings" icon="RefreshRight">新局</el-button>
+					</div>
+				</el-form>
+				<template v-if="!isGaming">
+					<el-button @click="resetBoard" type="info" inline plain>默认棋盘</el-button>
+					<el-button @click="clearBoard" type="danger" inline plain>清空棋盘</el-button>
+					<div class="player turn selector">
+						<el-radio-group v-model="gameSettings.firstPlayer">
+							<el-radio value="red" border>红先</el-radio>
+							<el-radio value="black" border>黑先</el-radio>
+						</el-radio-group>
+					</div>
+					<el-button type="primary" icon="VideoPlay" @click="startGame" class="push-right">开始游戏</el-button>
+				</template>
+			</section>
+			<section class="controller list area">
+				<template v-if="isGaming">
+					<el-button type="primary" icon="RefreshRight" @click="restartGame">重来</el-button>
+				</template>
+			</section>
+			<section class="tool list area">
+				<div class="one group">
+					<el-form-item label="对面视角" class="one tool">
+						<el-switch v-model="showReversedView"/>
+					</el-form-item>
 				</div>
-				<!-- 开始游戏 -->
-				<el-button type="primary" size="large" @click="startGame" class="push-right">开始游戏</el-button>
-			</template>
-			<template v-else>
-				<!-- 游戏操作 -->
-				<el-button type="primary" @click="restartGame">重来</el-button>
-				<el-button type="warning" @click="undoMove" :disabled="!isUndoAvailable">悔棋</el-button>
-				<el-button type="info" @click="returnToSettings">换一盘</el-button>
-				<!-- 玩家顺序信息 -->
-				<div style="margin-left: 10px; color: #606266; font-size: 14px;">
-					<span style="font-weight: bold;">{{ gameSettings.firstPlayer === 'red' ? '红先' : '黑先' }}</span>
-				</div>
-			</template>
-		</div>
+				<template v-if="isGaming">
+					<div class="one group">
+						<el-button type="warning" @click="undoMove" :disabled="!isUndoAvailable">悔棋</el-button>
+					</div>
+				</template>
+			</section>
+		</header>
 
 		<!-- 统一棋盘容器 -->
 		<div class="chessboard container flex items-like-册"
@@ -278,7 +288,8 @@ gap: var(--gap);
 					</div>
 				</template>
 			</article>
-			<article class="one chessboard reversed view , grid no-gap" v-if="showReversedView && positions && positions.length > 0">
+			<article class="one chessboard reversed view , grid no-gap"
+							 v-if="showReversedView && positions && positions.length > 0">
 				<template v-for="(row,rIndex) of reversedPositions">
 					<div class="cell" v-for="(position,cIndex) in row" :key="position.toString()"
 							 :class="getDynamicCellClasses(9-rIndex, 8-cIndex, position, rIndex, cIndex)"
@@ -378,13 +389,18 @@ gap: var(--gap);
 				</el-checkbox-group>
 			</el-card>
 
-			<el-card header="回合" v-if="isGaming" class="compact" shadow="never">
-				<el-table :data="turnHistory" row-key="id" stripe style="width: 100%" height="400" empty-text="尚未走棋">
-					<el-table-column prop="id" label="回合" width="60"></el-table-column>
-					<el-table-column prop="redMove" label="红方"></el-table-column>
-					<el-table-column prop="blackMove" label="黑方"></el-table-column>
-				</el-table>
-			</el-card>
+			<section class="status info area" v-if="isGaming">
+				<el-card header="规矩" class="compact" shadow="never">
+					<span>{{ gameSettings.firstPlayer === 'red' ? '红先' : '黑先' }}</span>
+				</el-card>
+				<el-card header="回合" class="compact" shadow="never">
+					<el-table :data="turnHistory" row-key="id" stripe style="width: 100%" height="400" empty-text="尚未走棋">
+						<el-table-column prop="id" label="回合" width="60"></el-table-column>
+						<el-table-column prop="redMove" label="红方"></el-table-column>
+						<el-table-column prop="blackMove" label="黑方"></el-table-column>
+					</el-table>
+				</el-card>
+			</section>
 		</aside>
 
 		<!-- 将军提示 -->

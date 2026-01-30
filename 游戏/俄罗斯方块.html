@@ -152,40 +152,49 @@
 	</header>
 
 	<article class="game-wrapper , 反叵字形 grid" v-cloak>
-		<header class="toolbar , flex near-center">
+		<header class="toolbar , flex items-near-center-x items-stretch">
 			<!--		<header class="item monopoly , toolbar flex items-mutex">-->
 			<section class="setting list area">
 				<el-form inline>
-					<el-form-item label="尺寸" class="one setting group">
-						<el-input-number class="one setting : cols input number" v-model="settings.cols" :min="5" :max="20"
-														 controls-position="right"></el-input-number>
-						<span>x</span>
-						<el-input-number class="one setting : rows input number" v-model="settings.rows" :min="10" :max="30"
-														 controls-position="right"></el-input-number>
-						<el-button title="恢复默认并新局" @click="restoreDefaultSize" icon="RefreshLeft" size="large"></el-button>
-					</el-form-item>
-					<el-form-item label="难度" class="one setting group">
-						<div class="flex items-near-start-x">
-							<el-input-number class="one setting : startLv input number"
-															 v-model="settings.startLevel" :min="1" :max="29"
-															 controls-position="right">
-							</el-input-number>
+					<div class="one setting group">
+						<el-form-item label="行" class="one setting">
+							<el-select v-model="settings.rows">
+								<el-option v-for="r in rowsOptions" :key="r" :label="r" :value="r"/>
+							</el-select>
+						</el-form-item>
+						<el-form-item label="列" class="one setting">
+							<el-select v-model="settings.cols">
+								<el-option v-for="c in colsOptions" :key="c" :label="c" :value="c"/>
+							</el-select>
+						</el-form-item>
+						<el-button title="恢复默认并新局" @click="restoreDefaultSize" icon="RefreshLeft"></el-button>
+					</div>
+					<div class="one setting group">
+						<el-form-item label="难度" class="one setting">
+							<el-select v-model="settings.startLevel">
+								<el-option v-for="lv in startLevelOptions" :key="lv" :label="lv" :value="lv"/>
+							</el-select>
 							<el-radio-group v-model="settings.difficulty">
 								<el-radio-button v-for="opt in difficultyOptions" :key="opt.value" :label="opt.value">{{opt.name}}
 								</el-radio-button>
 							</el-radio-group>
-						</div>
-					</el-form-item>
+							<!--<el-select v-model="settings.difficulty" class="select-width-6ch">
+								<el-option v-for="opt in difficultyOptions" :key="opt.value" :label="opt.name" :value="opt.value"/>
+							</el-select>-->
+						</el-form-item>
+					</div>
+					<div class="one setting group">
+						<el-button class="one controller : restart" @click="startGame" icon="RefreshRight">新局</el-button>
+					</div>
 				</el-form>
 			</section>
 			<section class="controller list area">
 				<el-button v-if="isPaused" class="one controller : pause" title="开始（快捷键：空格）" @click="togglePause"
-									 :disabled="isGameOver" type="primary" size="large">开始
+									 :disabled="isGameOver" type="primary" icon="VideoPlay">开始
 				</el-button>
 				<el-button v-else class="one controller : pause" title="暂停（快捷键：空格）" @click="togglePause"
-									 :disabled="isGameOver" size="large">暂停
+									 :disabled="isGameOver" icon="VideoPause">暂停
 				</el-button>
-				<el-button class="one controller : restart" @click="startGame" icon="RefreshRight" size="large">新局</el-button>
 			</section>
 			<section class="tool list area">
 				<el-form inline>
@@ -203,7 +212,7 @@
 				</div>
 				<div id="pause-overlay" v-if="isPaused || isGameOver" class="flex vertical near-center">
 					<div id="overlay-text">{{ overlayText }}</div>
-					<el-button class="start play btn" v-if="!isGameOver" @click="togglePause" size="large"
+					<el-button class="start play btn" v-if="!isGameOver" @click="togglePause"
 										 icon="CaretRight"></el-button>
 				</div>
 			</section>
@@ -272,7 +281,7 @@
 		'J': {shape: [[1, 0, 0], [1, 1, 1], [0, 0, 0]], color: 'J'},
 		'I': {shape: [[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]], color: 'I'},
 		'S': {shape: [[0, 1, 1], [1, 1, 0], [0, 0, 0]], color: 'S'},
-		'Z': {shape: [[1, 1, 0], [0, 1, 1], [0, 0, 0]], color: 'Z'}
+		'Z': {shape: [[1, 1, 0], [0, 1, 1], [0, 0, 0]], color: 'Z'},
 	};
 	const TETROMINO_KEYS = 'IOTSZJL';
 
@@ -283,6 +292,8 @@
 				lines: 0,
 				level: 1,
 				grid: [],
+				gameCols: 10,
+				gameRows: 20,
 				player: {tetromino: null, pos: {x: 0, y: 0}},
 				nextTetromino: null,
 				isGameOver: false,
@@ -293,23 +304,26 @@
 					rows: 20,
 					difficulty: 'gentle',
 					startLevel: 1,
-					showGhost: true
+					showGhost: true,
 				},
 				difficultyOptions: [
 					{name: '柔和', value: 'gentle'},
-					{name: '经典', value: 'classic'}
+					{name: '经典', value: 'classic'},
 				],
+				rowsOptions: Array.from({length: 21}, (_, i) => i + 10),
+				colsOptions: Array.from({length: 16}, (_, i) => i + 5),
+				startLevelOptions: Array.from({length: 29}, (_, i) => i + 1),
 				dropCounter: 0,
 				dropInterval: 1000,
 				lastTime: 0,
-				animationFrameId: null
+				animationFrameId: null,
 			};
 		},
 		computed: {
 			boardStyle() {
 				return {
-					gridTemplateColumns: `repeat(${this.settings.cols}, 30px)`,
-					gridTemplateRows: `repeat(${this.settings.rows}, 30px)`
+					gridTemplateColumns: `repeat(${this.gameCols}, 30px)`,
+					gridTemplateRows: `repeat(${this.gameRows}, 30px)`,
 				};
 			},
 			ghostPosition() {
@@ -366,7 +380,7 @@
 					display: 'grid',
 					gridTemplateColumns: `repeat(${width}, 30px)`,
 					gridTemplateRows: `repeat(${height}, 30px)`,
-					gridGap: '1px'
+					gridGap: '1px',
 				};
 			},
 			nextPieceBlocks() {
@@ -388,7 +402,7 @@
 			},
 			settingsString() {
 				return JSON.stringify(this.settings);
-			}
+			},
 		},
 		watch: {
 			settingsString(newSettingsJSON, oldSettingsJSON) {
@@ -400,15 +414,7 @@
 
 				// Always save the latest settings
 				localStorage.setItem('tetrisSettings', JSON.stringify(newSettings));
-
-				// Restart the game only if critical settings have changed
-				if (newSettings.cols !== oldSettings.cols ||
-						newSettings.rows !== oldSettings.rows ||
-						newSettings.startLevel !== oldSettings.startLevel ||
-						newSettings.difficulty !== oldSettings.difficulty) {
-					this.startGame();
-				}
-			}
+			},
 		},
 		methods: {
 			collides(currentGrid, currentPlayer) {
@@ -419,7 +425,7 @@
 						if (shape[y][x] !== 0) {
 							const newY = y + pos.y;
 							const newX = x + pos.x;
-							if (newX < 0 || newX >= this.settings.cols || newY >= this.settings.rows//
+							if (newX < 0 || newX >= this.gameCols || newY >= this.gameRows//
 									|| newY >= 0 && currentGrid[newY] && currentGrid[newY][newX] !== 0) {
 								return true;
 							}
@@ -429,7 +435,7 @@
 				return false;
 			},
 			createEmptyGrid() {
-				return Array.from({length: this.settings.rows}, () => Array(this.settings.cols).fill(0));
+				return Array.from({length: this.gameRows}, () => Array(this.gameCols).fill(0));
 			},
 			getNewTetromino() {
 				const type = TETROMINO_KEYS[Math.floor(Math.random() * TETROMINO_KEYS.length)];
@@ -444,7 +450,7 @@
 				this.player.tetromino = this.nextTetromino || this.getNewTetromino();
 				this.nextTetromino = this.getNewTetromino();
 				this.player.pos.y = 0;
-				this.player.pos.x = Math.floor(this.settings.cols / 2) - Math.floor(this.player.tetromino.shape[0].length / 2);
+				this.player.pos.x = Math.floor(this.gameCols / 2) - Math.floor(this.player.tetromino.shape[0].length / 2);
 				if (this.collides(this.grid, this.player)) {
 					this.isGameOver = true;
 					cancelAnimationFrame(this.animationFrameId);
@@ -488,7 +494,7 @@
 				for (let y = this.grid.length - 1; y > 0; --y) {
 					if (this.grid[y].every(cell => cell !== 0)) {
 						this.grid.splice(y, 1);
-						this.grid.unshift(Array(this.settings.cols).fill(0));
+						this.grid.unshift(Array(this.gameCols).fill(0));
 						clearedLines++;
 						y++;
 					}
@@ -546,6 +552,8 @@
 				if (this.animationFrameId) {
 					cancelAnimationFrame(this.animationFrameId);
 				}
+				this.gameCols = this.settings.cols;
+				this.gameRows = this.settings.rows;
 				this.grid = this.createEmptyGrid();
 				this.score = 0;
 				this.lines = 0;
@@ -603,7 +611,7 @@
 					}
 					Object.assign(this.settings, parsedSettings);
 				}
-			}
+			},
 		},
 		mounted() {
 			this.loadSettings();
@@ -615,7 +623,7 @@
 			if (this.animationFrameId) {
 				cancelAnimationFrame(this.animationFrameId);
 			}
-		}
+		},
 	});
 
 	app.use(ElementPlus);
@@ -627,7 +635,7 @@
 	const help = createApp({
 		data() {
 			return {
-				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname)
+				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname),
 			};
 		},
 		watch: {
@@ -638,8 +646,8 @@
 				} else {
 					localStorage.removeItem(storageKey);
 				}
-			}
-		}
+			},
+		},
 	})
 	.use(ElementPlus)
 	.mount('.help.area');

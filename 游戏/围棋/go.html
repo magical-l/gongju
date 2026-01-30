@@ -33,63 +33,71 @@
 	</header>
 
 	<article class="game wrapper , flex vertical items-like-册" v-cloak :class="{ 'is-replaying': isReplaying }">
-		<section class="toolbar">
-			<div class="config-group">
-				<el-select v-model="pendingBoardSize" class="config-item" style="width: 84px" @change="onBoardSizeChange">
-					<el-option :value="19" label="19路"></el-option>
-					<el-option :value="13" label="13路"></el-option>
-					<el-option :value="9" label="9路"></el-option>
-				</el-select>
-				<el-radio-group v-model="pendingFirst" size="small" class="config-item">
-					<el-radio-button label="黑方">黑先</el-radio-button>
-					<el-radio-button label="白方">白先</el-radio-button>
-				</el-radio-group>
-				<el-button class="config-item" :type="isGaming ? 'danger' : 'primary'"
-									 @click="isGaming ? restartGame() : startGame()">
-					{{ isGaming ? '重开' : '开始' }}
+		<header class="toolbar , flex items-near-center-x items-stretch">
+			<section class="setting list area">
+				<el-form inline>
+					<div class="one setting group">
+						<el-form-item label="棋盘" class="one setting">
+							<el-select v-model="pendingBoardSize" class="config-item" style="width: 84px" @change="onBoardSizeChange">
+								<el-option :value="19" label="19路"></el-option>
+								<el-option :value="13" label="13路"></el-option>
+								<el-option :value="9" label="9路"></el-option>
+							</el-select>
+						</el-form-item>
+						<el-radio-group v-model="pendingFirst" size="small" class="config-item">
+							<el-radio-button label="黑方">黑先</el-radio-button>
+							<el-radio-button label="白方">白先</el-radio-button>
+						</el-radio-group>
+					</div>
+					<div class="one setting group">
+						<el-input-number v-model="komi" :step="0.5" :min="0" controls-position="right" style="width: 140px">
+							<template #prefix><span>贴目</span></template>
+						</el-input-number>
+					</div>
+					<div class="one setting group">
+						<el-checkbox v-model="showCoords">显示坐标</el-checkbox>
+						<el-checkbox v-model="showMoveNumbers">显示手数</el-checkbox>
+					</div>
+				</el-form>
+			</section>
+			<section class="controller list area">
+				<el-button :type="isGaming ? 'danger' : 'primary'" :icon="isGaming ? 'RefreshRight' : 'VideoPlay'"
+					@click="isGaming ? restartGame() : startGame()">
+					{{ isGaming ? '重来' : '开始' }}
 				</el-button>
-			</div>
-			<el-input-number v-model="komi" :step="0.5" :min="0" controls-position="right" style="width: 140px">
-				<template #prefix><span>贴目</span></template>
-			</el-input-number>
-			<span v-if="isGaming && curPlayer" class="game-info">当前玩家: {{ curPlayer.name }}</span>
-			<el-checkbox v-model="showCoords">显示坐标</el-checkbox>
-			<el-checkbox v-model="showMoveNumbers">显示手数</el-checkbox>
-
-			<el-button-group>
-				<el-button @click="doPass" :disabled="isGameOver">停手</el-button>
-				<el-button type="warning" @click="doResign" :disabled="isGameOver">认输</el-button>
-			</el-button-group>
-			<el-button-group>
-				<el-button @click="doUndo" :disabled="!canUndo">悔棋</el-button>
-				<el-button @click="doRedo" :disabled="!canRedo">撤销悔棋</el-button>
-			</el-button-group>
-
-			<el-button-group style="margin-left: 8px;">
-				<el-button @click="exportSGF" :disabled="!isGaming">导出SGF</el-button>
-				<el-button @click="openImportSGF">导入SGF</el-button>
-			</el-button-group>
-
-			<!-- 回放进度条（0..historyTotal，当前位置为 historyIndex） -->
-			<div
-					style="min-width: 160px; max-width: 420px; display: inline-flex; align-items: center; gap: 8px; margin-left: 8px;">
-				<span style="font-size:12px;color:#5a452b;">回放</span>
-				<el-slider
-						:key="sliderKey"
-						v-model="historySeek"
-						:min="0"
-						:max="historyTotal"
-						:step="1"
-						:show-tooltip="false"
-						:show-input="true"
-						:show-input-controls="true"
-						style="width: 260px;"
-						@change="onSeekHistory"
-				></el-slider>
-				<span style="font-size:12px;color:#5a452b;">{{historyIndex}}/{{historyTotal}}</span>
-			</div>
-
-		</section>
+			</section>
+			<section class="tool list area">
+				<span v-if="isGaming && curPlayer" class="game-info">当前玩家: {{ curPlayer.name }}</span>
+				<el-button-group>
+					<el-button @click="doPass" :disabled="isGameOver">停手</el-button>
+					<el-button type="warning" @click="doResign" :disabled="isGameOver">认输</el-button>
+				</el-button-group>
+				<el-button-group>
+					<el-button @click="doUndo" :disabled="!canUndo">悔棋</el-button>
+					<el-button @click="doRedo" :disabled="!canRedo">撤销悔棋</el-button>
+				</el-button-group>
+				<el-button-group>
+					<el-button @click="exportSGF" :disabled="!isGaming">导出SGF</el-button>
+					<el-button @click="openImportSGF">导入SGF</el-button>
+				</el-button-group>
+				<div style="min-width: 160px; max-width: 420px; display: inline-flex; align-items: center; gap: 8px;">
+					<span style="font-size:12px;color:#5a452b;">回放</span>
+					<el-slider
+							:key="sliderKey"
+							v-model="historySeek"
+							:min="0"
+							:max="historyTotal"
+							:step="1"
+							:show-tooltip="false"
+							:show-input="true"
+							:show-input-controls="true"
+							style="width: 260px;"
+							@change="onSeekHistory"
+					></el-slider>
+					<span style="font-size:12px;color:#5a452b;">{{historyIndex}}/{{historyTotal}}</span>
+				</div>
+			</section>
+		</header>
 
 		<div class="board-wrapper">
 			<!-- 顶部列坐标 -->
@@ -283,7 +291,7 @@ window.__DEBUG__ ??= false;
 		},
 		methods: {
 			startGame() {
-				// 应用待选配置（首次开始或手动点击“开始/重开”时）
+				// 应用待选配置（首次开始或手动点击“开始/重来”时）
 				this.boardSize = this.pendingBoardSize;
 				this.first = this.pendingFirst;
 

@@ -6,7 +6,8 @@
 <title>点灯/熄灯游戏 - Lights Out | 在线益智点灯/熄灯游戏</title>
 <meta name="description"
 			content="在线玩经典的点灯/熄灯（Lights On/Out）益智游戏。挑战不同大小的棋盘，通过点击格子和相邻格子来点亮/熄灭所有灯光。提供提示和答案功能。">
-<meta name="keywords" content="点灯游戏, 熄灯游戏, Lights On, Lights Out, 益智游戏, 在线游戏, 逻辑游戏, 休闲游戏, 棋盘游戏">
+<meta name="keywords"
+			content="点灯游戏, 熄灯游戏, Lights On, Lights Out, 益智游戏, 在线游戏, 逻辑游戏, 休闲游戏, 棋盘游戏">
 <meta name="author" content="工具兽">
 <meta property="og:title" content="点灯/熄灯游戏 - Lights On/Out | 在线益智点灯/熄灯游戏">
 <meta property="og:description"
@@ -145,31 +146,40 @@
 	</header>
 
 	<article class="gaming area , 反叵字形 grid" v-cloak>
-		<header class="toolbar , flex near-center">
+		<header class="toolbar , flex items-near-center-x items-stretch">
 			<section class="setting list area">
-				<el-radio-group title="尺寸" class="one setting : map size" v-model="boardSize">
-					<el-radio-button v-for="opt in boardSizes" :key="opt" size="large" :value="opt">{{opt}}x{{opt}}
-					</el-radio-button>
-				</el-radio-group>
-			</section>
-			<section class="controller list area">
-				<el-button class="one controller : restart" @click="initGame" icon="RefreshRight" type="primary" size="large">
-					新局
-				</el-button>
+				<el-form inline>
+					<div class="one setting group">
+						<el-form-item label="行">
+							<el-select v-model="boardRows">
+								<el-option v-for="r in rowOptions" :key="r" :label="r" :value="r"/>
+							</el-select>
+						</el-form-item>
+						<el-form-item label="列">
+							<el-select v-model="boardCols">
+								<el-option v-for="c in colOptions" :key="c" :label="c" :value="c"/>
+							</el-select>
+						</el-form-item>
+					</div>
+					<div class="one setting group">
+						<el-button class="one controller : restart" @click="initGame" icon="RefreshRight">新局</el-button>
+					</div>
+				</el-form>
 			</section>
 			<section class="tool list area">
 				<el-button-group>
-					<el-button class="one tool : hint" @click="showRandomHint" size="large" icon="MagicStick">提示</el-button>
-					<el-button class="one tool : answer" @click="showAnswer" size="large" icon="Key">答案</el-button>
+					<el-button class="one tool : hint" @click="showRandomHint" icon="MagicStick">提示</el-button>
+					<el-button class="one tool : answer" @click="showAnswer" icon="Key">答案</el-button>
 				</el-button-group>
 			</section>
 		</header>
 
 		<article class="main map area , flex items-near-center-x">
-			<section id="main-map" class="grid" :style="{gridTemplateColumns: `repeat(${boardSize}, 1fr)`}">
+			<section id="main-map" class="grid"
+							 :style="{ gridTemplateColumns: `repeat(${gameBoardCols}, 1fr)`, gridTemplateRows: `repeat(${gameBoardRows}, 1fr)` }">
 				<template v-for="(row, rowIndex) in board" :key="rowIndex">
 					<div class="cell" v-for="(cell, colIndex) in row" :key="colIndex"
-							 :class="[cell ? 'b' : 'a', {'highlighted': highlightedCells[rowIndex * boardSize + colIndex]}]"
+							 :class="[cell ? 'b' : 'a', {'highlighted': highlightedCells[rowIndex * gameBoardCols + colIndex]}]"
 							 ref="cells" @click="handleCellClick(rowIndex, colIndex)">
 					</div>
 				</template>
@@ -199,7 +209,7 @@
 					<h2>恭喜你，挑战成功！</h2>
 					<p>您总共使用了 {{ moveCount }} 步。</p>
 					<footer class="actions">
-						<el-button type="primary" @click="initGame" size="large">新局</el-button>
+						<el-button @click="initGame" icon="RefreshRight">新局</el-button>
 						<el-button @click="exportRounds" size="large" icon="Download">导出回合记录</el-button>
 						<el-button @click="closeWinModal" size="large">关闭</el-button>
 					</footer>
@@ -233,27 +243,28 @@
 	const {createApp} = Vue;
 
 	function solveLightsOut(board) {
-		const size = board.length;
-		if (size === 0) {
+		const rows = board.length;
+		if (rows === 0) {
 			return null;
 		}
-		const n = size * size;
+		const cols = board[0].length;
+		const n = rows * cols;
 
 		const A = Array(n).fill(0).map(() => Array(n).fill(0));
-		for (let r = 0; r < size; r++) {
-			for (let c = 0; c < size; c++) {
-				const idx = r * size + c;
+		for (let r = 0; r < rows; r++) {
+			for (let c = 0; c < cols; c++) {
+				const idx = r * cols + c;
 				A[idx][idx] = 1;
 				if (r > 0) {
-					A[idx - size][idx] = 1;
+					A[idx - cols][idx] = 1;
 				}
-				if (r < size - 1) {
-					A[idx + size][idx] = 1;
+				if (r < rows - 1) {
+					A[idx + cols][idx] = 1;
 				}
 				if (c > 0) {
 					A[idx - 1][idx] = 1;
 				}
-				if (c < size - 1) {
+				if (c < cols - 1) {
 					A[idx + 1][idx] = 1;
 				}
 			}
@@ -312,12 +323,16 @@
 	const app = createApp({
 		data() {
 			return {
-				boardSizes: [2, 3, 4, 5, 6, 7, 8, 9],
-				boardSize: 2,
+				rowOptions: [2, 3, 4, 5, 6, 7, 8, 9],
+				colOptions: [2, 3, 4, 5, 6, 7, 8, 9],
+				boardRows: 2,
+				boardCols: 2,
+				gameBoardRows: 2,
+				gameBoardCols: 2,
 				board: [],
 				rounds: [],
 				highlightedCells: [],
-				showWinModal: false
+				showWinModal: false,
 			};
 		},
 		computed: {
@@ -329,7 +344,7 @@
 			},
 			moveCount() {
 				return this.rounds.length;
-			}
+			},
 		},
 		watch: {
 			isWin(isWin) {
@@ -337,7 +352,6 @@
 					this.showWinModal = true;
 				}
 			},
-			boardSize: 'initGame',
 			rounds: {
 				handler() {
 					this.$nextTick(() => {
@@ -347,14 +361,16 @@
 						}
 					});
 				},
-				deep: true
-			}
+				deep: true,
+			},
 		},
 		methods: {
 			initGame() {
+				this.gameBoardRows = this.boardRows;
+				this.gameBoardCols = this.boardCols;
 				this.rounds = [];
-				this.board = Array(this.boardSize).fill(0).map(() => Array(this.boardSize).fill(false));
-				this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
+				this.board = Array(this.gameBoardRows).fill(0).map(() => Array(this.gameBoardCols).fill(false));
+				this.highlightedCells = Array(this.gameBoardRows * this.gameBoardCols).fill(false);
 			},
 			closeWinModal() {
 				this.showWinModal = false;
@@ -372,13 +388,13 @@
 				if (row > 0) {
 					this.toggleCellState(row - 1, col);
 				}
-				if (row < this.boardSize - 1) {
+				if (row < this.gameBoardRows - 1) {
 					this.toggleCellState(row + 1, col);
 				}
 				if (col > 0) {
 					this.toggleCellState(row, col - 1);
 				}
-				if (col < this.boardSize - 1) {
+				if (col < this.gameBoardCols - 1) {
 					this.toggleCellState(row, col + 1);
 				}
 				this.rounds.push({row: row + 1, col: col + 1});
@@ -392,8 +408,8 @@
 				const solution = solveLightsOut(this.board);
 
 				if (!solution) {
-					this.$message.error('当前局面无解！请新局或重开。');
-					this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
+					this.$message.error('当前局面无解！请新局或重来。');
+					this.highlightedCells = Array(this.gameBoardRows * this.gameBoardCols).fill(false);
 					return;
 				}
 
@@ -406,7 +422,7 @@
 
 				if (solutionPresses.length === 0) {
 					this.$message.info('看起来已经完成了。');
-					this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
+					this.highlightedCells = Array(this.gameBoardRows * this.gameBoardCols).fill(false);
 					return;
 				}
 
@@ -414,7 +430,7 @@
 				const hintIndex = solutionPresses[randomIndex];
 
 				// Highlight just that one cell
-				this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
+				this.highlightedCells = Array(this.gameBoardRows * this.gameBoardCols).fill(false);
 				const newHighlights = [...this.highlightedCells];
 				newHighlights[hintIndex] = true;
 				this.highlightedCells = newHighlights;
@@ -425,12 +441,12 @@
 					return;
 				}
 				const content = this.rounds.map((round, index) => `${index + 1}：第${round.row}行, 第${round.col}列`)
-				.join('\n');
+														.join('\n');
 
 				const blob = new Blob([content], {type: 'text/plain;charset=utf-8'});
 				const a = document.createElement('a');
 				a.href = URL.createObjectURL(blob);
-				a.download = `点灯游戏-回合记录（${this.boardSize}x${this.boardSize}）.txt`;
+				a.download = `点灯游戏-回合记录（${this.gameBoardRows}x${this.gameBoardCols}）.txt`;
 				document.body.appendChild(a);
 				a.click();
 				document.body.removeChild(a);
@@ -445,15 +461,15 @@
 				const solution = solveLightsOut(this.board);
 
 				if (!solution) {
-					this.$message.error('当前局面无解！请新局或重开。');
-					this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
+					this.$message.error('当前局面无解！请新局或重来。');
+					this.highlightedCells = Array(this.gameBoardRows * this.gameBoardCols).fill(false);
 					return;
 				}
 
 				const presses = solution.reduce((acc, val) => acc + val, 0);
 				if (presses === 0) {
 					this.$message.info('看起来已经完成了。');
-					this.highlightedCells = Array(this.boardSize * this.boardSize).fill(false);
+					this.highlightedCells = Array(this.gameBoardRows * this.gameBoardCols).fill(false);
 					return;
 				}
 
@@ -464,11 +480,11 @@
 					newHighlights[index] = press === 1;
 				});
 				this.highlightedCells = newHighlights;
-			}
+			},
 		},
 		mounted() {
 			this.initGame();
-		}
+		},
 	})
 	.use(ElementPlus);
 	for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
@@ -479,7 +495,7 @@
 	const help = createApp({
 		data() {
 			return {
-				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname)
+				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname),
 			};
 		},
 		watch: {
@@ -490,8 +506,8 @@
 				} else {
 					localStorage.removeItem(storageKey);
 				}
-			}
-		}
+			},
+		},
 	})
 	.use(ElementPlus)
 	.mount('.help.area');

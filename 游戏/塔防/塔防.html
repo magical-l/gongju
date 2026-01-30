@@ -8,6 +8,7 @@
 	<link href="../../resources/el-plus.css" rel="stylesheet">
 	<link href="../../resources/common.css" rel="stylesheet">
 	<link href="../../resources/layout.css" rel="stylesheet">
+	<link href="../../resources/biz.css" rel="stylesheet">
 	<style>
 			.game-wrapper {
 				margin-top: 20px;
@@ -205,32 +206,35 @@
 <body class="grid 反叵字形">
 <main>
 	<article class="game-wrapper , 反叵字形 grid" v-cloak>
-		<header class="toolbar , flex near-center">
+		<header class="toolbar , flex items-near-center-x items-stretch">
+			<section class="setting list area">
+				<el-form inline>
+					<div class="one setting group">
+						<el-form-item label="选择关卡" class="one setting">
+							<el-select v-model="currentLevelId" placeholder="请选择" @change="initGame"
+									   :disabled="gameStarted && !isPaused">
+								<el-option v-for="level in levels" :key="level.id" :label="level.name"
+										   :value="level.id"></el-option>
+							</el-select>
+						</el-form-item>
+						<el-form-item label="游戏速度" class="one setting">
+							<el-radio-group v-model="gameSpeed">
+								<el-radio-button :value="1">1x</el-radio-button>
+								<el-radio-button :value="2">2x</el-radio-button>
+								<el-radio-button :value="4">4x</el-radio-button>
+							</el-radio-group>
+						</el-form-item>
+					</div>
+				</el-form>
+			</section>
 			<section class="controller list area">
 				<el-button-group>
-					<el-button @click="togglePause" class="one controller" :disabled="gameOver || gameWon" type="primary">
+					<el-button @click="togglePause" class="one controller" :disabled="gameOver || gameWon" type="primary"
+						:icon="isPaused ? 'VideoPlay' : 'VideoPause'">
 						{{ pauseButtonText }}
 					</el-button>
-					<el-button @click="restartGame" class="one controller" :disabled="!currentLevelId">重开</el-button>
+					<el-button @click="restartGame" class="one controller" :disabled="!currentLevelId" icon="RefreshRight">重来</el-button>
 				</el-button-group>
-			</section>
-			<section class="tool list area">
-				<el-form inline>
-					<el-form-item label="选择关卡" class="one setting">
-						<el-select v-model="currentLevelId" placeholder="请选择" @change="initGame"
-								   :disabled="gameStarted && !isPaused">
-							<el-option v-for="level in levels" :key="level.id" :label="level.name"
-									   :value="level.id"></el-option>
-						</el-select>
-					</el-form-item>
-					<el-form-item label="游戏速度" class="one setting">
-						<el-radio-group v-model="gameSpeed">
-							<el-radio-button :value="1">1x</el-radio-button>
-							<el-radio-button :value="2">2x</el-radio-button>
-							<el-radio-button :value="4">4x</el-radio-button>
-						</el-radio-group>
-					</el-form-item>
-				</el-form>
 			</section>
 		</header>
 
@@ -340,7 +344,7 @@
 					 :show-close="false" :close-on-click-modal="false" :close-on-press-escape="false">
 			<span>{{ gameWon ? '你成功保卫了萝卜！' : '萝卜被吃掉了，再试一次吧！' }}</span>
 			<template #footer>
-				<el-button type="primary" @click="restartGame">重开</el-button>
+				<el-button type="primary" @click="restartGame">重来</el-button>
 			</template>
 			</el-dialog>
 	</article>

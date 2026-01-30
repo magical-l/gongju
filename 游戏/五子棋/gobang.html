@@ -68,12 +68,13 @@
 		</div>
 	</header>
 	<article class="game wrapper , flex vertical items-like-册" v-cloak>
-		<section class="toolbar">
-			<el-button v-if="!isGaming" type="primary" size="large" @click="startGame">开始新游戏</el-button>
-			<el-button v-else type="danger" size="large" @click="restartGame">重新开始</el-button>
-
-			<span v-if="isGaming && curPlayer" class="game-info">当前玩家: {{ curPlayer.name }}</span>
-		</section>
+		<header class="toolbar , flex items-near-center-x items-stretch">
+			<section class="controller list area">
+				<el-button v-if="!isGaming" type="primary" icon="VideoPlay" @click="startGame">开始新游戏</el-button>
+				<el-button v-else type="danger" icon="RefreshRight" @click="restartGame">重新开始</el-button>
+				<span v-if="isGaming && curPlayer" class="game-info">当前玩家: {{ curPlayer.name }}</span>
+			</section>
+		</header>
 
 		<section class="one chessboard" v-if="flatPositions.length">
 			<div v-for="wrapper in flatPositions" :key="wrapper.position.toString()"

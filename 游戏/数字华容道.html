@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>数字华容道 | 15 格滑动拼图 | 在线益智游戏</title>
-<meta name="description" content="在线玩数字华容道（15 格拼图）。将打乱的数字方块通过滑动排成 1～15 顺序，锻炼逻辑与空间思维。">
+<meta name="description"
+			content="在线玩数字华容道（15 格拼图）。将打乱的数字方块通过滑动排成 1～15 顺序，锻炼逻辑与空间思维。">
 <meta name="keywords" content="数字华容道, 15 格拼图, 华容道, 滑动拼图, 益智游戏, 在线游戏, 休闲游戏">
 <meta name="author" content="工具兽">
 <meta property="og:title" content="数字华容道 | 15 格滑动拼图 | 在线益智游戏">
@@ -29,7 +30,7 @@
 		background: linear-gradient(145deg, #2c3e50 0%, #34495e 100%);
 		border-radius: 12px;
 		padding: 12px;
-		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255,255,255,0.08);
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 		display: inline-block;
 	}
 
@@ -119,6 +120,7 @@
 		overflow-y: auto;
 		margin-top: 6px;
 	}
+
 	.answer.section .step-tag {
 		display: inline-flex;
 		align-items: center;
@@ -128,10 +130,12 @@
 		border-radius: 6px;
 		transition: background 0.2s, box-shadow 0.2s;
 	}
+
 	.answer.section .step-tag.step-current {
 		background: #ecf5ff;
 		box-shadow: 0 0 0 1px var(--el-color-primary-light-5);
 	}
+
 	.answer.section .step-num {
 		display: inline-flex;
 		align-items: center;
@@ -145,10 +149,12 @@
 		font-size: 0.7rem;
 		font-weight: 500;
 	}
+
 	.answer.section .step-tag.step-current .step-num {
 		background: var(--el-color-primary-light-7);
 		color: var(--el-color-primary);
 	}
+
 	.answer.section .step-tile {
 		display: inline-flex;
 		align-items: center;
@@ -163,10 +169,12 @@
 		font-weight: bold;
 		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 	}
+
 	@media (max-width: 500px) {
 		#game-board-container {
 			padding: 8px;
 		}
+
 		#game-board {
 			gap: 4px;
 		}
@@ -201,7 +209,8 @@
 			</el-button>
 			<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
 				<p>数字华容道是一款经典滑动拼图：可选择<strong>宽×高</strong>（均≥3），格子里有数字块和一个空位。</p>
-				<p>点击与空位<strong>相邻</strong>的数字块，该块会滑入空位。也可用键盘<strong>方向键 ↑↓←→</strong> 移动与空位相邻的块。</p>
+				<p>点击与空位<strong>相邻</strong>的数字块，该块会滑入空位。也可用键盘<strong>方向键 ↑↓←→</strong> 移动与空位相邻的块。
+				</p>
 				<p>目标是将所有数字按 1、2、3… 顺序排好，空位在右下角即过关。</p>
 				<p>祝您玩得愉快！</p>
 			</el-dialog>
@@ -209,42 +218,42 @@
 	</header>
 
 	<article class="gaming area , 反叵字形 grid" v-cloak>
-		<header class="toolbar , flex near-center">
+		<header class="toolbar , flex items-near-center-x items-stretch">
 			<section class="setting list area">
 				<el-form inline>
-					<el-form-item label="宽">
-						<el-select v-model="gridWidth" size="large" style="width: 72px;" @change="onSizeChange">
-							<el-option v-for="w in sizeOptions" :key="'w'+w" :label="w" :value="w" />
-						</el-select>
-					</el-form-item>
-					<el-form-item label="高">
-						<el-select v-model="gridHeight" size="large" style="width: 72px;" @change="onSizeChange">
-							<el-option v-for="h in sizeOptions" :key="'h'+h" :label="h" :value="h" />
-						</el-select>
-					</el-form-item>
+					<div class="one setting group">
+						<el-form-item label="行">
+							<el-select v-model="gridHeight" @change="saveConfig">
+								<el-option v-for="h in sizeOptions" :key="'h'+h" :label="h" :value="h"/>
+							</el-select>
+						</el-form-item>
+						<el-form-item label="列">
+							<el-select v-model="gridWidth" @change="saveConfig">
+								<el-option v-for="w in sizeOptions" :key="'w'+w" :label="w" :value="w"/>
+							</el-select>
+						</el-form-item>
+					</div>
+					<div class="one setting group">
+						<el-button class="one controller : restart" @click="initGame" icon="RefreshRight">新局</el-button>
+					</div>
 				</el-form>
 			</section>
-			<section class="controller list area">
-				<el-button class="one controller : restart" @click="initGame" icon="RefreshRight" size="large">
-					新局
-				</el-button>
-			</section>
 			<section class="tool list area">
-				<el-button class="one tool : hint" @click="showHint" icon="MagicStick" size="large">提示</el-button>
-				<el-button class="one tool : answer" @click="getAnswer" :loading="solving" icon="Key" size="large">答案</el-button>
+				<el-button class="one tool : hint" @click="showHint" icon="MagicStick">提示</el-button>
+				<el-button class="one tool : answer" @click="getAnswer" :loading="solving" icon="Key">答案</el-button>
 			</section>
 		</header>
 
 		<article class="main map area , flex items-near-center-x">
-				<div id="game-board-container">
-					<div id="game-board" :style="boardStyle">
-						<div v-for="(val, index) in board" :key="index"
+			<div id="game-board-container">
+				<div id="game-board" :style="boardStyle">
+					<div v-for="(val, index) in board" :key="index"
 							 :class="['puzzle-cell', val === 0 ? 'empty' : 'tile', slidingIndex === index ? 'sliding' : '', hintIndex === index ? 'hint' : '']"
 							 @click="onCellClick(index)">
-							{{ val || '' }}
-						</div>
+						{{ val || '' }}
 					</div>
 				</div>
+			</div>
 		</article>
 
 		<article class="situation , right-sidebar">
@@ -260,16 +269,20 @@
 					<el-button v-if="solutionSteps.length && !solving" @click="clearAnswer" size="small" link>清除</el-button>
 				</template>
 				<div v-if="solving" class="moves-display">求解中…</div>
-				<div v-else-if="solutionError" class="moves-display" style="color: var(--el-color-danger);">{{ solutionError }}</div>
+				<div v-else-if="solutionError" class="moves-display" style="color: var(--el-color-danger);">{{ solutionError
+					}}
+				</div>
 				<template v-else-if="solutionSteps.length">
 					<p class="moves-display">共 {{ solutionSteps.length }} 步</p>
 					<div class="answer-steps">
-						<span v-for="(val, i) in solutionSteps" :key="i" :class="['step-tag', { 'step-current': solutionIndex === i }]">
+						<span v-for="(val, i) in solutionSteps" :key="i"
+									:class="['step-tag', { 'step-current': solutionIndex === i }]">
 							<span class="step-num">{{ i + 1 }}</span>
 							<span class="step-tile">{{ val }}</span>
 						</span>
 					</div>
-					<el-button type="primary" size="small" style="margin-top: 8px;" @click="applyNextStep" :disabled="solutionDone || isWin">
+					<el-button type="primary" size="small" style="margin-top: 8px;" @click="applyNextStep"
+										 :disabled="solutionDone || isWin">
 						{{ solutionDone ? '已执行完' : '执行下一步' }}
 					</el-button>
 				</template>
@@ -284,7 +297,7 @@
 					<h2>恭喜过关！</h2>
 					<p>共 {{ moves }} 步</p>
 					<footer class="actions">
-						<el-button type="primary" @click="closeWinAndNew" size="large">新局</el-button>
+						<el-button @click="closeWinAndNew" icon="RefreshRight">新局</el-button>
 						<el-button @click="closeWinModal" size="large">关闭</el-button>
 					</footer>
 				</section>
@@ -311,7 +324,7 @@
 	<script src="../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
 </div>
 <script>
-	const { createApp } = Vue;
+	const {createApp} = Vue;
 
 	// 计算逆序数（不含空位 0，空位用 n*n 表示参与计算）
 	function countInversions(arr, emptyVal) {
@@ -319,7 +332,9 @@
 		let inv = 0;
 		for (let i = 0; i < a.length; i++) {
 			for (let j = i + 1; j < a.length; j++) {
-				if (a[i] > a[j]) inv++;
+				if (a[i] > a[j]) {
+					inv++;
+				}
 			}
 		}
 		return inv;
@@ -339,10 +354,18 @@
 		const row = Math.floor(emptyIdx / width);
 		const col = emptyIdx % width;
 		const out = [];
-		if (row > 0) out.push(emptyIdx - width);
-		if (row < height - 1) out.push(emptyIdx + width);
-		if (col > 0) out.push(emptyIdx - 1);
-		if (col < width - 1) out.push(emptyIdx + 1);
+		if (row > 0) {
+			out.push(emptyIdx - width);
+		}
+		if (row < height - 1) {
+			out.push(emptyIdx + width);
+		}
+		if (col > 0) {
+			out.push(emptyIdx - 1);
+		}
+		if (col < width - 1) {
+			out.push(emptyIdx + 1);
+		}
 		return out;
 	}
 
@@ -351,7 +374,7 @@
 	// 返回 { board, solution }
 	function generateFromGoal(width, height) {
 		const n = width * height;
-		const board = Array.from({ length: n }, (_, i) => (i === n - 1 ? 0 : i + 1));
+		const board = Array.from({length: n}, (_, i) => (i === n - 1 ? 0 : i + 1));
 		const moveHistory = [];
 		let emptyIdx = n - 1;
 		let cameFrom = -1;
@@ -368,13 +391,15 @@
 			emptyIdx = next;
 		}
 		const solution = moveHistory.reverse();
-		return { board, solution };
+		return {board, solution};
 	}
 
 	function isSolved(board, width, height) {
 		const n = width * height;
 		for (let i = 0; i < n - 1; i++) {
-			if (board[i] !== i + 1) return false;
+			if (board[i] !== i + 1) {
+				return false;
+			}
 		}
 		return board[n - 1] === 0;
 	}
@@ -384,7 +409,9 @@
 		let h = 0;
 		for (let i = 0; i < board.length; i++) {
 			const v = board[i];
-			if (v === 0) continue;
+			if (v === 0) {
+				continue;
+			}
 			const goalIdx = v - 1;
 			const cr = Math.floor(i / width), cc = i % width;
 			const gr = Math.floor(goalIdx / width), gc = goalIdx % width;
@@ -399,32 +426,44 @@
 		return {
 			push(x) {
 				a.push(x);
-				for (let i = a.length - 1; i > 0; ) {
+				for (let i = a.length - 1; i > 0;) {
 					const p = (i - 1) >> 1;
-					if (compare(a[p], a[i]) <= 0) break;
+					if (compare(a[p], a[i]) <= 0) {
+						break;
+					}
 					[a[p], a[i]] = [a[i], a[p]];
 					i = p;
 				}
 			},
 			pop() {
-				if (a.length === 0) return undefined;
+				if (a.length === 0) {
+					return undefined;
+				}
 				const top = a[0];
 				const last = a.pop();
-				if (a.length === 0) return top;
+				if (a.length === 0) {
+					return top;
+				}
 				a[0] = last;
 				let i = 0;
 				while (true) {
 					const l = 2 * i + 1, r = 2 * i + 2;
 					let best = i;
-					if (l < a.length && compare(a[l], a[best]) < 0) best = l;
-					if (r < a.length && compare(a[r], a[best]) < 0) best = r;
-					if (best === i) break;
+					if (l < a.length && compare(a[l], a[best]) < 0) {
+						best = l;
+					}
+					if (r < a.length && compare(a[r], a[best]) < 0) {
+						best = r;
+					}
+					if (best === i) {
+						break;
+					}
 					[a[i], a[best]] = [a[best], a[i]];
 					i = best;
 				}
 				return top;
 			},
-			get length() { return a.length; }
+			get length() { return a.length; },
 		};
 	}
 
@@ -436,27 +475,37 @@
 
 	function solvePuzzleAStar(startBoard, width, height) {
 		const n = width * height;
-		const goal = Array.from({ length: n }, (_, i) => (i === n - 1 ? 0 : i + 1));
+		const goal = Array.from({length: n}, (_, i) => (i === n - 1 ? 0 : i + 1));
 		const goalKey = goal.join(',');
 		const startKey = startBoard.join(',');
-		if (startKey === goalKey) return { solution: [], error: null };
+		if (startKey === goalKey) {
+			return {solution: [], error: null};
+		}
 
-		if (!isSolvable([...startBoard], width, height)) return { solution: [], error: '不可解' };
+		if (!isSolvable([...startBoard], width, height)) {
+			return {solution: [], error: '不可解'};
+		}
 
 		const visited = new Set();
 		const key = (b) => b.join(',');
 		const open = MinHeap((a, b) => (a.g + a.h) - (b.g + b.h));
-		open.push({ board: [...startBoard], g: 0, h: manhattan(startBoard, width, height), path: [] });
+		open.push({board: [...startBoard], g: 0, h: manhattan(startBoard, width, height), path: []});
 
 		let iterations = 0;
 		while (open.length) {
-			if (++iterations > SOLVE_MAX_ITERATIONS) return { solution: [], error: '求解超时，可尝试新开一局' };
+			if (++iterations > SOLVE_MAX_ITERATIONS) {
+				return {solution: [], error: '求解超时，可尝试新开一局'};
+			}
 
 			const node = open.pop();
 			const k = key(node.board);
-			if (visited.has(k)) continue;
+			if (visited.has(k)) {
+				continue;
+			}
 			visited.add(k);
-			if (k === goalKey) return { solution: node.path, error: null };
+			if (k === goalKey) {
+				return {solution: node.path, error: null};
+			}
 
 			const emptyIdx = node.board.indexOf(0);
 			const moves = neighborsOfEmpty(emptyIdx, width, height);
@@ -467,16 +516,18 @@
 				newBoard[emptyIdx] = moveVal;
 				newBoard[tileIdx] = 0;
 				const nk = key(newBoard);
-				if (visited.has(nk)) continue;
+				if (visited.has(nk)) {
+					continue;
+				}
 				open.push({
 					board: newBoard,
 					g: node.g + 1,
 					h: manhattan(newBoard, width, height),
-					path: node.path.concat(moveVal)
+					path: node.path.concat(moveVal),
 				});
 			}
 		}
-		return { solution: [], error: '无解' };
+		return {solution: [], error: '无解'};
 	}
 
 	// 你给的局面 [[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,15,14]] 即最后一格为空时：
@@ -493,6 +544,8 @@
 				board: [],
 				gridWidth: 4,
 				gridHeight: 4,
+				gameGridWidth: 4,
+				gameGridHeight: 4,
 				moves: 0,
 				isWin: false,
 				slidingIndex: -1,
@@ -504,13 +557,13 @@
 				hintIndex: -1,
 				hintTimer: null,
 				showWinModal: false,
-				sizeOptions: Array.from({ length: MAX_SIZE - MIN_SIZE + 1 }, (_, i) => MIN_SIZE + i)
+				sizeOptions: Array.from({length: MAX_SIZE - MIN_SIZE + 1}, (_, i) => MIN_SIZE + i),
 			};
 		},
 		computed: {
 			boardStyle() {
-				const w = this.gridWidth;
-				const h = this.gridHeight;
+				const w = this.gameGridWidth;
+				const h = this.gameGridHeight;
 				const maxSide = Math.max(w, h);
 				const cellPx = Math.min(64, Math.floor(420 / maxSide));
 				const gap = 6;
@@ -519,7 +572,7 @@
 					gridTemplateColumns: `repeat(${w}, ${cellPx}px)`,
 					gridTemplateRows: `repeat(${h}, ${cellPx}px)`,
 					width: `${w * cellPx + (w - 1) * gap}px`,
-					height: `${h * cellPx + (h - 1) * gap}px`
+					height: `${h * cellPx + (h - 1) * gap}px`,
 				};
 			},
 			emptyIndex() {
@@ -527,21 +580,23 @@
 			},
 			solutionDone() {
 				return this.solutionIndex >= this.solutionSteps.length;
-			}
+			},
 		},
 		watch: {
 			emptyIndex: {
 				handler(emptyIdx) {
 					this.updateMovable(emptyIdx);
 				},
-				immediate: true
-			}
+				immediate: true,
+			},
 		},
 		mounted() {
 			const w = Math.max(MIN_SIZE, Math.min(MAX_SIZE, parseInt(localStorage.getItem(CONFIG_KEY_W) || '4', 10)));
 			const h = Math.max(MIN_SIZE, Math.min(MAX_SIZE, parseInt(localStorage.getItem(CONFIG_KEY_H) || '4', 10)));
 			this.gridWidth = w;
 			this.gridHeight = h;
+			this.gameGridWidth = w;
+			this.gameGridHeight = h;
 			this.initGame();
 			window.addEventListener('keydown', this.onKeydown);
 		},
@@ -554,17 +609,16 @@
 				localStorage.setItem(CONFIG_KEY_W, String(this.gridWidth));
 				localStorage.setItem(CONFIG_KEY_H, String(this.gridHeight));
 			},
-			onSizeChange() {
-				this.saveConfig();
-				this.initGame();
-			},
 			initGame() {
-				const { board, solution: scrambleSolution } = generateFromGoal(this.gridWidth, this.gridHeight);
+				this.gameGridWidth = this.gridWidth;
+				this.gameGridHeight = this.gridHeight;
+				this.saveConfig();
+				const {board, solution: scrambleSolution} = generateFromGoal(this.gameGridWidth, this.gameGridHeight);
 				this.board = board;
 				let initialSolution = scrambleSolution;
-				const n = this.gridWidth * this.gridHeight;
+				const n = this.gameGridWidth * this.gameGridHeight;
 				if (n <= OPTIMAL_SOLUTION_MAX_N) {
-					const optimal = solvePuzzleAStar([...board], this.gridWidth, this.gridHeight);
+					const optimal = solvePuzzleAStar([...board], this.gameGridWidth, this.gameGridHeight);
 					if (!optimal.error && optimal.solution) {
 						initialSolution = optimal.solution;
 					}
@@ -616,7 +670,9 @@
 					return;
 				}
 				const idx = this.board.indexOf(nextVal);
-				if (idx < 0) return;
+				if (idx < 0) {
+					return;
+				}
 				this.hintIndex = idx;
 				this.hintTimer = setTimeout(() => {
 					this.hintIndex = -1;
@@ -636,8 +692,8 @@
 				this.solutionIndex = 0;
 				this.solving = true;
 				const board = this.board.slice();
-				const w = this.gridWidth;
-				const h = this.gridHeight;
+				const w = this.gameGridWidth;
+				const h = this.gameGridHeight;
 				this.$nextTick(() => {
 					setTimeout(() => {
 						const result = solvePuzzleAStar(board, w, h);
@@ -655,10 +711,14 @@
 				});
 			},
 			applyNextStep() {
-				if (this.solutionIndex >= this.solutionSteps.length || this.isWin) return;
+				if (this.solutionIndex >= this.solutionSteps.length || this.isWin) {
+					return;
+				}
 				const value = this.solutionSteps[this.solutionIndex];
 				const idx = this.board.indexOf(value);
-				if (idx < 0) return;
+				if (idx < 0) {
+					return;
+				}
 				if (!this.adjacentToEmpty(idx)) {
 					this.solutionError = '答案与当前局面不一致，请重新获取答案';
 					return;
@@ -676,7 +736,7 @@
 			},
 			adjacentToEmpty(tileIndex) {
 				const emptyIdx = this.board.indexOf(0);
-				const w = this.gridWidth;
+				const w = this.gameGridWidth;
 				const er = Math.floor(emptyIdx / w);
 				const ec = emptyIdx % w;
 				const tr = Math.floor(tileIndex / w);
@@ -684,9 +744,15 @@
 				return (Math.abs(er - tr) === 1 && ec === tc) || (Math.abs(ec - tc) === 1 && er === tr);
 			},
 			slideTile(tileIndex, fromAnswer) {
-				if (this.isWin) return;
-				if (this.board[tileIndex] === 0) return;
-				if (!this.adjacentToEmpty(tileIndex)) return;
+				if (this.isWin) {
+					return;
+				}
+				if (this.board[tileIndex] === 0) {
+					return;
+				}
+				if (!this.adjacentToEmpty(tileIndex)) {
+					return;
+				}
 				this.clearHint();
 				const moveVal = this.board[tileIndex];
 				const emptyIdx = this.board.indexOf(0);
@@ -706,7 +772,7 @@
 				this.$nextTick(() => {
 					setTimeout(() => {
 						this.slidingIndex = -1;
-						if (isSolved(this.board, this.gridWidth, this.gridHeight)) {
+						if (isSolved(this.board, this.gameGridWidth, this.gameGridHeight)) {
 							this.isWin = true;
 							this.showWinModal = true;
 						}
@@ -717,22 +783,36 @@
 				this.slideTile(index);
 			},
 			onKeydown(e) {
-				if (this.isWin) return;
-				const keyMap = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+				if (this.isWin) {
+					return;
+				}
+				const keyMap = {ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right'};
 				const dir = keyMap[e.key];
-				if (!dir) return;
+				if (!dir) {
+					return;
+				}
 				e.preventDefault();
 				const emptyIdx = this.board.indexOf(0);
-				const w = this.gridWidth;
-				const h = this.gridHeight;
+				const w = this.gameGridWidth;
+				const h = this.gameGridHeight;
 				const row = Math.floor(emptyIdx / w);
 				const col = emptyIdx % w;
 				let tileIndex = -1;
-				if (dir === 'up' && row < h - 1) tileIndex = emptyIdx + w;
-				if (dir === 'down' && row > 0) tileIndex = emptyIdx - w;
-				if (dir === 'left' && col < w - 1) tileIndex = emptyIdx + 1;
-				if (dir === 'right' && col > 0) tileIndex = emptyIdx - 1;
-				if (tileIndex >= 0) this.slideTile(tileIndex, false);
+				if (dir === 'up' && row < h - 1) {
+					tileIndex = emptyIdx + w;
+				}
+				if (dir === 'down' && row > 0) {
+					tileIndex = emptyIdx - w;
+				}
+				if (dir === 'left' && col < w - 1) {
+					tileIndex = emptyIdx + 1;
+				}
+				if (dir === 'right' && col > 0) {
+					tileIndex = emptyIdx - 1;
+				}
+				if (tileIndex >= 0) {
+					this.slideTile(tileIndex, false);
+				}
 			}
 		}
 	});
@@ -749,8 +829,8 @@
 			};
 		}
 	})
-		.use(ElementPlus)
-		.mount('.help.area');
+	.use(ElementPlus)
+	.mount('.help.area');
 </script>
 </body>
 </html>

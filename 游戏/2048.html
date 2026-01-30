@@ -221,16 +221,27 @@
 	}
 
 	.game-cell.tile-2 { background-color: #eee4da; color: #776e65; }
+
 	.game-cell.tile-4 { background-color: #ede0c8; color: #776e65; }
+
 	.game-cell.tile-8 { background-color: #f2b179; color: #f9f6f2; }
+
 	.game-cell.tile-16 { background-color: #f59563; color: #f9f6f2; }
+
 	.game-cell.tile-32 { background-color: #f67c5f; color: #f9f6f2; }
+
 	.game-cell.tile-64 { background-color: #f65e3b; color: #f9f6f2; }
+
 	.game-cell.tile-128 { background-color: #edcf72; color: #f9f6f2; font-size: calc(var(--base-font-size, 2.5rem) * 0.8); }
+
 	.game-cell.tile-256 { background-color: #edcc61; color: #f9f6f2; font-size: calc(var(--base-font-size, 2.5rem) * 0.8); }
+
 	.game-cell.tile-512 { background-color: #edc850; color: #f9f6f2; font-size: calc(var(--base-font-size, 2.5rem) * 0.8); }
+
 	.game-cell.tile-1024 { background-color: #edc53f; color: #f9f6f2; font-size: calc(var(--base-font-size, 2.5rem) * 0.7); }
+
 	.game-cell.tile-2048 { background-color: #edc22e; color: #f9f6f2; font-size: calc(var(--base-font-size, 2.5rem) * 0.7); }
+
 	.game-cell.tile-super { background-color: #3c3a32; color: #f9f6f2; font-size: calc(var(--base-font-size, 2.5rem) * 0.6); }
 
 	.score-item {
@@ -302,7 +313,8 @@
 			</el-button>
 			<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
 				<p>欢迎来到"2048"游戏，这是一款经典的益智数字游戏。</p>
-				<p>使用键盘的<strong>方向键 (↑, ↓, ←, →)</strong> 来移动所有方块。当两个相同数字的方块碰撞时，它们会合并成一个数字翻倍的方块。</p>
+				<p>使用键盘的<strong>方向键 (↑, ↓, ←, →)</strong> 来移动所有方块。当两个相同数字的方块碰撞时，它们会合并成一个数字翻倍的方块。
+				</p>
 				<p>每次移动后，会在空白位置随机出现一个新的方块（数字为2或4）。</p>
 				<p>游戏的目标是合并方块，最终达到<strong>2048</strong>或更高的数字！</p>
 				<p>当棋盘填满且无法继续移动时，游戏结束。</p>
@@ -312,63 +324,71 @@
 	</header>
 
 	<article class="gaming area , 反叵字形 grid" v-cloak>
-		<header class="toolbar , flex near-center">
+		<header class="toolbar , flex items-near-center-x items-stretch">
 			<section class="setting list area">
 				<el-form inline>
-					<el-form-item label="宽" class="one setting group">
-						<el-select v-model="settings.boardWidth" size="large" style="width: 72px;" @change="onSizeChange">
-							<el-option v-for="w in sizeOptions" :key="'w'+w" :label="w" :value="w" />
-						</el-select>
-					</el-form-item>
-					<el-form-item label="高" class="one setting group">
-						<el-select v-model="settings.boardHeight" size="large" style="width: 72px;" @change="onSizeChange">
-							<el-option v-for="h in sizeOptions" :key="'h'+h" :label="h" :value="h" />
-						</el-select>
-					</el-form-item>
-					<el-form-item label="目标数字" class="one setting group">
-						<el-select v-model="settings.targetNumber" size="large" style="width: 108px;">
-							<el-option label="1024" :value="1024"></el-option>
-							<el-option label="2048" :value="2048"></el-option>
-							<el-option label="4096" :value="4096"></el-option>
-							<el-option label="8192" :value="8192"></el-option>
-							<el-option label="无限" :value="Infinity"></el-option>
-						</el-select>
-					</el-form-item>
-					<el-form-item label="初始块数" class="one setting group">
-						<el-select v-model="settings.initialTiles" size="large" style="width: 88px;">
-							<el-option label="1" :value="1"></el-option>
-							<el-option label="2" :value="2"></el-option>
-							<el-option label="3" :value="3"></el-option>
-							<el-option label="4" :value="4"></el-option>
-							<el-option label="5" :value="5"></el-option>
-						</el-select>
-					</el-form-item>
-					<el-form-item label="高亮效果" class="one setting group">
-						<el-switch v-model="settings.showHighlight" size="large"></el-switch>
-					</el-form-item>
-					<el-form-item label="合并动画" class="one setting group">
-						<el-select v-model="settings.mergeAnimation" size="large" style="width: 128px;">
-							<el-option label="翻牌" value="flip"></el-option>
-							<el-option label="缩放" value="scale"></el-option>
-							<el-option label="旋转" value="rotate"></el-option>
-							<el-option label="弹跳" value="bounce"></el-option>
-							<el-option label="脉冲" value="pulse"></el-option>
-							<el-option label="无" value="none"></el-option>
-						</el-select>
-					</el-form-item>
+					<div class="one setting group">
+						<el-form-item label="行" class="one setting">
+							<el-select v-model="settings.boardHeight">
+								<el-option v-for="h in sizeOptions" :key="'h'+h" :label="h" :value="h"/>
+							</el-select>
+						</el-form-item>
+						<el-form-item label="列" class="one setting">
+							<el-select v-model="settings.boardWidth">
+								<el-option v-for="w in sizeOptions" :key="'w'+w" :label="w" :value="w"/>
+							</el-select>
+						</el-form-item>
+					</div>
+					<div class="one setting group">
+						<el-form-item label="目标" class="one setting">
+							<el-select v-model="settings.targetNumber" class="select-width-6ch">
+								<el-option label="1024" :value="1024"></el-option>
+								<el-option label="2048" :value="2048"></el-option>
+								<el-option label="4096" :value="4096"></el-option>
+								<el-option label="8192" :value="8192"></el-option>
+								<el-option label="无限" :value="Infinity"></el-option>
+							</el-select>
+						</el-form-item>
+					</div>
+					<div class="one setting group">
+						<el-form-item label="初始块数" class="one setting">
+							<el-select v-model="settings.initialTiles">
+								<el-option label="1" :value="1"></el-option>
+								<el-option label="2" :value="2"></el-option>
+								<el-option label="3" :value="3"></el-option>
+								<el-option label="4" :value="4"></el-option>
+								<el-option label="5" :value="5"></el-option>
+							</el-select>
+						</el-form-item>
+					</div>
+					<div class="one setting group">
+						<el-form-item label="高亮" class="one setting">
+							<el-switch v-model="settings.showHighlight"></el-switch>
+						</el-form-item>
+					</div>
+					<div class="one setting group">
+						<el-form-item label="合并动画" class="one setting">
+							<el-select v-model="settings.mergeAnimation" class="select-width-6ch">
+								<el-option label="翻牌" value="flip"></el-option>
+								<el-option label="缩放" value="scale"></el-option>
+								<el-option label="旋转" value="rotate"></el-option>
+								<el-option label="弹跳" value="bounce"></el-option>
+								<el-option label="脉冲" value="pulse"></el-option>
+								<el-option label="无" value="none"></el-option>
+							</el-select>
+						</el-form-item>
+					</div>
 				</el-form>
 			</section>
 			<section class="controller list area">
-				<el-button class="one controller : restart" @click="initGame" icon="RefreshRight" size="large">
-					重开
-				</el-button>
+				<el-button class="one controller : restart" @click="initGame" icon="RefreshRight">重来</el-button>
 			</section>
 		</header>
 
 		<article class="main map area , one-row item , flex items-near-center-x">
-				<div id="game-board-container">
-					<div id="game-board" :style="boardStyle">
-						<div v-for="(cell, index) in board" :key="`cell-${index}`"
+			<div id="game-board-container">
+				<div id="game-board" :style="boardStyle">
+					<div v-for="(cell, index) in board" :key="`cell-${index}`"
 							 :class="['game-cell', cell ? `tile-${cell}` : '', cell ? 'has-value' : '',
 										movingCells.has(index) ? 'moving' : '',
 										newTiles.has(index) ? 'new-tile' : '',
@@ -376,20 +396,21 @@
 										settings.showHighlight && mergedTiles.has(index) ? 'highlight-merged' : '',
 										mergedCells.has(index) ? `merge-${settings.mergeAnimation}` : '']"
 							 :style="getCellStyle(index)">
-							{{ cell || '' }}
-						</div>
-					</div>
-					<div id="game-overlay" :class="{ hidden: !gameOver && !gameWin }">
-						<div v-if="gameWin" style="color: #edc22e; font-size: 2.5rem;">🎉 恭喜！</div>
-						<div v-else>游戏结束！</div>
-						<div style="font-size: 1.2rem; margin-top: 10px;">
-							{{ gameWin ? `达到目标 ${settings.targetNumber === Infinity ? '无限' : settings.targetNumber}！` : `最终得分: ${score}` }}
-						</div>
-						<el-button @click="initGame" type="primary" size="large" style="margin-top: 20px;">
-							新局
-						</el-button>
+						{{ cell || '' }}
 					</div>
 				</div>
+				<div id="game-overlay" :class="{ hidden: !gameOver && !gameWin }">
+					<div v-if="gameWin" style="color: #edc22e; font-size: 2.5rem;">🎉 恭喜！</div>
+					<div v-else>游戏结束！</div>
+					<div style="font-size: 1.2rem; margin-top: 10px;">
+						{{ gameWin ? `达到目标 ${settings.targetNumber === Infinity ? '无限' : settings.targetNumber}！` : `最终得分:
+						${score}` }}
+					</div>
+					<el-button @click="initGame" icon="RefreshRight" style="margin-top: 20px;">
+						新局
+					</el-button>
+				</div>
+			</div>
 		</article>
 
 		<article class="situation , right-sidebar">
@@ -449,21 +470,23 @@
 				movingCells: new Set(),
 				mergedCells: new Set(),
 				cellPositions: new Map(), // 存储每个块的位置变化
+				gameBoardWidth: 4,
+				gameBoardHeight: 4,
 				settings: {
 					boardWidth: 4,
 					boardHeight: 4,
 					targetNumber: 2048,
 					initialTiles: 2,
 					showHighlight: true,
-					mergeAnimation: 'flip'
+					mergeAnimation: 'flip',
 				},
-				sizeOptions: [3, 4, 5, 6, 7, 8]
+				sizeOptions: [3, 4, 5, 6, 7, 8],
 			};
 		},
 		computed: {
 			boardStyle() {
-				const w = this.settings.boardWidth;
-				const h = this.settings.boardHeight;
+				const w = this.gameBoardWidth;
+				const h = this.gameBoardHeight;
 				const maxSide = Math.max(w, h);
 				const cellSize = Math.min(100, Math.floor(420 / maxSide));
 				const baseFontSize = Math.max(1.2, 3.2 - (maxSide - 3) * 0.4);
@@ -472,7 +495,7 @@
 					gridTemplateRows: `repeat(${h}, 1fr)`,
 					width: `${w * cellSize}px`,
 					height: `${h * cellSize}px`,
-					'--base-font-size': `${baseFontSize}rem`
+					'--base-font-size': `${baseFontSize}rem`,
 				};
 			},
 			settingsString() {
@@ -482,14 +505,13 @@
 					settingsCopy.targetNumber = 'Infinity';
 				}
 				return JSON.stringify(settingsCopy);
-			}
+			},
 		},
 		methods: {
-			onSizeChange() {
-				this.initGame();
-			},
 			initGame() {
-				const totalCells = this.settings.boardWidth * this.settings.boardHeight;
+				this.gameBoardWidth = this.settings.boardWidth;
+				this.gameBoardHeight = this.settings.boardHeight;
+				const totalCells = this.gameBoardWidth * this.gameBoardHeight;
 				this.board = Array(totalCells).fill(0);
 				this.score = 0;
 				this.gameOver = false;
@@ -507,8 +529,8 @@
 			getCellStyle(index) {
 				const pos = this.cellPositions.get(index);
 				if (pos && this.movingCells.has(index)) {
-					const cols = this.settings.boardWidth;
-					const rows = this.settings.boardHeight;
+					const cols = this.gameBoardWidth;
+					const rows = this.gameBoardHeight;
 					const maxSide = Math.max(cols, rows);
 					const cellSize = Math.min(100, Math.floor(420 / maxSide));
 					const gap = 10;
@@ -525,12 +547,12 @@
 					if (pos.animating) {
 						// 动画进行中，transform逐渐变为0
 						return {
-							transform: 'translate(0, 0)'
+							transform: 'translate(0, 0)',
 						};
 					} else {
 						// 动画还没开始，块在旧位置
 						return {
-							transform: `translate(${deltaX}px, ${deltaY}px)`
+							transform: `translate(${deltaX}px, ${deltaY}px)`,
 						};
 					}
 				}
@@ -538,7 +560,7 @@
 			},
 			addRandomTile() {
 				const emptyCells = [];
-				const totalCells = this.settings.boardWidth * this.settings.boardHeight;
+				const totalCells = this.gameBoardWidth * this.gameBoardHeight;
 				for (let i = 0; i < totalCells; i++) {
 					if (this.board[i] === 0) {
 						emptyCells.push(i);
@@ -596,7 +618,7 @@
 									this.cellPositions.set(index, {
 										from: pos.from,
 										to: index,
-										animating: true
+										animating: true,
 									});
 									// 动画结束后清理
 									setTimeout(() => {
@@ -645,8 +667,8 @@
 			},
 			moveLeft() {
 				let moved = false;
-				const cols = this.settings.boardWidth;
-				const rows = this.settings.boardHeight;
+				const cols = this.gameBoardWidth;
+				const rows = this.gameBoardHeight;
 				for (let row = 0; row < rows; row++) {
 					const line = [];
 					const originalPositions = [];
@@ -674,8 +696,8 @@
 			},
 			moveRight() {
 				let moved = false;
-				const cols = this.settings.boardWidth;
-				const rows = this.settings.boardHeight;
+				const cols = this.gameBoardWidth;
+				const rows = this.gameBoardHeight;
 				for (let row = 0; row < rows; row++) {
 					const line = [];
 					const originalPositions = [];
@@ -704,8 +726,8 @@
 			},
 			moveUp() {
 				let moved = false;
-				const cols = this.settings.boardWidth;
-				const rows = this.settings.boardHeight;
+				const cols = this.gameBoardWidth;
+				const rows = this.gameBoardHeight;
 				for (let col = 0; col < cols; col++) {
 					const line = [];
 					const originalPositions = [];
@@ -733,8 +755,8 @@
 			},
 			moveDown() {
 				let moved = false;
-				const cols = this.settings.boardWidth;
-				const rows = this.settings.boardHeight;
+				const cols = this.gameBoardWidth;
+				const rows = this.gameBoardHeight;
 				for (let col = 0; col < cols; col++) {
 					const line = [];
 					const originalPositions = [];
@@ -800,8 +822,8 @@
 				return {merged: finalFiltered, newPositions};
 			},
 			checkGameOver() {
-				const cols = this.settings.boardWidth;
-				const rows = this.settings.boardHeight;
+				const cols = this.gameBoardWidth;
+				const rows = this.gameBoardHeight;
 				const totalCells = cols * rows;
 				for (let i = 0; i < totalCells; i++) {
 					if (this.board[i] === 0) {
@@ -866,7 +888,7 @@
 						console.error('加载设置失败:', e);
 					}
 				}
-			}
+			},
 		},
 		watch: {
 			score(newScore) {
@@ -896,13 +918,7 @@
 					settingsCopy.targetNumber = 'Infinity';
 				}
 				localStorage.setItem('2048-settings', JSON.stringify(settingsCopy));
-
-				// 如果棋盘尺寸改变，需要重新初始化游戏
-				if (newSettings.boardWidth !== oldSettings.boardWidth ||
-						newSettings.boardHeight !== oldSettings.boardHeight) {
-					this.initGame();
-				}
-			}
+			},
 		},
 		mounted() {
 			this.loadSettings();
@@ -911,7 +927,7 @@
 		},
 		beforeUnmount() {
 			window.removeEventListener('keydown', this.handleKeydown);
-		}
+		},
 	})
 	.use(ElementPlus);
 	for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
@@ -922,7 +938,7 @@
 	const help = createApp({
 		data() {
 			return {
-				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname)
+				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname),
 			};
 		},
 		watch: {
@@ -933,8 +949,8 @@
 				} else {
 					localStorage.removeItem(storageKey);
 				}
-			}
-		}
+			},
+		},
 	})
 	.use(ElementPlus)
 	.mount('.help.area');
@@ -943,10 +959,10 @@
 <div class="ad-container">
 	<!-- 谷歌广告联盟 -->
 	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"
-				crossorigin="anonymous"></script>
+					crossorigin="anonymous"></script>
 	<!-- 展示广告1 -->
 	<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true"
-		 data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
+			 data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
 	<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 </div>
 </body>

@@ -84,27 +84,37 @@
 	</header>
 
 	<article class="gaming area , 反叵字形 grid" v-cloak>
-		<header class="toolbar , flex near-center">
+		<header class="toolbar , flex items-near-center-x items-stretch">
 			<section class="setting list area">
 				<el-form inline>
-					<el-form-item label="宽度" class="one setting : width">
-						<el-input-number v-model="gridWidth" :min="10" :max="50" size="large" controls-position="right"/>
-					</el-form-item>
-					<el-form-item label="高度" class="one setting : height">
-						<el-input-number v-model="gridHeight" :min="10" :max="50" size="large" controls-position="right"/>
-					</el-form-item>
-					<el-form-item label="速度" class="one setting : speed">
-						<el-input-number v-model="speedLevel" :min="1" :max="10" size="large" controls-position="right"/>
-					</el-form-item>
+					<div class="one setting group">
+						<el-form-item label="行" class="one setting : height">
+							<el-select v-model="gridHeight">
+								<el-option v-for="h in gridHeightOptions" :key="h" :label="h" :value="h"/>
+							</el-select>
+						</el-form-item>
+						<el-form-item label="列" class="one setting : width">
+							<el-select v-model="gridWidth">
+								<el-option v-for="w in gridWidthOptions" :key="w" :label="w" :value="w"/>
+							</el-select>
+						</el-form-item>
+					</div>
+					<div class="one setting group">
+						<el-form-item label="速度" class="one setting : speed">
+							<el-select v-model="speedLevel">
+								<el-option v-for="s in speedOptions" :key="s" :label="s" :value="s"/>
+							</el-select>
+						</el-form-item>
+					</div>
+					<div class="one setting group">
+						<el-button class="one controller : restart" @click="initGame" icon="RefreshRight">新局</el-button>
+					</div>
 				</el-form>
 			</section>
 			<section class="controller list area">
 				<el-button class="one controller : pause" @click="togglePause"
-									 :icon="isPaused ? 'VideoPlay' : 'VideoPause'" size="large">
+									 :icon="isPaused ? 'VideoPlay' : 'VideoPause'">
 					{{ isPaused ? (score === 0 && !gameOver ? '开始' : '继续') : '暂停' }}
-				</el-button>
-				<el-button class="one controller : restart" @click="initGame" icon="RefreshRight" size="large">
-					新局
 				</el-button>
 			</section>
 		</header>
@@ -158,6 +168,11 @@
 				speedLevel: 5,
 				gridWidth: 20,
 				gridHeight: 20,
+				gridHeightOptions: Array.from({length: 41}, (_, i) => i + 10),
+				gridWidthOptions: Array.from({length: 41}, (_, i) => i + 10),
+				speedOptions: Array.from({length: 10}, (_, i) => i + 1),
+				gameGridWidth: 20,
+				gameGridHeight: 20,
 				gridSize: 20,
 				snake: [],
 				food: {},
@@ -168,7 +183,7 @@
 				gameOver: false,
 				isPaused: true,
 				gameInterval: null,
-				ctx: null
+				ctx: null,
 			};
 		},
 		computed: {
@@ -176,11 +191,11 @@
 				return 250 - this.speedLevel * 20;
 			},
 			canvasWidth() {
-				return this.gridWidth * this.gridSize;
+				return this.gameGridWidth * this.gridSize;
 			},
 			canvasHeight() {
-				return this.gridHeight * this.gridSize;
-			}
+				return this.gameGridHeight * this.gridSize;
+			},
 		},
 		watch: {
 			gameSpeed() {
@@ -194,20 +209,11 @@
 					localStorage.setItem('snake-high-score', newScore);
 				}
 			},
-			gridWidth() {
-				this.onDimensionChange();
-			},
-			gridHeight() {
-				this.onDimensionChange();
-			}
 		},
 		methods: {
-			onDimensionChange() {
-				this.$nextTick(() => {
-					this.initGame();
-				});
-			},
 			initGame() {
+				this.gameGridWidth = this.gridWidth;
+				this.gameGridHeight = this.gridHeight;
 				this.isPaused = true;
 				this.gameOver = false;
 				if (this.gameInterval) {
@@ -215,11 +221,11 @@
 					this.gameInterval = null;
 				}
 
-				const startPosition = {x: Math.floor(this.gridWidth / 4), y: Math.floor(this.gridHeight / 2)};
+				const startPosition = {x: Math.floor(this.gameGridWidth / 4), y: Math.floor(this.gameGridHeight / 2)};
 				this.snake = [
 					{...startPosition},
 					{x: startPosition.x - 1, y: startPosition.y},
-					{x: startPosition.x - 2, y: startPosition.y}
+					{x: startPosition.x - 2, y: startPosition.y},
 				];
 
 				this.score = 0;
@@ -288,7 +294,7 @@
 			},
 			checkCollision() {
 				const head = this.snake[0];
-				if (head.x < 0 || head.x >= this.gridWidth || head.y < 0 || head.y >= this.gridHeight) {
+				if (head.x < 0 || head.x >= this.gameGridWidth || head.y < 0 || head.y >= this.gameGridHeight) {
 					return true;
 				}
 				for (let i = 1; i < this.snake.length; i++) {
@@ -300,8 +306,8 @@
 			},
 			generateFood() {
 				this.food = {
-					x: Math.floor(Math.random() * this.gridWidth),
-					y: Math.floor(Math.random() * this.gridHeight)
+					x: Math.floor(Math.random() * this.gameGridWidth),
+					y: Math.floor(Math.random() * this.gameGridHeight),
 				};
 				for (let i = 0; i < this.snake.length; i++) {
 					if (this.snake[i].x === this.food.x && this.snake[i].y === this.food.y) {
@@ -393,7 +399,7 @@
 						}
 						break;
 				}
-			}
+			},
 		},
 		mounted() {
 			const canvas = document.getElementById('game-canvas');
@@ -404,7 +410,7 @@
 		beforeUnmount() {
 			window.removeEventListener('keydown', this.handleKeydown);
 			clearInterval(this.gameInterval);
-		}
+		},
 	})
 	.use(ElementPlus);
 	for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
@@ -415,7 +421,7 @@
 	const help = createApp({
 		data() {
 			return {
-				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname)
+				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname),
 			};
 		},
 		watch: {
@@ -426,8 +432,8 @@
 				} else {
 					localStorage.removeItem(storageKey);
 				}
-			}
-		}
+			},
+		},
 	})
 	.use(ElementPlus)
 	.mount('.help.area');

@@ -30,7 +30,7 @@ main { padding: 1rem; }
 	z-index: 3;
 }
 
-/* 放大遮罩层的“开始/重开”按钮 */
+/* 放大遮罩层的“开始/重来”按钮 */
 .board-overlay .el-button {
 	font-size: 20px;
 	padding: 16px 32px;
