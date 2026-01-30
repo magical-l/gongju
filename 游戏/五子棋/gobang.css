@@ -66,26 +66,6 @@
 	background-color: white;
 }
 
-.game.overlay {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	background-color: rgba(255, 255, 255, 0.5);
-	z-index: 100;
-}
-
-.game.over.text {
-	font-size: 50px;
-	font-weight: bold;
-	color: #d43d3d;
-	text-shadow: 0 0 10px white;
-}
-
 .piece.last-move-marker {
 	position: absolute;
 	width: 10px;

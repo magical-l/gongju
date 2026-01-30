@@ -69,10 +69,10 @@
 	</header>
 	<article class="gaming area , 反叵字形 grid" v-cloak>
 		<header class="toolbar , flex items-near-center-x items-stretch">
-			<section class="controller list area">
-				<el-button v-if="!isGaming" type="primary" icon="VideoPlay" @click="startGame">开始新游戏</el-button>
-				<el-button v-else type="danger" icon="RefreshRight" @click="restartGame">重新开始</el-button>
-			</section>
+			<el-card class="controller list area" shadow="never">
+				<el-button v-if="!isGaming" type="primary" icon="VideoPlay" @click="startGame">开始</el-button>
+				<el-button v-else icon="RefreshRight" @click="restartGame">新局</el-button>
+			</el-card>
 		</header>
 
 		<article class="gaming area , 反叵字形 grid">
@@ -93,7 +93,7 @@
 
 		<article class="situation , right-sidebar">
 			<section class="status info area" v-if="isGaming">
-				<el-card header="对局信息" class="compact" shadow="never">
+				<el-card header="对局信息" class="compact" shadow="never" header-class="semi-bold">
 					<span class="game-info">当前玩家: {{ curPlayer.name }}</span>
 				</el-card>
 			</section>

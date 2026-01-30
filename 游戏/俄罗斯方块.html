@@ -154,7 +154,7 @@
 	<article class="game-wrapper , 反叵字形 grid" v-cloak>
 		<header class="toolbar , flex items-near-center-x items-stretch">
 			<!--		<header class="item monopoly , toolbar flex items-mutex">-->
-			<section class="setting list area">
+			<el-card class="setting list area" shadow="never">
 				<el-form inline>
 					<div class="one setting group">
 						<el-form-item label="行" class="one setting">
@@ -187,22 +187,22 @@
 						<el-button class="one controller : restart" @click="startGame" icon="RefreshRight">新局</el-button>
 					</div>
 				</el-form>
-			</section>
-			<section class="controller list area">
+			</el-card>
+			<el-card class="controller list area" shadow="never">
 				<el-button v-if="isPaused" class="one controller : pause" title="开始（快捷键：空格）" @click="togglePause"
 									 :disabled="isGameOver" type="primary" icon="VideoPlay">开始
 				</el-button>
 				<el-button v-else class="one controller : pause" title="暂停（快捷键：空格）" @click="togglePause"
 									 :disabled="isGameOver" icon="VideoPause">暂停
 				</el-button>
-			</section>
-			<section class="tool list area">
+			</el-card>
+			<el-card class="tool list area" shadow="never">
 				<el-form inline>
 					<el-form-item label="显示落点">
 						<el-switch class="one tool" v-model="settings.showGhost"></el-switch>
 					</el-form-item>
 				</el-form>
-			</section>
+			</el-card>
 		</header>
 
 		<article class="flex items-near-center-x items-near-start-y" style="grid-row:2">
@@ -218,14 +218,14 @@
 			</section>
 		</article>
 		<article class="situation , right-sidebar">
-			<el-card header="下一个" class="next piece section">
+			<el-card header="下一个" class="next piece section" shadow="never" header-class="semi-bold">
 				<div class="next piece container , flex near-center">
 					<div :style="nextPieceStyle">
 						<div class="cell" v-for="(block, index) in nextPieceBlocks" :key="index" :class="block"></div>
 					</div>
 				</div>
 			</el-card>
-			<el-card header="对局信息" class="scoreboard section" body-class="flex items-unfamiliar">
+			<el-card header="对局信息" class="scoreboard section" body-class="flex items-unfamiliar" shadow="never" header-class="semi-bold">
 				<section>
 					<h3>分数</h3>
 					<p>{{ score }}</p>
@@ -239,7 +239,7 @@
 					<p>{{ level }}</p>
 				</section>
 			</el-card>
-			<el-card header="快捷键" class="shortcut intro section">
+			<el-card header="快捷键" class="shortcut intro section" shadow="never" header-class="semi-bold">
 				<p>← ↓ → ：方向</p>
 				<p>↑ ：变形</p>
 				<p>回车：砖块直接落到底</p>

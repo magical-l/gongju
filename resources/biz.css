@@ -46,32 +46,40 @@ main > header h2 {
 }
 
 .toolbar {
-	gap: 15px;
+	display: flex;
+	gap: 0;
 }
 
-/* 无内容时不显示，避免空白块 */
-.toolbar .setting.list.area:not(:has(*)),
-.toolbar .controller.list.area:not(:has(*)),
-.toolbar .tool.list.area:not(:has(*)) {
+main > article > header.toolbar {
+	margin-bottom: 0.75rem;
+}
+
+.toolbar .list.area:not(:has(.el-card__body > *)) {
 	display: none !important;
 }
 
-.toolbar .setting.list.area,
-.toolbar .controller.list.area,
-.toolbar .tool.list.area {
-	min-height: 40px;
+.toolbar .list.area {
+	display: flex;
+	flex: 1 1 auto;
+	min-width: 0;
+	border-radius: 0;
+	background: #f5f5f5;
+}
+
+.toolbar .list.area .el-card__body {
 	display: flex;
 	align-items: center;
-	padding: 8px 12px;
-	border-radius: 8px;
+	flex-wrap: wrap;
+	padding: 6px 10px;
+	width: 100%;
+	box-sizing: border-box;
+	background: transparent;
 }
 
 .toolbar .setting.list.area {
-	background: linear-gradient(135deg, #f8f9fc 0%, #eef1f8 100%);
-	border: 1px solid #e2e6ee;
+	flex: 2 1 auto;
 }
 
-/* 设置区内容换行时左对齐，避免两侧大片空隙 */
 .toolbar .setting.list.area .el-form {
 	display: flex;
 	flex-wrap: wrap;
@@ -80,24 +88,13 @@ main > header h2 {
 	gap: 0;
 }
 
-.toolbar .controller.list.area {
-	background: linear-gradient(135deg, #f0f7ff 0%, #e6f0fa 100%);
-	border: 1px solid #cce0f5;
-}
 
-.toolbar .tool.list.area {
-	background: linear-gradient(135deg, #faf8f5 0%, #f5f0e8 100%);
-	border: 1px solid #e8e0d5;
-}
-
-/* 状态/信息区：规矩 + 对局信息 + 回合记录 等 */
 .status.info.area {
 	display: flex;
 	flex-direction: column;
 	gap: 0.75rem;
 }
 
-/* 三区成组（.one.group）：组内小间距，组间大间距 + 组间竖线分隔 */
 .toolbar .list.area .one.group {
 	display: inline-flex;
 	align-items: center;
@@ -121,7 +118,6 @@ main > header h2 {
 	margin-right: 0;
 }
 
-/* toolbar 内下拉框：默认较窄；需要稍宽时给 el-select 加 class="select-width-6ch" 等 */
 .toolbar .setting.list.area .el-select {
 	display: inline-block;
 	min-width: 4rem;

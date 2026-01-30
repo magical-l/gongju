@@ -219,7 +219,7 @@
 
 	<article class="gaming area , 反叵字形 grid" v-cloak>
 		<header class="toolbar , flex items-near-center-x items-stretch">
-			<section class="setting list area">
+			<el-card class="setting list area" shadow="never">
 				<el-form inline>
 					<div class="one setting group">
 						<el-form-item label="行">
@@ -237,11 +237,11 @@
 						<el-button class="one controller : restart" @click="initGame" icon="RefreshRight">新局</el-button>
 					</div>
 				</el-form>
-			</section>
-			<section class="tool list area">
+			</el-card>
+			<el-card class="tool list area" shadow="never">
 				<el-button class="one tool : hint" @click="showHint" icon="MagicStick">提示</el-button>
 				<el-button class="one tool : answer" @click="getAnswer" :loading="solving" icon="Key">答案</el-button>
-			</section>
+			</el-card>
 		</header>
 
 		<article class="main map area , flex items-near-center-x">
@@ -257,13 +257,13 @@
 		</article>
 
 		<article class="situation , right-sidebar">
-			<el-card header="对局信息" class="scoreboard section">
+			<el-card header="对局信息" class="scoreboard section" shadow="never" header-class="semi-bold">
 				<section>
 					<h3>步数</h3>
 					<p>{{ moves }}</p>
 				</section>
 			</el-card>
-			<el-card v-if="solutionSteps.length || solutionError || solving" class="answer section">
+			<el-card v-if="solutionSteps.length || solutionError || solving" class="answer section" shadow="never">
 				<template #header>
 					<span>答案</span>
 					<el-button v-if="solutionSteps.length && !solving" @click="clearAnswer" size="small" link>清除</el-button>
@@ -287,7 +287,7 @@
 					</el-button>
 				</template>
 			</el-card>
-			<el-card header="快捷键" class="shortcut intro section">
+			<el-card header="快捷键" class="shortcut intro section" shadow="never" header-class="semi-bold">
 				<p>↑ ↓ ← → ：移动与空位相邻的块</p>
 				<p>点击与空位相邻的块也可移动</p>
 			</el-card>

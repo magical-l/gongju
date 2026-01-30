@@ -55,7 +55,10 @@
 	margin-bottom: 20px;
 }
 
-/* 侧边栏等卡片标题统一靠左 */
 .el-card__header {
 	text-align: left !important;
+}
+
+.semi-bold {
+	font-weight: 600;
 }

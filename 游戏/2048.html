@@ -325,7 +325,7 @@
 
 	<article class="gaming area , 反叵字形 grid" v-cloak>
 		<header class="toolbar , flex items-near-center-x items-stretch">
-			<section class="setting list area">
+			<el-card class="setting list area" shadow="never">
 				<el-form inline>
 					<div class="one setting group">
 						<el-form-item label="行" class="one setting">
@@ -379,10 +379,10 @@
 						</el-form-item>
 					</div>
 				</el-form>
-			</section>
-			<section class="controller list area">
-				<el-button class="one controller : restart" @click="initGame" icon="RefreshRight">重来</el-button>
-			</section>
+			</el-card>
+			<el-card class="controller list area" shadow="never">
+				<el-button class="one controller : restart" @click="initGame" icon="RefreshLeft">重来</el-button>
+			</el-card>
 		</header>
 
 		<article class="main map area , one-row item , flex items-near-center-x">
@@ -414,7 +414,7 @@
 		</article>
 
 		<article class="situation , right-sidebar">
-			<el-card header="对局信息" class="scoreboard section">
+			<el-card header="对局信息" class="scoreboard section" shadow="never" header-class="semi-bold">
 				<section>
 					<h3>当前分数</h3>
 					<p>{{ score }}</p>
@@ -428,7 +428,7 @@
 					<p>{{ settings.targetNumber === Infinity ? '无限' : settings.targetNumber }}</p>
 				</section>
 			</el-card>
-			<el-card header="快捷键" class="shortcut intro section">
+			<el-card header="快捷键" class="shortcut intro section" shadow="never" header-class="semi-bold">
 				<p>↑ ↓ → ← ：移动方块</p>
 				<p>相同数字的方块会合并</p>
 			</el-card>

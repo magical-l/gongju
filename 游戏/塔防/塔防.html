@@ -207,7 +207,7 @@
 <main>
 	<article class="game-wrapper , 反叵字形 grid" v-cloak>
 		<header class="toolbar , flex items-near-center-x items-stretch">
-			<section class="setting list area">
+			<el-card class="setting list area" shadow="never">
 				<el-form inline>
 					<div class="one setting group">
 						<el-form-item label="选择关卡" class="one setting">
@@ -226,16 +226,16 @@
 						</el-form-item>
 					</div>
 				</el-form>
-			</section>
-			<section class="controller list area">
+			</el-card>
+			<el-card class="controller list area" shadow="never">
 				<el-button-group>
 					<el-button @click="togglePause" class="one controller" :disabled="gameOver || gameWon" type="primary"
 						:icon="isPaused ? 'VideoPlay' : 'VideoPause'">
 						{{ pauseButtonText }}
 					</el-button>
-					<el-button @click="restartGame" class="one controller" :disabled="!currentLevelId" icon="RefreshRight">重来</el-button>
+					<el-button @click="restartGame" class="one controller" :disabled="!currentLevelId" icon="RefreshLeft">重来</el-button>
 				</el-button-group>
-			</section>
+			</el-card>
 		</header>
 
 		<article class="main map area , flex items-near-center-x" style="grid-row: 2">
@@ -333,7 +333,7 @@
 		</article>
 
 		<aside class="situation , right-sidebar">
-			<el-card header="对局信息" v-if="currentLevel">
+			<el-card header="对局信息" v-if="currentLevel" shadow="never" header-class="semi-bold">
 				<div class="stat-item"><span>❤️ 生命:</span> <span class="stat-value">{{ health }}</span></div>
 				<div class="stat-item"><span>💰 金币:</span> <span class="stat-value">{{ coins }}</span></div>
 				<div class="stat-item"><span>🌊 波数:</span> <span class="stat-value">{{ waveDisplay }}</span></div>
@@ -344,7 +344,7 @@
 					 :show-close="false" :close-on-click-modal="false" :close-on-press-escape="false">
 			<span>{{ gameWon ? '你成功保卫了萝卜！' : '萝卜被吃掉了，再试一次吧！' }}</span>
 			<template #footer>
-				<el-button type="primary" @click="restartGame">重来</el-button>
+				<el-button type="primary" icon="RefreshLeft" @click="restartGame">重来</el-button>
 			</template>
 			</el-dialog>
 	</article>

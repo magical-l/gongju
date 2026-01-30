@@ -156,16 +156,15 @@
 			</el-button>
 			<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
 				<p>欢迎来到"星连星"游戏，这是一款经典的益智连线游戏。</p>
-				<p>游戏目标：通过绘制<strong>不相交的连线</strong>来连接<strong>同色星星</strong>，填满整个游戏区域即可通关。</p>
+				<p>游戏目标：通过绘制<strong>不相交的连线</strong>来连接<strong>同色星星</strong>，填满整个游戏区域即通关。</p>
 				<p><strong>操作方式：</strong></p>
 				<ul>
-					<li>点击或触摸一颗星星开始画线</li>
-					<li>拖动到同色的另一颗星星完成连接</li>
-					<li>连线不能交叉或重叠</li>
-					<li>所有格子必须被连线覆盖</li>
+					<li>在星星格或已有线的任意一格按下即可开始/续画</li>
+					<li>可画到一半松手，也可连到同色星（连到同色星后不能穿过该星再走）</li>
+					<li>拖回上一格可回退一步</li>
+					<li>连线不能交叉或重叠，所有格子必须被连线覆盖</li>
 				</ul>
-				<p><strong>规则：</strong>同一根线不能重复经过任何格子，每格只能走一次；不能经过其他颜色的星星格。允许画到一半松手（不强制连到另一颗同色星）。当
-					A 颜色的线经过 B 颜色已占用的格子时，A 抢占该格，B 的线自动收缩到该格的上一步。</p>
+				<p><strong>规则：</strong>同一根线不能重复经过任何格子，每格只能走一次；不能经过其他颜色的星星格。当 A 颜色的线经过 B 颜色已占用的格子时，A 抢占该格，B 的线自动收缩到该格的上一步。</p>
 				<p><strong>提示：</strong>如果画错了，可以点击已完成的连线来清除它，然后重新绘制。</p>
 				<p>祝您玩得愉快！</p>
 			</el-dialog>
@@ -174,7 +173,7 @@
 
 	<article class="gaming area , 反叵字形 grid" v-cloak>
 		<header class="toolbar , flex items-near-center-x items-stretch">
-			<section class="setting list area">
+			<el-card class="setting list area" shadow="never">
 				<el-form inline>
 					<div class="one setting group">
 						<el-form-item label="尺寸" class="one setting">
@@ -204,15 +203,15 @@
 						<el-button @click="newGame" icon="RefreshRight">新局</el-button>
 					</div>
 				</el-form>
-			</section>
-			<section class="controller list area">
-				<el-button class="one controller : restart" @click="restartCurrentGame" icon="RefreshRight">重来</el-button>
-			</section>
-			<section class="tool list area">
+			</el-card>
+			<el-card class="controller list area" shadow="never">
+				<el-button class="one controller : restart" @click="restartCurrentGame" icon="RefreshLeft">重来</el-button>
+			</el-card>
+			<el-card class="tool list area" shadow="never">
 				<el-button class="one tool : answer" @click="showAnswer" :type="showAnswerOverlay ? 'primary' : 'default'"
 									 icon="Key">答案
 				</el-button>
-			</section>
+			</el-card>
 		</header>
 
 		<article class="gaming area , 反叵字形 grid">
@@ -233,7 +232,7 @@
 		</article>
 
 		<article class="situation , right-sidebar">
-			<el-card header="对局信息" class="scoreboard section">
+			<el-card header="对局信息" class="scoreboard section" shadow="never" header-class="semi-bold">
 				<div class="game-info">
 					<div class="progress">
 						<el-progress :percentage="completionPercentage" :status="gameWin ? 'success' : ''"></el-progress>
@@ -242,13 +241,6 @@
 						</div>
 					</div>
 				</div>
-			</el-card>
-			<el-card header="操作提示" class="shortcut intro section">
-				<p>在星星格或已有线的任意一格按下即可开始/续画</p>
-				<p>可画到一半松手，也可连到同色星（连到同色星后不能穿过该星再走）</p>
-				<p>拖回上一格可回退一步</p>
-				<p>不能经过其他颜色的星格；抢占他色格时他色线自动收缩</p>
-				<p>所有格子填满即通关</p>
 			</el-card>
 		</article>
 	</article>

@@ -113,12 +113,6 @@
 		height: 45px;
 	}
 
-	.toolbar {
-		gap: var(--gap);
-		padding: 10px;
-		align-items: center;
-	}
-
 	.selected.unit.preview {
 		width: 40px;
 		height: 40px;
@@ -228,10 +222,10 @@
 	</nav>
 </header>
 <main class="flex items-near-center-x">
-	<article class="game wrapper , 反叵字形 grid" v-cloak>
+	<article class="反叵字形 grid" v-cloak>
 		<!-- 模式工具栏 -->
 		<header class="toolbar , flex items-near-center-x items-stretch">
-			<section class="setting list area">
+			<el-card class="setting list area" shadow="never">
 				<el-form inline>
 					<div v-if="isGaming" class="one setting group">
 						<el-button type="info" @click="returnToSettings" icon="RefreshRight">新局</el-button>
@@ -248,13 +242,13 @@
 					</div>
 					<el-button type="primary" icon="VideoPlay" @click="startGame" class="push-right">开始游戏</el-button>
 				</template>
-			</section>
-			<section class="controller list area">
+			</el-card>
+			<el-card class="controller list area" shadow="never">
 				<template v-if="isGaming">
-					<el-button type="primary" icon="RefreshRight" @click="restartGame">重来</el-button>
+					<el-button type="primary" icon="RefreshLeft" @click="restartGame">重来</el-button>
 				</template>
-			</section>
-			<section class="tool list area">
+			</el-card>
+			<el-card class="tool list area" shadow="never">
 				<div class="one group">
 					<el-form-item label="对面视角" class="one tool">
 						<el-switch v-model="showReversedView"/>
@@ -265,7 +259,7 @@
 						<el-button type="warning" @click="undoMove" :disabled="!isUndoAvailable">悔棋</el-button>
 					</div>
 				</template>
-			</section>
+			</el-card>
 		</header>
 
 		<!-- 统一棋盘容器 -->
@@ -306,7 +300,7 @@
 		</div>
 
 		<aside class="right-sidebar">
-			<el-card header="棋子库" v-if="!isGaming" shadow="never" class="compact">
+			<el-card header="棋子库" v-if="!isGaming" shadow="never" class="compact" header-class="semi-bold">
 				<div class="piece type grid piece palette grid flex vertical" style="--min-cell-len: 45px">
 					<div class="unit display" v-for="(piece, type) in boardEditor.pieceTypes" :key="type"
 							 :class="[getEditorUnitColor(piece), { 'selected': boardEditor.selectedPieceType === type }]"
@@ -377,26 +371,26 @@
 				</div>
 			</el-card>
 
-			<el-card header="全局规则" v-if="!isGaming" class="compact" shadow="never">
+			<el-card header="全局规则" v-if="!isGaming" class="compact" shadow="never" header-class="semi-bold">
 				<el-checkbox-group v-model="gameSettings.rules">
 					<el-checkbox v-for="rule in allAvailableRules" :key="rule" :label="rule"/>
 				</el-checkbox-group>
 			</el-card>
 
-			<el-card header="插件" v-if="!isGaming" class="compact" shadow="never">
+			<el-card header="插件" v-if="!isGaming" class="compact" shadow="never" header-class="semi-bold">
 				<el-checkbox-group v-model="gameSettings.plugins">
 					<el-checkbox v-for="plugin in allAvailablePlugins" :key="plugin" :label="plugin"/>
 				</el-checkbox-group>
 			</el-card>
 
 			<section class="status info area" v-if="isGaming">
-				<el-card header="规矩" class="compact" shadow="never">
+				<el-card header="规矩" class="compact" shadow="never" header-class="semi-bold">
 					<span>{{ gameSettings.firstPlayer === 'red' ? '红先' : '黑先' }}</span>
 				</el-card>
-				<el-card header="对局信息" class="compact" shadow="never">
+				<el-card header="对局信息" class="compact" shadow="never" header-class="semi-bold">
 					<span class="game-info">当前玩家: {{ curPlayerLabel }}</span>
 				</el-card>
-				<el-card header="回合" class="compact" shadow="never">
+				<el-card header="回合" class="compact" shadow="never" header-class="semi-bold">
 					<el-table :data="turnHistory" row-key="id" stripe style="width: 100%" height="400" empty-text="尚未走棋">
 						<el-table-column prop="id" label="回合" width="60"></el-table-column>
 						<el-table-column prop="redMove" label="红方"></el-table-column>
@@ -416,7 +410,7 @@
 			<header class="game over text">游戏结束</header>
 			<div class="winner">{{ winnerName }} 胜利</div>
 			<footer class="button group">
-				<el-button type="primary" size="large" @click="restartGame">重来</el-button>
+				<el-button type="primary" size="large" icon="RefreshLeft" @click="restartGame">重来</el-button>
 				<el-button type="info" size="large" @click="returnToSettings">换一盘</el-button>
 				<el-button type="info" size="large" @click="downloadNotation">记谱</el-button>
 				<el-button type="warning" size="large" @click="undoMove" :disabled="!isUndoAvailable">悔棋</el-button>

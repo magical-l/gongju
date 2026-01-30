@@ -147,7 +147,7 @@
 
 	<article class="gaming area , 反叵字形 grid" v-cloak>
 		<header class="toolbar , flex items-near-center-x items-stretch">
-			<section class="setting list area">
+			<el-card class="setting list area" shadow="never">
 				<el-form inline>
 					<div class="one setting group">
 						<el-form-item label="行">
@@ -165,13 +165,13 @@
 						<el-button class="one controller : restart" @click="initGame" icon="RefreshRight">新局</el-button>
 					</div>
 				</el-form>
-			</section>
-			<section class="tool list area">
+			</el-card>
+			<el-card class="tool list area" shadow="never">
 				<el-button-group>
 					<el-button class="one tool : hint" @click="showRandomHint" icon="MagicStick">提示</el-button>
 					<el-button class="one tool : answer" @click="showAnswer" icon="Key">答案</el-button>
 				</el-button-group>
-			</section>
+			</el-card>
 		</header>
 
 		<article class="main map area , flex items-near-center-x">
@@ -187,13 +187,13 @@
 		</article>
 
 		<article class="situation , right-sidebar">
-			<el-card header="对局信息" class="scoreboard section">
+			<el-card header="对局信息" class="scoreboard section" shadow="never" header-class="semi-bold">
 				<section>
 					<h3>移动次数</h3>
 					<p>{{ moveCount }}</p>
 				</section>
 			</el-card>
-			<el-card class="round list area section" header-class="flex items-mutex items-near-center-y">
+			<el-card class="round list area section" header-class="flex items-mutex items-near-center-y semi-bold" shadow="never">
 				<template #header>
 					<span>回合记录</span>
 					<el-button @click="exportRounds" :disabled="!rounds.length" icon="Download" size="small">导出</el-button>
