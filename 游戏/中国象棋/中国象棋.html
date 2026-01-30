@@ -393,6 +393,9 @@
 				<el-card header="规矩" class="compact" shadow="never">
 					<span>{{ gameSettings.firstPlayer === 'red' ? '红先' : '黑先' }}</span>
 				</el-card>
+				<el-card header="对局信息" class="compact" shadow="never">
+					<span class="game-info">当前玩家: {{ curPlayerLabel }}</span>
+				</el-card>
 				<el-card header="回合" class="compact" shadow="never">
 					<el-table :data="turnHistory" row-key="id" stripe style="width: 100%" height="400" empty-text="尚未走棋">
 						<el-table-column prop="id" label="回合" width="60"></el-table-column>
@@ -503,6 +506,11 @@
 			};
 		},
 		computed: {
+			curPlayerLabel() {
+				const p = this.getCurPlayer();
+				if (!p) return '';
+				return p.id === 红方玩家id ? '红方' : '黑方';
+			},
 			isGaming() {
 				return !!this.gaming;
 			},

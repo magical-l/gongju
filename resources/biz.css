@@ -90,7 +90,7 @@ main > header h2 {
 	border: 1px solid #e8e0d5;
 }
 
-/* 状态/信息区：规矩 + 记分牌 + 回合记录 等 */
+/* 状态/信息区：规矩 + 对局信息 + 回合记录 等 */
 .status.info.area {
 	display: flex;
 	flex-direction: column;
