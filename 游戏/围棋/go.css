@@ -38,7 +38,8 @@
 	}
 }
 
-.game-info { margin-left: 8px; }
+.game-info { margin-left: 8px; line-height: 1.6; }
+.game-info > div + div { margin-top: 4px; }
 
 /* 棋盘容器，用于摆放坐标标注 */
 .board-wrapper {
@@ -87,8 +88,8 @@
 	margin: 0 auto;
 }
 
-/* 单元格：交叉点所在的可点击面积（含线） */
-.cell {
+/* 单元格：交叉点所在的可点击面积（含线），限定在棋盘内避免影响 el-table .cell */
+.one.chessboard .cell {
 	position: relative;
 	width: var(--cell);
 	height: var(--cell);
@@ -96,7 +97,7 @@
 
 /* 画线：使用::before/::after生成网格线条（交叉对齐） */
 /* 网格线：每格仅绘制右半段横线与下半段竖线，自动形成四角L形 */
-.cell::before, .cell::after {
+.one.chessboard .cell::before, .one.chessboard .cell::after {
 	content: '';
 	position: absolute;
 	background: #6e4f2e; /* 更深网格线 */
@@ -107,27 +108,27 @@
 
 
 
-.cell::before { /* 横线 */
+.one.chessboard .cell::before { /* 横线 */
 	left: 0; right: 0; top: 50%;
 	height: 1px; transform: translateY(-.5px);
 }
 
-.cell::after { /* 竖线 */
+.one.chessboard .cell::after { /* 竖线 */
 	top: 0; bottom: 0; left: 50%;
 	width: 1px; transform: translateX(-.5px);
 }
 
 /* 棋盘边界：首/末行列仅保留“向内半段”以形成L角 */
-.cell.edge-top::after { top: 50%; bottom: 0; }
+.one.chessboard .cell.edge-top::after { top: 50%; bottom: 0; }
 
-.cell.edge-bottom::after { top: 0; bottom: 50%; }
+.one.chessboard .cell.edge-bottom::after { top: 0; bottom: 50%; }
 
-.cell.edge-left::before { left: 50%; right: 0; }
+.one.chessboard .cell.edge-left::before { left: 50%; right: 0; }
 
-.cell.edge-right::before { left: 0; right: 50%; }
+.one.chessboard .cell.edge-right::before { left: 0; right: 50%; }
 
 /* 星位点（更显眼） */
-.cell .star {
+.one.chessboard .cell .star {
 	position: absolute;
 	width: calc(var(--cell) * 0.266); height: calc(var(--cell) * 0.266); border-radius: 50%;
 	background: #2f2f2f;
@@ -188,11 +189,11 @@
 .preview-white { background: radial-gradient(circle at 30% 30%, #fff, #e9e9e9); }
 
 /* 悬停边框辅助 */
-.cell.hoverable:hover { outline: 2px dashed rgba(42, 133, 255, .30); outline-offset: -2px; }
+.one.chessboard .cell.hoverable:hover { outline: 2px dashed rgba(42, 133, 255, .30); outline-offset: -2px; }
 
 /* 触屏设备不显示 hover 虚线 */
 @media (hover: none) {
-	.cell.hoverable:hover { outline: none; }
+	.one.chessboard .cell.hoverable:hover { outline: none; }
 }
 
 /* 新落子动画 */
@@ -216,7 +217,7 @@
 	display: none !important;
 }
 
-.is-replaying .cell.hoverable:hover {
+.is-replaying .one.chessboard .cell.hoverable:hover {
 	outline: none !important;
 }
 

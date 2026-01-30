@@ -36,7 +36,7 @@
 		<header class="toolbar , flex items-near-center-x items-stretch">
 			<el-card class="setting list area" shadow="never">
 				<el-form inline>
-					<div class="one group">
+					<div class="one setting group">
 						<el-form-item label="棋盘" class="one setting">
 							<el-select v-model="pendingBoardSize" class="config-item" style="width: 84px" @change="onBoardSizeChange">
 								<el-option :value="19" label="19路"></el-option>
@@ -44,19 +44,17 @@
 								<el-option :value="9" label="9路"></el-option>
 							</el-select>
 						</el-form-item>
-						<el-radio-group v-model="pendingFirst" size="small" class="config-item">
-							<el-radio-button label="黑方">黑先</el-radio-button>
-							<el-radio-button label="白方">白先</el-radio-button>
-						</el-radio-group>
+						<el-form-item class="one setting">
+							<el-radio-group v-model="pendingFirst" class="config-item">
+								<el-radio-button label="黑方">黑先</el-radio-button>
+								<el-radio-button label="白方">白先</el-radio-button>
+							</el-radio-group>
+						</el-form-item>
 					</div>
-					<div class="one group">
-						<el-input-number v-model="komi" :step="0.5" :min="0" controls-position="right" style="width: 140px">
-							<template #prefix><span>贴目</span></template>
-						</el-input-number>
-					</div>
-					<div class="one group">
-						<el-checkbox v-model="showCoords">显示坐标</el-checkbox>
-						<el-checkbox v-model="showMoveNumbers">显示手数</el-checkbox>
+					<div class="one setting group">
+						<el-form-item label="贴目" class="one setting">
+							<el-input-number v-model="komi" :step="0.5" :min="0" controls-position="right" style="width: 120px"></el-input-number>
+						</el-form-item>
 					</div>
 				</el-form>
 			</el-card>
@@ -67,33 +65,41 @@
 				</el-button>
 			</el-card>
 			<el-card class="tool list area" shadow="never">
-				<el-button-group>
-					<el-button @click="doPass" :disabled="isGameOver">停手</el-button>
-					<el-button type="warning" @click="doResign" :disabled="isGameOver">认输</el-button>
-				</el-button-group>
-				<el-button-group>
-					<el-button @click="doUndo" :disabled="!canUndo">悔棋</el-button>
-					<el-button @click="doRedo" :disabled="!canRedo">撤销悔棋</el-button>
-				</el-button-group>
-				<el-button-group>
-					<el-button @click="exportSGF" :disabled="!isGaming">导出SGF</el-button>
-					<el-button @click="openImportSGF">导入SGF</el-button>
-				</el-button-group>
-				<div style="min-width: 160px; max-width: 420px; display: inline-flex; align-items: center; gap: 8px;">
+				<div class="one group">
+					<el-checkbox v-model="showCoords">坐标</el-checkbox>
+					<el-checkbox v-model="showMoveNumbers">手数</el-checkbox>
+				</div>
+				<div class="one group">
+					<el-button-group>
+						<el-button @click="doPass" :disabled="isGameOver">停手</el-button>
+						<el-button type="warning" @click="doResign" :disabled="isGameOver">认输</el-button>
+					</el-button-group>
+					<el-button-group>
+						<el-button @click="doUndo" :disabled="!canUndo">悔棋</el-button>
+						<el-button @click="doRedo" :disabled="!canRedo">撤销悔棋</el-button>
+					</el-button-group>
+				</div>
+				<div class="one group">
+					<el-button-group>
+						<el-button @click="exportSGF" :disabled="!isGaming">导出SGF</el-button>
+						<el-button @click="openImportSGF">导入SGF</el-button>
+					</el-button-group>
+				</div>
+				<div class="one group" style="min-width: 160px; max-width: 420px; display: inline-flex; align-items: center; gap: 8px;">
 					<span style="font-size:12px;color:#5a452b;">回放</span>
 					<el-slider
-							:key="sliderKey"
-							v-model="historySeek"
-							:min="0"
-							:max="historyTotal"
-							:step="1"
-							:show-tooltip="false"
-							:show-input="true"
-							:show-input-controls="true"
-							style="width: 260px;"
-							@change="onSeekHistory"
+						:key="sliderKey"
+						v-model="historySeek"
+						:min="0"
+						:max="historyTotal"
+						:step="1"
+						:show-tooltip="false"
+						:show-input="true"
+						:show-input-controls="true"
+						style="width: 260px;"
+						@change="onSeekHistory"
 					></el-slider>
-					<span style="font-size:12px;color:#5a452b;">{{historyIndex}}/{{historyTotal}}</span>
+					<span style="font-size:12px;color:#5a452b;">{{ historyIndex }}/{{ historyTotal }}</span>
 				</div>
 			</el-card>
 		</header>
@@ -148,7 +154,18 @@
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
 				<el-collapse-item name="score" title="对局信息">
-					<span v-if="isGaming" class="game-info">当前玩家: {{ curPlayer.name }}</span>
+					<div v-if="isGaming" class="game-info">
+						<div>先手：{{ first }}</div>
+						<div>当前：{{ curPlayer ? curPlayer.name : '—' }}</div>
+						<div>手数：第 {{ historyIndex }} 手<span v-if="historyTotal > 0"> / 共 {{ historyTotal }} 手</span></div>
+					</div>
+				</el-collapse-item>
+				<el-collapse-item v-if="isGaming" name="round" title="回合">
+					<el-table :data="turnHistoryRows" row-key="id" stripe style="width: 100%" height="400" empty-text="尚未落子">
+						<el-table-column prop="id" label="手数" width="60"></el-table-column>
+						<el-table-column prop="blackMove" label="黑方"></el-table-column>
+						<el-table-column prop="whiteMove" label="白方"></el-table-column>
+					</el-table>
 				</el-collapse-item>
 				</el-collapse>
 			</el-card>
@@ -306,6 +323,22 @@ window.__DEBUG__ ??= false;
 			rowLabels() {
 				const n = this.isGaming ? this.boardSize : this.pendingBoardSize;
 				return Array.from({length: n}, (_, i) => n - i); // 顶部到下方：19..1
+			},
+			turnHistoryRows() {
+				if (!this.isGaming || !this.moves || this.moves.length === 0) return [];
+				const n = this.boardSize;
+				const firstBlack = this.first === '黑方';
+				const rows = [];
+				for (let i = 0; i * 2 + 1 < this.moves.length; i++) {
+					const blackM = firstBlack ? this.moves[i * 2] : this.moves[i * 2 + 1];
+					const whiteM = firstBlack ? this.moves[i * 2 + 1] : this.moves[i * 2];
+					rows.push({
+						id: i + 1,
+						blackMove: blackM ? this.formatMoveNotation(blackM) : '—',
+						whiteMove: whiteM ? this.formatMoveNotation(whiteM) : '—',
+					});
+				}
+				return rows;
 			},
 		},
 		methods: {
@@ -639,6 +672,17 @@ window.__DEBUG__ ??= false;
 				const rr = Math.max(1, Math.min(this.boardSize, r));
 				const cc = Math.max(1, Math.min(this.boardSize, c));
 				return this.positions[rr - 1]?.[cc - 1] || null;
+			},
+			formatMoveNotation(m) {
+				if (!m) return '—';
+				if (m.type === 'place') {
+					const col = this.colLabels[m.c - 1];
+					const row = this.boardSize - m.r + 1;
+					return col + row;
+				}
+				if (m.type === 'pass') return '停一手';
+				if (m.type === 'resign') return '认输';
+				return '—';
 			},
 		},
 		mounted() {
