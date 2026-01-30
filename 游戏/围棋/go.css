@@ -41,6 +41,31 @@
 .game-info { margin-left: 8px; line-height: 1.6; }
 .game-info > div + div { margin-top: 4px; }
 
+.komi-input-wrap {
+	display: inline-flex;
+	align-items: stretch;
+	border: 1px solid var(--el-border-color);
+	border-radius: var(--el-border-radius-base);
+	background: var(--el-fill-color-blank);
+	overflow: hidden;
+}
+.komi-input-prepend {
+	display: flex;
+	align-items: center;
+	padding: 0 12px;
+	background: var(--el-fill-color-light);
+	font-size: var(--el-font-size-base);
+	color: var(--el-text-color-regular);
+	border-right: 1px solid var(--el-border-color);
+}
+.komi-input-wrap .komi-input-inner {
+	width: 120px;
+}
+.komi-input-wrap .komi-input-inner .el-input__wrapper {
+	box-shadow: none;
+	border-radius: 0;
+}
+
 .round-card-body { display: flex; flex-direction: column; gap: 10px; }
 .round-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 

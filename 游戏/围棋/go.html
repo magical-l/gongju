@@ -52,8 +52,11 @@
 						</el-form-item>
 					</div>
 					<div class="one setting group">
-						<el-form-item label="贴目" class="one setting">
-							<el-input-number v-model="komi" :step="0.5" :min="0" controls-position="right" style="width: 120px"></el-input-number>
+						<el-form-item class="one setting">
+							<div class="komi-input-wrap">
+								<span class="komi-input-prepend">贴目</span>
+								<el-input-number v-model="komi" :step="0.5" :min="0" controls-position="right" class="komi-input-inner"></el-input-number>
+							</div>
 						</el-form-item>
 						<el-form-item class="one setting">
 							<el-button :type="isGaming ? 'danger' : 'primary'" :icon="isGaming ? 'RefreshRight' : 'VideoPlay'"
@@ -63,10 +66,7 @@
 				</el-form>
 			</el-card>
 			<el-card class="controller list area" shadow="never">
-				<el-button :type="isGaming ? 'danger' : 'primary'" :icon="isGaming ? 'RefreshLeft' : 'VideoPlay'"
-					@click="isGaming ? restartGame() : startGame()">
-					{{ isGaming ? '重来' : '开始' }}
-				</el-button>
+				<el-button v-if="isGaming" type="danger" icon="RefreshLeft" @click="restartGame">重来</el-button>
 			</el-card>
 			<el-card class="tool list area" shadow="never">
 				<div class="one group">
@@ -152,10 +152,13 @@
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
 				<el-collapse-item name="score" title="对局信息">
-					<div v-if="isGaming" class="game-info">
-						<div>先手：{{ first }}</div>
-						<div>当前：{{ curPlayer ? curPlayer.name : '—' }}</div>
-						<div>手数：第 {{ historyIndex }} 手<span v-if="historyTotal > 0"> / 共 {{ historyTotal }} 手</span></div>
+					<div class="game-info">
+						<div>先手：{{ isGaming ? first : pendingFirst }}</div>
+						<div>贴目：{{ komi }}</div>
+						<template v-if="isGaming">
+							<div>当前：{{ curPlayer ? curPlayer.name : '—' }}</div>
+							<div>手数：第 {{ historyIndex }} 手<span v-if="historyTotal > 0"> / 共 {{ historyTotal }} 手</span></div>
+						</template>
 					</div>
 				</el-collapse-item>
 				<el-collapse-item name="round" title="回合">
