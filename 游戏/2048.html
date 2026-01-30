@@ -413,26 +413,30 @@
 			</div>
 		</article>
 
-		<article class="situation , right-sidebar">
-			<el-card header="对局信息" class="scoreboard section" shadow="never" header-class="semi-bold">
-				<section>
-					<h3>当前分数</h3>
-					<p>{{ score }}</p>
-				</section>
-				<section>
-					<h3>最高分</h3>
-					<p>{{ highScore }}</p>
-				</section>
-				<section>
-					<h3>目标</h3>
-					<p>{{ settings.targetNumber === Infinity ? '无限' : settings.targetNumber }}</p>
-				</section>
+		<aside class="gaming info , right-sidebar">
+			<el-card shadow="never">
+				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
+				<el-collapse-item name="shortcut" title="快捷键">
+					<p>↑ ↓ → ← ：移动方块</p>
+					<p>相同数字的方块会合并</p>
+				</el-collapse-item>
+				<el-collapse-item name="score" title="对局信息">
+					<section>
+						<h3>当前分数</h3>
+						<p>{{ score }}</p>
+					</section>
+					<section>
+						<h3>最高分</h3>
+						<p>{{ highScore }}</p>
+					</section>
+					<section>
+						<h3>目标</h3>
+						<p>{{ settings.targetNumber === Infinity ? '无限' : settings.targetNumber }}</p>
+					</section>
+				</el-collapse-item>
+				</el-collapse>
 			</el-card>
-			<el-card header="快捷键" class="shortcut intro section" shadow="never" header-class="semi-bold">
-				<p>↑ ↓ → ← ：移动方块</p>
-				<p>相同数字的方块会合并</p>
-			</el-card>
-		</article>
+		</aside>
 	</article>
 </main>
 
@@ -458,6 +462,12 @@
 
 	const app = createApp({
 		data() {
+			const collapseKey = 'gaming-info-2048';
+			const defaultPanels = ['shortcut', 'score'];
+			let saved;
+			try {
+				saved = JSON.parse(localStorage.getItem(collapseKey) || 'null');
+			} catch (_) { saved = null; }
 			return {
 				board: [],
 				score: 0,
@@ -481,6 +491,8 @@
 					mergeAnimation: 'flip',
 				},
 				sizeOptions: [3, 4, 5, 6, 7, 8],
+				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
+				_gamingInfoCollapseKey: collapseKey,
 			};
 		},
 		computed: {
@@ -508,6 +520,11 @@
 			},
 		},
 		methods: {
+			onGamingInfoCollapseChange(val) {
+				try {
+					localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(val || []));
+				} catch (_) {}
+			},
 			initGame() {
 				this.gameBoardWidth = this.settings.boardWidth;
 				this.gameBoardHeight = this.settings.boardHeight;

@@ -14,7 +14,6 @@
 				margin-top: 20px;
 				gap: var(--gap);
 				align-items: start;
-				--反叵字形-right-sidebar-max-width: 240px;
 			}
 		.stat-item {
 			font-size: 1.1rem;
@@ -332,11 +331,17 @@
 			</div>
 		</article>
 
-		<aside class="situation , right-sidebar">
-			<el-card header="对局信息" v-if="currentLevel" shadow="never" header-class="semi-bold">
-				<div class="stat-item"><span>❤️ 生命:</span> <span class="stat-value">{{ health }}</span></div>
-				<div class="stat-item"><span>💰 金币:</span> <span class="stat-value">{{ coins }}</span></div>
-				<div class="stat-item"><span>🌊 波数:</span> <span class="stat-value">{{ waveDisplay }}</span></div>
+		<aside class="gaming info , right-sidebar">
+			<el-card shadow="never">
+				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
+				<el-collapse-item name="score" title="对局信息">
+					<div v-if="currentLevel">
+						<div class="stat-item"><span>❤️ 生命:</span> <span class="stat-value">{{ health }}</span></div>
+						<div class="stat-item"><span>💰 金币:</span> <span class="stat-value">{{ coins }}</span></div>
+						<div class="stat-item"><span>🌊 波数:</span> <span class="stat-value">{{ waveDisplay }}</span></div>
+					</div>
+				</el-collapse-item>
+				</el-collapse>
 			</el-card>
 		</aside>
 
@@ -425,7 +430,17 @@
 
 				// Game Loop
 				gameLoopId: null,
-				lastFrameTime: 0
+				lastFrameTime: 0,
+
+				gamingInfoOpenPanels: (() => {
+					const key = 'gaming-info-tower';
+					const defaultPanels = ['score'];
+					try {
+						const saved = JSON.parse(localStorage.getItem(key) || 'null');
+						return Array.isArray(saved) ? saved : defaultPanels;
+					} catch (_) { return defaultPanels; }
+				})(),
+				_gamingInfoCollapseKey: 'gaming-info-tower',
 			}
 		},
 		computed: {
@@ -509,6 +524,9 @@
 			}
 		},
 		methods: {
+			onGamingInfoCollapseChange(val) {
+				try { localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(val || [])); } catch (_) {}
+			},
 			async loadGameData() {
 				try {
 					const [levelsRes, enemiesRes, obstaclesRes, towersRes] = await Promise.all([

@@ -57,10 +57,6 @@
 		background: linear-gradient(135deg, #a8e6cf 0%, #dcedc1 100%);
 	}
 
-	.gaming.area {
-		--反叵字形-right-sidebar-max-width: 220px;
-	}
-
 	.scoreboard section { text-align: center; }
 
 	.moves {
@@ -186,23 +182,25 @@
 			</section>
 		</article>
 
-		<article class="situation , right-sidebar">
-			<el-card header="对局信息" class="scoreboard section" shadow="never" header-class="semi-bold">
-				<section>
-					<h3>移动次数</h3>
-					<p>{{ moveCount }}</p>
-				</section>
+		<aside class="gaming info , right-sidebar">
+			<el-card shadow="never">
+				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
+				<el-collapse-item name="score" title="对局信息">
+					<section>
+						<h3>移动次数</h3>
+						<p>{{ moveCount }}</p>
+					</section>
+				</el-collapse-item>
+				<el-collapse-item name="rounds" title="回合记录">
+					<el-button @click="exportRounds" :disabled="!rounds.length" icon="Download" size="small" style="margin-bottom: 8px;">导出</el-button>
+					<el-empty v-if="!rounds.length" description="尚无记录。请开始吧！"></el-empty>
+					<div v-else class="round list container" ref="roundList">
+						<p v-for="(round, roundI) in rounds">{{roundI+1}}：第{{round.row}}行, 第{{round.col}}列</p>
+					</div>
+				</el-collapse-item>
+				</el-collapse>
 			</el-card>
-			<el-card class="round list area section" header-class="flex items-mutex items-near-center-y semi-bold" shadow="never">
-				<template #header>
-					<span>回合记录</span>
-					<el-button @click="exportRounds" :disabled="!rounds.length" icon="Download" size="small">导出</el-button>
-				</template>
-				<el-empty v-if="!rounds.length" description="尚无记录。请开始吧！"></el-empty>
-				<div v-else class="round list container" ref="roundList">
-					<p v-for="(round, roundI) in rounds">{{roundI+1}}：第{{round.row}}行, 第{{round.col}}列</p>
-				</div>
-			</el-card>
+		</aside>
 
 			<article class="modal-overlay fullscreen" v-if="isWin && showWinModal">
 				<section class="body">
@@ -218,7 +216,7 @@
 					<div class="confetti" v-for="i in 150" :key="'confetti'+i"></div>
 				</div>
 			</article>
-		</article>
+		</aside>
 	</article>
 </main>
 
@@ -322,6 +320,10 @@
 
 	const app = createApp({
 		data() {
+			const collapseKey = 'gaming-info-light';
+			const defaultPanels = ['score', 'rounds'];
+			let saved;
+			try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
 			return {
 				rowOptions: [2, 3, 4, 5, 6, 7, 8, 9],
 				colOptions: [2, 3, 4, 5, 6, 7, 8, 9],
@@ -333,6 +335,8 @@
 				rounds: [],
 				highlightedCells: [],
 				showWinModal: false,
+				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
+				_gamingInfoCollapseKey: collapseKey,
 			};
 		},
 		computed: {
@@ -365,6 +369,9 @@
 			},
 		},
 		methods: {
+			onGamingInfoCollapseChange(val) {
+				try { localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(val || [])); } catch (_) {}
+			},
 			initGame() {
 				this.gameBoardRows = this.boardRows;
 				this.gameBoardCols = this.boardCols;

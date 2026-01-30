@@ -217,35 +217,39 @@
 				</div>
 			</section>
 		</article>
-		<article class="situation , right-sidebar">
-			<el-card header="下一个" class="next piece section" shadow="never" header-class="semi-bold">
-				<div class="next piece container , flex near-center">
-					<div :style="nextPieceStyle">
-						<div class="cell" v-for="(block, index) in nextPieceBlocks" :key="index" :class="block"></div>
+		<aside class="gaming info , right-sidebar">
+			<el-card shadow="never">
+				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
+				<el-collapse-item name="shortcut" title="快捷键">
+					<p>← ↓ → ：方向</p>
+					<p>↑ ：变形</p>
+					<p>回车：砖块直接落到底</p>
+					<p>空格：暂停/开始</p>
+				</el-collapse-item>
+				<el-collapse-item name="next" title="下一个">
+					<div class="next piece container , flex near-center">
+						<div :style="nextPieceStyle">
+							<div class="cell" v-for="(block, index) in nextPieceBlocks" :key="index" :class="block"></div>
+						</div>
 					</div>
-				</div>
+				</el-collapse-item>
+				<el-collapse-item name="score" title="对局信息">
+					<section>
+						<h3>分数</h3>
+						<p>{{ score }}</p>
+					</section>
+					<section>
+						<h3>行数</h3>
+						<p>{{ lines }}</p>
+					</section>
+					<section>
+						<h3>等级</h3>
+						<p>{{ level }}</p>
+					</section>
+				</el-collapse-item>
+				</el-collapse>
 			</el-card>
-			<el-card header="对局信息" class="scoreboard section" body-class="flex items-unfamiliar" shadow="never" header-class="semi-bold">
-				<section>
-					<h3>分数</h3>
-					<p>{{ score }}</p>
-				</section>
-				<section>
-					<h3>行数</h3>
-					<p>{{ lines }}</p>
-				</section>
-				<section>
-					<h3>等级</h3>
-					<p>{{ level }}</p>
-				</section>
-			</el-card>
-			<el-card header="快捷键" class="shortcut intro section" shadow="never" header-class="semi-bold">
-				<p>← ↓ → ：方向</p>
-				<p>↑ ：变形</p>
-				<p>回车：砖块直接落到底</p>
-				<p>空格：暂停/开始</p>
-			</el-card>
-		</article>
+		</aside>
 	</article>
 </main>
 
@@ -287,6 +291,10 @@
 
 	const app = createApp({
 		data() {
+			const collapseKey = 'gaming-info-tetris';
+			const defaultPanels = ['shortcut', 'next', 'score'];
+			let saved;
+			try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
 			return {
 				score: 0,
 				lines: 0,
@@ -299,6 +307,8 @@
 				isGameOver: false,
 				isPaused: true,
 				helpVisible: false,
+				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
+				_gamingInfoCollapseKey: collapseKey,
 				settings: {
 					cols: 10,
 					rows: 20,
@@ -417,6 +427,9 @@
 			},
 		},
 		methods: {
+			onGamingInfoCollapseChange(val) {
+				try { localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(val || [])); } catch (_) {}
+			},
 			collides(currentGrid, currentPlayer) {
 				const {shape} = currentPlayer.tetromino;
 				const {pos} = currentPlayer;

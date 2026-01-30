@@ -231,18 +231,22 @@
 			</article>
 		</article>
 
-		<article class="situation , right-sidebar">
-			<el-card header="对局信息" class="scoreboard section" shadow="never" header-class="semi-bold">
-				<div class="game-info">
-					<div class="progress">
-						<el-progress :percentage="completionPercentage" :status="gameWin ? 'success' : ''"></el-progress>
-						<div style="margin-top: 5px; font-size: 0.9rem; color: #909399;">
-							已填充: {{ filledCells }} / {{ totalCells }}
+		<aside class="gaming info , right-sidebar">
+			<el-card shadow="never">
+				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
+				<el-collapse-item name="score" title="对局信息">
+					<div class="game-info">
+						<div class="progress">
+							<el-progress :percentage="completionPercentage" :status="gameWin ? 'success' : ''"></el-progress>
+							<div style="margin-top: 5px; font-size: 0.9rem; color: #909399;">
+								已填充: {{ filledCells }} / {{ totalCells }}
+							</div>
 						</div>
 					</div>
-				</div>
+				</el-collapse-item>
+				</el-collapse>
 			</el-card>
-		</article>
+		</aside>
 	</article>
 </main>
 
@@ -339,6 +343,9 @@
 			},
 		},
 		methods: {
+			onGamingInfoCollapseChange(val) {
+				try { localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(val || [])); } catch (_) {}
+			},
 			initCanvas() {
 				this.canvas = document.getElementById('game-canvas');
 				this.ctx = this.canvas.getContext('2d');

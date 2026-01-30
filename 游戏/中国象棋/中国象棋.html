@@ -299,45 +299,27 @@
 			</article>
 		</div>
 
-		<aside class="right-sidebar">
-			<el-card header="棋子库" v-if="!isGaming" shadow="never" class="compact" header-class="semi-bold">
-				<div class="piece type grid piece palette grid flex vertical" style="--min-cell-len: 45px">
-					<div class="unit display" v-for="(piece, type) in boardEditor.pieceTypes" :key="type"
-							 :class="[getEditorUnitColor(piece), { 'selected': boardEditor.selectedPieceType === type }]"
-							 @click="boardEditor.selectedPieceType = (boardEditor.selectedPieceType === type ? null : type)"
-							 draggable="true" @dragstart="dragStartPiece(type, 'palette')" @dragend="clearDraggedPiece">
-						{{ piece.显示 }}
+		<aside class="gaming info , right-sidebar">
+			<el-card shadow="never">
+				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
+				<el-collapse-item v-if="!isGaming" name="palette" title="棋子库">
+					<div class="piece type grid piece palette grid flex vertical" style="--min-cell-len: 45px">
+						<div class="unit display" v-for="(piece, type) in boardEditor.pieceTypes" :key="type"
+								 :class="[getEditorUnitColor(piece), { 'selected': boardEditor.selectedPieceType === type }]"
+								 @click="boardEditor.selectedPieceType = (boardEditor.selectedPieceType === type ? null : type)"
+								 draggable="true" @dragstart="dragStartPiece(type, 'palette')" @dragend="clearDraggedPiece">
+							{{ piece.显示 }}
+						</div>
 					</div>
-				</div>
-			</el-card>
-			<el-card shadow="never" class="compact selected-unit-panel">
-				<template #header>
-					<div class="card header content">
-						<span>当前选中:</span>
-						<span v-if="isGaming && selectedUnit" class="unit display selected unit preview"
-									:class="getUnitClasses(selectedUnit)">
-							{{ selectedUnit.display }}</span>
-						<span v-if="!isGaming && boardEditor.selectedPieceType" class="unit display selected unit preview"
-									:class="getEditorUnitColor(boardEditor.pieceTypes[boardEditor.selectedPieceType])">
-							{{ boardEditor.pieceTypes[boardEditor.selectedPieceType].显示 }}</span>
-					</div>
-				</template>
-
-				<div v-if="isGaming">
-					<div v-if="selectedUnit" class="selected unit" style="margin-top: 10px;">
+				</el-collapse-item>
+				<el-collapse-item name="selected" title="当前选中">
+					<div v-if="isGaming && selectedUnit" class="selected unit">
 						<strong>技能:</strong>
 						<div style="margin-top: 5px;">
-							<el-tag v-if="selectedUnit.skills" v-for="skill in selectedUnit.skills" :key="skill.name" type="info"
-											style="margin: 2px;">{{ skill.name }}
-							</el-tag>
+							<el-tag v-if="selectedUnit.skills" v-for="skill in selectedUnit.skills" :key="skill.name" type="info" style="margin: 2px;">{{ skill.name }}</el-tag>
 						</div>
-
-						<!-- 杀敌信息 -->
 						<div class="kill info" style="margin-top: 15px;">
-							<header>
-								杀敌数
-								<span class="count">{{ selectedUnit.killCount }}</span>
-							</header>
+							<header>杀敌数 <span class="count">{{ selectedUnit.killCount }}</span></header>
 							<div class="details" v-if="selectedUnit.kills && selectedUnit.kills.length > 0">
 								<div class="record" v-for="(kill, ki) in selectedUnit.kills" :key="ki">
 									<div class="unit display" :class="kill.unit.owner.team.flag">{{ kill.unit.display }}</div>
@@ -347,16 +329,11 @@
 							<div v-else class="no-kills">暂无杀敌记录</div>
 						</div>
 					</div>
-				</div>
-
-				<div v-if="!isGaming">
-					<div v-if="boardEditor.selectedPieceType">
+					<div v-else-if="!isGaming && boardEditor.selectedPieceType">
 						<el-form label-width="60px">
-
 							<el-form-item label="显示">
 								<el-input v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].显示" autofocus
-													:input-style="{ fontFamily: 'NotoSansSymbols2, sans-serif', fontSize: '28px', textAlign: 'center' }"
-													style="width: 60px;"/>
+														:input-style="{ fontFamily: 'NotoSansSymbols2, sans-serif', fontSize: '28px', textAlign: 'center' }" style="width: 60px;"/>
 							</el-form-item>
 							<el-form-item label="技能">
 								<el-checkbox-group v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].技能">
@@ -366,38 +343,35 @@
 						</el-form>
 					</div>
 					<div v-else>
-						<span>从上方棋子库中选择一个棋子进行编辑</span>
+						<span v-if="isGaming">未选中棋子</span>
+						<span v-else>从上方棋子库中选择一个棋子进行编辑</span>
 					</div>
-				</div>
-			</el-card>
-
-			<el-card header="全局规则" v-if="!isGaming" class="compact" shadow="never" header-class="semi-bold">
-				<el-checkbox-group v-model="gameSettings.rules">
-					<el-checkbox v-for="rule in allAvailableRules" :key="rule" :label="rule"/>
-				</el-checkbox-group>
-			</el-card>
-
-			<el-card header="插件" v-if="!isGaming" class="compact" shadow="never" header-class="semi-bold">
-				<el-checkbox-group v-model="gameSettings.plugins">
-					<el-checkbox v-for="plugin in allAvailablePlugins" :key="plugin" :label="plugin"/>
-				</el-checkbox-group>
-			</el-card>
-
-			<section class="status info area" v-if="isGaming">
-				<el-card header="规矩" class="compact" shadow="never" header-class="semi-bold">
+				</el-collapse-item>
+				<el-collapse-item v-if="!isGaming" name="globalRules" title="全局规则">
+					<el-checkbox-group v-model="gameSettings.rules">
+						<el-checkbox v-for="rule in allAvailableRules" :key="rule" :label="rule"/>
+					</el-checkbox-group>
+				</el-collapse-item>
+				<el-collapse-item v-if="!isGaming" name="plugins" title="插件">
+					<el-checkbox-group v-model="gameSettings.plugins">
+						<el-checkbox v-for="plugin in allAvailablePlugins" :key="plugin" :label="plugin"/>
+					</el-checkbox-group>
+				</el-collapse-item>
+				<el-collapse-item v-if="isGaming" name="rule" title="规矩">
 					<span>{{ gameSettings.firstPlayer === 'red' ? '红先' : '黑先' }}</span>
-				</el-card>
-				<el-card header="对局信息" class="compact" shadow="never" header-class="semi-bold">
+				</el-collapse-item>
+				<el-collapse-item v-if="isGaming" name="score" title="对局信息">
 					<span class="game-info">当前玩家: {{ curPlayerLabel }}</span>
-				</el-card>
-				<el-card header="回合" class="compact" shadow="never" header-class="semi-bold">
+				</el-collapse-item>
+				<el-collapse-item v-if="isGaming" name="round" title="回合">
 					<el-table :data="turnHistory" row-key="id" stripe style="width: 100%" height="400" empty-text="尚未走棋">
 						<el-table-column prop="id" label="回合" width="60"></el-table-column>
 						<el-table-column prop="redMove" label="红方"></el-table-column>
 						<el-table-column prop="blackMove" label="黑方"></el-table-column>
 					</el-table>
-				</el-card>
-			</section>
+				</el-collapse-item>
+				</el-collapse>
+			</el-card>
 		</aside>
 
 		<!-- 将军提示 -->
@@ -461,6 +435,10 @@
 
 	const app = createApp({
 		data() {
+			const collapseKey = 'gaming-info-xiangqi';
+			const defaultPanels = ['selected', 'score', 'round'];
+			let saved;
+			try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
 			return {
 				isUndoAvailable: false,
 				gameSettings: {
@@ -497,6 +475,8 @@
 				// 技能编辑器数据
 				allAvailableSkills: [],
 				allAvailablePlugins: [],
+				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
+				_gamingInfoCollapseKey: collapseKey,
 			};
 		},
 		computed: {
@@ -605,6 +585,9 @@
 			this.resetBoard();
 		},
 		methods: {
+			onGamingInfoCollapseChange(val) {
+				try { localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(val || [])); } catch (_) {}
+			},
 			getCurPlayer() {
 				return this.gaming?.situation.curPlayer;
 			},

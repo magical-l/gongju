@@ -91,13 +91,15 @@
 			</article>
 		</article>
 
-		<article class="situation , right-sidebar">
-			<section class="status info area" v-if="isGaming">
-				<el-card header="对局信息" class="compact" shadow="never" header-class="semi-bold">
-					<span class="game-info">当前玩家: {{ curPlayer.name }}</span>
-				</el-card>
-			</section>
-		</article>
+		<aside class="gaming info , right-sidebar">
+			<el-card shadow="never">
+				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
+				<el-collapse-item name="score" title="对局信息">
+					<span v-if="isGaming" class="game-info">当前玩家: {{ curPlayer.name }}</span>
+				</el-collapse-item>
+				</el-collapse>
+			</el-card>
+		</aside>
 
 		<el-dialog v-model="isGameOver" title="游戏结束" width="300px" align-center>
 			<div style="text-align: center; font-size: 24px;">
@@ -137,6 +139,10 @@
 
 	const app = createApp({
 		data() {
+			const collapseKey = 'gaming-info-gobang';
+			const defaultPanels = ['score'];
+			let saved;
+			try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
 			return {
 				gaming: null,
 				positions: [], //二维数组
@@ -145,6 +151,8 @@
 				curPlayer: null,
 				isGameOver: false,
 				winnerName: '',
+				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
+				_gamingInfoCollapseKey: collapseKey,
 			};
 		},
 		computed: {
@@ -159,6 +167,9 @@
 			},
 		},
 		methods: {
+			onGamingInfoCollapseChange(val) {
+				try { localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(val || [])); } catch (_) {}
+			},
 			startGame() {
 				const game = new Gobang();
 				this.gaming = game.newGaming();

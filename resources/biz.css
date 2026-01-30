@@ -95,6 +95,24 @@ main > article > header.toolbar {
 	gap: 0.75rem;
 }
 
+.gaming.info .el-collapse {
+	border-top: none;
+	border-bottom: none;
+}
+
+.gaming.info .el-collapse-item:last-child .el-collapse-item__header,
+.gaming.info .el-collapse-item:last-child .el-collapse-item__wrap {
+	border-bottom: none;
+}
+
+.gaming.info .el-collapse-item__header {
+	font-weight: 600;
+}
+
+.gaming.info .el-collapse-item__header:focus {
+	color: var(--el-collapse-header-text-color);
+}
+
 .toolbar .list.area .one.group {
 	display: inline-flex;
 	align-items: center;

@@ -52,7 +52,7 @@
 }
 
 .right-sidebar > .el-card:not(:last-child) {
-	margin-bottom: 20px;
+	margin-bottom: 0;
 }
 
 .el-card__header {

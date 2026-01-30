@@ -256,42 +256,40 @@
 			</div>
 		</article>
 
-		<article class="situation , right-sidebar">
-			<el-card header="对局信息" class="scoreboard section" shadow="never" header-class="semi-bold">
-				<section>
-					<h3>步数</h3>
-					<p>{{ moves }}</p>
-				</section>
+		<aside class="gaming info , right-sidebar">
+			<el-card shadow="never">
+				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
+				<el-collapse-item name="shortcut" title="快捷键">
+					<p>↑ ↓ ← → ：移动与空位相邻的块</p>
+					<p>点击与空位相邻的块也可移动</p>
+				</el-collapse-item>
+				<el-collapse-item name="score" title="对局信息">
+					<section>
+						<h3>步数</h3>
+						<p>{{ moves }}</p>
+					</section>
+				</el-collapse-item>
+				<el-collapse-item v-if="solutionSteps.length || solutionError || solving" name="answer" title="答案">
+					<div v-if="solving" class="moves-display">求解中…</div>
+					<div v-else-if="solutionError" class="moves-display" style="color: var(--el-color-danger);">{{ solutionError }}</div>
+					<template v-else-if="solutionSteps.length">
+						<el-button v-if="!solving" @click="clearAnswer" size="small" style="margin-bottom: 8px;">清除</el-button>
+						<p class="moves-display">共 {{ solutionSteps.length }} 步</p>
+						<div class="answer-steps">
+							<span v-for="(val, i) in solutionSteps" :key="i"
+										:class="['step-tag', { 'step-current': solutionIndex === i }]">
+								<span class="step-num">{{ i + 1 }}</span>
+								<span class="step-tile">{{ val }}</span>
+							</span>
+						</div>
+						<el-button type="primary" size="small" style="margin-top: 8px;" @click="applyNextStep"
+												 :disabled="solutionDone || isWin">
+							{{ solutionDone ? '已执行完' : '执行下一步' }}
+						</el-button>
+					</template>
+				</el-collapse-item>
+				</el-collapse>
 			</el-card>
-			<el-card v-if="solutionSteps.length || solutionError || solving" class="answer section" shadow="never">
-				<template #header>
-					<span>答案</span>
-					<el-button v-if="solutionSteps.length && !solving" @click="clearAnswer" size="small" link>清除</el-button>
-				</template>
-				<div v-if="solving" class="moves-display">求解中…</div>
-				<div v-else-if="solutionError" class="moves-display" style="color: var(--el-color-danger);">{{ solutionError
-					}}
-				</div>
-				<template v-else-if="solutionSteps.length">
-					<p class="moves-display">共 {{ solutionSteps.length }} 步</p>
-					<div class="answer-steps">
-						<span v-for="(val, i) in solutionSteps" :key="i"
-									:class="['step-tag', { 'step-current': solutionIndex === i }]">
-							<span class="step-num">{{ i + 1 }}</span>
-							<span class="step-tile">{{ val }}</span>
-						</span>
-					</div>
-					<el-button type="primary" size="small" style="margin-top: 8px;" @click="applyNextStep"
-										 :disabled="solutionDone || isWin">
-						{{ solutionDone ? '已执行完' : '执行下一步' }}
-					</el-button>
-				</template>
-			</el-card>
-			<el-card header="快捷键" class="shortcut intro section" shadow="never" header-class="semi-bold">
-				<p>↑ ↓ ← → ：移动与空位相邻的块</p>
-				<p>点击与空位相邻的块也可移动</p>
-			</el-card>
-
 			<article class="modal-overlay fullscreen" v-if="isWin && showWinModal">
 				<section class="body">
 					<h2>恭喜过关！</h2>
@@ -302,7 +300,7 @@
 					</footer>
 				</section>
 			</article>
-		</article>
+		</aside>
 	</article>
 </main>
 
@@ -540,6 +538,10 @@
 
 	const app = createApp({
 		data() {
+			const collapseKey = 'gaming-info-huarong';
+			const defaultPanels = ['shortcut', 'score'];
+			let saved;
+			try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
 			return {
 				board: [],
 				gridWidth: 4,
@@ -558,6 +560,8 @@
 				hintTimer: null,
 				showWinModal: false,
 				sizeOptions: Array.from({length: MAX_SIZE - MIN_SIZE + 1}, (_, i) => MIN_SIZE + i),
+				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
+				_gamingInfoCollapseKey: collapseKey,
 			};
 		},
 		computed: {
@@ -605,6 +609,9 @@
 			this.clearHint();
 		},
 		methods: {
+			onGamingInfoCollapseChange(val) {
+				try { localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(val || [])); } catch (_) {}
+			},
 			saveConfig() {
 				localStorage.setItem(CONFIG_KEY_W, String(this.gridWidth));
 				localStorage.setItem(CONFIG_KEY_H, String(this.gridHeight));
