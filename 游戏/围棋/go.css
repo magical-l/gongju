@@ -69,6 +69,40 @@
 .round-card-body { display: flex; flex-direction: column; gap: 10px; }
 .round-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 
+.turn-history-list {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 4px 6px;
+	font-size: 13px;
+	line-height: 1.5;
+}
+.turn-history-cell {
+	display: inline-flex;
+	align-items: center;
+	white-space: nowrap;
+	letter-spacing: 0.02em;
+	min-width: 0;
+}
+.turn-history-cell .stone-sym {
+	display: inline-flex;
+	flex-shrink: 0;
+	width: 0.8em;
+	height: 0.8em;
+	margin: 0 0.25em;
+	border-radius: 50%;
+}
+.turn-history-cell .stone-sym.stone-black {
+	background: #333;
+}
+.turn-history-cell .stone-sym.stone-white {
+	background: #fff;
+	border: 1.5px solid #666;
+}
+.turn-history-empty {
+	color: var(--el-text-color-secondary);
+	font-size: 13px;
+}
+
 .replay-bar {
 	display: flex;
 	align-items: center;

@@ -167,8 +167,7 @@
 								<div>当前：{{ curPlayer ? curPlayer.name : '—' }}</div>
 								<div>手数：
 									<template v-if="historyTotal === 0 && historyIndex === 0">尚未开始</template>
-									<template v-else>第 {{ historyIndex }} 手<span
-											v-if="historyTotal > 0"> / 共 {{ historyTotal }} 手</span></template>
+									<template v-else>第 {{ historyIndex }} 手</template>
 								</div>
 							</template>
 						</div>
@@ -179,12 +178,10 @@
 								<el-button size="small" @click="exportSGF" :disabled="!isGaming">导出SGF</el-button>
 								<el-button size="small" @click="openImportSGF">导入SGF</el-button>
 							</div>
-							<el-table :data="turnHistoryRows" row-key="id" stripe style="width: 100%" height="360"
-												empty-text="尚未落子">
-								<el-table-column prop="id" label="手数" width="60"></el-table-column>
-								<el-table-column prop="blackMove" label="黑方"></el-table-column>
-								<el-table-column prop="whiteMove" label="白方"></el-table-column>
-							</el-table>
+							<div v-if="turnHistoryMoves.length" class="turn-history-list">
+								<span v-for="m in turnHistoryMoves" :key="m.num" class="turn-history-cell">{{ m.num }}<span class="stone-sym" :class="m.isBlack ? 'stone-black' : 'stone-white'"></span>{{ m.text }}</span>
+							</div>
+							<div v-else class="turn-history-empty">尚未落子</div>
 						</div>
 					</el-collapse-item>
 				</el-collapse>
@@ -360,23 +357,24 @@
 				return !!this.isGaming && this.historyTotal > 0 && (this.showReplaySliderBarFlag || this.historySeek
 																														< this.historyTotal);
 			},
-			turnHistoryRows() {
+			turnHistoryMoves() {
 				if (!this.isGaming || !this.moves || this.moves.length === 0) {
 					return [];
 				}
-				const n = this.boardSize;
 				const firstBlack = this.first === '黑方';
-				const rows = [];
-				for (let i = 0; i * 2 + 1 < this.moves.length; i++) {
-					const blackM = firstBlack ? this.moves[i * 2] : this.moves[i * 2 + 1];
-					const whiteM = firstBlack ? this.moves[i * 2 + 1] : this.moves[i * 2];
-					rows.push({
-						id: i + 1,
-						blackMove: blackM ? this.formatMoveNotation(blackM) : '—',
-						whiteMove: whiteM ? this.formatMoveNotation(whiteM) : '—',
+				const list = [];
+				for (let i = 0; i < this.moves.length; i++) {
+					const m = this.moves[i];
+					const notation = this.formatMoveNotation(m);
+					if (!notation) continue;
+					const isBlack = firstBlack ? (i % 2 === 0) : (i % 2 === 1);
+					list.push({
+						num: i + 1,
+						isBlack,
+						text: notation,
 					});
 				}
-				return rows;
+				return list;
 			},
 		},
 		methods: {
