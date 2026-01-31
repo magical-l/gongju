@@ -227,36 +227,40 @@
 		<header class="toolbar , flex items-near-center-x items-stretch">
 			<section class="setting list area , flex multi-line no-gap items-near-start-x items-near-center-y">
 				<div v-if="isGaming" class="one setting group">
-					<el-button type="info" @click="returnToSettings" icon="RefreshRight">新局</el-button>
+					<el-button type="info" class="one setting : new-game" @click="returnToSettings" icon="RefreshRight">新局</el-button>
 				</div>
 				<template v-if="!isGaming">
-					<el-button @click="resetBoard" type="info" inline plain>默认棋盘</el-button>
-					<el-button @click="clearBoard" type="danger" inline plain>清空棋盘</el-button>
-					<div class="player turn selector">
-						<el-radio-group v-model="gameSettings.firstPlayer">
+					<div class="one setting group">
+						<el-button @click="resetBoard" type="info" inline plain class="one setting : default-board">默认棋盘</el-button>
+					</div>
+					<div class="one setting group">
+						<el-button @click="clearBoard" type="danger" inline plain class="one setting : clear-board">清空棋盘</el-button>
+					</div>
+					<div class="one setting group">
+						<el-radio-group v-model="gameSettings.firstPlayer" class="one setting : first-player">
 							<el-radio value="red" border>红先</el-radio>
 							<el-radio value="black" border>黑先</el-radio>
 						</el-radio-group>
 					</div>
-					<el-button type="primary" icon="VideoPlay" @click="startGame" class="push-right">开始游戏</el-button>
+					<div class="one setting group">
+						<el-button type="primary" icon="VideoPlay" @click="startGame" class="one setting : start-game push-right">开始游戏</el-button>
+					</div>
 				</template>
 			</section>
 			<section class="controller list area , flex multi-line no-gap items-near-start-x items-near-center-y">
-				<template v-if="isGaming">
-					<el-button type="danger" icon="RefreshLeft" @click="restartGame">重来</el-button>
-				</template>
+				<div v-if="isGaming" class="one controller group">
+					<el-button type="danger" icon="RefreshLeft" class="one controller : restart" @click="restartGame">重来</el-button>
+				</div>
 			</section>
 			<section class="tool list area , flex multi-line no-gap items-near-start-x items-near-center-y">
-				<div class="one group">
-					<el-form-item label="对面视角" class="one tool">
+				<div class="one tool group">
+					<el-form-item label="对面视角" class="one tool : reversed-view">
 						<el-switch v-model="showReversedView"/>
 					</el-form-item>
 				</div>
-				<template v-if="isGaming">
-					<div class="one group">
-						<el-button type="warning" @click="undoMove" :disabled="!isUndoAvailable">悔棋</el-button>
-					</div>
-				</template>
+				<div v-if="isGaming" class="one tool group">
+					<el-button type="warning" @click="undoMove" :disabled="!isUndoAvailable" class="one tool : undo">悔棋</el-button>
+				</div>
 			</section>
 		</header>
 

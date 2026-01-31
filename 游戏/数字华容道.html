@@ -208,31 +208,33 @@
 		<header class="toolbar , flex items-near-center-x items-stretch">
 			<section class="setting list area , flex multi-line no-gap items-near-start-x items-near-center-y">
 				<div class="one setting group">
-					<el-form-item label="行">
+					<el-form-item label="行" class="one setting : rows">
 						<el-select v-model="gridHeight" @change="saveConfig">
 							<el-option v-for="h in sizeOptions" :key="'h'+h" :label="h" :value="h"/>
 						</el-select>
 					</el-form-item>
-					<el-form-item label="列">
+					<el-form-item label="列" class="one setting : cols">
 						<el-select v-model="gridWidth" @change="saveConfig">
 							<el-option v-for="w in sizeOptions" :key="'w'+w" :label="w" :value="w"/>
 						</el-select>
 					</el-form-item>
 				</div>
 				<div class="one setting group">
-					<el-button type="danger" class="one controller : restart" @click="initGame" icon="RefreshRight">新局
+					<el-button type="danger" class="one setting : new-game" @click="initGame" icon="RefreshRight">新局
 					</el-button>
 				</div>
 			</section>
 			<section class="tool list area , flex multi-line no-gap items-near-start-x items-near-center-y">
-				<el-button-group>
+				<div class="one tool group">
 					<el-button class="one tool : hint" @click="showHint" :type="hintIndex !== -1 ? 'primary' : 'default'"
 										 icon="MagicStick">提示
 					</el-button>
+				</div>
+				<div class="one tool group">
 					<el-button class="one tool : answer" :type="solutionSteps.length ? 'primary' : 'default'" icon="Key"
 										 @click="toggleAnswer">答案
 					</el-button>
-				</el-button-group>
+				</div>
 			</section>
 		</header>
 

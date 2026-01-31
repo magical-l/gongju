@@ -102,15 +102,17 @@
 					</el-form-item>
 				</div>
 				<div class="one setting group">
-					<el-button type="danger" class="one controller : restart" @click="initGame" icon="RefreshRight">新局
+					<el-button type="danger" class="one setting : new-game" @click="initGame" icon="RefreshRight">新局
 					</el-button>
 				</div>
 			</section>
 			<section class="controller list area , flex multi-line no-gap items-near-start-x items-near-center-y">
-				<el-button type="primary" class="one controller : pause" @click="togglePause"
+				<div class="one controller group">
+					<el-button type="primary" class="one controller : pause" @click="togglePause"
 									 :icon="isPaused ? 'VideoPlay' : 'VideoPause'">
-					{{ isPaused ? (score === 0 && !gameOver ? '开始' : '继续') : '暂停' }}
-				</el-button>
+						{{ isPaused ? (score === 0 && !gameOver ? '开始' : '继续') : '暂停' }}
+					</el-button>
+				</div>
 			</section>
 		</header>
 

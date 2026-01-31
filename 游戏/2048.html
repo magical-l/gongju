@@ -327,19 +327,19 @@
 		<header class="toolbar , flex items-near-center-x items-stretch">
 			<section class="setting list area , flex multi-line no-gap items-near-start-x items-near-center-y">
 				<div class="one setting group">
-					<el-form-item label="行" class="one setting">
+					<el-form-item label="行" class="one setting : rows">
 						<el-select v-model="settings.boardHeight">
 							<el-option v-for="h in sizeOptions" :key="'h'+h" :label="h" :value="h"/>
 						</el-select>
 					</el-form-item>
-					<el-form-item label="列" class="one setting">
+					<el-form-item label="列" class="one setting : cols">
 						<el-select v-model="settings.boardWidth">
 							<el-option v-for="w in sizeOptions" :key="'w'+w" :label="w" :value="w"/>
 						</el-select>
 					</el-form-item>
 				</div>
 				<div class="one setting group">
-					<el-form-item label="目标" class="one setting">
+					<el-form-item label="目标" class="one setting : target">
 						<el-select v-model="settings.targetNumber" class="select-width-6ch">
 							<el-option label="1024" :value="1024"></el-option>
 							<el-option label="2048" :value="2048"></el-option>
@@ -350,7 +350,7 @@
 					</el-form-item>
 				</div>
 				<div class="one setting group">
-					<el-form-item label="初始块数" class="one setting">
+					<el-form-item label="初始块数" class="one setting : initial-tiles">
 						<el-select v-model="settings.initialTiles">
 							<el-option label="1" :value="1"></el-option>
 							<el-option label="2" :value="2"></el-option>
@@ -361,12 +361,12 @@
 					</el-form-item>
 				</div>
 				<div class="one setting group">
-					<el-form-item label="高亮" class="one setting">
+					<el-form-item label="高亮" class="one setting : highlight">
 						<el-switch v-model="settings.showHighlight"></el-switch>
 					</el-form-item>
 				</div>
 				<div class="one setting group">
-					<el-form-item label="合并动画" class="one setting">
+					<el-form-item label="合并动画" class="one setting : merge-animation">
 						<el-select v-model="settings.mergeAnimation" class="select-width-6ch">
 							<el-option label="翻牌" value="flip"></el-option>
 							<el-option label="缩放" value="scale"></el-option>
@@ -379,7 +379,9 @@
 				</div>
 			</section>
 			<section class="controller list area , flex multi-line no-gap items-near-start-x items-near-center-y">
-				<el-button type="danger" class="one controller : restart" @click="initGame" icon="RefreshLeft">重来</el-button>
+				<div class="one controller group">
+					<el-button type="danger" class="one controller : restart" @click="initGame" icon="RefreshLeft">重来</el-button>
+				</div>
 			</section>
 		</header>
 

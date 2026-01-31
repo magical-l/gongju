@@ -36,7 +36,7 @@
 		<header class="toolbar , flex items-near-center-x items-stretch">
 			<section class="setting list area , flex multi-line no-gap items-near-start-x items-near-center-y">
 				<div class="one setting group">
-					<el-form-item class="one setting">
+					<el-form-item class="one setting : board-size">
 						<el-select v-model="pendingBoardSize" class="config-item board-size-select" @change="onBoardSizeChange">
 							<el-option :value="19" label="19路"></el-option>
 							<el-option :value="13" label="13路"></el-option>
@@ -45,7 +45,7 @@
 					</el-form-item>
 				</div>
 				<div class="one setting group">
-					<el-form-item class="one setting">
+					<el-form-item class="one setting : first">
 						<el-radio-group v-model="pendingFirst" class="config-item">
 							<el-radio-button label="黑方">黑先</el-radio-button>
 							<el-radio-button label="白方">白先</el-radio-button>
@@ -53,14 +53,14 @@
 					</el-form-item>
 				</div>
 				<div class="one setting group">
-					<el-form-item class="one setting">
+					<el-form-item class="one setting : komi">
 						<el-input-number v-model="komi" :step="0.5" :min="0" controls-position="right" class="komi-input">
 							<template #prefix>贴目</template>
 						</el-input-number>
 					</el-form-item>
 				</div>
 				<div class="one setting group">
-					<el-form-item class="one setting">
+					<el-form-item class="one setting : new-game">
 						<el-button :type="isGaming ? 'danger' : 'primary'" icon="RefreshRight"
 											 @click="isGaming ? restartGame() : startGame()">新局
 						</el-button>
@@ -69,10 +69,10 @@
 			</section>
 			<section class="controller list area , flex multi-line no-gap items-near-start-x items-near-center-y">
 				<div class="one controller group">
-					<el-button v-if="isGaming" type="danger" icon="RefreshLeft" @click="restartGame">重来</el-button>
+					<el-button v-if="isGaming" type="danger" icon="RefreshLeft" class="one controller : restart" @click="restartGame">重来</el-button>
 				</div>
 				<div class="one controller group">
-					<el-button-group v-if="isGaming">
+					<el-button-group v-if="isGaming" class="one controller : undo-redo">
 						<el-button @click="doUndo" :disabled="!canUndo">悔棋</el-button>
 						<el-button @click="doRedo" :disabled="!canRedo">撤销悔棋</el-button>
 					</el-button-group>
@@ -80,18 +80,16 @@
 			</section>
 			<section class="tool list area , flex multi-line no-gap items-near-start-x items-near-center-y">
 				<div class="one tool group">
-					<el-checkbox v-model="showCoords">坐标</el-checkbox>
+					<el-checkbox v-model="showCoords" class="one tool : coords">坐标</el-checkbox>
 				</div>
 				<div class="one tool group">
-					<el-checkbox v-model="showMoveNumbers">手数</el-checkbox>
+					<el-checkbox v-model="showMoveNumbers" class="one tool : move-numbers">手数</el-checkbox>
 				</div>
-				<div class="one group">
-					<div class="one tool group">
-						<el-button @click="doPass" :disabled="isGameOver">停手</el-button>
-					</div>
-					<div class="one tool group">
-						<el-button type="danger" @click="doResign" :disabled="isGameOver">认输</el-button>
-					</div>
+				<div class="one tool group">
+					<el-button @click="doPass" :disabled="isGameOver" class="one tool : pass">停手</el-button>
+				</div>
+				<div class="one tool group">
+					<el-button type="danger" @click="doResign" :disabled="isGameOver" class="one tool : resign">认输</el-button>
 				</div>
 			</section>
 		</header>

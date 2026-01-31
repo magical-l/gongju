@@ -210,14 +210,14 @@
 		<header class="toolbar , flex items-near-center-x items-stretch">
 			<section class="setting list area , flex multi-line no-gap items-near-start-x items-near-center-y">
 				<div class="one setting group">
-					<el-form-item label="选择关卡" class="one setting">
+					<el-form-item label="选择关卡" class="one setting : level">
 						<el-select v-model="currentLevelId" placeholder="请选择" @change="initGame"
 											 :disabled="gameStarted && !isPaused">
 							<el-option v-for="level in levels" :key="level.id" :label="level.name"
 												 :value="level.id"></el-option>
 						</el-select>
 					</el-form-item>
-					<el-form-item label="游戏速度" class="one setting">
+					<el-form-item label="游戏速度" class="one setting : speed">
 						<el-radio-group v-model="gameSpeed">
 							<el-radio-button :value="1">1x</el-radio-button>
 							<el-radio-button :value="2">2x</el-radio-button>
@@ -227,15 +227,17 @@
 				</div>
 			</section>
 			<section class="controller list area , flex multi-line no-gap items-near-start-x items-near-center-y">
-				<el-button-group>
-					<el-button @click="togglePause" class="one controller" :disabled="gameOver || gameWon" type="primary"
+				<div class="one controller group">
+					<el-button @click="togglePause" class="one controller : pause" :disabled="gameOver || gameWon" type="primary"
 										 :icon="isPaused ? 'VideoPlay' : 'VideoPause'">
 						{{ pauseButtonText }}
 					</el-button>
-					<el-button type="danger" @click="restartGame" class="one controller" :disabled="!currentLevelId"
+				</div>
+				<div class="one controller group">
+					<el-button type="danger" @click="restartGame" class="one controller : restart" :disabled="!currentLevelId"
 										 icon="RefreshLeft">重来
 					</el-button>
-				</el-button-group>
+				</div>
 			</section>
 		</header>
 

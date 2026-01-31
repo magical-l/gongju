@@ -156,20 +156,20 @@
 			<!--		<header class="item monopoly , toolbar flex items-mutex">-->
 			<section class="setting list area , flex multi-line no-gap items-near-start-x items-near-center-y">
 				<div class="one setting group">
-					<el-form-item label="行" class="one setting">
+					<el-form-item label="行" class="one setting : rows">
 						<el-select v-model="settings.rows">
 							<el-option v-for="r in rowsOptions" :key="r" :label="r" :value="r"/>
 						</el-select>
 					</el-form-item>
-					<el-form-item label="列" class="one setting">
+					<el-form-item label="列" class="one setting : cols">
 						<el-select v-model="settings.cols">
 							<el-option v-for="c in colsOptions" :key="c" :label="c" :value="c"/>
 						</el-select>
 					</el-form-item>
-					<el-button title="恢复默认并新局" @click="restoreDefaultSize" icon="RefreshLeft"></el-button>
+					<el-button title="恢复默认并新局" class="one setting : restore-default" @click="restoreDefaultSize" icon="RefreshLeft"></el-button>
 				</div>
 				<div class="one setting group">
-					<el-form-item label="难度" class="one setting">
+					<el-form-item label="难度" class="one setting : difficulty">
 						<el-select v-model="settings.startLevel">
 							<el-option v-for="lv in startLevelOptions" :key="lv" :label="lv" :value="lv"/>
 						</el-select>
@@ -183,22 +183,26 @@
 					</el-form-item>
 				</div>
 				<div class="one setting group">
-					<el-button type="danger" class="one controller : restart" @click="startGame" icon="RefreshRight">新局
+					<el-button type="danger" class="one setting : new-game" @click="startGame" icon="RefreshRight">新局
 					</el-button>
 				</div>
 			</section>
 			<section class="controller list area , flex multi-line no-gap items-near-start-x items-near-center-y">
-				<el-button v-if="isPaused" class="one controller : pause" title="开始（快捷键：空格）" @click="togglePause"
+				<div class="one controller group">
+					<el-button v-if="isPaused" class="one controller : pause" title="开始（快捷键：空格）" @click="togglePause"
 									 :disabled="isGameOver" type="primary" icon="VideoPlay">开始
-				</el-button>
-				<el-button v-else class="one controller : pause" title="暂停（快捷键：空格）" @click="togglePause"
+					</el-button>
+					<el-button v-else class="one controller : pause" title="暂停（快捷键：空格）" @click="togglePause"
 									 :disabled="isGameOver" icon="VideoPause">暂停
-				</el-button>
+					</el-button>
+				</div>
 			</section>
 			<section class="tool list area , flex multi-line no-gap items-near-start-x items-near-center-y">
-				<el-form-item label="显示落点">
-					<el-switch class="one tool" v-model="settings.showGhost"></el-switch>
-				</el-form-item>
+				<div class="one tool group">
+					<el-form-item label="显示落点" class="one tool : show-ghost">
+						<el-switch v-model="settings.showGhost"></el-switch>
+					</el-form-item>
+				</div>
 			</section>
 		</header>
 

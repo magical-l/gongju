@@ -176,7 +176,7 @@
 		<header class="toolbar , flex items-near-center-x items-stretch">
 			<section class="setting list area , flex multi-line no-gap items-near-start-x items-near-center-y">
 				<div class="one setting group">
-					<el-form-item label="尺寸" class="one setting">
+					<el-form-item label="尺寸" class="one setting : grid-size">
 						<el-select v-model="settings.gridSize" @change="onSettingsChange" class="select-width-6ch">
 							<el-option label="5x5" :value="5"></el-option>
 							<el-option label="6x6" :value="6"></el-option>
@@ -188,7 +188,7 @@
 					</el-form-item>
 				</div>
 				<div class="one setting group">
-					<el-form-item label="难度" class="one setting">
+					<el-form-item label="难度" class="one setting : color-count">
 						<el-select v-model="settings.colorCount" @change="onSettingsChange">
 							<el-option label="3" :value="3"></el-option>
 							<el-option label="4" :value="4"></el-option>
@@ -200,22 +200,26 @@
 					</el-form-item>
 				</div>
 				<div class="one setting group">
-					<el-button type="danger" @click="newGame" icon="RefreshRight">新局</el-button>
+					<el-button type="danger" class="one setting : new-game" @click="newGame" icon="RefreshRight">新局</el-button>
 				</div>
 			</section>
 			<section class="controller list area , flex multi-line no-gap items-near-start-x items-near-center-y">
-				<el-button type="danger" class="one controller : restart" @click="restartCurrentGame" icon="RefreshLeft">重来
-				</el-button>
+				<div class="one controller group">
+					<el-button type="danger" class="one controller : restart" @click="restartCurrentGame" icon="RefreshLeft">重来
+					</el-button>
+				</div>
 			</section>
 			<section class="tool list area , flex multi-line no-gap items-near-start-x items-near-center-y">
-				<el-button-group>
+				<div class="one tool group">
 					<el-button class="one tool : hint" @click="showHint" :type="hintColorIndex !== null ? 'primary' : 'default'"
 										 icon="MagicStick">提示
 					</el-button>
+				</div>
+				<div class="one tool group">
 					<el-button class="one tool : answer" @click="showAnswer" :type="showAnswerOverlay ? 'primary' : 'default'"
 										 icon="Key">答案
 					</el-button>
-				</el-button-group>
+				</div>
 			</section>
 		</header>
 
