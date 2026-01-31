@@ -164,6 +164,35 @@
 		margin-bottom: 4px;
 	}
 
+	.answer .error {
+		color: var(--el-color-danger);
+	}
+
+	.score .mini.map {
+		display: grid;
+		border-radius: 6px;
+		overflow: hidden;
+		margin-top: 8px;
+	}
+
+	.score .mini.map .cell {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 0.65rem;
+		font-weight: 600;
+		border-radius: 3px;
+		background: linear-gradient(145deg, #ecf0f1 0%, #bdc3c7 100%);
+		color: #2c3e50;
+		min-width: 0;
+		min-height: 0;
+	}
+
+	.score .mini.map .cell.empty {
+		background: rgba(0, 0, 0, 0.2);
+		color: transparent;
+	}
+
 	@media (max-width: 500px) {
 		#game-board-container {
 			padding: 8px;
@@ -236,7 +265,7 @@
 					<el-button class="one tool : hint" @click="showHint" :type="hintIndex !== -1 ? 'primary' : 'default'"
 										 icon="MagicStick">提示
 					</el-button>
-					<el-button class="one tool : answer" :type="solutionSteps.length ? 'primary' : 'default'" :loading="solving" icon="Key" @click="toggleAnswer">答案</el-button>
+					<el-button class="one tool : answer" :type="solutionSteps.length ? 'primary' : 'default'" icon="Key" @click="toggleAnswer">答案</el-button>
 				</el-button-group>
 			</section>
 		</header>
@@ -265,6 +294,12 @@
 							<h3>步数</h3>
 							<p>{{ moves }}</p>
 						</section>
+						<section class="initial map area">
+							<h3>初始局面</h3>
+							<div class="mini map" :style="initialBoardStyle">
+								<span v-for="(val, idx) in initialBoard" :key="idx" class="cell" :class="{ empty: val === 0 }">{{ val || '' }}</span>
+							</div>
+						</section>
 					</el-collapse-item>
 					<el-collapse-item name="answer" title="回合" class="answer">
 						<div class="action list">
@@ -277,10 +312,7 @@
 						<div class="step list">
 							<span v-for="(val, i) in roundSteps" :key="i" class="one step" :class="{ current: i === currentStepIndex }">{{ val }}</span>
 						</div>
-						<div v-if="solving" class="moves-display">求解中…</div>
-						<div v-else-if="solutionError" class="moves-display" style="color: var(--el-color-danger);">
-							{{ solutionError }}
-						</div>
+						<div v-if="solutionError" class="error">{{ solutionError }}</div>
 					</el-collapse-item>
 				</el-collapse>
 			</el-card>
@@ -398,7 +430,8 @@
 		const moveHistory = [];
 		let emptyIdx = n - 1;
 		let cameFrom = -1;
-		const steps = Math.floor(30 + (n - 9) * 2 + Math.random() * 60);
+		const rawSteps = Math.floor(30 + (n - 9) * 2 + Math.random() * 60);
+		const steps = Math.min(100, Math.max(1, rawSteps));
 		for (let s = 0; s < steps; s++) {
 			const adj = neighborsOfEmpty(emptyIdx, width, height);
 			const candidates = cameFrom >= 0 ? adj.filter(i => i !== cameFrom) : adj;
@@ -423,115 +456,6 @@
 		}
 		return board[n - 1] === 0;
 	}
-
-	// 曼哈顿距离启发式（不含空位）
-	function manhattan(board, width, height) {
-		let h = 0;
-		for (let i = 0; i < board.length; i++) {
-			const v = board[i];
-			if (v === 0) {
-				continue;
-			}
-			const goalIdx = v - 1;
-			const cr = Math.floor(i / width), cc = i % width;
-			const gr = Math.floor(goalIdx / width), gc = goalIdx % width;
-			h += Math.abs(cr - gr) + Math.abs(cc - gc);
-		}
-		return h;
-	}
-
-	// 生成后继：(空位邻格 → 新棋盘, 移动的数字)
-	function getSuccessors(board, width, height) {
-		const emptyIdx = board.indexOf(0);
-		const moves = neighborsOfEmpty(emptyIdx, width, height);
-		const out = [];
-		for (const tileIdx of moves) {
-			const newBoard = board.slice();
-			const moveVal = newBoard[tileIdx];
-			newBoard[emptyIdx] = moveVal;
-			newBoard[tileIdx] = 0;
-			out.push({board: newBoard, moveVal});
-		}
-		return out;
-	}
-
-	// IDA*：迭代加深 A*，内存占用小，适合滑块；分块执行让出主线程
-	const SOLVE_CHUNK_SIZE = 10000;
-	const SOLVE_MAX_NODES = 8000000;
-	// 格子数不超过此值时，会在玩家无操作一段时间后用求解器求最优解替换答案
-	const OPTIMAL_SOLUTION_MAX_N = 20;
-	const IDLE_BEFORE_OPTIMAL_MS = 5000;
-
-	/** 分块执行 IDA*，完成后调用 onDone({ solution, error }) */
-	function solvePuzzleIDAStarAsync(startBoard, width, height, onDone) {
-		const n = width * height;
-		const goal = Array.from({length: n}, (_, i) => i === n - 1 ? 0 : i + 1);
-		const goalKey = goal.join(',');
-		const key = b => b.join(',');
-		if (key(startBoard) === goalKey) {
-			onDone({solution: [], error: null});
-			return;
-		}
-		let limit = manhattan(startBoard, width, height);
-		let visited = new Set();
-		let stack = [];
-		let minExceeded = Infinity;
-		let nodesDone = 0;
-
-		function pushFrame(board, g, path) {
-			const successors = getSuccessors(board, width, height);
-			stack.push({board, g, path, successors, nextIdx: 0});
-		}
-
-		function runChunk() {
-			const nodeLimit = Math.min(nodesDone + SOLVE_CHUNK_SIZE, SOLVE_MAX_NODES);
-			while (stack.length > 0 && nodesDone < nodeLimit) {
-				const frame = stack[stack.length - 1];
-				if (frame.nextIdx >= frame.successors.length) {
-					visited.delete(key(frame.board));
-					stack.pop();
-					continue;
-				}
-				const succ = frame.successors[frame.nextIdx];
-				const f = frame.g + 1 + manhattan(succ.board, width, height);
-				frame.nextIdx++;
-				nodesDone++;
-				if (key(succ.board) === goalKey) {
-					onDone({solution: frame.path.concat(succ.moveVal), error: null});
-					return;
-				}
-				if (visited.has(key(succ.board))) continue;
-				if (f > limit) {
-					if (f < minExceeded) minExceeded = f;
-					continue;
-				}
-				visited.add(key(succ.board));
-				pushFrame(succ.board, frame.g + 1, frame.path.concat(succ.moveVal));
-			}
-			if (stack.length === 0) {
-				if (minExceeded === Infinity) {
-					onDone({solution: [], error: '无解'});
-					return;
-				}
-				limit = minExceeded;
-				minExceeded = Infinity;
-				visited = new Set();
-				pushFrame(startBoard, 0, []);
-				visited.add(key(startBoard));
-				setTimeout(runChunk, 0);
-				return;
-			}
-			if (nodesDone >= SOLVE_MAX_NODES) {
-				onDone({solution: [], error: '求解超时，可尝试新开一局'});
-				return;
-			}
-			setTimeout(runChunk, 0);
-		}
-		pushFrame(startBoard, 0, []);
-		visited.add(key(startBoard));
-		setTimeout(runChunk, 0);
-	}
-
 
 	// 你给的局面 [[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,15,14]] 即最后一格为空时：
 	// 展平为 [1,2,3,4,5,6,7,8,9,10,11,12,13,15,14,0]，逆序数=1（仅 15>14），空位从下往上行号=0，
@@ -562,16 +486,15 @@
 				initialBoardKey: '',
 				lastRemainingSolution: [],
 				lastClearedBoardKey: '',
-				solving: false,
 				solutionError: null,
 				solutionIndex: 0,
 				hintIndex: -1,
 				showWinModal: false,
+				initialBoard: [],
 				sizeOptions: Array.from({length: MAX_SIZE - MIN_SIZE + 1}, (_, i) => MIN_SIZE + i),
 				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
 				_gamingInfoCollapseKey: collapseKey,
 				_gamingInfoDefaultPanels: defaultPanels,
-				_optimalSolutionTimer: null,
 			};
 		},
 		computed: {
@@ -601,6 +524,17 @@
 			currentStepIndex() {
 				return this.stepsDone.length;
 			},
+			initialBoardStyle() {
+				const w = this.gameGridWidth;
+				const h = this.gameGridHeight;
+				const cellPx = Math.min(18, Math.floor(120 / Math.max(w, h)));
+				const gap = 2;
+				return {
+					gridTemplateColumns: `repeat(${w}, ${cellPx}px)`,
+					gridTemplateRows: `repeat(${h}, ${cellPx}px)`,
+					gap: gap + 'px',
+				};
+			},
 		},
 		watch: {
 			emptyIndex: {
@@ -622,10 +556,6 @@
 		},
 		beforeUnmount() {
 			window.removeEventListener('keydown', this.onKeydown);
-			if (this._optimalSolutionTimer != null) {
-				clearTimeout(this._optimalSolutionTimer);
-				this._optimalSolutionTimer = null;
-			}
 			this.clearHint();
 		},
 		methods: {
@@ -651,6 +581,7 @@
 				this.board = board;
 				this.initialSolution = scrambleSolution;
 				this.initialBoardKey = board.join(',');
+				this.initialBoard = board.slice();
 				this.stepsDone = [];
 				this.solutionSteps = [];
 				this.lastRemainingSolution = [];
@@ -663,29 +594,6 @@
 				this.slidingIndex = -1;
 				this.clearHint();
 				this.$nextTick(() => this.updateMovable(this.board.indexOf(0)));
-				this.scheduleOptimalSolutionWhenIdle();
-			},
-			/** 在玩家连续无操作 IDLE_BEFORE_OPTIMAL_MS 后，后台用 A* 求最优解并替换 initialSolution；已有答案时不跑 */
-			scheduleOptimalSolutionWhenIdle() {
-				if (this._optimalSolutionTimer != null) {
-					clearTimeout(this._optimalSolutionTimer);
-					this._optimalSolutionTimer = null;
-				}
-				const n = this.gameGridWidth * this.gameGridHeight;
-				if (n > OPTIMAL_SOLUTION_MAX_N || this.isWin || this.solutionSteps.length > 0) {
-					return;
-				}
-				const boardKey = this.board.join(',');
-				const w = this.gameGridWidth;
-				const h = this.gameGridHeight;
-				this._optimalSolutionTimer = setTimeout(() => {
-					this._optimalSolutionTimer = null;
-					solvePuzzleIDAStarAsync([...this.board], w, h, (optimal) => {
-						if (this.board.join(',') === boardKey && !optimal.error && optimal.solution && optimal.solution.length > 0) {
-							this.initialSolution = optimal.solution;
-						}
-					});
-				}, IDLE_BEFORE_OPTIMAL_MS);
 			},
 			closeWinModal() {
 				this.showWinModal = false;
@@ -697,13 +605,38 @@
 			clearHint() {
 				this.hintIndex = -1;
 			},
-			// 剩余步骤的「当前第 0 步」：已展开答案用 solutionSteps[solutionIndex]，否则用 initialSolution[moves]
+			// 提示：与「本局解法」一致。已开答案用 solutionSteps；未开答案时用与 turnOnAnswer 相同的接轨/回滚逻辑，能接上则提示解法下一步，需先回滚则提示撤销上一步（玩家最后一步）
 			getNextStepValue() {
 				if (this.solutionSteps.length && this.solutionIndex < this.solutionSteps.length) {
 					return this.solutionSteps[this.solutionIndex];
 				}
-				if (this.initialSolution.length && this.moves < this.initialSolution.length) {
-					return this.initialSolution[this.moves];
+				const w = this.gameGridWidth;
+				const h = this.gameGridHeight;
+				const done = this.stepsDone.length;
+				if (this.moves === 0 && this.initialSolution.length > 0) {
+					return this.initialSolution[0];
+				}
+				if (this.lastRemainingSolution.length > 0 && this.board.join(',') === this.lastClearedBoardKey) {
+					return this.lastRemainingSolution[0];
+				}
+				if (done > 0) {
+					for (let k = 1; k <= done; k++) {
+						const keyAfter = rollbackBoardKey(this.board, this.stepsDone, k, w, h);
+						if (!keyAfter) continue;
+						if (this.lastClearedBoardKey && keyAfter === this.lastClearedBoardKey) {
+							return this.stepsDone[done - 1];
+						}
+						if (keyAfter === this.initialBoardKey && this.initialSolution.length > 0) {
+							return this.stepsDone[done - 1];
+						}
+					}
+					let prefixOk = true;
+					for (let i = 0; i < done; i++) {
+						if (this.stepsDone[i] !== this.initialSolution[i]) { prefixOk = false; break; }
+					}
+					if (prefixOk && done < this.initialSolution.length) {
+						return this.initialSolution[done];
+					}
 				}
 				return null;
 			},
@@ -851,7 +784,6 @@
 							this.isWin = true;
 							this.showWinModal = true;
 						}
-						this.scheduleOptimalSolutionWhenIdle();
 					}, 150);
 				});
 			},
