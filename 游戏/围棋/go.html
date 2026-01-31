@@ -44,6 +44,8 @@
 								<el-option :value="9" label="9路"></el-option>
 							</el-select>
 						</el-form-item>
+					</div>
+					<div class="one setting group">
 						<el-form-item class="one setting">
 							<el-radio-group v-model="pendingFirst" class="config-item">
 								<el-radio-button label="黑方">黑先</el-radio-button>
@@ -55,33 +57,45 @@
 						<el-form-item class="one setting">
 							<div class="komi-input-wrap">
 								<span class="komi-input-prepend">贴目</span>
-								<el-input-number v-model="komi" :step="0.5" :min="0" controls-position="right" class="komi-input-inner"></el-input-number>
+								<el-input-number v-model="komi" :step="0.5" :min="0" controls-position="right"
+																 class="komi-input-inner"></el-input-number>
 							</div>
 						</el-form-item>
+					</div>
+					<div class="one setting group">
 						<el-form-item class="one setting">
-							<el-button :type="isGaming ? 'danger' : 'primary'" :icon="isGaming ? 'RefreshRight' : 'VideoPlay'"
-								@click="isGaming ? restartGame() : startGame()">{{ isGaming ? '新局' : '开始' }}</el-button>
+							<el-button :type="isGaming ? 'danger' : 'primary'" icon="RefreshRight"
+												 @click="isGaming ? restartGame() : startGame()">新局
+							</el-button>
 						</el-form-item>
 					</div>
 				</el-form>
 			</el-card>
 			<el-card class="controller list area" shadow="never">
-				<el-button v-if="isGaming" type="danger" icon="RefreshLeft" @click="restartGame">重来</el-button>
-			</el-card>
-			<el-card class="tool list area" shadow="never">
-				<div class="one group">
-					<el-checkbox v-model="showCoords">坐标</el-checkbox>
-					<el-checkbox v-model="showMoveNumbers">手数</el-checkbox>
+				<div class="one controller group">
+					<el-button v-if="isGaming" type="danger" icon="RefreshLeft" @click="restartGame">重来</el-button>
 				</div>
-				<div class="one group">
-					<el-button-group>
-						<el-button @click="doPass" :disabled="isGameOver">停手</el-button>
-						<el-button type="warning" @click="doResign" :disabled="isGameOver">认输</el-button>
-					</el-button-group>
-					<el-button-group>
+				<div class="one controller group">
+					<el-button-group v-if="isGaming">
 						<el-button @click="doUndo" :disabled="!canUndo">悔棋</el-button>
 						<el-button @click="doRedo" :disabled="!canRedo">撤销悔棋</el-button>
 					</el-button-group>
+				</div>
+			</el-card>
+			<el-card class="tool list area" shadow="never">
+				<div class="one tool group">
+					<el-checkbox v-model="showCoords">坐标</el-checkbox>
+				</div>
+				<div class="one tool group">
+					<el-checkbox v-model="showMoveNumbers">手数</el-checkbox>
+				</div>
+				<div class="one group">
+					<div class="one tool group">
+						<el-button @click="doPass" :disabled="isGameOver">停手</el-button>
+					</div>
+					<div class="one tool group">
+						<el-button type="danger" @click="doResign" :disabled="isGameOver">认输</el-button>
+					</div>
 				</div>
 			</el-card>
 		</header>
@@ -100,48 +114,42 @@
 
 					<!-- 棋盘 -->
 					<section class="one chessboard" :style="gridStyle">
-				<div v-if="!isGaming" class="board-overlay">
-					<el-button type="primary" @click="startGame"
-										 style="font-size: 28px; padding: 18px 28px; border-radius: 10px; min-width: 140px; min-height: 56px;">
-						开始
-					</el-button>
-				</div>
-				<div v-if="!isGaming" v-for="i in pendingBoardSize * pendingBoardSize" :key="'cell-'+i"
-						 class="cell"
-						 :class="edgeClass({ rowNum: Math.ceil(i / pendingBoardSize), colNum: ((i - 1) % pendingBoardSize) + 1 })">
-				</div>
-				<div v-if="isGaming" v-for="wrapper in flatPositions" :key="wrapper.position.toString()"
-						 class="cell"
-						 :class="[{ hoverable: isGaming && !isGameOver && isEmpty(wrapper.position) }, edgeClass(wrapper.position)]"
-						 @mouseenter="setPreview(wrapper.position)"
-						 @mouseleave="clearPreview()"
-						 @click="handleCellClick(wrapper.position)">
-					<div v-if="starSet.has(wrapper.position.toString())" class="star"></div>
+						<div v-if="!isGaming" v-for="i in pendingBoardSize * pendingBoardSize" :key="'cell-'+i"
+								 class="cell"
+								 :class="edgeClass({ rowNum: Math.ceil(i / pendingBoardSize), colNum: ((i - 1) % pendingBoardSize) + 1 })">
+						</div>
+						<div v-if="isGaming" v-for="wrapper in flatPositions" :key="wrapper.position.toString()"
+								 class="cell"
+								 :class="[{ hoverable: isGaming && !isGameOver && isEmpty(wrapper.position) }, edgeClass(wrapper.position)]"
+								 @mouseenter="setPreview(wrapper.position)"
+								 @mouseleave="clearPreview()"
+								 @click="handleCellClick(wrapper.position)">
+							<div v-if="starSet.has(wrapper.position.toString())" class="star"></div>
 
-					<!-- 棋子 -->
-					<div v-if="wrapper.unit" class="unit piece display" :class="getUnitColor(wrapper.unit)">
-						<span v-if="showMoveNumbers" class="move-number">{{ wrapper.unit.moveNumber }}</span>
-					</div>
+							<!-- 棋子 -->
+							<div v-if="wrapper.unit" class="unit piece display" :class="getUnitColor(wrapper.unit)">
+								<span v-if="showMoveNumbers" class="move-number">{{ wrapper.unit.moveNumber }}</span>
+							</div>
 
-					<!-- 影子棋预览 -->
-					<div v-else-if="previewPos && previewPos.isEqualTo(wrapper.position)"
-							 class="preview-stone" :class="previewClass"></div>
-				</div>
-			</section>
+							<!-- 影子棋预览 -->
+							<div v-else-if="previewPos && previewPos.isEqualTo(wrapper.position)"
+									 class="preview-stone" :class="previewClass"></div>
+						</div>
+					</section>
 				</div>
 				<div v-if="showReplaySliderBar" class="replay-bar">
 					<span class="replay-bar-label">回放</span>
 					<el-slider
-						:key="sliderKey"
-						v-model="historySeek"
-						:min="0"
-						:max="historyTotal"
-						:step="1"
-						:show-tooltip="false"
-						:show-input="true"
-						:show-input-controls="true"
-						class="replay-bar-slider"
-						@change="onSeekHistory"
+							:key="sliderKey"
+							v-model="historySeek"
+							:min="0"
+							:max="historyTotal"
+							:step="1"
+							:show-tooltip="false"
+							:show-input="true"
+							:show-input-controls="true"
+							class="replay-bar-slider"
+							@change="onSeekHistory"
 					></el-slider>
 					<span class="replay-bar-index">{{ historyIndex }}/{{ historyTotal }}</span>
 				</div>
@@ -151,29 +159,34 @@
 		<aside class="gaming info , right-sidebar">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-				<el-collapse-item name="score" title="对局信息">
-					<div class="game-info">
-						<div>先手：{{ isGaming ? first : pendingFirst }}</div>
-						<div>贴目：{{ komi }}</div>
-						<template v-if="isGaming">
-							<div>当前：{{ curPlayer ? curPlayer.name : '—' }}</div>
-							<div>手数：第 {{ historyIndex }} 手<span v-if="historyTotal > 0"> / 共 {{ historyTotal }} 手</span></div>
-						</template>
-					</div>
-				</el-collapse-item>
-				<el-collapse-item name="round" title="回合">
-					<div class="round-card-body">
-						<div class="round-actions">
-							<el-button size="small" @click="exportSGF" :disabled="!isGaming">导出SGF</el-button>
-							<el-button size="small" @click="openImportSGF">导入SGF</el-button>
+					<el-collapse-item name="score" title="本局信息">
+						<div class="game-info">
+							<div>先手：{{ gameFirst }}</div>
+							<div>贴目：{{ gameKomi }}</div>
+							<template v-if="isGaming">
+								<div>当前：{{ curPlayer ? curPlayer.name : '—' }}</div>
+								<div>手数：
+									<template v-if="historyTotal === 0 && historyIndex === 0">尚未开始</template>
+									<template v-else>第 {{ historyIndex }} 手<span
+											v-if="historyTotal > 0"> / 共 {{ historyTotal }} 手</span></template>
+								</div>
+							</template>
 						</div>
-						<el-table :data="turnHistoryRows" row-key="id" stripe style="width: 100%" height="360" empty-text="尚未落子">
-							<el-table-column prop="id" label="手数" width="60"></el-table-column>
-							<el-table-column prop="blackMove" label="黑方"></el-table-column>
-							<el-table-column prop="whiteMove" label="白方"></el-table-column>
-						</el-table>
-					</div>
-				</el-collapse-item>
+					</el-collapse-item>
+					<el-collapse-item name="round" title="回合">
+						<div class="round-card-body">
+							<div class="round-actions">
+								<el-button size="small" @click="exportSGF" :disabled="!isGaming">导出SGF</el-button>
+								<el-button size="small" @click="openImportSGF">导入SGF</el-button>
+							</div>
+							<el-table :data="turnHistoryRows" row-key="id" stripe style="width: 100%" height="360"
+												empty-text="尚未落子">
+								<el-table-column prop="id" label="手数" width="60"></el-table-column>
+								<el-table-column prop="blackMove" label="黑方"></el-table-column>
+								<el-table-column prop="whiteMove" label="白方"></el-table-column>
+							</el-table>
+						</div>
+					</el-collapse-item>
 				</el-collapse>
 			</el-card>
 		</aside>
@@ -183,8 +196,12 @@
 				<span>{{ winnerName }} 获胜!</span>
 			</div>
 			<div v-if="resultDetail" style="font-size: 14px; line-height: 1.6;">
-				<div>黑方：{{ resultDetail.black.toFixed(1) }}（子数 {{ resultDetail.blackStones }} + 地 {{ resultDetail.blackTerritory }}）</div>
-				<div>白方：{{ resultDetail.white.toFixed(1) }}（子数 {{ resultDetail.whiteStones }} + 地 {{ resultDetail.whiteTerritory }} + 贴目 {{ resultDetail.komi }}）</div>
+				<div>黑方：{{ resultDetail.black.toFixed(1) }}（子数 {{ resultDetail.blackStones }} + 地 {{
+					resultDetail.blackTerritory }}）
+				</div>
+				<div>白方：{{ resultDetail.white.toFixed(1) }}（子数 {{ resultDetail.whiteStones }} + 地 {{
+					resultDetail.whiteTerritory }} + 贴目 {{ resultDetail.komi }}）
+				</div>
 			</div>
 			<template #footer>
 				<el-button type="primary" @click="restartGame">再来一局</el-button>
@@ -197,7 +214,8 @@
 			</div>
 			<div style="margin: 6px 0 8px 0;">
 				<el-button size="small" @click="$refs.sgfFileInput && $refs.sgfFileInput.click()">从文件选择SGF</el-button>
-				<input ref="sgfFileInput" type="file" accept=".sgf,.txt,application/x-go-sgf,text/sgf,text/plain" style="display:none" @change="onSelectSGFFile">
+				<input ref="sgfFileInput" type="file" accept=".sgf,.txt,application/x-go-sgf,text/sgf,text/plain"
+							 style="display:none" @change="onSelectSGFFile">
 			</div>
 			<el-input
 					v-model="sgfText"
@@ -222,7 +240,8 @@
 			<p class="slogan">赞助一下</p>
 		</section>
 		<section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
-		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p></section>
+		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+		</section>
 	</article>
 </aside>
 
@@ -237,8 +256,8 @@
 
 	const {createApp} = Vue;
 
-// 全局调试开关（默认关闭，可在控制台设置 window.__DEBUG__ = true）
-window.__DEBUG__ ??= false;
+	// 全局调试开关（默认关闭，可在控制台设置 window.__DEBUG__ = true）
+	window.__DEBUG__ ??= false;
 
 	const app = createApp({
 		data() {
@@ -255,10 +274,11 @@ window.__DEBUG__ ??= false;
 				isGameOver: false,
 				winnerName: '',
 
-
 				boardSize: 19,
 				komi: 7.5,
 				first: '黑方',
+				gameFirst: '黑方',
+				gameKomi: 7.5,
 				pendingBoardSize: 19,
 				pendingFirst: '黑方',
 
@@ -313,7 +333,9 @@ window.__DEBUG__ ??= false;
 				return {gridTemplateRows: `repeat(${n}, ${size}px)`};
 			},
 			previewClass() {
-				if (!this.curPlayer) return '';
+				if (!this.curPlayer) {
+					return '';
+				}
 				return this.curPlayer.team.id === '黑方' ? 'preview-black' : 'preview-white';
 			},
 			colLabels() {
@@ -323,7 +345,9 @@ window.__DEBUG__ ??= false;
 				let codeI = 'I'.charCodeAt(0);
 				for (let i = 0; i < n; i++) {
 					let code = codeA + i;
-					if (code >= codeI) code++; // 跳过 I
+					if (code >= codeI) {
+						code++;
+					} // 跳过 I
 					labels.push(String.fromCharCode(code));
 				}
 				return labels;
@@ -333,10 +357,13 @@ window.__DEBUG__ ??= false;
 				return Array.from({length: n}, (_, i) => n - i); // 顶部到下方：19..1
 			},
 			showReplaySliderBar() {
-				return !!this.isGaming && this.historyTotal > 0 && (this.showReplaySliderBarFlag || this.historySeek < this.historyTotal);
+				return !!this.isGaming && this.historyTotal > 0 && (this.showReplaySliderBarFlag || this.historySeek
+																														< this.historyTotal);
 			},
 			turnHistoryRows() {
-				if (!this.isGaming || !this.moves || this.moves.length === 0) return [];
+				if (!this.isGaming || !this.moves || this.moves.length === 0) {
+					return [];
+				}
 				const n = this.boardSize;
 				const firstBlack = this.first === '黑方';
 				const rows = [];
@@ -357,9 +384,10 @@ window.__DEBUG__ ??= false;
 				try { localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(val || [])); } catch (_) {}
 			},
 			startGame() {
-				// 应用待选配置（首次开始或手动点击“开始/重来”时）
 				this.boardSize = this.pendingBoardSize;
 				this.first = this.pendingFirst;
+				this.gameFirst = this.pendingFirst;
+				this.gameKomi = Number(this.komi);
 
 				// 新开局时重置回放状态
 				this.historyVersion = 0;
@@ -391,11 +419,15 @@ window.__DEBUG__ ??= false;
 
 				this.curPlayer = this.gaming.situation.curPlayer;
 				this.gaming.bulletin.watch('playerTurn start', ({player}) => {
-					if (!this.isReplaying) this.curPlayer = player;
+					if (!this.isReplaying) {
+						this.curPlayer = player;
+					}
 				});
 
 				this.gaming.bulletin.watch('buildUnit end', ({unit}) => {
-					if (this.isReplaying) return;
+					if (this.isReplaying) {
+						return;
+					}
 
 					this.syncBoardState();
 					this.moves.push({type: 'place', r: unit.position.rowNum, c: unit.position.colNum});
@@ -403,7 +435,9 @@ window.__DEBUG__ ??= false;
 				});
 				// 提子后的界面同步
 				this.gaming.bulletin.watch('battlefield destroyUnit end', () => {
-					if (this.isReplaying) return;
+					if (this.isReplaying) {
+						return;
+					}
 					this.syncBoardState();
 				});
 
@@ -451,14 +485,18 @@ window.__DEBUG__ ??= false;
 				const w = window.innerWidth || document.documentElement.clientWidth || 1024;
 				const n = this.isGaming ? this.boardSize : this.pendingBoardSize;
 				let base = w <= 420 ? 22 : (w <= 768 ? 26 : 30);
-				if (n === 19 && w <= 420) base = 20;
+				if (n === 19 && w <= 420) {
+					base = 20;
+				}
 				this.cellPx = base;
 			},
 			onBoardSizeChange() {
 				this.updateCellPx();
 			},
 			syncBoardState() {
-				if (!this.gaming) return;
+				if (!this.gaming) {
+					return;
+				}
 				this.flatPositions.forEach(wrapper => {
 					const unitsAtPos = this.gaming.battlefield.getUnitsAt(wrapper.position);
 					wrapper.unit = unitsAtPos.length > 0 ? unitsAtPos[0] : null;
@@ -471,7 +509,9 @@ window.__DEBUG__ ??= false;
 				}
 			},
 			isEmpty(position) {
-				if (!this.gaming) return false;
+				if (!this.gaming) {
+					return false;
+				}
 				return this.gaming.battlefield.getUnitsAt(position).length === 0;
 			},
 			edgeClass(p) {
@@ -487,26 +527,39 @@ window.__DEBUG__ ??= false;
 				return unit.owner.team.id === '黑方' ? 'player-black' : 'player-white';
 			},
 			setPreview(position) {
-				if (!this.isGaming || this.isGameOver) return;
-				if (!this.isEmpty(position)) { this.previewPos = null; return; }
+				if (!this.isGaming || this.isGameOver) {
+					return;
+				}
+				if (!this.isEmpty(position)) {
+					this.previewPos = null;
+					return;
+				}
 				this.previewPos = position;
 			},
 			clearPreview() { this.previewPos = null; },
 			doPass() {
-				if (!this.isGaming || this.isGameOver) return;
+				if (!this.isGaming || this.isGameOver) {
+					return;
+				}
 				if (!this.isReplaying) { this.moves.push({type: 'pass'}); }
 				this.gaming.bulletin.notice('ui input', {action: 'PASS'});
 			},
 			doResign() {
-				if (!this.isGaming || this.isGameOver) return;
+				if (!this.isGaming || this.isGameOver) {
+					return;
+				}
 				if (!this.isReplaying) { this.moves.push({type: 'resign'}); }
 				this.gaming.bulletin.notice('ui input', {action: 'RESIGN'});
 			},
 
 			// —— 撤销/重做（使用框架rewind） —— //
 			doUndo() {
-				if (!this.gaming || !this.gaming.situation || typeof this.gaming.situation.rewind !== 'function') return;
-				if (this.historyIndex > 0) this.historyIndex -= 1;
+				if (!this.gaming || !this.gaming.situation || typeof this.gaming.situation.rewind !== 'function') {
+					return;
+				}
+				if (this.historyIndex > 0) {
+					this.historyIndex -= 1;
+				}
 				this.historySeek = this.historyIndex;
 				this.gaming.situation.rewind(1);
 				this.isGameOver = false;
@@ -515,19 +568,28 @@ window.__DEBUG__ ??= false;
 				this.syncBoardState();
 			},
 			doRedo() {
-				if (!this.gaming || !this.gaming.situation || typeof this.gaming.situation.fastForward !== 'function') return;
-				if (this.historyIndex < this.historyTotal) this.historyIndex += 1;
+				if (!this.gaming || !this.gaming.situation || typeof this.gaming.situation.fastForward !== 'function') {
+					return;
+				}
+				if (this.historyIndex < this.historyTotal) {
+					this.historyIndex += 1;
+				}
 				this.historySeek = this.historyIndex;
 				this.gaming.situation.fastForward({steps: 1});
 				this.syncBoardState();
 			},
 			onSeekHistory() {
-				if (!this.gaming || !this.gaming.situation) return;
+				if (!this.gaming || !this.gaming.situation) {
+					return;
+				}
 				const cur = this.historyIndex || 0;
 				const max = this.historyTotal || 0;
 				const target = Math.max(0, Math.min(max, Number(this.historySeek) || 0));
 				const diff = target - cur;
-				if (diff === 0) { this.historySeek = cur; return; }
+				if (diff === 0) {
+					this.historySeek = cur;
+					return;
+				}
 				if (diff > 0 && typeof this.gaming.situation.fastForward === 'function') {
 					this.gaming.situation.fastForward({steps: diff});
 				} else if (diff < 0 && typeof this.gaming.situation.rewind === 'function') {
@@ -545,7 +607,9 @@ window.__DEBUG__ ??= false;
 				return String.fromCharCode(a + (c - 1)) + String.fromCharCode(a + (r - 1));
 			},
 			fromSGFCoord(s) {
-				if (!s || s.length < 2) return {r: null, c: null};
+				if (!s || s.length < 2) {
+					return {r: null, c: null};
+				}
 				const a = 'a'.charCodeAt(0);
 				const c = s.charCodeAt(0) - a + 1;
 				const r = s.charCodeAt(1) - a + 1;
@@ -560,8 +624,8 @@ window.__DEBUG__ ??= false;
 				const body = [];
 				// 仅导出当前回放索引内的有效步数
 				const effectiveMoves = (this.historyIndex && this.historyIndex > 0)
-					? this.moves.slice(0, Math.min(this.historyIndex, this.moves.length))
-					: this.moves.slice();
+															 ? this.moves.slice(0, Math.min(this.historyIndex, this.moves.length))
+															 : this.moves.slice();
 				for (const mv of effectiveMoves) {
 					if (mv.type === 'place') {
 						const coord = this.toSGFCoord(mv.r, mv.c);
@@ -575,13 +639,14 @@ window.__DEBUG__ ??= false;
 
 				// 生成并下载 SGF 文件（带时间戳）
 				try {
-					const blob = new Blob([text], { type: 'application/x-go-sgf;charset=utf-8' });
+					const blob = new Blob([text], {type: 'application/x-go-sgf;charset=utf-8'});
 					const url = URL.createObjectURL(blob);
 					const a = document.createElement('a');
 					a.href = url;
 					const now = new Date();
 					const pad = (n) => String(n).padStart(2, '0');
-					const ts = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+					const ts = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(
+							now.getMinutes())}${pad(now.getSeconds())}`;
 					a.download = `go_${sz}x${sz}_${ts}.sgf`;
 					document.body.appendChild(a);
 					a.click();
@@ -589,7 +654,9 @@ window.__DEBUG__ ??= false;
 					URL.revokeObjectURL(url);
 					this.$message?.success?.('已导出并下载SGF文件');
 				} catch (e) {
-					if (window.__DEBUG__) console.error(e);
+					if (window.__DEBUG__) {
+						console.error(e);
+					}
 					this.$message?.error?.('下载SGF失败');
 				}
 			},
@@ -600,7 +667,9 @@ window.__DEBUG__ ??= false;
 			onSelectSGFFile(e) {
 				try {
 					const f = e?.target?.files?.[0];
-					if (!f) return;
+					if (!f) {
+						return;
+					}
 					const reader = new FileReader();
 					reader.onload = () => {
 						this.sgfText = String(reader.result || '');
@@ -609,13 +678,17 @@ window.__DEBUG__ ??= false;
 					reader.onerror = () => this.$message?.error?.('读取文件失败');
 					reader.readAsText(f, 'utf-8');
 				} finally {
-					if (e?.target) e.target.value = '';
+					if (e?.target) {
+						e.target.value = '';
+					}
 				}
 			},
 			onDropSGF(ev) {
 				try {
 					const dt = ev?.dataTransfer;
-					if (!dt) return;
+					if (!dt) {
+						return;
+					}
 					if (dt.files && dt.files.length > 0) {
 						const f = dt.files[0];
 						const reader = new FileReader();
@@ -633,7 +706,9 @@ window.__DEBUG__ ??= false;
 						}
 					}
 				} catch (e) {
-					if (window.__DEBUG__) console.error(e);
+					if (window.__DEBUG__) {
+						console.error(e);
+					}
 					this.$message?.error?.('拖拽处理失败');
 				}
 			},
@@ -663,7 +738,9 @@ window.__DEBUG__ ??= false;
 						} else {
 							const {r, c} = this.fromSGFCoord(coord);
 							const pos = this.findPos(r, c);
-							if (pos) this.gaming.bulletin.notice('ui input', pos);
+							if (pos) {
+								this.gaming.bulletin.notice('ui input', pos);
+							}
 						}
 						// 让出事件循环，确保上一手完成处理后再继续
 						await new Promise(resolve => setTimeout(resolve, 0));
@@ -676,33 +753,42 @@ window.__DEBUG__ ??= false;
 					this.$message?.success?.('SGF 导入完成');
 					this.showImportDialog = false;
 				} catch (e) {
-					if (window.__DEBUG__) console.error(e);
+					if (window.__DEBUG__) {
+						console.error(e);
+					}
 					this.$message?.error?.('导入失败，请检查 SGF 格式');
 				}
 			},
 			findPos(r, c) {
-				if (!this.positions || this.positions.length === 0) return null;
+				if (!this.positions || this.positions.length === 0) {
+					return null;
+				}
 				const rr = Math.max(1, Math.min(this.boardSize, r));
 				const cc = Math.max(1, Math.min(this.boardSize, c));
 				return this.positions[rr - 1]?.[cc - 1] || null;
 			},
 			formatMoveNotation(m) {
-				if (!m) return '—';
+				if (!m) {
+					return '—';
+				}
 				if (m.type === 'place') {
 					const col = this.colLabels[m.c - 1];
 					const row = this.boardSize - m.r + 1;
 					return col + row;
 				}
-				if (m.type === 'pass') return '停一手';
-				if (m.type === 'resign') return '认输';
+				if (m.type === 'pass') {
+					return '停一手';
+				}
+				if (m.type === 'resign') {
+					return '认输';
+				}
 				return '—';
 			},
 		},
 		mounted() {
 			this.updateCellPx();
 			window.addEventListener('resize', this.updateCellPx, {passive: true});
-			// 初始不自动开局
-			// this.startGame();
+			this.startGame();
 			// 移除 v-cloak 遮罩
 			if (this.$el && this.$el.hasAttribute && this.$el.hasAttribute('v-cloak')) {
 				this.$el.removeAttribute('v-cloak');
