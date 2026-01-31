@@ -108,7 +108,7 @@
 				</el-form>
 			</section>
 			<section class="controller list area">
-				<el-button class="one controller : pause" @click="togglePause"
+				<el-button type="primary" class="one controller : pause" @click="togglePause"
 									 :icon="isPaused ? 'VideoPlay' : 'VideoPause'">
 					{{ isPaused ? (score === 0 && !gameOver ? '开始' : '继续') : '暂停' }}
 				</el-button>
