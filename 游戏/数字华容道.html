@@ -226,14 +226,14 @@
 			</section>
 			<section class="tool list area , flex multi-line no-gap items-near-start-x items-near-center-y">
 				<div class="one tool group">
-					<el-button class="one tool : hint" @click="showHint" :type="hintIndex !== -1 ? 'primary' : 'default'"
-										 icon="MagicStick">提示
-					</el-button>
-				</div>
-				<div class="one tool group">
-					<el-button class="one tool : answer" :type="solutionSteps.length ? 'primary' : 'default'" icon="Key"
-										 @click="toggleAnswer">答案
-					</el-button>
+					<el-button-group>
+						<el-button class="one tool : hint" @click="showHint" :type="hintIndex !== -1 ? 'primary' : 'default'"
+											 icon="MagicStick">提示
+						</el-button>
+						<el-button class="one tool : answer" :type="solutionSteps.length ? 'primary' : 'default'" icon="Key"
+											 @click="toggleAnswer">答案
+						</el-button>
+					</el-button-group>
 				</div>
 			</section>
 		</header>
@@ -249,11 +249,11 @@
 		<aside class="gaming info , right-sidebar">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-					<el-collapse-item name="shortcut" title="快捷键">
+					<el-collapse-item title="快捷键" name="shortcut">
 						<p>↑ ↓ ← → ：移动与空位相邻的块</p>
 						<p>点击与空位相邻的块也可移动</p>
 					</el-collapse-item>
-					<el-collapse-item name="score" title="本局信息" class="score">
+					<el-collapse-item title="本局信息" name="score" class="score">
 						<section class="initial map area">
 							<h3>初始局面</h3>
 							<div class="mini map" :style="initialBoardStyle">
@@ -261,15 +261,16 @@
 							</div>
 						</section>
 					</el-collapse-item>
-					<el-collapse-item name="answer" title="回合" class="answer">
+					<el-collapse-item title="回合" name="answer" class="answer">
 						<div class="action list">
 							<el-button v-if="solutionSteps.length" type="primary" size="small" @click="applyNextStep"
 												 :disabled="solutionDone || isWin">
 								{{ solutionDone ? '已执行完' : '执行下一步' }}
 							</el-button>
 						</div>
-						<p class="total">{{ solutionSteps.length ? '已走 ' + moves + ' 步，共 ' + roundSteps.length + ' 步' : '已走 '
-							+ moves + ' 步' }}</p>
+						<p class="total">
+							已走 {{moves}} 步<span v-if="solutionSteps.length">，共 {{ roundSteps.length }} 步</span>
+						</p>
 						<div class="step list">
 							<span v-for="(val, i) in roundSteps" :key="i" class="one step"
 										:class="{ current: i === currentStepIndex }">{{ val }}</span>
@@ -283,7 +284,7 @@
 					<h2>恭喜过关！</h2>
 					<p>共 {{ moves }} 步</p>
 					<footer class="actions">
-						<el-button @click="closeWinAndNew" icon="RefreshRight">新局</el-button>
+						<el-button @click="closeWinAndNew" icon="RefreshRight" size="large" type="primary">新局</el-button>
 						<el-button @click="closeWinModal" size="large">关闭</el-button>
 					</footer>
 				</section>

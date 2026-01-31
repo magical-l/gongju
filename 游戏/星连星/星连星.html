@@ -211,14 +211,14 @@
 			</section>
 			<section class="tool list area , flex multi-line no-gap items-near-start-x items-near-center-y">
 				<div class="one tool group">
-					<el-button class="one tool : hint" @click="showHint" :type="hintColorIndex !== null ? 'primary' : 'default'"
+					<el-button-group>
+						<el-button class="one tool : hint" @click="showHint" :type="hintColorIndex !== null ? 'primary' : 'default'"
 										 icon="MagicStick">提示
-					</el-button>
-				</div>
-				<div class="one tool group">
-					<el-button class="one tool : answer" @click="showAnswer" :type="showAnswerOverlay ? 'primary' : 'default'"
+						</el-button>
+						<el-button class="one tool : answer" @click="showAnswer" :type="showAnswerOverlay ? 'primary' : 'default'"
 										 icon="Key">答案
-					</el-button>
+						</el-button>
+					</el-button-group>
 				</div>
 			</section>
 		</header>
