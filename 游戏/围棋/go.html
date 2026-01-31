@@ -37,8 +37,8 @@
 			<el-card class="setting list area" shadow="never">
 				<el-form inline>
 					<div class="one setting group">
-						<el-form-item label="棋盘" class="one setting">
-							<el-select v-model="pendingBoardSize" class="config-item" style="width: 84px" @change="onBoardSizeChange">
+						<el-form-item class="one setting">
+							<el-select v-model="pendingBoardSize" class="config-item board-size-select" @change="onBoardSizeChange">
 								<el-option :value="19" label="19路"></el-option>
 								<el-option :value="13" label="13路"></el-option>
 								<el-option :value="9" label="9路"></el-option>
