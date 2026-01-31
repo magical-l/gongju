@@ -326,60 +326,60 @@
 	<article class="gaming area , 反叵字形 grid" v-cloak>
 		<header class="toolbar , flex items-near-center-x items-stretch">
 			<section class="setting list area , flex multi-line no-gap items-near-start-x items-near-center-y">
-					<div class="one setting group">
-						<el-form-item label="行" class="one setting">
-							<el-select v-model="settings.boardHeight">
-								<el-option v-for="h in sizeOptions" :key="'h'+h" :label="h" :value="h"/>
-							</el-select>
-						</el-form-item>
-						<el-form-item label="列" class="one setting">
-							<el-select v-model="settings.boardWidth">
-								<el-option v-for="w in sizeOptions" :key="'w'+w" :label="w" :value="w"/>
-							</el-select>
-						</el-form-item>
-					</div>
-					<div class="one setting group">
-						<el-form-item label="目标" class="one setting">
-							<el-select v-model="settings.targetNumber" class="select-width-6ch">
-								<el-option label="1024" :value="1024"></el-option>
-								<el-option label="2048" :value="2048"></el-option>
-								<el-option label="4096" :value="4096"></el-option>
-								<el-option label="8192" :value="8192"></el-option>
-								<el-option label="无限" :value="Infinity"></el-option>
-							</el-select>
-						</el-form-item>
-					</div>
-					<div class="one setting group">
-						<el-form-item label="初始块数" class="one setting">
-							<el-select v-model="settings.initialTiles">
-								<el-option label="1" :value="1"></el-option>
-								<el-option label="2" :value="2"></el-option>
-								<el-option label="3" :value="3"></el-option>
-								<el-option label="4" :value="4"></el-option>
-								<el-option label="5" :value="5"></el-option>
-							</el-select>
-						</el-form-item>
-					</div>
-					<div class="one setting group">
-						<el-form-item label="高亮" class="one setting">
-							<el-switch v-model="settings.showHighlight"></el-switch>
-						</el-form-item>
-					</div>
-					<div class="one setting group">
-						<el-form-item label="合并动画" class="one setting">
-							<el-select v-model="settings.mergeAnimation" class="select-width-6ch">
-								<el-option label="翻牌" value="flip"></el-option>
-								<el-option label="缩放" value="scale"></el-option>
-								<el-option label="旋转" value="rotate"></el-option>
-								<el-option label="弹跳" value="bounce"></el-option>
-								<el-option label="脉冲" value="pulse"></el-option>
-								<el-option label="无" value="none"></el-option>
-							</el-select>
-						</el-form-item>
-					</div>
+				<div class="one setting group">
+					<el-form-item label="行" class="one setting">
+						<el-select v-model="settings.boardHeight">
+							<el-option v-for="h in sizeOptions" :key="'h'+h" :label="h" :value="h"/>
+						</el-select>
+					</el-form-item>
+					<el-form-item label="列" class="one setting">
+						<el-select v-model="settings.boardWidth">
+							<el-option v-for="w in sizeOptions" :key="'w'+w" :label="w" :value="w"/>
+						</el-select>
+					</el-form-item>
+				</div>
+				<div class="one setting group">
+					<el-form-item label="目标" class="one setting">
+						<el-select v-model="settings.targetNumber" class="select-width-6ch">
+							<el-option label="1024" :value="1024"></el-option>
+							<el-option label="2048" :value="2048"></el-option>
+							<el-option label="4096" :value="4096"></el-option>
+							<el-option label="8192" :value="8192"></el-option>
+							<el-option label="无限" :value="Infinity"></el-option>
+						</el-select>
+					</el-form-item>
+				</div>
+				<div class="one setting group">
+					<el-form-item label="初始块数" class="one setting">
+						<el-select v-model="settings.initialTiles">
+							<el-option label="1" :value="1"></el-option>
+							<el-option label="2" :value="2"></el-option>
+							<el-option label="3" :value="3"></el-option>
+							<el-option label="4" :value="4"></el-option>
+							<el-option label="5" :value="5"></el-option>
+						</el-select>
+					</el-form-item>
+				</div>
+				<div class="one setting group">
+					<el-form-item label="高亮" class="one setting">
+						<el-switch v-model="settings.showHighlight"></el-switch>
+					</el-form-item>
+				</div>
+				<div class="one setting group">
+					<el-form-item label="合并动画" class="one setting">
+						<el-select v-model="settings.mergeAnimation" class="select-width-6ch">
+							<el-option label="翻牌" value="flip"></el-option>
+							<el-option label="缩放" value="scale"></el-option>
+							<el-option label="旋转" value="rotate"></el-option>
+							<el-option label="弹跳" value="bounce"></el-option>
+							<el-option label="脉冲" value="pulse"></el-option>
+							<el-option label="无" value="none"></el-option>
+						</el-select>
+					</el-form-item>
+				</div>
 			</section>
 			<section class="controller list area , flex multi-line no-gap items-near-start-x items-near-center-y">
-				<el-button type="danger" class="one controller : restart" @click="initGame" icon="RefreshLeft">重来			</el-button>
+				<el-button type="danger" class="one controller : restart" @click="initGame" icon="RefreshLeft">重来</el-button>
 			</section>
 		</header>
 
@@ -414,24 +414,24 @@
 		<aside class="gaming info , right-sidebar">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-				<el-collapse-item name="shortcut" title="快捷键">
-					<p>↑ ↓ → ← ：移动方块</p>
-					<p>相同数字的方块会合并</p>
-				</el-collapse-item>
-				<el-collapse-item name="score" title="对局信息">
-					<section>
-						<h3>当前分数</h3>
-						<p>{{ score }}</p>
-					</section>
-					<section>
-						<h3>最高分</h3>
-						<p>{{ highScore }}</p>
-					</section>
-					<section>
-						<h3>目标</h3>
-						<p>{{ settings.targetNumber === Infinity ? '无限' : settings.targetNumber }}</p>
-					</section>
-				</el-collapse-item>
+					<el-collapse-item name="shortcut" title="快捷键">
+						<p>↑ ↓ → ← ：移动方块</p>
+						<p>相同数字的方块会合并</p>
+					</el-collapse-item>
+					<el-collapse-item name="score" title="对局信息">
+						<section>
+							<h3>当前分数</h3>
+							<p>{{ score }}</p>
+						</section>
+						<section>
+							<h3>最高分</h3>
+							<p>{{ highScore }}</p>
+						</section>
+						<section>
+							<h3>目标</h3>
+							<p>{{ settings.targetNumber === Infinity ? '无限' : settings.targetNumber }}</p>
+						</section>
+					</el-collapse-item>
 				</el-collapse>
 			</el-card>
 		</aside>
@@ -524,8 +524,9 @@
 				const open = val || [];
 				const isAllExpanded = def.length === open.length && def.every(p => open.includes(p));
 				try {
-					if (isAllExpanded) { localStorage.removeItem(this._gamingInfoCollapseKey); }
-					else { localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(open)); }
+					if (isAllExpanded) { localStorage.removeItem(this._gamingInfoCollapseKey); } else {
+						localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(open));
+					}
 				} catch (_) {}
 			},
 			initGame() {

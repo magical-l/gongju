@@ -101,7 +101,7 @@ class GoGame extends BattlefieldBasedGaming {
 						// 3) 对称撤回（保险）
 						if (topic === 'battlefield addUnit end' && payload.unit) {
 							this.battlefield.destroyUnit(payload.unit);
-							continue;
+
 						}
 					}
 
@@ -151,7 +151,7 @@ class GoGame extends BattlefieldBasedGaming {
 					}
 					if (topic === 'battlefield destroyUnit end' && payload.unit) {
 						this.battlefield.destroyUnit(payload.unit);
-						continue;
+
 					}
 				}
 				this._prevBoardHash = this.boardHash();
@@ -225,7 +225,7 @@ class GoGame extends BattlefieldBasedGaming {
 				continue; // 如果已经访问过，跳过
 			}
 			visited.add(curKey);
-			
+
 			for (const nb of this.neighborsOf(cur)) {
 				const nbKey = key(nb);
 				const nbUnit = this.unitAt(nb);
@@ -270,7 +270,7 @@ class GoGame extends BattlefieldBasedGaming {
 					s += '.';
 					continue;
 				}
-				s += (u.owner?.team?.id === '黑方') ? 'B' : 'W';
+				s += u.owner?.team?.id === '黑方' ? 'B' : 'W';
 			}
 			s += '/';
 		}
@@ -302,7 +302,7 @@ class GoGame extends BattlefieldBasedGaming {
 
 		// 2) 实空：对每个连通空区，若邻接颜色集合为单色，则归属该色
 		const visited = new Set();
-		const key = (p) => p.toString();
+		const key = p => p.toString();
 		let blackTerritory = 0, whiteTerritory = 0;
 
 		for (let r = 1; r <= n; r++) {
@@ -351,7 +351,7 @@ class GoGame extends BattlefieldBasedGaming {
 		const black = blackStones + blackTerritory;
 		const white = whiteStones + whiteTerritory + komi;
 
-		const winner = (white > black) ? whitePlayer : blackPlayer;
+		const winner = white > black ? whitePlayer : blackPlayer;
 		return {
 			black, white,
 			komi,
@@ -463,7 +463,7 @@ class PlaceStoneCommand {
 		const neighbors = gaming.neighborsOf(this.position);
 		const capturedList = []; // [{unit, pos}]
 		const visitedEnemyGroups = new Set();
-		const groupKey = (pos) => {
+		const groupKey = pos => {
 			const {group} = gaming.getGroupAndLiberties(pos);
 			return [...group].sort()[0];
 		};

@@ -1,26 +1,26 @@
 [
-  {
-    "id": "red_grunt",
-    "base_id": "basic_grunt",
-    "name": "红色小兵",
-    "color": "#F56C6C",
-    "image": "🐛",
-    "facing": "left"
-  },
-  {
-    "id": "blue_grunt",
-    "base_id": "basic_grunt",
-    "name": "蓝色小兵",
-    "color": "#409EFF",
-    "image": "🐙",
-    "facing": "front"
-  },
-  {
-    "id": "green_brute",
-    "base_id": "heavy_brute",
-    "name": "绿色精英怪",
-    "color": "#67C23A",
-    "image": "🦖",
-    "facing": "left"
-  }
+	{
+		"id": "red_grunt",
+		"base_id": "basic_grunt",
+		"name": "红色小兵",
+		"color": "#F56C6C",
+		"image": "🐛",
+		"facing": "left"
+	},
+	{
+		"id": "blue_grunt",
+		"base_id": "basic_grunt",
+		"name": "蓝色小兵",
+		"color": "#409EFF",
+		"image": "🐙",
+		"facing": "front"
+	},
+	{
+		"id": "green_brute",
+		"base_id": "heavy_brute",
+		"name": "绿色精英怪",
+		"color": "#67C23A",
+		"image": "🦖",
+		"facing": "left"
+	}
 ]

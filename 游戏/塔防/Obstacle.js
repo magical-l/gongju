@@ -1,4 +1,4 @@
-import { Destructible } from './Destructible.js';
+import {Destructible} from './Destructible.js';
 
 export class Obstacle extends Destructible {
 	constructor(config, cellSize) {

@@ -37,7 +37,7 @@ class EarliestEnemyAimer extends Aimer {
 
 		// 按ID排序，ID越小表示登场越早
 		return enemiesInRange.reduce((earliest, current) =>
-			current.id < earliest.id ? current : earliest
+			current.id < earliest.id ? current : earliest,
 		);
 	}
 }
@@ -107,7 +107,7 @@ class FastestEnemyAimer extends Aimer {
 		}
 
 		return enemiesInRange.reduce((fastest, current) =>
-			current.speed > fastest.speed ? current : fastest
+			current.speed > fastest.speed ? current : fastest,
 		);
 	}
 }
@@ -125,7 +125,7 @@ class SlowestEnemyAimer extends Aimer {
 		}
 
 		return enemiesInRange.reduce((slowest, current) =>
-			current.speed < slowest.speed ? current : slowest
+			current.speed < slowest.speed ? current : slowest,
 		);
 	}
 }
@@ -143,7 +143,7 @@ class LowestHealthEnemyAimer extends Aimer {
 		}
 
 		return enemiesInRange.reduce((lowest, current) =>
-			current.health < lowest.health ? current : lowest
+			current.health < lowest.health ? current : lowest,
 		);
 	}
 }
@@ -161,7 +161,7 @@ class HighestHealthEnemyAimer extends Aimer {
 		}
 
 		return enemiesInRange.reduce((highest, current) =>
-			current.health > highest.health ? current : highest
+			current.health > highest.health ? current : highest,
 		);
 	}
 }
@@ -175,7 +175,7 @@ export class AimerFactory {
 		'fastest': () => new FastestEnemyAimer(),
 		'slowest': () => new SlowestEnemyAimer(),
 		'lowest_health': () => new LowestHealthEnemyAimer(),
-		'highest_health': () => new HighestHealthEnemyAimer()
+		'highest_health': () => new HighestHealthEnemyAimer(),
 	};
 
 	static create(type) {
@@ -198,7 +198,7 @@ export class AimerFactory {
 			'fastest': '速度最快',
 			'slowest': '速度最慢',
 			'lowest_health': '血量最少',
-			'highest_health': '血量最多'
+			'highest_health': '血量最多',
 		};
 	}
 }

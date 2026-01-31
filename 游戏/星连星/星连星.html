@@ -164,7 +164,8 @@
 					<li>拖回上一格可回退一步</li>
 					<li>连线不能交叉或重叠，所有格子必须被连线覆盖</li>
 				</ul>
-				<p><strong>规则：</strong>同一根线不能重复经过任何格子，每格只能走一次；不能经过其他颜色的星星格。当 A 颜色的线经过 B 颜色已占用的格子时，A 抢占该格，B 的线自动收缩到该格的上一步。</p>
+				<p><strong>规则：</strong>同一根线不能重复经过任何格子，每格只能走一次；不能经过其他颜色的星星格。当 A 颜色的线经过
+					B 颜色已占用的格子时，A 抢占该格，B 的线自动收缩到该格的上一步。</p>
 				<p><strong>提示：</strong>如果画错了，可以点击已完成的连线来清除它，然后重新绘制。</p>
 				<p>祝您玩得愉快！</p>
 			</el-dialog>
@@ -174,41 +175,46 @@
 	<article class="gaming area , 反叵字形 grid" v-cloak>
 		<header class="toolbar , flex items-near-center-x items-stretch">
 			<section class="setting list area , flex multi-line no-gap items-near-start-x items-near-center-y">
-					<div class="one setting group">
-						<el-form-item label="尺寸" class="one setting">
-							<el-select v-model="settings.gridSize" @change="onSettingsChange" class="select-width-6ch">
-								<el-option label="5x5" :value="5"></el-option>
-								<el-option label="6x6" :value="6"></el-option>
-								<el-option label="7x7" :value="7"></el-option>
-								<el-option label="8x8" :value="8"></el-option>
-								<el-option label="9x9" :value="9"></el-option>
-								<el-option label="10x10" :value="10"></el-option>
-							</el-select>
-						</el-form-item>
-					</div>
-					<div class="one setting group">
-						<el-form-item label="难度" class="one setting">
-							<el-select v-model="settings.colorCount" @change="onSettingsChange">
-								<el-option label="3" :value="3"></el-option>
-								<el-option label="4" :value="4"></el-option>
-								<el-option label="5" :value="5"></el-option>
-								<el-option label="6" :value="6"></el-option>
-								<el-option label="7" :value="7"></el-option>
-								<el-option label="8" :value="8"></el-option>
-							</el-select>
-						</el-form-item>
-					</div>
-					<div class="one setting group">
-						<el-button type="danger" @click="newGame" icon="RefreshRight">新局</el-button>
-					</div>
-							</section>
+				<div class="one setting group">
+					<el-form-item label="尺寸" class="one setting">
+						<el-select v-model="settings.gridSize" @change="onSettingsChange" class="select-width-6ch">
+							<el-option label="5x5" :value="5"></el-option>
+							<el-option label="6x6" :value="6"></el-option>
+							<el-option label="7x7" :value="7"></el-option>
+							<el-option label="8x8" :value="8"></el-option>
+							<el-option label="9x9" :value="9"></el-option>
+							<el-option label="10x10" :value="10"></el-option>
+						</el-select>
+					</el-form-item>
+				</div>
+				<div class="one setting group">
+					<el-form-item label="难度" class="one setting">
+						<el-select v-model="settings.colorCount" @change="onSettingsChange">
+							<el-option label="3" :value="3"></el-option>
+							<el-option label="4" :value="4"></el-option>
+							<el-option label="5" :value="5"></el-option>
+							<el-option label="6" :value="6"></el-option>
+							<el-option label="7" :value="7"></el-option>
+							<el-option label="8" :value="8"></el-option>
+						</el-select>
+					</el-form-item>
+				</div>
+				<div class="one setting group">
+					<el-button type="danger" @click="newGame" icon="RefreshRight">新局</el-button>
+				</div>
+			</section>
 			<section class="controller list area , flex multi-line no-gap items-near-start-x items-near-center-y">
-				<el-button type="danger" class="one controller : restart" @click="restartCurrentGame" icon="RefreshLeft">重来			</el-button>
+				<el-button type="danger" class="one controller : restart" @click="restartCurrentGame" icon="RefreshLeft">重来
+				</el-button>
 			</section>
 			<section class="tool list area , flex multi-line no-gap items-near-start-x items-near-center-y">
 				<el-button-group>
-					<el-button class="one tool : hint" @click="showHint" :type="hintColorIndex !== null ? 'primary' : 'default'" icon="MagicStick">提示</el-button>
-					<el-button class="one tool : answer" @click="showAnswer" :type="showAnswerOverlay ? 'primary' : 'default'" icon="Key">答案</el-button>
+					<el-button class="one tool : hint" @click="showHint" :type="hintColorIndex !== null ? 'primary' : 'default'"
+										 icon="MagicStick">提示
+					</el-button>
+					<el-button class="one tool : answer" @click="showAnswer" :type="showAnswerOverlay ? 'primary' : 'default'"
+										 icon="Key">答案
+					</el-button>
 				</el-button-group>
 			</section>
 		</header>
@@ -233,16 +239,16 @@
 		<aside class="gaming info , right-sidebar">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-				<el-collapse-item name="score" title="对局信息">
-					<div class="game-info">
-						<div class="progress">
-							<el-progress :percentage="completionPercentage" :status="gameWin ? 'success' : ''"></el-progress>
-							<div style="margin-top: 5px; font-size: 0.9rem; color: #909399;">
-								已填充: {{ filledCells }} / {{ totalCells }}
+					<el-collapse-item name="score" title="对局信息">
+						<div class="game-info">
+							<div class="progress">
+								<el-progress :percentage="completionPercentage" :status="gameWin ? 'success' : ''"></el-progress>
+								<div style="margin-top: 5px; font-size: 0.9rem; color: #909399;">
+									已填充: {{ filledCells }} / {{ totalCells }}
+								</div>
 							</div>
 						</div>
-					</div>
-				</el-collapse-item>
+					</el-collapse-item>
 				</el-collapse>
 			</el-card>
 		</aside>
@@ -355,8 +361,9 @@
 				const open = val || [];
 				const isAllExpanded = def.length === open.length && def.every(p => open.includes(p));
 				try {
-					if (isAllExpanded) { localStorage.removeItem(this._gamingInfoCollapseKey); }
-					else { localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(open)); }
+					if (isAllExpanded) { localStorage.removeItem(this._gamingInfoCollapseKey); } else {
+						localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(open));
+					}
 				} catch (_) {}
 			},
 			initCanvas() {
@@ -553,7 +560,7 @@
 								continue;
 							}
 							const blockSize = blockSizeByCell.get(`${r},${c}`) ?? 1;
-							const extendTwo = (blockSize % 2 === 0);
+							const extendTwo = blockSize % 2 === 0;
 							const adjEnds = [];
 							for (let p2 = 0; p2 < paths.length; p2++) {
 								const h = paths[p2][0], t = paths[p2][paths[p2].length - 1];
@@ -709,7 +716,7 @@
 					const pickList = surroundedList.length > 0 ? surroundedList : emptyList;
 					const firstCell = pickList[Math.floor(Math.random() * pickList.length)];
 					const blockSize = blockSizeByCell.get(`${firstCell.row},${firstCell.col}`) ?? 1;
-					const extendTwo = (blockSize % 2 === 0);
+					const extendTwo = blockSize % 2 === 0;
 					addCellToEndpoint(path, atHead, pid, firstCell);
 					if (extendTwo) {
 						const second = addOneFromEndpoint(path, atHead, pid);
@@ -774,7 +781,7 @@
 					const choice = pick.adj[Math.floor(Math.random() * pick.adj.length)];
 					const {pid, atHead} = choice;
 					const blockSize = blockSizeByCell.get(`${pick.r},${pick.c}`) ?? 1;
-					const extendTwo = (blockSize % 2 === 0);
+					const extendTwo = blockSize % 2 === 0;
 					const cell = {row: pick.r, col: pick.c};
 					board[pick.r][pick.c] = pid;
 					emptySet.delete(`${pick.r},${pick.c}`);
@@ -947,7 +954,7 @@
 				}
 				const path = [];
 				const used = new Set();
-				const backtrack = (idx) => {
+				const backtrack = idx => {
 					if (idx === block.length) {
 						return true;
 					}
@@ -997,7 +1004,7 @@
 				}
 				const path = [];
 				const used = new Set();
-				const backtrack = (idx) => {
+				const backtrack = idx => {
 					if (idx === block.length) {
 						const last = path[path.length - 1], first = path[0];
 						return Math.abs(last.row - first.row) + Math.abs(last.col - first.col) === 1;
@@ -1047,7 +1054,7 @@
 				const path = [];
 				const used = new Set();
 				const same = (p, q) => p.row === q.row && p.col === q.col;
-				const backtrack = (idx) => {
+				const backtrack = idx => {
 					if (idx === block.length) {
 						return same(path[path.length - 1], endCell);
 					}
@@ -1085,7 +1092,7 @@
 					return [];
 				}
 				if (block.length === 1) {
-					return (block[0].row === startCell.row && block[0].col === startCell.col)
+					return block[0].row === startCell.row && block[0].col === startCell.col
 								 ? [{row: block[0].row, col: block[0].col}] : null;
 				}
 				const path = [];
@@ -1094,7 +1101,7 @@
 				if (!hasStart) {
 					return null;
 				}
-				const backtrack = (idx) => {
+				const backtrack = idx => {
 					if (idx === block.length) {
 						return true;
 					}
@@ -2158,7 +2165,7 @@
 
 				const rowDiff = Math.abs(pos.row - lastPoint.row);
 				const colDiff = Math.abs(pos.col - lastPoint.col);
-				const isAdjacent = (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
+				const isAdjacent = rowDiff === 1 && colDiff === 0 || rowDiff === 0 && colDiff === 1;
 				if (!isAdjacent) {
 					return;
 				}
@@ -2216,8 +2223,8 @@
 				}
 
 				e.preventDefault();
-				const pos = this.getCellFromPos(e.clientX || (e.changedTouches && e.changedTouches[0].clientX) || 0,
-						e.clientY || (e.changedTouches && e.changedTouches[0].clientY) || 0);
+				const pos = this.getCellFromPos(e.clientX || e.changedTouches && e.changedTouches[0].clientX || 0,
+						e.clientY || e.changedTouches && e.changedTouches[0].clientY || 0);
 				const endStar = this.getStarAt(pos.row, pos.col);
 				const lastPoint = this.currentPath.points[this.currentPath.points.length - 1];
 
@@ -2228,7 +2235,7 @@
 					if (lastPoint.row !== endStar.row || lastPoint.col !== endStar.col) {
 						const rowDiff = Math.abs(lastPoint.row - endStar.row);
 						const colDiff = Math.abs(lastPoint.col - endStar.col);
-						if ((rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1)) {
+						if (rowDiff === 1 && colDiff === 0 || rowDiff === 0 && colDiff === 1) {
 							this.truncatePathsAtCell(endStar.row, endStar.col, this.currentPath.color);
 							this.currentPath.points.push({row: endStar.row, col: endStar.col});
 						}
@@ -2421,7 +2428,7 @@
 
 				this.ctx.beginPath();
 				for (let i = 0; i < 5; i++) {
-					const angle = (i * 4 * Math.PI / 5) - Math.PI / 2;
+					const angle = i * 4 * Math.PI / 5 - Math.PI / 2;
 					const x = centerX + radius * Math.cos(angle);
 					const y = centerY + radius * Math.sin(angle);
 					if (i === 0) {
@@ -2464,7 +2471,7 @@
 				this.canvas.removeEventListener('touchmove', this.drawPath);
 				this.canvas.removeEventListener('touchend', this.endDrawing);
 				this.canvas.removeEventListener('touchcancel', this.endDrawing);
-			}
+			},
 		},
 		mounted() {
 			this.newGame();
@@ -2474,7 +2481,7 @@
 		},
 		beforeUnmount() {
 			this.removeEventListeners();
-		}
+		},
 	})
 	.use(ElementPlus);
 	for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
@@ -2485,7 +2492,7 @@
 	const help = createApp({
 		data() {
 			return {
-				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname)
+				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname),
 			};
 		},
 		watch: {
@@ -2496,8 +2503,8 @@
 				} else {
 					localStorage.removeItem(storageKey);
 				}
-			}
-		}
+			},
+		},
 	})
 	.use(ElementPlus)
 	.mount('.help.area');

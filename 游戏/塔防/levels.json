@@ -1,70 +1,87 @@
 [
-  {
-    "id": "level-1",
-    "name": "第一关：经典",
-    "initialHealth": 10,
-    "initialCoins": 100,
-    "path": [
-      {"x": 25, "y": 275}, {"x": 175, "y": 275},
-      {"x": 175, "y": 125}, {"x": 375, "y": 125},
-      {"x": 375, "y": 375}, {"x": 575, "y": 375},
-      {"x": 575, "y": 175}, {"x": 725, "y": 175}
-    ],
-    "waves": [
-      { "interval": 1500,
-        "enemies": [
-        { "type": "red_grunt", "count": 8 },
-        { "type": "blue_grunt", "count": 2 },
-        { "type": "green_brute", "count": 1 }
-      ] },
-      { "interval": 1200, "enemies": [{ "type": "red_grunt", "count": 10 }, { "type": "green_brute", "count": 2, "delay": 3000 }] }
-    ]
-  },
-  {
-    "id": "level-2",
-    "name": "第二关：曲折小路",
-    "initialHealth": 10,
-    "initialCoins": 120,
-    "path": [
-      {"x": 25, "y": 75}, {"x": 625, "y": 75},
-      {"x": 625, "y": 275}, {"x": 125, "y": 275},
-      {"x": 125, "y": 425}, {"x": 725, "y": 425}
-    ],
-    "obstacles": [
-      { "id": "rock1", "type": "grey_rock", "gridX": 5, "gridY": 3 },
-      { "id": "rock2", "type": "grey_rock", "gridX": 6, "gridY": 3 }
-    ],
-    "waves": [
-      { "interval": 1200, "enemies": [{ "type": "red_grunt", "count": 10 }, { "type": "green_brute", "count": 3, "delay": 2000 }] },
-      { "interval": 1000, "enemies": [{ "type": "red_grunt", "count": 15 }, { "type": "green_brute", "count": 5, "delay": 2500 }] },
-      { "interval": 800, "enemies": [{ "type": "green_brute", "count": 10 }] }
-    ]
-  },
-  {
-    "id": "level-3",
-    "name": "第三关：钢铁洪流",
-    "initialHealth": 5,
-    "initialCoins": 80,
-    "path": [
-      {"x": 25, "y": 225}, {"x": 125, "y": 225},
-      {"x": 125, "y": 75}, {"x": 225, "y": 75},
-      {"x": 225, "y": 225}, {"x": 325, "y": 225},
-      {"x": 325, "y": 75}, {"x": 425, "y": 75},
-      {"x": 425, "y": 225}, {"x": 525, "y": 225},
-      {"x": 525, "y": 75}, {"x": 625, "y": 75},
-      {"x": 625, "y": 225}, {"x": 725, "y": 225}
-    ],
-    "obstacles": [
-      { "id": "rock3", "type": "dark_rock", "gridX": 0, "gridY": 0 },
-      { "id": "rock4", "type": "dark_rock", "gridX": 14, "gridY": 0 },
-      { "id": "rock5", "type": "dark_rock", "gridX": 0, "gridY": 9 },
-      { "id": "rock6", "type": "dark_rock", "gridX": 14, "gridY": 9 }
-    ],
-    "waves": [
-      { "interval": 1000, "enemies": [{ "type": "red_grunt", "count": 20 }] },
-      { "interval": 800, "enemies": [{ "type": "red_grunt", "count": 15 }, { "type": "green_brute", "count": 8, "delay": 1000 }] },
-      { "interval": 700, "enemies": [{ "type": "red_grunt", "count": 10 }, { "type": "green_brute", "count": 15, "delay": 1000 }] },
-      { "interval": 500, "enemies": [{ "type": "green_brute", "count": 20 }] }
-    ]
-  }
+	{
+		"id": "level-1",
+		"name": "第一关：经典",
+		"initialHealth": 10,
+		"initialCoins": 100,
+		"path": [
+			{"x": 25, "y": 275}, {"x": 175, "y": 275},
+			{"x": 175, "y": 125}, {"x": 375, "y": 125},
+			{"x": 375, "y": 375}, {"x": 575, "y": 375},
+			{"x": 575, "y": 175}, {"x": 725, "y": 175}
+		],
+		"waves": [
+			{
+				"interval": 1500,
+				"enemies": [
+					{"type": "red_grunt", "count": 8},
+					{"type": "blue_grunt", "count": 2},
+					{"type": "green_brute", "count": 1}
+				]
+			},
+			{
+				"interval": 1200,
+				"enemies": [{"type": "red_grunt", "count": 10}, {"type": "green_brute", "count": 2, "delay": 3000}]
+			}
+		]
+	},
+	{
+		"id": "level-2",
+		"name": "第二关：曲折小路",
+		"initialHealth": 10,
+		"initialCoins": 120,
+		"path": [
+			{"x": 25, "y": 75}, {"x": 625, "y": 75},
+			{"x": 625, "y": 275}, {"x": 125, "y": 275},
+			{"x": 125, "y": 425}, {"x": 725, "y": 425}
+		],
+		"obstacles": [
+			{"id": "rock1", "type": "grey_rock", "gridX": 5, "gridY": 3},
+			{"id": "rock2", "type": "grey_rock", "gridX": 6, "gridY": 3}
+		],
+		"waves": [
+			{
+				"interval": 1200,
+				"enemies": [{"type": "red_grunt", "count": 10}, {"type": "green_brute", "count": 3, "delay": 2000}]
+			},
+			{
+				"interval": 1000,
+				"enemies": [{"type": "red_grunt", "count": 15}, {"type": "green_brute", "count": 5, "delay": 2500}]
+			},
+			{"interval": 800, "enemies": [{"type": "green_brute", "count": 10}]}
+		]
+	},
+	{
+		"id": "level-3",
+		"name": "第三关：钢铁洪流",
+		"initialHealth": 5,
+		"initialCoins": 80,
+		"path": [
+			{"x": 25, "y": 225}, {"x": 125, "y": 225},
+			{"x": 125, "y": 75}, {"x": 225, "y": 75},
+			{"x": 225, "y": 225}, {"x": 325, "y": 225},
+			{"x": 325, "y": 75}, {"x": 425, "y": 75},
+			{"x": 425, "y": 225}, {"x": 525, "y": 225},
+			{"x": 525, "y": 75}, {"x": 625, "y": 75},
+			{"x": 625, "y": 225}, {"x": 725, "y": 225}
+		],
+		"obstacles": [
+			{"id": "rock3", "type": "dark_rock", "gridX": 0, "gridY": 0},
+			{"id": "rock4", "type": "dark_rock", "gridX": 14, "gridY": 0},
+			{"id": "rock5", "type": "dark_rock", "gridX": 0, "gridY": 9},
+			{"id": "rock6", "type": "dark_rock", "gridX": 14, "gridY": 9}
+		],
+		"waves": [
+			{"interval": 1000, "enemies": [{"type": "red_grunt", "count": 20}]},
+			{
+				"interval": 800,
+				"enemies": [{"type": "red_grunt", "count": 15}, {"type": "green_brute", "count": 8, "delay": 1000}]
+			},
+			{
+				"interval": 700,
+				"enemies": [{"type": "red_grunt", "count": 10}, {"type": "green_brute", "count": 15, "delay": 1000}]
+			},
+			{"interval": 500, "enemies": [{"type": "green_brute", "count": 20}]}
+		]
+	}
 ]

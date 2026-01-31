@@ -1,246 +1,250 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>塔防游戏 | 工具兽</title>
-	<link href="../../lib/element-plus/2.10.7/index.css" rel="stylesheet">
-	<link href="../../resources/el-plus.css" rel="stylesheet">
-	<link href="../../resources/common.css" rel="stylesheet">
-	<link href="../../resources/layout.css" rel="stylesheet">
-	<link href="../../resources/biz.css" rel="stylesheet">
-	<style>
-			.game-wrapper {
-				margin-top: 20px;
-				gap: var(--gap);
-				align-items: start;
-			}
-		.stat-item {
-			font-size: 1.1rem;
-			margin-bottom: 12px;
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-		}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>塔防游戏 | 工具兽</title>
+<link href="../../lib/element-plus/2.10.7/index.css" rel="stylesheet">
+<link href="../../resources/el-plus.css" rel="stylesheet">
+<link href="../../resources/common.css" rel="stylesheet">
+<link href="../../resources/layout.css" rel="stylesheet">
+<link href="../../resources/biz.css" rel="stylesheet">
+<style>
+	.game-wrapper {
+		margin-top: 20px;
+		gap: var(--gap);
+		align-items: start;
+	}
 
-		.stat-value {
-			font-weight: bold;
-			color: #409EFF;
-		}
+	.stat-item {
+		font-size: 1.1rem;
+		margin-bottom: 12px;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
 
-		.el-card__header {
-			font-weight: bold;
-		}
+	.stat-value {
+		font-weight: bold;
+		color: #409EFF;
+	}
 
-		.game-container {
-			position: relative;
-			background-color: #f0f2f5;
-			border-radius: 10px;
-			box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-			cursor: pointer;
-			display: grid;
-			grid-template-columns: repeat(15, 1fr);
-			grid-template-rows: repeat(10, 1fr);
-		}
+	.el-card__header {
+		font-weight: bold;
+	}
 
-		.cell {
-			box-sizing: border-box;
-			border: 1px solid rgba(0, 0, 0, 0.05);
-		}
+	.game-container {
+		position: relative;
+		background-color: #f0f2f5;
+		border-radius: 10px;
+		box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+		cursor: pointer;
+		display: grid;
+		grid-template-columns: repeat(15, 1fr);
+		grid-template-rows: repeat(10, 1fr);
+	}
 
-		.cell.selected {
-			border: 2px solid #67C23A;
-			background-color: rgba(103, 194, 58, 0.2);
-		}
+	.cell {
+		box-sizing: border-box;
+		border: 1px solid rgba(0, 0, 0, 0.05);
+	}
 
-		.path.cell {
-			background-color: #e0e0e0;
-		}
+	.cell.selected {
+		border: 2px solid #67C23A;
+		background-color: rgba(103, 194, 58, 0.2);
+	}
 
-		.carrot, .enemy, .tower, .bullet, .obstacle {
-			position: absolute;
-			transition: left 0.1s linear, top 0.1s linear;
-		}
+	.path.cell {
+		background-color: #e0e0e0;
+	}
 
-		.obstacle {
-			cursor: crosshair;
-			z-index: 2;
-		}
+	.carrot, .enemy, .tower, .bullet, .obstacle {
+		position: absolute;
+		transition: left 0.1s linear, top 0.1s linear;
+	}
 
-		.carrot {
-			text-align: center;
-			z-index: 10;
-		}
+	.obstacle {
+		cursor: crosshair;
+		z-index: 2;
+	}
 
-		.enemy {
-			z-index: 5;
-			cursor: crosshair;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-		}
+	.carrot {
+		text-align: center;
+		z-index: 10;
+	}
 
-		.enemy-visual {
-			width: 100%;
-			height: 100%;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			transition: transform 0.1s linear;
-		}
+	.enemy {
+		z-index: 5;
+		cursor: crosshair;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
 
-		.enemy-image {
-			width: 100%;
-			height: 100%;
-			object-fit: cover;
-			border-radius: 50%;
-		}
+	.enemy-visual {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition: transform 0.1s linear;
+	}
 
-		.locked-on {
-			box-shadow: 0 0 0 3px rgba(255, 50, 50, 0.7);
-		}
+	.enemy-image {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		border-radius: 50%;
+	}
 
-		.health-bar {
-			position: absolute;
-			width: 100%;
-			height: 4px;
-			background: #555;
-			top: 0;
-			left: 0;
-			border-radius: 2px;
-			overflow: hidden;
-			z-index: 10;
-		}
+	.locked-on {
+		box-shadow: 0 0 0 3px rgba(255, 50, 50, 0.7);
+	}
 
-		.health-fill {
-			height: 100%;
-			background: #67C23A;
-			width: 100%;
-		}
+	.health-bar {
+		position: absolute;
+		width: 100%;
+		height: 4px;
+		background: #555;
+		top: 0;
+		left: 0;
+		border-radius: 2px;
+		overflow: hidden;
+		z-index: 10;
+	}
 
-		.tower {
-			border-radius: 50%;
-			z-index: 4;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			color: white;
-			font-weight: bold;
-			border-width: 2px;
-			border-style: solid;
-		}
+	.health-fill {
+		height: 100%;
+		background: #67C23A;
+		width: 100%;
+	}
 
-		.bullet {
-			width: 8px;
-			height: 8px;
-			background: #f1c40f;
-			border-radius: 50%;
-			z-index: 6;
-			box-shadow: 0 0 5px #f1c40f;
-		}
+	.tower {
+		border-radius: 50%;
+		z-index: 4;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		color: white;
+		font-weight: bold;
+		border-width: 2px;
+		border-style: solid;
+	}
 
-		.range-indicator {
-			position: absolute;
-			background: rgba(44, 62, 80, 0.15);
-			border: 2px dashed rgba(44, 62, 80, 0.4);
-			border-radius: 50%;
-			z-index: 3; /* Below towers */
-			pointer-events: none; /* So it doesn't interfere with clicks */
-		}
+	.bullet {
+		width: 8px;
+		height: 8px;
+		background: #f1c40f;
+		border-radius: 50%;
+		z-index: 6;
+		box-shadow: 0 0 5px #f1c40f;
+	}
 
-			.placement-popup {
-				position: absolute;
-				display: flex;
-				gap: var(--gap);
-				background: rgba(255, 255, 255, 0.75);
-				border-radius: 8px;
-				padding: 8px;
-				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-				z-index: 20;
-				transform: translate(-50%, 25px);
-				pointer-events: auto;
-			}
-		.popup-tower-type {
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			cursor: pointer;
-			flex-shrink: 0; /* Prevent wrapping issue */
-		}
+	.range-indicator {
+		position: absolute;
+		background: rgba(44, 62, 80, 0.15);
+		border: 2px dashed rgba(44, 62, 80, 0.4);
+		border-radius: 50%;
+		z-index: 3; /* Below towers */
+		pointer-events: none; /* So it doesn't interfere with clicks */
+	}
 
-		.popup-tower-type.insufficient-funds {
-			filter: grayscale(80%);
-		}
+	.placement-popup {
+		position: absolute;
+		display: flex;
+		gap: var(--gap);
+		background: rgba(255, 255, 255, 0.75);
+		border-radius: 8px;
+		padding: 8px;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+		z-index: 20;
+		transform: translate(-50%, 25px);
+		pointer-events: auto;
+	}
 
-		.popup-tower-type.insufficient-funds .popup-tower-cost {
-			color: #F56C6C;
-		}
+	.popup-tower-type {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		cursor: pointer;
+		flex-shrink: 0; /* Prevent wrapping issue */
+	}
 
-		.popup-tower-icon {
-			width: 36px;
-			height: 36px;
-			border-radius: 50%;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			color: white;
-			font-weight: bold;
-			border: 2px solid white;
-			transition: transform 0.2s;
-		}
+	.popup-tower-type.insufficient-funds {
+		filter: grayscale(80%);
+	}
 
-		.popup-tower-type:not(.insufficient-funds):hover .popup-tower-icon {
-			transform: scale(1.1);
-		}
+	.popup-tower-type.insufficient-funds .popup-tower-cost {
+		color: #F56C6C;
+	}
 
-		.popup-tower-cost {
-			font-size: 0.8rem;
-			font-weight: bold;
-			margin-top: 4px;
-			color: #67C23A;
-			white-space: nowrap; /* Prevent wrapping */
-		}
-	</style>
+	.popup-tower-icon {
+		width: 36px;
+		height: 36px;
+		border-radius: 50%;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		color: white;
+		font-weight: bold;
+		border: 2px solid white;
+		transition: transform 0.2s;
+	}
+
+	.popup-tower-type:not(.insufficient-funds):hover .popup-tower-icon {
+		transform: scale(1.1);
+	}
+
+	.popup-tower-cost {
+		font-size: 0.8rem;
+		font-weight: bold;
+		margin-top: 4px;
+		color: #67C23A;
+		white-space: nowrap; /* Prevent wrapping */
+	}
+</style>
 </head>
 <body class="grid 反叵字形">
 <main>
 	<article class="game-wrapper , 反叵字形 grid" v-cloak>
 		<header class="toolbar , flex items-near-center-x items-stretch">
 			<section class="setting list area , flex multi-line no-gap items-near-start-x items-near-center-y">
-					<div class="one setting group">
-						<el-form-item label="选择关卡" class="one setting">
-							<el-select v-model="currentLevelId" placeholder="请选择" @change="initGame"
-									   :disabled="gameStarted && !isPaused">
-								<el-option v-for="level in levels" :key="level.id" :label="level.name"
-										   :value="level.id"></el-option>
-							</el-select>
-						</el-form-item>
-						<el-form-item label="游戏速度" class="one setting">
-							<el-radio-group v-model="gameSpeed">
-								<el-radio-button :value="1">1x</el-radio-button>
-								<el-radio-button :value="2">2x</el-radio-button>
-								<el-radio-button :value="4">4x</el-radio-button>
-							</el-radio-group>
-						</el-form-item>
-					</div>
+				<div class="one setting group">
+					<el-form-item label="选择关卡" class="one setting">
+						<el-select v-model="currentLevelId" placeholder="请选择" @change="initGame"
+											 :disabled="gameStarted && !isPaused">
+							<el-option v-for="level in levels" :key="level.id" :label="level.name"
+												 :value="level.id"></el-option>
+						</el-select>
+					</el-form-item>
+					<el-form-item label="游戏速度" class="one setting">
+						<el-radio-group v-model="gameSpeed">
+							<el-radio-button :value="1">1x</el-radio-button>
+							<el-radio-button :value="2">2x</el-radio-button>
+							<el-radio-button :value="4">4x</el-radio-button>
+						</el-radio-group>
+					</el-form-item>
+				</div>
 			</section>
 			<section class="controller list area , flex multi-line no-gap items-near-start-x items-near-center-y">
 				<el-button-group>
 					<el-button @click="togglePause" class="one controller" :disabled="gameOver || gameWon" type="primary"
-						:icon="isPaused ? 'VideoPlay' : 'VideoPause'">
+										 :icon="isPaused ? 'VideoPlay' : 'VideoPause'">
 						{{ pauseButtonText }}
 					</el-button>
-					<el-button type="danger" @click="restartGame" class="one controller" :disabled="!currentLevelId" icon="RefreshLeft">重来</el-button>
+					<el-button type="danger" @click="restartGame" class="one controller" :disabled="!currentLevelId"
+										 icon="RefreshLeft">重来
+					</el-button>
 				</el-button-group>
 			</section>
 		</header>
 
 		<article class="main map area , flex items-near-center-x" style="grid-row: 2">
 			<div class="game-container" @click="handleGameClick"
-				 :style="{width: gameContainerWidth + 'px', height: gameContainerHeight + 'px'}">
+					 :style="{width: gameContainerWidth + 'px', height: gameContainerHeight + 'px'}">
 				<!-- 地面和路径 -->
 				<div v-for="(cell, index) in gridCells" :key="index"
-					 :class="['cell', {'path': cell.isPath, 'selected': placementPopup.visible && placementPopup.cell === cell}]"></div>
+						 :class="['cell', {'path': cell.isPath, 'selected': placementPopup.visible && placementPopup.cell === cell}]"></div>
 				<!-- 攻击范围圈 -->
 				<div v-if="rangeIndicatorStyle.display === 'block'" class="range-indicator" :style="rangeIndicatorStyle"></div>
 				<!-- 终点 -->
@@ -251,11 +255,12 @@
 					height: `${towerSize}px`,
 					lineHeight: `${towerSize}px`,
 					fontSize: `${Math.floor(towerSize * 1)}px`
-				}">🥕</div>
+				}">🥕
+				</div>
 				<!-- 障碍物 -->
 				<div v-for="obstacle in obstacles" :key="'obstacle-'+obstacle.id" class="obstacle tower"
-					 :class="{'locked-on': obstacle.id === lockedTargetId}"
-					 :style="{
+						 :class="{'locked-on': obstacle.id === lockedTargetId}"
+						 :style="{
 						left: `${obstacle.x - towerSize/2}px`,
 						top: `${obstacle.y - towerSize/2}px`,
 						width: `${towerSize}px`,
@@ -264,7 +269,7 @@
 						backgroundColor: obstacle.color,
 						borderColor: obstacle.color
 					 }"
-					 @click.stop="toggleLockOnTarget(obstacle)">
+						 @click.stop="toggleLockOnTarget(obstacle)">
 					{{ obstacle.icon }}
 					<div class="health-bar">
 						<div class="health-fill" :style="{width: (obstacle.health/obstacle.maxHealth)*100 + '%'}"></div>
@@ -272,8 +277,8 @@
 				</div>
 				<!-- 敌人 -->
 				<div v-for="enemy in enemies" :key="'enemy-'+enemy.id" class="enemy"
-					 :class="{'locked-on': enemy.id === lockedTargetId}"
-					 :style="{
+						 :class="{'locked-on': enemy.id === lockedTargetId}"
+						 :style="{
 						left: `${enemy.x - enemySize/2}px`,
 						top: `${enemy.y - enemySize/2}px`,
 						width: `${enemySize}px`,
@@ -281,12 +286,12 @@
 						fontSize: `${Math.floor(enemySize * 0.83)}px`,
 						backgroundColor: enemy.image ? 'transparent' : enemy.color
 					 }"
-					 @click.stop="toggleLockOnTarget(enemy)">
+						 @click.stop="toggleLockOnTarget(enemy)">
 					<div class="enemy-visual" :style="{transform: shouldFlipEnemy(enemy) ? 'scaleX(-1)' : 'scaleX(1)'}">
 						<!-- 显示图片 -->
 						<template v-if="enemy.image">
 							<!-- URL 或 base64 图片 -->
-							<img v-if="isImageUrl(enemy.image)" :src="enemy.image" class="enemy-image" />
+							<img v-if="isImageUrl(enemy.image)" :src="enemy.image" class="enemy-image"/>
 							<!-- SVG 代码 -->
 							<div v-else-if="isSvg(enemy.image)" v-html="enemy.image" style="width: 100%; height: 100%;"></div>
 							<!-- emoji 或 unicode 字符 -->
@@ -299,7 +304,7 @@
 				</div>
 				<!-- 塔 -->
 				<div v-for="tower in towers" :key="'tower-'+tower.id" @click.stop="selectTower(tower)" class="tower"
-					 :style="{
+						 :style="{
 						left: `${tower.x - towerSize/2}px`,
 						top: `${tower.y - towerSize/2}px`,
 						width: `${towerSize}px`,
@@ -312,16 +317,16 @@
 				</div>
 				<!-- 子弹 -->
 				<div v-for="bullet in bullets" :key="'bullet-'+bullet.id" class="bullet"
-					 :style="{ left: `${bullet.x - 4}px`, top: `${bullet.y - 4}px` }"></div>
+						 :style="{ left: `${bullet.x - 4}px`, top: `${bullet.y - 4}px` }"></div>
 
 				<!-- ‘建造’弹窗 -->
 				<div v-if="placementPopup.visible" class="placement-popup"
-					 :style="{ left: `${placementPopup.x}px`, top: `${placementPopup.y}px` }"
-					 @mouseleave="hideRangePreview">
+						 :style="{ left: `${placementPopup.x}px`, top: `${placementPopup.y}px` }"
+						 @mouseleave="hideRangePreview">
 					<div v-for="(towerType, id) in towerTypes" :key="id" class="popup-tower-type"
-						 :class="{'insufficient-funds': coins < towerType.cost}"
-						 @click.stop="placeTowerFromPopup(id)"
-						 @mouseover="showRangePreview(towerType)">
+							 :class="{'insufficient-funds': coins < towerType.cost}"
+							 @click.stop="placeTowerFromPopup(id)"
+							 @mouseover="showRangePreview(towerType)">
 						<div class="popup-tower-icon" :style="{ backgroundColor: towerType.color }">{{ towerType.icon }}</div>
 						<div class="popup-tower-cost">💰{{ towerType.cost }}</div>
 					</div>
@@ -332,24 +337,24 @@
 		<aside class="gaming info , right-sidebar">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-				<el-collapse-item name="score" title="对局信息">
-					<div v-if="currentLevel">
-						<div class="stat-item"><span>❤️ 生命:</span> <span class="stat-value">{{ health }}</span></div>
-						<div class="stat-item"><span>💰 金币:</span> <span class="stat-value">{{ coins }}</span></div>
-						<div class="stat-item"><span>🌊 波数:</span> <span class="stat-value">{{ waveDisplay }}</span></div>
-					</div>
-				</el-collapse-item>
+					<el-collapse-item name="score" title="对局信息">
+						<div v-if="currentLevel">
+							<div class="stat-item"><span>❤️ 生命:</span> <span class="stat-value">{{ health }}</span></div>
+							<div class="stat-item"><span>💰 金币:</span> <span class="stat-value">{{ coins }}</span></div>
+							<div class="stat-item"><span>🌊 波数:</span> <span class="stat-value">{{ waveDisplay }}</span></div>
+						</div>
+					</el-collapse-item>
 				</el-collapse>
 			</el-card>
 		</aside>
 
 		<el-dialog v-model="showGameOverDialog" :title="gameWon ? '恭喜通关! 🎉' : '游戏结束 😢'" width="30%" center
-					 :show-close="false" :close-on-click-modal="false" :close-on-press-escape="false">
+							 :show-close="false" :close-on-click-modal="false" :close-on-press-escape="false">
 			<span>{{ gameWon ? '你成功保卫了萝卜！' : '萝卜被吃掉了，再试一次吧！' }}</span>
 			<template #footer>
 				<el-button type="primary" icon="RefreshLeft" @click="restartGame">重来</el-button>
 			</template>
-			</el-dialog>
+		</el-dialog>
 	</article>
 </main>
 
@@ -358,12 +363,12 @@
 	<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
 </div>
 <script type="module">
-	import { ImgUtils } from '../../resources/util.js';
-	import { obstacleBaseStats } from './obstacle_base_stats.js';
-	import { enemyBaseStats } from './enemy_base_stats.js';
-	import { Enemy } from './Enemy.js';
-	import { Obstacle } from './Obstacle.js';
-	import { Tower } from './/Tower.js';
+	import {ImgUtils} from '../../resources/util.js';
+	import {obstacleBaseStats} from './obstacle_base_stats.js';
+	import {enemyBaseStats} from './enemy_base_stats.js';
+	import {Enemy} from './Enemy.js';
+	import {Obstacle} from './Obstacle.js';
+	import {Tower} from './/Tower.js';
 
 	const {createApp, reactive} = Vue;
 	const app = createApp({
@@ -386,7 +391,7 @@
 				// Grid - 基础配置
 				gridSize: {
 					cols: 15,
-					rows: 10
+					rows: 10,
 				},
 				gridCells: [],
 
@@ -409,7 +414,7 @@
 					visible: false,
 					x: 0,
 					y: 0,
-					cell: null
+					cell: null,
 				},
 
 				// 瞄准器相关
@@ -440,7 +445,7 @@
 				})(),
 				_gamingInfoCollapseKey: 'gaming-info-tower',
 				_gamingInfoDefaultPanels: ['score'],
-			}
+			};
 		},
 		computed: {
 			// 缩放相关计算属性
@@ -461,7 +466,9 @@
 			},
 
 			currentLevel() {
-				if (!this.currentLevelId) return null;
+				if (!this.currentLevelId) {
+					return null;
+				}
 				return this.levels.find(l => l.id === this.currentLevelId);
 			},
 			pathPoints() {
@@ -471,8 +478,12 @@
 				return this.pathPoints.length > 0 ? this.pathPoints[this.pathPoints.length - 1] : null;
 			},
 			waveDisplay() {
-				if (!this.currentLevel) return '-';
-				if (this.wave >= this.currentLevel.waves.length) return `最终波`;
+				if (!this.currentLevel) {
+					return '-';
+				}
+				if (this.wave >= this.currentLevel.waves.length) {
+					return `最终波`;
+				}
 				return `${this.wave + 1} / ${this.currentLevel.waves.length}`;
 			},
 			showGameOverDialog: {
@@ -484,10 +495,12 @@
 						this.gameOver = false;
 						this.gameWon = false;
 					}
-				}
+				},
 			},
 			selectedTower() {
-				if (!this.selectedTowerId) return null;
+				if (!this.selectedTowerId) {
+					return null;
+				}
 				return this.towers.find(t => t.id === this.selectedTowerId);
 			},
 			rangeIndicatorStyle() {
@@ -502,7 +515,7 @@
 					x = this.placementPopup.cell.x;
 					y = this.placementPopup.cell.y;
 					// 修复：确保预览范围和实际范围计算逻辑一致
-					let rangeInCells = tower.rangeInCells || (tower.range / this.scale.baseCellSize);
+					let rangeInCells = tower.rangeInCells || tower.range / this.scale.baseCellSize;
 					range = rangeInCells * this.cellSize;
 				} else {
 					return {display: 'none'};
@@ -517,10 +530,14 @@
 				};
 			},
 			pauseButtonText() {
-				if (!this.isPaused) return '暂停';
-				if (!this.gameStarted) return '开始游戏';
+				if (!this.isPaused) {
+					return '暂停';
+				}
+				if (!this.gameStarted) {
+					return '开始游戏';
+				}
 				return '继续';
-			}
+			},
 		},
 		methods: {
 			onGamingInfoCollapseChange(val) {
@@ -528,8 +545,9 @@
 				const open = val || [];
 				const isAllExpanded = def.length === open.length && def.every(p => open.includes(p));
 				try {
-					if (isAllExpanded) { localStorage.removeItem(this._gamingInfoCollapseKey); }
-					else { localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(open)); }
+					if (isAllExpanded) { localStorage.removeItem(this._gamingInfoCollapseKey); } else {
+						localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(open));
+					}
 				} catch (_) {}
 			},
 			async loadGameData() {
@@ -538,7 +556,7 @@
 						fetch('levels.json'),
 						fetch('enemies.json'),
 						fetch('obstacles.json'),
-						fetch('towers.json')
+						fetch('towers.json'),
 					]);
 					this.levels = await levelsRes.json();
 					const enemyList = await enemiesRes.json();
@@ -551,11 +569,11 @@
 
 					this.enemyTypes = enemyList.reduce((obj, item) => ({
 						...obj,
-						[item.id]: {...this.enemyBaseStats[item.base_id], ...item}
+						[item.id]: {...this.enemyBaseStats[item.base_id], ...item},
 					}), {});
 					this.obstacleTypes = obstacleList.reduce((obj, item) => ({
 						...obj,
-						[item.id]: {...this.obstacleBaseStats[item.base_id], ...item}
+						[item.id]: {...this.obstacleBaseStats[item.base_id], ...item},
 					}), {});
 					this.towerTypes = towerList.reduce((obj, item) => ({...obj, [item.id]: item}), {});
 
@@ -568,11 +586,15 @@
 				}
 			},
 			initGame(levelId) {
-				if (this.gameLoopId) cancelAnimationFrame(this.gameLoopId);
+				if (this.gameLoopId) {
+					cancelAnimationFrame(this.gameLoopId);
+				}
 
 				this.currentLevelId = levelId;
 				const level = this.currentLevel;
-				if (!level) return;
+				if (!level) {
+					return;
+				}
 
 				this.health = level.initialHealth;
 				this.coins = level.initialCoins;
@@ -618,7 +640,9 @@
 				const isPointNearLine = (px, py, x1, y1, x2, y2, maxDistance) => {
 					const dx = x2 - x1, dy = y2 - y1;
 					const lenSq = dx * dx + dy * dy;
-					if (lenSq === 0) return Math.sqrt((px - x1) ** 2 + (py - y1) ** 2) <= maxDistance;
+					if (lenSq === 0) {
+						return Math.sqrt((px - x1) ** 2 + (py - y1) ** 2) <= maxDistance;
+					}
 					let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
 					t = Math.max(0, Math.min(1, t));
 					const projX = x1 + t * dx, projY = y1 + t * dy;
@@ -631,7 +655,8 @@
 						const y = r * this.cellSize + this.cellSize / 2;
 						let isPath = false;
 						for (let i = 0; i < this.pathPoints.length - 1; i++) {
-							if (isPointNearLine(x, y, this.pathPoints[i].x, this.pathPoints[i].y, this.pathPoints[i + 1].x, this.pathPoints[i + 1].y, pathWidth)) {
+							if (isPointNearLine(x, y, this.pathPoints[i].x, this.pathPoints[i].y, this.pathPoints[i + 1].x,
+									this.pathPoints[i + 1].y, pathWidth)) {
 								isPath = true;
 								break;
 							}
@@ -707,7 +732,9 @@
 									const obstacle = this.obstacles[index];
 									// Make the cell buildable again
 									const cell = this.gridCells[obstacle.gridY * this.gridSize.cols + obstacle.gridX];
-									if(cell) cell.hasTower = false;
+									if (cell) {
+										cell.hasTower = false;
+									}
 									this.obstacles.splice(index, 1);
 								}
 							}
@@ -735,7 +762,9 @@
 				}
 			},
 			prepareWave() {
-				if (this.wave >= this.currentLevel.waves.length) return;
+				if (this.wave >= this.currentLevel.waves.length) {
+					return;
+				}
 
 				const waveData = this.currentLevel.waves[this.wave];
 				this.spawningQueue = [];
@@ -777,7 +806,9 @@
 				}
 			},
 			togglePause() {
-				if (this.gameOver || this.gameWon) return;
+				if (this.gameOver || this.gameWon) {
+					return;
+				}
 
 				this.isPaused = !this.isPaused;
 
@@ -805,7 +836,8 @@
 					return;
 				}
 				// 修复：传入baseCellSize以确保范围计算正确
-				const tower = new Tower(towerConfig, cell.x, cell.y, this.globalAimerType, this.cellSize, this.scale.baseCellSize);
+				const tower = new Tower(towerConfig, cell.x, cell.y, this.globalAimerType, this.cellSize,
+						this.scale.baseCellSize);
 				this.towers.push(tower);
 				cell.hasTower = true;
 				this.coins -= towerConfig.cost;
@@ -846,7 +878,9 @@
 				this.selectedTowerId = this.selectedTowerId === tower.id ? null : tower.id;
 			},
 			toggleLockOnTarget(target) {
-				if (this.isPaused) return;
+				if (this.isPaused) {
+					return;
+				}
 				this.selectedTowerId = null; // Deselect any selected tower
 				this.lockedTargetId = this.lockedTargetId === target.id ? null : target.id;
 			},
@@ -868,14 +902,16 @@
 				}
 				// 如果图形默认朝向和当前移动方向不一致，则需要翻转
 				return enemy.facing !== enemy.direction;
-			}
+			},
 		},
 		mounted() {
 			this.loadGameData();
 			document.addEventListener('visibilitychange', this.handleVisibilityChange);
 		},
 		beforeUnmount() {
-			if (this.gameLoopId) cancelAnimationFrame(this.gameLoopId);
+			if (this.gameLoopId) {
+				cancelAnimationFrame(this.gameLoopId);
+			}
 			document.removeEventListener('visibilitychange', this.handleVisibilityChange);
 		}
 	})

@@ -35,37 +35,37 @@
 	<article class="gaming area , 反叵字形 grid" v-cloak :class="{ 'is-replaying': isReplaying }">
 		<header class="toolbar , flex items-near-center-x items-stretch">
 			<section class="setting list area , flex multi-line no-gap items-near-start-x items-near-center-y">
-					<div class="one setting group">
-						<el-form-item class="one setting">
-							<el-select v-model="pendingBoardSize" class="config-item board-size-select" @change="onBoardSizeChange">
-								<el-option :value="19" label="19路"></el-option>
-								<el-option :value="13" label="13路"></el-option>
-								<el-option :value="9" label="9路"></el-option>
-							</el-select>
-						</el-form-item>
-					</div>
-					<div class="one setting group">
-						<el-form-item class="one setting">
-							<el-radio-group v-model="pendingFirst" class="config-item">
-								<el-radio-button label="黑方">黑先</el-radio-button>
-								<el-radio-button label="白方">白先</el-radio-button>
-							</el-radio-group>
-						</el-form-item>
-					</div>
-					<div class="one setting group">
-						<el-form-item class="one setting">
-							<el-input-number v-model="komi" :step="0.5" :min="0" controls-position="right" class="komi-input">
-								<template #prefix>贴目</template>
-							</el-input-number>
-						</el-form-item>
-					</div>
-					<div class="one setting group">
-						<el-form-item class="one setting">
-							<el-button :type="isGaming ? 'danger' : 'primary'" icon="RefreshRight"
-												 @click="isGaming ? restartGame() : startGame()">新局
-							</el-button>
-						</el-form-item>
-					</div>
+				<div class="one setting group">
+					<el-form-item class="one setting">
+						<el-select v-model="pendingBoardSize" class="config-item board-size-select" @change="onBoardSizeChange">
+							<el-option :value="19" label="19路"></el-option>
+							<el-option :value="13" label="13路"></el-option>
+							<el-option :value="9" label="9路"></el-option>
+						</el-select>
+					</el-form-item>
+				</div>
+				<div class="one setting group">
+					<el-form-item class="one setting">
+						<el-radio-group v-model="pendingFirst" class="config-item">
+							<el-radio-button label="黑方">黑先</el-radio-button>
+							<el-radio-button label="白方">白先</el-radio-button>
+						</el-radio-group>
+					</el-form-item>
+				</div>
+				<div class="one setting group">
+					<el-form-item class="one setting">
+						<el-input-number v-model="komi" :step="0.5" :min="0" controls-position="right" class="komi-input">
+							<template #prefix>贴目</template>
+						</el-input-number>
+					</el-form-item>
+				</div>
+				<div class="one setting group">
+					<el-form-item class="one setting">
+						<el-button :type="isGaming ? 'danger' : 'primary'" icon="RefreshRight"
+											 @click="isGaming ? restartGame() : startGame()">新局
+						</el-button>
+					</el-form-item>
+				</div>
 			</section>
 			<section class="controller list area , flex multi-line no-gap items-near-start-x items-near-center-y">
 				<div class="one controller group">
@@ -175,7 +175,8 @@
 								<el-button size="small" @click="openImportSGF">导入SGF</el-button>
 							</div>
 							<div v-if="turnHistoryMoves.length" class="turn-history-list">
-								<span v-for="m in turnHistoryMoves" :key="m.num" class="turn-history-cell">{{ m.num }}<span class="stone-sym" :class="m.isBlack ? 'stone-black' : 'stone-white'"></span>{{ m.text }}</span>
+								<span v-for="m in turnHistoryMoves" :key="m.num" class="turn-history-cell">{{ m.num }}<span
+										class="stone-sym" :class="m.isBlack ? 'stone-black' : 'stone-white'"></span>{{ m.text }}</span>
 							</div>
 							<div v-else class="turn-history-empty">尚未落子</div>
 						</div>
@@ -300,11 +301,11 @@
 			isGaming() { return !!this.gaming; },
 			// 引入 historyVersion 作为依赖以触发重算
 			canUndo() {
-				return !!this.gaming && !!this.gaming.situation && (this.historyVersion >= 0)
+				return !!this.gaming && !!this.gaming.situation && this.historyVersion >= 0
 							 && typeof this.gaming.situation.canRewind === 'function' && this.gaming.situation.canRewind();
 			},
 			canRedo() {
-				return !!this.gaming && !!this.gaming.situation && (this.historyVersion >= 0)
+				return !!this.gaming && !!this.gaming.situation && this.historyVersion >= 0
 							 && typeof this.gaming.situation.canFastForward === 'function' && this.gaming.situation.canFastForward();
 			},
 			gridStyle() {
@@ -363,8 +364,10 @@
 				for (let i = 0; i < this.moves.length; i++) {
 					const m = this.moves[i];
 					const notation = this.formatMoveNotation(m);
-					if (!notation) continue;
-					const isBlack = firstBlack ? (i % 2 === 0) : (i % 2 === 1);
+					if (!notation) {
+						continue;
+					}
+					const isBlack = firstBlack ? i % 2 === 0 : i % 2 === 1;
 					list.push({
 						num: i + 1,
 						isBlack,
@@ -380,8 +383,9 @@
 				const open = val || [];
 				const isAllExpanded = def.length === open.length && def.every(p => open.includes(p));
 				try {
-					if (isAllExpanded) { localStorage.removeItem(this._gamingInfoCollapseKey); }
-					else { localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(open)); }
+					if (isAllExpanded) { localStorage.removeItem(this._gamingInfoCollapseKey); } else {
+						localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(open));
+					}
 				} catch (_) {}
 			},
 			startGame() {
@@ -621,10 +625,10 @@
 				const km = Number(this.komi ?? 0);
 				const ff = 4;
 				const header = [`(;GM[1]FF[${ff}]CA[UTF-8]AP[GJS-Go:1]SZ[${sz}]KM[${km}]PB[黑方]PW[白方]`];
-				let next = (this.first === '白方') ? 'W' : 'B';
+				let next = this.first === '白方' ? 'W' : 'B';
 				const body = [];
 				// 仅导出当前回放索引内的有效步数
-				const effectiveMoves = (this.historyIndex && this.historyIndex > 0)
+				const effectiveMoves = this.historyIndex && this.historyIndex > 0
 															 ? this.moves.slice(0, Math.min(this.historyIndex, this.moves.length))
 															 : this.moves.slice();
 				for (const mv of effectiveMoves) {
@@ -645,7 +649,7 @@
 					const a = document.createElement('a');
 					a.href = url;
 					const now = new Date();
-					const pad = (n) => String(n).padStart(2, '0');
+					const pad = n => String(n).padStart(2, '0');
 					const ts = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(
 							now.getMinutes())}${pad(now.getSeconds())}`;
 					a.download = `go_${sz}x${sz}_${ts}.sgf`;
@@ -718,8 +722,8 @@
 					const raw = String(this.sgfText || '');
 					const szMatch = raw.match(/SZ\[(\d+)\]/i);
 					const kmMatch = raw.match(/KM\[([0-9.]+)\]/i);
-					const sz = szMatch ? parseInt(szMatch[1], 10) : (this.pendingBoardSize || 19);
-					const km = kmMatch ? parseFloat(kmMatch[1]) : (Number(this.komi) || 0);
+					const sz = szMatch ? parseInt(szMatch[1], 10) : this.pendingBoardSize || 19;
+					const km = kmMatch ? parseFloat(kmMatch[1]) : Number(this.komi) || 0;
 					const moveTokens = raw.match(/;[BW]\s*\[[a-z]{0,2}\]/gi) || [];
 					if (moveTokens.length === 0) {
 						this.$message?.warning?.('未解析到落子，已仅按设置开局');
@@ -728,7 +732,7 @@
 					this.pendingBoardSize = sz;
 					this.komi = km;
 					const firstToken = moveTokens[0] || ';B[]';
-					this.pendingFirst = (firstToken[1]?.toUpperCase?.() === 'W') ? '白方' : '黑方';
+					this.pendingFirst = firstToken[1]?.toUpperCase?.() === 'W' ? '白方' : '黑方';
 					this.startGame();
 
 					this.isReplaying = true;

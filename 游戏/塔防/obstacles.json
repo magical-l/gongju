@@ -1,4 +1,4 @@
 [
-  { "id": "grey_rock", "base_id": "普通1x1", "color": "#a9a9a9", "icon": "R" },
-  { "id": "dark_rock", "base_id": "普通1x2", "color": "#808080", "icon": "R" }
+	{"id": "grey_rock", "base_id": "普通1x1", "color": "#a9a9a9", "icon": "R"},
+	{"id": "dark_rock", "base_id": "普通1x2", "color": "#808080", "icon": "R"}
 ]

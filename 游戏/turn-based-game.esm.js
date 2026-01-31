@@ -674,7 +674,7 @@ class Player {
 		// 判断是否结束本轮次：
 		// 1. 玩家主动选择结束轮次 (已在上面处理)
 		// 2. 玩家已执行的行动次数达到或超过了本轮次允许的最大行动次数
-		const turnShouldEnd = (actionsConsumed > 0) && this._actionsTakenThisTurn >= this.actionsPerTurn;
+		const turnShouldEnd = actionsConsumed > 0 && this._actionsTakenThisTurn >= this.actionsPerTurn;
 
 		if (turnShouldEnd) {
 			this.gaming.situation.recordTurn(this, this._currentTurnActions);

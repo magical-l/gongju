@@ -12,9 +12,9 @@ export const obstacleBaseStats = [
 				afterOwned(owner) {
 				},
 				activate(owner) {
-				}
-			}
-		}
+				},
+			},
+		},
 	},
 	{
 		id: "鸽子", width: 1, height: 1, health: 20, reward: 50,
@@ -32,11 +32,11 @@ export const obstacleBaseStats = [
 									owner.moveTo(randomPlace);
 								}
 							}
-						}
+						},
 					});
-				}
-			}
-		}
+				},
+			},
+		},
 	},
 	{
 		id: "绵羊", width: 2, height: 1, health: 20, reward: 50,
@@ -44,37 +44,37 @@ export const obstacleBaseStats = [
 			被薅羊毛: {//阶段性给钱
 
 			},
-			长毛: {}
-		}
+			长毛: {},
+		},
 	},
 	{
 		id: "小灯", width: 1, height: 1, health: 20, reward: 0,
 		skills: {
-			点亮: {}
-		}
+			点亮: {},
+		},
 	},
 	{
 		id: "开关", width: 1, height: 1, health: 20, reward: 0,
 		skills: {
-			开机关: {}
-		}
+			开机关: {},
+		},
 	},
 	{
 		id: "小火锅", width: 1, height: 1, health: 20, reward: 0,
 		skills: {
-			小火锅: {}
-		}
+			小火锅: {},
+		},
 	},
 	{
 		id: "中火锅", width: 2, height: 1, health: 20, reward: 0,
 		skills: {
-			中火锅: {}
-		}
+			中火锅: {},
+		},
 	},
 	{
 		id: "收集碎片", width: 1, height: 1, health: 20, reward: 50,
 		skills: {
-			收集碎片: {}
-		}
-	}
+			收集碎片: {},
+		},
+	},
 ];

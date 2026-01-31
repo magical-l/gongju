@@ -1,199 +1,207 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>五子棋单元测试</title>
-  <link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-2.19.1.css">
+<meta charset="UTF-8">
+<title>五子棋单元测试</title>
+<link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-2.19.1.css">
 </head>
 <body>
-  <div id="qunit"></div>
-  <div id="qunit-fixture"></div>
-  <!-- 引入 QUnit -->
-  <script src="https://code.jquery.com/qunit/qunit-2.19.1.js"></script>
-  <!-- 测试逻辑 -->
-  <script type="module">
-    import {Gobang} from './gobang.esm.js';
-    import {棋盘点位} from '../battlefield-module.esm.js';
+<div id="qunit"></div>
+<div id="qunit-fixture"></div>
+<!-- 引入 QUnit -->
+<script src="https://code.jquery.com/qunit/qunit-2.19.1.js"></script>
+<!-- 测试逻辑 -->
+<script type="module">
+	import {Gobang} from './gobang.esm.js';
+	import {棋盘点位} from '../battlefield-module.esm.js';
 
-    // 确保 QUnit 已加载
-    if (typeof QUnit !== 'undefined') {
-      QUnit.module("五子棋核心功能测试");
+	// 确保 QUnit 已加载
+	if (typeof QUnit !== 'undefined') {
+		QUnit.module("五子棋核心功能测试");
 
-      QUnit.test("棋盘初始化测试", function(assert) {
-        console.log("开始执行: 棋盘初始化测试");
-        const game = new Gobang({size: 15});
-        const gaming = game.newGaming();
-        assert.equal(gaming.battlefield.rowSize, 15, "五子棋棋盘行数应为 15");
-        assert.equal(gaming.battlefield.colSize, 15, "五子棋棋盘列数应为 15");
-        console.log("完成执行: 棋盘初始化测试");
-      });
+		QUnit.test("棋盘初始化测试", function(assert) {
+			console.log("开始执行: 棋盘初始化测试");
+			const game = new Gobang({size: 15});
+			const gaming = game.newGaming();
+			assert.equal(gaming.battlefield.rowSize, 15, "五子棋棋盘行数应为 15");
+			assert.equal(gaming.battlefield.colSize, 15, "五子棋棋盘列数应为 15");
+			console.log("完成执行: 棋盘初始化测试");
+		});
 
-      QUnit.test("落子测试", function(assert) {
-        console.log("开始执行: 落子测试");
-        const done = assert.async();
-        const game = new Gobang({size: 15});
-        const gaming = game.newGaming();
-        const bf = gaming.battlefield;
-        const pos = new 棋盘点位(8, 8);
+		QUnit.test("落子测试", function(assert) {
+			console.log("开始执行: 落子测试");
+			const done = assert.async();
+			const game = new Gobang({size: 15});
+			const gaming = game.newGaming();
+			const bf = gaming.battlefield;
+			const pos = new 棋盘点位(8, 8);
 
-        let buildCount = 0;
-        gaming.bulletin.watch('buildUnit end', () => { 
-          buildCount++; 
-          console.log("buildUnit end 事件触发，当前计数:", buildCount);
-        });
+			let buildCount = 0;
+			gaming.bulletin.watch('buildUnit end', () => {
+				buildCount++;
+				console.log("buildUnit end 事件触发，当前计数:", buildCount);
+			});
 
-        // 在空点落子，应成功
-        console.log("发送 ui input 事件到位置:", pos);
-        gaming.bulletin.notice('ui input', pos);
-        setTimeout(() => {
-          console.log("落子测试验证: buildCount =", buildCount, ", 该点棋子数 =", bf.getUnitsAt(pos).length);
-          assert.equal(buildCount, 1, "落子应成功");
-          assert.equal(bf.getUnitsAt(pos).length, 1, "该点应有1枚棋子");
-          done();
-          console.log("完成执行: 落子测试");
-        }, 10);
-      });
+			// 在空点落子，应成功
+			console.log("发送 ui input 事件到位置:", pos);
+			gaming.bulletin.notice('ui input', pos);
+			setTimeout(() => {
+				console.log("落子测试验证: buildCount =", buildCount, ", 该点棋子数 =", bf.getUnitsAt(pos).length);
+				assert.equal(buildCount, 1, "落子应成功");
+				assert.equal(bf.getUnitsAt(pos).length, 1, "该点应有1枚棋子");
+				done();
+				console.log("完成执行: 落子测试");
+			}, 10);
+		});
 
-      QUnit.test("重复落子测试", function(assert) {
-        console.log("开始执行: 重复落子测试");
-        const done = assert.async();
-        const game = new Gobang({size: 15});
-        const gaming = game.newGaming();
-        const bf = gaming.battlefield;
-        const pos = new 棋盘点位(8, 8);
+		QUnit.test("重复落子测试", function(assert) {
+			console.log("开始执行: 重复落子测试");
+			const done = assert.async();
+			const game = new Gobang({size: 15});
+			const gaming = game.newGaming();
+			const bf = gaming.battlefield;
+			const pos = new 棋盘点位(8, 8);
 
-        let buildCount = 0;
-        gaming.bulletin.watch('buildUnit end', () => { 
-          buildCount++; 
-          console.log("buildUnit end 事件触发，当前计数:", buildCount);
-        });
+			let buildCount = 0;
+			gaming.bulletin.watch('buildUnit end', () => {
+				buildCount++;
+				console.log("buildUnit end 事件触发，当前计数:", buildCount);
+			});
 
-        // 第一次落子
-        console.log("第一次落子到位置:", pos);
-        gaming.bulletin.notice('ui input', pos);
-        setTimeout(() => {
-          const countAfterFirst = buildCount;
-          console.log("第一次落子后: buildCount =", buildCount);
-          // 再次在同一点落子，应失败
-          console.log("第二次落子到相同位置:", pos);
-          gaming.bulletin.notice('ui input', pos);
-          setTimeout(() => {
-            console.log("第二次落子后: buildCount =", buildCount, ", 该点棋子数 =", bf.getUnitsAt(pos).length);
-            // 确保buildCount没有增加
-            assert.equal(buildCount, countAfterFirst, "重复落子不应触发buildUnit事件");
-            assert.equal(bf.getUnitsAt(pos).length, 1, "该点仍应只有1枚棋子");
-            done();
-            console.log("完成执行: 重复落子测试");
-          }, 10);
-        }, 10);
-      });
+			// 第一次落子
+			console.log("第一次落子到位置:", pos);
+			gaming.bulletin.notice('ui input', pos);
+			setTimeout(() => {
+				const countAfterFirst = buildCount;
+				console.log("第一次落子后: buildCount =", buildCount);
+				// 再次在同一点落子，应失败
+				console.log("第二次落子到相同位置:", pos);
+				gaming.bulletin.notice('ui input', pos);
+				setTimeout(() => {
+					console.log("第二次落子后: buildCount =", buildCount, ", 该点棋子数 =", bf.getUnitsAt(pos).length);
+					// 确保buildCount没有增加
+					assert.equal(buildCount, countAfterFirst, "重复落子不应触发buildUnit事件");
+					assert.equal(bf.getUnitsAt(pos).length, 1, "该点仍应只有1枚棋子");
+					done();
+					console.log("完成执行: 重复落子测试");
+				}, 10);
+			}, 10);
+		});
 
-      QUnit.test("五子连珠胜利测试", function(assert) {
-        console.log("开始执行: 五子连珠胜利测试");
-        const done = assert.async();
-        const game = new Gobang({size: 15});
-        const gaming = game.newGaming();
-        const bf = gaming.battlefield;
-        const p = (r, c) => new 棋盘点位(r, c);
+		QUnit.test("五子连珠胜利测试", function(assert) {
+			console.log("开始执行: 五子连珠胜利测试");
+			const done = assert.async();
+			const game = new Gobang({size: 15});
+			const gaming = game.newGaming();
+			const bf = gaming.battlefield;
+			const p = (r, c) => new 棋盘点位(r, c);
 
-        let gameOver = false;
-        let winner = null;
-        gaming.bulletin.watch('game over', (payload) => { 
-          gameOver = true;
-          winner = payload.winner;
-          console.log("game over 事件触发，获胜者:", winner ? winner.name : "未知");
-        });
+			let gameOver = false;
+			let winner = null;
+			gaming.bulletin.watch('game over', payload => {
+				gameOver = true;
+				winner = payload.winner;
+				console.log("game over 事件触发，获胜者:", winner ? winner.name : "未知");
+			});
 
-        // 模拟黑方获胜：在一行上连续放置5个棋子
-        console.log("黑方落子 (8,6)");
-        gaming.bulletin.notice('ui input', p(8, 6));
-        setTimeout(() => {
-          console.log("白方落子 (9,6)");
-          gaming.bulletin.notice('ui input', p(9, 6));
-          setTimeout(() => {
-            console.log("黑方落子 (8,7)");
-            gaming.bulletin.notice('ui input', p(8, 7));
-            setTimeout(() => {
-              console.log("白方落子 (9,7)");
-              gaming.bulletin.notice('ui input', p(9, 7));
-              setTimeout(() => {
-                console.log("黑方落子 (8,8)");
-                gaming.bulletin.notice('ui input', p(8, 8));
-                setTimeout(() => {
-                  console.log("白方落子 (9,8)");
-                  gaming.bulletin.notice('ui input', p(9, 8));
-                  setTimeout(() => {
-                    console.log("黑方落子 (8,9)");
-                    gaming.bulletin.notice('ui input', p(8, 9));
-                    setTimeout(() => {
-                      console.log("白方落子 (9,9)");
-                      gaming.bulletin.notice('ui input', p(9, 9));
-                      setTimeout(() => {
-                        console.log("黑方落子 (8,10)");
-                        gaming.bulletin.notice('ui input', p(8, 10));
-                        setTimeout(() => {
-                          console.log("胜利测试验证: gameOver =", gameOver, ", winner =", winner ? winner.name : "无");
-                          assert.ok(gameOver, "游戏应结束");
-                          assert.ok(winner, "应有获胜者");
-                          if (winner) {
-                            assert.equal(winner.team.id, '黑方', "黑方应获胜");
-                          }
-                          done();
-                          console.log("完成执行: 五子连珠胜利测试");
-                        }, 20);
-                      }, 10);
-                    }, 10);
-                  }, 10);
-                }, 10);
-              }, 10);
-            }, 10);
-          }, 10);
-        }, 10);
-      });
+			// 模拟黑方获胜：在一行上连续放置5个棋子
+			console.log("黑方落子 (8,6)");
+			gaming.bulletin.notice('ui input', p(8, 6));
+			setTimeout(() => {
+				console.log("白方落子 (9,6)");
+				gaming.bulletin.notice('ui input', p(9, 6));
+				setTimeout(() => {
+					console.log("黑方落子 (8,7)");
+					gaming.bulletin.notice('ui input', p(8, 7));
+					setTimeout(() => {
+						console.log("白方落子 (9,7)");
+						gaming.bulletin.notice('ui input', p(9, 7));
+						setTimeout(() => {
+							console.log("黑方落子 (8,8)");
+							gaming.bulletin.notice('ui input', p(8, 8));
+							setTimeout(() => {
+								console.log("白方落子 (9,8)");
+								gaming.bulletin.notice('ui input', p(9, 8));
+								setTimeout(() => {
+									console.log("黑方落子 (8,9)");
+									gaming.bulletin.notice('ui input', p(8, 9));
+									setTimeout(() => {
+										console.log("白方落子 (9,9)");
+										gaming.bulletin.notice('ui input', p(9, 9));
+										setTimeout(() => {
+											console.log("黑方落子 (8,10)");
+											gaming.bulletin.notice('ui input', p(8, 10));
+											setTimeout(() => {
+												console.log("胜利测试验证: gameOver =", gameOver, ", winner =", winner ? winner.name : "无");
+												assert.ok(gameOver, "游戏应结束");
+												assert.ok(winner, "应有获胜者");
+												if (winner) {
+													assert.equal(winner.team.id, '黑方', "黑方应获胜");
+												}
+												done();
+												console.log("完成执行: 五子连珠胜利测试");
+											}, 20);
+										}, 10);
+									}, 10);
+								}, 10);
+							}, 10);
+						}, 10);
+					}, 10);
+				}, 10);
+			}, 10);
+		});
 
-      QUnit.test("玩家轮流测试", function(assert) {
-        console.log("开始执行: 玩家轮流测试");
-        const done = assert.async();
-        const game = new Gobang({size: 15});
-        const gaming = game.newGaming();
-        const p = (r, c) => new 棋盘点位(r, c);
+		QUnit.test("玩家轮流测试", function(assert) {
+			console.log("开始执行: 玩家轮流测试");
+			const done = assert.async();
+			const game = new Gobang({size: 15});
+			const gaming = game.newGaming();
+			const p = (r, c) => new 棋盘点位(r, c);
 
-        const players = [];
-        gaming.bulletin.watch('playerTurn start', ({player}) => {
-          players.push(player);
-          console.log("playerTurn start 事件触发，玩家:", player.name, "，团队:", player.team.id);
-        });
+			const players = [];
+			gaming.bulletin.watch('playerTurn start', ({player}) => {
+				players.push(player);
+				console.log("playerTurn start 事件触发，玩家:", player.name, "，团队:", player.team.id);
+			});
 
-        // 玩家1落子
-        console.log("玩家1落子 (8,8)");
-        gaming.bulletin.notice('ui input', p(8, 8));
-        setTimeout(() => {
-          console.log("玩家1落子后，玩家列表长度:", players.length);
-          // 玩家2落子
-          console.log("玩家2落子 (8,9)");
-          gaming.bulletin.notice('ui input', p(8, 9));
-          setTimeout(() => {
-            console.log("玩家2落子后，玩家列表长度:", players.length);
-            // 玩家1再次落子
-            console.log("玩家1再次落子 (8,10)");
-            gaming.bulletin.notice('ui input', p(8, 10));
-            setTimeout(() => {
-              console.log("玩家1再次落子后，玩家列表长度:", players.length);
-              // 根据日志，实际上有4个玩家回合（包括初始回合）
-              assert.equal(players.length, 4, "应有4次玩家回合");
-              if (players.length >= 1) assert.equal(players[0].team.id, '黑方', "第一个玩家应为黑方");
-              if (players.length >= 2) assert.equal(players[1].team.id, '白方', "第二个玩家应为白方");
-              if (players.length >= 3) assert.equal(players[2].team.id, '黑方', "第三个玩家应为黑方");
-              if (players.length >= 4) assert.equal(players[3].team.id, '白方', "第四个玩家应为白方");
-              done();
-              console.log("完成执行: 玩家轮流测试");
-            }, 10);
-          }, 10);
-        }, 10);
-      });
-    } else {
-      console.error('QUnit 未加载');
-    }
-  </script>
+			// 玩家1落子
+			console.log("玩家1落子 (8,8)");
+			gaming.bulletin.notice('ui input', p(8, 8));
+			setTimeout(() => {
+				console.log("玩家1落子后，玩家列表长度:", players.length);
+				// 玩家2落子
+				console.log("玩家2落子 (8,9)");
+				gaming.bulletin.notice('ui input', p(8, 9));
+				setTimeout(() => {
+					console.log("玩家2落子后，玩家列表长度:", players.length);
+					// 玩家1再次落子
+					console.log("玩家1再次落子 (8,10)");
+					gaming.bulletin.notice('ui input', p(8, 10));
+					setTimeout(() => {
+						console.log("玩家1再次落子后，玩家列表长度:", players.length);
+						// 根据日志，实际上有4个玩家回合（包括初始回合）
+						assert.equal(players.length, 4, "应有4次玩家回合");
+						if (players.length >= 1) {
+							assert.equal(players[0].team.id, '黑方', "第一个玩家应为黑方");
+						}
+						if (players.length >= 2) {
+							assert.equal(players[1].team.id, '白方', "第二个玩家应为白方");
+						}
+						if (players.length >= 3) {
+							assert.equal(players[2].team.id, '黑方', "第三个玩家应为黑方");
+						}
+						if (players.length >= 4) {
+							assert.equal(players[3].team.id, '白方', "第四个玩家应为白方");
+						}
+						done();
+						console.log("完成执行: 玩家轮流测试");
+					}, 10);
+				}, 10);
+			}, 10);
+		});
+	} else {
+		console.error('QUnit 未加载');
+	}
+</script>
 </body>
 </html>

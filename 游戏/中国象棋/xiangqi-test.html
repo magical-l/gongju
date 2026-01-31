@@ -1,25 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>中国象棋单元测试</title>
-  <link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-2.19.1.css">
+<meta charset="UTF-8">
+<title>中国象棋单元测试</title>
+<link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-2.19.1.css">
 </head>
 <body>
-  <div id="qunit"></div>
-  <div id="qunit-fixture"></div>
-  <!-- 关键：禁用自动启动，等待我们注册完测试再 start -->
-  <script>window.QUnit = window.QUnit || {}; QUnit.config = QUnit.config || {}; QUnit.config.autostart = false;</script>
-  <script src="https://code.jquery.com/qunit/qunit-2.19.1.js"></script>
-  <script>console.log('[PING] inline ok');</script>
-  <script>
-    window.addEventListener('error', function (e) {
-      console.error('[PAGE ERROR]', e.message, 'at', e.filename, e.lineno + ':' + e.colno, e.error && e.error.stack);
-    });
-    window.onerror = function (message, source, lineno, colno, error) {
-      console.error('[WINDOW ONERROR]', message, 'at', source, lineno + ':' + colno, error && error.stack);
-    };
-  </script>
-  <script type="module" src="./test-runner.mjs?v=cb12"></script>
+<div id="qunit"></div>
+<div id="qunit-fixture"></div>
+<!-- 关键：禁用自动启动，等待我们注册完测试再 start -->
+<script>window.QUnit = window.QUnit || {};
+QUnit.config = QUnit.config || {};
+QUnit.config.autostart = false;</script>
+<script src="https://code.jquery.com/qunit/qunit-2.19.1.js"></script>
+<script>console.log('[PING] inline ok');</script>
+<script>
+	window.addEventListener('error', function(e) {
+		console.error('[PAGE ERROR]', e.message, 'at', e.filename, e.lineno + ':' + e.colno, e.error && e.error.stack);
+	});
+	window.onerror = function(message, source, lineno, colno, error) {
+		console.error('[WINDOW ONERROR]', message, 'at', source, lineno + ':' + colno, error && error.stack);
+	};
+</script>
+<script type="module" src="./test-runner.mjs?v=cb12"></script>
 </body>
 </html>

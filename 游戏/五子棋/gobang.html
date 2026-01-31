@@ -78,15 +78,16 @@
 		<article class="gaming area , 反叵字形 grid">
 			<article class="main map area , one-row item , flex items-near-center-x">
 				<section class="one chessboard" v-if="flatPositions.length">
-			<div v-for="wrapper in flatPositions" :key="wrapper.position.toString()"
-					 class="cell" :class="[{ hoverable: isGaming && !isGameOver && !wrapper.unit }, currentPlayerColorClass]"
-					 @click="handleCellClick(wrapper.position)">
-				<!-- 棋子渲染在 cell 内部 -->
-				<div v-if="wrapper.unit" class="unit piece display" :class="getUnitColor(wrapper.unit)">
-					<span class="piece move-number">{{ wrapper.unit.moveNumber }}</span>
-					<div v-if="lastMove && lastMove.position.isEqualTo(wrapper.position)" class="piece last-move-marker"></div>
-				</div>
-			</div>
+					<div v-for="wrapper in flatPositions" :key="wrapper.position.toString()"
+							 class="cell" :class="[{ hoverable: isGaming && !isGameOver && !wrapper.unit }, currentPlayerColorClass]"
+							 @click="handleCellClick(wrapper.position)">
+						<!-- 棋子渲染在 cell 内部 -->
+						<div v-if="wrapper.unit" class="unit piece display" :class="getUnitColor(wrapper.unit)">
+							<span class="piece move-number">{{ wrapper.unit.moveNumber }}</span>
+							<div v-if="lastMove && lastMove.position.isEqualTo(wrapper.position)"
+									 class="piece last-move-marker"></div>
+						</div>
+					</div>
 				</section>
 			</article>
 		</article>
@@ -94,9 +95,9 @@
 		<aside class="gaming info , right-sidebar">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-				<el-collapse-item name="score" title="对局信息">
-					<span v-if="isGaming" class="game-info">当前玩家: {{ curPlayer.name }}</span>
-				</el-collapse-item>
+					<el-collapse-item name="score" title="对局信息">
+						<span v-if="isGaming" class="game-info">当前玩家: {{ curPlayer.name }}</span>
+					</el-collapse-item>
 				</el-collapse>
 			</el-card>
 		</aside>
@@ -173,8 +174,9 @@
 				const open = val || [];
 				const isAllExpanded = def.length === open.length && def.every(p => open.includes(p));
 				try {
-					if (isAllExpanded) { localStorage.removeItem(this._gamingInfoCollapseKey); }
-					else { localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(open)); }
+					if (isAllExpanded) { localStorage.removeItem(this._gamingInfoCollapseKey); } else {
+						localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(open));
+					}
 				} catch (_) {}
 			},
 			startGame() {

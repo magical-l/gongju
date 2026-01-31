@@ -46,19 +46,22 @@ const getClassHierarchy = (instance, options = {includeObject: false, reverse: f
  */
 const ensureArray = value => Array.isArray(value) ? value : (value !== null && value !== undefined ? [value] : []);
 const compareWithId = (a, b) => {
-	if (a === b) return true;
-	if (!a || !b) return false;
+	if (a === b) {
+		return true;
+	}
+	if (!a || !b) {
+		return false;
+	}
 	const aId = a.id, bId = b.id;
 	return !!(aId && bId && aId === bId);
 };
 
 const lowerFirstLetter = str => {
-    if (typeof str !== 'string' || str.length === 0) {
-        return str;
-    }
-    return str.charAt(0).toLowerCase() + str.slice(1);
+	if (typeof str !== 'string' || str.length === 0) {
+		return str;
+	}
+	return str.charAt(0).toLowerCase() + str.slice(1);
 };
-
 
 //简便方法，减少代码量
 const watch = (gamingPart, topic, callback, options) => gamingPart.gaming?.bulletin.watch(topic, callback, options);
@@ -212,8 +215,8 @@ class Bulletin {
 		// 检查历史事件并立即“回溯”
 		if (options.watchHistory) {
 			this._historyNotices
-				.filter(notice => this._topicMatchesPattern(notice.topic, topic))
-				.forEach(event => watcher(event.payload));
+					.filter(notice => this._topicMatchesPattern(notice.topic, topic))
+					.forEach(event => watcher(event.payload));
 		}
 	}
 

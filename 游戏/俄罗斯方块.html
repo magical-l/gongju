@@ -155,36 +155,37 @@
 		<header class="toolbar , flex items-near-center-x items-stretch">
 			<!--		<header class="item monopoly , toolbar flex items-mutex">-->
 			<section class="setting list area , flex multi-line no-gap items-near-start-x items-near-center-y">
-					<div class="one setting group">
-						<el-form-item label="行" class="one setting">
-							<el-select v-model="settings.rows">
-								<el-option v-for="r in rowsOptions" :key="r" :label="r" :value="r"/>
-							</el-select>
-						</el-form-item>
-						<el-form-item label="列" class="one setting">
-							<el-select v-model="settings.cols">
-								<el-option v-for="c in colsOptions" :key="c" :label="c" :value="c"/>
-							</el-select>
-						</el-form-item>
-						<el-button title="恢复默认并新局" @click="restoreDefaultSize" icon="RefreshLeft"></el-button>
-					</div>
-					<div class="one setting group">
-						<el-form-item label="难度" class="one setting">
-							<el-select v-model="settings.startLevel">
-								<el-option v-for="lv in startLevelOptions" :key="lv" :label="lv" :value="lv"/>
-							</el-select>
-							<el-radio-group v-model="settings.difficulty">
-								<el-radio-button v-for="opt in difficultyOptions" :key="opt.value" :label="opt.value">{{opt.name}}
-								</el-radio-button>
-							</el-radio-group>
-							<!--<el-select v-model="settings.difficulty" class="select-width-6ch">
-								<el-option v-for="opt in difficultyOptions" :key="opt.value" :label="opt.name" :value="opt.value"/>
-							</el-select>-->
-						</el-form-item>
-					</div>
-					<div class="one setting group">
-						<el-button type="danger" class="one controller : restart" @click="startGame" icon="RefreshRight">新局</el-button>
-					</div>
+				<div class="one setting group">
+					<el-form-item label="行" class="one setting">
+						<el-select v-model="settings.rows">
+							<el-option v-for="r in rowsOptions" :key="r" :label="r" :value="r"/>
+						</el-select>
+					</el-form-item>
+					<el-form-item label="列" class="one setting">
+						<el-select v-model="settings.cols">
+							<el-option v-for="c in colsOptions" :key="c" :label="c" :value="c"/>
+						</el-select>
+					</el-form-item>
+					<el-button title="恢复默认并新局" @click="restoreDefaultSize" icon="RefreshLeft"></el-button>
+				</div>
+				<div class="one setting group">
+					<el-form-item label="难度" class="one setting">
+						<el-select v-model="settings.startLevel">
+							<el-option v-for="lv in startLevelOptions" :key="lv" :label="lv" :value="lv"/>
+						</el-select>
+						<el-radio-group v-model="settings.difficulty">
+							<el-radio-button v-for="opt in difficultyOptions" :key="opt.value" :label="opt.value">{{opt.name}}
+							</el-radio-button>
+						</el-radio-group>
+						<!--<el-select v-model="settings.difficulty" class="select-width-6ch">
+							<el-option v-for="opt in difficultyOptions" :key="opt.value" :label="opt.name" :value="opt.value"/>
+						</el-select>-->
+					</el-form-item>
+				</div>
+				<div class="one setting group">
+					<el-button type="danger" class="one controller : restart" @click="startGame" icon="RefreshRight">新局
+					</el-button>
+				</div>
 			</section>
 			<section class="controller list area , flex multi-line no-gap items-near-start-x items-near-center-y">
 				<el-button v-if="isPaused" class="one controller : pause" title="开始（快捷键：空格）" @click="togglePause"
@@ -195,9 +196,9 @@
 				</el-button>
 			</section>
 			<section class="tool list area , flex multi-line no-gap items-near-start-x items-near-center-y">
-					<el-form-item label="显示落点">
-						<el-switch class="one tool" v-model="settings.showGhost"></el-switch>
-					</el-form-item>
+				<el-form-item label="显示落点">
+					<el-switch class="one tool" v-model="settings.showGhost"></el-switch>
+				</el-form-item>
 			</section>
 		</header>
 
@@ -216,33 +217,33 @@
 		<aside class="gaming info , right-sidebar">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-				<el-collapse-item name="shortcut" title="快捷键">
-					<p>← ↓ → ：方向</p>
-					<p>↑ ：变形</p>
-					<p>回车：砖块直接落到底</p>
-					<p>空格：暂停/开始</p>
-				</el-collapse-item>
-				<el-collapse-item name="next" title="下一个">
-					<div class="next piece container , flex near-center">
-						<div :style="nextPieceStyle">
-							<div class="cell" v-for="(block, index) in nextPieceBlocks" :key="index" :class="block"></div>
+					<el-collapse-item name="shortcut" title="快捷键">
+						<p>← ↓ → ：方向</p>
+						<p>↑ ：变形</p>
+						<p>回车：砖块直接落到底</p>
+						<p>空格：暂停/开始</p>
+					</el-collapse-item>
+					<el-collapse-item name="next" title="下一个">
+						<div class="next piece container , flex near-center">
+							<div :style="nextPieceStyle">
+								<div class="cell" v-for="(block, index) in nextPieceBlocks" :key="index" :class="block"></div>
+							</div>
 						</div>
-					</div>
-				</el-collapse-item>
-				<el-collapse-item name="score" title="对局信息">
-					<section>
-						<h3>分数</h3>
-						<p>{{ score }}</p>
-					</section>
-					<section>
-						<h3>行数</h3>
-						<p>{{ lines }}</p>
-					</section>
-					<section>
-						<h3>等级</h3>
-						<p>{{ level }}</p>
-					</section>
-				</el-collapse-item>
+					</el-collapse-item>
+					<el-collapse-item name="score" title="对局信息">
+						<section>
+							<h3>分数</h3>
+							<p>{{ score }}</p>
+						</section>
+						<section>
+							<h3>行数</h3>
+							<p>{{ lines }}</p>
+						</section>
+						<section>
+							<h3>等级</h3>
+							<p>{{ level }}</p>
+						</section>
+					</el-collapse-item>
 				</el-collapse>
 			</el-card>
 		</aside>
@@ -429,8 +430,9 @@
 				const open = val || [];
 				const isAllExpanded = def.length === open.length && def.every(p => open.includes(p));
 				try {
-					if (isAllExpanded) { localStorage.removeItem(this._gamingInfoCollapseKey); }
-					else { localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(open)); }
+					if (isAllExpanded) { localStorage.removeItem(this._gamingInfoCollapseKey); } else {
+						localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(open));
+					}
 				} catch (_) {}
 			},
 			collides(currentGrid, currentPlayer) {

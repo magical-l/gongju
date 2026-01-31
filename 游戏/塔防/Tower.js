@@ -1,4 +1,4 @@
-import { AimerFactory } from './aimer.js';
+import {AimerFactory} from './aimer.js';
 
 export class Tower {
 	constructor(config, x, y, aimerType = 'earliest', cellSize = 50, baseCellSize = 40) {
@@ -38,7 +38,7 @@ export class Tower {
 					y: this.y,
 					target: target,
 					speed: this.bulletSpeed,
-					damage: this.damage
+					damage: this.damage,
 				});
 				this.fireCountdown = this.fireRate;
 			}

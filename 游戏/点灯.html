@@ -144,25 +144,29 @@
 	<article class="gaming area , 反叵字形 grid" v-cloak>
 		<header class="toolbar , flex items-near-center-x items-stretch">
 			<section class="setting list area , flex multi-line no-gap items-near-start-x items-near-center-y">
-					<div class="one setting group">
-						<el-form-item label="行">
-							<el-select v-model="boardRows">
-								<el-option v-for="r in rowOptions" :key="r" :label="r" :value="r"/>
-							</el-select>
-						</el-form-item>
-						<el-form-item label="列">
-							<el-select v-model="boardCols">
-								<el-option v-for="c in colOptions" :key="c" :label="c" :value="c"/>
-							</el-select>
-						</el-form-item>
-					</div>
-					<div class="one setting group">
-						<el-button :type="moveCount > 0 ? 'danger' : 'primary'" class="one controller : restart" @click="initGame" icon="RefreshRight">新局</el-button>
-					</div>
+				<div class="one setting group">
+					<el-form-item label="行">
+						<el-select v-model="boardRows">
+							<el-option v-for="r in rowOptions" :key="r" :label="r" :value="r"/>
+						</el-select>
+					</el-form-item>
+					<el-form-item label="列">
+						<el-select v-model="boardCols">
+							<el-option v-for="c in colOptions" :key="c" :label="c" :value="c"/>
+						</el-select>
+					</el-form-item>
+				</div>
+				<div class="one setting group">
+					<el-button :type="moveCount > 0 ? 'danger' : 'primary'" class="one controller : restart" @click="initGame"
+										 icon="RefreshRight">新局
+					</el-button>
+				</div>
 			</section>
 			<section class="tool list area , flex multi-line no-gap items-near-start-x items-near-center-y">
 				<el-button-group>
-					<el-button class="one tool : hint" @click="showRandomHint" :type="hintCellIndex !== null ? 'primary' : 'default'" icon="MagicStick">提示</el-button>
+					<el-button class="one tool : hint" @click="showRandomHint"
+										 :type="hintCellIndex !== null ? 'primary' : 'default'" icon="MagicStick">提示
+					</el-button>
 					<el-button class="one tool : answer" @click="showAnswer" icon="Key">答案</el-button>
 				</el-button-group>
 			</section>
@@ -183,37 +187,39 @@
 		<aside class="gaming info , right-sidebar">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-				<el-collapse-item name="score" title="对局信息">
-					<section>
-						<h3>移动次数</h3>
-						<p>{{ moveCount }}</p>
-					</section>
-				</el-collapse-item>
-				<el-collapse-item name="rounds" title="回合记录">
-					<el-button @click="exportRounds" :disabled="!rounds.length" icon="Download" size="small" style="margin-bottom: 8px;">导出</el-button>
-					<el-empty v-if="!rounds.length" description="尚无记录。请开始吧！"></el-empty>
-					<div v-else class="round list container" ref="roundList">
-						<p v-for="(round, roundI) in rounds">{{roundI+1}}：第{{round.row}}行, 第{{round.col}}列</p>
-					</div>
-				</el-collapse-item>
+					<el-collapse-item name="score" title="对局信息">
+						<section>
+							<h3>移动次数</h3>
+							<p>{{ moveCount }}</p>
+						</section>
+					</el-collapse-item>
+					<el-collapse-item name="rounds" title="回合记录">
+						<el-button @click="exportRounds" :disabled="!rounds.length" icon="Download" size="small"
+											 style="margin-bottom: 8px;">导出
+						</el-button>
+						<el-empty v-if="!rounds.length" description="尚无记录。请开始吧！"></el-empty>
+						<div v-else class="round list container" ref="roundList">
+							<p v-for="(round, roundI) in rounds">{{roundI+1}}：第{{round.row}}行, 第{{round.col}}列</p>
+						</div>
+					</el-collapse-item>
 				</el-collapse>
 			</el-card>
 		</aside>
 
-			<article class="modal-overlay fullscreen" v-if="isWin && showWinModal">
-				<section class="body">
-					<h2>恭喜你，挑战成功！</h2>
-					<p>您总共使用了 {{ moveCount }} 步。</p>
-					<footer class="actions">
-						<el-button @click="initGame" icon="RefreshRight">新局</el-button>
-						<el-button @click="exportRounds" size="large" icon="Download">导出回合记录</el-button>
-						<el-button @click="closeWinModal" size="large">关闭</el-button>
-					</footer>
-				</section>
-				<div class="confetti-container">
-					<div class="confetti" v-for="i in 150" :key="'confetti'+i"></div>
-				</div>
-			</article>
+		<article class="modal-overlay fullscreen" v-if="isWin && showWinModal">
+			<section class="body">
+				<h2>恭喜你，挑战成功！</h2>
+				<p>您总共使用了 {{ moveCount }} 步。</p>
+				<footer class="actions">
+					<el-button @click="initGame" icon="RefreshRight">新局</el-button>
+					<el-button @click="exportRounds" size="large" icon="Download">导出回合记录</el-button>
+					<el-button @click="closeWinModal" size="large">关闭</el-button>
+				</footer>
+			</section>
+			<div class="confetti-container">
+				<div class="confetti" v-for="i in 150" :key="'confetti'+i"></div>
+			</div>
+		</article>
 		</aside>
 	</article>
 </main>
@@ -374,8 +380,9 @@
 				const open = val || [];
 				const isAllExpanded = def.length === open.length && def.every(p => open.includes(p));
 				try {
-					if (isAllExpanded) { localStorage.removeItem(this._gamingInfoCollapseKey); }
-					else { localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(open)); }
+					if (isAllExpanded) { localStorage.removeItem(this._gamingInfoCollapseKey); } else {
+						localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(open));
+					}
 				} catch (_) {}
 			},
 			initGame() {

@@ -220,25 +220,28 @@
 	<article class="gaming area , 反叵字形 grid" v-cloak>
 		<header class="toolbar , flex items-near-center-x items-stretch">
 			<section class="setting list area , flex multi-line no-gap items-near-start-x items-near-center-y">
-					<div class="one setting group">
-						<el-form-item label="行">
-							<el-select v-model="gridHeight" @change="saveConfig">
-								<el-option v-for="h in sizeOptions" :key="'h'+h" :label="h" :value="h"/>
-							</el-select>
-						</el-form-item>
-						<el-form-item label="列">
-							<el-select v-model="gridWidth" @change="saveConfig">
-								<el-option v-for="w in sizeOptions" :key="'w'+w" :label="w" :value="w"/>
-							</el-select>
-						</el-form-item>
-					</div>
-					<div class="one setting group">
-						<el-button type="danger" class="one controller : restart" @click="initGame" icon="RefreshRight">新局</el-button>
-					</div>
+				<div class="one setting group">
+					<el-form-item label="行">
+						<el-select v-model="gridHeight" @change="saveConfig">
+							<el-option v-for="h in sizeOptions" :key="'h'+h" :label="h" :value="h"/>
+						</el-select>
+					</el-form-item>
+					<el-form-item label="列">
+						<el-select v-model="gridWidth" @change="saveConfig">
+							<el-option v-for="w in sizeOptions" :key="'w'+w" :label="w" :value="w"/>
+						</el-select>
+					</el-form-item>
+				</div>
+				<div class="one setting group">
+					<el-button type="danger" class="one controller : restart" @click="initGame" icon="RefreshRight">新局
+					</el-button>
+				</div>
 			</section>
 			<section class="tool list area , flex multi-line no-gap items-near-start-x items-near-center-y">
 				<el-button-group>
-					<el-button class="one tool : hint" @click="showHint" :type="hintIndex !== -1 ? 'primary' : 'default'" icon="MagicStick">提示</el-button>
+					<el-button class="one tool : hint" @click="showHint" :type="hintIndex !== -1 ? 'primary' : 'default'"
+										 icon="MagicStick">提示
+					</el-button>
 					<el-button class="one tool : answer" @click="getAnswer" :loading="solving" icon="Key">答案</el-button>
 				</el-button-group>
 			</section>
@@ -259,35 +262,37 @@
 		<aside class="gaming info , right-sidebar">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-				<el-collapse-item name="shortcut" title="快捷键">
-					<p>↑ ↓ ← → ：移动与空位相邻的块</p>
-					<p>点击与空位相邻的块也可移动</p>
-				</el-collapse-item>
-				<el-collapse-item name="score" title="对局信息">
-					<section>
-						<h3>步数</h3>
-						<p>{{ moves }}</p>
-					</section>
-				</el-collapse-item>
-				<el-collapse-item v-if="solutionSteps.length || solutionError || solving" name="answer" title="答案">
-					<div v-if="solving" class="moves-display">求解中…</div>
-					<div v-else-if="solutionError" class="moves-display" style="color: var(--el-color-danger);">{{ solutionError }}</div>
-					<template v-else-if="solutionSteps.length">
-						<el-button v-if="!solving" @click="clearAnswer" size="small" style="margin-bottom: 8px;">清除</el-button>
-						<p class="moves-display">共 {{ solutionSteps.length }} 步</p>
-						<div class="answer-steps">
+					<el-collapse-item name="shortcut" title="快捷键">
+						<p>↑ ↓ ← → ：移动与空位相邻的块</p>
+						<p>点击与空位相邻的块也可移动</p>
+					</el-collapse-item>
+					<el-collapse-item name="score" title="对局信息">
+						<section>
+							<h3>步数</h3>
+							<p>{{ moves }}</p>
+						</section>
+					</el-collapse-item>
+					<el-collapse-item v-if="solutionSteps.length || solutionError || solving" name="answer" title="答案">
+						<div v-if="solving" class="moves-display">求解中…</div>
+						<div v-else-if="solutionError" class="moves-display" style="color: var(--el-color-danger);">{{ solutionError
+							}}
+						</div>
+						<template v-else-if="solutionSteps.length">
+							<el-button v-if="!solving" @click="clearAnswer" size="small" style="margin-bottom: 8px;">清除</el-button>
+							<p class="moves-display">共 {{ solutionSteps.length }} 步</p>
+							<div class="answer-steps">
 							<span v-for="(val, i) in solutionSteps" :key="i"
 										:class="['step-tag', { 'step-current': solutionIndex === i }]">
 								<span class="step-num">{{ i + 1 }}</span>
 								<span class="step-tile">{{ val }}</span>
 							</span>
-						</div>
-						<el-button type="primary" size="small" style="margin-top: 8px;" @click="applyNextStep"
+							</div>
+							<el-button type="primary" size="small" style="margin-top: 8px;" @click="applyNextStep"
 												 :disabled="solutionDone || isWin">
-							{{ solutionDone ? '已执行完' : '执行下一步' }}
-						</el-button>
-					</template>
-				</el-collapse-item>
+								{{ solutionDone ? '已执行完' : '执行下一步' }}
+							</el-button>
+						</template>
+					</el-collapse-item>
 				</el-collapse>
 			</el-card>
 			<article class="modal-overlay fullscreen" v-if="isWin && showWinModal">
@@ -372,14 +377,14 @@
 	// 返回 { board, solution }
 	function generateFromGoal(width, height) {
 		const n = width * height;
-		const board = Array.from({length: n}, (_, i) => (i === n - 1 ? 0 : i + 1));
+		const board = Array.from({length: n}, (_, i) => i === n - 1 ? 0 : i + 1);
 		const moveHistory = [];
 		let emptyIdx = n - 1;
 		let cameFrom = -1;
 		const steps = Math.floor(30 + (n - 9) * 2 + Math.random() * 60);
 		for (let s = 0; s < steps; s++) {
 			const adj = neighborsOfEmpty(emptyIdx, width, height);
-			const candidates = cameFrom >= 0 ? adj.filter((i) => i !== cameFrom) : adj;
+			const candidates = cameFrom >= 0 ? adj.filter(i => i !== cameFrom) : adj;
 			const next = candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : adj[0];
 			cameFrom = emptyIdx;
 			const tileVal = board[next];
@@ -425,7 +430,7 @@
 			push(x) {
 				a.push(x);
 				for (let i = a.length - 1; i > 0;) {
-					const p = (i - 1) >> 1;
+					const p = i - 1 >> 1;
 					if (compare(a[p], a[i]) <= 0) {
 						break;
 					}
@@ -473,7 +478,7 @@
 
 	function solvePuzzleAStar(startBoard, width, height) {
 		const n = width * height;
-		const goal = Array.from({length: n}, (_, i) => (i === n - 1 ? 0 : i + 1));
+		const goal = Array.from({length: n}, (_, i) => i === n - 1 ? 0 : i + 1);
 		const goalKey = goal.join(',');
 		const startKey = startBoard.join(',');
 		if (startKey === goalKey) {
@@ -485,7 +490,7 @@
 		}
 
 		const visited = new Set();
-		const key = (b) => b.join(',');
+		const key = b => b.join(',');
 		const open = MinHeap((a, b) => (a.g + a.h) - (b.g + b.h));
 		open.push({board: [...startBoard], g: 0, h: manhattan(startBoard, width, height), path: []});
 
@@ -614,8 +619,9 @@
 				const open = val || [];
 				const isAllExpanded = def.length === open.length && def.every(p => open.includes(p));
 				try {
-					if (isAllExpanded) { localStorage.removeItem(this._gamingInfoCollapseKey); }
-					else { localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(open)); }
+					if (isAllExpanded) { localStorage.removeItem(this._gamingInfoCollapseKey); } else {
+						localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(open));
+					}
 				} catch (_) {}
 			},
 			saveConfig() {
@@ -751,7 +757,7 @@
 				const ec = emptyIdx % w;
 				const tr = Math.floor(tileIndex / w);
 				const tc = tileIndex % w;
-				return (Math.abs(er - tr) === 1 && ec === tc) || (Math.abs(ec - tc) === 1 && er === tr);
+				return Math.abs(er - tr) === 1 && ec === tc || Math.abs(ec - tc) === 1 && er === tr;
 			},
 			slideTile(tileIndex, fromAnswer) {
 				if (this.isWin) {
@@ -823,8 +829,8 @@
 				if (tileIndex >= 0) {
 					this.slideTile(tileIndex, false);
 				}
-			}
-		}
+			},
+		},
 	});
 	app.use(ElementPlus);
 	for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
@@ -835,9 +841,9 @@
 	const help = createApp({
 		data() {
 			return {
-				introVisible: false
+				introVisible: false,
 			};
-		}
+		},
 	})
 	.use(ElementPlus)
 	.mount('.help.area');

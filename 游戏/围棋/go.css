@@ -39,6 +39,7 @@
 }
 
 .game-info { margin-left: 8px; line-height: 1.6; }
+
 .game-info > div + div { margin-top: 4px; }
 
 .komi-input { width: 120px; }
@@ -48,6 +49,7 @@
 }
 
 .round-card-body { display: flex; flex-direction: column; gap: 10px; }
+
 .round-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .turn-history-list {
@@ -57,6 +59,7 @@
 	font-size: 13px;
 	line-height: 1.5;
 }
+
 .turn-history-cell {
 	display: inline-flex;
 	align-items: center;
@@ -64,6 +67,7 @@
 	letter-spacing: 0.02em;
 	min-width: 0;
 }
+
 .turn-history-cell .stone-sym {
 	display: inline-flex;
 	flex-shrink: 0;
@@ -72,13 +76,16 @@
 	margin: 0 0.25em;
 	border-radius: 50%;
 }
+
 .turn-history-cell .stone-sym.stone-black {
 	background: #333;
 }
+
 .turn-history-cell .stone-sym.stone-white {
 	background: #fff;
 	border: 1.5px solid #666;
 }
+
 .turn-history-empty {
 	color: var(--el-text-color-secondary);
 	font-size: 13px;
@@ -93,7 +100,9 @@
 	background: #f5f5f5;
 	border-radius: 6px;
 }
+
 .replay-bar-label, .replay-bar-index { font-size: 12px; color: #5a452b; }
+
 .replay-bar-slider { flex: 1; min-width: 120px; }
 
 /* 棋盘容器，用于摆放坐标标注 */
@@ -159,10 +168,6 @@
 	opacity: .9;
 }
 
-
-
-
-
 .one.chessboard .cell::before { /* 横线 */
 	left: 0; right: 0; top: 50%;
 	height: 1px; transform: translateY(-.5px);
@@ -227,8 +232,6 @@
 	color: #2b2b2b;
 	text-shadow: 0 1px 1px rgba(255, 255, 255, .6), 0 0 2px rgba(0, 0, 0, .25);
 }
-
-
 
 /* 悬停预览（影子棋更清晰） */
 .preview-stone {
