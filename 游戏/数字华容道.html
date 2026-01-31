@@ -25,23 +25,17 @@
 		align-items: start;
 	}
 
-	#game-board-container {
-		position: relative;
-		background: linear-gradient(145deg, #2c3e50 0%, #34495e 100%);
-		border-radius: 12px;
-		padding: 12px;
-		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-		display: inline-block;
-	}
-
 	#game-board {
 		display: grid;
 		gap: 6px;
-		border-radius: 8px;
+		border-radius: 12px;
+		padding: 12px;
 		overflow: hidden;
+		background: linear-gradient(145deg, #2c3e50 0%, #34495e 100%);
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 	}
 
-	.puzzle-cell {
+	.position {
 		min-width: 0;
 		min-height: 0;
 		border-radius: 8px;
@@ -49,7 +43,7 @@
 		align-items: center;
 		justify-content: center;
 		font-weight: bold;
-		font-size: calc(0.4 * var(--cell-px, 64px));
+		font-size: calc(0.4 * var(--cell-size, 1rem));
 		user-select: none;
 		cursor: pointer;
 		transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -57,28 +51,28 @@
 		box-sizing: border-box;
 	}
 
-	.puzzle-cell.tile {
+	.position.tile {
 		background: linear-gradient(145deg, #ecf0f1 0%, #bdc3c7 100%);
 		color: #2c3e50;
 	}
 
-	.puzzle-cell.tile:hover {
+	.position.tile:hover {
 		transform: scale(1.03);
 		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
 	}
 
-	.puzzle-cell.empty {
+	.position.empty {
 		background: rgba(0, 0, 0, 0.25);
 		cursor: default;
 		box-shadow: none;
 	}
 
-	.puzzle-cell.sliding {
+	.position.sliding {
 		transition: none;
 		z-index: 5;
 	}
 
-	.puzzle-cell.hint {
+	.position.hint {
 		outline: 3px solid #e6a23c;
 		outline-offset: -3px;
 		box-shadow: 0 0 0 3px rgba(230, 162, 60, 0.5);
@@ -90,24 +84,6 @@
 		font-size: 1.2rem;
 		font-weight: bold;
 		color: #4a4a4a;
-	}
-
-	#game-overlay {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		background: rgba(44, 62, 80, 0.92);
-		border-radius: 12px;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		font-size: 1.5rem;
-		font-weight: bold;
-		color: #ecf0f1;
-		z-index: 10;
 	}
 
 	.scoreboard section { text-align: center; }
@@ -185,11 +161,8 @@
 	}
 
 	@media (max-width: 500px) {
-		#game-board-container {
-			padding: 8px;
-		}
-
 		#game-board {
+			padding: 8px;
 			gap: 4px;
 		}
 	}
@@ -256,19 +229,17 @@
 					<el-button class="one tool : hint" @click="showHint" :type="hintIndex !== -1 ? 'primary' : 'default'"
 										 icon="MagicStick">提示
 					</el-button>
-					<el-button class="one tool : answer" :type="solutionSteps.length ? 'primary' : 'default'" icon="Key" @click="toggleAnswer">答案</el-button>
+					<el-button class="one tool : answer" :type="solutionSteps.length ? 'primary' : 'default'" icon="Key"
+										 @click="toggleAnswer">答案
+					</el-button>
 				</el-button-group>
 			</section>
 		</header>
 
 		<article class="main map area , flex items-near-center-x">
-			<div id="game-board-container">
-				<div id="game-board" :style="boardStyle">
-					<div v-for="(val, index) in board" :key="index"
-							 :class="['puzzle-cell', val === 0 ? 'empty' : 'tile', slidingIndex === index ? 'sliding' : '', hintIndex === index ? 'hint' : '']"
-							 @click="onCellClick(index)">
-						{{ val || '' }}
-					</div>
+			<div id="game-board" :style="boardStyle">
+				<div v-for="(val, index) in board" :key="index" :class="cellPositionClass(index)" @click="onCellClick(index)">
+					{{ val || '' }}
 				</div>
 			</div>
 		</article>
@@ -291,13 +262,15 @@
 					<el-collapse-item name="answer" title="回合" class="answer">
 						<div class="action list">
 							<el-button v-if="solutionSteps.length" type="primary" size="small" @click="applyNextStep"
-								:disabled="solutionDone || isWin">
+												 :disabled="solutionDone || isWin">
 								{{ solutionDone ? '已执行完' : '执行下一步' }}
 							</el-button>
 						</div>
-						<p class="total">{{ solutionSteps.length ? '已走 ' + moves + ' 步，共 ' + roundSteps.length + ' 步' : '已走 ' + moves + ' 步' }}</p>
+						<p class="total">{{ solutionSteps.length ? '已走 ' + moves + ' 步，共 ' + roundSteps.length + ' 步' : '已走 '
+							+ moves + ' 步' }}</p>
 						<div class="step list">
-							<span v-for="(val, i) in roundSteps" :key="i" class="one step" :class="{ current: i === currentStepIndex }">{{ val }}</span>
+							<span v-for="(val, i) in roundSteps" :key="i" class="one step"
+										:class="{ current: i === currentStepIndex }">{{ val }}</span>
 						</div>
 						<div v-if="solutionError" class="error">{{ solutionError }}</div>
 					</el-collapse-item>
@@ -367,10 +340,14 @@
 	function applyMove(board, width, height, moveVal) {
 		const emptyIdx = board.indexOf(0);
 		const tileIdx = board.indexOf(moveVal);
-		if (tileIdx < 0) return null;
+		if (tileIdx < 0) {
+			return null;
+		}
 		const row = Math.floor(emptyIdx / width), col = emptyIdx % width;
 		const tr = Math.floor(tileIdx / width), tc = tileIdx % width;
-		if (Math.abs(row - tr) + Math.abs(col - tc) !== 1) return null;
+		if (Math.abs(row - tr) + Math.abs(col - tc) !== 1) {
+			return null;
+		}
 		const next = board.slice();
 		next[emptyIdx] = moveVal;
 		next[tileIdx] = 0;
@@ -383,7 +360,9 @@
 		for (let i = 0; i < k; i++) {
 			const moveVal = stepsDone[stepsDone.length - 1 - i];
 			b = applyMove(b, width, height, moveVal);
-			if (!b) return null;
+			if (!b) {
+				return null;
+			}
 		}
 		return b.join(',');
 	}
@@ -488,15 +467,21 @@
 			boardStyle() {
 				const w = this.gameGridWidth;
 				const h = this.gameGridHeight;
-				const maxSide = Math.max(w, h);
-				const cellPx = Math.min(64, Math.floor(420 / maxSide));
 				const gap = 6;
+				const padding = 12;
+				const maxSidePx = 420;
+				const innerMax = maxSidePx - padding * 2;
+				const boardW = w >= h ? maxSidePx : innerMax * w / h + padding * 2;
+				const boardH = h >= w ? maxSidePx : innerMax * h / w + padding * 2;
+				const innerW = boardW - padding * 2;
+				const innerH = boardH - padding * 2;
+				const cellSizePx = Math.min((innerW - (w - 1) * gap) / w, (innerH - (h - 1) * gap) / h);
 				return {
-					'--cell-px': cellPx + 'px',
-					gridTemplateColumns: `repeat(${w}, ${cellPx}px)`,
-					gridTemplateRows: `repeat(${h}, ${cellPx}px)`,
-					width: `${w * cellPx + (w - 1) * gap}px`,
-					height: `${h * cellPx + (h - 1) * gap}px`,
+					width: `${boardW}px`,
+					height: `${boardH}px`,
+					gridTemplateColumns: `repeat(${w}, 1fr)`,
+					gridTemplateRows: `repeat(${h}, 1fr)`,
+					'--cell-size': `${cellSizePx}px`,
 				};
 			},
 			emptyIndex() {
@@ -592,6 +577,16 @@
 			clearHint() {
 				this.hintIndex = -1;
 			},
+			cellPositionClass(index) {
+				const val = this.board[index];
+				return {
+					position: true,
+					empty: val === 0,
+					tile: val !== 0,
+					sliding: this.slidingIndex === index,
+					hint: this.hintIndex === index,
+				};
+			},
 			// 提示：与「本局解法」一致。已开答案用 solutionSteps；未开答案时用与 turnOnAnswer 相同的接轨/回滚逻辑，能接上则提示解法下一步，需先回滚则提示撤销上一步（玩家最后一步）
 			getNextStepValue() {
 				if (this.solutionSteps.length && this.solutionIndex < this.solutionSteps.length) {
@@ -609,7 +604,9 @@
 				if (done > 0) {
 					for (let k = 1; k <= done; k++) {
 						const keyAfter = rollbackBoardKey(this.board, this.stepsDone, k, w, h);
-						if (!keyAfter) continue;
+						if (!keyAfter) {
+							continue;
+						}
 						if (this.lastClearedBoardKey && keyAfter === this.lastClearedBoardKey) {
 							return this.stepsDone[done - 1];
 						}
@@ -619,7 +616,10 @@
 					}
 					let prefixOk = true;
 					for (let i = 0; i < done; i++) {
-						if (this.stepsDone[i] !== this.initialSolution[i]) { prefixOk = false; break; }
+						if (this.stepsDone[i] !== this.initialSolution[i]) {
+							prefixOk = false;
+							break;
+						}
 					}
 					if (prefixOk && done < this.initialSolution.length) {
 						return this.initialSolution[done];
@@ -684,7 +684,9 @@
 				if (this.stepsDone.length > 0) {
 					for (let k = 1; k <= this.stepsDone.length; k++) {
 						const keyAfter = rollbackBoardKey(this.board, this.stepsDone, k, w, h);
-						if (!keyAfter) continue;
+						if (!keyAfter) {
+							continue;
+						}
 						if (this.lastClearedBoardKey && keyAfter === this.lastClearedBoardKey) {
 							this.solutionSteps = this.stepsDone.slice(-k).reverse().concat(this.lastRemainingSolution);
 							this.solutionIndex = 0;
