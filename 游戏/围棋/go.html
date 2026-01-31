@@ -55,11 +55,9 @@
 					</div>
 					<div class="one setting group">
 						<el-form-item class="one setting">
-							<div class="komi-input-wrap">
-								<span class="komi-input-prepend">贴目</span>
-								<el-input-number v-model="komi" :step="0.5" :min="0" controls-position="right"
-																 class="komi-input-inner"></el-input-number>
-							</div>
+							<el-input-number v-model="komi" :step="0.5" :min="0" controls-position="right" class="komi-input">
+								<template #prefix>贴目</template>
+							</el-input-number>
 						</el-form-item>
 					</div>
 					<div class="one setting group">
