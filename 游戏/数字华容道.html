@@ -473,8 +473,10 @@
 	// A* 求解，返回 { solution: [要点击的数字序列], error: '不可解' | '求解超时' | null }
 	// 使用最小堆 + 迭代上限，避免界面卡死
 	const SOLVE_MAX_ITERATIONS = 500000;
-	// 格子数不超过此值时，新开一局会用 A* 求最优解作为答案；更大棋盘用“打乱逆序”以免卡顿
+	// 格子数不超过此值时，会在玩家无操作一段时间后用 A* 求最优解替换答案；更大棋盘只用打乱逆序
 	const OPTIMAL_SOLUTION_MAX_N = 20;
+	// 玩家连续多少毫秒无操作后，在后台运行 A* 求最优解（仅当格子数 ≤ OPTIMAL_SOLUTION_MAX_N）
+	const IDLE_BEFORE_OPTIMAL_MS = 5000;
 
 	function solvePuzzleAStar(startBoard, width, height) {
 		const n = width * height;
@@ -567,6 +569,7 @@
 				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
 				_gamingInfoCollapseKey: collapseKey,
 				_gamingInfoDefaultPanels: defaultPanels,
+				_optimalSolutionTimer: null,
 			};
 		},
 		computed: {
@@ -611,6 +614,10 @@
 		},
 		beforeUnmount() {
 			window.removeEventListener('keydown', this.onKeydown);
+			if (this._optimalSolutionTimer != null) {
+				clearTimeout(this._optimalSolutionTimer);
+				this._optimalSolutionTimer = null;
+			}
 			this.clearHint();
 		},
 		methods: {
@@ -634,15 +641,7 @@
 				this.saveConfig();
 				const {board, solution: scrambleSolution} = generateFromGoal(this.gameGridWidth, this.gameGridHeight);
 				this.board = board;
-				let initialSolution = scrambleSolution;
-				const n = this.gameGridWidth * this.gameGridHeight;
-				if (n <= OPTIMAL_SOLUTION_MAX_N) {
-					const optimal = solvePuzzleAStar([...board], this.gameGridWidth, this.gameGridHeight);
-					if (!optimal.error && optimal.solution) {
-						initialSolution = optimal.solution;
-					}
-				}
-				this.initialSolution = initialSolution;
+				this.initialSolution = scrambleSolution;
 				this.solutionSteps = [];
 				this.solutionIndex = 0;
 				this.solutionError = null;
@@ -652,6 +651,26 @@
 				this.slidingIndex = -1;
 				this.clearHint();
 				this.$nextTick(() => this.updateMovable(this.board.indexOf(0)));
+				this.scheduleOptimalSolutionWhenIdle();
+			},
+			/** 在玩家连续无操作 IDLE_BEFORE_OPTIMAL_MS 后，后台用 A* 求最优解并替换 initialSolution */
+			scheduleOptimalSolutionWhenIdle() {
+				if (this._optimalSolutionTimer != null) {
+					clearTimeout(this._optimalSolutionTimer);
+					this._optimalSolutionTimer = null;
+				}
+				const n = this.gameGridWidth * this.gameGridHeight;
+				if (n > OPTIMAL_SOLUTION_MAX_N || this.isWin) return;
+				const boardKey = this.board.join(',');
+				const w = this.gameGridWidth;
+				const h = this.gameGridHeight;
+				this._optimalSolutionTimer = setTimeout(() => {
+					this._optimalSolutionTimer = null;
+					const optimal = solvePuzzleAStar([...this.board], w, h);
+					if (this.board.join(',') === boardKey && !optimal.error && optimal.solution && optimal.solution.length > 0) {
+						this.initialSolution = optimal.solution;
+					}
+				}, IDLE_BEFORE_OPTIMAL_MS);
 			},
 			closeWinModal() {
 				this.showWinModal = false;
@@ -792,6 +811,7 @@
 							this.isWin = true;
 							this.showWinModal = true;
 						}
+						this.scheduleOptimalSolutionWhenIdle();
 					}, 150);
 				});
 			},
