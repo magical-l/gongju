@@ -45,6 +45,7 @@ main > header h2 {
 	margin: 0; /* 移除默认h2的外边距 */
 }
 
+/* ======================== 工具栏 ======================= */
 .toolbar {
 	display: flex;
 	gap: 0;
@@ -54,16 +55,17 @@ main > article > header.toolbar {
 	margin-bottom: 0.75rem;
 }
 
-.toolbar > .area:not(:has(.el-card__body > *)) {
-	display: none !important;
-}
-
+/* -------------- 工具栏里的区域 --------------- */
 .toolbar > .area {
 	display: flex;
 	flex: 1 1 auto;
 	min-width: 0;
 	border-radius: 0;
 	background: #f5f5f5;
+}
+
+.toolbar > .area:not(:has(.el-card__body > *)) {
+	display: none !important;
 }
 
 .toolbar > .area .el-card__body {
@@ -76,11 +78,7 @@ main > article > header.toolbar {
 	background: transparent;
 }
 
-.toolbar > .area.setting {
-	flex: 2 1 auto;
-}
-
-.toolbar > .area.setting .el-form {
+.toolbar > .area .el-form {
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: flex-start;
@@ -88,31 +86,11 @@ main > article > header.toolbar {
 	gap: 0;
 }
 
-
-.status.info.area {
-	display: flex;
-	flex-direction: column;
-	gap: 0.75rem;
+.toolbar > .setting.area {
+	flex: 2 1 auto;
 }
 
-.gaming.info .el-collapse {
-	border-top: none;
-	border-bottom: none;
-}
-
-.gaming.info .el-collapse-item:last-child .el-collapse-item__header,
-.gaming.info .el-collapse-item:last-child .el-collapse-item__wrap {
-	border-bottom: none;
-}
-
-.gaming.info .el-collapse-item__header {
-	font-weight: 600;
-}
-
-.gaming.info .el-collapse-item__header:focus {
-	color: var(--el-collapse-header-text-color);
-}
-
+/* ---- 工具栏里的一组设置 ---- */
 .toolbar .one.group {
 	display: inline-flex;
 	align-items: center;
@@ -136,14 +114,16 @@ main > article > header.toolbar {
 	margin-right: 0;
 }
 
-.toolbar > .area.setting .el-select {
+/* 工具栏里的具体控件 */
+.toolbar .el-select {
 	display: inline-block;
 	min-width: 4rem;
 	width: auto;
 }
 
-.toolbar > .area.setting .el-select.select-width-6ch { min-width: 5.5rem; }
+.toolbar .el-select.select-width-6ch { min-width: 5.5rem; }
 
+/* ========================================================== */
 .toggle-description {
 	padding: 8px 16px;
 	border: 1px solid #ccc;
@@ -182,6 +162,32 @@ main > article > header.toolbar {
 	.result.area {
 		grid-template-columns: 1fr;
 	}
+}
+
+/* ======================================= 状态信息区 ================================== */
+.status.info.area {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+}
+
+/* ======================================= 游戏信息区 ================================== */
+.gaming.info .el-collapse {
+	border-top: none;
+	border-bottom: none;
+}
+
+.gaming.info .el-collapse-item:last-child .el-collapse-item__header,
+.gaming.info .el-collapse-item:last-child .el-collapse-item__wrap {
+	border-bottom: none;
+}
+
+.gaming.info .el-collapse-item__header {
+	font-weight: 600;
+}
+
+.gaming.info .el-collapse-item__header:focus {
+	color: var(--el-collapse-header-text-color);
 }
 
 /*=================================与primevue有关=================================*/
