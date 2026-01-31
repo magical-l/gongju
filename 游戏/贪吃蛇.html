@@ -81,8 +81,7 @@
 
 	<article class="gaming area , 反叵字形 grid" v-cloak>
 		<header class="toolbar , flex items-near-center-x items-stretch">
-			<section class="setting list area">
-				<el-form inline>
+			<section class="setting list area , flex multi-line no-gap items-near-start-x items-near-center-y">
 					<div class="one setting group">
 						<el-form-item label="行" class="one setting : height">
 							<el-select v-model="gridHeight">
@@ -105,9 +104,8 @@
 					<div class="one setting group">
 						<el-button type="danger" class="one controller : restart" @click="initGame" icon="RefreshRight">新局</el-button>
 					</div>
-				</el-form>
 			</section>
-			<section class="controller list area">
+			<section class="controller list area , flex multi-line no-gap items-near-start-x items-near-center-y">
 				<el-button type="primary" class="one controller : pause" @click="togglePause"
 									 :icon="isPaused ? 'VideoPlay' : 'VideoPause'">
 					{{ isPaused ? (score === 0 && !gameOver ? '开始' : '继续') : '暂停' }}

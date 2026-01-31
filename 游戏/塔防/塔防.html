@@ -206,8 +206,7 @@
 <main>
 	<article class="game-wrapper , 反叵字形 grid" v-cloak>
 		<header class="toolbar , flex items-near-center-x items-stretch">
-			<section class="setting list area">
-				<el-form inline>
+			<section class="setting list area , flex multi-line no-gap items-near-start-x items-near-center-y">
 					<div class="one setting group">
 						<el-form-item label="选择关卡" class="one setting">
 							<el-select v-model="currentLevelId" placeholder="请选择" @change="initGame"
@@ -224,9 +223,8 @@
 							</el-radio-group>
 						</el-form-item>
 					</div>
-				</el-form>
 			</section>
-			<section class="controller list area">
+			<section class="controller list area , flex multi-line no-gap items-near-start-x items-near-center-y">
 				<el-button-group>
 					<el-button @click="togglePause" class="one controller" :disabled="gameOver || gameWon" type="primary"
 						:icon="isPaused ? 'VideoPlay' : 'VideoPause'">

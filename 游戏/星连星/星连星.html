@@ -173,8 +173,7 @@
 
 	<article class="gaming area , 反叵字形 grid" v-cloak>
 		<header class="toolbar , flex items-near-center-x items-stretch">
-			<section class="setting list area">
-				<el-form inline>
+			<section class="setting list area , flex multi-line no-gap items-near-start-x items-near-center-y">
 					<div class="one setting group">
 						<el-form-item label="尺寸" class="one setting">
 							<el-select v-model="settings.gridSize" @change="onSettingsChange" class="select-width-6ch">
@@ -202,12 +201,11 @@
 					<div class="one setting group">
 						<el-button type="danger" @click="newGame" icon="RefreshRight">新局</el-button>
 					</div>
-				</el-form>
-			</section>
-			<section class="controller list area">
+							</section>
+			<section class="controller list area , flex multi-line no-gap items-near-start-x items-near-center-y">
 				<el-button type="danger" class="one controller : restart" @click="restartCurrentGame" icon="RefreshLeft">重来			</el-button>
 			</section>
-			<section class="tool list area">
+			<section class="tool list area , flex multi-line no-gap items-near-start-x items-near-center-y">
 				<el-button-group>
 					<el-button class="one tool : hint" @click="showHint" :type="hintColorIndex !== null ? 'primary' : 'default'" icon="MagicStick">提示</el-button>
 					<el-button class="one tool : answer" @click="showAnswer" :type="showAnswerOverlay ? 'primary' : 'default'" icon="Key">答案</el-button>
