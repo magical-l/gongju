@@ -163,6 +163,7 @@ main > article > header.toolbar {
 
 .gaming.info .el-collapse-item__header {
 	font-weight: 600;
+	font-size: 1.2rem;
 }
 
 .gaming.info .el-collapse-item__header:focus {

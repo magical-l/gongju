@@ -170,11 +170,11 @@
 					</el-collapse-item>
 					<el-collapse-item name="round" title="回合">
 						<div class="round-card-body">
-							<div class="round-actions">
+							<div class="round action list">
 								<el-button size="small" @click="exportSGF" :disabled="!isGaming">导出SGF</el-button>
 								<el-button size="small" @click="openImportSGF">导入SGF</el-button>
 							</div>
-							<div v-if="turnHistoryMoves.length" class="turn-history-list">
+							<div v-if="turnHistoryMoves.length" class="turn history list">
 								<span v-for="m in turnHistoryMoves" :key="m.num" class="turn-history-cell">{{ m.num }}<span
 										class="stone-sym" :class="m.isBlack ? 'stone-black' : 'stone-white'"></span>{{ m.text }}</span>
 							</div>
