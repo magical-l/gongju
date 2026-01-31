@@ -239,7 +239,7 @@
 		<aside class="gaming info , right-sidebar">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-					<el-collapse-item name="score" title="对局信息">
+					<el-collapse-item name="score" title="本局信息">
 						<div class="game-info">
 							<div class="progress">
 								<el-progress :percentage="completionPercentage" :status="gameWin ? 'success' : ''"></el-progress>
