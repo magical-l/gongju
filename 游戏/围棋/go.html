@@ -34,7 +34,7 @@
 
 	<article class="gaming area , 反叵字形 grid" v-cloak :class="{ 'is-replaying': isReplaying }">
 		<header class="toolbar , flex items-near-center-x items-stretch">
-			<el-card class="setting list area" shadow="never">
+			<section class="setting list area">
 				<el-form inline>
 					<div class="one setting group">
 						<el-form-item class="one setting">
@@ -68,8 +68,8 @@
 						</el-form-item>
 					</div>
 				</el-form>
-			</el-card>
-			<el-card class="controller list area" shadow="never">
+			</section>
+			<section class="controller list area">
 				<div class="one controller group">
 					<el-button v-if="isGaming" type="danger" icon="RefreshLeft" @click="restartGame">重来</el-button>
 				</div>
@@ -79,8 +79,8 @@
 						<el-button @click="doRedo" :disabled="!canRedo">撤销悔棋</el-button>
 					</el-button-group>
 				</div>
-			</el-card>
-			<el-card class="tool list area" shadow="never">
+			</section>
+			<section class="tool list area">
 				<div class="one tool group">
 					<el-checkbox v-model="showCoords">坐标</el-checkbox>
 				</div>
@@ -95,7 +95,7 @@
 						<el-button type="danger" @click="doResign" :disabled="isGameOver">认输</el-button>
 					</div>
 				</div>
-			</el-card>
+			</section>
 		</header>
 
 		<article class="gaming area , 反叵字形 grid">

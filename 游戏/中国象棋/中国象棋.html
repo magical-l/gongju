@@ -225,7 +225,7 @@
 	<article class="反叵字形 grid" v-cloak>
 		<!-- 模式工具栏 -->
 		<header class="toolbar , flex items-near-center-x items-stretch">
-			<el-card class="setting list area" shadow="never">
+			<section class="setting list area">
 				<el-form inline>
 					<div v-if="isGaming" class="one setting group">
 						<el-button type="info" @click="returnToSettings" icon="RefreshRight">新局</el-button>
@@ -242,13 +242,13 @@
 					</div>
 					<el-button type="primary" icon="VideoPlay" @click="startGame" class="push-right">开始游戏</el-button>
 				</template>
-			</el-card>
-			<el-card class="controller list area" shadow="never">
+			</section>
+			<section class="controller list area">
 				<template v-if="isGaming">
 					<el-button type="danger" icon="RefreshLeft" @click="restartGame">重来</el-button>
 				</template>
-			</el-card>
-			<el-card class="tool list area" shadow="never">
+			</section>
+			<section class="tool list area">
 				<div class="one group">
 					<el-form-item label="对面视角" class="one tool">
 						<el-switch v-model="showReversedView"/>
@@ -259,7 +259,7 @@
 						<el-button type="warning" @click="undoMove" :disabled="!isUndoAvailable">悔棋</el-button>
 					</div>
 				</template>
-			</el-card>
+			</section>
 		</header>
 
 		<!-- 统一棋盘容器 -->

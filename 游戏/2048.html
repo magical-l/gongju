@@ -325,7 +325,7 @@
 
 	<article class="gaming area , 反叵字形 grid" v-cloak>
 		<header class="toolbar , flex items-near-center-x items-stretch">
-			<el-card class="setting list area" shadow="never">
+			<section class="setting list area">
 				<el-form inline>
 					<div class="one setting group">
 						<el-form-item label="行" class="one setting">
@@ -379,10 +379,10 @@
 						</el-form-item>
 					</div>
 				</el-form>
-			</el-card>
-			<el-card class="controller list area" shadow="never">
-				<el-button type="danger" class="one controller : restart" @click="initGame" icon="RefreshLeft">重来</el-button>
-			</el-card>
+			</section>
+			<section class="controller list area">
+				<el-button type="danger" class="one controller : restart" @click="initGame" icon="RefreshLeft">重来			</el-button>
+			</section>
 		</header>
 
 		<article class="main map area , one-row item , flex items-near-center-x">

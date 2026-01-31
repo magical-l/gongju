@@ -154,7 +154,7 @@
 	<article class="game-wrapper , 反叵字形 grid" v-cloak>
 		<header class="toolbar , flex items-near-center-x items-stretch">
 			<!--		<header class="item monopoly , toolbar flex items-mutex">-->
-			<el-card class="setting list area" shadow="never">
+			<section class="setting list area">
 				<el-form inline>
 					<div class="one setting group">
 						<el-form-item label="行" class="one setting">
@@ -187,22 +187,22 @@
 						<el-button type="danger" class="one controller : restart" @click="startGame" icon="RefreshRight">新局</el-button>
 					</div>
 				</el-form>
-			</el-card>
-			<el-card class="controller list area" shadow="never">
+			</section>
+			<section class="controller list area">
 				<el-button v-if="isPaused" class="one controller : pause" title="开始（快捷键：空格）" @click="togglePause"
 									 :disabled="isGameOver" type="primary" icon="VideoPlay">开始
 				</el-button>
 				<el-button v-else class="one controller : pause" title="暂停（快捷键：空格）" @click="togglePause"
 									 :disabled="isGameOver" icon="VideoPause">暂停
 				</el-button>
-			</el-card>
-			<el-card class="tool list area" shadow="never">
+			</section>
+			<section class="tool list area">
 				<el-form inline>
 					<el-form-item label="显示落点">
 						<el-switch class="one tool" v-model="settings.showGhost"></el-switch>
 					</el-form-item>
 				</el-form>
-			</el-card>
+			</section>
 		</header>
 
 		<article class="flex items-near-center-x items-near-start-y" style="grid-row:2">

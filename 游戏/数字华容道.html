@@ -219,7 +219,7 @@
 
 	<article class="gaming area , 反叵字形 grid" v-cloak>
 		<header class="toolbar , flex items-near-center-x items-stretch">
-			<el-card class="setting list area" shadow="never">
+			<section class="setting list area">
 				<el-form inline>
 					<div class="one setting group">
 						<el-form-item label="行">
@@ -237,11 +237,11 @@
 						<el-button type="danger" class="one controller : restart" @click="initGame" icon="RefreshRight">新局</el-button>
 					</div>
 				</el-form>
-			</el-card>
-			<el-card class="tool list area" shadow="never">
+			</section>
+			<section class="tool list area">
 				<el-button class="one tool : hint" @click="showHint" icon="MagicStick">提示</el-button>
-				<el-button class="one tool : answer" @click="getAnswer" :loading="solving" icon="Key">答案</el-button>
-			</el-card>
+				<el-button class="one tool : answer" @click="getAnswer" :loading="solving" icon="Key">答案			</el-button>
+			</section>
 		</header>
 
 		<article class="main map area , flex items-near-center-x">

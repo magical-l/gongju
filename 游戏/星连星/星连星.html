@@ -173,7 +173,7 @@
 
 	<article class="gaming area , 反叵字形 grid" v-cloak>
 		<header class="toolbar , flex items-near-center-x items-stretch">
-			<el-card class="setting list area" shadow="never">
+			<section class="setting list area">
 				<el-form inline>
 					<div class="one setting group">
 						<el-form-item label="尺寸" class="one setting">
@@ -203,15 +203,15 @@
 						<el-button type="danger" @click="newGame" icon="RefreshRight">新局</el-button>
 					</div>
 				</el-form>
-			</el-card>
-			<el-card class="controller list area" shadow="never">
-				<el-button type="danger" class="one controller : restart" @click="restartCurrentGame" icon="RefreshLeft">重来</el-button>
-			</el-card>
-			<el-card class="tool list area" shadow="never">
+			</section>
+			<section class="controller list area">
+				<el-button type="danger" class="one controller : restart" @click="restartCurrentGame" icon="RefreshLeft">重来			</el-button>
+			</section>
+			<section class="tool list area">
 				<el-button class="one tool : answer" @click="showAnswer" :type="showAnswerOverlay ? 'primary' : 'default'"
 									 icon="Key">答案
 				</el-button>
-			</el-card>
+			</section>
 		</header>
 
 		<article class="gaming area , 反叵字形 grid">

@@ -58,24 +58,23 @@ main > article > header.toolbar {
 /* -------------- 工具栏里的区域 --------------- */
 .toolbar > .area {
 	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
 	flex: 1 1 auto;
-	min-width: 0;
+	min-width: min-content;
+	padding: 6px 10px;
+	box-sizing: border-box;
 	border-radius: 0;
 	background: #f5f5f5;
 }
 
-.toolbar > .area:not(:has(.el-card__body > *)) {
-	display: none !important;
+/* 区域之间边界：比内部 .one.group 竖线更粗、更深，区分明显 */
+.toolbar > .area + .area {
+	border-left: 2px solid rgba(0, 0, 0, 0.22);
 }
 
-.toolbar > .area .el-card__body {
-	display: flex;
-	align-items: center;
-	flex-wrap: wrap;
-	padding: 6px 10px;
-	width: 100%;
-	box-sizing: border-box;
-	background: transparent;
+.toolbar > .area:not(:has(> *)) {
+	display: none !important;
 }
 
 .toolbar > .area .el-form {
@@ -84,10 +83,6 @@ main > article > header.toolbar {
 	justify-content: flex-start;
 	align-items: center;
 	gap: 0;
-}
-
-.toolbar > .setting.area {
-	flex: 2 1 auto;
 }
 
 /* ---- 工具栏里的一组设置 ---- */
