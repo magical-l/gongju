@@ -208,9 +208,10 @@
 				<el-button type="danger" class="one controller : restart" @click="restartCurrentGame" icon="RefreshLeft">重来			</el-button>
 			</section>
 			<section class="tool list area">
-				<el-button class="one tool : answer" @click="showAnswer" :type="showAnswerOverlay ? 'primary' : 'default'"
-									 icon="Key">答案
-				</el-button>
+				<el-button-group>
+					<el-button class="one tool : hint" @click="showHint" :type="hintColorIndex !== null ? 'primary' : 'default'" icon="MagicStick">提示</el-button>
+					<el-button class="one tool : answer" @click="showAnswer" :type="showAnswerOverlay ? 'primary' : 'default'" icon="Key">答案</el-button>
+				</el-button-group>
 			</section>
 		</header>
 
@@ -322,6 +323,7 @@
 				gameWin: false,
 				solutionPaths: [], // 本局答案（生成时保存），用于「答案」展示
 				showAnswerOverlay: false,
+				hintColorIndex: null, // 提示时显示的未连接线颜色索引，null 表示不显示
 				settings,
 			};
 		},
@@ -359,6 +361,7 @@
 				this.currentPath = null;
 				this.isDrawing = false;
 				this.showAnswerOverlay = false;
+				this.hintColorIndex = null;
 				this.initCanvas();
 			},
 			/** 新局：按当前设置重新生成地图 */
@@ -368,6 +371,7 @@
 				this.currentPath = null;
 				this.isDrawing = false;
 				this.showAnswerOverlay = false;
+				this.hintColorIndex = null;
 				this.gridSize = this.settings.gridSize;
 				this.generateLevel();
 				this.initCanvas();
@@ -2246,6 +2250,10 @@
 					});
 				}
 
+				// 若刚完成的线正是提示的那条，清除提示
+				if (this.hintColorIndex === this.currentPath.color) {
+					this.hintColorIndex = null;
+				}
 				this.isDrawing = false;
 				this.currentPath = null;
 				this.draw();
@@ -2302,6 +2310,46 @@
 					});
 					this.ctx.globalAlpha = 1;
 				}
+
+				// 提示：随机一条未连接的线的答案路径（虚线、半透明）
+				if (this.hintColorIndex != null && !this.showAnswerOverlay && this.solutionPaths[this.hintColorIndex]) {
+					this.ctx.globalAlpha = 0.75;
+					this.drawPathLine(this.solutionPaths[this.hintColorIndex], COLORS[this.hintColorIndex], true);
+					this.ctx.globalAlpha = 1;
+				}
+			},
+			/** 提示：开关。开时随机显示一条未连接的线，关时取消显示 */
+			showHint() {
+				if (this.gameWin) {
+					this.$message?.success('已经过关了');
+					return;
+				}
+				if (!this.solutionPaths.length) {
+					this.$message?.warning('暂无答案');
+					return;
+				}
+				// 当前已显示提示 → 再点一次即关闭
+				if (this.hintColorIndex !== null) {
+					this.hintColorIndex = null;
+					this.draw();
+					return;
+				}
+				// 未连接的颜色：该颜色没有路径或路径未从一星连到另一星
+				const unconnected = [];
+				for (let c = 0; c < this.solutionPaths.length; c++) {
+					const path = this.paths.find(p => p.color === c);
+					if (!path || !this.pathIsComplete(path)) {
+						unconnected.push(c);
+					}
+				}
+				if (unconnected.length === 0) {
+					this.$message?.info('没有未连接的线');
+					this.draw();
+					return;
+				}
+				const idx = Math.floor(Math.random() * unconnected.length);
+				this.hintColorIndex = unconnected[idx];
+				this.draw();
 			},
 			showAnswer() {
 				if (this.gameWin) {
