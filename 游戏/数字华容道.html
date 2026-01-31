@@ -35,6 +35,14 @@
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 	}
 
+	#game-board.board-won {
+		cursor: not-allowed;
+	}
+
+	#game-board.board-won .position {
+		cursor: not-allowed;
+	}
+
 	.position {
 		min-width: 0;
 		min-height: 0;
@@ -122,6 +130,15 @@
 
 	.answer .one.step.current {
 		border-color: var(--el-color-primary);
+	}
+
+	.answer .one.step.done {
+		border-color: var(--el-color-success);
+	}
+
+	.answer .total.done-tip {
+		color: var(--el-color-success);
+		margin-top: 6px;
 	}
 
 	.answer .total {
@@ -254,7 +271,7 @@
 		</header>
 
 		<article class="main map area , flex items-near-center-x">
-			<div id="game-board" :style="boardStyle">
+			<div id="game-board" :style="boardStyle" :class="{ 'board-won': isWin && !showWinModal }">
 				<div v-for="(val, index) in board" :key="index" :class="cellPositionClass(index)" @click="onCellClick(index)"
 					:draggable="layoutMode" @dragstart="onLayoutDragStart($event, index)" @dragend="onLayoutDragEnd"
 					@dragover.prevent @drop="onLayoutDrop($event, index)">
@@ -280,18 +297,20 @@
 					</el-collapse-item>
 					<el-collapse-item title="回合" name="answer" class="answer">
 						<div class="action list">
-							<el-button v-if="solutionSteps.length" type="primary" size="small" @click="applyNextStep"
-												 :disabled="solutionDone || isWin">
+							<el-button v-if="solutionSteps.length && !isWin" type="primary" size="small" @click="applyNextStep"
+												 :disabled="solutionDone">
 								{{ solutionDone ? '已执行完' : '执行下一步' }}
 							</el-button>
 						</div>
 						<p class="total">
-							已走 {{moves}} 步<span v-if="solutionSteps.length">，共 {{ roundSteps.length }} 步</span>
+							<template v-if="isWin">已完成，共 {{ moves }} 步</template>
+							<template v-else>已走 {{ moves }} 步<span v-if="solutionSteps.length">，共 {{ roundSteps.length }} 步</span></template>
 						</p>
 						<div class="step list">
 							<span v-for="(val, i) in roundSteps" :key="i" class="one step"
-										:class="{ current: i === currentStepIndex }">{{ val }}</span>
+										:class="{ current: i === currentStepIndex && !isWin, done: isWin && i === roundSteps.length - 1 }">{{ val }}</span>
 						</div>
+						<p v-if="isWin" class="total done-tip">本局已过关</p>
 						<div v-if="solutionError" class="error">{{ solutionError }}</div>
 					</el-collapse-item>
 				</el-collapse>
@@ -302,6 +321,7 @@
 					<p>共 {{ moves }} 步</p>
 					<footer class="actions">
 						<el-button @click="closeWinAndNew" icon="RefreshRight" size="large" type="primary">新局</el-button>
+						<el-button @click="closeWinAndLayout" icon="Grid" size="large">布局</el-button>
 						<el-button @click="closeWinModal" size="large">关闭</el-button>
 					</footer>
 				</section>
@@ -594,6 +614,10 @@
 			closeWinAndNew() {
 				this.showWinModal = false;
 				this.initGame();
+			},
+			closeWinAndLayout() {
+				this.showWinModal = false;
+				this.startLayout();
 			},
 			clearHint() {
 				this.hintIndex = -1;
