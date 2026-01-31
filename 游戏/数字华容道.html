@@ -79,6 +79,13 @@
 		z-index: 2;
 	}
 
+	.position.selected {
+		outline: 3px solid var(--el-color-primary);
+		outline-offset: -3px;
+		box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.4);
+		z-index: 2;
+	}
+
 	.moves-display {
 		margin: 15px 0;
 		font-size: 1.2rem;
@@ -209,29 +216,37 @@
 			<section class="setting list area , flex multi-line no-gap items-near-start-x items-near-center-y">
 				<div class="one setting group">
 					<el-form-item label="行" class="one setting : rows">
-						<el-select v-model="gridHeight" @change="saveConfig">
+						<el-select v-model="gridHeight" @change="saveConfig" :disabled="layoutMode">
 							<el-option v-for="h in sizeOptions" :key="'h'+h" :label="h" :value="h"/>
 						</el-select>
 					</el-form-item>
 					<el-form-item label="列" class="one setting : cols">
-						<el-select v-model="gridWidth" @change="saveConfig">
+						<el-select v-model="gridWidth" @change="saveConfig" :disabled="layoutMode">
 							<el-option v-for="w in sizeOptions" :key="'w'+w" :label="w" :value="w"/>
 						</el-select>
 					</el-form-item>
 				</div>
 				<div class="one setting group">
-					<el-button type="danger" class="one setting : new-game" @click="initGame" icon="RefreshRight">新局
-					</el-button>
+					<el-button-group>
+						<template v-if="!layoutMode">
+							<el-button class="one setting : layout" @click="confirmStartLayout" icon="Grid">布局</el-button>
+							<el-button type="danger" class="one setting : new-game" @click="initGame" icon="RefreshRight">新局</el-button>
+						</template>
+						<template v-else>
+							<el-button class="one setting : cancel-layout" @click="cancelLayout">取消</el-button>
+							<el-button type="primary" class="one setting : start-from-layout" @click="startGameFromLayout">开始游戏</el-button>
+						</template>
+					</el-button-group>
 				</div>
 			</section>
 			<section class="tool list area , flex multi-line no-gap items-near-start-x items-near-center-y">
 				<div class="one tool group">
 					<el-button-group>
 						<el-button class="one tool : hint" @click="showHint" :type="hintIndex !== -1 ? 'primary' : 'default'"
-											 icon="MagicStick">提示
+											 icon="MagicStick" :disabled="layoutMode">提示
 						</el-button>
 						<el-button class="one tool : answer" :type="solutionSteps.length ? 'primary' : 'default'" icon="Key"
-											 @click="toggleAnswer">答案
+											 @click="toggleAnswer" :disabled="layoutMode">答案
 						</el-button>
 					</el-button-group>
 				</div>
@@ -240,7 +255,9 @@
 
 		<article class="main map area , flex items-near-center-x">
 			<div id="game-board" :style="boardStyle">
-				<div v-for="(val, index) in board" :key="index" :class="cellPositionClass(index)" @click="onCellClick(index)">
+				<div v-for="(val, index) in board" :key="index" :class="cellPositionClass(index)" @click="onCellClick(index)"
+					:draggable="layoutMode" @dragstart="onLayoutDragStart($event, index)" @dragend="onLayoutDragEnd"
+					@dragover.prevent @drop="onLayoutDrop($event, index)">
 					{{ val || '' }}
 				</div>
 			</div>
@@ -313,24 +330,22 @@
 <script>
 	const {createApp} = Vue;
 
-	// 计算逆序数（不含空位 0，空位用 n*n 表示参与计算）
-	function countInversions(arr, emptyVal) {
-		const a = arr.map(x => x === 0 ? emptyVal : x);
+	// 计算逆序数：只对非空数字按行优先顺序组成的序列求逆序对，空位不参与（标准 N-puzzle 可解性）
+	function countInversions(board) {
+		const a = board.filter(x => x !== 0);
 		let inv = 0;
 		for (let i = 0; i < a.length; i++) {
 			for (let j = i + 1; j < a.length; j++) {
-				if (a[i] > a[j]) {
-					inv++;
-				}
+				if (a[i] > a[j]) inv++;
 			}
 		}
 		return inv;
 	}
 
-	// 可解性：按列数奇偶。奇数列(3×3,4×5等)为逆序数为偶；偶数列(4×4等)为 (逆序数+空位从下往上行号) 为偶
+	// 可解性：奇数列为逆序数偶；偶数列为 (逆序数+空位从下往上行号) 偶
 	function isSolvable(board, width, height) {
 		const n = width * height;
-		const inv = countInversions([...board], n);
+		const inv = countInversions(board);
 		if (width % 2 === 1) {
 			return inv % 2 === 0;
 		}
@@ -464,6 +479,9 @@
 				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
 				_gamingInfoCollapseKey: collapseKey,
 				_gamingInfoDefaultPanels: defaultPanels,
+				layoutMode: false,
+				layoutSelectedIndex: -1,
+				layoutDragSourceIndex: -1,
 			};
 		},
 		computed: {
@@ -588,6 +606,7 @@
 					tile: val !== 0,
 					sliding: this.slidingIndex === index,
 					hint: this.hintIndex === index,
+					selected: this.layoutMode && this.layoutSelectedIndex === index,
 				};
 			},
 			// 提示：与「本局解法」一致。已开答案用 solutionSteps；未开答案时用与 turnOnAnswer 相同的接轨/回滚逻辑，能接上则提示解法下一步，需先回滚则提示撤销上一步（玩家最后一步）
@@ -780,10 +799,117 @@
 				});
 			},
 			onCellClick(index) {
+				if (this.layoutMode) {
+					if (this.layoutSelectedIndex === -1) {
+						this.layoutSelectedIndex = index;
+					} else if (this.layoutSelectedIndex === index) {
+						this.layoutSelectedIndex = -1;
+					} else {
+						const a = this.layoutSelectedIndex;
+						const b = index;
+						const v = this.board[a];
+						this.board[a] = this.board[b];
+						this.board[b] = v;
+						this.layoutSelectedIndex = -1;
+					}
+					return;
+				}
 				this.slideTile(index);
 			},
+			confirmStartLayout() {
+				if (this.$msgbox && this.$msgbox.confirm) {
+					this.$msgbox.confirm('进入布局将放弃当前对局，是否继续？', '布局', {
+						confirmButtonText: '继续',
+						cancelButtonText: '取消',
+						type: 'warning',
+					}).then(() => { this.startLayout(); }).catch(() => {});
+				} else if (window.confirm('进入布局将放弃当前对局，是否继续？')) {
+					this.startLayout();
+				}
+			},
+			startLayout() {
+				this.layoutMode = true;
+				this.layoutSelectedIndex = -1;
+				this.layoutDragSourceIndex = -1;
+				const n = this.gameGridWidth * this.gameGridHeight;
+				this.board = Array.from({ length: n }, (_, i) => i === n - 1 ? 0 : i + 1);
+				this.initialBoard = this.board.slice();
+				this.initialBoardKey = this.board.join(',');
+				this.initialSolution = [];
+				this.stepsDone = [];
+				this.solutionSteps = [];
+				this.lastRemainingSolution = [];
+				this.lastClearedBoardKey = '';
+				this.solutionIndex = 0;
+				this.solutionError = null;
+				this.moves = 0;
+				this.isWin = false;
+				this.showWinModal = false;
+				this.slidingIndex = -1;
+				this.clearHint();
+			},
+			cancelLayout() {
+				this.layoutMode = false;
+				this.layoutSelectedIndex = -1;
+				this.layoutDragSourceIndex = -1;
+				this.initGame();
+			},
+			startGameFromLayout() {
+				const n = this.gameGridWidth * this.gameGridHeight;
+				if (this.board.filter(x => x === 0).length !== 1) {
+					this.$message.warning('请保证有且仅有一个空位（0）');
+					return;
+				}
+				for (let i = 1; i < n; i++) {
+					if (this.board.filter(x => x === i).length !== 1) {
+						this.$message.warning('请保证数字 1～' + (n - 1) + ' 各出现一次');
+						return;
+					}
+				}
+				if (!isSolvable(this.board, this.gameGridWidth, this.gameGridHeight)) {
+					this.$message.warning('该局面不可解，请调整后再开始');
+					return;
+				}
+				this.initialBoard = this.board.slice();
+				this.initialBoardKey = this.board.join(',');
+				this.initialSolution = [];
+				this.stepsDone = [];
+				this.solutionSteps = [];
+				this.lastRemainingSolution = [];
+				this.lastClearedBoardKey = '';
+				this.solutionIndex = 0;
+				this.solutionError = null;
+				this.moves = 0;
+				this.isWin = false;
+				this.showWinModal = false;
+				this.slidingIndex = -1;
+				this.layoutMode = false;
+				this.layoutSelectedIndex = -1;
+				this.layoutDragSourceIndex = -1;
+				this.clearHint();
+				this.$message.success('已从当前布局开始，可开始游玩');
+			},
+			onLayoutDragStart(e, index) {
+				if (!this.layoutMode) return;
+				this.layoutDragSourceIndex = index;
+				e.dataTransfer.effectAllowed = 'move';
+				e.dataTransfer.setData('text/plain', String(index));
+			},
+			onLayoutDragEnd() {
+				this.layoutDragSourceIndex = -1;
+			},
+			onLayoutDrop(e, index) {
+				e.preventDefault();
+				if (!this.layoutMode || this.layoutDragSourceIndex === -1) return;
+				const src = this.layoutDragSourceIndex;
+				if (src === index) return;
+				const v = this.board[src];
+				this.board[src] = this.board[index];
+				this.board[index] = v;
+				this.layoutDragSourceIndex = -1;
+			},
 			onKeydown(e) {
-				if (this.isWin) {
+				if (this.layoutMode || this.isWin) {
 					return;
 				}
 				const keyMap = {ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right'};
