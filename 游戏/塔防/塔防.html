@@ -441,6 +441,7 @@
 					} catch (_) { return defaultPanels; }
 				})(),
 				_gamingInfoCollapseKey: 'gaming-info-tower',
+				_gamingInfoDefaultPanels: ['score'],
 			}
 		},
 		computed: {
@@ -525,7 +526,13 @@
 		},
 		methods: {
 			onGamingInfoCollapseChange(val) {
-				try { localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(val || [])); } catch (_) {}
+				const def = this._gamingInfoDefaultPanels || [];
+				const open = val || [];
+				const isAllExpanded = def.length === open.length && def.every(p => open.includes(p));
+				try {
+					if (isAllExpanded) { localStorage.removeItem(this._gamingInfoCollapseKey); }
+					else { localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(open)); }
+				} catch (_) {}
 			},
 			async loadGameData() {
 				try {

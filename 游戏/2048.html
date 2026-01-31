@@ -493,6 +493,7 @@
 				sizeOptions: [3, 4, 5, 6, 7, 8],
 				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
 				_gamingInfoCollapseKey: collapseKey,
+				_gamingInfoDefaultPanels: defaultPanels,
 			};
 		},
 		computed: {
@@ -521,8 +522,12 @@
 		},
 		methods: {
 			onGamingInfoCollapseChange(val) {
+				const def = this._gamingInfoDefaultPanels || [];
+				const open = val || [];
+				const isAllExpanded = def.length === open.length && def.every(p => open.includes(p));
 				try {
-					localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(val || []));
+					if (isAllExpanded) { localStorage.removeItem(this._gamingInfoCollapseKey); }
+					else { localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(open)); }
 				} catch (_) {}
 			},
 			initGame() {

@@ -541,7 +541,7 @@
 	const app = createApp({
 		data() {
 			const collapseKey = 'gaming-info-huarong';
-			const defaultPanels = ['shortcut', 'score'];
+			const defaultPanels = ['shortcut', 'score', 'answer'];
 			let saved;
 			try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
 			return {
@@ -563,6 +563,7 @@
 				sizeOptions: Array.from({length: MAX_SIZE - MIN_SIZE + 1}, (_, i) => MIN_SIZE + i),
 				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
 				_gamingInfoCollapseKey: collapseKey,
+				_gamingInfoDefaultPanels: defaultPanels,
 			};
 		},
 		computed: {
@@ -611,7 +612,13 @@
 		},
 		methods: {
 			onGamingInfoCollapseChange(val) {
-				try { localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(val || [])); } catch (_) {}
+				const def = this._gamingInfoDefaultPanels || [];
+				const open = val || [];
+				const isAllExpanded = def.length === open.length && def.every(p => open.includes(p));
+				try {
+					if (isAllExpanded) { localStorage.removeItem(this._gamingInfoCollapseKey); }
+					else { localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(open)); }
+				} catch (_) {}
 			},
 			saveConfig() {
 				localStorage.setItem(CONFIG_KEY_W, String(this.gridWidth));

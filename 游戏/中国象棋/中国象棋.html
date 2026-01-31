@@ -436,7 +436,7 @@
 	const app = createApp({
 		data() {
 			const collapseKey = 'gaming-info-xiangqi';
-			const defaultPanels = ['selected', 'score', 'round'];
+			const defaultPanels = ['palette', 'selected', 'globalRules', 'plugins', 'rule', 'score', 'round'];
 			let saved;
 			try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
 			return {
@@ -477,6 +477,7 @@
 				allAvailablePlugins: [],
 				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
 				_gamingInfoCollapseKey: collapseKey,
+				_gamingInfoDefaultPanels: defaultPanels,
 			};
 		},
 		computed: {
@@ -586,7 +587,13 @@
 		},
 		methods: {
 			onGamingInfoCollapseChange(val) {
-				try { localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(val || [])); } catch (_) {}
+				const def = this._gamingInfoDefaultPanels || [];
+				const open = val || [];
+				const isAllExpanded = def.length === open.length && def.every(p => open.includes(p));
+				try {
+					if (isAllExpanded) { localStorage.removeItem(this._gamingInfoCollapseKey); }
+					else { localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(open)); }
+				} catch (_) {}
 			},
 			getCurPlayer() {
 				return this.gaming?.situation.curPlayer;

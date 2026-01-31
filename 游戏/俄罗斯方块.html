@@ -309,6 +309,7 @@
 				helpVisible: false,
 				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
 				_gamingInfoCollapseKey: collapseKey,
+				_gamingInfoDefaultPanels: defaultPanels,
 				settings: {
 					cols: 10,
 					rows: 20,
@@ -428,7 +429,13 @@
 		},
 		methods: {
 			onGamingInfoCollapseChange(val) {
-				try { localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(val || [])); } catch (_) {}
+				const def = this._gamingInfoDefaultPanels || [];
+				const open = val || [];
+				const isAllExpanded = def.length === open.length && def.every(p => open.includes(p));
+				try {
+					if (isAllExpanded) { localStorage.removeItem(this._gamingInfoCollapseKey); }
+					else { localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(open)); }
+				} catch (_) {}
 			},
 			collides(currentGrid, currentPlayer) {
 				const {shape} = currentPlayer.tetromino;

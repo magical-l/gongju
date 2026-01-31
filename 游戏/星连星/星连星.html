@@ -310,6 +310,10 @@
 	const app = createApp({
 		data() {
 			const settings = loadSettings();
+			const collapseKey = 'gaming-info-star';
+			const defaultPanels = ['score'];
+			let saved;
+			try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
 			return {
 				canvas: null,
 				ctx: null,
@@ -325,6 +329,9 @@
 				showAnswerOverlay: false,
 				hintColorIndex: null, // 提示时显示的未连接线颜色索引，null 表示不显示
 				settings,
+				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
+				_gamingInfoCollapseKey: collapseKey,
+				_gamingInfoDefaultPanels: defaultPanels,
 			};
 		},
 		computed: {
@@ -346,7 +353,13 @@
 		},
 		methods: {
 			onGamingInfoCollapseChange(val) {
-				try { localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(val || [])); } catch (_) {}
+				const def = this._gamingInfoDefaultPanels || [];
+				const open = val || [];
+				const isAllExpanded = def.length === open.length && def.every(p => open.includes(p));
+				try {
+					if (isAllExpanded) { localStorage.removeItem(this._gamingInfoCollapseKey); }
+					else { localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(open)); }
+				} catch (_) {}
 			},
 			initCanvas() {
 				this.canvas = document.getElementById('game-canvas');
