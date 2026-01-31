@@ -239,8 +239,10 @@
 				</el-form>
 			</section>
 			<section class="tool list area">
-				<el-button class="one tool : hint" @click="showHint" icon="MagicStick">提示</el-button>
-				<el-button class="one tool : answer" @click="getAnswer" :loading="solving" icon="Key">答案			</el-button>
+				<el-button-group>
+					<el-button class="one tool : hint" @click="showHint" :type="hintIndex !== -1 ? 'primary' : 'default'" icon="MagicStick">提示</el-button>
+					<el-button class="one tool : answer" @click="getAnswer" :loading="solving" icon="Key">答案</el-button>
+				</el-button-group>
 			</section>
 		</header>
 
@@ -557,7 +559,6 @@
 				solutionError: null,
 				solutionIndex: 0,
 				hintIndex: -1,
-				hintTimer: null,
 				showWinModal: false,
 				sizeOptions: Array.from({length: MAX_SIZE - MIN_SIZE + 1}, (_, i) => MIN_SIZE + i),
 				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
@@ -650,10 +651,6 @@
 			},
 			clearHint() {
 				this.hintIndex = -1;
-				if (this.hintTimer) {
-					clearTimeout(this.hintTimer);
-					this.hintTimer = null;
-				}
 			},
 			// 剩余步骤的「当前第 0 步」：已展开答案用 solutionSteps[solutionIndex]，否则用 initialSolution[moves]
 			getNextStepValue() {
@@ -665,8 +662,13 @@
 				}
 				return null;
 			},
+			/** 提示：开关。开时显示下一步应动的格子，关时取消显示 */
 			showHint() {
-				this.clearHint();
+				// 当前已显示提示 → 再点一次即关闭
+				if (this.hintIndex !== -1) {
+					this.hintIndex = -1;
+					return;
+				}
 				const nextVal = this.getNextStepValue();
 				if (nextVal == null) {
 					if (this.isWin) {
@@ -681,10 +683,6 @@
 					return;
 				}
 				this.hintIndex = idx;
-				this.hintTimer = setTimeout(() => {
-					this.hintIndex = -1;
-					this.hintTimer = null;
-				}, 3000);
 			},
 			getAnswer() {
 				if (this.moves === 0 && this.initialSolution.length > 0) {

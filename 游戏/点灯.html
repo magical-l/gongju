@@ -164,7 +164,7 @@
 			</section>
 			<section class="tool list area">
 				<el-button-group>
-					<el-button class="one tool : hint" @click="showRandomHint" icon="MagicStick">提示</el-button>
+					<el-button class="one tool : hint" @click="showRandomHint" :type="hintCellIndex !== null ? 'primary' : 'default'" icon="MagicStick">提示</el-button>
 					<el-button class="one tool : answer" @click="showAnswer" icon="Key">答案</el-button>
 				</el-button-group>
 			</section>
@@ -334,6 +334,7 @@
 				board: [],
 				rounds: [],
 				highlightedCells: [],
+				hintCellIndex: null, // 提示开关：非 null 表示正在显示该格为提示，再点一次关闭
 				showWinModal: false,
 				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
 				_gamingInfoCollapseKey: collapseKey,
@@ -378,6 +379,7 @@
 				this.rounds = [];
 				this.board = Array(this.gameBoardRows).fill(0).map(() => Array(this.gameBoardCols).fill(false));
 				this.highlightedCells = Array(this.gameBoardRows * this.gameBoardCols).fill(false);
+				this.hintCellIndex = null;
 			},
 			closeWinModal() {
 				this.showWinModal = false;
@@ -406,9 +408,16 @@
 				}
 				this.rounds.push({row: row + 1, col: col + 1});
 			},
+			/** 提示：开关。开时随机显示一个建议按的格子，关时取消显示 */
 			showRandomHint() {
 				if (this.isWin) {
 					this.$message.success('已经赢了，无需提示！');
+					return;
+				}
+				// 当前已显示提示 → 再点一次即关闭
+				if (this.hintCellIndex !== null) {
+					this.highlightedCells = Array(this.gameBoardRows * this.gameBoardCols).fill(false);
+					this.hintCellIndex = null;
 					return;
 				}
 
@@ -436,11 +445,11 @@
 				const randomIndex = Math.floor(Math.random() * solutionPresses.length);
 				const hintIndex = solutionPresses[randomIndex];
 
-				// Highlight just that one cell
 				this.highlightedCells = Array(this.gameBoardRows * this.gameBoardCols).fill(false);
 				const newHighlights = [...this.highlightedCells];
 				newHighlights[hintIndex] = true;
 				this.highlightedCells = newHighlights;
+				this.hintCellIndex = hintIndex;
 			},
 			exportRounds() {
 				if (this.rounds.length === 0) {
@@ -464,7 +473,7 @@
 					this.$message.success('已经赢了，无需提示！');
 					return;
 				}
-
+				this.hintCellIndex = null; // 显示答案时关闭提示
 				const solution = solveLightsOut(this.board);
 
 				if (!solution) {
