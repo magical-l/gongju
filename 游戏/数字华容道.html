@@ -236,7 +236,7 @@
 					<el-button class="one tool : hint" @click="showHint" :type="hintIndex !== -1 ? 'primary' : 'default'"
 										 icon="MagicStick">提示
 					</el-button>
-					<el-button class="one tool : answer" @click="getAnswer" :loading="solving" icon="Key">答案</el-button>
+					<el-button class="one tool : answer" :type="solutionSteps.length ? 'primary' : 'default'" :loading="solving" icon="Key" @click="toggleAnswer">答案</el-button>
 				</el-button-group>
 			</section>
 		</header>
@@ -266,24 +266,21 @@
 							<p>{{ moves }}</p>
 						</section>
 					</el-collapse-item>
-					<el-collapse-item v-if="solutionSteps.length || solutionError || solving" name="answer" title="答案" class="answer">
+					<el-collapse-item name="answer" title="回合" class="answer">
+						<div class="action list">
+							<el-button v-if="solutionSteps.length" type="primary" size="small" @click="applyNextStep"
+								:disabled="solutionDone || isWin">
+								{{ solutionDone ? '已执行完' : '执行下一步' }}
+							</el-button>
+						</div>
+						<p class="total">共 {{ roundSteps.length }} 步</p>
+						<div class="step list">
+							<span v-for="(val, i) in roundSteps" :key="i" class="one step" :class="{ current: i === currentStepIndex }">{{ val }}</span>
+						</div>
 						<div v-if="solving" class="moves-display">求解中…</div>
 						<div v-else-if="solutionError" class="moves-display" style="color: var(--el-color-danger);">
 							{{ solutionError }}
 						</div>
-						<template v-else-if="solutionSteps.length">
-							<div class="action list">
-								<el-button v-if="!solving" @click="clearAnswer" size="small">清除</el-button>
-								<el-button type="primary" size="small" @click="applyNextStep"
-									:disabled="solutionDone || isWin">
-									{{ solutionDone ? '已执行完' : '执行下一步' }}
-								</el-button>
-							</div>
-							<p class="total">共 {{ solutionSteps.length }} 步</p>
-							<div class="step list">
-								<span v-for="(val, i) in solutionSteps" :key="i" class="one step" :class="{ current: solutionIndex === i }">{{ val }}</span>
-							</div>
-						</template>
 					</el-collapse-item>
 				</el-collapse>
 			</el-card>
@@ -335,13 +332,41 @@
 		return inv;
 	}
 
-	// 可解性：(逆序数 + 空位从下往上行号) 为偶
+	// 可解性：按列数奇偶。奇数列(3×3,4×5等)为逆序数为偶；偶数列(4×4等)为 (逆序数+空位从下往上行号) 为偶
 	function isSolvable(board, width, height) {
 		const n = width * height;
+		const inv = countInversions([...board], n);
+		if (width % 2 === 1) {
+			return inv % 2 === 0;
+		}
 		const emptyIndex = board.indexOf(0);
 		const rowFromBottom = height - 1 - Math.floor(emptyIndex / width);
-		const inv = countInversions([...board], n);
 		return (inv + rowFromBottom) % 2 === 0;
+	}
+
+	// 在棋盘上应用一步（移动数字 moveVal 到空位），返回新棋盘；不合法则返回 null
+	function applyMove(board, width, height, moveVal) {
+		const emptyIdx = board.indexOf(0);
+		const tileIdx = board.indexOf(moveVal);
+		if (tileIdx < 0) return null;
+		const row = Math.floor(emptyIdx / width), col = emptyIdx % width;
+		const tr = Math.floor(tileIdx / width), tc = tileIdx % width;
+		if (Math.abs(row - tr) + Math.abs(col - tc) !== 1) return null;
+		const next = board.slice();
+		next[emptyIdx] = moveVal;
+		next[tileIdx] = 0;
+		return next;
+	}
+
+	// 从当前局面连续应用「已走步的最后 k 步」（相当于回滚 k 步），返回回滚后的棋盘 key
+	function rollbackBoardKey(board, stepsDone, k, width, height) {
+		let b = board.slice();
+		for (let i = 0; i < k; i++) {
+			const moveVal = stepsDone[stepsDone.length - 1 - i];
+			b = applyMove(b, width, height, moveVal);
+			if (!b) return null;
+		}
+		return b.join(',');
 	}
 
 	// 空位的相邻格索引（棋盘按行优先：index = row * width + col）
@@ -415,117 +440,98 @@
 		return h;
 	}
 
-	// 最小堆（按 f = g + h），用于 A* 的 open 集
-	function MinHeap(compare) {
-		const a = [];
-		return {
-			push(x) {
-				a.push(x);
-				for (let i = a.length - 1; i > 0;) {
-					const p = i - 1 >> 1;
-					if (compare(a[p], a[i]) <= 0) {
-						break;
-					}
-					[a[p], a[i]] = [a[i], a[p]];
-					i = p;
-				}
-			},
-			pop() {
-				if (a.length === 0) {
-					return undefined;
-				}
-				const top = a[0];
-				const last = a.pop();
-				if (a.length === 0) {
-					return top;
-				}
-				a[0] = last;
-				let i = 0;
-				while (true) {
-					const l = 2 * i + 1, r = 2 * i + 2;
-					let best = i;
-					if (l < a.length && compare(a[l], a[best]) < 0) {
-						best = l;
-					}
-					if (r < a.length && compare(a[r], a[best]) < 0) {
-						best = r;
-					}
-					if (best === i) {
-						break;
-					}
-					[a[i], a[best]] = [a[best], a[i]];
-					i = best;
-				}
-				return top;
-			},
-			get length() { return a.length; },
-		};
+	// 生成后继：(空位邻格 → 新棋盘, 移动的数字)
+	function getSuccessors(board, width, height) {
+		const emptyIdx = board.indexOf(0);
+		const moves = neighborsOfEmpty(emptyIdx, width, height);
+		const out = [];
+		for (const tileIdx of moves) {
+			const newBoard = board.slice();
+			const moveVal = newBoard[tileIdx];
+			newBoard[emptyIdx] = moveVal;
+			newBoard[tileIdx] = 0;
+			out.push({board: newBoard, moveVal});
+		}
+		return out;
 	}
 
-	// A* 求解，返回 { solution: [要点击的数字序列], error: '不可解' | '求解超时' | null }
-	// 使用最小堆 + 迭代上限，避免界面卡死
-	const SOLVE_MAX_ITERATIONS = 500000;
-	// 格子数不超过此值时，会在玩家无操作一段时间后用 A* 求最优解替换答案；更大棋盘只用打乱逆序
+	// IDA*：迭代加深 A*，内存占用小，适合滑块；分块执行让出主线程
+	const SOLVE_CHUNK_SIZE = 10000;
+	const SOLVE_MAX_NODES = 8000000;
+	// 格子数不超过此值时，会在玩家无操作一段时间后用求解器求最优解替换答案
 	const OPTIMAL_SOLUTION_MAX_N = 20;
-	// 玩家连续多少毫秒无操作后，在后台运行 A* 求最优解（仅当格子数 ≤ OPTIMAL_SOLUTION_MAX_N）
 	const IDLE_BEFORE_OPTIMAL_MS = 5000;
 
-	function solvePuzzleAStar(startBoard, width, height) {
+	/** 分块执行 IDA*，完成后调用 onDone({ solution, error }) */
+	function solvePuzzleIDAStarAsync(startBoard, width, height, onDone) {
 		const n = width * height;
 		const goal = Array.from({length: n}, (_, i) => i === n - 1 ? 0 : i + 1);
 		const goalKey = goal.join(',');
-		const startKey = startBoard.join(',');
-		if (startKey === goalKey) {
-			return {solution: [], error: null};
-		}
-
-		if (!isSolvable([...startBoard], width, height)) {
-			return {solution: [], error: '不可解'};
-		}
-
-		const visited = new Set();
 		const key = b => b.join(',');
-		const open = MinHeap((a, b) => (a.g + a.h) - (b.g + b.h));
-		open.push({board: [...startBoard], g: 0, h: manhattan(startBoard, width, height), path: []});
+		if (key(startBoard) === goalKey) {
+			onDone({solution: [], error: null});
+			return;
+		}
+		let limit = manhattan(startBoard, width, height);
+		let visited = new Set();
+		let stack = [];
+		let minExceeded = Infinity;
+		let nodesDone = 0;
 
-		let iterations = 0;
-		while (open.length) {
-			if (++iterations > SOLVE_MAX_ITERATIONS) {
-				return {solution: [], error: '求解超时，可尝试新开一局'};
-			}
+		function pushFrame(board, g, path) {
+			const successors = getSuccessors(board, width, height);
+			stack.push({board, g, path, successors, nextIdx: 0});
+		}
 
-			const node = open.pop();
-			const k = key(node.board);
-			if (visited.has(k)) {
-				continue;
-			}
-			visited.add(k);
-			if (k === goalKey) {
-				return {solution: node.path, error: null};
-			}
-
-			const emptyIdx = node.board.indexOf(0);
-			const moves = neighborsOfEmpty(emptyIdx, width, height);
-
-			for (const tileIdx of moves) {
-				const newBoard = node.board.slice();
-				const moveVal = newBoard[tileIdx];
-				newBoard[emptyIdx] = moveVal;
-				newBoard[tileIdx] = 0;
-				const nk = key(newBoard);
-				if (visited.has(nk)) {
+		function runChunk() {
+			const nodeLimit = Math.min(nodesDone + SOLVE_CHUNK_SIZE, SOLVE_MAX_NODES);
+			while (stack.length > 0 && nodesDone < nodeLimit) {
+				const frame = stack[stack.length - 1];
+				if (frame.nextIdx >= frame.successors.length) {
+					visited.delete(key(frame.board));
+					stack.pop();
 					continue;
 				}
-				open.push({
-					board: newBoard,
-					g: node.g + 1,
-					h: manhattan(newBoard, width, height),
-					path: node.path.concat(moveVal),
-				});
+				const succ = frame.successors[frame.nextIdx];
+				const f = frame.g + 1 + manhattan(succ.board, width, height);
+				frame.nextIdx++;
+				nodesDone++;
+				if (key(succ.board) === goalKey) {
+					onDone({solution: frame.path.concat(succ.moveVal), error: null});
+					return;
+				}
+				if (visited.has(key(succ.board))) continue;
+				if (f > limit) {
+					if (f < minExceeded) minExceeded = f;
+					continue;
+				}
+				visited.add(key(succ.board));
+				pushFrame(succ.board, frame.g + 1, frame.path.concat(succ.moveVal));
 			}
+			if (stack.length === 0) {
+				if (minExceeded === Infinity) {
+					onDone({solution: [], error: '无解'});
+					return;
+				}
+				limit = minExceeded;
+				minExceeded = Infinity;
+				visited = new Set();
+				pushFrame(startBoard, 0, []);
+				visited.add(key(startBoard));
+				setTimeout(runChunk, 0);
+				return;
+			}
+			if (nodesDone >= SOLVE_MAX_NODES) {
+				onDone({solution: [], error: '求解超时，可尝试新开一局'});
+				return;
+			}
+			setTimeout(runChunk, 0);
 		}
-		return {solution: [], error: '无解'};
+		pushFrame(startBoard, 0, []);
+		visited.add(key(startBoard));
+		setTimeout(runChunk, 0);
 	}
+
 
 	// 你给的局面 [[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,15,14]] 即最后一格为空时：
 	// 展平为 [1,2,3,4,5,6,7,8,9,10,11,12,13,15,14,0]，逆序数=1（仅 15>14），空位从下往上行号=0，
@@ -550,8 +556,12 @@
 				moves: 0,
 				isWin: false,
 				slidingIndex: -1,
+				stepsDone: [],
 				solutionSteps: [],
 				initialSolution: [],
+				initialBoardKey: '',
+				lastRemainingSolution: [],
+				lastClearedBoardKey: '',
 				solving: false,
 				solutionError: null,
 				solutionIndex: 0,
@@ -584,6 +594,12 @@
 			},
 			solutionDone() {
 				return this.solutionIndex >= this.solutionSteps.length;
+			},
+			roundSteps() {
+				return this.stepsDone.concat(this.solutionSteps.slice(this.solutionIndex));
+			},
+			currentStepIndex() {
+				return this.stepsDone.length;
 			},
 		},
 		watch: {
@@ -634,7 +650,11 @@
 				const {board, solution: scrambleSolution} = generateFromGoal(this.gameGridWidth, this.gameGridHeight);
 				this.board = board;
 				this.initialSolution = scrambleSolution;
+				this.initialBoardKey = board.join(',');
+				this.stepsDone = [];
 				this.solutionSteps = [];
+				this.lastRemainingSolution = [];
+				this.lastClearedBoardKey = '';
 				this.solutionIndex = 0;
 				this.solutionError = null;
 				this.moves = 0;
@@ -645,14 +665,14 @@
 				this.$nextTick(() => this.updateMovable(this.board.indexOf(0)));
 				this.scheduleOptimalSolutionWhenIdle();
 			},
-			/** 在玩家连续无操作 IDLE_BEFORE_OPTIMAL_MS 后，后台用 A* 求最优解并替换 initialSolution */
+			/** 在玩家连续无操作 IDLE_BEFORE_OPTIMAL_MS 后，后台用 A* 求最优解并替换 initialSolution；已有答案时不跑 */
 			scheduleOptimalSolutionWhenIdle() {
 				if (this._optimalSolutionTimer != null) {
 					clearTimeout(this._optimalSolutionTimer);
 					this._optimalSolutionTimer = null;
 				}
 				const n = this.gameGridWidth * this.gameGridHeight;
-				if (n > OPTIMAL_SOLUTION_MAX_N || this.isWin) {
+				if (n > OPTIMAL_SOLUTION_MAX_N || this.isWin || this.solutionSteps.length > 0) {
 					return;
 				}
 				const boardKey = this.board.join(',');
@@ -660,10 +680,11 @@
 				const h = this.gameGridHeight;
 				this._optimalSolutionTimer = setTimeout(() => {
 					this._optimalSolutionTimer = null;
-					const optimal = solvePuzzleAStar([...this.board], w, h);
-					if (this.board.join(',') === boardKey && !optimal.error && optimal.solution && optimal.solution.length > 0) {
-						this.initialSolution = optimal.solution;
-					}
+					solvePuzzleIDAStarAsync([...this.board], w, h, (optimal) => {
+						if (this.board.join(',') === boardKey && !optimal.error && optimal.solution && optimal.solution.length > 0) {
+							this.initialSolution = optimal.solution;
+						}
+					});
 				}, IDLE_BEFORE_OPTIMAL_MS);
 			},
 			closeWinModal() {
@@ -708,36 +729,59 @@
 				}
 				this.hintIndex = idx;
 			},
-			getAnswer() {
+			toggleAnswer() {
+				if (this.solutionSteps.length > 0) {
+					this.turnOffAnswer();
+				} else {
+					this.turnOnAnswer();
+				}
+			},
+			turnOffAnswer() {
+				if (this.solutionSteps.length > 0) {
+					this.lastRemainingSolution = this.solutionSteps.slice(this.solutionIndex);
+					this.lastClearedBoardKey = this.board.join(',');
+				}
+				this.solutionSteps = [];
+				this.solutionError = null;
+				this.solutionIndex = 0;
+			},
+			turnOnAnswer() {
 				if (this.moves === 0 && this.initialSolution.length > 0) {
 					this.solutionSteps = this.initialSolution.slice();
 					this.solutionIndex = 0;
 					this.solutionError = null;
-					this.$message.success('本局答案已就绪，见右侧步骤');
+					this.$message.success('本局答案已就绪，见右侧回合');
 					return;
 				}
-				this.solutionError = null;
-				this.solutionSteps = [];
-				this.solutionIndex = 0;
-				this.solving = true;
-				const board = this.board.slice();
 				const w = this.gameGridWidth;
 				const h = this.gameGridHeight;
-				this.$nextTick(() => {
-					setTimeout(() => {
-						const result = solvePuzzleAStar(board, w, h);
-						this.solving = false;
-						if (result.error) {
-							this.solutionError = result.error;
-							this.$message.warning(result.error);
-						} else {
-							this.solutionSteps = result.solution;
-							if (this.solutionSteps.length === 0) {
-								this.$message.success('已经是完成状态');
-							}
+				if (this.lastRemainingSolution.length > 0 && this.board.join(',') === this.lastClearedBoardKey) {
+					this.solutionSteps = this.lastRemainingSolution.slice();
+					this.solutionIndex = 0;
+					this.solutionError = null;
+					return;
+				}
+				if (this.stepsDone.length > 0) {
+					for (let k = 1; k <= this.stepsDone.length; k++) {
+						const keyAfter = rollbackBoardKey(this.board, this.stepsDone, k, w, h);
+						if (!keyAfter) continue;
+						if (this.lastClearedBoardKey && keyAfter === this.lastClearedBoardKey) {
+							this.solutionSteps = this.stepsDone.slice(-k).reverse().concat(this.lastRemainingSolution);
+							this.solutionIndex = 0;
+							this.solutionError = null;
+							return;
 						}
-					}, 50);
-				});
+						if (keyAfter === this.initialBoardKey && this.initialSolution.length > 0) {
+							this.solutionSteps = this.stepsDone.slice(-k).reverse().concat(this.initialSolution);
+							this.solutionIndex = 0;
+							this.solutionError = null;
+							return;
+						}
+					}
+				}
+				this.solutionError = '当前局面无法接上已有答案，请新开一局后打开答案';
+				this.solutionSteps = [];
+				this.solutionIndex = 0;
 			},
 			applyNextStep() {
 				if (this.solutionIndex >= this.solutionSteps.length || this.isWin) {
@@ -753,12 +797,6 @@
 					return;
 				}
 				this.slideTile(idx, true);
-				this.solutionIndex++;
-			},
-			clearAnswer() {
-				this.solutionSteps = [];
-				this.solutionError = null;
-				this.solutionIndex = 0;
 			},
 			updateMovable() {
 				// 保留空位变化时的钩子，供后续扩展
@@ -789,6 +827,11 @@
 				this.board[emptyIdx] = moveVal;
 				this.board[tileIndex] = 0;
 				this.moves++;
+				this.stepsDone.push(moveVal);
+				if (this.lastRemainingSolution.length > 0 && this.lastRemainingSolution[0] === moveVal) {
+					this.lastRemainingSolution = this.lastRemainingSolution.slice(1);
+					this.lastClearedBoardKey = this.board.join(',');
+				}
 				if (!fromAnswer && this.solutionSteps.length) {
 					if (this.solutionIndex < this.solutionSteps.length && this.solutionSteps[this.solutionIndex] === moveVal) {
 						this.solutionIndex++;
@@ -797,6 +840,9 @@
 						this.solutionError = null;
 						this.solutionIndex = 0;
 					}
+				}
+				if (fromAnswer && this.solutionIndex < this.solutionSteps.length) {
+					this.solutionIndex++;
 				}
 				this.$nextTick(() => {
 					setTimeout(() => {
