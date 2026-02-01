@@ -122,6 +122,7 @@
 	}
 
 	.chessboard.container {
+		justify-self: center;
 		align-self: start;
 		gap: var(--gap);
 	}
@@ -205,7 +206,7 @@
 
 </style>
 </head>
-<body class="grid 目字形">
+<body class="grid 反叵字形">
 <header>
 	<h1 class="website name" title="工具人（gongju.ren）域名太贵买不起">工具兽</h1>
 	<nav>
@@ -222,8 +223,8 @@
 		<a href="../点灯.html">点灯</a>
 	</nav>
 </header>
-<main class="flex items-near-center-x">
-	<article class="反叵字形 grid" v-cloak>
+<main class="flex items-stretch">
+	<article class="反叵字形 grid item stretch" v-cloak>
 		<!-- 模式工具栏 -->
 		<header class="toolbar , flex multi-line no-gap items-near-center-x items-stretch">
 			<section class="setting list area , flex single-line no-gap items-near-start-x items-near-center-y">
@@ -255,7 +256,7 @@
 			</section>
 			<section class="tool list area , flex single-line no-gap items-near-start-x items-near-center-y">
 				<div class="one tool group">
-					<el-form-item label="对面视角" class="one tool : reversed-view">
+					<el-form-item label="交换视角" class="one tool : reversed-view">
 						<el-switch v-model="showReversedView"/>
 					</el-form-item>
 				</div>
@@ -265,8 +266,8 @@
 			</section>
 		</header>
 
-		<!-- 统一棋盘容器：主区域一个棋盘，随「对面视角」切换正/反 -->
-		<div class="chessboard container flex items-like-册">
+		<!-- 主棋盘固定 60px/格，水平居中、垂直靠顶 -->
+		<div class="chessboard container flex items-near-center-x items-near-start-y">
 			<article v-if="!showReversedView" class="one chessboard , grid no-gap" :class="{ editor: !isGaming, area: isGaming }">
 				<template v-if="positions && positions.length > 0" v-for="(row, r) in positions">
 					<div class="cell" v-for="(position, c) in row" :key="position.toString()"
@@ -431,7 +432,7 @@
 	</article>
 </main>
 
-<footer>
+<aside class="right-sidebar">
 	<article class="website info">
 		<section class="patronage area">
 			<img class="qr-code" src="../../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
@@ -441,7 +442,7 @@
 		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
 		</section>
 	</article>
-</footer>
+</aside>
 
 <div class="js container">
 	<script src="../../resources/math.js"></script>
