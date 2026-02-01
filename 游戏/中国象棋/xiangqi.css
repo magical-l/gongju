@@ -169,6 +169,20 @@
 	box-shadow: 0 0 10px #007bff;
 }
 
+/* 非棋盘内的棋子展示（选中预览 / 杀敌记录 / 棋子库）：无格子约束，用固定尺寸覆盖基类 90%，避免 flex 下被拉满一行 */
+.selected.unit.preview .unit.display,
+.record-piece .unit.display,
+.piece.palette .unit.display {
+	width: 45px;
+	height: 45px;
+	min-width: 45px;
+	min-height: 45px;
+	max-width: 45px;
+	max-height: 45px;
+	flex: none;
+	font-size: calc(45px * 0.7);
+}
+
 /* 统一用伪元素实现提示图标 */
 .one.chessboard .cell.movable::after,
 .one.chessboard .cell.attack::before,

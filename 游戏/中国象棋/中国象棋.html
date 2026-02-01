@@ -108,18 +108,7 @@
 		border-radius: 4px;
 	}
 
-	.piece.type.grid .unit.display {
-		width: 45px;
-		height: 45px;
-	}
-
-	.selected.unit.preview {
-		width: 40px;
-		height: 40px;
-		font-size: 28px;
-		display: inline-flex;
-		vertical-align: middle;
-	}
+	/* 棋子库内棋子尺寸见 xiangqi.css .piece.palette .unit.display */
 
 	.chessboard.container {
 		justify-self: center;
@@ -180,16 +169,25 @@
 		.kill.info .record {
 			display: flex;
 			align-items: center;
-			justify-content: space-between;
+			gap: 8px;
 			padding: 5px 0;
 			border-bottom: 1px dashed #eee;
 		}
 
-		.kill.info .unit.display {
-			--min-cell-len: 45px;
-			width: var(--min-cell-len);
-			height: var(--min-cell-len);
-			font-family: NotoSansSymbols2, sans-serif;
+		.kill.info .record-piece {
+			display: inline-flex;
+			flex: 0 0 45px;
+			width: 45px;
+			min-width: 45px;
+			max-width: 45px;
+			height: 45px;
+			min-height: 45px;
+			max-height: 45px;
+			align-items: center;
+			justify-content: center;
+			box-sizing: border-box;
+			align-self: center;
+			flex-shrink: 0;
 		}
 
 		.kill.info .meta {
@@ -197,11 +195,36 @@
 			color: #909399;
 		}
 
+		/* 当前选中：顶部展示的棋子容器，固定尺寸且不参与父级拉伸；棋子样式见 xiangqi.css .selected.unit.preview .unit.display */
+		.selected.unit.preview {
+			display: inline-flex;
+			flex: 0 0 50px;
+			width: 50px;
+			min-width: 50px;
+			max-width: 50px;
+			height: 50px;
+			min-height: 50px;
+			max-height: 50px;
+			align-items: center;
+			justify-content: center;
+			margin-bottom: 10px;
+			box-sizing: border-box;
+			align-self: flex-start;
+			flex-shrink: 0;
+		}
+
 		.no-kills {
 			color: #909399;
 			font-style: italic;
 			padding: 10px 0;
 			text-align: center;
+		}
+
+		/* 当前选中卡片：子项不横向拉伸，避免棋子预览和杀敌列表占满一行 */
+		.selected.unit {
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
 		}
 
 </style>
@@ -364,6 +387,9 @@
 					</el-collapse-item>
 					<el-collapse-item name="selected" title="当前选中">
 						<div v-if="isGaming && selectedUnit" class="selected unit">
+							<div class="selected unit preview">
+								<div class="unit display" :class="getUnitClasses(selectedUnit)">{{ selectedUnit.display }}</div>
+							</div>
 							<strong>技能:</strong>
 							<div style="margin-top: 5px;">
 								<el-tag v-if="selectedUnit.skills" v-for="skill in selectedUnit.skills" :key="skill.name" type="info"
@@ -374,8 +400,8 @@
 								<header>杀敌数 <span class="count">{{ selectedUnit.killCount }}</span></header>
 								<div class="details" v-if="selectedUnit.kills && selectedUnit.kills.length > 0">
 									<div class="record" v-for="(kill, ki) in selectedUnit.kills" :key="ki">
-										<div class="unit display" :class="kill.unit.owner.team.flag">{{ kill.unit.display }}</div>
-										<div class="meta">第{{ kill.round }}回合</div>
+										<span class="record-piece"><span class="unit display" :class="kill.unit.owner.team.flag">{{ kill.unit.display }}</span></span>
+										<span class="meta">第{{ kill.round }}回合</span>
 									</div>
 								</div>
 								<div v-else class="no-kills">暂无杀敌记录</div>
