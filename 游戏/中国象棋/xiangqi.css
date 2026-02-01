@@ -231,3 +231,8 @@
 	transform: rotate(45deg);
 	border-radius: 2px;
 }
+
+/* 小视图（如右侧栏「对面视角」）棋盘：格子缩小，整盘自然缩小 */
+.reversed-board-in-sidebar .one.chessboard {
+	--min-cell-len: 26px;
+}

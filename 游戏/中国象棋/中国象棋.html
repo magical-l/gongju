@@ -202,6 +202,7 @@
 			padding: 10px 0;
 			text-align: center;
 		}
+
 </style>
 </head>
 <body class="grid 目字形">
@@ -264,10 +265,9 @@
 			</section>
 		</header>
 
-		<!-- 统一棋盘容器 -->
-		<div class="chessboard container flex items-like-册"
-				 :class="{ 'dual view': showReversedView }">
-			<article class="one chessboard , grid no-gap" :class="{ editor: !isGaming, area: isGaming }">
+		<!-- 统一棋盘容器：主区域一个棋盘，随「对面视角」切换正/反 -->
+		<div class="chessboard container flex items-like-册">
+			<article v-if="!showReversedView" class="one chessboard , grid no-gap" :class="{ editor: !isGaming, area: isGaming }">
 				<template v-if="positions && positions.length > 0" v-for="(row, r) in positions">
 					<div class="cell" v-for="(position, c) in row" :key="position.toString()"
 							 :class="getDynamicCellClasses(r, c, position)"
@@ -284,8 +284,8 @@
 					</div>
 				</template>
 			</article>
-			<article class="one chessboard reversed view , grid no-gap"
-							 v-if="showReversedView && positions && positions.length > 0">
+			<article v-else class="one chessboard reversed view , grid no-gap"
+							 v-if="positions && positions.length > 0">
 				<template v-for="(row,rIndex) of reversedPositions">
 					<div class="cell" v-for="(position,cIndex) in row" :key="position.toString()"
 							 :class="getDynamicCellClasses(9-rIndex, 8-cIndex, position, rIndex, cIndex)"
@@ -304,6 +304,24 @@
 		<aside class="gaming info , right-sidebar">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
+					<el-collapse-item name="view" title="对面视角" class="sidebar-view-panel">
+						<div class="reversed-board-in-sidebar" v-if="positions && positions.length > 0">
+							<article class="one chessboard reversed view sidebar-reversed-board , grid no-gap">
+								<template v-for="(row,rIndex) of reversedPositions">
+									<div class="cell" v-for="(position,cIndex) in row" :key="'rev-'+position.toString()"
+											 :class="getDynamicCellClasses(9-rIndex, 8-cIndex, position, rIndex, cIndex)"
+											 @click="handleCellClick(9-rIndex, 8-cIndex, position)">
+										<div class="texture"></div>
+										<div class="unit display"
+												 v-for="unit in boardForRender[position.rowNum - 1][position.colNum - 1]" :key="unit.id"
+												 :class="isGaming ? getUnitClasses(unit) : getEditorPieceClasses(unit.name, position.rowNum - 1, position.colNum - 1)">
+											{{ unit.display }}
+										</div>
+									</div>
+								</template>
+							</article>
+						</div>
+					</el-collapse-item>
 					<el-collapse-item v-if="!isGaming" name="palette" title="棋子库">
 						<div class="piece type grid piece palette grid flex vertical" style="--min-cell-len: 45px">
 							<div class="unit display" v-for="(piece, type) in boardEditor.pieceTypes" :key="type"
@@ -442,7 +460,7 @@
 	const app = createApp({
 		data() {
 			const collapseKey = 'gaming-info-xiangqi';
-			const defaultPanels = ['palette', 'selected', 'globalRules', 'plugins', 'score', 'round'];
+			const defaultPanels = ['view', 'palette', 'selected', 'globalRules', 'plugins', 'score', 'round'];
 			let saved;
 			try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
 			return {
