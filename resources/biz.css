@@ -48,14 +48,16 @@ main > header h2 {
 /* ======================== 工具栏 ======================= */
 .toolbar {
 	display: flex;
-	gap: 0;
+	flex-wrap: wrap;
+	justify-content: flex-start; /* 区域水平靠左 */
+	gap: 0.5rem 0;
 }
 
 main > article > header.toolbar {
 	margin-bottom: 0.75rem;
 }
 
-/* -------------- 工具栏里的区域 --------------- */
+/* -------------- 工具栏里的区域（整体可换行，单区不换行） --------------- */
 .toolbar > .area {
 	flex: 1 1 auto;
 	min-width: min-content;

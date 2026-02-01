@@ -33,8 +33,8 @@
 	</header>
 
 	<article class="gaming area , 反叵字形 grid" v-cloak :class="{ 'is-replaying': isReplaying }">
-		<header class="toolbar , flex items-near-center-x items-stretch">
-			<section class="setting list area , flex multi-line no-gap items-near-start-x items-near-center-y">
+		<header class="toolbar , flex multi-line no-gap items-near-center-x items-stretch">
+			<section class="setting list area , flex single-line no-gap items-near-start-x items-near-center-y">
 				<div class="one setting group">
 					<el-form-item class="one setting : board-size">
 						<el-select v-model="pendingBoardSize" class="config-item board-size-select" @change="onBoardSizeChange">
@@ -67,7 +67,7 @@
 					</el-form-item>
 				</div>
 			</section>
-			<section class="controller list area , flex multi-line no-gap items-near-start-x items-near-center-y">
+			<section class="controller list area , flex single-line no-gap items-near-start-x items-near-center-y">
 				<div class="one controller group">
 					<el-button v-if="isGaming" type="danger" icon="RefreshLeft" class="one controller : restart" @click="restartGame">重来</el-button>
 				</div>
@@ -78,7 +78,7 @@
 					</el-button-group>
 				</div>
 			</section>
-			<section class="tool list area , flex multi-line no-gap items-near-start-x items-near-center-y">
+			<section class="tool list area , flex single-line no-gap items-near-start-x items-near-center-y">
 				<div class="one tool group">
 					<el-checkbox v-model="showCoords" class="one tool : coords">坐标</el-checkbox>
 				</div>

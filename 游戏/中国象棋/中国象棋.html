@@ -224,8 +224,8 @@
 <main class="flex items-near-center-x">
 	<article class="反叵字形 grid" v-cloak>
 		<!-- 模式工具栏 -->
-		<header class="toolbar , flex items-near-center-x items-stretch">
-			<section class="setting list area , flex multi-line no-gap items-near-start-x items-near-center-y">
+		<header class="toolbar , flex multi-line no-gap items-near-center-x items-stretch">
+			<section class="setting list area , flex single-line no-gap items-near-start-x items-near-center-y">
 				<div v-if="isGaming" class="one setting group">
 					<el-button type="info" class="one setting : new-game" @click="returnToSettings" icon="RefreshRight">新局</el-button>
 				</div>
@@ -252,7 +252,7 @@
 					<el-button type="danger" icon="RefreshLeft" class="one controller : restart" @click="restartGame">重来</el-button>
 				</div>
 			</section>
-			<section class="tool list area , flex multi-line no-gap items-near-start-x items-near-center-y">
+			<section class="tool list area , flex single-line no-gap items-near-start-x items-near-center-y">
 				<div class="one tool group">
 					<el-form-item label="对面视角" class="one tool : reversed-view">
 						<el-switch v-model="showReversedView"/>

@@ -324,8 +324,8 @@
 	</header>
 
 	<article class="gaming area , 反叵字形 grid" v-cloak>
-		<header class="toolbar , flex items-near-center-x items-stretch">
-			<section class="setting list area , flex multi-line no-gap items-near-start-x items-near-center-y">
+		<header class="toolbar , flex multi-line no-gap items-near-center-x items-stretch">
+			<section class="setting list area , flex single-line no-gap items-near-start-x items-near-center-y">
 				<div class="one setting group">
 					<el-form-item label="行" class="one setting : rows">
 						<el-select v-model="settings.boardHeight">
@@ -378,7 +378,7 @@
 					</el-form-item>
 				</div>
 			</section>
-			<section class="controller list area , flex multi-line no-gap items-near-start-x items-near-center-y">
+			<section class="controller list area , flex single-line no-gap items-near-start-x items-near-center-y">
 				<div class="one controller group">
 					<el-button type="danger" class="one controller : restart" @click="initGame" icon="RefreshLeft">重来</el-button>
 				</div>
