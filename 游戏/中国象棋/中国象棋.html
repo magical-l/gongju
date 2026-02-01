@@ -362,11 +362,12 @@
 							<el-checkbox v-for="plugin in allAvailablePlugins" :key="plugin" :label="plugin"/>
 						</el-checkbox-group>
 					</el-collapse-item>
-					<el-collapse-item v-if="isGaming" name="rule" title="规矩">
-						<span>{{ gameSettings.firstPlayer === 'red' ? '红先' : '黑先' }}</span>
-					</el-collapse-item>
 					<el-collapse-item v-if="isGaming" name="score" title="本局信息">
-						<span class="game-info">当前玩家: {{ curPlayerLabel }}</span>
+						<div class="game-info">
+							<div>先手：{{ gameFirstLabel }}</div>
+							<div>当前：{{ curPlayerLabel || '—' }}</div>
+							<div>回合：<template v-if="currentRound === 0">尚未走棋</template><template v-else>第 {{ currentRound }} 回合</template></div>
+						</div>
 					</el-collapse-item>
 					<el-collapse-item v-if="isGaming" name="round" title="回合">
 						<el-table :data="turnHistory" row-key="id" stripe style="width: 100%" height="400" empty-text="尚未走棋">
@@ -441,7 +442,7 @@
 	const app = createApp({
 		data() {
 			const collapseKey = 'gaming-info-xiangqi';
-			const defaultPanels = ['palette', 'selected', 'globalRules', 'plugins', 'rule', 'score', 'round'];
+			const defaultPanels = ['palette', 'selected', 'globalRules', 'plugins', 'score', 'round'];
 			let saved;
 			try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
 			return {
@@ -486,12 +487,26 @@
 			};
 		},
 		computed: {
+			gameFirstLabel() {
+				return this.gameSettings.firstPlayer === 'red' ? '红先' : '黑先';
+			},
 			curPlayerLabel() {
 				const p = this.getCurPlayer();
 				if (!p) {
 					return '';
 				}
 				return p.id === 红方玩家id ? '红方' : '黑方';
+			},
+			currentRound() {
+				if (!this.isGaming || !this.turnHistoryForRender) {
+					return 0;
+				}
+				const n = this.turnHistoryForRender.length;
+				const p = this.getCurPlayer();
+				if (n === 0) {
+					return p ? 1 : 0; // 红方即将走第 1 回合
+				}
+				return p && p.id === 红方玩家id ? n + 1 : n; // 红方走则下一回合，黑方走则本回合
 			},
 			isGaming() {
 				return !!this.gaming;
