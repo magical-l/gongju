@@ -224,7 +224,7 @@
 	</nav>
 </header>
 <main class="flex items-stretch">
-	<article class="反叵字形 grid item stretch" v-cloak>
+	<article class="gaming area , 反叵字形 grid item stretch" v-cloak>
 		<!-- 模式工具栏 -->
 		<header class="toolbar , flex multi-line no-gap items-near-center-x items-stretch">
 			<section class="setting list area , flex single-line no-gap items-near-start-x items-near-center-y">
@@ -267,9 +267,7 @@
 					</el-button>
 				</div>
 				<div class="one tool group">
-					<el-form-item label="交换视角" class="one tool : reversed-view">
-						<el-switch v-model="showReversedView"/>
-					</el-form-item>
+					<el-button type="info" plain class="one tool : reversed-view" @click="showReversedView = !showReversedView">交换视角</el-button>
 				</div>
 			</section>
 		</header>

@@ -23,6 +23,10 @@
 	--反叵字形-gap: var(--gap);
 }
 
+.gaming.area {
+	--反叵字形-right-sidebar-min-width: 380px;
+}
+
 main {
 	flex: 1;
 	width: 100%;
