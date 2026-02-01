@@ -306,7 +306,21 @@
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
 					<el-collapse-item name="view" title="对面视角" class="sidebar-view-panel">
 						<div class="reversed-board-in-sidebar" v-if="positions && positions.length > 0">
-							<article class="one chessboard reversed view sidebar-reversed-board , grid no-gap">
+							<!-- 交换视角：开关开时主区为对面、侧栏为正常；关时主区为正常、侧栏为对面 -->
+							<article v-if="showReversedView" class="one chessboard sidebar-reversed-board , grid no-gap" :class="{ editor: !isGaming, area: isGaming }">
+								<template v-for="(row, r) in positions">
+									<div class="cell" v-for="(position, c) in row" :key="'sb-'+position.toString()"
+											 :class="getDynamicCellClasses(r, c, position)"
+											 @click="handleCellClick(r, c, position)">
+										<div class="texture"></div>
+										<div class="unit display" :class="isGaming ? getUnitClasses(unit) : getEditorPieceClasses(unit.name, r, c)"
+												 v-for="unit in boardForRender[r][c]" :key="unit.id">
+											{{ unit.display }}
+										</div>
+									</div>
+								</template>
+							</article>
+							<article v-else class="one chessboard reversed view sidebar-reversed-board , grid no-gap">
 								<template v-for="(row,rIndex) of reversedPositions">
 									<div class="cell" v-for="(position,cIndex) in row" :key="'rev-'+position.toString()"
 											 :class="getDynamicCellClasses(9-rIndex, 8-cIndex, position, rIndex, cIndex)"
