@@ -236,8 +236,7 @@
 		<header class="toolbar , flex multi-line no-gap items-near-center-x items-stretch">
 			<section class="setting list area , flex single-line no-gap items-near-start-x items-near-center-y">
 				<div v-if="isGaming" class="one setting group">
-					<el-button type="info" class="one setting : new-game" @click="returnToSettings" icon="RefreshRight"
-										 type="danger">新局
+					<el-button type="danger" class="one setting : new-game" @click="returnToSettings" icon="RefreshRight">新局
 					</el-button>
 				</div>
 				<template v-if="!isGaming">
