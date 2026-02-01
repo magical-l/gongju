@@ -229,14 +229,18 @@
 		<header class="toolbar , flex multi-line no-gap items-near-center-x items-stretch">
 			<section class="setting list area , flex single-line no-gap items-near-start-x items-near-center-y">
 				<div v-if="isGaming" class="one setting group">
-					<el-button type="info" class="one setting : new-game" @click="returnToSettings" icon="RefreshRight">新局</el-button>
+					<el-button type="info" class="one setting : new-game" @click="returnToSettings" icon="RefreshRight"
+										 type="danger">新局
+					</el-button>
 				</div>
 				<template v-if="!isGaming">
 					<div class="one setting group">
-						<el-button @click="resetBoard" type="info" inline plain class="one setting : default-board">默认棋盘</el-button>
+						<el-button @click="resetBoard" type="info" inline plain class="one setting : default-board">默认棋盘
+						</el-button>
 					</div>
 					<div class="one setting group">
-						<el-button @click="clearBoard" type="danger" inline plain class="one setting : clear-board">清空棋盘</el-button>
+						<el-button @click="clearBoard" type="danger" inline plain class="one setting : clear-board">清空棋盘
+						</el-button>
 					</div>
 					<div class="one setting group">
 						<el-radio-group v-model="gameSettings.firstPlayer" class="one setting : first-player">
@@ -245,30 +249,35 @@
 						</el-radio-group>
 					</div>
 					<div class="one setting group">
-						<el-button type="primary" icon="VideoPlay" @click="startGame" class="one setting : start-game push-right">开始游戏</el-button>
+						<el-button type="primary" icon="VideoPlay" @click="startGame" class="one setting : start-game push-right">
+							开始游戏
+						</el-button>
 					</div>
 				</template>
 			</section>
 			<section class="controller list area , flex multi-line no-gap items-near-start-x items-near-center-y">
 				<div v-if="isGaming" class="one controller group">
-					<el-button type="danger" icon="RefreshLeft" class="one controller : restart" @click="restartGame">重来</el-button>
+					<el-button type="danger" icon="RefreshLeft" class="one controller : restart" @click="restartGame">重来
+					</el-button>
 				</div>
 			</section>
 			<section class="tool list area , flex single-line no-gap items-near-start-x items-near-center-y">
+				<div v-if="isGaming" class="one tool group">
+					<el-button type="warning" @click="undoMove" :disabled="!isUndoAvailable" class="one tool : undo">悔棋
+					</el-button>
+				</div>
 				<div class="one tool group">
 					<el-form-item label="交换视角" class="one tool : reversed-view">
 						<el-switch v-model="showReversedView"/>
 					</el-form-item>
-				</div>
-				<div v-if="isGaming" class="one tool group">
-					<el-button type="warning" @click="undoMove" :disabled="!isUndoAvailable" class="one tool : undo">悔棋</el-button>
 				</div>
 			</section>
 		</header>
 
 		<!-- 主棋盘固定 60px/格，水平居中、垂直靠顶 -->
 		<div class="chessboard container flex items-near-center-x items-near-start-y">
-			<article v-if="!showReversedView" class="one chessboard , grid no-gap" :class="{ editor: !isGaming, area: isGaming }">
+			<article v-if="!showReversedView" class="one chessboard , grid no-gap"
+							 :class="{ editor: !isGaming, area: isGaming }">
 				<template v-if="positions && positions.length > 0" v-for="(row, r) in positions">
 					<div class="cell" v-for="(position, c) in row" :key="position.toString()"
 							 :class="getDynamicCellClasses(r, c, position)"
@@ -308,13 +317,15 @@
 					<el-collapse-item name="view" title="对面视角" class="sidebar-view-panel">
 						<div class="reversed-board-in-sidebar" v-if="positions && positions.length > 0">
 							<!-- 交换视角：开关开时主区为对面、侧栏为正常；关时主区为正常、侧栏为对面 -->
-							<article v-if="showReversedView" class="one chessboard sidebar-reversed-board , grid no-gap" :class="{ editor: !isGaming, area: isGaming }">
+							<article v-if="showReversedView" class="one chessboard sidebar-reversed-board , grid no-gap"
+											 :class="{ editor: !isGaming, area: isGaming }">
 								<template v-for="(row, r) in positions">
 									<div class="cell" v-for="(position, c) in row" :key="'sb-'+position.toString()"
 											 :class="getDynamicCellClasses(r, c, position)"
 											 @click="handleCellClick(r, c, position)">
 										<div class="texture"></div>
-										<div class="unit display" :class="isGaming ? getUnitClasses(unit) : getEditorPieceClasses(unit.name, r, c)"
+										<div class="unit display"
+												 :class="isGaming ? getUnitClasses(unit) : getEditorPieceClasses(unit.name, r, c)"
 												 v-for="unit in boardForRender[r][c]" :key="unit.id">
 											{{ unit.display }}
 										</div>
@@ -399,7 +410,10 @@
 						<div class="game-info">
 							<div>先手：{{ gameFirstLabel }}</div>
 							<div>当前：{{ curPlayerLabel || '—' }}</div>
-							<div>回合：<template v-if="currentRound === 0">尚未走棋</template><template v-else>第 {{ currentRound }} 回合</template></div>
+							<div>回合：
+								<template v-if="currentRound === 0">尚未走棋</template>
+								<template v-else>第 {{ currentRound }} 回合</template>
+							</div>
 						</div>
 					</el-collapse-item>
 					<el-collapse-item v-if="isGaming" name="round" title="回合">

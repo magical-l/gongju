@@ -4,7 +4,7 @@
 	--left-sidebar-min-width: 150px;
 	--left-sidebar-max-width: 20%;
 	--right-sidebar-min-width: 150px;
-	--right-sidebar-max-width: 380px;
+	--right-sidebar-max-width: 300px;
 	--gap: 0.5rem;
 	--亚字形-left-sidebar-min-width: var(--left-sidebar-min-width);
 	--亚字形-left-sidebar-max-width: var(--left-sidebar-max-width);
