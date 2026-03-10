@@ -42,36 +42,25 @@ body.settings-open {
 .gaming.area .toolbar .btn:hover { filter: brightness(1.08); }
 .gaming.area .toolbar .btn:active { filter: brightness(0.95); }
 
-/* 右侧本局信息（得分、最高记录），与贪吃蛇等一致 */
-.gaming.info.right-sidebar .scoreboard {
-  background: #f5f5f5;
-  border-radius: 8px;
-  padding: 1rem;
-  box-sizing: border-box;
-}
-.gaming.info.right-sidebar .scoreboard-title {
-  margin: 0 0 0.75rem;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-dark);
-  text-align: center;
-}
-.gaming.info.right-sidebar .scoreboard section {
+/* 右侧本局信息（el-card + el-collapse，与贪吃蛇一致） */
+.gaming.info.right-sidebar .el-collapse-item__content section {
   text-align: center;
   margin: 0.75rem 0;
 }
-.gaming.info.right-sidebar .scoreboard h4 {
+.gaming.info.right-sidebar .el-collapse-item__content h3 {
   margin: 0 0 0.25rem;
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-dark);
 }
-.gaming.info.right-sidebar .scoreboard p {
+.gaming.info.right-sidebar .el-collapse-item__content section p {
   margin: 0;
   font-size: 1.2rem;
   font-weight: bold;
   color: var(--text-dark);
 }
+
+[v-cloak] { display: none !important; }
 
 #app {
   width: 100%;
@@ -455,6 +444,63 @@ body.settings-open {
   cursor: pointer;
   font-size: 0;
 }
+/* 数字显示弹窗内复用相同样式 */
+.custom-tiles-dialog .settings-custom-tiles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px 0 12px;
+  max-height: 380px;
+  overflow-y: auto;
+}
+.custom-tiles-dialog .custom-tile-row {
+  display: grid;
+  grid-template-columns: 36px 1fr 1fr auto auto;
+  align-items: center;
+  gap: 6px;
+}
+.custom-tiles-dialog .custom-tile-num {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-dark);
+}
+.custom-tiles-dialog .custom-tile-label,
+.custom-tiles-dialog .custom-tile-image {
+  padding: 6px 8px;
+  border: 1px solid var(--grid-line);
+  border-radius: 6px;
+  font-size: 14px;
+  min-width: 0;
+}
+.custom-tiles-dialog .custom-tile-clear,
+.custom-tiles-dialog .custom-tile-pick-file {
+  padding: 6px 10px;
+  font-size: 13px;
+}
+.custom-tiles-dialog .custom-tile-file-wrap {
+  position: relative;
+}
+.custom-tiles-dialog .custom-tile-file-wrap input[type="file"] {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 0;
+}
+.custom-tiles-dialog .settings-custom-actions {
+  display: flex;
+  gap: 8px;
+}
+.custom-tiles-dialog .settings-hint {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--text-dark);
+  opacity: 0.9;
+}
+
 .settings-panel .settings-custom-actions {
   display: flex;
   gap: 8px;

@@ -16,3 +16,9 @@
 - 小程序：**index.ts**（Canvas 绘制、微信 API 选图等）。
 
 因此“共享成果”的方式是：**复制并同步 logic.js、constants.js**；UI 需在各自项目里实现或按需移植思路。
+
+---
+
+## 约定（网页端）
+
+- **Element Plus 组件不能使用自闭合标签**：必须写完整闭合标签，例如 `<el-button>新局</el-button>`，不要写成 `<el-button />`，否则图标等插槽内容可能不显示。

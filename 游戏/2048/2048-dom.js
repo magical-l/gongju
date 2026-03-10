@@ -128,8 +128,12 @@
   }
 
   function renderHeader(state) {
-    scoreEl.textContent = state.score
-    highScoreEl.textContent = state.highScore
+    if (typeof window.__2048UpdateScores__ === 'function') {
+      window.__2048UpdateScores__(state.score, state.highScore)
+      return
+    }
+    if (scoreEl) scoreEl.textContent = state.score
+    if (highScoreEl) highScoreEl.textContent = state.highScore
   }
 
   function renderOverlay(state) {
@@ -350,6 +354,73 @@
     } catch (e) {}
   }
 
+  function saveSettingsFromGameState() {
+    if (!gameState) return
+    try {
+      var s = {
+        boardWidth: gameState.boardWidth,
+        boardHeight: gameState.boardHeight,
+        targetNumber: gameState.targetNumber === Infinity ? 'Infinity' : gameState.targetNumber,
+        initialTiles: gameState.initialTiles,
+        showNewTileMarker: gameState.showNewTileMarker,
+        mergeAnimation: gameState.mergeAnimation,
+        newTileOnMidStop: gameState.newTileOnMidStop,
+        customLabels: gameState.customLabels && typeof gameState.customLabels === 'object' ? gameState.customLabels : {},
+        customImages: gameState.customImages && typeof gameState.customImages === 'object' ? gameState.customImages : {}
+      }
+      setStorage(STORAGE_SETTINGS, JSON.stringify(s))
+    } catch (e) {}
+  }
+
+  function saveQuickSettingsToStorage(showNewTileMarker, mergeAnimation, newTileOnMidStop) {
+    try {
+      var raw = getStorage(STORAGE_SETTINGS)
+      var o = (raw && (function () { try { return JSON.parse(raw) } catch (e) { return null } })()) || {}
+      if (typeof o !== 'object') o = {}
+      o.showNewTileMarker = showNewTileMarker
+      o.mergeAnimation = mergeAnimation
+      o.newTileOnMidStop = newTileOnMidStop
+      setStorage(STORAGE_SETTINGS, JSON.stringify(o))
+    } catch (e) {}
+  }
+
+  window.__2048ApplyQuickSettings__ = function (showNewTileMarker, mergeAnimation, newTileOnMidStop) {
+    if (!gameState) return
+    gameState = Object.assign({}, gameState, {
+      showNewTileMarker: !!showNewTileMarker,
+      mergeAnimation: typeof mergeAnimation === 'string' ? mergeAnimation : gameState.mergeAnimation,
+      newTileOnMidStop: !!newTileOnMidStop
+    })
+    saveQuickSettingsToStorage(gameState.showNewTileMarker, gameState.mergeAnimation, gameState.newTileOnMidStop)
+    render(gameState)
+  }
+
+  window.__2048OpenCustomTiles__ = function () {
+    if (!gameState) return
+    pendingSettings = {
+      boardWidth: gameState.boardWidth,
+      boardHeight: gameState.boardHeight,
+      targetNumber: gameState.targetNumber,
+      initialTiles: gameState.initialTiles,
+      showNewTileMarker: gameState.showNewTileMarker,
+      mergeAnimation: gameState.mergeAnimation,
+      newTileOnMidStop: gameState.newTileOnMidStop,
+      customLabels: gameState.customLabels ? Object.assign({}, gameState.customLabels) : {},
+      customImages: gameState.customImages ? Object.assign({}, gameState.customImages) : {}
+    }
+    renderCustomTilesSection()
+  }
+
+  window.__2048ApplyCustomTiles__ = function () {
+    if (!gameState) return
+    gameState = Object.assign({}, gameState, {
+      customLabels: pendingSettings.customLabels && typeof pendingSettings.customLabels === 'object' ? Object.assign({}, pendingSettings.customLabels) : {},
+      customImages: pendingSettings.customImages && typeof pendingSettings.customImages === 'object' ? Object.assign({}, pendingSettings.customImages) : {}
+    })
+    saveSettingsFromGameState()
+    render(gameState)
+  }
+
   function openSettings() {
     clearSlideAnimation()
     document.body.classList.add('settings-open')
@@ -389,10 +460,7 @@
     { key: 'boardHeight', options: WEB_SIZE_OPTIONS.map(function (v) { return { label: String(v), value: v } }) },
     { key: 'boardWidth', options: WEB_SIZE_OPTIONS.map(function (v) { return { label: String(v), value: v } }) },
     { key: 'targetNumber', options: TARGET_OPTIONS.map(function (v, i) { return { label: TARGET_LABELS[i], value: v } }) },
-    { key: 'initialTiles', options: INITIAL_OPTIONS.map(function (v) { return { label: String(v), value: v } }) },
-    { key: 'showNewTileMarker', options: [{ label: '关', value: false }, { label: '开', value: true }] },
-    { key: 'mergeAnimation', options: (MERGE_ANIM_OPTIONS_BY_PLATFORM.web || []).map(function (v, i) { return { label: (MERGE_ANIM_LABELS_BY_PLATFORM.web || [])[i] || v, value: v } }) },
-    { key: 'newTileOnMidStop', options: [{ label: '关', value: false }, { label: '开', value: true }] }
+    { key: 'initialTiles', options: INITIAL_OPTIONS.map(function (v) { return { label: String(v), value: v } }) }
   ]
 
   function renderSettingsForm() {
@@ -540,6 +608,13 @@
     } catch (e) {}
     gameState = restored || initGame(highScore, loaded || undefined)
     render(gameState)
+    if (typeof window.__2048SetQuickSettings__ === 'function') {
+      window.__2048SetQuickSettings__({
+        showNewTileMarker: gameState.showNewTileMarker,
+        mergeAnimation: gameState.mergeAnimation,
+        newTileOnMidStop: gameState.newTileOnMidStop
+      })
+    }
   }
 
   function saveState() {

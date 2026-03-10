@@ -8,9 +8,12 @@
 <meta name="keywords" content="2048,数字合并,益智游戏,在线游戏">
 <meta name="author" content="工具兽">
 
+<link href="../../lib/element-plus/2.10.7/index.css" rel="stylesheet">
+<link href="../../resources/el-plus.css" rel="stylesheet">
 <link href="../../resources/common.css" rel="stylesheet">
 <link href="../../resources/layout.css" rel="stylesheet">
 <link href="../../resources/biz.css" rel="stylesheet">
+<link href="../../resources/花活.css" rel="stylesheet">
 <link href="2048.css" rel="stylesheet">
 </head>
 <body class="grid 反叵字形">
@@ -37,14 +40,42 @@
 <main>
 	<header>
 		<h2 class="game name">2048</h2>
+		<div class="page-lv help area" v-cloak id="g2048-help"></div>
 	</header>
-	<article class="gaming area , 反叵字形 grid">
+	<article class="gaming area , 反叵字形 grid" v-cloak id="g2048-article">
 		<header class="toolbar , flex multi-line no-gap items-near-center-x items-stretch">
 			<section class="setting list area , flex single-line no-gap items-near-start-x items-near-center-y">
 				<div class="one setting group">
-					<button type="button" class="btn btn-primary" id="btn-restart">新局</button>
-					<button type="button" class="btn btn-secondary" id="btn-undo">撤销</button>
-					<button type="button" class="btn btn-secondary" id="btn-settings">设置</button>
+					<el-form-item label="新数字标记" class="one setting : marker">
+						<el-select v-model="showNewTileMarker" @change="onQuickSettingChange" size="default">
+							<el-option label="关" :value="false"></el-option>
+							<el-option label="开" :value="true"></el-option>
+						</el-select>
+					</el-form-item>
+					<el-form-item label="合并动画" class="one setting : merge">
+						<el-select v-model="mergeAnimation" @change="onQuickSettingChange" size="default">
+							<el-option label="翻牌" value="flip"></el-option>
+							<el-option label="缩放" value="scale"></el-option>
+							<el-option label="摇晃" value="shake"></el-option>
+							<el-option label="弹跳" value="bounce"></el-option>
+							<el-option label="描边" value="glow"></el-option>
+							<el-option label="无" value="none"></el-option>
+						</el-select>
+					</el-form-item>
+					<el-form-item label="中途停生新数" class="one setting : midstop">
+						<el-select v-model="newTileOnMidStop" @change="onQuickSettingChange" size="default">
+							<el-option label="关" :value="false"></el-option>
+							<el-option label="开" :value="true"></el-option>
+						</el-select>
+					</el-form-item>
+				</div>
+			</section>
+			<section class="controller list area , flex single-line no-gap items-near-start-x items-near-center-y">
+				<div class="one controller group">
+					<el-button type="danger" id="btn-restart" icon="RefreshRight">新局</el-button>
+					<el-button id="btn-undo" icon="RefreshLeft">撤销</el-button>
+					<el-button id="btn-settings" icon="Setting">设置</el-button>
+					<el-button id="btn-custom-tiles" icon="PictureFilled" @click="openCustomTilesDialog">数字显示</el-button>
 				</div>
 			</section>
 		</header>
@@ -85,50 +116,48 @@
 					<label class="settings-label">初始块数</label>
 					<div class="settings-options" data-key="initialTiles"></div>
 				</div>
-				<p class="settings-hint">修改行、列、目标或初始块数后保存将重新开局</p>
-				<div class="settings-row">
-					<label class="settings-label">新数字标记</label>
-					<div class="settings-options" data-key="showNewTileMarker"></div>
-				</div>
-				<div class="settings-row">
-					<label class="settings-label">合并动画</label>
-					<div class="settings-options" data-key="mergeAnimation"></div>
-				</div>
-				<div class="settings-row">
-					<label class="settings-label">中途停生新数</label>
-					<div class="settings-options" data-key="newTileOnMidStop"></div>
-				</div>
-				<div class="settings-section settings-custom-tiles">
-					<p class="settings-label">数字显示</p>
-					<p class="settings-hint">可为每个数字设置自定义显示文字、图片 URL 或本地选图（图片优先）；留空则显示原数字。文字与图片二选一。</p>
-					<input type="file" id="settings-tile-file-input" accept="image/*" class="hidden" aria-hidden="true">
-					<div id="settings-custom-tiles-list" class="settings-custom-tiles-list"></div>
-					<div class="settings-custom-actions">
-						<button type="button" class="btn btn-secondary" id="btn-clear-all-labels">清除全部文字</button>
-						<button type="button" class="btn btn-secondary" id="btn-clear-all-images">清除全部图片</button>
-					</div>
-				</div>
+				<p class="settings-hint">修改行、列、目标或初始块数后保存将重新开局。新数字标记、合并动画、中途停生新数在工具栏调节，数字显示在工具栏「数字显示」按钮中设置。</p>
 				<div class="settings-actions">
 					<button type="submit" class="btn btn-primary">保存</button>
 					<button type="button" class="btn btn-secondary" id="btn-settings-cancel">取消</button>
 				</div>
 			</form>
 		</aside>
+		<el-dialog title="数字显示" v-model="customTilesDialogVisible" class="custom-tiles-dialog" width="90%" @opened="onCustomTilesDialogOpened">
+			<p class="settings-hint">可为每个数字设置自定义显示文字、图片 URL 或本地选图（图片优先）；留空则显示原数字。文字与图片二选一。</p>
+			<input type="file" id="settings-tile-file-input" accept="image/*" class="hidden" aria-hidden="true">
+			<div id="settings-custom-tiles-list" class="settings-custom-tiles-list"></div>
+			<div class="settings-custom-actions">
+				<button type="button" class="btn btn-secondary" id="btn-clear-all-labels">清除全部文字</button>
+				<button type="button" class="btn btn-secondary" id="btn-clear-all-images">清除全部图片</button>
+			</div>
+			<template #footer>
+				<el-button type="primary" @click="saveCustomTilesAndClose">保存</el-button>
+				<el-button @click="closeCustomTilesDialog">取消</el-button>
+			</template>
+		</el-dialog>
 		</div>
 		</div>
 
 		<aside class="gaming info , right-sidebar">
-			<div class="scoreboard">
-				<h3 class="scoreboard-title">本局信息</h3>
-				<section>
-					<h4>得分</h4>
-					<p id="score">0</p>
-				</section>
-				<section>
-					<h4>最高记录</h4>
-					<p id="high-score">0</p>
-				</section>
-			</div>
+			<el-card shadow="never">
+				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
+					<el-collapse-item name="shortcut" title="快捷键">
+						<p>↑ ↓ ← → ：滑动方块</p>
+						<p>支持键盘与触屏滑动</p>
+					</el-collapse-item>
+					<el-collapse-item name="score" title="本局信息">
+						<section>
+							<h3>得分</h3>
+							<p>{{ score }}</p>
+						</section>
+						<section>
+							<h3>最高记录</h3>
+							<p>{{ highScore }}</p>
+						</section>
+					</el-collapse-item>
+				</el-collapse>
+			</el-card>
 		</aside>
 	</article>
 </main>
@@ -144,6 +173,87 @@
 	</article>
 </aside>
 
+<div class="js container">
+	<script src="../../lib/vue/3.5.18/vue.global.js"></script>
+	<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
+	<script src="../../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
+</div>
+<script>
+(function () {
+	const { createApp, reactive } = Vue;
+	const collapseKey = 'gaming-info-2048';
+	const defaultPanels = ['shortcut', 'score'];
+	let saved;
+	try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
+	const state = reactive({
+		score: 0,
+		highScore: 0,
+		showNewTileMarker: true,
+		mergeAnimation: 'flip',
+		newTileOnMidStop: false,
+		customTilesDialogVisible: false,
+		gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
+		_collapseKey: collapseKey,
+		_defaultPanels: defaultPanels,
+	});
+	window.__2048UpdateScores__ = function (score, highScore) {
+		state.score = score;
+		state.highScore = highScore;
+	};
+	window.__2048SetQuickSettings__ = function (obj) {
+		if (obj && typeof obj.showNewTileMarker === 'boolean') state.showNewTileMarker = obj.showNewTileMarker;
+		if (obj && typeof obj.mergeAnimation === 'string') state.mergeAnimation = obj.mergeAnimation;
+		if (obj && typeof obj.newTileOnMidStop === 'boolean') state.newTileOnMidStop = obj.newTileOnMidStop;
+	};
+	const mainApp = createApp({
+		data: () => state,
+		methods: {
+			onQuickSettingChange() {
+				if (typeof window.__2048ApplyQuickSettings__ === 'function') {
+					window.__2048ApplyQuickSettings__(state.showNewTileMarker, state.mergeAnimation, state.newTileOnMidStop);
+				}
+			},
+			openCustomTilesDialog() {
+				state.customTilesDialogVisible = true;
+			},
+			onCustomTilesDialogOpened() {
+				if (typeof window.__2048OpenCustomTiles__ === 'function') window.__2048OpenCustomTiles__();
+			},
+			saveCustomTilesAndClose() {
+				if (typeof window.__2048ApplyCustomTiles__ === 'function') window.__2048ApplyCustomTiles__();
+				state.customTilesDialogVisible = false;
+			},
+			closeCustomTilesDialog() {
+				state.customTilesDialogVisible = false;
+			},
+			onGamingInfoCollapseChange(val) {
+				const def = this._defaultPanels || [];
+				const open = val || [];
+				const isAllExpanded = def.length === open.length && def.every(function (p) { return open.indexOf(p) !== -1; });
+				try {
+					if (isAllExpanded) { localStorage.removeItem(this._collapseKey); } else {
+						localStorage.setItem(this._collapseKey, JSON.stringify(open));
+					}
+				} catch (_) {}
+			},
+		},
+	});
+	mainApp.use(ElementPlus);
+	if (typeof ElementPlusIconsVue !== 'undefined') {
+		for (var k in ElementPlusIconsVue) { mainApp.component(k, ElementPlusIconsVue[k]); }
+	}
+	mainApp.mount('#g2048-article');
+	const helpApp = createApp({
+		data: () => ({ introVisible: false }),
+		template: '<el-button class="page-lv help btn" title="游戏介绍" size="small" circle @click="introVisible=true">?</el-button><el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%"><p>2048：滑动合并相同数字，达到目标数字即胜利。可自定义棋盘大小、目标分数与合并动画。</p><p><strong>操作</strong>：方向键或触屏滑动。新局、撤销、设置在工具栏。</p></el-dialog>',
+	});
+	helpApp.use(ElementPlus);
+	if (typeof ElementPlusIconsVue !== 'undefined') {
+		for (var k in ElementPlusIconsVue) { helpApp.component(k, ElementPlusIconsVue[k]); }
+	}
+	helpApp.mount('#g2048-help');
+}());
+</script>
 <script src="logic.js"></script>
 <script src="constants.js"></script>
 <script src="2048-dom.js"></script>
