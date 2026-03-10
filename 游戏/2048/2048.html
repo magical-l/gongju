@@ -46,11 +46,8 @@
 		<header class="toolbar , flex multi-line no-gap items-near-center-x items-stretch">
 			<section class="setting list area , flex single-line no-gap items-near-start-x items-near-center-y">
 				<div class="one setting group">
-					<el-form-item label="新数字标记" class="one setting : marker">
-						<el-select v-model="showNewTileMarker" @change="onQuickSettingChange" size="default">
-							<el-option label="关" :value="false"></el-option>
-							<el-option label="开" :value="true"></el-option>
-						</el-select>
+					<el-form-item label="新数标记" class="one setting : marker">
+						<el-checkbox v-model="showNewTileMarker" @change="onQuickSettingChange"></el-checkbox>
 					</el-form-item>
 					<el-form-item label="合并动画" class="one setting : merge">
 						<el-select v-model="mergeAnimation" @change="onQuickSettingChange" size="default">
@@ -62,11 +59,10 @@
 							<el-option label="无" value="none"></el-option>
 						</el-select>
 					</el-form-item>
-					<el-form-item label="中途停生新数" class="one setting : midstop">
-						<el-select v-model="newTileOnMidStop" @change="onQuickSettingChange" size="default">
-							<el-option label="关" :value="false"></el-option>
-							<el-option label="开" :value="true"></el-option>
-						</el-select>
+					<el-form-item class="one setting : midstop">
+						<el-tooltip content="开启后，新块在滑动动画进行中就会出现；当前网页版为动画结束后才出新块，此选项暂未生效。" placement="top">
+							<el-checkbox v-model="newTileOnMidStop" @change="onQuickSettingChange">中途停生新数</el-checkbox>
+						</el-tooltip>
 					</el-form-item>
 				</div>
 			</section>
@@ -117,7 +113,7 @@
 					<label class="settings-label">初始块数</label>
 					<div class="settings-options" data-key="initialTiles"></div>
 				</div>
-				<p class="settings-hint">修改行、列、目标或初始块数后保存将重新开局。新数字标记、合并动画、中途停生新数在工具栏调节，数字显示在工具栏「数字显示」按钮中设置。</p>
+				<p class="settings-hint">修改行、列、目标或初始块数后保存将重新开局。新数标记、合并动画、中途停生新数在工具栏调节，数字显示在工具栏「数字显示」按钮中设置。</p>
 				<div class="settings-actions">
 					<button type="submit" class="btn btn-primary">保存</button>
 					<button type="button" class="btn btn-secondary" id="btn-settings-cancel">取消</button>

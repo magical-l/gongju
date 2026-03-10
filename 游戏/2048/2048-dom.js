@@ -512,9 +512,14 @@
       var labelVal = (pendingSettings.customLabels[key] != null ? pendingSettings.customLabels[key] : '') || ''
       var imgVal = (pendingSettings.customImages[key] != null ? pendingSettings.customImages[key] : '') || ''
       var imgDisplayVal = (imgVal && imgVal.slice(0, 5) === 'data:') ? '' : imgVal
+      var previewSrc = (imgVal && String(imgVal).trim()) ? String(imgVal).trim() : ''
+      var previewHtml = previewSrc
+        ? '<span class="custom-tile-preview"><img src="' + escapeAttr(previewSrc) + '" alt="" loading="lazy" onerror="this.parentElement.classList.add(\'preview-error\')"></span>'
+        : '<span class="custom-tile-preview custom-tile-preview-empty"></span>'
       row.innerHTML = '<span class="custom-tile-num">' + key + '</span>' +
         '<input type="text" class="custom-tile-label" data-key="' + key + '" placeholder="文字" maxlength="' + CUSTOM_LABEL_MAX_LEN + '" value="' + escapeAttr(labelVal) + '">' +
         '<input type="text" class="custom-tile-image" data-key="' + key + '" placeholder="' + (imgVal && imgVal.slice(0, 5) === 'data:' ? '已选本地图' : '图片 URL') + '" value="' + escapeAttr(imgDisplayVal) + '">' +
+        previewHtml +
         '<button type="button" class="btn btn-secondary custom-tile-clear" data-key="' + key + '">清除</button>' +
         '<span class="custom-tile-file-wrap"><button type="button" class="btn btn-secondary custom-tile-pick-file" data-key="' + key + '">选图</button></span>'
       listEl.appendChild(row)
@@ -543,7 +548,7 @@
         pendingSettings.customLabels[k] = input.value.trim().slice(0, CUSTOM_LABEL_MAX_LEN)
         if (pendingSettings.customLabels[k] === '') delete pendingSettings.customLabels[k]
         if (pendingSettings.customImages) delete pendingSettings.customImages[k]
-        renderCustomTilesSection()
+        /* 不在此处调用 renderCustomTilesSection()，否则整表重建会导致输入框失焦 */
       })
     })
     listEl.querySelectorAll('.custom-tile-image').forEach(function (input) {
@@ -556,7 +561,28 @@
         } else {
           if (pendingSettings.customImages) delete pendingSettings.customImages[k]
         }
-        renderCustomTilesSection()
+        /* 仅更新本行预览，不整表重绘以免失焦 */
+        var row = input.closest('.custom-tile-row')
+        var previewEl = row ? row.querySelector('.custom-tile-preview') : null
+        if (previewEl) {
+          previewEl.classList.remove('custom-tile-preview-empty', 'preview-error')
+          if (v) {
+            var img = previewEl.querySelector('img')
+            if (img) img.src = v
+            else {
+              img = document.createElement('img')
+              img.alt = ''
+              img.loading = 'lazy'
+              img.onerror = function () { previewEl.classList.add('preview-error') }
+              img.src = v
+              previewEl.innerHTML = ''
+              previewEl.appendChild(img)
+            }
+          } else {
+            previewEl.innerHTML = ''
+            previewEl.classList.add('custom-tile-preview-empty')
+          }
+        }
       })
     })
     listEl.querySelectorAll('.custom-tile-clear').forEach(function (btn) {

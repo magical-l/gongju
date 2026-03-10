@@ -119,6 +119,18 @@ body.settings-open {
   align-items: center;
   justify-content: center;
 }
+/* 四格交点处用与缝隙同色的小圆点填充，消除视觉暂留造成的“黑点”错觉，线仍保留 */
+#app .board .cell::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 2px;
+  height: 2px;
+  background: var(--board-bg);
+  border-radius: 50%;
+  pointer-events: none;
+}
 
 #app .board .tile {
   position: absolute;
@@ -428,10 +440,28 @@ body.settings-open {
 }
 .settings-panel .custom-tile-row {
   display: grid;
-  grid-template-columns: 36px 1fr 1fr auto auto;
+  grid-template-columns: 36px 1fr 1fr 44px auto auto;
   align-items: center;
   gap: 6px;
 }
+.settings-panel .custom-tile-preview {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--grid-line);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.05);
+}
+.settings-panel .custom-tile-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.settings-panel .custom-tile-preview-empty { background: transparent; }
+.settings-panel .custom-tile-preview.preview-error { background: #f8d7da; }
 .settings-panel .custom-tile-num {
   font-weight: 600;
   font-size: 14px;
@@ -474,10 +504,28 @@ body.settings-open {
 }
 .custom-tiles-dialog .custom-tile-row {
   display: grid;
-  grid-template-columns: 36px 1fr 1fr auto auto;
+  grid-template-columns: 36px 1fr 1fr 44px auto auto;
   align-items: center;
   gap: 6px;
 }
+.custom-tiles-dialog .custom-tile-preview {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--grid-line);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.05);
+}
+.custom-tiles-dialog .custom-tile-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.custom-tiles-dialog .custom-tile-preview-empty { background: transparent; }
+.custom-tiles-dialog .custom-tile-preview.preview-error { background: #f8d7da; }
 .custom-tiles-dialog .custom-tile-num {
   font-weight: 600;
   font-size: 14px;
