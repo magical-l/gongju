@@ -33,6 +33,7 @@
   var MERGE_ANIM_DURATION_MS = constants.MERGE_ANIM_DURATION_MS
   var MIN_SWIPE_PX = constants.MIN_SWIPE_PX
   var TILE_IMAGE_KEYS = constants.TILE_IMAGE_KEYS
+  var getTileImageKeys = constants.getTileImageKeys
   var getDisplayLabel = constants.getDisplayLabel
   var WEB_ENDPOINT = 'web'
 
@@ -523,6 +524,29 @@
     return wrap
   }
 
+  function isPowerOf2(n) {
+    if (typeof n !== 'number' || n < 2 || !Number.isFinite(n)) return false
+    return (n & (n - 1)) === 0
+  }
+
+  function getCustomTileKeysForList() {
+    var baseKeys = getTileImageKeys(pendingSettings.targetNumber)
+    var maxBase = baseKeys.length ? parseInt(baseKeys[baseKeys.length - 1], 10) : 2
+    var extra = {}
+    var keys = pendingSettings.customLabels && typeof pendingSettings.customLabels === 'object' ? Object.keys(pendingSettings.customLabels) : []
+    for (var i = 0; i < keys.length; i++) {
+      var n = parseInt(keys[i], 10)
+      if (isPowerOf2(n) && n > maxBase) extra[n] = true
+    }
+    keys = pendingSettings.customImages && typeof pendingSettings.customImages === 'object' ? Object.keys(pendingSettings.customImages) : []
+    for (var j = 0; j < keys.length; j++) {
+      n = parseInt(keys[j], 10)
+      if (isPowerOf2(n) && n > maxBase) extra[n] = true
+    }
+    var extraKeys = Object.keys(extra).map(Number).sort(function (a, b) { return a - b })
+    return baseKeys.concat(extraKeys.map(String))
+  }
+
   function renderCustomTilesSection() {
     if (!pendingSettings.customLabels) pendingSettings.customLabels = {}
     if (!pendingSettings.customImages) pendingSettings.customImages = {}
@@ -530,8 +554,9 @@
     var fileInput = document.getElementById('settings-tile-file-input')
     if (!listEl) return
     listEl.innerHTML = ''
-    for (var i = 0; i < TILE_IMAGE_KEYS.length; i++) {
-      var key = TILE_IMAGE_KEYS[i]
+    var tileKeys = getCustomTileKeysForList()
+    for (var i = 0; i < tileKeys.length; i++) {
+      var key = tileKeys[i]
       var card = document.createElement('div')
       card.className = 'custom-tile-card'
       var cardTitle = document.createElement('div')
@@ -602,6 +627,29 @@
       card.appendChild(cardBody)
       listEl.appendChild(card)
     }
+    var addNextWrap = document.createElement('div')
+    addNextWrap.className = 'custom-tile-card custom-tile-add-next'
+    var addNextBtn = document.createElement('button')
+    addNextBtn.type = 'button'
+    addNextBtn.className = 'btn btn-secondary custom-tile-add-next-btn'
+    addNextBtn.textContent = '+'
+    addNextBtn.setAttribute('aria-label', '添加下一个数字')
+    addNextBtn.title = '添加下一个数字'
+    var maxKey = tileKeys.length ? parseInt(tileKeys[tileKeys.length - 1], 10) : 2
+    var nextKeyNum = maxKey * 2
+    var maxAllowed = 1048576
+    if (nextKeyNum <= maxAllowed) {
+      addNextBtn.onclick = function () {
+        var nextKey = String(nextKeyNum)
+        pendingSettings.customLabels[nextKey] = ''
+        renderCustomTilesSection()
+      }
+    } else {
+      addNextBtn.disabled = true
+      addNextBtn.title = '已达上限'
+    }
+    addNextWrap.appendChild(addNextBtn)
+    listEl.appendChild(addNextWrap)
     if (fileInput && !fileInput._bound) {
       fileInput._bound = true
       fileInput.addEventListener('change', function () {
@@ -616,6 +664,7 @@
           pendingSettings.customImages[k] = e.target.result
           if (pendingSettings.customLabels) delete pendingSettings.customLabels[k]
           renderCustomTilesSection()
+          if (typeof window.__2048ApplyCustomTiles__ === 'function') window.__2048ApplyCustomTiles__()
         }
         reader.readAsDataURL(file)
       })
@@ -635,6 +684,9 @@
           var next = buildPreviewContent(k, lv, iv)
           prev.parentNode.replaceChild(next, prev)
         }
+      })
+      input.addEventListener('blur', function () {
+        if (typeof window.__2048ApplyCustomTiles__ === 'function') window.__2048ApplyCustomTiles__()
       })
     })
     listEl.querySelectorAll('.custom-tile-image').forEach(function (input) {
@@ -657,6 +709,9 @@
           prev.parentNode.replaceChild(next, prev)
         }
       })
+      input.addEventListener('blur', function () {
+        if (typeof window.__2048ApplyCustomTiles__ === 'function') window.__2048ApplyCustomTiles__()
+      })
     })
     listEl.querySelectorAll('.custom-tile-clear-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
@@ -664,6 +719,7 @@
         if (pendingSettings.customLabels) delete pendingSettings.customLabels[k]
         if (pendingSettings.customImages) delete pendingSettings.customImages[k]
         renderCustomTilesSection()
+        if (typeof window.__2048ApplyCustomTiles__ === 'function') window.__2048ApplyCustomTiles__()
       })
     })
     listEl.querySelectorAll('.custom-tile-pick-file').forEach(function (btn) {
@@ -680,12 +736,14 @@
       btnClearLabels.onclick = function () {
         pendingSettings.customLabels = {}
         renderCustomTilesSection()
+        if (typeof window.__2048ApplyCustomTiles__ === 'function') window.__2048ApplyCustomTiles__()
       }
     }
     if (btnClearImages) {
       btnClearImages.onclick = function () {
         pendingSettings.customImages = {}
         renderCustomTilesSection()
+        if (typeof window.__2048ApplyCustomTiles__ === 'function') window.__2048ApplyCustomTiles__()
       }
     }
   }

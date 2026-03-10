@@ -32,6 +32,15 @@ var BTN_PRIMARY = '#6b8e5c'
 var BTN_SECONDARY = '#8fa87a'
 
 var TILE_IMAGE_KEYS = ['2', '4', '8', '16', '32', '64', '128', '256', '512', '1024', '2048']
+/** 数字显示可配置的最大数字（2 的幂），支持扩展至 2048 以上 */
+var CUSTOM_TILE_MAX = 8192
+function getTileImageKeys(targetOrMax) {
+  var max = (targetOrMax != null && targetOrMax !== Infinity) ? targetOrMax : CUSTOM_TILE_MAX
+  var cap = Math.max(2048, Math.min(max, 65536))
+  var keys = []
+  for (var n = 2; n <= cap; n *= 2) keys.push(String(n))
+  return keys
+}
 var SIZE_OPTIONS = [4, 5, 6]
 var TARGET_OPTIONS = [1024, 2048, 4096, 8192, Infinity]
 var TARGET_LABELS = ['1024', '2048', '4096', '8192', '无限']
@@ -272,6 +281,8 @@ var TOAST_PRIVACY_DURATION = 3500
   BTN_PRIMARY,
   BTN_SECONDARY,
   TILE_IMAGE_KEYS,
+  CUSTOM_TILE_MAX: CUSTOM_TILE_MAX,
+  getTileImageKeys: getTileImageKeys,
   SIZE_OPTIONS,
   TARGET_OPTIONS,
   TARGET_LABELS,

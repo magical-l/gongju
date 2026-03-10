@@ -119,17 +119,13 @@
 			</form>
 		</aside>
 		<el-dialog title="数字显示" v-model="customTilesDialogVisible" class="custom-tiles-dialog" width="90%" @opened="onCustomTilesDialogOpened">
-			<p class="settings-hint">可为每个数字设置自定义显示文字、图片 URL 或本地选图（图片优先）；留空则显示原数字。文字与图片二选一。</p>
+			<p class="settings-hint">可为每个数字设置自定义显示文字、图片 URL 或本地选图（图片优先）；留空则显示原数字。修改后失焦或选图即生效。</p>
 			<input type="file" id="settings-tile-file-input" accept="image/*" class="hidden" aria-hidden="true">
 			<div id="settings-custom-tiles-list" class="settings-custom-tiles-list"></div>
 			<div class="settings-custom-actions">
 				<button type="button" class="btn btn-secondary" id="btn-clear-all-labels">清除全部文字</button>
 				<button type="button" class="btn btn-secondary" id="btn-clear-all-images">清除全部图片</button>
 			</div>
-			<template #footer>
-				<el-button type="primary" @click="saveCustomTilesAndClose">保存</el-button>
-				<el-button @click="closeCustomTilesDialog">取消</el-button>
-			</template>
 		</el-dialog>
 		</div>
 		</div>
@@ -226,10 +222,6 @@
 			},
 			onCustomTilesDialogOpened() {
 				if (typeof window.__2048OpenCustomTiles__ === 'function') window.__2048OpenCustomTiles__();
-			},
-			saveCustomTilesAndClose() {
-				if (typeof window.__2048ApplyCustomTiles__ === 'function') window.__2048ApplyCustomTiles__();
-				state.customTilesDialogVisible = false;
 			},
 			closeCustomTilesDialog() {
 				state.customTilesDialogVisible = false;
