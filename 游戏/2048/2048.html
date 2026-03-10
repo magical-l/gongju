@@ -50,29 +50,39 @@
 		<header class="toolbar , flex multi-line no-gap items-near-center-x items-stretch">
 			<section class="setting list area , flex single-line no-gap items-near-start-x items-near-center-y">
 				<div class="one setting group">
-					<template v-for="item in quickSettingsList" :key="item.key">
-						<el-form-item v-if="item.display === 'toggleButton'" class="one setting : marker">
-							<div class="g2048-switch-btn" :class="{ pressed: getQuickValue(item.key) }" role="button" tabindex="0" :aria-pressed="getQuickValue(item.key)" @click="setQuickValue(item.key, !getQuickValue(item.key))" @keydown.enter.space.prevent="setQuickValue(item.key, !getQuickValue(item.key))">
-								<span class="g2048-switch-btn-inner">
-									<svg v-if="item.key === 'showNewTileMarker'" class="g2048-label-icon" viewBox="0 0 24 24" width="1em" height="1em" title="角标式标记" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" fill="currentColor" opacity="0.85"/><circle cx="18" cy="6" r="3.5" fill="var(--el-color-danger, #f56c6c)"/></svg>
-									<span class="g2048-switch-btn-label">{{ item.label }}</span>
-								</span>
-								<el-switch :model-value="getQuickValue(item.key)" @update:model-value="(v) => setQuickValue(item.key, v)" class="g2048-switch-btn-control g2048-switch-btn-control-hidden" aria-hidden="true" />
-							</div>
-						</el-form-item>
-						<el-form-item v-else-if="item.type === 'select'" :label="item.label" class="one setting : merge">
-							<el-select :model-value="getQuickValue(item.key)" @update:model-value="(v) => setQuickValue(item.key, v)" size="default" style="min-width: 6em">
-								<el-option v-for="opt in item.options" :key="opt.value" :label="opt.label" :value="opt.value"></el-option>
-							</el-select>
-						</el-form-item>
-					</template>
+					<el-button type="danger" id="btn-restart" icon="RefreshRight">新局</el-button>
+				</div>
+				<div class="one setting group">
+					<el-button id="btn-settings" icon="Setting">设置</el-button>
 				</div>
 			</section>
 			<section class="controller list area , flex single-line no-gap items-near-start-x items-near-center-y">
 				<div class="one controller group">
-					<el-button type="danger" id="btn-restart" icon="RefreshRight">新局</el-button>
 					<el-button id="btn-undo" icon="RefreshLeft">撤销</el-button>
-					<el-button id="btn-settings" icon="Setting">设置</el-button>
+				</div>
+			</section>
+			<section class="tool list area , flex single-line no-gap items-near-start-x items-near-center-y">
+				<template v-for="item in quickSettingsList" :key="item.key">
+					<div v-if="item.display === 'toggleButton'" class="one tool group">
+						<el-form-item class="one setting : marker">
+							<div class="g2048-switch-btn el-button el-button--default" :class="{ pressed: getQuickValue(item.key) }" role="button" tabindex="0" :aria-pressed="getQuickValue(item.key)" @click="setQuickValue(item.key, !getQuickValue(item.key))" @keydown.enter.space.prevent="setQuickValue(item.key, !getQuickValue(item.key))">
+								<span class="el-button__content">
+									<span v-if="item.key === 'showNewTileMarker'" class="el-icon"><svg class="g2048-label-icon" viewBox="0 0 24 24" width="1em" height="1em" title="角标式标记" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" fill="currentColor" opacity="0.85"/><circle cx="18" cy="6" r="3.5" fill="var(--el-color-danger, #f56c6c)"/></svg></span>
+									<span>{{ item.label }}</span>
+								</span>
+								<el-switch :model-value="getQuickValue(item.key)" @update:model-value="(v) => setQuickValue(item.key, v)" class="g2048-switch-btn-control g2048-switch-btn-control-hidden" aria-hidden="true" />
+							</div>
+						</el-form-item>
+					</div>
+					<div v-else-if="item.type === 'select'" class="one tool group">
+						<el-form-item :label="item.label" class="one setting : merge">
+							<el-select :model-value="getQuickValue(item.key)" @update:model-value="(v) => setQuickValue(item.key, v)" size="default" style="min-width: 6em">
+								<el-option v-for="opt in item.options" :key="opt.value" :label="opt.label" :value="opt.value"></el-option>
+							</el-select>
+						</el-form-item>
+					</div>
+				</template>
+				<div class="one tool group">
 					<el-button id="btn-custom-tiles" icon="PictureFilled" @click="openCustomTilesDialog">数字显示</el-button>
 				</div>
 			</section>
