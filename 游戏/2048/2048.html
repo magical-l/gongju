@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title itemprop="name">2048 | 工具兽 - 在线数字合并益智游戏</title>
-<meta name="description" content="在线 2048 游戏，支持 4×4 至 8×8 棋盘、多种目标分数与合并动画，可撤销与本地存档。" itemprop="description">
+<meta name="description" content="在线 2048 游戏，支持 4×4 至 8×8 棋盘、多种目标分数与停步动画，可撤销与本地存档。" itemprop="description">
 <meta name="keywords" content="2048,数字合并,益智游戏,在线游戏">
 <meta name="author" content="工具兽">
 
@@ -20,21 +20,25 @@
 <header>
 	<h1 class="website name" title="工具人（gongju.ren）域名太贵买不起">工具兽</h1>
 	<nav>
-		<a href="../../文本转化.html">文本转化</a>
-		<a href="../../数字转化.html">数字转化</a>
-		<a href="../../符号/符号.html">符号</a>
-		<a href="../../格子盘.html">格子盘</a>
-		<a href="../../svg转图标.html">SVG转图标</a>
-		<a href="../../化学/元素周期表.html">元素周期表</a>
-		<a href="../../拼音/拼音.html">拼音</a>
-		<a href="../中国象棋/中国象棋.html">中国象棋</a>
-		<a href="../五子棋/gobang.html">五子棋</a>
-		<a href="../俄罗斯方块.html">俄罗斯方块</a>
-		<a href="../贪吃蛇.html">贪吃蛇</a>
-		<a href="2048.html" class="active">2048</a>
-		<a href="../点灯.html">点灯</a>
-		<a href="../数字华容道.html">数字华容道</a>
-		<a href="../星连星/星连星.html">星连星</a>
+		<div class="nav-row">
+			<a href="../../文本转化.html">文本转化</a>
+			<a href="../../数字转化.html">数字转化</a>
+			<a href="../../符号/符号.html">符号</a>
+			<a href="../../格子盘.html">格子盘</a>
+			<a href="../../svg转图标.html">SVG转图标</a>
+			<a href="../../化学/元素周期表.html">元素周期表</a>
+			<a href="../../拼音/拼音.html">拼音</a>
+		</div>
+		<div class="nav-row">
+			<a href="../中国象棋/中国象棋.html">中国象棋</a>
+			<a href="../五子棋/gobang.html">五子棋</a>
+			<a href="../俄罗斯方块.html">俄罗斯方块</a>
+			<a href="../贪吃蛇.html">贪吃蛇</a>
+			<a href="2048.html" class="active">2048</a>
+			<a href="../点灯.html">点灯</a>
+			<a href="../数字华容道.html">数字华容道</a>
+			<a href="../星连星/星连星.html">星连星</a>
+		</div>
 	</nav>
 </header>
 <main>
@@ -57,7 +61,7 @@
 							</div>
 						</el-form-item>
 						<el-form-item v-else-if="item.type === 'select'" :label="item.label" class="one setting : merge">
-							<el-select :model-value="getQuickValue(item.key)" @update:model-value="(v) => setQuickValue(item.key, v)" size="default">
+							<el-select :model-value="getQuickValue(item.key)" @update:model-value="(v) => setQuickValue(item.key, v)" size="default" style="min-width: 6em">
 								<el-option v-for="opt in item.options" :key="opt.value" :label="opt.label" :value="opt.value"></el-option>
 							</el-select>
 						</el-form-item>
@@ -111,7 +115,7 @@
 					<label class="settings-label">初始块数</label>
 					<div class="settings-options" data-key="initialTiles"></div>
 				</div>
-				<p class="settings-hint">修改行、列、目标或初始块数后保存将重新开局。新数标记、合并动画在工具栏调节，数字显示在工具栏「数字显示」按钮中设置。</p>
+				<p class="settings-hint">* 修改行、列、目标或初始块数后保存将重新开局。</p>
 				<div class="settings-actions">
 					<button type="submit" class="btn btn-primary">保存</button>
 					<button type="button" class="btn btn-secondary" id="btn-settings-cancel">取消</button>
@@ -183,7 +187,7 @@
 		boardWidth: 0,
 		boardHeight: 0,
 		showNewTileMarker: true,
-		mergeAnimation: 'flip',
+		stopStepAnimation: 'flip',
 		customTilesDialogVisible: false,
 		gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
 		_collapseKey: collapseKey,
@@ -197,7 +201,7 @@
 	};
 	window.__2048SetQuickSettings__ = function (obj) {
 		if (obj && typeof obj.showNewTileMarker === 'boolean') state.showNewTileMarker = obj.showNewTileMarker;
-		if (obj && typeof obj.mergeAnimation === 'string') state.mergeAnimation = obj.mergeAnimation;
+		if (obj && typeof obj.stopStepAnimation === 'string') state.stopStepAnimation = obj.stopStepAnimation;
 	};
 	const mainApp = createApp({
 		data: () => state,
@@ -214,7 +218,7 @@
 			},
 			onQuickSettingChange() {
 				if (typeof window.__2048ApplyQuickSettings__ === 'function') {
-					window.__2048ApplyQuickSettings__(state.showNewTileMarker, state.mergeAnimation);
+					window.__2048ApplyQuickSettings__(state.showNewTileMarker, state.stopStepAnimation);
 				}
 			},
 			openCustomTilesDialog() {
@@ -245,7 +249,7 @@
 	mainApp.mount('#g2048-article');
 	const helpApp = createApp({
 		data: () => ({ introVisible: false }),
-		template: '<el-button class="page-lv help btn" title="游戏介绍" size="small" circle @click="introVisible=true">?</el-button><el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%"><p>2048：滑动合并相同数字，达到目标数字即胜利。可自定义棋盘大小、目标分数与合并动画。</p><p><strong>操作</strong>：方向键、触屏或鼠标滑动。新局、撤销、设置在工具栏。</p></el-dialog>',
+		template: '<el-button class="page-lv help btn" title="游戏介绍" size="small" circle @click="introVisible=true">?</el-button><el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%"><p>2048：滑动合并相同数字，达到目标数字即胜利。可自定义棋盘大小、目标分数与停步动画。</p><p><strong>操作</strong>：方向键、触屏或鼠标滑动。新局、撤销、设置在工具栏。</p></el-dialog>',
 	});
 	helpApp.use(ElementPlus);
 	if (typeof ElementPlusIconsVue !== 'undefined') {

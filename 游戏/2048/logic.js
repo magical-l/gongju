@@ -32,7 +32,7 @@ var DEFAULT_STATE = {
   showNewTileMarker: true,
   useAccelerometer: false,
   accelerometerSpeed: 'medium',
-  mergeAnimation: 'flip',
+  stopStepAnimation: 'flip',
   newTileOnMidStop: false,
   customLabels: {},
   customImages: {},
@@ -340,8 +340,8 @@ function initGame(highScore, overrides) {
     showNewTileMarker: (o && o.showNewTileMarker != null) ? o.showNewTileMarker !== false : (o && o.showHighlight != null ? o.showHighlight !== false : DEFAULT_STATE.showNewTileMarker),
     useAccelerometer: (o && o.useAccelerometer != null) ? o.useAccelerometer : DEFAULT_STATE.useAccelerometer,
     accelerometerSpeed: (o && o.accelerometerSpeed != null) ? o.accelerometerSpeed : DEFAULT_STATE.accelerometerSpeed,
-    mergeAnimation: (function () {
-      var v = (o && o.mergeAnimation != null) ? o.mergeAnimation : DEFAULT_STATE.mergeAnimation
+    stopStepAnimation: (function () {
+      var v = (o && (o.stopStepAnimation != null ? o.stopStepAnimation : o.mergeAnimation) != null) ? (o.stopStepAnimation != null ? o.stopStepAnimation : o.mergeAnimation) : DEFAULT_STATE.stopStepAnimation
       var map = { rotate: 'shake', pulse: 'glow' }
       v = map[v] != null ? map[v] : v
       return ['flip', 'scale', 'shake', 'bounce', 'glow', 'none'].indexOf(v) !== -1 ? v : 'flip'
@@ -391,7 +391,7 @@ function restart(state) {
     showNewTileMarker: state.showNewTileMarker,
     useAccelerometer: state.useAccelerometer,
     accelerometerSpeed: state.accelerometerSpeed,
-    mergeAnimation: state.mergeAnimation,
+    stopStepAnimation: state.stopStepAnimation,
     newTileOnMidStop: state.newTileOnMidStop,
     customLabels: state.customLabels,
     customImages: state.customImages,
@@ -427,7 +427,7 @@ function serializeGameState(state) {
     showNewTileMarker: state.showNewTileMarker,
     useAccelerometer: state.useAccelerometer,
     accelerometerSpeed: state.accelerometerSpeed,
-    mergeAnimation: state.mergeAnimation,
+    stopStepAnimation: state.stopStepAnimation,
     newTileOnMidStop: state.newTileOnMidStop,
     customLabels: state.customLabels ? Object.assign({}, state.customLabels) : {},
     customImages: state.customImages ? Object.assign({}, state.customImages) : {},
@@ -460,10 +460,10 @@ function deserializeGameState(raw) {
       }
     }
   }
-  var raw = String(o.mergeAnimation)
+  var raw = String(o.stopStepAnimation != null ? o.stopStepAnimation : o.mergeAnimation)
   var map = { rotate: 'shake', pulse: 'glow' }
   var merged = map[raw] != null ? map[raw] : raw
-  var mergeAnimation = (['flip', 'scale', 'shake', 'bounce', 'glow', 'none'].indexOf(merged) !== -1) ? merged : 'flip'
+  var stopStepAnimation = (['flip', 'scale', 'shake', 'bounce', 'glow', 'none'].indexOf(merged) !== -1) ? merged : 'flip'
   return Object.assign({}, DEFAULT_STATE, {
     board: board,
     score: Math.max(0, Number(o.score) || 0),
@@ -479,7 +479,7 @@ function deserializeGameState(raw) {
     showNewTileMarker: (o.showNewTileMarker != null ? o.showNewTileMarker !== false : o.showHighlight !== false),
     useAccelerometer: Boolean(o.useAccelerometer),
     accelerometerSpeed: (o.accelerometerSpeed === 'slow' || o.accelerometerSpeed === 'fast') ? o.accelerometerSpeed : 'medium',
-    mergeAnimation: mergeAnimation,
+    stopStepAnimation: stopStepAnimation,
     newTileOnMidStop: Boolean(o.newTileOnMidStop),
     customLabels: (o.customLabels && typeof o.customLabels === 'object') ? Object.assign({}, o.customLabels) : {},
     customImages: (o.customImages && typeof o.customImages === 'object') ? Object.assign({}, o.customImages) : {},

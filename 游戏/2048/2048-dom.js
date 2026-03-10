@@ -95,7 +95,7 @@
   var showSettings = false
   var pendingSettings = {}
   var slideAnimationActive = false
-  var mergeAnimationTimeout = null
+  var stopStepAnimationTimeout = null
 
   var boardEl = document.getElementById('board')
   var boardFloatingEl = document.getElementById('board-floating')
@@ -217,7 +217,7 @@
       gameState = finalState
       render(gameState)
       var merged = getMergedIndicesFromSlides(slides)
-      addMergeAnimationToTiles(merged, finalState.mergeAnimation, newTileIndex)
+      addMergeAnimationToTiles(merged, finalState.stopStepAnimation, newTileIndex)
       addNewTileMarker(newTileIndex, finalState)
       return
     }
@@ -278,7 +278,7 @@
       gameState = finalState
       render(gameState)
       var merged = getMergedIndicesFromSlides(slides)
-      addMergeAnimationToTiles(merged, finalState.mergeAnimation, newTileIndex)
+      addMergeAnimationToTiles(merged, finalState.stopStepAnimation, newTileIndex)
       addNewTileMarker(newTileIndex, finalState)
     }, maxDuration + 50)
   }
@@ -308,7 +308,7 @@
     } else {
       render(gameState)
       var merged = getMergedIndicesFromSlides(result.slides || [])
-      addMergeAnimationToTiles(merged, gameState.mergeAnimation, result.newTileIndex)
+      addMergeAnimationToTiles(merged, gameState.stopStepAnimation, result.newTileIndex)
       addNewTileMarker(result.newTileIndex, gameState)
     }
   }
@@ -338,7 +338,8 @@
       if (Number(o.initialTiles) >= 1) s.initialTiles = Number(o.initialTiles)
       if (typeof o.showNewTileMarker === 'boolean') s.showNewTileMarker = o.showNewTileMarker
       else if (typeof o.showHighlight === 'boolean') s.showNewTileMarker = o.showHighlight
-      if (typeof o.mergeAnimation === 'string') s.mergeAnimation = o.mergeAnimation
+      if (typeof o.stopStepAnimation === 'string') s.stopStepAnimation = o.stopStepAnimation
+      else if (typeof o.mergeAnimation === 'string') s.stopStepAnimation = o.mergeAnimation
       if (typeof o.newTileOnMidStop === 'boolean') s.newTileOnMidStop = o.newTileOnMidStop
       if (o.customLabels && typeof o.customLabels === 'object') s.customLabels = o.customLabels
       if (o.customImages && typeof o.customImages === 'object') s.customImages = o.customImages
@@ -354,7 +355,7 @@
         targetNumber: pendingSettings.targetNumber === Infinity ? 'Infinity' : pendingSettings.targetNumber,
         initialTiles: pendingSettings.initialTiles,
         showNewTileMarker: pendingSettings.showNewTileMarker,
-        mergeAnimation: pendingSettings.mergeAnimation,
+        stopStepAnimation: pendingSettings.stopStepAnimation,
         newTileOnMidStop: pendingSettings.newTileOnMidStop,
         customLabels: pendingSettings.customLabels && typeof pendingSettings.customLabels === 'object' ? pendingSettings.customLabels : {},
         customImages: pendingSettings.customImages && typeof pendingSettings.customImages === 'object' ? pendingSettings.customImages : {}
@@ -372,7 +373,7 @@
         targetNumber: gameState.targetNumber === Infinity ? 'Infinity' : gameState.targetNumber,
         initialTiles: gameState.initialTiles,
         showNewTileMarker: gameState.showNewTileMarker,
-        mergeAnimation: gameState.mergeAnimation,
+        stopStepAnimation: gameState.stopStepAnimation,
         newTileOnMidStop: gameState.newTileOnMidStop,
         customLabels: gameState.customLabels && typeof gameState.customLabels === 'object' ? gameState.customLabels : {},
         customImages: gameState.customImages && typeof gameState.customImages === 'object' ? gameState.customImages : {}
@@ -381,25 +382,25 @@
     } catch (e) {}
   }
 
-  function saveQuickSettingsToStorage(showNewTileMarker, mergeAnimation, newTileOnMidStop) {
+  function saveQuickSettingsToStorage(showNewTileMarker, stopStepAnimation, newTileOnMidStop) {
     try {
       var raw = getStorage(STORAGE_SETTINGS)
       var o = (raw && (function () { try { return JSON.parse(raw) } catch (e) { return null } })()) || {}
       if (typeof o !== 'object') o = {}
       o.showNewTileMarker = showNewTileMarker
-      o.mergeAnimation = mergeAnimation
+      o.stopStepAnimation = stopStepAnimation
       o.newTileOnMidStop = newTileOnMidStop
       setStorage(STORAGE_SETTINGS, JSON.stringify(o))
     } catch (e) {}
   }
 
-  window.__2048ApplyQuickSettings__ = function (showNewTileMarker, mergeAnimation) {
+  window.__2048ApplyQuickSettings__ = function (showNewTileMarker, stopStepAnimation) {
     if (!gameState) return
     gameState = Object.assign({}, gameState, {
       showNewTileMarker: !!showNewTileMarker,
-      mergeAnimation: typeof mergeAnimation === 'string' ? mergeAnimation : gameState.mergeAnimation
+      stopStepAnimation: typeof stopStepAnimation === 'string' ? stopStepAnimation : gameState.stopStepAnimation
     })
-    saveQuickSettingsToStorage(gameState.showNewTileMarker, gameState.mergeAnimation, gameState.newTileOnMidStop)
+    saveQuickSettingsToStorage(gameState.showNewTileMarker, gameState.stopStepAnimation, gameState.newTileOnMidStop)
     render(gameState)
   }
 
@@ -411,7 +412,7 @@
       targetNumber: gameState.targetNumber,
       initialTiles: gameState.initialTiles,
       showNewTileMarker: gameState.showNewTileMarker,
-      mergeAnimation: gameState.mergeAnimation,
+      stopStepAnimation: gameState.stopStepAnimation,
       newTileOnMidStop: gameState.newTileOnMidStop,
       customLabels: gameState.customLabels ? Object.assign({}, gameState.customLabels) : {},
       customImages: gameState.customImages ? Object.assign({}, gameState.customImages) : {}
@@ -438,7 +439,7 @@
       targetNumber: gameState.targetNumber,
       initialTiles: gameState.initialTiles,
       showNewTileMarker: gameState.showNewTileMarker,
-      mergeAnimation: gameState.mergeAnimation,
+      stopStepAnimation: gameState.stopStepAnimation,
       newTileOnMidStop: gameState.newTileOnMidStop,
       customLabels: gameState.customLabels ? Object.assign({}, gameState.customLabels) : {},
       customImages: gameState.customImages ? Object.assign({}, gameState.customImages) : {}
@@ -779,7 +780,7 @@
     if (typeof window.__2048SetQuickSettings__ === 'function') {
       window.__2048SetQuickSettings__({
         showNewTileMarker: gameState.showNewTileMarker,
-        mergeAnimation: gameState.mergeAnimation,
+        stopStepAnimation: gameState.stopStepAnimation,
         newTileOnMidStop: gameState.newTileOnMidStop
       })
     }

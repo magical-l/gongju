@@ -64,9 +64,9 @@ var SETTINGS_SCHEMA = {
     wechat: {},
     web: {}
   },
-  mergeAnimation: {
+  stopStepAnimation: {
     default: {
-      label: '合并动画',
+      label: '停步动画',
       vals: {
         none: { label: '无', endpoints: ['web', 'wechat'] },
         scale: { label: '缩放', endpoints: ['web', 'wechat'] },
@@ -134,7 +134,7 @@ function buildVisibilityFromSchema() {
 }
 
 /** 工具栏「快速设置」项顺序；仅在此列表且对 endpoint 可见的会生成到界面 */
-var QUICK_SETTINGS_KEYS = ['showNewTileMarker', 'mergeAnimation']
+var QUICK_SETTINGS_KEYS = ['showNewTileMarker', 'stopStepAnimation']
 
 function getQuickSettingsList(endpoint) {
   var list = []
@@ -157,8 +157,8 @@ function getQuickSettingsList(endpoint) {
 }
 
 var MERGE_ANIM_OPTIONS_BY_PLATFORM = (function () {
-  var webOpts = getSettingOptions('mergeAnimation', 'web') || []
-  var wechatOpts = getSettingOptions('mergeAnimation', 'wechat') || []
+  var webOpts = getSettingOptions('stopStepAnimation', 'web') || []
+  var wechatOpts = getSettingOptions('stopStepAnimation', 'wechat') || []
   return {
     web: webOpts.map(function (x) { return x.value }),
     wechat: wechatOpts.map(function (x) { return x.value })
@@ -166,8 +166,8 @@ var MERGE_ANIM_OPTIONS_BY_PLATFORM = (function () {
 })()
 
 var MERGE_ANIM_LABELS_BY_PLATFORM = (function () {
-  var webOpts = getSettingOptions('mergeAnimation', 'web') || []
-  var wechatOpts = getSettingOptions('mergeAnimation', 'wechat') || []
+  var webOpts = getSettingOptions('stopStepAnimation', 'web') || []
+  var wechatOpts = getSettingOptions('stopStepAnimation', 'wechat') || []
   return {
     web: webOpts.map(function (x) { return x.label }),
     wechat: wechatOpts.map(function (x) { return x.label })
@@ -177,7 +177,7 @@ var MERGE_ANIM_LABELS_BY_PLATFORM = (function () {
 var SETTINGS_VISIBILITY = buildVisibilityFromSchema()
 var SETTINGS_TILE_KEYS = [
   'boardHeight', 'boardWidth', 'targetNumber', 'initialTiles',
-  'showNewTileMarker', 'useAccelerometer', 'accelerometerSpeed', 'mergeAnimation', 'newTileOnMidStop',
+  'showNewTileMarker', 'useAccelerometer', 'accelerometerSpeed', 'stopStepAnimation', 'newTileOnMidStop',
 ]
 
 var ACCEL_COOLDOWN = { slow: 900, medium: 480, fast: 280 }
