@@ -1,0 +1,477 @@
+/* 2048 网页版 - 全 DOM+CSS，嵌入工具兽时仅作用在 #app 内，不覆盖站点 body */
+:root {
+  --page-bg: #e8f0e0;
+  --text-dark: #5a6b52;
+  --text-light: #f5f9f2;
+  --btn-primary: #6b8e5c;
+  --btn-secondary: #8fa87a;
+  --board-bg: #b8c9a8;
+  --grid-line: #9bad8f;
+  --cell-empty: #d4e0c8;
+  --tile-radius: 6px;
+  --board-radius: 8px;
+  --board-padding: 12px;
+  --grid-gap: 1px;
+  --merge-duration: 0.2s;
+}
+
+body.settings-open {
+  overflow: hidden;
+}
+
+/* 与其它游戏一致的 toolbar：仅工具按钮 */
+.gaming.area .toolbar .one.setting.group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  flex-wrap: wrap;
+}
+.gaming.area .toolbar .btn {
+  padding: 8px 14px;
+  min-height: 32px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--text-light);
+  font-family: inherit;
+}
+.gaming.area .toolbar .btn-primary { background: var(--btn-primary); }
+.gaming.area .toolbar .btn-secondary { background: var(--btn-secondary); }
+.gaming.area .toolbar .btn:hover { filter: brightness(1.08); }
+.gaming.area .toolbar .btn:active { filter: brightness(0.95); }
+
+/* 右侧本局信息（得分、最高记录），与贪吃蛇等一致 */
+.gaming.info.right-sidebar .scoreboard {
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+.gaming.info.right-sidebar .scoreboard-title {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  text-align: center;
+}
+.gaming.info.right-sidebar .scoreboard section {
+  text-align: center;
+  margin: 0.75rem 0;
+}
+.gaming.info.right-sidebar .scoreboard h4 {
+  margin: 0 0 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+.gaming.info.right-sidebar .scoreboard p {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--text-dark);
+}
+
+#app {
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: system-ui, -apple-system, sans-serif;
+  color: var(--text-dark);
+}
+
+/* ----- Board (游戏内用 .game-main 避免与站点 main 冲突) ----- */
+#app .game-main {
+  position: relative;
+  width: 100%;
+  max-width: min(480px, 95vw);
+}
+
+#app .board-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  max-height: min(480px, 75vh);
+  margin: 0 auto;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#app #overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: var(--board-radius);
+}
+
+#app .board {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  gap: var(--grid-gap);
+  padding: var(--board-padding);
+  background: var(--board-bg);
+  border-radius: var(--board-radius);
+  position: relative;
+}
+
+#app .board .cell {
+  background: var(--cell-empty);
+  border-radius: var(--tile-radius);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#app .board .tile {
+  position: absolute;
+  inset: var(--grid-gap);
+  border-radius: var(--tile-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: var(--text-light);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#app .board .tile { font-size: clamp(12px, 4vw, 24px); }
+
+#app .board .tile.tile-2 { background: #e2ead8; color: #5a6b52; }
+#app .board .tile.tile-4 { background: #d4e0c8; color: #5a6b52; }
+#app .tile-8 { background: #a8c99e; }
+#app .tile-16 { background: #8fbc85; }
+#app .tile-32 { background: #7cb37a; }
+#app .tile-64 { background: #6ba36b; }
+#app .tile-128 { background: #9cb87c; }
+#app .tile-256 { background: #8ab06e; }
+#app .tile-512 { background: #7aa862; }
+#app .tile-1024 { background: #6a9f56; }
+#app .tile-2048 { background: #5a8f4a; }
+#app .tile-super { background: #4a5a42; }
+
+#app .tile-new-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  background: #c00;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  pointer-events: none;
+}
+
+#app .tile-merge-scale { animation: g2048-merge-scale var(--merge-duration) ease-out; }
+#app .tile-merge-flip { animation: g2048-merge-flip var(--merge-duration) ease-in-out; }
+#app .tile-merge-shake { animation: g2048-merge-shake var(--merge-duration) ease-out; }
+#app .tile-merge-bounce { animation: g2048-merge-bounce var(--merge-duration) ease-out; }
+#app .tile-merge-glow { animation: g2048-merge-glow var(--merge-duration) ease-in-out; }
+
+@keyframes g2048-merge-scale {
+  0% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+@keyframes g2048-merge-flip {
+  0% { transform: scaleX(0); }
+  50% { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+
+@keyframes g2048-merge-shake {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-8deg); }
+  40% { transform: rotate(6deg); }
+  60% { transform: rotate(-4deg); }
+  80% { transform: rotate(2deg); }
+}
+
+@keyframes g2048-merge-bounce {
+  0%, 100% { transform: translateY(0); }
+  35% { transform: translateY(-20%); }
+  70% { transform: translateY(-5%); }
+}
+
+@keyframes g2048-merge-glow {
+  0%, 100% { box-shadow: inset 0 0 0 0 rgba(255, 220, 0, 0); }
+  50% { box-shadow: inset 0 0 0 3px rgba(255, 220, 0, 0.85); }
+}
+
+#app .board-floating {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: var(--board-radius);
+  padding: var(--board-padding);
+}
+
+#app .board-floating .floating-tile {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: var(--text-light);
+  border-radius: var(--tile-radius);
+  transition: left 0.08s linear, top 0.08s linear;
+  font-size: clamp(12px, 4vw, 24px);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#app .board-floating .floating-tile.tile-2 { background: #e2ead8; color: #5a6b52; }
+#app .board-floating .floating-tile.tile-4 { background: #d4e0c8; color: #5a6b52; }
+#app .board-floating .floating-tile.tile-8 { background: #a8c99e; }
+#app .board-floating .floating-tile.tile-16 { background: #8fbc85; }
+#app .board-floating .floating-tile.tile-32 { background: #7cb37a; }
+#app .board-floating .floating-tile.tile-64 { background: #6ba36b; }
+#app .board-floating .floating-tile.tile-128 { background: #9cb87c; }
+#app .board-floating .floating-tile.tile-256 { background: #8ab06e; }
+#app .board-floating .floating-tile.tile-512 { background: #7aa862; }
+#app .board-floating .floating-tile.tile-1024 { background: #6a9f56; }
+#app .board-floating .floating-tile.tile-2048 { background: #5a8f4a; }
+#app .board-floating .floating-tile.tile-super { background: #4a5a42; }
+
+#app .game-main .overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(238, 228, 218, 0.9);
+  border-radius: var(--board-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+#app .overlay.hidden { display: none; }
+
+#app .overlay-inner {
+  text-align: center;
+  padding: 24px;
+}
+
+#app .overlay-title {
+  font-size: clamp(24px, 5vw, 32px);
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+#app .overlay-sub {
+  font-size: clamp(16px, 3vw, 18px);
+  margin-bottom: 24px;
+}
+
+#app .overlay-hint {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+/* ----- Settings (全局弹层，保留在 body 下) ----- */
+.settings-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 100;
+}
+
+.settings-backdrop.hidden { display: none; }
+
+.settings-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(580px, calc(100vw - 24px));
+  max-height: min(92vh, calc(100vh - 24px));
+  overflow: auto;
+  overflow-x: hidden;
+  background: var(--page-bg);
+  border-radius: 16px;
+  padding: 28px 32px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.22);
+  z-index: 101;
+  -webkit-overflow-scrolling: touch;
+  font-family: system-ui, -apple-system, sans-serif;
+  color: var(--text-dark);
+}
+
+.settings-panel.hidden { display: none; }
+
+.settings-panel .settings-title {
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.settings-panel .settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.settings-panel .settings-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: nowrap;
+}
+
+.settings-panel .settings-label {
+  flex: 0 0 88px;
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.settings-panel .settings-options {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 2px;
+}
+
+.settings-panel .settings-options [role="option"] {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  min-height: 28px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  background: var(--board-bg);
+  color: var(--text-dark);
+}
+
+.settings-panel .settings-options [role="option"].selected {
+  background: var(--btn-primary);
+  color: var(--text-light);
+}
+
+.settings-panel .settings-options [role="option"]:hover {
+  filter: brightness(1.05);
+}
+
+.settings-panel .hidden { display: none !important; }
+
+.settings-panel .settings-hint {
+  font-size: 13px;
+  color: var(--text-dark);
+  opacity: 0.9;
+  margin: 2px 0 2px 104px;
+}
+
+.settings-panel .settings-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--grid-line);
+}
+
+.settings-panel .btn {
+  padding: 8px 14px;
+  min-height: 32px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--text-light);
+  font-family: inherit;
+}
+.settings-panel .btn-primary { background: var(--btn-primary); }
+.settings-panel .btn-secondary { background: var(--btn-secondary); }
+.settings-panel .btn:hover { filter: brightness(1.08); }
+.settings-panel .btn:active { filter: brightness(0.95); }
+
+/* 数字显示：每行 数字 + 文字输入 + 图片URL输入 + 清除 */
+.settings-panel .settings-section.settings-custom-tiles {
+  margin-top: 8px;
+}
+.settings-panel .settings-custom-tiles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px 0 12px;
+  max-height: 380px;
+  overflow-y: auto;
+}
+.settings-panel .custom-tile-row {
+  display: grid;
+  grid-template-columns: 36px 1fr 1fr auto auto;
+  align-items: center;
+  gap: 6px;
+}
+.settings-panel .custom-tile-num {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-dark);
+}
+.settings-panel .custom-tile-label,
+.settings-panel .custom-tile-image {
+  padding: 6px 8px;
+  border: 1px solid var(--grid-line);
+  border-radius: 6px;
+  font-size: 14px;
+  min-width: 0;
+}
+.settings-panel .custom-tile-clear,
+.settings-panel .custom-tile-pick-file {
+  padding: 6px 10px;
+  font-size: 13px;
+}
+.settings-panel .custom-tile-file-wrap {
+  position: relative;
+}
+.settings-panel .custom-tile-file-wrap input[type="file"] {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 0;
+}
+.settings-panel .settings-custom-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.settings-panel .settings-custom-actions .btn {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 格子内自定义图片 */
+#app .board .tile img,
+#app .board-floating .floating-tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+#app .hidden { display: none !important; }

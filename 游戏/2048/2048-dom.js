@@ -1,0 +1,644 @@
+/**
+ * 2048 网页版 - 全 DOM+CSS 驱动。依赖 logic.js、constants.js（挂到 window）。
+ */
+;(function () {
+  'use strict'
+
+  var logic = typeof window !== 'undefined' && window.Game2048Logic
+  var constants = typeof window !== 'undefined' && window.Game2048Constants
+  if (!logic || !constants) {
+    console.error('请先加载 logic.js 和 constants.js')
+    return
+  }
+
+  var initGame = logic.initGame
+  var doMove = logic.doMove
+  var restart = logic.restart
+  var undo = logic.undo
+  var serializeGameState = logic.serializeGameState
+  var deserializeGameState = logic.deserializeGameState
+  var STORAGE_HIGH_SCORE = logic.STORAGE_HIGH_SCORE
+  var STORAGE_GAME_STATE = logic.STORAGE_GAME_STATE
+  var STORAGE_SETTINGS = logic.STORAGE_SETTINGS
+
+  var TILE_COLORS = constants.TILE_COLORS
+  var TILE_SUPER = constants.TILE_SUPER
+  var SIZE_OPTIONS = constants.SIZE_OPTIONS
+  var TARGET_OPTIONS = constants.TARGET_OPTIONS
+  var TARGET_LABELS = constants.TARGET_LABELS
+  var INITIAL_OPTIONS = constants.INITIAL_OPTIONS
+  var MERGE_ANIM_OPTIONS_BY_PLATFORM = constants.MERGE_ANIM_OPTIONS_BY_PLATFORM
+  var MERGE_ANIM_LABELS_BY_PLATFORM = constants.MERGE_ANIM_LABELS_BY_PLATFORM
+  var MERGE_ANIM_DURATION_MS = constants.MERGE_ANIM_DURATION_MS
+  var MIN_SWIPE_PX = constants.MIN_SWIPE_PX
+  var TILE_IMAGE_KEYS = constants.TILE_IMAGE_KEYS
+
+  var SLIDE_MS_PER_CELL = 80
+  var CUSTOM_LABEL_MAX_LEN = 10
+  /** 网页端支持更大棋盘；4–6 与小程序一致，7–8 增加策略深度，再大易拖沓（常见变体多为 5x5/6x6，少数 8x8） */
+  var WEB_SIZE_OPTIONS = [4, 5, 6, 7, 8]
+
+  function getMergedIndicesFromSlides(slides) {
+    var set = {}
+    for (var i = 0; i < slides.length; i++) {
+      var p = slides[i].path
+      if (p && p.length >= 2) set[p[p.length - 1]] = true
+    }
+    return Object.keys(set).map(Number)
+  }
+
+  function getTileClass(value) {
+    if (value <= 0) return 'tile-2'
+    if (value > 2048) return 'tile-super'
+    return 'tile-' + value
+  }
+
+  /** 获取某数字的显示内容：优先图片 > 自定义文字 > 数字 */
+  function getTileDisplayContent(state, value) {
+    if (value <= 0) return { type: 'number', value: value }
+    var key = String(value)
+    var img = state.customImages && state.customImages[key]
+    if (img && String(img).trim()) return { type: 'image', src: String(img).trim(), value: value }
+    var label = state.customLabels && state.customLabels[key]
+    if (label != null && String(label).trim() !== '') return { type: 'text', text: String(label).trim(), value: value }
+    return { type: 'number', value: value }
+  }
+
+  function setTileContent(tileEl, state, value, className) {
+    var content = getTileDisplayContent(state, value)
+    tileEl.innerHTML = ''
+    if (content.type === 'image') {
+      var img = document.createElement('img')
+      img.src = content.src
+      img.alt = String(value)
+      img.setAttribute('loading', 'lazy')
+      tileEl.appendChild(img)
+    } else if (content.type === 'text') {
+      tileEl.textContent = content.text
+    } else {
+      tileEl.textContent = content.value
+    }
+  }
+
+  function getStorage(key) {
+    try { return localStorage.getItem(key) } catch (e) { return null }
+  }
+  function setStorage(key, value) {
+    try { localStorage.setItem(key, value) } catch (e) {}
+  }
+
+  var gameState = null
+  var showSettings = false
+  var pendingSettings = {}
+  var slideAnimationActive = false
+  var mergeAnimationTimeout = null
+
+  var boardEl = document.getElementById('board')
+  var boardFloatingEl = document.getElementById('board-floating')
+  var boardWrapEl = document.getElementById('board-wrap')
+  var scoreEl = document.getElementById('score')
+  var highScoreEl = document.getElementById('high-score')
+  var overlayEl = document.getElementById('overlay')
+  var overlayTitleEl = document.getElementById('overlay-title')
+  var overlaySubEl = document.getElementById('overlay-sub')
+  var settingsBackdrop = document.getElementById('settings-backdrop')
+  var settingsPanel = document.getElementById('settings-panel')
+
+  function renderBoard(state, boardOverride) {
+    var cols = state.boardWidth
+    var rows = state.boardHeight
+    var board = boardOverride != null ? boardOverride : state.board
+    boardEl.style.gridTemplateColumns = 'repeat(' + cols + ', 1fr)'
+    boardEl.style.gridTemplateRows = 'repeat(' + rows + ', 1fr)'
+    boardEl.innerHTML = ''
+    for (var i = 0; i < cols * rows; i++) {
+      var cell = document.createElement('div')
+      cell.className = 'cell'
+      cell.dataset.index = i
+      var value = board[i] || 0
+      if (value > 0) {
+        var tile = document.createElement('div')
+        tile.className = 'tile ' + getTileClass(value)
+        tile.dataset.index = i
+        setTileContent(tile, state, value)
+        cell.appendChild(tile)
+      }
+      boardEl.appendChild(cell)
+    }
+  }
+
+  function renderHeader(state) {
+    scoreEl.textContent = state.score
+    highScoreEl.textContent = state.highScore
+  }
+
+  function renderOverlay(state) {
+    if (state.overlayVisible && state.overlayMessage) {
+      overlayEl.classList.remove('hidden')
+      overlayEl.setAttribute('aria-hidden', 'false')
+      overlayTitleEl.textContent = state.overlayMessage
+      overlaySubEl.textContent = state.gameOver ? '最终得分：' + state.score : ''
+      overlaySubEl.style.display = state.gameOver ? 'block' : 'none'
+    } else {
+      overlayEl.classList.add('hidden')
+      overlayEl.setAttribute('aria-hidden', 'true')
+    }
+  }
+
+  function render(state) {
+    if (!state) return
+    renderHeader(state)
+    renderBoard(state)
+    renderOverlay(state)
+  }
+
+  function addMergeAnimationToTiles(mergedIndices, mode, excludeIndex) {
+    if (!mode || mode === 'none') return
+    var cls = 'tile-merge-' + mode
+    for (var i = 0; i < mergedIndices.length; i++) {
+      var idx = mergedIndices[i]
+      if (excludeIndex !== undefined && idx === excludeIndex) continue
+      var cell = boardEl.querySelector('.cell[data-index="' + idx + '"]')
+      if (!cell) continue
+      var tileEl = cell.querySelector('.tile')
+      if (!tileEl || tileEl.nodeType !== 1 || !tileEl.classList || typeof tileEl.classList.add !== 'function') continue
+      tileEl.classList.add(cls)
+      ;(function (el) {
+        setTimeout(function () {
+          if (el && el.classList) el.classList.remove(cls)
+        }, MERGE_ANIM_DURATION_MS)
+      })(tileEl)
+    }
+  }
+
+  function addNewTileMarker(index, state) {
+    if (index < 0 || !state.showNewTileMarker) return
+    var cell = boardEl.querySelector('.cell[data-index="' + index + '"]')
+    if (!cell) return
+    var tileEl = cell.querySelector('.tile')
+    if (!tileEl || tileEl.nodeType !== 1) return
+    var badge = document.createElement('span')
+    badge.className = 'tile-new-badge'
+    badge.setAttribute('aria-hidden', 'true')
+    badge.textContent = '!'
+    tileEl.appendChild(badge)
+  }
+
+  function getCellPositions() {
+    var cells = boardEl.querySelectorAll('.cell')
+    var wrapRect = boardWrapEl.getBoundingClientRect()
+    var positions = []
+    for (var i = 0; i < cells.length; i++) {
+      var r = cells[i].getBoundingClientRect()
+      positions.push({
+        left: r.left - wrapRect.left,
+        top: r.top - wrapRect.top,
+        width: r.width,
+        height: r.height
+      })
+    }
+    return positions
+  }
+
+  function runSlideAnimation(slides, finalState, stateBeforeMove, newTileIndex) {
+    if (slideAnimationActive || !slides || slides.length === 0) {
+      gameState = finalState
+      render(gameState)
+      var merged = getMergedIndicesFromSlides(slides)
+      addMergeAnimationToTiles(merged, finalState.mergeAnimation, newTileIndex)
+      addNewTileMarker(newTileIndex, finalState)
+      return
+    }
+    slideAnimationActive = true
+    var cols = finalState.boardWidth
+    var rows = finalState.boardHeight
+
+    var displayBoard = stateBeforeMove.board.slice()
+    for (var s = 0; s < slides.length; s++) {
+      var path = slides[s].path
+      if (path && path.length >= 2) displayBoard[path[0]] = 0
+    }
+    renderHeader(stateBeforeMove)
+    renderBoard(stateBeforeMove, displayBoard)
+    renderOverlay(stateBeforeMove)
+
+    var positions = getCellPositions()
+    boardFloatingEl.innerHTML = ''
+    boardFloatingEl.style.pointerEvents = 'none'
+
+    var maxDuration = 0
+    for (var i = 0; i < slides.length; i++) {
+      var slide = slides[i]
+      var path = slide.path
+      if (!path || path.length < 2) continue
+      var fromIdx = path[0]
+      var toIdx = path[path.length - 1]
+      var duration = (path.length - 1) * SLIDE_MS_PER_CELL
+      if (duration > maxDuration) maxDuration = duration
+
+      var fromPos = positions[fromIdx]
+      var toPos = positions[toIdx]
+      if (!fromPos || !toPos) continue
+
+      var tile = document.createElement('div')
+      tile.className = 'floating-tile ' + getTileClass(slide.value)
+      setTileContent(tile, finalState, slide.value)
+      tile.style.left = fromPos.left + 'px'
+      tile.style.top = fromPos.top + 'px'
+      tile.style.width = fromPos.width + 'px'
+      tile.style.height = fromPos.height + 'px'
+      tile.style.transitionDuration = duration + 'ms'
+      boardFloatingEl.appendChild(tile)
+
+      ;(function (tileRef, toPosRef) {
+        requestAnimationFrame(function () {
+          tileRef.style.left = toPosRef.left + 'px'
+          tileRef.style.top = toPosRef.top + 'px'
+          tileRef.style.width = toPosRef.width + 'px'
+          tileRef.style.height = toPosRef.height + 'px'
+        })
+      })(tile, toPos)
+    }
+
+    setTimeout(function () {
+      boardFloatingEl.innerHTML = ''
+      slideAnimationActive = false
+      gameState = finalState
+      render(gameState)
+      var merged = getMergedIndicesFromSlides(slides)
+      addMergeAnimationToTiles(merged, finalState.mergeAnimation, newTileIndex)
+      addNewTileMarker(newTileIndex, finalState)
+    }, maxDuration + 50)
+  }
+
+  function clearSlideAnimation() {
+    slideAnimationActive = false
+    boardFloatingEl.innerHTML = ''
+  }
+
+  function handleMove(direction) {
+    if (slideAnimationActive) return
+    if (gameState.gameWin) {
+      gameState = Object.assign({}, gameState, { gameWin: false, overlayVisible: false, overlayMessage: '' })
+    }
+    var stateBeforeMove = gameState
+    var result = doMove(gameState, direction)
+    if (!result.moved) {
+      render(gameState)
+      return
+    }
+    gameState = result.state
+    var prevHigh = Number(getStorage(STORAGE_HIGH_SCORE)) || 0
+    if (gameState.highScore > prevHigh) setStorage(STORAGE_HIGH_SCORE, String(gameState.highScore))
+    if (result.slides && result.slides.length > 0) {
+      runSlideAnimation(result.slides, gameState, stateBeforeMove, result.newTileIndex)
+    } else {
+      render(gameState)
+      var merged = getMergedIndicesFromSlides(result.slides || [])
+      addMergeAnimationToTiles(merged, gameState.mergeAnimation, result.newTileIndex)
+      addNewTileMarker(result.newTileIndex, gameState)
+    }
+  }
+
+  function handleRestart() {
+    clearSlideAnimation()
+    gameState = restart(gameState)
+    render(gameState)
+  }
+
+  function handleUndo() {
+    clearSlideAnimation()
+    gameState = undo(gameState)
+    render(gameState)
+  }
+
+  function loadSettingsFromStorage() {
+    try {
+      var raw = getStorage(STORAGE_SETTINGS)
+      if (!raw) return null
+      var o = JSON.parse(raw)
+      if (!o || typeof o !== 'object') return null
+      var s = {}
+      if (Number(o.boardWidth) >= 2) s.boardWidth = Number(o.boardWidth)
+      if (Number(o.boardHeight) >= 2) s.boardHeight = Number(o.boardHeight)
+      if (o.targetNumber !== undefined) s.targetNumber = o.targetNumber === 'Infinity' ? Infinity : Number(o.targetNumber)
+      if (Number(o.initialTiles) >= 1) s.initialTiles = Number(o.initialTiles)
+      if (typeof o.showNewTileMarker === 'boolean') s.showNewTileMarker = o.showNewTileMarker
+      else if (typeof o.showHighlight === 'boolean') s.showNewTileMarker = o.showHighlight
+      if (typeof o.mergeAnimation === 'string') s.mergeAnimation = o.mergeAnimation
+      if (typeof o.newTileOnMidStop === 'boolean') s.newTileOnMidStop = o.newTileOnMidStop
+      if (o.customLabels && typeof o.customLabels === 'object') s.customLabels = o.customLabels
+      if (o.customImages && typeof o.customImages === 'object') s.customImages = o.customImages
+      return Object.keys(s).length ? s : null
+    } catch (e) { return null }
+  }
+
+  function saveSettingsToStorage() {
+    try {
+      var s = {
+        boardWidth: pendingSettings.boardWidth,
+        boardHeight: pendingSettings.boardHeight,
+        targetNumber: pendingSettings.targetNumber === Infinity ? 'Infinity' : pendingSettings.targetNumber,
+        initialTiles: pendingSettings.initialTiles,
+        showNewTileMarker: pendingSettings.showNewTileMarker,
+        mergeAnimation: pendingSettings.mergeAnimation,
+        newTileOnMidStop: pendingSettings.newTileOnMidStop,
+        customLabels: pendingSettings.customLabels && typeof pendingSettings.customLabels === 'object' ? pendingSettings.customLabels : {},
+        customImages: pendingSettings.customImages && typeof pendingSettings.customImages === 'object' ? pendingSettings.customImages : {}
+      }
+      setStorage(STORAGE_SETTINGS, JSON.stringify(s))
+    } catch (e) {}
+  }
+
+  function openSettings() {
+    clearSlideAnimation()
+    document.body.classList.add('settings-open')
+    pendingSettings = {
+      boardWidth: gameState.boardWidth,
+      boardHeight: gameState.boardHeight,
+      targetNumber: gameState.targetNumber,
+      initialTiles: gameState.initialTiles,
+      showNewTileMarker: gameState.showNewTileMarker,
+      mergeAnimation: gameState.mergeAnimation,
+      newTileOnMidStop: gameState.newTileOnMidStop,
+      customLabels: gameState.customLabels ? Object.assign({}, gameState.customLabels) : {},
+      customImages: gameState.customImages ? Object.assign({}, gameState.customImages) : {}
+    }
+    showSettings = true
+    settingsBackdrop.classList.remove('hidden')
+    settingsPanel.classList.remove('hidden')
+    settingsBackdrop.setAttribute('aria-hidden', 'false')
+    settingsPanel.setAttribute('aria-hidden', 'false')
+    renderSettingsForm()
+  }
+
+  function closeSettings() {
+    showSettings = false
+    document.body.classList.remove('settings-open')
+    settingsBackdrop.classList.add('hidden')
+    settingsPanel.classList.add('hidden')
+    settingsBackdrop.setAttribute('aria-hidden', 'true')
+    settingsPanel.setAttribute('aria-hidden', 'true')
+  }
+
+  function valueEqual(a, b) {
+    return a === b || (a === Infinity && b === Infinity)
+  }
+
+  var SETTINGS_ROWS = [
+    { key: 'boardHeight', options: WEB_SIZE_OPTIONS.map(function (v) { return { label: String(v), value: v } }) },
+    { key: 'boardWidth', options: WEB_SIZE_OPTIONS.map(function (v) { return { label: String(v), value: v } }) },
+    { key: 'targetNumber', options: TARGET_OPTIONS.map(function (v, i) { return { label: TARGET_LABELS[i], value: v } }) },
+    { key: 'initialTiles', options: INITIAL_OPTIONS.map(function (v) { return { label: String(v), value: v } }) },
+    { key: 'showNewTileMarker', options: [{ label: '关', value: false }, { label: '开', value: true }] },
+    { key: 'mergeAnimation', options: (MERGE_ANIM_OPTIONS_BY_PLATFORM.web || []).map(function (v, i) { return { label: (MERGE_ANIM_LABELS_BY_PLATFORM.web || [])[i] || v, value: v } }) },
+    { key: 'newTileOnMidStop', options: [{ label: '关', value: false }, { label: '开', value: true }] }
+  ]
+
+  function renderSettingsForm() {
+    var optsContainers = settingsPanel.querySelectorAll('.settings-options[data-key]')
+    for (var c = 0; c < optsContainers.length; c++) {
+      var container = optsContainers[c]
+      var key = container.getAttribute('data-key')
+      var row = SETTINGS_ROWS.filter(function (r) { return r.key === key })[0]
+      if (!row) continue
+      container.innerHTML = ''
+      for (var i = 0; i < row.options.length; i++) {
+        var opt = row.options[i]
+        var btn = document.createElement('button')
+        btn.type = 'button'
+        btn.setAttribute('role', 'option')
+        btn.textContent = opt.label
+        btn.dataset.value = opt.value === Infinity ? 'Infinity' : String(opt.value)
+        if (valueEqual(opt.value, pendingSettings[key])) btn.classList.add('selected')
+        ;(function (k, val, cont) {
+          btn.addEventListener('click', function () {
+            pendingSettings[k] = val
+            var siblings = cont.querySelectorAll('[role="option"]')
+            for (var j = 0; j < siblings.length; j++) {
+              siblings[j].classList.toggle('selected', siblings[j].dataset.value === (val === Infinity ? 'Infinity' : String(val)))
+            }
+          })
+        })(key, opt.value, container)
+        container.appendChild(btn)
+      }
+    }
+    renderCustomTilesSection()
+  }
+
+  var pendingPickFileKey = null
+
+  function renderCustomTilesSection() {
+    if (!pendingSettings.customLabels) pendingSettings.customLabels = {}
+    if (!pendingSettings.customImages) pendingSettings.customImages = {}
+    var listEl = document.getElementById('settings-custom-tiles-list')
+    var fileInput = document.getElementById('settings-tile-file-input')
+    if (!listEl) return
+    listEl.innerHTML = ''
+    for (var i = 0; i < TILE_IMAGE_KEYS.length; i++) {
+      var key = TILE_IMAGE_KEYS[i]
+      var row = document.createElement('div')
+      row.className = 'custom-tile-row'
+      var labelVal = (pendingSettings.customLabels[key] != null ? pendingSettings.customLabels[key] : '') || ''
+      var imgVal = (pendingSettings.customImages[key] != null ? pendingSettings.customImages[key] : '') || ''
+      var imgDisplayVal = (imgVal && imgVal.slice(0, 5) === 'data:') ? '' : imgVal
+      row.innerHTML = '<span class="custom-tile-num">' + key + '</span>' +
+        '<input type="text" class="custom-tile-label" data-key="' + key + '" placeholder="文字" maxlength="' + CUSTOM_LABEL_MAX_LEN + '" value="' + escapeAttr(labelVal) + '">' +
+        '<input type="text" class="custom-tile-image" data-key="' + key + '" placeholder="' + (imgVal && imgVal.slice(0, 5) === 'data:' ? '已选本地图' : '图片 URL') + '" value="' + escapeAttr(imgDisplayVal) + '">' +
+        '<button type="button" class="btn btn-secondary custom-tile-clear" data-key="' + key + '">清除</button>' +
+        '<span class="custom-tile-file-wrap"><button type="button" class="btn btn-secondary custom-tile-pick-file" data-key="' + key + '">选图</button></span>'
+      listEl.appendChild(row)
+    }
+    if (fileInput && !fileInput._bound) {
+      fileInput._bound = true
+      fileInput.addEventListener('change', function () {
+        var k = pendingPickFileKey
+        pendingPickFileKey = null
+        var file = fileInput.files && fileInput.files[0]
+        fileInput.value = ''
+        if (!k || !file || !file.type.match(/^image\//)) return
+        var reader = new FileReader()
+        reader.onload = function (e) {
+          if (!e || !e.target || !e.target.result) return
+          pendingSettings.customImages[k] = e.target.result
+          if (pendingSettings.customLabels) delete pendingSettings.customLabels[k]
+          renderCustomTilesSection()
+        }
+        reader.readAsDataURL(file)
+      })
+    }
+    listEl.querySelectorAll('.custom-tile-label').forEach(function (input) {
+      input.addEventListener('input', function () {
+        var k = input.getAttribute('data-key')
+        pendingSettings.customLabels[k] = input.value.trim().slice(0, CUSTOM_LABEL_MAX_LEN)
+        if (pendingSettings.customLabels[k] === '') delete pendingSettings.customLabels[k]
+        if (pendingSettings.customImages) delete pendingSettings.customImages[k]
+        renderCustomTilesSection()
+      })
+    })
+    listEl.querySelectorAll('.custom-tile-image').forEach(function (input) {
+      input.addEventListener('input', function () {
+        var k = input.getAttribute('data-key')
+        var v = input.value.trim()
+        if (v) {
+          pendingSettings.customImages[k] = v
+          if (pendingSettings.customLabels) delete pendingSettings.customLabels[k]
+        } else {
+          if (pendingSettings.customImages) delete pendingSettings.customImages[k]
+        }
+        renderCustomTilesSection()
+      })
+    })
+    listEl.querySelectorAll('.custom-tile-clear').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var k = btn.getAttribute('data-key')
+        if (pendingSettings.customLabels) delete pendingSettings.customLabels[k]
+        if (pendingSettings.customImages) delete pendingSettings.customImages[k]
+        renderCustomTilesSection()
+      })
+    })
+    listEl.querySelectorAll('.custom-tile-pick-file').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var k = btn.getAttribute('data-key')
+        if (!k) return
+        pendingPickFileKey = k
+        if (fileInput) fileInput.click()
+      })
+    })
+    var btnClearLabels = document.getElementById('btn-clear-all-labels')
+    var btnClearImages = document.getElementById('btn-clear-all-images')
+    if (btnClearLabels) {
+      btnClearLabels.onclick = function () {
+        pendingSettings.customLabels = {}
+        renderCustomTilesSection()
+      }
+    }
+    if (btnClearImages) {
+      btnClearImages.onclick = function () {
+        pendingSettings.customImages = {}
+        renderCustomTilesSection()
+      }
+    }
+  }
+
+  function escapeAttr(s) {
+    if (s == null) return ''
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+  }
+
+  function init() {
+    var highScore = Number(getStorage(STORAGE_HIGH_SCORE)) || 0
+    var loaded = loadSettingsFromStorage()
+    var restored = null
+    try {
+      var stateRaw = getStorage(STORAGE_GAME_STATE)
+      if (stateRaw) restored = deserializeGameState(JSON.parse(stateRaw))
+    } catch (e) {}
+    gameState = restored || initGame(highScore, loaded || undefined)
+    render(gameState)
+  }
+
+  function saveState() {
+    if (!gameState) return
+    if (!gameState.gameOver && !gameState.gameWin) {
+      setStorage(STORAGE_GAME_STATE, JSON.stringify(serializeGameState(gameState)))
+    } else {
+      try { localStorage.removeItem(STORAGE_GAME_STATE) } catch (e) {}
+    }
+  }
+
+  document.getElementById('btn-restart').addEventListener('click', handleRestart)
+  document.getElementById('btn-undo').addEventListener('click', handleUndo)
+  document.getElementById('btn-settings').addEventListener('click', openSettings)
+  document.getElementById('btn-settings-cancel').addEventListener('click', closeSettings)
+
+  settingsBackdrop.addEventListener('click', function (e) {
+    if (e.target === settingsBackdrop) closeSettings()
+  })
+
+  document.getElementById('settings-form').addEventListener('submit', function (e) {
+    e.preventDefault()
+    saveSettingsToStorage()
+    var needRestart = pendingSettings.boardWidth !== gameState.boardWidth || pendingSettings.boardHeight !== gameState.boardHeight || pendingSettings.targetNumber !== gameState.targetNumber || pendingSettings.initialTiles !== gameState.initialTiles
+    if (needRestart) gameState = initGame(gameState.highScore, pendingSettings)
+    else gameState = Object.assign({}, gameState, { customLabels: pendingSettings.customLabels || {}, customImages: pendingSettings.customImages || {} })
+    closeSettings()
+    render(gameState)
+  })
+
+  overlayEl.addEventListener('click', function () {
+    if (!gameState || !gameState.overlayVisible) return
+    gameState = Object.assign({}, gameState, { overlayVisible: false, overlayMessage: '' })
+    render(gameState)
+  })
+
+  document.addEventListener('keydown', function (e) {
+    if (showSettings) return
+    if (gameState.overlayVisible) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        gameState = Object.assign({}, gameState, { overlayVisible: false, overlayMessage: '' })
+        render(gameState)
+      }
+      return
+    }
+    var direction = null
+    if (e.key === 'ArrowLeft') direction = 'left'
+    else if (e.key === 'ArrowRight') direction = 'right'
+    else if (e.key === 'ArrowUp') direction = 'up'
+    else if (e.key === 'ArrowDown') direction = 'down'
+    if (direction) {
+      e.preventDefault()
+      handleMove(direction)
+    }
+  })
+
+  var touchStartX = 0
+  var touchStartY = 0
+  boardWrapEl.addEventListener('touchstart', function (e) {
+    var t = e.touches[0]
+    if (t) { touchStartX = t.clientX; touchStartY = t.clientY }
+  }, { passive: true })
+  boardWrapEl.addEventListener('touchend', function (e) {
+    var t = e.changedTouches[0]
+    if (!t || !gameState || showSettings) return
+    if (gameState.overlayVisible) {
+      gameState = Object.assign({}, gameState, { overlayVisible: false, overlayMessage: '' })
+      render(gameState)
+      return
+    }
+    var dx = t.clientX - touchStartX
+    var dy = t.clientY - touchStartY
+    var ax = Math.abs(dx)
+    var ay = Math.abs(dy)
+    if (Math.max(ax, ay) < MIN_SWIPE_PX) return
+    var dir = ax >= ay ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up')
+    handleMove(dir)
+  }, { passive: true })
+
+  var mouseDownX = 0
+  var mouseDownY = 0
+  boardWrapEl.addEventListener('mousedown', function (e) {
+    mouseDownX = e.clientX
+    mouseDownY = e.clientY
+  })
+  boardWrapEl.addEventListener('mouseup', function (e) {
+    if (!gameState || showSettings) return
+    if (gameState.overlayVisible) return
+    var dx = e.clientX - mouseDownX
+    var dy = e.clientY - mouseDownY
+    var ax = Math.abs(dx)
+    var ay = Math.abs(dy)
+    if (Math.max(ax, ay) < MIN_SWIPE_PX) return
+    var dir = ax >= ay ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up')
+    handleMove(dir)
+  })
+
+  window.addEventListener('beforeunload', saveState)
+
+  init()
+})()

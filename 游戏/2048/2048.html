@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title itemprop="name">2048 | 工具兽 - 在线数字合并益智游戏</title>
+<meta name="description" content="在线 2048 游戏，支持 4×4 至 8×8 棋盘、多种目标分数与合并动画，可撤销与本地存档。" itemprop="description">
+<meta name="keywords" content="2048,数字合并,益智游戏,在线游戏">
+<meta name="author" content="工具兽">
+
+<link href="../../resources/common.css" rel="stylesheet">
+<link href="../../resources/layout.css" rel="stylesheet">
+<link href="../../resources/biz.css" rel="stylesheet">
+<link href="2048.css" rel="stylesheet">
+</head>
+<body class="grid 反叵字形">
+<header>
+	<h1 class="website name" title="工具人（gongju.ren）域名太贵买不起">工具兽</h1>
+	<nav>
+		<a href="../../文本转化.html">文本转化</a>
+		<a href="../../数字转化.html">数字转化</a>
+		<a href="../../符号/符号.html">符号</a>
+		<a href="../../格子盘.html">格子盘</a>
+		<a href="../../svg转图标.html">SVG转图标</a>
+		<a href="../../化学/元素周期表.html">元素周期表</a>
+		<a href="../../拼音/拼音.html">拼音</a>
+		<a href="../中国象棋/中国象棋.html">中国象棋</a>
+		<a href="../五子棋/gobang.html">五子棋</a>
+		<a href="../俄罗斯方块.html">俄罗斯方块</a>
+		<a href="../贪吃蛇.html">贪吃蛇</a>
+		<a href="2048.html" class="active">2048</a>
+		<a href="../点灯.html">点灯</a>
+		<a href="../数字华容道.html">数字华容道</a>
+		<a href="../星连星/星连星.html">星连星</a>
+	</nav>
+</header>
+<main>
+	<header>
+		<h2 class="game name">2048</h2>
+	</header>
+	<article class="gaming area , 反叵字形 grid">
+		<header class="toolbar , flex multi-line no-gap items-near-center-x items-stretch">
+			<section class="setting list area , flex single-line no-gap items-near-start-x items-near-center-y">
+				<div class="one setting group">
+					<button type="button" class="btn btn-primary" id="btn-restart">新局</button>
+					<button type="button" class="btn btn-secondary" id="btn-undo">撤销</button>
+					<button type="button" class="btn btn-secondary" id="btn-settings">设置</button>
+				</div>
+			</section>
+		</header>
+
+		<div class="main map area , flex items-near-center-x">
+		<div id="app">
+		<div class="game-main">
+			<div id="board-wrap" class="board-wrap">
+				<div id="board" class="board" role="grid"></div>
+				<div id="board-floating" class="board-floating" aria-hidden="true"></div>
+				<div id="overlay" class="overlay hidden" aria-hidden="true">
+					<div class="overlay-inner">
+						<p id="overlay-title" class="overlay-title"></p>
+						<p id="overlay-sub" class="overlay-sub"></p>
+						<p class="overlay-hint">点击或按 Enter 继续</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div id="settings-backdrop" class="settings-backdrop hidden" aria-hidden="true"></div>
+		<aside id="settings-panel" class="settings-panel hidden" role="dialog" aria-labelledby="settings-title" aria-modal="true">
+			<h2 id="settings-title" class="settings-title">游戏设置</h2>
+			<form id="settings-form" class="settings-form">
+				<div class="settings-row">
+					<label class="settings-label">行</label>
+					<div class="settings-options" data-key="boardHeight"></div>
+				</div>
+				<div class="settings-row">
+					<label class="settings-label">列</label>
+					<div class="settings-options" data-key="boardWidth"></div>
+				</div>
+				<div class="settings-row">
+					<label class="settings-label">目标</label>
+					<div class="settings-options" data-key="targetNumber"></div>
+				</div>
+				<div class="settings-row">
+					<label class="settings-label">初始块数</label>
+					<div class="settings-options" data-key="initialTiles"></div>
+				</div>
+				<p class="settings-hint">修改行、列、目标或初始块数后保存将重新开局</p>
+				<div class="settings-row">
+					<label class="settings-label">新数字标记</label>
+					<div class="settings-options" data-key="showNewTileMarker"></div>
+				</div>
+				<div class="settings-row">
+					<label class="settings-label">合并动画</label>
+					<div class="settings-options" data-key="mergeAnimation"></div>
+				</div>
+				<div class="settings-row">
+					<label class="settings-label">中途停生新数</label>
+					<div class="settings-options" data-key="newTileOnMidStop"></div>
+				</div>
+				<div class="settings-section settings-custom-tiles">
+					<p class="settings-label">数字显示</p>
+					<p class="settings-hint">可为每个数字设置自定义显示文字、图片 URL 或本地选图（图片优先）；留空则显示原数字。文字与图片二选一。</p>
+					<input type="file" id="settings-tile-file-input" accept="image/*" class="hidden" aria-hidden="true">
+					<div id="settings-custom-tiles-list" class="settings-custom-tiles-list"></div>
+					<div class="settings-custom-actions">
+						<button type="button" class="btn btn-secondary" id="btn-clear-all-labels">清除全部文字</button>
+						<button type="button" class="btn btn-secondary" id="btn-clear-all-images">清除全部图片</button>
+					</div>
+				</div>
+				<div class="settings-actions">
+					<button type="submit" class="btn btn-primary">保存</button>
+					<button type="button" class="btn btn-secondary" id="btn-settings-cancel">取消</button>
+				</div>
+			</form>
+		</aside>
+		</div>
+		</div>
+
+		<aside class="gaming info , right-sidebar">
+			<div class="scoreboard">
+				<h3 class="scoreboard-title">本局信息</h3>
+				<section>
+					<h4>得分</h4>
+					<p id="score">0</p>
+				</section>
+				<section>
+					<h4>最高记录</h4>
+					<p id="high-score">0</p>
+				</section>
+			</div>
+		</aside>
+	</article>
+</main>
+
+<aside class="right-sidebar">
+	<article class="website info">
+		<section class="patronage area">
+			<img class="qr-code" src="../../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+			<p class="slogan">赞助一下</p>
+		</section>
+		<section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
+		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p></section>
+	</article>
+</aside>
+
+<script src="logic.js"></script>
+<script src="constants.js"></script>
+<script src="2048-dom.js"></script>
+</body>
+</html>
