@@ -41,52 +41,110 @@ var ACCEL_SPEED_LABELS = ['慢', '中', '快']
 var MERGE_ANIM_OPTIONS = ['flip', 'scale', 'shake', 'bounce', 'glow', 'none']
 var MERGE_ANIM_LABELS = ['翻牌', '缩放', '旋转', '弹跳', '脉冲', '无']
 /**
- * 设置项与可选值的统一配置：每项可指定 endpoints（该设置/该值在哪些端展示）。
- * 后续可扩展 type、defaultVal、range 等。
- * 当前仅对「按端区分」的项写 schema；其余项缺省表示两端都展示、用原有常量。
- * 动画类：当前仅 mergeAnimation（合并时）；后续可加 newTileAnimation（新块出现）、slideEndAnimation（滑动结束）等。
+ * 设置项与 UI 文案的 schema：按 endpoint 区分。
+ * 结构：{ default: { label?, endpoints?, vals?, ... }, wechat?: {...}, web?: {...} }
+ * - default 为兜底；wechat / web 覆盖同名字段，若为 null 表示该端不展示该项。
+ * - endpoints 表示该项在哪些端展示（合并 default 与 endpoint 后取）。
  */
 var SETTINGS_SCHEMA = {
-  useAccelerometer: { endpoints: ['wechat'] },
-  accelerometerSpeed: { endpoints: ['wechat'] },
+  useAccelerometer: { default: { endpoints: ['wechat'] }, web: null },
+  accelerometerSpeed: { default: { endpoints: ['wechat'] }, web: null },
+  newTileOnMidStop: { default: { endpoints: ['wechat'] }, web: null },
+  showNewTileMarker: {
+    default: { label: '新数标记', endpoints: ['web', 'wechat'], display: 'toggleButton' },
+    wechat: {},
+    web: {}
+  },
   mergeAnimation: {
-    label: '合并动画',
-    vals: {
-      none: { label: '无', endpoints: ['web', 'wechat'] },
-      scale: { label: '缩放', endpoints: ['web', 'wechat'] },
-      flip: { label: '翻牌', endpoints: ['web'] },
-      shake: { label: '摇晃', endpoints: ['web'] },
-      bounce: { label: '弹跳', endpoints: ['web'] },
-      glow: { label: '描边', endpoints: ['web'] }
-    }
+    default: {
+      label: '合并动画',
+      vals: {
+        none: { label: '无', endpoints: ['web', 'wechat'] },
+        scale: { label: '缩放', endpoints: ['web', 'wechat'] },
+        flip: { label: '翻牌', endpoints: ['web'] },
+        shake: { label: '摇晃', endpoints: ['web'] },
+        bounce: { label: '弹跳', endpoints: ['web'] },
+        glow: { label: '描边', endpoints: ['web'] }
+      }
+    },
+    wechat: {},
+    web: {}
   }
 }
 
-function getSettingOptions(key, endpoint) {
+/** 各端 UI 文案（非设置项）：{ 区域: { 键: { default?, wechat?, web? } } }，网页可写长一点 */
+var UI_LABELS = {
+  customTiles: {
+    labelPlaceholder: { default: '文字', web: '自定义文字' },
+    pickImage: { default: '选图', web: '选择本地图片' }
+  }
+}
+
+function getSettingForEndpoint(key, endpoint) {
   var s = SETTINGS_SCHEMA[key]
-  if (!s || !s.vals) return null
+  if (!s) return null
+  var base = s.default != null ? s.default : s
+  var over = s[endpoint]
+  if (over === null || over === false) return null
+  return Object.assign({}, base, over || {})
+}
+
+function getDisplayLabel(area, key, endpoint) {
+  var a = UI_LABELS[area]
+  if (!a) return key
+  var o = a[key]
+  if (!o) return key
+  var v = o[endpoint] != null ? o[endpoint] : o.default
+  return v != null ? String(v) : key
+}
+
+function getSettingOptions(key, endpoint) {
+  var c = getSettingForEndpoint(key, endpoint)
+  if (!c || !c.vals) return null
   var list = []
-  for (var v in s.vals) {
-    var o = s.vals[v]
+  for (var v in c.vals) {
+    var o = c.vals[v]
     if (!o.endpoints || o.endpoints.indexOf(endpoint) !== -1) list.push({ value: v, label: o.label != null ? o.label : v })
   }
   return list
 }
 
 function isSettingVisible(key, endpoint) {
-  var s = SETTINGS_SCHEMA[key]
-  if (!s) return true
-  if (!s.endpoints) return true
-  return s.endpoints.indexOf(endpoint) !== -1
+  var c = getSettingForEndpoint(key, endpoint)
+  if (!c) return false
+  return !c.endpoints || c.endpoints.indexOf(endpoint) !== -1
 }
 
 function buildVisibilityFromSchema() {
   var vis = {}
   for (var key in SETTINGS_SCHEMA) {
-    var s = SETTINGS_SCHEMA[key]
-    if (s.endpoints && s.endpoints.length === 1) vis[key] = s.endpoints[0]
+    if (!isSettingVisible(key, 'web')) vis[key] = 'wechat'
+    else if (!isSettingVisible(key, 'wechat')) vis[key] = 'web'
   }
   return vis
+}
+
+/** 工具栏「快速设置」项顺序；仅在此列表且对 endpoint 可见的会生成到界面 */
+var QUICK_SETTINGS_KEYS = ['showNewTileMarker', 'mergeAnimation']
+
+function getQuickSettingsList(endpoint) {
+  var list = []
+  for (var i = 0; i < QUICK_SETTINGS_KEYS.length; i++) {
+    var key = QUICK_SETTINGS_KEYS[i]
+    if (!isSettingVisible(key, endpoint)) continue
+    var c = getSettingForEndpoint(key, endpoint)
+    if (!c) continue
+    var item = { key: key, label: c.label || key }
+    if (c.vals) {
+      item.type = 'select'
+      item.options = getSettingOptions(key, endpoint) || []
+    } else {
+      item.type = 'boolean'
+      item.display = c.display || 'switch'
+    }
+    list.push(item)
+  }
+  return list
 }
 
 var MERGE_ANIM_OPTIONS_BY_PLATFORM = (function () {
@@ -223,8 +281,13 @@ var TOAST_PRIVACY_DURATION = 3500
   MERGE_ANIM_OPTIONS,
   MERGE_ANIM_LABELS,
   SETTINGS_SCHEMA,
+  UI_LABELS,
+  getSettingForEndpoint: getSettingForEndpoint,
+  getDisplayLabel: getDisplayLabel,
   getSettingOptions: getSettingOptions,
   isSettingVisible: isSettingVisible,
+  QUICK_SETTINGS_KEYS: QUICK_SETTINGS_KEYS,
+  getQuickSettingsList: getQuickSettingsList,
   MERGE_ANIM_OPTIONS_BY_PLATFORM,
   MERGE_ANIM_LABELS_BY_PLATFORM,
   SETTINGS_VISIBILITY,

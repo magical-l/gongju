@@ -46,24 +46,22 @@
 		<header class="toolbar , flex multi-line no-gap items-near-center-x items-stretch">
 			<section class="setting list area , flex single-line no-gap items-near-start-x items-near-center-y">
 				<div class="one setting group">
-					<el-form-item label="新数标记" class="one setting : marker">
-						<el-checkbox v-model="showNewTileMarker" @change="onQuickSettingChange"></el-checkbox>
-					</el-form-item>
-					<el-form-item label="合并动画" class="one setting : merge">
-						<el-select v-model="mergeAnimation" @change="onQuickSettingChange" size="default">
-							<el-option label="翻牌" value="flip"></el-option>
-							<el-option label="缩放" value="scale"></el-option>
-							<el-option label="摇晃" value="shake"></el-option>
-							<el-option label="弹跳" value="bounce"></el-option>
-							<el-option label="描边" value="glow"></el-option>
-							<el-option label="无" value="none"></el-option>
-						</el-select>
-					</el-form-item>
-					<el-form-item class="one setting : midstop">
-						<el-tooltip content="开启后，新块在滑动动画进行中就会出现；当前网页版为动画结束后才出新块，此选项暂未生效。" placement="top">
-							<el-checkbox v-model="newTileOnMidStop" @change="onQuickSettingChange">中途停生新数</el-checkbox>
-						</el-tooltip>
-					</el-form-item>
+					<template v-for="item in quickSettingsList" :key="item.key">
+						<el-form-item v-if="item.display === 'toggleButton'" class="one setting : marker">
+							<div class="g2048-switch-btn" :class="{ pressed: getQuickValue(item.key) }" role="button" tabindex="0" :aria-pressed="getQuickValue(item.key)" @click="setQuickValue(item.key, !getQuickValue(item.key))" @keydown.enter.space.prevent="setQuickValue(item.key, !getQuickValue(item.key))">
+								<span class="g2048-switch-btn-inner">
+									<svg v-if="item.key === 'showNewTileMarker'" class="g2048-label-icon" viewBox="0 0 24 24" width="1em" height="1em" title="角标式标记" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" fill="currentColor" opacity="0.85"/><circle cx="18" cy="6" r="3.5" fill="var(--el-color-danger, #f56c6c)"/></svg>
+									<span class="g2048-switch-btn-label">{{ item.label }}</span>
+								</span>
+								<el-switch :model-value="getQuickValue(item.key)" @update:model-value="(v) => setQuickValue(item.key, v)" class="g2048-switch-btn-control g2048-switch-btn-control-hidden" aria-hidden="true" />
+							</div>
+						</el-form-item>
+						<el-form-item v-else-if="item.type === 'select'" :label="item.label" class="one setting : merge">
+							<el-select :model-value="getQuickValue(item.key)" @update:model-value="(v) => setQuickValue(item.key, v)" size="default">
+								<el-option v-for="opt in item.options" :key="opt.value" :label="opt.label" :value="opt.value"></el-option>
+							</el-select>
+						</el-form-item>
+					</template>
 				</div>
 			</section>
 			<section class="controller list area , flex single-line no-gap items-near-start-x items-near-center-y">
@@ -113,7 +111,7 @@
 					<label class="settings-label">初始块数</label>
 					<div class="settings-options" data-key="initialTiles"></div>
 				</div>
-				<p class="settings-hint">修改行、列、目标或初始块数后保存将重新开局。新数标记、合并动画、中途停生新数在工具栏调节，数字显示在工具栏「数字显示」按钮中设置。</p>
+				<p class="settings-hint">修改行、列、目标或初始块数后保存将重新开局。新数标记、合并动画在工具栏调节，数字显示在工具栏「数字显示」按钮中设置。</p>
 				<div class="settings-actions">
 					<button type="submit" class="btn btn-primary">保存</button>
 					<button type="button" class="btn btn-secondary" id="btn-settings-cancel">取消</button>
@@ -174,6 +172,7 @@
 	<script src="../../lib/vue/3.5.18/vue.global.js"></script>
 	<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
 	<script src="../../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
+	<script src="constants.js"></script>
 </div>
 <script>
 (function () {
@@ -189,7 +188,6 @@
 		boardHeight: 0,
 		showNewTileMarker: true,
 		mergeAnimation: 'flip',
-		newTileOnMidStop: false,
 		customTilesDialogVisible: false,
 		gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
 		_collapseKey: collapseKey,
@@ -204,14 +202,23 @@
 	window.__2048SetQuickSettings__ = function (obj) {
 		if (obj && typeof obj.showNewTileMarker === 'boolean') state.showNewTileMarker = obj.showNewTileMarker;
 		if (obj && typeof obj.mergeAnimation === 'string') state.mergeAnimation = obj.mergeAnimation;
-		if (obj && typeof obj.newTileOnMidStop === 'boolean') state.newTileOnMidStop = obj.newTileOnMidStop;
 	};
 	const mainApp = createApp({
 		data: () => state,
+		computed: {
+			quickSettingsList() {
+				return (window.Game2048Constants && window.Game2048Constants.getQuickSettingsList('web')) || [];
+			},
+		},
 		methods: {
+			getQuickValue(key) { return state[key]; },
+			setQuickValue(key, v) {
+				state[key] = v;
+				this.onQuickSettingChange();
+			},
 			onQuickSettingChange() {
 				if (typeof window.__2048ApplyQuickSettings__ === 'function') {
-					window.__2048ApplyQuickSettings__(state.showNewTileMarker, state.mergeAnimation, state.newTileOnMidStop);
+					window.__2048ApplyQuickSettings__(state.showNewTileMarker, state.mergeAnimation);
 				}
 			},
 			openCustomTilesDialog() {
@@ -256,7 +263,6 @@
 }());
 </script>
 <script src="logic.js"></script>
-<script src="constants.js"></script>
 <script src="2048-dom.js"></script>
 </body>
 </html>

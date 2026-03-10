@@ -33,6 +33,8 @@
   var MERGE_ANIM_DURATION_MS = constants.MERGE_ANIM_DURATION_MS
   var MIN_SWIPE_PX = constants.MIN_SWIPE_PX
   var TILE_IMAGE_KEYS = constants.TILE_IMAGE_KEYS
+  var getDisplayLabel = constants.getDisplayLabel
+  var WEB_ENDPOINT = 'web'
 
   var SLIDE_MS_PER_CELL = 80
   var CUSTOM_LABEL_MAX_LEN = 10
@@ -155,6 +157,10 @@
     renderHeader(state)
     renderBoard(state)
     renderOverlay(state)
+    var firstCell = boardEl && boardEl.querySelector('.cell')
+    if (firstCell && firstCell.offsetWidth > 0) {
+      document.documentElement.style.setProperty('--g2048-cell-size', firstCell.offsetWidth + 'px')
+    }
   }
 
   function addMergeAnimationToTiles(mergedIndices, mode, excludeIndex) {
@@ -386,12 +392,11 @@
     } catch (e) {}
   }
 
-  window.__2048ApplyQuickSettings__ = function (showNewTileMarker, mergeAnimation, newTileOnMidStop) {
+  window.__2048ApplyQuickSettings__ = function (showNewTileMarker, mergeAnimation) {
     if (!gameState) return
     gameState = Object.assign({}, gameState, {
       showNewTileMarker: !!showNewTileMarker,
-      mergeAnimation: typeof mergeAnimation === 'string' ? mergeAnimation : gameState.mergeAnimation,
-      newTileOnMidStop: !!newTileOnMidStop
+      mergeAnimation: typeof mergeAnimation === 'string' ? mergeAnimation : gameState.mergeAnimation
     })
     saveQuickSettingsToStorage(gameState.showNewTileMarker, gameState.mergeAnimation, gameState.newTileOnMidStop)
     render(gameState)
@@ -498,6 +503,26 @@
 
   var pendingPickFileKey = null
 
+  function buildPreviewContent(key, labelVal, imgVal) {
+    var num = parseInt(key, 10)
+    var tileClass = getTileClass(Number.isFinite(num) ? num : 2)
+    var wrap = document.createElement('div')
+    wrap.className = 'custom-tile-preview ' + tileClass
+    if (imgVal && String(imgVal).trim()) {
+      var img = document.createElement('img')
+      img.src = String(imgVal).trim()
+      img.alt = key
+      img.loading = 'lazy'
+      img.onerror = function () { wrap.classList.add('preview-error') }
+      wrap.appendChild(img)
+    } else if (labelVal && String(labelVal).trim()) {
+      wrap.textContent = String(labelVal).trim()
+    } else {
+      wrap.textContent = key
+    }
+    return wrap
+  }
+
   function renderCustomTilesSection() {
     if (!pendingSettings.customLabels) pendingSettings.customLabels = {}
     if (!pendingSettings.customImages) pendingSettings.customImages = {}
@@ -507,22 +532,75 @@
     listEl.innerHTML = ''
     for (var i = 0; i < TILE_IMAGE_KEYS.length; i++) {
       var key = TILE_IMAGE_KEYS[i]
-      var row = document.createElement('div')
-      row.className = 'custom-tile-row'
+      var card = document.createElement('div')
+      card.className = 'custom-tile-card'
+      var cardTitle = document.createElement('div')
+      cardTitle.className = 'custom-tile-card-num'
+      cardTitle.textContent = '\u6570\u5b57 ' + key
       var labelVal = (pendingSettings.customLabels[key] != null ? pendingSettings.customLabels[key] : '') || ''
       var imgVal = (pendingSettings.customImages[key] != null ? pendingSettings.customImages[key] : '') || ''
       var imgDisplayVal = (imgVal && imgVal.slice(0, 5) === 'data:') ? '' : imgVal
-      var previewSrc = (imgVal && String(imgVal).trim()) ? String(imgVal).trim() : ''
-      var previewHtml = previewSrc
-        ? '<span class="custom-tile-preview"><img src="' + escapeAttr(previewSrc) + '" alt="" loading="lazy" onerror="this.parentElement.classList.add(\'preview-error\')"></span>'
-        : '<span class="custom-tile-preview custom-tile-preview-empty"></span>'
-      row.innerHTML = '<span class="custom-tile-num">' + key + '</span>' +
-        '<input type="text" class="custom-tile-label" data-key="' + key + '" placeholder="文字" maxlength="' + CUSTOM_LABEL_MAX_LEN + '" value="' + escapeAttr(labelVal) + '">' +
-        '<input type="text" class="custom-tile-image" data-key="' + key + '" placeholder="' + (imgVal && imgVal.slice(0, 5) === 'data:' ? '已选本地图' : '图片 URL') + '" value="' + escapeAttr(imgDisplayVal) + '">' +
-        previewHtml +
-        '<button type="button" class="btn btn-secondary custom-tile-clear" data-key="' + key + '">清除</button>' +
-        '<span class="custom-tile-file-wrap"><button type="button" class="btn btn-secondary custom-tile-pick-file" data-key="' + key + '">选图</button></span>'
-      listEl.appendChild(row)
+
+      var previewWrap = document.createElement('div')
+      previewWrap.className = 'custom-tile-preview-wrap'
+      var previewEl = buildPreviewContent(key, labelVal, imgVal)
+      previewWrap.appendChild(previewEl)
+      var clearBtn = document.createElement('button')
+      clearBtn.type = 'button'
+      clearBtn.className = 'custom-tile-clear-btn'
+      clearBtn.setAttribute('aria-label', '清除')
+      clearBtn.innerHTML = '×'
+      clearBtn.dataset.key = key
+      previewWrap.appendChild(clearBtn)
+
+      var fields = document.createElement('div')
+      fields.className = 'custom-tile-fields'
+      var labelInput = document.createElement('input')
+      labelInput.type = 'text'
+      labelInput.className = 'custom-tile-label'
+      labelInput.setAttribute('data-key', key)
+      labelInput.placeholder = getDisplayLabel('customTiles', 'labelPlaceholder', WEB_ENDPOINT)
+      labelInput.maxLength = CUSTOM_LABEL_MAX_LEN
+      labelInput.value = labelVal
+      var imageInput = document.createElement('input')
+      imageInput.type = 'text'
+      imageInput.className = 'custom-tile-image'
+      imageInput.setAttribute('data-key', key)
+      imageInput.placeholder = (imgVal && imgVal.slice(0, 5) === 'data:') ? '已选本地图' : '图片 URL'
+      imageInput.value = imgDisplayVal
+      var rowOrUrl = document.createElement('div')
+      rowOrUrl.className = 'custom-tile-row-or'
+      var or1 = document.createElement('span')
+      or1.className = 'custom-tile-or'
+      or1.textContent = '\u6216'
+      rowOrUrl.appendChild(or1)
+      rowOrUrl.appendChild(imageInput)
+      var fileWrap = document.createElement('span')
+      fileWrap.className = 'custom-tile-file-wrap'
+      var pickBtn = document.createElement('button')
+      pickBtn.type = 'button'
+      pickBtn.className = 'btn btn-secondary custom-tile-pick-file'
+      pickBtn.textContent = getDisplayLabel('customTiles', 'pickImage', WEB_ENDPOINT)
+      pickBtn.dataset.key = key
+      fileWrap.appendChild(pickBtn)
+      var rowOrPick = document.createElement('div')
+      rowOrPick.className = 'custom-tile-row-or'
+      var or2 = document.createElement('span')
+      or2.className = 'custom-tile-or'
+      or2.textContent = '\u6216'
+      rowOrPick.appendChild(or2)
+      rowOrPick.appendChild(fileWrap)
+      fields.appendChild(labelInput)
+      fields.appendChild(rowOrUrl)
+      fields.appendChild(rowOrPick)
+
+      var cardBody = document.createElement('div')
+      cardBody.className = 'custom-tile-card-body'
+      cardBody.appendChild(previewWrap)
+      cardBody.appendChild(fields)
+      card.appendChild(cardTitle)
+      card.appendChild(cardBody)
+      listEl.appendChild(card)
     }
     if (fileInput && !fileInput._bound) {
       fileInput._bound = true
@@ -548,7 +626,15 @@
         pendingSettings.customLabels[k] = input.value.trim().slice(0, CUSTOM_LABEL_MAX_LEN)
         if (pendingSettings.customLabels[k] === '') delete pendingSettings.customLabels[k]
         if (pendingSettings.customImages) delete pendingSettings.customImages[k]
-        /* 不在此处调用 renderCustomTilesSection()，否则整表重建会导致输入框失焦 */
+        var card = input.closest('.custom-tile-card')
+        var previewWrap = card ? card.querySelector('.custom-tile-preview-wrap') : null
+        var prev = previewWrap ? previewWrap.querySelector('.custom-tile-preview') : null
+        if (prev) {
+          var lv = (pendingSettings.customLabels[k] != null ? pendingSettings.customLabels[k] : '') || ''
+          var iv = (pendingSettings.customImages[k] != null ? pendingSettings.customImages[k] : '') || ''
+          var next = buildPreviewContent(k, lv, iv)
+          prev.parentNode.replaceChild(next, prev)
+        }
       })
     })
     listEl.querySelectorAll('.custom-tile-image').forEach(function (input) {
@@ -561,31 +647,18 @@
         } else {
           if (pendingSettings.customImages) delete pendingSettings.customImages[k]
         }
-        /* 仅更新本行预览，不整表重绘以免失焦 */
-        var row = input.closest('.custom-tile-row')
-        var previewEl = row ? row.querySelector('.custom-tile-preview') : null
-        if (previewEl) {
-          previewEl.classList.remove('custom-tile-preview-empty', 'preview-error')
-          if (v) {
-            var img = previewEl.querySelector('img')
-            if (img) img.src = v
-            else {
-              img = document.createElement('img')
-              img.alt = ''
-              img.loading = 'lazy'
-              img.onerror = function () { previewEl.classList.add('preview-error') }
-              img.src = v
-              previewEl.innerHTML = ''
-              previewEl.appendChild(img)
-            }
-          } else {
-            previewEl.innerHTML = ''
-            previewEl.classList.add('custom-tile-preview-empty')
-          }
+        var card = input.closest('.custom-tile-card')
+        var previewWrap = card ? card.querySelector('.custom-tile-preview-wrap') : null
+        var prev = previewWrap ? previewWrap.querySelector('.custom-tile-preview') : null
+        if (prev) {
+          var lv = (pendingSettings.customLabels[k] != null ? pendingSettings.customLabels[k] : '') || ''
+          var iv = (pendingSettings.customImages[k] != null ? pendingSettings.customImages[k] : '') || ''
+          var next = buildPreviewContent(k, lv, iv)
+          prev.parentNode.replaceChild(next, prev)
         }
       })
     })
-    listEl.querySelectorAll('.custom-tile-clear').forEach(function (btn) {
+    listEl.querySelectorAll('.custom-tile-clear-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var k = btn.getAttribute('data-key')
         if (pendingSettings.customLabels) delete pendingSettings.customLabels[k]
