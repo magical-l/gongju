@@ -18,6 +18,7 @@
   var serializeGameState = logic.serializeGameState
   var deserializeGameState = logic.deserializeGameState
   var STORAGE_HIGH_SCORE = logic.STORAGE_HIGH_SCORE
+  var getHighScoreKey = logic.getHighScoreKey
   var STORAGE_GAME_STATE = logic.STORAGE_GAME_STATE
   var STORAGE_SETTINGS = logic.STORAGE_SETTINGS
 
@@ -129,7 +130,7 @@
 
   function renderHeader(state) {
     if (typeof window.__2048UpdateScores__ === 'function') {
-      window.__2048UpdateScores__(state.score, state.highScore)
+      window.__2048UpdateScores__(state.score, state.highScore, state.boardWidth, state.boardHeight)
       return
     }
     if (scoreEl) scoreEl.textContent = state.score
@@ -292,8 +293,9 @@
       return
     }
     gameState = result.state
-    var prevHigh = Number(getStorage(STORAGE_HIGH_SCORE)) || 0
-    if (gameState.highScore > prevHigh) setStorage(STORAGE_HIGH_SCORE, String(gameState.highScore))
+    var highKey = getHighScoreKey(gameState.boardWidth, gameState.boardHeight)
+    var prevHigh = Number(getStorage(highKey)) || 0
+    if (gameState.highScore > prevHigh) setStorage(highKey, String(gameState.highScore))
     if (result.slides && result.slides.length > 0) {
       runSlideAnimation(result.slides, gameState, stateBeforeMove, result.newTileIndex)
     } else {
@@ -599,14 +601,23 @@
   }
 
   function init() {
-    var highScore = Number(getStorage(STORAGE_HIGH_SCORE)) || 0
     var loaded = loadSettingsFromStorage()
     var restored = null
     try {
       var stateRaw = getStorage(STORAGE_GAME_STATE)
       if (stateRaw) restored = deserializeGameState(JSON.parse(stateRaw))
     } catch (e) {}
-    gameState = restored || initGame(highScore, loaded || undefined)
+    if (restored) {
+      gameState = restored
+      var keyRestored = getHighScoreKey(gameState.boardWidth, gameState.boardHeight)
+      var storedRestored = Number(getStorage(keyRestored)) || 0
+      if (gameState.highScore > storedRestored) setStorage(keyRestored, String(gameState.highScore))
+    } else {
+      var w = (loaded && loaded.boardWidth) || 4
+      var h = (loaded && loaded.boardHeight) || 4
+      var highScore = Number(getStorage(getHighScoreKey(w, h))) || 0
+      gameState = initGame(highScore, loaded || undefined)
+    }
     render(gameState)
     if (typeof window.__2048SetQuickSettings__ === 'function') {
       window.__2048SetQuickSettings__({
@@ -639,7 +650,10 @@
     e.preventDefault()
     saveSettingsToStorage()
     var needRestart = pendingSettings.boardWidth !== gameState.boardWidth || pendingSettings.boardHeight !== gameState.boardHeight || pendingSettings.targetNumber !== gameState.targetNumber || pendingSettings.initialTiles !== gameState.initialTiles
-    if (needRestart) gameState = initGame(gameState.highScore, pendingSettings)
+    if (needRestart) {
+      var highForNewSize = Number(getStorage(getHighScoreKey(pendingSettings.boardWidth, pendingSettings.boardHeight))) || 0
+      gameState = initGame(highForNewSize, pendingSettings)
+    }
     else gameState = Object.assign({}, gameState, { customLabels: pendingSettings.customLabels || {}, customImages: pendingSettings.customImages || {} })
     closeSettings()
     render(gameState)
@@ -650,6 +664,13 @@
     gameState = Object.assign({}, gameState, { overlayVisible: false, overlayMessage: '' })
     render(gameState)
   })
+  var overlayBtnRestart = document.getElementById('overlay-btn-restart')
+  if (overlayBtnRestart) {
+    overlayBtnRestart.addEventListener('click', function (e) {
+      e.stopPropagation()
+      handleRestart()
+    })
+  }
 
   document.addEventListener('keydown', function (e) {
     if (showSettings) return

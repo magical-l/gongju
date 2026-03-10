@@ -11,6 +11,9 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict'
   var STORAGE_HIGH_SCORE = '2048-high-score'
+  function getHighScoreKey(boardWidth, boardHeight) {
+    return STORAGE_HIGH_SCORE + '-' + (boardWidth || 4) + '-' + (boardHeight || 4)
+  }
 var STORAGE_SETTINGS = '2048-settings'
 var STORAGE_GAME_STATE = '2048-game-state'
 
@@ -511,6 +514,7 @@ function deserializeGameState(raw) {
 
   return {
     STORAGE_HIGH_SCORE: STORAGE_HIGH_SCORE,
+    getHighScoreKey: getHighScoreKey,
     STORAGE_SETTINGS: STORAGE_SETTINGS,
     STORAGE_GAME_STATE: STORAGE_GAME_STATE,
     addRandomTile: addRandomTile,

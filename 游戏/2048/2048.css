@@ -272,6 +272,25 @@ body.settings-open {
   opacity: 0.9;
 }
 
+#app .overlay-btn-restart {
+  margin-top: 16px;
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: var(--tile-radius);
+  border: none;
+  background: var(--btn-primary);
+  color: var(--text-light);
+  cursor: pointer;
+}
+
+#app .overlay-btn-restart:hover {
+  filter: brightness(1.1);
+}
+
+#app .overlay-btn-restart:active {
+  filter: brightness(0.95);
+}
+
 /* ----- Settings (全局弹层，保留在 body 下) ----- */
 .settings-backdrop {
   position: fixed;
