@@ -469,7 +469,7 @@
     var num = parseInt(key, 10)
     var tileClass = getTileClass(Number.isFinite(num) ? num : 2)
     var wrap = document.createElement('div')
-    wrap.className = 'custom-tile-preview ' + tileClass
+    wrap.className = 'custom tile preview ' + tileClass
     if (imgVal && String(imgVal).trim()) {
       var img = document.createElement('img')
       img.src = String(imgVal).trim()
@@ -519,60 +519,60 @@
     for (var i = 0; i < tileKeys.length; i++) {
       var key = tileKeys[i]
       var card = document.createElement('div')
-      card.className = 'custom-tile-card'
+      card.className = 'custom tile card'
       var cardTitle = document.createElement('div')
-      cardTitle.className = 'custom-tile-card-num'
+      cardTitle.className = 'custom tile card-num'
       cardTitle.textContent = '\u6570\u5b57 ' + key
       var labelVal = (pendingSettings.customLabels[key] != null ? pendingSettings.customLabels[key] : '') || ''
       var imgVal = (pendingSettings.customImages[key] != null ? pendingSettings.customImages[key] : '') || ''
       var imgDisplayVal = (imgVal && imgVal.slice(0, 5) === 'data:') ? '' : imgVal
 
       var previewWrap = document.createElement('div')
-      previewWrap.className = 'custom-tile-preview-wrap'
+      previewWrap.className = 'custom tile preview-wrap'
       var previewEl = buildPreviewContent(key, labelVal, imgVal)
       previewWrap.appendChild(previewEl)
       var clearBtn = document.createElement('button')
       clearBtn.type = 'button'
-      clearBtn.className = 'custom-tile-clear-btn'
+      clearBtn.className = 'custom tile clear-btn'
       clearBtn.setAttribute('aria-label', '清除')
       clearBtn.innerHTML = '×'
       clearBtn.dataset.key = key
       previewWrap.appendChild(clearBtn)
 
       var fields = document.createElement('div')
-      fields.className = 'custom-tile-fields'
+      fields.className = 'custom tile fields'
       var labelInput = document.createElement('input')
       labelInput.type = 'text'
-      labelInput.className = 'custom-tile-label'
+      labelInput.className = 'custom tile label'
       labelInput.setAttribute('data-key', key)
       labelInput.placeholder = getDisplayLabel('customTiles', 'labelPlaceholder', WEB_ENDPOINT)
       labelInput.maxLength = CUSTOM_LABEL_MAX_LEN
       labelInput.value = labelVal
       var imageInput = document.createElement('input')
       imageInput.type = 'text'
-      imageInput.className = 'custom-tile-image'
+      imageInput.className = 'custom tile image'
       imageInput.setAttribute('data-key', key)
       imageInput.placeholder = (imgVal && imgVal.slice(0, 5) === 'data:') ? '已选本地图' : '图片 URL'
       imageInput.value = imgDisplayVal
       var rowOrUrl = document.createElement('div')
-      rowOrUrl.className = 'custom-tile-row-or'
+      rowOrUrl.className = 'custom tile row-or'
       var or1 = document.createElement('span')
-      or1.className = 'custom-tile-or'
+      or1.className = 'custom tile or'
       or1.textContent = '\u6216'
       rowOrUrl.appendChild(or1)
       rowOrUrl.appendChild(imageInput)
       var fileWrap = document.createElement('span')
-      fileWrap.className = 'custom-tile-file-wrap'
+      fileWrap.className = 'custom tile file-wrap'
       var pickBtn = document.createElement('button')
       pickBtn.type = 'button'
-      pickBtn.className = 'btn btn-secondary custom-tile-pick-file'
+      pickBtn.className = 'btn btn-secondary custom tile pick-file'
       pickBtn.textContent = getDisplayLabel('customTiles', 'pickImage', WEB_ENDPOINT)
       pickBtn.dataset.key = key
       fileWrap.appendChild(pickBtn)
       var rowOrPick = document.createElement('div')
-      rowOrPick.className = 'custom-tile-row-or'
+      rowOrPick.className = 'custom tile row-or'
       var or2 = document.createElement('span')
-      or2.className = 'custom-tile-or'
+      or2.className = 'custom tile or'
       or2.textContent = '\u6216'
       rowOrPick.appendChild(or2)
       rowOrPick.appendChild(fileWrap)
@@ -580,19 +580,19 @@
       fields.appendChild(rowOrUrl)
       fields.appendChild(rowOrPick)
 
-      var cardBody = document.createElement('div')
-      cardBody.className = 'custom-tile-card-body'
-      cardBody.appendChild(previewWrap)
-      cardBody.appendChild(fields)
+      var row = document.createElement('div')
+      row.className = 'custom tile row'
+      row.appendChild(previewWrap)
+      row.appendChild(fields)
       card.appendChild(cardTitle)
-      card.appendChild(cardBody)
+      card.appendChild(row)
       listEl.appendChild(card)
     }
     var addNextWrap = document.createElement('div')
-    addNextWrap.className = 'custom-tile-card custom-tile-add-next'
+    addNextWrap.className = 'custom tile card add-next'
     var addNextBtn = document.createElement('button')
     addNextBtn.type = 'button'
-    addNextBtn.className = 'btn btn-secondary custom-tile-add-next-btn'
+    addNextBtn.className = 'btn btn-secondary custom tile add-next-btn'
     addNextBtn.textContent = '+'
     addNextBtn.setAttribute('aria-label', '添加下一个数字')
     addNextBtn.title = '添加下一个数字'
@@ -630,15 +630,15 @@
         reader.readAsDataURL(file)
       })
     }
-    listEl.querySelectorAll('.custom-tile-label').forEach(function (input) {
+    listEl.querySelectorAll('.custom.tile.label').forEach(function (input) {
       input.addEventListener('input', function () {
         var k = input.getAttribute('data-key')
         pendingSettings.customLabels[k] = input.value.trim().slice(0, CUSTOM_LABEL_MAX_LEN)
         if (pendingSettings.customLabels[k] === '') delete pendingSettings.customLabels[k]
         if (pendingSettings.customImages) delete pendingSettings.customImages[k]
-        var card = input.closest('.custom-tile-card')
-        var previewWrap = card ? card.querySelector('.custom-tile-preview-wrap') : null
-        var prev = previewWrap ? previewWrap.querySelector('.custom-tile-preview') : null
+        var card = input.closest('.custom.tile.card')
+        var previewWrap = card ? card.querySelector('.custom.tile.preview-wrap') : null
+        var prev = previewWrap ? previewWrap.querySelector('.custom.tile.preview') : null
         if (prev) {
           var lv = (pendingSettings.customLabels[k] != null ? pendingSettings.customLabels[k] : '') || ''
           var iv = (pendingSettings.customImages[k] != null ? pendingSettings.customImages[k] : '') || ''
@@ -650,7 +650,7 @@
         if (typeof window.__2048ApplyCustomTiles__ === 'function') window.__2048ApplyCustomTiles__()
       })
     })
-    listEl.querySelectorAll('.custom-tile-image').forEach(function (input) {
+    listEl.querySelectorAll('.custom.tile.image').forEach(function (input) {
       input.addEventListener('input', function () {
         var k = input.getAttribute('data-key')
         var v = input.value.trim()
@@ -660,9 +660,9 @@
         } else {
           if (pendingSettings.customImages) delete pendingSettings.customImages[k]
         }
-        var card = input.closest('.custom-tile-card')
-        var previewWrap = card ? card.querySelector('.custom-tile-preview-wrap') : null
-        var prev = previewWrap ? previewWrap.querySelector('.custom-tile-preview') : null
+        var card = input.closest('.custom.tile.card')
+        var previewWrap = card ? card.querySelector('.custom.tile.preview-wrap') : null
+        var prev = previewWrap ? previewWrap.querySelector('.custom.tile.preview') : null
         if (prev) {
           var lv = (pendingSettings.customLabels[k] != null ? pendingSettings.customLabels[k] : '') || ''
           var iv = (pendingSettings.customImages[k] != null ? pendingSettings.customImages[k] : '') || ''
@@ -674,7 +674,7 @@
         if (typeof window.__2048ApplyCustomTiles__ === 'function') window.__2048ApplyCustomTiles__()
       })
     })
-    listEl.querySelectorAll('.custom-tile-clear-btn').forEach(function (btn) {
+    listEl.querySelectorAll('.custom.tile.clear-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var k = btn.getAttribute('data-key')
         if (pendingSettings.customLabels) delete pendingSettings.customLabels[k]
@@ -683,7 +683,7 @@
         if (typeof window.__2048ApplyCustomTiles__ === 'function') window.__2048ApplyCustomTiles__()
       })
     })
-    listEl.querySelectorAll('.custom-tile-pick-file').forEach(function (btn) {
+    listEl.querySelectorAll('.custom.tile.pick-file').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var k = btn.getAttribute('data-key')
         if (!k) return
@@ -756,7 +756,7 @@
     }
   }
 
-  document.getElementById('btn-restart').addEventListener('click', handleRestart)
+  /* 工具栏「新局」由 Vue 的 onRestart 调用 __2048ApplyBoardSettings__，不再在此绑定 handleRestart */
   document.getElementById('btn-undo').addEventListener('click', handleUndo)
 
   overlayEl.addEventListener('click', function () {

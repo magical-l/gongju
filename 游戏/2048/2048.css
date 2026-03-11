@@ -1,4 +1,4 @@
-/* 2048 网页版 - 全 DOM+CSS，嵌入工具兽时仅作用在 #app 内，不覆盖站点 body */
+/* 2048 网页版 - 样式限定在 article.gaming.area 内，不覆盖站点 body */
 :root {
   --page-bg: #e8f0e0;
   --text-dark: #5a6b52;
@@ -105,27 +105,56 @@ body.settings-open {
   pointer-events: none !important;
 }
 
-/* 右侧本局信息（el-card + el-collapse，与贪吃蛇一致） */
-.gaming.info.right-sidebar .el-collapse-item__content section {
-  text-align: center;
-  margin: 0.75rem 0;
-}
-.gaming.info.right-sidebar .el-collapse-item__content h3 {
-  margin: 0 0 0.25rem;
+/* 右侧本局信息：属性列表（左名右值）+ 当前得分单列 */
+.gaming.info.right-sidebar .el-collapse-item__content .info.list {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 1rem;
+  align-items: baseline;
+  margin: 0 0 0.75rem;
   font-size: 0.9rem;
+  color: var(--text-dark);
+}
+.gaming.info.right-sidebar .el-collapse-item__content .info.list dt {
+  margin: 0;
+  font-weight: 600;
+}
+.gaming.info.right-sidebar .el-collapse-item__content .info.list dd {
+  margin: 0;
+  text-align: right;
+}
+/* 当前得分：记分牌样式，标题小（左上），分数大居中 */
+.gaming.info.right-sidebar .el-collapse-item__content .current.score.card {
+  margin: 0.75rem 0 0;
+  padding: 12px 16px;
+  background: var(--board-bg);
+  border: 1px solid var(--grid-line);
+  border-radius: var(--board-radius);
+  min-height: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.gaming.info.right-sidebar .el-collapse-item__content .current.score.title {
+  margin: 0 0 4px;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-dark);
+  opacity: 0.9;
+  align-self: flex-start;
 }
-.gaming.info.right-sidebar .el-collapse-item__content section p {
+.gaming.info.right-sidebar .el-collapse-item__content .current.score.value {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.75rem;
   font-weight: bold;
   color: var(--text-dark);
+  line-height: 1.2;
 }
 
 [v-cloak] { display: none !important; }
 
-#app {
+.main.map.area {
   width: 100%;
   max-width: 560px;
   margin: 0 auto;
@@ -137,16 +166,10 @@ body.settings-open {
   color: var(--text-dark);
 }
 
-/* ----- Board (游戏内用 .game-main 避免与站点 main 冲突) ----- */
-#app .game-main {
+.main.map.area .board-wrap {
   position: relative;
   width: 100%;
   max-width: min(480px, 95vw);
-}
-
-#app .board-wrap {
-  position: relative;
-  width: 100%;
   aspect-ratio: 1;
   max-height: min(480px, 75vh);
   margin: 0 auto;
@@ -154,7 +177,7 @@ body.settings-open {
   -webkit-user-select: none;
 }
 
-#app #overlay {
+article.gaming.area #overlay {
   position: absolute;
   top: 0;
   left: 0;
@@ -163,7 +186,7 @@ body.settings-open {
   border-radius: var(--board-radius);
 }
 
-#app .board {
+article.gaming.area .board {
   display: grid;
   width: 100%;
   height: 100%;
@@ -174,7 +197,7 @@ body.settings-open {
   position: relative;
 }
 
-#app .board .cell {
+article.gaming.area .board .cell {
   background: var(--cell-empty);
   border-radius: var(--tile-radius);
   position: relative;
@@ -183,7 +206,7 @@ body.settings-open {
   justify-content: center;
 }
 /* 四格交点处用与缝隙同色的小圆点填充，消除视觉暂留造成的“黑点”错觉，线仍保留 */
-#app .board .cell::after {
+article.gaming.area .board .cell::after {
   content: '';
   position: absolute;
   right: -1px;
@@ -195,7 +218,7 @@ body.settings-open {
   pointer-events: none;
 }
 
-#app .board .tile {
+article.gaming.area .board .tile {
   position: absolute;
   inset: var(--grid-gap);
   border-radius: var(--tile-radius);
@@ -208,22 +231,22 @@ body.settings-open {
   -webkit-user-select: none;
 }
 
-#app .board .tile { font-size: clamp(12px, 4vw, 24px); }
+article.gaming.area .board .tile { font-size: clamp(12px, 4vw, 24px); }
 
-#app .board .tile.tile-2 { background: #e2ead8; color: #5a6b52; }
-#app .board .tile.tile-4 { background: #d4e0c8; color: #5a6b52; }
-#app .tile-8 { background: #a8c99e; }
-#app .tile-16 { background: #8fbc85; }
-#app .tile-32 { background: #7cb37a; }
-#app .tile-64 { background: #6ba36b; }
-#app .tile-128 { background: #9cb87c; }
-#app .tile-256 { background: #8ab06e; }
-#app .tile-512 { background: #7aa862; }
-#app .tile-1024 { background: #6a9f56; }
-#app .tile-2048 { background: #5a8f4a; }
-#app .tile-super { background: #4a5a42; }
+article.gaming.area .board .tile.tile-2 { background: #e2ead8; color: #5a6b52; }
+article.gaming.area .board .tile.tile-4 { background: #d4e0c8; color: #5a6b52; }
+article.gaming.area .board .tile.tile-8 { background: #a8c99e; }
+article.gaming.area .board .tile.tile-16 { background: #8fbc85; }
+article.gaming.area .board .tile.tile-32 { background: #7cb37a; }
+article.gaming.area .board .tile.tile-64 { background: #6ba36b; }
+article.gaming.area .board .tile.tile-128 { background: #9cb87c; }
+article.gaming.area .board .tile.tile-256 { background: #8ab06e; }
+article.gaming.area .board .tile.tile-512 { background: #7aa862; }
+article.gaming.area .board .tile.tile-1024 { background: #6a9f56; }
+article.gaming.area .board .tile.tile-2048 { background: #5a8f4a; }
+article.gaming.area .board .tile.tile-super { background: #4a5a42; }
 
-#app .tile-new-badge {
+article.gaming.area .tile-new-badge {
   position: absolute;
   top: 2px;
   right: 2px;
@@ -242,11 +265,11 @@ body.settings-open {
   pointer-events: none;
 }
 
-#app .tile-merge-scale { animation: merge-scale var(--merge-duration) ease-out; }
-#app .tile-merge-flip { animation: merge-flip var(--merge-duration) ease-in-out; }
-#app .tile-merge-shake { animation: merge-shake var(--merge-duration) ease-out; }
-#app .tile-merge-bounce { animation: merge-bounce var(--merge-duration) ease-out; }
-#app .tile-merge-glow { animation: merge-glow var(--merge-duration) ease-in-out; }
+article.gaming.area .board .tile.tile-merge-scale { animation: merge-scale var(--merge-duration) ease-out; }
+article.gaming.area .board .tile.tile-merge-flip { animation: merge-flip var(--merge-duration) ease-in-out; }
+article.gaming.area .board .tile.tile-merge-shake { animation: merge-shake var(--merge-duration) ease-out; }
+article.gaming.area .board .tile.tile-merge-bounce { animation: merge-bounce var(--merge-duration) ease-out; }
+article.gaming.area .board .tile.tile-merge-glow { animation: merge-glow var(--merge-duration) ease-in-out; }
 
 @keyframes merge-scale {
   0% { transform: scale(1.2); }
@@ -278,7 +301,7 @@ body.settings-open {
   50% { box-shadow: inset 0 0 0 3px rgba(255, 220, 0, 0.85); }
 }
 
-#app .board-floating {
+article.gaming.area .board-floating {
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -286,7 +309,7 @@ body.settings-open {
   padding: var(--board-padding);
 }
 
-#app .board-floating .floating-tile {
+article.gaming.area .board-floating .floating-tile {
   position: absolute;
   display: flex;
   align-items: center;
@@ -300,20 +323,20 @@ body.settings-open {
   -webkit-user-select: none;
 }
 
-#app .board-floating .floating-tile.tile-2 { background: #e2ead8; color: #5a6b52; }
-#app .board-floating .floating-tile.tile-4 { background: #d4e0c8; color: #5a6b52; }
-#app .board-floating .floating-tile.tile-8 { background: #a8c99e; }
-#app .board-floating .floating-tile.tile-16 { background: #8fbc85; }
-#app .board-floating .floating-tile.tile-32 { background: #7cb37a; }
-#app .board-floating .floating-tile.tile-64 { background: #6ba36b; }
-#app .board-floating .floating-tile.tile-128 { background: #9cb87c; }
-#app .board-floating .floating-tile.tile-256 { background: #8ab06e; }
-#app .board-floating .floating-tile.tile-512 { background: #7aa862; }
-#app .board-floating .floating-tile.tile-1024 { background: #6a9f56; }
-#app .board-floating .floating-tile.tile-2048 { background: #5a8f4a; }
-#app .board-floating .floating-tile.tile-super { background: #4a5a42; }
+article.gaming.area .board-floating .floating-tile.tile-2 { background: #e2ead8; color: #5a6b52; }
+article.gaming.area .board-floating .floating-tile.tile-4 { background: #d4e0c8; color: #5a6b52; }
+article.gaming.area .board-floating .floating-tile.tile-8 { background: #a8c99e; }
+article.gaming.area .board-floating .floating-tile.tile-16 { background: #8fbc85; }
+article.gaming.area .board-floating .floating-tile.tile-32 { background: #7cb37a; }
+article.gaming.area .board-floating .floating-tile.tile-64 { background: #6ba36b; }
+article.gaming.area .board-floating .floating-tile.tile-128 { background: #9cb87c; }
+article.gaming.area .board-floating .floating-tile.tile-256 { background: #8ab06e; }
+article.gaming.area .board-floating .floating-tile.tile-512 { background: #7aa862; }
+article.gaming.area .board-floating .floating-tile.tile-1024 { background: #6a9f56; }
+article.gaming.area .board-floating .floating-tile.tile-2048 { background: #5a8f4a; }
+article.gaming.area .board-floating .floating-tile.tile-super { background: #4a5a42; }
 
-#app .game-main .overlay {
+article.gaming.area .board-wrap .overlay {
   position: absolute;
   inset: 0;
   background: rgba(238, 228, 218, 0.9);
@@ -324,30 +347,30 @@ body.settings-open {
   z-index: 2;
 }
 
-#app .overlay.hidden { display: none; }
+article.gaming.area .overlay.hidden { display: none; }
 
-#app .overlay-inner {
+article.gaming.area .overlay-inner {
   text-align: center;
   padding: 24px;
 }
 
-#app .overlay-title {
+article.gaming.area .overlay-title {
   font-size: clamp(24px, 5vw, 32px);
   font-weight: bold;
   margin-bottom: 8px;
 }
 
-#app .overlay-sub {
+article.gaming.area .overlay-sub {
   font-size: clamp(16px, 3vw, 18px);
   margin-bottom: 24px;
 }
 
-#app .overlay-hint {
+article.gaming.area .overlay-hint {
   font-size: 14px;
   opacity: 0.9;
 }
 
-#app .overlay-btn-restart {
+article.gaming.area .overlay-btn-restart {
   margin-top: 16px;
   padding: 10px 20px;
   font-size: 16px;
@@ -358,11 +381,11 @@ body.settings-open {
   cursor: pointer;
 }
 
-#app .overlay-btn-restart:hover {
+article.gaming.area .overlay-btn-restart:hover {
   filter: brightness(1.1);
 }
 
-#app .overlay-btn-restart:active {
+article.gaming.area .overlay-btn-restart:active {
   filter: brightness(0.95);
 }
 
@@ -458,7 +481,7 @@ body.settings-open {
 
 .settings-panel .hidden { display: none !important; }
 
-.settings-panel .settings-hint {
+.settings-panel .settings.hint {
   font-size: 13px;
   color: var(--text-dark);
   opacity: 0.9;
@@ -489,11 +512,11 @@ body.settings-open {
 .settings-panel .btn:hover { filter: brightness(1.08); }
 .settings-panel .btn:active { filter: brightness(0.95); }
 
-/* 数字显示：每行 数字 + 文字输入 + 图片URL输入 + 清除 */
-.settings-panel .settings-section.settings-custom-tiles {
+/* 数字显示：列表/卡片/预览/输入等，panel 与 dialog 共用一套 .custom.tile.*，仅布局差异用上下文区分 */
+.settings-panel :has(> .settings.custom.tile.list) {
   margin-top: 8px;
 }
-.settings-panel .settings-custom-tiles-list {
+.settings-panel .settings.custom.tile.list {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -501,147 +524,16 @@ body.settings-open {
   max-height: 380px;
   overflow-y: auto;
 }
-.settings-panel .custom-tile-card {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 8px;
-  border: 1px solid var(--grid-line);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.5);
-  min-width: 0;
-}
-.settings-panel .custom-tile-card-num {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-dark);
-}
-.settings-panel .custom-tile-card-body {
-  display: flex;
-  align-items: stretch;
-  gap: 10px;
-}
-.settings-panel .custom-tile-preview-wrap {
-  position: relative;
-  flex-shrink: 0;
-}
-.settings-panel .custom-tile-preview {
-  width: var(--cell-size, 80px);
-  height: var(--cell-size, 80px);
-  min-width: 48px;
-  min-height: 48px;
-  border-radius: var(--tile-radius);
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: clamp(12px, 3vw, 20px);
-  color: var(--text-light);
-  user-select: none;
-  -webkit-user-select: none;
-}
-.settings-panel .custom-tile-preview.tile-2 { background: #e2ead8; color: #5a6b52; }
-.settings-panel .custom-tile-preview.tile-4 { background: #d4e0c8; color: #5a6b52; }
-.settings-panel .custom-tile-preview.tile-8 { background: #a8c99e; color: #f5f9f2; }
-.settings-panel .custom-tile-preview.tile-16 { background: #8fbc85; color: #f5f9f2; }
-.settings-panel .custom-tile-preview.tile-32 { background: #7cb37a; color: #f5f9f2; }
-.settings-panel .custom-tile-preview.tile-64 { background: #6ba36b; color: #f5f9f2; }
-.settings-panel .custom-tile-preview.tile-128 { background: #9cb87c; color: #f5f9f2; }
-.settings-panel .custom-tile-preview.tile-256 { background: #8ab06e; color: #f5f9f2; }
-.settings-panel .custom-tile-preview.tile-512 { background: #7aa862; color: #f5f9f2; }
-.settings-panel .custom-tile-preview.tile-1024 { background: #6a9f56; color: #f5f9f2; }
-.settings-panel .custom-tile-preview.tile-2048 { background: #5a8f4a; color: #f5f9f2; }
-.settings-panel .custom-tile-preview.tile-super { background: #4a5a42; color: #f5f9f2; }
-.settings-panel .custom-tile-preview img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-}
-.settings-panel .custom-tile-preview.preview-error { background: #f8d7da !important; }
-.settings-panel .custom-tile-clear-btn {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.5);
-  color: #fff;
-  cursor: pointer;
-  font-size: 18px;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.settings-panel .custom-tile-clear-btn:hover { background: rgba(0, 0, 0, 0.7); }
-.settings-panel .custom-tile-row-or {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.settings-panel .custom-tile-or {
-  font-size: 13px;
-  color: var(--text-dark);
-  opacity: 0.85;
-  flex-shrink: 0;
-  width: 1.2em;
-}
-.settings-panel .custom-tile-fields .custom-tile-image,
-.settings-panel .custom-tile-fields .custom-tile-file-wrap {
-  flex: 1;
-  min-width: 0;
-}
-.settings-panel .custom-tile-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-  flex: 1;
-  max-width: 160px;
-}
-.settings-panel .custom-tile-label,
-.settings-panel .custom-tile-image {
-  padding: 6px 8px;
-  border: 1px solid var(--grid-line);
-  border-radius: 6px;
-  font-size: 14px;
-  min-width: 0;
-  width: 100%;
-  box-sizing: border-box;
-}
-.settings-panel .custom-tile-pick-file {
-  padding: 6px 10px;
-  font-size: 13px;
-  align-self: flex-start;
-}
-.settings-panel .custom-tile-file-wrap {
-  position: relative;
-}
-.settings-panel .custom-tile-file-wrap input[type="file"] {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-  font-size: 0;
-}
-/* 数字显示弹窗内：卡片布局，预览为主 */
-.custom-tiles-dialog .settings-custom-tiles-list {
+.custom.tiles.dialog .settings.custom.tile.list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: 10px;
   margin: 8px 0 12px;
   max-height: 70vh;
   overflow-y: auto;
 }
-.custom-tiles-dialog .custom-tile-card {
+
+.custom.tile.card {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -651,12 +543,20 @@ body.settings-open {
   background: rgba(255, 255, 255, 0.5);
   min-width: 0;
 }
-.custom-tiles-dialog .custom-tile-add-next {
+.custom.tiles.dialog .custom.tile.card {
+  gap: 6px;
+}
+.custom.tile.card-num {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+.custom.tile.add-next {
   justify-content: center;
   align-items: center;
   min-height: 120px;
 }
-.custom-tiles-dialog .custom-tile-add-next-btn {
+.custom.tile.add-next-btn {
   width: 48px;
   height: 48px;
   padding: 0;
@@ -665,25 +565,27 @@ body.settings-open {
   border-radius: 50%;
   flex-shrink: 0;
 }
-.custom-tiles-dialog .custom-tile-add-next-btn:disabled {
+.custom.tile.add-next-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-.custom-tiles-dialog .custom-tile-card-num {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-dark);
-}
-.custom-tiles-dialog .custom-tile-card-body {
+
+.custom.tile.row {
   display: flex;
+  flex-direction: row;
   align-items: stretch;
   gap: 10px;
+  min-width: 0;
 }
-.custom-tiles-dialog .custom-tile-preview-wrap {
+.custom.tile.row .custom.tile.fields {
+  flex: 1;
+  min-width: 0;
+}
+.custom.tile.preview-wrap {
   position: relative;
   flex-shrink: 0;
 }
-.custom-tiles-dialog .custom-tile-preview {
+.custom.tile.preview {
   width: var(--cell-size, 80px);
   height: var(--cell-size, 80px);
   min-width: 48px;
@@ -699,26 +601,27 @@ body.settings-open {
   user-select: none;
   -webkit-user-select: none;
 }
-.custom-tiles-dialog .custom-tile-preview.tile-2 { background: #e2ead8; color: #5a6b52; }
-.custom-tiles-dialog .custom-tile-preview.tile-4 { background: #d4e0c8; color: #5a6b52; }
-.custom-tiles-dialog .custom-tile-preview.tile-8 { background: #a8c99e; color: #f5f9f2; }
-.custom-tiles-dialog .custom-tile-preview.tile-16 { background: #8fbc85; color: #f5f9f2; }
-.custom-tiles-dialog .custom-tile-preview.tile-32 { background: #7cb37a; color: #f5f9f2; }
-.custom-tiles-dialog .custom-tile-preview.tile-64 { background: #6ba36b; color: #f5f9f2; }
-.custom-tiles-dialog .custom-tile-preview.tile-128 { background: #9cb87c; color: #f5f9f2; }
-.custom-tiles-dialog .custom-tile-preview.tile-256 { background: #8ab06e; color: #f5f9f2; }
-.custom-tiles-dialog .custom-tile-preview.tile-512 { background: #7aa862; color: #f5f9f2; }
-.custom-tiles-dialog .custom-tile-preview.tile-1024 { background: #6a9f56; color: #f5f9f2; }
-.custom-tiles-dialog .custom-tile-preview.tile-2048 { background: #5a8f4a; color: #f5f9f2; }
-.custom-tiles-dialog .custom-tile-preview.tile-super { background: #4a5a42; color: #f5f9f2; }
-.custom-tiles-dialog .custom-tile-preview img {
+.custom.tile.preview.tile-2 { background: #e2ead8; color: #5a6b52; }
+.custom.tile.preview.tile-4 { background: #d4e0c8; color: #5a6b52; }
+.custom.tile.preview.tile-8 { background: #a8c99e; color: #f5f9f2; }
+.custom.tile.preview.tile-16 { background: #8fbc85; color: #f5f9f2; }
+.custom.tile.preview.tile-32 { background: #7cb37a; color: #f5f9f2; }
+.custom.tile.preview.tile-64 { background: #6ba36b; color: #f5f9f2; }
+.custom.tile.preview.tile-128 { background: #9cb87c; color: #f5f9f2; }
+.custom.tile.preview.tile-256 { background: #8ab06e; color: #f5f9f2; }
+.custom.tile.preview.tile-512 { background: #7aa862; color: #f5f9f2; }
+.custom.tile.preview.tile-1024 { background: #6a9f56; color: #f5f9f2; }
+.custom.tile.preview.tile-2048 { background: #5a8f4a; color: #f5f9f2; }
+.custom.tile.preview.tile-super { background: #4a5a42; color: #f5f9f2; }
+.custom.tile.preview img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center;
 }
-.custom-tiles-dialog .custom-tile-preview.preview-error { background: #f8d7da !important; }
-.custom-tiles-dialog .custom-tile-clear-btn {
+.custom.tile.preview.preview-error { background: #f8d7da !important; }
+
+.custom.tile.clear-btn {
   position: absolute;
   top: 4px;
   right: 4px;
@@ -736,25 +639,26 @@ body.settings-open {
   align-items: center;
   justify-content: center;
 }
-.custom-tiles-dialog .custom-tile-clear-btn:hover { background: rgba(0, 0, 0, 0.7); }
-.custom-tiles-dialog .custom-tile-row-or {
+.custom.tile.clear-btn:hover { background: rgba(0, 0, 0, 0.7); }
+
+.custom.tile.row-or {
   display: flex;
   align-items: center;
   gap: 6px;
 }
-.custom-tiles-dialog .custom-tile-or {
+.custom.tile.or {
   font-size: 13px;
   color: var(--text-dark);
   opacity: 0.85;
   flex-shrink: 0;
   width: 1.2em;
 }
-.custom-tiles-dialog .custom-tile-fields .custom-tile-image,
-.custom-tiles-dialog .custom-tile-fields .custom-tile-file-wrap {
+.custom.tile.fields .custom.tile.image,
+.custom.tile.fields .custom.tile.file-wrap {
   flex: 1;
   min-width: 0;
 }
-.custom-tiles-dialog .custom-tile-fields {
+.custom.tile.fields {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -762,8 +666,8 @@ body.settings-open {
   flex: 1;
   max-width: 160px;
 }
-.custom-tiles-dialog .custom-tile-label,
-.custom-tiles-dialog .custom-tile-image {
+.custom.tile.label,
+.custom.tile.image {
   padding: 6px 8px;
   border: 1px solid var(--grid-line);
   border-radius: 6px;
@@ -772,15 +676,15 @@ body.settings-open {
   width: 100%;
   box-sizing: border-box;
 }
-.custom-tiles-dialog .custom-tile-pick-file {
+.custom.tile.pick-file {
   padding: 6px 10px;
   font-size: 13px;
   align-self: flex-start;
 }
-.custom-tiles-dialog .custom-tile-file-wrap {
+.custom.tile.file-wrap {
   position: relative;
 }
-.custom-tiles-dialog .custom-tile-file-wrap input[type="file"] {
+.custom.tile.file-wrap input[type="file"] {
   position: absolute;
   left: 0;
   top: 0;
@@ -790,34 +694,36 @@ body.settings-open {
   cursor: pointer;
   font-size: 0;
 }
-.custom-tiles-dialog .settings-custom-actions {
+
+/* dialog 内仅有的 footer：用子选择器 */
+.custom.tiles.dialog .el-dialog__body > footer {
   display: flex;
   gap: 8px;
 }
-.custom-tiles-dialog .settings-hint {
+.custom.tiles.dialog .settings.hint {
   margin: 0 0 8px;
   font-size: 13px;
   color: var(--text-dark);
   opacity: 0.9;
 }
 
-.settings-panel .settings-custom-actions {
+.settings-panel footer {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
 }
-.settings-panel .settings-custom-actions .btn {
+.settings-panel footer .el-button {
   flex: 1;
   min-width: 0;
 }
 
 /* 格子内自定义图片 */
-#app .board .tile img,
-#app .board-floating .floating-tile img {
+article.gaming.area .board .tile img,
+article.gaming.area .board-floating .floating-tile img {
   width: 100%;
   height: 100%;
   object-fit: contain;
   display: block;
 }
 
-#app .hidden { display: none !important; }
+article.gaming.area .hidden { display: none !important; }

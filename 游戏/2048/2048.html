@@ -78,12 +78,12 @@
 					</el-form-item>
 				</div>
 				<div class="one setting group">
-					<el-button type="danger" id="btn-restart" icon="RefreshRight">新局</el-button>
+					<el-button type="danger" id="btn-restart" icon="RefreshRight" @click="onRestart">新局</el-button>
 				</div>
 			</section>
 			<section class="controller list area , flex single-line no-gap items-near-start-x items-near-center-y">
 				<div class="one controller group">
-					<el-button id="btn-undo" icon="RefreshLeft">撤销</el-button>
+					<el-button id="btn-undo">撤销</el-button>
 				</div>
 			</section>
 			<section class="tool list area , flex single-line no-gap items-near-start-x items-near-center-y">
@@ -115,8 +115,6 @@
 		</header>
 
 		<div class="main map area , flex items-near-center-x">
-		<div id="app">
-		<div class="game-main">
 			<div id="board-wrap" class="board-wrap">
 				<div id="board" class="board" role="grid"></div>
 				<div id="board-floating" class="board-floating" aria-hidden="true"></div>
@@ -125,40 +123,40 @@
 						<p id="overlay-title" class="overlay-title"></p>
 						<p id="overlay-sub" class="overlay-sub"></p>
 						<p class="overlay-hint">点击或按 Enter 继续</p>
-						<button type="button" id="overlay-btn-restart" class="btn btn-primary overlay-btn-restart">新局</button>
+						<el-button type="primary" id="overlay-btn-restart" class="overlay-btn-restart">新局</el-button>
 					</div>
 				</div>
 			</div>
-		</div>
 
-		<el-dialog title="数字显示" v-model="customTilesDialogVisible" class="custom-tiles-dialog" width="90%" @opened="onCustomTilesDialogOpened">
-			<p class="settings-hint">可为每个数字设置自定义显示文字、图片 URL 或本地选图（图片优先）；留空则显示原数字。修改后失焦或选图即生效。</p>
-			<input type="file" id="settings-tile-file-input" accept="image/*" class="hidden" aria-hidden="true">
-			<div id="settings-custom-tiles-list" class="settings-custom-tiles-list"></div>
-			<div class="settings-custom-actions">
-				<button type="button" class="btn btn-secondary" id="btn-clear-all-labels">清除全部文字</button>
-				<button type="button" class="btn btn-secondary" id="btn-clear-all-images">清除全部图片</button>
-			</div>
-		</el-dialog>
-		</div>
+			<el-dialog title="数字显示" v-model="customTilesDialogVisible" class="custom tiles dialog" width="90%" @opened="onCustomTilesDialogOpened">
+				<p class="settings hint">可为每个数字设置自定义显示文字、图片 URL 或本地选图（图片优先）；留空则显示原数字。修改后失焦或选图即生效。</p>
+				<input type="file" id="settings-tile-file-input" accept="image/*" class="hidden" aria-hidden="true">
+				<div id="settings-custom-tiles-list" class="settings custom tile list"></div>
+				<footer class="actions">
+					<el-button type="primary" plain id="btn-clear-all-labels">清除全部文字</el-button>
+					<el-button type="primary" plain id="btn-clear-all-images">清除全部图片</el-button>
+				</footer>
+			</el-dialog>
 		</div>
 
 		<aside class="gaming info , right-sidebar">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
+					<el-collapse-item name="score" title="本局信息">
+						<dl class="info list">
+							<dt>行</dt><dd>{{ gameBoardHeight }}</dd>
+							<dt>列</dt><dd>{{ gameBoardWidth }}</dd>
+							<dt>目标</dt><dd>{{ gameTargetLabel }}</dd>
+							<dt>最高记录</dt><dd>{{ highScore }}<span v-if="gameBoardWidth && gameBoardHeight"> ({{ gameBoardWidth }}×{{ gameBoardHeight }})</span></dd>
+						</dl>
+						<div class="current score card">
+							<div class="current score title">当前得分</div>
+							<div class="current score value">{{ score }}</div>
+						</div>
+					</el-collapse-item>
 					<el-collapse-item name="shortcut" title="快捷键">
 						<p>↑ ↓ ← → ：滑动方块</p>
 						<p>支持键盘、触屏与鼠标滑动</p>
-					</el-collapse-item>
-					<el-collapse-item name="score" title="本局信息">
-						<section>
-							<h3>得分</h3>
-							<p>{{ score }}</p>
-						</section>
-						<section>
-							<h3>最高记录 <span v-if="boardWidth && boardHeight">({{ boardWidth }}×{{ boardHeight }})</span></h3>
-							<p>{{ highScore }}</p>
-						</section>
 					</el-collapse-item>
 				</el-collapse>
 			</el-card>
@@ -202,6 +200,9 @@
 		boardWidth: 4,
 		boardHeight: 4,
 		targetNumber: 2048,
+		gameBoardWidth: 4,
+		gameBoardHeight: 4,
+		gameTargetNumber: 2048,
 		showNewTileMarker: true,
 		stopStepAnimation: 'flip',
 		customTilesDialogVisible: false,
@@ -212,8 +213,8 @@
 	window.__2048UpdateScores__ = function (score, highScore, boardWidth, boardHeight) {
 		state.score = score;
 		state.highScore = highScore;
-		if (boardWidth != null) state.boardWidth = boardWidth;
-		if (boardHeight != null) state.boardHeight = boardHeight;
+		if (boardWidth != null) state.gameBoardWidth = boardWidth;
+		if (boardHeight != null) state.gameBoardHeight = boardHeight;
 	};
 	window.__2048SetQuickSettings__ = function (obj) {
 		if (obj && typeof obj.showNewTileMarker === 'boolean') state.showNewTileMarker = obj.showNewTileMarker;
@@ -225,6 +226,9 @@
 			state.boardHeight = s.boardHeight;
 			state.boardWidth = s.boardWidth;
 			state.targetNumber = s.targetNumber;
+			state.gameBoardHeight = s.boardHeight;
+			state.gameBoardWidth = s.boardWidth;
+			state.gameTargetNumber = s.targetNumber != null ? s.targetNumber : 2048;
 		}
 	};
 	const mainApp = createApp({
@@ -235,11 +239,23 @@
 			},
 			boardSizeOptions: () => boardSizeOptions,
 			targetOptions: () => targetOptions,
+			gameTargetLabel() {
+				var opts = targetOptions;
+				var n = state.gameTargetNumber;
+				var found = opts.find(function (o) { return o.value === n; });
+				return found ? found.label : (n === Infinity ? '无限' : String(n));
+			},
 		},
 		methods: {
 			onBoardSettingChange() {
+				/* 仅更新 Vue 状态，不立即开新局；点击「新局」时才应用 */
+			},
+			onRestart() {
 				if (typeof window.__2048ApplyBoardSettings__ === 'function') {
 					window.__2048ApplyBoardSettings__({ boardHeight: state.boardHeight, boardWidth: state.boardWidth, targetNumber: state.targetNumber });
+					state.gameBoardWidth = state.boardWidth;
+					state.gameBoardHeight = state.boardHeight;
+					state.gameTargetNumber = state.targetNumber;
 				}
 			},
 			getQuickValue(key) { return state[key]; },
@@ -291,11 +307,11 @@
 <script src="logic.js"></script>
 <script src="2048-dom.js"></script>
 <script>
-  /** 控制台执行 __2048ExportSelectDomAndCss__()：祖先链 + wrapper/selection 的 flex 与宽度分配。版本 v7（每轮递增） */
+  /** 控制台执行 __2048ExportSelectDomAndCss__()：祖先链 + wrapper/selection 的 flex 与宽度分配。版本 v8 */
   window.__2048ExportSelectDomAndCss__ = function () {
     var root = document.querySelector('.toolbar-select-with-prefix');
     if (!root) return console.log('未找到 .toolbar-select-with-prefix');
-    var lines = ['--- __2048ExportSelectDomAndCss__ v7 ---'];
+    var lines = ['--- __2048ExportSelectDomAndCss__ v8 ---'];
     var props = ['width', 'min-width', 'max-width', 'display', 'flex', 'flex-grow', 'flex-shrink', 'flex-basis'];
     function one(el, label) {
       if (!el) return;
