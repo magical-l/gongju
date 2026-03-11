@@ -27,7 +27,6 @@
   var SIZE_OPTIONS = constants.SIZE_OPTIONS
   var TARGET_OPTIONS = constants.TARGET_OPTIONS
   var TARGET_LABELS = constants.TARGET_LABELS
-  var INITIAL_OPTIONS = constants.INITIAL_OPTIONS
   var MERGE_ANIM_OPTIONS_BY_PLATFORM = constants.MERGE_ANIM_OPTIONS_BY_PLATFORM
   var MERGE_ANIM_LABELS_BY_PLATFORM = constants.MERGE_ANIM_LABELS_BY_PLATFORM
   var MERGE_ANIM_DURATION_MS = constants.MERGE_ANIM_DURATION_MS
@@ -105,8 +104,6 @@
   var overlayEl = document.getElementById('overlay')
   var overlayTitleEl = document.getElementById('overlay-title')
   var overlaySubEl = document.getElementById('overlay-sub')
-  var settingsBackdrop = document.getElementById('settings-backdrop')
-  var settingsPanel = document.getElementById('settings-panel')
 
   function renderBoard(state, boardOverride) {
     var cols = state.boardWidth
@@ -335,7 +332,7 @@
       if (Number(o.boardWidth) >= 2) s.boardWidth = Number(o.boardWidth)
       if (Number(o.boardHeight) >= 2) s.boardHeight = Number(o.boardHeight)
       if (o.targetNumber !== undefined) s.targetNumber = o.targetNumber === 'Infinity' ? Infinity : Number(o.targetNumber)
-      if (Number(o.initialTiles) >= 1) s.initialTiles = Number(o.initialTiles)
+      s.initialTiles = 2
       if (typeof o.showNewTileMarker === 'boolean') s.showNewTileMarker = o.showNewTileMarker
       else if (typeof o.showHighlight === 'boolean') s.showNewTileMarker = o.showHighlight
       if (typeof o.stopStepAnimation === 'string') s.stopStepAnimation = o.stopStepAnimation
@@ -430,77 +427,40 @@
     render(gameState)
   }
 
-  function openSettings() {
-    clearSlideAnimation()
-    document.body.classList.add('settings-open')
+  window.__2048GetBoardSettings__ = function () {
+    if (!gameState) return null
+    return { boardHeight: gameState.boardHeight, boardWidth: gameState.boardWidth, targetNumber: gameState.targetNumber }
+  }
+
+  window.__2048ApplyBoardSettings__ = function (obj) {
+    if (!gameState || !obj) return
     pendingSettings = {
-      boardWidth: gameState.boardWidth,
-      boardHeight: gameState.boardHeight,
-      targetNumber: gameState.targetNumber,
-      initialTiles: gameState.initialTiles,
+      boardWidth: obj.boardWidth != null ? obj.boardWidth : gameState.boardWidth,
+      boardHeight: obj.boardHeight != null ? obj.boardHeight : gameState.boardHeight,
+      targetNumber: obj.targetNumber != null ? obj.targetNumber : gameState.targetNumber,
+      initialTiles: 2,
       showNewTileMarker: gameState.showNewTileMarker,
       stopStepAnimation: gameState.stopStepAnimation,
       newTileOnMidStop: gameState.newTileOnMidStop,
       customLabels: gameState.customLabels ? Object.assign({}, gameState.customLabels) : {},
       customImages: gameState.customImages ? Object.assign({}, gameState.customImages) : {}
     }
-    showSettings = true
-    settingsBackdrop.classList.remove('hidden')
-    settingsPanel.classList.remove('hidden')
-    settingsBackdrop.setAttribute('aria-hidden', 'false')
-    settingsPanel.setAttribute('aria-hidden', 'false')
-    renderSettingsForm()
+    applyBoardSettingsFromPending()
+    if (typeof window.__2048SyncToolbarSettings__ === 'function') window.__2048SyncToolbarSettings__()
   }
 
-  function closeSettings() {
-    showSettings = false
-    document.body.classList.remove('settings-open')
-    settingsBackdrop.classList.add('hidden')
-    settingsPanel.classList.add('hidden')
-    settingsBackdrop.setAttribute('aria-hidden', 'true')
-    settingsPanel.setAttribute('aria-hidden', 'true')
-  }
-
-  function valueEqual(a, b) {
-    return a === b || (a === Infinity && b === Infinity)
-  }
-
-  var SETTINGS_ROWS = [
-    { key: 'boardHeight', options: WEB_SIZE_OPTIONS.map(function (v) { return { label: String(v), value: v } }) },
-    { key: 'boardWidth', options: WEB_SIZE_OPTIONS.map(function (v) { return { label: String(v), value: v } }) },
-    { key: 'targetNumber', options: TARGET_OPTIONS.map(function (v, i) { return { label: TARGET_LABELS[i], value: v } }) },
-    { key: 'initialTiles', options: INITIAL_OPTIONS.map(function (v) { return { label: String(v), value: v } }) }
-  ]
-
-  function renderSettingsForm() {
-    var optsContainers = settingsPanel.querySelectorAll('.settings-options[data-key]')
-    for (var c = 0; c < optsContainers.length; c++) {
-      var container = optsContainers[c]
-      var key = container.getAttribute('data-key')
-      var row = SETTINGS_ROWS.filter(function (r) { return r.key === key })[0]
-      if (!row) continue
-      container.innerHTML = ''
-      for (var i = 0; i < row.options.length; i++) {
-        var opt = row.options[i]
-        var btn = document.createElement('button')
-        btn.type = 'button'
-        btn.setAttribute('role', 'option')
-        btn.textContent = opt.label
-        btn.dataset.value = opt.value === Infinity ? 'Infinity' : String(opt.value)
-        if (valueEqual(opt.value, pendingSettings[key])) btn.classList.add('selected')
-        ;(function (k, val, cont) {
-          btn.addEventListener('click', function () {
-            pendingSettings[k] = val
-            var siblings = cont.querySelectorAll('[role="option"]')
-            for (var j = 0; j < siblings.length; j++) {
-              siblings[j].classList.toggle('selected', siblings[j].dataset.value === (val === Infinity ? 'Infinity' : String(val)))
-            }
-          })
-        })(key, opt.value, container)
-        container.appendChild(btn)
-      }
+  function applyBoardSettingsFromPending() {
+    if (!gameState) return
+    pendingSettings.initialTiles = 2
+    saveSettingsToStorage()
+    var needRestart = pendingSettings.boardWidth !== gameState.boardWidth || pendingSettings.boardHeight !== gameState.boardHeight || pendingSettings.targetNumber !== gameState.targetNumber || pendingSettings.initialTiles !== gameState.initialTiles
+    if (needRestart) {
+      var highForNewSize = Number(getStorage(getHighScoreKey(pendingSettings.boardWidth, pendingSettings.boardHeight))) || 0
+      gameState = initGame(highForNewSize, pendingSettings)
+    } else {
+      gameState = Object.assign({}, gameState, { customLabels: pendingSettings.customLabels || {}, customImages: pendingSettings.customImages || {} })
     }
-    renderCustomTilesSection()
+    render(gameState)
   }
 
   var pendingPickFileKey = null
@@ -784,6 +744,7 @@
         newTileOnMidStop: gameState.newTileOnMidStop
       })
     }
+    if (typeof window.__2048SyncToolbarSettings__ === 'function') window.__2048SyncToolbarSettings__()
   }
 
   function saveState() {
@@ -797,25 +758,6 @@
 
   document.getElementById('btn-restart').addEventListener('click', handleRestart)
   document.getElementById('btn-undo').addEventListener('click', handleUndo)
-  document.getElementById('btn-settings').addEventListener('click', openSettings)
-  document.getElementById('btn-settings-cancel').addEventListener('click', closeSettings)
-
-  settingsBackdrop.addEventListener('click', function (e) {
-    if (e.target === settingsBackdrop) closeSettings()
-  })
-
-  document.getElementById('settings-form').addEventListener('submit', function (e) {
-    e.preventDefault()
-    saveSettingsToStorage()
-    var needRestart = pendingSettings.boardWidth !== gameState.boardWidth || pendingSettings.boardHeight !== gameState.boardHeight || pendingSettings.targetNumber !== gameState.targetNumber || pendingSettings.initialTiles !== gameState.initialTiles
-    if (needRestart) {
-      var highForNewSize = Number(getStorage(getHighScoreKey(pendingSettings.boardWidth, pendingSettings.boardHeight))) || 0
-      gameState = initGame(highForNewSize, pendingSettings)
-    }
-    else gameState = Object.assign({}, gameState, { customLabels: pendingSettings.customLabels || {}, customImages: pendingSettings.customImages || {} })
-    closeSettings()
-    render(gameState)
-  })
 
   overlayEl.addEventListener('click', function () {
     if (!gameState || !gameState.overlayVisible) return

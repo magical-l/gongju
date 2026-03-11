@@ -19,28 +19,37 @@ body.settings-open {
   overflow: hidden;
 }
 
-/* 与其它游戏一致的 toolbar：仅工具按钮 */
+/* 带 prefix 的 toolbar select：只保留 selection 的 min-width:2em 防塌，其余 max-content/min-width/overflow 已验证可删、效果一致 */
+.gaming.area .toolbar section:has(.g2048-toolbar-select-with-prefix),
+.gaming.area .toolbar .one.setting.group:has(.g2048-toolbar-select-with-prefix),
+.gaming.area .toolbar .one.tool.group:has(.g2048-toolbar-select-with-prefix),
+.gaming.area .toolbar .el-form-item:has(.g2048-toolbar-select-with-prefix),
+.gaming.area .toolbar .el-form-item__content:has(.g2048-toolbar-select-with-prefix),
+.gaming.area .toolbar .g2048-toolbar-select-with-prefix,
+.gaming.area .toolbar .g2048-toolbar-select-with-prefix .el-select__wrapper {
+  flex: 0 0 auto !important;
+}
+.gaming.area .toolbar .g2048-toolbar-select-with-prefix .el-select__selection .el-select__input-wrapper {
+  position: absolute !important;
+  width: 0 !important;
+  overflow: hidden !important;
+}
+.gaming.area .toolbar .g2048-toolbar-select-with-prefix .el-select__selection {
+  flex: 0 0 auto !important;
+  min-width: 2em !important;
+}
+
+/* 与其它游戏一致的 toolbar：设置项 + 工具按钮 */
 .gaming.area .toolbar .one.setting.group {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem 1rem;
   flex-wrap: wrap;
 }
-.gaming.area .toolbar .btn {
-  padding: 8px 14px;
-  min-height: 32px;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  color: var(--text-light);
-  font-family: inherit;
+.gaming.area .toolbar #g2048-toolbar-settings .el-form-item {
+  margin-bottom: 0;
 }
-.gaming.area .toolbar .btn-primary { background: var(--btn-primary); }
-.gaming.area .toolbar .btn-secondary { background: var(--btn-secondary); }
-.gaming.area .toolbar .btn:hover { filter: brightness(1.08); }
-.gaming.area .toolbar .btn:active { filter: brightness(0.95); }
+/* 已删：.settings-label / .settings-options / .g2048-toolbar-select / .btn 系列 审计无匹配，页面用 el-* 组件 */
 .gaming.area .toolbar .one.group .el-form-item {
   margin-bottom: 0;
   padding-bottom: 0;
