@@ -204,7 +204,6 @@
 		gameBoardHeight: 4,
 		gameTargetNumber: 2048,
 		showNewTileMarker: true,
-		stopStepAnimation: 'flip',
 		customTilesDialogVisible: false,
 		gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
 		_collapseKey: collapseKey,
@@ -218,7 +217,6 @@
 	};
 	window.__2048SetQuickSettings__ = function (obj) {
 		if (obj && typeof obj.showNewTileMarker === 'boolean') state.showNewTileMarker = obj.showNewTileMarker;
-		if (obj && typeof obj.stopStepAnimation === 'string') state.stopStepAnimation = obj.stopStepAnimation;
 	};
 	window.__2048SyncToolbarSettings__ = function () {
 		var s = typeof window.__2048GetBoardSettings__ === 'function' && window.__2048GetBoardSettings__();
@@ -265,7 +263,7 @@
 			},
 			onQuickSettingChange() {
 				if (typeof window.__2048ApplyQuickSettings__ === 'function') {
-					window.__2048ApplyQuickSettings__(state.showNewTileMarker, state.stopStepAnimation);
+					window.__2048ApplyQuickSettings__(state.showNewTileMarker);
 				}
 			},
 			openCustomTilesDialog() {

@@ -64,21 +64,6 @@ var SETTINGS_SCHEMA = {
     wechat: {},
     web: {}
   },
-  stopStepAnimation: {
-    default: {
-      label: '停步动画',
-      vals: {
-        none: { label: '无', endpoints: ['web', 'wechat'] },
-        scale: { label: '缩放', endpoints: ['web', 'wechat'] },
-        flip: { label: '翻牌', endpoints: ['web'] },
-        shake: { label: '摇晃', endpoints: ['web'] },
-        bounce: { label: '弹跳', endpoints: ['web'] },
-        glow: { label: '描边', endpoints: ['web'] }
-      }
-    },
-    wechat: {},
-    web: {}
-  }
 }
 
 /** 各端 UI 文案（非设置项）：{ 区域: { 键: { default?, wechat?, web? } } }，网页可写长一点 */
@@ -134,7 +119,7 @@ function buildVisibilityFromSchema() {
 }
 
 /** 工具栏「快速设置」项顺序；仅在此列表且对 endpoint 可见的会生成到界面 */
-var QUICK_SETTINGS_KEYS = ['showNewTileMarker', 'stopStepAnimation']
+var QUICK_SETTINGS_KEYS = ['showNewTileMarker']
 
 function getQuickSettingsList(endpoint) {
   var list = []
@@ -156,28 +141,10 @@ function getQuickSettingsList(endpoint) {
   return list
 }
 
-var MERGE_ANIM_OPTIONS_BY_PLATFORM = (function () {
-  var webOpts = getSettingOptions('stopStepAnimation', 'web') || []
-  var wechatOpts = getSettingOptions('stopStepAnimation', 'wechat') || []
-  return {
-    web: webOpts.map(function (x) { return x.value }),
-    wechat: wechatOpts.map(function (x) { return x.value })
-  }
-})()
-
-var MERGE_ANIM_LABELS_BY_PLATFORM = (function () {
-  var webOpts = getSettingOptions('stopStepAnimation', 'web') || []
-  var wechatOpts = getSettingOptions('stopStepAnimation', 'wechat') || []
-  return {
-    web: webOpts.map(function (x) { return x.label }),
-    wechat: wechatOpts.map(function (x) { return x.label })
-  }
-})()
-
 var SETTINGS_VISIBILITY = buildVisibilityFromSchema()
 var SETTINGS_TILE_KEYS = [
   'boardHeight', 'boardWidth', 'targetNumber', 'initialTiles',
-  'showNewTileMarker', 'useAccelerometer', 'accelerometerSpeed', 'stopStepAnimation', 'newTileOnMidStop',
+  'showNewTileMarker', 'useAccelerometer', 'accelerometerSpeed', 'newTileOnMidStop',
 ]
 
 var ACCEL_COOLDOWN = { slow: 900, medium: 480, fast: 280 }
@@ -299,8 +266,6 @@ var TOAST_PRIVACY_DURATION = 3500
   isSettingVisible: isSettingVisible,
   QUICK_SETTINGS_KEYS: QUICK_SETTINGS_KEYS,
   getQuickSettingsList: getQuickSettingsList,
-  MERGE_ANIM_OPTIONS_BY_PLATFORM,
-  MERGE_ANIM_LABELS_BY_PLATFORM,
   SETTINGS_VISIBILITY,
   SETTINGS_TILE_KEYS,
   ACCEL_COOLDOWN,
