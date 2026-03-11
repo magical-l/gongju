@@ -157,7 +157,7 @@
     renderOverlay(state)
     var firstCell = boardEl && boardEl.querySelector('.cell')
     if (firstCell && firstCell.offsetWidth > 0) {
-      document.documentElement.style.setProperty('--g2048-cell-size', firstCell.offsetWidth + 'px')
+      document.documentElement.style.setProperty('--cell-size', firstCell.offsetWidth + 'px')
     }
   }
 

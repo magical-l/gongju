@@ -44,20 +44,26 @@
 <main>
 	<header>
 		<h2 class="game name">2048</h2>
-		<div class="page-lv help area" v-cloak id="g2048-help"></div>
+		<div class="page-lv help area" v-cloak>
+			<el-button class="page-lv help btn" title="游戏介绍" size="small" circle @click="introVisible=true">?</el-button>
+			<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
+				<p>2048：滑动合并相同数字，达到目标数字即胜利。可自定义棋盘大小、目标分数与停步动画。</p>
+				<p><strong>操作</strong>：方向键、触屏或鼠标滑动。新局、撤销、设置在工具栏。</p>
+			</el-dialog>
+		</div>
 	</header>
-	<article class="gaming area , 反叵字形 grid" v-cloak id="g2048-article">
+	<article class="gaming area , 反叵字形 grid" v-cloak>
 		<header class="toolbar , flex multi-line no-gap items-near-center-x items-stretch">
-			<section class="setting list area , flex single-line no-gap items-near-start-x items-near-center-y" id="g2048-toolbar-settings">
+			<section class="setting list area , flex single-line no-gap items-near-start-x items-near-center-y">
 				<div class="one setting group">
 					<el-form-item class="one setting : height">
-						<el-select v-model.number="boardHeight" @change="onBoardSettingChange" size="default" class="g2048-toolbar-select-with-prefix">
+						<el-select v-model.number="boardHeight" @change="onBoardSettingChange" size="default" class="toolbar-select-with-prefix">
 							<template #prefix>行</template>
 							<el-option v-for="h in boardSizeOptions" :key="h" :label="String(h)" :value="h"/>
 						</el-select>
 					</el-form-item>
 					<el-form-item class="one setting : width">
-						<el-select v-model.number="boardWidth" @change="onBoardSettingChange" size="default" class="g2048-toolbar-select-with-prefix">
+						<el-select v-model.number="boardWidth" @change="onBoardSettingChange" size="default" class="toolbar-select-with-prefix">
 							<template #prefix>列</template>
 							<el-option v-for="w in boardSizeOptions" :key="w" :label="String(w)" :value="w"/>
 						</el-select>
@@ -65,7 +71,7 @@
 				</div>
 				<div class="one setting group">
 					<el-form-item class="one setting : target">
-						<el-select v-model="targetNumber" @change="onBoardSettingChange" size="default" class="g2048-toolbar-select-with-prefix">
+						<el-select v-model="targetNumber" @change="onBoardSettingChange" size="default" class="toolbar-select-with-prefix">
 							<template #prefix>目标</template>
 							<el-option v-for="(opt, i) in targetOptions" :key="opt.value === Infinity ? 'inf' : opt.value" :label="opt.label" :value="opt.value"/>
 						</el-select>
@@ -84,18 +90,18 @@
 				<template v-for="item in quickSettingsList" :key="item.key">
 					<div v-if="item.display === 'toggleButton'" class="one tool group">
 						<el-form-item class="one setting : marker">
-							<div class="g2048-switch-btn el-button el-button--default" :class="{ pressed: getQuickValue(item.key) }" role="button" tabindex="0" :aria-pressed="getQuickValue(item.key)" @click="setQuickValue(item.key, !getQuickValue(item.key))" @keydown.enter.space.prevent="setQuickValue(item.key, !getQuickValue(item.key))">
+							<div class="switch-btn el-button el-button--default" :class="{ pressed: getQuickValue(item.key) }" role="button" tabindex="0" :aria-pressed="getQuickValue(item.key)" @click="setQuickValue(item.key, !getQuickValue(item.key))" @keydown.enter.space.prevent="setQuickValue(item.key, !getQuickValue(item.key))">
 								<span class="el-button__content">
-									<span v-if="item.key === 'showNewTileMarker'" class="el-icon"><svg class="g2048-label-icon" viewBox="0 0 24 24" width="1em" height="1em" title="角标式标记" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" fill="currentColor" opacity="0.85"/><circle cx="18" cy="6" r="3.5" fill="var(--el-color-danger, #f56c6c)"/></svg></span>
+									<span v-if="item.key === 'showNewTileMarker'" class="el-icon"><svg class="label-icon" viewBox="0 0 24 24" width="1em" height="1em" title="角标式标记" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" fill="currentColor" opacity="0.85"/><circle cx="18" cy="6" r="3.5" fill="var(--el-color-danger, #f56c6c)"/></svg></span>
 									<span>{{ item.label }}</span>
 								</span>
-								<el-switch :model-value="getQuickValue(item.key)" @update:model-value="(v) => setQuickValue(item.key, v)" class="g2048-switch-btn-control g2048-switch-btn-control-hidden" aria-hidden="true" />
+								<el-switch :model-value="getQuickValue(item.key)" @update:model-value="(v) => setQuickValue(item.key, v)" class="switch-btn-control switch-btn-control-hidden" aria-hidden="true" />
 							</div>
 						</el-form-item>
 					</div>
 					<div v-else-if="item.type === 'select'" class="one tool group">
 						<el-form-item class="one setting : merge">
-							<el-select :model-value="getQuickValue(item.key)" @update:model-value="(v) => setQuickValue(item.key, v)" size="default" class="g2048-toolbar-select-with-prefix">
+							<el-select :model-value="getQuickValue(item.key)" @update:model-value="(v) => setQuickValue(item.key, v)" size="default" class="toolbar-select-with-prefix">
 								<template #prefix>{{ item.label }}</template>
 								<el-option v-for="opt in item.options" :key="opt.value" :label="opt.label" :value="opt.value"></el-option>
 							</el-select>
@@ -103,7 +109,7 @@
 					</div>
 				</template>
 				<div class="one tool group">
-					<el-button id="btn-custom-tiles" icon="PictureFilled" @click="openCustomTilesDialog">数字显示</el-button>
+					<el-button icon="PictureFilled" @click="openCustomTilesDialog">数字显示</el-button>
 				</div>
 			</section>
 		</header>
@@ -271,16 +277,15 @@
 	if (typeof ElementPlusIconsVue !== 'undefined') {
 		for (var k in ElementPlusIconsVue) { mainApp.component(k, ElementPlusIconsVue[k]); }
 	}
-	mainApp.mount('#g2048-article');
+	mainApp.mount('article.gaming.area');
 	const helpApp = createApp({
 		data: () => ({ introVisible: false }),
-		template: '<el-button class="page-lv help btn" title="游戏介绍" size="small" circle @click="introVisible=true">?</el-button><el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%"><p>2048：滑动合并相同数字，达到目标数字即胜利。可自定义棋盘大小、目标分数与停步动画。</p><p><strong>操作</strong>：方向键、触屏或鼠标滑动。新局、撤销、设置在工具栏。</p></el-dialog>',
 	});
 	helpApp.use(ElementPlus);
 	if (typeof ElementPlusIconsVue !== 'undefined') {
 		for (var k in ElementPlusIconsVue) { helpApp.component(k, ElementPlusIconsVue[k]); }
 	}
-	helpApp.mount('#g2048-help');
+	helpApp.mount('.help.area');
 }());
 </script>
 <script src="logic.js"></script>
@@ -288,8 +293,8 @@
 <script>
   /** 控制台执行 __2048ExportSelectDomAndCss__()：祖先链 + wrapper/selection 的 flex 与宽度分配。版本 v7（每轮递增） */
   window.__2048ExportSelectDomAndCss__ = function () {
-    var root = document.querySelector('.g2048-toolbar-select-with-prefix');
-    if (!root) return console.log('未找到 .g2048-toolbar-select-with-prefix');
+    var root = document.querySelector('.toolbar-select-with-prefix');
+    if (!root) return console.log('未找到 .toolbar-select-with-prefix');
     var lines = ['--- __2048ExportSelectDomAndCss__ v7 ---'];
     var props = ['width', 'min-width', 'max-width', 'display', 'flex', 'flex-grow', 'flex-shrink', 'flex-basis'];
     function one(el, label) {
@@ -343,7 +348,7 @@
     return out;
   };
 
-  /** 控制台执行 __2048AuditCss__()：只审计“我们加的”规则（选择器含 g2048 / gaming.area / toolbar），每条只查第 1 个匹配元素，便于贴出精简结果。 */
+  /** 控制台执行 __2048AuditCss__()：只审计“我们加的”规则（选择器含 gaming.area / toolbar），每条只查第 1 个匹配元素。 */
   window.__2048AuditCss__ = function () {
     var sheets = Array.prototype.slice.call(document.styleSheets || []);
     var sheet = sheets.filter(function (s) { try { return s.href && s.href.indexOf('2048.css') !== -1; } catch (e) { return false; } })[0];
@@ -357,8 +362,8 @@
     }
     function camelToKebab(s) { return s.replace(/([A-Z])/g, '-$1').toLowerCase(); }
     function norm(v) { if (typeof v !== 'string') return ''; return v.trim(); }
-    var ours = /g2048|\.gaming\.area|\.toolbar/;
-    var lines = ['--- __2048AuditCss__ 仅“我们加的”规则（g2048/gaming.area/toolbar）---', '格式: 属性 规则值→计算值 [✓/✗]', ''];
+    var ours = /\.gaming\.area|\.toolbar|\.toolbar-select-with-prefix|\.switch-btn/;
+    var lines = ['--- __2048AuditCss__ 仅“我们加的”规则 ---', '格式: 属性 规则值→计算值 [✓/✗]', ''];
 
     for (var r = 0; r < rules.length; r++) {
       var rule = rules[r];

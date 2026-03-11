@@ -19,64 +19,61 @@ body.settings-open {
   overflow: hidden;
 }
 
-/* 带 prefix 的 toolbar select：只保留 selection 的 min-width:2em 防塌，其余 max-content/min-width/overflow 已验证可删、效果一致 */
-.gaming.area .toolbar section:has(.g2048-toolbar-select-with-prefix),
-.gaming.area .toolbar .one.setting.group:has(.g2048-toolbar-select-with-prefix),
-.gaming.area .toolbar .one.tool.group:has(.g2048-toolbar-select-with-prefix),
-.gaming.area .toolbar .el-form-item:has(.g2048-toolbar-select-with-prefix),
-.gaming.area .toolbar .el-form-item__content:has(.g2048-toolbar-select-with-prefix),
-.gaming.area .toolbar .g2048-toolbar-select-with-prefix,
-.gaming.area .toolbar .g2048-toolbar-select-with-prefix .el-select__wrapper {
+/* 带 prefix 的 select：selection min-width:2em 防塌；祖先链用 :has 精简为 .toolbar 内 */
+.toolbar section:has(.toolbar-select-with-prefix),
+.toolbar .one.setting.group:has(.toolbar-select-with-prefix),
+.toolbar .one.tool.group:has(.toolbar-select-with-prefix),
+.toolbar .el-form-item:has(.toolbar-select-with-prefix),
+.toolbar .el-form-item__content:has(.toolbar-select-with-prefix),
+.toolbar .toolbar-select-with-prefix,
+.toolbar .toolbar-select-with-prefix .el-select__wrapper {
   flex: 0 0 auto !important;
 }
-.gaming.area .toolbar .g2048-toolbar-select-with-prefix .el-select__selection .el-select__input-wrapper {
+.toolbar .toolbar-select-with-prefix .el-select__selection .el-select__input-wrapper {
   position: absolute !important;
   width: 0 !important;
   overflow: hidden !important;
 }
-.gaming.area .toolbar .g2048-toolbar-select-with-prefix .el-select__selection {
+.toolbar .toolbar-select-with-prefix .el-select__selection {
   flex: 0 0 auto !important;
   min-width: 2em !important;
 }
 
-/* 与其它游戏一致的 toolbar：设置项 + 工具按钮 */
-.gaming.area .toolbar .one.setting.group {
+/* toolbar：设置项 + 工具按钮 */
+.toolbar .one.setting.group {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem 1rem;
   flex-wrap: wrap;
 }
-.gaming.area .toolbar #g2048-toolbar-settings .el-form-item {
+.one.setting .el-form-item {
   margin-bottom: 0;
 }
-/* 已删：.settings-label / .settings-options / .g2048-toolbar-select / .btn 系列 审计无匹配，页面用 el-* 组件 */
-.gaming.area .toolbar .one.group .el-form-item {
+.one.group .el-form-item {
   margin-bottom: 0;
   padding-bottom: 0;
   align-items: center;
 }
-.gaming.area .toolbar .el-form-item .g2048-label-icon {
+.el-form-item .label-icon {
   vertical-align: middle;
   margin-right: 4px;
 }
-/* 新数标记：复用 el-button / el-button__content / el-icon，与组件库内部间距一致；关闭=凸起，开启=凹陷 */
-.gaming.area .toolbar .g2048-switch-btn.el-button {
+/* 新数标记开关：复用 el-button 样式，关闭=凸起，开启=凹陷 */
+.switch-btn.el-button {
   border-radius: var(--el-border-radius-base, 4px);
   transition: box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
-/* 平时：与 el-button default 一致 */
-.gaming.area .toolbar .g2048-switch-btn:not(.pressed) {
+.switch-btn:not(.pressed) {
   background: var(--el-button-bg-color, #fff);
   color: var(--el-text-color-regular);
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
 }
-.gaming.area .toolbar .g2048-switch-btn:not(.pressed):hover {
+.switch-btn:not(.pressed):hover {
   background: var(--el-button-hover-bg-color, #ecf5ff);
   border-color: var(--el-color-primary-light-7);
   color: var(--el-color-primary);
 }
-/* 开启：与 el-button primary 一致 + 凹陷 */
-.gaming.area .toolbar .g2048-switch-btn.pressed {
+.switch-btn.pressed {
   background: var(--el-color-primary);
   border-color: var(--el-color-primary);
   color: var(--el-color-white);
@@ -84,19 +81,18 @@ body.settings-open {
     inset 0 2px 4px rgba(0, 0, 0, 0.2),
     inset 0 0 0 1px rgba(0, 0, 0, 0.08);
 }
-.gaming.area .toolbar .g2048-switch-btn.pressed:hover {
+.switch-btn.pressed:hover {
   background: var(--el-color-primary-light-3);
   border-color: var(--el-color-primary-light-3);
 }
-.gaming.area .toolbar .g2048-switch-btn .g2048-label-icon {
+.switch-btn .label-icon {
   vertical-align: middle;
 }
-/* 不显示拨动开关，仅用其绑定状态；整块按钮可点击 */
-.gaming.area .toolbar .g2048-switch-btn {
+.switch-btn {
   cursor: pointer;
   user-select: none;
 }
-.gaming.area .toolbar .g2048-switch-btn-control-hidden {
+.switch-btn-control-hidden {
   position: absolute !important;
   width: 0 !important;
   height: 0 !important;
@@ -246,24 +242,24 @@ body.settings-open {
   pointer-events: none;
 }
 
-#app .tile-merge-scale { animation: g2048-merge-scale var(--merge-duration) ease-out; }
-#app .tile-merge-flip { animation: g2048-merge-flip var(--merge-duration) ease-in-out; }
-#app .tile-merge-shake { animation: g2048-merge-shake var(--merge-duration) ease-out; }
-#app .tile-merge-bounce { animation: g2048-merge-bounce var(--merge-duration) ease-out; }
-#app .tile-merge-glow { animation: g2048-merge-glow var(--merge-duration) ease-in-out; }
+#app .tile-merge-scale { animation: merge-scale var(--merge-duration) ease-out; }
+#app .tile-merge-flip { animation: merge-flip var(--merge-duration) ease-in-out; }
+#app .tile-merge-shake { animation: merge-shake var(--merge-duration) ease-out; }
+#app .tile-merge-bounce { animation: merge-bounce var(--merge-duration) ease-out; }
+#app .tile-merge-glow { animation: merge-glow var(--merge-duration) ease-in-out; }
 
-@keyframes g2048-merge-scale {
+@keyframes merge-scale {
   0% { transform: scale(1.2); }
   100% { transform: scale(1); }
 }
 
-@keyframes g2048-merge-flip {
+@keyframes merge-flip {
   0% { transform: scaleX(0); }
   50% { transform: scaleX(0); }
   100% { transform: scaleX(1); }
 }
 
-@keyframes g2048-merge-shake {
+@keyframes merge-shake {
   0%, 100% { transform: rotate(0deg); }
   20% { transform: rotate(-8deg); }
   40% { transform: rotate(6deg); }
@@ -271,13 +267,13 @@ body.settings-open {
   80% { transform: rotate(2deg); }
 }
 
-@keyframes g2048-merge-bounce {
+@keyframes merge-bounce {
   0%, 100% { transform: translateY(0); }
   35% { transform: translateY(-20%); }
   70% { transform: translateY(-5%); }
 }
 
-@keyframes g2048-merge-glow {
+@keyframes merge-glow {
   0%, 100% { box-shadow: inset 0 0 0 0 rgba(255, 220, 0, 0); }
   50% { box-shadow: inset 0 0 0 3px rgba(255, 220, 0, 0.85); }
 }
@@ -530,8 +526,8 @@ body.settings-open {
   flex-shrink: 0;
 }
 .settings-panel .custom-tile-preview {
-  width: var(--g2048-cell-size, 80px);
-  height: var(--g2048-cell-size, 80px);
+  width: var(--cell-size, 80px);
+  height: var(--cell-size, 80px);
   min-width: 48px;
   min-height: 48px;
   border-radius: var(--tile-radius);
@@ -688,8 +684,8 @@ body.settings-open {
   flex-shrink: 0;
 }
 .custom-tiles-dialog .custom-tile-preview {
-  width: var(--g2048-cell-size, 80px);
-  height: var(--g2048-cell-size, 80px);
+  width: var(--cell-size, 80px);
+  height: var(--cell-size, 80px);
   min-width: 48px;
   min-height: 48px;
   border-radius: var(--tile-radius);
