@@ -15,30 +15,6 @@
   --merge-duration: 0.2s;
 }
 
-body.settings-open {
-  overflow: hidden;
-}
-
-/* 带 prefix 的 select：selection min-width:2em 防塌；祖先链用 :has 精简为 .toolbar 内 */
-.toolbar section:has(.toolbar-select-with-prefix),
-.toolbar .one.setting.group:has(.toolbar-select-with-prefix),
-.toolbar .one.tool.group:has(.toolbar-select-with-prefix),
-.toolbar .el-form-item:has(.toolbar-select-with-prefix),
-.toolbar .el-form-item__content:has(.toolbar-select-with-prefix),
-.toolbar .toolbar-select-with-prefix,
-.toolbar .toolbar-select-with-prefix .el-select__wrapper {
-  flex: 0 0 auto !important;
-}
-.toolbar .toolbar-select-with-prefix .el-select__selection .el-select__input-wrapper {
-  position: absolute !important;
-  width: 0 !important;
-  overflow: hidden !important;
-}
-.toolbar .toolbar-select-with-prefix .el-select__selection {
-  flex: 0 0 auto !important;
-  min-width: 2em !important;
-}
-
 /* toolbar：设置项 + 工具按钮 */
 .toolbar .one.setting.group {
   display: inline-flex;
@@ -53,56 +29,6 @@ body.settings-open {
   margin-bottom: 0;
   padding-bottom: 0;
   align-items: center;
-}
-.el-form-item .label-icon {
-  vertical-align: middle;
-  margin-right: 4px;
-}
-/* 新数标记开关：复用 el-button 样式，关闭=凸起，开启=凹陷 */
-.switch-btn.el-button {
-  border-radius: var(--el-border-radius-base, 4px);
-  transition: box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-}
-.switch-btn:not(.pressed) {
-  background: var(--el-button-bg-color, #fff);
-  color: var(--el-text-color-regular);
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
-}
-.switch-btn:not(.pressed):hover {
-  background: var(--el-button-hover-bg-color, #ecf5ff);
-  border-color: var(--el-color-primary-light-7);
-  color: var(--el-color-primary);
-}
-.switch-btn.pressed {
-  background: var(--el-color-primary);
-  border-color: var(--el-color-primary);
-  color: var(--el-color-white);
-  box-shadow:
-    inset 0 2px 4px rgba(0, 0, 0, 0.2),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.08);
-}
-.switch-btn.pressed:hover {
-  background: var(--el-color-primary-light-3);
-  border-color: var(--el-color-primary-light-3);
-}
-.switch-btn .label-icon {
-  vertical-align: middle;
-}
-.switch-btn {
-  cursor: pointer;
-  user-select: none;
-}
-.switch-btn-control-hidden {
-  position: absolute !important;
-  width: 0 !important;
-  height: 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  overflow: hidden !important;
-  clip: rect(0, 0, 0, 0) !important;
-  border: 0 !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
 }
 
 /* 右侧本局信息：属性列表（左名右值）+ 当前得分单列 */
@@ -151,8 +77,6 @@ body.settings-open {
   color: var(--text-dark);
   line-height: 1.2;
 }
-
-[v-cloak] { display: none !important; }
 
 .main.map.area {
   width: 100%;
@@ -218,33 +142,65 @@ article.gaming.area .board .cell::after {
   pointer-events: none;
 }
 
-article.gaming.area .board .tile {
-  position: absolute;
-  inset: var(--grid-gap);
-  border-radius: var(--tile-radius);
+/* 棋盘格与浮动格共用：基础 + 字号；tile 颜色见下方统一块 */
+article.gaming.area .board .tile,
+article.gaming.area .board-floating .floating-tile {
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
   color: var(--text-light);
+  border-radius: var(--tile-radius);
+  font-size: clamp(12px, 4vw, 24px);
   user-select: none;
   -webkit-user-select: none;
 }
+article.gaming.area .board .tile {
+  position: absolute;
+  inset: var(--grid-gap);
+}
+article.gaming.area .board-floating .floating-tile {
+  position: absolute;
+  transition: left 0.08s linear, top 0.08s linear;
+}
 
-article.gaming.area .board .tile { font-size: clamp(12px, 4vw, 24px); }
-
-article.gaming.area .board .tile.tile-2 { background: #e2ead8; color: #5a6b52; }
-article.gaming.area .board .tile.tile-4 { background: #d4e0c8; color: #5a6b52; }
-article.gaming.area .board .tile.tile-8 { background: #a8c99e; }
-article.gaming.area .board .tile.tile-16 { background: #8fbc85; }
-article.gaming.area .board .tile.tile-32 { background: #7cb37a; }
-article.gaming.area .board .tile.tile-64 { background: #6ba36b; }
-article.gaming.area .board .tile.tile-128 { background: #9cb87c; }
-article.gaming.area .board .tile.tile-256 { background: #8ab06e; }
-article.gaming.area .board .tile.tile-512 { background: #7aa862; }
-article.gaming.area .board .tile.tile-1024 { background: #6a9f56; }
-article.gaming.area .board .tile.tile-2048 { background: #5a8f4a; }
-article.gaming.area .board .tile.tile-super { background: #4a5a42; }
+/* 棋盘格 / 浮动格 / 设置预览 共用 tile 颜色 */
+article.gaming.area .board .tile.tile-2,
+article.gaming.area .board-floating .floating-tile.tile-2,
+.custom.tile.preview.tile-2 { background: #e2ead8; color: #5a6b52; }
+article.gaming.area .board .tile.tile-4,
+article.gaming.area .board-floating .floating-tile.tile-4,
+.custom.tile.preview.tile-4 { background: #d4e0c8; color: #5a6b52; }
+article.gaming.area .board .tile.tile-8,
+article.gaming.area .board-floating .floating-tile.tile-8,
+.custom.tile.preview.tile-8 { background: #a8c99e; }
+article.gaming.area .board .tile.tile-16,
+article.gaming.area .board-floating .floating-tile.tile-16,
+.custom.tile.preview.tile-16 { background: #8fbc85; }
+article.gaming.area .board .tile.tile-32,
+article.gaming.area .board-floating .floating-tile.tile-32,
+.custom.tile.preview.tile-32 { background: #7cb37a; }
+article.gaming.area .board .tile.tile-64,
+article.gaming.area .board-floating .floating-tile.tile-64,
+.custom.tile.preview.tile-64 { background: #6ba36b; }
+article.gaming.area .board .tile.tile-128,
+article.gaming.area .board-floating .floating-tile.tile-128,
+.custom.tile.preview.tile-128 { background: #9cb87c; }
+article.gaming.area .board .tile.tile-256,
+article.gaming.area .board-floating .floating-tile.tile-256,
+.custom.tile.preview.tile-256 { background: #8ab06e; }
+article.gaming.area .board .tile.tile-512,
+article.gaming.area .board-floating .floating-tile.tile-512,
+.custom.tile.preview.tile-512 { background: #7aa862; }
+article.gaming.area .board .tile.tile-1024,
+article.gaming.area .board-floating .floating-tile.tile-1024,
+.custom.tile.preview.tile-1024 { background: #6a9f56; }
+article.gaming.area .board .tile.tile-2048,
+article.gaming.area .board-floating .floating-tile.tile-2048,
+.custom.tile.preview.tile-2048 { background: #5a8f4a; }
+article.gaming.area .board .tile.tile-super,
+article.gaming.area .board-floating .floating-tile.tile-super,
+.custom.tile.preview.tile-super { background: #4a5a42; }
 
 article.gaming.area .tile-new-badge {
   position: absolute;
@@ -273,33 +229,6 @@ article.gaming.area .board-floating {
   padding: var(--board-padding);
 }
 
-article.gaming.area .board-floating .floating-tile {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  color: var(--text-light);
-  border-radius: var(--tile-radius);
-  transition: left 0.08s linear, top 0.08s linear;
-  font-size: clamp(12px, 4vw, 24px);
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-article.gaming.area .board-floating .floating-tile.tile-2 { background: #e2ead8; color: #5a6b52; }
-article.gaming.area .board-floating .floating-tile.tile-4 { background: #d4e0c8; color: #5a6b52; }
-article.gaming.area .board-floating .floating-tile.tile-8 { background: #a8c99e; }
-article.gaming.area .board-floating .floating-tile.tile-16 { background: #8fbc85; }
-article.gaming.area .board-floating .floating-tile.tile-32 { background: #7cb37a; }
-article.gaming.area .board-floating .floating-tile.tile-64 { background: #6ba36b; }
-article.gaming.area .board-floating .floating-tile.tile-128 { background: #9cb87c; }
-article.gaming.area .board-floating .floating-tile.tile-256 { background: #8ab06e; }
-article.gaming.area .board-floating .floating-tile.tile-512 { background: #7aa862; }
-article.gaming.area .board-floating .floating-tile.tile-1024 { background: #6a9f56; }
-article.gaming.area .board-floating .floating-tile.tile-2048 { background: #5a8f4a; }
-article.gaming.area .board-floating .floating-tile.tile-super { background: #4a5a42; }
-
 article.gaming.area .board-wrap .overlay {
   position: absolute;
   inset: 0;
@@ -310,8 +239,6 @@ article.gaming.area .board-wrap .overlay {
   justify-content: center;
   z-index: 2;
 }
-
-article.gaming.area .overlay.hidden { display: none; }
 
 article.gaming.area .overlay-inner {
   text-align: center;
@@ -361,8 +288,6 @@ article.gaming.area .overlay-btn-restart:active {
   z-index: 100;
 }
 
-.settings-backdrop.hidden { display: none; }
-
 .settings-panel {
   position: fixed;
   top: 50%;
@@ -381,8 +306,6 @@ article.gaming.area .overlay-btn-restart:active {
   font-family: system-ui, -apple-system, sans-serif;
   color: var(--text-dark);
 }
-
-.settings-panel.hidden { display: none; }
 
 .settings-panel .settings-title {
   font-size: 22px;
@@ -442,8 +365,6 @@ article.gaming.area .overlay-btn-restart:active {
 .settings-panel .settings-options [role="option"]:hover {
   filter: brightness(1.05);
 }
-
-.settings-panel .hidden { display: none !important; }
 
 .settings-panel .settings.hint {
   font-size: 13px;
@@ -565,18 +486,7 @@ article.gaming.area .overlay-btn-restart:active {
   user-select: none;
   -webkit-user-select: none;
 }
-.custom.tile.preview.tile-2 { background: #e2ead8; color: #5a6b52; }
-.custom.tile.preview.tile-4 { background: #d4e0c8; color: #5a6b52; }
-.custom.tile.preview.tile-8 { background: #a8c99e; color: #f5f9f2; }
-.custom.tile.preview.tile-16 { background: #8fbc85; color: #f5f9f2; }
-.custom.tile.preview.tile-32 { background: #7cb37a; color: #f5f9f2; }
-.custom.tile.preview.tile-64 { background: #6ba36b; color: #f5f9f2; }
-.custom.tile.preview.tile-128 { background: #9cb87c; color: #f5f9f2; }
-.custom.tile.preview.tile-256 { background: #8ab06e; color: #f5f9f2; }
-.custom.tile.preview.tile-512 { background: #7aa862; color: #f5f9f2; }
-.custom.tile.preview.tile-1024 { background: #6a9f56; color: #f5f9f2; }
-.custom.tile.preview.tile-2048 { background: #5a8f4a; color: #f5f9f2; }
-.custom.tile.preview.tile-super { background: #4a5a42; color: #f5f9f2; }
+/* tile 颜色已与 .board .tile / .board-floating .floating-tile 合并到上方共用块 */
 .custom.tile.preview img {
   width: 100%;
   height: 100%;
@@ -689,5 +599,3 @@ article.gaming.area .board-floating .floating-tile img {
   object-fit: contain;
   display: block;
 }
-
-article.gaming.area .hidden { display: none !important; }

@@ -62,3 +62,69 @@
 .semi-bold {
 	font-weight: 600;
 }
+
+/* 表单项内标签旁图标（与文字垂直居中） */
+.el-form-item .label-icon {
+	vertical-align: middle;
+	margin-right: 4px;
+}
+
+/* 带 #prefix 插槽的 el-select，在 .toolbar 等 flex 布局中保持紧凑：加 class .has-prefix，与 .el-select 组合 */
+.toolbar section:has(.el-select.has-prefix),
+.toolbar .one.setting.group:has(.el-select.has-prefix),
+.toolbar .one.tool.group:has(.el-select.has-prefix),
+.toolbar .el-form-item:has(.el-select.has-prefix),
+.toolbar .el-form-item__content:has(.el-select.has-prefix),
+.toolbar .el-select.has-prefix,
+.toolbar .el-select.has-prefix .el-select__wrapper {
+	flex: 0 0 auto !important;
+}
+.toolbar .el-select.has-prefix .el-select__selection .el-select__input-wrapper {
+	position: absolute !important;
+	width: 0 !important;
+	overflow: hidden !important;
+}
+.toolbar .el-select.has-prefix .el-select__selection {
+	flex: 0 0 auto !important;
+	min-width: 2em !important;
+}
+
+/* 切换态按钮（.toggle + .el-button）：未按=凸起，按下=凹陷，配合 .pressed */
+.toggle.el-button {
+	border-radius: var(--el-border-radius-base, 4px);
+	transition: box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.toggle:not(.pressed) {
+	background: var(--el-button-bg-color, #fff);
+	color: var(--el-text-color-regular);
+	box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
+}
+.toggle:not(.pressed):hover {
+	background: var(--el-button-hover-bg-color, #ecf5ff);
+	border-color: var(--el-color-primary-light-7);
+	color: var(--el-color-primary);
+}
+.toggle.pressed {
+	background: var(--el-color-primary);
+	border-color: var(--el-color-primary);
+	color: var(--el-color-white);
+	box-shadow:
+		inset 0 2px 4px rgba(0, 0, 0, 0.2),
+		inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.toggle.pressed:hover {
+	background: var(--el-color-primary-light-3);
+	border-color: var(--el-color-primary-light-3);
+}
+.toggle .label-icon {
+	vertical-align: middle;
+}
+.toggle {
+	cursor: pointer;
+	user-select: none;
+}
+
+/* el-dialog / el-drawer 等打开时锁 body 滚动（依赖 el-plus 的 .el-overlay） */
+body:has(.el-overlay) {
+	overflow: hidden;
+}

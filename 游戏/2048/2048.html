@@ -57,13 +57,13 @@
 			<section class="setting list area , flex single-line no-gap items-near-start-x items-near-center-y">
 				<div class="one setting group">
 					<el-form-item class="one setting : height">
-						<el-select v-model.number="boardHeight" @change="onBoardSettingChange" size="default" class="toolbar-select-with-prefix">
+						<el-select v-model.number="boardHeight" @change="onBoardSettingChange" size="default" class="has-prefix">
 							<template #prefix>行</template>
 							<el-option v-for="h in boardSizeOptions" :key="h" :label="String(h)" :value="h"/>
 						</el-select>
 					</el-form-item>
 					<el-form-item class="one setting : width">
-						<el-select v-model.number="boardWidth" @change="onBoardSettingChange" size="default" class="toolbar-select-with-prefix">
+						<el-select v-model.number="boardWidth" @change="onBoardSettingChange" size="default" class="has-prefix">
 							<template #prefix>列</template>
 							<el-option v-for="w in boardSizeOptions" :key="w" :label="String(w)" :value="w"/>
 						</el-select>
@@ -71,7 +71,7 @@
 				</div>
 				<div class="one setting group">
 					<el-form-item class="one setting : target">
-						<el-select v-model="targetNumber" @change="onBoardSettingChange" size="default" class="toolbar-select-with-prefix">
+						<el-select v-model="targetNumber" @change="onBoardSettingChange" size="default" class="has-prefix">
 							<template #prefix>目标</template>
 							<el-option v-for="(opt, i) in targetOptions" :key="opt.value === Infinity ? 'inf' : opt.value" :label="opt.label" :value="opt.value"/>
 						</el-select>
@@ -90,18 +90,18 @@
 				<template v-for="item in quickSettingsList" :key="item.key">
 					<div v-if="item.display === 'toggleButton'" class="one tool group">
 						<el-form-item class="one setting : marker">
-							<div class="switch-btn el-button el-button--default" :class="{ pressed: getQuickValue(item.key) }" role="button" tabindex="0" :aria-pressed="getQuickValue(item.key)" @click="setQuickValue(item.key, !getQuickValue(item.key))" @keydown.enter.space.prevent="setQuickValue(item.key, !getQuickValue(item.key))">
+							<div class="toggle el-button el-button--default" :class="{ pressed: getQuickValue(item.key) }" role="button" tabindex="0" :aria-pressed="getQuickValue(item.key)" @click="setQuickValue(item.key, !getQuickValue(item.key))" @keydown.enter.space.prevent="setQuickValue(item.key, !getQuickValue(item.key))">
 								<span class="el-button__content">
 									<span v-if="item.key === 'showNewTileMarker'" class="el-icon"><svg class="label-icon" viewBox="0 0 24 24" width="1em" height="1em" title="角标式标记" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" fill="currentColor" opacity="0.85"/><circle cx="18" cy="6" r="3.5" fill="var(--el-color-danger, #f56c6c)"/></svg></span>
 									<span>{{ item.label }}</span>
 								</span>
-								<el-switch :model-value="getQuickValue(item.key)" @update:model-value="(v) => setQuickValue(item.key, v)" class="switch-btn-control switch-btn-control-hidden" aria-hidden="true" />
+								<el-switch :model-value="getQuickValue(item.key)" @update:model-value="(v) => setQuickValue(item.key, v)" class="toggle-control visually-hidden" aria-hidden="true" />
 							</div>
 						</el-form-item>
 					</div>
 					<div v-else-if="item.type === 'select'" class="one tool group">
 						<el-form-item class="one setting : merge">
-							<el-select :model-value="getQuickValue(item.key)" @update:model-value="(v) => setQuickValue(item.key, v)" size="default" class="toolbar-select-with-prefix">
+							<el-select :model-value="getQuickValue(item.key)" @update:model-value="(v) => setQuickValue(item.key, v)" size="default" class="has-prefix">
 								<template #prefix>{{ item.label }}</template>
 								<el-option v-for="opt in item.options" :key="opt.value" :label="opt.label" :value="opt.value"></el-option>
 							</el-select>
@@ -307,8 +307,8 @@
 <script>
   /** 控制台执行 __2048ExportSelectDomAndCss__()：祖先链 + wrapper/selection 的 flex 与宽度分配。版本 v8 */
   window.__2048ExportSelectDomAndCss__ = function () {
-    var root = document.querySelector('.toolbar-select-with-prefix');
-    if (!root) return console.log('未找到 .toolbar-select-with-prefix');
+    var root = document.querySelector('.el-select.has-prefix');
+    if (!root) return console.log('未找到 .el-select.has-prefix');
     var lines = ['--- __2048ExportSelectDomAndCss__ v8 ---'];
     var props = ['width', 'min-width', 'max-width', 'display', 'flex', 'flex-grow', 'flex-shrink', 'flex-basis'];
     function one(el, label) {
@@ -376,7 +376,7 @@
     }
     function camelToKebab(s) { return s.replace(/([A-Z])/g, '-$1').toLowerCase(); }
     function norm(v) { if (typeof v !== 'string') return ''; return v.trim(); }
-    var ours = /\.gaming\.area|\.toolbar|\.toolbar-select-with-prefix|\.switch-btn/;
+    var ours = /\.gaming\.area|\.toolbar|\.el-select\.has-prefix|\.toggle/;
     var lines = ['--- __2048AuditCss__ 仅“我们加的”规则 ---', '格式: 属性 规则值→计算值 [✓/✗]', ''];
 
     for (var r = 0; r < rules.length; r++) {

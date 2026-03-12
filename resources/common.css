@@ -61,6 +61,11 @@ body:focus { /*为键盘导航用户清晰焦点指示*/
 	outline: 2px solid #0066cc;
 }
 
+/* 存在未隐藏的全屏遮罩时锁 body 滚动，无需 JS 给 body 加类 */
+body:has(.overlay-backdrop:not(.hidden)) {
+	overflow: hidden;
+}
+
 /* 移动端优化 */
 @supports (-webkit-touch-callout: none) {
 	body {
@@ -201,6 +206,20 @@ body > header nav a:hover, body > header nav a.active {
 }
 
 /*================================一些工具类==============================*/
+
+/* 视觉隐藏（仍可被读屏访问，用于无障碍时隐藏控件） */
+.visually-hidden {
+	position: absolute !important;
+	width: 0 !important;
+	height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	overflow: hidden !important;
+	clip: rect(0, 0, 0, 0) !important;
+	border: 0 !important;
+	opacity: 0 !important;
+	pointer-events: none !important;
+}
 
 .note strong {color: red; }
 
