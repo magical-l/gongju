@@ -31,27 +31,9 @@
   align-items: center;
 }
 
-/* 右侧本局信息：属性列表（左名右值）+ 当前得分单列 */
-.gaming.info.right-sidebar .el-collapse-item__content .info.list {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.25rem 1rem;
-  align-items: baseline;
-  margin: 0 0 0.75rem;
-  font-size: 0.9rem;
-  color: var(--text-dark);
-}
-.gaming.info.right-sidebar .el-collapse-item__content .info.list dt {
-  margin: 0;
-  font-weight: 600;
-}
-.gaming.info.right-sidebar .el-collapse-item__content .info.list dd {
-  margin: 0;
-  text-align: right;
-}
+/* 右侧本局信息：间距由 .info.content 上的 .flex.vertical 的 gap 提供，不在此写 display/gap */
 /* 当前得分：记分牌样式，标题小（左上），分数大居中 */
-.gaming.info.right-sidebar .el-collapse-item__content .current.score.card {
-  margin: 0.75rem 0 0;
+.gaming.info .info.content .current.score.card {
   padding: 12px 16px;
   background: var(--board-bg);
   border: 1px solid var(--grid-line);
@@ -62,7 +44,7 @@
   align-items: center;
   justify-content: center;
 }
-.gaming.info.right-sidebar .el-collapse-item__content .current.score.title {
+.gaming.info .info.content .current.score.title {
   margin: 0 0 4px;
   font-size: 0.8rem;
   font-weight: 600;
@@ -70,12 +52,16 @@
   opacity: 0.9;
   align-self: flex-start;
 }
-.gaming.info.right-sidebar .el-collapse-item__content .current.score.value {
+.gaming.info .info.content .current.score.value {
   margin: 0;
   font-size: 1.75rem;
   font-weight: bold;
   color: var(--text-dark);
   line-height: 1.2;
+}
+
+article.gaming.area.grid.反叵字形 {
+  grid-template-rows: auto minmax(min(260px, 80vmin), auto) auto;
 }
 
 .main.map.area {
@@ -96,18 +82,10 @@
   max-width: min(480px, 95vw);
   aspect-ratio: 1;
   max-height: min(480px, 75vh);
+  min-height: min(260px, 80vmin);
   margin: 0 auto;
   user-select: none;
   -webkit-user-select: none;
-}
-
-article.gaming.area #overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: var(--board-radius);
 }
 
 article.gaming.area .board {
@@ -229,187 +207,18 @@ article.gaming.area .board-floating {
   padding: var(--board-padding);
 }
 
-article.gaming.area .board-wrap .overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(238, 228, 218, 0.9);
-  border-radius: var(--board-radius);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
-}
 
-article.gaming.area .overlay-inner {
-  text-align: center;
-  padding: 24px;
-}
-
-article.gaming.area .overlay-title {
-  font-size: clamp(24px, 5vw, 32px);
-  font-weight: bold;
-  margin-bottom: 8px;
-}
-
-article.gaming.area .overlay-sub {
-  font-size: clamp(16px, 3vw, 18px);
-  margin-bottom: 24px;
-}
-
-article.gaming.area .overlay-hint {
+/* 结算 dialog：提示文案（自有类，不依赖库内部类） */
+article.gaming.area .game-result .result-hint {
   font-size: 14px;
-  opacity: 0.9;
+  color: var(--el-text-color-secondary);
+  margin: 0 0 1rem;
 }
 
-article.gaming.area .overlay-btn-restart {
-  margin-top: 16px;
-  padding: 10px 20px;
-  font-size: 16px;
-  border-radius: var(--tile-radius);
-  border: none;
-  background: var(--btn-primary);
-  color: var(--text-light);
-  cursor: pointer;
-}
+/* 设置弹层：请用 el-dialog + el-form / el-form-item 等组件，避免自定义 .settings-panel 等类 */
 
-article.gaming.area .overlay-btn-restart:hover {
-  filter: brightness(1.1);
-}
-
-article.gaming.area .overlay-btn-restart:active {
-  filter: brightness(0.95);
-}
-
-/* ----- Settings (全局弹层，保留在 body 下) ----- */
-.settings-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 100;
-}
-
-.settings-panel {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: min(580px, calc(100vw - 24px));
-  max-height: min(92vh, calc(100vh - 24px));
-  overflow: auto;
-  overflow-x: hidden;
-  background: var(--page-bg);
-  border-radius: 16px;
-  padding: 28px 32px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.22);
-  z-index: 101;
-  -webkit-overflow-scrolling: touch;
-  font-family: system-ui, -apple-system, sans-serif;
-  color: var(--text-dark);
-}
-
-.settings-panel .settings-title {
-  font-size: 22px;
-  font-weight: bold;
-  text-align: center;
-  margin-bottom: 24px;
-}
-
-.settings-panel .settings-form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.settings-panel .settings-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: nowrap;
-}
-
-.settings-panel .settings-label {
-  flex: 0 0 88px;
-  font-size: 15px;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.settings-panel .settings-options {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 8px;
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding-bottom: 2px;
-}
-
-.settings-panel .settings-options [role="option"] {
-  flex-shrink: 0;
-  padding: 6px 12px;
-  min-height: 28px;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  cursor: pointer;
-  background: var(--board-bg);
-  color: var(--text-dark);
-}
-
-.settings-panel .settings-options [role="option"].selected {
-  background: var(--btn-primary);
-  color: var(--text-light);
-}
-
-.settings-panel .settings-options [role="option"]:hover {
-  filter: brightness(1.05);
-}
-
-.settings-panel .settings.hint {
-  font-size: 13px;
-  color: var(--text-dark);
-  opacity: 0.9;
-  margin: 2px 0 2px 104px;
-}
-
-.settings-panel .settings-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid var(--grid-line);
-}
-
-.settings-panel .btn {
-  padding: 8px 14px;
-  min-height: 32px;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  color: var(--text-light);
-  font-family: inherit;
-}
-.settings-panel .btn-primary { background: var(--btn-primary); }
-.settings-panel .btn-secondary { background: var(--btn-secondary); }
-.settings-panel .btn:hover { filter: brightness(1.08); }
-.settings-panel .btn:active { filter: brightness(0.95); }
-
-/* 数字显示：列表/卡片/预览/输入等，panel 与 dialog 共用一套 .custom.tile.*，仅布局差异用上下文区分 */
-.settings-panel :has(> .settings.custom.tile.list) {
-  margin-top: 8px;
-}
-.settings-panel .settings.custom.tile.list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin: 8px 0 12px;
-  max-height: 380px;
-  overflow-y: auto;
-}
-.custom.tiles.dialog .settings.custom.tile.list {
+/* 数字显示 dialog：列表/卡片/预览等，共用 .custom.tile.* */
+.custom.tile.list.area .settings.custom.tile.list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: 10px;
@@ -428,7 +237,7 @@ article.gaming.area .overlay-btn-restart:active {
   background: rgba(255, 255, 255, 0.5);
   min-width: 0;
 }
-.custom.tiles.dialog .custom.tile.card {
+.custom.tile.list.area .custom.tile.card {
   gap: 6px;
 }
 .custom.tile.card-num {
@@ -570,25 +379,15 @@ article.gaming.area .overlay-btn-restart:active {
 }
 
 /* dialog 内仅有的 footer：用子选择器 */
-.custom.tiles.dialog .el-dialog__body > footer {
+.custom.tile.list.area .el-dialog__body > footer {
   display: flex;
   gap: 8px;
 }
-.custom.tiles.dialog .settings.hint {
+.custom.tile.list.area .settings.hint {
   margin: 0 0 8px;
   font-size: 13px;
   color: var(--text-dark);
   opacity: 0.9;
-}
-
-.settings-panel footer {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.settings-panel footer .el-button {
-  flex: 1;
-  min-width: 0;
 }
 
 /* 格子内自定义图片 */

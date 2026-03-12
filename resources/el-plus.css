@@ -69,42 +69,42 @@
 	margin-right: 4px;
 }
 
-/* 带 #prefix 插槽的 el-select，在 .toolbar 等 flex 布局中保持紧凑：加 class .has-prefix，与 .el-select 组合 */
-.toolbar section:has(.el-select.has-prefix),
-.toolbar .one.setting.group:has(.el-select.has-prefix),
-.toolbar .one.tool.group:has(.el-select.has-prefix),
-.toolbar .el-form-item:has(.el-select.has-prefix),
-.toolbar .el-form-item__content:has(.el-select.has-prefix),
-.toolbar .el-select.has-prefix,
-.toolbar .el-select.has-prefix .el-select__wrapper {
+/* 带 #prefix 插槽的 el-select（组件内有 .el-select__prefix），在 .toolbar 等 flex 布局中保持紧凑，无需自定义 class */
+.toolbar section:has(.el-select:has(.el-select__prefix)),
+.toolbar .one.setting.group:has(.el-select:has(.el-select__prefix)),
+.toolbar .one.tool.group:has(.el-select:has(.el-select__prefix)),
+.toolbar .el-form-item:has(.el-select:has(.el-select__prefix)),
+.toolbar .el-form-item__content:has(.el-select:has(.el-select__prefix)),
+.toolbar .el-select:has(.el-select__prefix),
+.toolbar .el-select:has(.el-select__prefix) .el-select__wrapper {
 	flex: 0 0 auto !important;
 }
-.toolbar .el-select.has-prefix .el-select__selection .el-select__input-wrapper {
+.toolbar .el-select:has(.el-select__prefix) .el-select__selection .el-select__input-wrapper {
 	position: absolute !important;
 	width: 0 !important;
 	overflow: hidden !important;
 }
-.toolbar .el-select.has-prefix .el-select__selection {
+.toolbar .el-select:has(.el-select__prefix) .el-select__selection {
 	flex: 0 0 auto !important;
 	min-width: 2em !important;
 }
 
-/* 切换态按钮（.toggle + .el-button）：未按=凸起，按下=凹陷，配合 .pressed */
-.toggle.el-button {
+/* 按压式按钮：未按=凸起，按下=凹陷，配合 .pressed；用 el-button 加此类即可 */
+.按压式.el-button {
 	border-radius: var(--el-border-radius-base, 4px);
 	transition: box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
-.toggle:not(.pressed) {
+.按压式:not(.pressed) {
 	background: var(--el-button-bg-color, #fff);
 	color: var(--el-text-color-regular);
 	box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
 }
-.toggle:not(.pressed):hover {
+.按压式:not(.pressed):hover {
 	background: var(--el-button-hover-bg-color, #ecf5ff);
 	border-color: var(--el-color-primary-light-7);
 	color: var(--el-color-primary);
 }
-.toggle.pressed {
+.按压式.pressed {
 	background: var(--el-color-primary);
 	border-color: var(--el-color-primary);
 	color: var(--el-color-white);
@@ -112,14 +112,14 @@
 		inset 0 2px 4px rgba(0, 0, 0, 0.2),
 		inset 0 0 0 1px rgba(0, 0, 0, 0.08);
 }
-.toggle.pressed:hover {
+.按压式.pressed:hover {
 	background: var(--el-color-primary-light-3);
 	border-color: var(--el-color-primary-light-3);
 }
-.toggle .label-icon {
+.按压式 .label-icon {
 	vertical-align: middle;
 }
-.toggle {
+.按压式 {
 	cursor: pointer;
 	user-select: none;
 }

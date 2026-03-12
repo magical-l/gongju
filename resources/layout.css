@@ -214,3 +214,9 @@ main, .main, .body {grid-area: main; flex: 1;}
 .no-gap {
 	gap: 0 !important;
 }
+
+.scrollable {
+	overflow: auto;
+	min-height: 0;
+	min-width: 0;
+}

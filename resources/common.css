@@ -61,11 +61,6 @@ body:focus { /*为键盘导航用户清晰焦点指示*/
 	outline: 2px solid #0066cc;
 }
 
-/* 存在未隐藏的全屏遮罩时锁 body 滚动，无需 JS 给 body 加类 */
-body:has(.overlay-backdrop:not(.hidden)) {
-	overflow: hidden;
-}
-
 /* 移动端优化 */
 @supports (-webkit-touch-callout: none) {
 	body {

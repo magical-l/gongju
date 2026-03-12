@@ -41,7 +41,7 @@
 		</div>
 	</nav>
 </header>
-<main>
+<main class="scrollable">
 	<header>
 		<h2 class="game name">2048</h2>
 		<div class="page-lv help area" v-cloak>
@@ -57,13 +57,13 @@
 			<section class="setting list area , flex single-line no-gap items-near-start-x items-near-center-y">
 				<div class="one setting group">
 					<el-form-item class="one setting : height">
-						<el-select v-model.number="boardHeight" @change="onBoardSettingChange" size="default" class="has-prefix">
+						<el-select v-model.number="boardHeight" @change="onBoardSettingChange">
 							<template #prefix>行</template>
 							<el-option v-for="h in boardSizeOptions" :key="h" :label="String(h)" :value="h"/>
 						</el-select>
 					</el-form-item>
 					<el-form-item class="one setting : width">
-						<el-select v-model.number="boardWidth" @change="onBoardSettingChange" size="default" class="has-prefix">
+						<el-select v-model.number="boardWidth" @change="onBoardSettingChange">
 							<template #prefix>列</template>
 							<el-option v-for="w in boardSizeOptions" :key="w" :label="String(w)" :value="w"/>
 						</el-select>
@@ -71,37 +71,34 @@
 				</div>
 				<div class="one setting group">
 					<el-form-item class="one setting : target">
-						<el-select v-model="targetNumber" @change="onBoardSettingChange" size="default" class="has-prefix">
+						<el-select v-model="targetNumber" @change="onBoardSettingChange">
 							<template #prefix>目标</template>
-							<el-option v-for="(opt, i) in targetOptions" :key="opt.value === Infinity ? 'inf' : opt.value" :label="opt.label" :value="opt.value"/>
+							<el-option v-for="opt in targetOptions" :key="opt.label" :label="opt.label" :value="opt.value"/>
 						</el-select>
 					</el-form-item>
 				</div>
 				<div class="one setting group">
-					<el-button type="danger" id="btn-restart" icon="RefreshRight" @click="onRestart">新局</el-button>
+					<el-form-item class="one setting : restart">
+						<el-button type="danger" icon="RefreshRight" @click="onRestart">新局</el-button>
+					</el-form-item>
 				</div>
 			</section>
 			<section class="controller list area , flex single-line no-gap items-near-start-x items-near-center-y">
 				<div class="one controller group">
-					<el-button id="btn-undo">撤销</el-button>
+					<el-form-item class="one controller : undo">
+						<el-button id="btn-undo">撤销</el-button>
+					</el-form-item>
 				</div>
 			</section>
 			<section class="tool list area , flex single-line no-gap items-near-start-x items-near-center-y">
 				<template v-for="item in quickSettingsList" :key="item.key">
-					<div v-if="item.display === 'toggleButton'" class="one tool group">
-						<el-form-item class="one setting : marker">
-							<div class="toggle el-button el-button--default" :class="{ pressed: getQuickValue(item.key) }" role="button" tabindex="0" :aria-pressed="getQuickValue(item.key)" @click="setQuickValue(item.key, !getQuickValue(item.key))" @keydown.enter.space.prevent="setQuickValue(item.key, !getQuickValue(item.key))">
-								<span class="el-button__content">
-									<span v-if="item.key === 'showNewTileMarker'" class="el-icon"><svg class="label-icon" viewBox="0 0 24 24" width="1em" height="1em" title="角标式标记" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" fill="currentColor" opacity="0.85"/><circle cx="18" cy="6" r="3.5" fill="var(--el-color-danger, #f56c6c)"/></svg></span>
-									<span>{{ item.label }}</span>
-								</span>
-								<el-switch :model-value="getQuickValue(item.key)" @update:model-value="(v) => setQuickValue(item.key, v)" class="toggle-control visually-hidden" aria-hidden="true" />
-							</div>
-						</el-form-item>
-					</div>
-					<div v-else-if="item.type === 'select'" class="one tool group">
-						<el-form-item class="one setting : merge">
-							<el-select :model-value="getQuickValue(item.key)" @update:model-value="(v) => setQuickValue(item.key, v)" size="default" class="has-prefix">
+					<div class="one tool group">
+						<el-form-item :class="'one tool : ' + item.key">
+							<el-button v-if="item.type === 'toggle'" class="按压式" :class="{ pressed: getQuickValue(item.key) }" :aria-pressed="getQuickValue(item.key)" @click="setQuickValue(item.key, !getQuickValue(item.key))">
+								<span v-if="item.key === 'showNewTileMarker'" class="el-icon"><svg class="label-icon" viewBox="0 0 24 24" width="1em" height="1em" title="角标式标记" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" fill="currentColor" opacity="0.85"/><circle cx="18" cy="6" r="3.5" fill="var(--el-color-danger, #f56c6c)"/></svg></span>
+								<span>{{ item.label }}</span>
+							</el-button>
+							<el-select v-else-if="item.type === 'select'" :model-value="getQuickValue(item.key)" @update:model-value="(v) => setQuickValue(item.key, v)">
 								<template #prefix>{{ item.label }}</template>
 								<el-option v-for="opt in item.options" :key="opt.value" :label="opt.label" :value="opt.value"></el-option>
 							</el-select>
@@ -109,49 +106,64 @@
 					</div>
 				</template>
 				<div class="one tool group">
-					<el-button icon="PictureFilled" @click="openCustomTilesDialog">数字显示</el-button>
+					<el-form-item class="one tool : custom-tiles">
+						<el-button icon="PictureFilled" @click="openCustomTilesDialog">数字显示</el-button>
+					</el-form-item>
 				</div>
 			</section>
 		</header>
 
 		<div class="main map area , flex items-near-center-x">
-			<div id="board-wrap" class="board-wrap">
-				<div id="board" class="board" role="grid"></div>
-				<div id="board-floating" class="board-floating" aria-hidden="true"></div>
-				<div id="overlay" class="overlay hidden" aria-hidden="true">
-					<div class="overlay-inner">
-						<p id="overlay-title" class="overlay-title"></p>
-						<p id="overlay-sub" class="overlay-sub"></p>
-						<p class="overlay-hint">点击或按 Enter 继续</p>
-						<el-button type="primary" id="overlay-btn-restart" class="overlay-btn-restart">新局</el-button>
-					</div>
+			<div id="board-wrap" class="board-wrap item no-shrink">
+				<div id="board" class="board" role="grid" :style="boardGridStyle">
+					<template v-for="(cell, index) in boardCells" :key="index">
+						<div class="cell" :data-index="cell.index">
+							<div v-if="cell.value" class="tile" :class="getTileClass(cell.value)" :data-index="cell.index">
+								<img v-if="tileDisplayContent(cell).type === 'image'" :src="tileDisplayContent(cell).src" :alt="String(cell.value)" loading="lazy">
+								<template v-else-if="tileDisplayContent(cell).type === 'text'">{{ tileDisplayContent(cell).text }}</template>
+								<template v-else>{{ cell.value }}</template>
+							</div>
+						</div>
+					</template>
 				</div>
+				<div id="board-floating" class="board-floating" aria-hidden="true"></div>
 			</div>
-
-			<el-dialog title="数字显示" v-model="customTilesDialogVisible" class="custom tiles dialog" width="90%" @opened="onCustomTilesDialogOpened">
-				<p class="settings hint">可为每个数字设置自定义显示文字、图片 URL 或本地选图（图片优先）；留空则显示原数字。修改后失焦或选图即生效。</p>
-				<input type="file" id="settings-tile-file-input" accept="image/*" class="hidden" aria-hidden="true">
-				<div id="settings-custom-tiles-list" class="settings custom tile list"></div>
-				<footer class="actions">
-					<el-button type="primary" plain id="btn-clear-all-labels">清除全部文字</el-button>
-					<el-button type="primary" plain id="btn-clear-all-images">清除全部图片</el-button>
-				</footer>
-			</el-dialog>
 		</div>
+
+		<!-- 结算界面：el-dialog，直属 .gaming.area，关闭时同步 2048-dom -->
+		<el-dialog v-model="gameResultVisible" :title="gameResultMessage" class="game-result" width="400px" @closed="onResultOverlayClick">
+			<p v-show="gameResultSub">{{ gameResultSub }}</p>
+			<p class="result-hint">点击或按 Enter 继续</p>
+			<template #footer>
+				<el-button type="primary" @click="onResultRestart">新局</el-button>
+			</template>
+		</el-dialog>
+
+		<el-dialog title="数字显示" v-model="customTilesDialogVisible" class="custom tile list area" width="90%" @opened="onCustomTilesDialogOpened">
+			<p class="settings hint">可为每个数字设置自定义显示文字、图片 URL 或本地选图（图片优先）；留空则显示原数字。修改后失焦或选图即生效。</p>
+			<input type="file" id="settings-tile-file-input" accept="image/*" class="hidden" aria-hidden="true">
+			<div id="settings-custom-tiles-list" class="settings custom tile list"></div>
+			<footer class="actions">
+				<el-button type="primary" id="btn-clear-all-labels">清除全部文字</el-button>
+				<el-button type="primary" id="btn-clear-all-images">清除全部图片</el-button>
+			</footer>
+		</el-dialog>
 
 		<aside class="gaming info , right-sidebar">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
 					<el-collapse-item name="score" title="本局信息">
-						<dl class="info list">
-							<dt>行</dt><dd>{{ gameBoardHeight }}</dd>
-							<dt>列</dt><dd>{{ gameBoardWidth }}</dd>
-							<dt>目标</dt><dd>{{ gameTargetLabel }}</dd>
-							<dt>最高记录</dt><dd>{{ highScore }}<span v-if="gameBoardWidth && gameBoardHeight"> ({{ gameBoardWidth }}×{{ gameBoardHeight }})</span></dd>
-						</dl>
-						<div class="current score card">
-							<div class="current score title">当前得分</div>
-							<div class="current score value">{{ score }}</div>
+						<div class="info content , flex vertical">
+							<el-descriptions class="info list" :column="1" border>
+								<el-descriptions-item label="行">{{ gameBoardHeight }}</el-descriptions-item>
+								<el-descriptions-item label="列">{{ gameBoardWidth }}</el-descriptions-item>
+								<el-descriptions-item label="目标">{{ gameTargetLabel }}</el-descriptions-item>
+								<el-descriptions-item label="最高记录">{{ highScore }}<span v-if="gameBoardWidth && gameBoardHeight"> ({{ gameBoardWidth }}×{{ gameBoardHeight }})</span></el-descriptions-item>
+							</el-descriptions>
+							<div class="current score card">
+								<div class="current score title">当前得分</div>
+								<div class="current score value">{{ score }}</div>
+							</div>
 						</div>
 					</el-collapse-item>
 					<el-collapse-item name="shortcut" title="快捷键">
@@ -180,6 +192,8 @@
 	<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
 	<script src="../../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
 	<script src="constants.js"></script>
+	<script src="logic.js"></script>
+	<script src="2048-dom.js"></script>
 </div>
 <script>
 (function () {
@@ -208,7 +222,23 @@
 		gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
 		_collapseKey: collapseKey,
 		_defaultPanels: defaultPanels,
+		boardView: { rows: 4, cols: 4, cells: [] },
+		lastStateForDisplay: null,
+		gameResultVisible: false,
+		gameResultMessage: '',
+		gameResultSub: '',
 	});
+	window.__2048SetGameResult__ = function (visible, message, sub) {
+		state.gameResultVisible = !!visible;
+		state.gameResultMessage = message != null ? String(message) : '';
+		state.gameResultSub = sub != null ? String(sub) : '';
+	};
+	window.__2048SetBoardView__ = function (board, rows, cols, gameState) {
+		state.boardView.rows = rows;
+		state.boardView.cols = cols;
+		state.boardView.cells = (board || []).map(function (v, i) { return { index: i, value: v || 0 }; });
+		state.lastStateForDisplay = gameState;
+	};
 	window.__2048UpdateScores__ = function (score, highScore, boardWidth, boardHeight) {
 		state.score = score;
 		state.highScore = highScore;
@@ -242,6 +272,17 @@
 				var n = state.gameTargetNumber;
 				var found = opts.find(function (o) { return o.value === n; });
 				return found ? found.label : (n === Infinity ? '无限' : String(n));
+			},
+			boardCells() {
+				return state.boardView.cells || [];
+			},
+			boardGridStyle() {
+				var r = state.boardView.rows || 4;
+				var c = state.boardView.cols || 4;
+				return {
+					gridTemplateColumns: 'repeat(' + c + ', 1fr)',
+					gridTemplateRows: 'repeat(' + r + ', 1fr)',
+				};
 			},
 		},
 		methods: {
@@ -285,6 +326,22 @@
 					}
 				} catch (_) {}
 			},
+			getTileClass(value) {
+				return (typeof window.__2048GetTileClass__ === 'function' ? window.__2048GetTileClass__(value) : 'tile-2');
+			},
+			tileDisplayContent(cell) {
+				var s = state.lastStateForDisplay;
+				if (typeof window.__2048GetTileDisplayContent__ === 'function' && s) {
+					return window.__2048GetTileDisplayContent__(s, cell.value);
+				}
+				return { type: 'number', value: cell.value };
+			},
+			onResultOverlayClick() {
+				if (typeof window.__2048OnResultClose__ === 'function') window.__2048OnResultClose__();
+			},
+			onResultRestart() {
+				if (typeof window.__2048OnResultRestart__ === 'function') window.__2048OnResultRestart__();
+			},
 		},
 	});
 	mainApp.use(ElementPlus);
@@ -292,6 +349,7 @@
 		for (var k in ElementPlusIconsVue) { mainApp.component(k, ElementPlusIconsVue[k]); }
 	}
 	mainApp.mount('article.gaming.area');
+	if (typeof window.__2048Init__ === 'function') window.__2048Init__();
 	const helpApp = createApp({
 		data: () => ({ introVisible: false }),
 	});
@@ -302,13 +360,11 @@
 	helpApp.mount('.help.area');
 }());
 </script>
-<script src="logic.js"></script>
-<script src="2048-dom.js"></script>
-<script>
+	<script>
   /** 控制台执行 __2048ExportSelectDomAndCss__()：祖先链 + wrapper/selection 的 flex 与宽度分配。版本 v8 */
   window.__2048ExportSelectDomAndCss__ = function () {
-    var root = document.querySelector('.el-select.has-prefix');
-    if (!root) return console.log('未找到 .el-select.has-prefix');
+    var root = document.querySelector('.el-select .el-select__prefix')?.closest('.el-select');
+    if (!root) return console.log('未找到带 prefix 的 .el-select');
     var lines = ['--- __2048ExportSelectDomAndCss__ v8 ---'];
     var props = ['width', 'min-width', 'max-width', 'display', 'flex', 'flex-grow', 'flex-shrink', 'flex-basis'];
     function one(el, label) {
@@ -376,7 +432,7 @@
     }
     function camelToKebab(s) { return s.replace(/([A-Z])/g, '-$1').toLowerCase(); }
     function norm(v) { if (typeof v !== 'string') return ''; return v.trim(); }
-    var ours = /\.gaming\.area|\.toolbar|\.el-select\.has-prefix|\.toggle/;
+    var ours = /\.gaming\.area|\.toolbar|\.el-select__prefix|\.按压式/;
     var lines = ['--- __2048AuditCss__ 仅“我们加的”规则 ---', '格式: 属性 规则值→计算值 [✓/✗]', ''];
 
     for (var r = 0; r < rules.length; r++) {
@@ -404,6 +460,61 @@
         lines.push('  ' + prop + ' ' + ruleVal + '→' + compVal + ' [' + same + ']');
       }
       lines.push('');
+    }
+    var out = lines.join('\n');
+    console.log(out);
+    return out;
+  };
+
+  /** 控制台执行 __2048ExportLayoutChain__()：从 body 到 board 的布局链 + 关键高度/overflow 计算值，用于排查压扁与滚动条。版本 v2 */
+  window.__2048ExportLayoutChain__ = function () {
+    var main = document.querySelector('body.grid.反叵字形 main');
+    var article = document.querySelector('article.gaming.area');
+    var mapArea = document.querySelector('.main.map.area');
+    var boardWrap = document.getElementById('board-wrap');
+    var board = document.getElementById('board');
+    var cell = board ? board.querySelector('.cell') : null;
+    var chain = [
+      { el: document.body, label: 'body' },
+      { el: main, label: 'main.scrollable' },
+      { el: article, label: 'article.gaming.area' },
+      { el: mapArea, label: '.main.map.area' },
+      { el: boardWrap, label: '#board-wrap' },
+      { el: board, label: '#board' },
+      { el: cell, label: '.cell 首个' }
+    ];
+    var props = ['height', 'min-height', 'max-height', 'overflow', 'overflow-y', 'display', 'flex-direction', 'flex-shrink', 'flex-grow', 'grid-template-rows'];
+    var lines = ['--- __2048ExportLayoutChain__ v2 ---', ''];
+
+    function one(entry) {
+      if (!entry || !entry.el) {
+        lines.push((entry && entry.label) ? entry.label + ": 未找到" : "未找到");
+        return;
+      }
+      var el = entry.el;
+      var cs = window.getComputedStyle(el);
+      var tag = (el.tagName || '').toLowerCase();
+      var id = el.id ? '#' + el.id : '';
+      var cls = (el.className && typeof el.className === "string") ? el.className.split(/\s+/).slice(0, 5).join(".") : "";
+      lines.push(entry.label + '  ' + tag + id + (cls ? '.' + cls : ''));
+      for (var i = 0; i < props.length; i++) {
+        var p = props[i];
+        var v = cs.getPropertyValue(p);
+        if (v) lines.push('  ' + p + ': ' + v);
+      }
+      lines.push('  offsetHeight: ' + el.offsetHeight + '; clientHeight: ' + el.clientHeight + '; scrollHeight: ' + el.scrollHeight);
+      if (el.getBoundingClientRect) {
+        var r = el.getBoundingClientRect();
+        lines.push('  getBoundingClientRect().height: ' + r.height.toFixed(2));
+      }
+      lines.push('');
+    }
+
+    for (var j = 0; j < chain.length; j++) one(chain[j]);
+
+    lines.push("--- 若 main.scrollable 的 scrollHeight > clientHeight 才应有滚动条 ---");
+    if (main) {
+      lines.push("main clientHeight: " + main.clientHeight + ", scrollHeight: " + main.scrollHeight + ", overflow-y: " + window.getComputedStyle(main).getPropertyValue("overflow-y"));
     }
     var out = lines.join('\n');
     console.log(out);

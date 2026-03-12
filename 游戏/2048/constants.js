@@ -60,7 +60,7 @@ var SETTINGS_SCHEMA = {
   accelerometerSpeed: { default: { endpoints: ['wechat'] }, web: null },
   newTileOnMidStop: { default: { endpoints: ['wechat'] }, web: null },
   showNewTileMarker: {
-    default: { label: '新数标记', endpoints: ['web', 'wechat'], display: 'toggleButton' },
+    default: { label: '新数标记', endpoints: ['web', 'wechat'], type: 'toggle' },
     wechat: {},
     web: {}
   },
@@ -133,8 +133,7 @@ function getQuickSettingsList(endpoint) {
       item.type = 'select'
       item.options = getSettingOptions(key, endpoint) || []
     } else {
-      item.type = 'boolean'
-      item.display = c.display || 'switch'
+      item.type = c.type || 'switch'
     }
     list.push(item)
   }

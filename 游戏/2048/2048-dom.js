@@ -52,6 +52,7 @@
     if (value > 2048) return 'tile-super'
     return 'tile-' + value
   }
+  window.__2048GetTileClass__ = getTileClass
 
   /** 获取某数字的显示内容：优先图片 > 自定义文字 > 数字 */
   function getTileDisplayContent(state, value) {
@@ -63,6 +64,7 @@
     if (label != null && String(label).trim() !== '') return { type: 'text', text: String(label).trim(), value: value }
     return { type: 'number', value: value }
   }
+  window.__2048GetTileDisplayContent__ = getTileDisplayContent
 
   function setTileContent(tileEl, state, value, className) {
     var content = getTileDisplayContent(state, value)
@@ -97,14 +99,16 @@
   var boardWrapEl = document.getElementById('board-wrap')
   var scoreEl = document.getElementById('score')
   var highScoreEl = document.getElementById('high-score')
-  var overlayEl = document.getElementById('overlay')
-  var overlayTitleEl = document.getElementById('overlay-title')
-  var overlaySubEl = document.getElementById('overlay-sub')
+  /* 结算界面由 Vue 模板 + __2048SetGameResult__ / __2048OnResultClose__ / __2048OnResultRestart__ 驱动，不再持 DOM 引用 */
 
   function renderBoard(state, boardOverride) {
     var cols = state.boardWidth
     var rows = state.boardHeight
     var board = boardOverride != null ? boardOverride : state.board
+    if (typeof window.__2048SetBoardView__ === 'function') {
+      window.__2048SetBoardView__(board, rows, cols, state)
+      return
+    }
     boardEl.style.gridTemplateColumns = 'repeat(' + cols + ', 1fr)'
     boardEl.style.gridTemplateRows = 'repeat(' + rows + ', 1fr)'
     boardEl.innerHTML = ''
@@ -134,15 +138,12 @@
   }
 
   function renderOverlay(state) {
-    if (state.overlayVisible && state.overlayMessage) {
-      overlayEl.classList.remove('hidden')
-      overlayEl.setAttribute('aria-hidden', 'false')
-      overlayTitleEl.textContent = state.overlayMessage
-      overlaySubEl.textContent = state.gameOver ? '最终得分：' + state.score : ''
-      overlaySubEl.style.display = state.gameOver ? 'block' : 'none'
-    } else {
-      overlayEl.classList.add('hidden')
-      overlayEl.setAttribute('aria-hidden', 'true')
+    if (typeof window.__2048SetGameResult__ === 'function') {
+      var visible = !!(state.overlayVisible && state.overlayMessage)
+      var message = state.overlayMessage || ''
+      var sub = state.gameOver ? '最终得分：' + state.score : ''
+      window.__2048SetGameResult__(visible, message, sub)
+      return
     }
   }
 
@@ -716,18 +717,12 @@
   /* 工具栏「新局」由 Vue 的 onRestart 调用 __2048ApplyBoardSettings__，不再在此绑定 handleRestart */
   document.getElementById('btn-undo').addEventListener('click', handleUndo)
 
-  overlayEl.addEventListener('click', function () {
-    if (!gameState || !gameState.overlayVisible) return
+  window.__2048OnResultClose__ = function () {
+    if (!gameState) return
     gameState = Object.assign({}, gameState, { overlayVisible: false, overlayMessage: '' })
     render(gameState)
-  })
-  var overlayBtnRestart = document.getElementById('overlay-btn-restart')
-  if (overlayBtnRestart) {
-    overlayBtnRestart.addEventListener('click', function (e) {
-      e.stopPropagation()
-      handleRestart()
-    })
   }
+  window.__2048OnResultRestart__ = handleRestart
 
   document.addEventListener('keydown', function (e) {
     if (showSettings) return
@@ -793,5 +788,6 @@
 
   window.addEventListener('beforeunload', saveState)
 
-  init()
+  window.__2048Init__ = init
+  /* 由页面内联脚本在 Vue mount 后调用 __2048Init__()，确保 __2048SetBoardView__ 已注册后再 render */
 })()
