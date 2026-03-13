@@ -94,8 +94,8 @@
 				<template v-for="item in quickSettingsList" :key="item.key">
 					<div class="one tool group">
 						<el-form-item :class="'one tool : ' + item.key">
-							<el-button v-if="item.type === 'toggle'" class="按压式" :class="{ pressed: getQuickValue(item.key) }" :aria-pressed="getQuickValue(item.key)" @click="setQuickValue(item.key, !getQuickValue(item.key))">
-								<span v-if="item.key === 'showNewTileMarker'" class="el-icon"><svg class="label-icon" viewBox="0 0 24 24" width="1em" height="1em" title="角标式标记" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" fill="currentColor" opacity="0.85"/><circle cx="18" cy="6" r="3.5" fill="var(--el-color-danger, #f56c6c)"/></svg></span>
+							<el-button v-if="item.type === 'toggle'" class="按压式" :class="{ pressed: getQuickValue(item.key) }" @click="setQuickValue(item.key, !getQuickValue(item.key))">
+								<span v-if="item.key === 'showNewTileMarker'" class="el-icon"><svg class="label-icon" viewBox="0 0 24 24" width="1em" height="1em" title="角标式标记"><rect x="2" y="2" width="20" height="20" rx="5" fill="currentColor" opacity="0.85"/><circle cx="18" cy="6" r="3.5" fill="var(--el-color-danger, #f56c6c)"/></svg></span>
 								<span>{{ item.label }}</span>
 							</el-button>
 							<el-select v-else-if="item.type === 'select'" :model-value="getQuickValue(item.key)" @update:model-value="(v) => setQuickValue(item.key, v)">
@@ -126,11 +126,11 @@
 						</div>
 					</template>
 				</div>
-				<div id="board-floating" class="board-floating" aria-hidden="true"></div>
+				<div id="board-floating" class="board-floating"></div>
 			</div>
 		</div>
 
-		<!-- 结算界面：el-dialog，直属 .gaming.area，关闭时同步 2048-dom -->
+		<!-- 结算界面 -->
 		<el-dialog v-model="gameResultVisible" :title="gameResultMessage" class="game result" width="400px" @closed="onResultOverlayClick">
 			<p v-show="gameResultSub">{{ gameResultSub }}</p>
 			<p class="hint">点击或按 Enter 继续</p>
@@ -139,13 +139,43 @@
 			</template>
 		</el-dialog>
 
-		<el-dialog title="数字显示" v-model="customTilesDialogVisible" class="custom tile list area" width="90%" @opened="onCustomTilesDialogOpened">
-			<p class="settings hint">可为每个数字设置自定义显示文字、图片 URL 或本地选图（图片优先）；留空则显示原数字。修改后失焦或选图即生效。</p>
-			<input type="file" id="settings-tile-file-input" accept="image/*" class="hidden" aria-hidden="true">
-			<div id="settings-custom-tiles-list" class="settings custom tile list"></div>
-			<footer class="actions">
-				<el-button type="primary" id="btn-clear-all-labels">清除全部文字</el-button>
-				<el-button type="primary" id="btn-clear-all-images">清除全部图片</el-button>
+		<el-dialog title="自定义数字显示" v-model="customTilesDialogVisible" class="custom tile area" width="90%" @opened="onCustomTilesDialogOpened">
+			<p class="hint">可为每个数字设置自定义显示文字、图片 URL 或本地选图（图片优先）；留空则显示原数字。修改后失焦或选图即生效。</p>
+			<input ref="tileFileInput" type="file" accept="image/*" class="hidden" @change="onTileFileChange">
+			<div class="custom tile list">
+				<template v-for="key in customTileKeys" :key="key">
+					<div class="custom tile card">
+						<div class="custom tile card-num">数字 {{ key }}</div>
+						<div class="custom tile row">
+							<div class="custom tile preview-wrap">
+								<div class="custom tile preview" :class="getTileClass(Number(key))">
+									<img v-if="(customImages[key] || '').trim()" :src="(customImages[key] || '').trim()" :alt="key" loading="lazy" @error="($event.target).classList.add('preview-error')">
+									<template v-else-if="(customLabels[key] || '').trim()">{{ (customLabels[key] || '').trim() }}</template>
+									<template v-else>{{ key }}</template>
+								</div>
+								<button type="button" class="custom tile clear-btn" @click="clearCustomTile(key)">×</button>
+							</div>
+							<div class="custom tile fields">
+								<input type="text" class="custom tile label" :value="customLabels[key] || ''" @input="onCustomLabelInput(key, $event.target.value)" @blur="applyCustomTiles" :placeholder="customTileLabelPlaceholder()" :maxlength="customLabelMaxLen()">
+								<div class="custom tile row-or"><span class="custom tile or">或</span>
+									<input type="text" class="custom tile image" :value="customImageDisplayValue(key)" @input="onCustomImageInput(key, $event.target.value)" @blur="applyCustomTiles" :placeholder="customImagePlaceholder(key)">
+								</div>
+								<div class="custom tile row-or"><span class="custom tile or">或</span>
+									<span class="custom tile file-wrap">
+										<button type="button" class="btn btn-secondary custom tile pick-file" @click="openTileFilePicker(key)">{{ customTilePickImageLabel() }}</button>
+									</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</template>
+				<div class="custom tile card add-next">
+					<button type="button" class="btn btn-secondary custom tile add-next-btn" :disabled="!canAddNextCustomTile" :title="canAddNextCustomTile ? '添加下一个数字' : '已达上限'" @click="addNextCustomTile">+</button>
+				</div>
+			</div>
+			<footer class="flex">
+				<el-button type="danger" @click="clearAllCustomLabels">清除全部文字</el-button>
+				<el-button type="danger" @click="clearAllCustomImages">清除全部图片</el-button>
 			</footer>
 		</el-dialog>
 
@@ -218,6 +248,10 @@
 		gameTargetNumber: 2048,
 		showNewTileMarker: true,
 		customTilesDialogVisible: false,
+		customLabels: {},
+		customImages: {},
+		customTileKeys: [],
+		pendingFileKey: null,
 		gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
 		_collapseKey: collapseKey,
 		_defaultPanels: defaultPanels,
@@ -272,6 +306,12 @@
 				var found = opts.find(function (o) { return o.value === n; });
 				return found ? found.label : (n === Infinity ? '无限' : String(n));
 			},
+			canAddNextCustomTile() {
+				var keys = state.customTileKeys;
+				if (!keys || !keys.length) return true;
+				var maxKey = parseInt(keys[keys.length - 1], 10);
+				return maxKey * 2 <= 1048576;
+			},
 			boardCells() {
 				return state.boardView.cells || [];
 			},
@@ -311,6 +351,108 @@
 			},
 			onCustomTilesDialogOpened() {
 				if (typeof window.__2048OpenCustomTiles__ === 'function') window.__2048OpenCustomTiles__();
+				var fn = window.__2048GetPendingCustomTilesForVue__;
+				if (typeof fn === 'function') {
+					var d = fn();
+					if (d) {
+						state.customLabels = d.customLabels && typeof d.customLabels === 'object' ? Object.assign({}, d.customLabels) : {};
+						state.customImages = d.customImages && typeof d.customImages === 'object' ? Object.assign({}, d.customImages) : {};
+						state.customTileKeys = Array.isArray(d.tileKeys) ? d.tileKeys.slice() : [];
+					}
+				}
+			},
+			customTileLabelPlaceholder() {
+				return typeof window.__2048GetDisplayLabel__ === 'function' ? window.__2048GetDisplayLabel__('customTiles', 'labelPlaceholder', 'web') : '自定义文字';
+			},
+			customTilePickImageLabel() {
+				return typeof window.__2048GetDisplayLabel__ === 'function' ? window.__2048GetDisplayLabel__('customTiles', 'pickImage', 'web') : '选图';
+			},
+			customLabelMaxLen() {
+				return (typeof window.__2048CustomLabelMaxLen__ !== 'undefined' ? window.__2048CustomLabelMaxLen__ : 10);
+			},
+			customImagePlaceholder(key) {
+				var img = state.customImages && state.customImages[key];
+				return (img && String(img).slice(0, 5) === 'data:') ? '已选本地图' : '图片 URL';
+			},
+			customImageDisplayValue(key) {
+				var img = state.customImages && state.customImages[key];
+				if (!img) return '';
+				return String(img).slice(0, 5) === 'data:' ? '' : img;
+			},
+			syncCustomTilesToDom() {
+				if (typeof window.__2048SetPendingCustomTiles__ === 'function') {
+					window.__2048SetPendingCustomTiles__(state.customLabels, state.customImages);
+				}
+			},
+			applyCustomTiles() {
+				this.syncCustomTilesToDom();
+				if (typeof window.__2048ApplyCustomTiles__ === 'function') window.__2048ApplyCustomTiles__();
+			},
+			onCustomLabelInput(key, val) {
+				var trimmed = String(val).trim().slice(0, this.customLabelMaxLen);
+				if (trimmed) state.customLabels[key] = trimmed;
+				else delete state.customLabels[key];
+				if (state.customImages) delete state.customImages[key];
+				this.syncCustomTilesToDom();
+			},
+			onCustomImageInput(key, val) {
+				var v = String(val).trim();
+				if (v) {
+					state.customImages[key] = v;
+					if (state.customLabels) delete state.customLabels[key];
+				} else if (state.customImages) delete state.customImages[key];
+				this.syncCustomTilesToDom();
+			},
+			clearCustomTile(key) {
+				if (state.customLabels) delete state.customLabels[key];
+				if (state.customImages) delete state.customImages[key];
+				this.syncCustomTilesToDom();
+				this.applyCustomTiles();
+			},
+			openTileFilePicker(key) {
+				state.pendingFileKey = key;
+				this.$nextTick(function () {
+					var input = this.$refs.tileFileInput;
+					if (input && input.click) input.click();
+				}.bind(this));
+			},
+			onTileFileChange(e) {
+				var key = state.pendingFileKey;
+				state.pendingFileKey = null;
+				var input = e && e.target;
+				var file = input && input.files && input.files[0];
+				if (input) input.value = '';
+				if (!key || !file || !file.type.match(/^image\//)) return;
+				var reader = new FileReader();
+				var self = this;
+				reader.onload = function (ev) {
+					if (!ev || !ev.target || !ev.target.result) return;
+					state.customImages[key] = ev.target.result;
+					if (state.customLabels) delete state.customLabels[key];
+					self.syncCustomTilesToDom();
+					self.applyCustomTiles();
+				};
+				reader.readAsDataURL(file);
+			},
+			addNextCustomTile() {
+				if (!this.canAddNextCustomTile) return;
+				var keys = state.customTileKeys;
+				var maxKey = keys && keys.length ? parseInt(keys[keys.length - 1], 10) : 2;
+				var nextKey = String(maxKey * 2);
+				state.customLabels[nextKey] = '';
+				state.customTileKeys = (keys || []).slice();
+				state.customTileKeys.push(nextKey);
+				this.syncCustomTilesToDom();
+			},
+			clearAllCustomLabels() {
+				state.customLabels = {};
+				this.syncCustomTilesToDom();
+				if (typeof window.__2048ApplyCustomTiles__ === 'function') window.__2048ApplyCustomTiles__();
+			},
+			clearAllCustomImages() {
+				state.customImages = {};
+				this.syncCustomTilesToDom();
+				if (typeof window.__2048ApplyCustomTiles__ === 'function') window.__2048ApplyCustomTiles__();
 			},
 			closeCustomTilesDialog() {
 				state.customTilesDialogVisible = false;

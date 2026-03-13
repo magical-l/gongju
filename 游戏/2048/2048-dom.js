@@ -73,7 +73,7 @@
       var img = document.createElement('img')
       img.src = content.src
       img.alt = String(value)
-      img.setAttribute('loading', 'lazy')
+      img.loading = 'lazy'
       tileEl.appendChild(img)
     } else if (content.type === 'text') {
       tileEl.textContent = content.text
@@ -166,7 +166,6 @@
     if (!tileEl || tileEl.nodeType !== 1) return
     var badge = document.createElement('span')
     badge.className = 'tile-new-badge'
-    badge.setAttribute('aria-hidden', 'true')
     badge.textContent = '!'
     tileEl.appendChild(badge)
   }
@@ -367,17 +366,11 @@
 
   window.__2048OpenCustomTiles__ = function () {
     if (!gameState) return
-    pendingSettings = {
-      boardWidth: gameState.boardWidth,
-      boardHeight: gameState.boardHeight,
-      targetNumber: gameState.targetNumber,
-      initialTiles: gameState.initialTiles,
-      showNewTileMarker: gameState.showNewTileMarker,
-      newTileOnMidStop: gameState.newTileOnMidStop,
-      customLabels: gameState.customLabels ? Object.assign({}, gameState.customLabels) : {},
-      customImages: gameState.customImages ? Object.assign({}, gameState.customImages) : {}
-    }
-    renderCustomTilesSection()
+    pendingSettings.boardWidth = gameState.boardWidth
+    pendingSettings.boardHeight = gameState.boardHeight
+    pendingSettings.targetNumber = gameState.targetNumber
+    pendingSettings.customLabels = gameState.customLabels ? Object.assign({}, gameState.customLabels) : {}
+    pendingSettings.customImages = gameState.customImages ? Object.assign({}, gameState.customImages) : {}
   }
 
   window.__2048ApplyCustomTiles__ = function () {
@@ -425,28 +418,6 @@
     render(gameState)
   }
 
-  var pendingPickFileKey = null
-
-  function buildPreviewContent(key, labelVal, imgVal) {
-    var num = parseInt(key, 10)
-    var tileClass = getTileClass(Number.isFinite(num) ? num : 2)
-    var wrap = document.createElement('div')
-    wrap.className = 'custom tile preview ' + tileClass
-    if (imgVal && String(imgVal).trim()) {
-      var img = document.createElement('img')
-      img.src = String(imgVal).trim()
-      img.alt = key
-      img.loading = 'lazy'
-      img.onerror = function () { wrap.classList.add('preview-error') }
-      wrap.appendChild(img)
-    } else if (labelVal && String(labelVal).trim()) {
-      wrap.textContent = String(labelVal).trim()
-    } else {
-      wrap.textContent = key
-    }
-    return wrap
-  }
-
   function isPowerOf2(n) {
     if (typeof n !== 'number' || n < 2 || !Number.isFinite(n)) return false
     return (n & (n - 1)) === 0
@@ -470,207 +441,19 @@
     return baseKeys.concat(extraKeys.map(String))
   }
 
-  function renderCustomTilesSection() {
+  window.__2048GetPendingCustomTilesForVue__ = function () {
     if (!pendingSettings.customLabels) pendingSettings.customLabels = {}
     if (!pendingSettings.customImages) pendingSettings.customImages = {}
-    var listEl = document.getElementById('settings-custom-tiles-list')
-    var fileInput = document.getElementById('settings-tile-file-input')
-    if (!listEl) return
-    listEl.innerHTML = ''
-    var tileKeys = getCustomTileKeysForList()
-    for (var i = 0; i < tileKeys.length; i++) {
-      var key = tileKeys[i]
-      var card = document.createElement('div')
-      card.className = 'custom tile card'
-      var cardTitle = document.createElement('div')
-      cardTitle.className = 'custom tile card-num'
-      cardTitle.textContent = '\u6570\u5b57 ' + key
-      var labelVal = (pendingSettings.customLabels[key] != null ? pendingSettings.customLabels[key] : '') || ''
-      var imgVal = (pendingSettings.customImages[key] != null ? pendingSettings.customImages[key] : '') || ''
-      var imgDisplayVal = (imgVal && imgVal.slice(0, 5) === 'data:') ? '' : imgVal
-
-      var previewWrap = document.createElement('div')
-      previewWrap.className = 'custom tile preview-wrap'
-      var previewEl = buildPreviewContent(key, labelVal, imgVal)
-      previewWrap.appendChild(previewEl)
-      var clearBtn = document.createElement('button')
-      clearBtn.type = 'button'
-      clearBtn.className = 'custom tile clear-btn'
-      clearBtn.setAttribute('aria-label', '清除')
-      clearBtn.innerHTML = '×'
-      clearBtn.dataset.key = key
-      previewWrap.appendChild(clearBtn)
-
-      var fields = document.createElement('div')
-      fields.className = 'custom tile fields'
-      var labelInput = document.createElement('input')
-      labelInput.type = 'text'
-      labelInput.className = 'custom tile label'
-      labelInput.setAttribute('data-key', key)
-      labelInput.placeholder = getDisplayLabel('customTiles', 'labelPlaceholder', WEB_ENDPOINT)
-      labelInput.maxLength = CUSTOM_LABEL_MAX_LEN
-      labelInput.value = labelVal
-      var imageInput = document.createElement('input')
-      imageInput.type = 'text'
-      imageInput.className = 'custom tile image'
-      imageInput.setAttribute('data-key', key)
-      imageInput.placeholder = (imgVal && imgVal.slice(0, 5) === 'data:') ? '已选本地图' : '图片 URL'
-      imageInput.value = imgDisplayVal
-      var rowOrUrl = document.createElement('div')
-      rowOrUrl.className = 'custom tile row-or'
-      var or1 = document.createElement('span')
-      or1.className = 'custom tile or'
-      or1.textContent = '\u6216'
-      rowOrUrl.appendChild(or1)
-      rowOrUrl.appendChild(imageInput)
-      var fileWrap = document.createElement('span')
-      fileWrap.className = 'custom tile file-wrap'
-      var pickBtn = document.createElement('button')
-      pickBtn.type = 'button'
-      pickBtn.className = 'btn btn-secondary custom tile pick-file'
-      pickBtn.textContent = getDisplayLabel('customTiles', 'pickImage', WEB_ENDPOINT)
-      pickBtn.dataset.key = key
-      fileWrap.appendChild(pickBtn)
-      var rowOrPick = document.createElement('div')
-      rowOrPick.className = 'custom tile row-or'
-      var or2 = document.createElement('span')
-      or2.className = 'custom tile or'
-      or2.textContent = '\u6216'
-      rowOrPick.appendChild(or2)
-      rowOrPick.appendChild(fileWrap)
-      fields.appendChild(labelInput)
-      fields.appendChild(rowOrUrl)
-      fields.appendChild(rowOrPick)
-
-      var row = document.createElement('div')
-      row.className = 'custom tile row'
-      row.appendChild(previewWrap)
-      row.appendChild(fields)
-      card.appendChild(cardTitle)
-      card.appendChild(row)
-      listEl.appendChild(card)
-    }
-    var addNextWrap = document.createElement('div')
-    addNextWrap.className = 'custom tile card add-next'
-    var addNextBtn = document.createElement('button')
-    addNextBtn.type = 'button'
-    addNextBtn.className = 'btn btn-secondary custom tile add-next-btn'
-    addNextBtn.textContent = '+'
-    addNextBtn.setAttribute('aria-label', '添加下一个数字')
-    addNextBtn.title = '添加下一个数字'
-    var maxKey = tileKeys.length ? parseInt(tileKeys[tileKeys.length - 1], 10) : 2
-    var nextKeyNum = maxKey * 2
-    var maxAllowed = 1048576
-    if (nextKeyNum <= maxAllowed) {
-      addNextBtn.onclick = function () {
-        var nextKey = String(nextKeyNum)
-        pendingSettings.customLabels[nextKey] = ''
-        renderCustomTilesSection()
-      }
-    } else {
-      addNextBtn.disabled = true
-      addNextBtn.title = '已达上限'
-    }
-    addNextWrap.appendChild(addNextBtn)
-    listEl.appendChild(addNextWrap)
-    if (fileInput && !fileInput._bound) {
-      fileInput._bound = true
-      fileInput.addEventListener('change', function () {
-        var k = pendingPickFileKey
-        pendingPickFileKey = null
-        var file = fileInput.files && fileInput.files[0]
-        fileInput.value = ''
-        if (!k || !file || !file.type.match(/^image\//)) return
-        var reader = new FileReader()
-        reader.onload = function (e) {
-          if (!e || !e.target || !e.target.result) return
-          pendingSettings.customImages[k] = e.target.result
-          if (pendingSettings.customLabels) delete pendingSettings.customLabels[k]
-          renderCustomTilesSection()
-          if (typeof window.__2048ApplyCustomTiles__ === 'function') window.__2048ApplyCustomTiles__()
-        }
-        reader.readAsDataURL(file)
-      })
-    }
-    listEl.querySelectorAll('.custom.tile.label').forEach(function (input) {
-      input.addEventListener('input', function () {
-        var k = input.getAttribute('data-key')
-        pendingSettings.customLabels[k] = input.value.trim().slice(0, CUSTOM_LABEL_MAX_LEN)
-        if (pendingSettings.customLabels[k] === '') delete pendingSettings.customLabels[k]
-        if (pendingSettings.customImages) delete pendingSettings.customImages[k]
-        var card = input.closest('.custom.tile.card')
-        var previewWrap = card ? card.querySelector('.custom.tile.preview-wrap') : null
-        var prev = previewWrap ? previewWrap.querySelector('.custom.tile.preview') : null
-        if (prev) {
-          var lv = (pendingSettings.customLabels[k] != null ? pendingSettings.customLabels[k] : '') || ''
-          var iv = (pendingSettings.customImages[k] != null ? pendingSettings.customImages[k] : '') || ''
-          var next = buildPreviewContent(k, lv, iv)
-          prev.parentNode.replaceChild(next, prev)
-        }
-      })
-      input.addEventListener('blur', function () {
-        if (typeof window.__2048ApplyCustomTiles__ === 'function') window.__2048ApplyCustomTiles__()
-      })
-    })
-    listEl.querySelectorAll('.custom.tile.image').forEach(function (input) {
-      input.addEventListener('input', function () {
-        var k = input.getAttribute('data-key')
-        var v = input.value.trim()
-        if (v) {
-          pendingSettings.customImages[k] = v
-          if (pendingSettings.customLabels) delete pendingSettings.customLabels[k]
-        } else {
-          if (pendingSettings.customImages) delete pendingSettings.customImages[k]
-        }
-        var card = input.closest('.custom.tile.card')
-        var previewWrap = card ? card.querySelector('.custom.tile.preview-wrap') : null
-        var prev = previewWrap ? previewWrap.querySelector('.custom.tile.preview') : null
-        if (prev) {
-          var lv = (pendingSettings.customLabels[k] != null ? pendingSettings.customLabels[k] : '') || ''
-          var iv = (pendingSettings.customImages[k] != null ? pendingSettings.customImages[k] : '') || ''
-          var next = buildPreviewContent(k, lv, iv)
-          prev.parentNode.replaceChild(next, prev)
-        }
-      })
-      input.addEventListener('blur', function () {
-        if (typeof window.__2048ApplyCustomTiles__ === 'function') window.__2048ApplyCustomTiles__()
-      })
-    })
-    listEl.querySelectorAll('.custom.tile.clear-btn').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var k = btn.getAttribute('data-key')
-        if (pendingSettings.customLabels) delete pendingSettings.customLabels[k]
-        if (pendingSettings.customImages) delete pendingSettings.customImages[k]
-        renderCustomTilesSection()
-        if (typeof window.__2048ApplyCustomTiles__ === 'function') window.__2048ApplyCustomTiles__()
-      })
-    })
-    listEl.querySelectorAll('.custom.tile.pick-file').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var k = btn.getAttribute('data-key')
-        if (!k) return
-        pendingPickFileKey = k
-        if (fileInput) fileInput.click()
-      })
-    })
-    var btnClearLabels = document.getElementById('btn-clear-all-labels')
-    var btnClearImages = document.getElementById('btn-clear-all-images')
-    if (btnClearLabels) {
-      btnClearLabels.onclick = function () {
-        pendingSettings.customLabels = {}
-        renderCustomTilesSection()
-        if (typeof window.__2048ApplyCustomTiles__ === 'function') window.__2048ApplyCustomTiles__()
-      }
-    }
-    if (btnClearImages) {
-      btnClearImages.onclick = function () {
-        pendingSettings.customImages = {}
-        renderCustomTilesSection()
-        if (typeof window.__2048ApplyCustomTiles__ === 'function') window.__2048ApplyCustomTiles__()
-      }
+    return {
+      customLabels: Object.assign({}, pendingSettings.customLabels),
+      customImages: Object.assign({}, pendingSettings.customImages),
+      tileKeys: getCustomTileKeysForList()
     }
   }
-
+  window.__2048SetPendingCustomTiles__ = function (labels, images) {
+    pendingSettings.customLabels = labels && typeof labels === 'object' ? Object.assign({}, labels) : {}
+    pendingSettings.customImages = images && typeof images === 'object' ? Object.assign({}, images) : {}
+  }
   function escapeAttr(s) {
     if (s == null) return ''
     return String(s)

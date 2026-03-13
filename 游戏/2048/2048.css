@@ -180,7 +180,7 @@ article.gaming.area .board-floating {
 /* 设置弹层：请用 el-dialog + el-form / el-form-item 等组件，避免自定义 .settings-panel 等类 */
 
 /* 数字显示 dialog：列表/卡片/预览等，共用 .custom.tile.* */
-.settings.custom.tile.list {
+.custom.tile.list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: 10px;
@@ -199,7 +199,7 @@ article.gaming.area .board-floating {
   background: rgba(255, 255, 255, 0.5);
   min-width: 0;
 }
-.custom.tile.list.area .custom.tile.card {
+.custom.tile.area .custom.tile.card {
   gap: 6px;
 }
 .custom.tile.card-num {
@@ -340,12 +340,7 @@ article.gaming.area .board-floating {
   font-size: 0;
 }
 
-/* dialog 内仅有的 footer：用子选择器 */
-.custom.tile.list.area .el-dialog__body > footer {
-  display: flex;
-  gap: 8px;
-}
-.settings.hint {
+.custom.tile.area .hint {
   margin: 0 0 8px;
   font-size: 13px;
   color: var(--text-dark);
