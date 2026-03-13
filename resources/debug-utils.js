@@ -1,6 +1,7 @@
 /**
  * 公用调试工具：布局链导出、样式表审计、指定根节点及其子节点/祖先的 DOM+计算样式导出。
- * 控制台调用 window 上挂的封装（如页面定义的 __2048ExportLayoutChain__）或直接调此处导出的方法。
+ * 通用方法挂到 window：__debugExportLayoutChain__、__debugAuditStylesheet__、__debugExportSelectAndCss__。
+ * 2048 页引入本脚本即可用，无需页面再写封装：__2048ExportLayoutChain__、__2048AuditCss__、__2048ExportSelectDomAndCss__。
  */
 (function () {
   'use strict';
@@ -167,5 +168,79 @@
     window.__debugExportLayoutChain__ = exportLayoutChain;
     window.__debugAuditStylesheet__ = auditStylesheet;
     window.__debugExportSelectAndCss__ = exportSelectAndCss;
+
+    /** 2048 页专用：引入本脚本即可用，无需页面再写薄封装 */
+    window.__2048ExportLayoutChain__ = function () {
+      const board = document.getElementById('board');
+      const chain = [
+        { el: document.body, label: 'body' },
+        { selector: 'body.grid.反叵字形 main', label: 'main.scrollable' },
+        { selector: 'article.gaming.area', label: 'article.gaming.area' },
+        { selector: '.main.map.area', label: '.main.map.area' },
+        { selector: '#board-wrap', label: '#board-wrap' },
+        { selector: '#board', label: '#board' },
+        { el: board ? board.querySelector('.cell') : null, label: '.cell 首个' }
+      ];
+      const props = ['height', 'min-height', 'max-height', 'overflow', 'overflow-y', 'display', 'flex-direction', 'flex-shrink', 'flex-grow', 'grid-template-rows'];
+      const main = document.querySelector('body.grid.反叵字形 main');
+      let out = exportLayoutChain(chain, props, {
+        title: '--- __2048ExportLayoutChain__ ---',
+        extraLine: function (el) {
+          if (el === main) return 'clientHeight: ' + el.clientHeight + '; scrollHeight: ' + el.scrollHeight + '; overflow-y: ' + window.getComputedStyle(el).getPropertyValue('overflow-y');
+          return '';
+        }
+      });
+      out += '\n--- 若 main.scrollable 的 scrollHeight > clientHeight 才应有滚动条 ---\n';
+      if (main) out += 'main clientHeight: ' + main.clientHeight + ', scrollHeight: ' + main.scrollHeight + ', overflow-y: ' + window.getComputedStyle(main).getPropertyValue('overflow-y') + '\n';
+      console.log(out);
+      return out;
+    };
+
+    window.__2048AuditCss__ = function () {
+      const out = auditStylesheet('2048.css', /\.gaming\.area|\.toolbar|\.el-select__prefix|\.按压式/, { title: '--- __2048AuditCss__ 仅“我们加的”规则 ---' });
+      console.log(out);
+      return out;
+    };
+
+    (function () {
+      const prefixEl = document.querySelector('.el-select .el-select__prefix');
+      const root = prefixEl ? prefixEl.closest('.el-select') : null;
+      if (!root) {
+        window.__2048ExportSelectDomAndCss__ = function () { console.log('未找到带 prefix 的 .el-select'); };
+        return;
+      }
+      window.__2048ExportSelectDomAndCss__ = function () {
+        let out = exportSelectAndCss(null, {
+          rootElement: root,
+          childSelectors: [
+            { selector: '.el-select__wrapper', label: '[0w] wrapper' },
+            { selector: '.el-select__selection', label: '[0s] selection' },
+            { selector: '.el-select__placeholder', label: '[0s-placeholder] placeholder' }
+          ],
+          ancestorStop: function (el) { return el.classList && (el.classList.contains('toolbar') || el.tagName === 'BODY'); },
+          title: '--- __2048ExportSelectDomAndCss__ ---'
+        });
+        const wrapper = root.querySelector('.el-select__wrapper');
+        const sel = root.querySelector('.el-select__selection');
+        const prefix = root.querySelector('.el-select__prefix');
+        const suffix = root.querySelector('.el-select__suffix');
+        if (wrapper && sel) {
+          const cw = window.getComputedStyle(wrapper);
+          const gap = parseFloat(cw.getPropertyValue('gap')) || 0;
+          const pl = parseFloat(cw.getPropertyValue('padding-left')) || 0;
+          const pr = parseFloat(cw.getPropertyValue('padding-right')) || 0;
+          const W = wrapper.offsetWidth;
+          const P = prefix ? prefix.offsetWidth : 0;
+          const S = suffix ? suffix.offsetWidth : 0;
+          const Sel = sel.offsetWidth;
+          const remaining = W - P - S - 2 * gap - pl - pr;
+          out += '\n--- 验证：wrapper 内分配 ---\nwrapper.offsetWidth=' + W + ', prefix=' + P + ', suffix=' + S + ', selection.offsetWidth=' + Sel + ', gap=' + gap + ', paddingLeft=' + pl + ', paddingRight=' + pr + '\n若 selection 宽度由“剩余空间”分配，则 selection ≈ ' + remaining.toFixed(0) + 'px。若 Sel=' + Sel + ' 接近此值，则原因确定。\n';
+        }
+        const placeholder = sel ? sel.querySelector('.el-select__placeholder') : null;
+        if (placeholder && sel) out += '\n--- placeholder vs selection 宽度 ---\nplaceholder.offsetWidth=' + placeholder.offsetWidth + ', selection.offsetWidth=' + sel.offsetWidth + '\n';
+        console.log(out);
+        return out;
+      };
+    })();
   }
 })();

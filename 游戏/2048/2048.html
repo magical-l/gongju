@@ -115,13 +115,14 @@
 
 		<div class="main map area , flex items-near-center-x">
 			<div id="board-wrap" class="board-wrap item no-shrink">
-				<div id="board" class="board" role="grid" :style="boardGridStyle">
+				<div id="board" class="board" :style="boardGridStyle">
 					<template v-for="(cell, index) in boardCells" :key="index">
 						<div class="cell" :data-index="cell.index">
 							<div v-if="cell.value" class="tile" :class="getTileClass(cell.value)" :data-index="cell.index">
 								<img v-if="tileDisplayContent(cell).type === 'image'" :src="tileDisplayContent(cell).src" :alt="String(cell.value)" loading="lazy">
 								<template v-else-if="tileDisplayContent(cell).type === 'text'">{{ tileDisplayContent(cell).text }}</template>
 								<template v-else>{{ cell.value }}</template>
+								<span v-if="showNewTileMarker && cell.index === newTileIndex" class="tile-new-badge">!</span>
 							</div>
 						</div>
 					</template>
@@ -261,6 +262,7 @@
 		gameResultVisible: false,
 		gameResultMessage: '',
 		gameResultSub: '',
+		newTileIndex: -1,
 	});
 	window.__2048SetGameResult__ = function (visible, message, sub) {
 		state.gameResultVisible = !!visible;
@@ -272,6 +274,12 @@
 		state.boardView.cols = cols;
 		state.boardView.cells = (board || []).map(function (v, i) { return { index: i, value: v || 0 }; });
 		state.lastStateForDisplay = gameState;
+	};
+	window.__2048SetNewTileIndex__ = function (index) {
+		state.newTileIndex = index == null ? -1 : index;
+	};
+	window.__2048ClearNewTileIndex__ = function () {
+		state.newTileIndex = -1;
 	};
 	window.__2048UpdateScores__ = function (score, highScore, boardWidth, boardHeight) {
 		state.score = score;
@@ -501,83 +509,6 @@
 	}
 	helpApp.mount('.help.area');
 }());
-</script>
-	<script>
-  (function () {
-    if (typeof window.__debugExportSelectAndCss__ !== 'function') return;
-    const root = document.querySelector('.el-select .el-select__prefix')?.closest('.el-select');
-    if (!root) {
-      window.__2048ExportSelectDomAndCss__ = function () { console.log('未找到带 prefix 的 .el-select'); };
-      return;
-    }
-    window.__2048ExportSelectDomAndCss__ = function () {
-      let out = window.__debugExportSelectAndCss__(null, {
-        rootElement: root,
-        childSelectors: [
-          { selector: '.el-select__wrapper', label: '[0w] wrapper' },
-          { selector: '.el-select__selection', label: '[0s] selection' },
-          { selector: '.el-select__placeholder', label: '[0s-placeholder] placeholder' }
-        ],
-        ancestorStop: function (el) { return el.classList && (el.classList.contains('toolbar') || el.tagName === 'BODY'); },
-        title: '--- __2048ExportSelectDomAndCss__ ---'
-      });
-      const wrapper = root.querySelector('.el-select__wrapper');
-      const sel = root.querySelector('.el-select__selection');
-      const prefix = root.querySelector('.el-select__prefix');
-      const suffix = root.querySelector('.el-select__suffix');
-      if (wrapper && sel) {
-        const cw = window.getComputedStyle(wrapper);
-        const gap = parseFloat(cw.getPropertyValue('gap')) || 0;
-        const pl = parseFloat(cw.getPropertyValue('padding-left')) || 0;
-        const pr = parseFloat(cw.getPropertyValue('padding-right')) || 0;
-        const W = wrapper.offsetWidth;
-        const P = prefix ? prefix.offsetWidth : 0;
-        const S = suffix ? suffix.offsetWidth : 0;
-        const Sel = sel.offsetWidth;
-        const remaining = W - P - S - 2 * gap - pl - pr;
-        out += '\n--- 验证：wrapper 内分配 ---\nwrapper.offsetWidth=' + W + ', prefix=' + P + ', suffix=' + S + ', selection.offsetWidth=' + Sel + ', gap=' + gap + ', paddingLeft=' + pl + ', paddingRight=' + pr + '\n若 selection 宽度由“剩余空间”分配，则 selection ≈ ' + remaining.toFixed(0) + 'px。若 Sel=' + Sel + ' 接近此值，则原因确定。\n';
-      }
-      const placeholder = sel ? sel.querySelector('.el-select__placeholder') : null;
-      if (placeholder && sel) out += '\n--- placeholder vs selection 宽度 ---\nplaceholder.offsetWidth=' + placeholder.offsetWidth + ', selection.offsetWidth=' + sel.offsetWidth + '\n';
-      console.log(out);
-      return out;
-    };
-  })();
-
-  window.__2048AuditCss__ = function () {
-    const out = typeof window.__debugAuditStylesheet__ === 'function'
-      ? window.__debugAuditStylesheet__('2048.css', /\.gaming\.area|\.toolbar|\.el-select__prefix|\.按压式/, { title: '--- __2048AuditCss__ 仅“我们加的”规则 ---' })
-      : '未加载 debug-utils.js';
-    console.log(out);
-    return out;
-  };
-
-  window.__2048ExportLayoutChain__ = function () {
-    const chain = [
-      { el: document.body, label: 'body' },
-      { selector: 'body.grid.反叵字形 main', label: 'main.scrollable' },
-      { selector: 'article.gaming.area', label: 'article.gaming.area' },
-      { selector: '.main.map.area', label: '.main.map.area' },
-      { selector: '#board-wrap', label: '#board-wrap' },
-      { selector: '#board', label: '#board' },
-      { el: document.getElementById('board') ? document.getElementById('board').querySelector('.cell') : null, label: '.cell 首个' }
-    ];
-    const props = ['height', 'min-height', 'max-height', 'overflow', 'overflow-y', 'display', 'flex-direction', 'flex-shrink', 'flex-grow', 'grid-template-rows'];
-    const main = document.querySelector('body.grid.反叵字形 main');
-    let out = typeof window.__debugExportLayoutChain__ === 'function'
-      ? window.__debugExportLayoutChain__(chain, props, {
-          title: '--- __2048ExportLayoutChain__ ---',
-          extraLine: function (el) {
-            if (el === main) return 'clientHeight: ' + el.clientHeight + '; scrollHeight: ' + el.scrollHeight + '; overflow-y: ' + window.getComputedStyle(el).getPropertyValue('overflow-y');
-            return '';
-          }
-        })
-      : '未加载 debug-utils.js';
-    out += '\n--- 若 main.scrollable 的 scrollHeight > clientHeight 才应有滚动条 ---\n';
-    if (main) out += 'main clientHeight: ' + main.clientHeight + ', scrollHeight: ' + main.scrollHeight + ', overflow-y: ' + window.getComputedStyle(main).getPropertyValue('overflow-y') + '\n';
-    console.log(out);
-    return out;
-  };
 </script>
 </body>
 </html>

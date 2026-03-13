@@ -18,18 +18,13 @@
   const undo = logic.undo;
   const serializeGameState = logic.serializeGameState;
   const deserializeGameState = logic.deserializeGameState;
-  const STORAGE_HIGH_SCORE = logic.STORAGE_HIGH_SCORE;
   const getHighScoreKey = logic.getHighScoreKey;
   const STORAGE_GAME_STATE = logic.STORAGE_GAME_STATE;
   const STORAGE_SETTINGS = logic.STORAGE_SETTINGS;
 
   const MIN_SWIPE_PX = constants.MIN_SWIPE_PX;
   const getTileImageKeys = constants.getTileImageKeys;
-  const getDisplayLabel = constants.getDisplayLabel;
-
   const SLIDE_MS_PER_CELL = 80;
-  const CUSTOM_LABEL_MAX_LEN = 10;
-
   function getTileClass(value) {
     if (value <= 0) return 'tile-2'
     if (value > 2048) return 'tile-super'
@@ -49,7 +44,7 @@
   }
   window.__2048GetTileDisplayContent__ = getTileDisplayContent
 
-  function setTileContent(tileEl, state, value, className) {
+  function setTileContent(tileEl, state, value) {
     const content = getTileDisplayContent(state, value);
     tileEl.innerHTML = ''
     if (content.type === 'image') {
@@ -85,30 +80,31 @@
 
   /* 结算界面由 Vue 模板 + __2048SetGameResult__ / __2048OnResultClose__ / __2048OnResultRestart__ 驱动，不再持 DOM 引用 */
 
+  /**
+   * #board-wrap / #board 的 JS 逻辑链（Vue 必用，无 fallback）：
+   *
+   * 1) render() 里 boardEl.querySelector('.cell') 取第一个格子
+   *    → firstCell.offsetWidth 写入 document 根上的 CSS 变量 --cell-size
+   *    → 用途：.custom.tile.preview（数字显示弹层里的小预览格）用 var(--cell-size) 做宽高，与棋盘格视觉一致。
+   *
+   * 2) getCellPositions()：boardEl.querySelectorAll('.cell') + boardWrapEl.getBoundingClientRect()
+   *    → 算出每个格子相对 board-wrap 的 left/top/width/height
+   *    → 用途：runSlideAnimation 里给 #board-floating 下的浮动格设起始位置和过渡终点，做滑动动画。
+   *
+   * 3) boardWrapEl：touchstart/touchend、mousedown/mouseup 事件
+   *    → 滑动手势 = 触屏（touch 起止点）+ 鼠标（mousedown 起止点），算位移与方向后 handleMove(direction)。
+   *
+   * 4) 新格角标：由 Vue 状态 newTileIndex + 模板 v-if 渲染，此处只调 __2048SetNewTileIndex__ / __2048ClearNewTileIndex__。
+   */
+
+  /** 棋盘由 Vue 渲染，此处只把数据同步给 Vue；无 fallback。 */
   function renderBoard(state, boardOverride) {
     const cols = state.boardWidth;
     const rows = state.boardHeight;
     const board = boardOverride != null ? boardOverride : state.board;
     if (typeof window.__2048SetBoardView__ === 'function') {
-      window.__2048SetBoardView__(board, rows, cols, state)
-      return
-    }
-    boardEl.style.gridTemplateColumns = 'repeat(' + cols + ', 1fr)'
-    boardEl.style.gridTemplateRows = 'repeat(' + rows + ', 1fr)'
-    boardEl.innerHTML = ''
-    for (let i = 0; i < cols * rows; i++) {
-      const cell = document.createElement('div');
-      cell.className = 'cell'
-      cell.dataset.index = i
-      const value = board[i] || 0;
-      if (value > 0) {
-        const tile = document.createElement('div');
-        tile.className = 'tile ' + getTileClass(value)
-        tile.dataset.index = i
-        setTileContent(tile, state, value)
-        cell.appendChild(tile)
-      }
-      boardEl.appendChild(cell)
+      window.__2048SetBoardView__(board, rows, cols, state);
+      return;
     }
   }
 
@@ -141,18 +137,6 @@
     }
   }
 
-  function addNewTileMarker(index, state) {
-    if (index < 0 || !state.showNewTileMarker) return
-    const cell = boardEl.querySelector('.cell[data-index="' + index + '"]');
-    if (!cell) return
-    const tileEl = cell.querySelector('.tile');
-    if (!tileEl || tileEl.nodeType !== 1) return
-    const badge = document.createElement('span');
-    badge.className = 'tile-new-badge'
-    badge.textContent = '!'
-    tileEl.appendChild(badge)
-  }
-
   function getCellPositions() {
     const cells = boardEl.querySelectorAll('.cell');
     const wrapRect = boardWrapEl.getBoundingClientRect();
@@ -173,13 +157,10 @@
     if (slideAnimationActive || !slides || slides.length === 0) {
       gameState = finalState
       render(gameState)
-      addNewTileMarker(newTileIndex, finalState)
+      if (typeof window.__2048SetNewTileIndex__ === 'function') window.__2048SetNewTileIndex__(newTileIndex)
       return
     }
     slideAnimationActive = true
-    const cols = finalState.boardWidth;
-    const rows = finalState.boardHeight;
-
     const displayBoard = stateBeforeMove.board.slice();
     for (let s = 0; s < slides.length; s++) {
       const path = slides[s].path
@@ -232,7 +213,7 @@
       slideAnimationActive = false
       gameState = finalState
       render(gameState)
-      addNewTileMarker(newTileIndex, finalState)
+      if (typeof window.__2048SetNewTileIndex__ === 'function') window.__2048SetNewTileIndex__(newTileIndex)
     }, maxDuration + 50)
   }
 
@@ -242,6 +223,7 @@
   }
 
   function handleMove(direction) {
+    if (typeof window.__2048ClearNewTileIndex__ === 'function') window.__2048ClearNewTileIndex__()
     if (slideAnimationActive) return
     if (gameState.gameWin) {
       gameState = Object.assign({}, gameState, { gameWin: false, overlayVisible: false, overlayMessage: '' })
@@ -260,7 +242,7 @@
       runSlideAnimation(result.slides, gameState, stateBeforeMove, result.newTileIndex)
     } else {
       render(gameState)
-      addNewTileMarker(result.newTileIndex, gameState)
+      if (typeof window.__2048SetNewTileIndex__ === 'function') window.__2048SetNewTileIndex__(result.newTileIndex)
     }
   }
 
@@ -424,8 +406,8 @@
     }
     keys = pendingSettings.customImages && typeof pendingSettings.customImages === 'object' ? Object.keys(pendingSettings.customImages) : []
     for (let j = 0; j < keys.length; j++) {
-      n = parseInt(keys[j], 10)
-      if (isPowerOf2(n) && n > maxBase) extra[n] = true
+      const num = parseInt(keys[j], 10)
+      if (isPowerOf2(num) && num > maxBase) extra[num] = true
     }
     const extraKeys = Object.keys(extra).map(Number).sort(function(a, b) { return a - b; });
     return baseKeys.concat(extraKeys.map(String))
