@@ -113,25 +113,24 @@
 			</section>
 		</header>
 
-		<div class="main map area , flex items-near-center-x">
-			<div ref="boardWrap" class="board-wrap item no-shrink">
-				<div ref="board" class="board" :style="boardGridStyle">
-					<template v-for="(cell, index) in boardCells" :key="index">
-						<div class="cell" :data-index="cell.index">
-							<div v-if="cell.value" class="tile" :class="getTileClass(cell.value)" :data-index="cell.index">
-								<tile-content :content="tileDisplayContent(cell)" />
-							</div>
-							<span v-if="isNewTileCell(cell)" class="tile-new-badge">!</span>
+		<div ref="boardWrap" class="main map area item no-shrink , flex items-near-center-x">
+			<div ref="board" class="board" :style="boardGridStyle">
+				<template v-for="(cell, index) in boardCells" :key="index">
+					<div class="cell" :data-index="cell.index">
+						<div v-if="cell.value" class="tile" :class="getTileClass(cell.value)" :data-index="cell.index">
+							<tile-content :content="tileDisplayContent(cell)" />
 						</div>
-					</template>
-				</div>
-				<div class="tile-overlay">
-					<template v-for="(tile, idx) in slideAnimationTiles" :key="idx">
-						<div class="tile" :class="getTileClass(tile.value)" :style="floatingTileStyle(tile)">
-							<tile-content :content="tile.displayContent" />
-						</div>
-					</template>
-				</div>
+						<span v-if="isNewTileCell(cell)" class="tile-new-badge">!</span>
+					</div>
+				</template>
+			</div>
+			<!-- 滑动动画层：与 .board 同级的浮层，用于播放方块滑动动画 -->
+			<div class="slide-layer">
+				<template v-for="(tile, idx) in slideAnimationTiles" :key="idx">
+					<div class="tile" :class="getTileClass(tile.value)" :style="floatingTileStyle(tile)">
+						<tile-content :content="tile.displayContent" />
+					</div>
+				</template>
 			</div>
 		</div>
 
@@ -220,10 +219,11 @@
 	<script src="../../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
 	<script src="constants.js"></script>
 	<script src="logic.js"></script>
-	<script src="2048-dom.js"></script>
 	<script src="../../resources/debug-utils.js"></script>
 </div>
-<script>
+<script type="module">
+import Game2048 from './2048-dom.js';
+window.Game2048 = Game2048;
 (function () {
 	const { createApp, reactive, ref } = Vue;
 	const collapseKey = 'gaming-info-2048';
@@ -264,143 +264,6 @@
 	});
 	const newTileIndexRef = ref(-1);
 	const SLIDE_MS_PER_CELL = 80;
-	window.__2048SetGameResult__ = function (visible, message, sub) {
-		state.gameResultVisible = !!visible;
-		state.gameResultMessage = message != null ? String(message) : '';
-		state.gameResultSub = sub != null ? String(sub) : '';
-	};
-	window.__2048SetBoardView__ = function (board, rows, cols, gameState) {
-		state.boardView.rows = rows;
-		state.boardView.cols = cols;
-		state.boardView.cells = (board || []).map(function (v, i) { return { index: i, value: v || 0 }; });
-		state.lastStateForDisplay = gameState;
-	};
-	window.__2048SetNewTileIndex__ = function (index) {
-		const val = index == null || index < 0 ? -1 : Number(index);
-		newTileIndexRef.value = val;
-	};
-	window.__2048ClearNewTileIndex__ = function () {
-		newTileIndexRef.value = -1;
-	};
-	window.__2048ClearSlideAnimation__ = function () {
-		state.slideAnimationTiles = [];
-	};
-	window.__2048CommitState__ = function (gameState) {
-		if (!gameState) return;
-		window.__2048UpdateScores__(gameState.score, gameState.highScore, gameState.boardWidth, gameState.boardHeight);
-		window.__2048SetBoardView__(gameState.board, gameState.boardHeight, gameState.boardWidth, gameState);
-		const vis = !!(gameState.overlayVisible && gameState.overlayMessage);
-		window.__2048SetGameResult__(vis, gameState.overlayMessage || '', gameState.gameOver ? '最终得分：' + gameState.score : '');
-		const proxy = mainApp._instance && mainApp._instance.proxy;
-		if (proxy && proxy.$nextTick) {
-			proxy.$nextTick(function () {
-				const board = proxy.$refs.board;
-				const first = board && board.querySelector && board.querySelector('.cell');
-				if (first && first.offsetWidth) document.documentElement.style.setProperty('--cell-size', first.offsetWidth + 'px');
-			});
-		}
-	};
-	window.__2048GetCellPositions__ = function () {
-		const proxy = mainApp._instance && mainApp._instance.proxy;
-		if (!proxy || !proxy.$refs.boardWrap || !proxy.$refs.board) return [];
-		const wrap = proxy.$refs.boardWrap;
-		const board = proxy.$refs.board;
-		const wrapRect = wrap.getBoundingClientRect();
-		const cells = board.querySelectorAll('.cell');
-		const out = [];
-		for (let i = 0; i < cells.length; i++) {
-			const r = cells[i].getBoundingClientRect();
-			out.push({ left: r.left - wrapRect.left, top: r.top - wrapRect.top, width: r.width, height: r.height });
-		}
-		return out;
-	};
-	window.__2048RunSlideAnimation__ = function (slides, finalState, stateBeforeMove, newTileIndex, onEnd) {
-		if (!slides || !slides.length) {
-			window.__2048CommitState__(finalState);
-			if (typeof window.__2048SetNewTileIndex__ === 'function') window.__2048SetNewTileIndex__(newTileIndex);
-			if (typeof onEnd === 'function') onEnd();
-			return;
-		}
-		const displayBoard = stateBeforeMove.board.slice();
-		for (let s = 0; s < slides.length; s++) {
-			const path = slides[s].path;
-			if (path && path.length >= 2) displayBoard[path[0]] = 0;
-		}
-		window.__2048SetBoardView__(displayBoard, stateBeforeMove.boardHeight, stateBeforeMove.boardWidth, stateBeforeMove);
-		const proxy = mainApp._instance && mainApp._instance.proxy;
-		if (!proxy || !proxy.$nextTick) {
-			window.__2048CommitState__(finalState);
-			if (typeof window.__2048SetNewTileIndex__ === 'function') window.__2048SetNewTileIndex__(newTileIndex);
-			if (typeof onEnd === 'function') onEnd();
-			return;
-		}
-		proxy.$nextTick(function () {
-			const positions = window.__2048GetCellPositions__();
-			const tiles = [];
-			let maxDuration = 0;
-			for (let i = 0; i < slides.length; i++) {
-				const slide = slides[i];
-				const path = slide.path;
-				if (!path || path.length < 2) continue;
-				const fromIdx = path[0];
-				const toIdx = path[path.length - 1];
-				const duration = (path.length - 1) * SLIDE_MS_PER_CELL;
-				if (duration > maxDuration) maxDuration = duration;
-				const fromPos = positions[fromIdx];
-				const toPos = positions[toIdx];
-				if (!fromPos || !toPos) continue;
-				const displayContent = typeof window.__2048GetTileDisplayContent__ === 'function'
-					? window.__2048GetTileDisplayContent__(finalState, slide.value) : { type: 'number', value: slide.value };
-				tiles.push({
-					fromLeft: fromPos.left,
-					fromTop: fromPos.top,
-					toLeft: toPos.left,
-					toTop: toPos.top,
-					width: fromPos.width,
-					height: fromPos.height,
-					duration: duration,
-					value: slide.value,
-					displayContent: displayContent,
-					currentLeft: fromPos.left,
-					currentTop: fromPos.top,
-				});
-			}
-			state.slideAnimationTiles = tiles;
-			proxy.$nextTick(function () {
-				for (let j = 0; j < state.slideAnimationTiles.length; j++) {
-					const t = state.slideAnimationTiles[j];
-					t.currentLeft = t.toLeft;
-					t.currentTop = t.toTop;
-				}
-			});
-			setTimeout(function () {
-				state.slideAnimationTiles = [];
-				if (typeof window.__2048SetNewTileIndex__ === 'function') window.__2048SetNewTileIndex__(newTileIndex);
-				window.__2048CommitState__(finalState);
-				if (typeof onEnd === 'function') onEnd();
-			}, maxDuration + 50);
-		});
-	};
-	window.__2048UpdateScores__ = function (score, highScore, boardWidth, boardHeight) {
-		state.score = score;
-		state.highScore = highScore;
-		if (boardWidth != null) state.gameBoardWidth = boardWidth;
-		if (boardHeight != null) state.gameBoardHeight = boardHeight;
-	};
-	window.__2048SetQuickSettings__ = function (obj) {
-		if (obj && typeof obj.showNewTileMarker === 'boolean') state.showNewTileMarker = obj.showNewTileMarker;
-	};
-	window.__2048SyncToolbarSettings__ = function () {
-		const s = typeof window.__2048GetBoardSettings__ === 'function' && window.__2048GetBoardSettings__();
-		if (s) {
-			state.boardHeight = s.boardHeight;
-			state.boardWidth = s.boardWidth;
-			state.targetNumber = s.targetNumber;
-			state.gameBoardHeight = s.boardHeight;
-			state.gameBoardWidth = s.boardWidth;
-			state.gameTargetNumber = s.targetNumber != null ? s.targetNumber : 2048;
-		}
-	};
 	const mainApp = createApp({
 		components: {
 			TileContent: {
@@ -448,8 +311,8 @@
 				/* 开新局由用户点「新局」触发，此处只记设置 */
 			},
 			onRestart() {
-				if (typeof window.__2048ApplyBoardSettings__ === 'function') {
-					window.__2048ApplyBoardSettings__({ boardHeight: state.boardHeight, boardWidth: state.boardWidth, targetNumber: state.targetNumber });
+				if (window.Game2048 && typeof window.Game2048.applyBoardSettings === 'function') {
+					window.Game2048.applyBoardSettings({ boardHeight: state.boardHeight, boardWidth: state.boardWidth, targetNumber: state.targetNumber });
 					state.gameBoardWidth = state.boardWidth;
 					state.gameBoardHeight = state.boardHeight;
 					state.gameTargetNumber = state.targetNumber;
@@ -461,8 +324,8 @@
 				this.onQuickSettingChange();
 			},
 			onQuickSettingChange() {
-				if (typeof window.__2048ApplyQuickSettings__ === 'function') {
-					window.__2048ApplyQuickSettings__(state.showNewTileMarker);
+				if (window.Game2048 && typeof window.Game2048.applyQuickSettings === 'function') {
+					window.Game2048.applyQuickSettings(state.showNewTileMarker);
 				}
 			},
 			openCustomTilesDialog() {
@@ -470,8 +333,8 @@
 			},
 			onCustomTilesDialogOpened() {
 				state.previewImageErrors = {};
-				if (typeof window.__2048OpenCustomTiles__ === 'function') window.__2048OpenCustomTiles__();
-				const fn = window.__2048GetPendingCustomTilesForVue__;
+				if (window.Game2048 && typeof window.Game2048.openCustomTiles === 'function') window.Game2048.openCustomTiles();
+				const fn = window.Game2048 && window.Game2048.getPendingCustomTilesForVue;
 				if (typeof fn === 'function') {
 					const d = fn();
 					if (d) {
@@ -482,13 +345,16 @@
 				}
 			},
 			customTileLabelPlaceholder() {
-				return typeof window.__2048GetDisplayLabel__ === 'function' ? window.__2048GetDisplayLabel__('customTiles', 'labelPlaceholder', 'web') : '自定义文字';
+				return (window.Game2048Constants && typeof window.Game2048Constants.getDisplayLabel === 'function')
+					? window.Game2048Constants.getDisplayLabel('customTiles', 'labelPlaceholder', 'web') : '自定义文字';
 			},
 			customTilePickImageLabel() {
-				return typeof window.__2048GetDisplayLabel__ === 'function' ? window.__2048GetDisplayLabel__('customTiles', 'pickImage', 'web') : '选图';
+				return (window.Game2048Constants && typeof window.Game2048Constants.getDisplayLabel === 'function')
+					? window.Game2048Constants.getDisplayLabel('customTiles', 'pickImage', 'web') : '选图';
 			},
 			customLabelMaxLen() {
-				return typeof window.__2048CustomLabelMaxLen__ !== 'undefined' ? window.__2048CustomLabelMaxLen__ : 10;
+				return (window.Game2048Constants && window.Game2048Constants.customLabelMaxLen != null)
+					? window.Game2048Constants.customLabelMaxLen : 10;
 			},
 			customImagePlaceholder(key) {
 				const img = state.customImages && state.customImages[key];
@@ -500,13 +366,13 @@
 				return String(img).slice(0, 5) === 'data:' ? '' : img;
 			},
 			syncCustomTilesToDom() {
-				if (typeof window.__2048SetPendingCustomTiles__ === 'function') {
-					window.__2048SetPendingCustomTiles__(state.customLabels, state.customImages);
+				if (window.Game2048 && typeof window.Game2048.setPendingCustomTiles === 'function') {
+					window.Game2048.setPendingCustomTiles(state.customLabels, state.customImages);
 				}
 			},
 			applyCustomTiles() {
 				this.syncCustomTilesToDom();
-				if (typeof window.__2048ApplyCustomTiles__ === 'function') window.__2048ApplyCustomTiles__();
+				if (window.Game2048 && typeof window.Game2048.applyCustomTiles === 'function') window.Game2048.applyCustomTiles();
 			},
 			onCustomLabelInput(key, val) {
 				const trimmed = String(val).trim().slice(0, this.customLabelMaxLen);
@@ -570,7 +436,7 @@
 				state.customImages = {};
 				state.previewImageErrors = {};
 				this.syncCustomTilesToDom();
-				if (typeof window.__2048ApplyCustomTiles__ === 'function') window.__2048ApplyCustomTiles__();
+				if (window.Game2048 && typeof window.Game2048.applyCustomTiles === 'function') window.Game2048.applyCustomTiles();
 			},
 			closeCustomTilesDialog() {
 				state.customTilesDialogVisible = false;
@@ -586,7 +452,7 @@
 				} catch (_) {}
 			},
 			getTileClass(value) {
-				return typeof window.__2048GetTileClass__ === 'function' ? window.__2048GetTileClass__(value) : 'tile-2';
+				return window.Game2048 && typeof window.Game2048.getTileClass === 'function' ? window.Game2048.getTileClass(value) : 'tile-2';
 			},
 			isNewTileCell(cell) {
 				if (!this.showNewTileMarker || !cell) return false;
@@ -607,30 +473,148 @@
 			},
 			tileDisplayContent(cell) {
 				const s = state.lastStateForDisplay;
-				if (typeof window.__2048GetTileDisplayContent__ === 'function' && s) {
-					return window.__2048GetTileDisplayContent__(s, cell.value);
+				if (window.Game2048 && typeof window.Game2048.getTileDisplayContent === 'function' && s) {
+					return window.Game2048.getTileDisplayContent(s, cell.value);
 				}
 				return { type: 'number', value: cell.value };
 			},
 			previewContent(key) {
 				const s = { customLabels: state.customLabels, customImages: state.customImages };
-				return typeof window.__2048GetTileDisplayContent__ === 'function'
-					? window.__2048GetTileDisplayContent__(s, Number(key)) : { type: 'number', value: Number(key) };
+				return window.Game2048 && typeof window.Game2048.getTileDisplayContent === 'function'
+					? window.Game2048.getTileDisplayContent(s, Number(key)) : { type: 'number', value: Number(key) };
 			},
 			onResultOverlayClick() {
-				if (typeof window.__2048OnResultClose__ === 'function') window.__2048OnResultClose__();
+				if (window.Game2048 && typeof window.Game2048.onResultClose === 'function') window.Game2048.onResultClose();
 			},
 			onResultRestart() {
-				if (typeof window.__2048OnResultRestart__ === 'function') window.__2048OnResultRestart__();
+				if (window.Game2048 && typeof window.Game2048.onResultRestart === 'function') window.Game2048.onResultRestart();
 			},
 			onUndo() {
 				if (window.Game2048 && typeof window.Game2048.undo === 'function') window.Game2048.undo();
 			},
 		},
 		mounted() {
+			const self = this;
+			const api = window.Game2048;
+			const bridge = {
+				setGameResult(visible, message, sub) {
+					state.gameResultVisible = !!visible;
+					state.gameResultMessage = message != null ? String(message) : '';
+					state.gameResultSub = sub != null ? String(sub) : '';
+				},
+				setBoardView(board, rows, cols, gameState) {
+					state.boardView.rows = rows;
+					state.boardView.cols = cols;
+					state.boardView.cells = (board || []).map(function (v, i) { return { index: i, value: v || 0 }; });
+					state.lastStateForDisplay = gameState;
+				},
+				setNewTileIndex(index) {
+					const val = index == null || index < 0 ? -1 : Number(index);
+					newTileIndexRef.value = val;
+				},
+				clearNewTileIndex() { newTileIndexRef.value = -1; },
+				clearSlideAnimation() { state.slideAnimationTiles = []; },
+				commitState(gameState) {
+					if (!gameState) return;
+					bridge.updateScores(gameState.score, gameState.highScore, gameState.boardWidth, gameState.boardHeight);
+					bridge.setBoardView(gameState.board, gameState.boardHeight, gameState.boardWidth, gameState);
+					const vis = !!(gameState.overlayVisible && gameState.overlayMessage);
+					bridge.setGameResult(vis, gameState.overlayMessage || '', gameState.gameOver ? '最终得分：' + gameState.score : '');
+					self.$nextTick(function () {
+						const board = self.$refs.board;
+						const first = board && board.querySelector && board.querySelector('.cell');
+						if (first && first.offsetWidth) document.documentElement.style.setProperty('--cell-size', first.offsetWidth + 'px');
+					});
+				},
+				getCellPositions() {
+					if (!self.$refs.boardWrap || !self.$refs.board) return [];
+					const wrap = self.$refs.boardWrap;
+					const board = self.$refs.board;
+					const wrapRect = wrap.getBoundingClientRect();
+					const cells = board.querySelectorAll('.cell');
+					const out = [];
+					for (let i = 0; i < cells.length; i++) {
+						const r = cells[i].getBoundingClientRect();
+						out.push({ left: r.left - wrapRect.left, top: r.top - wrapRect.top, width: r.width, height: r.height });
+					}
+					return out;
+				},
+				runSlideAnimation(slides, finalState, stateBeforeMove, newTileIndex, onEnd) {
+					if (!slides || !slides.length) {
+						bridge.commitState(finalState);
+						if (bridge.setNewTileIndex) bridge.setNewTileIndex(newTileIndex);
+						if (typeof onEnd === 'function') onEnd();
+						return;
+					}
+					const displayBoard = stateBeforeMove.board.slice();
+					for (let s = 0; s < slides.length; s++) {
+						const path = slides[s].path;
+						if (path && path.length >= 2) displayBoard[path[0]] = 0;
+					}
+					bridge.setBoardView(displayBoard, stateBeforeMove.boardHeight, stateBeforeMove.boardWidth, stateBeforeMove);
+					self.$nextTick(function () {
+						const positions = bridge.getCellPositions();
+						const tiles = [];
+						let maxDuration = 0;
+						for (let i = 0; i < slides.length; i++) {
+							const slide = slides[i];
+							const path = slide.path;
+							if (!path || path.length < 2) continue;
+							const fromIdx = path[0];
+							const toIdx = path[path.length - 1];
+							const duration = (path.length - 1) * SLIDE_MS_PER_CELL;
+							if (duration > maxDuration) maxDuration = duration;
+							const fromPos = positions[fromIdx];
+							const toPos = positions[toIdx];
+							if (!fromPos || !toPos) continue;
+							const displayContent = api && typeof api.getTileDisplayContent === 'function'
+								? api.getTileDisplayContent(finalState, slide.value) : { type: 'number', value: slide.value };
+							tiles.push({
+								fromLeft: fromPos.left, fromTop: fromPos.top, toLeft: toPos.left, toTop: toPos.top,
+								width: fromPos.width, height: fromPos.height, duration: duration, value: slide.value,
+								displayContent: displayContent, currentLeft: fromPos.left, currentTop: fromPos.top,
+							});
+						}
+						state.slideAnimationTiles = tiles;
+						self.$nextTick(function () {
+							for (let j = 0; j < state.slideAnimationTiles.length; j++) {
+								const t = state.slideAnimationTiles[j];
+								t.currentLeft = t.toLeft;
+								t.currentTop = t.toTop;
+							}
+						});
+						setTimeout(function () {
+							state.slideAnimationTiles = [];
+							if (bridge.setNewTileIndex) bridge.setNewTileIndex(newTileIndex);
+							bridge.commitState(finalState);
+							if (typeof onEnd === 'function') onEnd();
+						}, maxDuration + 50);
+					});
+				},
+				updateScores(score, highScore, boardWidth, boardHeight) {
+					state.score = score;
+					state.highScore = highScore;
+					if (boardWidth != null) state.gameBoardWidth = boardWidth;
+					if (boardHeight != null) state.gameBoardHeight = boardHeight;
+				},
+				setQuickSettings(obj) {
+					if (obj && typeof obj.showNewTileMarker === 'boolean') state.showNewTileMarker = obj.showNewTileMarker;
+				},
+				syncToolbarSettings() {
+					const s = api && typeof api.getBoardSettings === 'function' && api.getBoardSettings();
+					if (s) {
+						state.boardHeight = s.boardHeight;
+						state.boardWidth = s.boardWidth;
+						state.targetNumber = s.targetNumber;
+						state.gameBoardHeight = s.boardHeight;
+						state.gameBoardWidth = s.boardWidth;
+						state.gameTargetNumber = s.targetNumber != null ? s.targetNumber : 2048;
+					}
+				},
+			};
+			if (api && typeof api.init === 'function') api.init(bridge);
 			this.$nextTick(() => {
 				const wrap = this.$refs.boardWrap;
-				const api = window.Game2048;
 				if (!wrap || !api || typeof api.onGesture !== 'function') return;
 				let touchStartX = 0, touchStartY = 0;
 				wrap.addEventListener('touchstart', (e) => {
@@ -655,7 +639,6 @@
 		for (const k in ElementPlusIconsVue) { mainApp.component(k, ElementPlusIconsVue[k]); }
 	}
 	mainApp.mount('article.gaming.area');
-	if (typeof window.__2048Init__ === 'function') window.__2048Init__();
 	const helpApp = createApp({
 		data: () => ({ introVisible: false }),
 	});
