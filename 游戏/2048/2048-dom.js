@@ -1,7 +1,4 @@
-/**
- * 依赖 logic.js、constants.js
- * 挂到 window。
- */
+/** 依赖 logic.js、constants.js，否则下方会报错。 */
 ;(function () {
   'use strict'
 
@@ -24,7 +21,6 @@
 
   const MIN_SWIPE_PX = constants.MIN_SWIPE_PX;
   const getTileImageKeys = constants.getTileImageKeys;
-  const SLIDE_MS_PER_CELL = 80;
   function getTileClass(value) {
     if (value <= 0) return 'tile-2'
     if (value > 2048) return 'tile-super'
@@ -32,7 +28,6 @@
   }
   window.__2048GetTileClass__ = getTileClass
 
-  /** 获取某数字的显示内容：优先图片 > 自定义文字 > 数字 */
   function getTileDisplayContent(state, value) {
     if (value <= 0) return { type: 'number', value: value }
     const key = String(value);
@@ -43,22 +38,6 @@
     return { type: 'number', value: value }
   }
   window.__2048GetTileDisplayContent__ = getTileDisplayContent
-
-  function setTileContent(tileEl, state, value) {
-    const content = getTileDisplayContent(state, value);
-    tileEl.innerHTML = ''
-    if (content.type === 'image') {
-      const img = document.createElement('img');
-      img.src = content.src
-      img.alt = String(value)
-      img.loading = 'lazy'
-      tileEl.appendChild(img)
-    } else if (content.type === 'text') {
-      tileEl.textContent = content.text
-    } else {
-      tileEl.textContent = content.value
-    }
-  }
 
   function getStorage(key) {
     try { return localStorage.getItem(key) } catch (e) { return null }
@@ -72,154 +51,31 @@
   let pendingSettings = {};
   let slideAnimationActive = false;
 
-  const boardEl = document.getElementById('board');
-  const boardFloatingEl = document.getElementById('board-floating');
   const boardWrapEl = document.getElementById('board-wrap');
-  const scoreEl = document.getElementById('score');
-  const highScoreEl = document.getElementById('high-score');
-
-  /* 结算界面由 Vue 模板 + __2048SetGameResult__ / __2048OnResultClose__ / __2048OnResultRestart__ 驱动，不再持 DOM 引用 */
-
-  /**
-   * #board-wrap / #board 的 JS 逻辑链（Vue 必用，无 fallback）：
-   *
-   * 1) render() 里 boardEl.querySelector('.cell') 取第一个格子
-   *    → firstCell.offsetWidth 写入 document 根上的 CSS 变量 --cell-size
-   *    → 用途：.custom.tile.preview（数字显示弹层里的小预览格）用 var(--cell-size) 做宽高，与棋盘格视觉一致。
-   *
-   * 2) getCellPositions()：boardEl.querySelectorAll('.cell') + boardWrapEl.getBoundingClientRect()
-   *    → 算出每个格子相对 board-wrap 的 left/top/width/height
-   *    → 用途：runSlideAnimation 里给 #board-floating 下的浮动格设起始位置和过渡终点，做滑动动画。
-   *
-   * 3) boardWrapEl：touchstart/touchend、mousedown/mouseup 事件
-   *    → 滑动手势 = 触屏（touch 起止点）+ 鼠标（mousedown 起止点），算位移与方向后 handleMove(direction)。
-   *
-   * 4) 新格角标：由 Vue 状态 newTileIndex + 模板 v-if 渲染，此处只调 __2048SetNewTileIndex__ / __2048ClearNewTileIndex__。
-   */
-
-  /** 棋盘由 Vue 渲染，此处只把数据同步给 Vue；无 fallback。 */
-  function renderBoard(state, boardOverride) {
-    const cols = state.boardWidth;
-    const rows = state.boardHeight;
-    const board = boardOverride != null ? boardOverride : state.board;
-    if (typeof window.__2048SetBoardView__ === 'function') {
-      window.__2048SetBoardView__(board, rows, cols, state);
-      return;
-    }
-  }
-
-  function renderHeader(state) {
-    if (typeof window.__2048UpdateScores__ === 'function') {
-      window.__2048UpdateScores__(state.score, state.highScore, state.boardWidth, state.boardHeight)
-      return
-    }
-    if (scoreEl) scoreEl.textContent = state.score
-    if (highScoreEl) highScoreEl.textContent = state.highScore
-  }
-
-  function renderOverlay(state) {
-    if (typeof window.__2048SetGameResult__ === 'function') {
-      const visible = !!(state.overlayVisible && state.overlayMessage);
-      const message = state.overlayMessage || '';
-      const sub = state.gameOver ? '最终得分：' + state.score : '';
-      window.__2048SetGameResult__(visible, message, sub)
-    }
-  }
-
-  function render(state) {
-    if (!state) return
-    renderHeader(state)
-    renderBoard(state)
-    renderOverlay(state)
-    const firstCell = boardEl && boardEl.querySelector('.cell');
-    if (firstCell && firstCell.offsetWidth > 0) {
-      document.documentElement.style.setProperty('--cell-size', firstCell.offsetWidth + 'px')
-    }
-  }
-
-  function getCellPositions() {
-    const cells = boardEl.querySelectorAll('.cell');
-    const wrapRect = boardWrapEl.getBoundingClientRect();
-    const positions = [];
-    for (let i = 0; i < cells.length; i++) {
-      const r = cells[i].getBoundingClientRect();
-      positions.push({
-        left: r.left - wrapRect.left,
-        top: r.top - wrapRect.top,
-        width: r.width,
-        height: r.height
-      })
-    }
-    return positions
-  }
 
   function runSlideAnimation(slides, finalState, stateBeforeMove, newTileIndex) {
-    if (slideAnimationActive || !slides || slides.length === 0) {
-      gameState = finalState
-      render(gameState)
-      if (typeof window.__2048SetNewTileIndex__ === 'function') window.__2048SetNewTileIndex__(newTileIndex)
-      return
+    if (slideAnimationActive || !slides || !slides.length) {
+      gameState = finalState;
+      if (typeof window.__2048CommitState__ === 'function') window.__2048CommitState__(gameState);
+      if (typeof window.__2048SetNewTileIndex__ === 'function') window.__2048SetNewTileIndex__(newTileIndex);
+      return;
     }
-    slideAnimationActive = true
-    const displayBoard = stateBeforeMove.board.slice();
-    for (let s = 0; s < slides.length; s++) {
-      const path = slides[s].path
-      if (path && path.length >= 2) displayBoard[path[0]] = 0
+    slideAnimationActive = true;
+    if (typeof window.__2048RunSlideAnimation__ === 'function') {
+      window.__2048RunSlideAnimation__(slides, finalState, stateBeforeMove, newTileIndex, function () {
+        slideAnimationActive = false;
+      });
+    } else {
+      gameState = finalState;
+      if (typeof window.__2048CommitState__ === 'function') window.__2048CommitState__(gameState);
+      if (typeof window.__2048SetNewTileIndex__ === 'function') window.__2048SetNewTileIndex__(newTileIndex);
+      slideAnimationActive = false;
     }
-    renderHeader(stateBeforeMove)
-    renderBoard(stateBeforeMove, displayBoard)
-    renderOverlay(stateBeforeMove)
-
-    const positions = getCellPositions();
-    boardFloatingEl.innerHTML = ''
-    boardFloatingEl.style.pointerEvents = 'none'
-
-    let maxDuration = 0;
-    for (let i = 0; i < slides.length; i++) {
-      const slide = slides[i];
-      const path = slide.path
-      if (!path || path.length < 2) continue
-      const fromIdx = path[0];
-      const toIdx = path[path.length - 1];
-      const duration = (path.length - 1) * SLIDE_MS_PER_CELL;
-      if (duration > maxDuration) maxDuration = duration
-
-      const fromPos = positions[fromIdx];
-      const toPos = positions[toIdx];
-      if (!fromPos || !toPos) continue
-
-      const tile = document.createElement('div');
-      tile.className = 'floating-tile ' + getTileClass(slide.value)
-      setTileContent(tile, finalState, slide.value)
-      tile.style.left = fromPos.left + 'px'
-      tile.style.top = fromPos.top + 'px'
-      tile.style.width = fromPos.width + 'px'
-      tile.style.height = fromPos.height + 'px'
-      tile.style.transitionDuration = duration + 'ms'
-      boardFloatingEl.appendChild(tile)
-
-      ;(function (tileRef, toPosRef) {
-        requestAnimationFrame(function () {
-          tileRef.style.left = toPosRef.left + 'px'
-          tileRef.style.top = toPosRef.top + 'px'
-          tileRef.style.width = toPosRef.width + 'px'
-          tileRef.style.height = toPosRef.height + 'px'
-        })
-      })(tile, toPos)
-    }
-
-    setTimeout(function () {
-      boardFloatingEl.innerHTML = ''
-      slideAnimationActive = false
-      gameState = finalState
-      render(gameState)
-      if (typeof window.__2048SetNewTileIndex__ === 'function') window.__2048SetNewTileIndex__(newTileIndex)
-    }, maxDuration + 50)
   }
 
   function clearSlideAnimation() {
-    slideAnimationActive = false
-    boardFloatingEl.innerHTML = ''
+    slideAnimationActive = false;
+    if (typeof window.__2048ClearSlideAnimation__ === 'function') window.__2048ClearSlideAnimation__();
   }
 
   function handleMove(direction) {
@@ -231,7 +87,7 @@
     const stateBeforeMove = gameState;
     const result = doMove(gameState, direction);
     if (!result.moved) {
-      render(gameState)
+      if (typeof window.__2048CommitState__ === 'function') window.__2048CommitState__(gameState)
       return
     }
     gameState = result.state
@@ -241,7 +97,7 @@
     if (result.slides && result.slides.length > 0) {
       runSlideAnimation(result.slides, gameState, stateBeforeMove, result.newTileIndex)
     } else {
-      render(gameState)
+      if (typeof window.__2048CommitState__ === 'function') window.__2048CommitState__(gameState)
       if (typeof window.__2048SetNewTileIndex__ === 'function') window.__2048SetNewTileIndex__(result.newTileIndex)
     }
   }
@@ -249,13 +105,13 @@
   function handleRestart() {
     clearSlideAnimation()
     gameState = restart(gameState)
-    render(gameState)
+    if (typeof window.__2048CommitState__ === 'function') window.__2048CommitState__(gameState)
   }
 
   function handleUndo() {
     clearSlideAnimation()
     gameState = undo(gameState)
-    render(gameState)
+    if (typeof window.__2048CommitState__ === 'function') window.__2048CommitState__(gameState)
   }
 
   function loadSettingsFromStorage() {
@@ -329,7 +185,7 @@
     if (!gameState) return
     gameState = Object.assign({}, gameState, { showNewTileMarker: !!showNewTileMarker })
     saveQuickSettingsToStorage(gameState.showNewTileMarker, gameState.newTileOnMidStop)
-    render(gameState)
+    if (typeof window.__2048CommitState__ === 'function') window.__2048CommitState__(gameState)
   }
 
   window.__2048OpenCustomTiles__ = function () {
@@ -348,7 +204,7 @@
       customImages: pendingSettings.customImages && typeof pendingSettings.customImages === 'object' ? Object.assign({}, pendingSettings.customImages) : {}
     })
     saveSettingsFromGameState()
-    render(gameState)
+    if (typeof window.__2048CommitState__ === 'function') window.__2048CommitState__(gameState)
   }
 
   window.__2048GetBoardSettings__ = function () {
@@ -386,7 +242,7 @@
     } else {
       gameState = Object.assign({}, gameState, { customLabels: pendingSettings.customLabels || {}, customImages: pendingSettings.customImages || {} })
     }
-    render(gameState)
+    if (typeof window.__2048CommitState__ === 'function') window.__2048CommitState__(gameState)
   }
 
   function isPowerOf2(n) {
@@ -444,7 +300,7 @@
       const highScore = Number(getStorage(getHighScoreKey(w, h))) || 0;
       gameState = initGame(highScore, loaded || undefined)
     }
-    render(gameState)
+    if (typeof window.__2048CommitState__ === 'function') window.__2048CommitState__(gameState)
     if (typeof window.__2048SetQuickSettings__ === 'function') {
       window.__2048SetQuickSettings__({ showNewTileMarker: gameState.showNewTileMarker, newTileOnMidStop: gameState.newTileOnMidStop })
     }
@@ -460,13 +316,12 @@
     }
   }
 
-  /* 工具栏「新局」由 Vue 的 onRestart 调用 __2048ApplyBoardSettings__，不再在此绑定 handleRestart */
   document.getElementById('btn-undo').addEventListener('click', handleUndo)
 
   window.__2048OnResultClose__ = function () {
     if (!gameState) return
     gameState = Object.assign({}, gameState, { overlayVisible: false, overlayMessage: '' })
-    render(gameState)
+    if (typeof window.__2048CommitState__ === 'function') window.__2048CommitState__(gameState)
   }
   window.__2048OnResultRestart__ = handleRestart
 
@@ -476,7 +331,7 @@
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault()
         gameState = Object.assign({}, gameState, { overlayVisible: false, overlayMessage: '' })
-        render(gameState)
+        if (typeof window.__2048CommitState__ === 'function') window.__2048CommitState__(gameState)
       }
       return
     }
@@ -502,7 +357,7 @@
     if (!t || !gameState || showSettings) return
     if (gameState.overlayVisible) {
       gameState = Object.assign({}, gameState, { overlayVisible: false, overlayMessage: '' })
-      render(gameState)
+      if (typeof window.__2048CommitState__ === 'function') window.__2048CommitState__(gameState)
       return
     }
     const dx = t.clientX - touchStartX;
@@ -535,5 +390,4 @@
   window.addEventListener('beforeunload', saveState)
 
   window.__2048Init__ = init
-  /* 由页面内联脚本在 Vue mount 后调用 __2048Init__()，确保 __2048SetBoardView__ 已注册后再 render */
 })()

@@ -114,8 +114,8 @@
 		</header>
 
 		<div class="main map area , flex items-near-center-x">
-			<div id="board-wrap" class="board-wrap item no-shrink">
-				<div id="board" class="board" :style="boardGridStyle">
+			<div id="board-wrap" ref="boardWrap" class="board-wrap item no-shrink">
+				<div ref="board" class="board" :style="boardGridStyle">
 					<template v-for="(cell, index) in boardCells" :key="index">
 						<div class="cell" :data-index="cell.index">
 							<div v-if="cell.value" class="tile" :class="getTileClass(cell.value)" :data-index="cell.index">
@@ -127,11 +127,18 @@
 						</div>
 					</template>
 				</div>
-				<div id="board-floating" class="board-floating"></div>
+				<div class="board-floating">
+					<template v-for="(tile, idx) in slideAnimationTiles" :key="idx">
+						<div class="floating-tile" :class="getTileClass(tile.value)" :style="floatingTileStyle(tile)">
+							<img v-if="tile.displayContent && tile.displayContent.type === 'image'" :src="tile.displayContent.src" :alt="String(tile.value)" loading="lazy">
+							<template v-else-if="tile.displayContent && tile.displayContent.type === 'text'">{{ tile.displayContent.text }}</template>
+							<template v-else>{{ tile.value }}</template>
+						</div>
+					</template>
+				</div>
 			</div>
 		</div>
 
-		<!-- 结算界面 -->
 		<el-dialog v-model="gameResultVisible" :title="gameResultMessage" class="game result" width="400px" @closed="onResultOverlayClick">
 			<p v-show="gameResultSub">{{ gameResultSub }}</p>
 			<p class="hint">点击或按 Enter 继续</p>
@@ -263,7 +270,9 @@
 		gameResultMessage: '',
 		gameResultSub: '',
 		newTileIndex: -1,
+		slideAnimationTiles: [],
 	});
+	const SLIDE_MS_PER_CELL = 80;
 	window.__2048SetGameResult__ = function (visible, message, sub) {
 		state.gameResultVisible = !!visible;
 		state.gameResultMessage = message != null ? String(message) : '';
@@ -280,6 +289,105 @@
 	};
 	window.__2048ClearNewTileIndex__ = function () {
 		state.newTileIndex = -1;
+	};
+	window.__2048ClearSlideAnimation__ = function () {
+		state.slideAnimationTiles = [];
+	};
+	window.__2048CommitState__ = function (gameState) {
+		if (!gameState) return;
+		window.__2048UpdateScores__(gameState.score, gameState.highScore, gameState.boardWidth, gameState.boardHeight);
+		window.__2048SetBoardView__(gameState.board, gameState.boardHeight, gameState.boardWidth, gameState);
+		const vis = !!(gameState.overlayVisible && gameState.overlayMessage);
+		window.__2048SetGameResult__(vis, gameState.overlayMessage || '', gameState.gameOver ? '最终得分：' + gameState.score : '');
+		const proxy = mainApp._instance && mainApp._instance.proxy;
+		if (proxy && proxy.$nextTick) {
+			proxy.$nextTick(function () {
+				const board = proxy.$refs.board;
+				const first = board && board.querySelector && board.querySelector('.cell');
+				if (first && first.offsetWidth) document.documentElement.style.setProperty('--cell-size', first.offsetWidth + 'px');
+			});
+		}
+	};
+	window.__2048GetCellPositions__ = function () {
+		const proxy = mainApp._instance && mainApp._instance.proxy;
+		if (!proxy || !proxy.$refs.boardWrap || !proxy.$refs.board) return [];
+		const wrap = proxy.$refs.boardWrap;
+		const board = proxy.$refs.board;
+		const wrapRect = wrap.getBoundingClientRect();
+		const cells = board.querySelectorAll('.cell');
+		const out = [];
+		for (let i = 0; i < cells.length; i++) {
+			const r = cells[i].getBoundingClientRect();
+			out.push({ left: r.left - wrapRect.left, top: r.top - wrapRect.top, width: r.width, height: r.height });
+		}
+		return out;
+	};
+	window.__2048RunSlideAnimation__ = function (slides, finalState, stateBeforeMove, newTileIndex, onEnd) {
+		if (!slides || !slides.length) {
+			window.__2048CommitState__(finalState);
+			if (typeof window.__2048SetNewTileIndex__ === 'function') window.__2048SetNewTileIndex__(newTileIndex);
+			if (typeof onEnd === 'function') onEnd();
+			return;
+		}
+		const displayBoard = stateBeforeMove.board.slice();
+		for (let s = 0; s < slides.length; s++) {
+			const path = slides[s].path;
+			if (path && path.length >= 2) displayBoard[path[0]] = 0;
+		}
+		window.__2048SetBoardView__(displayBoard, stateBeforeMove.boardHeight, stateBeforeMove.boardWidth, stateBeforeMove);
+		const proxy = mainApp._instance && mainApp._instance.proxy;
+		if (!proxy || !proxy.$nextTick) {
+			window.__2048CommitState__(finalState);
+			if (typeof window.__2048SetNewTileIndex__ === 'function') window.__2048SetNewTileIndex__(newTileIndex);
+			if (typeof onEnd === 'function') onEnd();
+			return;
+		}
+		proxy.$nextTick(function () {
+			const positions = window.__2048GetCellPositions__();
+			const tiles = [];
+			let maxDuration = 0;
+			for (let i = 0; i < slides.length; i++) {
+				const slide = slides[i];
+				const path = slide.path;
+				if (!path || path.length < 2) continue;
+				const fromIdx = path[0];
+				const toIdx = path[path.length - 1];
+				const duration = (path.length - 1) * SLIDE_MS_PER_CELL;
+				if (duration > maxDuration) maxDuration = duration;
+				const fromPos = positions[fromIdx];
+				const toPos = positions[toIdx];
+				if (!fromPos || !toPos) continue;
+				const displayContent = typeof window.__2048GetTileDisplayContent__ === 'function'
+					? window.__2048GetTileDisplayContent__(finalState, slide.value) : { type: 'number', value: slide.value };
+				tiles.push({
+					fromLeft: fromPos.left,
+					fromTop: fromPos.top,
+					toLeft: toPos.left,
+					toTop: toPos.top,
+					width: fromPos.width,
+					height: fromPos.height,
+					duration: duration,
+					value: slide.value,
+					displayContent: displayContent,
+					currentLeft: fromPos.left,
+					currentTop: fromPos.top,
+				});
+			}
+			state.slideAnimationTiles = tiles;
+			proxy.$nextTick(function () {
+				for (let j = 0; j < state.slideAnimationTiles.length; j++) {
+					const t = state.slideAnimationTiles[j];
+					t.currentLeft = t.toLeft;
+					t.currentTop = t.toTop;
+				}
+			});
+			setTimeout(function () {
+				state.slideAnimationTiles = [];
+				window.__2048CommitState__(finalState);
+				if (typeof window.__2048SetNewTileIndex__ === 'function') window.__2048SetNewTileIndex__(newTileIndex);
+				if (typeof onEnd === 'function') onEnd();
+			}, maxDuration + 50);
+		});
 	};
 	window.__2048UpdateScores__ = function (score, highScore, boardWidth, boardHeight) {
 		state.score = score;
@@ -335,7 +443,7 @@
 		},
 		methods: {
 			onBoardSettingChange() {
-				/* 仅更新 Vue 状态，不立即开新局；点击「新局」时才应用 */
+				/* 开新局由用户点「新局」触发，此处只记设置 */
 			},
 			onRestart() {
 				if (typeof window.__2048ApplyBoardSettings__ === 'function') {
@@ -478,6 +586,17 @@
 			},
 			getTileClass(value) {
 				return typeof window.__2048GetTileClass__ === 'function' ? window.__2048GetTileClass__(value) : 'tile-2';
+			},
+			floatingTileStyle(tile) {
+				if (!tile) return {};
+				const d = (tile.duration || 0) + 'ms';
+				return {
+					left: (tile.currentLeft != null ? tile.currentLeft : tile.fromLeft) + 'px',
+					top: (tile.currentTop != null ? tile.currentTop : tile.fromTop) + 'px',
+					width: (tile.width || 0) + 'px',
+					height: (tile.height || 0) + 'px',
+					transition: 'left ' + d + ' linear, top ' + d + ' linear',
+				};
 			},
 			tileDisplayContent(cell) {
 				const s = state.lastStateForDisplay;
