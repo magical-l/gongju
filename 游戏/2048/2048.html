@@ -120,17 +120,19 @@
 						<div v-if="cell.unit" class="unit" :class="'unit-' + cell.unit.val" :data-index="cell.index">
 							<img v-if="cell.unit.image" :src="cell.unit.image" :alt="cell.unit.text" loading="lazy">
 							<template v-else>{{ cell.unit.text }}</template>
+							<span v-if="showNewTileMarker && cell.unit.isNew" class="new-badge">!</span>
 						</div>
-						<span v-if="showNewTileMarker && cell.unit && cell.unit.isNew" class="unit-new-badge">!</span>
 					</div>
 				</template>
 			</div>
 			<!-- 滑动动画层：与 .board 同级的浮层，用于播放方块滑动动画 -->
 			<div class="slide-layer">
-				<template v-for="(tile, idx) in slideAnimationTiles" :key="idx">
-					<div class="unit" :class="'unit-' + tile.value" :style="floatingTileStyle(tile)">
-						<img v-if="tile.displayImage" :src="tile.displayImage" :alt="tile.displayText" loading="lazy">
-						<template v-else>{{ tile.displayText }}</template>
+				<template v-for="(unit, idx) in slideAnimationTiles" :key="idx">
+					<div class="cell" :style="floatingUnitStyle(unit)">
+						<div class="unit" :class="'unit-' + unit.value">
+							<img v-if="unit.displayImage" :src="unit.displayImage" :alt="unit.displayText" loading="lazy">
+							<template v-else>{{ unit.displayText }}</template>
+						</div>
 					</div>
 				</template>
 			</div>
@@ -144,37 +146,37 @@
 			</template>
 		</el-dialog>
 
-		<el-dialog title="自定义数字显示" v-model="customTilesDialogVisible" class="custom tile area" width="90%" align-center @opened="onCustomTilesDialogOpened">
+		<el-dialog title="自定义数字显示" v-model="customTilesDialogVisible" class="unit-dialog" width="90%" align-center @opened="onCustomTilesDialogOpened">
 			<p class="hint">可为每个数字设置自定义显示文字、图片 URL 或本地选图（图片优先）；留空则显示原数字。修改后失焦或选图即生效。 <el-button type="danger" size="small" @click="clearAllCustom">清除全部</el-button></p>
-			<input ref="tileFileInput" type="file" accept="image/*" class="hidden" @change="onTileFileChange">
-			<div class="custom tile list">
+			<input ref="unitFileInput" type="file" accept="image/*" class="hidden" @change="onUnitFileChange">
+			<div class="list">
 				<template v-for="pu in previewUnits" :key="pu.key">
-					<div class="custom tile card">
-						<div class="custom tile card-num">数字 {{ pu.key }}</div>
-						<div class="custom tile row">
-							<div class="custom tile preview-wrap">
-								<div class="custom tile preview unit" :class="['unit-' + pu.key, { 'preview-error': previewImageErrors[pu.key] }]">
+					<div class="card">
+						<div class="card-num">数字 {{ pu.key }}</div>
+						<div class="row">
+							<div class="preview-wrap cell">
+								<div class="unit" :class="['unit-' + pu.key, { 'preview-error': previewImageErrors[pu.key] }]">
 									<img v-if="pu.image" :src="pu.image" :alt="pu.text" loading="lazy" @error="previewImageErrors[pu.key]=true">
 									<template v-else>{{ pu.text }}</template>
 								</div>
-								<button type="button" class="custom tile clear-btn" @click="clearCustomTile(pu.key)">×</button>
+								<button type="button" class="clear-btn" @click="clearCustomTile(pu.key)">×</button>
 							</div>
-							<div class="custom tile fields">
-								<input type="text" class="custom tile label" :value="customLabels[pu.key] || ''" @input="onCustomLabelInput(pu.key, $event.target.value)" @blur="applyCustomTiles" :placeholder="customTileLabelPlaceholder()" :maxlength="customLabelMaxLen()">
-								<div class="custom tile row-or"><span class="custom tile or">或</span>
-									<input type="text" class="custom tile image" :value="customImageDisplayValue(pu.key)" @input="onCustomImageInput(pu.key, $event.target.value)" @blur="applyCustomTiles" :placeholder="customImagePlaceholder(pu.key)">
+							<div class="fields">
+								<input type="text" class="label" :value="customLabels[pu.key] || ''" @input="onCustomLabelInput(pu.key, $event.target.value)" @blur="applyCustomTiles" :placeholder="customTileLabelPlaceholder()" :maxlength="customLabelMaxLen()">
+								<div class="row-or"><span class="or">或</span>
+									<input type="text" class="image" :value="customImageDisplayValue(pu.key)" @input="onCustomImageInput(pu.key, $event.target.value)" @blur="applyCustomTiles" :placeholder="customImagePlaceholder(pu.key)">
 								</div>
-								<div class="custom tile row-or"><span class="custom tile or">或</span>
-									<span class="custom tile file-wrap">
-										<button type="button" class="btn btn-secondary custom tile pick-file" @click="openTileFilePicker(pu.key)">{{ customTilePickImageLabel() }}</button>
+								<div class="row-or"><span class="or">或</span>
+									<span class="file-wrap">
+										<button type="button" class="btn btn-secondary pick-file" @click="openTileFilePicker(pu.key)">{{ customTilePickImageLabel() }}</button>
 									</span>
 								</div>
 							</div>
 						</div>
 					</div>
 				</template>
-				<div class="custom tile card add-next">
-					<button type="button" class="btn btn-secondary custom tile add-next-btn" :disabled="!canAddNextCustomTile" :title="canAddNextCustomTile ? '添加下一个数字' : '已达上限'" @click="addNextCustomTile">+</button>
+				<div class="card add-next">
+					<button type="button" class="btn btn-secondary add-next-btn" :disabled="!canAddNextCustomTile" :title="canAddNextCustomTile ? '添加下一个数字' : '已达上限'" @click="addNextCustomTile">+</button>
 				</div>
 			</div>
 		</el-dialog>
@@ -430,11 +432,11 @@ window.Game2048 = Game2048;
 			openTileFilePicker(key) {
 				state.pendingFileKey = key;
 				this.$nextTick(function () {
-					const input = this.$refs.tileFileInput;
+					const input = this.$refs.unitFileInput;
 					if (input && input.click) input.click();
 				}.bind(this));
 			},
-			onTileFileChange(e) {
+			onUnitFileChange(e) {
 				const key = state.pendingFileKey;
 				state.pendingFileKey = null;
 				const input = e && e.target;
@@ -482,14 +484,14 @@ window.Game2048 = Game2048;
 					}
 				} catch (_) {}
 			},
-			floatingTileStyle(tile) {
-				if (!tile) return {};
-				const d = (tile.duration || 0) + 'ms';
+			floatingUnitStyle(unit) {
+				if (!unit) return {};
+				const d = (unit.duration || 0) + 'ms';
 				return {
-					left: (tile.currentLeft != null ? tile.currentLeft : tile.fromLeft) + 'px',
-					top: (tile.currentTop != null ? tile.currentTop : tile.fromTop) + 'px',
-					width: (tile.width || 0) + 'px',
-					height: (tile.height || 0) + 'px',
+					left: (unit.currentLeft != null ? unit.currentLeft : unit.fromLeft) + 'px',
+					top: (unit.currentTop != null ? unit.currentTop : unit.fromTop) + 'px',
+					width: (unit.width || 0) + 'px',
+					height: (unit.height || 0) + 'px',
 					transition: 'left ' + d + ' linear, top ' + d + ' linear',
 				};
 			},
