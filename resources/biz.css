@@ -157,24 +157,34 @@ main > article > header.toolbar {
 	gap: 0.75rem;
 }
 
-/* ======================================= 游戏信息区 ================================== */
-.gaming.info .el-collapse {
+/* ======================================= 游戏信息区（article.gaming.area > aside.right-sidebar）================================== */
+article.gaming.area .right-sidebar .el-collapse {
 	border-top: none;
 	border-bottom: none;
 }
 
-.gaming.info .el-collapse-item:last-child .el-collapse-item__header,
-.gaming.info .el-collapse-item:last-child .el-collapse-item__wrap {
+article.gaming.area .right-sidebar .el-collapse-item:last-child .el-collapse-item__header,
+article.gaming.area .right-sidebar .el-collapse-item:last-child .el-collapse-item__wrap {
 	border-bottom: none;
 }
 
-.gaming.info .el-collapse-item__header {
+article.gaming.area .right-sidebar .el-collapse-item__header {
 	font-weight: 600;
 	font-size: 1.2rem;
 }
 
-.gaming.info .el-collapse-item__header:focus {
+article.gaming.area .right-sidebar .el-collapse-item__header:focus {
 	color: var(--el-collapse-header-text-color);
+}
+
+/* 记分牌分数：醒目显示，各游戏通用 */
+.scoreboard .score.value {
+	margin: 0;
+	font-size: 1.75rem;
+	font-weight: bold;
+	line-height: 1.2;
+	display: block;
+	text-align: center;
 }
 
 /*=================================与primevue有关=================================*/
