@@ -51,7 +51,12 @@
   let pendingSettings = {};
   let slideAnimationActive = false;
 
-  const boardWrapEl = document.getElementById('board-wrap');
+  function gestureDirection(dx, dy) {
+    const ax = Math.abs(dx);
+    const ay = Math.abs(dy);
+    if (Math.max(ax, ay) < MIN_SWIPE_PX) return null;
+    return ax >= ay ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+  }
 
   function runSlideAnimation(slides, finalState, stateBeforeMove, newTileIndex) {
     if (slideAnimationActive || !slides || !slides.length) {
@@ -251,8 +256,8 @@
   }
 
   function getCustomTileKeysForList() {
-    const baseKeys = getTileImageKeys(pendingSettings.targetNumber);
-    const maxBase = baseKeys.length ? parseInt(baseKeys[baseKeys.length - 1], 10) : 2;
+    const baseKeys = getTileImageKeys(2048);
+    const maxBase = 2048;
     const extra = {};
     let keys = pendingSettings.customLabels && typeof pendingSettings.customLabels === 'object' ? Object.keys(
       pendingSettings.customLabels) : [];
@@ -316,7 +321,22 @@
     }
   }
 
-  document.getElementById('btn-undo').addEventListener('click', handleUndo)
+  /* 页面与本文件为不同脚本作用域，Vue 无法直接访问此处函数，故通过唯一全局对象供其调用 */
+  window.Game2048 = {
+    move: handleMove,
+    undo: handleUndo,
+    onGesture: function (dx, dy) {
+      if (showSettings) return;
+      if (!gameState) return;
+      if (gameState.overlayVisible) {
+        gameState = Object.assign({}, gameState, { overlayVisible: false, overlayMessage: '' });
+        if (typeof window.__2048CommitState__ === 'function') window.__2048CommitState__(gameState);
+        return;
+      }
+      const dir = gestureDirection(dx, dy);
+      if (dir) handleMove(dir);
+    }
+  };
 
   window.__2048OnResultClose__ = function () {
     if (!gameState) return
@@ -344,47 +364,6 @@
       e.preventDefault()
       handleMove(direction)
     }
-  })
-
-  let touchStartX = 0;
-  let touchStartY = 0;
-  boardWrapEl.addEventListener('touchstart', function (e) {
-    const t = e.touches[0];
-    if (t) { touchStartX = t.clientX; touchStartY = t.clientY }
-  }, { passive: true })
-  boardWrapEl.addEventListener('touchend', function (e) {
-    const t = e.changedTouches[0];
-    if (!t || !gameState || showSettings) return
-    if (gameState.overlayVisible) {
-      gameState = Object.assign({}, gameState, { overlayVisible: false, overlayMessage: '' })
-      if (typeof window.__2048CommitState__ === 'function') window.__2048CommitState__(gameState)
-      return
-    }
-    const dx = t.clientX - touchStartX;
-    const dy = t.clientY - touchStartY;
-    const ax = Math.abs(dx);
-    const ay = Math.abs(dy);
-    if (Math.max(ax, ay) < MIN_SWIPE_PX) return
-    const dir = ax >= ay ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
-    handleMove(dir)
-  }, { passive: true })
-
-  let mouseDownX = 0;
-  let mouseDownY = 0;
-  boardWrapEl.addEventListener('mousedown', function (e) {
-    mouseDownX = e.clientX
-    mouseDownY = e.clientY
-  })
-  boardWrapEl.addEventListener('mouseup', function (e) {
-    if (!gameState || showSettings) return
-    if (gameState.overlayVisible) return
-    const dx = e.clientX - mouseDownX;
-    const dy = e.clientY - mouseDownY;
-    const ax = Math.abs(dx);
-    const ay = Math.abs(dy);
-    if (Math.max(ax, ay) < MIN_SWIPE_PX) return
-    const dir = ax >= ay ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
-    handleMove(dir)
   })
 
   window.addEventListener('beforeunload', saveState)

@@ -86,7 +86,7 @@
 			<section class="controller list area , flex single-line no-gap items-near-start-x items-near-center-y">
 				<div class="one controller group">
 					<el-form-item class="one controller : undo">
-						<el-button id="btn-undo">撤销</el-button>
+						<el-button @click="onUndo">撤销</el-button>
 					</el-form-item>
 				</div>
 			</section>
@@ -114,32 +114,28 @@
 		</header>
 
 		<div class="main map area , flex items-near-center-x">
-			<div id="board-wrap" ref="boardWrap" class="board-wrap item no-shrink">
+			<div ref="boardWrap" class="board-wrap item no-shrink">
 				<div ref="board" class="board" :style="boardGridStyle">
 					<template v-for="(cell, index) in boardCells" :key="index">
 						<div class="cell" :data-index="cell.index">
 							<div v-if="cell.value" class="tile" :class="getTileClass(cell.value)" :data-index="cell.index">
-								<img v-if="tileDisplayContent(cell).type === 'image'" :src="tileDisplayContent(cell).src" :alt="String(cell.value)" loading="lazy">
-								<template v-else-if="tileDisplayContent(cell).type === 'text'">{{ tileDisplayContent(cell).text }}</template>
-								<template v-else>{{ cell.value }}</template>
-								<span v-if="showNewTileMarker && cell.index === newTileIndex" class="tile-new-badge">!</span>
+								<tile-content :content="tileDisplayContent(cell)" />
 							</div>
+							<span v-if="isNewTileCell(cell)" class="tile-new-badge">!</span>
 						</div>
 					</template>
 				</div>
-				<div class="board-floating">
+				<div class="tile-overlay">
 					<template v-for="(tile, idx) in slideAnimationTiles" :key="idx">
-						<div class="floating-tile" :class="getTileClass(tile.value)" :style="floatingTileStyle(tile)">
-							<img v-if="tile.displayContent && tile.displayContent.type === 'image'" :src="tile.displayContent.src" :alt="String(tile.value)" loading="lazy">
-							<template v-else-if="tile.displayContent && tile.displayContent.type === 'text'">{{ tile.displayContent.text }}</template>
-							<template v-else>{{ tile.value }}</template>
+						<div class="tile" :class="getTileClass(tile.value)" :style="floatingTileStyle(tile)">
+							<tile-content :content="tile.displayContent" />
 						</div>
 					</template>
 				</div>
 			</div>
 		</div>
 
-		<el-dialog v-model="gameResultVisible" :title="gameResultMessage" class="game result" width="400px" @closed="onResultOverlayClick">
+		<el-dialog v-model="gameResultVisible" :title="gameResultMessage" class="game result" width="400px" align-center @closed="onResultOverlayClick">
 			<p v-show="gameResultSub">{{ gameResultSub }}</p>
 			<p class="hint">点击或按 Enter 继续</p>
 			<template #footer>
@@ -147,8 +143,8 @@
 			</template>
 		</el-dialog>
 
-		<el-dialog title="自定义数字显示" v-model="customTilesDialogVisible" class="custom tile area" width="90%" @opened="onCustomTilesDialogOpened">
-			<p class="hint">可为每个数字设置自定义显示文字、图片 URL 或本地选图（图片优先）；留空则显示原数字。修改后失焦或选图即生效。</p>
+		<el-dialog title="自定义数字显示" v-model="customTilesDialogVisible" class="custom tile area" width="90%" align-center @opened="onCustomTilesDialogOpened">
+			<p class="hint">可为每个数字设置自定义显示文字、图片 URL 或本地选图（图片优先）；留空则显示原数字。修改后失焦或选图即生效。 <el-button type="danger" size="small" @click="clearAllCustom">清除全部</el-button></p>
 			<input ref="tileFileInput" type="file" accept="image/*" class="hidden" @change="onTileFileChange">
 			<div class="custom tile list">
 				<template v-for="key in customTileKeys" :key="key">
@@ -156,10 +152,8 @@
 						<div class="custom tile card-num">数字 {{ key }}</div>
 						<div class="custom tile row">
 							<div class="custom tile preview-wrap">
-								<div class="custom tile preview" :class="getTileClass(Number(key))">
-									<img v-if="(customImages[key] || '').trim()" :src="(customImages[key] || '').trim()" :alt="key" loading="lazy" @error="($event.target).classList.add('preview-error')">
-									<template v-else-if="(customLabels[key] || '').trim()">{{ (customLabels[key] || '').trim() }}</template>
-									<template v-else>{{ key }}</template>
+								<div class="custom tile preview" :class="[getTileClass(Number(key)), { 'preview-error': previewImageErrors[key] }]">
+									<tile-content :content="previewContent(key)" @error="previewImageErrors[key]=true" />
 								</div>
 								<button type="button" class="custom tile clear-btn" @click="clearCustomTile(key)">×</button>
 							</div>
@@ -181,10 +175,6 @@
 					<button type="button" class="btn btn-secondary custom tile add-next-btn" :disabled="!canAddNextCustomTile" :title="canAddNextCustomTile ? '添加下一个数字' : '已达上限'" @click="addNextCustomTile">+</button>
 				</div>
 			</div>
-			<footer class="flex">
-				<el-button type="danger" @click="clearAllCustomLabels">清除全部文字</el-button>
-				<el-button type="danger" @click="clearAllCustomImages">清除全部图片</el-button>
-			</footer>
 		</el-dialog>
 
 		<aside class="right-sidebar">
@@ -235,7 +225,7 @@
 </div>
 <script>
 (function () {
-	const { createApp, reactive } = Vue;
+	const { createApp, reactive, ref } = Vue;
 	const collapseKey = 'gaming-info-2048';
 	const defaultPanels = ['shortcut', 'gaming info'];
 	let saved;
@@ -269,9 +259,10 @@
 		gameResultVisible: false,
 		gameResultMessage: '',
 		gameResultSub: '',
-		newTileIndex: -1,
 		slideAnimationTiles: [],
+		previewImageErrors: {},
 	});
+	const newTileIndexRef = ref(-1);
 	const SLIDE_MS_PER_CELL = 80;
 	window.__2048SetGameResult__ = function (visible, message, sub) {
 		state.gameResultVisible = !!visible;
@@ -285,10 +276,11 @@
 		state.lastStateForDisplay = gameState;
 	};
 	window.__2048SetNewTileIndex__ = function (index) {
-		state.newTileIndex = index == null ? -1 : index;
+		const val = index == null || index < 0 ? -1 : Number(index);
+		newTileIndexRef.value = val;
 	};
 	window.__2048ClearNewTileIndex__ = function () {
-		state.newTileIndex = -1;
+		newTileIndexRef.value = -1;
 	};
 	window.__2048ClearSlideAnimation__ = function () {
 		state.slideAnimationTiles = [];
@@ -383,8 +375,8 @@
 			});
 			setTimeout(function () {
 				state.slideAnimationTiles = [];
-				window.__2048CommitState__(finalState);
 				if (typeof window.__2048SetNewTileIndex__ === 'function') window.__2048SetNewTileIndex__(newTileIndex);
+				window.__2048CommitState__(finalState);
 				if (typeof onEnd === 'function') onEnd();
 			}, maxDuration + 50);
 		});
@@ -410,6 +402,13 @@
 		}
 	};
 	const mainApp = createApp({
+		components: {
+			TileContent: {
+				props: ['content'],
+				emits: ['error'],
+				template: '<img v-if="content && content.type===\'image\'" :src="content.src" :alt="String(content.value)" loading="lazy" @error="$emit(\'error\')"><template v-else-if="content && content.type===\'text\'">{{ content.text }}</template><template v-else>{{ content && content.value }}</template>'
+			}
+		},
 		data: () => state,
 		computed: {
 			quickSettingsList() {
@@ -431,6 +430,9 @@
 			},
 			boardCells() {
 				return state.boardView.cells || [];
+			},
+			newTileIndex() {
+				return newTileIndexRef.value;
 			},
 			boardGridStyle() {
 				const r = state.boardView.rows || 4;
@@ -467,6 +469,7 @@
 				state.customTilesDialogVisible = true;
 			},
 			onCustomTilesDialogOpened() {
+				state.previewImageErrors = {};
 				if (typeof window.__2048OpenCustomTiles__ === 'function') window.__2048OpenCustomTiles__();
 				const fn = window.__2048GetPendingCustomTilesForVue__;
 				if (typeof fn === 'function') {
@@ -518,6 +521,7 @@
 					state.customImages[key] = v;
 					if (state.customLabels) delete state.customLabels[key];
 				} else if (state.customImages) delete state.customImages[key];
+				delete state.previewImageErrors[key];
 				this.syncCustomTilesToDom();
 			},
 			clearCustomTile(key) {
@@ -561,13 +565,10 @@
 				state.customTileKeys.push(nextKey);
 				this.syncCustomTilesToDom();
 			},
-			clearAllCustomLabels() {
+			clearAllCustom() {
 				state.customLabels = {};
-				this.syncCustomTilesToDom();
-				if (typeof window.__2048ApplyCustomTiles__ === 'function') window.__2048ApplyCustomTiles__();
-			},
-			clearAllCustomImages() {
 				state.customImages = {};
+				state.previewImageErrors = {};
 				this.syncCustomTilesToDom();
 				if (typeof window.__2048ApplyCustomTiles__ === 'function') window.__2048ApplyCustomTiles__();
 			},
@@ -587,6 +588,12 @@
 			getTileClass(value) {
 				return typeof window.__2048GetTileClass__ === 'function' ? window.__2048GetTileClass__(value) : 'tile-2';
 			},
+			isNewTileCell(cell) {
+				if (!this.showNewTileMarker || !cell) return false;
+				const idx = Number(cell.index);
+				const cur = Number(this.newTileIndex);
+				return cur >= 0 && idx === cur;
+			},
 			floatingTileStyle(tile) {
 				if (!tile) return {};
 				const d = (tile.duration || 0) + 'ms';
@@ -605,12 +612,42 @@
 				}
 				return { type: 'number', value: cell.value };
 			},
+			previewContent(key) {
+				const s = { customLabels: state.customLabels, customImages: state.customImages };
+				return typeof window.__2048GetTileDisplayContent__ === 'function'
+					? window.__2048GetTileDisplayContent__(s, Number(key)) : { type: 'number', value: Number(key) };
+			},
 			onResultOverlayClick() {
 				if (typeof window.__2048OnResultClose__ === 'function') window.__2048OnResultClose__();
 			},
 			onResultRestart() {
 				if (typeof window.__2048OnResultRestart__ === 'function') window.__2048OnResultRestart__();
 			},
+			onUndo() {
+				if (window.Game2048 && typeof window.Game2048.undo === 'function') window.Game2048.undo();
+			},
+		},
+		mounted() {
+			this.$nextTick(() => {
+				const wrap = this.$refs.boardWrap;
+				const api = window.Game2048;
+				if (!wrap || !api || typeof api.onGesture !== 'function') return;
+				let touchStartX = 0, touchStartY = 0;
+				wrap.addEventListener('touchstart', (e) => {
+					const t = e.touches[0];
+					if (t) { touchStartX = t.clientX; touchStartY = t.clientY; }
+				}, { passive: true });
+				wrap.addEventListener('touchend', (e) => {
+					const t = e.changedTouches[0];
+					if (!t) return;
+					api.onGesture(t.clientX - touchStartX, t.clientY - touchStartY);
+				}, { passive: true });
+				let mouseDownX = 0, mouseDownY = 0;
+				wrap.addEventListener('mousedown', (e) => { mouseDownX = e.clientX; mouseDownY = e.clientY; });
+				wrap.addEventListener('mouseup', (e) => {
+					api.onGesture(e.clientX - mouseDownX, e.clientY - mouseDownY);
+				});
+			});
 		},
 	});
 	mainApp.use(ElementPlus);

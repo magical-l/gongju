@@ -82,9 +82,7 @@ article.gaming.area .board .cell::after {
   pointer-events: none;
 }
 
-/* 棋盘格与浮动格共用：基础 + 字号；tile 颜色见下方统一块 */
-article.gaming.area .board .tile,
-article.gaming.area .board-floating .floating-tile {
+.tile {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -99,50 +97,32 @@ article.gaming.area .board .tile {
   position: absolute;
   inset: var(--grid-gap);
 }
-article.gaming.area .board-floating .floating-tile {
+article.gaming.area .tile-overlay .tile {
   position: absolute;
   transition: left 0.08s linear, top 0.08s linear;
 }
 
-/* 棋盘格 / 浮动格 / 设置预览 共用 tile 颜色 */
-article.gaming.area .board .tile.tile-2,
-article.gaming.area .board-floating .floating-tile.tile-2,
-.custom.tile.preview.tile-2 { background: #e2ead8; color: #5a6b52; }
-article.gaming.area .board .tile.tile-4,
-article.gaming.area .board-floating .floating-tile.tile-4,
-.custom.tile.preview.tile-4 { background: #d4e0c8; color: #5a6b52; }
-article.gaming.area .board .tile.tile-8,
-article.gaming.area .board-floating .floating-tile.tile-8,
-.custom.tile.preview.tile-8 { background: #a8c99e; }
-article.gaming.area .board .tile.tile-16,
-article.gaming.area .board-floating .floating-tile.tile-16,
-.custom.tile.preview.tile-16 { background: #8fbc85; }
-article.gaming.area .board .tile.tile-32,
-article.gaming.area .board-floating .floating-tile.tile-32,
-.custom.tile.preview.tile-32 { background: #7cb37a; }
-article.gaming.area .board .tile.tile-64,
-article.gaming.area .board-floating .floating-tile.tile-64,
-.custom.tile.preview.tile-64 { background: #6ba36b; }
-article.gaming.area .board .tile.tile-128,
-article.gaming.area .board-floating .floating-tile.tile-128,
-.custom.tile.preview.tile-128 { background: #9cb87c; }
-article.gaming.area .board .tile.tile-256,
-article.gaming.area .board-floating .floating-tile.tile-256,
-.custom.tile.preview.tile-256 { background: #8ab06e; }
-article.gaming.area .board .tile.tile-512,
-article.gaming.area .board-floating .floating-tile.tile-512,
-.custom.tile.preview.tile-512 { background: #7aa862; }
-article.gaming.area .board .tile.tile-1024,
-article.gaming.area .board-floating .floating-tile.tile-1024,
-.custom.tile.preview.tile-1024 { background: #6a9f56; }
-article.gaming.area .board .tile.tile-2048,
-article.gaming.area .board-floating .floating-tile.tile-2048,
-.custom.tile.preview.tile-2048 { background: #5a8f4a; }
-article.gaming.area .board .tile.tile-super,
-article.gaming.area .board-floating .floating-tile.tile-super,
-.custom.tile.preview.tile-super { background: #4a5a42; }
+.tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
 
-article.gaming.area .tile-new-badge {
+.tile.tile-2 { background: #e2ead8; color: #5a6b52; }
+.tile.tile-4 { background: #d4e0c8; color: #5a6b52; }
+.tile.tile-8 { background: #a8c99e; }
+.tile.tile-16 { background: #8fbc85; }
+.tile.tile-32 { background: #7cb37a; }
+.tile.tile-64 { background: #6ba36b; }
+.tile.tile-128 { background: #9cb87c; }
+.tile.tile-256 { background: #8ab06e; }
+.tile.tile-512 { background: #7aa862; }
+.tile.tile-1024 { background: #6a9f56; }
+.tile.tile-2048 { background: #5a8f4a; }
+.tile.tile-super { background: #4a5a42; }
+
+.tile-new-badge {
   position: absolute;
   top: 2px;
   right: 2px;
@@ -159,9 +139,10 @@ article.gaming.area .tile-new-badge {
   justify-content: center;
   line-height: 1;
   pointer-events: none;
+  z-index: 2;
 }
 
-article.gaming.area .board-floating {
+article.gaming.area .tile-overlay {
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -169,6 +150,24 @@ article.gaming.area .board-floating {
   padding: var(--board-padding);
 }
 
+
+/* 结算 / 数字显示 等弹框：视口居中，避免整页纵向滚动 */
+.el-dialog__wrapper {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+}
+.el-dialog__wrapper .el-dialog {
+  margin: 0 !important;
+  margin-top: 0 !important;
+  top: auto !important;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.el-dialog__wrapper.is-align-center .el-dialog {
+  margin: 0 !important;
+}
 
 /* 结算 dialog：提示文案（自有类，不依赖库内部类） */
 .game.result .hint {
@@ -213,10 +212,10 @@ article.gaming.area .board-floating {
   min-height: 120px;
 }
 .custom.tile.add-next-btn {
-  width: 48px;
-  height: 48px;
+  width: 64px;
+  height: 64px;
   padding: 0;
-  font-size: 24px;
+  font-size: 32px;
   line-height: 1;
   border-radius: 50%;
   flex-shrink: 0;
@@ -246,18 +245,9 @@ article.gaming.area .board-floating {
   height: var(--cell-size, 80px);
   min-width: 48px;
   min-height: 48px;
-  border-radius: var(--tile-radius);
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
   font-size: clamp(12px, 3vw, 20px);
-  color: var(--text-light);
-  user-select: none;
-  -webkit-user-select: none;
 }
-/* tile 颜色已与 .board .tile / .board-floating .floating-tile 合并到上方共用块 */
 .custom.tile.preview img {
   width: 100%;
   height: 100%;
@@ -347,11 +337,3 @@ article.gaming.area .board-floating {
   opacity: 0.9;
 }
 
-/* 格子内自定义图片 */
-article.gaming.area .board .tile img,
-article.gaming.area .board-floating .floating-tile img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-}
