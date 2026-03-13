@@ -117,18 +117,20 @@
 			<div ref="board" class="board" :style="boardGridStyle">
 				<template v-for="(cell, index) in boardCells" :key="index">
 					<div class="cell" :data-index="cell.index">
-						<div v-if="cell.value" class="tile" :class="getTileClass(cell.value)" :data-index="cell.index">
-							<tile-content :content="tileDisplayContent(cell)" />
+						<div v-if="cell.unit" class="unit" :class="'unit-' + cell.unit.val" :data-index="cell.index">
+							<img v-if="cell.unit.image" :src="cell.unit.image" :alt="cell.unit.text" loading="lazy">
+							<template v-else>{{ cell.unit.text }}</template>
 						</div>
-						<span v-if="isNewTileCell(cell)" class="tile-new-badge">!</span>
+						<span v-if="showNewTileMarker && cell.unit && cell.unit.isNew" class="unit-new-badge">!</span>
 					</div>
 				</template>
 			</div>
 			<!-- 滑动动画层：与 .board 同级的浮层，用于播放方块滑动动画 -->
 			<div class="slide-layer">
 				<template v-for="(tile, idx) in slideAnimationTiles" :key="idx">
-					<div class="tile" :class="getTileClass(tile.value)" :style="floatingTileStyle(tile)">
-						<tile-content :content="tile.displayContent" />
+					<div class="unit" :class="'unit-' + tile.value" :style="floatingTileStyle(tile)">
+						<img v-if="tile.displayImage" :src="tile.displayImage" :alt="tile.displayText" loading="lazy">
+						<template v-else>{{ tile.displayText }}</template>
 					</div>
 				</template>
 			</div>
@@ -146,24 +148,25 @@
 			<p class="hint">可为每个数字设置自定义显示文字、图片 URL 或本地选图（图片优先）；留空则显示原数字。修改后失焦或选图即生效。 <el-button type="danger" size="small" @click="clearAllCustom">清除全部</el-button></p>
 			<input ref="tileFileInput" type="file" accept="image/*" class="hidden" @change="onTileFileChange">
 			<div class="custom tile list">
-				<template v-for="key in customTileKeys" :key="key">
+				<template v-for="pu in previewUnits" :key="pu.key">
 					<div class="custom tile card">
-						<div class="custom tile card-num">数字 {{ key }}</div>
+						<div class="custom tile card-num">数字 {{ pu.key }}</div>
 						<div class="custom tile row">
 							<div class="custom tile preview-wrap">
-								<div class="custom tile preview" :class="[getTileClass(Number(key)), { 'preview-error': previewImageErrors[key] }]">
-									<tile-content :content="previewContent(key)" @error="previewImageErrors[key]=true" />
+								<div class="custom tile preview unit" :class="['unit-' + pu.key, { 'preview-error': previewImageErrors[pu.key] }]">
+									<img v-if="pu.image" :src="pu.image" :alt="pu.text" loading="lazy" @error="previewImageErrors[pu.key]=true">
+									<template v-else>{{ pu.text }}</template>
 								</div>
-								<button type="button" class="custom tile clear-btn" @click="clearCustomTile(key)">×</button>
+								<button type="button" class="custom tile clear-btn" @click="clearCustomTile(pu.key)">×</button>
 							</div>
 							<div class="custom tile fields">
-								<input type="text" class="custom tile label" :value="customLabels[key] || ''" @input="onCustomLabelInput(key, $event.target.value)" @blur="applyCustomTiles" :placeholder="customTileLabelPlaceholder()" :maxlength="customLabelMaxLen()">
+								<input type="text" class="custom tile label" :value="customLabels[pu.key] || ''" @input="onCustomLabelInput(pu.key, $event.target.value)" @blur="applyCustomTiles" :placeholder="customTileLabelPlaceholder()" :maxlength="customLabelMaxLen()">
 								<div class="custom tile row-or"><span class="custom tile or">或</span>
-									<input type="text" class="custom tile image" :value="customImageDisplayValue(key)" @input="onCustomImageInput(key, $event.target.value)" @blur="applyCustomTiles" :placeholder="customImagePlaceholder(key)">
+									<input type="text" class="custom tile image" :value="customImageDisplayValue(pu.key)" @input="onCustomImageInput(pu.key, $event.target.value)" @blur="applyCustomTiles" :placeholder="customImagePlaceholder(pu.key)">
 								</div>
 								<div class="custom tile row-or"><span class="custom tile or">或</span>
 									<span class="custom tile file-wrap">
-										<button type="button" class="btn btn-secondary custom tile pick-file" @click="openTileFilePicker(key)">{{ customTilePickImageLabel() }}</button>
+										<button type="button" class="btn btn-secondary custom tile pick-file" @click="openTileFilePicker(pu.key)">{{ customTilePickImageLabel() }}</button>
 									</span>
 								</div>
 							</div>
@@ -265,13 +268,6 @@ window.Game2048 = Game2048;
 	const newTileIndexRef = ref(-1);
 	const SLIDE_MS_PER_CELL = 80;
 	const mainApp = createApp({
-		components: {
-			TileContent: {
-				props: ['content'],
-				emits: ['error'],
-				template: '<img v-if="content && content.type===\'image\'" :src="content.src" :alt="String(content.value)" loading="lazy" @error="$emit(\'error\')"><template v-else-if="content && content.type===\'text\'">{{ content.text }}</template><template v-else>{{ content && content.value }}</template>'
-			}
-		},
 		data: () => state,
 		computed: {
 			quickSettingsList() {
@@ -292,10 +288,45 @@ window.Game2048 = Game2048;
 				return maxKey * 2 <= 1048576;
 			},
 			boardCells() {
-				return state.boardView.cells || [];
+				const cells = state.boardView.cells || [];
+				const newIdx = newTileIndexRef.value;
+				const s = state.lastStateForDisplay;
+				const getDisplay = window.Game2048 && typeof window.Game2048.getTileDisplayContent === 'function'
+					? function (v) { return window.Game2048.getTileDisplayContent(s, v); } : null;
+				return cells.map(function (c) {
+					if (!c.value) return { index: c.index, value: 0, unit: null };
+					const content = getDisplay ? getDisplay(c.value) : { type: 'number', value: c.value };
+					let text = String(c.value);
+					let image = undefined;
+					if (content) {
+						if (content.type === 'image') { image = content.src; text = String(c.value); }
+						else if (content.type === 'text') text = content.text;
+						else text = String(content.value != null ? content.value : c.value);
+					}
+					const unit = { val: c.value, isNew: c.index === newIdx, text: text, image: image };
+					return { index: c.index, value: c.value, unit: unit };
+				});
 			},
 			newTileIndex() {
 				return newTileIndexRef.value;
+			},
+			previewUnits() {
+				const keys = state.customTileKeys || [];
+				const s = { customLabels: state.customLabels, customImages: state.customImages };
+				const getDisplay = window.Game2048 && typeof window.Game2048.getTileDisplayContent === 'function'
+					? function (v) { return window.Game2048.getTileDisplayContent(s, v); } : null;
+				return keys.map(function (key) {
+					const num = Number(key);
+					const content = getDisplay ? getDisplay(num) : { type: 'number', value: num };
+					let text = String(num);
+					let image = undefined;
+					if (content) {
+						if (content.type === 'image') { image = content.src; text = String(num); }
+						else if (content.type === 'text') text = content.text;
+						else text = String(content.value != null ? content.value : num);
+					}
+					return { key: key, val: num, text: text, image: image };
+				});
 			},
 			boardGridStyle() {
 				const r = state.boardView.rows || 4;
@@ -451,15 +482,6 @@ window.Game2048 = Game2048;
 					}
 				} catch (_) {}
 			},
-			getTileClass(value) {
-				return window.Game2048 && typeof window.Game2048.getTileClass === 'function' ? window.Game2048.getTileClass(value) : 'tile-2';
-			},
-			isNewTileCell(cell) {
-				if (!this.showNewTileMarker || !cell) return false;
-				const idx = Number(cell.index);
-				const cur = Number(this.newTileIndex);
-				return cur >= 0 && idx === cur;
-			},
 			floatingTileStyle(tile) {
 				if (!tile) return {};
 				const d = (tile.duration || 0) + 'ms';
@@ -470,18 +492,6 @@ window.Game2048 = Game2048;
 					height: (tile.height || 0) + 'px',
 					transition: 'left ' + d + ' linear, top ' + d + ' linear',
 				};
-			},
-			tileDisplayContent(cell) {
-				const s = state.lastStateForDisplay;
-				if (window.Game2048 && typeof window.Game2048.getTileDisplayContent === 'function' && s) {
-					return window.Game2048.getTileDisplayContent(s, cell.value);
-				}
-				return { type: 'number', value: cell.value };
-			},
-			previewContent(key) {
-				const s = { customLabels: state.customLabels, customImages: state.customImages };
-				return window.Game2048 && typeof window.Game2048.getTileDisplayContent === 'function'
-					? window.Game2048.getTileDisplayContent(s, Number(key)) : { type: 'number', value: Number(key) };
 			},
 			onResultOverlayClick() {
 				if (window.Game2048 && typeof window.Game2048.onResultClose === 'function') window.Game2048.onResultClose();
@@ -567,12 +577,19 @@ window.Game2048 = Game2048;
 							const fromPos = positions[fromIdx];
 							const toPos = positions[toIdx];
 							if (!fromPos || !toPos) continue;
-							const displayContent = api && typeof api.getTileDisplayContent === 'function'
+							const content = api && typeof api.getTileDisplayContent === 'function'
 								? api.getTileDisplayContent(finalState, slide.value) : { type: 'number', value: slide.value };
+							let displayText = String(slide.value);
+							let displayImage = undefined;
+							if (content) {
+								if (content.type === 'image') { displayImage = content.src; displayText = String(slide.value); }
+								else if (content.type === 'text') displayText = content.text;
+								else displayText = String(content.value != null ? content.value : slide.value);
+							}
 							tiles.push({
 								fromLeft: fromPos.left, fromTop: fromPos.top, toLeft: toPos.left, toTop: toPos.top,
 								width: fromPos.width, height: fromPos.height, duration: duration, value: slide.value,
-								displayContent: displayContent, currentLeft: fromPos.left, currentTop: fromPos.top,
+								displayText: displayText, displayImage: displayImage, currentLeft: fromPos.left, currentTop: fromPos.top,
 							});
 						}
 						state.slideAnimationTiles = tiles;

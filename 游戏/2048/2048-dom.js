@@ -23,12 +23,6 @@ if (!logic || !constants) {
   /** 由 Vue 在 init(bridge) 时注入，dom 通过 view.xxx() 更新界面 */
   let view = null;
 
-  function getTileClass(value) {
-    if (value <= 0) return 'tile-2'
-    if (value > 2048) return 'tile-super'
-    return 'tile-' + value
-  }
-
   function getTileDisplayContent(state, value) {
     if (value <= 0) return { type: 'number', value: value }
     const key = String(value);
@@ -352,7 +346,6 @@ const Game2048 = (!logic || !constants)
       applyBoardSettings() {},
       getPendingCustomTilesForVue() { return { customLabels: {}, customImages: {}, tileKeys: [] }; },
       setPendingCustomTiles() {},
-      getTileClass() { return 'tile-2'; },
       getTileDisplayContent(_, value) { return { type: 'number', value: value ?? 0 }; },
       onResultClose() {},
       onResultRestart() {},
@@ -401,7 +394,6 @@ const Game2048 = (!logic || !constants)
         applyBoardSettings,
         getPendingCustomTilesForVue,
         setPendingCustomTiles,
-        getTileClass,
         getTileDisplayContent,
         onResultClose,
         onResultRestart: handleRestart,

@@ -77,7 +77,8 @@ article.gaming.area .board .cell::after {
   pointer-events: none;
 }
 
-.tile {
+/* 格子里的棋子：.cell > .unit；默认 .unit 即“大数”样式，.unit-2～.unit-2048 覆盖，>2048 回退到默认 */
+.unit {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -87,37 +88,37 @@ article.gaming.area .board .cell::after {
   font-size: clamp(12px, 4vw, 24px);
   user-select: none;
   -webkit-user-select: none;
+  background: #4a5a42;
 }
-article.gaming.area .board .tile {
+article.gaming.area .board .cell > .unit {
   position: absolute;
   inset: var(--grid-gap);
 }
-article.gaming.area .slide-layer .tile {
+article.gaming.area .slide-layer .unit {
   position: absolute;
   transition: left 0.08s linear, top 0.08s linear;
 }
 
-.tile img {
+.unit img {
   width: 100%;
   height: 100%;
   object-fit: contain;
   display: block;
 }
 
-.tile.tile-2 { background: #e2ead8; color: #5a6b52; }
-.tile.tile-4 { background: #d4e0c8; color: #5a6b52; }
-.tile.tile-8 { background: #a8c99e; }
-.tile.tile-16 { background: #8fbc85; }
-.tile.tile-32 { background: #7cb37a; }
-.tile.tile-64 { background: #6ba36b; }
-.tile.tile-128 { background: #9cb87c; }
-.tile.tile-256 { background: #8ab06e; }
-.tile.tile-512 { background: #7aa862; }
-.tile.tile-1024 { background: #6a9f56; }
-.tile.tile-2048 { background: #5a8f4a; }
-.tile.tile-super { background: #4a5a42; }
+.unit.unit-2 { background: #e2ead8; color: #5a6b52; }
+.unit.unit-4 { background: #d4e0c8; color: #5a6b52; }
+.unit.unit-8 { background: #a8c99e; }
+.unit.unit-16 { background: #8fbc85; }
+.unit.unit-32 { background: #7cb37a; }
+.unit.unit-64 { background: #6ba36b; }
+.unit.unit-128 { background: #9cb87c; }
+.unit.unit-256 { background: #8ab06e; }
+.unit.unit-512 { background: #7aa862; }
+.unit.unit-1024 { background: #6a9f56; }
+.unit.unit-2048 { background: #5a8f4a; }
 
-.tile-new-badge {
+.unit-new-badge {
   position: absolute;
   top: 2px;
   right: 2px;
