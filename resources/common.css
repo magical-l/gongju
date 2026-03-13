@@ -106,7 +106,7 @@ body:focus { /*为键盘导航用户清晰焦点指示*/
 		grid-template-areas:
 			'header'
 			'main'
-			'aside';
+			'right-sidebar';
 	}
 
 	aside {
@@ -253,13 +253,13 @@ body > header nav a:hover, body > header nav a.active {
 	border-radius: 4px;
 }
 
-.website.info .patronage.area img.qr-code {
+.qr-code {
 	max-width: 100%;
 	height: auto;
 	margin-bottom: 5px;
 }
 
-.website.info .patronage.area .slogan {
+.slogan {
 	font-size: 0.75rem;
 	color: #333;
 }

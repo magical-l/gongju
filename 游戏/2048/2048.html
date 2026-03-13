@@ -131,9 +131,9 @@
 		</div>
 
 		<!-- 结算界面：el-dialog，直属 .gaming.area，关闭时同步 2048-dom -->
-		<el-dialog v-model="gameResultVisible" :title="gameResultMessage" class="game-result" width="400px" @closed="onResultOverlayClick">
+		<el-dialog v-model="gameResultVisible" :title="gameResultMessage" class="game result" width="400px" @closed="onResultOverlayClick">
 			<p v-show="gameResultSub">{{ gameResultSub }}</p>
-			<p class="result-hint">点击或按 Enter 继续</p>
+			<p class="hint">点击或按 Enter 继续</p>
 			<template #footer>
 				<el-button type="primary" @click="onResultRestart">新局</el-button>
 			</template>
@@ -152,18 +152,17 @@
 		<aside class="gaming info , right-sidebar">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-					<el-collapse-item name="score" title="本局信息">
-						<div class="info content , flex vertical">
+					<el-collapse-item name="gaming info" title="本局信息" class="gaming info">
+						<div class="flex vertical">
 							<el-descriptions class="info list" :column="1" border>
 								<el-descriptions-item label="行">{{ gameBoardHeight }}</el-descriptions-item>
 								<el-descriptions-item label="列">{{ gameBoardWidth }}</el-descriptions-item>
 								<el-descriptions-item label="目标">{{ gameTargetLabel }}</el-descriptions-item>
 								<el-descriptions-item label="最高记录">{{ highScore }}<span v-if="gameBoardWidth && gameBoardHeight"> ({{ gameBoardWidth }}×{{ gameBoardHeight }})</span></el-descriptions-item>
 							</el-descriptions>
-							<div class="current score card">
-								<div class="current score title">当前得分</div>
-								<div class="current score value">{{ score }}</div>
-							</div>
+							<el-card class="scoreboard" shadow="never" header="当前得分">
+								<span class="score value">{{ score }}</span>
+							</el-card>
 						</div>
 					</el-collapse-item>
 					<el-collapse-item name="shortcut" title="快捷键">
@@ -199,7 +198,7 @@
 (function () {
 	const { createApp, reactive } = Vue;
 	const collapseKey = 'gaming-info-2048';
-	const defaultPanels = ['shortcut', 'score'];
+	const defaultPanels = ['shortcut', 'gaming info'];
 	let saved;
 	try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
 	const boardSizeOptions = [4, 5, 6, 7, 8];

@@ -15,13 +15,6 @@
   --merge-duration: 0.2s;
 }
 
-/* toolbar：设置项 + 工具按钮 */
-.toolbar .one.setting.group {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem 1rem;
-  flex-wrap: wrap;
-}
 .one.setting .el-form-item {
   margin-bottom: 0;
 }
@@ -31,38 +24,7 @@
   align-items: center;
 }
 
-/* 右侧本局信息：间距由 .info.content 上的 .flex.vertical 的 gap 提供，不在此写 display/gap */
-/* 当前得分：记分牌样式，标题小（左上），分数大居中 */
-.gaming.info .info.content .current.score.card {
-  padding: 12px 16px;
-  background: var(--board-bg);
-  border: 1px solid var(--grid-line);
-  border-radius: var(--board-radius);
-  min-height: 72px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-.gaming.info .info.content .current.score.title {
-  margin: 0 0 4px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-dark);
-  opacity: 0.9;
-  align-self: flex-start;
-}
-.gaming.info .info.content .current.score.value {
-  margin: 0;
-  font-size: 1.75rem;
-  font-weight: bold;
-  color: var(--text-dark);
-  line-height: 1.2;
-}
-
-article.gaming.area.grid.反叵字形 {
-  grid-template-rows: auto minmax(min(260px, 80vmin), auto) auto;
-}
+/* 右侧本局信息：.flex.vertical 提供间距；记分牌用 el-card 默认样式 */
 
 .main.map.area {
   width: 100%;
@@ -209,7 +171,7 @@ article.gaming.area .board-floating {
 
 
 /* 结算 dialog：提示文案（自有类，不依赖库内部类） */
-article.gaming.area .game-result .result-hint {
+.game.result .hint {
   font-size: 14px;
   color: var(--el-text-color-secondary);
   margin: 0 0 1rem;
@@ -218,7 +180,7 @@ article.gaming.area .game-result .result-hint {
 /* 设置弹层：请用 el-dialog + el-form / el-form-item 等组件，避免自定义 .settings-panel 等类 */
 
 /* 数字显示 dialog：列表/卡片/预览等，共用 .custom.tile.* */
-.custom.tile.list.area .settings.custom.tile.list {
+.settings.custom.tile.list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: 10px;
@@ -383,7 +345,7 @@ article.gaming.area .game-result .result-hint {
   display: flex;
   gap: 8px;
 }
-.custom.tile.list.area .settings.hint {
+.settings.hint {
   margin: 0 0 8px;
   font-size: 13px;
   color: var(--text-dark);
