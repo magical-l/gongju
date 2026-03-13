@@ -223,6 +223,7 @@
 	<script src="constants.js"></script>
 	<script src="logic.js"></script>
 	<script src="2048-dom.js"></script>
+	<script src="../../resources/debug-utils.js"></script>
 </div>
 <script>
 (function () {
@@ -233,7 +234,7 @@
 	try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
 	const boardSizeOptions = [4, 5, 6, 7, 8];
 	const targetOptions = (function () {
-		var c = window.Game2048Constants;
+		const c = window.Game2048Constants;
 		if (!c || !c.TARGET_OPTIONS || !c.TARGET_LABELS) return [{ label: '2048', value: 2048 }];
 		return c.TARGET_OPTIONS.map(function (v, i) { return { label: c.TARGET_LABELS[i], value: v }; });
 	})();
@@ -282,7 +283,7 @@
 		if (obj && typeof obj.showNewTileMarker === 'boolean') state.showNewTileMarker = obj.showNewTileMarker;
 	};
 	window.__2048SyncToolbarSettings__ = function () {
-		var s = typeof window.__2048GetBoardSettings__ === 'function' && window.__2048GetBoardSettings__();
+		const s = typeof window.__2048GetBoardSettings__ === 'function' && window.__2048GetBoardSettings__();
 		if (s) {
 			state.boardHeight = s.boardHeight;
 			state.boardWidth = s.boardWidth;
@@ -296,28 +297,28 @@
 		data: () => state,
 		computed: {
 			quickSettingsList() {
-				return (window.Game2048Constants && window.Game2048Constants.getQuickSettingsList('web')) || [];
+				return window.Game2048Constants && window.Game2048Constants.getQuickSettingsList('web') || [];
 			},
 			boardSizeOptions: () => boardSizeOptions,
 			targetOptions: () => targetOptions,
 			gameTargetLabel() {
-				var opts = targetOptions;
-				var n = state.gameTargetNumber;
-				var found = opts.find(function (o) { return o.value === n; });
+				const opts = targetOptions;
+				const n = state.gameTargetNumber;
+				const found = opts.find(function (o) { return o.value === n; });
 				return found ? found.label : (n === Infinity ? '无限' : String(n));
 			},
 			canAddNextCustomTile() {
-				var keys = state.customTileKeys;
+				const keys = state.customTileKeys;
 				if (!keys || !keys.length) return true;
-				var maxKey = parseInt(keys[keys.length - 1], 10);
+				const maxKey = parseInt(keys[keys.length - 1], 10);
 				return maxKey * 2 <= 1048576;
 			},
 			boardCells() {
 				return state.boardView.cells || [];
 			},
 			boardGridStyle() {
-				var r = state.boardView.rows || 4;
-				var c = state.boardView.cols || 4;
+				const r = state.boardView.rows || 4;
+				const c = state.boardView.cols || 4;
 				return {
 					gridTemplateColumns: 'repeat(' + c + ', 1fr)',
 					gridTemplateRows: 'repeat(' + r + ', 1fr)',
@@ -351,9 +352,9 @@
 			},
 			onCustomTilesDialogOpened() {
 				if (typeof window.__2048OpenCustomTiles__ === 'function') window.__2048OpenCustomTiles__();
-				var fn = window.__2048GetPendingCustomTilesForVue__;
+				const fn = window.__2048GetPendingCustomTilesForVue__;
 				if (typeof fn === 'function') {
-					var d = fn();
+					const d = fn();
 					if (d) {
 						state.customLabels = d.customLabels && typeof d.customLabels === 'object' ? Object.assign({}, d.customLabels) : {};
 						state.customImages = d.customImages && typeof d.customImages === 'object' ? Object.assign({}, d.customImages) : {};
@@ -368,14 +369,14 @@
 				return typeof window.__2048GetDisplayLabel__ === 'function' ? window.__2048GetDisplayLabel__('customTiles', 'pickImage', 'web') : '选图';
 			},
 			customLabelMaxLen() {
-				return (typeof window.__2048CustomLabelMaxLen__ !== 'undefined' ? window.__2048CustomLabelMaxLen__ : 10);
+				return typeof window.__2048CustomLabelMaxLen__ !== 'undefined' ? window.__2048CustomLabelMaxLen__ : 10;
 			},
 			customImagePlaceholder(key) {
-				var img = state.customImages && state.customImages[key];
-				return (img && String(img).slice(0, 5) === 'data:') ? '已选本地图' : '图片 URL';
+				const img = state.customImages && state.customImages[key];
+				return img && String(img).slice(0, 5) === 'data:' ? '已选本地图' : '图片 URL';
 			},
 			customImageDisplayValue(key) {
-				var img = state.customImages && state.customImages[key];
+				const img = state.customImages && state.customImages[key];
 				if (!img) return '';
 				return String(img).slice(0, 5) === 'data:' ? '' : img;
 			},
@@ -389,14 +390,14 @@
 				if (typeof window.__2048ApplyCustomTiles__ === 'function') window.__2048ApplyCustomTiles__();
 			},
 			onCustomLabelInput(key, val) {
-				var trimmed = String(val).trim().slice(0, this.customLabelMaxLen);
+				const trimmed = String(val).trim().slice(0, this.customLabelMaxLen);
 				if (trimmed) state.customLabels[key] = trimmed;
 				else delete state.customLabels[key];
 				if (state.customImages) delete state.customImages[key];
 				this.syncCustomTilesToDom();
 			},
 			onCustomImageInput(key, val) {
-				var v = String(val).trim();
+				const v = String(val).trim();
 				if (v) {
 					state.customImages[key] = v;
 					if (state.customLabels) delete state.customLabels[key];
@@ -412,19 +413,19 @@
 			openTileFilePicker(key) {
 				state.pendingFileKey = key;
 				this.$nextTick(function () {
-					var input = this.$refs.tileFileInput;
+					const input = this.$refs.tileFileInput;
 					if (input && input.click) input.click();
 				}.bind(this));
 			},
 			onTileFileChange(e) {
-				var key = state.pendingFileKey;
+				const key = state.pendingFileKey;
 				state.pendingFileKey = null;
-				var input = e && e.target;
-				var file = input && input.files && input.files[0];
+				const input = e && e.target;
+				const file = input && input.files && input.files[0];
 				if (input) input.value = '';
 				if (!key || !file || !file.type.match(/^image\//)) return;
-				var reader = new FileReader();
-				var self = this;
+				const reader = new FileReader();
+				const self = this;
 				reader.onload = function (ev) {
 					if (!ev || !ev.target || !ev.target.result) return;
 					state.customImages[key] = ev.target.result;
@@ -436,9 +437,9 @@
 			},
 			addNextCustomTile() {
 				if (!this.canAddNextCustomTile) return;
-				var keys = state.customTileKeys;
-				var maxKey = keys && keys.length ? parseInt(keys[keys.length - 1], 10) : 2;
-				var nextKey = String(maxKey * 2);
+				const keys = state.customTileKeys;
+				const maxKey = keys && keys.length ? parseInt(keys[keys.length - 1], 10) : 2;
+				const nextKey = String(maxKey * 2);
 				state.customLabels[nextKey] = '';
 				state.customTileKeys = (keys || []).slice();
 				state.customTileKeys.push(nextKey);
@@ -468,10 +469,10 @@
 				} catch (_) {}
 			},
 			getTileClass(value) {
-				return (typeof window.__2048GetTileClass__ === 'function' ? window.__2048GetTileClass__(value) : 'tile-2');
+				return typeof window.__2048GetTileClass__ === 'function' ? window.__2048GetTileClass__(value) : 'tile-2';
 			},
 			tileDisplayContent(cell) {
-				var s = state.lastStateForDisplay;
+				const s = state.lastStateForDisplay;
 				if (typeof window.__2048GetTileDisplayContent__ === 'function' && s) {
 					return window.__2048GetTileDisplayContent__(s, cell.value);
 				}
@@ -487,7 +488,7 @@
 	});
 	mainApp.use(ElementPlus);
 	if (typeof ElementPlusIconsVue !== 'undefined') {
-		for (var k in ElementPlusIconsVue) { mainApp.component(k, ElementPlusIconsVue[k]); }
+		for (const k in ElementPlusIconsVue) { mainApp.component(k, ElementPlusIconsVue[k]); }
 	}
 	mainApp.mount('article.gaming.area');
 	if (typeof window.__2048Init__ === 'function') window.__2048Init__();
@@ -496,168 +497,84 @@
 	});
 	helpApp.use(ElementPlus);
 	if (typeof ElementPlusIconsVue !== 'undefined') {
-		for (var k in ElementPlusIconsVue) { helpApp.component(k, ElementPlusIconsVue[k]); }
+		for (const k in ElementPlusIconsVue) { helpApp.component(k, ElementPlusIconsVue[k]); }
 	}
 	helpApp.mount('.help.area');
 }());
 </script>
 	<script>
-  /** 控制台执行 __2048ExportSelectDomAndCss__()：祖先链 + wrapper/selection 的 flex 与宽度分配。版本 v8 */
-  window.__2048ExportSelectDomAndCss__ = function () {
-    var root = document.querySelector('.el-select .el-select__prefix')?.closest('.el-select');
-    if (!root) return console.log('未找到带 prefix 的 .el-select');
-    var lines = ['--- __2048ExportSelectDomAndCss__ v8 ---'];
-    var props = ['width', 'min-width', 'max-width', 'display', 'flex', 'flex-grow', 'flex-shrink', 'flex-basis'];
-    function one(el, label) {
-      if (!el) return;
-      var cs = window.getComputedStyle(el);
-      var cls = (el.className && typeof el.className === 'string') ? el.className.split(/\s+/).slice(0, 4).join('.') : '';
-      var tag = (el.tagName || '').toLowerCase();
-      lines.push(label + ' ' + tag + (cls ? '.' + cls : ''));
-      lines.push('  ' + props.map(function (p) { return p + ':' + cs.getPropertyValue(p); }).join('; '));
-      lines.push('  offsetWidth: ' + el.offsetWidth + '; getBoundingClientRect().width: ' + (el.getBoundingClientRect && el.getBoundingClientRect().width.toFixed(2)));
+  (function () {
+    if (typeof window.__debugExportSelectAndCss__ !== 'function') return;
+    const root = document.querySelector('.el-select .el-select__prefix')?.closest('.el-select');
+    if (!root) {
+      window.__2048ExportSelectDomAndCss__ = function () { console.log('未找到带 prefix 的 .el-select'); };
+      return;
     }
-    var wrapper = root.querySelector('.el-select__wrapper');
-    var sel = root.querySelector('.el-select__selection');
-    var prefix = root.querySelector('.el-select__prefix');
-    var suffix = root.querySelector('.el-select__suffix');
-    var placeholder = sel ? sel.querySelector('.el-select__placeholder') : null;
+    window.__2048ExportSelectDomAndCss__ = function () {
+      let out = window.__debugExportSelectAndCss__(null, {
+        rootElement: root,
+        childSelectors: [
+          { selector: '.el-select__wrapper', label: '[0w] wrapper' },
+          { selector: '.el-select__selection', label: '[0s] selection' },
+          { selector: '.el-select__placeholder', label: '[0s-placeholder] placeholder' }
+        ],
+        ancestorStop: function (el) { return el.classList && (el.classList.contains('toolbar') || el.tagName === 'BODY'); },
+        title: '--- __2048ExportSelectDomAndCss__ ---'
+      });
+      const wrapper = root.querySelector('.el-select__wrapper');
+      const sel = root.querySelector('.el-select__selection');
+      const prefix = root.querySelector('.el-select__prefix');
+      const suffix = root.querySelector('.el-select__suffix');
+      if (wrapper && sel) {
+        const cw = window.getComputedStyle(wrapper);
+        const gap = parseFloat(cw.getPropertyValue('gap')) || 0;
+        const pl = parseFloat(cw.getPropertyValue('padding-left')) || 0;
+        const pr = parseFloat(cw.getPropertyValue('padding-right')) || 0;
+        const W = wrapper.offsetWidth;
+        const P = prefix ? prefix.offsetWidth : 0;
+        const S = suffix ? suffix.offsetWidth : 0;
+        const Sel = sel.offsetWidth;
+        const remaining = W - P - S - 2 * gap - pl - pr;
+        out += '\n--- 验证：wrapper 内分配 ---\nwrapper.offsetWidth=' + W + ', prefix=' + P + ', suffix=' + S + ', selection.offsetWidth=' + Sel + ', gap=' + gap + ', paddingLeft=' + pl + ', paddingRight=' + pr + '\n若 selection 宽度由“剩余空间”分配，则 selection ≈ ' + remaining.toFixed(0) + 'px。若 Sel=' + Sel + ' 接近此值，则原因确定。\n';
+      }
+      const placeholder = sel ? sel.querySelector('.el-select__placeholder') : null;
+      if (placeholder && sel) out += '\n--- placeholder vs selection 宽度 ---\nplaceholder.offsetWidth=' + placeholder.offsetWidth + ', selection.offsetWidth=' + sel.offsetWidth + '\n';
+      console.log(out);
+      return out;
+    };
+  })();
 
-    lines.push('--- [0w] wrapper（flex 容器）---');
-    if (wrapper) one(wrapper, '[0w]');
-    lines.push('--- [0s] selection（wrapper 的 flex 子项；若 flexGrow=1 或 flexBasis=0 则宽度由“剩余空间”分配）---');
-    if (sel) one(sel, '[0s]');
-    lines.push('--- placeholder（selection 子元素，选中文案所在）---');
-    if (placeholder) one(placeholder, '[0s-placeholder]');
-
-    lines.push('--- 验证：wrapper 内分配 ---');
-    if (wrapper && sel) {
-      var cw = window.getComputedStyle(wrapper);
-      var gap = parseFloat(cw.getPropertyValue('gap')) || 0;
-      var pl = parseFloat(cw.getPropertyValue('padding-left')) || 0;
-      var pr = parseFloat(cw.getPropertyValue('padding-right')) || 0;
-      var W = wrapper.offsetWidth;
-      var P = prefix ? prefix.offsetWidth : 0;
-      var S = suffix ? suffix.offsetWidth : 0;
-      var Sel = sel.offsetWidth;
-      var remaining = W - P - S - 2 * gap - pl - pr;
-      lines.push('wrapper.offsetWidth=' + W + ', prefix=' + P + ', suffix=' + S + ', selection.offsetWidth=' + Sel + ', gap=' + gap + ', paddingLeft=' + pl + ', paddingRight=' + pr);
-      lines.push('若 selection 宽度由“剩余空间”分配，则 selection ≈ (W - padding - prefix - suffix - 2*gap) = ' + remaining.toFixed(0) + 'px。若 Sel=' + Sel + ' 接近此值，则原因确定：wrapper 的 flex 在分配剩余空间给 selection。');
-    }
-    lines.push('--- placeholder vs selection 宽度（子>父 则父未随子撑开）---');
-    if (placeholder && sel) lines.push('placeholder.offsetWidth=' + placeholder.offsetWidth + ', selection.offsetWidth=' + sel.offsetWidth);
-
-    lines.push('--- 祖先链 [0]=select 向上 ---');
-    one(root, '[0]');
-    var el = root.parentElement;
-    for (var i = 1; el && i < 20; i++, el = el.parentElement) {
-      one(el, '[' + i + ']');
-      if (el.classList && (el.classList.contains('toolbar') || el.tagName === 'BODY')) break;
-    }
-    var out = lines.join('\n');
-    console.log(out);
-    return out;
-  };
-
-  /** 控制台执行 __2048AuditCss__()：只审计“我们加的”规则（选择器含 gaming.area / toolbar），每条只查第 1 个匹配元素。 */
   window.__2048AuditCss__ = function () {
-    var sheets = Array.prototype.slice.call(document.styleSheets || []);
-    var sheet = sheets.filter(function (s) { try { return s.href && s.href.indexOf('2048.css') !== -1; } catch (e) { return false; } })[0];
-    if (!sheet) return console.log('未找到 2048.css 样式表');
-    var rules = [];
-    try {
-      var list = sheet.cssRules || sheet.rules || [];
-      for (var i = 0; i < list.length; i++) rules.push(list[i]);
-    } catch (e) {
-      return console.log('无法读取 2048.css 规则（可能跨域）:', e.message);
-    }
-    function camelToKebab(s) { return s.replace(/([A-Z])/g, '-$1').toLowerCase(); }
-    function norm(v) { if (typeof v !== 'string') return ''; return v.trim(); }
-    var ours = /\.gaming\.area|\.toolbar|\.el-select__prefix|\.按压式/;
-    var lines = ['--- __2048AuditCss__ 仅“我们加的”规则 ---', '格式: 属性 规则值→计算值 [✓/✗]', ''];
-
-    for (var r = 0; r < rules.length; r++) {
-      var rule = rules[r];
-      if (rule.type !== 1) continue;
-      var sel = rule.selectorText;
-      if (!sel || !rule.style || !rule.style.length || !ours.test(sel)) continue;
-      var elList = [];
-      try { elList = document.querySelectorAll(sel); } catch (err) {
-        lines.push('[' + r + '] ' + sel + ' (选择器异常)');
-        lines.push('');
-        continue;
-      }
-      var n = elList.length;
-      lines.push('[' + r + '] ' + sel + '  匹配: ' + n);
-      if (n === 0) { lines.push('  (无匹配)', ''); continue; }
-      var el = elList[0];
-      var computed = window.getComputedStyle(el);
-      for (var p = 0; p < rule.style.length; p++) {
-        var prop = rule.style[p];
-        var ruleVal = norm(rule.style.getPropertyValue(prop));
-        var kebab = camelToKebab(prop);
-        var compVal = norm(computed.getPropertyValue(kebab));
-        var same = (ruleVal === compVal) ? '✓' : '✗';
-        lines.push('  ' + prop + ' ' + ruleVal + '→' + compVal + ' [' + same + ']');
-      }
-      lines.push('');
-    }
-    var out = lines.join('\n');
+    const out = typeof window.__debugAuditStylesheet__ === 'function'
+      ? window.__debugAuditStylesheet__('2048.css', /\.gaming\.area|\.toolbar|\.el-select__prefix|\.按压式/, { title: '--- __2048AuditCss__ 仅“我们加的”规则 ---' })
+      : '未加载 debug-utils.js';
     console.log(out);
     return out;
   };
 
-  /** 控制台执行 __2048ExportLayoutChain__()：从 body 到 board 的布局链 + 关键高度/overflow 计算值，用于排查压扁与滚动条。版本 v2 */
   window.__2048ExportLayoutChain__ = function () {
-    var main = document.querySelector('body.grid.反叵字形 main');
-    var article = document.querySelector('article.gaming.area');
-    var mapArea = document.querySelector('.main.map.area');
-    var boardWrap = document.getElementById('board-wrap');
-    var board = document.getElementById('board');
-    var cell = board ? board.querySelector('.cell') : null;
-    var chain = [
+    const chain = [
       { el: document.body, label: 'body' },
-      { el: main, label: 'main.scrollable' },
-      { el: article, label: 'article.gaming.area' },
-      { el: mapArea, label: '.main.map.area' },
-      { el: boardWrap, label: '#board-wrap' },
-      { el: board, label: '#board' },
-      { el: cell, label: '.cell 首个' }
+      { selector: 'body.grid.反叵字形 main', label: 'main.scrollable' },
+      { selector: 'article.gaming.area', label: 'article.gaming.area' },
+      { selector: '.main.map.area', label: '.main.map.area' },
+      { selector: '#board-wrap', label: '#board-wrap' },
+      { selector: '#board', label: '#board' },
+      { el: document.getElementById('board') ? document.getElementById('board').querySelector('.cell') : null, label: '.cell 首个' }
     ];
-    var props = ['height', 'min-height', 'max-height', 'overflow', 'overflow-y', 'display', 'flex-direction', 'flex-shrink', 'flex-grow', 'grid-template-rows'];
-    var lines = ['--- __2048ExportLayoutChain__ v2 ---', ''];
-
-    function one(entry) {
-      if (!entry || !entry.el) {
-        lines.push((entry && entry.label) ? entry.label + ": 未找到" : "未找到");
-        return;
-      }
-      var el = entry.el;
-      var cs = window.getComputedStyle(el);
-      var tag = (el.tagName || '').toLowerCase();
-      var id = el.id ? '#' + el.id : '';
-      var cls = (el.className && typeof el.className === "string") ? el.className.split(/\s+/).slice(0, 5).join(".") : "";
-      lines.push(entry.label + '  ' + tag + id + (cls ? '.' + cls : ''));
-      for (var i = 0; i < props.length; i++) {
-        var p = props[i];
-        var v = cs.getPropertyValue(p);
-        if (v) lines.push('  ' + p + ': ' + v);
-      }
-      lines.push('  offsetHeight: ' + el.offsetHeight + '; clientHeight: ' + el.clientHeight + '; scrollHeight: ' + el.scrollHeight);
-      if (el.getBoundingClientRect) {
-        var r = el.getBoundingClientRect();
-        lines.push('  getBoundingClientRect().height: ' + r.height.toFixed(2));
-      }
-      lines.push('');
-    }
-
-    for (var j = 0; j < chain.length; j++) one(chain[j]);
-
-    lines.push("--- 若 main.scrollable 的 scrollHeight > clientHeight 才应有滚动条 ---");
-    if (main) {
-      lines.push("main clientHeight: " + main.clientHeight + ", scrollHeight: " + main.scrollHeight + ", overflow-y: " + window.getComputedStyle(main).getPropertyValue("overflow-y"));
-    }
-    var out = lines.join('\n');
+    const props = ['height', 'min-height', 'max-height', 'overflow', 'overflow-y', 'display', 'flex-direction', 'flex-shrink', 'flex-grow', 'grid-template-rows'];
+    const main = document.querySelector('body.grid.反叵字形 main');
+    let out = typeof window.__debugExportLayoutChain__ === 'function'
+      ? window.__debugExportLayoutChain__(chain, props, {
+          title: '--- __2048ExportLayoutChain__ ---',
+          extraLine: function (el) {
+            if (el === main) return 'clientHeight: ' + el.clientHeight + '; scrollHeight: ' + el.scrollHeight + '; overflow-y: ' + window.getComputedStyle(el).getPropertyValue('overflow-y');
+            return '';
+          }
+        })
+      : '未加载 debug-utils.js';
+    out += '\n--- 若 main.scrollable 的 scrollHeight > clientHeight 才应有滚动条 ---\n';
+    if (main) out += 'main clientHeight: ' + main.clientHeight + ', scrollHeight: ' + main.scrollHeight + ', overflow-y: ' + window.getComputedStyle(main).getPropertyValue('overflow-y') + '\n';
     console.log(out);
     return out;
   };

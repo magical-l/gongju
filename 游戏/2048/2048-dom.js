@@ -1,51 +1,34 @@
 /**
- * 2048 网页版 - 全 DOM+CSS 驱动。依赖 logic.js、constants.js（挂到 window）。
+ * 依赖 logic.js、constants.js
+ * 挂到 window。
  */
 ;(function () {
   'use strict'
 
-  var logic = typeof window !== 'undefined' && window.Game2048Logic
-  var constants = typeof window !== 'undefined' && window.Game2048Constants
+  const logic = typeof window !== 'undefined' && window.Game2048Logic;
+  const constants = typeof window !== 'undefined' && window.Game2048Constants;
   if (!logic || !constants) {
     console.error('请先加载 logic.js 和 constants.js')
     return
   }
 
-  var initGame = logic.initGame
-  var doMove = logic.doMove
-  var restart = logic.restart
-  var undo = logic.undo
-  var serializeGameState = logic.serializeGameState
-  var deserializeGameState = logic.deserializeGameState
-  var STORAGE_HIGH_SCORE = logic.STORAGE_HIGH_SCORE
-  var getHighScoreKey = logic.getHighScoreKey
-  var STORAGE_GAME_STATE = logic.STORAGE_GAME_STATE
-  var STORAGE_SETTINGS = logic.STORAGE_SETTINGS
+  const initGame = logic.initGame;
+  const doMove = logic.doMove;
+  const restart = logic.restart;
+  const undo = logic.undo;
+  const serializeGameState = logic.serializeGameState;
+  const deserializeGameState = logic.deserializeGameState;
+  const STORAGE_HIGH_SCORE = logic.STORAGE_HIGH_SCORE;
+  const getHighScoreKey = logic.getHighScoreKey;
+  const STORAGE_GAME_STATE = logic.STORAGE_GAME_STATE;
+  const STORAGE_SETTINGS = logic.STORAGE_SETTINGS;
 
-  var TILE_COLORS = constants.TILE_COLORS
-  var TILE_SUPER = constants.TILE_SUPER
-  var SIZE_OPTIONS = constants.SIZE_OPTIONS
-  var TARGET_OPTIONS = constants.TARGET_OPTIONS
-  var TARGET_LABELS = constants.TARGET_LABELS
-  var MIN_SWIPE_PX = constants.MIN_SWIPE_PX
-  var TILE_IMAGE_KEYS = constants.TILE_IMAGE_KEYS
-  var getTileImageKeys = constants.getTileImageKeys
-  var getDisplayLabel = constants.getDisplayLabel
-  var WEB_ENDPOINT = 'web'
+  const MIN_SWIPE_PX = constants.MIN_SWIPE_PX;
+  const getTileImageKeys = constants.getTileImageKeys;
+  const getDisplayLabel = constants.getDisplayLabel;
 
-  var SLIDE_MS_PER_CELL = 80
-  var CUSTOM_LABEL_MAX_LEN = 10
-  /** 网页端支持更大棋盘；4–6 与小程序一致，7–8 增加策略深度，再大易拖沓（常见变体多为 5x5/6x6，少数 8x8） */
-  var WEB_SIZE_OPTIONS = [4, 5, 6, 7, 8]
-
-  function getMergedIndicesFromSlides(slides) {
-    var set = {}
-    for (var i = 0; i < slides.length; i++) {
-      var p = slides[i].path
-      if (p && p.length >= 2) set[p[p.length - 1]] = true
-    }
-    return Object.keys(set).map(Number)
-  }
+  const SLIDE_MS_PER_CELL = 80;
+  const CUSTOM_LABEL_MAX_LEN = 10;
 
   function getTileClass(value) {
     if (value <= 0) return 'tile-2'
@@ -57,20 +40,20 @@
   /** 获取某数字的显示内容：优先图片 > 自定义文字 > 数字 */
   function getTileDisplayContent(state, value) {
     if (value <= 0) return { type: 'number', value: value }
-    var key = String(value)
-    var img = state.customImages && state.customImages[key]
+    const key = String(value);
+    const img = state.customImages && state.customImages[key];
     if (img && String(img).trim()) return { type: 'image', src: String(img).trim(), value: value }
-    var label = state.customLabels && state.customLabels[key]
+    const label = state.customLabels && state.customLabels[key];
     if (label != null && String(label).trim() !== '') return { type: 'text', text: String(label).trim(), value: value }
     return { type: 'number', value: value }
   }
   window.__2048GetTileDisplayContent__ = getTileDisplayContent
 
   function setTileContent(tileEl, state, value, className) {
-    var content = getTileDisplayContent(state, value)
+    const content = getTileDisplayContent(state, value);
     tileEl.innerHTML = ''
     if (content.type === 'image') {
-      var img = document.createElement('img')
+      const img = document.createElement('img');
       img.src = content.src
       img.alt = String(value)
       img.loading = 'lazy'
@@ -89,22 +72,23 @@
     try { localStorage.setItem(key, value) } catch (e) {}
   }
 
-  var gameState = null
-  var showSettings = false
-  var pendingSettings = {}
-  var slideAnimationActive = false
+  let gameState = null;
+  const showSettings = false;
+  let pendingSettings = {};
+  let slideAnimationActive = false;
 
-  var boardEl = document.getElementById('board')
-  var boardFloatingEl = document.getElementById('board-floating')
-  var boardWrapEl = document.getElementById('board-wrap')
-  var scoreEl = document.getElementById('score')
-  var highScoreEl = document.getElementById('high-score')
+  const boardEl = document.getElementById('board');
+  const boardFloatingEl = document.getElementById('board-floating');
+  const boardWrapEl = document.getElementById('board-wrap');
+  const scoreEl = document.getElementById('score');
+  const highScoreEl = document.getElementById('high-score');
+
   /* 结算界面由 Vue 模板 + __2048SetGameResult__ / __2048OnResultClose__ / __2048OnResultRestart__ 驱动，不再持 DOM 引用 */
 
   function renderBoard(state, boardOverride) {
-    var cols = state.boardWidth
-    var rows = state.boardHeight
-    var board = boardOverride != null ? boardOverride : state.board
+    const cols = state.boardWidth;
+    const rows = state.boardHeight;
+    const board = boardOverride != null ? boardOverride : state.board;
     if (typeof window.__2048SetBoardView__ === 'function') {
       window.__2048SetBoardView__(board, rows, cols, state)
       return
@@ -112,13 +96,13 @@
     boardEl.style.gridTemplateColumns = 'repeat(' + cols + ', 1fr)'
     boardEl.style.gridTemplateRows = 'repeat(' + rows + ', 1fr)'
     boardEl.innerHTML = ''
-    for (var i = 0; i < cols * rows; i++) {
-      var cell = document.createElement('div')
+    for (let i = 0; i < cols * rows; i++) {
+      const cell = document.createElement('div');
       cell.className = 'cell'
       cell.dataset.index = i
-      var value = board[i] || 0
+      const value = board[i] || 0;
       if (value > 0) {
-        var tile = document.createElement('div')
+        const tile = document.createElement('div');
         tile.className = 'tile ' + getTileClass(value)
         tile.dataset.index = i
         setTileContent(tile, state, value)
@@ -139,11 +123,10 @@
 
   function renderOverlay(state) {
     if (typeof window.__2048SetGameResult__ === 'function') {
-      var visible = !!(state.overlayVisible && state.overlayMessage)
-      var message = state.overlayMessage || ''
-      var sub = state.gameOver ? '最终得分：' + state.score : ''
+      const visible = !!(state.overlayVisible && state.overlayMessage);
+      const message = state.overlayMessage || '';
+      const sub = state.gameOver ? '最终得分：' + state.score : '';
       window.__2048SetGameResult__(visible, message, sub)
-      return
     }
   }
 
@@ -152,7 +135,7 @@
     renderHeader(state)
     renderBoard(state)
     renderOverlay(state)
-    var firstCell = boardEl && boardEl.querySelector('.cell')
+    const firstCell = boardEl && boardEl.querySelector('.cell');
     if (firstCell && firstCell.offsetWidth > 0) {
       document.documentElement.style.setProperty('--cell-size', firstCell.offsetWidth + 'px')
     }
@@ -160,22 +143,22 @@
 
   function addNewTileMarker(index, state) {
     if (index < 0 || !state.showNewTileMarker) return
-    var cell = boardEl.querySelector('.cell[data-index="' + index + '"]')
+    const cell = boardEl.querySelector('.cell[data-index="' + index + '"]');
     if (!cell) return
-    var tileEl = cell.querySelector('.tile')
+    const tileEl = cell.querySelector('.tile');
     if (!tileEl || tileEl.nodeType !== 1) return
-    var badge = document.createElement('span')
+    const badge = document.createElement('span');
     badge.className = 'tile-new-badge'
     badge.textContent = '!'
     tileEl.appendChild(badge)
   }
 
   function getCellPositions() {
-    var cells = boardEl.querySelectorAll('.cell')
-    var wrapRect = boardWrapEl.getBoundingClientRect()
-    var positions = []
-    for (var i = 0; i < cells.length; i++) {
-      var r = cells[i].getBoundingClientRect()
+    const cells = boardEl.querySelectorAll('.cell');
+    const wrapRect = boardWrapEl.getBoundingClientRect();
+    const positions = [];
+    for (let i = 0; i < cells.length; i++) {
+      const r = cells[i].getBoundingClientRect();
       positions.push({
         left: r.left - wrapRect.left,
         top: r.top - wrapRect.top,
@@ -194,37 +177,37 @@
       return
     }
     slideAnimationActive = true
-    var cols = finalState.boardWidth
-    var rows = finalState.boardHeight
+    const cols = finalState.boardWidth;
+    const rows = finalState.boardHeight;
 
-    var displayBoard = stateBeforeMove.board.slice()
-    for (var s = 0; s < slides.length; s++) {
-      var path = slides[s].path
+    const displayBoard = stateBeforeMove.board.slice();
+    for (let s = 0; s < slides.length; s++) {
+      const path = slides[s].path
       if (path && path.length >= 2) displayBoard[path[0]] = 0
     }
     renderHeader(stateBeforeMove)
     renderBoard(stateBeforeMove, displayBoard)
     renderOverlay(stateBeforeMove)
 
-    var positions = getCellPositions()
+    const positions = getCellPositions();
     boardFloatingEl.innerHTML = ''
     boardFloatingEl.style.pointerEvents = 'none'
 
-    var maxDuration = 0
-    for (var i = 0; i < slides.length; i++) {
-      var slide = slides[i]
-      var path = slide.path
+    let maxDuration = 0;
+    for (let i = 0; i < slides.length; i++) {
+      const slide = slides[i];
+      const path = slide.path
       if (!path || path.length < 2) continue
-      var fromIdx = path[0]
-      var toIdx = path[path.length - 1]
-      var duration = (path.length - 1) * SLIDE_MS_PER_CELL
+      const fromIdx = path[0];
+      const toIdx = path[path.length - 1];
+      const duration = (path.length - 1) * SLIDE_MS_PER_CELL;
       if (duration > maxDuration) maxDuration = duration
 
-      var fromPos = positions[fromIdx]
-      var toPos = positions[toIdx]
+      const fromPos = positions[fromIdx];
+      const toPos = positions[toIdx];
       if (!fromPos || !toPos) continue
 
-      var tile = document.createElement('div')
+      const tile = document.createElement('div');
       tile.className = 'floating-tile ' + getTileClass(slide.value)
       setTileContent(tile, finalState, slide.value)
       tile.style.left = fromPos.left + 'px'
@@ -263,15 +246,15 @@
     if (gameState.gameWin) {
       gameState = Object.assign({}, gameState, { gameWin: false, overlayVisible: false, overlayMessage: '' })
     }
-    var stateBeforeMove = gameState
-    var result = doMove(gameState, direction)
+    const stateBeforeMove = gameState;
+    const result = doMove(gameState, direction);
     if (!result.moved) {
       render(gameState)
       return
     }
     gameState = result.state
-    var highKey = getHighScoreKey(gameState.boardWidth, gameState.boardHeight)
-    var prevHigh = Number(getStorage(highKey)) || 0
+    const highKey = getHighScoreKey(gameState.boardWidth, gameState.boardHeight);
+    const prevHigh = Number(getStorage(highKey)) || 0;
     if (gameState.highScore > prevHigh) setStorage(highKey, String(gameState.highScore))
     if (result.slides && result.slides.length > 0) {
       runSlideAnimation(result.slides, gameState, stateBeforeMove, result.newTileIndex)
@@ -295,11 +278,11 @@
 
   function loadSettingsFromStorage() {
     try {
-      var raw = getStorage(STORAGE_SETTINGS)
+      const raw = getStorage(STORAGE_SETTINGS);
       if (!raw) return null
-      var o = JSON.parse(raw)
+      const o = JSON.parse(raw);
       if (!o || typeof o !== 'object') return null
-      var s = {}
+      const s = {};
       if (Number(o.boardWidth) >= 2) s.boardWidth = Number(o.boardWidth)
       if (Number(o.boardHeight) >= 2) s.boardHeight = Number(o.boardHeight)
       if (o.targetNumber !== undefined) s.targetNumber = o.targetNumber === 'Infinity' ? Infinity : Number(o.targetNumber)
@@ -315,16 +298,18 @@
 
   function saveSettingsToStorage() {
     try {
-      var s = {
+      const s = {
         boardWidth: pendingSettings.boardWidth,
         boardHeight: pendingSettings.boardHeight,
         targetNumber: pendingSettings.targetNumber === Infinity ? 'Infinity' : pendingSettings.targetNumber,
         initialTiles: pendingSettings.initialTiles,
         showNewTileMarker: pendingSettings.showNewTileMarker,
         newTileOnMidStop: pendingSettings.newTileOnMidStop,
-        customLabels: pendingSettings.customLabels && typeof pendingSettings.customLabels === 'object' ? pendingSettings.customLabels : {},
-        customImages: pendingSettings.customImages && typeof pendingSettings.customImages === 'object' ? pendingSettings.customImages : {}
-      }
+        customLabels: pendingSettings.customLabels && typeof pendingSettings.customLabels === 'object'
+                      ? pendingSettings.customLabels : {},
+        customImages: pendingSettings.customImages && typeof pendingSettings.customImages === 'object'
+                      ? pendingSettings.customImages : {},
+      };
       setStorage(STORAGE_SETTINGS, JSON.stringify(s))
     } catch (e) {}
   }
@@ -332,24 +317,25 @@
   function saveSettingsFromGameState() {
     if (!gameState) return
     try {
-      var s = {
+      const s = {
         boardWidth: gameState.boardWidth,
         boardHeight: gameState.boardHeight,
         targetNumber: gameState.targetNumber === Infinity ? 'Infinity' : gameState.targetNumber,
         initialTiles: gameState.initialTiles,
         showNewTileMarker: gameState.showNewTileMarker,
         newTileOnMidStop: gameState.newTileOnMidStop,
-        customLabels: gameState.customLabels && typeof gameState.customLabels === 'object' ? gameState.customLabels : {},
-        customImages: gameState.customImages && typeof gameState.customImages === 'object' ? gameState.customImages : {}
-      }
+        customLabels: gameState.customLabels && typeof gameState.customLabels === 'object' ? gameState.customLabels
+                                                                                           : {},
+        customImages: gameState.customImages && typeof gameState.customImages === 'object' ? gameState.customImages : {},
+      };
       setStorage(STORAGE_SETTINGS, JSON.stringify(s))
     } catch (e) {}
   }
 
   function saveQuickSettingsToStorage(showNewTileMarker, newTileOnMidStop) {
     try {
-      var raw = getStorage(STORAGE_SETTINGS)
-      var o = (raw && (function () { try { return JSON.parse(raw) } catch (e) { return null } })()) || {}
+      const raw = getStorage(STORAGE_SETTINGS);
+      let o = raw && (function() { try { return JSON.parse(raw); } catch (e) { return null; } })() || {};
       if (typeof o !== 'object') o = {}
       o.showNewTileMarker = showNewTileMarker
       o.newTileOnMidStop = newTileOnMidStop
@@ -408,9 +394,12 @@
     if (!gameState) return
     pendingSettings.initialTiles = 2
     saveSettingsToStorage()
-    var needRestart = pendingSettings.boardWidth !== gameState.boardWidth || pendingSettings.boardHeight !== gameState.boardHeight || pendingSettings.targetNumber !== gameState.targetNumber || pendingSettings.initialTiles !== gameState.initialTiles
+    const needRestart = pendingSettings.boardWidth !== gameState.boardWidth || pendingSettings.boardHeight
+                        !== gameState.boardHeight || pendingSettings.targetNumber !== gameState.targetNumber
+                        || pendingSettings.initialTiles !== gameState.initialTiles;
     if (needRestart) {
-      var highForNewSize = Number(getStorage(getHighScoreKey(pendingSettings.boardWidth, pendingSettings.boardHeight))) || 0
+      const highForNewSize = Number(
+        getStorage(getHighScoreKey(pendingSettings.boardWidth, pendingSettings.boardHeight))) || 0;
       gameState = initGame(highForNewSize, pendingSettings)
     } else {
       gameState = Object.assign({}, gameState, { customLabels: pendingSettings.customLabels || {}, customImages: pendingSettings.customImages || {} })
@@ -420,24 +409,25 @@
 
   function isPowerOf2(n) {
     if (typeof n !== 'number' || n < 2 || !Number.isFinite(n)) return false
-    return (n & (n - 1)) === 0
+    return (n & n - 1) === 0
   }
 
   function getCustomTileKeysForList() {
-    var baseKeys = getTileImageKeys(pendingSettings.targetNumber)
-    var maxBase = baseKeys.length ? parseInt(baseKeys[baseKeys.length - 1], 10) : 2
-    var extra = {}
-    var keys = pendingSettings.customLabels && typeof pendingSettings.customLabels === 'object' ? Object.keys(pendingSettings.customLabels) : []
-    for (var i = 0; i < keys.length; i++) {
-      var n = parseInt(keys[i], 10)
+    const baseKeys = getTileImageKeys(pendingSettings.targetNumber);
+    const maxBase = baseKeys.length ? parseInt(baseKeys[baseKeys.length - 1], 10) : 2;
+    const extra = {};
+    let keys = pendingSettings.customLabels && typeof pendingSettings.customLabels === 'object' ? Object.keys(
+      pendingSettings.customLabels) : [];
+    for (let i = 0; i < keys.length; i++) {
+      const n = parseInt(keys[i], 10)
       if (isPowerOf2(n) && n > maxBase) extra[n] = true
     }
     keys = pendingSettings.customImages && typeof pendingSettings.customImages === 'object' ? Object.keys(pendingSettings.customImages) : []
-    for (var j = 0; j < keys.length; j++) {
+    for (let j = 0; j < keys.length; j++) {
       n = parseInt(keys[j], 10)
       if (isPowerOf2(n) && n > maxBase) extra[n] = true
     }
-    var extraKeys = Object.keys(extra).map(Number).sort(function (a, b) { return a - b })
+    const extraKeys = Object.keys(extra).map(Number).sort(function(a, b) { return a - b; });
     return baseKeys.concat(extraKeys.map(String))
   }
 
@@ -454,31 +444,22 @@
     pendingSettings.customLabels = labels && typeof labels === 'object' ? Object.assign({}, labels) : {}
     pendingSettings.customImages = images && typeof images === 'object' ? Object.assign({}, images) : {}
   }
-  function escapeAttr(s) {
-    if (s == null) return ''
-    return String(s)
-      .replace(/&/g, '&amp;')
-      .replace(/"/g, '&quot;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-  }
-
   function init() {
-    var loaded = loadSettingsFromStorage()
-    var restored = null
+    const loaded = loadSettingsFromStorage();
+    let restored = null;
     try {
-      var stateRaw = getStorage(STORAGE_GAME_STATE)
+      const stateRaw = getStorage(STORAGE_GAME_STATE);
       if (stateRaw) restored = deserializeGameState(JSON.parse(stateRaw))
     } catch (e) {}
     if (restored) {
       gameState = restored
-      var keyRestored = getHighScoreKey(gameState.boardWidth, gameState.boardHeight)
-      var storedRestored = Number(getStorage(keyRestored)) || 0
+      const keyRestored = getHighScoreKey(gameState.boardWidth, gameState.boardHeight);
+      const storedRestored = Number(getStorage(keyRestored)) || 0;
       if (gameState.highScore > storedRestored) setStorage(keyRestored, String(gameState.highScore))
     } else {
-      var w = (loaded && loaded.boardWidth) || 4
-      var h = (loaded && loaded.boardHeight) || 4
-      var highScore = Number(getStorage(getHighScoreKey(w, h))) || 0
+      const w = loaded && loaded.boardWidth || 4;
+      const h = loaded && loaded.boardHeight || 4;
+      const highScore = Number(getStorage(getHighScoreKey(w, h))) || 0;
       gameState = initGame(highScore, loaded || undefined)
     }
     render(gameState)
@@ -517,7 +498,7 @@
       }
       return
     }
-    var direction = null
+    let direction = null;
     if (e.key === 'ArrowLeft') direction = 'left'
     else if (e.key === 'ArrowRight') direction = 'right'
     else if (e.key === 'ArrowUp') direction = 'up'
@@ -528,31 +509,31 @@
     }
   })
 
-  var touchStartX = 0
-  var touchStartY = 0
+  let touchStartX = 0;
+  let touchStartY = 0;
   boardWrapEl.addEventListener('touchstart', function (e) {
-    var t = e.touches[0]
+    const t = e.touches[0];
     if (t) { touchStartX = t.clientX; touchStartY = t.clientY }
   }, { passive: true })
   boardWrapEl.addEventListener('touchend', function (e) {
-    var t = e.changedTouches[0]
+    const t = e.changedTouches[0];
     if (!t || !gameState || showSettings) return
     if (gameState.overlayVisible) {
       gameState = Object.assign({}, gameState, { overlayVisible: false, overlayMessage: '' })
       render(gameState)
       return
     }
-    var dx = t.clientX - touchStartX
-    var dy = t.clientY - touchStartY
-    var ax = Math.abs(dx)
-    var ay = Math.abs(dy)
+    const dx = t.clientX - touchStartX;
+    const dy = t.clientY - touchStartY;
+    const ax = Math.abs(dx);
+    const ay = Math.abs(dy);
     if (Math.max(ax, ay) < MIN_SWIPE_PX) return
-    var dir = ax >= ay ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up')
+    const dir = ax >= ay ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
     handleMove(dir)
   }, { passive: true })
 
-  var mouseDownX = 0
-  var mouseDownY = 0
+  let mouseDownX = 0;
+  let mouseDownY = 0;
   boardWrapEl.addEventListener('mousedown', function (e) {
     mouseDownX = e.clientX
     mouseDownY = e.clientY
@@ -560,12 +541,12 @@
   boardWrapEl.addEventListener('mouseup', function (e) {
     if (!gameState || showSettings) return
     if (gameState.overlayVisible) return
-    var dx = e.clientX - mouseDownX
-    var dy = e.clientY - mouseDownY
-    var ax = Math.abs(dx)
-    var ay = Math.abs(dy)
+    const dx = e.clientX - mouseDownX;
+    const dy = e.clientY - mouseDownY;
+    const ax = Math.abs(dx);
+    const ay = Math.abs(dy);
     if (Math.max(ax, ay) < MIN_SWIPE_PX) return
-    var dir = ax >= ay ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up')
+    const dir = ax >= ay ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
     handleMove(dir)
   })
 
