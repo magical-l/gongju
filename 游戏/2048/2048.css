@@ -267,22 +267,18 @@ article.gaming.area .slide-layer .cell {
 
 .unit-dialog .clear-btn:hover { background: rgba(0, 0, 0, 0.7); }
 
-.unit-dialog .row-or {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-}
-
-.unit-dialog .or {
+/* 工具类：小号、弱化字色、定宽不伸缩、右侧间距，仅描述视觉 */
+article.gaming.area .text-small-subdued {
 	font-size: 13px;
 	color: var(--text-dark);
 	opacity: 0.85;
 	flex-shrink: 0;
 	width: 1.2em;
+	margin-right: 6px;
 }
 
 .unit-dialog .fields .image,
-.unit-dialog .fields .file-wrap {
+.unit-dialog .fields .pick-file {
 	flex: 1;
 	min-width: 0;
 }
@@ -311,21 +307,6 @@ article.gaming.area .slide-layer .cell {
 	padding: 6px 10px;
 	font-size: 13px;
 	align-self: flex-start;
-}
-
-.unit-dialog .file-wrap {
-	position: relative;
-}
-
-.unit-dialog .file-wrap input[type='file'] {
-	position: absolute;
-	left: 0;
-	top: 0;
-	width: 100%;
-	height: 100%;
-	opacity: 0;
-	cursor: pointer;
-	font-size: 0;
 }
 
 .unit-dialog .hint {

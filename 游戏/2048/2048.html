@@ -162,13 +162,11 @@
 							</div>
 							<div class="fields">
 								<input type="text" class="label" :value="customLabels[pu.key] || ''" @input="onCustomLabelInput(pu.key, $event.target.value)" @blur="applyCustomTiles" placeholder="自定义文字" maxlength="10">
-								<div class="row-or"><span class="or">或</span>
+								<div class="flex items-near-center-y no-gap"><span class="text-small-subdued">或</span>
 									<input type="text" class="image" :value="customImageDisplayValue(pu.key)" @input="onCustomImageInput(pu.key, $event.target.value)" @blur="applyCustomTiles" :placeholder="customImagePlaceholder(pu.key)">
 								</div>
-								<div class="row-or"><span class="or">或</span>
-									<span class="file-wrap">
-										<button type="button" class="btn btn-secondary pick-file" @click="openTileFilePicker(pu.key)">选择本地图片</button>
-									</span>
+								<div class="flex items-near-center-y no-gap"><span class="text-small-subdued">或</span>
+									<button type="button" class="btn btn-secondary pick-file" @click="openTileFilePicker(pu.key)">选择本地图片</button>
 								</div>
 							</div>
 						</div>
