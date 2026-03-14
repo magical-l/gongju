@@ -203,9 +203,9 @@
 					</div>
 
 					<div class="validation-area flex items-near-center-y">
-						<span v-if="validity === 'correct'" class="correct icon">✔️</span>
-						<span v-if="validity === 'incorrect'" class="incorrect icon">❌</span>
-						<span v-if="validity === 'incomplete'" class="half-correct icon">❓</span>
+						<span v-if="validity === 'correct'" class="text-correct icon">✔️</span>
+						<span v-if="validity === 'incorrect'" class="text-incorrect icon">❌</span>
+						<span v-if="validity === 'incomplete'" class="text-half-correct icon">❓</span>
 						<div class="badges">
 							<span v-if="result.卷舌" class="卷舌 badge">卷舌</span>
 							<span v-if="result.前鼻音" class="前鼻音 badge">前鼻音</span>

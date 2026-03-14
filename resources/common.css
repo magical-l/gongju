@@ -116,12 +116,7 @@ body:focus { /*为键盘导航用户清晰焦点指示*/
 
 /*================================设定一些元素的初始值==============================*/
 
-template, .template, .hidden, [v-cloak], .js.container {display: none !important; }
-
-.semi-bold { font-weight: 600; }
-
-/* 行内元素与同行文字垂直对齐（y 轴方向居中），否则会偏上 */
-.y-middle { vertical-align: middle; }
+template {display: none !important; }
 
 h1, h2, h3 {color: #333; }
 
@@ -141,6 +136,97 @@ button {
 i.icon {
 	font-style: unset; /* <i>标签本来是做斜体的，但现在通常被用来做图标，因此要去掉本身的斜体。 */
 }
+
+/*================================一些工具类==============================*/
+
+/*----------------------可见性--------------------*/
+.template, .hidden, [v-cloak], .js.container {display: none !important; }
+
+/* 视觉隐藏（仍可被读屏访问，用于无障碍时隐藏控件） */
+.visually-hidden {
+	position: absolute !important;
+	width: 0 !important;
+	height: 0 !important;
+	margin: 0;
+	padding: 0;
+	overflow: hidden !important;
+	clip: rect(0, 0, 0, 0) !important;
+	border: 0;
+	opacity: 0 !important;
+	pointer-events: none;
+}
+
+/*-------------定位-------------*/
+
+/* 行内元素与同行文字垂直对齐（y 轴方向居中），否则会偏上 */
+.y-middle { vertical-align: middle; }
+
+/* 块级元素在容器内水平居中（x 轴） */
+.x-middle { margin-left: auto; margin-right: auto; }
+
+/* 在 flex/grid 子项上水平+垂直居中（xy 两轴） */
+.xy-middle { align-self: center; justify-self: center; }
+
+.position-fixed {position: fixed; }
+
+.position-fixed.in-center { /* 固定于视口并居中 */
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+}
+
+.sticky {position: sticky; }
+
+footer.sticky {bottom: 0; }
+
+nav.sticky {top: 0; }
+
+/*------------------------尺寸--------------------*/
+/*----------可拖放调整大小的元素----------*/
+.resizable {
+	display: block; /* 确保是块级元素 */
+	overflow: auto; /* 必须设置且不能是visible */
+	resize: both;
+}
+
+.resizable.x {resize: horizontal;}
+
+.resizable.y {resize: vertical;}
+
+/*-----------------------颜色---------------------*/
+
+.note strong {color: red; }
+
+.text-correct { color: var(--correct-color); }
+
+.text-incorrect { color: var(--incorrect-color); }
+
+.text-half-correct { color: var(--half-correct-color); }
+
+.text-dangerous { color: var(--dangerous-color); }
+
+.bg-dangerous { background-color: var(--dangerous-color); }
+
+.semi-bold { font-weight: 600; }
+
+/*-------------------------文字--------------------------------*/
+.em-as-10x-px {
+	font-size: 62.5%; /* 浏览器默认字号16px，62.5%即10px，这样可令1em=10px，方便换算 */
+}
+
+/*---------------截断长文本---------------*/
+.truncate-long-text {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis; /*截断文本最后留个省略号*/
+}
+
+.truncate-long-text:hover {
+	overflow: visible;
+	text-overflow: inherit;
+}
+
+/*===========================网站结构=======================*/
 
 /*-------------------------整个导航栏--------------------*/
 body > header {
@@ -205,34 +291,6 @@ body > header nav a:hover, body > header nav a.active {
 	border-bottom-color: #007bff;
 }
 
-/*================================一些工具类==============================*/
-
-/* 视觉隐藏（仍可被读屏访问，用于无障碍时隐藏控件） */
-.visually-hidden {
-	position: absolute !important;
-	width: 0 !important;
-	height: 0 !important;
-	margin: 0 !important;
-	padding: 0 !important;
-	overflow: hidden !important;
-	clip: rect(0, 0, 0, 0) !important;
-	border: 0 !important;
-	opacity: 0 !important;
-	pointer-events: none !important;
-}
-
-.note strong {color: red; }
-
-.correct {color: var(--correct-color); }
-
-.incorrect {color: var(--incorrect-color); }
-
-.half-correct {color: var(--half-correct-color); }
-
-.dangerous-via-font {color: var(--dangerous-color); }
-
-.dangerous-via-background {background-color: var(--dangerous-color); }
-
 /*---------------------网站信息---------------------*/
 .website.info {
 	background-color: #f8f9fa;
@@ -282,49 +340,7 @@ body > header nav a:hover, body > header nav a.active {
 	text-decoration: underline;
 }
 
-/*--------------可拖放调整大小的元素--------------*/
-.resizable {
-	display: block; /* 确保是块级元素 */
-	overflow: auto; /* 必须设置且不能是visible */
-	resize: both;
-}
-
-.resizable.x {resize: horizontal;}
-
-.resizable.y {resize: vertical;}
-
-/*---------------截断长文本---------------*/
-.truncate-long-text {
-	overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis; /*截断文本最后留个省略号*/
-}
-
-.truncate-long-text:hover {
-	overflow: visible;
-	text-overflow: inherit;
-}
-
-/*-------------定位-------------*/
-.position-fixed {position: fixed; }
-
-.position-fixed.in-center {
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-}
-
-.sticky {position: sticky; }
-
-footer.sticky {bottom: 0; }
-
-nav.sticky {top: 0; }
-
-/*------------文字相关------------*/
-.em-as-10x-px {
-	font-size: 62.5%; /* 浏览器默认字号16px，62.5%即10px，这样可令1em=10px，方便换算 */
-}
-
+/*==============================一些特效=======================*/
 /*-----------渐变色------------*/
 .text-gradient { /* 渐变色字 */
 	background: linear-gradient(90deg, #3498db, #2ecc71);
