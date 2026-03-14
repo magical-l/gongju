@@ -157,15 +157,15 @@
 									<img v-if="pu.image" :src="pu.image" :alt="pu.text" loading="lazy" @error="previewImageErrors[pu.key]=true">
 									<template v-else>{{ pu.text }}</template>
 								</div>
-								<el-button circle size="small" class="clear-btn" @click="clearCustomTile(pu.key)">×</el-button>
+								<el-button circle size="small" class="btn circle sm overlay top right" @click="clearCustomTile(pu.key)">×</el-button>
 							</div>
-							<div class="fields">
+							<div class="preview input area flex vertical">
 							<input type="text" class="label" :value="customLabels[pu.key] || ''" @input="onCustomLabelInput(pu.key, $event.target.value)" @blur="applyCustomTiles" placeholder="自定义文字" maxlength="10">
 							<div class="flex items-near-center-y no-gap"><span class="text-small-subdued">或</span>
-								<input type="text" class="image" :value="customImageDisplayValue(pu.key)" @input="onCustomImageInput(pu.key, $event.target.value)" @blur="applyCustomTiles" :placeholder="customImagePlaceholder(pu.key)">
+								<input type="text" class="url input" :value="customImageDisplayValue(pu.key)" @input="onCustomImageInput(pu.key, $event.target.value)" @blur="applyCustomTiles" :placeholder="customImagePlaceholder(pu.key)">
 							</div>
 							<div class="flex items-near-center-y no-gap"><span class="text-small-subdued">或</span>
-								<el-button class="pick-file" @click="openTileFilePicker(pu.key)">选择本地图片</el-button>
+								<el-button class="file-picker entry btn" @click="openTileFilePicker(pu.key)">选择本地图片</el-button>
 							</div>
 						</div>
 						</div>
@@ -173,7 +173,7 @@
 				</template>
 				<el-card header="更大的数字" class="one unit area add-next" shadow="never">
 					<div class="flex near-center add-next-body">
-						<el-button circle class="add-next-btn" :disabled="!canAddNextCustomTile" :title="canAddNextCustomTile ? '添加下一个数字' : '已达上限'" @click="addNextCustomTile">+</el-button>
+						<el-button circle class="btn circle lg" :disabled="!canAddNextCustomTile" :title="canAddNextCustomTile ? '添加下一个数字' : '已达上限'" @click="addNextCustomTile">+</el-button>
 					</div>
 				</el-card>
 			</div>

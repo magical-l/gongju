@@ -166,21 +166,6 @@ article.gaming.area .slide-layer .cell {
 	min-height: 120px;
 }
 
-.customize.unit.display.area .add-next-btn {
-	width: 64px;
-	height: 64px;
-	padding: 0;
-	font-size: 32px;
-	line-height: 1;
-	border-radius: 50%;
-	flex-shrink: 0;
-}
-
-.customize.unit.display.area .add-next-btn:disabled {
-	opacity: 0.5;
-	cursor: not-allowed;
-}
-
 /* 预览态：固定尺寸方框，与棋盘/滑层“填满格”不同 */
 .cell .unit.preview {
 	width: var(--cell-size, 80px);
@@ -191,31 +176,10 @@ article.gaming.area .slide-layer .cell {
 	font-size: clamp(12px, 3vw, 20px);
 }
 
-.cell .unit.preview img {
-	object-fit: cover;
-	object-position: center;
-}
-
 .cell .unit.preview-error { background: #f8d7da !important; }
 
-.customize.unit.display.area .clear-btn {
-	position: absolute;
-	top: 4px;
-	right: 4px;
-	width: 24px;
-	height: 24px;
-	min-width: 24px;
-	padding: 0;
-	border: none;
-	background: rgba(0, 0, 0, 0.5);
-	color: #fff;
-	font-size: 18px;
-}
-
-.customize.unit.display.area .clear-btn:hover { background: rgba(0, 0, 0, 0.7); }
-
 /* 工具类：小号、弱化字色、定宽不伸缩、右侧间距，仅描述视觉 */
-article.gaming.area .text-small-subdued {
+.text-small-subdued {
 	font-size: 13px;
 	color: var(--text-dark);
 	opacity: 0.85;
@@ -224,23 +188,21 @@ article.gaming.area .text-small-subdued {
 	margin-right: 6px;
 }
 
-.customize.unit.display.area .fields .image,
-.customize.unit.display.area .fields .pick-file {
+.preview.input.area .url.input,
+.preview.input.area .file-picker.entry.btn {
 	flex: 1;
 	min-width: 0;
 }
 
-.customize.unit.display.area .fields {
-	display: flex;
-	flex-direction: column;
+.preview.input.area {
 	gap: 6px;
 	min-width: 0;
 	flex: 1;
 	max-width: 160px;
 }
 
-.customize.unit.display.area .label,
-.customize.unit.display.area .image {
+.preview.input.area .label,
+.preview.input.area .url.input {
 	padding: 6px 8px;
 	border: 1px solid var(--grid-line);
 	border-radius: 6px;
@@ -250,7 +212,7 @@ article.gaming.area .text-small-subdued {
 	box-sizing: border-box;
 }
 
-.customize.unit.display.area .pick-file {
+.preview.input.area .file-picker.entry.btn {
 	padding: 6px 10px;
 	font-size: 13px;
 	align-self: flex-start;

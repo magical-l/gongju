@@ -315,3 +315,43 @@ article.gaming.area .right-sidebar .el-collapse-item__header:focus {
 .chooser.p-selectbutton button .p-togglebutton-label {
 	font-weight: normal;
 }
+
+/* 按钮工具类：多类组合；.btn.circle 共性，.lg/.sm 尺寸与样式 */
+.btn.circle {
+	padding: 0;
+	border-radius: 50%;
+}
+
+.btn.circle.lg {
+	width: 64px;
+	height: 64px;
+	min-width: 64px;
+	font-size: 32px;
+	line-height: 1;
+	flex-shrink: 0;
+}
+
+.btn.circle.lg:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.btn.circle.sm {
+	width: 24px;
+	height: 24px;
+	min-width: 24px;
+	border: none;
+	background: rgba(0, 0, 0, 0.5);
+	color: #fff;
+	font-size: 18px;
+}
+
+.btn.circle.sm:hover {
+	background: rgba(0, 0, 0, 0.7);
+}
+
+.overlay.top.right {
+	position: absolute;
+	top: 4px;
+	right: 4px;
+}
