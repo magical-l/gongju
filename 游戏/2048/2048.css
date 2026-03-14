@@ -15,16 +15,6 @@
 	--merge-duration: 0.2s;
 }
 
-.one.setting .el-form-item {
-	margin-bottom: 0;
-}
-
-.one.group .el-form-item {
-	margin-bottom: 0;
-	padding-bottom: 0;
-	align-items: center;
-}
-
 /* 右侧本局信息：.flex.vertical 提供间距；记分牌用 el-card 默认样式 */
 
 /* 棋盘容器：.main.map.area 即棋盘+滑层的外层，提供定位、尺寸与手势区域 */
@@ -165,30 +155,10 @@ article.gaming.area .slide-layer .cell {
 	position: absolute;
 }
 
-/* 结算 / 数字显示 等弹框：视口居中，避免整页纵向滚动 */
-.el-dialog__wrapper {
-	display: flex !important;
-	align-items: center !important;
-	justify-content: center !important;
-	padding: 0 !important;
-}
-
-.el-dialog__wrapper .el-dialog {
-	margin: 0 !important;
-	margin-top: 0 !important;
-	top: auto !important;
-	max-height: 90vh;
-	overflow-y: auto;
-}
-
-.el-dialog__wrapper.is-align-center .el-dialog {
-	margin: 0 !important;
-}
-
 /* 结算 dialog：提示文案（自有类，不依赖库内部类） */
 .game.result .hint {
 	font-size: 14px;
-	color: var(--el-text-color-secondary);
+	color: var(--text-dark);
 	margin: 0 0 1rem;
 }
 

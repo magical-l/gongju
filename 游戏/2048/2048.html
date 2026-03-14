@@ -57,13 +57,13 @@
 			<section class="setting list area , flex single-line no-gap items-near-start-x items-near-center-y">
 				<div class="one setting group">
 					<el-form-item class="one setting : height">
-						<el-select v-model.number="boardHeight" @change="onBoardSettingChange">
+						<el-select v-model.number="boardHeight">
 							<template #prefix>行</template>
 							<el-option v-for="h in boardSizeOptions" :key="h" :label="String(h)" :value="h"/>
 						</el-select>
 					</el-form-item>
 					<el-form-item class="one setting : width">
-						<el-select v-model.number="boardWidth" @change="onBoardSettingChange">
+						<el-select v-model.number="boardWidth">
 							<template #prefix>列</template>
 							<el-option v-for="w in boardSizeOptions" :key="w" :label="String(w)" :value="w"/>
 						</el-select>
@@ -71,7 +71,7 @@
 				</div>
 				<div class="one setting group">
 					<el-form-item class="one setting : target">
-						<el-select v-model="targetNumber" @change="onBoardSettingChange">
+						<el-select v-model="targetNumber">
 							<template #prefix>目标</template>
 							<el-option v-for="opt in targetOptions" :key="opt.label" :label="opt.label" :value="opt.value"/>
 						</el-select>
@@ -162,13 +162,13 @@
 								<button type="button" class="clear-btn" @click="clearCustomTile(pu.key)">×</button>
 							</div>
 							<div class="fields">
-								<input type="text" class="label" :value="customLabels[pu.key] || ''" @input="onCustomLabelInput(pu.key, $event.target.value)" @blur="applyCustomTiles" :placeholder="customTileLabelPlaceholder()" :maxlength="customLabelMaxLen()">
+								<input type="text" class="label" :value="customLabels[pu.key] || ''" @input="onCustomLabelInput(pu.key, $event.target.value)" @blur="applyCustomTiles" placeholder="自定义文字" maxlength="10">
 								<div class="row-or"><span class="or">或</span>
 									<input type="text" class="image" :value="customImageDisplayValue(pu.key)" @input="onCustomImageInput(pu.key, $event.target.value)" @blur="applyCustomTiles" :placeholder="customImagePlaceholder(pu.key)">
 								</div>
 								<div class="row-or"><span class="or">或</span>
 									<span class="file-wrap">
-										<button type="button" class="btn btn-secondary pick-file" @click="openTileFilePicker(pu.key)">{{ customTilePickImageLabel() }}</button>
+										<button type="button" class="btn btn-secondary pick-file" @click="openTileFilePicker(pu.key)">选择本地图片</button>
 									</span>
 								</div>
 							</div>
@@ -250,6 +250,7 @@ window.Game2048 = Game2048;
 		gameBoardWidth: 4,
 		gameBoardHeight: 4,
 		gameTargetNumber: 2048,
+		gameTargetLabel: '2048',
 		showNewTileMarker: true,
 		customTilesDialogVisible: false,
 		customLabels: {},
@@ -273,16 +274,10 @@ window.Game2048 = Game2048;
 		data: () => state,
 		computed: {
 			quickSettingsList() {
-				return window.Game2048Constants && window.Game2048Constants.getQuickSettingsList('web') || [];
+				return window.Game2048Constants.getQuickSettingsList('web') || [];
 			},
 			boardSizeOptions: () => boardSizeOptions,
 			targetOptions: () => targetOptions,
-			gameTargetLabel() {
-				const opts = targetOptions;
-				const n = state.gameTargetNumber;
-				const found = opts.find(function (o) { return o.value === n; });
-				return found ? found.label : (n === Infinity ? '无限' : String(n));
-			},
 			canAddNextCustomTile() {
 				const keys = state.customTileKeys;
 				if (!keys || !keys.length) return true;
@@ -293,11 +288,10 @@ window.Game2048 = Game2048;
 				const cells = state.boardView.cells || [];
 				const newIdx = newTileIndexRef.value;
 				const s = state.lastStateForDisplay;
-				const getDisplay = window.Game2048 && typeof window.Game2048.getTileDisplayContent === 'function'
-					? function (v) { return window.Game2048.getTileDisplayContent(s, v); } : null;
+				const getDisplay = (v) => window.Game2048.getTileDisplayContent(s, v);
 				return cells.map(function (c) {
 					if (!c.value) return { index: c.index, value: 0, unit: null };
-					const content = getDisplay ? getDisplay(c.value) : { type: 'number', value: c.value };
+					const content = getDisplay(c.value) || { type: 'number', value: c.value };
 					let text = String(c.value);
 					let image = undefined;
 					if (content) {
@@ -309,17 +303,13 @@ window.Game2048 = Game2048;
 					return { index: c.index, value: c.value, unit: unit };
 				});
 			},
-			newTileIndex() {
-				return newTileIndexRef.value;
-			},
 			previewUnits() {
 				const keys = state.customTileKeys || [];
 				const s = { customLabels: state.customLabels, customImages: state.customImages };
-				const getDisplay = window.Game2048 && typeof window.Game2048.getTileDisplayContent === 'function'
-					? function (v) { return window.Game2048.getTileDisplayContent(s, v); } : null;
+				const getDisplay = (v) => window.Game2048.getTileDisplayContent(s, v);
 				return keys.map(function (key) {
 					const num = Number(key);
-					const content = getDisplay ? getDisplay(num) : { type: 'number', value: num };
+					const content = getDisplay(num) || { type: 'number', value: num };
 					let text = String(num);
 					let image = undefined;
 					if (content) {
@@ -340,16 +330,13 @@ window.Game2048 = Game2048;
 			},
 		},
 		methods: {
-			onBoardSettingChange() {
-				/* 开新局由用户点「新局」触发，此处只记设置 */
-			},
 			onRestart() {
-				if (window.Game2048 && typeof window.Game2048.applyBoardSettings === 'function') {
-					window.Game2048.applyBoardSettings({ boardHeight: state.boardHeight, boardWidth: state.boardWidth, targetNumber: state.targetNumber });
-					state.gameBoardWidth = state.boardWidth;
-					state.gameBoardHeight = state.boardHeight;
-					state.gameTargetNumber = state.targetNumber;
-				}
+				window.Game2048.applyBoardSettings({ boardHeight: state.boardHeight, boardWidth: state.boardWidth, targetNumber: state.targetNumber });
+				state.gameBoardWidth = state.boardWidth;
+				state.gameBoardHeight = state.boardHeight;
+				state.gameTargetNumber = state.targetNumber;
+				const o = targetOptions.find(opt => opt.value === state.targetNumber);
+				state.gameTargetLabel = o ? o.label : (state.targetNumber === Infinity ? '无限' : String(state.targetNumber));
 			},
 			getQuickValue(key) { return state[key]; },
 			setQuickValue(key, v) {
@@ -357,58 +344,39 @@ window.Game2048 = Game2048;
 				this.onQuickSettingChange();
 			},
 			onQuickSettingChange() {
-				if (window.Game2048 && typeof window.Game2048.applyQuickSettings === 'function') {
-					window.Game2048.applyQuickSettings(state.showNewTileMarker);
-				}
+				window.Game2048.applyQuickSettings(state.showNewTileMarker);
 			},
 			openCustomTilesDialog() {
 				state.customTilesDialogVisible = true;
 			},
 			onCustomTilesDialogOpened() {
 				state.previewImageErrors = {};
-				if (window.Game2048 && typeof window.Game2048.openCustomTiles === 'function') window.Game2048.openCustomTiles();
-				const fn = window.Game2048 && window.Game2048.getPendingCustomTilesForVue;
-				if (typeof fn === 'function') {
-					const d = fn();
-					if (d) {
-						state.customLabels = d.customLabels && typeof d.customLabels === 'object' ? Object.assign({}, d.customLabels) : {};
-						state.customImages = d.customImages && typeof d.customImages === 'object' ? Object.assign({}, d.customImages) : {};
-						state.customTileKeys = Array.isArray(d.tileKeys) ? d.tileKeys.slice() : [];
-					}
+				window.Game2048.openCustomTiles();
+				const d = window.Game2048.getPendingCustomTilesForVue();
+				if (d) {
+					state.customLabels = Object.assign({}, d.customLabels || {});
+					state.customImages = Object.assign({}, d.customImages || {});
+					state.customTileKeys = (d.tileKeys && d.tileKeys.slice()) || [];
 				}
-			},
-			customTileLabelPlaceholder() {
-				return (window.Game2048Constants && typeof window.Game2048Constants.getDisplayLabel === 'function')
-					? window.Game2048Constants.getDisplayLabel('customTiles', 'labelPlaceholder', 'web') : '自定义文字';
-			},
-			customTilePickImageLabel() {
-				return (window.Game2048Constants && typeof window.Game2048Constants.getDisplayLabel === 'function')
-					? window.Game2048Constants.getDisplayLabel('customTiles', 'pickImage', 'web') : '选图';
-			},
-			customLabelMaxLen() {
-				return (window.Game2048Constants && window.Game2048Constants.customLabelMaxLen != null)
-					? window.Game2048Constants.customLabelMaxLen : 10;
 			},
 			customImagePlaceholder(key) {
-				const img = state.customImages && state.customImages[key];
-				return img && String(img).slice(0, 5) === 'data:' ? '已选本地图' : '图片 URL';
+				const img = state.customImages[key];
+				return img && img.slice(0, 5) === 'data:' ? '已选本地图' : '图片 URL';
 			},
 			customImageDisplayValue(key) {
-				const img = state.customImages && state.customImages[key];
+				const img = state.customImages[key];
 				if (!img) return '';
-				return String(img).slice(0, 5) === 'data:' ? '' : img;
+				return img.slice(0, 5) === 'data:' ? '' : img;
 			},
 			syncCustomTilesToDom() {
-				if (window.Game2048 && typeof window.Game2048.setPendingCustomTiles === 'function') {
-					window.Game2048.setPendingCustomTiles(state.customLabels, state.customImages);
-				}
+				window.Game2048.setPendingCustomTiles(state.customLabels, state.customImages);
 			},
 			applyCustomTiles() {
 				this.syncCustomTilesToDom();
-				if (window.Game2048 && typeof window.Game2048.applyCustomTiles === 'function') window.Game2048.applyCustomTiles();
+				window.Game2048.applyCustomTiles();
 			},
 			onCustomLabelInput(key, val) {
-				const trimmed = String(val).trim().slice(0, this.customLabelMaxLen);
+				const trimmed = String(val).trim().slice(0, 10);
 				if (trimmed) state.customLabels[key] = trimmed;
 				else delete state.customLabels[key];
 				if (state.customImages) delete state.customImages[key];
@@ -469,7 +437,7 @@ window.Game2048 = Game2048;
 				state.customImages = {};
 				state.previewImageErrors = {};
 				this.syncCustomTilesToDom();
-				if (window.Game2048 && typeof window.Game2048.applyCustomTiles === 'function') window.Game2048.applyCustomTiles();
+				window.Game2048.applyCustomTiles();
 			},
 			closeCustomTilesDialog() {
 				state.customTilesDialogVisible = false;
@@ -496,13 +464,13 @@ window.Game2048 = Game2048;
 				};
 			},
 			onResultOverlayClick() {
-				if (window.Game2048 && typeof window.Game2048.onResultClose === 'function') window.Game2048.onResultClose();
+				window.Game2048.onResultClose();
 			},
 			onResultRestart() {
-				if (window.Game2048 && typeof window.Game2048.onResultRestart === 'function') window.Game2048.onResultRestart();
+				window.Game2048.onResultRestart();
 			},
 			onUndo() {
-				if (window.Game2048 && typeof window.Game2048.undo === 'function') window.Game2048.undo();
+				window.Game2048.undo();
 			},
 		},
 		mounted() {
@@ -554,8 +522,8 @@ window.Game2048 = Game2048;
 				runSlideAnimation(slides, finalState, stateBeforeMove, newTileIndex, onEnd) {
 					if (!slides || !slides.length) {
 						bridge.commitState(finalState);
-						if (bridge.setNewTileIndex) bridge.setNewTileIndex(newTileIndex);
-						if (typeof onEnd === 'function') onEnd();
+						bridge.setNewTileIndex(newTileIndex);
+						onEnd && onEnd();
 						return;
 					}
 					const displayBoard = stateBeforeMove.board.slice();
@@ -579,8 +547,7 @@ window.Game2048 = Game2048;
 							const fromPos = positions[fromIdx];
 							const toPos = positions[toIdx];
 							if (!fromPos || !toPos) continue;
-							const content = api && typeof api.getTileDisplayContent === 'function'
-								? api.getTileDisplayContent(finalState, slide.value) : { type: 'number', value: slide.value };
+							const content = api.getTileDisplayContent(finalState, slide.value) || { type: 'number', value: slide.value };
 							let displayText = String(slide.value);
 							let displayImage = undefined;
 							if (content) {
@@ -604,9 +571,9 @@ window.Game2048 = Game2048;
 						});
 						setTimeout(function () {
 							state.slideAnimationTiles = [];
-							if (bridge.setNewTileIndex) bridge.setNewTileIndex(newTileIndex);
+							bridge.setNewTileIndex(newTileIndex);
 							bridge.commitState(finalState);
-							if (typeof onEnd === 'function') onEnd();
+							onEnd && onEnd();
 						}, maxDuration + 50);
 					});
 				},
@@ -617,10 +584,10 @@ window.Game2048 = Game2048;
 					if (boardHeight != null) state.gameBoardHeight = boardHeight;
 				},
 				setQuickSettings(obj) {
-					if (obj && typeof obj.showNewTileMarker === 'boolean') state.showNewTileMarker = obj.showNewTileMarker;
+					if (obj && obj.showNewTileMarker !== undefined) state.showNewTileMarker = obj.showNewTileMarker;
 				},
 				syncToolbarSettings() {
-					const s = api && typeof api.getBoardSettings === 'function' && api.getBoardSettings();
+					const s = api.getBoardSettings();
 					if (s) {
 						state.boardHeight = s.boardHeight;
 						state.boardWidth = s.boardWidth;
@@ -628,13 +595,15 @@ window.Game2048 = Game2048;
 						state.gameBoardHeight = s.boardHeight;
 						state.gameBoardWidth = s.boardWidth;
 						state.gameTargetNumber = s.targetNumber != null ? s.targetNumber : 2048;
+						const o = targetOptions.find(opt => opt.value === state.gameTargetNumber);
+						state.gameTargetLabel = o ? o.label : (state.gameTargetNumber === Infinity ? '无限' : String(state.gameTargetNumber));
 					}
 				},
 			};
-			if (api && typeof api.init === 'function') api.init(bridge);
+			api.init(bridge);
 			this.$nextTick(() => {
 				const wrap = this.$refs.boardWrap;
-				if (!wrap || !api || typeof api.onGesture !== 'function') return;
+				if (!wrap) return;
 				let touchStartX = 0, touchStartY = 0;
 				wrap.addEventListener('touchstart', (e) => {
 					const t = e.touches[0];
