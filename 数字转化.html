@@ -121,7 +121,7 @@
 					</div>
 				</template>
 				<section class="grid" style="grid-template-columns: 1fr auto;align-items: center">
-					<p v-if="result.value" class="truncate-long-text" @click="copyToClipboard(result.value)">{{result.value}}</p>
+					<p v-if="result.value" class="hide-long-text end-with-ellipsis" @click="copyToClipboard(result.value)">{{result.value}}</p>
 					<p v-else>（无结果。等待输入）</p>
 					<el-button title="把此结果作为输入" v-if="result.value" @click.stop="asInput(result.value)"
 										 aria-label="把此结果作为输入"
