@@ -124,7 +124,7 @@ if (!logic || !constants) {
       const s = {};
       if (Number(o.boardWidth) >= 2) s.boardWidth = Number(o.boardWidth);
       if (Number(o.boardHeight) >= 2) s.boardHeight = Number(o.boardHeight);
-      if (o.targetNumber !== undefined) s.targetNumber = o.targetNumber === 'Infinity' ? Infinity : Number(o.targetNumber);
+      if (o.targetNumber !== undefined) s.targetNumber = (o.targetNumber == null || o.targetNumber === 'Infinity' || o.targetNumber === 'null') ? null : Number(o.targetNumber);
       s.initialTiles = 2;
       if (typeof o.showNewTileMarker === 'boolean') s.showNewTileMarker = o.showNewTileMarker;
       else if (typeof o.showHighlight === 'boolean') s.showNewTileMarker = o.showHighlight;
@@ -140,7 +140,7 @@ if (!logic || !constants) {
       const s = {
         boardWidth: pendingSettings.boardWidth,
         boardHeight: pendingSettings.boardHeight,
-        targetNumber: pendingSettings.targetNumber === Infinity ? 'Infinity' : pendingSettings.targetNumber,
+        targetNumber: pendingSettings.targetNumber,
         initialTiles: pendingSettings.initialTiles,
         showNewTileMarker: pendingSettings.showNewTileMarker,
         newTileOnMidStop: pendingSettings.newTileOnMidStop,
@@ -159,7 +159,7 @@ if (!logic || !constants) {
       const s = {
         boardWidth: gameState.boardWidth,
         boardHeight: gameState.boardHeight,
-        targetNumber: gameState.targetNumber === Infinity ? 'Infinity' : gameState.targetNumber,
+        targetNumber: gameState.targetNumber,
         initialTiles: gameState.initialTiles,
         showNewTileMarker: gameState.showNewTileMarker,
         newTileOnMidStop: gameState.newTileOnMidStop,
@@ -219,7 +219,7 @@ if (!logic || !constants) {
     pendingSettings = {
       boardWidth: obj.boardWidth != null ? obj.boardWidth : gameState.boardWidth,
       boardHeight: obj.boardHeight != null ? obj.boardHeight : gameState.boardHeight,
-      targetNumber: obj.targetNumber != null ? obj.targetNumber : gameState.targetNumber,
+      targetNumber: obj.targetNumber !== undefined ? obj.targetNumber : gameState.targetNumber,
       initialTiles: 2,
       showNewTileMarker: gameState.showNewTileMarker,
       newTileOnMidStop: gameState.newTileOnMidStop,

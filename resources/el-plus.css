@@ -20,7 +20,7 @@
 /* 原本居然有30px的右外边距，当同组的两个radio并排时，显得不亲，还不如跟其他元素亲近。 */
 .el-radio-group > .el-radio {margin-right: 0;}
 
-/* type="info"的按钮也是灰色的，看起来像禁用 */
+/* type="info"的按钮也是灰色的，看起来像禁用，所以改改 */
 .el-button--info {
 	background-color: #ffffff; /* 纯白背景 */
 	border-color: #dcdfe6; /* 默认边框色 */
@@ -34,53 +34,38 @@
 	color: #303133; /* 悬停时文字稍深 */
 }
 
-.el-button--info.is-plain {
-	background-color: #ffffff; /* 纯白背景 */
-	border-color: #dcdfe6; /* 默认边框色 */
-	color: #606266; /* 默认文字色 */
-}
-
-.el-button--info.is-plain:hover,
-.el-button--info.is-plain:focus {
-	background-color: #f5f7fa; /* 悬停时浅灰 */
-	border-color: #c8c9cc;
-	color: #303133;
-}
-
 .compact {
 	--el-card-padding: 10px;
 }
 
+/* 右侧栏的卡片之间设置为紧密堆叠。 */
 .right-sidebar > .el-card:not(:last-child) {
 	margin-bottom: 0;
 }
 
-.semi-bold {
-	font-weight: 600;
+/* el-input / el-input-number 如果有prefix和placeholder，看起来就像连在一起，需要留出间距 */
+.el-input__prefix {
+	margin-right: 0.5em;
 }
 
-/* 表单项内标签旁图标（与文字垂直居中） */
-.el-form-item .label-icon {
-	vertical-align: middle;
-	margin-right: 4px;
-}
-
-/* 带 #prefix 插槽的 el-select（组件内有 .el-select__prefix），在 .toolbar 等 flex 布局中保持紧凑，无需自定义 class */
-.toolbar section:has(.el-select:has(.el-select__prefix)),
-.toolbar .one.setting.group:has(.el-select:has(.el-select__prefix)),
-.toolbar .one.tool.group:has(.el-select:has(.el-select__prefix)),
-.toolbar .el-form-item:has(.el-select:has(.el-select__prefix)),
-.toolbar .el-form-item__content:has(.el-select:has(.el-select__prefix)),
-.toolbar .el-select:has(.el-select__prefix),
-.toolbar .el-select:has(.el-select__prefix) .el-select__wrapper {
+/* 工具栏为 flex 时，表单项若可拉伸会把整行撑满；固定为不拉伸以便与按钮、下拉等并排紧凑 */
+.toolbar .el-form-item {
 	flex: 0 0 auto !important;
 }
-.toolbar .el-select:has(.el-select__prefix) .el-select__selection .el-select__input-wrapper {
+/* 下拉在工具栏中按内容宽度显示，不占满整格 */
+.toolbar .el-select {
+	flex: 0 0 auto !important;
+	display: inline-block;
+	min-width: 4rem;
+	width: auto;
+}
+/* 使用 #prefix 时，选中区/输入若参与 flex 会抢宽，导致前缀被挤换行；收窄选中区、输入不占流式宽度即可保持一行 */
+.toolbar .el-select .el-select__selection .el-select__input-wrapper {
 	position: absolute !important;
 	width: 0 !important;
 	overflow: hidden !important;
 }
-.toolbar .el-select:has(.el-select__prefix) .el-select__selection {
+.toolbar .el-select .el-select__selection {
 	flex: 0 0 auto !important;
 	min-width: 2em !important;
 }
@@ -89,18 +74,20 @@
 .按压式.el-button {
 	border-radius: var(--el-border-radius-base, 4px);
 	transition: box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+	cursor: pointer;
+	user-select: none;
 }
-.按压式:not(.pressed) {
+.按压式.el-button:not(.pressed) {
 	background: var(--el-button-bg-color, #fff);
 	color: var(--el-text-color-regular);
 	box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
 }
-.按压式:not(.pressed):hover {
+.按压式.el-button:not(.pressed):hover {
 	background: var(--el-button-hover-bg-color, #ecf5ff);
 	border-color: var(--el-color-primary-light-7);
 	color: var(--el-color-primary);
 }
-.按压式.pressed {
+.按压式.el-button.pressed {
 	background: var(--el-color-primary);
 	border-color: var(--el-color-primary);
 	color: var(--el-color-white);
@@ -108,16 +95,9 @@
 		inset 0 2px 4px rgba(0, 0, 0, 0.2),
 		inset 0 0 0 1px rgba(0, 0, 0, 0.08);
 }
-.按压式.pressed:hover {
+.按压式.el-button.pressed:hover {
 	background: var(--el-color-primary-light-3);
 	border-color: var(--el-color-primary-light-3);
-}
-.按压式 .label-icon {
-	vertical-align: middle;
-}
-.按压式 {
-	cursor: pointer;
-	user-select: none;
 }
 
 /* el-dialog / el-drawer 等打开时锁 body 滚动（依赖 el-plus 的 .el-overlay） */

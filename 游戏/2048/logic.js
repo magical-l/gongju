@@ -361,7 +361,7 @@ function doMove(state, direction) {
     next = Object.assign({}, next, { highScore: next.score })
   }
   var targetNum = next.targetNumber
-  if (!next.gameWin && targetNum !== Infinity) {
+  if (!next.gameWin && targetNum != null) {
     for (var i = 0; i < next.board.length; i++) {
       if (next.board[i] >= targetNum) {
         next = Object.assign({}, next, { gameWin: true, overlayVisible: true, overlayMessage: '恭喜！' })
@@ -414,7 +414,7 @@ function serializeGameState(state) {
     overlayMessage: state.overlayMessage,
     boardWidth: state.boardWidth,
     boardHeight: state.boardHeight,
-    targetNumber: state.targetNumber === Infinity ? 'Infinity' : state.targetNumber,
+    targetNumber: state.targetNumber,
     initialTiles: state.initialTiles,
     showNewTileMarker: state.showNewTileMarker,
     useAccelerometer: state.useAccelerometer,
@@ -440,7 +440,7 @@ function deserializeGameState(raw) {
     var v = Number(boardRaw[i])
     board.push(Number.isFinite(v) && v >= 0 ? v : 0)
   }
-  var targetNumber = o.targetNumber === 'Infinity' ? Infinity : Number(o.targetNumber)
+  var targetNumber = (o.targetNumber == null || o.targetNumber === 'Infinity' || o.targetNumber === 'null') ? null : Number(o.targetNumber)
   var moveHistoryRaw = o.moveHistory
   var moveHistory = []
   if (Array.isArray(moveHistoryRaw)) {
@@ -461,7 +461,7 @@ function deserializeGameState(raw) {
     overlayMessage: String(o.overlayMessage != null ? o.overlayMessage : ''),
     boardWidth: boardWidth,
     boardHeight: boardHeight,
-    targetNumber: (targetNumber === Infinity || Number.isFinite(targetNumber)) ? targetNumber : 2048,
+    targetNumber: (targetNumber == null || Number.isFinite(targetNumber)) ? targetNumber : 2048,
     initialTiles: Math.max(1, Math.min(total, Number(o.initialTiles) || 2)),
     showNewTileMarker: (o.showNewTileMarker != null ? o.showNewTileMarker !== false : o.showHighlight !== false),
     useAccelerometer: Boolean(o.useAccelerometer),

@@ -71,10 +71,9 @@
 				</div>
 				<div class="one setting group">
 					<el-form-item class="one setting : target">
-						<el-select v-model="targetNumber">
-							<template #prefix>目标</template>
-							<el-option v-for="opt in targetOptions" :key="opt.label" :label="opt.label" :value="opt.value"/>
-						</el-select>
+						<el-input-number :model-value="targetNumber" @update:model-value="onTargetNumberChange" :controls="false" placeholder="留空=无限" :min="8" style="width: 10em" class="target-number-input">
+							<template #prefix>目标≥</template>
+						</el-input-number>
 					</el-form-item>
 				</div>
 				<div class="one setting group">
@@ -95,7 +94,7 @@
 					<div class="one tool group">
 						<el-form-item :class="'one tool : ' + item.key">
 							<el-button v-if="item.type === 'toggle'" class="按压式" :class="{ pressed: getQuickValue(item.key) }" @click="setQuickValue(item.key, !getQuickValue(item.key))">
-								<span v-if="item.key === 'showNewTileMarker'" class="el-icon"><svg class="label-icon" viewBox="0 0 24 24" width="1em" height="1em" title="角标式标记"><rect x="2" y="2" width="20" height="20" rx="5" fill="currentColor" opacity="0.85"/><circle cx="18" cy="6" r="3.5" fill="var(--el-color-danger, #f56c6c)"/></svg></span>
+								<span v-if="item.key === 'showNewTileMarker'" class="el-icon"><svg class="y-middle" viewBox="0 0 24 24" width="1em" height="1em" title="角标式标记"><rect x="2" y="2" width="20" height="20" rx="5" fill="currentColor" opacity="0.85"/><circle cx="18" cy="6" r="3.5" fill="var(--el-color-danger, #f56c6c)"/></svg></span>
 								<span>{{ item.label }}</span>
 							</el-button>
 							<el-select v-else-if="item.type === 'select'" :model-value="getQuickValue(item.key)" @update:model-value="(v) => setQuickValue(item.key, v)">
@@ -189,7 +188,7 @@
 							<el-descriptions class="info list" :column="1" border>
 								<el-descriptions-item label="行">{{ gameBoardHeight }}</el-descriptions-item>
 								<el-descriptions-item label="列">{{ gameBoardWidth }}</el-descriptions-item>
-								<el-descriptions-item label="目标">{{ gameTargetLabel }}</el-descriptions-item>
+								<el-descriptions-item label="目标≥">{{ gameTargetLabel }}</el-descriptions-item>
 								<el-descriptions-item :label="gameBoardWidth && gameBoardHeight ? `最高记录 (${gameBoardWidth}×${gameBoardHeight})` : '最高记录'">{{ highScore }}</el-descriptions-item>
 							</el-descriptions>
 							<el-card class="scoreboard" shadow="never" header="当前得分">
@@ -236,11 +235,6 @@ window.Game2048 = Game2048;
 	let saved;
 	try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
 	const boardSizeOptions = [4, 5, 6, 7, 8];
-	const targetOptions = (function () {
-		const c = window.Game2048Constants;
-		if (!c || !c.TARGET_OPTIONS || !c.TARGET_LABELS) return [{ label: '2048', value: 2048 }];
-		return c.TARGET_OPTIONS.map(function (v, i) { return { label: c.TARGET_LABELS[i], value: v }; });
-	})();
 	const state = reactive({
 		score: 0,
 		highScore: 0,
@@ -277,7 +271,6 @@ window.Game2048 = Game2048;
 				return window.Game2048Constants.getQuickSettingsList('web') || [];
 			},
 			boardSizeOptions: () => boardSizeOptions,
-			targetOptions: () => targetOptions,
 			canAddNextCustomTile() {
 				const keys = state.customTileKeys;
 				if (!keys || !keys.length) return true;
@@ -330,13 +323,16 @@ window.Game2048 = Game2048;
 			},
 		},
 		methods: {
+			onTargetNumberChange(v) {
+				state.targetNumber = (v === undefined || v === null || v === '') ? null : (Number(v) || 2048);
+			},
 			onRestart() {
-				window.Game2048.applyBoardSettings({ boardHeight: state.boardHeight, boardWidth: state.boardWidth, targetNumber: state.targetNumber });
+				const num = state.targetNumber;
+				window.Game2048.applyBoardSettings({ boardHeight: state.boardHeight, boardWidth: state.boardWidth, targetNumber: num });
 				state.gameBoardWidth = state.boardWidth;
 				state.gameBoardHeight = state.boardHeight;
-				state.gameTargetNumber = state.targetNumber;
-				const o = targetOptions.find(opt => opt.value === state.targetNumber);
-				state.gameTargetLabel = o ? o.label : (state.targetNumber === Infinity ? '无限' : String(state.targetNumber));
+				state.gameTargetNumber = num;
+				state.gameTargetLabel = num == null ? '无限' : String(num);
 			},
 			getQuickValue(key) { return state[key]; },
 			setQuickValue(key, v) {
@@ -591,12 +587,11 @@ window.Game2048 = Game2048;
 					if (s) {
 						state.boardHeight = s.boardHeight;
 						state.boardWidth = s.boardWidth;
-						state.targetNumber = s.targetNumber;
 						state.gameBoardHeight = s.boardHeight;
 						state.gameBoardWidth = s.boardWidth;
-						state.gameTargetNumber = s.targetNumber != null ? s.targetNumber : 2048;
-						const o = targetOptions.find(opt => opt.value === state.gameTargetNumber);
-						state.gameTargetLabel = o ? o.label : (state.gameTargetNumber === Infinity ? '无限' : String(state.gameTargetNumber));
+						state.gameTargetNumber = s.targetNumber;
+						state.gameTargetLabel = state.gameTargetNumber == null ? '无限' : String(state.gameTargetNumber);
+						state.targetNumber = s.targetNumber;
 					}
 				},
 			};

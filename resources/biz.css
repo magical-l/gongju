@@ -80,8 +80,9 @@ main > article > header.toolbar {
 	display: none !important;
 }
 
-/* ---- 工具栏里的一组（setting/controller/tool 等）---- */
+/* 工具栏为 flex 时，组不拉伸才能与相邻区域边界清晰、不抢宽 */
 .toolbar .one.group {
+	flex: 0 0 auto !important;
 	display: inline-flex;
 	align-items: center;
 	gap: 0.5rem 1rem;
@@ -93,18 +94,6 @@ main > article > header.toolbar {
 .toolbar .one.group:first-child {
 	padding-left: 0;
 	border-left: none;
-}
-
-.toolbar .one.group .el-form-item {
-	margin-bottom: 0;
-	margin-right: 0;
-}
-
-/* 工具栏里的具体控件 */
-.toolbar .el-select {
-	display: inline-block;
-	min-width: 4rem;
-	width: auto;
 }
 
 .toolbar .select-width-6ch { min-width: 5.5rem; }

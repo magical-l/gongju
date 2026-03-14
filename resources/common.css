@@ -118,6 +118,11 @@ body:focus { /*为键盘导航用户清晰焦点指示*/
 
 template, .template, .hidden, [v-cloak], .js.container {display: none !important; }
 
+.semi-bold { font-weight: 600; }
+
+/* 行内元素与同行文字垂直对齐（y 轴方向居中），否则会偏上 */
+.y-middle { vertical-align: middle; }
+
 h1, h2, h3 {color: #333; }
 
 textarea {
