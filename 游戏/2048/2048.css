@@ -69,6 +69,11 @@ article.gaming.area .board .cell::after {
 	pointer-events: none;
 }
 
+.cell {
+	position: relative;
+	flex-shrink: 0;
+}
+
 /* 棋子：三处均为 .cell > .unit（棋盘格、滑层、自定义预览）；默认大数，.unit-2～.unit-2048 覆盖 */
 .cell > .unit {
 	display: flex;
@@ -164,8 +169,8 @@ article.gaming.area .slide-layer .cell {
 
 /* 设置弹层：请用 el-dialog + el-form / el-form-item 等组件，避免自定义 .settings-panel 等类 */
 
-/* 自定义数字显示 dialog：.unit-dialog 下用短类名 */
-.unit-dialog .list {
+/* 自定义数字显示区域：customize unit display area */
+.customize.unit.display.area .list {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
 	gap: 10px;
@@ -174,30 +179,11 @@ article.gaming.area .slide-layer .cell {
 	overflow-y: auto;
 }
 
-.unit-dialog .card {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
-	padding: 8px;
-	border: 1px solid var(--grid-line);
-	border-radius: 8px;
-	background: rgba(255, 255, 255, 0.5);
-	min-width: 0;
-}
-
-.unit-dialog .card-num {
-	font-size: 13px;
-	font-weight: 600;
-	color: var(--text-dark);
-}
-
-.unit-dialog .add-next {
-	justify-content: center;
-	align-items: center;
+.customize.unit.display.area .add-next-body {
 	min-height: 120px;
 }
 
-.unit-dialog .add-next-btn {
+.customize.unit.display.area .add-next-btn {
 	width: 64px;
 	height: 64px;
 	padding: 0;
@@ -207,30 +193,13 @@ article.gaming.area .slide-layer .cell {
 	flex-shrink: 0;
 }
 
-.unit-dialog .add-next-btn:disabled {
+.customize.unit.display.area .add-next-btn:disabled {
 	opacity: 0.5;
 	cursor: not-allowed;
 }
 
-.unit-dialog .row {
-	display: flex;
-	flex-direction: row;
-	align-items: stretch;
-	gap: 10px;
-	min-width: 0;
-}
-
-.unit-dialog .row .fields {
-	flex: 1;
-	min-width: 0;
-}
-
-.unit-dialog .preview-wrap {
-	position: relative;
-	flex-shrink: 0;
-}
-
-.unit-dialog .preview-wrap .unit {
+/* 预览态：固定尺寸方框，与棋盘/滑层“填满格”不同 */
+.cell .unit.preview {
 	width: var(--cell-size, 80px);
 	height: var(--cell-size, 80px);
 	min-width: 48px;
@@ -239,33 +208,28 @@ article.gaming.area .slide-layer .cell {
 	font-size: clamp(12px, 3vw, 20px);
 }
 
-.unit-dialog .preview-wrap .unit img {
+.cell .unit.preview img {
 	object-fit: cover;
 	object-position: center;
 }
 
-.unit-dialog .preview-wrap .unit.preview-error { background: #f8d7da !important; }
+.cell .unit.preview-error { background: #f8d7da !important; }
 
-.unit-dialog .clear-btn {
+.customize.unit.display.area .clear-btn {
 	position: absolute;
 	top: 4px;
 	right: 4px;
 	width: 24px;
 	height: 24px;
+	min-width: 24px;
 	padding: 0;
 	border: none;
-	border-radius: 50%;
 	background: rgba(0, 0, 0, 0.5);
 	color: #fff;
-	cursor: pointer;
 	font-size: 18px;
-	line-height: 1;
-	display: flex;
-	align-items: center;
-	justify-content: center;
 }
 
-.unit-dialog .clear-btn:hover { background: rgba(0, 0, 0, 0.7); }
+.customize.unit.display.area .clear-btn:hover { background: rgba(0, 0, 0, 0.7); }
 
 /* 工具类：小号、弱化字色、定宽不伸缩、右侧间距，仅描述视觉 */
 article.gaming.area .text-small-subdued {
@@ -277,13 +241,13 @@ article.gaming.area .text-small-subdued {
 	margin-right: 6px;
 }
 
-.unit-dialog .fields .image,
-.unit-dialog .fields .pick-file {
+.customize.unit.display.area .fields .image,
+.customize.unit.display.area .fields .pick-file {
 	flex: 1;
 	min-width: 0;
 }
 
-.unit-dialog .fields {
+.customize.unit.display.area .fields {
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
@@ -292,8 +256,8 @@ article.gaming.area .text-small-subdued {
 	max-width: 160px;
 }
 
-.unit-dialog .label,
-.unit-dialog .image {
+.customize.unit.display.area .label,
+.customize.unit.display.area .image {
 	padding: 6px 8px;
 	border: 1px solid var(--grid-line);
 	border-radius: 6px;
@@ -303,13 +267,13 @@ article.gaming.area .text-small-subdued {
 	box-sizing: border-box;
 }
 
-.unit-dialog .pick-file {
+.customize.unit.display.area .pick-file {
 	padding: 6px 10px;
 	font-size: 13px;
 	align-self: flex-start;
 }
 
-.unit-dialog .hint {
+.customize.unit.display.area .hint {
 	margin: 0 0 8px;
 	font-size: 13px;
 	color: var(--text-dark);
