@@ -11,12 +11,6 @@
 	box-shadow: none !important;
 }
 
-/* .el-button + .el-button自带margin-left:20px，如果布局已经自己做了间隔（比如gap），再加就太傻了 */
-.flex > .el-button + .el-button {margin-left: 0;}
-
-/* .el-form-item自带底部外边距 */
-.toolbar .el-form-item {margin-bottom: 0;}
-
 /* 原本居然有30px的右外边距，当同组的两个radio并排时，显得不亲，还不如跟其他元素亲近。 */
 .el-radio-group > .el-radio {margin-right: 0;}
 
@@ -38,36 +32,9 @@
 	--el-card-padding: 10px;
 }
 
-/* 右侧栏的卡片之间设置为紧密堆叠。 */
-.right-sidebar > .el-card:not(:last-child) {
-	margin-bottom: 0;
-}
-
 /* el-input / el-input-number 如果有prefix和placeholder，看起来就像连在一起，需要留出间距 */
 .el-input__prefix {
 	margin-right: 0.5em;
-}
-
-/* 工具栏为 flex 时，表单项若可拉伸会把整行撑满；固定为不拉伸以便与按钮、下拉等并排紧凑 */
-.toolbar .el-form-item {
-	flex: 0 0 auto !important;
-}
-/* 下拉在工具栏中按内容宽度显示，不占满整格 */
-.toolbar .el-select {
-	flex: 0 0 auto !important;
-	display: inline-block;
-	min-width: 4rem;
-	width: auto;
-}
-/* 使用 #prefix 时，选中区/输入若参与 flex 会抢宽，导致前缀被挤换行；收窄选中区、输入不占流式宽度即可保持一行 */
-.toolbar .el-select .el-select__selection .el-select__input-wrapper {
-	position: absolute !important;
-	width: 0 !important;
-	overflow: hidden !important;
-}
-.toolbar .el-select .el-select__selection {
-	flex: 0 0 auto !important;
-	min-width: 2em !important;
 }
 
 /* 按压式按钮：未按=凸起，按下=凹陷，配合 .pressed；用 el-button 加此类即可 */

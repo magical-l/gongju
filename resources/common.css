@@ -166,6 +166,8 @@ nav.sticky {top: 0;}
 .resizable.x {resize: horizontal;}
 .resizable.y {resize: vertical;}
 
+.scrollable {overflow: auto; min-height: 0; min-width: 0;}
+
 /*-----------------------颜色---------------------*/
 
 .note strong {color: red;}
