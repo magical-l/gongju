@@ -47,31 +47,14 @@ article.gaming.area .board {
 	position: relative;
 }
 
-article.gaming.area .board .cell {
+.cell {
 	background: var(--cell-empty);
 	border-radius: var(--unit-radius);
 	position: relative;
+	flex-shrink: 0;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-}
-
-/* 四格交点处用与缝隙同色的小圆点填充，消除视觉暂留造成的“黑点”错觉，线仍保留 */
-article.gaming.area .board .cell::after {
-	content: '';
-	position: absolute;
-	right: -1px;
-	bottom: -1px;
-	width: 2px;
-	height: 2px;
-	background: var(--board-bg);
-	border-radius: 50%;
-	pointer-events: none;
-}
-
-.cell {
-	position: relative;
-	flex-shrink: 0;
 }
 
 /* 棋子：三处均为 .cell > .unit（棋盘格、滑层、自定义预览）；默认大数，.unit-2～.unit-2048 覆盖 */
