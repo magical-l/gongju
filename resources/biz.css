@@ -273,9 +273,6 @@ main > article > header.toolbar {
 	gap: 0.75rem;
 }
 
-/* el-card：body 作为 flex 容器，便于用 .item.flexible 等工具类让子元素占满 */
-.el-card.body-flex .el-card__body { display: flex; }
-
 /* ======================================= 游戏信息区（article.gaming.area > aside.right-sidebar）================================== */
 .right-sidebar > .el-card:not(:last-child) {margin-bottom: 0;}
 

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
 <head>
 <meta charset="UTF-8">
@@ -42,7 +42,7 @@
 		</div>
 	</nav>
 </header>
-<main class="scrollable"><!-- todo：为啥要scrollable？我也没看出有滚动条啥的？ -->
+<main>
 	<header>
 		<h2 class="game name">2048</h2>
 		<div class="page-lv help area" v-cloak>
@@ -96,16 +96,16 @@
 					<el-form-item :class="'one tool : ' + item.key">
 						<el-button v-if="item.type === 'toggle'" class="按压式" :class="{ pressed: getQuickValue(item.key) }"
 											 @click="setQuickValue(item.key, !getQuickValue(item.key))">
-								<span v-if="item.key === 'showNewTileMarker'" class="el-icon"><!-- todo：最好不直接用el的类，el应该有一个icon组件吧？ -->
+								<el-icon v-if="item.key === 'showNewTileMarker'">
 									<svg class="y-middle" viewBox="0 0 24 24" width="1em" height="1em" title="角标式标记">
 										<rect x="2" y="2" width="20" height="20" rx="5" fill="currentColor" opacity="0.85"/>
 										<circle cx="18" cy="6" r="3.5" fill="var(--el-color-danger, #f56c6c)"/>
 									</svg>
-								</span>
+								</el-icon>
 							<span>{{ item.label }}</span>
 						</el-button>
 						<el-select v-else-if="item.type === 'select'" :model-value="getQuickValue(item.key)"
-											 @update:model-value="(v) => setQuickValue(item.key, v)"><!-- todo：是否能改用v-model？ -->
+											 @update:model-value="(v) => setQuickValue(item.key, v)">
 							<template #prefix>{{ item.label }}</template>
 							<el-option v-for="opt in item.options" :key="opt.value" :label="opt.label" :value="opt.value"></el-option>
 						</el-select>
@@ -169,25 +169,25 @@
 								×
 							</el-button>
 						</div>
-						<div class="preview input area , flex vertical , item flexible"><!-- todo：这里的“.item”容易误认为跟前面的.flex有关，但其实是表示自己作为上级的item，是跟.flexible连用的。评估是否可以去掉.item，仅用.flexible表达语义。这种地方很多，需要小心评估 -->
-							<el-input placeholder="自定义文字" class="item flexible" :model-value="customLabels[pu.key] || ''"
+						<div class="preview input area flex vertical flexible">
+							<el-input placeholder="自定义文字" class="flexible" :model-value="customLabels[pu.key] || ''"
 												@update:model-value="onCustomLabelInput(pu.key, $event)" @blur="applyCustomTiles"
 												maxlength="10"></el-input>
 							<div class="flex items-near-center-y"><span>或</span>
-								<el-input class="item flexible" :model-value="customImageDisplayValue(pu.key)"
+								<el-input class="flexible" :model-value="customImageDisplayValue(pu.key)"
 													@update:model-value="onCustomImageInput(pu.key, $event)" @blur="applyCustomTiles"
 													:placeholder="customImagePlaceholder(pu.key)"></el-input>
 							</div>
-							<div class="flex items-near-center-y"><span>或</span><!-- todo:看看“或”外是否需要这么一个span包装 -->
-								<el-button class="file-picker entry btn , item flexible" @click="openTileFilePicker(pu.key)">
+							<div class="flex items-near-center-y"><span>或</span>
+								<el-button class="file-picker entry btn flexible" @click="openTileFilePicker(pu.key)">
 									选择本地图片
 								</el-button>
 							</div>
 						</div>
 					</div>
 				</el-card>
-				<el-card header="更大的数字" class="one unit area add-next body-flex" shadow="never"><!-- todo：el-card好像有一个属性直接给body设置类的，就不用body-flex了 -->
-					<div class="flex near-center , item flexible">
+				<el-card header="更大的数字" class="one unit area add-next" body-class="flex" shadow="never">
+					<div class="flex near-center flexible">
 						<el-button :title="canAddNextCustomTile ? '添加下一个数字' : '已达上限'" circle class="lg circle btn"
 											 :disabled="!canAddNextCustomTile" @click="addNextCustomTile">+
 						</el-button>

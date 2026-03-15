@@ -203,7 +203,7 @@ main, .main, .body {grid-area: main; flex: 1;}
 
 .near-center {justify-content: center; align-items: center; text-align: center;}
 
-.flexible.item {
+.flexible {
 	flex: 1 1 auto; /* 允许扩展和收缩 */
 	align-self: stretch; /* 默认拉伸填满 */
 	box-sizing: border-box; /* 包含内边距和边框 */
