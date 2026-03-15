@@ -195,10 +195,18 @@ function doInit() {
     var storedRestored = Number(getStorage(keyRestored)) || 0;
     if (gameState.highScore > storedRestored) setStorage(keyRestored, String(gameState.highScore));
   } else {
-    var rows = (loaded && loaded.rows) || 8;
-    var cols = (loaded && loaded.cols) || 8;
+    /* 未恢复对局时，行列等优先用 loaded，其次用已结束的 restored，避免刷新后丢设置 */
+    var rows = (loaded && loaded.rows) || (restored && restored.rows) || 8;
+    var cols = (loaded && loaded.cols) || (restored && restored.cols) || 8;
+    var opts = Object.assign({}, loaded || {}, { rows: rows, cols: cols });
+    if (restored) {
+      if (opts.targetNumber === undefined && restored.targetNumber !== undefined) opts.targetNumber = restored.targetNumber;
+      if (opts.turnIntervalMs == null && restored.turnIntervalMs != null) opts.turnIntervalMs = restored.turnIntervalMs;
+      if (opts.initialLength == null && restored.initialLength != null) opts.initialLength = restored.initialLength;
+      if (opts.foodCount == null && restored.foodCount != null) opts.foodCount = restored.foodCount;
+    }
     var highScore = Number(getStorage(getHighScoreKey(rows, cols))) || 0;
-    gameState = init(highScore, loaded || undefined);
+    gameState = init(highScore, opts);
   }
   commitState(gameState);
   if (view && view.syncToolbarSettings) view.syncToolbarSettings();
@@ -207,11 +215,8 @@ function doInit() {
 
 function saveState() {
   if (!gameState) return;
-  if (!gameState.gameOver && !gameState.gameWin) {
-    setStorage(STORAGE_GAME_STATE, JSON.stringify(serializeGameState(gameState)));
-  } else {
-    try { localStorage.removeItem(STORAGE_GAME_STATE); } catch (e) {}
-  }
+  /* 始终写入（含 gameOver），刷新后 doInit 可读出行列等用于新局 */
+  setStorage(STORAGE_GAME_STATE, JSON.stringify(serializeGameState(gameState)));
 }
 
 function initBridge(bridge) {

@@ -348,6 +348,8 @@
       foodCount: state.foodCount,
       targetNumber: state.targetNumber === Infinity ? 'Infinity' : state.targetNumber,
       turnIntervalMs: state.turnIntervalMs,
+      gameOver: !!state.gameOver,
+      gameWin: !!state.gameWin,
     };
   }
 
@@ -381,8 +383,8 @@
       food: food,
       score: Math.max(0, Number(o.score) || 0),
       highScore: Math.max(0, Number(o.highScore) || 0),
-      gameOver: false,
-      gameWin: false,
+      gameOver: !!o.gameOver,
+      gameWin: !!o.gameWin,
       overlayVisible: false,
       overlayMessage: '',
       initialLength: Math.max(1, Number(o.initialLength) || segments.length),
