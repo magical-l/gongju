@@ -288,7 +288,7 @@
 			previewImageErrors: {},
 		});
 		const newTileIndexRef = ref(-1);
-		const SLIDE_MS_PER_CELL = 80;
+		const SLIDE_MS_PER_CELL = 120;
 		const mainApp = createApp({
 			data: () => state,
 			computed: {
@@ -517,7 +517,7 @@
 						top: (unit.currentTop != null ? unit.currentTop : unit.fromTop) + 'px',
 						width: (unit.width || 0) + 'px',
 						height: (unit.height || 0) + 'px',
-						transition: 'left ' + d + ' linear, top ' + d + ' linear',
+						transition: 'left ' + d + ' ease-out, top ' + d + ' ease-out',
 					};
 				},
 				onResultOverlayClick() {
@@ -653,11 +653,13 @@
 							}
 							state.slideAnimationTiles = tiles;
 							self.$nextTick(function() {
-								for (let j = 0; j < state.slideAnimationTiles.length; j++) {
-									const t = state.slideAnimationTiles[j];
-									t.currentLeft = t.toLeft;
-									t.currentTop = t.toTop;
-								}
+								requestAnimationFrame(function() {
+									for (let j = 0; j < state.slideAnimationTiles.length; j++) {
+										const t = state.slideAnimationTiles[j];
+										t.currentLeft = t.toLeft;
+										t.currentTop = t.toTop;
+									}
+								});
 							});
 							setTimeout(function() {
 								state.slideAnimationTiles = [];
