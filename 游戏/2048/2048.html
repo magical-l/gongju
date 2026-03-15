@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
 <head>
 <meta charset="UTF-8">
@@ -54,8 +54,8 @@
 		</div>
 	</header>
 	<article class="gaming area , 反叵字形 grid" v-cloak>
-		<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
-			<section class="setting list area , flex single-line no-gap items-near-x-start items-near-y-center">
+		<header class="toolbar , multi-line flex , items-near-x-center items-stretch no-gap">
+			<section class="setting list area , single-line flex , items-near-x-start items-near-y-center no-gap">
 				<div class="one setting group">
 					<el-form-item class="one setting : height">
 						<el-select v-model.number="boardHeight">
@@ -73,7 +73,7 @@
 				<div class="one setting group">
 					<el-form-item class="one setting : target">
 						<el-input-number :model-value="targetNumber" @update:model-value="onTargetNumberChange" :controls="false"
-														 placeholder="留空=无限" :min="8" style="width: 10em" class="target-number-input">
+														 placeholder="留空=无限" :min="8" style="width: 10em">
 							<template #prefix>目标≥</template>
 						</el-input-number>
 					</el-form-item>
@@ -84,14 +84,14 @@
 					</el-form-item>
 				</div>
 			</section>
-			<section class="controller list area , flex single-line no-gap items-near-x-start items-near-y-center">
+			<section class="controller list area , single-line flex , items-near-x-start items-near-y-center no-gap">
 				<div class="one controller group">
 					<el-form-item class="one controller : undo">
 						<el-button @click="onUndo">撤销</el-button>
 					</el-form-item>
 				</div>
 			</section>
-			<section class="tool list area , flex single-line no-gap items-near-x-start items-near-y-center">
+			<section class="tool list area , single-line flex , items-near-x-start items-near-y-center no-gap">
 				<div class="one tool group" v-for="item in quickSettingsList" :key="item.key">
 					<el-form-item :class="'one tool : ' + item.key">
 						<el-button v-if="item.type === 'toggle'" class="按压式" :class="{ pressed: getQuickValue(item.key) }"
@@ -119,8 +119,9 @@
 			</section>
 		</header>
 
-		<div class="main map area item no-shrink , flex items-near-x-center" ref="boardWrap">
-			<div class="board" :style="boardGridStyle" ref="board">
+		<!-- 主地图区 -->
+		<section class="main map area no-shrink flex items-near-x-center" ref="boardWrap">
+			<div class="board" :style="{ '--board-cols': boardView.cols || 4, '--board-rows': boardView.rows || 4 }" ref="board">
 				<div class="cell" :data-index="cell.index" v-for="(cell, index) in boardCells" :key="index">
 					<div v-if="cell.unit" class="unit" :class="'unit-' + cell.unit.val" :data-index="cell.index">
 						<img v-if="cell.unit.image" :src="cell.unit.image" :alt="cell.unit.text" loading="lazy">
@@ -138,7 +139,7 @@
 					</div>
 				</div>
 			</div>
-		</div>
+		</section>
 
 		<el-dialog class="game result" v-model="gameResultVisible" :title="gameResultMessage" width="400px" align-center
 							 @closed="onResultOverlayClick">
@@ -151,11 +152,12 @@
 
 		<el-dialog title="自定义数字显示" class="customize unit display area" v-model="customTilesDialogVisible" width="90%"
 							 align-center @opened="onCustomTilesDialogOpened">
-			<p class="hint">可为每个数字设置自定义显示文字、图片 URL 或本地选图（图片优先）；留空则显示原数字。修改后失焦或选图即生效。
+			<p class="hint">
+				可为每个数字设置自定义显示文字、图片 URL 或本地选图（图片优先）；留空则显示原数字。修改后失焦或选图即生效。
 				<el-button type="danger" size="small" @click="clearAllCustom">清除全部</el-button>
 			</p>
 			<input ref="unitFileInput" type="file" accept="image/*" class="hidden" @change="onUnitFileChange">
-			<div class="list">
+			<div class="unit list">
 				<el-card :header="`数字 ${pu.key}`" class="one unit area" v-for="pu in previewUnits" :key="pu.key"
 								 shadow="never">
 					<div class="flex items-stretch">
@@ -169,7 +171,7 @@
 								×
 							</el-button>
 						</div>
-						<div class="preview input area flex vertical flexible">
+						<div class="preview input area , flexible , flex vertical">
 							<el-input placeholder="自定义文字" class="flexible" :model-value="customLabels[pu.key] || ''"
 												@update:model-value="onCustomLabelInput(pu.key, $event)" @blur="applyCustomTiles"
 												maxlength="10"></el-input>
@@ -179,15 +181,15 @@
 													:placeholder="customImagePlaceholder(pu.key)"></el-input>
 							</div>
 							<div class="flex items-near-y-center"><span>或</span>
-								<el-button class="file-picker entry btn flexible" @click="openTileFilePicker(pu.key)">
+								<el-button class="file-picker entry btn , flexible" @click="openTileFilePicker(pu.key)">
 									选择本地图片
 								</el-button>
 							</div>
 						</div>
 					</div>
 				</el-card>
-				<el-card header="更大的数字" class="one unit area add-next" body-class="flex" shadow="never">
-					<div class="flex near-center flexible">
+				<el-card header="更大的数字" class="one unit area" body-class="flex" shadow="never">
+					<div class="flexible , flex near-center">
 						<el-button :title="canAddNextCustomTile ? '添加下一个数字' : '已达上限'" circle class="lg circle btn"
 											 :disabled="!canAddNextCustomTile" @click="addNextCustomTile">+
 						</el-button>
@@ -210,8 +212,8 @@
 									{{ highScore }}
 								</el-descriptions-item>
 							</el-descriptions>
-							<el-card header="当前得分" class="scoreboard" shadow="never">
-								<span class="score value">{{ score }}</span>
+							<el-card header="当前得分" class="scoreboard" body-class="score-value" shadow="never">
+								{{ score }}
 							</el-card>
 						</div>
 					</el-collapse-item>
@@ -348,15 +350,7 @@
 						return {key: key, val: num, text: text, image: image};
 					});
 				},
-				boardGridStyle() {
-					const r = state.boardView.rows || 4;
-					const c = state.boardView.cols || 4;
-					return {
-						gridTemplateColumns: 'repeat(' + c + ', 1fr)',
-						gridTemplateRows: 'repeat(' + r + ', 1fr)',
-					};
 				},
-			},
 			methods: {
 				onTargetNumberChange(v) {
 					state.targetNumber = (v === undefined || v === null || v === '') ? null : (Number(v) || 2048);
