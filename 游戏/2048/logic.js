@@ -364,7 +364,7 @@ function doMove(state, direction) {
   if (!next.gameWin && targetNum != null) {
     for (var i = 0; i < next.board.length; i++) {
       if (next.board[i] >= targetNum) {
-        next = Object.assign({}, next, { gameWin: true, overlayVisible: true, overlayMessage: '恭喜！' })
+        next = Object.assign({}, next, { gameWin: true, overlayVisible: true, overlayMessage: '恭喜过关！达成目标数字。' })
         break
       }
     }

@@ -168,6 +168,12 @@ nav.sticky {top: 0;}
 
 .scrollable {overflow: auto; min-height: 0; min-width: 0;}
 
+/* 铺满视口（position: fixed），用于弹层内全屏遮罩、撒花等 */
+.fullscreen {position: fixed; inset: 0;}
+
+/* 禁止该元素内部滚动（overflow: hidden）；加在 body 上可避免整页出现滚动条 */
+.no-scroll {overflow: hidden;}
+
 /*-----------------------颜色---------------------*/
 
 .note strong {color: red;}

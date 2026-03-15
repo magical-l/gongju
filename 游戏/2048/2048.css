@@ -143,11 +143,24 @@ article.gaming.area .slide-layer .cell {
 	position: absolute;
 }
 
-/* 结算 dialog：提示文案（自有类，不依赖库内部类） */
-.game.result .hint {
+/* 结算 dialog：本局统计 */
+.game.result.stats {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: 0.25em 1.5em;
+	margin: 0;
 	font-size: 14px;
 	color: var(--text-dark);
-	margin: 0 0 1rem;
+}
+.game.result.stats dt { font-weight: 600; margin: 0; }
+.game.result.stats dd { margin: 0; }
+
+/* 结算 dialog：提示文案（自有类，不依赖库内部类） */
+.game.result .hint {
+	font-size: 12px;
+	color: var(--text-dark);
+	margin: 0 0 0.5rem;
+	opacity: 0.85;
 }
 
 /* 设置弹层：请用 el-dialog + el-form / el-form-item 等组件，避免自定义 .settings-panel 等类 */

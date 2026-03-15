@@ -169,13 +169,23 @@
 			</el-card>
 		</aside>
 
-		<!-- 结算区 -->
+		<!-- 结算区：撒花在 dialog 内，用 .fullscreen 铺满视口 -->
 		<el-dialog class="game result" v-model="gameResultVisible" :title="gameResultMessage" width="400px" align-center
-							 @closed="onResultOverlayClick">
-			<p v-show="gameResultSub">{{ gameResultSub }}</p>
-			<p class="hint">点击或按 Enter 继续</p>
+							 @opened="onResultDialogOpened" @closed="onResultOverlayClick">
+			<div class="confetti-container" v-if="gameResultIsWin">
+				<span class="confetti" v-for="i in 150" :key="i"></span>
+			</div>
+			<dl class="game result stats">
+				<dt>目标数字</dt><dd>{{ gameTargetLabel }}</dd>
+				<dt>步数</dt><dd>{{ resultMoveCount }}</dd>
+				<dt>最终得分</dt><dd>{{ score }}</dd>
+				<dt>取得的最大数字</dt><dd>{{ resultMaxTile }}</dd>
+			</dl>
 			<template #footer>
-				<el-button type="primary" @click="onResultRestart">新局</el-button>
+				<p class="hint">
+					按 Enter 或空格开始新局
+					<el-button type="primary" @click="onResultRestart">新局</el-button>
+				</p>
 			</template>
 		</el-dialog>
 
@@ -284,6 +294,7 @@
 			gameResultVisible: false,
 			gameResultMessage: '',
 			gameResultSub: '',
+			gameResultIsWin: false,
 			slideAnimationTiles: [],
 			previewImageErrors: {},
 		});
@@ -349,10 +360,19 @@
 								text = String(content.value != null ? content.value : num);
 							}
 						}
-						return {key: key, val: num, text: text, image: image};
+return {key: key, val: num, text: text, image: image};
 					});
 				},
+				resultMoveCount() {
+					const s = state.lastStateForDisplay;
+					return (s && s.moveHistory && s.moveHistory.length) || 0;
 				},
+				resultMaxTile() {
+					const cells = state.boardView.cells || [];
+					if (!cells.length) return 0;
+					return Math.max(0, ...cells.map(function(c) { return c.value || 0; }));
+				},
+			},
 			methods: {
 				onTargetNumberChange(v) {
 					state.targetNumber = (v === undefined || v === null || v === '') ? null : (Number(v) || 2048);
@@ -520,8 +540,13 @@
 						transition: 'left ' + d + ' ease-out, top ' + d + ' ease-out',
 					};
 				},
+				onResultDialogOpened() {
+					document.body.classList.add('no-scroll');
+				},
 				onResultOverlayClick() {
-					window.Game2048.onResultClose();
+					document.body.classList.remove('no-scroll');
+					/* 关闭结算弹窗即开始新局，避免留下“已结束却还能看盘”的中间态 */
+					window.Game2048.onResultRestart();
 				},
 				onResultRestart() {
 					window.Game2048.onResultRestart();
@@ -534,10 +559,11 @@
 				const self = this;
 				const api = window.Game2048;
 				const bridge = {
-					setGameResult(visible, message, sub) {
+					setGameResult(visible, message, sub, isWin) {
 						state.gameResultVisible = !!visible;
 						state.gameResultMessage = message != null ? String(message) : '';
 						state.gameResultSub = sub != null ? String(sub) : '';
+						state.gameResultIsWin = !!isWin;
 					},
 					setBoardView(board, rows, cols, gameState) {
 						state.boardView.rows = rows;
@@ -559,7 +585,7 @@
 						bridge.setBoardView(gameState.board, gameState.boardHeight, gameState.boardWidth, gameState);
 						const vis = !!(gameState.overlayVisible && gameState.overlayMessage);
 						bridge.setGameResult(vis, gameState.overlayMessage || '',
-								gameState.gameOver ? '最终得分：' + gameState.score : '');
+								gameState.gameOver ? '最终得分：' + gameState.score : '', !!gameState.gameWin);
 						self.$nextTick(function() {
 							const board = self.$refs.board;
 							const first = board && board.querySelector && board.querySelector('.cell');
