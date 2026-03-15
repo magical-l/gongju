@@ -1,0 +1,127 @@
+/* 2048蛇 网页版 - 样式限定在 article.gaming.area 内 */
+:root {
+	--page-bg: #e8f0e0;
+	--text-dark: #5a6b52;
+	--text-light: #f5f9f2;
+	--board-bg: #b8c9a8;
+	--grid-line: #9bad8f;
+	--cell-empty: #d4e0c8;
+	--unit-radius: 6px;
+	--board-radius: 8px;
+	--board-padding: 12px;
+	--grid-gap: 1px;
+}
+
+.main.map.area {
+	position: relative;
+	width: 100%;
+	max-width: min(480px, 95vw);
+	aspect-ratio: 1;
+	max-height: min(480px, 75vh);
+	min-height: min(260px, 80vmin);
+	margin: 0 auto;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	font-family: system-ui, -apple-system, sans-serif;
+	color: var(--text-dark);
+	user-select: none;
+	-webkit-user-select: none;
+}
+
+article.gaming.area .board {
+	display: grid;
+	grid-template-columns: repeat(var(--board-cols, 8), 1fr);
+	grid-template-rows: repeat(var(--board-rows, 8), 1fr);
+	width: 100%;
+	height: 100%;
+	min-height: 200px;
+	gap: var(--grid-gap);
+	padding: var(--board-padding);
+	background: var(--board-bg);
+	border: 2px solid var(--grid-line);
+	border-radius: var(--board-radius);
+	position: relative;
+	box-sizing: border-box;
+}
+
+article.gaming.area .board .cell {
+	background: var(--cell-empty);
+	border-radius: var(--unit-radius);
+	position: relative;
+	min-width: 0;
+	min-height: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-shadow: 0 0 0 1px rgba(155, 173, 143, 0.5);
+}
+
+.cell > .unit {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: bold;
+	color: var(--text-light);
+	border-radius: var(--unit-radius);
+	font-size: clamp(12px, 4vw, 24px);
+	user-select: none;
+	-webkit-user-select: none;
+	background: #4a5a42;
+}
+
+.unit.unit-2 { background: #e2ead8; color: #5a6b52; }
+.unit.unit-4 { background: #d4e0c8; color: #5a6b52; }
+.unit.unit-8 { background: #a8c99e; }
+.unit.unit-16 { background: #8fbc85; }
+.unit.unit-32 { background: #7cb37a; }
+.unit.unit-64 { background: #6ba36b; }
+.unit.unit-128 { background: #9cb87c; }
+.unit.unit-256 { background: #8ab06e; }
+.unit.unit-512 { background: #7aa862; }
+.unit.unit-1024 { background: #6a9f56; }
+.unit.unit-2048 { background: #5a8f4a; }
+
+article.gaming.area .board .cell > .unit {
+	position: absolute;
+	inset: var(--grid-gap);
+}
+
+.unit img {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	display: block;
+}
+
+/* 蛇头可加高亮（与普通格区分） */
+.cell > .unit.snake-head {
+	box-shadow: inset 0 0 0 2px rgba(255,255,255,0.4);
+}
+
+.game.result.stats {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: 0.25em 1.5em;
+	margin: 0;
+	font-size: 14px;
+	color: var(--text-dark);
+}
+.game.result.stats dt { font-weight: 600; margin: 0; }
+.game.result.stats dd { margin: 0; }
+
+.game.result .hint {
+	font-size: 12px;
+	color: var(--text-dark);
+	margin: 0 0 0.5rem;
+	opacity: 0.85;
+}
+
+.scoreboard .value {
+	font-size: clamp(1.75rem, 5vw, 2.5rem);
+	font-weight: 700;
+	text-align: center;
+	line-height: 1.2;
+	color: var(--text-dark, #5a6b52);
+}

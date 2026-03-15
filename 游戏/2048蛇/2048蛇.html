@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN" itemscope itemtype="https://schema.org/WebPage">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title itemprop="name">2048蛇 | 工具兽 - 贪吃蛇+2048益智游戏</title>
+<meta name="description" content="2048蛇：蛇自动定时移动，滑动改方向；吃食物后身体消化（相邻同数合并），达到目标数字即胜利。与小程序 2048贪吃蛇 玩法一致。"
+			itemprop="description">
+<meta name="keywords" content="2048蛇,贪吃蛇,数字合并,益智游戏,在线游戏">
+<meta name="author" content="工具兽">
+
+<link href="../../lib/element-plus/2.10.7/index.css" rel="stylesheet">
+<link href="../../resources/el-plus.css" rel="stylesheet">
+<link href="../../resources/common.css" rel="stylesheet">
+<link href="../../resources/layout.css" rel="stylesheet">
+<link href="../../resources/biz.css" rel="stylesheet">
+<link href="../../resources/花活.css" rel="stylesheet">
+<link href="2048蛇.css" rel="stylesheet">
+</head>
+<body class="grid 反叵字形">
+<header>
+	<h1 class="website name" title="工具人（gongju.ren）域名太贵买不起">工具兽</h1>
+	<nav>
+		<div class="nav-row">
+			<a href="../../文本转化.html">文本转化</a>
+			<a href="../../数字转化.html">数字转化</a>
+			<a href="../../符号/符号.html">符号</a>
+			<a href="../../格子盘.html">格子盘</a>
+			<a href="../../svg转图标.html">SVG转图标</a>
+			<a href="../../化学/元素周期表.html">元素周期表</a>
+			<a href="../../拼音/拼音.html">拼音</a>
+		</div>
+		<div class="nav-row">
+			<a href="../中国象棋/中国象棋.html">中国象棋</a>
+			<a href="../五子棋/gobang.html">五子棋</a>
+			<a href="../俄罗斯方块.html">俄罗斯方块</a>
+			<a href="../贪吃蛇.html">贪吃蛇</a>
+			<a href="../2048/2048.html">2048</a>
+			<a href="2048蛇.html" class="active">2048蛇</a>
+			<a href="../点灯.html">点灯</a>
+			<a href="../数字华容道.html">数字华容道</a>
+			<a href="../星连星/星连星.html">星连星</a>
+		</div>
+	</nav>
+</header>
+<main>
+	<header>
+		<h2 class="game name">2048蛇</h2>
+		<div class="page-lv help area" v-cloak>
+			<el-button title="游戏介绍" class="page-lv help btn" size="small" circle @click="introVisible=true">?</el-button>
+			<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
+				<p>2048蛇：蛇会<strong>自动定时移动</strong>，你只需用方向键或滑动<strong>改变方向</strong>。吃到食物后，食物会进入蛇身，相邻<strong>相同数字</strong>会合并翻倍。撞墙或撞到自己则结束，任一节达到目标数字即胜利。</p>
+				<p><strong>操作</strong>：↑↓←→ 或触屏/鼠标滑动改方向。新局与设置在工具栏。</p>
+			</el-dialog>
+		</div>
+	</header>
+	<article class="gaming area , 反叵字形 grid" v-cloak>
+		<header class="toolbar , multi-line flex , items-near-x-center items-stretch no-gap">
+			<section class="setting list area , single-line flex , items-near-x-start items-near-y-center no-gap">
+				<div class="one setting group">
+					<el-form-item class="one setting : height">
+						<el-select v-model.number="boardHeight">
+							<template #prefix>行</template>
+							<el-option v-for="h in boardSizeOptions" :key="h" :label="String(h)" :value="h"/>
+						</el-select>
+					</el-form-item>
+					<el-form-item class="one setting : width">
+						<el-select v-model.number="boardWidth">
+							<template #prefix>列</template>
+							<el-option v-for="w in boardSizeOptions" :key="w" :label="String(w)" :value="w"/>
+						</el-select>
+					</el-form-item>
+				</div>
+				<div class="one setting group">
+					<el-form-item class="one setting : target">
+						<el-input-number :model-value="targetNumber" @update:model-value="onTargetNumberChange" :controls="false"
+														 placeholder="留空=无限" :min="8" style="width: 10em">
+							<template #prefix>目标≥</template>
+						</el-input-number>
+					</el-form-item>
+				</div>
+				<div class="one setting group">
+					<el-form-item class="one setting : restart">
+						<el-button type="danger" icon="RefreshRight" @click="onRestart">新局</el-button>
+					</el-form-item>
+				</div>
+			</section>
+		</header>
+
+		<!-- 主地图区 -->
+		<section class="main map area , no-shrink , flex items-near-x-center" ref="boardWrap">
+			<div class="board" :style="boardStyle" ref="board">
+				<div class="cell" :data-index="cell.index" v-for="(cell, index) in boardCells" :key="index">
+					<div v-if="cell.unit" class="unit" :class="['unit-' + cell.unit.val, { 'snake-head': cell.isHead }]" :data-index="cell.index">
+						{{ cell.unit.text }}
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- 信息区 -->
+		<aside class="info area , right-sidebar">
+			<el-card shadow="never">
+				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
+					<el-collapse-item title="本局信息" name="gaming info" class="gaming info">
+						<div class="flex vertical">
+							<el-descriptions class="info list" :column="1" border>
+								<el-descriptions-item label="行">{{ gameBoardHeight }}</el-descriptions-item>
+								<el-descriptions-item label="列">{{ gameBoardWidth }}</el-descriptions-item>
+								<el-descriptions-item label="目标≥">{{ gameTargetLabel }}</el-descriptions-item>
+								<el-descriptions-item
+										:label="gameBoardWidth && gameBoardHeight ? `最高记录 (${gameBoardWidth}×${gameBoardHeight})` : '最高记录'">
+									{{ highScore }}
+								</el-descriptions-item>
+							</el-descriptions>
+							<el-card header="当前得分" class="scoreboard" body-class="value" shadow="never">
+								{{ score }}
+							</el-card>
+						</div>
+					</el-collapse-item>
+					<el-collapse-item title="快捷键" class="game shortcut" name="shortcut">
+						<p>↑ ↓ ← → ：改变蛇的移动方向（蛇会自动定时移动）</p>
+						<p>支持键盘、触屏与鼠标滑动</p>
+					</el-collapse-item>
+				</el-collapse>
+			</el-card>
+		</aside>
+
+		<!-- 结算区：撒花在 dialog 内，用 .fullscreen 铺满视口 -->
+		<el-dialog class="game result" v-model="gameResultVisible" :title="gameResultMessage" width="400px" align-center
+							 @opened="onResultDialogOpened" @closed="onResultOverlayClick">
+			<div class="confetti-container" v-if="gameResultIsWin">
+				<span class="confetti" v-for="i in 150" :key="i"></span>
+			</div>
+			<dl class="game result stats">
+				<dt>目标数字</dt><dd>{{ gameTargetLabel }}</dd>
+				<dt>蛇头数字</dt><dd>{{ resultMaxTile }}</dd>
+				<dt>最终得分</dt><dd>{{ score }}</dd>
+			</dl>
+			<template #footer>
+				<p class="hint">
+					按 Enter 或空格开始新局
+					<el-button type="primary" @click="onResultRestart">新局</el-button>
+				</p>
+			</template>
+		</el-dialog>
+
+	</article>
+</main>
+
+<aside class="right-sidebar">
+	<article class="website info">
+		<section class="patronage area">
+			<img class="qr-code" src="../../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+			<p class="slogan">赞助一下</p>
+		</section>
+		<section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
+		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+		</section>
+	</article>
+</aside>
+
+<div class="js container">
+	<script src="../../lib/vue/3.5.18/vue.global.js"></script>
+	<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
+	<script src="../../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
+	<script src="constants.js"></script>
+	<script src="logic.js"></script>
+	<script src="2048蛇-dom.js"></script>
+</div>
+<script type="module">
+	(function() {
+		const {createApp, reactive} = Vue;
+		const collapseKey = 'gaming-info-2048snake';
+		const defaultPanels = ['shortcut', 'gaming info'];
+		let saved;
+		try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
+		const boardSizeOptions = window.Game2048SnakeConstants ? (window.Game2048SnakeConstants.SIZE_OPTIONS || [6, 7, 8, 10, 12]) : [6, 7, 8, 10, 12];
+		const state = reactive({
+			score: 0,
+			highScore: 0,
+			boardWidth: 8,
+			boardHeight: 8,
+			targetNumber: 2048,
+			gameBoardWidth: 8,
+			gameBoardHeight: 8,
+			gameTargetNumber: 2048,
+			gameTargetLabel: '2048',
+			gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
+			_collapseKey: collapseKey,
+			_defaultPanels: defaultPanels,
+			boardView: { rows: 8, cols: 8, cells: [] },
+			lastStateForDisplay: null,
+			gameResultVisible: false,
+			gameResultMessage: '',
+			gameResultSub: '',
+			gameResultIsWin: false,
+		});
+		const mainApp = createApp({
+			data: () => state,
+			computed: {
+				boardSizeOptions: () => boardSizeOptions,
+				boardStyle() {
+					const r = state.boardView;
+					const rows = Math.max(1, (r && r.rows) || 8);
+					const cols = Math.max(1, (r && r.cols) || 8);
+					return { '--board-cols': cols, '--board-rows': rows };
+				},
+				boardCells() {
+					const cells = state.boardView.cells || [];
+					const rows = Math.max(1, state.boardView.rows || 8);
+					const cols = Math.max(1, state.boardView.cols || 8);
+					const total = rows * cols;
+					const s = state.lastStateForDisplay;
+					const getDisplay = v => (window.Game2048Snake && window.Game2048Snake.getTileDisplayContent(s, v)) || { type: 'number', value: v };
+					if (cells.length === 0) {
+						return Array.from({ length: total }, (_, i) => ({ index: i, value: 0, unit: null, isHead: false }));
+					}
+					const list = [];
+					for (let i = 0; i < total; i++) {
+						const c = cells[i];
+						if (!c || !c.value) {
+							list.push({ index: i, value: 0, unit: null, isHead: false });
+							continue;
+						}
+						const content = getDisplay(c.value);
+						let text = String(c.value);
+						if (content && content.type === 'text') text = content.text;
+						else if (content && content.value != null) text = String(content.value);
+						const headRow = s && s.headRow;
+						const headCol = s && s.headCol;
+						const isHead = (headRow !== undefined && headCol !== undefined && Math.floor(i / cols) === headRow && (i % cols) === headCol);
+						list.push({ index: i, value: c.value, unit: { val: c.value, text: text }, isHead: isHead });
+					}
+					return list;
+				},
+				resultMaxTile() {
+					const cells = state.boardView.cells || [];
+					if (!cells.length) return 0;
+					return Math.max(0, ...cells.map(function(c) { return c.value || 0; }));
+				},
+			},
+			methods: {
+				onTargetNumberChange(v) {
+					state.targetNumber = v === undefined || v === null || v === '' ? null : Number(v) || 2048;
+				},
+				onRestart() {
+					const num = state.targetNumber;
+					window.Game2048Snake.applyBoardSettings(
+							{ boardHeight: state.boardHeight, boardWidth: state.boardWidth, targetNumber: num });
+					state.gameBoardWidth = state.boardWidth;
+					state.gameBoardHeight = state.boardHeight;
+					state.gameTargetNumber = num;
+					state.gameTargetLabel = num == null ? '无限' : String(num);
+				},
+				onGamingInfoCollapseChange(val) {
+					const def = this._defaultPanels || [];
+					const open = val || [];
+					const isAllExpanded = def.length === open.length && def.every(function(p) { return open.indexOf(p) !== -1; });
+					try {
+						if (isAllExpanded) { localStorage.removeItem(this._collapseKey); } else {
+							localStorage.setItem(this._collapseKey, JSON.stringify(open));
+						}
+					} catch (_) {}
+				},
+				onResultDialogOpened() {
+					document.body.classList.add('no-scroll');
+				},
+				onResultOverlayClick() {
+					document.body.classList.remove('no-scroll');
+					window.Game2048Snake.onResultRestart();
+				},
+				onResultRestart() {
+					window.Game2048Snake.onResultRestart();
+				},
+			},
+			mounted() {
+				const self = this;
+				const api = window.Game2048Snake;
+				if (!api) return;
+				const bridge = {
+					setGameResult(visible, message, sub, isWin) {
+						state.gameResultVisible = !!visible;
+						state.gameResultMessage = message != null ? String(message) : '';
+						state.gameResultSub = sub != null ? String(sub) : '';
+						state.gameResultIsWin = !!isWin;
+					},
+					setBoardView(board, rows, cols, gameState) {
+						const cells = (board || []).map(function(v, i) { return { index: i, value: v || 0 }; });
+						state.boardView = { rows: rows, cols: cols, cells: cells };
+						state.lastStateForDisplay = gameState;
+					},
+					commitState(gameState) {
+						if (!gameState) return;
+						bridge.updateScores(gameState.score, gameState.highScore, gameState.boardWidth, gameState.boardHeight);
+						bridge.setBoardView(gameState.board, gameState.boardHeight, gameState.boardWidth, gameState);
+						const vis = !!(gameState.overlayVisible && gameState.overlayMessage);
+						bridge.setGameResult(vis, gameState.overlayMessage || '',
+								gameState.gameOver ? '最终得分：' + gameState.score : '', !!gameState.gameWin);
+					},
+					updateScores(score, highScore, boardWidth, boardHeight) {
+						state.score = score;
+						state.highScore = highScore;
+						if (boardWidth != null) state.gameBoardWidth = boardWidth;
+						if (boardHeight != null) state.gameBoardHeight = boardHeight;
+					},
+					syncToolbarSettings() {
+						const s = api.getBoardSettings();
+						if (s) {
+							state.boardHeight = s.boardHeight;
+							state.boardWidth = s.boardWidth;
+							state.gameBoardHeight = s.boardHeight;
+							state.gameBoardWidth = s.boardWidth;
+							state.gameTargetNumber = s.targetNumber;
+							state.gameTargetLabel = s.targetNumber == null ? '无限' : String(s.targetNumber);
+							state.targetNumber = s.targetNumber;
+						}
+					},
+				};
+				api.init(bridge);
+				this.$nextTick(() => {
+					const wrap = this.$refs.boardWrap;
+					if (!wrap) return;
+					let touchStartX = 0, touchStartY = 0;
+					wrap.addEventListener('touchstart', e => {
+						const t = e.touches[0];
+						if (t) { touchStartX = t.clientX; touchStartY = t.clientY; }
+					}, { passive: true });
+					wrap.addEventListener('touchend', e => {
+						const t = e.changedTouches[0];
+						if (t) api.onGesture(t.clientX - touchStartX, t.clientY - touchStartY);
+					}, { passive: true });
+					let mouseDownX = 0, mouseDownY = 0;
+					wrap.addEventListener('mousedown', e => { mouseDownX = e.clientX; mouseDownY = e.clientY; });
+					wrap.addEventListener('mouseup', e => { api.onGesture(e.clientX - mouseDownX, e.clientY - mouseDownY); });
+				});
+			},
+		});
+		mainApp.use(ElementPlus);
+		if (typeof ElementPlusIconsVue !== 'undefined') {
+			for (const k in ElementPlusIconsVue) { mainApp.component(k, ElementPlusIconsVue[k]); }
+		}
+		mainApp.mount('article.gaming.area');
+		const helpApp = createApp({
+			data: () => ({introVisible: false}),
+		});
+		helpApp.use(ElementPlus);
+		if (typeof ElementPlusIconsVue !== 'undefined') {
+			for (const k in ElementPlusIconsVue) { helpApp.component(k, ElementPlusIconsVue[k]); }
+		}
+		helpApp.mount('.help.area');
+	}());
+</script>
+</body>
+</html>
