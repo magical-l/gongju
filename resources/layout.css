@@ -28,16 +28,14 @@
 
 .inline-flex, .flex.inline {display: inline-flex;}
 
-.flex.vertical, .inline-flex.vertical {
-	flex-direction: column;
-}
+.vertical {flex-direction: column;}
 
 /*堆叠：从下部开始向上堆*/
-.flex.stack, .inline-flex.stack {flex-direction: column-reverse;}
+.stack {flex-direction: column-reverse;}
 
-.flex.single-line, .inline-flex.single-line {flex-wrap: nowrap;}
+.single-line {flex-wrap: nowrap;}
 
-.flex.multi-line, .inline-flex.multi-line {flex-wrap: wrap;}
+.multi-line {flex-wrap: wrap;}
 
 /*----------线路之间（align-content）(lines带有语义，仅适用于flex布局）----------*/
 /*所有线路都拉伸膨胀，充满空间*/
@@ -56,30 +54,30 @@
 .lines-space-between, .lines-mutex, .lines-social-phobia {flex-wrap: wrap; align-content: space-between;}
 
 /*线路不熟，即线路互相之间保持距离但又不极端排斥*/
-.lines-space-around, .flex.lines-unfamiliar {flex-wrap: wrap; align-content: space-around;}
+.lines-space-around, .lines-unfamiliar {flex-wrap: wrap; align-content: space-around;}
 
 /*线路不熟但比较友好*/
-.lines-space-evenly, .flex.lines-friendly {flex-wrap: wrap; align-content: space-evenly;}
+.lines-space-evenly, .lines-friendly {flex-wrap: wrap; align-content: space-evenly;}
 
-/*-----------项目本身------------*/
+/*-----------项目本身（不要求父带 .flex，便于组件提供的 flex 容器内使用）------------*/
 /*项目独占/垄断 一行*/
-.flex > .monopoly, .inline-flex > .monopoly {flex-basis: 100%;}
+.monopoly {flex-basis: 100%;}
 
 /*项目在主轴方向上拉伸/压缩*/
-.flex > .stretch, .inline-flex > .stretch {flex: 1 1 auto;}
+.stretch {flex: 1 1 auto;}
 
 /*项目禁止压缩*/
-.flex > .no-shrink, .inline-flex > .no-shrink, .no-shrink {flex-shrink: 0;}
+.no-shrink {flex-shrink: 0;}
 
 /*===============================grid布局===============================*/
 .grid {display: grid; gap: var(--gap);}
 
 .grid.inline, .inline-grid {display: inline-grid}
 
-/* 不一定真的能独占一行/列。如果另有项目也安排在同一行/列，两者会堆叠 */
-.grid > .one-row.item, .inline-grid > .one-row.item {grid-column: 1 / -1;}
+/* 不一定真的能独占一行/列。如果另有项目也安排在同一行/列，两者会堆叠（不要求父带 .grid） */
+.one-row {grid-column: 1 / -1;}
 
-.grid > .one-column.item, .inline-grid > .one-column.item {grid-row: 1 / -1;}
+.one-column {grid-row: 1 / -1;}
 
 .grid.朋字形, .inline-grid.朋字形 {
 	grid-template-columns: 50% 50%;

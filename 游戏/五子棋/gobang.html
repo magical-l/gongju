@@ -85,7 +85,7 @@
 		</header>
 
 		<article class="gaming area , 反叵字形 grid">
-			<article class="main map area , one-row item , flex items-near-x-center">
+			<article class="main map area one-row flex items-near-x-center">
 				<section class="one chessboard" v-if="flatPositions.length">
 					<div v-for="wrapper in flatPositions" :key="wrapper.position.toString()"
 							 class="cell" :class="[{ hoverable: isGaming && !isGameOver && !wrapper.unit }, currentPlayerColorClass]"
