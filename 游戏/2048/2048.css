@@ -8,7 +8,7 @@
 	--board-bg: #b8c9a8;
 	--grid-line: #9bad8f;
 	--cell-empty: #d4e0c8;
-	--unit-radius: 6px;
+	--unit-radius: 0;
 	--board-radius: 8px;
 	--board-padding: 12px;
 	--grid-gap: 1px;
