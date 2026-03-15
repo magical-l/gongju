@@ -101,11 +101,12 @@
 		</header>
 
 		<!-- 主地图区 -->
-		<section class="main map area , no-shrink , flex items-near-x-center" ref="boardWrap" tabindex="0">
+		<section class="main map area , no-shrink , flex items-near-x-center" ref="boardWrap" tabindex="0" :style="boardWrapStyle">
 			<div class="board" :style="boardStyle" ref="board">
 				<div class="cell" :data-index="cell.index" v-for="(cell, index) in boardCells" :key="index">
 					<div v-if="cell.unit" class="unit" :class="['unit-' + cell.unit.val, { 'snake-head': cell.isHead }]" :data-index="cell.index">
 						{{ cell.unit.text }}
+						<span v-if="cell.showBadge" class="new-badge">!</span>
 					</div>
 				</div>
 			</div>
@@ -229,6 +230,12 @@
 					const cols = Math.max(1, (r && r.cols) || 8);
 					return { '--board-cols': cols, '--board-rows': rows };
 				},
+				boardWrapStyle() {
+					const r = state.boardView;
+					const rows = Math.max(1, (r && r.rows) || 8);
+					const cols = Math.max(1, (r && r.cols) || 8);
+					return { aspectRatio: cols / rows };
+				},
 				boardCells() {
 					const cells = state.boardView.cells || [];
 					const rows = Math.max(1, state.boardView.rows || 8);
@@ -237,13 +244,22 @@
 					const s = state.lastStateForDisplay;
 					const getDisplay = v => (window.Game2048Snake && window.Game2048Snake.getTileDisplayContent(s, v)) || { type: 'number', value: v };
 					if (cells.length === 0) {
-						return Array.from({ length: total }, (_, i) => ({ index: i, value: 0, unit: null, isHead: false }));
+						return Array.from({ length: total }, (_, i) => ({ index: i, value: 0, unit: null, isHead: false, showBadge: false }));
 					}
+					const foodList = (s && s.food && Array.isArray(s.food)) ? s.food : [];
+					const segs = (s && s.segments && Array.isArray(s.segments)) ? s.segments : [];
+					const hiIdx = (s && s.highlightDigesting && s.highlightSegmentIndex >= 0) ? s.highlightSegmentIndex : -1;
+					const hiPos = (hiIdx >= 0 && segs[hiIdx] && segs[hiIdx].position) ? segs[hiIdx].position : null;
 					const list = [];
 					for (let i = 0; i < total; i++) {
 						const c = cells[i];
+						const r = Math.floor(i / cols);
+						const col = i % cols;
+						const isFood = foodList.some(function(f) { return f.r === r && f.c === col; });
+						const isDigestingHere = hiPos && hiPos.r === r && hiPos.c === col;
+						const showBadge = isFood || isDigestingHere;
 						if (!c || !c.value) {
-							list.push({ index: i, value: 0, unit: null, isHead: false });
+							list.push({ index: i, value: 0, unit: null, isHead: false, showBadge: false });
 							continue;
 						}
 						const content = getDisplay(c.value);
@@ -252,8 +268,8 @@
 						else if (content && content.value != null) text = String(content.value);
 						const headRow = s && s.headRow;
 						const headCol = s && s.headCol;
-						const isHead = (headRow !== undefined && headCol !== undefined && Math.floor(i / cols) === headRow && (i % cols) === headCol);
-						list.push({ index: i, value: c.value, unit: { val: c.value, text: text }, isHead: isHead });
+						const isHead = (headRow !== undefined && headCol !== undefined && r === headRow && col === headCol);
+						list.push({ index: i, value: c.value, unit: { val: c.value, text: text }, isHead: isHead, showBadge: showBadge });
 					}
 					return list;
 				},

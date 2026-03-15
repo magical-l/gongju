@@ -16,9 +16,9 @@
 	position: relative;
 	width: 100%;
 	max-width: min(480px, 95vw);
-	aspect-ratio: 1;
-	max-height: min(480px, 75vh);
-	min-height: min(260px, 80vmin);
+	/* 棋盘比例由 boardWrapStyle 根据行列数设置，保证格子为正方形 */
+	max-height: min(560px, 85vh);
+	min-height: min(200px, 50vmin);
 	margin: 0 auto;
 	padding: 0;
 	display: flex;
@@ -121,6 +121,26 @@ article.gaming.area .board .cell > .unit {
 	height: 100%;
 	object-fit: contain;
 	display: block;
+}
+
+.unit > .new-badge {
+	position: absolute;
+	top: 2px;
+	right: 2px;
+	min-width: 14px;
+	height: 14px;
+	padding: 0 3px;
+	background: #c00;
+	color: #fff;
+	border-radius: 50%;
+	font-size: 10px;
+	font-weight: bold;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	line-height: 1;
+	pointer-events: none;
+	z-index: 2;
 }
 
 /* 蛇头可加高亮（与普通格区分） */
