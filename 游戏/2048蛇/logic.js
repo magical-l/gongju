@@ -138,16 +138,21 @@
       }
       if (v0 < v1) continue;
       segments[i].value = v0 * 2;
-        var positionsAfterRemoved = segments.slice(i + 2).map(function (s) { return { r: s.position.r, c: s.position.c }; });
-        segments.splice(i + 1, 1);
-        for (var j = i + 1; j < segments.length; j++) {
-          segments[j].position.r = positionsAfterRemoved[j - (i + 1)].r;
-          segments[j].position.c = positionsAfterRemoved[j - (i + 1)].c;
+      var posB = { r: segments[i + 1].position.r, c: segments[i + 1].position.c };
+      var positionsAfterRemoved = segments.slice(i + 2).map(function (s) { return { r: s.position.r, c: s.position.c }; });
+      segments.splice(i + 1, 1);
+      if (segments.length > i + 1) {
+        segments[i + 1].position.r = posB.r;
+        segments[i + 1].position.c = posB.c;
+        for (var j = i + 2; j < segments.length; j++) {
+          segments[j].position.r = positionsAfterRemoved[j - (i + 2)].r;
+          segments[j].position.c = positionsAfterRemoved[j - (i + 2)].c;
         }
-        result.newDigesting = highlightIdx === i || highlightIdx === i + 1;
-        result.newHighlight = result.newDigesting ? i : highlightIdx > i + 1 ? highlightIdx - 1 : highlightIdx;
-        result.changed = true;
-        return result;
+      }
+      result.newDigesting = highlightIdx === i || highlightIdx === i + 1;
+      result.newHighlight = result.newDigesting ? i : highlightIdx > i + 1 ? highlightIdx - 1 : highlightIdx;
+      result.changed = true;
+      return result;
     }
     return result;
   }
@@ -162,7 +167,10 @@
       if (Math.abs(dr) + Math.abs(dc) > 1) {
         if (dr === 0) cur.c = prev.c + (dc > 0 ? 1 : -1);
         else if (dc === 0) cur.r = prev.r + (dr > 0 ? 1 : -1);
-        else { cur.r = prev.r + (dr > 0 ? 1 : -1); cur.c = prev.c; }
+        else {
+          cur.r = prev.r;
+          cur.c = cur.c;
+        }
       }
     }
   }
