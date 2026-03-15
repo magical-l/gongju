@@ -120,7 +120,7 @@
 		</header>
 
 		<!-- 主地图区 -->
-		<section class="main map area no-shrink flex items-near-x-center" ref="boardWrap">
+		<section class="main map area , no-shrink , flex items-near-x-center" ref="boardWrap">
 			<div class="board" :style="{ '--board-cols': boardView.cols || 4, '--board-rows': boardView.rows || 4 }" ref="board">
 				<div class="cell" :data-index="cell.index" v-for="(cell, index) in boardCells" :key="index">
 					<div v-if="cell.unit" class="unit" :class="'unit-' + cell.unit.val" :data-index="cell.index">

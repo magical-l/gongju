@@ -74,11 +74,6 @@
 
 .grid.inline, .inline-grid {display: inline-grid}
 
-/* 不一定真的能独占一行/列。如果另有项目也安排在同一行/列，两者会堆叠（不要求父带 .grid） */
-.one-row {grid-column: 1 / -1;}
-
-.one-column {grid-row: 1 / -1;}
-
 .grid.朋字形, .inline-grid.朋字形 {
 	grid-template-columns: 50% 50%;
 	grid-template-areas: 'left right';
@@ -143,6 +138,11 @@
 		'footer';
 	gap: var(--目字形-gap);
 }
+
+/* 不一定真的能独占一行/列。如果另有项目也安排在同一行/列，两者会堆叠（不要求父带 .grid） */
+.one-row {grid-column: 1 / -1;}
+
+.one-column {grid-row: 1 / -1;}
 
 /*==========================================用于布局容器本身==========================================*/
 /*----------项目之间（justify-content），适用于flex、grid布局里的项目----------*/
