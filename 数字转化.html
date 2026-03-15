@@ -93,7 +93,7 @@
 		<section class="input area">
 			<el-input placeholder="在此输入要处理的文本，处理文本中的数字，非数字部分将保留原样。" type="textarea" :rows="5"
 								v-model="inputText" @input="processInput"></el-input>
-			<div class="radix setting area , flex items-near-start-x">
+			<div class="radix setting area , flex items-near-x-start">
 				<el-radio-group v-model="inputRadix" @change="processInput">
 					<el-radio-button v-for="radix in radixOptions" :key="radix" :label="radix"/>
 				</el-radio-group>
@@ -104,7 +104,7 @@
 		</section>
 
 		<section class="result area , grid 朋字形">
-			<header class="one-row , flex items-near-start-x">
+			<header class="one-row , flex items-near-x-start">
 				<p>转换结果：</p>
 				<p>（点击文本即可复制）</p>
 			</header>

@@ -149,13 +149,13 @@
 /*==========================================用于布局容器本身==========================================*/
 /*----------项目之间（justify-content），适用于flex、grid布局里的项目----------*/
 /*项目都拥到队伍前面/在主轴上靠前*/
-.items-near-start-x {justify-content: start;}
+.items-near-x-start {justify-content: start;}
 
 /*项目都退到队伍后面/在主轴上靠后*/
-.items-near-end-x {justify-content: end;}
+.items-near-x-end {justify-content: end;}
 
 /*项目都挤在队伍中间/在主轴上居中*/
-.items-near-center-x {justify-content: center; text-align: center;}
+.items-near-x-center {justify-content: center; text-align: center;}
 
 /*项目互斥（社恐），即项目互相之间距离尽量远*/
 .items-space-between, .items-mutex, .items-social-phobia {justify-content: space-between;}
@@ -171,13 +171,13 @@
 .items-stretch {align-items: stretch;}
 
 /*项目垂直靠向开始的方向/在次轴上靠前*/
-.items-near-start-y {align-items: start;}
+.items-near-y-start {align-items: start;}
 
 /*项目垂直靠向结束的方向/在次轴上靠后*/
-.items-near-end-y {align-items: end;}
+.items-near-y-end {align-items: end;}
 
 /*项目垂直居中/在次轴上居中，像“册”字一样*/
-.items-near-center-y, .items-like-册 {align-items: center;}
+.items-near-y-center, .items-like-册 {align-items: center;}
 
 /*==========================================用于项目=========================================*/
 /* 为防父元素没有使用.grid类之类，所以不使用 .grid > header ，直接设置grid-area。若父元素非display:grid也没事，会被浏览器忽略。下同 */

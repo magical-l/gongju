@@ -75,8 +75,8 @@
 		</div>
 	</header>
 	<article class="gaming area , 反叵字形 grid" v-cloak>
-		<header class="toolbar , flex multi-line no-gap items-near-center-x items-stretch">
-			<section class="controller list area , flex single-line no-gap items-near-start-x items-near-center-y">
+		<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
+			<section class="controller list area , flex single-line no-gap items-near-x-start items-near-y-center">
 				<div class="one controller group">
 					<el-button v-if="!isGaming" type="primary" icon="VideoPlay" class="one controller : start" @click="startGame">开始</el-button>
 					<el-button v-else type="danger" icon="RefreshRight" class="one controller : new-game" @click="restartGame">新局</el-button>
@@ -85,7 +85,7 @@
 		</header>
 
 		<article class="gaming area , 反叵字形 grid">
-			<article class="main map area , one-row item , flex items-near-center-x">
+			<article class="main map area , one-row item , flex items-near-x-center">
 				<section class="one chessboard" v-if="flatPositions.length">
 					<div v-for="wrapper in flatPositions" :key="wrapper.position.toString()"
 							 class="cell" :class="[{ hoverable: isGaming && !isGameOver && !wrapper.unit }, currentPlayerColorClass]"

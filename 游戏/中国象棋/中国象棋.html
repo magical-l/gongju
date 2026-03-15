@@ -260,8 +260,8 @@
 	</header>
 	<article class="gaming area , 反叵字形 grid" v-cloak>
 		<!-- 模式工具栏 -->
-		<header class="toolbar , flex multi-line no-gap items-near-center-x items-stretch">
-			<section class="setting list area , flex single-line no-gap items-near-start-x items-near-center-y">
+		<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
+			<section class="setting list area , flex single-line no-gap items-near-x-start items-near-y-center">
 				<div v-if="isGaming" class="one setting group">
 					<el-button type="danger" class="one setting : new-game" @click="returnToSettings" icon="RefreshRight">新局
 					</el-button>
@@ -288,13 +288,13 @@
 					</div>
 				</template>
 			</section>
-			<section class="controller list area , flex multi-line no-gap items-near-start-x items-near-center-y">
+			<section class="controller list area , flex multi-line no-gap items-near-x-start items-near-y-center">
 				<div v-if="isGaming" class="one controller group">
 					<el-button type="danger" icon="RefreshLeft" class="one controller : restart" @click="restartGame">重来
 					</el-button>
 				</div>
 			</section>
-			<section class="tool list area , flex single-line no-gap items-near-start-x items-near-center-y">
+			<section class="tool list area , flex single-line no-gap items-near-x-start items-near-y-center">
 				<div v-if="isGaming" class="one tool group">
 					<el-button type="warning" @click="undoMove" :disabled="!isUndoAvailable" class="one tool : undo">悔棋
 					</el-button>
@@ -306,7 +306,7 @@
 		</header>
 
 		<!-- 主棋盘固定 60px/格，水平居中、垂直靠顶 -->
-		<div class="chessboard container flex items-near-center-x items-near-start-y">
+		<div class="chessboard container flex items-near-x-center items-near-y-start">
 			<article v-if="!showReversedView" class="one chessboard , grid no-gap"
 							 :class="{ editor: !isGaming, area: isGaming }">
 				<template v-if="positions && positions.length > 0" v-for="(row, r) in positions">

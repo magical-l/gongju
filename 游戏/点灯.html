@@ -149,8 +149,8 @@
 	</header>
 
 	<article class="gaming area , 反叵字形 grid" v-cloak>
-		<header class="toolbar , flex multi-line no-gap items-near-center-x items-stretch">
-			<section class="setting list area , flex single-line no-gap items-near-start-x items-near-center-y">
+		<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
+			<section class="setting list area , flex single-line no-gap items-near-x-start items-near-y-center">
 				<div class="one setting group">
 					<el-form-item label="行" class="one setting : rows">
 						<el-select v-model="boardRows">
@@ -169,7 +169,7 @@
 					</el-button>
 				</div>
 			</section>
-			<section class="tool list area , flex single-line no-gap items-near-start-x items-near-center-y">
+			<section class="tool list area , flex single-line no-gap items-near-x-start items-near-y-center">
 				<div class="one tool group">
 					<el-button-group>
 						<el-button class="one tool : hint" @click="showRandomHint"
@@ -181,7 +181,7 @@
 			</section>
 		</header>
 
-		<article class="main map area , flex items-near-center-x">
+		<article class="main map area , flex items-near-x-center">
 			<section id="main-map" class="grid"
 							 :style="{ gridTemplateColumns: `repeat(${gameBoardCols}, 1fr)`, gridTemplateRows: `repeat(${gameBoardRows}, 1fr)` }">
 				<template v-for="(row, rowIndex) in board" :key="rowIndex">

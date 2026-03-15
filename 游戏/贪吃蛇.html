@@ -88,8 +88,8 @@
 	</header>
 
 	<article class="gaming area , 反叵字形 grid" v-cloak>
-		<header class="toolbar , flex multi-line no-gap items-near-center-x items-stretch">
-			<section class="setting list area , flex single-line no-gap items-near-start-x items-near-center-y">
+		<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
+			<section class="setting list area , flex single-line no-gap items-near-x-start items-near-y-center">
 				<div class="one setting group">
 					<el-form-item label="行" class="one setting : height">
 						<el-select v-model="gridHeight">
@@ -114,7 +114,7 @@
 					</el-button>
 				</div>
 			</section>
-			<section class="controller list area , flex single-line no-gap items-near-start-x items-near-center-y">
+			<section class="controller list area , flex single-line no-gap items-near-x-start items-near-y-center">
 				<div class="one controller group">
 					<el-button type="primary" class="one controller : pause" @click="togglePause"
 									 :icon="isPaused ? 'VideoPlay' : 'VideoPause'">
@@ -124,7 +124,7 @@
 			</section>
 		</header>
 
-		<article class="main map area , flex items-near-center-x">
+		<article class="main map area , flex items-near-x-center">
 			<canvas id="game-canvas" :width="canvasWidth" :height="canvasHeight" @click="handleCanvasClick"></canvas>
 		</article>
 

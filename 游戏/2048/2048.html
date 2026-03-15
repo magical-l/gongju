@@ -54,8 +54,8 @@
 		</div>
 	</header>
 	<article class="gaming area , 反叵字形 grid" v-cloak>
-		<header class="toolbar , flex multi-line no-gap items-near-center-x items-stretch">
-			<section class="setting list area , flex single-line no-gap items-near-start-x items-near-center-y">
+		<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
+			<section class="setting list area , flex single-line no-gap items-near-x-start items-near-y-center">
 				<div class="one setting group">
 					<el-form-item class="one setting : height">
 						<el-select v-model.number="boardHeight">
@@ -84,14 +84,14 @@
 					</el-form-item>
 				</div>
 			</section>
-			<section class="controller list area , flex single-line no-gap items-near-start-x items-near-center-y">
+			<section class="controller list area , flex single-line no-gap items-near-x-start items-near-y-center">
 				<div class="one controller group">
 					<el-form-item class="one controller : undo">
 						<el-button @click="onUndo">撤销</el-button>
 					</el-form-item>
 				</div>
 			</section>
-			<section class="tool list area , flex single-line no-gap items-near-start-x items-near-center-y">
+			<section class="tool list area , flex single-line no-gap items-near-x-start items-near-y-center">
 				<div class="one tool group" v-for="item in quickSettingsList" :key="item.key">
 					<el-form-item :class="'one tool : ' + item.key">
 						<el-button v-if="item.type === 'toggle'" class="按压式" :class="{ pressed: getQuickValue(item.key) }"
@@ -119,7 +119,7 @@
 			</section>
 		</header>
 
-		<div class="main map area item no-shrink , flex items-near-center-x" ref="boardWrap">
+		<div class="main map area item no-shrink , flex items-near-x-center" ref="boardWrap">
 			<div class="board" :style="boardGridStyle" ref="board">
 				<div class="cell" :data-index="cell.index" v-for="(cell, index) in boardCells" :key="index">
 					<div v-if="cell.unit" class="unit" :class="'unit-' + cell.unit.val" :data-index="cell.index">
@@ -173,12 +173,12 @@
 							<el-input placeholder="自定义文字" class="flexible" :model-value="customLabels[pu.key] || ''"
 												@update:model-value="onCustomLabelInput(pu.key, $event)" @blur="applyCustomTiles"
 												maxlength="10"></el-input>
-							<div class="flex items-near-center-y"><span>或</span>
+							<div class="flex items-near-y-center"><span>或</span>
 								<el-input class="flexible" :model-value="customImageDisplayValue(pu.key)"
 													@update:model-value="onCustomImageInput(pu.key, $event)" @blur="applyCustomTiles"
 													:placeholder="customImagePlaceholder(pu.key)"></el-input>
 							</div>
-							<div class="flex items-near-center-y"><span>或</span>
+							<div class="flex items-near-y-center"><span>或</span>
 								<el-button class="file-picker entry btn flexible" @click="openTileFilePicker(pu.key)">
 									选择本地图片
 								</el-button>
