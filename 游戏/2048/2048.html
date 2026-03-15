@@ -75,6 +75,10 @@
 						<el-input-number :model-value="targetNumber" @update:model-value="onTargetNumberChange" :controls="false"
 														 placeholder="留空=无限" title="留空=无限" :min="8" style="width: 10em">
 							<template #prefix>目标≥</template>
+							<template #suffix>
+								<el-button v-if="targetNumber != null && targetNumber !== ''" link type="primary" size="small" icon="CircleClose" circle
+									title="清空为无限" @click.stop="onTargetNumberChange(null)"></el-button>
+							</template>
 						</el-input-number>
 					</el-form-item>
 				</div>

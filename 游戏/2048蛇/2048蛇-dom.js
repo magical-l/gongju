@@ -84,6 +84,11 @@ function startTurnTimer() {
   }, ms);
 }
 
+function focusMapArea() {
+  var el = document.querySelector('.main.map.area');
+  if (el && typeof el.focus === 'function') el.focus();
+}
+
 function handleDirection(newDir) {
   if (!gameState || gameState.gameOver || gameState.gameWin) return;
   if (gameState.overlayVisible && gameState.gameWin) {
@@ -101,6 +106,7 @@ function handleRestart() {
   gameState = restart(gameState);
   commitState(gameState);
   startTurnTimer();
+  focusMapArea();
   if (view && view.setPaused) view.setPaused(paused);
 }
 
@@ -154,7 +160,10 @@ function applyBoardSettings(obj) {
   }
   if (view && view.syncToolbarSettings) view.syncToolbarSettings();
   commitState(gameState);
-  if (!paused) startTurnTimer();
+  if (!paused) {
+    startTurnTimer();
+    focusMapArea();
+  }
 }
 
 function getBoardSettings() {
@@ -213,7 +222,12 @@ function initBridge(bridge) {
 function getPaused() { return paused; }
 function togglePause() {
   paused = !paused;
-  if (paused) stopTurnTimer(); else startTurnTimer();
+  if (paused) {
+    stopTurnTimer();
+  } else {
+    startTurnTimer();
+    focusMapArea();
+  }
   if (view && view.setPaused) view.setPaused(paused);
 }
 
@@ -255,6 +269,19 @@ var stub = {
   STORAGE_SETTINGS = logic.STORAGE_SETTINGS;
   MIN_SWIPE_PX = constants.MIN_SWIPE_PX;
 
+  function tryPauseOnClickOutside(e) {
+    if (paused) return;
+    if (!gameState || gameState.gameOver || gameState.gameWin) return;
+    var mapArea = document.querySelector('.main.map.area');
+    if (!mapArea || !e.target) return;
+    if (mapArea.contains(e.target)) return;
+    paused = true;
+    stopTurnTimer();
+    if (view && view.setPaused) view.setPaused(paused);
+  }
+  document.addEventListener('mousedown', tryPauseOnClickOutside);
+  document.addEventListener('touchstart', tryPauseOnClickOutside, { passive: true });
+
   document.addEventListener('keydown', function (e) {
     if (gameState && gameState.overlayVisible) {
       if (e.key === 'Enter' || e.key === ' ') {
@@ -263,12 +290,16 @@ var stub = {
       }
       return;
     }
-    if (!window.GameKeysArea || !window.GameKeysArea.shouldHandle(e)) return;
     if (e.key === ' ') {
-      e.preventDefault();
-      togglePause();
-      return;
+      var active = document.activeElement;
+      var isEditable = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT' || (active.isContentEditable && active.isContentEditable === 'true'));
+      if (!isEditable) {
+        e.preventDefault();
+        togglePause();
+        return;
+      }
     }
+    if (!window.GameKeysArea || !window.GameKeysArea.shouldHandle(e)) return;
     var direction = null;
     if (e.key === 'ArrowLeft') direction = 'left';
     else if (e.key === 'ArrowRight') direction = 'right';

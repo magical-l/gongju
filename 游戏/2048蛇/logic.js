@@ -187,7 +187,7 @@
       overlayMessage: '',
       initialLength: len,
       foodCount: foodCount,
-      targetNumber: o.targetNumber != null ? o.targetNumber : DEFAULT_CFG.targetNumber,
+      targetNumber: o.targetNumber !== undefined ? o.targetNumber : DEFAULT_CFG.targetNumber,
       turnIntervalMs: Math.max(50, turnIntervalMs),
       highlightSegmentIndex: -1,
       highlightDigesting: false,
@@ -226,10 +226,20 @@
     if (g.highlightDigesting) {
       var digestResult = digestOneStep(g.segments, g.highlightSegmentIndex);
       if (digestResult.changed) {
-        return Object.assign({}, g, {
+        var nextG = Object.assign({}, g, {
           highlightSegmentIndex: digestResult.newHighlight,
           highlightDigesting: true,
         });
+        var t = nextG.targetNumber;
+        if (t !== Infinity && t != null) {
+          for (var si = 0; si < nextG.segments.length; si++) {
+            if (nextG.segments[si].value >= t) {
+              nextG = Object.assign({}, nextG, { gameWin: true, overlayVisible: true, overlayMessage: '恭喜过关！' });
+              break;
+            }
+          }
+        }
+        return nextG;
       }
       g = Object.assign({}, g, { highlightDigesting: false, highlightSegmentIndex: -1 });
     }
