@@ -15,9 +15,7 @@
 	--merge-duration: 0.2s;
 }
 
-/* 右侧本局信息：.flex.vertical 提供间距；记分牌用 el-card 默认样式 */
-
-/* 棋盘容器：.main.map.area 即棋盘+滑层的外层，提供定位、尺寸与手势区域 */
+/* 主地图区，提供定位、尺寸与手势区域 */
 .main.map.area {
 	position: relative;
 	width: 100%;
@@ -162,10 +160,6 @@ article.gaming.area .slide-layer .cell {
 	overflow-y: auto;
 }
 
-.customize.unit.display.area .add-next-body {
-	min-height: 120px;
-}
-
 /* 预览态：固定尺寸方框，与棋盘/滑层“填满格”不同 */
 .cell .unit.preview {
 	width: var(--cell-size, 80px);
@@ -178,50 +172,4 @@ article.gaming.area .slide-layer .cell {
 
 .cell .unit.preview-error { background: #f8d7da !important; }
 
-/* 工具类：小号、弱化字色、定宽不伸缩、右侧间距，仅描述视觉 */
-.text-small-subdued {
-	font-size: 13px;
-	color: var(--text-dark);
-	opacity: 0.85;
-	flex-shrink: 0;
-	width: 1.2em;
-	margin-right: 6px;
-}
-
-.preview.input.area .url.input,
-.preview.input.area .file-picker.entry.btn {
-	flex: 1;
-	min-width: 0;
-}
-
-.preview.input.area {
-	gap: 6px;
-	min-width: 0;
-	flex: 1;
-	max-width: 160px;
-}
-
-.preview.input.area .label,
-.preview.input.area .url.input {
-	padding: 6px 8px;
-	border: 1px solid var(--grid-line);
-	border-radius: 6px;
-	font-size: 14px;
-	min-width: 0;
-	width: 100%;
-	box-sizing: border-box;
-}
-
-.preview.input.area .file-picker.entry.btn {
-	padding: 6px 10px;
-	font-size: 13px;
-	align-self: flex-start;
-}
-
-.customize.unit.display.area .hint {
-	margin: 0 0 8px;
-	font-size: 13px;
-	color: var(--text-dark);
-	opacity: 0.9;
-}
 
