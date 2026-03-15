@@ -157,24 +157,6 @@
     return result;
   }
 
-  function fillGap(segments) {
-    if (segments.length <= 1) return;
-    for (var i = 1; i < segments.length; i++) {
-      var prev = segments[i - 1].position;
-      var cur = segments[i].position;
-      var dr = cur.r - prev.r;
-      var dc = cur.c - prev.c;
-      if (Math.abs(dr) + Math.abs(dc) > 1) {
-        if (dr === 0) cur.c = prev.c + (dc > 0 ? 1 : -1);
-        else if (dc === 0) cur.r = prev.r + (dr > 0 ? 1 : -1);
-        else {
-          cur.r = prev.r;
-          cur.c = cur.c;
-        }
-      }
-    }
-  }
-
   function init(highScore, overrides) {
     if (highScore === undefined) highScore = 0;
     var o = overrides || {};
@@ -244,7 +226,6 @@
     if (g.highlightDigesting) {
       var digestResult = digestOneStep(g.segments, g.highlightSegmentIndex);
       if (digestResult.changed) {
-        fillGap(g.segments);
         return Object.assign({}, g, {
           highlightSegmentIndex: digestResult.newHighlight,
           highlightDigesting: true,
@@ -282,8 +263,6 @@
       var newFood = g.food.filter(function (_, i) { return i !== foodIdx; });
       g.segments.unshift({ position: { r: next.r, c: next.c }, value: eaten.value });
       var dig = digestOneStep(g.segments, 0);
-      if (dig.changed) fillGap(g.segments);
-      fillGap(g.segments);
       g = Object.assign({}, g, {
         highlightSegmentIndex: dig.newHighlight,
         highlightDigesting: dig.changed,

@@ -27,6 +27,7 @@ function setStorage(key, value) {
 
 var gameState = null;
 var turnTimer = null;
+var paused = true;
 
 function gestureDirection(dx, dy) {
   var ax = Math.abs(dx);
@@ -67,7 +68,7 @@ function stopTurnTimer() {
 
 function startTurnTimer() {
   stopTurnTimer();
-  if (!gameState || gameState.gameOver || gameState.gameWin) return;
+  if (paused || !gameState || gameState.gameOver || gameState.gameWin) return;
   var ms = Math.max(50, gameState.turnIntervalMs || 400);
   turnTimer = setInterval(function () {
     if (!gameState || gameState.gameOver || gameState.gameWin) {
@@ -96,9 +97,11 @@ function handleDirection(newDir) {
 function handleRestart() {
   stopTurnTimer();
   if (!gameState) return;
+  paused = false;
   gameState = restart(gameState);
   commitState(gameState);
   startTurnTimer();
+  if (view && view.setPaused) view.setPaused(paused);
 }
 
 function loadSettingsFromStorage() {
@@ -137,21 +140,21 @@ function applyBoardSettings(obj) {
   };
   if (needRestart) {
     stopTurnTimer();
+    paused = false;
     var highScore = Number(getStorage(getHighScoreKey(opts.rows, opts.cols))) || 0;
     gameState = init(highScore, opts);
+    if (view && view.setPaused) view.setPaused(paused);
   } else {
     gameState = Object.assign({}, gameState, {
       turnIntervalMs: opts.turnIntervalMs != null ? opts.turnIntervalMs : gameState.turnIntervalMs,
       targetNumber: opts.targetNumber != null ? opts.targetNumber : gameState.targetNumber,
       foodCount: opts.foodCount != null ? opts.foodCount : gameState.foodCount,
     });
-    if (opts.turnIntervalMs != null && turnTimer) {
-      startTurnTimer();
-    }
+    if (opts.turnIntervalMs != null && !paused) startTurnTimer();
   }
   if (view && view.syncToolbarSettings) view.syncToolbarSettings();
   commitState(gameState);
-  startTurnTimer();
+  if (!paused) startTurnTimer();
 }
 
 function getBoardSettings() {
@@ -190,12 +193,7 @@ function doInit() {
   }
   commitState(gameState);
   if (view && view.syncToolbarSettings) view.syncToolbarSettings();
-  startTurnTimer();
-  if (view && view.nextTick) {
-    view.nextTick(function () {
-      if (gameState) commitState(gameState);
-    });
-  }
+  if (view && view.setPaused) view.setPaused(paused);
 }
 
 function saveState() {
@@ -212,9 +210,18 @@ function initBridge(bridge) {
   doInit();
 }
 
+function getPaused() { return paused; }
+function togglePause() {
+  paused = !paused;
+  if (paused) stopTurnTimer(); else startTurnTimer();
+  if (view && view.setPaused) view.setPaused(paused);
+}
+
 var stub = {
   init: function () {},
   getState: function () { return null; },
+  getPaused: function () { return true; },
+  togglePause: function () {},
   setDirection: function () {},
   onGesture: function () {},
   applyBoardSettings: function () {},
@@ -256,6 +263,11 @@ var stub = {
       }
       return;
     }
+    if (e.key === ' ') {
+      e.preventDefault();
+      togglePause();
+      return;
+    }
     var direction = null;
     if (e.key === 'ArrowLeft') direction = 'left';
     else if (e.key === 'ArrowRight') direction = 'right';
@@ -274,6 +286,8 @@ var stub = {
   window.Game2048Snake = {
     init: initBridge,
     getState: function () { return gameState; },
+    getPaused: getPaused,
+    togglePause: togglePause,
     setDirection: handleDirection,
     onGesture: function (dx, dy) {
       if (!gameState) return;

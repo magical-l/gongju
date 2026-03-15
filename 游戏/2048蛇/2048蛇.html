@@ -83,6 +83,9 @@
 					<el-form-item class="one setting : restart">
 						<el-button type="danger" icon="RefreshRight" @click="onRestart">新局</el-button>
 					</el-form-item>
+					<el-form-item class="one setting : pause">
+						<el-button :type="paused ? 'success' : 'warning'" @click="onTogglePause">{{ paused ? '开始' : '暂停' }}</el-button>
+					</el-form-item>
 				</div>
 			</section>
 		</header>
@@ -94,6 +97,13 @@
 					<div v-if="cell.unit" class="unit" :class="['unit-' + cell.unit.val, { 'snake-head': cell.isHead }]" :data-index="cell.index">
 						{{ cell.unit.text }}
 					</div>
+				</div>
+			</div>
+			<div class="pause-overlay" v-show="paused">
+				<div class="pause-overlay-inner">
+					<span class="pause-overlay-text">已暂停</span>
+					<el-button type="success" size="large" @click="onTogglePause">开始</el-button>
+					<p class="pause-overlay-hint">按空格开始</p>
 				</div>
 			</div>
 		</section>
@@ -120,6 +130,7 @@
 					</el-collapse-item>
 					<el-collapse-item title="快捷键" class="game shortcut" name="shortcut">
 						<p>↑ ↓ ← → ：改变蛇的移动方向（蛇会自动定时移动）</p>
+						<p>空格：暂停 / 开始</p>
 						<p>支持键盘、触屏与鼠标滑动</p>
 					</el-collapse-item>
 				</el-collapse>
@@ -191,6 +202,7 @@
 			_defaultPanels: defaultPanels,
 			boardView: { rows: 8, cols: 8, cells: [] },
 			lastStateForDisplay: null,
+			paused: true,
 			gameResultVisible: false,
 			gameResultMessage: '',
 			gameResultSub: '',
@@ -243,6 +255,12 @@
 			methods: {
 				onTargetNumberChange(v) {
 					state.targetNumber = v === undefined || v === null || v === '' ? null : Number(v) || 2048;
+				},
+				onTogglePause() {
+					if (window.Game2048Snake && window.Game2048Snake.togglePause) {
+						window.Game2048Snake.togglePause();
+						state.paused = window.Game2048Snake.getPaused();
+					}
 				},
 				onRestart() {
 					const num = state.targetNumber;
@@ -316,8 +334,12 @@
 							state.targetNumber = s.targetNumber;
 						}
 					},
+					setPaused(p) {
+						state.paused = !!p;
+					},
 				};
 				api.init(bridge);
+				state.paused = api.getPaused ? api.getPaused() : true;
 				this.$nextTick(() => {
 					const wrap = this.$refs.boardWrap;
 					if (!wrap) return;
