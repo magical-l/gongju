@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
+<html lang="zh-CN" itemscope itemtype="https://schema.org/WebPage">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -96,12 +96,12 @@
 					<el-form-item :class="'one tool : ' + item.key">
 						<el-button v-if="item.type === 'toggle'" class="按压式" :class="{ pressed: getQuickValue(item.key) }"
 											 @click="setQuickValue(item.key, !getQuickValue(item.key))">
-								<el-icon v-if="item.key === 'showNewTileMarker'">
-									<svg class="y-middle" viewBox="0 0 24 24" width="1em" height="1em" title="角标式标记">
-										<rect x="2" y="2" width="20" height="20" rx="5" fill="currentColor" opacity="0.85"/>
-										<circle cx="18" cy="6" r="3.5" fill="var(--el-color-danger, #f56c6c)"/>
-									</svg>
-								</el-icon>
+							<el-icon v-if="item.key === 'showNewTileMarker'">
+								<svg class="y-middle" viewBox="0 0 24 24" width="1em" height="1em" title="角标式标记">
+									<rect x="2" y="2" width="20" height="20" rx="5" fill="currentColor" opacity="0.85"/>
+									<circle cx="18" cy="6" r="3.5" fill="var(--el-color-danger, #f56c6c)"/>
+								</svg>
+							</el-icon>
 							<span>{{ item.label }}</span>
 						</el-button>
 						<el-select v-else-if="item.type === 'select'" :model-value="getQuickValue(item.key)"
@@ -121,7 +121,8 @@
 
 		<!-- 主地图区 -->
 		<section class="main map area , no-shrink , flex items-near-x-center" ref="boardWrap">
-			<div class="board" :style="{ '--board-cols': boardView.cols || 4, '--board-rows': boardView.rows || 4 }" ref="board">
+			<div class="board" :style="{ '--board-cols': boardView.cols || 4, '--board-rows': boardView.rows || 4 }"
+					 ref="board">
 				<div class="cell" :data-index="cell.index" v-for="(cell, index) in boardCells" :key="index">
 					<div v-if="cell.unit" class="unit" :class="'unit-' + cell.unit.val" :data-index="cell.index">
 						<img v-if="cell.unit.image" :src="cell.unit.image" :alt="cell.unit.text" loading="lazy">
@@ -319,7 +320,7 @@
 					const cells = state.boardView.cells || [];
 					const newIdx = newTileIndexRef.value;
 					const s = state.lastStateForDisplay;
-					const getDisplay = (v) => window.Game2048.getTileDisplayContent(s, v);
+					const getDisplay = v => window.Game2048.getTileDisplayContent(s, v);
 					return cells.map(function(c) {
 						if (!c.value) {
 							return {index: c.index, value: 0, unit: null};
@@ -344,7 +345,7 @@
 				previewUnits() {
 					const keys = state.customTileKeys || [];
 					const s = {customLabels: state.customLabels, customImages: state.customImages};
-					const getDisplay = (v) => window.Game2048.getTileDisplayContent(s, v);
+					const getDisplay = v => window.Game2048.getTileDisplayContent(s, v);
 					return keys.map(function(key) {
 						const num = Number(key);
 						const content = getDisplay(num) || {type: 'number', value: num};
@@ -360,22 +361,24 @@
 								text = String(content.value != null ? content.value : num);
 							}
 						}
-return {key: key, val: num, text: text, image: image};
+						return {key: key, val: num, text: text, image: image};
 					});
 				},
 				resultMoveCount() {
 					const s = state.lastStateForDisplay;
-					return (s && s.moveHistory && s.moveHistory.length) || 0;
+					return s && s.moveHistory && s.moveHistory.length || 0;
 				},
 				resultMaxTile() {
 					const cells = state.boardView.cells || [];
-					if (!cells.length) return 0;
+					if (!cells.length) {
+						return 0;
+					}
 					return Math.max(0, ...cells.map(function(c) { return c.value || 0; }));
 				},
 			},
 			methods: {
 				onTargetNumberChange(v) {
-					state.targetNumber = (v === undefined || v === null || v === '') ? null : (Number(v) || 2048);
+					state.targetNumber = v === undefined || v === null || v === '' ? null : Number(v) || 2048;
 				},
 				onRestart() {
 					const num = state.targetNumber;
@@ -404,7 +407,7 @@ return {key: key, val: num, text: text, image: image};
 					if (d) {
 						state.customLabels = Object.assign({}, d.customLabels || {});
 						state.customImages = Object.assign({}, d.customImages || {});
-						state.customTileKeys = (d.tileKeys && d.tileKeys.slice()) || [];
+						state.customTileKeys = d.tileKeys && d.tileKeys.slice() || [];
 					}
 				},
 				customImagePlaceholder(key) {
@@ -572,8 +575,7 @@ return {key: key, val: num, text: text, image: image};
 						state.lastStateForDisplay = gameState;
 					},
 					setNewTileIndex(index) {
-						const val = index == null || index < 0 ? -1 : Number(index);
-						newTileIndexRef.value = val;
+						newTileIndexRef.value = index == null || index < 0 ? -1 : Number(index);
 					},
 					clearNewTileIndex() { newTileIndexRef.value = -1; },
 					clearSlideAnimation() { state.slideAnimationTiles = []; },
@@ -730,14 +732,14 @@ return {key: key, val: num, text: text, image: image};
 						return;
 					}
 					let touchStartX = 0, touchStartY = 0;
-					wrap.addEventListener('touchstart', (e) => {
+					wrap.addEventListener('touchstart', e => {
 						const t = e.touches[0];
 						if (t) {
 							touchStartX = t.clientX;
 							touchStartY = t.clientY;
 						}
 					}, {passive: true});
-					wrap.addEventListener('touchend', (e) => {
+					wrap.addEventListener('touchend', e => {
 						const t = e.changedTouches[0];
 						if (!t) {
 							return;
@@ -745,11 +747,11 @@ return {key: key, val: num, text: text, image: image};
 						api.onGesture(t.clientX - touchStartX, t.clientY - touchStartY);
 					}, {passive: true});
 					let mouseDownX = 0, mouseDownY = 0;
-					wrap.addEventListener('mousedown', (e) => {
+					wrap.addEventListener('mousedown', e => {
 						mouseDownX = e.clientX;
 						mouseDownY = e.clientY;
 					});
-					wrap.addEventListener('mouseup', (e) => {
+					wrap.addEventListener('mouseup', e => {
 						api.onGesture(e.clientX - mouseDownX, e.clientY - mouseDownY);
 					});
 				});
