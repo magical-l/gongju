@@ -63,14 +63,13 @@
 
 /*-----------项目本身------------*/
 /*项目独占/垄断 一行*/
-.flex > .item.monopoly, .inline-flex > .item.monopoly {flex-basis: 100%;}
+.flex > .monopoly, .inline-flex > .monopoly {flex-basis: 100%;}
 
 /*项目在主轴方向上拉伸/压缩*/
-.flex > .item.stretch, .inline-flex > .item.stretch {flex: 1 1 auto;}
+.flex > .stretch, .inline-flex > .stretch {flex: 1 1 auto;}
 
-/*项目禁止压缩（.no-shrink 可单独使用，不依赖 .item）*/
-.flex > .item.no-shrink, .inline-flex > .item.no-shrink,
-.no-shrink {flex-shrink: 0;}
+/*项目禁止压缩*/
+.flex > .no-shrink, .inline-flex > .no-shrink, .no-shrink {flex-shrink: 0;}
 
 /*===============================grid布局===============================*/
 .grid {display: grid; gap: var(--gap);}

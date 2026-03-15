@@ -175,7 +175,7 @@ article.gaming.area .slide-layer .cell {
 .cell .unit.preview-error { background: #f8d7da !important; }
 
 /* 当前得分：卡片 body 使用 body-class="score-value"，分数大且醒目 */
-.scoreboard .el-card__body.score-value {
+.scoreboard .value {
 	font-size: clamp(1.75rem, 5vw, 2.5rem);
 	font-weight: 700;
 	text-align: center;

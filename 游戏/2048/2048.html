@@ -141,6 +141,35 @@
 			</div>
 		</section>
 
+		<!-- 信息区 -->
+		<aside class="info area , right-sidebar">
+			<el-card shadow="never">
+				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
+					<el-collapse-item title="本局信息" name="gaming info" class="gaming info">
+						<div class="flex vertical">
+							<el-descriptions class="info list" :column="1" border>
+								<el-descriptions-item label="行">{{ gameBoardHeight }}</el-descriptions-item>
+								<el-descriptions-item label="列">{{ gameBoardWidth }}</el-descriptions-item>
+								<el-descriptions-item label="目标≥">{{ gameTargetLabel }}</el-descriptions-item>
+								<el-descriptions-item
+										:label="gameBoardWidth && gameBoardHeight ? `最高记录 (${gameBoardWidth}×${gameBoardHeight})` : '最高记录'">
+									{{ highScore }}
+								</el-descriptions-item>
+							</el-descriptions>
+							<el-card header="当前得分" class="scoreboard" body-class="value" shadow="never">
+								{{ score }}
+							</el-card>
+						</div>
+					</el-collapse-item>
+					<el-collapse-item title="快捷键" class="game shortcut" name="shortcut">
+						<p>↑ ↓ ← → ：滑动方块</p>
+						<p>支持键盘、触屏与鼠标滑动</p>
+					</el-collapse-item>
+				</el-collapse>
+			</el-card>
+		</aside>
+
+		<!-- 结算区 -->
 		<el-dialog class="game result" v-model="gameResultVisible" :title="gameResultMessage" width="400px" align-center
 							 @closed="onResultOverlayClick">
 			<p v-show="gameResultSub">{{ gameResultSub }}</p>
@@ -197,33 +226,6 @@
 				</el-card>
 			</div>
 		</el-dialog>
-
-		<aside class="right-sidebar">
-			<el-card shadow="never">
-				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-					<el-collapse-item title="本局信息" name="gaming info" class="gaming info">
-						<div class="flex vertical">
-							<el-descriptions class="info list" :column="1" border>
-								<el-descriptions-item label="行">{{ gameBoardHeight }}</el-descriptions-item>
-								<el-descriptions-item label="列">{{ gameBoardWidth }}</el-descriptions-item>
-								<el-descriptions-item label="目标≥">{{ gameTargetLabel }}</el-descriptions-item>
-								<el-descriptions-item
-										:label="gameBoardWidth && gameBoardHeight ? `最高记录 (${gameBoardWidth}×${gameBoardHeight})` : '最高记录'">
-									{{ highScore }}
-								</el-descriptions-item>
-							</el-descriptions>
-							<el-card header="当前得分" class="scoreboard" body-class="score-value" shadow="never">
-								{{ score }}
-							</el-card>
-						</div>
-					</el-collapse-item>
-					<el-collapse-item title="快捷键" name="shortcut">
-						<p>↑ ↓ ← → ：滑动方块</p>
-						<p>支持键盘、触屏与鼠标滑动</p>
-					</el-collapse-item>
-				</el-collapse>
-			</el-card>
-		</aside>
 	</article>
 </main>
 
