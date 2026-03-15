@@ -263,6 +263,7 @@ var stub = {
       }
       return;
     }
+    if (!window.GameKeysArea || !window.GameKeysArea.shouldHandle(e)) return;
     if (e.key === ' ') {
       e.preventDefault();
       togglePause();

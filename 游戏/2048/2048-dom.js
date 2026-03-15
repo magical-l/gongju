@@ -361,6 +361,7 @@ const Game2048 = (!logic || !constants)
           }
           return;
         }
+        if (!window.GameKeysArea || !window.GameKeysArea.shouldHandle(e)) return;
         let direction = null;
         if (e.key === 'ArrowLeft') direction = 'left';
         else if (e.key === 'ArrowRight') direction = 'right';

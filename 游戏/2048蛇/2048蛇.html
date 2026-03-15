@@ -54,7 +54,7 @@
 			</el-dialog>
 		</div>
 	</header>
-	<article class="gaming area , 反叵字形 grid" v-cloak>
+	<article class="gaming area , 反叵字形 grid" tabindex="0" v-cloak>
 		<header class="toolbar , multi-line flex , items-near-x-center items-stretch no-gap">
 			<section class="setting list area , single-line flex , items-near-x-start items-near-y-center no-gap">
 				<div class="one setting group">
@@ -145,7 +145,7 @@
 			</div>
 			<dl class="game result stats">
 				<dt>目标数字</dt><dd>{{ gameTargetLabel }}</dd>
-				<dt>蛇头数字</dt><dd>{{ resultMaxTile }}</dd>
+				<dt>最大数字</dt><dd>{{ resultMaxTile }}</dd>
 				<dt>最终得分</dt><dd>{{ score }}</dd>
 			</dl>
 			<template #footer>
@@ -175,6 +175,7 @@
 	<script src="../../lib/vue/3.5.18/vue.global.js"></script>
 	<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
 	<script src="../../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
+	<script src="../../resources/game-keys-area.js"></script>
 	<script src="constants.js"></script>
 	<script src="logic.js"></script>
 	<script src="2048蛇-dom.js"></script>
