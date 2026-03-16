@@ -125,7 +125,7 @@
 		</header>
 
 		<!-- 主地图区 -->
-		<section class="main map area , no-shrink , flex items-near-x-center" ref="boardWrap">
+		<section class="main map area , no-shrink , flex items-near-x-center" ref="boardWrap" :style="boardWrapStyle">
 			<div class="board" :style="{ '--board-cols': boardView.cols || 4, '--board-rows': boardView.rows || 4 }"
 					 ref="board">
 				<div class="cell" :data-index="cell.index" v-for="(cell, index) in boardCells" :key="index">
@@ -314,6 +314,11 @@
 					return window.Game2048Constants.getQuickSettingsList('web') || [];
 				},
 				boardSizeOptions: () => boardSizeOptions,
+				boardWrapStyle() {
+					const c = state.boardView.cols || 4;
+					const r = state.boardView.rows || 4;
+					return {'--board-cols': c, '--board-rows': r};
+				},
 				canAddNextCustomTile() {
 					const keys = state.customTileKeys;
 					if (!keys || !keys.length) {

@@ -54,7 +54,7 @@
 	padding: 0;
 	display: flex;
 	flex-direction: column;
-	justify-content: center;
+	justify-content: flex-start;
 	align-items: center;
 	color: var(--text-dark);
 	font-family: system-ui, -apple-system, sans-serif;
@@ -98,11 +98,20 @@
 	position: relative;
 	box-sizing: border-box;
 }
-/* 主地图区棋盘：格子保持正方形，棋盘尽量占满父容器 */
+/* 主地图区棋盘：格子固定为 --cell-size 正方形，棋盘 = 行列×格；--cell-size 用 vmin 避免依赖父尺寸导致 0 */
+.gaming.area .main.map.area {
+	--cell-size: min(70vmin / var(--board-cols, 4), 70vmin / var(--board-rows, 4));
+}
 .gaming.area .main.map.area .board {
-	width: min(100%, 100% * var(--board-cols, 4) / var(--board-rows, 4));
-	height: min(100%, 100% * var(--board-rows, 4) / var(--board-cols, 4));
-	aspect-ratio: var(--board-cols, 4) / var(--board-rows, 4);
+	grid-template-columns: repeat(var(--board-cols, 4), var(--cell-size));
+	grid-template-rows: repeat(var(--board-rows, 4), var(--cell-size));
+	width: fit-content;
+	height: fit-content;
+}
+.gaming.area .main.map.area .board .cell {
+	width: var(--cell-size);
+	height: var(--cell-size);
+	box-sizing: border-box;
 }
 .gaming.area .board .cell {
 	background: var(--cell-empty);

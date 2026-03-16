@@ -241,7 +241,10 @@
 					return opt ? opt.label : String(ms);
 				},
 				boardWrapStyle() {
-					return {};
+					const r = state.boardView;
+					const rows = Math.max(1, r && r.rows || 8);
+					const cols = Math.max(1, r && r.cols || 8);
+					return {'--board-rows': rows, '--board-cols': cols};
 				},
 				boardWrapInnerStyle() {
 					const r = state.boardView;

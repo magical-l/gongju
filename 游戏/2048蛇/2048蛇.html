@@ -241,7 +241,7 @@
 					const r = state.boardView;
 					const rows = Math.max(1, r && r.rows || 8);
 					const cols = Math.max(1, r && r.cols || 8);
-					return {aspectRatio: cols / rows};
+					return {'--board-cols': cols, '--board-rows': rows};
 				},
 				boardCells() {
 					const cells = state.boardView.cells || [];
