@@ -1,7 +1,7 @@
 /* 2048方块 网页版 - 样式限定在 .gaming.area 内，通用见 biz.css */
 
 :root {
-	--page-bg: #e8f0e0;
+	--page-bg: #E8F0E0;
 	/* 主题变量已由 .gaming.area 提供默认，此处仅覆盖本页需要的 */
 }
 
@@ -19,9 +19,11 @@
 	0%, 100% { background: rgba(255, 255, 255, 0.95); color: #333; }
 	50% { background: rgba(255, 240, 180, 0.98); color: #333; }
 }
+
 .gaming.area .main.map.area .board .cell.clearing {
 	animation: clear-line-flash 0.12s ease-in-out infinite;
 }
+
 .gaming.area .main.map.area .board .cell.clearing > .unit {
 	animation: clear-line-flash 0.12s ease-in-out infinite;
 }
@@ -36,11 +38,13 @@
 	height: 80px;
 	margin: 0 auto;
 }
+
 .next-block .cell {
 	background: transparent;
 	border: none;
 	border-radius: 0;
 }
+
 .next-block .cell > .unit {
 	font-size: 12px;
 	border-radius: 0;

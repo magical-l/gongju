@@ -1,9 +1,9 @@
 /* 2048 网页版 - 样式限定在 .gaming.area 内，通用见 biz.css */
 
 :root {
-	--page-bg: #e8f0e0;
-	--btn-primary: #6b8e5c;
-	--btn-secondary: #8fa87a;
+	--page-bg: #E8F0E0;
+	--btn-primary: #6B8E5C;
+	--btn-secondary: #8FA87A;
 	--merge-duration: 0.2s;
 }
 
@@ -26,8 +26,8 @@
 	min-width: 14px;
 	height: 14px;
 	padding: 0 3px;
-	background: #c00;
-	color: #fff;
+	background: #C00;
+	color: #FFF;
 	border-radius: 50%;
 	font-size: 10px;
 	font-weight: bold;
@@ -46,6 +46,7 @@
 	border-radius: var(--board-radius);
 	padding: var(--board-padding);
 }
+
 .gaming.area .slide-layer .cell {
 	position: absolute;
 }
@@ -69,4 +70,5 @@
 	overflow: hidden;
 	font-size: clamp(12px, 3vw, 20px);
 }
-.cell .unit.preview-error { background: #f8d7da !important; }
+
+.cell .unit.preview-error { background: #F8D7DA !important; }

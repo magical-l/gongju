@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title itemprop="name">2048蛇 | 工具兽 - 贪吃蛇+2048益智游戏</title>
-<meta name="description" content="2048蛇：蛇自动定时移动，滑动改方向；吃食物后身体消化（相邻同数合并），达到目标数字即胜利。与小程序 2048贪吃蛇 玩法一致。"
+<meta name="description"
+			content="2048蛇：蛇自动定时移动，滑动改方向；吃食物后身体消化（相邻同数合并），达到目标数字即胜利。与小程序 2048贪吃蛇 玩法一致。"
 			itemprop="description">
 <meta name="keywords" content="2048蛇,贪吃蛇,数字合并,益智游戏,在线游戏">
 <meta name="author" content="工具兽">
@@ -49,7 +50,8 @@
 		<div class="page-lv help area" v-cloak>
 			<el-button title="游戏介绍" class="page-lv help btn" size="small" circle @click="introVisible=true">?</el-button>
 			<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
-				<p>2048蛇：蛇会<strong>自动定时移动</strong>，你只需用方向键或滑动<strong>改变方向</strong>。吃到食物后，食物会进入蛇身，相邻<strong>相同数字</strong>会合并翻倍。撞墙或撞到自己则结束，任一节达到目标数字即胜利。</p>
+				<p>2048蛇：蛇会<strong>自动定时移动</strong>，你只需用方向键或滑动<strong>改变方向</strong>。吃到食物后，食物会进入蛇身，相邻<strong>相同数字</strong>会合并翻倍。撞墙或撞到自己则结束，任一节达到目标数字即胜利。
+				</p>
 				<p><strong>操作</strong>：↑↓←→ 或触屏/鼠标滑动改方向。新局与设置在工具栏。</p>
 			</el-dialog>
 		</div>
@@ -77,8 +79,9 @@
 														 placeholder="留空=无限" title="留空=无限" :min="8" style="width: 10em">
 							<template #prefix>目标≥</template>
 							<template #suffix>
-								<el-button v-if="targetNumber != null && targetNumber !== ''" link type="primary" size="small" icon="CircleClose" circle
-									title="清空为无限" @click.stop="onTargetNumberChange(null)"></el-button>
+								<el-button v-if="targetNumber != null && targetNumber !== ''" link type="primary" size="small"
+													 icon="CircleClose" circle
+													 title="清空为无限" @click.stop="onTargetNumberChange(null)"></el-button>
 							</template>
 						</el-input-number>
 					</el-form-item>
@@ -92,7 +95,9 @@
 			<section class="controller list area , single-line flex , items-near-x-start items-near-y-center no-gap">
 				<div class="one controller group">
 					<el-form-item class="one controller : pause">
-						<el-button :type="paused ? 'success' : 'warning'" :icon="paused ? 'VideoPlay' : 'VideoPause'" @click="onTogglePause">{{ paused ? '开始' : '暂停' }}</el-button>
+						<el-button :type="paused ? 'success' : 'warning'" :icon="paused ? 'VideoPlay' : 'VideoPause'"
+											 @click="onTogglePause">{{ paused ? '开始' : '暂停' }}
+						</el-button>
 					</el-form-item>
 				</div>
 			</section>
@@ -101,10 +106,12 @@
 		</header>
 
 		<!-- 主地图区 -->
-		<section class="main map area , no-shrink , flex items-near-x-center" ref="boardWrap" tabindex="0" :style="boardWrapStyle">
+		<section class="main map area , no-shrink , flex items-near-x-center" ref="boardWrap" tabindex="0"
+						 :style="boardWrapStyle">
 			<div class="board" :style="boardStyle" ref="board">
 				<div class="cell" :data-index="cell.index" v-for="(cell, index) in boardCells" :key="index">
-					<div v-if="cell.unit" class="unit" :class="['unit-' + cell.unit.val, { 'snake-head': cell.isHead }]" :data-index="cell.index">
+					<div v-if="cell.unit" class="unit" :class="['unit-' + cell.unit.val, { 'snake-head': cell.isHead }]"
+							 :data-index="cell.index">
 						{{ cell.unit.text }}
 						<span v-if="cell.showBadge" class="new-badge">!</span>
 					</div>
@@ -196,7 +203,9 @@
 		const defaultPanels = ['shortcut', 'gaming info'];
 		let saved;
 		try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
-		const boardSizeOptions = window.Game2048SnakeConstants ? (window.Game2048SnakeConstants.SIZE_OPTIONS || [6, 7, 8, 10, 12]) : [6, 7, 8, 10, 12];
+		const boardSizeOptions = window.Game2048SnakeConstants ? window.Game2048SnakeConstants.SIZE_OPTIONS || [6, 7, 8,
+																																																						 10, 12]
+																													 : [6, 7, 8, 10, 12];
 		const state = reactive({
 			score: 0,
 			highScore: 0,
@@ -210,7 +219,7 @@
 			gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
 			_collapseKey: collapseKey,
 			_defaultPanels: defaultPanels,
-			boardView: { rows: 8, cols: 8, cells: [] },
+			boardView: {rows: 8, cols: 8, cells: []},
 			lastStateForDisplay: null,
 			paused: true,
 			gameResultVisible: false,
@@ -224,15 +233,15 @@
 				boardSizeOptions: () => boardSizeOptions,
 				boardStyle() {
 					const r = state.boardView;
-					const rows = Math.max(1, (r && r.rows) || 8);
-					const cols = Math.max(1, (r && r.cols) || 8);
-					return { '--board-cols': cols, '--board-rows': rows };
+					const rows = Math.max(1, r && r.rows || 8);
+					const cols = Math.max(1, r && r.cols || 8);
+					return {'--board-cols': cols, '--board-rows': rows};
 				},
 				boardWrapStyle() {
 					const r = state.boardView;
-					const rows = Math.max(1, (r && r.rows) || 8);
-					const cols = Math.max(1, (r && r.cols) || 8);
-					return { aspectRatio: cols / rows };
+					const rows = Math.max(1, r && r.rows || 8);
+					const cols = Math.max(1, r && r.cols || 8);
+					return {aspectRatio: cols / rows};
 				},
 				boardCells() {
 					const cells = state.boardView.cells || [];
@@ -240,14 +249,16 @@
 					const cols = Math.max(1, state.boardView.cols || 8);
 					const total = rows * cols;
 					const s = state.lastStateForDisplay;
-					const getDisplay = v => (window.Game2048Snake && window.Game2048Snake.getTileDisplayContent(s, v)) || { type: 'number', value: v };
+					const getDisplay = v => window.Game2048Snake && window.Game2048Snake.getTileDisplayContent(s, v)
+																	|| {type: 'number', value: v};
 					if (cells.length === 0) {
-						return Array.from({ length: total }, (_, i) => ({ index: i, value: 0, unit: null, isHead: false, showBadge: false }));
+						return Array.from({length: total},
+								(_, i) => ({index: i, value: 0, unit: null, isHead: false, showBadge: false}));
 					}
-					const foodList = (s && s.food && Array.isArray(s.food)) ? s.food : [];
-					const segs = (s && s.segments && Array.isArray(s.segments)) ? s.segments : [];
-					const hiIdx = (s && s.highlightDigesting && s.highlightSegmentIndex >= 0) ? s.highlightSegmentIndex : -1;
-					const hiPos = (hiIdx >= 0 && segs[hiIdx] && segs[hiIdx].position) ? segs[hiIdx].position : null;
+					const foodList = s && s.food && Array.isArray(s.food) ? s.food : [];
+					const segs = s && s.segments && Array.isArray(s.segments) ? s.segments : [];
+					const hiIdx = s && s.highlightDigesting && s.highlightSegmentIndex >= 0 ? s.highlightSegmentIndex : -1;
+					const hiPos = hiIdx >= 0 && segs[hiIdx] && segs[hiIdx].position ? segs[hiIdx].position : null;
 					const list = [];
 					for (let i = 0; i < total; i++) {
 						const c = cells[i];
@@ -257,23 +268,29 @@
 						const isDigestingHere = hiPos && hiPos.r === r && hiPos.c === col;
 						const showBadge = isFood || isDigestingHere;
 						if (!c || !c.value) {
-							list.push({ index: i, value: 0, unit: null, isHead: false, showBadge: false });
+							list.push({index: i, value: 0, unit: null, isHead: false, showBadge: false});
 							continue;
 						}
 						const content = getDisplay(c.value);
 						let text = String(c.value);
-						if (content && content.type === 'text') text = content.text;
-						else if (content && content.value != null) text = String(content.value);
+						if (content && content.type === 'text') {
+							text = content.text;
+						} else if (content && content.value != null) {
+							text = String(content.value);
+						}
 						const headRow = s && s.headRow;
 						const headCol = s && s.headCol;
-						const isHead = (headRow !== undefined && headCol !== undefined && r === headRow && col === headCol);
-						list.push({ index: i, value: c.value, unit: { val: c.value, text: text }, isHead: isHead, showBadge: showBadge });
+						const isHead = headRow !== undefined && headCol !== undefined && r === headRow && col === headCol;
+						list.push(
+								{index: i, value: c.value, unit: {val: c.value, text: text}, isHead: isHead, showBadge: showBadge});
 					}
 					return list;
 				},
 				resultMaxTile() {
 					const cells = state.boardView.cells || [];
-					if (!cells.length) return 0;
+					if (!cells.length) {
+						return 0;
+					}
 					return Math.max(0, ...cells.map(function(c) { return c.value || 0; }));
 				},
 			},
@@ -290,7 +307,7 @@
 				onRestart() {
 					const num = state.targetNumber;
 					window.Game2048Snake.applyBoardSettings(
-							{ boardHeight: state.boardHeight, boardWidth: state.boardWidth, targetNumber: num });
+							{boardHeight: state.boardHeight, boardWidth: state.boardWidth, targetNumber: num});
 					state.gameBoardWidth = state.boardWidth;
 					state.gameBoardHeight = state.boardHeight;
 					state.gameTargetNumber = num;
@@ -320,7 +337,9 @@
 			mounted() {
 				const self = this;
 				const api = window.Game2048Snake;
-				if (!api) return;
+				if (!api) {
+					return;
+				}
 				const bridge = {
 					setGameResult(visible, message, sub, isWin) {
 						state.gameResultVisible = !!visible;
@@ -329,12 +348,14 @@
 						state.gameResultIsWin = !!isWin;
 					},
 					setBoardView(board, rows, cols, gameState) {
-						const cells = (board || []).map(function(v, i) { return { index: i, value: v || 0 }; });
-						state.boardView = { rows: rows, cols: cols, cells: cells };
+						const cells = (board || []).map(function(v, i) { return {index: i, value: v || 0}; });
+						state.boardView = {rows: rows, cols: cols, cells: cells};
 						state.lastStateForDisplay = gameState;
 					},
 					commitState(gameState) {
-						if (!gameState) return;
+						if (!gameState) {
+							return;
+						}
 						bridge.updateScores(gameState.score, gameState.highScore, gameState.boardWidth, gameState.boardHeight);
 						bridge.setBoardView(gameState.board, gameState.boardHeight, gameState.boardWidth, gameState);
 						const vis = !!(gameState.overlayVisible && gameState.overlayMessage);
@@ -344,8 +365,12 @@
 					updateScores(score, highScore, boardWidth, boardHeight) {
 						state.score = score;
 						state.highScore = highScore;
-						if (boardWidth != null) state.gameBoardWidth = boardWidth;
-						if (boardHeight != null) state.gameBoardHeight = boardHeight;
+						if (boardWidth != null) {
+							state.gameBoardWidth = boardWidth;
+						}
+						if (boardHeight != null) {
+							state.gameBoardHeight = boardHeight;
+						}
 					},
 					syncToolbarSettings() {
 						const s = api.getBoardSettings();
@@ -367,18 +392,28 @@
 				state.paused = api.getPaused ? api.getPaused() : true;
 				this.$nextTick(() => {
 					const wrap = this.$refs.boardWrap;
-					if (!wrap) return;
+					if (!wrap) {
+						return;
+					}
 					let touchStartX = 0, touchStartY = 0;
 					wrap.addEventListener('touchstart', e => {
 						const t = e.touches[0];
-						if (t) { touchStartX = t.clientX; touchStartY = t.clientY; }
-					}, { passive: true });
+						if (t) {
+							touchStartX = t.clientX;
+							touchStartY = t.clientY;
+						}
+					}, {passive: true});
 					wrap.addEventListener('touchend', e => {
 						const t = e.changedTouches[0];
-						if (t) api.onGesture(t.clientX - touchStartX, t.clientY - touchStartY);
-					}, { passive: true });
+						if (t) {
+							api.onGesture(t.clientX - touchStartX, t.clientY - touchStartY);
+						}
+					}, {passive: true});
 					let mouseDownX = 0, mouseDownY = 0;
-					wrap.addEventListener('mousedown', e => { mouseDownX = e.clientX; mouseDownY = e.clientY; });
+					wrap.addEventListener('mousedown', e => {
+						mouseDownX = e.clientX;
+						mouseDownY = e.clientY;
+					});
 					wrap.addEventListener('mouseup', e => { api.onGesture(e.clientX - mouseDownX, e.clientY - mouseDownY); });
 				});
 			},

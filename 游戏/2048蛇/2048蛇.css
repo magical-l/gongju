@@ -1,7 +1,7 @@
 /* 2048蛇 网页版 - 样式限定在 .gaming.area 内，通用见 biz.css */
 
 :root {
-	--page-bg: #e8f0e0;
+	--page-bg: #E8F0E0;
 }
 
 /* 本页 .board 需 min-height（通用见 biz.css） */
@@ -23,8 +23,8 @@
 	min-width: 14px;
 	height: 14px;
 	padding: 0 3px;
-	background: #c00;
-	color: #fff;
+	background: #C00;
+	color: #FFF;
 	border-radius: 50%;
 	font-size: 10px;
 	font-weight: bold;
@@ -38,5 +38,5 @@
 
 /* 蛇头高亮（与普通格区分） */
 .cell > .unit.snake-head {
-	box-shadow: inset 0 0 0 2px rgba(255,255,255,0.4);
+	box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.4);
 }
