@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title itemprop="name">2048方块 | 工具兽 - 俄罗斯方块式数字合并</title>
-<meta name="description" content="2048方块：方块从顶部落下，左右移动、旋转、下落；相同数字接触合并，满行消除。与小程序 2048俄罗斯方块 玩法一致。"
+<meta name="description" content="2048方块：方块从顶部落下，左右移动、旋转、下落；相同数字接触合并，满行消除。"
 			itemprop="description">
 <meta name="keywords" content="2048方块,俄罗斯方块,数字合并,益智游戏,在线游戏">
 <meta name="author" content="工具兽">
@@ -37,7 +37,7 @@
 			<a href="../贪吃蛇.html">贪吃蛇</a>
 			<a href="../2048/2048.html">2048</a>
 			<a href="../2048蛇/2048蛇.html">2048蛇</a>
-			<a href="2048俄罗斯方块.html" class="active">2048方块</a>
+			<a href="2048方块.html" class="active">2048方块</a>
 			<a href="../点灯.html">点灯</a>
 			<a href="../数字华容道.html">数字华容道</a>
 			<a href="../星连星/星连星.html">星连星</a>
@@ -50,8 +50,8 @@
 		<div class="page-lv help area" v-cloak>
 			<el-button title="游戏介绍" class="page-lv help btn" size="small" circle @click="introVisible=true">?</el-button>
 			<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
-				<p>2048方块：方块从顶部落下，用<strong>方向键</strong>或下方按钮<strong>左右移动、旋转、下落</strong>。相同数字接触会<strong>合并翻倍</strong>，满行<strong>消除</strong>得分。堆满无法生成新块即结束。</p>
-				<p><strong>操作</strong>：↑ 旋转，↓ 下落一格，← → 左右移动，一步到底可瞬间落底。空格暂停。新局与设置在工具栏。</p>
+				<p>2048方块：方块从顶部落下，用<strong>方向键</strong><strong>左右移动、旋转、下落</strong>。相同数字接触会<strong>合并翻倍</strong>，满行<strong>消除</strong>得分。堆满无法生成新块即结束。</p>
+				<p><strong>操作</strong>：↑ 旋转，↓ 下落一格，← → 左右移动，长滑向下一步到底。空格暂停。新局与设置在工具栏。</p>
 			</el-dialog>
 		</div>
 	</header>
@@ -95,36 +95,23 @@
 			</section>
 		</header>
 
-		<!-- 主地图区：棋盘 + 下一块 + 控制键 -->
+		<!-- 主地图区：棋盘 -->
 		<section class="main map area , no-shrink , flex items-near-x-center" ref="boardWrap" tabindex="0" :style="boardWrapStyle">
-			<div class="blocks-play-area">
-				<div class="blocks-board-wrap" :style="boardWrapInnerStyle">
+			<div class="flex multi-line items-near-x-center items-near-y-start">
+				<div class="wrap" :style="boardWrapInnerStyle">
 					<div class="board" :style="boardStyle" ref="board">
-						<div class="cell" :data-index="cell.index" v-for="(cell, index) in boardCells" :key="index">
+						<div class="cell" :class="{ clearing: isRowClearing(cell.index) }" :data-index="cell.index" v-for="(cell, index) in boardCells" :key="index">
 							<div v-if="cell.unit" class="unit" :class="'unit-' + cell.unit.val" :data-index="cell.index">
 								{{ cell.unit.text }}
 							</div>
 						</div>
 					</div>
-					<div class="pause-overlay" v-show="paused">
-						<div class="pause-overlay-inner">
-							<span class="pause-overlay-text">已暂停</span>
+					<div class="pause overlay" v-show="paused">
+						<div>
+							<span class="title">已暂停</span>
 							<el-button type="success" size="large" @click="onTogglePause">开始</el-button>
-							<p class="pause-overlay-hint">按空格开始</p>
+							<p class="hint">按空格开始</p>
 						</div>
-					</div>
-				</div>
-				<div class="blocks-ctrl-area">
-					<div class="blocks-ctrl-row">
-						<button type="button" class="blocks-ctrl-btn" @click="onCtrl('rotate')" title="旋转">↻</button>
-					</div>
-					<div class="blocks-ctrl-row">
-						<button type="button" class="blocks-ctrl-btn" @click="onCtrl('left')">←</button>
-						<button type="button" class="blocks-ctrl-btn" @click="onCtrl('down')">↓</button>
-						<button type="button" class="blocks-ctrl-btn" @click="onCtrl('right')">→</button>
-					</div>
-					<div class="blocks-ctrl-row">
-						<button type="button" class="blocks-ctrl-btn blocks-ctrl-hard" @click="onCtrl('hardDown')" title="一步到底">一步到底</button>
 					</div>
 				</div>
 			</div>
@@ -133,9 +120,9 @@
 		<!-- 信息区 -->
 		<aside class="info area , right-sidebar">
 			<el-card shadow="never">
-				<div class="blocks-next-area info-next">
-					<span class="blocks-next-title">下一块</span>
-					<div class="blocks-next-board">
+				<div class="next area">
+					<span class="title">下一块</span>
+					<div class="next board">
 						<div class="cell" v-for="(c, idx) in nextPreviewCells" :key="idx">
 							<div v-if="c" class="unit" :class="'unit-' + c">{{ c }}</div>
 						</div>
@@ -157,9 +144,9 @@
 						</div>
 					</el-collapse-item>
 					<el-collapse-item title="快捷键" class="game shortcut" name="shortcut">
-					<p>↑ 旋转，↓ 下落一格，← → 左右移动，一步到底：瞬间落底</p>
+					<p>↑ 旋转，↓ 下落一格，← → 左右移动，长滑向下一步到底</p>
 					<p>空格：暂停 / 开始</p>
-					<p>支持键盘与下方按钮，触屏可滑动</p>
+					<p>支持键盘与触屏滑动</p>
 					</el-collapse-item>
 				</el-collapse>
 			</el-card>
@@ -286,10 +273,8 @@
 					const maxDr = Math.max(...next.cells.map(c => c.dr));
 					const minDc = Math.min(...next.cells.map(c => c.dc));
 					const maxDc = Math.max(...next.cells.map(c => c.dc));
-					const rows = maxDr - minDr + 1;
-					const cols = maxDc - minDc + 1;
-					const offsetRow = Math.floor((4 - rows) / 2);
-					const offsetCol = Math.floor((4 - cols) / 2);
+					const offsetRow = Math.floor((4 - (maxDr - minDr + 1)) / 2);
+					const offsetCol = Math.floor((4 - (maxDc - minDc + 1)) / 2);
 					for (let i = 0; i < next.cells.length; i++) {
 						const c = next.cells[i];
 						const pr = c.dr - minDr + offsetRow;
@@ -355,6 +340,13 @@
 				},
 				onResultRestart() {
 					window.Game2048Blocks.onResultRestart();
+				},
+				isRowClearing(cellIndex) {
+					const s = state.lastStateForDisplay;
+					if (!s || !s.clearLinesPending || !s.clearLinesPending.length) return false;
+					const cols = state.boardView.cols || 8;
+					const row = Math.floor(cellIndex / cols);
+					return s.clearLinesPending.indexOf(row) !== -1;
 				},
 			},
 			mounted() {
