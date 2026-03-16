@@ -491,11 +491,14 @@ const stub = {
 		if (!gameState || gameState.gameOver) {
 			return;
 		}
-		const mapArea = document.querySelector('.main.map.area');
-		if (!mapArea || !e.target) {
+		if (!e.target) {
 			return;
 		}
-		if (mapArea.contains(e.target)) {
+		if (e.target.closest && e.target.closest('.one.controller')) {
+			return;
+		}
+		const mapArea = document.querySelector('.main.map.area');
+		if (!mapArea || mapArea.contains(e.target)) {
 			return;
 		}
 		paused = true;

@@ -400,7 +400,6 @@
 						}
 						state.gameFallIntervalMs = gameState.fallIntervalMs != null ? gameState.fallIntervalMs : null;
 						bridge.updateScores(gameState.score, gameState.highScore, gameState.boardWidth, gameState.boardHeight);
-						bridge.setBoardView(gameState.board, gameState.boardHeight, gameState.boardWidth, gameState);
 						const vis = !!(gameState.overlayVisible && gameState.overlayMessage);
 						bridge.setGameResult(vis, gameState.overlayMessage || '',
 								gameState.gameOver ? '最终得分：' + gameState.score : '', false);
