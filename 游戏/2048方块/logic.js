@@ -567,12 +567,7 @@
 					clearLinesPending: fullRows,
 				});
 			}
-			return Object.assign({}, g, {
-				board: g.board,
-				currentPiece: null,
-				pieceCount: nextCount,
-				cascadePending: true,
-			});
+			return spawnNextAfterLock(Object.assign({}, g, {pieceCount: nextCount}));
 		}
 
 		const rows = g.rows;
@@ -608,12 +603,7 @@
 						clearLinesPending: fullRows,
 					});
 				}
-				return Object.assign({}, g, {
-					board: board,
-					currentPiece: null,
-					pieceCount: nextCount,
-					cascadePending: true,
-				});
+				return spawnNextAfterLock(Object.assign({}, g, {board: board, pieceCount: nextCount}));
 			}
 
 			let canFallOrMerge = true;
@@ -640,12 +630,7 @@
 						clearLinesPending: fullRows,
 					});
 				}
-				return Object.assign({}, g, {
-					board: board,
-					currentPiece: null,
-					pieceCount: nextCount,
-					cascadePending: true,
-				});
+				return spawnNextAfterLock(Object.assign({}, g, {board: board, pieceCount: nextCount}));
 			}
 
 			const newRow = pieceRow + 1;
