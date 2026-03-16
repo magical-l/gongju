@@ -367,18 +367,16 @@
 		return false;
 	}
 
+	/** 合并后该列向下落到底（与 compactGravityColumn 一致），不能向上顶否则会顶掉整列导致显示错乱。 */
 	function gravityColumn(board, rows, c) {
-		const nonZeros = [];
-		for (let r = 0; r < rows; r++) {
+		const colVals = [];
+		for (let r = rows - 1; r >= 0; r--) {
 			if (board[r][c] !== 0) {
-				nonZeros.push(board[r][c]);
+				colVals.push(board[r][c]);
 			}
 		}
-		for (let i = 0; i < nonZeros.length; i++) {
-			board[i][c] = nonZeros[i];
-		}
-		for (let i = nonZeros.length; i < rows; i++) {
-			board[i][c] = 0;
+		for (let k = 0; k < rows; k++) {
+			board[rows - 1 - k][c] = k < colVals.length ? colVals[k] : 0;
 		}
 	}
 
@@ -542,7 +540,10 @@
 		if (g.cascadePending) {
 			const cascade = doOneCascadeStep(g.board, g.rows, g.cols);
 			if (cascade.didOne) {
-				return Object.assign({}, g, {cascadePending: cascade.more});
+				if (cascade.more) {
+					return Object.assign({}, g, {cascadePending: true});
+				}
+				return spawnNextAfterLock(g);
 			}
 			return spawnNextAfterLock(g);
 		}

@@ -78,53 +78,9 @@ function commitState(state) {
 
 function stopFallTimer() {
 	if (fallTimer) {
-		clearInterval(fallTimer);
+		clearTimeout(fallTimer);
 		fallTimer = null;
 	}
-}
-
-function startFallTimer() {
-	stopFallTimer();
-	if (paused || !gameState || gameState.gameOver) {
-		return;
-	}
-	if (gameState.clearLinesPending && gameState.clearLinesPending.length > 0) {
-		return;
-	}
-	if (gameState.postClearGravityState) {
-		return;
-	}
-	if (gameState.cascadePending) {
-		return;
-	}
-	const ms = (constants && constants.DEV_FIXED_FALL_MS > 0)
-		? constants.DEV_FIXED_FALL_MS
-		: Math.max(100, gameState.fallIntervalMs || 500);
-	fallTimer = setInterval(function() {
-		if (!gameState || gameState.gameOver) {
-			stopFallTimer();
-			return;
-		}
-		if (gameState.clearLinesPending && gameState.clearLinesPending.length > 0) {
-			return;
-		}
-		if (gameState.postClearGravityState) {
-			return;
-		}
-		if (gameState.cascadePending) {
-			stopFallTimer();
-			commitState(gameState);
-			runCascadeStepLoop();
-			return;
-		}
-		gameState = tick(gameState);
-		const prevHigh = Number(getStorage(STORAGE_HIGH_SCORE_BLOCKS)) || 0;
-		if (gameState.highScore > prevHigh) {
-			setStorage(STORAGE_HIGH_SCORE_BLOCKS, String(gameState.highScore));
-		}
-		commitState(gameState);
-		startClearLinesAnimationIfPending();
-	}, ms);
 }
 
 function stopCascadeStepTimer() {
@@ -134,17 +90,72 @@ function stopCascadeStepTimer() {
 	}
 }
 
-function runCascadeStepLoop() {
+function stopClearLinesTimer() {
+	if (clearLinesTimeout) {
+		clearTimeout(clearLinesTimeout);
+		clearLinesTimeout = null;
+	}
+}
+
+/** 唯一调度入口：根据当前 gameState 决定下一步（下落 / cascade / 消行动画）。每次状态变化后都调此函数。 */
+function scheduleNext() {
 	stopFallTimer();
 	stopCascadeStepTimer();
-	cascadeStepTimeout = setTimeout(function step() {
-		cascadeStepTimeout = null;
+	stopClearLinesTimer();
+
+	if (paused || !gameState || gameState.gameOver) {
+		return;
+	}
+	if (gameState.clearLinesPending && gameState.clearLinesPending.length > 0) {
+		runClearLinesAnimation();
+		return;
+	}
+	if (gameState.postClearGravityState) {
+		runPostClearGravityStep();
+		return;
+	}
+	if (gameState.cascadePending) {
+		runCascadeStep();
+		return;
+	}
+	runFallLoop();
+}
+
+function runFallLoop() {
+	if (paused || !gameState || gameState.gameOver) {
+		return;
+	}
+	if (gameState.clearLinesPending && gameState.clearLinesPending.length > 0) {
+		scheduleNext();
+		return;
+	}
+	if (gameState.postClearGravityState) {
+		scheduleNext();
+		return;
+	}
+	if (gameState.cascadePending) {
+		scheduleNext();
+		return;
+	}
+	const ms = (constants && constants.DEV_FIXED_FALL_MS > 0)
+		? constants.DEV_FIXED_FALL_MS
+		: Math.max(100, gameState.fallIntervalMs || 500);
+	fallTimer = setTimeout(function() {
+		fallTimer = null;
 		if (!gameState || gameState.gameOver) {
-			startFallTimer();
 			return;
 		}
-		if (!gameState.cascadePending) {
-			startFallTimer();
+		if (gameState.clearLinesPending && gameState.clearLinesPending.length > 0) {
+			scheduleNext();
+			return;
+		}
+		if (gameState.postClearGravityState) {
+			scheduleNext();
+			return;
+		}
+		if (gameState.cascadePending) {
+			commitState(gameState);
+			scheduleNext();
 			return;
 		}
 		gameState = tick(gameState);
@@ -153,56 +164,63 @@ function runCascadeStepLoop() {
 			setStorage(STORAGE_HIGH_SCORE_BLOCKS, String(gameState.highScore));
 		}
 		commitState(gameState);
-		startClearLinesAnimationIfPending();
+		scheduleNext();
+	}, ms);
+}
+
+function runCascadeStep() {
+	if (paused || !gameState || gameState.gameOver) {
+		return;
+	}
+	if (!gameState.cascadePending) {
+		scheduleNext();
+		return;
+	}
+	cascadeStepTimeout = setTimeout(function() {
+		cascadeStepTimeout = null;
+		if (!gameState || gameState.gameOver) {
+			scheduleNext();
+			return;
+		}
+		if (!gameState.cascadePending) {
+			scheduleNext();
+			return;
+		}
+		gameState = tick(gameState);
+		const prevHigh = Number(getStorage(STORAGE_HIGH_SCORE_BLOCKS)) || 0;
+		if (gameState.highScore > prevHigh) {
+			setStorage(STORAGE_HIGH_SCORE_BLOCKS, String(gameState.highScore));
+		}
+		commitState(gameState);
+		scheduleNext();
 	}, CASCADE_STEP_MS);
 }
 
-function startClearLinesAnimationIfPending() {
-	if (!gameState || !gameState.clearLinesPending || gameState.clearLinesPending.length === 0) {
-		if (gameState && !gameState.postClearGravityState) {
-			if (gameState.cascadePending) {
-				runCascadeStepLoop();
-			} else {
-				startFallTimer();
-			}
-		}
-		return;
-	}
+function runClearLinesAnimation() {
 	stopFallTimer();
-	if (clearLinesTimeout) {
-		clearTimeout(clearLinesTimeout);
-	}
 	clearLinesTimeout = setTimeout(function() {
 		clearLinesTimeout = null;
 		gameState = applyPendingClearLines(gameState);
 		commitState(gameState);
-		if (gameState.clearLinesPending && gameState.clearLinesPending.length > 0) {
-			startClearLinesAnimationIfPending();
-			return;
-		}
-		if (gameState.postClearGravityState) {
-			clearLinesTimeout = setTimeout(function() {
-				clearLinesTimeout = null;
-				gameState = applyPendingClearLines(gameState);
-				commitState(gameState);
-				if (gameState.clearLinesPending && gameState.clearLinesPending.length > 0) {
-					startClearLinesAnimationIfPending();
-					return;
-				}
-				if (gameState.cascadePending) {
-					runCascadeStepLoop();
-				} else {
-					startFallTimer();
-				}
-			}, 300);
-			return;
-		}
-		if (gameState.cascadePending) {
-			runCascadeStepLoop();
-		} else {
-			startFallTimer();
-		}
+		scheduleNext();
 	}, 400);
+}
+
+function runPostClearGravityStep() {
+	clearLinesTimeout = setTimeout(function() {
+		clearLinesTimeout = null;
+		gameState = applyPendingClearLines(gameState);
+		commitState(gameState);
+		scheduleNext();
+	}, 300);
+}
+
+function startFallTimer() {
+	scheduleNext();
+}
+
+function startClearLinesAnimationIfPending() {
+	scheduleNext();
 }
 
 function gestureDirection(dx, dy) {
