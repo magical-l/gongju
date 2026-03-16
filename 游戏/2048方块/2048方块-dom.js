@@ -16,7 +16,9 @@ let view = null;
 let gameState = null;
 let fallTimer = null;
 let clearLinesTimeout = null;
+let cascadeStepTimeout = null;
 let paused = true;
+const CASCADE_STEP_MS = 180;
 
 function getStorage(key) {
 	try { return localStorage.getItem(key); } catch (e) { return null; }
@@ -92,7 +94,12 @@ function startFallTimer() {
 	if (gameState.postClearGravityState) {
 		return;
 	}
-	const ms = Math.max(100, gameState.fallIntervalMs || 500);
+	if (gameState.cascadePending) {
+		return;
+	}
+	const ms = (constants && constants.DEV_FIXED_FALL_MS > 0)
+		? constants.DEV_FIXED_FALL_MS
+		: Math.max(100, gameState.fallIntervalMs || 500);
 	fallTimer = setInterval(function() {
 		if (!gameState || gameState.gameOver) {
 			stopFallTimer();
@@ -102,6 +109,12 @@ function startFallTimer() {
 			return;
 		}
 		if (gameState.postClearGravityState) {
+			return;
+		}
+		if (gameState.cascadePending) {
+			stopFallTimer();
+			commitState(gameState);
+			runCascadeStepLoop();
 			return;
 		}
 		gameState = tick(gameState);
@@ -114,10 +127,44 @@ function startFallTimer() {
 	}, ms);
 }
 
+function stopCascadeStepTimer() {
+	if (cascadeStepTimeout) {
+		clearTimeout(cascadeStepTimeout);
+		cascadeStepTimeout = null;
+	}
+}
+
+function runCascadeStepLoop() {
+	stopFallTimer();
+	stopCascadeStepTimer();
+	cascadeStepTimeout = setTimeout(function step() {
+		cascadeStepTimeout = null;
+		if (!gameState || gameState.gameOver) {
+			startFallTimer();
+			return;
+		}
+		if (!gameState.cascadePending) {
+			startFallTimer();
+			return;
+		}
+		gameState = tick(gameState);
+		const prevHigh = Number(getStorage(STORAGE_HIGH_SCORE_BLOCKS)) || 0;
+		if (gameState.highScore > prevHigh) {
+			setStorage(STORAGE_HIGH_SCORE_BLOCKS, String(gameState.highScore));
+		}
+		commitState(gameState);
+		startClearLinesAnimationIfPending();
+	}, CASCADE_STEP_MS);
+}
+
 function startClearLinesAnimationIfPending() {
 	if (!gameState || !gameState.clearLinesPending || gameState.clearLinesPending.length === 0) {
 		if (gameState && !gameState.postClearGravityState) {
-			startFallTimer();
+			if (gameState.cascadePending) {
+				runCascadeStepLoop();
+			} else {
+				startFallTimer();
+			}
 		}
 		return;
 	}
@@ -142,11 +189,19 @@ function startClearLinesAnimationIfPending() {
 					startClearLinesAnimationIfPending();
 					return;
 				}
-				startFallTimer();
+				if (gameState.cascadePending) {
+					runCascadeStepLoop();
+				} else {
+					startFallTimer();
+				}
 			}, 300);
 			return;
 		}
-		startFallTimer();
+		if (gameState.cascadePending) {
+			runCascadeStepLoop();
+		} else {
+			startFallTimer();
+		}
 	}, 400);
 }
 
@@ -211,6 +266,7 @@ function handleAction(action) {
 
 function handleRestart() {
 	stopFallTimer();
+	stopCascadeStepTimer();
 	if (clearLinesTimeout) {
 		clearTimeout(clearLinesTimeout);
 		clearLinesTimeout = null;
@@ -264,7 +320,10 @@ function applyBoardSettings(obj) {
 	}
 	const rows = obj.rows != null ? obj.rows : (obj.boardHeight != null ? obj.boardHeight : gameState && gameState.rows);
 	const cols = obj.cols != null ? obj.cols : (obj.boardWidth != null ? obj.boardWidth : gameState && gameState.cols);
-	const fallIntervalMs = obj.fallIntervalMs != null ? obj.fallIntervalMs : gameState && gameState.fallIntervalMs;
+	const rawFall = obj.fallIntervalMs != null ? obj.fallIntervalMs : gameState && gameState.fallIntervalMs;
+	const fallIntervalMs = (constants && constants.DEV_FIXED_FALL_MS > 0)
+		? constants.DEV_FIXED_FALL_MS
+		: rawFall;
 	const needRestart = !gameState || rows !== gameState.rows || cols !== gameState.cols;
 	if (needRestart) {
 		stopFallTimer();
@@ -331,12 +390,9 @@ function doInit() {
 		}
 	} else {
 		const rows = loaded && loaded.rows || restored && restored.rows || 12;
-		const cols = loaded && loaded.cols || restored && restored.cols || 8;
-		const fallIntervalMs = (loaded && loaded.fallIntervalMs) != null ? loaded.fallIntervalMs : ((restored
-																																																 && restored.fallIntervalMs)
-																																																!= null
-																																																? restored.fallIntervalMs
-																																																: 500);
+		const cols = loaded && loaded.cols || restored && restored.cols || 10;
+		const rawFall = (loaded && loaded.fallIntervalMs) != null ? loaded.fallIntervalMs : ((restored && restored.fallIntervalMs) != null ? restored.fallIntervalMs : 500);
+		const fallIntervalMs = (constants && constants.DEV_FIXED_FALL_MS > 0) ? constants.DEV_FIXED_FALL_MS : rawFall;
 		const highScore = Number(getStorage(STORAGE_HIGH_SCORE_BLOCKS)) || 0;
 		gameState = init(highScore, {rows: rows, cols: cols, fallIntervalMs: fallIntervalMs});
 	}

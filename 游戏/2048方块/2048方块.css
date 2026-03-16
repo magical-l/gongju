@@ -5,14 +5,7 @@
 	/* 主题变量已由 .gaming.area 提供默认，此处仅覆盖本页需要的 */
 }
 
-/* 本页棋盘在 .main.map.area 下，需尺寸约束与网格（.board 通用见 biz.css） */
-.gaming.area .main.map.area .board {
-	flex: 0 0 auto;
-	max-width: min(480px, 92vw);
-	aspect-ratio: var(--board-cols, 8) / var(--board-rows, 12);
-	max-height: min(75vh, 800px);
-	min-height: min(280px, 50vmin);
-}
+/* 棋盘尺寸与格子正方形由 biz.css .gaming.area .main.map.area .board 统一处理，此处仅保留消行动画等本页独有样式 */
 
 /* 消行动画：待消除行闪烁 */
 @keyframes clear-line-flash {

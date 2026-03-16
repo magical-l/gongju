@@ -60,23 +60,20 @@
 		<header class="toolbar , multi-line flex , items-near-x-center items-stretch no-gap">
 			<section class="setting list area , single-line flex , items-near-x-start items-near-y-center no-gap">
 				<div class="one setting group">
-					<el-form-item class="one setting : height">
+					<el-form-item class="one setting : height" label="行数">
 						<el-select v-model.number="boardHeight" @change="onBoardSizeChange">
-							<template #prefix>行</template>
-							<el-option v-for="h in boardSizeOptions" :key="h" :label="String(h)" :value="h"/>
+							<el-option v-for="h in boardSizeOptions.rows" :key="h" :label="String(h)" :value="h"/>
 						</el-select>
 					</el-form-item>
-					<el-form-item class="one setting : width">
+					<el-form-item class="one setting : width" label="列数">
 						<el-select v-model.number="boardWidth" @change="onBoardSizeChange">
-							<template #prefix>列</template>
-							<el-option v-for="w in boardSizeOptions" :key="w" :label="String(w)" :value="w"/>
+							<el-option v-for="w in boardSizeOptions.cols" :key="w" :label="String(w)" :value="w"/>
 						</el-select>
 					</el-form-item>
 				</div>
 				<div class="one setting group">
-					<el-form-item class="one setting : speed">
+					<el-form-item class="one setting : speed" label="初始速度">
 						<el-select v-model.number="fallIntervalMs" @change="onSpeedChange">
-							<template #prefix>速度</template>
 							<el-option v-for="(opt, idx) in speedOptions" :key="opt.value" :label="opt.label" :value="opt.value"/>
 						</el-select>
 					</el-form-item>
@@ -132,9 +129,11 @@
 							<el-card header="当前得分" class="scoreboard" body-class="value" shadow="never">
 								{{ score }}
 							</el-card>
-							<el-descriptions class="info list" :column="1" border>
+							<el-descriptions class="info list" :column="1" border :label-width="72">
 								<el-descriptions-item label="行">{{ gameBoardHeight }}</el-descriptions-item>
 								<el-descriptions-item label="列">{{ gameBoardWidth }}</el-descriptions-item>
+								<el-descriptions-item label="初始速度">{{ initialSpeedLabel }}</el-descriptions-item>
+								<el-descriptions-item label="当前速度">{{ currentSpeedLabel }}</el-descriptions-item>
 								<el-descriptions-item
 										:label="gameBoardWidth && gameBoardHeight ? '最高记录 (' + gameBoardWidth + '×' + gameBoardHeight + ')' : '最高记录'">
 									{{ highScore }}
@@ -194,23 +193,26 @@
 		let saved;
 		try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
 		const constants = window.Game2048BlocksConstants || {};
-		const boardSizeOptionsRows = constants.ROWS_OPTIONS || [8, 10, 12, 14, 16];
-		const boardSizeOptionsCols = constants.COLS_OPTIONS || [6, 8, 10, 12];
+		const boardSizeOptionsRows = constants.ROWS_OPTIONS || [8, 10, 12, 14, 16, 18, 20];
+		const boardSizeOptionsCols = constants.COLS_OPTIONS || [6, 7, 8, 9, 10, 11, 12];
+		const defaultRows = constants.DEFAULT_ROWS != null ? constants.DEFAULT_ROWS : 12;
+		const defaultCols = constants.DEFAULT_COLS != null ? constants.DEFAULT_COLS : 10;
 		const speedOptions = (constants.SPEED_OPTIONS_MS || [1200, 700, 500, 350, 200]).map(function(ms, i) {
 			return {value: ms, label: (constants.SPEED_LABELS || ['慢', '中慢', '中', '快', '很快'])[i] || String(ms)};
 		});
 		const state = reactive({
 			score: 0,
 			highScore: 0,
-			boardHeight: 12,
-			boardWidth: 8,
+			boardHeight: defaultRows,
+			boardWidth: defaultCols,
 			fallIntervalMs: 500,
-			gameBoardHeight: 12,
-			gameBoardWidth: 8,
+			gameBoardHeight: defaultRows,
+			gameBoardWidth: defaultCols,
 			gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
 			_collapseKey: collapseKey,
 			_defaultPanels: defaultPanels,
-			boardView: {rows: 12, cols: 8, cells: []},
+			boardView: {rows: defaultRows, cols: defaultCols, cells: []},
+			gameFallIntervalMs: null,
 			lastStateForDisplay: null,
 			paused: true,
 			gameResultVisible: false,
@@ -228,6 +230,15 @@
 					const rows = Math.max(1, r && r.rows || 8);
 					const cols = Math.max(1, r && r.cols || 8);
 					return {'--board-cols': cols, '--board-rows': rows};
+				},
+				initialSpeedLabel() {
+					const opt = speedOptions.find(function(o) { return o.value === state.fallIntervalMs; });
+					return opt ? opt.label : String(state.fallIntervalMs);
+				},
+				currentSpeedLabel() {
+					const ms = state.gameFallIntervalMs != null ? state.gameFallIntervalMs : state.fallIntervalMs;
+					const opt = speedOptions.find(function(o) { return o.value === ms; });
+					return opt ? opt.label : String(ms);
 				},
 				boardWrapStyle() {
 					return {};
@@ -293,11 +304,17 @@
 			},
 			methods: {
 				onBoardSizeChange() {
-					window.Game2048Blocks.applyBoardSettings({
-						boardHeight: state.boardHeight,
-						boardWidth: state.boardWidth,
-						fallIntervalMs: state.fallIntervalMs,
-					});
+					try {
+						const key = '2048blocks-settings';
+						const raw = localStorage.getItem(key);
+						const o = raw ? JSON.parse(raw) : {};
+						localStorage.setItem(key, JSON.stringify({
+							...o,
+							rows: state.boardHeight,
+							cols: state.boardWidth,
+							fallIntervalMs: state.fallIntervalMs,
+						}));
+					} catch (_) {}
 				},
 				onSpeedChange() {
 					window.Game2048Blocks.applyBoardSettings({
@@ -378,6 +395,7 @@
 						if (!gameState) {
 							return;
 						}
+						state.gameFallIntervalMs = gameState.fallIntervalMs != null ? gameState.fallIntervalMs : null;
 						bridge.updateScores(gameState.score, gameState.highScore, gameState.boardWidth, gameState.boardHeight);
 						bridge.setBoardView(gameState.board, gameState.boardHeight, gameState.boardWidth, gameState);
 						const vis = !!(gameState.overlayVisible && gameState.overlayMessage);

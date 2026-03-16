@@ -27,7 +27,18 @@
 	const SHAPE_KEYS = Object.keys(SHAPES);
 	const MIN_ROWS = 8;
 	const MIN_COLS = 6;
-	const DEFAULT_CFG = {rows: 12, cols: 8, fallIntervalMs: 500};
+	const MAX_ROWS = 20;
+	const MAX_COLS = 12;
+	const DEFAULT_CFG = {rows: 12, cols: 10, fallIntervalMs: 500};
+	/** 消行基础分系数（玩法 12.2），供 getLineClearBaseScore 使用 */
+	const SCORE_BY_LINES = [0, 40, 100, 300, 1200];
+
+	/** 消行基础分（玩法 11）：消除 n 行时返回 SCORE_n × (level+1)，n 取 1～4。接口预留，计分可后续接入。 */
+	function getLineClearBaseScore(numLinesCleared, level) {
+		level = level != null && Number.isFinite(level) ? Math.max(0, level) : 0;
+		const n = Math.max(0, Math.min(4, Math.floor(numLinesCleared) || 0));
+		return (SCORE_BY_LINES[n] || 0) * (level + 1);
+	}
 
 	function getShapeCells(shape, rotation) {
 		const def = SHAPES[shape];
@@ -239,6 +250,7 @@
 		return false;
 	}
 
+	/** 消行处理 + 按列下落（玩法 7.1）：满行除以 min，商为 1 的消除，然后每列独立做重力。 */
 	function doClearAndGravityOnly(board, rows, cols, fullRows) {
 		if (fullRows.length === 0) {
 			const rem = [];
@@ -252,10 +264,8 @@
 			return {scoreAdd: 0, remainingInCleared: rem, remainingRows: []};
 		}
 		const clearedSet = {};
-		const clearedRowMinVal = {};
 		let scoreAdd = 0;
 		const afterClear = board.map(function(row) { return row.slice(); });
-		const beforeBoard = board.map(function(row) { return row.slice(); });
 		for (let i = 0; i < fullRows.length; i++) {
 			const r = fullRows[i];
 			let minVal = 0;
@@ -268,7 +278,6 @@
 				continue;
 			}
 			clearedSet[r] = true;
-			clearedRowMinVal[r] = minVal;
 			for (let c = 0; c < cols; c++) {
 				const v = board[r][c] / minVal;
 				if (v === 1) {
@@ -279,40 +288,29 @@
 				}
 			}
 		}
-		const sortedCleared = Object.keys(clearedSet).map(Number).sort(function(a, b) { return a - b; });
-		const firstRowCleared = Math.min.apply(null, sortedCleared);
-		const numCleared = sortedCleared.length;
-		const numAbove = firstRowCleared;
-		const numFallIntoEmpty = Math.max(0, numAbove - numCleared);
+		for (let i = 0; i < fullRows.length; i++) {
+			const r = fullRows[i];
+			if (!clearedSet[r]) {
+				continue;
+			}
+			for (let c = 0; c < cols; c++) {
+				board[r][c] = afterClear[r][c];
+			}
+		}
+		for (let c = 0; c < cols; c++) {
+			compactGravityColumn(board, rows, c);
+		}
 		const remainingInCleared = [];
 		for (let r = 0; r < rows; r++) {
 			const row = [];
 			for (let c = 0; c < cols; c++) {
-				row.push(false);
+				row.push(board[r][c] !== 0);
 			}
 			remainingInCleared.push(row);
 		}
-		for (let c = 0; c < cols; c++) {
-			for (let r = 0; r < numCleared; r++) {
-				board[r][c] = 0;
-				remainingInCleared[r][c] = false;
-			}
-			for (let i = 0; i < numFallIntoEmpty; i++) {
-				const r = numCleared + i;
-				board[r][c] = beforeBoard[i][c];
-				remainingInCleared[r][c] = false;
-			}
-			for (let ri = 0; ri < numCleared; ri++) {
-				const r = firstRowCleared + ri;
-				const fallen = numFallIntoEmpty + ri < numAbove ? beforeBoard[numFallIntoEmpty + ri][c] : 0;
-				const remain = afterClear[r][c];
-				board[r][c] = fallen && remain && fallen === remain ? 2 * fallen : fallen || remain;
-				remainingInCleared[r][c] = board[r][c] !== 0;
-			}
-		}
 		const remainingRows = [];
-		for (let i = 0; i < numCleared; i++) {
-			remainingRows.push(firstRowCleared + i);
+		for (let r = 0; r < rows; r++) {
+			remainingRows.push(r);
 		}
 		return {scoreAdd: scoreAdd, remainingInCleared: remainingInCleared, remainingRows: remainingRows};
 	}
@@ -328,32 +326,11 @@
 	function clearOneRound(board, rows, cols) {
 		const fullRows = getFullRowIndices(board, rows, cols);
 		if (fullRows.length === 0) {
-			return {scoreAdd: 0, newFullRows: []};
+			return {scoreAdd: 0, newFullRows: [], numLinesCleared: 0};
 		}
-		const firstRowCleared = Math.min.apply(null, fullRows);
-		const numCleared = fullRows.length;
 		const result = doClearAndGravityOnly(board, rows, cols, fullRows);
-		const startRow = firstRowCleared;
-		const endRow = firstRowCleared + numCleared - 1;
-		for (let c = 0; c < cols; c++) {
-			compactGravityColumnRange(board, startRow, endRow, c);
-		}
-		const remainingInCleared = [];
-		for (let r = 0; r < rows; r++) {
-			const row = [];
-			for (let c = 0; c < cols; c++) {
-				row.push(false);
-			}
-			remainingInCleared.push(row);
-		}
-		for (let i = 0; i < result.remainingRows.length; i++) {
-			var r = result.remainingRows[i];
-			for (let c = 0; c < cols; c++) {
-				remainingInCleared[r][c] = board[r][c] !== 0;
-			}
-		}
-		const newFullRows = doMergeInClearedRows(board, rows, cols, remainingInCleared, result.remainingRows);
-		return {scoreAdd: result.scoreAdd, newFullRows: newFullRows};
+		const newFullRows = doMergeInClearedRows(board, rows, cols, result.remainingInCleared, result.remainingRows);
+		return {scoreAdd: result.scoreAdd, newFullRows: newFullRows, numLinesCleared: fullRows.length};
 	}
 
 	function clearFullLines(board, rows, cols) {
@@ -390,6 +367,21 @@
 		return false;
 	}
 
+	function gravityColumn(board, rows, c) {
+		const nonZeros = [];
+		for (let r = 0; r < rows; r++) {
+			if (board[r][c] !== 0) {
+				nonZeros.push(board[r][c]);
+			}
+		}
+		for (let i = 0; i < nonZeros.length; i++) {
+			board[i][c] = nonZeros[i];
+		}
+		for (let i = nonZeros.length; i < rows; i++) {
+			board[i][c] = 0;
+		}
+	}
+
 	function doOneCascadeStep(board, rows, cols) {
 		for (let c = 0; c < cols; c++) {
 			for (let r = 0; r < rows; r++) {
@@ -399,16 +391,33 @@
 				if (r + 1 < rows && board[r][c] === board[r + 1][c]) {
 					board[r + 1][c] *= 2;
 					board[r][c] = 0;
+					gravityColumn(board, rows, c);
 					return {didOne: true, more: hasAnyCascade(board, rows, cols)};
 				}
 				if (r - 1 >= 0 && board[r][c] === board[r - 1][c]) {
 					board[r][c] *= 2;
 					board[r - 1][c] = 0;
+					gravityColumn(board, rows, c);
 					return {didOne: true, more: hasAnyCascade(board, rows, cols)};
 				}
 			}
 		}
 		return {didOne: false, more: false};
+	}
+
+	function spawnNextAfterLock(g) {
+		const nextCount = g.pieceCount;
+		const newCurrent = g.nextPiece != null ? g.nextPiece : spawnNextPiece(g.rows, g.cols, g.seed, nextCount - 1);
+		const nextPiece = spawnNextPiece(g.rows, g.cols, g.seed, nextCount);
+		const gameOver = hasBlockInRow0(g.board, g.cols) || wouldCollide(g.board, g.rows, g.cols, newCurrent, 0, 0);
+		return Object.assign({}, g, {
+			currentPiece: gameOver ? null : newCurrent,
+			nextPiece: gameOver ? g.nextPiece : nextPiece,
+			gameOver: gameOver,
+			overlayVisible: gameOver,
+			overlayMessage: gameOver ? '游戏结束' : g.overlayMessage,
+			cascadePending: false,
+		});
 	}
 
 	function applyPendingClearLines(g) {
@@ -425,21 +434,12 @@
 					postClearGravityState: null,
 				});
 			}
-			const nextCount = g.pieceCount;
-			const newCurrent = g.nextPiece != null ? g.nextPiece : spawnNextPiece(g.rows, g.cols, g.seed, nextCount - 1);
-			const nextPiece = spawnNextPiece(g.rows, g.cols, g.seed, nextCount);
-			const gameOver = hasBlockInRow0(g.board, g.cols) || wouldCollide(g.board, g.rows, g.cols, newCurrent, 0, 0);
 			return Object.assign({}, g, {
-				board: g.board,
-				currentPiece: gameOver ? null : newCurrent,
-				nextPiece: gameOver ? g.nextPiece : nextPiece,
 				score: score,
 				highScore: highScore,
-				gameOver: gameOver,
-				overlayVisible: gameOver,
-				overlayMessage: gameOver ? '游戏结束' : g.overlayMessage,
 				clearLinesPending: null,
 				postClearGravityState: null,
+				cascadePending: true,
 			});
 		}
 		if (g.clearLinesPending == null || g.clearLinesPending.length === 0) {
@@ -544,7 +544,7 @@
 			if (cascade.didOne) {
 				return Object.assign({}, g, {cascadePending: cascade.more});
 			}
-			return Object.assign({}, g, {cascadePending: false});
+			return spawnNextAfterLock(g);
 		}
 		let piece = g.currentPiece;
 		if (!piece) {
@@ -566,21 +566,11 @@
 					clearLinesPending: fullRows,
 				});
 			}
-			const score = g.score + clearFullLines(g.board, g.rows, g.cols);
-			const highScore = g.highScore >= score ? g.highScore : score;
-			const newCurrent = g.nextPiece != null ? g.nextPiece : spawnNextPiece(g.rows, g.cols, g.seed, nextCount - 1);
-			const nextPiece = spawnNextPiece(g.rows, g.cols, g.seed, nextCount);
-			const gameOver = hasBlockInRow0(g.board, g.cols) || wouldCollide(g.board, g.rows, g.cols, newCurrent, 0, 0);
 			return Object.assign({}, g, {
 				board: g.board,
-				currentPiece: gameOver ? null : newCurrent,
-				nextPiece: gameOver ? g.nextPiece : nextPiece,
-				score: score,
-				highScore: highScore,
-				gameOver: gameOver,
-				overlayVisible: gameOver,
-				overlayMessage: gameOver ? '游戏结束' : g.overlayMessage,
+				currentPiece: null,
 				pieceCount: nextCount,
+				cascadePending: true,
 			});
 		}
 
@@ -617,21 +607,11 @@
 						clearLinesPending: fullRows,
 					});
 				}
-				const score = g.score + clearFullLines(board, rows, cols);
-				const highScore = g.highScore >= score ? g.highScore : score;
-				const newCurrent = g.nextPiece != null ? g.nextPiece : spawnNextPiece(rows, cols, g.seed, nextCount - 1);
-				const nextPiece = spawnNextPiece(rows, cols, g.seed, nextCount);
-				const gameOver = hasBlockInRow0(board, cols) || wouldCollide(board, rows, cols, newCurrent, 0, 0);
 				return Object.assign({}, g, {
 					board: board,
-					currentPiece: gameOver ? null : newCurrent,
-					nextPiece: gameOver ? g.nextPiece : nextPiece,
-					score: score,
-					highScore: highScore,
-					gameOver: gameOver,
-					overlayVisible: gameOver,
-					overlayMessage: gameOver ? '游戏结束' : g.overlayMessage,
+					currentPiece: null,
 					pieceCount: nextCount,
+					cascadePending: true,
 				});
 			}
 
@@ -659,21 +639,11 @@
 						clearLinesPending: fullRows,
 					});
 				}
-				const score = g.score + clearFullLines(board, rows, cols);
-				const highScore = g.highScore >= score ? g.highScore : score;
-				const newCurrent = g.nextPiece != null ? g.nextPiece : spawnNextPiece(rows, cols, g.seed, nextCount - 1);
-				const nextPiece = spawnNextPiece(rows, cols, g.seed, nextCount);
-				const gameOver = hasBlockInRow0(board, cols) || wouldCollide(board, rows, cols, newCurrent, 0, 0);
 				return Object.assign({}, g, {
 					board: board,
-					currentPiece: gameOver ? null : newCurrent,
-					nextPiece: gameOver ? g.nextPiece : nextPiece,
-					score: score,
-					highScore: highScore,
-					gameOver: gameOver,
-					overlayVisible: gameOver,
-					overlayMessage: gameOver ? '游戏结束' : g.overlayMessage,
+					currentPiece: null,
 					pieceCount: nextCount,
+					cascadePending: true,
 				});
 			}
 
@@ -714,8 +684,8 @@
 	function init(highScore, overrides) {
 		highScore = highScore || 0;
 		overrides = overrides || {};
-		const rows = Math.max(MIN_ROWS, overrides.rows != null ? overrides.rows : DEFAULT_CFG.rows);
-		const cols = Math.max(MIN_COLS, overrides.cols != null ? overrides.cols : DEFAULT_CFG.cols);
+		const rows = Math.max(MIN_ROWS, Math.min(MAX_ROWS, overrides.rows != null ? overrides.rows : DEFAULT_CFG.rows));
+		const cols = Math.max(MIN_COLS, Math.min(MAX_COLS, overrides.cols != null ? overrides.cols : DEFAULT_CFG.cols));
 		const fallIntervalMs = overrides.fallIntervalMs != null ? overrides.fallIntervalMs : DEFAULT_CFG.fallIntervalMs;
 		const seed = overrides.seed != null ? overrides.seed : Date.now();
 		const board = emptyBoard(rows, cols);
@@ -738,6 +708,8 @@
 			seed: seed,
 			clearLinesPending: null,
 			postClearGravityState: null,
+			level: 0,
+			linesClearedTotal: 0,
 		};
 	}
 
@@ -777,6 +749,8 @@
 				remainingInCleared: g.postClearGravityState.remainingInCleared.map(function(r) { return r.slice(); }),
 				remainingRows: g.postClearGravityState.remainingRows.slice(),
 			},
+			level: g.level != null ? g.level : 0,
+			linesClearedTotal: g.linesClearedTotal != null ? g.linesClearedTotal : 0,
 		};
 	}
 
@@ -868,6 +842,8 @@
 			seed: Number.isFinite(Number(o.seed)) ? Number(o.seed) : Date.now(),
 			clearLinesPending: clearLinesPending,
 			postClearGravityState: postClearGravityState,
+			level: Math.max(0, Math.min(20, Number(o.level) || 0)),
+			linesClearedTotal: Math.max(0, Number(o.linesClearedTotal) || 0),
 		};
 	}
 
@@ -875,6 +851,7 @@
 		STORAGE_HIGH_SCORE_BLOCKS: STORAGE_HIGH_SCORE_BLOCKS,
 		STORAGE_SETTINGS_BLOCKS: STORAGE_SETTINGS_BLOCKS,
 		STORAGE_GAME_STATE_BLOCKS: STORAGE_GAME_STATE_BLOCKS,
+		getLineClearBaseScore: getLineClearBaseScore,
 		init: init,
 		tick: tick,
 		moveLeft: moveLeft,
