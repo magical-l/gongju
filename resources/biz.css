@@ -32,6 +32,34 @@
 	outline: none;
 }
 
+/* 主地图区通用：尽量铺满父级、定位、flex、与 right-sidebar 上沿对齐；默认尺寸统一，仅在有特殊需求时覆盖（如 2048 的 aspect-ratio:1） */
+.main.map.area {
+	position: relative;
+	width: 100%;
+	max-width: min(560px, 96vw);
+	max-height: min(85vh, 900px);
+	min-height: min(320px, 55vmin);
+	margin: 0 auto;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	align-items: center;
+	font-family: system-ui, -apple-system, sans-serif;
+	user-select: none;
+	-webkit-user-select: none;
+}
+
+/* 棋盘格：格子无间隙、单位铺满格子；保留格线（--grid-line） */
+.cell {
+	position: relative;
+	box-shadow: 0 0 0 1px var(--grid-line, rgba(0,0,0,0.12));
+}
+.cell > .unit {
+	position: absolute;
+	inset: 0;
+}
+
 /*===========================网站结构=======================*/
 /*-------------------------整个导航栏--------------------*/
 body > header {

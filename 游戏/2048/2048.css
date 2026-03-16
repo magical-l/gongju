@@ -11,27 +11,12 @@
 	--unit-radius: 0;
 	--board-radius: 8px;
 	--board-padding: 12px;
-	--grid-gap: 1px;
 	--merge-duration: 0.2s;
 }
 
-/* 主地图区，提供定位、尺寸与手势区域 */
+/* 主地图区仅补充颜色（尺寸见 biz.css；行列不同时自然为长方形） */
 .main.map.area {
-	position: relative;
-	width: 100%;
-	max-width: min(480px, 95vw);
-	aspect-ratio: 1;
-	max-height: min(480px, 75vh);
-	min-height: min(260px, 80vmin);
-	margin: 0 auto;
-	padding: 0;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	font-family: system-ui, -apple-system, sans-serif;
 	color: var(--text-dark);
-	user-select: none;
-	-webkit-user-select: none;
 }
 
 article.gaming.area .board {
@@ -40,17 +25,16 @@ article.gaming.area .board {
 	grid-template-rows: repeat(var(--board-rows, 4), 1fr);
 	width: 100%;
 	height: 100%;
-	gap: var(--grid-gap);
+	gap: 0;
 	padding: var(--board-padding);
 	background: var(--board-bg);
 	border-radius: var(--board-radius);
 	position: relative;
 }
 
-.cell {
+article.gaming.area .board .cell {
 	background: var(--cell-empty);
 	border-radius: var(--unit-radius);
-	position: relative;
 	flex-shrink: 0;
 	display: flex;
 	align-items: center;
@@ -93,14 +77,8 @@ article.gaming.area .board {
 
 .unit.unit-2048 { background: #5a8f4a; }
 
-article.gaming.area .board .cell > .unit {
-	position: absolute;
-	inset: var(--grid-gap);
-}
-
+/* 滑动动画层：.cell 为绝对定位的“飞格”，.unit 填满整格滑动 */
 article.gaming.area .slide-layer .cell > .unit {
-	position: absolute;
-	inset: 0;
 	transition: left 0.08s linear, top 0.08s linear;
 }
 
