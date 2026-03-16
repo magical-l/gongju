@@ -421,23 +421,32 @@
 	function applyPendingClearLines(g) {
 		const post = g.postClearGravityState;
 		if (post != null) {
-			const newFullRows = doMergeInClearedRows(g.board, g.rows, g.cols, post.remainingInCleared, post.remainingRows);
-			const score = g.score + post.scoreAdd;
-			const highScore = g.highScore >= score ? g.highScore : score;
-			if (newFullRows.length > 0) {
+			const remainingRowsSet = new Set(post.remainingRows);
+			const hasMore = hasVerticalMergeInClearedRows(g.board, g.rows, g.cols, remainingRowsSet, post.remainingInCleared);
+			if (!hasMore) {
+				const newFullRows = getFullRowIndices(g.board, g.rows, g.cols);
+				const score = g.score + post.scoreAdd;
+				const highScore = g.highScore >= score ? g.highScore : score;
+				if (newFullRows.length > 0) {
+					return Object.assign({}, g, {
+						score: score,
+						highScore: highScore,
+						clearLinesPending: newFullRows,
+						postClearGravityState: null,
+					});
+				}
 				return Object.assign({}, g, {
 					score: score,
 					highScore: highScore,
-					clearLinesPending: newFullRows,
+					clearLinesPending: null,
 					postClearGravityState: null,
+					cascadePending: true,
 				});
 			}
+			doOneVerticalMergeInClearedRows(g.board, g.rows, g.cols, remainingRowsSet, post.remainingInCleared);
 			return Object.assign({}, g, {
-				score: score,
-				highScore: highScore,
-				clearLinesPending: null,
-				postClearGravityState: null,
-				cascadePending: true,
+				board: g.board,
+				postClearGravityState: post,
 			});
 		}
 		if (g.clearLinesPending == null || g.clearLinesPending.length === 0) {
@@ -664,6 +673,7 @@
 				}
 			}
 			piece = Object.assign({}, piece, {row: newRow, cells: updatedCells, mergeCount: piece.mergeCount + mergedCount});
+			return Object.assign({}, g, {board: board, currentPiece: piece});
 		}
 	}
 

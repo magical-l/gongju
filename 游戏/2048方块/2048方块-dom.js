@@ -212,7 +212,7 @@ function runPostClearGravityStep() {
 		gameState = applyPendingClearLines(gameState);
 		commitState(gameState);
 		scheduleNext();
-	}, 300);
+	}, CASCADE_STEP_MS);
 }
 
 function startFallTimer() {
