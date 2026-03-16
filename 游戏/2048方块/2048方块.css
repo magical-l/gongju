@@ -26,28 +26,22 @@
 	animation: clear-line-flash 0.12s ease-in-out infinite;
 }
 
-/* 下一块预览：仅 4×4 格子拼出的方块图形，不用 .board */
+/* 下一块预览：4×4 格子拼出的方块图形，.next-block 即网格容器，水平居中 */
 .next-block {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 8px;
-	min-width: 100px;
-}
-.next-block .preview {
 	display: grid;
 	grid-template-columns: repeat(4, 1fr);
 	grid-template-rows: repeat(4, 1fr);
 	gap: 0;
 	width: 80px;
 	height: 80px;
+	margin: 0 auto;
 }
-.next-block .preview .cell {
+.next-block .cell {
 	background: transparent;
+	border: none;
 	border-radius: 0;
-	box-shadow: none;
 }
-.next-block .preview .cell > .unit {
+.next-block .cell > .unit {
 	font-size: 12px;
 	border-radius: 0;
 }

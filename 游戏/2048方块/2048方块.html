@@ -117,15 +117,16 @@
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
 					<el-collapse-item title="下一块" name="next-block">
 						<div class="next-block">
-							<div class="preview">
-								<div class="cell" v-for="(c, idx) in nextPreviewCells" :key="idx">
-									<div v-if="c" class="unit" :class="'unit-' + c">{{ c }}</div>
-								</div>
+							<div class="cell" v-for="(c, idx) in nextPreviewCells" :key="idx">
+								<div v-if="c" class="unit" :class="'unit-' + c">{{ c }}</div>
 							</div>
 						</div>
 					</el-collapse-item>
 					<el-collapse-item title="本局信息" name="gaming info" class="gaming info">
 						<div class="flex vertical">
+							<el-card header="当前得分" class="scoreboard" body-class="value" shadow="never">
+								{{ score }}
+							</el-card>
 							<el-descriptions class="info list" :column="1" border>
 								<el-descriptions-item label="行">{{ gameBoardHeight }}</el-descriptions-item>
 								<el-descriptions-item label="列">{{ gameBoardWidth }}</el-descriptions-item>
@@ -133,9 +134,6 @@
 									{{ highScore }}
 								</el-descriptions-item>
 							</el-descriptions>
-							<el-card header="当前得分" class="scoreboard" body-class="value" shadow="never">
-								{{ score }}
-							</el-card>
 						</div>
 					</el-collapse-item>
 					<el-collapse-item title="快捷键" class="game shortcut" name="shortcut">
