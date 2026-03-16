@@ -98,9 +98,11 @@
 	position: relative;
 	box-sizing: border-box;
 }
+/* 主地图区棋盘：格子保持正方形，棋盘尽量占满父容器（宽=min(100%, 高×列/行)，高=min(100%, 宽×行/列)） */
 .gaming.area .main.map.area .board {
-	width: 100%;
-	height: 100%;
+	width: min(100%, 100% * var(--board-cols, 4) / var(--board-rows, 4));
+	height: min(100%, 100% * var(--board-rows, 4) / var(--board-cols, 4));
+	aspect-ratio: var(--board-cols, 4) / var(--board-rows, 4);
 }
 .gaming.area .board .cell {
 	background: var(--cell-empty);

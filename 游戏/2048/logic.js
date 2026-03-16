@@ -398,7 +398,7 @@
 		const o = overrides;
 		const w = o && o.boardWidth != null ? o.boardWidth : DEFAULT_STATE.boardWidth;
 		const h = o && o.boardHeight != null ? o.boardHeight : DEFAULT_STATE.boardHeight;
-		const target = o && o.targetNumber != null ? o.targetNumber : DEFAULT_STATE.targetNumber;
+		const target = o && ('targetNumber' in o) ? o.targetNumber : DEFAULT_STATE.targetNumber;
 		const initialTiles = o && o.initialTiles != null ? o.initialTiles : DEFAULT_STATE.initialTiles;
 		const total = w * h;
 		const board = Array(total).fill(0);
