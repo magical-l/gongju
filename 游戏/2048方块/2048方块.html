@@ -117,7 +117,7 @@
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
 					<el-collapse-item title="下一块" name="next-block">
 						<div class="next-block">
-							<div class="board">
+							<div class="preview">
 								<div class="cell" v-for="(c, idx) in nextPreviewCells" :key="idx">
 									<div v-if="c" class="unit" :class="'unit-' + c">{{ c }}</div>
 								</div>

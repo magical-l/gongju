@@ -109,12 +109,10 @@
 						<span v-if="cell.showBadge" class="new-badge">!</span>
 					</div>
 				</div>
-			</div>
-			<div class="pause-overlay" v-show="paused">
-				<div class="pause-overlay-inner">
-					<span class="pause-overlay-text">已暂停</span>
+				<div class="pause overlay" v-show="paused">
+					<span class="title">已暂停</span>
 					<el-button type="success" size="large" @click="onTogglePause">开始</el-button>
-					<p class="pause-overlay-hint">按空格开始</p>
+					<p class="hint">按空格开始</p>
 				</div>
 			</div>
 		</section>

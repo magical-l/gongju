@@ -1,84 +1,14 @@
-/* 2048 网页版 - 样式限定在 article.gaming.area 内，不覆盖站点 body */
+/* 2048 网页版 - 样式限定在 .gaming.area 内，通用见 biz.css */
+
 :root {
 	--page-bg: #e8f0e0;
-	--text-dark: #5a6b52;
-	--text-light: #f5f9f2;
 	--btn-primary: #6b8e5c;
 	--btn-secondary: #8fa87a;
-	--board-bg: #b8c9a8;
-	--grid-line: #9bad8f;
-	--cell-empty: #d4e0c8;
-	--unit-radius: 0;
-	--board-radius: 8px;
-	--board-padding: 12px;
 	--merge-duration: 0.2s;
 }
 
-/* 主地图区仅补充颜色（尺寸见 biz.css；行列不同时自然为长方形） */
-.main.map.area {
-	color: var(--text-dark);
-}
-
-article.gaming.area .board {
-	display: grid;
-	grid-template-columns: repeat(var(--board-cols, 4), 1fr);
-	grid-template-rows: repeat(var(--board-rows, 4), 1fr);
-	width: 100%;
-	height: 100%;
-	gap: 0;
-	padding: var(--board-padding);
-	background: var(--board-bg);
-	border-radius: var(--board-radius);
-	position: relative;
-}
-
-article.gaming.area .board .cell {
-	background: var(--cell-empty);
-	border-radius: var(--unit-radius);
-	flex-shrink: 0;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-/* 棋子：三处均为 .cell > .unit（棋盘格、滑层、自定义预览）；默认大数，.unit-2～.unit-2048 覆盖 */
-.cell > .unit {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-weight: bold;
-	color: var(--text-light);
-	border-radius: var(--unit-radius);
-	font-size: clamp(12px, 4vw, 24px);
-	user-select: none;
-	-webkit-user-select: none;
-	background: #4a5a42;
-}
-
-.unit.unit-2 { background: #e2ead8; color: #5a6b52; }
-
-.unit.unit-4 { background: #d4e0c8; color: #5a6b52; }
-
-.unit.unit-8 { background: #a8c99e; }
-
-.unit.unit-16 { background: #8fbc85; }
-
-.unit.unit-32 { background: #7cb37a; }
-
-.unit.unit-64 { background: #6ba36b; }
-
-.unit.unit-128 { background: #9cb87c; }
-
-.unit.unit-256 { background: #8ab06e; }
-
-.unit.unit-512 { background: #7aa862; }
-
-.unit.unit-1024 { background: #6a9f56; }
-
-.unit.unit-2048 { background: #5a8f4a; }
-
 /* 滑动动画层：.cell 为绝对定位的“飞格”，.unit 填满整格滑动 */
-article.gaming.area .slide-layer .cell > .unit {
+.gaming.area .slide-layer .cell > .unit {
 	transition: left 0.08s linear, top 0.08s linear;
 }
 
@@ -109,41 +39,18 @@ article.gaming.area .slide-layer .cell > .unit {
 	z-index: 2;
 }
 
-article.gaming.area .slide-layer {
+.gaming.area .slide-layer {
 	position: absolute;
 	inset: 0;
 	pointer-events: none;
 	border-radius: var(--board-radius);
 	padding: var(--board-padding);
 }
-
-article.gaming.area .slide-layer .cell {
+.gaming.area .slide-layer .cell {
 	position: absolute;
 }
 
-/* 结算 dialog：本局统计 */
-.game.result.stats {
-	display: grid;
-	grid-template-columns: auto 1fr;
-	gap: 0.25em 1.5em;
-	margin: 0;
-	font-size: 14px;
-	color: var(--text-dark);
-}
-.game.result.stats dt { font-weight: 600; margin: 0; }
-.game.result.stats dd { margin: 0; }
-
-/* 结算 dialog：提示文案（自有类，不依赖库内部类） */
-.game.result .hint {
-	font-size: 12px;
-	color: var(--text-dark);
-	margin: 0 0 0.5rem;
-	opacity: 0.85;
-}
-
-/* 设置弹层：请用 el-dialog + el-form / el-form-item 等组件，避免自定义 .settings-panel 等类 */
-
-/* 自定义数字显示区域：customize unit display area */
+/* 自定义数字显示区域 */
 .customize.unit.display.area .list {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
@@ -162,16 +69,4 @@ article.gaming.area .slide-layer .cell {
 	overflow: hidden;
 	font-size: clamp(12px, 3vw, 20px);
 }
-
 .cell .unit.preview-error { background: #f8d7da !important; }
-
-/* 当前得分：卡片 body 使用 body-class="score-value"，分数大且醒目 */
-.scoreboard .value {
-	font-size: clamp(1.75rem, 5vw, 2.5rem);
-	font-weight: 700;
-	text-align: center;
-	line-height: 1.2;
-	color: var(--text-dark, #5a6b52);
-}
-
-

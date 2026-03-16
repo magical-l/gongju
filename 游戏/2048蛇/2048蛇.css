@@ -1,100 +1,13 @@
-/* 2048蛇 网页版 - 样式限定在 article.gaming.area 内 */
+/* 2048蛇 网页版 - 样式限定在 .gaming.area 内，通用见 biz.css */
+
 :root {
 	--page-bg: #e8f0e0;
-	--text-dark: #5a6b52;
-	--text-light: #f5f9f2;
-	--board-bg: #b8c9a8;
-	--grid-line: #9bad8f;
-	--cell-empty: #d4e0c8;
-	--unit-radius: 0;
-	--board-radius: 8px;
-	--board-padding: 12px;
 }
 
-/* 主地图区仅补充颜色（尺寸见 biz.css） */
-.main.map.area {
-	color: var(--text-dark);
-}
-
-.pause-overlay {
-	position: absolute;
-	inset: 0;
-	z-index: 10;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	background: rgba(0, 0, 0, 0.5);
-	border-radius: var(--board-radius, 8px);
-	pointer-events: auto;
-}
-.pause-overlay-inner {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 1rem;
-}
-.pause-overlay-text {
-	font-size: clamp(1.25rem, 4vw, 2rem);
-	font-weight: 600;
-	color: var(--text-light, #f5f9f2);
-	text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-}
-.pause-overlay-hint {
-	margin: 0;
-	font-size: 0.875rem;
-	color: rgba(255, 255, 255, 0.85);
-}
-
-article.gaming.area .board {
-	display: grid;
-	grid-template-columns: repeat(var(--board-cols, 8), 1fr);
-	grid-template-rows: repeat(var(--board-rows, 8), 1fr);
-	width: 100%;
-	height: 100%;
+/* 本页 .board 需 min-height（通用见 biz.css） */
+.gaming.area .board {
 	min-height: 200px;
-	gap: 0;
-	padding: var(--board-padding);
-	background: var(--board-bg);
-	border: 2px solid var(--grid-line);
-	border-radius: var(--board-radius);
-	position: relative;
-	box-sizing: border-box;
 }
-
-article.gaming.area .board .cell {
-	background: var(--cell-empty);
-	border-radius: var(--unit-radius);
-	min-width: 0;
-	min-height: 0;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-.cell > .unit {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-weight: bold;
-	color: var(--text-light);
-	border-radius: var(--unit-radius);
-	font-size: clamp(12px, 4vw, 24px);
-	user-select: none;
-	-webkit-user-select: none;
-	background: #4a5a42;
-}
-
-.unit.unit-2 { background: #e2ead8; color: #5a6b52; }
-.unit.unit-4 { background: #d4e0c8; color: #5a6b52; }
-.unit.unit-8 { background: #a8c99e; }
-.unit.unit-16 { background: #8fbc85; }
-.unit.unit-32 { background: #7cb37a; }
-.unit.unit-64 { background: #6ba36b; }
-.unit.unit-128 { background: #9cb87c; }
-.unit.unit-256 { background: #8ab06e; }
-.unit.unit-512 { background: #7aa862; }
-.unit.unit-1024 { background: #6a9f56; }
-.unit.unit-2048 { background: #5a8f4a; }
 
 .unit img {
 	width: 100%;
@@ -123,33 +36,7 @@ article.gaming.area .board .cell {
 	z-index: 2;
 }
 
-/* 蛇头可加高亮（与普通格区分） */
+/* 蛇头高亮（与普通格区分） */
 .cell > .unit.snake-head {
 	box-shadow: inset 0 0 0 2px rgba(255,255,255,0.4);
-}
-
-.game.result.stats {
-	display: grid;
-	grid-template-columns: auto 1fr;
-	gap: 0.25em 1.5em;
-	margin: 0;
-	font-size: 14px;
-	color: var(--text-dark);
-}
-.game.result.stats dt { font-weight: 600; margin: 0; }
-.game.result.stats dd { margin: 0; }
-
-.game.result .hint {
-	font-size: 12px;
-	color: var(--text-dark);
-	margin: 0 0 0.5rem;
-	opacity: 0.85;
-}
-
-.scoreboard .value {
-	font-size: clamp(1.75rem, 5vw, 2.5rem);
-	font-weight: 700;
-	text-align: center;
-	line-height: 1.2;
-	color: var(--text-dark, #5a6b52);
 }
