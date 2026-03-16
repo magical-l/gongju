@@ -23,6 +23,7 @@
 	padding: 0;
 	display: flex;
 	flex-direction: column;
+	justify-content: flex-start; /* 与 right-sidebar 上沿对齐，不垂直居中 */
 	align-items: center;
 	gap: 12px;
 	font-family: system-ui, -apple-system, sans-serif;
@@ -31,27 +32,17 @@
 	-webkit-user-select: none;
 }
 
-/* 棋盘外一层用布局类 flex multi-line…，此处仅约束宽度 */
-.main.map.area > .flex.multi-line {
-	width: 100%;
-}
-
-.main.map.area .wrap {
-	position: relative;
+/* 主地图区负责定位（position: relative 已在上方）；棋盘 .board 自管尺寸与网格 */
+article.gaming.area .main.map.area .board {
 	flex: 0 0 auto;
 	width: 100%;
 	max-width: min(480px, 92vw);
 	aspect-ratio: var(--board-cols, 8) / var(--board-rows, 12);
 	max-height: min(75vh, 800px);
 	min-height: min(280px, 50vmin);
-}
-
-article.gaming.area .board {
 	display: grid;
 	grid-template-columns: repeat(var(--board-cols, 8), 1fr);
 	grid-template-rows: repeat(var(--board-rows, 12), 1fr);
-	width: 100%;
-	height: 100%;
 	gap: var(--grid-gap);
 	padding: var(--board-padding);
 	background: var(--board-bg);
@@ -61,7 +52,7 @@ article.gaming.area .board {
 	box-sizing: border-box;
 }
 
-article.gaming.area .board .cell {
+article.gaming.area .main.map.area .board .cell {
 	background: var(--cell-empty);
 	border-radius: var(--unit-radius);
 	position: relative;
@@ -98,7 +89,7 @@ article.gaming.area .board .cell {
 .unit.unit-1024 { background: #6a9f56; }
 .unit.unit-2048 { background: #5a8f4a; }
 
-article.gaming.area .board .cell > .unit {
+article.gaming.area .main.map.area .board .cell > .unit {
 	position: absolute;
 	inset: var(--grid-gap);
 }
@@ -108,30 +99,22 @@ article.gaming.area .board .cell > .unit {
 	0%, 100% { background: rgba(255, 255, 255, 0.95); color: #333; }
 	50% { background: rgba(255, 240, 180, 0.98); color: #333; }
 }
-article.gaming.area .board .cell.clearing {
+article.gaming.area .main.map.area .board .cell.clearing {
 	animation: clear-line-flash 0.12s ease-in-out infinite;
 }
-article.gaming.area .board .cell.clearing > .unit {
+article.gaming.area .main.map.area .board .cell.clearing > .unit {
 	animation: clear-line-flash 0.12s ease-in-out infinite;
 }
 
 /* 下一块预览（侧栏 .info.area 本局信息上方） */
-article.gaming.area .next.area {
+.next-block {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	gap: 8px;
 	min-width: 100px;
 }
-aside.info.area .next.area {
-	margin-bottom: 12px;
-}
-.next.area .title {
-	font-size: 14px;
-	font-weight: 600;
-	color: var(--text-dark);
-}
-article.gaming.area .next.board {
+.next-block .board {
 	display: grid;
 	grid-template-columns: repeat(4, 1fr);
 	grid-template-rows: repeat(4, 1fr);
@@ -142,7 +125,7 @@ article.gaming.area .next.board {
 	border: none;
 	padding: 0;
 }
-article.gaming.area .next.board .cell {
+.next-block .board .cell {
 	background: transparent;
 	border-radius: 0;
 	min-width: 0;
@@ -152,13 +135,13 @@ article.gaming.area .next.board .cell {
 	justify-content: center;
 	box-shadow: none;
 }
-article.gaming.area .next.board .cell > .unit {
+.next-block .board .cell > .unit {
 	font-size: 12px;
 	border-radius: 0;
 }
 
 /* 暂停遮罩 */
-.wrap .pause.overlay {
+article.gaming.area .main.map.area .board .pause.overlay {
 	position: absolute;
 	inset: 0;
 	z-index: 10;
@@ -169,19 +152,17 @@ article.gaming.area .next.board .cell > .unit {
 	border-radius: var(--board-radius);
 	pointer-events: auto;
 }
-.wrap .pause.overlay > div {
-	display: flex;
+article.gaming.area .main.map.area .board .pause.overlay {
 	flex-direction: column;
-	align-items: center;
 	gap: 1rem;
 }
-.wrap .pause.overlay .title {
+article.gaming.area .main.map.area .board .pause.overlay .title {
 	font-size: clamp(1.25rem, 4vw, 2rem);
 	font-weight: 600;
 	color: var(--text-light);
 	text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
-.wrap .pause.overlay .hint {
+article.gaming.area .main.map.area .board .pause.overlay .hint {
 	margin: 0;
 	font-size: 0.875rem;
 	color: rgba(255, 255, 255, 0.85);

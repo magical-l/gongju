@@ -67,7 +67,7 @@
 	border-color: var(--el-color-primary-light-3);
 }
 
-/* el-dialog / el-drawer 等打开时锁 body 滚动；仅当 overlay 可见时锁（EP 用 v-show 控制，关闭时 style 含 display:none，避免常驻 DOM 导致整页无法滚动） */
-body:has(.el-overlay:not([style*="display:none"]):not([style*="display: none"])) {
+/* 打开 el-dialog / el-drawer 时，禁止背后的 body 滚动。 */
+body:has(.el-overlay:not([style*="display: none"]):not([style*="display:none"])) {
 	overflow: hidden;
 }

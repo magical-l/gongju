@@ -40,7 +40,8 @@ html {
 
 body {
 	max-inline-size: 100%;
-	min-height: 100vh; /* 确保布局撑满视口高度；不设 height 以便内容超出时整页可滚动 */
+	min-height: 100vh; /* 确保布局撑满视口高度 */
+	height: 100%; /*显式定义了高度且撑满父元素（html）*/
 	margin: 0;
 	padding: 0;
 

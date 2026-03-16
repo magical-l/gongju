@@ -95,24 +95,18 @@
 			</section>
 		</header>
 
-		<!-- 主地图区：棋盘 -->
+		<!-- 主地图区：定位在此；棋盘 .board 自管尺寸，内含暂停遮罩 -->
 		<section class="main map area , no-shrink , flex items-near-x-center" ref="boardWrap" tabindex="0" :style="boardWrapStyle">
-			<div class="flex multi-line items-near-x-center items-near-y-start">
-				<div class="wrap" :style="boardWrapInnerStyle">
-					<div class="board" :style="boardStyle" ref="board">
-						<div class="cell" :class="{ clearing: isRowClearing(cell.index) }" :data-index="cell.index" v-for="(cell, index) in boardCells" :key="index">
-							<div v-if="cell.unit" class="unit" :class="'unit-' + cell.unit.val" :data-index="cell.index">
-								{{ cell.unit.text }}
-							</div>
-						</div>
+			<div class="board" :style="boardWrapInnerStyle" ref="board">
+				<div class="cell" :class="{ clearing: isRowClearing(cell.index) }" :data-index="cell.index" v-for="(cell, index) in boardCells" :key="index">
+					<div v-if="cell.unit" class="unit" :class="'unit-' + cell.unit.val" :data-index="cell.index">
+						{{ cell.unit.text }}
 					</div>
-					<div class="pause overlay" v-show="paused">
-						<div>
-							<span class="title">已暂停</span>
-							<el-button type="success" size="large" @click="onTogglePause">开始</el-button>
-							<p class="hint">按空格开始</p>
-						</div>
-					</div>
+				</div>
+				<div class="pause overlay" v-show="paused">
+					<span class="title">已暂停</span>
+					<el-button type="success" size="large" @click="onTogglePause">开始</el-button>
+					<p class="hint">按空格开始</p>
 				</div>
 			</div>
 		</section>
@@ -120,15 +114,16 @@
 		<!-- 信息区 -->
 		<aside class="info area , right-sidebar">
 			<el-card shadow="never">
-				<div class="next area">
-					<span class="title">下一块</span>
-					<div class="next board">
-						<div class="cell" v-for="(c, idx) in nextPreviewCells" :key="idx">
-							<div v-if="c" class="unit" :class="'unit-' + c">{{ c }}</div>
-						</div>
-					</div>
-				</div>
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
+					<el-collapse-item title="下一块" name="next-block">
+						<div class="next-block">
+							<div class="board">
+								<div class="cell" v-for="(c, idx) in nextPreviewCells" :key="idx">
+									<div v-if="c" class="unit" :class="'unit-' + c">{{ c }}</div>
+								</div>
+							</div>
+						</div>
+					</el-collapse-item>
 					<el-collapse-item title="本局信息" name="gaming info" class="gaming info">
 						<div class="flex vertical">
 							<el-descriptions class="info list" :column="1" border>
