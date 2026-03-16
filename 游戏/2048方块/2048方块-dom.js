@@ -484,6 +484,31 @@ const stub = {
 	STORAGE_GAME_STATE_BLOCKS = logic.STORAGE_GAME_STATE_BLOCKS;
 	MIN_SWIPE_PX = constants.MIN_SWIPE_PX || 30;
 
+	function tryPauseOnClickOutside(e) {
+		if (paused) {
+			return;
+		}
+		if (!gameState || gameState.gameOver) {
+			return;
+		}
+		const mapArea = document.querySelector('.main.map.area');
+		if (!mapArea || !e.target) {
+			return;
+		}
+		if (mapArea.contains(e.target)) {
+			return;
+		}
+		paused = true;
+		stopFallTimer();
+		stopCascadeStepTimer();
+		if (view && view.setPaused) {
+			view.setPaused(paused);
+		}
+	}
+
+	document.addEventListener('mousedown', tryPauseOnClickOutside);
+	document.addEventListener('touchstart', tryPauseOnClickOutside, {passive: true});
+
 	document.addEventListener('keydown', function(e) {
 		if (gameState && gameState.overlayVisible) {
 			if (e.key === 'Enter' || e.key === ' ') {
