@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN" itemscope itemtype="https://schema.org/WebPage">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title itemprop="name">2048方块 | 工具兽 - 俄罗斯方块式数字合并</title>
+<meta name="description" content="2048方块：方块从顶部落下，左右移动、旋转、下落；相同数字接触合并，满行消除。与小程序 2048俄罗斯方块 玩法一致。"
+			itemprop="description">
+<meta name="keywords" content="2048方块,俄罗斯方块,数字合并,益智游戏,在线游戏">
+<meta name="author" content="工具兽">
+
+<link href="../../lib/element-plus/2.10.7/index.css" rel="stylesheet">
+<link href="../../resources/el-plus.css" rel="stylesheet">
+<link href="../../resources/common.css" rel="stylesheet">
+<link href="../../resources/layout.css" rel="stylesheet">
+<link href="../../resources/biz.css" rel="stylesheet">
+<link href="../../resources/花活.css" rel="stylesheet">
+<link href="2048方块.css" rel="stylesheet">
+</head>
+<body class="grid 反叵字形">
+<header>
+	<h1 class="website name" title="工具人（gongju.ren）域名太贵买不起">工具兽</h1>
+	<nav>
+		<div class="nav-row">
+			<a href="../../文本转化.html">文本转化</a>
+			<a href="../../数字转化.html">数字转化</a>
+			<a href="../../符号/符号.html">符号</a>
+			<a href="../../格子盘.html">格子盘</a>
+			<a href="../../svg转图标.html">SVG转图标</a>
+			<a href="../../化学/元素周期表.html">元素周期表</a>
+			<a href="../../拼音/拼音.html">拼音</a>
+		</div>
+		<div class="nav-row">
+			<a href="../中国象棋/中国象棋.html">中国象棋</a>
+			<a href="../五子棋/gobang.html">五子棋</a>
+			<a href="../俄罗斯方块.html">俄罗斯方块</a>
+			<a href="../贪吃蛇.html">贪吃蛇</a>
+			<a href="../2048/2048.html">2048</a>
+			<a href="../2048蛇/2048蛇.html">2048蛇</a>
+			<a href="2048俄罗斯方块.html" class="active">2048方块</a>
+			<a href="../点灯.html">点灯</a>
+			<a href="../数字华容道.html">数字华容道</a>
+			<a href="../星连星/星连星.html">星连星</a>
+		</div>
+	</nav>
+</header>
+<main>
+	<header>
+		<h2 class="game name">2048方块</h2>
+		<div class="page-lv help area" v-cloak>
+			<el-button title="游戏介绍" class="page-lv help btn" size="small" circle @click="introVisible=true">?</el-button>
+			<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
+				<p>2048方块：方块从顶部落下，用<strong>方向键</strong>或下方按钮<strong>左右移动、旋转、下落</strong>。相同数字接触会<strong>合并翻倍</strong>，满行<strong>消除</strong>得分。堆满无法生成新块即结束。</p>
+				<p><strong>操作</strong>：↑ 旋转，↓ 下落一格，← → 左右移动，一步到底可瞬间落底。空格暂停。新局与设置在工具栏。</p>
+			</el-dialog>
+		</div>
+	</header>
+	<article class="gaming area , 反叵字形 grid" tabindex="0" v-cloak>
+		<header class="toolbar , multi-line flex , items-near-x-center items-stretch no-gap">
+			<section class="setting list area , single-line flex , items-near-x-start items-near-y-center no-gap">
+				<div class="one setting group">
+					<el-form-item class="one setting : height">
+						<el-select v-model.number="boardHeight" @change="onBoardSizeChange">
+							<template #prefix>行</template>
+							<el-option v-for="h in boardSizeOptions" :key="h" :label="String(h)" :value="h"/>
+						</el-select>
+					</el-form-item>
+					<el-form-item class="one setting : width">
+						<el-select v-model.number="boardWidth" @change="onBoardSizeChange">
+							<template #prefix>列</template>
+							<el-option v-for="w in boardSizeOptions" :key="w" :label="String(w)" :value="w"/>
+						</el-select>
+					</el-form-item>
+				</div>
+				<div class="one setting group">
+					<el-form-item class="one setting : speed">
+						<el-select v-model.number="fallIntervalMs" @change="onSpeedChange">
+							<template #prefix>速度</template>
+							<el-option v-for="(opt, idx) in speedOptions" :key="opt.value" :label="opt.label" :value="opt.value"/>
+						</el-select>
+					</el-form-item>
+				</div>
+				<div class="one setting group">
+					<el-form-item class="one setting : restart">
+						<el-button type="danger" icon="RefreshRight" @click="onRestart">新局</el-button>
+					</el-form-item>
+				</div>
+			</section>
+			<section class="controller list area , single-line flex , items-near-x-start items-near-y-center no-gap">
+				<div class="one controller group">
+					<el-form-item class="one controller : pause">
+						<el-button :type="paused ? 'success' : 'warning'" :icon="paused ? 'VideoPlay' : 'VideoPause'" @click="onTogglePause">{{ paused ? '开始' : '暂停' }}</el-button>
+					</el-form-item>
+				</div>
+			</section>
+		</header>
+
+		<!-- 主地图区：棋盘 + 下一块 + 控制键 -->
+		<section class="main map area , no-shrink , flex items-near-x-center" ref="boardWrap" tabindex="0" :style="boardWrapStyle">
+			<div class="blocks-play-area">
+				<div class="blocks-board-wrap" :style="boardWrapInnerStyle">
+					<div class="board" :style="boardStyle" ref="board">
+						<div class="cell" :data-index="cell.index" v-for="(cell, index) in boardCells" :key="index">
+							<div v-if="cell.unit" class="unit" :class="'unit-' + cell.unit.val" :data-index="cell.index">
+								{{ cell.unit.text }}
+							</div>
+						</div>
+					</div>
+					<div class="pause-overlay" v-show="paused">
+						<div class="pause-overlay-inner">
+							<span class="pause-overlay-text">已暂停</span>
+							<el-button type="success" size="large" @click="onTogglePause">开始</el-button>
+							<p class="pause-overlay-hint">按空格开始</p>
+						</div>
+					</div>
+				</div>
+				<div class="blocks-ctrl-area">
+					<div class="blocks-ctrl-row">
+						<button type="button" class="blocks-ctrl-btn" @click="onCtrl('rotate')" title="旋转">↻</button>
+					</div>
+					<div class="blocks-ctrl-row">
+						<button type="button" class="blocks-ctrl-btn" @click="onCtrl('left')">←</button>
+						<button type="button" class="blocks-ctrl-btn" @click="onCtrl('down')">↓</button>
+						<button type="button" class="blocks-ctrl-btn" @click="onCtrl('right')">→</button>
+					</div>
+					<div class="blocks-ctrl-row">
+						<button type="button" class="blocks-ctrl-btn blocks-ctrl-hard" @click="onCtrl('hardDown')" title="一步到底">一步到底</button>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- 信息区 -->
+		<aside class="info area , right-sidebar">
+			<el-card shadow="never">
+				<div class="blocks-next-area info-next">
+					<span class="blocks-next-title">下一块</span>
+					<div class="blocks-next-board">
+						<div class="cell" v-for="(c, idx) in nextPreviewCells" :key="idx">
+							<div v-if="c" class="unit" :class="'unit-' + c">{{ c }}</div>
+						</div>
+					</div>
+				</div>
+				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
+					<el-collapse-item title="本局信息" name="gaming info" class="gaming info">
+						<div class="flex vertical">
+							<el-descriptions class="info list" :column="1" border>
+								<el-descriptions-item label="行">{{ gameBoardHeight }}</el-descriptions-item>
+								<el-descriptions-item label="列">{{ gameBoardWidth }}</el-descriptions-item>
+								<el-descriptions-item :label="gameBoardWidth && gameBoardHeight ? '最高记录 (' + gameBoardWidth + '×' + gameBoardHeight + ')' : '最高记录'">
+									{{ highScore }}
+								</el-descriptions-item>
+							</el-descriptions>
+							<el-card header="当前得分" class="scoreboard" body-class="value" shadow="never">
+								{{ score }}
+							</el-card>
+						</div>
+					</el-collapse-item>
+					<el-collapse-item title="快捷键" class="game shortcut" name="shortcut">
+					<p>↑ 旋转，↓ 下落一格，← → 左右移动，一步到底：瞬间落底</p>
+					<p>空格：暂停 / 开始</p>
+					<p>支持键盘与下方按钮，触屏可滑动</p>
+					</el-collapse-item>
+				</el-collapse>
+			</el-card>
+		</aside>
+
+		<!-- 结算区 -->
+		<el-dialog class="game result" v-model="gameResultVisible" :title="gameResultMessage" width="400px" align-center
+						 @opened="onResultDialogOpened" @closed="onResultOverlayClick">
+			<dl class="game result stats">
+				<dt>最终得分</dt><dd>{{ score }}</dd>
+			</dl>
+			<template #footer>
+				<p class="hint">按 Enter 或空格开始新局</p>
+				<el-button type="primary" @click="onResultRestart">新局</el-button>
+			</template>
+		</el-dialog>
+	</article>
+</main>
+
+<aside class="right-sidebar">
+	<article class="website info">
+		<section class="patronage area">
+			<img class="qr-code" src="../../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+			<p class="slogan">赞助一下</p>
+		</section>
+		<section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
+		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+		</section>
+	</article>
+</aside>
+
+<div class="js container">
+	<script src="../../lib/vue/3.5.18/vue.global.js"></script>
+	<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
+	<script src="../../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
+	<script src="../../resources/game-keys-area.js"></script>
+	<script src="constants.js"></script>
+	<script src="logic.js"></script>
+	<script src="2048方块-dom.js"></script>
+</div>
+<script type="module">
+	(function() {
+		const { createApp, reactive } = Vue;
+		const collapseKey = 'gaming-info-2048blocks';
+		const defaultPanels = ['shortcut', 'gaming info'];
+		let saved;
+		try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
+		const constants = window.Game2048BlocksConstants || {};
+		const boardSizeOptionsRows = constants.ROWS_OPTIONS || [8, 10, 12, 14, 16];
+		const boardSizeOptionsCols = constants.COLS_OPTIONS || [6, 8, 10, 12];
+		const speedOptions = (constants.SPEED_OPTIONS_MS || [1200, 700, 500, 350, 200]).map(function (ms, i) {
+			return { value: ms, label: (constants.SPEED_LABELS || ['慢', '中慢', '中', '快', '很快'])[i] || String(ms) };
+		});
+		const state = reactive({
+			score: 0,
+			highScore: 0,
+			boardHeight: 12,
+			boardWidth: 8,
+			fallIntervalMs: 500,
+			gameBoardHeight: 12,
+			gameBoardWidth: 8,
+			gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
+			_collapseKey: collapseKey,
+			_defaultPanels: defaultPanels,
+			boardView: { rows: 12, cols: 8, cells: [] },
+			lastStateForDisplay: null,
+			paused: true,
+			gameResultVisible: false,
+			gameResultMessage: '',
+		});
+		const mainApp = createApp({
+			data: () => state,
+			computed: {
+				boardSizeOptions() {
+					return { rows: boardSizeOptionsRows, cols: boardSizeOptionsCols };
+				},
+				speedOptions: () => speedOptions,
+				boardStyle() {
+					const r = state.boardView;
+					const rows = Math.max(1, (r && r.rows) || 8);
+					const cols = Math.max(1, (r && r.cols) || 8);
+					return { '--board-cols': cols, '--board-rows': rows };
+				},
+				boardWrapStyle() {
+					return {};
+				},
+				boardWrapInnerStyle() {
+					const r = state.boardView;
+					const rows = Math.max(1, (r && r.rows) || 8);
+					const cols = Math.max(1, (r && r.cols) || 8);
+					return { '--board-rows': rows, '--board-cols': cols };
+				},
+				boardCells() {
+					const cells = state.boardView.cells || [];
+					const rows = Math.max(1, state.boardView.rows || 8);
+					const cols = Math.max(1, state.boardView.cols || 8);
+					const total = rows * cols;
+					const s = state.lastStateForDisplay;
+					const getDisplay = v => (window.Game2048Blocks && window.Game2048Blocks.getTileDisplayContent(s, v)) || { type: 'number', value: v };
+					if (cells.length === 0) {
+						return Array.from({ length: total }, (_, i) => ({ index: i, value: 0, unit: null }));
+					}
+					const list = [];
+					for (let i = 0; i < total; i++) {
+						const val = cells[i] != null ? cells[i] : 0;
+						if (!val) {
+							list.push({ index: i, value: 0, unit: null });
+							continue;
+						}
+						const content = getDisplay(val);
+						let text = String(val);
+						if (content && content.type === 'text') text = content.text;
+						else if (content && content.value != null) text = String(content.value);
+						list.push({ index: i, value: val, unit: { val: val, text: text } });
+					}
+					return list;
+				},
+				nextPreviewCells() {
+					const s = state.lastStateForDisplay;
+					const next = s && s.nextPiece;
+					const out = Array(16).fill(null);
+					if (!next || !next.cells || !next.cells.length) return out;
+					const minDr = Math.min(...next.cells.map(c => c.dr));
+					const maxDr = Math.max(...next.cells.map(c => c.dr));
+					const minDc = Math.min(...next.cells.map(c => c.dc));
+					const maxDc = Math.max(...next.cells.map(c => c.dc));
+					const rows = maxDr - minDr + 1;
+					const cols = maxDc - minDc + 1;
+					const offsetRow = Math.floor((4 - rows) / 2);
+					const offsetCol = Math.floor((4 - cols) / 2);
+					for (let i = 0; i < next.cells.length; i++) {
+						const c = next.cells[i];
+						const pr = c.dr - minDr + offsetRow;
+						const pc = c.dc - minDc + offsetCol;
+						if (pr >= 0 && pr < 4 && pc >= 0 && pc < 4) {
+							out[pr * 4 + pc] = c.value;
+						}
+					}
+					return out;
+				},
+			},
+			methods: {
+				onBoardSizeChange() {
+					window.Game2048Blocks.applyBoardSettings({
+						boardHeight: state.boardHeight,
+						boardWidth: state.boardWidth,
+						fallIntervalMs: state.fallIntervalMs,
+					});
+				},
+				onSpeedChange() {
+					window.Game2048Blocks.applyBoardSettings({
+						boardHeight: state.boardHeight,
+						boardWidth: state.boardWidth,
+						fallIntervalMs: state.fallIntervalMs,
+					});
+				},
+				onRestart() {
+					window.Game2048Blocks.applyBoardSettings({
+						boardHeight: state.boardHeight,
+						boardWidth: state.boardWidth,
+						fallIntervalMs: state.fallIntervalMs,
+					});
+					state.gameBoardWidth = state.boardWidth;
+					state.gameBoardHeight = state.boardHeight;
+					window.Game2048Blocks.onResultRestart();
+				},
+				onTogglePause() {
+					if (window.Game2048Blocks && window.Game2048Blocks.togglePause) {
+						window.Game2048Blocks.togglePause();
+						state.paused = window.Game2048Blocks.getPaused();
+					}
+				},
+				onCtrl(action) {
+					if (window.Game2048Blocks && window.Game2048Blocks.handleAction) {
+						window.Game2048Blocks.handleAction(action);
+					}
+				},
+				onGamingInfoCollapseChange(val) {
+					const def = this._defaultPanels || [];
+					const open = val || [];
+					const isAllExpanded = def.length === open.length && def.every(p => open.indexOf(p) !== -1);
+					try {
+						if (isAllExpanded) localStorage.removeItem(this._collapseKey);
+						else localStorage.setItem(this._collapseKey, JSON.stringify(open));
+					} catch (_) {}
+				},
+				onResultDialogOpened() {
+					document.body.classList.add('no-scroll');
+				},
+				onResultOverlayClick() {
+					document.body.classList.remove('no-scroll');
+					window.Game2048Blocks.onResultRestart();
+				},
+				onResultRestart() {
+					window.Game2048Blocks.onResultRestart();
+				},
+			},
+			mounted() {
+				const api = window.Game2048Blocks;
+				if (!api) return;
+				const bridge = {
+					setGameResult(visible, message, sub, isWin) {
+						state.gameResultVisible = !!visible;
+						state.gameResultMessage = message != null ? String(message) : '';
+					},
+					setBoardView(board, rows, cols, gameState) {
+						const cells = (board || []).map((v, i) => (v || 0));
+						state.boardView = { rows: rows, cols: cols, cells: cells };
+						state.lastStateForDisplay = gameState;
+					},
+					commitState(gameState) {
+						if (!gameState) return;
+						bridge.updateScores(gameState.score, gameState.highScore, gameState.boardWidth, gameState.boardHeight);
+						bridge.setBoardView(gameState.board, gameState.boardHeight, gameState.boardWidth, gameState);
+						const vis = !!(gameState.overlayVisible && gameState.overlayMessage);
+						bridge.setGameResult(vis, gameState.overlayMessage || '', gameState.gameOver ? '最终得分：' + gameState.score : '', false);
+					},
+					updateScores(score, highScore, boardWidth, boardHeight) {
+						state.score = score;
+						state.highScore = highScore;
+						if (boardWidth != null) state.gameBoardWidth = boardWidth;
+						if (boardHeight != null) state.gameBoardHeight = boardHeight;
+					},
+					syncToolbarSettings() {
+						const s = api.getBoardSettings();
+						if (s) {
+							state.boardHeight = s.boardHeight;
+							state.boardWidth = s.boardWidth;
+							state.gameBoardHeight = s.boardHeight;
+							state.gameBoardWidth = s.boardWidth;
+							state.fallIntervalMs = s.fallIntervalMs;
+						}
+					},
+					setPaused(p) {
+						state.paused = !!p;
+					},
+				};
+				api.init(bridge);
+				state.paused = api.getPaused ? api.getPaused() : true;
+				this.$nextTick(() => {
+					const wrap = this.$refs.boardWrap;
+					if (!wrap) return;
+					let touchStartX = 0, touchStartY = 0;
+					wrap.addEventListener('touchstart', e => {
+						const t = e.touches[0];
+						if (t) { touchStartX = t.clientX; touchStartY = t.clientY; }
+					}, { passive: true });
+					wrap.addEventListener('touchend', e => {
+						const t = e.changedTouches[0];
+						if (t) api.onGesture(t.clientX - touchStartX, t.clientY - touchStartY);
+					}, { passive: true });
+					let mouseDownX = 0, mouseDownY = 0;
+					wrap.addEventListener('mousedown', e => { mouseDownX = e.clientX; mouseDownY = e.clientY; });
+					wrap.addEventListener('mouseup', e => api.onGesture(e.clientX - mouseDownX, e.clientY - mouseDownY));
+				});
+			},
+		});
+		mainApp.use(ElementPlus);
+		if (typeof ElementPlusIconsVue !== 'undefined') {
+			for (const k in ElementPlusIconsVue) mainApp.component(k, ElementPlusIconsVue[k]);
+		}
+		mainApp.mount('article.gaming.area');
+		const helpApp = createApp({
+			data: () => ({ introVisible: false }),
+		});
+		helpApp.use(ElementPlus);
+		if (typeof ElementPlusIconsVue !== 'undefined') {
+			for (const k in ElementPlusIconsVue) helpApp.component(k, ElementPlusIconsVue[k]);
+		}
+		helpApp.mount('.help.area');
+	})();
+</script>
+</body>
+</html>
