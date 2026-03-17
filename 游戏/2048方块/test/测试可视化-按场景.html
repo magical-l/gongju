@@ -88,12 +88,31 @@
 
 		// 形状排序顺序
 		var SHAPE_ORDER = { I: 0, O: 1, T: 2, Z: 3, S: 4, J: 5, L: 6 };
+		function countBlocksInLastRow(tc) {
+			var last = tc.before[tc.rows - 1];
+			if (!last) return 0;
+			var n = 0;
+			for (var c = 0; c < last.length; c++) if (last[c] === 2) n++;
+			return n;
+		}
+		function getColumnSet(tc) {
+			var last = tc.before[tc.rows - 1];
+			if (!last) return [];
+			var cols = [];
+			for (var c = 0; c < last.length; c++) if (last[c] === 2) cols.push(c);
+			return cols;
+		}
+		function blockCount(tc) {
+			if (tc.pileBlocks) return tc.pileBlocks;
+			if (tc.sortKey != null) return countBlocksInLastRow(tc);
+			return 1;
+		}
 		function sortCases(cases) {
+			// 排序：形状 → 角度 → 块数 → 列坐标集
 			function colKey(tc) {
-				if (tc.sortKey != null) return tc.sortKey;
-				if (tc.columnIndex != null) return tc.columnIndex;
-				if (tc.pileBlocks != null) return 100 + tc.pileBlocks;
-				return 0;
+				var n = blockCount(tc);
+				if (n === 1) return 1000 + (tc.columnIndex != null ? tc.columnIndex : 0);
+				return n * 1000 + (tc.sortKey != null ? tc.sortKey : 0);
 			}
 			return cases.slice().sort(function(a, b) {
 				var so = SHAPE_ORDER[a.shape] - SHAPE_ORDER[b.shape];
@@ -102,6 +121,20 @@
 				if (ro !== 0) return ro;
 				return colKey(a) - colKey(b);
 			});
+		}
+		function isFullRowColumnSet(cols, colsLen) {
+			if (cols.length !== colsLen) return false;
+			for (var i = 0; i < colsLen; i++) if (cols[i] !== i) return false;
+			return true;
+		}
+		function blockLabel(tc) {
+			var n = blockCount(tc);
+			if (n > 1) {
+				var cols = getColumnSet(tc);
+				if (isFullRowColumnSet(cols, tc.cols)) return n + '块';
+				return n + '块(列' + cols.join('、') + ')';
+			}
+			return '1块(列' + (tc.columnIndex != null ? tc.columnIndex : 0) + ')';
 		}
 
 		// 每个卡片：形状 + 角度 + 固定块堆情形（before/expected）。rotation 即 piece.rotation。
@@ -121,6 +154,8 @@
 					{ shape: 'I', rotation: 1, ticks: 1, rows: 2, cols: 4, before: [[0,0,0,0],[0,2,2,0]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, sortKey: 6, label: '列2起2块', expected: [[0,0,0,0],[2,4,4,2]] },
 					{ shape: 'I', rotation: 1, ticks: 1, rows: 2, cols: 4, before: [[0,0,0,0],[0,2,0,2]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, sortKey: 7, label: '列2起2块', expected: [[0,0,0,0],[2,4,2,4]] },
 					{ shape: 'I', rotation: 1, ticks: 1, rows: 2, cols: 4, before: [[0,0,0,0],[0,2,2,2]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, sortKey: 8, label: '列2起3块', expected: [[0,0,0,0],[2,4,4,4]] },
+					{ shape: 'I', rotation: 1, ticks: 1, rows: 2, cols: 4, before: [[0,0,0,0],[2,2,0,2]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, sortKey: 10, expected: [[0,0,0,0],[4,4,2,4]] },
+					{ shape: 'I', rotation: 1, ticks: 1, rows: 2, cols: 4, before: [[0,0,0,0],[2,0,2,2]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, sortKey: 11, expected: [[0,0,0,0],[4,2,4,4]] },
 					{ shape: 'I', rotation: 1, ticks: 1, rows: 2, cols: 4, before: [[0,0,0,0],[0,0,2,2]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, sortKey: 9, label: '列3起2块', expected: [[0,0,0,0],[2,2,4,4]] },
 					{ shape: 'O', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,0]], piece: { shape: 'O', rotation: 0, row: 1, col: 0 }, columnIndex: 0, expected: [[0,0],[0,0],[2,2],[4,2]] },
 					{ shape: 'O', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[0,2]], piece: { shape: 'O', rotation: 0, row: 1, col: 0 }, columnIndex: 1, expected: [[0,0],[0,0],[2,2],[2,4]] },
@@ -143,21 +178,31 @@
 					{ shape: 'T', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,2,2]], piece: { shape: 'T', rotation: 3, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[2,2,2],[0,4,2]] },
 					{ shape: 'T', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,2,2]], piece: { shape: 'T', rotation: 3, row: 0, col: 0 }, pileBlocks: 3, expected: [[0,0,0],[2,2,2],[2,4,2]] },
 					{ shape: 'Z', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,0]], piece: { shape: 'Z', rotation: 0, row: 0, col: 0 }, columnIndex: 0, expected: [[0,0],[0,2],[2,2],[4,0]] },
+					{ shape: 'Z', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[0,2]], piece: { shape: 'Z', rotation: 0, row: 0, col: 0 }, columnIndex: 1, expected: [[0,0],[0,2],[2,2],[2,2]] },
+					{ shape: 'Z', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,0,0]], piece: { shape: 'Z', rotation: 1, row: 0, col: 0 }, columnIndex: 0, expected: [[0,0,0],[2,2,0],[2,2,2]] },
 					{ shape: 'Z', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,2,0]], piece: { shape: 'Z', rotation: 1, row: 0, col: 0 }, columnIndex: 1, expected: [[0,0,0],[2,2,0],[0,4,2]] },
 					{ shape: 'Z', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,0,2]], piece: { shape: 'Z', rotation: 1, row: 0, col: 0 }, columnIndex: 2, expected: [[0,0,0],[2,2,0],[0,2,4]] },
+					{ shape: 'S', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,0]], piece: { shape: 'S', rotation: 0, row: 0, col: 0 }, columnIndex: 0, expected: [[0,0],[2,0],[2,2],[2,2]] },
 					{ shape: 'S', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[0,2]], piece: { shape: 'S', rotation: 0, row: 0, col: 0 }, columnIndex: 1, expected: [[0,0],[2,0],[2,2],[0,4]] },
 					{ shape: 'S', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,0,0]], piece: { shape: 'S', rotation: 1, row: 0, col: 0 }, columnIndex: 0, expected: [[0,0,0],[0,2,2],[4,2,0]] },
 					{ shape: 'S', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,2,0]], piece: { shape: 'S', rotation: 1, row: 0, col: 0 }, columnIndex: 1, expected: [[0,0,0],[0,2,2],[2,4,0]] },
+					{ shape: 'S', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,0,2]], piece: { shape: 'S', rotation: 1, row: 0, col: 0 }, columnIndex: 2, expected: [[0,0,0],[0,2,2],[2,2,2]] },
 					{ shape: 'J', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,0]], piece: { shape: 'J', rotation: 0, row: 0, col: 0 }, columnIndex: 0, expected: [[0,0],[0,2],[0,2],[4,2]] },
 					{ shape: 'J', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[0,2]], piece: { shape: 'J', rotation: 0, row: 0, col: 0 }, columnIndex: 1, expected: [[0,0],[0,2],[0,2],[2,4]] },
 					{ shape: 'J', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,0,0]], piece: { shape: 'J', rotation: 1, row: 0, col: 0 }, columnIndex: 0, expected: [[0,0,0],[2,0,0],[4,2,2]] },
 					{ shape: 'J', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,2,0]], piece: { shape: 'J', rotation: 1, row: 0, col: 0 }, columnIndex: 1, expected: [[0,0,0],[2,0,0],[2,4,2]] },
 					{ shape: 'J', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,0,2]], piece: { shape: 'J', rotation: 1, row: 0, col: 0 }, columnIndex: 2, expected: [[0,0,0],[2,0,0],[2,2,4]] },
 					{ shape: 'J', rotation: 2, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,0]], piece: { shape: 'J', rotation: 2, row: 0, col: 0 }, columnIndex: 0, expected: [[0,0],[2,2],[2,0],[4,0]] },
+					{ shape: 'J', rotation: 2, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[0,2]], piece: { shape: 'J', rotation: 2, row: 0, col: 0 }, columnIndex: 1, expected: [[0,0],[2,2],[2,0],[2,2]] },
+					{ shape: 'J', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,0,0]], piece: { shape: 'J', rotation: 3, row: 0, col: 0 }, columnIndex: 0, expected: [[0,0,0],[2,2,2],[2,0,2]] },
+					{ shape: 'J', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,2,0]], piece: { shape: 'J', rotation: 3, row: 0, col: 0 }, columnIndex: 1, expected: [[0,0,0],[2,2,2],[0,2,2]] },
 					{ shape: 'J', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,0,2]], piece: { shape: 'J', rotation: 3, row: 0, col: 0 }, columnIndex: 2, expected: [[0,0,0],[2,2,2],[0,0,4]] },
 					{ shape: 'L', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,0]], piece: { shape: 'L', rotation: 0, row: 0, col: 0 }, columnIndex: 0, expected: [[0,0],[2,0],[2,0],[4,2]] },
 					{ shape: 'L', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[0,2]], piece: { shape: 'L', rotation: 0, row: 0, col: 0 }, columnIndex: 1, expected: [[0,0],[2,0],[2,0],[2,4]] },
 					{ shape: 'L', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,0,0]], piece: { shape: 'L', rotation: 1, row: 0, col: 0 }, columnIndex: 0, expected: [[0,0,0],[2,2,2],[4,0,0]] },
+					{ shape: 'L', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,2,0]], piece: { shape: 'L', rotation: 1, row: 0, col: 0 }, columnIndex: 1, expected: [[0,0,0],[2,2,2],[2,2,0]] },
+					{ shape: 'L', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,0,2]], piece: { shape: 'L', rotation: 1, row: 0, col: 0 }, columnIndex: 2, expected: [[0,0,0],[2,2,2],[2,0,2]] },
+					{ shape: 'L', rotation: 2, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,0]], piece: { shape: 'L', rotation: 2, row: 0, col: 0 }, columnIndex: 0, expected: [[0,0],[2,2],[0,2],[2,2]] },
 					{ shape: 'L', rotation: 2, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[0,2]], piece: { shape: 'L', rotation: 2, row: 0, col: 0 }, columnIndex: 1, expected: [[0,0],[2,2],[0,2],[0,4]] },
 					{ shape: 'L', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,0,0]], piece: { shape: 'L', rotation: 3, row: 0, col: 0 }, columnIndex: 0, expected: [[0,0,0],[0,0,2],[4,2,2]] },
 					{ shape: 'L', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,2,0]], piece: { shape: 'L', rotation: 3, row: 0, col: 0 }, columnIndex: 1, expected: [[0,0,0],[0,0,2],[2,4,2]] },
@@ -282,7 +327,7 @@
 				var card = document.createElement('div');
 				card.className = 'card';
 				card.innerHTML =
-					'<div class="card-title">' + tc.shape + ' ' + (ROT_LABELS[rot] || rot + '°') + (tc.label != null ? ' ' + tc.label : (tc.columnIndex != null ? ' 列' + tc.columnIndex : '')) + (tc.pileBlocks != null ? ' ' + tc.pileBlocks + '块' : '') + '</div>' +
+					'<div class="card-title">' + tc.shape + ' ' + (ROT_LABELS[rot] || rot + '°') + ' ' + blockLabel(tc) + '</div>' +
 					'<div class="card-boards">' +
 					'<div class="card-row"><span class="label">初始</span>' + renderBoardSm(tc.before, tc.rows, tc.cols, piece) + '</div>' +
 					'<div class="card-row"><span class="label">期望</span>' + renderBoardSm(tc.expected, tc.rows, tc.cols, null) + '</div>' +
