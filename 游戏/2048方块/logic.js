@@ -33,6 +33,46 @@
 	/** 消行基础分系数（玩法 12.2），供 getLineClearBaseScore 使用 */
 	const SCORE_BY_LINES = [0, 40, 100, 300, 1200];
 
+	/** 前进方向：{ dr, dc }，与坐标轴无关，如向下为 dr=1, dc=0 */
+	const DIR_DOWN = { dr: 1, dc: 0 };
+	const DIR_LEFT = { dr: 0, dc: -1 };
+	const DIR_RIGHT = { dr: 0, dc: 1 };
+
+	/**
+	 * 方格：维护自己的数字；合并时数字翻倍。
+	 */
+	function Cell(value) {
+		this.value = value == null ? 2 : value;
+	}
+	Cell.prototype.merge = function() {
+		this.value *= 2;
+		return this.value;
+	};
+
+	/**
+	 * 方块（活动块）：维护位置与方格列表，可沿某方向取「最前线」格。
+	 * 最前线 = 该方向上没有同块其它格的格（即前进方向上的“首格”）。
+	 */
+	function Block(row, col, cells) {
+		this.row = row;
+		this.col = col;
+		this.cells = cells;
+	}
+	Block.prototype.getFrontLineCells = function(direction) {
+		var dr = direction.dr, dc = direction.dc;
+		return this.cells.filter(function(c) {
+			return !this.cells.some(function(c2) {
+				return c2.dr === c.dr + dr && c2.dc === c.dc + dc;
+			});
+		}, this);
+	};
+	Block.prototype.getTargetRowCol = function(cell, direction) {
+		return {
+			r: this.row + cell.dr + direction.dr,
+			c: this.col + cell.dc + direction.dc,
+		};
+	};
+
 	/** 消行基础分（玩法 11）：消除 n 行时返回 SCORE_n × (level+1)，n 取 1～4。接口预留，计分可后续接入。 */
 	function getLineClearBaseScore(numLinesCleared, level) {
 		level = level != null && Number.isFinite(level) ? Math.max(0, level) : 0;
@@ -113,9 +153,11 @@
 		
 	}
 
-	function getContactCells(piece) {
+	/** 按前进方向返回最前线格（该方向上没有同块其它格的格）。不限定 y 轴，由 direction 决定。 */
+	function getFrontLineCells(piece, direction) {
+		var dr = direction.dr, dc = direction.dc;
 		return piece.cells.filter(function(c) {
-			return !piece.cells.some(function(c2) { return c2.dr === c.dr + 1 && c2.dc === c.dc; });
+			return !piece.cells.some(function(c2) { return c2.dr === c.dr + dr && c2.dc === c.dc + dc; });
 		});
 	}
 
@@ -590,12 +632,13 @@
 			}
 
 			const pieceRow = piece.row;
-			const contactCells = getContactCells(piece);
+			const direction = DIR_DOWN;
+			const frontLineCells = getFrontLineCells(piece, direction);
 
-			let hitBottom = false;
-			for (let i = 0; i < contactCells.length; i++) {
-				const rowBelow = pieceRow + contactCells[i].dr + 1;
-				if (rowBelow >= rows) {
+			var hitBottom = false;
+			for (var fi = 0; fi < frontLineCells.length; fi++) {
+				var targetR = pieceRow + frontLineCells[fi].dr + direction.dr;
+				if (targetR >= rows) {
 					hitBottom = true;
 					break;
 				}
@@ -615,22 +658,25 @@
 				return spawnNextAfterLock(Object.assign({}, g, {board: board, pieceCount: nextCount}));
 			}
 
-			let canFallOrMerge = true;
-			for (let i = 0; i < contactCells.length; i++) {
-				const cell = contactCells[i];
-				const rowBelow = pieceRow + cell.dr + 1;
-				const col = piece.col + cell.dc;
-				const below = col >= 0 && col < cols ? board[rowBelow][col] : -1;
-				if (below !== 0 && below !== cell.value) {
-					canFallOrMerge = false;
+			// 仅看前进方向上的「最前线」格：每个这样的格在前进方向上的目标格，要么为空要么为同数（二者满足其一即可，不是「全部为空」或「全部为同数」）。任一方格在该方向不可行进则整块不可行进，锁定。
+			var canMove = true;
+			for (var ci = 0; ci < frontLineCells.length; ci++) {
+				var cell = frontLineCells[ci];
+				var targetR = pieceRow + cell.dr + direction.dr;
+				var targetC = piece.col + cell.dc + direction.dc;
+				if (targetC < 0 || targetC >= cols || targetR >= rows || targetR < 0 || !board[targetR]) {
+					continue;
+				}
+				var targetValue = board[targetR][targetC];
+				if (targetValue !== 0 && targetValue !== cell.value) {
+					canMove = false;
 					break;
 				}
 			}
-
-			if (!canFallOrMerge) {
+			if (!canMove) {
 				writePieceToBoard(board, rows, cols, Object.assign({}, piece, {row: pieceRow}));
-				const nextCount = g.pieceCount + 1;
-				const fullRows = getFullRowIndices(board, rows, cols);
+				var nextCount = g.pieceCount + 1;
+				var fullRows = getFullRowIndices(board, rows, cols);
 				if (fullRows.length > 0) {
 					return Object.assign({}, g, {
 						board: board,
@@ -642,37 +688,44 @@
 				return spawnNextAfterLock(Object.assign({}, g, {board: board, pieceCount: nextCount}));
 			}
 
-			const newRow = pieceRow + 1;
-			const updatedCells = piece.cells.map(function(cell) {
-				const hasBelowInPiece = piece.cells.some(function(c2) { return c2.dr === cell.dr + 1 && c2.dc === cell.dc; });
-				if (hasBelowInPiece) {
+			// 最前线均允许：整块沿前进方向移一格；其中目标格同数的做合并（合并后数字翻倍写入目标格）
+			var newRow = pieceRow + direction.dr;
+			var newCol = piece.col + direction.dc;
+			var mergedCount = 0;
+			var updatedCells = piece.cells.map(function(cell) {
+				var targetR = pieceRow + cell.dr + direction.dr;
+				var targetC = piece.col + cell.dc + direction.dc;
+				if (targetC < 0 || targetC >= cols || targetR >= rows || targetR < 0 || !board[targetR]) {
 					return Object.assign({}, cell);
 				}
-				const rowBelow = pieceRow + cell.dr + 1;
-				const col = piece.col + cell.dc;
-				if (col < 0 || col >= cols) {
-					return Object.assign({}, cell);
-				}
-				const below = board[rowBelow][col];
-				if (below === cell.value) {
-					const pr = pieceRow + cell.dr;
-					board[pr][col] = 0;
-					board[rowBelow][col] = cell.value * 2;
+				var targetValue = board[targetR][targetC];
+				if (targetValue === cell.value) {
+					mergedCount++;
 					return Object.assign({}, cell, {value: cell.value * 2, merged: true});
 				}
 				return Object.assign({}, cell);
 			});
 
-			let mergedCount = 0;
-			for (let i = 0; i < contactCells.length; i++) {
-				const c = contactCells[i];
-				const rowBelow = pieceRow + c.dr + 1;
-				const col = piece.col + c.dc;
-				if (col >= 0 && col < cols && board[rowBelow][col] === c.value * 2) {
-					mergedCount++;
+			// 整块离开原位置：清空所有块格在棋盘上的原格。未参与合并的格随整块一起移动，不单独写入棋盘空位（不「填空隙」）。
+			piece.cells.forEach(function(cell) {
+				var r = pieceRow + cell.dr;
+				var c = piece.col + cell.dc;
+				if (r >= 0 && r < rows && c >= 0 && c < cols && board[r]) {
+					board[r][c] = 0;
 				}
-			}
-			piece = Object.assign({}, piece, {row: newRow, cells: updatedCells, mergeCount: piece.mergeCount + mergedCount});
+			});
+			// 合并结果写入前进方向上的目标格
+			piece.cells.forEach(function(cell, idx) {
+				if (!updatedCells[idx].merged) {
+					return;
+				}
+				var targetR = pieceRow + cell.dr + direction.dr;
+				var targetC = piece.col + cell.dc + direction.dc;
+				if (board[targetR]) {
+					board[targetR][targetC] = cell.value * 2;
+				}
+			});
+			piece = Object.assign({}, piece, {row: newRow, col: newCol, cells: updatedCells, mergeCount: piece.mergeCount + mergedCount});
 			return Object.assign({}, g, {board: board, currentPiece: piece});
 		}
 	}
@@ -860,5 +913,11 @@
 		getFullRowIndices: getFullRowIndices,
 		serializeGameState: serializeGameState,
 		deserializeGameState: deserializeGameState,
+		Cell: Cell,
+		Block: Block,
+		getFrontLineCells: getFrontLineCells,
+		DIR_DOWN: DIR_DOWN,
+		DIR_LEFT: DIR_LEFT,
+		DIR_RIGHT: DIR_RIGHT,
 	};
 });
