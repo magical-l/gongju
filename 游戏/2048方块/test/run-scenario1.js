@@ -3,7 +3,7 @@
  * 用法: node run-scenario1.js
  */
 'use strict';
-var logic = require('./logic.js');
+var logic = require('../logic.js');
 var tick = logic.tick;
 var createPiece = logic.createPiece;
 var pieceAbsCells = logic.pieceAbsCells;

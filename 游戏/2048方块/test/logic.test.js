@@ -12,7 +12,7 @@
 'use strict';
 
 const path = require('path');
-const logicPath = path.join(__dirname, 'logic.js');
+const logicPath = path.join(__dirname, '..', 'logic.js');
 const logic = require(logicPath);
 
 const tick = logic.tick;
