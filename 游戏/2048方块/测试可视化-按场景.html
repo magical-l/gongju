@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>2048方块 - 测试按场景（合并类）</title>
+	<style>
+		* { box-sizing: border-box; }
+		body { font-family: system-ui, sans-serif; margin: 0; padding: 12px; background: #e8ece8; max-width: 1200px; margin-left: auto; margin-right: auto; }
+		h1 { margin: 0 0 12px 0; font-size: 1.2rem; color: #2d3d27; }
+		.page-actions { margin-bottom: 20px; }
+		.page-actions button { padding: 8px 20px; cursor: pointer; border-radius: 6px; border: none; background: #5a6b52; color: #fff; font-size: 14px; }
+		.page-actions button:hover { background: #4a5b42; }
+		.scenario { margin-bottom: 28px; }
+		.scenario h2 { margin: 0 0 12px 0; font-size: 0.95rem; font-weight: 600; color: #333; padding-bottom: 4px; }
+		.card-grid { display: flex; flex-wrap: wrap; gap: 12px; }
+		.card { background: #fff; border-radius: 10px; padding: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); width: 180px; }
+		.card-title { font-size: 13px; font-weight: 600; color: #2d3d27; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #e8ece8; }
+		.card-boards { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+		.card-row { font-size: 10px; color: #666; }
+		.card-row .label { display: inline-block; width: 44px; }
+		.board-sm { display: inline-grid; gap: 1px; padding: 2px; background: #bbb; border-radius: 3px; vertical-align: middle; }
+		.board-sm .cell { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; background: #e2ead8; color: #5a6b52; border-radius: 2px; }
+		.board-sm .cell.has { background: #a8c99e; color: #2d3d27; }
+		.board-sm .cell.piece { background: #7cb37a; color: #fff; }
+		.card-actions { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+		.card-actions button { padding: 5px 12px; font-size: 12px; cursor: pointer; border-radius: 4px; border: 1px solid #8fbc85; background: #e8f0e0; color: #333; }
+		.card-actions button:hover { background: #8fbc85; color: #fff; }
+		.card-result { font-size: 13px; font-weight: 600; }
+		.card-result.ok { color: #2e7d32; }
+		.card-result.fail { color: #c62828; }
+		.card-result.pending { color: #999; }
+	</style>
+</head>
+<body>
+	<h1>2048方块 - 合并类测试（按场景 · 卡片）</h1>
+	<div class="page-actions">
+		<button type="button" id="runAll">全部执行</button>
+	</div>
+	<div id="scenarios"></div>
+
+	<script src="logic.js"></script>
+	<script>
+	(function() {
+		'use strict';
+		const logic = window.Game2048BlocksLogic;
+		if (!logic) {
+			document.body.insertAdjacentHTML('beforeend', '<p style="color:red">未加载 logic.js</p>');
+			return;
+		}
+		const tick = logic.tick;
+		const createPiece = logic.createPiece;
+		const pieceAbsCells = logic.pieceAbsCells;
+		var ROT_LABELS = ['0°', '90°', '180°', '270°'];
+
+		function makeState(rows, cols, boardRows, piece) {
+			var board = [];
+			for (var r = 0; r < boardRows.length; r++) {
+				var row = [];
+				for (var c = 0; c < boardRows[r].length; c++) row.push(boardRows[r][c] || 0);
+				board.push(row);
+			}
+			return { rows: rows, cols: cols, board: board, currentPiece: piece, pieceCount: piece ? 1 : 0, nextPiece: null, gameOver: false, clearLinesPending: null, postClearGravityState: null, cascadePending: false, score: 0, highScore: 0, seed: 0 };
+		}
+		function deepCopyBoard(arr) { return JSON.parse(JSON.stringify(arr)); }
+		function boardEquals(a, b, rows, cols) {
+			for (let r = 0; r < rows; r++)
+				for (let c = 0; c < cols; c++)
+					if ((a[r] && a[r][c] || 0) !== (b[r] && b[r][c] || 0)) return false;
+			return true;
+		}
+		function getDisplayBoard(state) {
+			const rows = state.rows, cols = state.cols;
+			const out = [];
+			for (let r = 0; r < rows; r++) {
+				const row = [];
+				for (let c = 0; c < cols; c++) row.push(state.board[r][c] || 0);
+				out.push(row);
+			}
+			const piece = state.currentPiece;
+			if (piece && !state.gameOver) {
+				pieceAbsCells(piece).forEach(function(cell) {
+					if (cell.r >= 0 && cell.r < rows && cell.c >= 0 && cell.c < cols) out[cell.r][cell.c] = cell.value;
+				});
+			}
+			return out;
+		}
+
+		// 形状排序顺序
+		var SHAPE_ORDER = { I: 0, O: 1, T: 2, Z: 3, S: 4, J: 5, L: 6 };
+		function sortCases(cases) {
+			return cases.slice().sort(function(a, b) {
+				var so = SHAPE_ORDER[a.shape] - SHAPE_ORDER[b.shape];
+				if (so !== 0) return so;
+				return (a.piece.rotation != null ? a.piece.rotation : 0) - (b.piece.rotation != null ? b.piece.rotation : 0);
+			});
+		}
+
+		// 每个卡片：形状 + 角度 + 固定块堆情形（before/expected）。rotation 即 piece.rotation。
+		var SCENARIOS = [
+			{
+				title: '① 下落一格与正下方 2 合并为 4',
+				cases: [
+					{ shape: 'I', rotation: 0, ticks: 1, rows: 6, cols: 2, before: [[0,0],[0,0],[0,0],[0,0],[0,0],[2,0]], piece: { shape: 'I', rotation: 0, row: 1, col: 0 }, expected: [[0,0],[0,0],[2,0],[2,0],[2,0],[4,0]] },
+					{ shape: 'I', rotation: 1, ticks: 1, rows: 2, cols: 4, before: [[0,0,0,0],[2,0,0,0]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, expected: [[0,0,0,0],[4,2,2,2]] },
+					{ shape: 'O', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[2,0],[2,0]], piece: { shape: 'O', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[2,2],[4,2],[2,0]] },
+					{ shape: 'T', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[0,2]], piece: { shape: 'T', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[0,2],[2,2],[0,4]] },
+					{ shape: 'T', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,2,0]], piece: { shape: 'T', rotation: 1, row: 0, col: 0 }, expected: [[0,0,0],[0,2,0],[2,4,2]] },
+					{ shape: 'T', rotation: 2, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,0]], piece: { shape: 'T', rotation: 2, row: 0, col: 0 }, expected: [[0,0],[2,0],[2,2],[4,0]] },
+					{ shape: 'T', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,2,0]], piece: { shape: 'T', rotation: 3, row: 0, col: 0 }, expected: [[0,0,0],[2,2,2],[0,4,0]] },
+					{ shape: 'Z', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,0]], piece: { shape: 'Z', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[0,2],[2,2],[4,0]] },
+					{ shape: 'Z', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,2,0]], piece: { shape: 'Z', rotation: 1, row: 0, col: 0 }, expected: [[0,0,0],[2,2,0],[0,4,2]] },
+					{ shape: 'S', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[0,2]], piece: { shape: 'S', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[2,0],[2,2],[0,4]] },
+					{ shape: 'S', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,2,0]], piece: { shape: 'S', rotation: 1, row: 0, col: 0 }, expected: [[0,0,0],[0,2,2],[2,4,0]] },
+					{ shape: 'J', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,0]], piece: { shape: 'J', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[0,2],[0,2],[4,2]] },
+					{ shape: 'J', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,0,0]], piece: { shape: 'J', rotation: 1, row: 0, col: 0 }, expected: [[0,0,0],[2,0,0],[4,2,2]] },
+					{ shape: 'J', rotation: 2, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,0]], piece: { shape: 'J', rotation: 2, row: 0, col: 0 }, expected: [[0,0],[2,2],[2,0],[4,0]] },
+					{ shape: 'J', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,0,2]], piece: { shape: 'J', rotation: 3, row: 0, col: 0 }, expected: [[0,0,0],[2,2,2],[0,0,4]] },
+					{ shape: 'L', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,0]], piece: { shape: 'L', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[2,0],[2,0],[4,2]] },
+					{ shape: 'L', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,0,2]], piece: { shape: 'L', rotation: 1, row: 0, col: 0 }, expected: [[0,0,0],[2,2,2],[2,0,2]] },
+					{ shape: 'L', rotation: 2, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,0]], piece: { shape: 'L', rotation: 2, row: 0, col: 0 }, expected: [[0,0],[2,2],[0,2],[2,2]] },
+					{ shape: 'L', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,0,0]], piece: { shape: 'L', rotation: 3, row: 0, col: 0 }, expected: [[0,0,0],[0,0,2],[4,2,2]] },
+				]
+			},
+			{
+				title: '② 遇异数不合并、锁定',
+				cases: [
+					{ shape: 'I', rotation: 0, ticks: 1, rows: 5, cols: 2, before: [[0,0],[0,0],[0,0],[0,0],[4,0]], piece: { shape: 'I', rotation: 0, row: 0, col: 0 }, expected: [[2,0],[2,0],[2,0],[2,0],[4,0]] },
+					{ shape: 'O', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[4,0],[4,0]], piece: { shape: 'O', rotation: 0, row: 0, col: 0 }, expected: [[2,2],[2,2],[4,0],[4,0]] },
+					{ shape: 'T', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[0,4]], piece: { shape: 'T', rotation: 0, row: 0, col: 0 }, expected: [[0,2],[2,2],[0,2],[0,4]] },
+					{ shape: 'T', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,4,0]], piece: { shape: 'T', rotation: 1, row: 0, col: 0 }, expected: [[0,2,0],[2,2,2],[0,4,0]] },
+					{ shape: 'Z', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[4,0]], piece: { shape: 'Z', rotation: 0, row: 0, col: 0 }, expected: [[0,2],[2,2],[2,0],[4,0]] },
+					{ shape: 'S', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[0,4]], piece: { shape: 'S', rotation: 0, row: 0, col: 0 }, expected: [[2,0],[2,2],[0,2],[0,4]] },
+					{ shape: 'J', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[4,0]], piece: { shape: 'J', rotation: 0, row: 0, col: 0 }, expected: [[0,2],[0,2],[2,2],[4,0]] },
+					{ shape: 'L', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[4,0]], piece: { shape: 'L', rotation: 0, row: 0, col: 0 }, expected: [[2,0],[2,0],[2,2],[4,0]] },
+				]
+			},
+			{
+				title: '③ 连续两 tick 先合并再触底锁定',
+				cases: [
+					{ shape: 'I', rotation: 0, ticks: 2, rows: 6, cols: 2, before: [[0,0],[0,0],[0,0],[0,0],[2,0],[2,0]], piece: { shape: 'I', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[2,0],[2,0],[2,0],[4,0],[2,0]] },
+					{ shape: 'O', rotation: 0, ticks: 2, rows: 4, cols: 2, before: [[0,0],[0,0],[2,0],[2,0]], piece: { shape: 'O', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[2,2],[4,2],[2,0]] },
+					{ shape: 'T', rotation: 0, ticks: 2, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[0,2]], piece: { shape: 'T', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[0,2],[2,2],[0,4]] },
+					{ shape: 'Z', rotation: 0, ticks: 2, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,0]], piece: { shape: 'Z', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[0,2],[2,2],[4,0]] },
+					{ shape: 'S', rotation: 0, ticks: 2, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[0,2]], piece: { shape: 'S', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[2,0],[2,2],[0,4]] },
+					{ shape: 'J', rotation: 0, ticks: 2, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[0,2]], piece: { shape: 'J', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[0,2],[0,2],[2,4]] },
+					{ shape: 'L', rotation: 0, ticks: 2, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,0]], piece: { shape: 'L', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[2,0],[2,2],[4,2]] },
+				]
+			},
+		];
+
+		function runMergeCase(tc) {
+			var rows = tc.rows, cols = tc.cols;
+			var board = deepCopyBoard(tc.before);
+			var piece = createPiece(tc.piece.shape, tc.piece.rotation, tc.piece.row, tc.piece.col);
+			var boardAfterLock = null;
+			var pieceCountBefore = piece ? 1 : 0;
+			var lastState = null;
+			for (var i = 0; i < tc.ticks; i++) {
+				var state = makeState(rows, cols, board, piece);
+				state.pieceCount = pieceCountBefore;
+				state = tick(state);
+				lastState = state;
+				if (piece && state.pieceCount > pieceCountBefore) boardAfterLock = deepCopyBoard(state.board);
+				pieceCountBefore = state.pieceCount;
+				board = deepCopyBoard(state.board);
+				piece = state.currentPiece;
+				if (!piece) break;
+			}
+			var resultBoard = (boardAfterLock != null) ? boardAfterLock
+				: (tc.ticks === 1 && lastState && lastState.currentPiece ? getDisplayBoard(lastState) : deepCopyBoard(board));
+			var pass = boardEquals(resultBoard, tc.expected, rows, cols);
+			return { resultBoard: resultBoard, pass: pass };
+		}
+
+		function renderBoardSm(board, rows, cols, piece) {
+			if (!board || !rows || !cols) return '';
+			var pieceCells = piece ? pieceAbsCells(piece) : [];
+			var pieceSet = {};
+			pieceCells.forEach(function(cell) {
+				if (cell.r >= 0 && cell.r < rows && cell.c >= 0 && cell.c < cols) pieceSet[cell.r * cols + cell.c] = cell.value;
+			});
+			var html = '<div class="board-sm" style="grid-template-columns:repeat(' + cols + ',20px);grid-template-rows:repeat(' + rows + ',20px)">';
+			for (var r = 0; r < rows; r++)
+				for (var c = 0; c < cols; c++) {
+					var val = pieceSet[r * cols + c] != null ? pieceSet[r * cols + c] : (board[r][c] || 0);
+					var cls = pieceSet[r * cols + c] != null ? 'cell piece' : (val ? 'cell has' : 'cell');
+					html += '<div class="' + cls + '">' + (val || '') + '</div>';
+				}
+			html += '</div>';
+			return html;
+		}
+
+		var allCards = [];
+		var scenarioRoot = document.getElementById('scenarios');
+		SCENARIOS.forEach(function(scenario, si) {
+			var section = document.createElement('div');
+			section.className = 'scenario';
+			section.innerHTML = '<h2>' + scenario.title + '</h2><div class="card-grid" id="grid-' + si + '"></div>';
+			var grid = section.querySelector('.card-grid');
+			sortCases(scenario.cases).forEach(function(tc, ci) {
+				var rot = tc.piece.rotation != null ? tc.piece.rotation : 0;
+				var piece = createPiece(tc.piece.shape, rot, tc.piece.row, tc.piece.col);
+				var card = document.createElement('div');
+				card.className = 'card';
+				card.innerHTML =
+					'<div class="card-title">' + tc.shape + ' ' + (ROT_LABELS[rot] || rot + '°') + '</div>' +
+					'<div class="card-boards">' +
+					'<div class="card-row"><span class="label">初始</span>' + renderBoardSm(tc.before, tc.rows, tc.cols, piece) + '</div>' +
+					'<div class="card-row"><span class="label">期望</span>' + renderBoardSm(tc.expected, tc.rows, tc.cols, null) + '</div>' +
+					'<div class="card-row"><span class="label">执行后</span><span data-result></span></div>' +
+					'</div>' +
+					'<div class="card-actions">' +
+					'<button type="button" class="run-one">执行</button>' +
+					'<span class="card-result pending" data-status>—</span>' +
+					'</div>';
+				var resultEl = card.querySelector('[data-result]');
+				var statusEl = card.querySelector('[data-status]');
+				var runBtn = card.querySelector('.run-one');
+				runBtn.addEventListener('click', function() {
+					var res = runMergeCase(tc);
+					resultEl.innerHTML = renderBoardSm(res.resultBoard, tc.rows, tc.cols, null);
+					statusEl.textContent = res.pass ? '✓' : '✗';
+					statusEl.className = 'card-result ' + (res.pass ? 'ok' : 'fail');
+				});
+				allCards.push({ tc: tc, resultEl: resultEl, statusEl: statusEl });
+				grid.appendChild(card);
+			});
+			scenarioRoot.appendChild(section);
+		});
+
+		document.getElementById('runAll').addEventListener('click', function() {
+			allCards.forEach(function(o) {
+				var res = runMergeCase(o.tc);
+				o.resultEl.innerHTML = renderBoardSm(res.resultBoard, o.tc.rows, o.tc.cols, null);
+				o.statusEl.textContent = res.pass ? '✓' : '✗';
+				o.statusEl.className = 'card-result ' + (res.pass ? 'ok' : 'fail');
+			});
+		});
+	})();
+	</script>
+</body>
+</html>

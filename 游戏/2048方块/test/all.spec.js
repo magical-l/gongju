@@ -42,8 +42,9 @@ module.exports = function(r) {
 		return s;
 	}
 
-	// ---------- 合并 ----------
+	// ---------- 合并（覆盖：形状 × 下方状态。每形状至少一例「下落一格与2合并」+ 一例「遇异数锁定」）----------
 	describe('合并', function() {
+		// 下落一格与正下方 2 合并为 4（每形状一例，rotation 0）
 		it('I 竖条下落一格与正下方 2 合并为 4', function() {
 			const rows = 6, cols = 2;
 			const before = [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [2, 0]];
@@ -54,6 +55,67 @@ module.exports = function(r) {
 			_assertBoardEqual(next.board, expected, 'I 下落一格与 2 合并');
 		});
 
+		it('O 下落一格与正下方 2 合并为 4', function() {
+			const rows = 4, cols = 2;
+			const before = [[0, 0], [0, 0], [2, 0], [2, 0]];
+			const piece = _createPiece('O', 0, 0, 0);
+			const state = _makeState(rows, cols, before, piece);
+			const next = _tick(state);
+			const expected = [[0, 0], [0, 0], [4, 0], [2, 0]];
+			_assertBoardEqual(next.board, expected, 'O 下落一格与 2 合并');
+		});
+
+		it('T 下落一格与正下方 2 合并为 4', function() {
+			const rows = 4, cols = 2;
+			const before = [[0, 0], [0, 0], [0, 0], [0, 2]];
+			const piece = _createPiece('T', 0, 0, 0);
+			const state = _makeState(rows, cols, before, piece);
+			const next = _tick(state);
+			const expected = [[0, 0], [0, 0], [0, 0], [0, 4]];
+			_assertBoardEqual(next.board, expected, 'T 下落一格与 2 合并');
+		});
+
+		it('Z 下落一格与正下方 2 合并为 4', function() {
+			const rows = 4, cols = 2;
+			const before = [[0, 0], [0, 0], [0, 0], [2, 0]];
+			const piece = _createPiece('Z', 0, 0, 0);
+			const state = _makeState(rows, cols, before, piece);
+			const next = _tick(state);
+			const expected = [[0, 0], [0, 0], [0, 0], [4, 0]];
+			_assertBoardEqual(next.board, expected, 'Z 下落一格与 2 合并');
+		});
+
+		it('S 下落一格与正下方 2 合并为 4', function() {
+			const rows = 4, cols = 2;
+			const before = [[0, 0], [0, 0], [0, 0], [0, 2]];
+			const piece = _createPiece('S', 0, 0, 0);
+			const state = _makeState(rows, cols, before, piece);
+			const next = _tick(state);
+			const expected = [[0, 0], [0, 0], [0, 0], [0, 4]];
+			_assertBoardEqual(next.board, expected, 'S 下落一格与 2 合并');
+		});
+
+		it('J 下落一格与正下方 2 合并为 4', function() {
+			const rows = 4, cols = 2;
+			const before = [[0, 0], [0, 0], [0, 0], [2, 0]];
+			const piece = _createPiece('J', 0, 0, 0);
+			const state = _makeState(rows, cols, before, piece);
+			const next = _tick(state);
+			const expected = [[0, 0], [0, 0], [0, 0], [4, 0]];
+			_assertBoardEqual(next.board, expected, 'J 下落一格与 2 合并');
+		});
+
+		it('L 下落一格与正下方 2 合并为 4', function() {
+			const rows = 4, cols = 2;
+			const before = [[0, 0], [0, 0], [0, 0], [2, 0]];
+			const piece = _createPiece('L', 0, 0, 0);
+			const state = _makeState(rows, cols, before, piece);
+			const next = _tick(state);
+			const expected = [[0, 0], [0, 0], [0, 0], [4, 0]];
+			_assertBoardEqual(next.board, expected, 'L 下落一格与 2 合并');
+		});
+
+		// 连续两 tick：先合并再触底锁定
 		it('I 竖条连续两 tick：先合并再触底锁定', function() {
 			const rows = 6, cols = 2;
 			const before = [[0, 0], [0, 0], [0, 0], [0, 0], [2, 0], [2, 0]];
@@ -65,14 +127,108 @@ module.exports = function(r) {
 			_assertBoardEqual(state.board, expected, 'I 两 tick 合并后锁定');
 		});
 
-		it('块遇异数不合并、锁定', function() {
+		// 遇异数不合并、锁定（每形状至少一例：I 已有，补 O）
+		it('I 块遇异数不合并、锁定', function() {
 			const rows = 5, cols = 2;
 			const before = [[0, 0], [0, 0], [0, 0], [0, 0], [4, 0]];
 			const piece = _createPiece('I', 0, 0, 0);
 			const state = _makeState(rows, cols, before, piece);
 			const next = _tick(state);
 			const expected = [[2, 0], [2, 0], [2, 0], [2, 0], [4, 0]];
-			_assertBoardEqual(next.board, expected, '遇异数锁定并写出整块');
+			_assertBoardEqual(next.board, expected, 'I 遇异数锁定并写出整块');
+		});
+
+		it('O 块遇异数不合并、锁定', function() {
+			const rows = 4, cols = 2;
+			const before = [[0, 0], [0, 0], [4, 0], [4, 0]];
+			const piece = _createPiece('O', 0, 0, 0);
+			const state = _makeState(rows, cols, before, piece);
+			const next = _tick(state);
+			const expected = [[2, 2], [2, 2], [4, 0], [4, 0]];
+			_assertBoardEqual(next.board, expected, 'O 遇异数锁定并写出整块');
+		});
+
+		it('T 块遇异数不合并、锁定', function() {
+			const rows = 4, cols = 2;
+			const before = [[0, 0], [0, 0], [0, 0], [0, 4]];
+			const piece = _createPiece('T', 0, 0, 0);
+			const next = _tick(_makeState(rows, cols, before, piece));
+			_assertBoardEqual(next.board, [[0, 2], [2, 2], [0, 2], [0, 4]], 'T 遇异数锁定');
+		});
+
+		it('Z 块遇异数不合并、锁定', function() {
+			const rows = 4, cols = 2;
+			const before = [[0, 0], [0, 0], [0, 0], [4, 0]];
+			const piece = _createPiece('Z', 0, 0, 0);
+			const next = _tick(_makeState(rows, cols, before, piece));
+			_assertBoardEqual(next.board, [[0, 2], [2, 2], [2, 0], [4, 0]], 'Z 遇异数锁定');
+		});
+
+		it('S 块遇异数不合并、锁定', function() {
+			const rows = 4, cols = 2;
+			const before = [[0, 0], [0, 0], [0, 0], [0, 4]];
+			const piece = _createPiece('S', 0, 0, 0);
+			const next = _tick(_makeState(rows, cols, before, piece));
+			_assertBoardEqual(next.board, [[2, 0], [2, 2], [0, 2], [0, 4]], 'S 遇异数锁定');
+		});
+
+		it('J 块遇异数不合并、锁定', function() {
+			const rows = 4, cols = 2;
+			const before = [[0, 0], [0, 0], [0, 0], [4, 0]];
+			const piece = _createPiece('J', 0, 0, 0);
+			const next = _tick(_makeState(rows, cols, before, piece));
+			_assertBoardEqual(next.board, [[0, 2], [0, 2], [2, 2], [4, 0]], 'J 遇异数锁定');
+		});
+
+		it('L 块遇异数不合并、锁定', function() {
+			const rows = 4, cols = 2;
+			const before = [[0, 0], [0, 0], [0, 0], [4, 0]];
+			const piece = _createPiece('L', 0, 0, 0);
+			const next = _tick(_makeState(rows, cols, before, piece));
+			_assertBoardEqual(next.board, [[2, 0], [2, 0], [2, 2], [4, 0]], 'L 遇异数锁定');
+		});
+
+		// 两 tick 先合并再触底锁定（每形状一例；5 行以便 tick1 合并后 tick2 再下落/再合并后锁定，与「下落一格」区分）
+		it('O 连续两 tick 先合并再触底锁定', function() {
+			let state = _makeState(5, 2, [[0, 0], [0, 0], [0, 0], [2, 0], [2, 0]], _createPiece('O', 0, 0, 0));
+			state = _tick(state);
+			state = _tick(state);
+			_assertBoardEqual(state.board, [[0, 0], [0, 0], [0, 0], [4, 0], [2, 0]], 'O 两 tick');
+		});
+
+		it('T 连续两 tick 先合并再触底锁定', function() {
+			let state = _makeState(5, 2, [[0, 0], [0, 0], [0, 0], [0, 2], [0, 0]], _createPiece('T', 0, 0, 0));
+			state = _tick(state);
+			state = _tick(state);
+			_assertBoardEqual(state.board, [[0, 0], [0, 0], [0, 0], [0, 0], [0, 8]], 'T 两 tick');
+		});
+
+		it('Z 连续两 tick 先合并再触底锁定', function() {
+			let state = _makeState(5, 2, [[0, 0], [0, 0], [0, 0], [2, 0], [0, 0]], _createPiece('Z', 0, 0, 0));
+			state = _tick(state);
+			state = _tick(state);
+			_assertBoardEqual(state.board, [[0, 0], [0, 0], [0, 0], [0, 0], [8, 0]], 'Z 两 tick');
+		});
+
+		it('S 连续两 tick 先合并再触底锁定', function() {
+			let state = _makeState(5, 2, [[0, 0], [0, 0], [0, 0], [0, 2], [0, 0]], _createPiece('S', 0, 0, 0));
+			state = _tick(state);
+			state = _tick(state);
+			_assertBoardEqual(state.board, [[0, 0], [0, 0], [0, 0], [0, 0], [0, 8]], 'S 两 tick');
+		});
+
+		it('J 连续两 tick 先合并再触底锁定', function() {
+			let state = _makeState(5, 2, [[0, 0], [0, 0], [0, 0], [2, 0], [0, 0]], _createPiece('J', 0, 0, 0));
+			state = _tick(state);
+			state = _tick(state);
+			_assertBoardEqual(state.board, [[0, 0], [0, 0], [0, 0], [4, 0], [0, 0]], 'J 两 tick');
+		});
+
+		it('L 连续两 tick 先合并再触底锁定', function() {
+			let state = _makeState(5, 2, [[0, 0], [0, 0], [0, 0], [2, 0], [0, 0]], _createPiece('L', 0, 0, 0));
+			state = _tick(state);
+			state = _tick(state);
+			_assertBoardEqual(state.board, [[0, 0], [0, 0], [0, 0], [0, 0], [8, 0]], 'L 两 tick');
 		});
 	});
 
