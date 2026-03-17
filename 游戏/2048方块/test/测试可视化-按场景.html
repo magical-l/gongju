@@ -89,14 +89,18 @@
 		// 形状排序顺序
 		var SHAPE_ORDER = { I: 0, O: 1, T: 2, Z: 3, S: 4, J: 5, L: 6 };
 		function sortCases(cases) {
+			function colKey(tc) {
+				if (tc.sortKey != null) return tc.sortKey;
+				if (tc.columnIndex != null) return tc.columnIndex;
+				if (tc.pileBlocks != null) return 100 + tc.pileBlocks;
+				return 0;
+			}
 			return cases.slice().sort(function(a, b) {
 				var so = SHAPE_ORDER[a.shape] - SHAPE_ORDER[b.shape];
 				if (so !== 0) return so;
 				var ro = (a.piece.rotation != null ? a.piece.rotation : 0) - (b.piece.rotation != null ? b.piece.rotation : 0);
 				if (ro !== 0) return ro;
-				var co = (a.columnIndex != null ? a.columnIndex : 0) - (b.columnIndex != null ? b.columnIndex : 0);
-				if (co !== 0) return co;
-				return (a.pileBlocks != null ? a.pileBlocks : 0) - (b.pileBlocks != null ? b.pileBlocks : 0);
+				return colKey(a) - colKey(b);
 			});
 		}
 
@@ -112,20 +116,32 @@
 					{ shape: 'I', rotation: 1, ticks: 1, rows: 2, cols: 4, before: [[0,0,0,0],[0,2,0,0]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, columnIndex: 1, expected: [[0,0,0,0],[2,4,2,2]] },
 					{ shape: 'I', rotation: 1, ticks: 1, rows: 2, cols: 4, before: [[0,0,0,0],[0,0,2,0]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, columnIndex: 2, expected: [[0,0,0,0],[2,2,4,2]] },
 					{ shape: 'I', rotation: 1, ticks: 1, rows: 2, cols: 4, before: [[0,0,0,0],[0,0,0,2]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, columnIndex: 3, expected: [[0,0,0,0],[2,2,2,4]] },
-					{ shape: 'I', rotation: 1, ticks: 1, rows: 2, cols: 4, before: [[0,0,0,0],[2,0,2,0]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, label: '列1起2块跳格', expected: [[0,0,0,0],[4,2,4,2]] },
-					{ shape: 'I', rotation: 1, ticks: 1, rows: 2, cols: 4, before: [[0,0,0,0],[2,0,0,2]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, label: '列1起2块跳格', expected: [[0,0,0,0],[4,2,2,4]] },
-					{ shape: 'I', rotation: 1, ticks: 1, rows: 2, cols: 4, before: [[0,0,0,0],[0,2,2,0]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, label: '列2起2块', expected: [[0,0,0,0],[2,4,4,2]] },
-					{ shape: 'I', rotation: 1, ticks: 1, rows: 2, cols: 4, before: [[0,0,0,0],[0,2,0,2]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, label: '列2起2块', expected: [[0,0,0,0],[2,4,2,4]] },
-					{ shape: 'I', rotation: 1, ticks: 1, rows: 2, cols: 4, before: [[0,0,0,0],[0,2,2,2]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, label: '列2起3块', expected: [[0,0,0,0],[2,4,4,4]] },
-					{ shape: 'I', rotation: 1, ticks: 1, rows: 2, cols: 4, before: [[0,0,0,0],[0,0,2,2]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, label: '列3起2块', expected: [[0,0,0,0],[2,2,4,4]] },
+					{ shape: 'I', rotation: 1, ticks: 1, rows: 2, cols: 4, before: [[0,0,0,0],[2,0,2,0]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, sortKey: 4, label: '列1起2块跳格', expected: [[0,0,0,0],[4,2,4,2]] },
+					{ shape: 'I', rotation: 1, ticks: 1, rows: 2, cols: 4, before: [[0,0,0,0],[2,0,0,2]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, sortKey: 5, label: '列1起2块跳格', expected: [[0,0,0,0],[4,2,2,4]] },
+					{ shape: 'I', rotation: 1, ticks: 1, rows: 2, cols: 4, before: [[0,0,0,0],[0,2,2,0]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, sortKey: 6, label: '列2起2块', expected: [[0,0,0,0],[2,4,4,2]] },
+					{ shape: 'I', rotation: 1, ticks: 1, rows: 2, cols: 4, before: [[0,0,0,0],[0,2,0,2]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, sortKey: 7, label: '列2起2块', expected: [[0,0,0,0],[2,4,2,4]] },
+					{ shape: 'I', rotation: 1, ticks: 1, rows: 2, cols: 4, before: [[0,0,0,0],[0,2,2,2]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, sortKey: 8, label: '列2起3块', expected: [[0,0,0,0],[2,4,4,4]] },
+					{ shape: 'I', rotation: 1, ticks: 1, rows: 2, cols: 4, before: [[0,0,0,0],[0,0,2,2]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, sortKey: 9, label: '列3起2块', expected: [[0,0,0,0],[2,2,4,4]] },
 					{ shape: 'O', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,0]], piece: { shape: 'O', rotation: 0, row: 1, col: 0 }, columnIndex: 0, expected: [[0,0],[0,0],[2,2],[4,2]] },
 					{ shape: 'O', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[0,2]], piece: { shape: 'O', rotation: 0, row: 1, col: 0 }, columnIndex: 1, expected: [[0,0],[0,0],[2,2],[2,4]] },
+					{ shape: 'T', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,0]], piece: { shape: 'T', rotation: 0, row: 0, col: 0 }, columnIndex: 0, expected: [[0,0],[0,2],[2,2],[2,2]] },
 					{ shape: 'T', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[0,2]], piece: { shape: 'T', rotation: 0, row: 0, col: 0 }, columnIndex: 1, expected: [[0,0],[0,2],[2,2],[0,4]] },
 					{ shape: 'T', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,0,0]], piece: { shape: 'T', rotation: 1, row: 0, col: 0 }, columnIndex: 0, expected: [[0,0,0],[0,2,0],[4,2,2]] },
 					{ shape: 'T', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,2,0]], piece: { shape: 'T', rotation: 1, row: 0, col: 0 }, columnIndex: 1, expected: [[0,0,0],[0,2,0],[2,4,2]] },
 					{ shape: 'T', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,0,2]], piece: { shape: 'T', rotation: 1, row: 0, col: 0 }, columnIndex: 2, expected: [[0,0,0],[0,2,0],[2,2,4]] },
+					{ shape: 'T', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,2,0]], piece: { shape: 'T', rotation: 1, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[0,2,0],[4,4,2]] },
+					{ shape: 'T', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,0,2]], piece: { shape: 'T', rotation: 1, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[0,2,0],[4,2,4]] },
+					{ shape: 'T', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,2,2]], piece: { shape: 'T', rotation: 1, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[0,2,0],[2,4,4]] },
+					{ shape: 'T', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,2,2]], piece: { shape: 'T', rotation: 1, row: 0, col: 0 }, pileBlocks: 3, expected: [[0,0,0],[0,2,0],[4,4,4]] },
 					{ shape: 'T', rotation: 2, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,0]], piece: { shape: 'T', rotation: 2, row: 0, col: 0 }, columnIndex: 0, expected: [[0,0],[2,0],[2,2],[4,0]] },
+					{ shape: 'T', rotation: 2, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[0,2]], piece: { shape: 'T', rotation: 2, row: 0, col: 0 }, columnIndex: 1, expected: [[0,0],[2,0],[2,2],[2,2]] },
+					{ shape: 'T', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,0,0]], piece: { shape: 'T', rotation: 3, row: 0, col: 0 }, columnIndex: 0, expected: [[0,0,0],[2,2,2],[2,2,0]] },
 					{ shape: 'T', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,2,0]], piece: { shape: 'T', rotation: 3, row: 0, col: 0 }, columnIndex: 1, expected: [[0,0,0],[2,2,2],[0,4,0]] },
+					{ shape: 'T', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,0,2]], piece: { shape: 'T', rotation: 3, row: 0, col: 0 }, columnIndex: 2, expected: [[0,0,0],[2,2,2],[0,2,2]] },
+					{ shape: 'T', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,2,0]], piece: { shape: 'T', rotation: 3, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[2,2,2],[2,4,0]] },
+					{ shape: 'T', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,0,2]], piece: { shape: 'T', rotation: 3, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[2,2,2],[2,2,2]] },
+					{ shape: 'T', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,2,2]], piece: { shape: 'T', rotation: 3, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[2,2,2],[0,4,2]] },
+					{ shape: 'T', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,2,2]], piece: { shape: 'T', rotation: 3, row: 0, col: 0 }, pileBlocks: 3, expected: [[0,0,0],[2,2,2],[2,4,2]] },
 					{ shape: 'Z', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,0]], piece: { shape: 'Z', rotation: 0, row: 0, col: 0 }, columnIndex: 0, expected: [[0,0],[0,2],[2,2],[4,0]] },
 					{ shape: 'Z', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,2,0]], piece: { shape: 'Z', rotation: 1, row: 0, col: 0 }, columnIndex: 1, expected: [[0,0,0],[2,2,0],[0,4,2]] },
 					{ shape: 'Z', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,0,2]], piece: { shape: 'Z', rotation: 1, row: 0, col: 0 }, columnIndex: 2, expected: [[0,0,0],[2,2,0],[0,2,4]] },
@@ -148,21 +164,38 @@
 					{ shape: 'L', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,0,2]], piece: { shape: 'L', rotation: 3, row: 0, col: 0 }, columnIndex: 2, expected: [[0,0,0],[0,0,2],[2,2,4]] },
 					{ shape: 'I', rotation: 1, ticks: 1, rows: 2, cols: 4, before: [[0,0,0,0],[2,2,0,0]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0,0],[4,4,2,2]] },
 					{ shape: 'O', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,2]], piece: { shape: 'O', rotation: 0, row: 1, col: 0 }, pileBlocks: 2, expected: [[0,0],[0,0],[2,2],[4,4]] },
-					{ shape: 'T', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,2],[0,2]], piece: { shape: 'T', rotation: 0, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0],[0,2],[2,4],[0,4]] },
-					{ shape: 'T', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,2,0],[0,2,0]], piece: { shape: 'T', rotation: 1, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[0,4,0],[2,4,2]] },
-					{ shape: 'T', rotation: 2, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[2,0],[2,0]], piece: { shape: 'T', rotation: 2, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0],[2,0],[4,2],[4,0]] },
-					{ shape: 'T', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,2,0],[0,2,0]], piece: { shape: 'T', rotation: 3, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[2,4,2],[0,4,0]] },
-					{ shape: 'Z', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[2,0],[2,0]], piece: { shape: 'Z', rotation: 0, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0],[0,2],[4,2],[4,0]] },
-					{ shape: 'Z', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,2,0],[0,2,0]], piece: { shape: 'Z', rotation: 1, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[2,4,0],[0,4,2]] },
-					{ shape: 'S', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,2],[0,2]], piece: { shape: 'S', rotation: 0, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0],[2,0],[2,4],[0,4]] },
-					{ shape: 'S', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[2,0,0],[2,0,0]], piece: { shape: 'S', rotation: 1, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[0,2,2],[4,2,0]] },
-					{ shape: 'J', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[2,0],[2,0]], piece: { shape: 'J', rotation: 0, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0],[0,2],[0,2],[4,2]] },
-					{ shape: 'J', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[2,0,0],[2,0,0]], piece: { shape: 'J', rotation: 1, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[4,0,0],[4,2,2]] },
-					{ shape: 'J', rotation: 2, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[2,0],[2,0]], piece: { shape: 'J', rotation: 2, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0],[2,2],[4,0],[4,0]] },
-					{ shape: 'J', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,2],[0,0,2]], piece: { shape: 'J', rotation: 3, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[2,2,4],[0,0,4]] },
-					{ shape: 'L', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[2,0],[2,0]], piece: { shape: 'L', rotation: 0, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0],[2,0],[4,0],[4,2]] },
-					{ shape: 'L', rotation: 2, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,2],[0,2]], piece: { shape: 'L', rotation: 2, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0],[2,2],[0,4],[0,4]] },
-					{ shape: 'L', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[2,0,0],[2,0,0]], piece: { shape: 'L', rotation: 3, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[0,0,2],[4,2,2]] },
+					{ shape: 'T', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,2]], piece: { shape: 'T', rotation: 0, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0],[0,2],[2,2],[2,4]] },
+					{ shape: 'T', rotation: 2, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,2]], piece: { shape: 'T', rotation: 2, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0],[2,0],[2,2],[4,2]] },
+					{ shape: 'Z', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,2]], piece: { shape: 'Z', rotation: 0, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0],[0,2],[2,2],[4,2]] },
+					{ shape: 'Z', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,2,0]], piece: { shape: 'Z', rotation: 1, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[2,2,0],[2,4,2]] },
+					{ shape: 'Z', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,0,2]], piece: { shape: 'Z', rotation: 1, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[2,2,0],[2,2,4]] },
+					{ shape: 'Z', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,2,2]], piece: { shape: 'Z', rotation: 1, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[2,2,0],[0,4,4]] },
+					{ shape: 'Z', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,2,2]], piece: { shape: 'Z', rotation: 1, row: 0, col: 0 }, pileBlocks: 3, expected: [[0,0,0],[2,2,0],[2,4,4]] },
+					{ shape: 'S', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,2]], piece: { shape: 'S', rotation: 0, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0],[2,0],[2,2],[2,4]] },
+					{ shape: 'S', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,2,0]], piece: { shape: 'S', rotation: 1, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[0,2,2],[4,4,0]] },
+					{ shape: 'S', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,0,2]], piece: { shape: 'S', rotation: 1, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[0,2,2],[4,2,2]] },
+					{ shape: 'S', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,2,2]], piece: { shape: 'S', rotation: 1, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[0,2,2],[2,4,2]] },
+					{ shape: 'S', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,2,2]], piece: { shape: 'S', rotation: 1, row: 0, col: 0 }, pileBlocks: 3, expected: [[0,0,0],[0,2,2],[4,4,2]] },
+					{ shape: 'J', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,2]], piece: { shape: 'J', rotation: 0, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0],[0,2],[0,2],[4,4]] },
+					{ shape: 'J', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,2,0]], piece: { shape: 'J', rotation: 1, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[2,0,0],[4,4,2]] },
+					{ shape: 'J', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,0,2]], piece: { shape: 'J', rotation: 1, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[2,0,0],[4,2,4]] },
+					{ shape: 'J', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,2,2]], piece: { shape: 'J', rotation: 1, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[2,0,0],[2,4,4]] },
+					{ shape: 'J', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,2,2]], piece: { shape: 'J', rotation: 1, row: 0, col: 0 }, pileBlocks: 3, expected: [[0,0,0],[2,0,0],[4,4,4]] },
+					{ shape: 'J', rotation: 2, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,2]], piece: { shape: 'J', rotation: 2, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0],[2,2],[2,0],[4,2]] },
+					{ shape: 'J', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,2,0]], piece: { shape: 'J', rotation: 3, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[2,2,2],[2,2,2]] },
+					{ shape: 'J', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,0,2]], piece: { shape: 'J', rotation: 3, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[2,2,2],[2,0,4]] },
+					{ shape: 'J', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,2,2]], piece: { shape: 'J', rotation: 3, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[2,2,2],[0,2,4]] },
+					{ shape: 'J', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,2,2]], piece: { shape: 'J', rotation: 3, row: 0, col: 0 }, pileBlocks: 3, expected: [[0,0,0],[2,2,2],[2,2,4]] },
+					{ shape: 'L', rotation: 0, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,2]], piece: { shape: 'L', rotation: 0, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0],[2,0],[2,0],[4,4]] },
+					{ shape: 'L', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,2,0]], piece: { shape: 'L', rotation: 1, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[2,2,2],[4,2,0]] },
+					{ shape: 'L', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,0,2]], piece: { shape: 'L', rotation: 1, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[2,2,2],[4,0,2]] },
+					{ shape: 'L', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,2,2]], piece: { shape: 'L', rotation: 1, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[2,2,2],[2,2,2]] },
+					{ shape: 'L', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,2,2]], piece: { shape: 'L', rotation: 1, row: 0, col: 0 }, pileBlocks: 3, expected: [[0,0,0],[2,2,2],[4,2,2]] },
+					{ shape: 'L', rotation: 2, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,2]], piece: { shape: 'L', rotation: 2, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0],[2,2],[0,2],[2,4]] },
+					{ shape: 'L', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,2,0]], piece: { shape: 'L', rotation: 3, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[0,0,2],[4,4,2]] },
+					{ shape: 'L', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,0,2]], piece: { shape: 'L', rotation: 3, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[0,0,2],[4,2,4]] },
+					{ shape: 'L', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,2,2]], piece: { shape: 'L', rotation: 3, row: 0, col: 0 }, pileBlocks: 2, expected: [[0,0,0],[0,0,2],[2,4,4]] },
+					{ shape: 'L', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[2,2,2]], piece: { shape: 'L', rotation: 3, row: 0, col: 0 }, pileBlocks: 3, expected: [[0,0,0],[0,0,2],[4,4,4]] },
 					{ shape: 'I', rotation: 1, ticks: 1, rows: 2, cols: 4, before: [[0,0,0,0],[2,2,2,0]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, pileBlocks: 3, expected: [[0,0,0,0],[4,4,4,2]] },
 					{ shape: 'I', rotation: 1, ticks: 1, rows: 2, cols: 4, before: [[0,0,0,0],[2,2,2,2]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, pileBlocks: 4, expected: [[0,0,0,0],[4,4,4,4]] },
 				]
@@ -249,7 +282,7 @@
 				var card = document.createElement('div');
 				card.className = 'card';
 				card.innerHTML =
-					'<div class="card-title">' + tc.shape + ' ' + (ROT_LABELS[rot] || rot + '°') + (tc.columnIndex != null ? ' 列' + tc.columnIndex : '') + (tc.pileBlocks != null ? ' ' + tc.pileBlocks + '块' : '') + '</div>' +
+					'<div class="card-title">' + tc.shape + ' ' + (ROT_LABELS[rot] || rot + '°') + (tc.label != null ? ' ' + tc.label : (tc.columnIndex != null ? ' 列' + tc.columnIndex : '')) + (tc.pileBlocks != null ? ' ' + tc.pileBlocks + '块' : '') + '</div>' +
 					'<div class="card-boards">' +
 					'<div class="card-row"><span class="label">初始</span>' + renderBoardSm(tc.before, tc.rows, tc.cols, piece) + '</div>' +
 					'<div class="card-row"><span class="label">期望</span>' + renderBoardSm(tc.expected, tc.rows, tc.cols, null) + '</div>' +
