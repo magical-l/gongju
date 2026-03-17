@@ -911,6 +911,7 @@
 		pieceAbsCells: pieceAbsCells,
 		createPiece: createPiece,
 		getFullRowIndices: getFullRowIndices,
+		clearOneRound: clearOneRound,
 		serializeGameState: serializeGameState,
 		deserializeGameState: deserializeGameState,
 		Cell: Cell,

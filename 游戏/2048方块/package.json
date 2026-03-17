@@ -1,0 +1,8 @@
+{
+  "name": "2048-blocks",
+  "private": true,
+  "description": "仅用于 npm test：在 Node 下跑 logic 单元测试（test/run.js + test/all.spec.js）",
+  "scripts": {
+    "test": "node test/run.js"
+  }
+}

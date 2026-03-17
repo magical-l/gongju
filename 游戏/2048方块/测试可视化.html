@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>2048方块 - 测试用例可视化</title>
+	<!-- 如需让 Cursor 等通过浏览器 MCP 自测：用本地 HTTP 打开本页（如 npx serve、python -m http.server），再在对话中提供 http://localhost:xxx/测试可视化.html 的 URL -->
+	<style>
+		* { box-sizing: border-box; }
+		body { font-family: system-ui, sans-serif; margin: 0; padding: 12px; background: #f0f0f0; }
+		.layout { display: flex; gap: 16px; max-width: 1200px; margin: 0 auto; }
+		.side { width: 260px; flex-shrink: 0; }
+		.main { flex: 1; min-width: 0; }
+		h1 { margin: 0 0 12px 0; font-size: 1.25rem; }
+		.case-list { background: #fff; border-radius: 8px; padding: 8px; max-height: 70vh; overflow-y: auto; }
+		.case-group { margin-bottom: 12px; }
+		.case-group-title { font-weight: 600; color: #333; padding: 4px 0; border-bottom: 1px solid #ddd; }
+		.case-item { padding: 6px 8px; margin: 2px 0; border-radius: 4px; cursor: pointer; font-size: 13px; }
+		.case-item:hover { background: #e8f0e0; }
+		.case-item.selected { background: #8fbc85; color: #fff; }
+		.case-item.pass { border-left: 3px solid #2e7d32; }
+		.case-item.fail { border-left: 3px solid #c62828; }
+		.boards { display: flex; flex-wrap: wrap; gap: 16px; margin: 12px 0; align-items: flex-start; }
+		.board-box { background: #fff; border-radius: 8px; padding: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+		.board-box h3 { margin: 0 0 8px 0; font-size: 14px; color: #555; }
+		.board-wrap { display: inline-block; }
+		.board { display: grid; gap: 2px; padding: 4px; background: #bbb; border-radius: 4px; }
+		.board .cell { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; background: #e2ead8; color: #5a6b52; border-radius: 2px; }
+		.board .cell.has { background: #a8c99e; color: #2d3d27; }
+		.board .cell.piece { background: #7cb37a; color: #fff; }
+		.actions { margin: 12px 0; }
+		.actions button { padding: 8px 16px; margin-right: 8px; cursor: pointer; border-radius: 4px; border: 1px solid #8fbc85; background: #e8f0e0; }
+		.actions button.primary { background: #8fbc85; color: #fff; }
+		.actions button:hover { opacity: 0.9; }
+		.result-msg { margin-top: 8px; padding: 8px; border-radius: 4px; font-size: 14px; }
+		.result-msg.pass { background: #e8f5e9; color: #1b5e20; }
+		.result-msg.fail { background: #ffebee; color: #b71c1c; }
+		.result-msg.none { background: #f5f5f5; color: #666; }
+	</style>
+</head>
+<body>
+	<div class="layout">
+		<aside class="side">
+			<h1>2048方块 测试用例</h1>
+			<div class="case-list" id="caseList"></div>
+			<div class="actions" style="margin-top:12px">
+				<button type="button" class="primary" id="runAll">全部运行</button>
+			</div>
+		</aside>
+		<main class="main">
+			<div class="boards">
+				<div class="board-box">
+					<h3>初始</h3>
+					<div class="board-wrap" id="boardInitial"></div>
+				</div>
+				<div class="board-box">
+					<h3>执行后</h3>
+					<div class="board-wrap" id="boardResult"></div>
+				</div>
+				<div class="board-box">
+					<h3>期望</h3>
+					<div class="board-wrap" id="boardExpected"></div>
+				</div>
+			</div>
+			<div class="actions">
+				<button type="button" class="primary" id="runOne">执行</button>
+			</div>
+			<div class="result-msg none" id="resultMsg">选择用例后点击「执行」或「全部运行」</div>
+		</main>
+	</div>
+
+	<script src="logic.js"></script>
+	<script>
+	(function() {
+		'use strict';
+		const logic = window.Game2048BlocksLogic;
+		if (!logic) {
+			document.getElementById('resultMsg').textContent = '未加载 logic.js';
+			document.getElementById('resultMsg').className = 'result-msg fail';
+			return;
+		}
+		const tick = logic.tick;
+		const createPiece = logic.createPiece;
+		const clearOneRound = logic.clearOneRound;
+		const applyPendingClearLines = logic.applyPendingClearLines;
+		const pieceAbsCells = logic.pieceAbsCells;
+
+		/** 每次全新构造 state，不调用 init()，避免 logic 内部可能缓存或复用对象 */
+		function makeState(rows, cols, boardRows, piece) {
+			var board = [];
+			for (var r = 0; r < boardRows.length; r++) {
+				var row = [];
+				for (var c = 0; c < boardRows[r].length; c++) row.push(boardRows[r][c] || 0);
+				board.push(row);
+			}
+			return {
+				rows: rows,
+				cols: cols,
+				board: board,
+				currentPiece: piece,
+				pieceCount: piece ? 1 : 0,
+				nextPiece: null,
+				gameOver: false,
+				clearLinesPending: null,
+				postClearGravityState: null,
+				cascadePending: false,
+				score: 0,
+				highScore: 0,
+				seed: 0,
+			};
+		}
+
+		function deepCopyBoard(arr) {
+			return JSON.parse(JSON.stringify(arr));
+		}
+
+		function boardEquals(a, b, rows, cols) {
+			for (let r = 0; r < rows; r++)
+				for (let c = 0; c < cols; c++)
+					if ((a[r] && a[r][c] || 0) !== (b[r] && b[r][c] || 0)) return false;
+			return true;
+		}
+
+		/** 棋盘 + 活动块叠加后的显示用二维数组（与游戏内所见一致） */
+		function getDisplayBoard(state) {
+			const rows = state.rows, cols = state.cols;
+			const out = [];
+			for (let r = 0; r < rows; r++) {
+				const row = [];
+				for (let c = 0; c < cols; c++) row.push(state.board[r][c] || 0);
+				out.push(row);
+			}
+			const piece = state.currentPiece;
+			if (piece && !state.gameOver) {
+				pieceAbsCells(piece).forEach(function(cell) {
+					if (cell.r >= 0 && cell.r < rows && cell.c >= 0 && cell.c < cols)
+						out[cell.r][cell.c] = cell.value;
+				});
+			}
+			return out;
+		}
+
+		// 用例数据：期望为「所见即所得」（合并类为 棋盘+活动块 叠加，锁定后为纯棋盘）
+		const TEST_CASES_RAW = [
+			{ group: '合并', name: 'I 竖条下落一格与正下方 2 合并为 4', type: 'merge', rows: 6, cols: 2,
+				before: [[0,0],[0,0],[0,0],[0,0],[0,0],[2,0]], piece: { shape: 'I', rotation: 0, row: 1, col: 0 }, ticks: 1,
+				expected: [[0,0],[0,0],[2,0],[2,0],[2,0],[4,0]] },
+			{ group: '合并', name: 'I 竖条连续两 tick：先合并再触底锁定', type: 'merge', rows: 6, cols: 2,
+				before: [[0,0],[0,0],[0,0],[0,0],[2,0],[2,0]], piece: { shape: 'I', rotation: 0, row: 0, col: 0 }, ticks: 2,
+				expected: [[0,0],[2,0],[2,0],[2,0],[4,0],[2,0]] },
+			{ group: '合并', name: '块遇异数不合并、锁定', type: 'merge', rows: 5, cols: 2,
+				before: [[0,0],[0,0],[0,0],[0,0],[4,0]], piece: { shape: 'I', rotation: 0, row: 0, col: 0 }, ticks: 1,
+				expected: [[2,0],[2,0],[2,0],[2,0],[4,0]] },
+			{ group: '消行', name: '1.1 仅最后一行满(全2)、上方全空', type: 'clearLine', rows: 6, cols: 4,
+				before: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[2,2,2,2]],
+				expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]] },
+			{ group: '消行', name: '1.2 仅最后一行满、倒数第二行有零有2', type: 'clearLine', rows: 6, cols: 4,
+				before: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,2,0,0],[2,2,2,2]],
+				expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,2,0,0]] },
+			{ group: '消行', name: '1.3 仅最后一行满(2与4混合)有剩余', type: 'clearLine', rows: 6, cols: 4,
+				before: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[2,4,2,2]],
+				expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,2,0,0]] },
+			{ group: '消行', name: '2.1 仅一行满有剩余、重力与合并阶段后', type: 'clearLine', rows: 6, cols: 4,
+				before: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,2,0,0],[2,4,2,2],[0,2,4,4]],
+				expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,2,0,0],[0,4,4,4]] },
+			{ group: '消行', name: '2.2 仅最后一行满有剩余、合并阶段与上一行同数合并', type: 'clearLine', rows: 6, cols: 4,
+				before: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,2,0,0],[2,4,2,2]],
+				expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,4,0,0]] },
+			{ group: '消行', name: '3.1 仅底两行满(全2)无剩余', type: 'clearLine', rows: 6, cols: 4,
+				before: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[2,2,2,2],[2,2,2,2]],
+				expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]] },
+			{ group: '消行', name: '3.2 仅底两行满、有剩余、上方下落无合并', type: 'clearLine', rows: 6, cols: 4,
+				before: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,4,2,2],[2,2,2,2],[2,2,2,2]],
+				expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,4,2,2]] },
+			{ group: '消行', name: '3.3 仅底两行满、有剩余、合并阶段一列合并', type: 'clearLine', rows: 6, cols: 4,
+				before: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,2,0,0],[2,4,2,2],[2,2,2,2]],
+				expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,4,0,0]] },
+			{ group: '消行', name: '4.1 消四行(全2)无剩余', type: 'clearLine', rows: 6, cols: 4,
+				before: [[0,0,0,0],[0,0,0,0],[2,2,2,2],[2,2,2,2],[2,2,2,2],[2,2,2,2]],
+				expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]] },
+			{ group: '消行', name: '4.2 消三行有剩余、列压实后合并', type: 'clearLine', rows: 6, cols: 4,
+				before: [[0,0,0,0],[0,0,0,0],[0,2,0,0],[2,4,2,2],[2,2,4,2],[2,2,2,4]],
+				expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,4,2,2]] },
+			{ group: '消行后合并', name: '消一行后列内相邻 2+2 合并为 4', type: 'clearThenCascade', rows: 6, cols: 2,
+				before: [[0,0],[0,0],[0,0],[2,0],[2,0],[2,2]], clearLinesPending: [5],
+				expected: [[0,0],[0,0],[0,0],[0,0],[0,0],[4,0]] },
+			{ group: '消行后合并', name: '消两行后多列有合并', type: 'clearThenCascade', rows: 6, cols: 3,
+				before: [[0,0,0],[0,0,0],[2,2,0],[2,2,0],[2,2,2],[2,2,2]], clearLinesPending: [4, 5],
+				expected: [[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[4,4,0]] },
+		];
+		// 深拷贝后冻结，避免被 logic 或界面逻辑误改；runCase 只读 .before/.expected，用 deepCopyBoard 再拷贝
+		const TEST_CASES = TEST_CASES_RAW.map(function(tc) {
+			var before = deepCopyBoard(tc.before);
+			var expected = deepCopyBoard(tc.expected);
+			before.forEach(function(r) { Object.freeze(r); });
+			Object.freeze(before);
+			expected.forEach(function(r) { Object.freeze(r); });
+			Object.freeze(expected);
+			return { group: tc.group, name: tc.name, type: tc.type, rows: tc.rows, cols: tc.cols, before: before, expected: expected, piece: tc.piece, ticks: tc.ticks, clearLinesPending: tc.clearLinesPending };
+		});
+
+		function renderBoard(container, board, rows, cols, piece) {
+			if (!board || !rows || !cols) { container.innerHTML = ''; container.style.display = 'none'; return; }
+			container.style.display = 'inline-block';
+			const flat = [];
+			for (let r = 0; r < rows; r++)
+				for (let c = 0; c < cols; c++)
+					flat.push(board[r][c] || 0);
+			const pieceCells = piece ? pieceAbsCells(piece) : [];
+			const pieceSet = {};
+			pieceCells.forEach(function(cell) {
+				if (cell.r >= 0 && cell.r < rows && cell.c >= 0 && cell.c < cols)
+					pieceSet[cell.r * cols + cell.c] = cell.value;
+			});
+			container.style.setProperty('--cols', cols);
+			container.style.setProperty('--rows', rows);
+			container.innerHTML = '<div class="board" style="grid-template-columns:repeat(' + cols + ',28px);grid-template-rows:repeat(' + rows + ',28px)">' +
+				flat.map(function(v, i) {
+					const r = Math.floor(i / cols), c = i % cols;
+					const val = pieceSet[i] != null ? pieceSet[i] : v;
+					const cls = pieceSet[i] != null ? 'cell piece' : (val ? 'cell has' : 'cell');
+					return '<div class="' + cls + '">' + (val || '') + '</div>';
+				}).join('') + '</div>';
+		}
+
+		function runCase(tc) {
+			const rows = tc.rows, cols = tc.cols;
+			// 用 JSON 深拷贝保证与用例数据完全脱开，避免任何引用被 logic 就地修改后污染
+			const beforeCopy = deepCopyBoard(tc.before);
+			let resultBoard = null;
+			let lastState = null;
+			if (tc.type === 'merge') {
+				// 逐 tick 隔离：每步从深拷贝的 board+piece 建新 state，再取结果深拷贝做下一步，避免 logic 内部复用引用
+				let board = deepCopyBoard(beforeCopy);
+				let piece = createPiece(tc.piece.shape, tc.piece.rotation, tc.piece.row, tc.piece.col);
+				var boardAfterLock = null; // 若在循环中发生锁定，记录「锁定后」的棋盘，用于与期望比对（期望是纯棋盘，不含下一个块）
+				var pieceCountBefore = piece ? 1 : 0;
+				for (let i = 0; i < tc.ticks; i++) {
+					var state = makeState(rows, cols, board, piece);
+					state.pieceCount = pieceCountBefore;
+					state = tick(state);
+					if (piece != null && state.pieceCount > pieceCountBefore) boardAfterLock = deepCopyBoard(state.board);
+					pieceCountBefore = state.pieceCount;
+					board = deepCopyBoard(state.board);
+					piece = state.currentPiece;
+					lastState = state;
+					if (!piece) break;
+				}
+				resultBoard = (boardAfterLock != null) ? boardAfterLock : (lastState.currentPiece ? getDisplayBoard(lastState) : deepCopyBoard(lastState.board));
+			} else if (tc.type === 'clearLine') {
+				const board = deepCopyBoard(beforeCopy);
+				for (let round = 0; round < 20; round++) {
+					const res = clearOneRound(board, rows, cols);
+					if (res.newFullRows.length === 0) break;
+				}
+				resultBoard = deepCopyBoard(board);
+			} else if (tc.type === 'clearThenCascade') {
+				const state = makeState(rows, cols, beforeCopy, null);
+				state.clearLinesPending = tc.clearLinesPending.slice();
+				let s = state;
+				for (let i = 0; i < 100; i++) {
+					if (s.clearLinesPending && s.clearLinesPending.length > 0) { s = applyPendingClearLines(s); continue; }
+					if (s.cascadePending) { s = tick(s); continue; }
+					if (s.postClearGravityState != null) { s = applyPendingClearLines(s); continue; }
+					break;
+				}
+				resultBoard = deepCopyBoard(s.board);
+			}
+			const pass = resultBoard && boardEquals(resultBoard, tc.expected, rows, cols);
+			return { resultBoard, pass, lastState };
+		}
+
+		let selectedIndex = -1;
+
+		function buildCaseList() {
+			const byGroup = {};
+			TEST_CASES.forEach(function(tc, idx) {
+				if (!byGroup[tc.group]) byGroup[tc.group] = [];
+				byGroup[tc.group].push({ tc, idx });
+			});
+			const listEl = document.getElementById('caseList');
+			listEl.innerHTML = '';
+			Object.keys(byGroup).forEach(function(grp) {
+				const div = document.createElement('div');
+				div.className = 'case-group';
+				div.innerHTML = '<div class="case-group-title">' + grp + '</div>';
+				byGroup[grp].forEach(function({ tc, idx }) {
+					const item = document.createElement('div');
+					item.className = 'case-item';
+					item.setAttribute('data-testid', 'case-' + idx);
+					item.textContent = tc.name;
+					item.dataset.index = idx;
+					item.addEventListener('click', function() {
+						selectedIndex = idx;
+						document.querySelectorAll('.case-item').forEach(function(el) { el.classList.remove('selected'); });
+						item.classList.add('selected');
+						renderBoard(document.getElementById('boardInitial'), tc.before, tc.rows, tc.cols, tc.piece ? createPiece(tc.piece.shape, tc.piece.rotation, tc.piece.row, tc.piece.col) : null);
+						renderBoard(document.getElementById('boardResult'), null, null, null);
+						renderBoard(document.getElementById('boardExpected'), tc.expected, tc.rows, tc.cols);
+						document.getElementById('resultMsg').textContent = '选择用例后点击「执行」或「全部运行」';
+						document.getElementById('resultMsg').className = 'result-msg none';
+					});
+					div.appendChild(item);
+				});
+				listEl.appendChild(div);
+			});
+		}
+
+		function updateBoardViews(tc, resultBoard) {
+			const piece = tc.piece ? createPiece(tc.piece.shape, tc.piece.rotation, tc.piece.row, tc.piece.col) : null;
+			renderBoard(document.getElementById('boardInitial'), tc.before, tc.rows, tc.cols, piece);
+			renderBoard(document.getElementById('boardResult'), resultBoard, tc.rows, tc.cols);
+			renderBoard(document.getElementById('boardExpected'), tc.expected, tc.rows, tc.cols);
+		}
+
+		document.getElementById('runOne').addEventListener('click', function() {
+			if (selectedIndex < 0) return;
+			const tc = TEST_CASES[selectedIndex];
+			const { resultBoard, pass } = runCase(tc);
+			updateBoardViews(tc, resultBoard);
+			const msgEl = document.getElementById('resultMsg');
+			msgEl.textContent = pass ? '✓ 通过' : '✗ 不通过：执行后与期望不一致';
+			msgEl.className = 'result-msg ' + (pass ? 'pass' : 'fail');
+			document.querySelectorAll('.case-item').forEach(function(el) {
+				el.classList.remove('pass', 'fail');
+				if (Number(el.dataset.index) === selectedIndex) el.classList.add(pass ? 'pass' : 'fail');
+			});
+		});
+
+		document.getElementById('runAll').addEventListener('click', function() {
+			let passed = 0, failed = 0;
+			TEST_CASES.forEach(function(tc, idx) {
+				const { pass } = runCase(tc);
+				if (pass) passed++; else failed++;
+				document.querySelectorAll('.case-item').forEach(function(el) {
+					if (Number(el.dataset.index) === idx) {
+						el.classList.remove('pass', 'fail');
+						el.classList.add(pass ? 'pass' : 'fail');
+					}
+				});
+			});
+			const msgEl = document.getElementById('resultMsg');
+			msgEl.textContent = '全部运行：' + passed + ' 通过，' + failed + ' 失败';
+			msgEl.className = 'result-msg ' + (failed ? 'fail' : 'pass');
+			if (selectedIndex >= 0) {
+				const tc = TEST_CASES[selectedIndex];
+				const { resultBoard } = runCase(tc);
+				updateBoardViews(tc, resultBoard);
+			}
+		});
+
+		buildCaseList();
+		// 默认选中第一项
+		if (TEST_CASES.length > 0) {
+			selectedIndex = 0;
+			const first = document.querySelector('.case-item');
+			if (first) {
+				first.classList.add('selected');
+				const tc = TEST_CASES[0];
+				renderBoard(document.getElementById('boardInitial'), tc.before, tc.rows, tc.cols, tc.piece ? createPiece(tc.piece.shape, tc.piece.rotation, tc.piece.row, tc.piece.col) : null);
+				renderBoard(document.getElementById('boardExpected'), tc.expected, tc.rows, tc.cols);
+			}
+		}
+	})();
+	</script>
+</body>
+</html>
