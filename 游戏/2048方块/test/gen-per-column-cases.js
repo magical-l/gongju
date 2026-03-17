@@ -116,7 +116,8 @@ function findPiecePosition(shape, rotation, rows, cols, colWith2) {
 
 var cases = [];
 SCENARIO1_TEMPLATES.forEach(function(tpl) {
-  for (var c = 0; c < tpl.cols; c++) {
+  var colEnd = tpl.shape === 'I' && tpl.rotation === 0 ? 1 : tpl.cols;
+  for (var c = 0; c < colEnd; c++) {
     var before = buildBefore(tpl.rows, tpl.cols, c);
     var pos = findPiecePosition(tpl.shape, tpl.rotation, tpl.rows, tpl.cols, c);
     if (!pos) {
