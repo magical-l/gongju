@@ -1,11 +1,12 @@
 /**
- * 读取 测试可视化-按场景.html 中 ① 组的 cases，用 logic 跑 runMergeCase 并与 expected 比对。
+ * 读取 scenarios/scenario-01.js 中 ① 组的 cases，用 logic 跑 runMergeCase 并与 expected 比对。
  * 用法: node assert-scenario1.js
  */
 'use strict';
-var fs = require('fs');
 var path = require('path');
-var logic = require('../logic.js');
+var logic = require(path.join(__dirname, '..', 'logic.js'));
+var scenario1 = require(path.join(__dirname, 'scenarios', 'scenario-01.js'));
+var cases = scenario1.cases;
 var tick = logic.tick;
 var createPiece = logic.createPiece;
 var pieceAbsCells = logic.pieceAbsCells;
@@ -62,39 +63,6 @@ function boardEquals(a, b, rows, cols) {
     for (var c = 0; c < cols; c++)
       if ((a[r] && a[r][c] || 0) !== (b[r] && b[r][c] || 0)) return false;
   return true;
-}
-
-var htmlPath = path.join(__dirname, '测试可视化-按场景.html');
-var html = fs.readFileSync(htmlPath, 'utf8');
-var idx = html.indexOf("① 下落一格与正下方 2 合并为 4");
-if (idx < 0) {
-  console.error('Could not find ① in HTML');
-  process.exit(1);
-}
-var casesStart = html.indexOf('cases: [', idx);
-if (casesStart < 0) {
-  console.error('Could not find cases: [ after ①');
-  process.exit(1);
-}
-var contentStart = casesStart + 'cases: ['.length;
-var depth = 0;
-var i = contentStart;
-while (i < html.length) {
-  var ch = html[i];
-  if (ch === '[') depth++;
-  else if (ch === ']') {
-    depth--;
-    if (depth < 0) break;
-  }
-  i++;
-}
-var content = html.slice(contentStart, i);
-var cases;
-try {
-  cases = eval('[' + content + ']');
-} catch (e) {
-  console.error('Failed to parse cases:', e.message);
-  process.exit(1);
 }
 
 var failed = [];

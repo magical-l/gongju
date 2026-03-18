@@ -3,24 +3,19 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>2048方块 - 测试按场景（全部）</title>
+	<title>2048方块 - ⑥ 消行下落合并</title>
 	<link rel="stylesheet" href="runner.css">
 </head>
 <body>
-	<h1>2048方块 - 合并类测试（按场景 · 全部六组）</h1>
+	<h1>2048方块 - ⑥ 消行后下落合并</h1>
 	<div class="page-actions">
 		<button type="button" id="runAll">全部执行</button>
 		<span id="runSummary" style="margin-left:12px;font-size:14px;color:#555;">成功 0，失败 0，共 0</span>
 	</div>
 	<div id="scenarios"></div>
 	<script src="../logic.js"></script>
-	<script src="scenarios/scenario-01.js"></script>
-	<script src="scenarios/scenario-02.js"></script>
-	<script src="scenarios/scenario-03.js"></script>
-	<script src="scenarios/scenario-04.js"></script>
-	<script src="scenarios/scenario-05.js"></script>
 	<script src="scenarios/scenario-06.js"></script>
-	<script>window.SCENARIOS = [window.SCENARIO_01, window.SCENARIO_02, window.SCENARIO_03, window.SCENARIO_04, window.SCENARIO_05, window.SCENARIO_06];</script>
+	<script>window.SCENARIOS = [window.SCENARIO_06]; window.SCENARIO_INDEX_BASE = 5;</script>
 	<script src="runner.js"></script>
 </body>
 </html>

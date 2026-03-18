@@ -1,0 +1,25 @@
+* { box-sizing: border-box; }
+body { font-family: system-ui, sans-serif; margin: 0; padding: 12px; background: #e8ece8; max-width: 1200px; margin-left: auto; margin-right: auto; }
+h1 { margin: 0 0 12px 0; font-size: 1.2rem; color: #2d3d27; }
+.page-actions { margin-bottom: 20px; }
+.page-actions button { padding: 8px 20px; cursor: pointer; border-radius: 6px; border: none; background: #5a6b52; color: #fff; font-size: 14px; }
+.page-actions button:hover { background: #4a5b42; }
+.scenario { margin-bottom: 28px; }
+.scenario h2 { margin: 0 0 12px 0; font-size: 0.95rem; font-weight: 600; color: #333; padding-bottom: 4px; }
+.card-grid { display: flex; flex-wrap: wrap; gap: 12px; }
+.card { background: #fff; border-radius: 10px; padding: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); width: 180px; }
+.card-title { font-size: 13px; font-weight: 600; color: #2d3d27; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #e8ece8; }
+.card-boards { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+.card-row { font-size: 10px; color: #666; }
+.card-row .label { display: inline-block; width: 44px; }
+.board-sm { display: inline-grid; gap: 1px; padding: 2px; background: #bbb; border-radius: 3px; vertical-align: middle; }
+.board-sm .cell { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; background: #e2ead8; color: #5a6b52; border-radius: 2px; }
+.board-sm .cell.has { background: #a8c99e; color: #2d3d27; }
+.board-sm .cell.piece { background: #7cb37a; color: #fff; }
+.card-actions { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.card-actions button { padding: 5px 12px; font-size: 12px; cursor: pointer; border-radius: 4px; border: 1px solid #8fbc85; background: #e8f0e0; color: #333; }
+.card-actions button:hover { background: #8fbc85; color: #fff; }
+.card-result { font-size: 13px; font-weight: 600; }
+.card-result.ok { color: #2e7d32; }
+.card-result.fail { color: #c62828; }
+.card-result.pending { color: #999; }
