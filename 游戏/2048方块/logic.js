@@ -696,11 +696,16 @@
 				return spawnNextAfterLock(Object.assign({}, g, {board: board, pieceCount: nextCount}));
 			}
 
-			// 最前线均允许：整块沿前进方向移一格；其中目标格同数的做合并（合并后数字翻倍写入目标格）
+			// 最前线均允许：整块沿前进方向移一格；仅最前线格可与目标格同数合并（合并后数字翻倍写入目标格）
 			var newRow = pieceRow + direction.dr;
 			var newCol = piece.col + direction.dc;
+			var frontKey = {};
+			frontLineCells.forEach(function(c) { frontKey[c.dr + ',' + c.dc] = true; });
 			var mergedCount = 0;
 			var updatedCells = piece.cells.map(function(cell) {
+				if (!frontKey[cell.dr + ',' + cell.dc]) {
+					return Object.assign({}, cell);
+				}
 				var targetR = pieceRow + cell.dr + direction.dr;
 				var targetC = piece.col + cell.dc + direction.dc;
 				if (targetC < 0 || targetC >= cols || targetR >= rows || targetR < 0 || !board[targetR]) {
