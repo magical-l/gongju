@@ -63,6 +63,15 @@
 			}
 			return { rows: rows, cols: cols, board: board, currentPiece: piece, pieceCount: piece ? 1 : 0, nextPiece: null, gameOver: false, clearLinesPending: null, postClearGravityState: null, cascadePending: false, score: 0, highScore: 0, seed: 0 };
 		}
+		/** 从用例的 piece 描述创建方块，若有 cellValues 则覆盖格子的数字（如下落块最下端为 4）。 */
+		function pieceFromCase(tc) {
+			var p = tc.piece;
+			var piece = createPiece(p.shape, p.rotation != null ? p.rotation : 0, p.row, p.col);
+			if (p.cellValues && Array.isArray(p.cellValues)) {
+				for (var i = 0; i < piece.cells.length && i < p.cellValues.length; i++) piece.cells[i].value = p.cellValues[i];
+			}
+			return piece;
+		}
 		function deepCopyBoard(arr) { return JSON.parse(JSON.stringify(arr)); }
 		function boardEquals(a, b, rows, cols) {
 			for (let r = 0; r < rows; r++)
@@ -366,12 +375,31 @@
 					{ shape: 'L', rotation: 0, ticks: 2, rows: 5, cols: 2, before: [[0,0],[0,0],[0,0],[2,0],[2,0]], piece: { shape: 'L', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[2,0],[2,0],[4,2],[2,0]] },
 				]
 			},
+			{
+				title: '④ 同一块：连续两行都可下落合并',
+				desc: '同一块、两 tick：第 1 tick 下落一行与 2 合并；第 2 tick 再下落一行再次与 2 合并（两行固定块都参与合并）。较复杂用例。',
+				cases: [
+					{ shape: 'I', rotation: 0, ticks: 2, rows: 6, cols: 2, before: [[0,0],[0,0],[0,0],[0,0],[2,0],[4,0]], piece: { shape: 'I', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[0,0],[2,0],[2,0],[2,0],[8,0]] },
+					{ shape: 'I', rotation: 1, ticks: 2, rows: 4, cols: 4, before: [[0,0,0,0],[2,0,0,0],[0,2,0,0],[0,0,0,0]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, expected: [[0,0,0,0],[0,0,0,0],[4,4,2,2],[0,0,0,0]] },
+					{ shape: 'O', rotation: 0, ticks: 2, rows: 4, cols: 2, before: [[0,0],[0,0],[2,2],[4,4]], piece: { shape: 'O', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[0,0],[2,2],[8,8]] },
+					{ shape: 'T', rotation: 0, ticks: 2, rows: 5, cols: 2, before: [[0,0],[0,0],[0,0],[0,2],[2,4]], piece: { shape: 'T', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[0,0],[0,2],[2,2],[2,8]] },
+					{ shape: 'T', rotation: 0, ticks: 2, rows: 5, cols: 2, before: [[0,0],[0,0],[0,0],[0,4],[2,8]], piece: { shape: 'T', rotation: 0, row: 0, col: 0, cellValues: [2,2,2,4] }, expected: [[0,0],[0,0],[0,2],[2,2],[2,16]] },
+					{ shape: 'Z', rotation: 0, ticks: 2, rows: 5, cols: 2, before: [[0,0],[0,0],[0,0],[2,0],[4,2]], piece: { shape: 'Z', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[0,0],[0,2],[2,2],[8,2]] },
+					{ shape: 'Z', rotation: 0, ticks: 2, rows: 5, cols: 2, before: [[0,0],[0,0],[0,0],[4,0],[8,2]], piece: { shape: 'Z', rotation: 0, row: 0, col: 0, cellValues: [2,2,2,4] }, expected: [[0,0],[0,0],[0,2],[2,2],[16,2]] },
+					{ shape: 'S', rotation: 0, ticks: 2, rows: 5, cols: 2, before: [[0,0],[0,0],[0,0],[0,2],[2,4]], piece: { shape: 'S', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[0,0],[2,0],[2,2],[2,8]] },
+					{ shape: 'S', rotation: 0, ticks: 2, rows: 5, cols: 2, before: [[0,0],[0,0],[0,0],[0,4],[2,8]], piece: { shape: 'S', rotation: 0, row: 0, col: 0, cellValues: [2,2,2,4] }, expected: [[0,0],[0,0],[2,0],[2,2],[2,16]] },
+					{ shape: 'J', rotation: 0, ticks: 2, rows: 5, cols: 2, before: [[0,0],[0,0],[0,0],[2,0],[4,0]], piece: { shape: 'J', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[0,0],[0,2],[0,2],[8,2]] },
+					{ shape: 'J', rotation: 0, ticks: 2, rows: 5, cols: 2, before: [[0,0],[0,0],[0,0],[0,2],[0,4]], piece: { shape: 'J', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[0,0],[0,2],[0,2],[2,8]] },
+					{ shape: 'L', rotation: 0, ticks: 2, rows: 5, cols: 2, before: [[0,0],[0,0],[0,0],[0,2],[0,4]], piece: { shape: 'L', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[0,0],[2,0],[2,0],[2,8]] },
+					{ shape: 'L', rotation: 0, ticks: 2, rows: 5, cols: 2, before: [[0,0],[0,0],[0,0],[2,0],[4,0]], piece: { shape: 'L', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[0,0],[2,0],[2,0],[8,2]] },
+				]
+			},
 		];
 
 		function runMergeCase(tc) {
 			var rows = tc.rows, cols = tc.cols;
 			var board = deepCopyBoard(tc.before);
-			var piece = createPiece(tc.piece.shape, tc.piece.rotation, tc.piece.row, tc.piece.col);
+			var piece = pieceFromCase(tc);
 			var boardAfterLock = null;
 			var pieceCountBefore = piece ? 1 : 0;
 			var lastState = null;
@@ -387,7 +415,7 @@
 				if (!piece) break;
 			}
 			var resultBoard = (boardAfterLock != null) ? boardAfterLock
-				: (tc.ticks === 1 && lastState && lastState.currentPiece ? getDisplayBoard(lastState) : deepCopyBoard(board));
+				: (lastState && lastState.currentPiece ? getDisplayBoard(lastState) : deepCopyBoard(board));
 			var pass = tc.expected != null && boardEquals(resultBoard, tc.expected, rows, cols);
 			return { resultBoard: resultBoard, pass: pass };
 		}
@@ -418,12 +446,11 @@
 			section.innerHTML = '<h2>' + scenario.title + '</h2>' + (scenario.desc ? '<p class="scenario-desc" style="margin:0 0 10px 0;font-size:12px;color:#666;max-width:720px;">' + scenario.desc + '</p>' : '') + '<div class="card-grid" id="grid-' + si + '"></div>';
 			var grid = section.querySelector('.card-grid');
 			sortCases(scenario.cases).forEach(function(tc, ci) {
-				var rot = tc.piece.rotation != null ? tc.piece.rotation : 0;
-				var piece = createPiece(tc.piece.shape, rot, tc.piece.row, tc.piece.col);
+				var piece = pieceFromCase(tc);
 				var card = document.createElement('div');
 				card.className = 'card';
 				card.innerHTML =
-					'<div class="card-title">' + tc.shape + ' ' + (ROT_LABELS[rot] || rot + '°') + ' ' + blockLabel(tc) + '</div>' +
+					'<div class="card-title">' + tc.shape + ' ' + (ROT_LABELS[piece.rotation] || piece.rotation + '°') + ' ' + blockLabel(tc) + '</div>' +
 					'<div class="card-boards">' +
 					'<div class="card-row"><span class="label">初始</span>' + renderBoardSm(tc.before, tc.rows, tc.cols, piece) + '</div>' +
 					'<div class="card-row"><span class="label">期望</span>' + renderBoardSm(tc.expected, tc.rows, tc.cols, null) + '</div>' +
