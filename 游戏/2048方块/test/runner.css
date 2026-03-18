@@ -23,3 +23,4 @@ h1 { margin: 0 0 12px 0; font-size: 1.2rem; color: #2d3d27; }
 .card-result.ok { color: #2e7d32; }
 .card-result.fail { color: #c62828; }
 .card-result.pending { color: #999; }
+.card.card-fail { background: #ffebee; border: 2px solid #c62828; box-shadow: 0 0 0 1px #c62828; }

@@ -48,7 +48,7 @@
 			{ shape: 'L', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[4,0,0]], piece: { shape: 'L', rotation: 1, row: 0, col: 0 }, columnIndex: 0, expected: [[2,2,2],[2,0,0],[4,0,0]] },
 			{ shape: 'L', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,4,0]], piece: { shape: 'L', rotation: 1, row: 0, col: 0 }, columnIndex: 1, expected: [[0,0,0],[2,2,2],[2,4,0]] },
 			{ shape: 'L', rotation: 1, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,0,4]], piece: { shape: 'L', rotation: 1, row: 0, col: 0 }, columnIndex: 2, expected: [[0,0,0],[2,2,2],[2,0,4]] },
-			{ shape: 'L', rotation: 2, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[4,0]], piece: { shape: 'L', rotation: 2, row: 0, col: 0 }, columnIndex: 0, expected: [[2,2],[0,2],[0,2],[4,2]] },
+			{ shape: 'L', rotation: 2, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[4,0]], piece: { shape: 'L', rotation: 2, row: 0, col: 0 }, columnIndex: 0, expected: [[0,0],[2,2],[0,2],[4,2]] },
 			{ shape: 'L', rotation: 2, ticks: 1, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[0,4]], piece: { shape: 'L', rotation: 2, row: 0, col: 0 }, columnIndex: 1, expected: [[2,2],[0,2],[0,2],[0,4]] },
 			{ shape: 'L', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[4,0,0]], piece: { shape: 'L', rotation: 3, row: 0, col: 0 }, columnIndex: 0, expected: [[0,0,2],[2,2,2],[4,0,0]] },
 			{ shape: 'L', rotation: 3, ticks: 1, rows: 3, cols: 3, before: [[0,0,0],[0,0,0],[0,4,0]], piece: { shape: 'L', rotation: 3, row: 0, col: 0 }, columnIndex: 1, expected: [[0,0,2],[2,2,2],[0,4,0]] },

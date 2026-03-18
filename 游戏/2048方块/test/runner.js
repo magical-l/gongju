@@ -237,8 +237,9 @@
 				resultEl.innerHTML = renderBoardSm(res.resultBoard, tc.rows, tc.cols, null);
 				statusEl.textContent = res.pass ? '✓' : '✗';
 				statusEl.className = 'card-result ' + (res.pass ? 'ok' : 'fail');
+				card.classList.toggle('card-fail', !res.pass);
 			});
-			allCards.push({ tc: tc, resultEl: resultEl, statusEl: statusEl, scenarioIndex: scenarioIndex });
+			allCards.push({ tc: tc, card: card, resultEl: resultEl, statusEl: statusEl, scenarioIndex: scenarioIndex });
 			grid.appendChild(card);
 		});
 		scenarioRoot.appendChild(section);
@@ -256,6 +257,7 @@
 				o.resultEl.innerHTML = renderBoardSm(res.resultBoard, o.tc.rows, o.tc.cols, null);
 				o.statusEl.textContent = res.pass ? '✓' : '✗';
 				o.statusEl.className = 'card-result ' + (res.pass ? 'ok' : 'fail');
+				if (o.card) o.card.classList.toggle('card-fail', !res.pass);
 				if (res.pass) ok++; else fail++;
 			});
 			var el = document.getElementById('runSummary');
