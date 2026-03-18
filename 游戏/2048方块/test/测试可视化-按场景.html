@@ -52,6 +52,8 @@
 		const tick = logic.tick;
 		const createPiece = logic.createPiece;
 		const pieceAbsCells = logic.pieceAbsCells;
+		const applyPendingClearLines = logic.applyPendingClearLines;
+		const getFullRowIndices = logic.getFullRowIndices;
 		var ROT_LABELS = ['0°', '90°', '180°', '270°'];
 
 		function makeState(rows, cols, boardRows, piece) {
@@ -118,6 +120,9 @@
 			return 1;
 		}
 		function sortCases(cases) {
+			if (cases.length > 0 && cases.every(function(c) { return c.sortKey != null; })) {
+				return cases.slice().sort(function(a, b) { return a.sortKey - b.sortKey; });
+			}
 			// 排序：形状 → 角度 → 块数 → 列坐标集
 			function colKey(tc) {
 				var n = blockCount(tc);
@@ -417,6 +422,40 @@
 					{ shape: 'L', rotation: 3, ticks: 3, rows: 5, cols: 3, before: [[0,0,0],[0,0,0],[0,2,0],[0,4,0],[0,0,0]], piece: { shape: 'L', rotation: 3, row: 0, col: 0 }, expected: [[0,0,0],[0,0,0],[0,0,0],[0,0,2],[2,8,2]] },
 				]
 			},
+			{
+				title: '⑤ 简单消行（不会发生重力下落-合并的场景）',
+				desc: '仅测「满行在最上方连续若干行」或「O 仅最后两行有堆」：消行后上方无格子，故不会触发重力下落与合并。I0：消第一行、消上两行、消上三行、4行全消；O：最后两行之上无格子，消最上行 / 2行全消。',
+				cases: [
+					{ shape: 'I', rotation: 0, ticks: 1, rows: 4, cols: 4, before: [[0,2,2,2],[0,0,2,2],[0,0,2,2],[0,0,2,2]], piece: { shape: 'I', rotation: 0, row: 0, col: 0 }, expected: [[0,0,0,0],[2,0,2,2],[2,0,2,2],[2,0,2,2]], label: '消第一行', sortKey: 1 },
+					{ shape: 'I', rotation: 0, ticks: 1, rows: 4, cols: 4, before: [[0,2,2,2],[0,2,2,2],[0,0,2,2],[0,0,2,2]], piece: { shape: 'I', rotation: 0, row: 0, col: 0 }, expected: [[0,0,0,0],[0,0,0,0],[2,0,2,2],[2,0,2,2]], label: '消上两行', sortKey: 2 },
+					{ shape: 'I', rotation: 0, ticks: 1, rows: 4, cols: 4, before: [[0,2,2,2],[0,2,2,2],[0,2,2,2],[0,0,2,2]], piece: { shape: 'I', rotation: 0, row: 0, col: 0 }, expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[2,0,2,2]], label: '消上三行', sortKey: 3 },
+					{ shape: 'I', rotation: 0, ticks: 1, rows: 4, cols: 4, before: [[0,2,2,2],[0,2,2,2],[0,2,2,2],[0,2,2,2]], piece: { shape: 'I', rotation: 0, row: 0, col: 0 }, expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]], label: '4行全消', sortKey: 4 },
+					{ shape: 'O', rotation: 0, ticks: 1, rows: 4, cols: 4, before: [[0,0,0,0],[0,0,0,0],[0,0,2,2],[0,0,0,2]], piece: { shape: 'O', rotation: 0, row: 2, col: 0 }, expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[2,2,0,2]], label: 'O 消最上行', sortKey: 5 },
+					{ shape: 'O', rotation: 0, ticks: 1, rows: 4, cols: 4, before: [[0,0,0,0],[0,0,0,0],[0,0,2,2],[0,0,2,2]], piece: { shape: 'O', rotation: 0, row: 2, col: 0 }, expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]], label: 'O 2行全消', sortKey: 6 },
+				]
+			},
+			{
+				title: '⑥ 消行后下落合并（待实现/校验）',
+				desc: '锁块后消行 + 重力 + 竖向合并，与当前 logic 的 applyPendingClearLines 行为一致。先保留用例，后续再对逻辑或期望做校验。',
+				cases: [
+					{ shape: 'I', rotation: 0, ticks: 1, rows: 4, cols: 4, before: [[0,2,2,2],[0,0,2,2],[0,0,2,2],[0,0,2,2]], piece: { shape: 'I', rotation: 0, row: 0, col: 0 }, expected: [[0,0,0,0],[0,0,0,0],[2,0,2,2],[4,0,4,4]], label: '消第1行', sortKey: 1 },
+					{ shape: 'I', rotation: 0, ticks: 1, rows: 4, cols: 4, before: [[0,0,2,2],[0,2,2,2],[0,0,2,2],[0,0,2,2]], piece: { shape: 'I', rotation: 0, row: 0, col: 0 }, expected: [[0,0,0,0],[0,0,0,0],[2,0,2,2],[4,0,4,4]], label: '消第2行', sortKey: 2 },
+					{ shape: 'I', rotation: 0, ticks: 1, rows: 4, cols: 4, before: [[0,0,2,2],[0,0,2,2],[0,2,2,2],[0,0,2,2]], piece: { shape: 'I', rotation: 0, row: 0, col: 0 }, expected: [[0,0,0,0],[0,0,0,0],[2,0,2,2],[4,0,4,4]], label: '消第3行', sortKey: 3 },
+					{ shape: 'I', rotation: 0, ticks: 1, rows: 4, cols: 4, before: [[0,0,2,2],[0,0,2,2],[0,0,2,2],[0,2,2,2]], piece: { shape: 'I', rotation: 0, row: 0, col: 0 }, expected: [[0,0,0,0],[0,0,0,0],[2,0,2,2],[4,0,4,4]], label: '消第4行', sortKey: 4 },
+					{ shape: 'I', rotation: 0, ticks: 1, rows: 4, cols: 4, before: [[0,2,2,2],[0,2,2,2],[0,0,2,2],[0,0,2,2]], piece: { shape: 'I', rotation: 0, row: 0, col: 0 }, expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[4,0,4,4]], label: '消第1、2行', sortKey: 5 },
+					{ shape: 'I', rotation: 0, ticks: 1, rows: 4, cols: 4, before: [[0,0,2,2],[0,2,2,2],[0,2,2,2],[0,0,2,2]], piece: { shape: 'I', rotation: 0, row: 0, col: 0 }, expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[4,0,4,4]], label: '消第2、3行', sortKey: 6 },
+					{ shape: 'I', rotation: 0, ticks: 1, rows: 4, cols: 4, before: [[0,0,2,2],[0,0,2,2],[0,2,2,2],[0,2,2,2]], piece: { shape: 'I', rotation: 0, row: 0, col: 0 }, expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[4,0,4,4]], label: '消第3、4行', sortKey: 7 },
+					{ shape: 'I', rotation: 0, ticks: 1, rows: 4, cols: 4, before: [[0,2,2,2],[0,0,2,2],[0,2,2,2],[0,0,2,2]], piece: { shape: 'I', rotation: 0, row: 0, col: 0 }, expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[4,0,4,4]], label: '消第1、3行', sortKey: 8 },
+					{ shape: 'I', rotation: 0, ticks: 1, rows: 4, cols: 4, before: [[0,0,2,2],[0,2,2,2],[0,0,2,2],[0,2,2,2]], piece: { shape: 'I', rotation: 0, row: 0, col: 0 }, expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[4,0,4,4]], label: '消第2、4行', sortKey: 9 },
+					{ shape: 'I', rotation: 0, ticks: 1, rows: 4, cols: 4, before: [[0,2,2,2],[0,0,2,2],[0,0,2,2],[0,2,2,2]], piece: { shape: 'I', rotation: 0, row: 0, col: 0 }, expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[4,0,4,4]], label: '消第1、4行', sortKey: 10 },
+					{ shape: 'I', rotation: 0, ticks: 1, rows: 4, cols: 4, before: [[0,2,2,2],[0,2,2,2],[0,2,2,2],[0,0,2,2]], piece: { shape: 'I', rotation: 0, row: 0, col: 0 }, expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[2,0,2,2]], label: '消第1、2、3行', sortKey: 11 },
+					{ shape: 'I', rotation: 0, ticks: 1, rows: 4, cols: 4, before: [[0,0,2,2],[0,2,2,2],[0,2,2,2],[0,2,2,2]], piece: { shape: 'I', rotation: 0, row: 0, col: 0 }, expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[2,0,2,2]], label: '消第2、3、4行', sortKey: 12 },
+					{ shape: 'I', rotation: 0, ticks: 1, rows: 4, cols: 4, before: [[0,2,2,2],[0,2,2,2],[0,0,2,2],[0,2,2,2]], piece: { shape: 'I', rotation: 0, row: 0, col: 0 }, expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[2,0,2,2]], label: '消第1、2、4行', sortKey: 13 },
+					{ shape: 'I', rotation: 0, ticks: 1, rows: 4, cols: 4, before: [[0,2,2,2],[0,0,2,2],[0,2,2,2],[0,2,2,2]], piece: { shape: 'I', rotation: 0, row: 0, col: 0 }, expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[2,0,2,2]], label: '消第1、3、4行', sortKey: 14 },
+					{ shape: 'I', rotation: 0, ticks: 1, rows: 4, cols: 4, before: [[0,2,2,2],[0,2,2,2],[0,2,2,2],[0,2,2,2]], piece: { shape: 'I', rotation: 0, row: 0, col: 0 }, expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]], label: '消第1、2、3、4行', sortKey: 15 },
+					{ shape: 'O', rotation: 0, ticks: 1, rows: 4, cols: 4, before: [[0,0,2,2],[0,0,2,2],[0,0,2,2],[0,0,2,2]], piece: { shape: 'O', rotation: 0, row: 2, col: 0 }, expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,4,4]], label: 'O 消2行', sortKey: 16 },
+				]
+			},
 		];
 
 		function runMergeCase(tc) {
@@ -439,6 +478,58 @@
 			}
 			var resultBoard = (boardAfterLock != null) ? boardAfterLock
 				: (lastState && lastState.currentPiece ? getDisplayBoard(lastState) : deepCopyBoard(board));
+			var pass = tc.expected != null && boardEquals(resultBoard, tc.expected, rows, cols);
+			return { resultBoard: resultBoard, pass: pass };
+		}
+
+		/** 第五组专用：简单消行——用例设计为满行仅在最上方连续若干行（或 O 仅最后两行有堆），故锁定后仅将满行置 0 即得期望，不会发生重力下落与合并。 */
+		function runClearCase(tc) {
+			var rows = tc.rows, cols = tc.cols;
+			var board = deepCopyBoard(tc.before);
+			var piece = pieceFromCase(tc);
+			var pieceCountBefore = piece ? 1 : 0;
+			var state = null;
+			var ticksToRun = tc.ticks != null ? tc.ticks : 20;
+			for (var i = 0; i < ticksToRun; i++) {
+				state = makeState(rows, cols, board, piece);
+				state.pieceCount = pieceCountBefore;
+				state = tick(state);
+				pieceCountBefore = state.pieceCount;
+				board = deepCopyBoard(state.board);
+				piece = state.currentPiece;
+				if (!piece) break;
+			}
+			var resultBoard = state ? deepCopyBoard(state.board) : board;
+			var fullRows = getFullRowIndices ? getFullRowIndices(resultBoard, rows, cols) : [];
+			for (var r = 0; r < fullRows.length; r++) {
+				var rowIndex = fullRows[r];
+				for (var c = 0; c < cols; c++) resultBoard[rowIndex][c] = 0;
+			}
+			var pass = tc.expected != null && boardEquals(resultBoard, tc.expected, rows, cols);
+			return { resultBoard: resultBoard, pass: pass };
+		}
+
+		/** 第六组专用：tick 至锁定后，循环 applyPendingClearLines 直到无待消行且无 postClearGravityState，比较最终 board（消行+重力+可能合并）。 */
+		function runClearWithGravityCase(tc) {
+			var rows = tc.rows, cols = tc.cols;
+			var board = deepCopyBoard(tc.before);
+			var piece = pieceFromCase(tc);
+			var pieceCountBefore = piece ? 1 : 0;
+			var state = null;
+			var ticksToRun = tc.ticks != null ? tc.ticks : 20;
+			for (var i = 0; i < ticksToRun; i++) {
+				state = makeState(rows, cols, board, piece);
+				state.pieceCount = pieceCountBefore;
+				state = tick(state);
+				pieceCountBefore = state.pieceCount;
+				board = deepCopyBoard(state.board);
+				piece = state.currentPiece;
+				if (!piece) break;
+			}
+			while (state && (state.clearLinesPending && state.clearLinesPending.length > 0 || state.postClearGravityState != null)) {
+				state = applyPendingClearLines(state);
+			}
+			var resultBoard = state ? deepCopyBoard(state.board) : board;
 			var pass = tc.expected != null && boardEquals(resultBoard, tc.expected, rows, cols);
 			return { resultBoard: resultBoard, pass: pass };
 		}
@@ -473,7 +564,7 @@
 				var card = document.createElement('div');
 				card.className = 'card';
 				card.innerHTML =
-					'<div class="card-title">' + tc.shape + ' ' + (ROT_LABELS[piece.rotation] || piece.rotation + '°') + '</div>' +
+					'<div class="card-title">' + tc.shape + ' ' + (ROT_LABELS[piece.rotation] || piece.rotation + '°') + (tc.label ? ' ' + tc.label : '') + '</div>' +
 					'<div class="card-boards">' +
 					'<div class="card-row"><span class="label">初始</span>' + renderBoardSm(tc.before, tc.rows, tc.cols, piece) + '</div>' +
 					'<div class="card-row"><span class="label">期望</span>' + renderBoardSm(tc.expected, tc.rows, tc.cols, null) + '</div>' +
@@ -486,13 +577,14 @@
 				var resultEl = card.querySelector('[data-result]');
 				var statusEl = card.querySelector('[data-status]');
 				var runBtn = card.querySelector('.run-one');
+				var scenarioIndex = si;
 				runBtn.addEventListener('click', function() {
-					var res = runMergeCase(tc);
+					var res = scenarioIndex === 4 ? runClearCase(tc) : (scenarioIndex === 5 ? runClearWithGravityCase(tc) : runMergeCase(tc));
 					resultEl.innerHTML = renderBoardSm(res.resultBoard, tc.rows, tc.cols, null);
 					statusEl.textContent = res.pass ? '✓' : '✗';
 					statusEl.className = 'card-result ' + (res.pass ? 'ok' : 'fail');
 				});
-				allCards.push({ tc: tc, resultEl: resultEl, statusEl: statusEl });
+				allCards.push({ tc: tc, resultEl: resultEl, statusEl: statusEl, scenarioIndex: scenarioIndex });
 				grid.appendChild(card);
 			});
 			scenarioRoot.appendChild(section);
@@ -503,7 +595,7 @@
 		document.getElementById('runAll').addEventListener('click', function() {
 			var ok = 0, fail = 0;
 			allCards.forEach(function(o) {
-				var res = runMergeCase(o.tc);
+				var res = o.scenarioIndex === 4 ? runClearCase(o.tc) : (o.scenarioIndex === 5 ? runClearWithGravityCase(o.tc) : runMergeCase(o.tc));
 				o.resultEl.innerHTML = renderBoardSm(res.resultBoard, o.tc.rows, o.tc.cols, null);
 				o.statusEl.textContent = res.pass ? '✓' : '✗';
 				o.statusEl.className = 'card-result ' + (res.pass ? 'ok' : 'fail');
