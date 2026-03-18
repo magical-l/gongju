@@ -628,6 +628,14 @@
 		while (true) {
 			const wouldHit = pieceOverlapsBoard(board, rows, cols, piece, 1, 0);
 			if (!wouldHit) {
+				// 纯下移：块离开原格，须清空原格（合并分支会清空+写目标格，此处仅下移无合并）
+				piece.cells.forEach(function(cell) {
+					var r = piece.row + cell.dr;
+					var c = piece.col + cell.dc;
+					if (r >= 0 && r < rows && c >= 0 && c < cols && board[r]) {
+						board[r][c] = 0;
+					}
+				});
 				return Object.assign({}, g, {board: board, currentPiece: Object.assign({}, piece, {row: piece.row + 1})});
 			}
 

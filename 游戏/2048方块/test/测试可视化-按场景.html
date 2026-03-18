@@ -375,12 +375,17 @@
 					{ shape: 'L', rotation: 0, ticks: 2, rows: 5, cols: 2, before: [[0,0],[0,0],[0,0],[2,0],[2,0]], piece: { shape: 'L', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[2,0],[2,0],[4,2],[2,0]] },
 				]
 			},
+			// 期望填写注意：expected 必须以「本页 runMergeCase 跑出的 resultBoard」为准，不要凭“锁块/不锁块”等假设手写。
+			// 否则易错（例：I90 下端4 用例曾误以为第1 tick 就锁块而写成 [[4,2,2,2],[4,0,0,0],...]，实际 2 tick 后为 [[0,0,0,0],[0,0,0,0],[16,2,2,2],[0,0,0,0]]）。
 			{
-				title: '④ 同一块：连续两行都可下落合并',
-				desc: '同一块、两 tick：第 1 tick 下落一行与 2 合并；第 2 tick 再下落一行再次与 2 合并（两行固定块都参与合并）。较复杂用例。',
+				title: '④ 同一块：连续多行都可下落合并',
+				desc: '同一块、多 tick：下落块每 tick 下移一行，与固定块堆中同数格子合并（连续多行固定块参与合并）。较复杂用例。',
 				cases: [
 					{ shape: 'I', rotation: 0, ticks: 2, rows: 6, cols: 2, before: [[0,0],[0,0],[0,0],[0,0],[2,0],[4,0]], piece: { shape: 'I', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[0,0],[2,0],[2,0],[2,0],[8,0]] },
-					{ shape: 'I', rotation: 1, ticks: 2, rows: 4, cols: 4, before: [[0,0,0,0],[2,0,0,0],[0,2,0,0],[0,0,0,0]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, expected: [[0,0,0,0],[0,0,0,0],[4,4,2,2],[0,0,0,0]] },
+					{ shape: 'I', rotation: 0, ticks: 2, rows: 6, cols: 2, before: [[0,0],[0,0],[0,0],[0,0],[4,0],[8,0]], piece: { shape: 'I', rotation: 0, row: 0, col: 0, cellValues: [2,2,2,4] }, expected: [[0,0],[0,0],[2,0],[2,0],[2,0],[16,0]] },
+					{ shape: 'I', rotation: 1, ticks: 3, rows: 4, cols: 4, before: [[0,0,0,0],[2,0,0,0],[0,2,0,0],[0,0,0,0]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[4,4,2,2]] },
+					{ shape: 'I', rotation: 1, ticks: 3, rows: 4, cols: 4, before: [[0,0,0,0],[4,0,0,0],[8,0,0,0],[0,0,0,0]], piece: { shape: 'I', rotation: 1, row: 0, col: 0, cellValues: [2,2,2,4] }, expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[16,2,2,2]] },
+					{ shape: 'I', rotation: 1, ticks: 3, rows: 4, cols: 4, before: [[0,0,0,0],[2,2,2,2],[4,4,4,4],[0,0,0,0]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[8,8,8,8]] },
 					{ shape: 'O', rotation: 0, ticks: 2, rows: 4, cols: 2, before: [[0,0],[0,0],[2,2],[4,4]], piece: { shape: 'O', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[0,0],[2,2],[8,8]] },
 					{ shape: 'T', rotation: 0, ticks: 2, rows: 5, cols: 2, before: [[0,0],[0,0],[0,0],[0,2],[2,4]], piece: { shape: 'T', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[0,0],[0,2],[2,2],[2,8]] },
 					{ shape: 'T', rotation: 0, ticks: 2, rows: 5, cols: 2, before: [[0,0],[0,0],[0,0],[0,4],[2,8]], piece: { shape: 'T', rotation: 0, row: 0, col: 0, cellValues: [2,2,2,4] }, expected: [[0,0],[0,0],[0,2],[2,2],[2,16]] },
@@ -450,7 +455,7 @@
 				var card = document.createElement('div');
 				card.className = 'card';
 				card.innerHTML =
-					'<div class="card-title">' + tc.shape + ' ' + (ROT_LABELS[piece.rotation] || piece.rotation + '°') + ' ' + blockLabel(tc) + '</div>' +
+					'<div class="card-title">' + tc.shape + ' ' + (ROT_LABELS[piece.rotation] || piece.rotation + '°') + '</div>' +
 					'<div class="card-boards">' +
 					'<div class="card-row"><span class="label">初始</span>' + renderBoardSm(tc.before, tc.rows, tc.cols, piece) + '</div>' +
 					'<div class="card-row"><span class="label">期望</span>' + renderBoardSm(tc.expected, tc.rows, tc.cols, null) + '</div>' +
