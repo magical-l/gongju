@@ -36,6 +36,7 @@
 	<h1>2048方块 - 合并类测试（按场景 · 卡片）</h1>
 	<div class="page-actions">
 		<button type="button" id="runAll">全部执行</button>
+		<span id="runSummary" style="margin-left:12px;font-size:14px;color:#555;">成功 0，失败 0，共 0</span>
 	</div>
 	<div id="scenarios"></div>
 
@@ -352,15 +353,17 @@
 				]
 			},
 			{
-				title: '③ 连续两 tick 先合并再触底锁定',
+				title: '③ 同一块：下落一行合并，再下一行不能合并于是锁定',
+				desc: '同一块、两 tick：第 1 tick 下落一行与 2 合并；第 2 tick 再下落一行时遇 4（或异数）不能合并，于是锁定。与①（只测合并）不同：这里测「合并后紧接着被挡住」的锁定。',
 				cases: [
 					{ shape: 'I', rotation: 0, ticks: 2, rows: 6, cols: 2, before: [[0,0],[0,0],[0,0],[0,0],[2,0],[2,0]], piece: { shape: 'I', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[2,0],[2,0],[2,0],[4,0],[2,0]] },
+					{ shape: 'I', rotation: 1, ticks: 2, rows: 3, cols: 4, before: [[0,0,0,0],[2,0,0,0],[0,4,0,0]], piece: { shape: 'I', rotation: 1, row: 0, col: 0 }, columnIndex: 0, expected: [[0,0,0,0],[4,2,2,2],[0,4,0,0]] },
 					{ shape: 'O', rotation: 0, ticks: 2, rows: 4, cols: 2, before: [[0,0],[0,0],[2,0],[2,0]], piece: { shape: 'O', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[2,2],[4,2],[2,0]] },
-					{ shape: 'T', rotation: 0, ticks: 2, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[0,2]], piece: { shape: 'T', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[0,2],[2,2],[0,4]] },
-					{ shape: 'Z', rotation: 0, ticks: 2, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,0]], piece: { shape: 'Z', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[0,2],[2,2],[4,0]] },
-					{ shape: 'S', rotation: 0, ticks: 2, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[0,2]], piece: { shape: 'S', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[2,0],[2,2],[0,4]] },
-					{ shape: 'J', rotation: 0, ticks: 2, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[0,2]], piece: { shape: 'J', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[0,2],[0,2],[2,4]] },
-					{ shape: 'L', rotation: 0, ticks: 2, rows: 4, cols: 2, before: [[0,0],[0,0],[0,0],[2,0]], piece: { shape: 'L', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[2,0],[2,2],[4,2]] },
+					{ shape: 'T', rotation: 0, ticks: 2, rows: 5, cols: 2, before: [[0,0],[0,0],[0,0],[0,2],[0,2]], piece: { shape: 'T', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[0,2],[2,2],[0,4],[0,2]] },
+					{ shape: 'Z', rotation: 0, ticks: 2, rows: 5, cols: 2, before: [[0,0],[0,0],[0,0],[2,0],[2,0]], piece: { shape: 'Z', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[0,2],[2,2],[4,0],[2,0]] },
+					{ shape: 'S', rotation: 0, ticks: 2, rows: 5, cols: 2, before: [[0,0],[0,0],[0,0],[0,2],[0,2]], piece: { shape: 'S', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[2,0],[2,2],[0,4],[0,2]] },
+					{ shape: 'J', rotation: 0, ticks: 2, rows: 5, cols: 2, before: [[0,0],[0,0],[0,0],[0,2],[0,2]], piece: { shape: 'J', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[0,2],[0,2],[2,4],[0,2]] },
+					{ shape: 'L', rotation: 0, ticks: 2, rows: 5, cols: 2, before: [[0,0],[0,0],[0,0],[2,0],[2,0]], piece: { shape: 'L', rotation: 0, row: 0, col: 0 }, expected: [[0,0],[2,0],[2,0],[4,2],[2,0]] },
 				]
 			},
 		];
@@ -385,7 +388,7 @@
 			}
 			var resultBoard = (boardAfterLock != null) ? boardAfterLock
 				: (tc.ticks === 1 && lastState && lastState.currentPiece ? getDisplayBoard(lastState) : deepCopyBoard(board));
-			var pass = boardEquals(resultBoard, tc.expected, rows, cols);
+			var pass = tc.expected != null && boardEquals(resultBoard, tc.expected, rows, cols);
 			return { resultBoard: resultBoard, pass: pass };
 		}
 
@@ -412,7 +415,7 @@
 		SCENARIOS.forEach(function(scenario, si) {
 			var section = document.createElement('div');
 			section.className = 'scenario';
-			section.innerHTML = '<h2>' + scenario.title + '</h2><div class="card-grid" id="grid-' + si + '"></div>';
+			section.innerHTML = '<h2>' + scenario.title + '</h2>' + (scenario.desc ? '<p class="scenario-desc" style="margin:0 0 10px 0;font-size:12px;color:#666;max-width:720px;">' + scenario.desc + '</p>' : '') + '<div class="card-grid" id="grid-' + si + '"></div>';
 			var grid = section.querySelector('.card-grid');
 			sortCases(scenario.cases).forEach(function(tc, ci) {
 				var rot = tc.piece.rotation != null ? tc.piece.rotation : 0;
@@ -444,14 +447,20 @@
 			});
 			scenarioRoot.appendChild(section);
 		});
+		var summaryEl = document.getElementById('runSummary');
+		if (summaryEl) summaryEl.textContent = '成功 —，失败 —，共 ' + allCards.length;
 
 		document.getElementById('runAll').addEventListener('click', function() {
+			var ok = 0, fail = 0;
 			allCards.forEach(function(o) {
 				var res = runMergeCase(o.tc);
 				o.resultEl.innerHTML = renderBoardSm(res.resultBoard, o.tc.rows, o.tc.cols, null);
 				o.statusEl.textContent = res.pass ? '✓' : '✗';
 				o.statusEl.className = 'card-result ' + (res.pass ? 'ok' : 'fail');
+				if (res.pass) ok++; else fail++;
 			});
+			var el = document.getElementById('runSummary');
+			if (el) el.textContent = '成功 ' + ok + '，失败 ' + fail + '，共 ' + (ok + fail);
 		});
 	})();
 	</script>
