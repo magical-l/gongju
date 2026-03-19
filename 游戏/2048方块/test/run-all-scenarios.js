@@ -126,6 +126,18 @@ function runClearWithGravityCase(tc) {
 	return { resultBoard: resultBoard, pass: pass };
 }
 
+var ROT_LABELS = ['0°', '90°', '180°', '270°'];
+function getAngleLabel(shape, rotation) {
+	var r = rotation == null ? 0 : rotation;
+	if (shape === 'T') return ['90°', '180°', '270°', '0°'][r] || (r + '°');
+	if (shape === 'Z' || shape === 'S') return ['90°', '0°', '90°', '0°'][r] || (r + '°');
+	return ROT_LABELS[r] || (r + '°');
+}
+function caseTitle(tc) {
+	if (tc.label) return tc.label;
+	var r = tc.piece && tc.piece.rotation != null ? tc.piece.rotation : 0;
+	return tc.shape + ' ' + getAngleLabel(tc.shape, r);
+}
 var runFns = [runMergeCase, runMergeCase, runMergeCase, runMergeCase, runClearCase, runClearWithGravityCase];
 var failed = [];
 SCENARIOS.forEach(function(scenario, si) {
@@ -133,7 +145,7 @@ SCENARIOS.forEach(function(scenario, si) {
 	(scenario.cases || []).forEach(function(tc, ci) {
 		var res = runFn(tc);
 		if (!res.pass) {
-			failed.push({ scenario: scenario.title, scenarioIndex: si, caseIndex: ci, label: tc.label || (tc.shape + ' ' + tc.piece.rotation), expected: tc.expected, got: res.resultBoard });
+			failed.push({ scenario: scenario.title, scenarioIndex: si, caseIndex: ci, label: caseTitle(tc), expected: tc.expected, got: res.resultBoard });
 		}
 	});
 });

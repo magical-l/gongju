@@ -21,6 +21,19 @@
 	var applyPendingClearLines = logic.applyPendingClearLines;
 	var getFullRowIndices = logic.getFullRowIndices;
 	var ROT_LABELS = ['0°', '90°', '180°', '270°'];
+	// T: 旧0→90°, 旧90→180°, 旧180→270°, 旧270→0°；Z/S: 仅两角，旧0→90°, 旧90→0°
+	function getAngleLabel(shape, rotation) {
+		var r = rotation == null ? 0 : rotation;
+		if (shape === 'T') return ['90°', '180°', '270°', '0°'][r] || (r + '°');
+		if (shape === 'Z' || shape === 'S') return ['90°', '0°', '90°', '0°'][r] || (r + '°');
+		return ROT_LABELS[r] || (r + '°');
+	}
+	function rotationSortIndex(shape, rotation) {
+		var r = rotation == null ? 0 : rotation;
+		if (shape === 'T') return [1, 2, 3, 0][r]; // 3,0,1,2 → 0,1,2,3
+		if (shape === 'Z' || shape === 'S') return [1, 0, 3, 2][r]; // 1,0,3,2
+		return r;
+	}
 
 	function makeState(rows, cols, boardRows, piece) {
 		var board = [];
@@ -95,7 +108,9 @@
 		return cases.slice().sort(function(a, b) {
 			var so = SHAPE_ORDER[a.shape] - SHAPE_ORDER[b.shape];
 			if (so !== 0) return so;
-			var ro = (a.piece.rotation != null ? a.piece.rotation : 0) - (b.piece.rotation != null ? b.piece.rotation : 0);
+			var ra = a.piece && a.piece.rotation != null ? a.piece.rotation : 0;
+			var rb = b.piece && b.piece.rotation != null ? b.piece.rotation : 0;
+			var ro = rotationSortIndex(a.shape, ra) - rotationSortIndex(b.shape, rb);
 			if (ro !== 0) return ro;
 			return colKey(a) - colKey(b);
 		});
@@ -219,7 +234,7 @@
 			var card = document.createElement('div');
 			card.className = 'card';
 			card.innerHTML =
-				'<div class="card-title">' + tc.shape + ' ' + (ROT_LABELS[piece.rotation] || piece.rotation + '°') + (tc.label ? ' ' + tc.label : '') + '</div>' +
+				'<div class="card-title">' + tc.shape + ' ' + getAngleLabel(tc.shape, piece.rotation) + (tc.label ? ' ' + tc.label : '') + '</div>' +
 				'<div class="card-boards">' +
 				'<div class="card-row"><span class="label">初始</span>' + renderBoardSm(tc.before, tc.rows, tc.cols, piece) + '</div>' +
 				'<div class="card-row"><span class="label">期望</span>' + renderBoardSm(tc.expected, tc.rows, tc.cols, null) + '</div>' +
