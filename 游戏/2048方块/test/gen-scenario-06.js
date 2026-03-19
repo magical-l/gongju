@@ -1,8 +1,8 @@
 /**
  * 生成 ⑥ 消行有剩余用例。
- * 棋盘 m×n：m = 活动块高度，n = 块宽 + 2（最右 2 列为固定堆，其余为块落点）；锁定时这些行均为满行。
+ * 棋盘 m×n：m = 块包围盒高度，n = 块宽 + 2（最右 2 列为固定堆）；块区空洞填 2，保证锁定时各行满格。
  * 运行：node test/gen-scenario-06.js（在 游戏/2048方块 目录）
- * 同时会刷新 scenarios/scenario-07.js 中 GEN_I0_3X4 段（I0「3个4」全消类，自⑥迁出）。
+ * 同时刷新 scenarios/scenario-07.js 中 GEN_I0_3X4 段。
  */
 'use strict';
 var fs = require('fs');
@@ -67,6 +67,43 @@ function emptyBoard(rows, cols) {
 	return b;
 }
 
+function copyBoard(b) {
+	return b.map(function(row) { return row.slice(); });
+}
+
+/** 堆列全 2；块列：脚印外填 2，脚印内 0（由活动块覆盖） */
+function polyBaseBefore(shape, rotation) {
+	var p = createPiece(shape, rotation, 0, 0);
+	var maxDr = 0, maxDc = 0;
+	for (var i = 0; i < p.cells.length; i++) {
+		maxDr = Math.max(maxDr, p.cells[i].dr);
+		maxDc = Math.max(maxDc, p.cells[i].dc);
+	}
+	var m = maxDr + 1;
+	var width = maxDc + 1;
+	var stackStart = width;
+	var n = width + 2;
+	var b = emptyBoard(m, n);
+	for (var r = 0; r < m; r++) {
+		for (var c = stackStart; c < n; c++) {
+			b[r][c] = 2;
+		}
+	}
+	var foot = {};
+	for (var j = 0; j < p.cells.length; j++) {
+		var cell = p.cells[j];
+		foot[cell.dr + ',' + cell.dc] = true;
+	}
+	for (var r2 = 0; r2 < m; r2++) {
+		for (var c2 = 0; c2 < stackStart; c2++) {
+			if (!foot[r2 + ',' + c2]) {
+				b[r2][c2] = 2;
+			}
+		}
+	}
+	return { m: m, n: n, stackStart: stackStart, board: b };
+}
+
 function boardToJs(b) {
 	return '[' + b.map(function(row) {
 		return '[' + row.join(',') + ']';
@@ -85,56 +122,69 @@ function emitCase(shape, rotation, rows, cols, before, piece, label, sortKey) {
 var cases = [];
 var sk = 60000;
 
-// I0：m=4 n=3，左 1 列竖条，右 2 列为固定堆
-var I0m = 4, I0n = 3;
-var stackLo = I0n - 2;
-
-function i0baseStackAllTwo() {
-	var b = emptyBoard(I0m, I0n);
-	for (var r = 0; r < I0m; r++) for (var c = stackLo; c < I0n; c++) b[r][c] = 2;
-	return b;
-}
-
-// 1个4：仅在固定堆
-for (var br = 0; br < I0m; br++) {
-	for (var bc = stackLo; bc < I0n; bc++) {
-		var b = i0baseStackAllTwo();
-		b[br][bc] = 4;
-		cases.push(emitCase('I', 0, I0m, I0n, b, { shape: 'I', rotation: 0, row: 0, col: 0 }, 'I0 1个4 堆(' + br + ',' + bc + ')', sk++));
+/**
+ * 与 O 相同规律排序：①1个4堆(行主序) ②1个4块(格序) ③2个4堆+堆(列不同,i<j) ④2个4块+堆 ⑤2个4块+块(列不同)
+ */
+function emitPolyCases(shape, rotation, prefix) {
+	var info = polyBaseBefore(shape, rotation);
+	var m = info.m, n = info.n, stackStart = info.stackStart;
+	var base = info.board;
+	var pc = createPiece(shape, rotation, 0, 0);
+	var scells = [];
+	for (var r = 0; r < m; r++) {
+		for (var c = stackStart; c < n; c++) {
+			scells.push([r, c]);
+		}
+	}
+	// ① 1个4 堆
+	for (var si = 0; si < scells.length; si++) {
+		var br = scells[si][0], bc = scells[si][1];
+		var b1 = copyBoard(base);
+		b1[br][bc] = 4;
+		cases.push(emitCase(shape, rotation, m, n, b1, { shape: shape, rotation: rotation, row: 0, col: 0 }, prefix + ' 1个4 堆(' + br + ',' + bc + ')', sk++));
+	}
+	// ② 1个4 块
+	for (var pi = 0; pi < pc.cells.length; pi++) {
+		var cv = [];
+		for (var j = 0; j < pc.cells.length; j++) cv.push(j === pi ? 4 : 2);
+		cases.push(emitCase(shape, rotation, m, n, copyBoard(base), { shape: shape, rotation: rotation, row: 0, col: 0, cellValues: cv }, prefix + ' 1个4 块(格' + pi + ')', sk++));
+	}
+	// ③ 2个4 堆+堆（列不同）
+	for (var i = 0; i < scells.length; i++) {
+		for (var j = i + 1; j < scells.length; j++) {
+			if (scells[i][1] === scells[j][1]) continue;
+			var b2 = copyBoard(base);
+			b2[scells[i][0]][scells[i][1]] = 4;
+			b2[scells[j][0]][scells[j][1]] = 4;
+			cases.push(emitCase(shape, rotation, m, n, b2, { shape: shape, rotation: rotation, row: 0, col: 0 }, prefix + ' 2个4 堆(' + scells[i][0] + ',' + scells[i][1] + ')+堆(' + scells[j][0] + ',' + scells[j][1] + ')', sk++));
+		}
+	}
+	// ④ 2个4 块+堆
+	for (var pi2 = 0; pi2 < pc.cells.length; pi2++) {
+		var cv2 = [];
+		for (var t = 0; t < pc.cells.length; t++) cv2.push(t === pi2 ? 4 : 2);
+		for (var sj = 0; sj < scells.length; sj++) {
+			var sr = scells[sj][0], sc = scells[sj][1];
+			var b3 = copyBoard(base);
+			b3[sr][sc] = 4;
+			cases.push(emitCase(shape, rotation, m, n, b3, { shape: shape, rotation: rotation, row: 0, col: 0, cellValues: cv2.slice() }, prefix + ' 2个4 块(格' + pi2 + ')+堆(' + sr + ',' + sc + ')', sk++));
+		}
+	}
+	// ⑤ 2个4 块+块（dc 不同列）
+	for (var a = 0; a < pc.cells.length; a++) {
+		for (var bb = a + 1; bb < pc.cells.length; bb++) {
+			if (pc.cells[a].dc === pc.cells[bb].dc) continue;
+			var cv3 = [];
+			for (var t2 = 0; t2 < pc.cells.length; t2++) cv3.push(t2 === a || t2 === bb ? 4 : 2);
+			cases.push(emitCase(shape, rotation, m, n, copyBoard(base), { shape: shape, rotation: rotation, row: 0, col: 0, cellValues: cv3 }, prefix + ' 2个4 块(格' + a + ')+块(格' + bb + ')', sk++));
+		}
 	}
 }
-// 1个4：仅在 I 上（竖条 cellValues 索引 i 对应棋盘行 row=i，0 为最上行）
-for (var pi = 0; pi < 4; pi++) {
-	var cv = [2, 2, 2, 2];
-	cv[pi] = 4;
-	cases.push(emitCase('I', 0, I0m, I0n, i0baseStackAllTwo(), { shape: 'I', rotation: 0, row: 0, col: 0, cellValues: cv }, 'I0 1个4 块(行' + pi + ')', sk++));
-}
 
-// 2个4：两堆、列不同
-var i0cells = [];
-for (var r = 0; r < I0m; r++) for (var c = stackLo; c < I0n; c++) i0cells.push([r, c]);
-for (var i = 0; i < i0cells.length; i++) {
-	for (var j = i + 1; j < i0cells.length; j++) {
-		if (i0cells[i][1] === i0cells[j][1]) continue;
-		var b2 = i0baseStackAllTwo();
-		b2[i0cells[i][0]][i0cells[i][1]] = 4;
-		b2[i0cells[j][0]][i0cells[j][1]] = 4;
-		cases.push(emitCase('I', 0, I0m, I0n, b2, { shape: 'I', rotation: 0, row: 0, col: 0 }, 'I0 2个4 堆(' + i0cells[i][0] + ',' + i0cells[i][1] + ')+堆(' + i0cells[j][0] + ',' + i0cells[j][1] + ')', sk++));
-	}
-}
-// 2个4：一块一堆（列必为 0 与堆列，互不同列）
-for (var pi = 0; pi < 4; pi++) {
-	var cv2 = [2, 2, 2, 2];
-	cv2[pi] = 4;
-	for (var si = 0; si < i0cells.length; si++) {
-		var br = i0cells[si][0], bc = i0cells[si][1];
-		var b3 = i0baseStackAllTwo();
-		b3[br][bc] = 4;
-		cases.push(emitCase('I', 0, I0m, I0n, b3, { shape: 'I', rotation: 0, row: 0, col: 0, cellValues: cv2.slice() }, 'I0 2个4 块(行' + pi + ')+堆(' + br + ',' + bc + ')', sk++));
-	}
-}
+// —— I0 ——
+emitPolyCases('I', 0, 'I0');
 
-// I90：m=1 n=6，左 4 格横条，右 2 列固定堆
+// —— I90：m=1 n=6，列 0～5 上放 k 个 4（互不同列）——
 function i90BeforeAndPiece(fourCols) {
 	var row = [0, 0, 0, 0, 2, 2];
 	var cellValues = [2, 2, 2, 2];
@@ -153,85 +203,48 @@ function i90BeforeAndPiece(fourCols) {
 	return { before: [row.slice()], piece: piece };
 }
 
-function addI90Combo(name, colList) {
-	var used = {};
-	for (var i = 0; i < colList.length; i++) {
-		if (used[colList[i]]) return;
-		used[colList[i]] = true;
-	}
-	var bp = i90BeforeAndPiece(colList);
-	cases.push(emitCase('I', 1, 1, 6, bp.before, bp.piece, 'I90 ' + name + ' 列' + colList.join(','), sk++));
-}
-
-for (var k = 0; k < 6; k++) {
-	addI90Combo('1个4', [k]);
-}
-for (var a = 0; a < 6; a++) {
-	for (var b = a + 1; b < 6; b++) {
-		addI90Combo('2个4', [a, b]);
-	}
-}
-for (var a = 0; a < 6; a++) {
-	for (var b = a + 1; b < 6; b++) {
-		for (var c = b + 1; c < 6; c++) {
-			addI90Combo('3个4', [a, b, c]);
+function combinationsCols(n, k) {
+	var out = [];
+	function rec(start, path) {
+		if (path.length === k) {
+			out.push(path.slice());
+			return;
+		}
+		for (var i = start; i < n; i++) {
+			path.push(i);
+			rec(i + 1, path);
+			path.pop();
 		}
 	}
+	rec(0, []);
+	return out;
 }
 
-// O：m=2 n=4，左 2×2，右 2 列固定堆
-function oTemplateBulkFours(fourCells, oCellFours) {
-	oCellFours = oCellFours || [];
-	var Om = 2, On = 4;
-	var b = emptyBoard(Om, On);
-	var stackStart = On - 2;
-	for (var r = 0; r < Om; r++) for (var c = stackStart; c < On; c++) b[r][c] = 2;
-	for (var i = 0; i < fourCells.length; i++) {
-		b[fourCells[i][0]][fourCells[i][1]] = 4;
+function addI90K(k) {
+	var combs = combinationsCols(6, k);
+	for (var ci = 0; ci < combs.length; ci++) {
+		var cols = combs[ci];
+		var bp = i90BeforeAndPiece(cols);
+		cases.push(emitCase('I', 1, 1, 6, bp.before, bp.piece, 'I90 ' + k + '个4 列' + cols.join(','), sk++));
 	}
-	var cv = [2, 2, 2, 2];
-	for (var j = 0; j < oCellFours.length; j++) cv[oCellFours[j]] = 4;
-	var piece = { shape: 'O', rotation: 0, row: 0, col: 0 };
-	if (oCellFours.length) piece.cellValues = cv;
-	return { before: b, piece: piece };
+}
+for (var k90 = 1; k90 <= 6; k90++) {
+	addI90K(k90);
 }
 
-var Om = 2, On = 4;
-var stackStart = On - 2;
-var ocells = [];
-for (var rr = 0; rr < Om; rr++) for (var cc = stackStart; cc < On; cc++) ocells.push([rr, cc]);
-for (var oi = 0; oi < ocells.length; oi++) {
-	var t = oTemplateBulkFours([ocells[oi]], []);
-	cases.push(emitCase('O', 0, Om, On, t.before, t.piece, 'O 1个4 堆(' + ocells[oi][0] + ',' + ocells[oi][1] + ')', sk++));
-}
-for (var oi = 0; oi < ocells.length; oi++) {
-	for (var oj = oi + 1; oj < ocells.length; oj++) {
-		if (ocells[oi][1] === ocells[oj][1]) continue;
-		var t2 = oTemplateBulkFours([ocells[oi], ocells[oj]], []);
-		cases.push(emitCase('O', 0, Om, On, t2.before, t2.piece, 'O 2个4 堆(' + ocells[oi][0] + ',' + ocells[oi][1] + ')+堆(' + ocells[oj][0] + ',' + ocells[oj][1] + ')', sk++));
+// —— O：与 emitPolyCases 同序 ——
+emitPolyCases('O', 0, 'O');
+
+// —— Z S J L：四旋转，命名 形状+旋转索引 ——
+var polyShapes = ['Z', 'S', 'J', 'L'];
+for (var ps = 0; ps < polyShapes.length; ps++) {
+	var sh = polyShapes[ps];
+	for (var rot = 0; rot < 4; rot++) {
+		emitPolyCases(sh, rot, sh + rot);
 	}
-}
-// O 2个4：一块一堆（块上一格为 4，堆上一格为 4）
-for (var oc = 0; oc < 4; oc++) {
-	for (var si = 0; si < ocells.length; si++) {
-		var sr = ocells[si][0], sc = ocells[si][1];
-		var tp = oTemplateBulkFours([[sr, sc]], [oc]);
-		cases.push(emitCase('O', 0, Om, On, tp.before, tp.piece, 'O 2个4 块角' + oc + '+堆(' + sr + ',' + sc + ')', sk++));
-	}
-}
-// O 2个4：均在块上、两列不同（角标对 (0,1)(0,3)(1,2)(2,3)）
-var oTwoOnPiece = [[0, 1], [0, 3], [1, 2], [2, 3]];
-for (var ti = 0; ti < oTwoOnPiece.length; ti++) {
-	var a = oTwoOnPiece[ti][0], bb = oTwoOnPiece[ti][1];
-	var tpp = oTemplateBulkFours([], [a, bb]);
-	cases.push(emitCase('O', 0, Om, On, tpp.before, tpp.piece, 'O 2个4 块角' + a + '+块角' + bb, sk++));
-}
-for (var oc = 0; oc < 4; oc++) {
-	var t4 = oTemplateBulkFours([], [oc]);
-	cases.push(emitCase('O', 0, Om, On, t4.before, t4.piece, 'O 1个4 块角' + oc, sk++));
 }
 
-var DESC = '棋盘 m×n：m 为块高，n=块宽+2，最右 2 列为固定堆，左为块落点；锁定时各行满格。I0：4×3（无「3个4」：列数等于 4 的个数时多为全消，见⑦组）；I90：1×6；O：2×4。期望由 logic（满行除 min、重力、cleared 内竖并、cascade）算出。';
+var DESC = '棋盘 m×n：块包围盒高 m、宽+2 列（右 2 列固定堆）；块区空洞填 2 保证满行。I0/I90/O/Z/S/J/L；I90 含 1～6 个 4 占不同列。I0「3个4」全消类在⑦组 GEN_I0_3X4。期望由 logic 算出。';
 var header = '/**\n * ⑥ 消行有剩余\n * 由 test/gen-scenario-06.js 生成；改规则后请重新运行生成器。\n */\n(function() {\n\tvar s = {\n\t\ttitle: \'⑥ 消行有剩余\',\n\t\tdesc: \'' + DESC.replace(/'/g, "\\'") + '\',\n\t\tcases: [\n';
 var footer = '\n\t\t]\n\t};\n\tif (typeof module !== \'undefined\' && module.exports) module.exports = s;\n\tif (typeof window !== \'undefined\') window.SCENARIO_06 = s;\n})();\n';
 
@@ -239,7 +252,12 @@ var outPath = path.join(__dirname, 'scenarios', 'scenario-06.js');
 fs.writeFileSync(outPath, header + cases.join(',\n') + footer, 'utf8');
 console.log('Wrote ' + cases.length + ' cases to ' + outPath);
 
-// ⑦组：I0「3个4」（3 列各一 4 → 多为全消，不属于⑥「有剩余」）
+// ⑦组：I0「3个4」
+var I0m = 4, I0n = 3, stackLo = I0n - 2;
+var i0baseTemplate = polyBaseBefore('I', 0).board;
+function i0baseStackAllTwo() {
+	return copyBoard(i0baseTemplate);
+}
 var sk7 = 100;
 var i07Lines = [];
 for (var pi7 = 0; pi7 < 4; pi7++) {

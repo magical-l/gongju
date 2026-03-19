@@ -24,7 +24,7 @@
 			{ shape: 'I', rotation: 0, ticks: 1, rows: 4, cols: 4, before: [[0,2,2,2],[0,0,2,2],[0,2,2,2],[0,2,2,2]], piece: { shape: 'I', rotation: 0, row: 0, col: 0 }, expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[2,0,2,2]], label: '消第1、3、4行', sortKey: 14 },
 			{ shape: 'I', rotation: 0, ticks: 1, rows: 4, cols: 4, before: [[0,2,2,2],[0,2,2,2],[0,2,2,2],[0,2,2,2]], piece: { shape: 'I', rotation: 0, row: 0, col: 0 }, expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]], label: '消第1、2、3、4行', sortKey: 15 },
 			{ shape: 'O', rotation: 0, ticks: 1, rows: 4, cols: 4, before: [[0,0,2,2],[0,0,2,2],[0,0,2,2],[0,0,2,2]], piece: { shape: 'O', rotation: 0, row: 2, col: 0 }, expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,4,4]], label: 'O 消2行', sortKey: 16 },
-						// GEN_I0_3X4_START
+									// GEN_I0_3X4_START
 			{ shape: 'I', rotation: 0, ticks: 20, rows: 4, cols: 3, before: [[0,4,4],[0,2,2],[0,2,2],[0,2,2]], piece: {shape:"I",rotation:0,row:0,col:0,cellValues:[4,2,2,2]}, expected: [[0,0,0],[0,0,0],[0,0,0],[0,0,0]], label: 'I0 3个4 块(行0)+堆(0,1)+堆(0,2)', sortKey: 100 },
 			{ shape: 'I', rotation: 0, ticks: 20, rows: 4, cols: 3, before: [[0,4,2],[0,2,4],[0,2,2],[0,2,2]], piece: {shape:"I",rotation:0,row:0,col:0,cellValues:[4,2,2,2]}, expected: [[0,0,0],[0,0,0],[0,0,0],[0,0,0]], label: 'I0 3个4 块(行0)+堆(0,1)+堆(1,2)', sortKey: 101 },
 			{ shape: 'I', rotation: 0, ticks: 20, rows: 4, cols: 3, before: [[0,4,2],[0,2,2],[0,2,4],[0,2,2]], piece: {shape:"I",rotation:0,row:0,col:0,cellValues:[4,2,2,2]}, expected: [[0,0,0],[0,0,0],[0,0,0],[0,0,0]], label: 'I0 3个4 块(行0)+堆(0,1)+堆(2,2)', sortKey: 102 },
