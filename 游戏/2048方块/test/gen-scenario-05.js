@@ -170,8 +170,12 @@ cases.forEach(function(tc) {
 	var res = logic.advancePostLockLineClearNoSpawnWithStats(makeGame(tc.before));
 	tc.expected = res.board;
 	if (res.hasMergeOrCascade) {
+		var tag = '';
+		if (res.clearedVerticalMerges !== 1 || res.cascadeSteps !== 0) {
+			tag = '｜区合' + res.clearedVerticalMerges + '·级联' + res.cascadeSteps;
+		}
 		cases06gen.push({
-			label: tc.label + '（区内合并' + res.clearedVerticalMerges + '·cascade' + res.cascadeSteps + '）',
+			label: '底两行｜' + tc.label.replace(/^底两行满，/, '') + tag,
 			rows: tc.rows,
 			cols: tc.cols,
 			before: tc.before,
@@ -186,37 +190,77 @@ cases05.forEach(function(tc, idx) {
 	tc.sortKey = idx;
 });
 
-var FIXED_06 = [
-	{ rows: 4, cols: 4, sortKey: 1, label: '顶行满2消后，下方2与剩余列合并为4',
-		before: [[2,2,2,2],[0,0,2,2],[0,0,2,2],[0,0,2,2]],
-		expected: [[0,0,0,0],[0,0,0,0],[0,0,2,2],[0,0,4,4]] },
-	{ rows: 5, cols: 4, sortKey: 2, label: '底两满行消后，4 下落与底行2合并',
-		before: [[0,0,0,0],[0,0,0,0],[4,0,0,4],[2,2,2,2],[2,2,2,2]],
-		expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[4,0,0,4]] },
-	{ rows: 4, cols: 4, sortKey: 3, label: '消两行后多列 2+2 成4',
-		before: [[2,2,2,2],[2,2,2,2],[0,0,2,2],[0,0,2,2]],
-		expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,4,4]] },
-	{ rows: 5, cols: 4, sortKey: 4, label: '底两行 2,4,2,4 / 2,2,2,4（列1与列3 剩余上下对齐）',
-		before: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[2,4,2,4],[2,2,2,4]],
-		expected: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,2,0,4]] }
+/** ⑥ 固定示范：顺序 = 小棋盘列合并 → 小棋盘双行消 → 5 行「4 仅下落」→ 5 行错列剩余 → 6 行中间有格 + 双满行 */
+var FIXED_06_RAW = [
+	{ rows: 4, cols: 4, label: '【示范】4×4 最上行满2 消后·下方列内 2+2→4',
+		before: [[2,2,2,2],[0,0,2,2],[0,0,2,2],[0,0,2,2]] },
+	{ rows: 4, cols: 4, label: '【示范】4×4 连续两行满2 消后·底部两列成4',
+		before: [[2,2,2,2],[2,2,2,2],[0,0,2,2],[0,0,2,2]] },
+	{ rows: 5, cols: 4, label: '【示范】5×4 下双行满2 除尽后·上方悬浮 4 仅列下落（底行已空无同数合并）',
+		before: [[0,0,0,0],[0,0,0,0],[4,0,0,4],[2,2,2,2],[2,2,2,2]] },
+	{ rows: 5, cols: 4, label: '【示范】5×4 底两行 2,4,2,4 / 2,2,2,4·列1与列3 剩余上下对齐',
+		before: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[2,4,2,4],[2,2,2,4]] },
+	{ rows: 6, cols: 4, label: '【示范】6×4 中间行单格2 + 下两行满（含4）消后·列内合并',
+		before: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,2,0,0],[2,4,2,2],[2,2,2,2]] }
 ];
-
-var seen06 = {};
-FIXED_06.forEach(function(tc) {
-	seen06[JSON.stringify(tc.before)] = true;
+FIXED_06_RAW.forEach(function(tc) {
+	tc.expected = logic.advancePostLockLineClearNoSpawn(makeGame(tc.before)).board;
 });
 
-var cases06merged = [];
-var sk = 10;
+var seenBeforeFixed = {};
+FIXED_06_RAW.forEach(function(tc) {
+	seenBeforeFixed[JSON.stringify(tc.before)] = true;
+});
+
+cases06gen = cases06gen.filter(function(tc) {
+	return !seenBeforeFixed[JSON.stringify(tc.before)];
+});
+
+function patternIndex(row) {
+	for (var pi = 0; pi < pat.length; pi++) {
+		var ok = true;
+		for (var c = 0; c < COLS; c++) {
+			if (pat[pi].row[c] !== row[c]) {
+				ok = false;
+				break;
+			}
+		}
+		if (ok) return pi;
+	}
+	return 999;
+}
+cases06gen.sort(function(a, b) {
+	var ua = a.before[a.rows - 2];
+	var da = a.before[a.rows - 1];
+	var ub = b.before[b.rows - 2];
+	var db = b.before[b.rows - 1];
+	var ka = patternIndex(ua) * 32 + patternIndex(da);
+	var kb = patternIndex(ub) * 32 + patternIndex(db);
+	if (ka !== kb) return ka - kb;
+	return JSON.stringify(a.before).localeCompare(JSON.stringify(b.before));
+});
+
+var seenExpected = new Set();
+var cases06all = [];
+FIXED_06_RAW.forEach(function(tc) {
+	seenExpected.add(JSON.stringify(tc.expected));
+	cases06all.push(tc);
+});
 cases06gen.forEach(function(tc) {
-	var k = JSON.stringify(tc.before);
-	if (seen06[k]) return;
-	seen06[k] = true;
-	tc.sortKey = sk++;
-	cases06merged.push(tc);
+	var ek = JSON.stringify(tc.expected);
+	if (seenExpected.has(ek)) {
+		return;
+	}
+	seenExpected.add(ek);
+	cases06all.push(tc);
 });
 
-var cases06all = FIXED_06.slice().concat(cases06merged);
+cases06all.forEach(function(tc, idx) {
+	tc.sortKey = idx + 1;
+});
+
+var numFixed = FIXED_06_RAW.length;
+var numEnumUnique = cases06all.length - numFixed;
 
 var header05 = '/**\n * ⑤ 简单消行（锁后整盘，无合并）\n * 由 test/gen-scenario-05.js 生成；筛除：advancePostLockLineClearNoSpawnWithStats 区内合并与 cascade 均为 0。\n */\n(function() {\n\tvar s = {\n' +
 	'\t\ttitle: \'⑤ 简单消行（锁后整盘，无合并）\',\n' +
@@ -225,9 +269,9 @@ var header05 = '/**\n * ⑤ 简单消行（锁后整盘，无合并）\n * 由 t
 
 var footer05 = '\n\t\t]\n\t};\n\tif (typeof module !== \'undefined\' && module.exports) module.exports = s;\n\tif (typeof window !== \'undefined\') window.SCENARIO_05 = s;\n})();\n';
 
-var header06 = '/**\n * ⑥ 消行后合并 / 连锁（锁后整盘）\n * 固定用例 + gen-scenario-05.js 从同一枚举筛入（曾发生区内合并或 cascade）。\n */\n(function() {\n\tvar s = {\n' +
+var header06 = '/**\n * ⑥ 消行后下落合并（锁后整盘）\n * 由 test/gen-scenario-05.js 生成：前几条为固定示范，余下为双行枚举中「终盘 expected 不重复」的用例。\n */\n(function() {\n\tvar s = {\n' +
 	'\t\ttitle: \'⑥ 消行后下落合并（锁后整盘）\',\n' +
-	'\t\tdesc: \'不测落子。固定几条 + 枚举中「含合并或 cascade」的盘；期望由 logic 生成。\',\n' +
+	'\t\tdesc: \'不测落子。顺序：固定示范（4×4 / 5×4 / 6×4）→ 底两行 1/2/3 个4 组合枚举，按终盘棋盘去重。期望由 logic.advancePostLockLineClearNoSpawn 生成。\',\n' +
 	'\t\tcases: [\n';
 
 var footer06 = '\n\t\t]\n\t};\n\tif (typeof module !== \'undefined\' && module.exports) module.exports = s;\n\tif (typeof window !== \'undefined\') window.SCENARIO_06 = s;\n})();\n';
@@ -239,4 +283,4 @@ fs.writeFileSync(path05, header05 + cases05.map(emitCase).join(',\n') + footer05
 fs.writeFileSync(path06, header06 + cases06all.map(emitCase).join(',\n') + footer06, 'utf8');
 
 console.log('⑤ 无合并: ' + cases05.length + ' → ' + path05);
-console.log('⑥ 含合并: ' + cases06all.length + '（固定 ' + FIXED_06.length + ' + 枚举 ' + cases06merged.length + '）→ ' + path06);
+console.log('⑥: ' + cases06all.length + '（固定示范 ' + numFixed + ' + 枚举终盘去重 ' + numEnumUnique + '）→ ' + path06);
