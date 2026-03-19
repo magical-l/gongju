@@ -1,6 +1,6 @@
 /**
  * 按场景测试页的共用运行逻辑。依赖：已加载 logic.js，且 window.SCENARIOS 已赋值（数组，每项 { title, desc?, cases }）。
- * 单场景页可设置 window.SCENARIO_INDEX_BASE = 0～5：0～3 为 runMergeCase；4～5 为 runPostLockClearCase（锁后整盘 + logic.advancePostLockLineClearNoSpawn）。
+ * 单场景页可设置 window.SCENARIO_INDEX_BASE = 0～5：0～3 为 runMergeCase；4～5 为 runPostLockClearCase（无活动块棋盘 + logic.advancePostLockLineClearNoSpawn）。
  */
 (function() {
 	'use strict';
@@ -153,7 +153,7 @@
 		var pass = tc.expected != null && boardEquals(resultBoard, tc.expected, rows, cols);
 		return { resultBoard: resultBoard, pass: pass };
 	}
-	/** ⑤⑥：初始为「已锁块后的整盘」，走 logic 内与 tick 一致的消行全流程，止于即将生成下一块（不生成下一块）。 */
+	/** ⑤⑥：初始棋盘无活动块，走 logic 内与 tick 一致的消行整理，止于即将生成下一块（不生成下一块）。 */
 	function runPostLockClearCase(tc) {
 		var rows = tc.rows, cols = tc.cols;
 		var board = deepCopyBoard(tc.before);
@@ -217,9 +217,11 @@
 		sortCases(scenario.cases).forEach(function(tc, ci) {
 			var piece = pieceFromCase(tc);
 			var pr = piece && piece.rotation != null ? piece.rotation : 0;
+			var caseNo = ci + 1;
 			var cardTitle = (scenarioIndex >= 4 && scenarioIndex <= 5 && !piece)
 				? (tc.label || '消行')
 				: (tc.shape + ' ' + getAngleLabel(tc.shape, pr) + (tc.label ? ' ' + tc.label : ''));
+			cardTitle = '#' + caseNo + ' ' + cardTitle;
 			var card = document.createElement('div');
 			card.className = 'card';
 			card.innerHTML =

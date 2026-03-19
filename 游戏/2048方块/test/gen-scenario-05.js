@@ -1,6 +1,6 @@
 /**
  * 生成 test/scenarios/scenario-05.js（⑤ 无合并）与 scenario-06.js（⑥ 含合并）。
- * 判定：advancePostLockLineClearNoSpawnWithStats — clearedVerticalMerges>0 或 cascadeSteps>0 → ⑥。
+ * 判定：advancePostLockLineClearNoSpawnWithStats — 区内竖合、cascade、消行剩格下落合并 任一项 >0 → ⑥。
  * 运行：node test/gen-scenario-05.js（在 游戏/2048方块 目录）
  */
 'use strict';
@@ -164,6 +164,25 @@ for (var i = 0; i < pat.length; i++) {
 	}
 }
 
+/** ⑤ 补充（整组最后）：含悬空/建造空隙；逻辑与正式局一致（剩块当活动块落 + 俄式整行塌）。从简到繁 */
+[
+	{ label: '4×4 悬空·列0有4、下行空、底行满2·保形下落', before: [[0,0,0,0],[4,0,0,0],[0,0,0,0],[2,2,2,2]] },
+	{ label: '5×4 悬空·上行两格4·下双行满2除尽·保形下落', before: [[0,0,0,0],[0,0,0,0],[4,0,0,4],[2,2,2,2],[2,2,2,2]] },
+	{ label: '5×4 悬空·列0有8、下行空·下双行满2', before: [[0,0,0,0],[8,0,0,0],[0,0,0,0],[2,2,2,2],[2,2,2,2]] },
+	{ label: '5×4 悬空·上行 4,2 列2·下双行满2', before: [[0,0,0,0],[0,0,0,0],[4,2,0,0],[2,2,2,2],[2,2,2,2]] },
+	{ label: '5×4 悬空·上行 4,4·下双行满2', before: [[0,0,0,0],[4,4,0,0],[0,0,0,0],[2,2,2,2],[2,2,2,2]] },
+	{ label: '5×4 悬空·列0有2、下行空·下双行满2（底留单列2）', before: [[0,0,0,0],[2,0,0,0],[0,0,0,0],[2,2,2,2],[2,2,2,2]] },
+	{ label: '5×4 悬空·上行两格2/4 错行·下双行满2（较繁）', before: [[2,0,0,0],[0,0,0,0],[4,0,0,0],[2,2,2,2],[2,2,2,2]] }
+].forEach(function(extra) {
+	cases.push({
+		sortKey: sortKey++,
+		label: extra.label,
+		rows: extra.before.length,
+		cols: extra.before[0].length,
+		before: extra.before
+	});
+});
+
 var cases05 = [];
 var cases06gen = [];
 cases.forEach(function(tc) {
@@ -171,8 +190,8 @@ cases.forEach(function(tc) {
 	tc.expected = res.board;
 	if (res.hasMergeOrCascade) {
 		var tag = '';
-		if (res.clearedVerticalMerges !== 1 || res.cascadeSteps !== 0) {
-			tag = '｜区合' + res.clearedVerticalMerges + '·级联' + res.cascadeSteps;
+		if (res.clearedVerticalMerges !== 1 || res.cascadeSteps !== 0 || (res.clearRemainderMergeSteps || 0) !== 0) {
+			tag = '｜区合' + res.clearedVerticalMerges + '·级联' + res.cascadeSteps + '·剩落合' + (res.clearRemainderMergeSteps || 0);
 		}
 		cases06gen.push({
 			label: '底两行｜' + tc.label.replace(/^底两行满，/, '') + tag,
@@ -190,25 +209,67 @@ cases05.forEach(function(tc, idx) {
 	tc.sortKey = idx;
 });
 
-/** ⑥ 固定示范：顺序 = 小棋盘列合并 → 小棋盘双行消 → 5 行「4 仅下落」→ 5 行错列剩余 → 6 行中间有格 + 双满行 */
+/** ⑥ 固定：被消行上方仍有非满行（不入 ⑤/枚举划分，始终归 ⑥） */
+var FIXED_06_ABOVE_NONFULL = (function() {
+	var C = COLS;
+	var out = [];
+	function push6(label, fillTop) {
+		var H = 6;
+		var b = emptyTop(H, C);
+		fillTop(b);
+		placeRow(b, H - 2, [2, 2, 2, 2]);
+		placeRow(b, H - 1, [2, 2, 2, 2]);
+		out.push({ rows: H, cols: C, label: label, before: b });
+	}
+	push6('6×4·被消行上方一行非满·下双行满2除尽', function(b) {
+		placeRow(b, 1, [2, 2, 0, 0]);
+	});
+	push6('6×4·被消行上方两行非满·下双行满2除尽', function(b) {
+		placeRow(b, 0, [4, 0, 0, 0]);
+		placeRow(b, 1, [0, 2, 2, 2]);
+	});
+	var b3 = emptyTop(6, C);
+	placeRow(b3, 1, [2, 4, 0, 0]);
+	placeRow(b3, 4, [2, 2, 2, 2]);
+	placeRow(b3, 5, [2, 4, 2, 4]);
+	out.push({ rows: 6, cols: C, label: '6×4·被消行上方非满·下双行满含4', before: b3 });
+	var H7 = 7;
+	var b4 = emptyTop(H7, C);
+	placeRow(b4, 0, [2, 0, 0, 0]);
+	placeRow(b4, 3, [0, 0, 4, 4]);
+	placeRow(b4, H7 - 2, [2, 2, 2, 2]);
+	placeRow(b4, H7 - 1, [2, 2, 2, 2]);
+	out.push({ rows: H7, cols: C, label: '7×4·上方非满行与全空行间隔·下双行满2除尽', before: b4 });
+	var b5 = emptyTop(5, C);
+	placeRow(b5, 1, [2, 0, 0, 2]);
+	placeRow(b5, 4, [2, 2, 2, 2]);
+	out.push({ rows: 5, cols: C, label: '5×4·被消行上方一行非满·仅底行满2除尽', before: b5 });
+	return out;
+})();
+
+/** ⑥ 固定用例：列/双行合并、错列剩余、6 行含 4 消行（与 ⑤ 按 stats 划分） */
 var FIXED_06_RAW = [
-	{ rows: 4, cols: 4, label: '【示范】4×4 最上行满2 消后·下方列内 2+2→4',
+	{ rows: 4, cols: 4, label: '4×4 最上行满2 消后·下方列内 2+2→4',
 		before: [[2,2,2,2],[0,0,2,2],[0,0,2,2],[0,0,2,2]] },
-	{ rows: 4, cols: 4, label: '【示范】4×4 连续两行满2 消后·底部两列成4',
+	{ rows: 4, cols: 4, label: '4×4 连续两行满2 消后·底部两列成4',
 		before: [[2,2,2,2],[2,2,2,2],[0,0,2,2],[0,0,2,2]] },
-	{ rows: 5, cols: 4, label: '【示范】5×4 下双行满2 除尽后·上方悬浮 4 仅列下落（底行已空无同数合并）',
-		before: [[0,0,0,0],[0,0,0,0],[4,0,0,4],[2,2,2,2],[2,2,2,2]] },
-	{ rows: 5, cols: 4, label: '【示范】5×4 底两行 2,4,2,4 / 2,2,2,4·列1与列3 剩余上下对齐',
+	{ rows: 5, cols: 4, label: '5×4 底两行 2,4,2,4 / 2,2,2,4·列1与列3 剩余上下对齐',
 		before: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[2,4,2,4],[2,2,2,4]] },
-	{ rows: 6, cols: 4, label: '【示范】6×4 中间行单格2 + 下两行满（含4）消后·列内合并',
+	{ rows: 6, cols: 4, label: '6×4 中间行单格2 + 下两行满（含4）消后·列内合并',
 		before: [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,2,0,0],[2,4,2,2],[2,2,2,2]] }
 ];
 FIXED_06_RAW.forEach(function(tc) {
 	tc.expected = logic.advancePostLockLineClearNoSpawn(makeGame(tc.before)).board;
 });
+FIXED_06_ABOVE_NONFULL.forEach(function(tc) {
+	tc.expected = logic.advancePostLockLineClearNoSpawn(makeGame(tc.before)).board;
+});
 
 var seenBeforeFixed = {};
 FIXED_06_RAW.forEach(function(tc) {
+	seenBeforeFixed[JSON.stringify(tc.before)] = true;
+});
+FIXED_06_ABOVE_NONFULL.forEach(function(tc) {
 	seenBeforeFixed[JSON.stringify(tc.before)] = true;
 });
 
@@ -246,6 +307,10 @@ FIXED_06_RAW.forEach(function(tc) {
 	seenExpected.add(JSON.stringify(tc.expected));
 	cases06all.push(tc);
 });
+FIXED_06_ABOVE_NONFULL.forEach(function(tc) {
+	seenExpected.add(JSON.stringify(tc.expected));
+	cases06all.push(tc);
+});
 cases06gen.forEach(function(tc) {
 	var ek = JSON.stringify(tc.expected);
 	if (seenExpected.has(ek)) {
@@ -259,19 +324,19 @@ cases06all.forEach(function(tc, idx) {
 	tc.sortKey = idx + 1;
 });
 
-var numFixed = FIXED_06_RAW.length;
+var numFixed = FIXED_06_RAW.length + FIXED_06_ABOVE_NONFULL.length;
 var numEnumUnique = cases06all.length - numFixed;
 
-var header05 = '/**\n * ⑤ 简单消行（锁后整盘，无合并）\n * 由 test/gen-scenario-05.js 生成；筛除：advancePostLockLineClearNoSpawnWithStats 区内合并与 cascade 均为 0。\n */\n(function() {\n\tvar s = {\n' +
-	'\t\ttitle: \'⑤ 简单消行（锁后整盘，无合并）\',\n' +
-	'\t\tdesc: \'不测落子。顺序：无满行 → 仅底一行满（全2；1/2/3个4列遍历）→ 底两行满（全2；上行×下行14×14）。仅保留未触发消行区内竖向合并且未发生 cascade 的盘。\',\n' +
+var header05 = '/**\n * ⑤ 简单消行（无合并）\n * 由 test/gen-scenario-05.js 生成；筛除：advancePostLockLineClearNoSpawnWithStats 区内竖合、cascade、消行剩格下落合并 均为 0。\n */\n(function() {\n\tvar s = {\n' +
+	'\t\ttitle: \'⑤ 简单消行（无合并）\',\n' +
+	'\t\tdesc: \'不测活动块操作。含无满行、单行满、双行满枚举、末尾悬空例。剩格各为 1×1 依次落再俄式抽空行；本组终盘满足区内竖合、cascade、剩格下落合并均为 0。\',\n' +
 	'\t\tcases: [\n';
 
 var footer05 = '\n\t\t]\n\t};\n\tif (typeof module !== \'undefined\' && module.exports) module.exports = s;\n\tif (typeof window !== \'undefined\') window.SCENARIO_05 = s;\n})();\n';
 
-var header06 = '/**\n * ⑥ 消行后下落合并（锁后整盘）\n * 由 test/gen-scenario-05.js 生成：前几条为固定示范，余下为双行枚举中「终盘 expected 不重复」的用例。\n */\n(function() {\n\tvar s = {\n' +
-	'\t\ttitle: \'⑥ 消行后下落合并（锁后整盘）\',\n' +
-	'\t\tdesc: \'不测落子。顺序：固定示范（4×4 / 5×4 / 6×4）→ 底两行 1/2/3 个4 组合枚举，按终盘棋盘去重。期望由 logic.advancePostLockLineClearNoSpawn 生成。\',\n' +
+var header06 = '/**\n * ⑥ 消行后下落合并\n * 由 test/gen-scenario-05.js 生成：固定盘（含被消行上方非满行）+ 双行枚举终盘去重。\n */\n(function() {\n\tvar s = {\n' +
+	'\t\ttitle: \'⑥ 消行后下落合并\',\n' +
+	'\t\tdesc: \'不测活动块操作。含固定例、被消行上方仍有非满行、双行枚举去重；终盘多含区内竖合、cascade 或剩格下落合并。期望同 advancePostLockLineClearNoSpawn。\',\n' +
 	'\t\tcases: [\n';
 
 var footer06 = '\n\t\t]\n\t};\n\tif (typeof module !== \'undefined\' && module.exports) module.exports = s;\n\tif (typeof window !== \'undefined\') window.SCENARIO_06 = s;\n})();\n';
@@ -283,4 +348,4 @@ fs.writeFileSync(path05, header05 + cases05.map(emitCase).join(',\n') + footer05
 fs.writeFileSync(path06, header06 + cases06all.map(emitCase).join(',\n') + footer06, 'utf8');
 
 console.log('⑤ 无合并: ' + cases05.length + ' → ' + path05);
-console.log('⑥: ' + cases06all.length + '（固定示范 ' + numFixed + ' + 枚举终盘去重 ' + numEnumUnique + '）→ ' + path06);
+console.log('⑥: ' + cases06all.length + '（固定用例 ' + numFixed + ' + 枚举终盘去重 ' + numEnumUnique + '）→ ' + path06);

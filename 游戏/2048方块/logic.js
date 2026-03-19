@@ -258,6 +258,236 @@
 		}
 	}
 
+	/**
+	 * 消行除法后，满行里每个非零剩格各自当成一块 1×1 活动块，按与 tick 相同的下落/合并/锁定规则依次处理。
+	 * 顺序：先按行索引 r **从大到小**（屏幕更靠下、数组 row 更大者先处理），再按列 c 升序。
+	 * 同一列里必须先处理下方的剩格，否则上方剩格下落时仍会撞到下方剩格占位；同行不同列互不挡路，列序仅用于结果确定。
+	 */
+	function runSequentialClearRemainderDrops(board, rows, cols, clearedSet, stats) {
+		const list = [];
+		for (let r = 0; r < rows; r++) {
+			if (!clearedSet[r]) {
+				continue;
+			}
+			for (let c = 0; c < cols; c++) {
+				const v = board[r][c];
+				if (v !== 0) {
+					list.push({ r: r, c: c, v: v });
+				}
+			}
+		}
+		if (list.length === 0) {
+			return;
+		}
+		for (let i = 0; i < list.length; i++) {
+			board[list[i].r][list[i].c] = 0;
+		}
+		list.sort(function(a, b) {
+			if (b.r !== a.r) {
+				return b.r - a.r;
+			}
+			return a.c - b.c;
+		});
+		for (let i = 0; i < list.length; i++) {
+			const x = list[i];
+			const piece = {
+				shape: '_REMAINDER1',
+				rotation: 0,
+				row: x.r,
+				col: x.c,
+				cells: [{ dr: 0, dc: 0, value: x.v }],
+				mergeCount: 0,
+			};
+			runRemainderPieceUntilLocked(board, rows, cols, piece, stats);
+		}
+	}
+
+	/**
+	 * 与 tick 下落/合并一致，但锁定后**不**生成下一块、不在这里接下一轮消行（交给后续整理流程）。
+	 * @param { { clearRemainderMergeSteps?: number } | null | undefined } stats 可选：统计消行剩格 1×1 下落过程中发生的合并步数
+	 */
+	function tickLineClearRemainderStep(g, stats) {
+		if (g.gameOver || !g.currentPiece) {
+			return g;
+		}
+		const board = g.board;
+		const rows = g.rows;
+		const cols = g.cols;
+		let piece = g.currentPiece;
+
+		if (pieceOutOfBounds(rows, cols, piece, 1, 0)) {
+			const maxDr = Math.max.apply(null, piece.cells.map(function(c) { return c.dr; }));
+			const lockRow = Math.min(piece.row, rows - 1 - maxDr);
+			const lockPieceAt = Object.assign({}, piece, {row: lockRow});
+			writePieceToBoard(board, rows, cols, lockPieceAt);
+			return Object.assign({}, g, {board: board, currentPiece: null});
+		}
+
+		while (true) {
+			const wouldHit = pieceOverlapsBoard(board, rows, cols, piece, 1, 0);
+			if (!wouldHit) {
+				piece.cells.forEach(function(cell) {
+					if (cell.merged) {
+						return;
+					}
+					var r = piece.row + cell.dr;
+					var c = piece.col + cell.dc;
+					if (r >= 0 && r < rows && c >= 0 && c < cols && board[r]) {
+						board[r][c] = 0;
+					}
+				});
+				return Object.assign({}, g, {board: board, currentPiece: Object.assign({}, piece, {row: piece.row + 1})});
+			}
+
+			const pieceRow = piece.row;
+			const direction = DIR_DOWN;
+			const frontLineCells = getFrontLineCells(piece, direction);
+
+			var hitBottom = false;
+			for (var fi = 0; fi < frontLineCells.length; fi++) {
+				var targetR = pieceRow + frontLineCells[fi].dr + direction.dr;
+				if (targetR >= rows) {
+					hitBottom = true;
+					break;
+				}
+			}
+			if (hitBottom) {
+				writePieceToBoard(board, rows, cols, Object.assign({}, piece, {row: pieceRow}));
+				return Object.assign({}, g, {board: board, currentPiece: null});
+			}
+
+			var canMove = true;
+			for (var ci = 0; ci < frontLineCells.length; ci++) {
+				var cell = frontLineCells[ci];
+				var targetR = pieceRow + cell.dr + direction.dr;
+				var targetC = piece.col + cell.dc + direction.dc;
+				if (targetC < 0 || targetC >= cols || targetR >= rows || targetR < 0 || !board[targetR]) {
+					continue;
+				}
+				var targetValue = board[targetR][targetC];
+				if (targetValue !== 0 && targetValue !== cell.value) {
+					canMove = false;
+					break;
+				}
+			}
+			if (!canMove) {
+				writePieceToBoard(board, rows, cols, Object.assign({}, piece, {row: pieceRow}));
+				return Object.assign({}, g, {board: board, currentPiece: null});
+			}
+
+			var newRow = pieceRow + direction.dr;
+			var newCol = piece.col + direction.dc;
+			var frontKey = {};
+			frontLineCells.forEach(function(c) { frontKey[c.dr + ',' + c.dc] = true; });
+			var mergedCount = 0;
+			var updatedCells = piece.cells.map(function(cell) {
+				if (!frontKey[cell.dr + ',' + cell.dc]) {
+					return Object.assign({}, cell);
+				}
+				var tr = pieceRow + cell.dr + direction.dr;
+				var tc = piece.col + cell.dc + direction.dc;
+				if (tc < 0 || tc >= cols || tr >= rows || tr < 0 || !board[tr]) {
+					return Object.assign({}, cell);
+				}
+				var tv = board[tr][tc];
+				if (tv === cell.value) {
+					mergedCount++;
+					return Object.assign({}, cell, {value: cell.value * 2, merged: true});
+				}
+				return Object.assign({}, cell);
+			});
+
+			piece.cells.forEach(function(cell) {
+				var r = pieceRow + cell.dr;
+				var c = piece.col + cell.dc;
+				if (r >= 0 && r < rows && c >= 0 && c < cols && board[r]) {
+					board[r][c] = 0;
+				}
+			});
+			piece.cells.forEach(function(cell, idx) {
+				if (!updatedCells[idx].merged) {
+					return;
+				}
+				var tr = pieceRow + cell.dr + direction.dr;
+				var tc = piece.col + cell.dc + direction.dc;
+				if (board[tr]) {
+					board[tr][tc] = cell.value * 2;
+				}
+			});
+			piece = Object.assign({}, piece, {row: newRow, col: newCol, cells: updatedCells, mergeCount: piece.mergeCount + mergedCount});
+			if (stats && mergedCount > 0) {
+				stats.clearRemainderMergeSteps = (stats.clearRemainderMergeSteps || 0) + 1;
+			}
+			return Object.assign({}, g, {board: board, currentPiece: piece});
+		}
+	}
+
+	function runRemainderPieceUntilLocked(board, rows, cols, piece, stats) {
+		let state = {
+			rows: rows,
+			cols: cols,
+			board: board,
+			currentPiece: piece,
+			pieceCount: 1,
+			nextPiece: null,
+			gameOver: false,
+			clearLinesPending: null,
+			postClearGravityState: null,
+			cascadePending: false,
+			score: 0,
+			highScore: 0,
+			seed: 0,
+			overlayVisible: false,
+			overlayMessage: '',
+			fallIntervalMs: 500,
+		};
+		let guard = 0;
+		const maxGuard = rows * cols * 24 + 100;
+		while (state.currentPiece != null) {
+			if (++guard > maxGuard) {
+				throw new Error('runRemainderPieceUntilLocked: exceeded guard');
+			}
+			state = tickLineClearRemainderStep(state, stats);
+		}
+	}
+
+	/**
+	 * 消行 7.1 收尾：本轮作为**满行**参与除法与剩格下落后，凡属于该满行且**已全空**的行，从棋盘上
+	 * **整行抽掉**（行数变少），再在**顶部**补回等量空行，使场地高度不变；其余行**上下相对顺序不变**，
+	 * 行内图案（含建造空隙）不变。这样上方悬空行与下方被消行之间的全空行会保留，不会把非空行压缩到场地最底。
+	 * @param {Object<number, boolean>} clearedSet 本轮处理过的满行行号集合
+	 */
+	function packAfterClearedEmptyRows(board, rows, cols, clearedSet) {
+		const kept = [];
+		for (let r = 0; r < rows; r++) {
+			const wasClearedLine = !!clearedSet[r];
+			let allZero = true;
+			for (let c = 0; c < cols; c++) {
+				if (board[r][c] !== 0) {
+					allZero = false;
+					break;
+				}
+			}
+			if (wasClearedLine && allZero) {
+				continue;
+			}
+			kept.push(board[r].slice());
+		}
+		const padTop = rows - kept.length;
+		for (let r = 0; r < rows; r++) {
+			if (r < padTop) {
+				for (let c = 0; c < cols; c++) {
+					board[r][c] = 0;
+				}
+			} else {
+				const src = kept[r - padTop];
+				for (let c = 0; c < cols; c++) {
+					board[r][c] = src[c];
+				}
+			}
+		}
+	}
+
 	function hasVerticalMergeInClearedRows(board, rows, cols, remainingRowsSet, remainingInCleared) {
 		const arr = Array.from(remainingRowsSet);
 		for (let i = 0; i < arr.length; i++) {
@@ -292,8 +522,8 @@
 		return false;
 	}
 
-	/** 消行处理 + 按列下落（玩法 7.1）：满行除以 min，商为 1 的消除，然后每列独立做重力。 */
-	function doClearAndGravityOnly(board, rows, cols, fullRows) {
+	/** 消行处理 + 7.1：除法 → 各剩格 1×1 依次落到底 → 俄式整行抽行下移。 @param stats 可选，统计剩格下落合并步数 */
+	function doClearAndGravityOnly(board, rows, cols, fullRows, stats) {
 		if (fullRows.length === 0) {
 			const rem = [];
 			for (let r = 0; r < rows; r++) {
@@ -339,9 +569,8 @@
 				board[r][c] = afterClear[r][c];
 			}
 		}
-		for (let c = 0; c < cols; c++) {
-			compactGravityColumn(board, rows, c);
-		}
+		runSequentialClearRemainderDrops(board, rows, cols, clearedSet, stats);
+		packAfterClearedEmptyRows(board, rows, cols, clearedSet);
 		const remainingInCleared = [];
 		for (let r = 0; r < rows; r++) {
 			const row = [];
@@ -460,7 +689,7 @@
 		});
 	}
 
-	/** @param { { clearedVerticalMerges?: number, cascadeSteps?: number } | null | undefined } stats 可选，用于测试统计 */
+	/** @param { { clearedVerticalMerges?: number, cascadeSteps?: number, clearRemainderMergeSteps?: number } | null | undefined } stats 可选，用于测试统计 */
 	function applyPendingClearLines(g, stats) {
 		const post = g.postClearGravityState;
 		if (post != null) {
@@ -498,7 +727,7 @@
 		if (g.clearLinesPending == null || g.clearLinesPending.length === 0) {
 			return g;
 		}
-		const result = doClearAndGravityOnly(g.board, g.rows, g.cols, g.clearLinesPending);
+		const result = doClearAndGravityOnly(g.board, g.rows, g.cols, g.clearLinesPending, stats);
 		return Object.assign({}, g, {
 			board: g.board,
 			clearLinesPending: null,
@@ -517,7 +746,7 @@
 	 * 要求 currentPiece === null；若 board 无满行则原样返回（清空 pending 标志）。
 	 */
 	/**
-	 * @param { { clearedVerticalMerges?: number, cascadeSteps?: number } | null | undefined } stats 可选：统计消行区内竖向合并次数、cascade 步数（供测试筛「无合并」用例）
+	 * @param { { clearedVerticalMerges?: number, cascadeSteps?: number, clearRemainderMergeSteps?: number } | null | undefined } stats 可选：统计区内竖合、cascade、消行剩格下落合并步数（供测试筛分用例）
 	 */
 	function advancePostLockLineClearNoSpawn(game, stats) {
 		if (game.currentPiece != null) {
@@ -575,13 +804,14 @@
 
 	/** 测试：返回终盘 + 是否发生消行区内竖向合并 / cascade 合并 */
 	function advancePostLockLineClearNoSpawnWithStats(game) {
-		const stats = { clearedVerticalMerges: 0, cascadeSteps: 0 };
+		const stats = { clearedVerticalMerges: 0, cascadeSteps: 0, clearRemainderMergeSteps: 0 };
 		const state = advancePostLockLineClearNoSpawn(game, stats);
 		return {
 			board: state.board,
 			clearedVerticalMerges: stats.clearedVerticalMerges || 0,
 			cascadeSteps: stats.cascadeSteps || 0,
-			hasMergeOrCascade: (stats.clearedVerticalMerges || 0) > 0 || (stats.cascadeSteps || 0) > 0,
+			clearRemainderMergeSteps: stats.clearRemainderMergeSteps || 0,
+			hasMergeOrCascade: (stats.clearedVerticalMerges || 0) > 0 || (stats.cascadeSteps || 0) > 0 || (stats.clearRemainderMergeSteps || 0) > 0,
 		};
 	}
 
@@ -708,7 +938,11 @@
 			const wouldHit = pieceOverlapsBoard(board, rows, cols, piece, 1, 0);
 			if (!wouldHit) {
 				// 纯下移：块离开原格，须清空原格（合并分支会清空+写目标格，此处仅下移无合并）
+				// 已合并且写在棋盘上的格（cell.merged）勿清空，否则会把固定合并结果擦掉
 				piece.cells.forEach(function(cell) {
+					if (cell.merged) {
+						return;
+					}
 					var r = piece.row + cell.dr;
 					var c = piece.col + cell.dc;
 					if (r >= 0 && r < rows && c >= 0 && c < cols && board[r]) {

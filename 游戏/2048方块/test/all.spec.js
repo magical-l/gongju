@@ -315,7 +315,7 @@ module.exports = function(r) {
 			_assertBoardEqual(board, expected, '4.1');
 		});
 
-		it('4.2 消三行有剩余、列压实后合并', function() {
+		it('4.2 消三行有剩余、保形下落后合并（行内空隙保留）', function() {
 			const rows = 6, cols = 4;
 			const before = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 2, 0, 0], [2, 4, 2, 2], [2, 2, 4, 2], [2, 2, 2, 4]];
 			const expected = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 4, 2, 2]];
