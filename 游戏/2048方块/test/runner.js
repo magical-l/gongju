@@ -1,6 +1,6 @@
 /**
  * 按场景测试页的共用运行逻辑。依赖：已加载 logic.js，且 window.SCENARIOS 已赋值（数组，每项 { title, desc?, cases }）。
- * 单场景页可设置 window.SCENARIO_INDEX_BASE = 0～6，用于选择 runMergeCase / runClearCase / runClearWithGravityCase。
+ * 单场景页可设置 window.SCENARIO_INDEX_BASE = 0～5：0～3 为 runMergeCase；4～5 为 runPostLockClearCase（锁后整盘 + logic.advancePostLockLineClearNoSpawn）。
  */
 (function() {
 	'use strict';
@@ -18,8 +18,7 @@
 	var tick = logic.tick;
 	var createPiece = logic.createPiece;
 	var pieceAbsCells = logic.pieceAbsCells;
-	var applyPendingClearLines = logic.applyPendingClearLines;
-	var getFullRowIndices = logic.getFullRowIndices;
+	var advancePostLockLineClearNoSpawn = logic.advancePostLockLineClearNoSpawn;
 	var ROT_LABELS = ['0°', '90°', '180°', '270°'];
 	// T: 旧0→90°, 旧90→180°, 旧180→270°, 旧270→0°；Z/S: 仅两角，旧0→90°, 旧90→0°
 	function getAngleLabel(shape, rotation) {
@@ -45,6 +44,7 @@
 		return { rows: rows, cols: cols, board: board, currentPiece: piece, pieceCount: piece ? 1 : 0, nextPiece: null, gameOver: false, clearLinesPending: null, postClearGravityState: null, cascadePending: false, score: 0, highScore: 0, seed: 0 };
 	}
 	function pieceFromCase(tc) {
+		if (!tc.piece) return null;
 		var p = tc.piece;
 		var piece = createPiece(p.shape, p.rotation != null ? p.rotation : 0, p.row, p.col);
 		if (p.cellValues && Array.isArray(p.cellValues)) {
@@ -153,57 +153,38 @@
 		var pass = tc.expected != null && boardEquals(resultBoard, tc.expected, rows, cols);
 		return { resultBoard: resultBoard, pass: pass };
 	}
-	function runClearCase(tc) {
+	/** ⑤⑥：初始为「已锁块后的整盘」，走 logic 内与 tick 一致的消行全流程，止于即将生成下一块（不生成下一块）。 */
+	function runPostLockClearCase(tc) {
 		var rows = tc.rows, cols = tc.cols;
 		var board = deepCopyBoard(tc.before);
-		var piece = pieceFromCase(tc);
-		var pieceCountBefore = piece ? 1 : 0;
-		var state = null;
-		var ticksToRun = tc.ticks != null ? tc.ticks : 20;
-		for (var i = 0; i < ticksToRun; i++) {
-			state = makeState(rows, cols, board, piece);
-			state.pieceCount = pieceCountBefore;
-			state = tick(state);
-			pieceCountBefore = state.pieceCount;
-			board = deepCopyBoard(state.board);
-			piece = state.currentPiece;
-			if (!piece) break;
-		}
-		var resultBoard = state ? deepCopyBoard(state.board) : board;
-		var fullRows = getFullRowIndices ? getFullRowIndices(resultBoard, rows, cols) : [];
-		for (var r = 0; r < fullRows.length; r++) {
-			var rowIndex = fullRows[r];
-			for (var c = 0; c < cols; c++) resultBoard[rowIndex][c] = 0;
-		}
+		var state = {
+			rows: rows,
+			cols: cols,
+			board: board,
+			currentPiece: null,
+			pieceCount: tc.pieceCount != null ? tc.pieceCount : 1,
+			nextPiece: null,
+			gameOver: false,
+			clearLinesPending: null,
+			postClearGravityState: null,
+			cascadePending: false,
+			score: 0,
+			highScore: 0,
+			seed: tc.seed != null ? tc.seed : 0,
+			level: 0,
+			linesClearedTotal: 0,
+			overlayVisible: false,
+			overlayMessage: '',
+			fallIntervalMs: 500
+		};
+		var out = advancePostLockLineClearNoSpawn(state);
+		var resultBoard = deepCopyBoard(out.board);
 		var pass = tc.expected != null && boardEquals(resultBoard, tc.expected, rows, cols);
 		return { resultBoard: resultBoard, pass: pass };
 	}
-	function runClearWithGravityCase(tc) {
-		var rows = tc.rows, cols = tc.cols;
-		var board = deepCopyBoard(tc.before);
-		var piece = pieceFromCase(tc);
-		var pieceCountBefore = piece ? 1 : 0;
-		var state = null;
-		var ticksToRun = tc.ticks != null ? tc.ticks : 20;
-		for (var i = 0; i < ticksToRun; i++) {
-			state = makeState(rows, cols, board, piece);
-			state.pieceCount = pieceCountBefore;
-			state = tick(state);
-			pieceCountBefore = state.pieceCount;
-			board = deepCopyBoard(state.board);
-			piece = state.currentPiece;
-			if (!piece) break;
-		}
-		while (state && (state.clearLinesPending && state.clearLinesPending.length > 0 || state.postClearGravityState != null)) {
-			state = applyPendingClearLines(state);
-		}
-		var guardCg = 0;
-		while (state && state.cascadePending && guardCg++ < 500) {
-			state = tick(state);
-		}
-		var resultBoard = state ? deepCopyBoard(state.board) : board;
-		var pass = tc.expected != null && boardEquals(resultBoard, tc.expected, rows, cols);
-		return { resultBoard: resultBoard, pass: pass };
+	function runCaseForScenarioIndex(tc, scenarioIndex) {
+		if (scenarioIndex >= 4 && scenarioIndex <= 5) return runPostLockClearCase(tc);
+		return runMergeCase(tc);
 	}
 	function renderBoardSm(board, rows, cols, piece) {
 		if (!board || !rows || !cols) return '';
@@ -235,10 +216,14 @@
 		var scenarioIndex = scenarioIndexBase != null ? scenarioIndexBase : si;
 		sortCases(scenario.cases).forEach(function(tc, ci) {
 			var piece = pieceFromCase(tc);
+			var pr = piece && piece.rotation != null ? piece.rotation : 0;
+			var cardTitle = (scenarioIndex >= 4 && scenarioIndex <= 5 && !piece)
+				? (tc.label || '消行')
+				: (tc.shape + ' ' + getAngleLabel(tc.shape, pr) + (tc.label ? ' ' + tc.label : ''));
 			var card = document.createElement('div');
 			card.className = 'card';
 			card.innerHTML =
-				'<div class="card-title">' + tc.shape + ' ' + getAngleLabel(tc.shape, piece.rotation) + (tc.label ? ' ' + tc.label : '') + '</div>' +
+				'<div class="card-title">' + cardTitle + '</div>' +
 				'<div class="card-boards">' +
 				'<div class="card-row"><span class="label">初始</span>' + renderBoardSm(tc.before, tc.rows, tc.cols, piece) + '</div>' +
 				'<div class="card-row"><span class="label">期望</span>' + renderBoardSm(tc.expected, tc.rows, tc.cols, null) + '</div>' +
@@ -252,7 +237,7 @@
 			var statusEl = card.querySelector('[data-status]');
 			var runBtn = card.querySelector('.run-one');
 			runBtn.addEventListener('click', function() {
-				var res = scenarioIndex === 4 ? runClearCase(tc) : (scenarioIndex >= 5 ? runClearWithGravityCase(tc) : runMergeCase(tc));
+				var res = runCaseForScenarioIndex(tc, scenarioIndex);
 				resultEl.innerHTML = renderBoardSm(res.resultBoard, tc.rows, tc.cols, null);
 				statusEl.textContent = res.pass ? '✓' : '✗';
 				statusEl.className = 'card-result ' + (res.pass ? 'ok' : 'fail');
@@ -272,7 +257,7 @@
 		runAllBtn.addEventListener('click', function() {
 			var ok = 0, fail = 0;
 			allCards.forEach(function(o) {
-				var res = o.scenarioIndex === 4 ? runClearCase(o.tc) : (o.scenarioIndex >= 5 ? runClearWithGravityCase(o.tc) : runMergeCase(o.tc));
+				var res = runCaseForScenarioIndex(o.tc, o.scenarioIndex);
 				o.resultEl.innerHTML = renderBoardSm(res.resultBoard, o.tc.rows, o.tc.cols, null);
 				o.statusEl.textContent = res.pass ? '✓' : '✗';
 				o.statusEl.className = 'card-result ' + (res.pass ? 'ok' : 'fail');

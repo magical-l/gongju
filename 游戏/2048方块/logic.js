@@ -460,7 +460,8 @@
 		});
 	}
 
-	function applyPendingClearLines(g) {
+	/** @param { { clearedVerticalMerges?: number, cascadeSteps?: number } | null | undefined } stats 可选，用于测试统计 */
+	function applyPendingClearLines(g, stats) {
 		const post = g.postClearGravityState;
 		if (post != null) {
 			const remainingRowsSet = new Set(post.remainingRows);
@@ -486,6 +487,9 @@
 				});
 			}
 			doOneVerticalMergeInClearedRows(g.board, g.rows, g.cols, remainingRowsSet, post.remainingInCleared);
+			if (stats) {
+				stats.clearedVerticalMerges = (stats.clearedVerticalMerges || 0) + 1;
+			}
 			return Object.assign({}, g, {
 				board: g.board,
 				postClearGravityState: post,
@@ -504,6 +508,81 @@
 				remainingRows: result.remainingRows,
 			},
 		});
+	}
+
+	/**
+	 * 测试/工具：从「刚锁块、棋盘已含固化格」的状态出发，按与 tick 相同的顺序跑完
+	 * applyPendingClearLines（消行 + 消行区内竖向合并 + 可能的多轮满行）以及随后的 cascadePending 全场合并，
+	 * 停在即将生成下一活动块之前：currentPiece 仍为 null，cascadePending 已清。
+	 * 要求 currentPiece === null；若 board 无满行则原样返回（清空 pending 标志）。
+	 */
+	/**
+	 * @param { { clearedVerticalMerges?: number, cascadeSteps?: number } | null | undefined } stats 可选：统计消行区内竖向合并次数、cascade 步数（供测试筛「无合并」用例）
+	 */
+	function advancePostLockLineClearNoSpawn(game, stats) {
+		if (game.currentPiece != null) {
+			throw new Error('advancePostLockLineClearNoSpawn: currentPiece must be null (locked board only)');
+		}
+		const rows = game.rows;
+		const cols = game.cols;
+		let state = Object.assign({}, game);
+		state.board = game.board.map(function(row) { return row.slice(); });
+		const fr = getFullRowIndices(state.board, rows, cols);
+		if (fr.length === 0) {
+			return Object.assign({}, state, {
+				clearLinesPending: null,
+				postClearGravityState: null,
+				cascadePending: false,
+			});
+		}
+		state = Object.assign({}, state, {
+			clearLinesPending: fr.slice(),
+			postClearGravityState: null,
+			cascadePending: false,
+		});
+		let guardApply = 0;
+		while ((state.clearLinesPending && state.clearLinesPending.length > 0) || state.postClearGravityState != null) {
+			if (++guardApply > 5000) {
+				throw new Error('advancePostLockLineClearNoSpawn: applyPendingClearLines exceeded guard');
+			}
+			state = applyPendingClearLines(state, stats);
+		}
+		let guardCascade = 0;
+		while (state.cascadePending) {
+			if (++guardCascade > 2000) {
+				throw new Error('advancePostLockLineClearNoSpawn: cascade exceeded guard');
+			}
+			const cascade = doOneCascadeStep(state.board, rows, cols);
+			if (stats && cascade.didOne) {
+				stats.cascadeSteps = (stats.cascadeSteps || 0) + 1;
+			}
+			if (!cascade.didOne) {
+				state = Object.assign({}, state, { cascadePending: false });
+				break;
+			}
+			if (!cascade.more) {
+				state = Object.assign({}, state, { cascadePending: false });
+				break;
+			}
+		}
+		return Object.assign({}, state, {
+			clearLinesPending: null,
+			postClearGravityState: null,
+			cascadePending: false,
+			currentPiece: null,
+		});
+	}
+
+	/** 测试：返回终盘 + 是否发生消行区内竖向合并 / cascade 合并 */
+	function advancePostLockLineClearNoSpawnWithStats(game) {
+		const stats = { clearedVerticalMerges: 0, cascadeSteps: 0 };
+		const state = advancePostLockLineClearNoSpawn(game, stats);
+		return {
+			board: state.board,
+			clearedVerticalMerges: stats.clearedVerticalMerges || 0,
+			cascadeSteps: stats.cascadeSteps || 0,
+			hasMergeOrCascade: (stats.clearedVerticalMerges || 0) > 0 || (stats.cascadeSteps || 0) > 0,
+		};
 	}
 
 	function moveLeft(game) {
@@ -921,6 +1000,8 @@
 		rotate: rotate,
 		runUntilFirstLock: runUntilFirstLock,
 		applyPendingClearLines: applyPendingClearLines,
+		advancePostLockLineClearNoSpawn: advancePostLockLineClearNoSpawn,
+		advancePostLockLineClearNoSpawnWithStats: advancePostLockLineClearNoSpawnWithStats,
 		pieceAbsCells: pieceAbsCells,
 		createPiece: createPiece,
 		getFullRowIndices: getFullRowIndices,

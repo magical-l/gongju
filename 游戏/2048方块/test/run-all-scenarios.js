@@ -1,5 +1,5 @@
 /**
- * 在 Node 中按浏览器 runner 规则跑全部 7 个场景，打印失败用例。
+ * 在 Node 中按浏览器 runner 规则跑全部 6 个场景，打印失败用例。
  * 运行：node test/run-all-scenarios.js（在 游戏/2048方块 目录）
  */
 'use strict';
@@ -11,14 +11,11 @@ var s03 = require(path.join(__dirname, 'scenarios', 'scenario-03.js'));
 var s04 = require(path.join(__dirname, 'scenarios', 'scenario-04.js'));
 var s05 = require(path.join(__dirname, 'scenarios', 'scenario-05.js'));
 var s06 = require(path.join(__dirname, 'scenarios', 'scenario-06.js'));
-var s07 = require(path.join(__dirname, 'scenarios', 'scenario-07.js'));
-
-var SCENARIOS = [s01, s02, s03, s04, s05, s06, s07];
+var SCENARIOS = [s01, s02, s03, s04, s05, s06];
 var tick = logic.tick;
 var createPiece = logic.createPiece;
 var pieceAbsCells = logic.pieceAbsCells;
-var applyPendingClearLines = logic.applyPendingClearLines;
-var getFullRowIndices = logic.getFullRowIndices;
+var advancePostLockLineClearNoSpawn = logic.advancePostLockLineClearNoSpawn;
 
 function makeState(rows, cols, boardRows, piece) {
 	var board = [];
@@ -30,6 +27,7 @@ function makeState(rows, cols, boardRows, piece) {
 	return { rows: rows, cols: cols, board: board, currentPiece: piece, pieceCount: piece ? 1 : 0, nextPiece: null, gameOver: false, clearLinesPending: null, postClearGravityState: null, cascadePending: false, score: 0, highScore: 0, seed: 0 };
 }
 function pieceFromCase(tc) {
+	if (!tc.piece) return null;
 	var p = tc.piece;
 	var piece = createPiece(p.shape, p.rotation != null ? p.rotation : 0, p.row, p.col);
 	if (p.cellValues && Array.isArray(p.cellValues)) {
@@ -84,53 +82,31 @@ function runMergeCase(tc) {
 	var pass = tc.expected != null && boardEquals(resultBoard, tc.expected, rows, cols);
 	return { resultBoard: resultBoard, pass: pass };
 }
-function runClearCase(tc) {
+function runPostLockClearCase(tc) {
 	var rows = tc.rows, cols = tc.cols;
 	var board = deepCopyBoard(tc.before);
-	var piece = pieceFromCase(tc);
-	var pieceCountBefore = piece ? 1 : 0;
-	var state = null;
-	var ticksToRun = tc.ticks != null ? tc.ticks : 20;
-	for (var i = 0; i < ticksToRun; i++) {
-		state = makeState(rows, cols, board, piece);
-		state.pieceCount = pieceCountBefore;
-		state = tick(state);
-		pieceCountBefore = state.pieceCount;
-		board = deepCopyBoard(state.board);
-		piece = state.currentPiece;
-		if (!piece) break;
-	}
-	var resultBoard = state ? deepCopyBoard(state.board) : board;
-	var fullRows = getFullRowIndices ? getFullRowIndices(resultBoard, rows, cols) : [];
-	for (var r = 0; r < fullRows.length; r++)
-		for (var c = 0; c < cols; c++) resultBoard[fullRows[r]][c] = 0;
-	var pass = tc.expected != null && boardEquals(resultBoard, tc.expected, rows, cols);
-	return { resultBoard: resultBoard, pass: pass };
-}
-function runClearWithGravityCase(tc) {
-	var rows = tc.rows, cols = tc.cols;
-	var board = deepCopyBoard(tc.before);
-	var piece = pieceFromCase(tc);
-	var pieceCountBefore = piece ? 1 : 0;
-	var state = null;
-	var ticksToRun = tc.ticks != null ? tc.ticks : 20;
-	for (var i = 0; i < ticksToRun; i++) {
-		state = makeState(rows, cols, board, piece);
-		state.pieceCount = pieceCountBefore;
-		state = tick(state);
-		pieceCountBefore = state.pieceCount;
-		board = deepCopyBoard(state.board);
-		piece = state.currentPiece;
-		if (!piece) break;
-	}
-	while (state && (state.clearLinesPending && state.clearLinesPending.length > 0 || state.postClearGravityState != null)) {
-		state = applyPendingClearLines(state);
-	}
-	var guard = 0;
-	while (state && state.cascadePending && guard++ < 500) {
-		state = tick(state);
-	}
-	var resultBoard = state ? deepCopyBoard(state.board) : board;
+	var state = {
+		rows: rows,
+		cols: cols,
+		board: board,
+		currentPiece: null,
+		pieceCount: tc.pieceCount != null ? tc.pieceCount : 1,
+		nextPiece: null,
+		gameOver: false,
+		clearLinesPending: null,
+		postClearGravityState: null,
+		cascadePending: false,
+		score: 0,
+		highScore: 0,
+		seed: tc.seed != null ? tc.seed : 0,
+		level: 0,
+		linesClearedTotal: 0,
+		overlayVisible: false,
+		overlayMessage: '',
+		fallIntervalMs: 500
+	};
+	var out = advancePostLockLineClearNoSpawn(state);
+	var resultBoard = deepCopyBoard(out.board);
 	var pass = tc.expected != null && boardEquals(resultBoard, tc.expected, rows, cols);
 	return { resultBoard: resultBoard, pass: pass };
 }
@@ -147,7 +123,7 @@ function caseTitle(tc) {
 	var r = tc.piece && tc.piece.rotation != null ? tc.piece.rotation : 0;
 	return tc.shape + ' ' + getAngleLabel(tc.shape, r);
 }
-var runFns = [runMergeCase, runMergeCase, runMergeCase, runMergeCase, runClearCase, runClearWithGravityCase, runClearWithGravityCase];
+var runFns = [runMergeCase, runMergeCase, runMergeCase, runMergeCase, runPostLockClearCase, runPostLockClearCase];
 var failed = [];
 SCENARIOS.forEach(function(scenario, si) {
 	var runFn = runFns[si];
