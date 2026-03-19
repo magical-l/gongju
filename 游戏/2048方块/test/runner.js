@@ -1,6 +1,6 @@
 /**
  * 按场景测试页的共用运行逻辑。依赖：已加载 logic.js，且 window.SCENARIOS 已赋值（数组，每项 { title, desc?, cases }）。
- * 单场景页可设置 window.SCENARIO_INDEX_BASE = 0～5，用于选择 runMergeCase / runClearCase / runClearWithGravityCase。
+ * 单场景页可设置 window.SCENARIO_INDEX_BASE = 0～6，用于选择 runMergeCase / runClearCase / runClearWithGravityCase。
  */
 (function() {
 	'use strict';
@@ -197,6 +197,10 @@
 		while (state && (state.clearLinesPending && state.clearLinesPending.length > 0 || state.postClearGravityState != null)) {
 			state = applyPendingClearLines(state);
 		}
+		var guardCg = 0;
+		while (state && state.cascadePending && guardCg++ < 500) {
+			state = tick(state);
+		}
 		var resultBoard = state ? deepCopyBoard(state.board) : board;
 		var pass = tc.expected != null && boardEquals(resultBoard, tc.expected, rows, cols);
 		return { resultBoard: resultBoard, pass: pass };
@@ -248,7 +252,7 @@
 			var statusEl = card.querySelector('[data-status]');
 			var runBtn = card.querySelector('.run-one');
 			runBtn.addEventListener('click', function() {
-				var res = scenarioIndex === 4 ? runClearCase(tc) : (scenarioIndex === 5 ? runClearWithGravityCase(tc) : runMergeCase(tc));
+				var res = scenarioIndex === 4 ? runClearCase(tc) : (scenarioIndex >= 5 ? runClearWithGravityCase(tc) : runMergeCase(tc));
 				resultEl.innerHTML = renderBoardSm(res.resultBoard, tc.rows, tc.cols, null);
 				statusEl.textContent = res.pass ? '✓' : '✗';
 				statusEl.className = 'card-result ' + (res.pass ? 'ok' : 'fail');
@@ -268,7 +272,7 @@
 		runAllBtn.addEventListener('click', function() {
 			var ok = 0, fail = 0;
 			allCards.forEach(function(o) {
-				var res = o.scenarioIndex === 4 ? runClearCase(o.tc) : (o.scenarioIndex === 5 ? runClearWithGravityCase(o.tc) : runMergeCase(o.tc));
+				var res = o.scenarioIndex === 4 ? runClearCase(o.tc) : (o.scenarioIndex >= 5 ? runClearWithGravityCase(o.tc) : runMergeCase(o.tc));
 				o.resultEl.innerHTML = renderBoardSm(res.resultBoard, o.tc.rows, o.tc.cols, null);
 				o.statusEl.textContent = res.pass ? '✓' : '✗';
 				o.statusEl.className = 'card-result ' + (res.pass ? 'ok' : 'fail');

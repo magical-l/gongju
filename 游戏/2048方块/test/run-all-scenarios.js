@@ -1,5 +1,5 @@
 /**
- * 在 Node 中按浏览器 runner 规则跑全部 6 个场景，打印失败用例。
+ * 在 Node 中按浏览器 runner 规则跑全部 7 个场景，打印失败用例。
  * 运行：node test/run-all-scenarios.js（在 游戏/2048方块 目录）
  */
 'use strict';
@@ -11,8 +11,9 @@ var s03 = require(path.join(__dirname, 'scenarios', 'scenario-03.js'));
 var s04 = require(path.join(__dirname, 'scenarios', 'scenario-04.js'));
 var s05 = require(path.join(__dirname, 'scenarios', 'scenario-05.js'));
 var s06 = require(path.join(__dirname, 'scenarios', 'scenario-06.js'));
+var s07 = require(path.join(__dirname, 'scenarios', 'scenario-07.js'));
 
-var SCENARIOS = [s01, s02, s03, s04, s05, s06];
+var SCENARIOS = [s01, s02, s03, s04, s05, s06, s07];
 var tick = logic.tick;
 var createPiece = logic.createPiece;
 var pieceAbsCells = logic.pieceAbsCells;
@@ -30,7 +31,11 @@ function makeState(rows, cols, boardRows, piece) {
 }
 function pieceFromCase(tc) {
 	var p = tc.piece;
-	return createPiece(p.shape, p.rotation != null ? p.rotation : 0, p.row, p.col);
+	var piece = createPiece(p.shape, p.rotation != null ? p.rotation : 0, p.row, p.col);
+	if (p.cellValues && Array.isArray(p.cellValues)) {
+		for (var i = 0; i < piece.cells.length && i < p.cellValues.length; i++) piece.cells[i].value = p.cellValues[i];
+	}
+	return piece;
 }
 function deepCopyBoard(arr) { return JSON.parse(JSON.stringify(arr)); }
 function boardEquals(a, b, rows, cols) {
@@ -121,6 +126,10 @@ function runClearWithGravityCase(tc) {
 	while (state && (state.clearLinesPending && state.clearLinesPending.length > 0 || state.postClearGravityState != null)) {
 		state = applyPendingClearLines(state);
 	}
+	var guard = 0;
+	while (state && state.cascadePending && guard++ < 500) {
+		state = tick(state);
+	}
 	var resultBoard = state ? deepCopyBoard(state.board) : board;
 	var pass = tc.expected != null && boardEquals(resultBoard, tc.expected, rows, cols);
 	return { resultBoard: resultBoard, pass: pass };
@@ -138,7 +147,7 @@ function caseTitle(tc) {
 	var r = tc.piece && tc.piece.rotation != null ? tc.piece.rotation : 0;
 	return tc.shape + ' ' + getAngleLabel(tc.shape, r);
 }
-var runFns = [runMergeCase, runMergeCase, runMergeCase, runMergeCase, runClearCase, runClearWithGravityCase];
+var runFns = [runMergeCase, runMergeCase, runMergeCase, runMergeCase, runClearCase, runClearWithGravityCase, runClearWithGravityCase];
 var failed = [];
 SCENARIOS.forEach(function(scenario, si) {
 	var runFn = runFns[si];
