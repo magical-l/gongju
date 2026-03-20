@@ -155,9 +155,19 @@
 		for (let i = 0; i < cells.length; i++) {
 			const r2 = cells[i].r + rowOffset;
 			const c2 = cells[i].c + colOffset;
-			if (r2 >= 0 && r2 < rows && c2 >= 0 && c2 < cols && board[r2][c2] !== 0) {
-				return true;
+			if (r2 < 0 || r2 >= rows || c2 < 0 || c2 >= cols || !board[r2]) {
+				continue;
 			}
+			const v = board[r2][c2];
+			if (v === 0) {
+				continue;
+			}
+			const pc = p.cells[i];
+			// 仅 offset (0,0)：棋盘同格同值即本 merged 落地格（旋转/踢边等）。竖直 +1 不得按同值跳过，否则无法与正下方同色固定格再合并。
+			if (rowOffset === 0 && colOffset === 0 && pc.merged && v === pc.value) {
+				continue;
+			}
+			return true;
 		}
 		return false;
 	}
@@ -358,6 +368,7 @@
 		while (true) {
 			const wouldHit = pieceOverlapsBoard(board, rows, cols, piece, 1, 0);
 			if (!wouldHit) {
+				// 先清非 merged（避免与 merged 下移写入顺序互相覆盖），再把棋盘上已落地的合并格整体下移一格
 				piece.cells.forEach(function(cell) {
 					if (cell.merged) {
 						return;
@@ -366,6 +377,21 @@
 					var c = piece.col + cell.dc;
 					if (r >= 0 && r < rows && c >= 0 && c < cols && board[r]) {
 						board[r][c] = 0;
+					}
+				});
+				piece.cells.forEach(function(cell) {
+					if (!cell.merged) {
+						return;
+					}
+					var r = piece.row + cell.dr;
+					var c = piece.col + cell.dc;
+					if (r < 0 || r >= rows || c < 0 || c >= cols || !board[r]) {
+						return;
+					}
+					board[r][c] = 0;
+					var nr = r + 1;
+					if (nr < rows && board[nr]) {
+						board[nr][c] = cell.value;
 					}
 				});
 				return Object.assign({}, g, {board: board, currentPiece: Object.assign({}, piece, {row: piece.row + 1})});
@@ -443,7 +469,8 @@
 				var tr = pieceRow + cell.dr + direction.dr;
 				var tc = piece.col + cell.dc + direction.dc;
 				if (board[tr]) {
-					board[tr][tc] = cell.value * 2;
+					// 须用 updatedCells：已合并格本 tick 仅下落时 merged 仍为 true，cell.value 已是翻倍后的数，不能再 *2
+					board[tr][tc] = updatedCells[idx].value;
 				}
 			});
 			piece = Object.assign({}, piece, {row: newRow, col: newCol, cells: updatedCells, mergeCount: piece.mergeCount + mergedCount});
@@ -931,6 +958,35 @@
 			{currentPiece: Object.assign({}, game.currentPiece, {col: game.currentPiece.col + 1})});
 	}
 
+	/**
+	 * 旋转后若整块仍在棋盘上方（r&lt;0），逐格下移直到至少一行进入场内或顶到已有格。
+	 * 解决 I 竖条在高处转正后整行在视区之上的问题。
+	 */
+	function kickPieceVerticallyIntoView(rows, cols, board, piece) {
+		let cur = piece;
+		for (let g = 0; g < rows + 8; g++) {
+			const abs = pieceAbsCells(cur);
+			let minR = abs[0].r;
+			for (let i = 1; i < abs.length; i++) {
+				if (abs[i].r < minR) {
+					minR = abs[i].r;
+				}
+			}
+			if (minR >= 0) {
+				return cur;
+			}
+			const down = Object.assign({}, cur, {row: cur.row + 1});
+			if (pieceOverlapsBoard(board, rows, cols, down, 0, 0)) {
+				return cur;
+			}
+			if (pieceOutOfBounds(rows, cols, down, 0, 0)) {
+				return cur;
+			}
+			cur = down;
+		}
+		return cur;
+	}
+
 	function rotate(game) {
 		if (game.gameOver || !game.currentPiece) {
 			return game;
@@ -952,11 +1008,28 @@
 		const tryOffsets = [0, -1, 1, -2, 2, -3, 3];
 		for (let i = 0; i < tryOffsets.length; i++) {
 			const offset = tryOffsets[i];
-			const nextPiece = Object.assign({}, baseNext, {col: p.col + offset});
+			let nextPiece = Object.assign({}, baseNext, {col: p.col + offset});
 			if (pieceOutOfBounds(game.rows, game.cols, nextPiece, 0, 0)) {
 				continue;
 			}
 			if (pieceOverlapsBoard(game.board, game.rows, game.cols, nextPiece, 0, 0)) {
+				continue;
+			}
+			nextPiece = kickPieceVerticallyIntoView(game.rows, game.cols, game.board, nextPiece);
+			const abs = pieceAbsCells(nextPiece);
+			let minR = abs[0].r;
+			for (let j = 1; j < abs.length; j++) {
+				if (abs[j].r < minR) {
+					minR = abs[j].r;
+				}
+			}
+			if (minR < 0) {
+				continue;
+			}
+			if (pieceOverlapsBoard(game.board, game.rows, game.cols, nextPiece, 0, 0)) {
+				continue;
+			}
+			if (pieceOutOfBounds(game.rows, game.cols, nextPiece, 0, 0)) {
 				continue;
 			}
 			return Object.assign({}, game, {currentPiece: nextPiece});
@@ -1035,8 +1108,7 @@
 		while (true) {
 			const wouldHit = pieceOverlapsBoard(board, rows, cols, piece, 1, 0);
 			if (!wouldHit) {
-				// 纯下移：块离开原格，须清空原格（合并分支会清空+写目标格，此处仅下移无合并）
-				// 已合并且写在棋盘上的格（cell.merged）勿清空，否则会把固定合并结果擦掉
+				// 先清非 merged，再把棋盘上合并结果整体下移一格（否则旧格仍留数，会与块内 merged 叠成两份）
 				piece.cells.forEach(function(cell) {
 					if (cell.merged) {
 						return;
@@ -1045,6 +1117,21 @@
 					var c = piece.col + cell.dc;
 					if (r >= 0 && r < rows && c >= 0 && c < cols && board[r]) {
 						board[r][c] = 0;
+					}
+				});
+				piece.cells.forEach(function(cell) {
+					if (!cell.merged) {
+						return;
+					}
+					var r = piece.row + cell.dr;
+					var c = piece.col + cell.dc;
+					if (r < 0 || r >= rows || c < 0 || c >= cols || !board[r]) {
+						return;
+					}
+					board[r][c] = 0;
+					var nr = r + 1;
+					if (nr < rows && board[nr]) {
+						board[nr][c] = cell.value;
 					}
 				});
 				return Object.assign({}, g, {board: board, currentPiece: Object.assign({}, piece, {row: piece.row + 1})});
@@ -1146,7 +1233,7 @@
 				var targetR = pieceRow + cell.dr + direction.dr;
 				var targetC = piece.col + cell.dc + direction.dc;
 				if (board[targetR]) {
-					board[targetR][targetC] = cell.value * 2;
+					board[targetR][targetC] = updatedCells[idx].value;
 				}
 			});
 			piece = Object.assign({}, piece, {row: newRow, col: newCol, cells: updatedCells, mergeCount: piece.mergeCount + mergedCount});

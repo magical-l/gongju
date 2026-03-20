@@ -200,35 +200,37 @@ module.exports = function(r) {
 			let state = _makeState(5, 2, [[0, 0], [0, 0], [0, 0], [0, 2], [0, 0]], _createPiece('T', 0, 0, 0));
 			state = _tick(state);
 			state = _tick(state);
-			_assertBoardEqual(state.board, [[0, 0], [0, 0], [0, 0], [0, 0], [0, 8]], 'T 两 tick');
+			// 已合并格再落到空位时不得再次翻倍（曾为错误地得到 8）
+			_assertBoardEqual(state.board, [[0, 0], [0, 0], [0, 0], [0, 0], [0, 4]], 'T 两 tick');
 		});
 
 		it('Z 连续两 tick 先合并再触底锁定', function() {
 			let state = _makeState(5, 2, [[0, 0], [0, 0], [0, 0], [2, 0], [0, 0]], _createPiece('Z', 0, 0, 0));
 			state = _tick(state);
 			state = _tick(state);
-			_assertBoardEqual(state.board, [[0, 0], [0, 0], [0, 0], [0, 0], [8, 0]], 'Z 两 tick');
+			_assertBoardEqual(state.board, [[0, 0], [0, 0], [0, 0], [0, 0], [4, 0]], 'Z 两 tick');
 		});
 
 		it('S 连续两 tick 先合并再触底锁定', function() {
 			let state = _makeState(5, 2, [[0, 0], [0, 0], [0, 0], [0, 2], [0, 0]], _createPiece('S', 0, 0, 0));
 			state = _tick(state);
 			state = _tick(state);
-			_assertBoardEqual(state.board, [[0, 0], [0, 0], [0, 0], [0, 0], [0, 8]], 'S 两 tick');
+			_assertBoardEqual(state.board, [[0, 0], [0, 0], [0, 0], [0, 0], [0, 4]], 'S 两 tick');
 		});
 
 		it('J 连续两 tick 先合并再触底锁定', function() {
 			let state = _makeState(5, 2, [[0, 0], [0, 0], [0, 0], [2, 0], [0, 0]], _createPiece('J', 0, 0, 0));
 			state = _tick(state);
 			state = _tick(state);
-			_assertBoardEqual(state.board, [[0, 0], [0, 0], [0, 0], [4, 0], [0, 0]], 'J 两 tick');
+			// 第二 tick 纯下落会把 merged 在棋盘上的数同步下移一格，故 4 在底行而非倒数第二行
+			_assertBoardEqual(state.board, [[0, 0], [0, 0], [0, 0], [0, 0], [4, 0]], 'J 两 tick');
 		});
 
 		it('L 连续两 tick 先合并再触底锁定', function() {
 			let state = _makeState(5, 2, [[0, 0], [0, 0], [0, 0], [2, 0], [0, 0]], _createPiece('L', 0, 0, 0));
 			state = _tick(state);
 			state = _tick(state);
-			_assertBoardEqual(state.board, [[0, 0], [0, 0], [0, 0], [0, 0], [8, 0]], 'L 两 tick');
+			_assertBoardEqual(state.board, [[0, 0], [0, 0], [0, 0], [0, 0], [4, 0]], 'L 两 tick');
 		});
 	});
 
