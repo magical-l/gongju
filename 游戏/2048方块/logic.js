@@ -30,6 +30,38 @@
 	const MAX_ROWS = 20;
 	const MAX_COLS = 12;
 	const DEFAULT_CFG = {rows: 12, cols: 10, fallIntervalMs: 500};
+	/**
+	 * 消行后行为（试玩调参，默认值与线上历史逻辑一致：整行抽行、合并扫描自上而下、cascade 直到稳定）
+	 * - afterClearPack: whole=7.1 俄式抽行；column=每列内非零落底（与玩法最终稿可能不同，仅作对比）
+	 * - mergeStart: top|bottom|contact — 全场竖向 cascade 每步选哪条合并先做
+	 * - mergeRounds: once=每段 cascade 只合并一步；untilStable=照旧多步直到不能再合并
+	 */
+	const DEFAULT_LINE_CLEAR_POLICY = {afterClearPack: 'whole', mergeStart: 'top', mergeRounds: 'untilStable'};
+
+	function getDefaultLineClearPolicy() {
+		return {afterClearPack: DEFAULT_LINE_CLEAR_POLICY.afterClearPack,
+			mergeStart: DEFAULT_LINE_CLEAR_POLICY.mergeStart,
+			mergeRounds: DEFAULT_LINE_CLEAR_POLICY.mergeRounds};
+	}
+
+	function normalizeLineClearPolicy(raw) {
+		const d = getDefaultLineClearPolicy();
+		if (!raw || typeof raw !== 'object') {
+			return d;
+		}
+		const pack = raw.afterClearPack === 'column' ? 'column' : 'whole';
+		let merge = d.mergeStart;
+		if (raw.mergeStart === 'bottom') {
+			merge = 'bottom';
+		} else if (raw.mergeStart === 'contact') {
+			merge = 'contact';
+		} else if (raw.mergeStart === 'top') {
+			merge = 'top';
+		}
+		const rounds = raw.mergeRounds === 'once' ? 'once' : 'untilStable';
+		return {afterClearPack: pack, mergeStart: merge, mergeRounds: rounds};
+	}
+
 	/** 消行基础分系数（玩法 12.2），供 getLineClearBaseScore 使用 */
 	const SCORE_BY_LINES = [0, 40, 100, 300, 1200];
 
@@ -451,6 +483,13 @@
 		}
 	}
 
+	/** 试玩策略：消行剩格处理完后，每列独立把非零落到底（不抽行），与 whole 区分明显 */
+	function packColumnsStackBottom(board, rows, cols) {
+		for (let c = 0; c < cols; c++) {
+			gravityColumn(board, rows, c);
+		}
+	}
+
 	/**
 	 * 消行 7.1 收尾：本轮作为**满行**参与除法与剩格下落后，凡属于该满行且**已全空**的行，从棋盘上
 	 * **整行抽掉**（行数变少），再在**顶部**补回等量空行，使场地高度不变；其余行**上下相对顺序不变**，
@@ -522,8 +561,8 @@
 		return false;
 	}
 
-	/** 消行处理 + 7.1：除法 → 各剩格 1×1 依次落到底 → 俄式整行抽行下移。 @param stats 可选，统计剩格下落合并步数 */
-	function doClearAndGravityOnly(board, rows, cols, fullRows, stats) {
+	/** 消行处理 + 7.1：除法 → 各剩格 1×1 依次落到底 → 俄式整行抽行下移（或 column 策略）。 @param stats 可选；@param policy 可选 */
+	function doClearAndGravityOnly(board, rows, cols, fullRows, stats, policy) {
 		if (fullRows.length === 0) {
 			const rem = [];
 			for (let r = 0; r < rows; r++) {
@@ -570,7 +609,12 @@
 			}
 		}
 		runSequentialClearRemainderDrops(board, rows, cols, clearedSet, stats);
-		packAfterClearedEmptyRows(board, rows, cols, clearedSet);
+		const pol = normalizeLineClearPolicy(policy);
+		if (pol.afterClearPack === 'column') {
+			packColumnsStackBottom(board, rows, cols);
+		} else {
+			packAfterClearedEmptyRows(board, rows, cols, clearedSet);
+		}
 		const remainingInCleared = [];
 		for (let r = 0; r < rows; r++) {
 			const row = [];
@@ -594,12 +638,12 @@
 		return getFullRowIndices(board, rows, cols);
 	}
 
-	function clearOneRound(board, rows, cols) {
+	function clearOneRound(board, rows, cols, policy) {
 		const fullRows = getFullRowIndices(board, rows, cols);
 		if (fullRows.length === 0) {
 			return {scoreAdd: 0, newFullRows: [], numLinesCleared: 0};
 		}
-		const result = doClearAndGravityOnly(board, rows, cols, fullRows);
+		const result = doClearAndGravityOnly(board, rows, cols, fullRows, undefined, policy);
 		const newFullRows = doMergeInClearedRows(board, rows, cols, result.remainingInCleared, result.remainingRows);
 		return {scoreAdd: result.scoreAdd, newFullRows: newFullRows, numLinesCleared: fullRows.length};
 	}
@@ -651,7 +695,51 @@
 		}
 	}
 
-	function doOneCascadeStep(board, rows, cols) {
+	function doOneCascadeStep(board, rows, cols, mergeStart) {
+		const mode = mergeStart === 'bottom' ? 'bottom' : (mergeStart === 'contact' ? 'contact' : 'top');
+		if (mode === 'contact') {
+			for (let c = 0; c < cols; c++) {
+				let topR = -1;
+				for (let r = 0; r < rows; r++) {
+					if (board[r][c] !== 0) {
+						topR = r;
+						break;
+					}
+				}
+				if (topR < 0) {
+					continue;
+				}
+				if (topR + 1 < rows && board[topR][c] === board[topR + 1][c]) {
+					board[topR + 1][c] *= 2;
+					board[topR][c] = 0;
+					gravityColumn(board, rows, c);
+					return {didOne: true, more: hasAnyCascade(board, rows, cols)};
+				}
+			}
+			return {didOne: false, more: false};
+		}
+		if (mode === 'bottom') {
+			for (let c = 0; c < cols; c++) {
+				for (let r = rows - 1; r >= 0; r--) {
+					if (board[r][c] === 0) {
+						continue;
+					}
+					if (r + 1 < rows && board[r][c] === board[r + 1][c]) {
+						board[r + 1][c] *= 2;
+						board[r][c] = 0;
+						gravityColumn(board, rows, c);
+						return {didOne: true, more: hasAnyCascade(board, rows, cols)};
+					}
+					if (r - 1 >= 0 && board[r][c] === board[r - 1][c]) {
+						board[r][c] *= 2;
+						board[r - 1][c] = 0;
+						gravityColumn(board, rows, c);
+						return {didOne: true, more: hasAnyCascade(board, rows, cols)};
+					}
+				}
+			}
+			return {didOne: false, more: false};
+		}
 		for (let c = 0; c < cols; c++) {
 			for (let r = 0; r < rows; r++) {
 				if (board[r][c] === 0) {
@@ -727,7 +815,8 @@
 		if (g.clearLinesPending == null || g.clearLinesPending.length === 0) {
 			return g;
 		}
-		const result = doClearAndGravityOnly(g.board, g.rows, g.cols, g.clearLinesPending, stats);
+		const result = doClearAndGravityOnly(g.board, g.rows, g.cols, g.clearLinesPending, stats,
+			g.lineClearPolicy);
 		return Object.assign({}, g, {
 			board: g.board,
 			clearLinesPending: null,
@@ -777,20 +866,25 @@
 			state = applyPendingClearLines(state, stats);
 		}
 		let guardCascade = 0;
+		const polAdv = normalizeLineClearPolicy(state.lineClearPolicy);
 		while (state.cascadePending) {
 			if (++guardCascade > 2000) {
 				throw new Error('advancePostLockLineClearNoSpawn: cascade exceeded guard');
 			}
-			const cascade = doOneCascadeStep(state.board, rows, cols);
+			const cascade = doOneCascadeStep(state.board, rows, cols, polAdv.mergeStart);
 			if (stats && cascade.didOne) {
 				stats.cascadeSteps = (stats.cascadeSteps || 0) + 1;
 			}
 			if (!cascade.didOne) {
-				state = Object.assign({}, state, { cascadePending: false });
+				state = Object.assign({}, state, {cascadePending: false});
+				break;
+			}
+			if (polAdv.mergeRounds === 'once') {
+				state = Object.assign({}, state, {cascadePending: false});
 				break;
 			}
 			if (!cascade.more) {
-				state = Object.assign({}, state, { cascadePending: false });
+				state = Object.assign({}, state, {cascadePending: false});
 				break;
 			}
 		}
@@ -898,12 +992,16 @@
 		}
 		const g = Object.assign({}, game);
 		if (g.cascadePending) {
-			const cascade = doOneCascadeStep(g.board, g.rows, g.cols);
-			if (cascade.didOne) {
-				if (cascade.more) {
-					return Object.assign({}, g, {cascadePending: true});
-				}
+			const pol = normalizeLineClearPolicy(g.lineClearPolicy);
+			const cascade = doOneCascadeStep(g.board, g.rows, g.cols, pol.mergeStart);
+			if (!cascade.didOne) {
 				return spawnNextAfterLock(g);
+			}
+			if (pol.mergeRounds === 'once') {
+				return spawnNextAfterLock(g);
+			}
+			if (cascade.more) {
+				return Object.assign({}, g, {cascadePending: true});
 			}
 			return spawnNextAfterLock(g);
 		}
@@ -1085,6 +1183,7 @@
 			postClearGravityState: null,
 			level: 0,
 			linesClearedTotal: 0,
+			lineClearPolicy: normalizeLineClearPolicy(overrides.lineClearPolicy),
 		};
 	}
 
@@ -1126,6 +1225,7 @@
 			},
 			level: g.level != null ? g.level : 0,
 			linesClearedTotal: g.linesClearedTotal != null ? g.linesClearedTotal : 0,
+			lineClearPolicy: g.lineClearPolicy ? normalizeLineClearPolicy(g.lineClearPolicy) : getDefaultLineClearPolicy(),
 		};
 	}
 
@@ -1219,6 +1319,7 @@
 			postClearGravityState: postClearGravityState,
 			level: Math.max(0, Math.min(20, Number(o.level) || 0)),
 			linesClearedTotal: Math.max(0, Number(o.linesClearedTotal) || 0),
+			lineClearPolicy: normalizeLineClearPolicy(o.lineClearPolicy),
 		};
 	}
 
@@ -1226,6 +1327,8 @@
 		STORAGE_HIGH_SCORE_BLOCKS: STORAGE_HIGH_SCORE_BLOCKS,
 		STORAGE_SETTINGS_BLOCKS: STORAGE_SETTINGS_BLOCKS,
 		STORAGE_GAME_STATE_BLOCKS: STORAGE_GAME_STATE_BLOCKS,
+		getDefaultLineClearPolicy: getDefaultLineClearPolicy,
+		normalizeLineClearPolicy: normalizeLineClearPolicy,
 		getLineClearBaseScore: getLineClearBaseScore,
 		init: init,
 		tick: tick,

@@ -297,6 +297,7 @@ function handleRestart() {
 		rows: gameState.rows,
 		cols: gameState.cols,
 		fallIntervalMs: gameState.fallIntervalMs,
+		lineClearPolicy: gameState.lineClearPolicy,
 	};
 	const highScore = Number(getStorage(STORAGE_HIGH_SCORE_BLOCKS)) || 0;
 	gameState = init(highScore, opts);
@@ -328,6 +329,9 @@ function loadSettingsFromStorage() {
 		if (Number(o.fallIntervalMs) >= 100) {
 			s.fallIntervalMs = Number(o.fallIntervalMs);
 		}
+		if (o.lineClearPolicy && typeof o.lineClearPolicy === 'object') {
+			s.lineClearPolicy = logic.normalizeLineClearPolicy(o.lineClearPolicy);
+		}
 		return Object.keys(s).length ? s : null;
 	} catch (e) { return null; }
 }
@@ -343,6 +347,9 @@ function applyBoardSettings(obj) {
 		? constants.DEV_FIXED_FALL_MS
 		: rawFall;
 	const needRestart = !gameState || rows !== gameState.rows || cols !== gameState.cols;
+	const lineClearPolicy = logic.normalizeLineClearPolicy(
+		obj.lineClearPolicy != null ? obj.lineClearPolicy : (gameState && gameState.lineClearPolicy),
+	);
 	if (needRestart) {
 		stopFallTimer();
 		if (clearLinesTimeout) {
@@ -351,15 +358,18 @@ function applyBoardSettings(obj) {
 		}
 		paused = false;
 		const highScore = Number(getStorage(STORAGE_HIGH_SCORE_BLOCKS)) || 0;
-		gameState = init(highScore, {rows: rows, cols: cols, fallIntervalMs: fallIntervalMs});
+		gameState = init(highScore, {rows: rows, cols: cols, fallIntervalMs: fallIntervalMs, lineClearPolicy: lineClearPolicy});
 	} else {
-		gameState = Object.assign({}, gameState, {fallIntervalMs: fallIntervalMs});
+		gameState = Object.assign({}, gameState, {fallIntervalMs: fallIntervalMs, lineClearPolicy: lineClearPolicy});
 		if (!paused) {
 			startFallTimer();
 		}
 	}
 	try {
-		setStorage(STORAGE_SETTINGS_BLOCKS, JSON.stringify({rows: rows, cols: cols, fallIntervalMs: fallIntervalMs}));
+		setStorage(STORAGE_SETTINGS_BLOCKS, JSON.stringify({
+			rows: rows, cols: cols, fallIntervalMs: fallIntervalMs,
+			lineClearPolicy: gameState.lineClearPolicy,
+		}));
 	} catch (e) {}
 	if (view && view.syncToolbarSettings) {
 		view.syncToolbarSettings();
@@ -380,7 +390,39 @@ function getBoardSettings() {
 		boardHeight: gameState.rows,
 		boardWidth: gameState.cols,
 		fallIntervalMs: gameState.fallIntervalMs,
+		lineClearPolicy: gameState.lineClearPolicy,
 	};
+}
+
+function getLineClearPolicy() {
+	if (!gameState) {
+		return logic.getDefaultLineClearPolicy();
+	}
+	return logic.normalizeLineClearPolicy(gameState.lineClearPolicy);
+}
+
+function applyLineClearPolicy(pol) {
+	if (!gameState || !pol || typeof pol !== 'object') {
+		return;
+	}
+	gameState = Object.assign({}, gameState, {
+		lineClearPolicy: logic.normalizeLineClearPolicy(Object.assign({}, gameState.lineClearPolicy, pol)),
+	});
+	try {
+		const raw = getStorage(STORAGE_SETTINGS_BLOCKS);
+		const o = raw ? JSON.parse(raw) : {};
+		setStorage(STORAGE_SETTINGS_BLOCKS, JSON.stringify(Object.assign({}, o, {
+			rows: gameState.rows,
+			cols: gameState.cols,
+			fallIntervalMs: gameState.fallIntervalMs,
+			lineClearPolicy: gameState.lineClearPolicy,
+		})));
+	} catch (e) {}
+	saveState();
+	commitState(gameState);
+	if (view && view.syncToolbarSettings) {
+		view.syncToolbarSettings();
+	}
 }
 
 function focusMapArea() {
@@ -412,8 +454,12 @@ function doInit() {
 		const rawFall = (loaded && loaded.fallIntervalMs) != null ? loaded.fallIntervalMs : ((restored && restored.fallIntervalMs) != null ? restored.fallIntervalMs : 500);
 		const fallIntervalMs = (constants && constants.DEV_FIXED_FALL_MS > 0) ? constants.DEV_FIXED_FALL_MS : rawFall;
 		const highScore = Number(getStorage(STORAGE_HIGH_SCORE_BLOCKS)) || 0;
-		gameState = init(highScore, {rows: rows, cols: cols, fallIntervalMs: fallIntervalMs});
+		const lp = loaded && loaded.lineClearPolicy ? loaded.lineClearPolicy : undefined;
+		gameState = init(highScore, {rows: rows, cols: cols, fallIntervalMs: fallIntervalMs, lineClearPolicy: lp});
 	}
+	gameState = Object.assign({}, gameState, {
+		lineClearPolicy: logic.normalizeLineClearPolicy(gameState.lineClearPolicy),
+	});
 	commitState(gameState);
 	if (view && view.syncToolbarSettings) {
 		view.syncToolbarSettings();
@@ -470,6 +516,8 @@ const stub = {
 	togglePause: function() {},
 	applyBoardSettings: function() {},
 	getBoardSettings: function() { return null; },
+	getLineClearPolicy: function() { return {afterClearPack: 'whole', mergeStart: 'top', mergeRounds: 'untilStable'}; },
+	applyLineClearPolicy: function() {},
 	getTileDisplayContent: function(_, value) { return {type: 'number', value: value != null ? value : 0}; },
 	onResultRestart: function() {},
 	onGesture: function() {},
@@ -582,6 +630,8 @@ const stub = {
 		togglePause: togglePause,
 		applyBoardSettings: applyBoardSettings,
 		getBoardSettings: getBoardSettings,
+		getLineClearPolicy: getLineClearPolicy,
+		applyLineClearPolicy: applyLineClearPolicy,
 		getTileDisplayContent: getTileDisplayContent,
 		onResultRestart: handleRestart,
 		onGesture: function(dx, dy) {
