@@ -1,7 +1,9 @@
 /**
  * 生成 test/scenarios/scenario-05.js（⑤ 无合并）与 scenario-06.js（⑥ 含合并）。
  * 判定：advancePostLockLineClearNoSpawnWithStats — 区内竖合、cascade、消行剩格下落合并 任一项 >0 → ⑥。
- * 运行：node test/gen-scenario-05.js（在 游戏/2048方块 目录）
+ * 期望终盘 expected：全部由 ../logic.js 计算——⑤/枚举分流用 advancePostLockLineClearNoSpawnWithStats，
+ * ⑥ 固定盘用 advancePostLockLineClearNoSpawn；生成脚本不手填棋盘终态。
+ * 运行/回归：node test/gen-scenario-05.js（在 游戏/2048方块 目录）
  */
 'use strict';
 var path = require('path');
@@ -205,6 +207,20 @@ cases.forEach(function(tc) {
 	}
 });
 
+function labelHas悬空(tc) {
+	return /悬空/.test(tc.label || '');
+}
+function labelHasComplex06(tc) {
+	return /悬空|被消行上方|上方非满行/.test(tc.label || '');
+}
+cases05.sort(function(a, b) {
+	var ha = labelHas悬空(a) ? 1 : 0;
+	var hb = labelHas悬空(b) ? 1 : 0;
+	if (ha !== hb) {
+		return ha - hb;
+	}
+	return (a.sortKey != null ? a.sortKey : 0) - (b.sortKey != null ? b.sortKey : 0);
+});
 cases05.forEach(function(tc, idx) {
 	tc.sortKey = idx;
 });
@@ -303,13 +319,14 @@ cases06gen.sort(function(a, b) {
 
 var seenExpected = new Set();
 var cases06all = [];
+var order06 = 0;
+function push06(tc) {
+	tc._order06 = order06++;
+	cases06all.push(tc);
+}
 FIXED_06_RAW.forEach(function(tc) {
 	seenExpected.add(JSON.stringify(tc.expected));
-	cases06all.push(tc);
-});
-FIXED_06_ABOVE_NONFULL.forEach(function(tc) {
-	seenExpected.add(JSON.stringify(tc.expected));
-	cases06all.push(tc);
+	push06(tc);
 });
 cases06gen.forEach(function(tc) {
 	var ek = JSON.stringify(tc.expected);
@@ -317,10 +334,26 @@ cases06gen.forEach(function(tc) {
 		return;
 	}
 	seenExpected.add(ek);
-	cases06all.push(tc);
+	push06(tc);
 });
-
+FIXED_06_ABOVE_NONFULL.forEach(function(tc) {
+	var ek = JSON.stringify(tc.expected);
+	if (seenExpected.has(ek)) {
+		return;
+	}
+	seenExpected.add(ek);
+	push06(tc);
+});
+cases06all.sort(function(a, b) {
+	var ha = labelHasComplex06(a) ? 1 : 0;
+	var hb = labelHasComplex06(b) ? 1 : 0;
+	if (ha !== hb) {
+		return ha - hb;
+	}
+	return (a._order06 != null ? a._order06 : 0) - (b._order06 != null ? b._order06 : 0);
+});
 cases06all.forEach(function(tc, idx) {
+	delete tc._order06;
 	tc.sortKey = idx + 1;
 });
 
