@@ -36,12 +36,21 @@
 	 * - mergeStart: top|bottom|contact — 全场竖向 cascade 每步选哪条合并先做
 	 * - mergeRounds: once=每段 cascade 只合并一步；untilStable=多步直到不能再合并
 	 */
-	const DEFAULT_LINE_CLEAR_POLICY = {afterClearPack: 'whole', mergeStart: 'top', mergeRounds: 'untilStable'};
+	const DEFAULT_LINE_CLEAR_POLICY = {
+		afterClearPack: 'whole',
+		mergeStart: 'top',
+		mergeRounds: 'untilStable',
+		/** 分步消行整理：「上方行」视为活动块的方式 — column 每列竖条；whole 每组上方区域整体一块（可多断格） */
+		aboveRowsMode: 'column',
+	};
 
 	function getDefaultLineClearPolicy() {
-		return {afterClearPack: DEFAULT_LINE_CLEAR_POLICY.afterClearPack,
+		return {
+			afterClearPack: DEFAULT_LINE_CLEAR_POLICY.afterClearPack,
 			mergeStart: DEFAULT_LINE_CLEAR_POLICY.mergeStart,
-			mergeRounds: DEFAULT_LINE_CLEAR_POLICY.mergeRounds};
+			mergeRounds: DEFAULT_LINE_CLEAR_POLICY.mergeRounds,
+			aboveRowsMode: DEFAULT_LINE_CLEAR_POLICY.aboveRowsMode,
+		};
 	}
 
 	function normalizeLineClearPolicy(raw) {
@@ -59,7 +68,8 @@
 			merge = 'top';
 		}
 		const rounds = raw.mergeRounds === 'once' ? 'once' : 'untilStable';
-		return {afterClearPack: pack, mergeStart: merge, mergeRounds: rounds};
+		const aboveRowsMode = raw.aboveRowsMode === 'whole' ? 'whole' : 'column';
+		return {afterClearPack: pack, mergeStart: merge, mergeRounds: rounds, aboveRowsMode: aboveRowsMode};
 	}
 
 	/** 消行基础分系数（玩法 12.2），供 getLineClearBaseScore 使用 */
@@ -666,7 +676,7 @@
 				if (remainingInCleared[r][c] && board[r][c] !== 0 && board[r][c] === board[r - 1][c]) {
 					board[r][c] *= 2;
 					board[r - 1][c] = 0;
-					compactGravityColumn(board, rows, c);
+					mergeGapGravityColumn(board, rows, r - 1, c);
 					remainingInCleared[r][c] = false;
 					return true;
 				}
@@ -787,6 +797,127 @@
 		return clearedSet;
 	}
 
+	/** 升序满行行号拆成若干组，每组内行号两两相邻 */
+	function clusterClearedRowGroups(sortedAsc) {
+		const groups = [];
+		if (!sortedAsc || sortedAsc.length === 0) {
+			return groups;
+		}
+		let start = 0;
+		for (let i = 1; i <= sortedAsc.length; i++) {
+			if (i === sortedAsc.length || sortedAsc[i] !== sortedAsc[i - 1] + 1) {
+				groups.push(sortedAsc.slice(start, i));
+				start = i;
+			}
+		}
+		return groups;
+	}
+
+	function pieceMaxFootprintRow(piece) {
+		let mx = -1e9;
+		for (let i = 0; i < piece.cells.length; i++) {
+			const r = piece.row + piece.cells[i].dr;
+			if (r > mx) {
+				mx = r;
+			}
+		}
+		return mx;
+	}
+
+	/**
+	 * 从棋盘上抠出「各组被消行之上的上方行」里的非零格，改为活动块列表，并把这些格置 0。
+	 * @param {'column'|'whole'} mode
+	 * @returns {Array<Object>} piece 列表（shape 为 _ABOVE_COL_ / _ABOVE_WHOLE_）
+	 */
+	function extractLineClearAbovePiecesAndClearBoard(board, rows, cols, clearedRowsArr, mode) {
+		const sorted = clearedRowsArr.slice().sort(function(a, b) { return a - b; });
+		const groups = clusterClearedRowGroups(sorted);
+		const outPieces = [];
+		let prevGroupMax = -1;
+		for (let gi = 0; gi < groups.length; gi++) {
+			const g = groups[gi];
+			const rMin = g[0];
+			const rowStart = prevGroupMax + 1;
+			const rowEnd = rMin - 1;
+			prevGroupMax = g[g.length - 1];
+			if (rowStart > rowEnd || rowStart < 0) {
+				continue;
+			}
+			if (mode === 'whole') {
+				const cells = [];
+				for (let r = rowStart; r <= rowEnd; r++) {
+					for (let c = 0; c < cols; c++) {
+						const v = board[r][c];
+						if (v !== 0) {
+							cells.push({r: r, c: c, v: v});
+						}
+					}
+				}
+				if (cells.length === 0) {
+					continue;
+				}
+				let minR = cells[0].r;
+				let minC = cells[0].c;
+				for (let i = 1; i < cells.length; i++) {
+					if (cells[i].r < minR) {
+						minR = cells[i].r;
+					}
+					if (cells[i].c < minC) {
+						minC = cells[i].c;
+					}
+				}
+				const pcells = cells.map(function(x) {
+					return {dr: x.r - minR, dc: x.c - minC, value: x.v};
+				});
+				for (let i = 0; i < cells.length; i++) {
+					board[cells[i].r][cells[i].c] = 0;
+				}
+				outPieces.push({
+					shape: '_ABOVE_WHOLE_',
+					rotation: 0,
+					row: minR,
+					col: minC,
+					cells: pcells,
+					mergeCount: 0,
+					playerControllable: false,
+				});
+			} else {
+				for (let c = 0; c < cols; c++) {
+					let runStart = -1;
+					for (let r = rowStart; r <= rowEnd + 1; r++) {
+						const inRange = r <= rowEnd;
+						const v = inRange && r >= 0 && r < rows ? board[r][c] : 0;
+						const nz = v !== 0;
+						if (nz && runStart < 0) {
+							runStart = r;
+						}
+						if ((!nz || r > rowEnd) && runStart >= 0) {
+							const runEnd = r > rowEnd ? rowEnd : r - 1;
+							const pcells = [];
+							for (let rr = runStart; rr <= runEnd; rr++) {
+								pcells.push({dr: rr - runStart, dc: 0, value: board[rr][c]});
+							}
+							for (let rr = runStart; rr <= runEnd; rr++) {
+								board[rr][c] = 0;
+							}
+							outPieces.push({
+								shape: '_ABOVE_COL_',
+								rotation: 0,
+								row: runStart,
+								col: c,
+								cells: pcells,
+								mergeCount: 0,
+								playerControllable: false,
+							});
+							runStart = -1;
+						}
+					}
+				}
+			}
+		}
+		return outPieces;
+	}
+
 	function createRemainderOnePiece(x) {
 		const merged = !!(x && x.merged);
 		const mc = x && x.mergeCount != null ? x.mergeCount : 0;
@@ -800,41 +931,65 @@
 		};
 	}
 
-	function isLineClearRemainderPhase(g) {
-		return Array.isArray(g.lineClearRemainderCells) && g.lineClearRemainderCells.length > 0;
+	/** 分步消行：整理阶段（剩格与/或「上方行」活动块尚未全部落地） */
+	function isLineClearReformPhase(g) {
+		if (!g || g.lineClearClearedRows == null || g.lineClearClearedRows.length === 0) {
+			return false;
+		}
+		const rem = g.lineClearRemainderCells;
+		const ap = g.lineClearAbovePieces;
+		const remActive = Array.isArray(rem) && rem.length > 0;
+		const apActive = Array.isArray(ap) && ap.length > 0;
+		return remActive || apActive;
 	}
 
 	/**
-	 * 页面试玩：所有消行剩格留在棋盘上原位，同一 tick 内按「下优先、同行左先」各落一格（与单粒 tick 规则一致）。
+	 * 页面试玩 / 手动调试：消行剩格 1×1 与「上方行」抠出的活动块同一拍内依次各落一格（顺序：脚印最下行大者优先，同行列小者优先）。
 	 */
 	function tickLineClearSimultaneousRemainders(g, stats) {
 		const board = g.board;
 		const rows = g.rows;
 		const cols = g.cols;
-		const ordered = g.lineClearRemainderCells.slice();
-		ordered.sort(function(a, b) {
-			if (b.r !== a.r) {
-				return b.r - a.r;
+		const remIn = g.lineClearRemainderCells || [];
+		const aboveIn = g.lineClearAbovePieces || [];
+		const work = [];
+		for (let i = 0; i < remIn.length; i++) {
+			const e = remIn[i];
+			work.push({
+				kind: 'rem',
+				piece: createRemainderOnePiece({
+					r: e.r,
+					c: e.c,
+					v: e.v,
+					merged: e.merged,
+					mergeCount: e.mergeCount,
+				}),
+			});
+		}
+		for (let i = 0; i < aboveIn.length; i++) {
+			work.push({kind: 'above', piece: Object.assign({}, aboveIn[i])});
+		}
+		work.sort(function(a, b) {
+			const da = pieceMaxFootprintRow(a.piece);
+			const db = pieceMaxFootprintRow(b.piece);
+			if (db !== da) {
+				return db - da;
 			}
-			return a.c - b.c;
+			if (a.piece.col !== b.piece.col) {
+				return a.piece.col - b.piece.col;
+			}
+			return a.piece.row - b.piece.row;
 		});
-		const still = [];
-		for (let i = 0; i < ordered.length; i++) {
-			const e = ordered[i];
-			const piece = {
-				shape: '_REMAINDER1',
-				rotation: 0,
-				row: e.r,
-				col: e.c,
-				cells: [{dr: 0, dc: 0, value: e.v, merged: !!e.merged}],
-				mergeCount: e.mergeCount != null ? e.mergeCount : 0,
-			};
+		const stillRem = [];
+		const stillAbove = [];
+		for (let i = 0; i < work.length; i++) {
+			const w = work[i];
 			const mini = {
 				gameOver: false,
 				rows: rows,
 				cols: cols,
 				board: board,
-				currentPiece: piece,
+				currentPiece: w.piece,
 				clearLinesPending: null,
 				postClearGravityState: null,
 				cascadePending: false,
@@ -842,24 +997,37 @@
 			const out = tickLineClearRemainderStep(mini, stats);
 			if (out.currentPiece != null) {
 				const p = out.currentPiece;
-				still.push({
-					r: p.row,
-					c: p.col,
-					v: p.cells[0].value,
-					merged: !!p.cells[0].merged,
-					mergeCount: p.mergeCount != null ? p.mergeCount : 0,
-				});
+				if (w.kind === 'rem') {
+					stillRem.push({
+						r: p.row,
+						c: p.col,
+						v: p.cells[0].value,
+						merged: !!p.cells[0].merged,
+						mergeCount: p.mergeCount != null ? p.mergeCount : 0,
+					});
+				} else {
+					stillAbove.push(p);
+				}
 			}
 		}
 		const gBase = Object.assign({}, g, {board: board});
-		if (still.length === 0) {
-			return finishLineClearRemainderPhase(Object.assign({}, gBase, {lineClearRemainderCells: null}));
+		if (stillRem.length === 0 && stillAbove.length === 0) {
+			return finishLineClearRemainderPhase(Object.assign({}, gBase, {
+				lineClearRemainderCells: null,
+				lineClearAbovePieces: null,
+			}));
 		}
 		const fullRows = getFullRowIndices(board, rows, cols);
 		if (fullRows.length > 0) {
-			return syncFlushRemainingLineClearRemainders(Object.assign({}, gBase, {lineClearRemainderCells: still}));
+			return syncFlushRemainingLineClearReform(Object.assign({}, gBase, {
+				lineClearRemainderCells: stillRem,
+				lineClearAbovePieces: stillAbove,
+			}));
 		}
-		return Object.assign({}, gBase, {lineClearRemainderCells: still});
+		return Object.assign({}, gBase, {
+			lineClearRemainderCells: stillRem,
+			lineClearAbovePieces: stillAbove,
+		});
 	}
 
 	/** 消行处理 + 7.1：除法 → 各剩格 1×1 依次落到底 → 俄式整行抽行下移（或 column 策略）。 @param stats 可选；@param policy 可选 */
@@ -934,17 +1102,16 @@
 		return false;
 	}
 
-	/** 合并后该列向下落到底（与 compactGravityColumn 一致），不能向上顶否则会顶掉整列导致显示错乱。 */
-	function gravityColumn(board, rows, c) {
-		const colVals = [];
-		for (let r = rows - 1; r >= 0; r--) {
-			if (board[r][c] !== 0) {
-				colVals.push(board[r][c]);
-			}
+	/**
+	 * 玩法 7.2.2：竖向合并后上格为「合并空隙」，在本列仅对该空隙所在列前缀 [0, gapRow] 顺填（compactGravityColumnRange），
+	 * 不把整列拉到棋盘最底（与整列 gravity 区分）。不引入「整行数了几格非零」「某数字阈值」等启发式。
+	 * @param {number} gapRow 合并后变为 0 的那一格所在行
+	 */
+	function mergeGapGravityColumn(board, rows, gapRow, c) {
+		if (gapRow < 0 || gapRow >= rows) {
+			return;
 		}
-		for (let k = 0; k < rows; k++) {
-			board[rows - 1 - k][c] = k < colVals.length ? colVals[k] : 0;
-		}
+		compactGravityColumnRange(board, 0, gapRow, c);
 	}
 
 	function doOneCascadeStep(board, rows, cols, mergeStart) {
@@ -964,7 +1131,7 @@
 				if (topR + 1 < rows && board[topR][c] === board[topR + 1][c]) {
 					board[topR + 1][c] *= 2;
 					board[topR][c] = 0;
-					gravityColumn(board, rows, c);
+					mergeGapGravityColumn(board, rows, topR, c);
 					return {didOne: true, more: hasAnyCascade(board, rows, cols)};
 				}
 			}
@@ -979,13 +1146,13 @@
 					if (r + 1 < rows && board[r][c] === board[r + 1][c]) {
 						board[r + 1][c] *= 2;
 						board[r][c] = 0;
-						gravityColumn(board, rows, c);
+						mergeGapGravityColumn(board, rows, r, c);
 						return {didOne: true, more: hasAnyCascade(board, rows, cols)};
 					}
 					if (r - 1 >= 0 && board[r][c] === board[r - 1][c]) {
 						board[r][c] *= 2;
 						board[r - 1][c] = 0;
-						gravityColumn(board, rows, c);
+						mergeGapGravityColumn(board, rows, r - 1, c);
 						return {didOne: true, more: hasAnyCascade(board, rows, cols)};
 					}
 				}
@@ -1000,13 +1167,13 @@
 				if (r + 1 < rows && board[r][c] === board[r + 1][c]) {
 					board[r + 1][c] *= 2;
 					board[r][c] = 0;
-					gravityColumn(board, rows, c);
+					mergeGapGravityColumn(board, rows, r, c);
 					return {didOne: true, more: hasAnyCascade(board, rows, cols)};
 				}
 				if (r - 1 >= 0 && board[r][c] === board[r - 1][c]) {
 					board[r][c] *= 2;
 					board[r - 1][c] = 0;
-					gravityColumn(board, rows, c);
+					mergeGapGravityColumn(board, rows, r - 1, c);
 					return {didOne: true, more: hasAnyCascade(board, rows, cols)};
 				}
 			}
@@ -1047,16 +1214,18 @@
 				remainingRows: snap.remainingRows,
 			},
 			lineClearRemainderCells: null,
+			lineClearAbovePieces: null,
 			lineClearClearedRows: null,
 			lineClearScoreAddPending: null,
 		});
 	}
 
 	/**
-	 * 极罕见：剩格同步下落中途又形成满行时，将仍活跃的剩格依次一口气落完再 pack。
+	 * 极罕见：同步整理中途盘面又满行时，将仍活跃的剩格与上方块依次一口气落完再 pack。
 	 */
-	function syncFlushRemainingLineClearRemainders(g) {
+	function syncFlushRemainingLineClearReform(g) {
 		const cells = g.lineClearRemainderCells || [];
+		const aboves = g.lineClearAbovePieces || [];
 		const board = g.board;
 		const rows = g.rows;
 		const cols = g.cols;
@@ -1071,8 +1240,13 @@
 			});
 			runRemainderPieceUntilLocked(board, rows, cols, piece, null);
 		}
+		for (let j = 0; j < aboves.length; j++) {
+			const piece = Object.assign({}, aboves[j]);
+			runRemainderPieceUntilLocked(board, rows, cols, piece, null);
+		}
 		return finishLineClearRemainderPhase(Object.assign({}, g, {
 			lineClearRemainderCells: null,
+			lineClearAbovePieces: null,
 		}));
 	}
 
@@ -1096,6 +1270,7 @@
 				postClearGravityState: null,
 				cascadePending: false,
 				lineClearRemainderCells: null,
+				lineClearAbovePieces: null,
 				lineClearClearedRows: null,
 				lineClearScoreAddPending: null,
 			});
@@ -1148,7 +1323,19 @@
 			const prep = prepareLineClearDivisionPhase(g.board, g.rows, g.cols, g.clearLinesPending);
 			const sorted = prep.sortedList;
 			const clearedRows = clearedRowsArrayFromClearedSet(prep.clearedSet);
-			if (sorted.length === 0) {
+			const pol = normalizeLineClearPolicy(g.lineClearPolicy);
+			for (let zi = 0; zi < sorted.length; zi++) {
+				const x = sorted[zi];
+				if (g.board[x.r] && x.c >= 0 && x.c < g.cols) {
+					g.board[x.r][x.c] = 0;
+				}
+			}
+			const abovePieces = extractLineClearAbovePiecesAndClearBoard(
+				g.board, g.rows, g.cols, clearedRows, pol.aboveRowsMode);
+			const listCopy = sorted.map(function(x) {
+				return {r: x.r, c: x.c, v: x.v, merged: false, mergeCount: 0};
+			});
+			if (listCopy.length === 0 && abovePieces.length === 0) {
 				packAfterClearedEmptyRows(g.board, g.rows, g.cols, prep.clearedSet);
 				const snap0 = buildRemainingInClearedSnapshot(g.board, g.rows, g.cols);
 				return Object.assign({}, g, {
@@ -1161,20 +1348,12 @@
 					},
 				});
 			}
-			const listCopy = sorted.map(function(x) {
-				return {r: x.r, c: x.c, v: x.v, merged: false, mergeCount: 0};
-			});
-			for (let zi = 0; zi < sorted.length; zi++) {
-				const x = sorted[zi];
-				if (g.board[x.r] && x.c >= 0 && x.c < g.cols) {
-					g.board[x.r][x.c] = 0;
-				}
-			}
 			return Object.assign({}, g, {
 				board: g.board,
 				clearLinesPending: null,
 				currentPiece: null,
 				lineClearRemainderCells: listCopy,
+				lineClearAbovePieces: abovePieces,
 				lineClearClearedRows: clearedRows,
 				lineClearScoreAddPending: prep.scoreAdd,
 			});
@@ -1290,7 +1469,7 @@
 		if (g.cascadePending) {
 			return false;
 		}
-		if (isLineClearRemainderPhase(g)) {
+		if (isLineClearReformPhase(g)) {
 			return false;
 		}
 		return true;
@@ -1319,7 +1498,7 @@
 		if (game.gameOver || !game.currentPiece) {
 			return game;
 		}
-		if (isLineClearRemainderPhase(game)) {
+		if (isLineClearReformPhase(game)) {
 			return game;
 		}
 		const p = game.currentPiece;
@@ -1334,7 +1513,7 @@
 		if (game.gameOver || !game.currentPiece) {
 			return game;
 		}
-		if (isLineClearRemainderPhase(game)) {
+		if (isLineClearReformPhase(game)) {
 			return game;
 		}
 		const p = game.currentPiece;
@@ -1378,7 +1557,7 @@
 		if (game.gameOver || !game.currentPiece) {
 			return game;
 		}
-		if (isLineClearRemainderPhase(game)) {
+		if (isLineClearReformPhase(game)) {
 			return game;
 		}
 		const p = game.currentPiece;
@@ -1465,7 +1644,7 @@
 				? Object.assign({}, g, {cascadePending: false, currentPiece: null})
 				: spawnNextAfterLock(g);
 		}
-		if (isLineClearRemainderPhase(g)) {
+		if (isLineClearReformPhase(g)) {
 			return tickLineClearSimultaneousRemainders(g, null);
 		}
 		let piece = g.currentPiece;
@@ -1620,6 +1799,7 @@
 			linesClearedTotal: 0,
 			lineClearPolicy: normalizeLineClearPolicy(overrides.lineClearPolicy),
 			lineClearRemainderCells: null,
+			lineClearAbovePieces: null,
 			lineClearClearedRows: null,
 			lineClearScoreAddPending: null,
 		};
@@ -1676,6 +1856,9 @@
 						mergeCount: x.mergeCount != null ? x.mergeCount : 0,
 					};
 				})
+				: null,
+			lineClearAbovePieces: g.lineClearAbovePieces
+				? g.lineClearAbovePieces.map(function(p) { return serPiece(p); })
 				: null,
 			lineClearClearedRows: g.lineClearClearedRows ? g.lineClearClearedRows.slice() : null,
 			lineClearScoreAddPending: g.lineClearScoreAddPending != null ? g.lineClearScoreAddPending : null,
@@ -1735,6 +1918,34 @@
 					col: col,
 					cells: [{dr: 0, dc: 0, value: val, merged: merged0}],
 					mergeCount: Math.max(0, Number(p.mergeCount) || 0),
+				};
+			}
+			if (shape === '_ABOVE_COL_' || shape === '_ABOVE_WHOLE_') {
+				const rowA = Number(p.row);
+				const colA = Number(p.col);
+				if (!Number.isFinite(rowA) || !Number.isFinite(colA)) {
+					return null;
+				}
+				const cellsRawA = p.cells;
+				if (!Array.isArray(cellsRawA) || cellsRawA.length === 0) {
+					return null;
+				}
+				const cellsA = cellsRawA.map(function(c) {
+					return {
+						dr: Number(c.dr) || 0,
+						dc: Number(c.dc) || 0,
+						value: Number(c.value) >= 2 ? Number(c.value) : 2,
+						merged: !!c.merged,
+					};
+				});
+				return {
+					shape: shape,
+					rotation: 0,
+					row: rowA,
+					col: colA,
+					cells: cellsA,
+					mergeCount: Math.max(0, Number(p.mergeCount) || 0),
+					playerControllable: false,
 				};
 			}
 			const rotation = Math.max(0, Math.min(3, Number(p.rotation) || 0));
@@ -1848,6 +2059,9 @@
 				}
 				return cells;
 			})(),
+			lineClearAbovePieces: Array.isArray(o.lineClearAbovePieces)
+				? o.lineClearAbovePieces.map(function(p) { return dePiece(p); }).filter(function(x) { return x != null; })
+				: null,
 			lineClearClearedRows: Array.isArray(o.lineClearClearedRows)
 				? o.lineClearClearedRows.map(function(x) { return Number(x); }).filter(function(x) { return Number.isFinite(x); })
 				: null,

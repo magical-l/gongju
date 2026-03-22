@@ -93,6 +93,11 @@
 				<label><input type="radio" name="pack" value="whole" checked> 整块模式</label>
 				<label><input type="radio" name="pack" value="column"> 列模式</label>
 			</div>
+			<div class="one setting group" title="分步调试时：满行上方那段固定堆如何切成活动块与剩格同步下落（玩法补充）。">
+				<span class="hint-inline">上方行</span>
+				<label><input type="radio" name="aboveRows" value="column" checked> 列模式</label>
+				<label><input type="radio" name="aboveRows" value="whole"> 整体模式</label>
+			</div>
 			<div class="one setting group">
 				<span class="hint-inline">全场合并序</span>
 				<label><input type="radio" name="merge" value="top" checked> 自上而下</label>
@@ -234,10 +239,12 @@
 		var pack = (document.querySelector('input[name="pack"]:checked') || {}).value || 'whole';
 		var merge = (document.querySelector('input[name="merge"]:checked') || {}).value || 'top';
 		var rounds = (document.querySelector('input[name="rounds"]:checked') || {}).value || 'untilStable';
+		var aboveRows = (document.querySelector('input[name="aboveRows"]:checked') || {}).value || 'column';
 		return L.normalizeLineClearPolicy({
 			afterClearPack: pack,
 			mergeStart: merge,
-			mergeRounds: rounds
+			mergeRounds: rounds,
+			aboveRowsMode: aboveRows
 		});
 	}
 
@@ -334,6 +341,18 @@
 				var cell = rem[i];
 				if (cell.r >= 0 && cell.r < state.rows && cell.c >= 0 && cell.c < state.cols) {
 					b[cell.r][cell.c] = cell.v;
+				}
+			}
+		}
+		var ap = state.lineClearAbovePieces;
+		if (ap && ap.length) {
+			for (var ai = 0; ai < ap.length; ai++) {
+				var absAbove = L.pieceAbsCells(ap[ai]);
+				for (var j = 0; j < absAbove.length; j++) {
+					var aa = absAbove[j];
+					if (aa.r >= 0 && aa.r < state.rows && aa.c >= 0 && aa.c < state.cols) {
+						b[aa.r][aa.c] = aa.value;
+					}
 				}
 			}
 		}
@@ -629,6 +648,10 @@
 		if (c) {
 			c.checked = true;
 		}
+		var ar = document.querySelector('input[name="aboveRows"][value="' + (pol.aboveRowsMode || 'column') + '"]');
+		if (ar) {
+			ar.checked = true;
+		}
 	}
 
 	function restoreSnapshot(snap) {
@@ -679,6 +702,7 @@
 			fallIntervalMs: Math.max(50, parseInt(document.getElementById('inp-interval').value, 10) || 400),
 			lineClearPolicy: policyFromUI(),
 			lineClearRemainderCells: null,
+			lineClearAbovePieces: null,
 			lineClearClearedRows: null,
 			lineClearScoreAddPending: null,
 			overlayVisible: false,
@@ -987,83 +1011,60 @@
 		};
 	}
 
+	function slimFinalState(gs) {
+		if (!gs || typeof gs !== 'object') {
+			return null;
+		}
+		var o = {
+			rows: gs.rows,
+			cols: gs.cols,
+			board: gs.board,
+			score: gs.score,
+			level: gs.level,
+			linesClearedTotal: gs.linesClearedTotal,
+			pieceCount: gs.pieceCount,
+			lineClearPolicy: gs.lineClearPolicy
+		};
+		return o;
+	}
+
 	function buildExportText() {
 		var snap = getExportSnapshot();
 		var pol = snap.policy || policyFromUI();
 		var ms = snap.intervalMs != null ? snap.intervalMs : (parseInt(document.getElementById('inp-interval').value, 10) || 400);
-		var mergeZh = { top: '自上而下', bottom: '自下而上', contact: '顶格相邻' };
-		var roundsZh = { untilStable: '直到稳定', once: '仅一步' };
-		var packZh = pol.afterClearPack === 'column' ? '列模式' : '整块模式';
 		var cfg = getExportConfigFromUI();
 		var lines = [];
-		lines.push('===== 2048方块 · 手动调试 · 导出报告 =====');
-		lines.push('导出时间（本地）：' + new Date().toISOString());
-		lines.push('');
-		lines.push('【一、当前界面配置】（与工具栏一致）');
-		lines.push('行数：' + cfg.rows + '，列数：' + cfg.cols);
-		lines.push('步进间隔(ms)：' + cfg.intervalMs);
-		lines.push('消行后 — 上方堆落：' + cfg.labelsZh.pack + ' (afterClearPack=' + pol.afterClearPack + ')');
-		lines.push('消行后 — 全场合并序：' + cfg.labelsZh.merge + ' (mergeStart=' + pol.mergeStart + ')');
-		lines.push('消行后 — 合并轮数：' + cfg.labelsZh.rounds + ' (mergeRounds=' + pol.mergeRounds + ')');
-		lines.push('');
-		lines.push('【lineClearPolicy JSON】');
-		lines.push(JSON.stringify(pol));
-		lines.push('');
-		lines.push('【二、本轮初始布局】（与本轮点「开始」时一致；若尚未跑过，则为当前编辑）');
-		lines.push('棋盘：' + snap.rows + ' 行 × ' + snap.cols + ' 列（行 0 在顶部）');
-		lines.push('步进间隔(ms)：' + ms);
-		lines.push('');
-		lines.push('【固定块堆】board 二维数组 JSON（行主序）');
-		lines.push(JSON.stringify(snap.fixed));
-		lines.push('');
-		lines.push('【下落块】编辑（每行：行, 列, 数值）');
+		lines.push('2048方块·手动调试');
+		lines.push('policy ' + JSON.stringify(pol));
+		lines.push('size ' + cfg.rows + 'x' + cfg.cols + ' ms ' + cfg.intervalMs);
+		lines.push('fixed ' + JSON.stringify(snap.fixed));
 		var fall = snap.falling || [];
 		if (fall.length === 0) {
-			lines.push('（无）');
+			lines.push('falling (none)');
 		} else {
 			var arr = fall.slice().sort(function(a, b) {
 				return a.r !== b.r ? a.r - b.r : a.c - b.c;
 			});
-			for (var j = 0; j < arr.length; j++) {
-				lines.push(arr[j].r + ', ' + arr[j].c + ', ' + arr[j].v);
-			}
+			lines.push('falling ' + arr.map(function(x) { return x.r + ',' + x.c + '=' + x.v; }).join(' '));
 		}
-		lines.push('');
-		lines.push('【三、本轮模拟执行结果】');
+		lines.push('---');
 		if (lastRunResult && !lastRunResult.error) {
-			if (lastRunResult.stoppedReason === 'preSpawnGate' || lastRunResult.stoppedAtPreSpawnGate) {
-				lines.push('结束原因：已到达「生成下一块」之前的暂停点（与调试逻辑一致）');
-			} else if (lastRunResult.stoppedReason === 'stepLimit') {
-				lines.push('结束原因：安全步数上限（50000）');
-			} else {
-				lines.push('结束原因：' + (lastRunResult.stoppedReason || 'unknown'));
-			}
-			if (lastRunResult.steps != null) {
-				lines.push('步数：' + lastRunResult.steps);
-			}
-			if (lastRunResult.score != null) {
-				lines.push('得分：' + lastRunResult.score);
-			}
-			if (lastRunResult.level != null) {
-				lines.push('等级：' + lastRunResult.level);
-			}
-			if (lastRunResult.linesClearedTotal != null) {
-				lines.push('累计消除行数：' + lastRunResult.linesClearedTotal);
-			}
-			lines.push('');
-			lines.push('【结束时游戏状态 JSON】（serializeGameState，与 logic 一致）');
+			var reason = (lastRunResult.stoppedReason === 'preSpawnGate' || lastRunResult.stoppedAtPreSpawnGate)
+				? 'preSpawnGate'
+				: (lastRunResult.stoppedReason === 'stepLimit' ? 'stepLimit' : (lastRunResult.stoppedReason || ''));
+			lines.push('stop ' + reason + ' steps ' + (lastRunResult.steps != null ? lastRunResult.steps : '-') +
+				' score ' + (lastRunResult.score != null ? lastRunResult.score : '-') +
+				' lv ' + (lastRunResult.level != null ? lastRunResult.level : '-') +
+				' lines ' + (lastRunResult.linesClearedTotal != null ? lastRunResult.linesClearedTotal : '-'));
 			if (lastRunResult.gameStateSerialized) {
-				lines.push(JSON.stringify(lastRunResult.gameStateSerialized, null, 2));
-			} else {
-				lines.push('（无）');
+				var slim = slimFinalState(lastRunResult.gameStateSerialized);
+				lines.push('final ' + JSON.stringify(slim));
 			}
 		} else if (lastRunResult && lastRunResult.error) {
-			lines.push('记录结果时出错：' + lastRunResult.error);
+			lines.push('error ' + lastRunResult.error);
 		} else {
-			lines.push('（尚未产生一轮完整结束记录：请先「开始」运行到暂停点或中止；导出中的布局与配置仍为当前项）');
+			lines.push('(no run result yet)');
 		}
-		lines.push('');
-		lines.push('【说明】消行本身均为整行消除；「消行后」指真空填补、全场合并等阶段（与 lineClearPolicy / 玩法 7.x 一致）。');
 		return lines.join('\n');
 	}
 
