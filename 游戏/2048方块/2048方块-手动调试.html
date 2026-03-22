@@ -69,12 +69,14 @@
 		.hint-inline { font-weight: 600; font-size: 12px; margin-right: 4px; }
 		article.dbg-manual > header.toolbar .el-button { min-height: 38px; padding: 10px 18px; font-size: 14px; }
 		/* 导出弹层 */
-		#export-modal { position: fixed; inset: 0; z-index: 2000; display: none; align-items: center; justify-content: center; padding: 12px; }
-		#export-modal.is-open { display: flex; }
+		#export-modal, #import-modal { position: fixed; inset: 0; z-index: 2000; display: none; align-items: center; justify-content: center; padding: 12px; }
+		#export-modal.is-open, #import-modal.is-open { display: flex; }
 		.export-modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.4); }
 		.export-modal-panel { position: relative; z-index: 1; background: #fff; padding: 12px; max-width: min(880px, 100%); width: 100%; max-height: 88vh; display: flex; flex-direction: column; border: 1px solid #ccc; }
 		.export-modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 8px; }
-		#export-area { width: 100%; flex: 1; min-height: 220px; font-family: Consolas, ui-monospace, monospace; font-size: 12px; line-height: 1.35; padding: 8px; resize: vertical; }
+		#import-modal .export-modal-head { flex-wrap: wrap; }
+		#import-modal .import-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+		#export-area, #import-area { width: 100%; flex: 1; min-height: 220px; font-family: Consolas, ui-monospace, monospace; font-size: 12px; line-height: 1.35; padding: 8px; resize: vertical; }
 	</style>
 </head>
 <body>
@@ -88,26 +90,10 @@
 				<button type="button" class="el-button el-button--default" id="btn-apply-size">应用棋盘尺寸</button>
 				<label>间隔 ms <input type="number" id="inp-interval" min="50" max="3000" step="50" value="400" style="width:88px"></label>
 			</div>
-			<div class="one setting group" title="消行本身均为整行消除；以下均为消行之后阶段（真空填补、全场合并等）。">
-				<span class="hint-inline">消行后</span>
-				<label><input type="radio" name="pack" value="whole" checked> 整块模式</label>
-				<label><input type="radio" name="pack" value="column"> 列模式</label>
-			</div>
-			<div class="one setting group" title="分步调试时：满行上方那段固定堆如何切成活动块与剩格同步下落（玩法补充）。">
+			<div class="one setting group" title="玩法补充 2.2：满行上方那段固定堆如何切成活动块，与剩格同步下落。">
 				<span class="hint-inline">上方行</span>
-				<label><input type="radio" name="aboveRows" value="column" checked> 列模式</label>
-				<label><input type="radio" name="aboveRows" value="whole"> 整体模式</label>
-			</div>
-			<div class="one setting group">
-				<span class="hint-inline">全场合并序</span>
-				<label><input type="radio" name="merge" value="top" checked> 自上而下</label>
-				<label><input type="radio" name="merge" value="bottom"> 自下而上</label>
-				<label><input type="radio" name="merge" value="contact"> 顶格相邻</label>
-			</div>
-			<div class="one setting group">
-				<span class="hint-inline">合并轮数</span>
-				<label><input type="radio" name="rounds" value="untilStable" checked> 直到稳定</label>
-				<label><input type="radio" name="rounds" value="once"> 仅一步</label>
+				<label><input type="radio" name="aboveRows" value="whole" checked> 整段一块</label>
+				<label><input type="radio" name="aboveRows" value="column"> 按列竖条</label>
 			</div>
 		</section>
 		<section class="controller list area , single-line flex , items-near-x-start items-near-y-center no-gap">
@@ -116,7 +102,8 @@
 				<button type="button" class="el-button el-button--warning" id="btn-pause" disabled>暂停</button>
 				<button type="button" class="el-button el-button--default" id="btn-back-start" disabled>回到开始</button>
 				<button type="button" class="el-button el-button--danger" id="btn-clear">清空棋盘</button>
-				<button type="button" class="el-button el-button--default" id="btn-export">导出报告</button>
+				<button type="button" class="el-button el-button--default" id="btn-export">导出</button>
+				<button type="button" class="el-button el-button--default" id="btn-import" title="粘贴导出文本，恢复棋盘尺寸、策略、固定堆与下落块">导入</button>
 			</div>
 		</section>
 	</header>
@@ -169,11 +156,25 @@
 		<div class="export-modal-backdrop" id="export-modal-backdrop"></div>
 		<div class="export-modal-panel" role="dialog" aria-modal="true" aria-labelledby="export-modal-title">
 			<div class="export-modal-head">
-				<strong id="export-modal-title">导出报告</strong>
+				<strong id="export-modal-title">导出（复制）</strong>
 				<button type="button" class="el-button el-button--default" id="btn-export-close">关闭</button>
 			</div>
 			<textarea id="export-area" readonly></textarea>
-			<p style="margin:8px 0 0;font-size:12px;color:#555;">已全选，可 Ctrl+C 复制</p>
+			<p style="margin:8px 0 0;font-size:12px;color:#555;">已全选，可 Ctrl+C 复制；含可选的「运行结束」对照行（--- 以下）。</p>
+		</div>
+	</div>
+	<div id="import-modal" hidden>
+		<div class="export-modal-backdrop" id="import-modal-backdrop"></div>
+		<div class="export-modal-panel" role="dialog" aria-modal="true" aria-labelledby="import-modal-title">
+			<div class="export-modal-head">
+				<strong id="import-modal-title">导入布局</strong>
+				<div class="import-actions">
+					<button type="button" class="el-button el-button--primary" id="btn-import-apply">应用到棋盘</button>
+					<button type="button" class="el-button el-button--default" id="btn-import-close">取消</button>
+				</div>
+			</div>
+			<textarea id="import-area" placeholder="粘贴导出文本（从 aboveRows / size / fixed / falling 起；旧版带 policy、ms 亦可）"></textarea>
+			<p style="margin:8px 0 0;font-size:12px;color:#555;">仅读取 <code>---</code> 之前的布局段；会清空当前运行状态并回到编辑模式。</p>
 		</div>
 	</div>
 </main>
@@ -236,14 +237,8 @@
 	}
 
 	function policyFromUI() {
-		var pack = (document.querySelector('input[name="pack"]:checked') || {}).value || 'whole';
-		var merge = (document.querySelector('input[name="merge"]:checked') || {}).value || 'top';
-		var rounds = (document.querySelector('input[name="rounds"]:checked') || {}).value || 'untilStable';
-		var aboveRows = (document.querySelector('input[name="aboveRows"]:checked') || {}).value || 'column';
+		var aboveRows = (document.querySelector('input[name="aboveRows"]:checked') || {}).value || 'whole';
 		return L.normalizeLineClearPolicy({
-			afterClearPack: pack,
-			mergeStart: merge,
-			mergeRounds: rounds,
 			aboveRowsMode: aboveRows
 		});
 	}
@@ -636,34 +631,35 @@
 		if (!pol) {
 			return;
 		}
-		var a = document.querySelector('input[name="pack"][value="' + pol.afterClearPack + '"]');
-		if (a) {
-			a.checked = true;
-		}
-		var b = document.querySelector('input[name="merge"][value="' + pol.mergeStart + '"]');
-		if (b) {
-			b.checked = true;
-		}
-		var c = document.querySelector('input[name="rounds"][value="' + pol.mergeRounds + '"]');
-		if (c) {
-			c.checked = true;
-		}
-		var ar = document.querySelector('input[name="aboveRows"][value="' + (pol.aboveRowsMode || 'column') + '"]');
+		var ar = document.querySelector('input[name="aboveRows"][value="' + (pol.aboveRowsMode === 'column' ? 'column' : 'whole') + '"]');
 		if (ar) {
 			ar.checked = true;
 		}
 	}
 
+	/** 与编辑器一致：下落块所在格在 fixed 中应为 0 */
+	function normalizeFixedForFalling(fxRows, fallArr) {
+		var out = fxRows.map(function(row) { return row.slice(); });
+		for (var i = 0; i < fallArr.length; i++) {
+			var e = fallArr[i];
+			if (e && e.r >= 0 && e.r < out.length && out[e.r] && e.c >= 0 && e.c < out[e.r].length) {
+				out[e.r][e.c] = 0;
+			}
+		}
+		return out;
+	}
+
 	function restoreSnapshot(snap) {
 		rows = snap.rows;
 		cols = snap.cols;
-		fixed = snap.fixed.map(function(row) { return row.slice(); });
+		var fl = snap.falling || [];
+		fixed = normalizeFixedForFalling(snap.fixed, fl);
 		falling = {};
-		for (var i = 0; i < snap.falling.length; i++) {
-			var e = snap.falling[i];
+		for (var i = 0; i < fl.length; i++) {
+			var e = fl[i];
 			falling[keyRc(e.r, e.c)] = e.v;
 		}
-		document.getElementById('inp-interval').value = String(snap.intervalMs);
+		document.getElementById('inp-interval').value = String(snap.intervalMs != null ? snap.intervalMs : 400);
 		fillSelect(document.getElementById('inp-rows'), MIN_R, MAX_R, rows);
 		fillSelect(document.getElementById('inp-cols'), MIN_C, MAX_C, cols);
 		applyPolicyToUI(snap.policy);
@@ -992,51 +988,166 @@
 		return snapshotEditor();
 	}
 
-	function getExportConfigFromUI() {
-		var pol = policyFromUI();
-		var mergeZh = { top: '自上而下', bottom: '自下而上', contact: '顶格相邻' };
-		var roundsZh = { untilStable: '直到稳定', once: '仅一步' };
-		var packZh = pol.afterClearPack === 'column' ? '列模式' : '整块模式';
-		var ms = Math.max(50, parseInt(document.getElementById('inp-interval').value, 10) || 400);
-		return {
-			rows: parseInt(document.getElementById('inp-rows').value, 10) || rows,
-			cols: parseInt(document.getElementById('inp-cols').value, 10) || cols,
-			intervalMs: ms,
-			policy: pol,
-			labelsZh: {
-				pack: packZh,
-				merge: mergeZh[pol.mergeStart] || pol.mergeStart,
-				rounds: roundsZh[pol.mergeRounds] || pol.mergeRounds
+	/**
+	 * 解析导出文本（含旧版）。仅布局段用于导入；--- 以下为可选对照，忽略。
+	 * 可调策略在逻辑里已固定，导出只标「上方行」切块：aboveRows whole|column。
+	 */
+	function parseImportText(raw) {
+		var text = String(raw || '').replace(/\r\n/g, '\n');
+		if (!text.trim()) {
+			throw new Error('内容为空');
+		}
+		var allLines = text.split('\n');
+		var lines = [];
+		for (var li = 0; li < allLines.length; li++) {
+			var Ln = allLines[li].trim();
+			if (Ln === '---' || Ln.indexOf('---') === 0) {
+				break;
 			}
+			if (Ln.length) {
+				lines.push(Ln);
+			}
+		}
+		var policy = null;
+		var nrow = null;
+		var ncol = null;
+		var intervalMs = 400;
+		var fixedJson = null;
+		var fallingStr = null;
+		for (var i = 0; i < lines.length; i++) {
+			var line = lines[i];
+			if (/^2048方块/.test(line)) {
+				continue;
+			}
+			if (/^policyNote\s+/.test(line)) {
+				continue;
+			}
+			var mAbove = line.match(/^aboveRows\s+(whole|column)\s*$/i);
+			if (mAbove) {
+				policy = L.normalizeLineClearPolicy({ aboveRowsMode: mAbove[1].toLowerCase() });
+				continue;
+			}
+			if (/^policy\s+/.test(line)) {
+				var restPol = line.replace(/^policy\s+/, '').trim();
+				try {
+					var pobj = JSON.parse(restPol);
+					policy = L.normalizeLineClearPolicy(pobj);
+				} catch (e1) {
+					throw new Error('policy 行 JSON 无法解析');
+				}
+				continue;
+			}
+			var mSize = line.match(/^size\s+(\d+)x(\d+)(?:\s+ms\s+(\d+))?\s*$/i);
+			if (mSize) {
+				nrow = parseInt(mSize[1], 10);
+				ncol = parseInt(mSize[2], 10);
+				if (mSize[3]) {
+					intervalMs = parseInt(mSize[3], 10);
+				}
+				continue;
+			}
+			if (/^fixed\s+/.test(line)) {
+				fixedJson = line.replace(/^fixed\s+/, '').trim();
+				continue;
+			}
+			if (/^falling\s+/i.test(line)) {
+				fallingStr = line.replace(/^falling\s+/i, '').trim();
+				continue;
+			}
+		}
+		if (nrow == null || ncol == null || fixedJson == null) {
+			throw new Error('缺少 size 或 fixed；aboveRows 可省略（默认 whole）');
+		}
+		if (nrow < MIN_R || nrow > MAX_R || ncol < MIN_C || ncol > MAX_C) {
+			throw new Error('行/列超出允许范围（行 ' + MIN_R + '–' + MAX_R + '，列 ' + MIN_C + '–' + MAX_C + '）');
+		}
+		var fixedParsed;
+		try {
+			fixedParsed = JSON.parse(fixedJson);
+		} catch (e2) {
+			throw new Error('fixed 不是合法 JSON');
+		}
+		if (!Array.isArray(fixedParsed) || fixedParsed.length !== nrow) {
+			throw new Error('fixed 行数与 size 不一致');
+		}
+		for (var r = 0; r < nrow; r++) {
+			if (!Array.isArray(fixedParsed[r]) || fixedParsed[r].length !== ncol) {
+				throw new Error('fixed 第 ' + r + ' 行列数与 size 不一致');
+			}
+		}
+		var falling = [];
+		if (fallingStr && !/^\(none\)$/i.test(fallingStr) && !/^none$/i.test(fallingStr)) {
+			var parts = fallingStr.split(/\s+/);
+			var seen = {};
+			for (var j = 0; j < parts.length; j++) {
+				var part = parts[j];
+				var m = part.match(/^(\d+),(\d+)=(\d+)$/);
+				if (!m) {
+					continue;
+				}
+				var rr = parseInt(m[1], 10);
+				var cc = parseInt(m[2], 10);
+				var vv = parseInt(m[3], 10);
+				if (rr < 0 || rr >= nrow || cc < 0 || cc >= ncol) {
+					continue;
+				}
+				if (!Number.isFinite(vv) || vv < 2) {
+					continue;
+				}
+				seen[keyRc(rr, cc)] = { r: rr, c: cc, v: vv };
+			}
+			for (var k in seen) {
+				if (Object.prototype.hasOwnProperty.call(seen, k)) {
+					falling.push(seen[k]);
+				}
+			}
+			falling.sort(function(a, b) {
+				return a.r !== b.r ? a.r - b.r : a.c - b.c;
+			});
+		}
+		if (!policy) {
+			policy = L.normalizeLineClearPolicy({ aboveRowsMode: 'whole' });
+		}
+		intervalMs = Math.max(50, intervalMs || 400);
+		return {
+			rows: nrow,
+			cols: ncol,
+			fixed: fixedParsed,
+			falling: falling,
+			policy: policy,
+			intervalMs: intervalMs
 		};
 	}
 
-	function slimFinalState(gs) {
-		if (!gs || typeof gs !== 'object') {
-			return null;
-		}
-		var o = {
-			rows: gs.rows,
-			cols: gs.cols,
-			board: gs.board,
-			score: gs.score,
-			level: gs.level,
-			linesClearedTotal: gs.linesClearedTotal,
-			pieceCount: gs.pieceCount,
-			lineClearPolicy: gs.lineClearPolicy
-		};
-		return o;
+	function applyImportFromText(raw) {
+		var snap = parseImportText(raw);
+		stopTimer();
+		restoreSnapshot(snap);
+		mode = 'edit';
+		gameState = null;
+		replaySnapshot = null;
+		lastRunResult = null;
+		pausedRun = false;
+		document.getElementById('btn-start').disabled = false;
+		document.getElementById('btn-pause').disabled = true;
+		syncPauseButtonUi();
+		syncBackButton();
+		setEditPanelLocked(false);
+		document.querySelectorAll('.toolbar input, .toolbar select, #inp-interval').forEach(function(el) {
+			el.disabled = false;
+		});
+		syncLegendMode();
+		renderEdit();
+		setStatus('已从导出文本恢复棋盘。');
 	}
 
 	function buildExportText() {
 		var snap = getExportSnapshot();
 		var pol = snap.policy || policyFromUI();
-		var ms = snap.intervalMs != null ? snap.intervalMs : (parseInt(document.getElementById('inp-interval').value, 10) || 400);
-		var cfg = getExportConfigFromUI();
+		var above = (pol && pol.aboveRowsMode === 'column') ? 'column' : 'whole';
 		var lines = [];
-		lines.push('2048方块·手动调试');
-		lines.push('policy ' + JSON.stringify(pol));
-		lines.push('size ' + cfg.rows + 'x' + cfg.cols + ' ms ' + cfg.intervalMs);
+		lines.push('aboveRows ' + above);
+		lines.push('size ' + snap.rows + 'x' + snap.cols);
 		lines.push('fixed ' + JSON.stringify(snap.fixed));
 		var fall = snap.falling || [];
 		if (fall.length === 0) {
@@ -1047,23 +1158,16 @@
 			});
 			lines.push('falling ' + arr.map(function(x) { return x.r + ',' + x.c + '=' + x.v; }).join(' '));
 		}
-		lines.push('---');
-		if (lastRunResult && !lastRunResult.error) {
+		if (lastRunResult && !lastRunResult.error && lastRunResult.gameStateSerialized && lastRunResult.gameStateSerialized.board) {
+			lines.push('---');
 			var reason = (lastRunResult.stoppedReason === 'preSpawnGate' || lastRunResult.stoppedAtPreSpawnGate)
 				? 'preSpawnGate'
-				: (lastRunResult.stoppedReason === 'stepLimit' ? 'stepLimit' : (lastRunResult.stoppedReason || ''));
-			lines.push('stop ' + reason + ' steps ' + (lastRunResult.steps != null ? lastRunResult.steps : '-') +
-				' score ' + (lastRunResult.score != null ? lastRunResult.score : '-') +
-				' lv ' + (lastRunResult.level != null ? lastRunResult.level : '-') +
-				' lines ' + (lastRunResult.linesClearedTotal != null ? lastRunResult.linesClearedTotal : '-'));
-			if (lastRunResult.gameStateSerialized) {
-				var slim = slimFinalState(lastRunResult.gameStateSerialized);
-				lines.push('final ' + JSON.stringify(slim));
-			}
+				: (lastRunResult.stoppedReason === 'stepLimit' ? 'stepLimit' : (lastRunResult.stoppedReason || 'unknown'));
+			lines.push('stop ' + reason);
+			lines.push('board ' + JSON.stringify(lastRunResult.gameStateSerialized.board));
 		} else if (lastRunResult && lastRunResult.error) {
+			lines.push('---');
 			lines.push('error ' + lastRunResult.error);
-		} else {
-			lines.push('(no run result yet)');
 		}
 		return lines.join('\n');
 	}
@@ -1075,6 +1179,40 @@
 		}
 		modal.classList.remove('is-open');
 		modal.setAttribute('hidden', '');
+	}
+
+	function closeImportModal() {
+		var modal = document.getElementById('import-modal');
+		if (!modal) {
+			return;
+		}
+		modal.classList.remove('is-open');
+		modal.setAttribute('hidden', '');
+	}
+
+	function openImportModal() {
+		var modal = document.getElementById('import-modal');
+		var ta = document.getElementById('import-area');
+		if (ta) {
+			ta.value = '';
+			ta.focus();
+		}
+		if (modal) {
+			modal.removeAttribute('hidden');
+			modal.classList.add('is-open');
+		}
+		setStatus('粘贴导出文本后点「应用到棋盘」。');
+	}
+
+	function doImportApply() {
+		var ta = document.getElementById('import-area');
+		var raw = ta ? ta.value : '';
+		try {
+			applyImportFromText(raw);
+			closeImportModal();
+		} catch (err) {
+			alert('导入失败：' + (err && err.message ? err.message : String(err)));
+		}
 	}
 
 	function doExport() {
@@ -1166,9 +1304,16 @@
 	document.getElementById('btn-back-start').addEventListener('click', backToStart);
 	document.getElementById('btn-export').addEventListener('click', doExport);
 	document.getElementById('btn-export-close').addEventListener('click', closeExportModal);
+	document.getElementById('btn-import').addEventListener('click', openImportModal);
+	document.getElementById('btn-import-close').addEventListener('click', closeImportModal);
+	document.getElementById('btn-import-apply').addEventListener('click', doImportApply);
 	var exportBackdrop = document.getElementById('export-modal-backdrop');
 	if (exportBackdrop) {
 		exportBackdrop.addEventListener('click', closeExportModal);
+	}
+	var importBackdrop = document.getElementById('import-modal-backdrop');
+	if (importBackdrop) {
+		importBackdrop.addEventListener('click', closeImportModal);
 	}
 
 	document.getElementById('edit-panel').addEventListener('click', function(ev) {
@@ -1189,6 +1334,12 @@
 
 	document.addEventListener('keydown', function(e) {
 		if (e.key === 'Escape') {
+			var im = document.getElementById('import-modal');
+			if (im && im.classList.contains('is-open')) {
+				e.preventDefault();
+				closeImportModal();
+				return;
+			}
 			var em = document.getElementById('export-modal');
 			if (em && em.classList.contains('is-open')) {
 				e.preventDefault();

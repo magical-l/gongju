@@ -38,15 +38,11 @@
 <body>
 	<h1>消行策略组合演示</h1>
 	<p class="intro">
-		结果由页面加载时用 <code>Game2048BlocksLogic.advancePostLockLineClearNoSpawn</code> <strong>实时计算</strong>，不是写死的。
-		每个初始盘面下列出 12 种 <code>lineClearPolicy</code> 搭配；<strong>左侧彩色竖条</strong>表示终盘相同的一类（便于看出哪些组合效果一致）。
+		结果由页面加载时用 <code>Game2048BlocksLogic.advancePostLockLineClearNoSpawn</code> <strong>实时计算</strong>。
+		<code>normalizeLineClearPolicy</code> 已将 7.1 抽行、全场竖合等<strong>全部写死</strong>，无用户可选项；本页仅展示不同<strong>初始盘面</strong>的消行后终盘。
 	</p>
 	<div class="note-box">
-		<strong>用语：</strong><code>afterClearPack</code> 在代码里是 <code>whole</code> / <code>column</code>（整块模式 / 列模式）。消行<strong>收尾 7.1</strong> 阶段二者<strong>一致</strong>：只做「整行抽掉已空满行 + 顶补空行」，<strong>保留行内建造空隙</strong>，<strong>不对整列做重力落底压实</strong>（旧版误用列压实已移除）。API 仍保留两档以便兼容，但<strong>不应</strong>再指望用 column 走出与 whole 不同的「压实」终盘。<br><br>
-		<strong>为何有时 12 格会成对相同（whole 与 column 各 6 张、两两镜像）？</strong><br>
-		<strong><code>mergeStart</code></strong> 只影响 cascade 每步<strong>先合并哪一列</strong>；多数盘面<strong>终局相同</strong>。<br>
-		<strong><code>afterClearPack</code></strong> 在 7.1 上与 whole 对齐后，与 merge 阶段叠加时<strong>常与 whole 得到同一终盘</strong>——差异请主要看 <strong><code>mergeRounds</code></strong>（<code>once</code> vs <code>untilStable</code>）与 <strong><code>mergeStart</code></strong>。<br>
-		<strong><code>mergeRounds: once</code></strong> 在需要<strong>多步竖合</strong>时最常与 <code>untilStable</code> 不同。
+		<strong>用语：</strong>7.1 收尾为 <code>packAfterClearedEmptyRows</code>；竖向 cascade 为 contact + untilStable。与手动调试里仅可调的「上方行」切块（<code>aboveRowsMode</code>）无关。
 	</div>
 	<div id="root"></div>
 	<script src="../logic.js"></script>
@@ -59,31 +55,14 @@
 		return;
 	}
 
-	var PACKS = [
-		{ key: 'whole', label: '整块模式 whole' },
-		{ key: 'column', label: '列模式 column' }
-	];
-	var MERGES = [
-		{ key: 'top', label: '自上而下 top' },
-		{ key: 'bottom', label: '自下而上 bottom' },
-		{ key: 'contact', label: '顶格相邻 contact' }
-	];
-	var ROUNDS = [
-		{ key: 'once', label: '仅一步 once' },
-		{ key: 'untilStable', label: '多步 untilStable' }
-	];
-
 	var SIG_CLASSES = ['sig-a', 'sig-b', 'sig-c', 'sig-d', 'sig-e', 'sig-f'];
 
-	/**
-	 * 专门挑选的初始盘面（行 0 为顶，行末为底），使至少部分策略组合出现不同终盘。
-	 * n × 12：此处 n = 4。（7.1 后 whole/column 收尾一致时，常出现 6 种终盘各重复 2 次。）
-	 */
+	/** 专门挑选的初始盘面（行 0 为顶，行末为底）。每盘一张卡片 = 当前固定策略下的终盘。 */
 	var INITIALS = [
 		{
 			id: 1,
-			title: '建造空隙：7.1 不列压实（whole/column 收尾一致）',
-			point: '消行后行内空隙应保留；whole 与 column 在 7.1 上终盘<strong>相同</strong>，卡片会成对同色。请对比 mergeRounds / mergeStart。',
+			title: '建造空隙：行内保留',
+			point: '消行后行内空隙应保留。',
 			before: [
 				[0, 0, 0, 0],
 				[2, 2, 0, 0],
@@ -93,8 +72,8 @@
 		},
 		{
 			id: 2,
-			title: '仅一步 vs 多步（两阶段竖向 cascade）',
-			point: '重点对比 mergeRounds：once 只执行一轮 cascade，untilStable 会继续合并到不能再合；整块/列模式在本盘终局往往一致。',
+			title: '多步竖向 cascade（直到不能再合）',
+			point: '全场竖合直到稳定。',
 			before: [
 				[2, 0, 0, 0],
 				[2, 0, 0, 0],
@@ -106,8 +85,8 @@
 		},
 		{
 			id: 3,
-			title: '双行满 + 中间建造空隙（whole/column 同样只整行抽移）',
-			point: '与 #1 不同布局；7.1 后 whole/column 仍<strong>同终盘</strong>。差异来自 merge 阶段：看 once vs untilStable、mergeStart。',
+			title: '双行满 + 中间建造空隙',
+			point: '与 #1 不同布局。',
 			before: [
 				[2, 2, 2, 2],
 				[0, 0, 0, 0],
@@ -119,7 +98,7 @@
 		{
 			id: 4,
 			title: '消行后区外列内合并（场景⑥型）',
-			point: '本盘在当前实现下 12 种策略均收敛到<strong>同一终盘</strong>（卡片同色）；用于对照 #1～#3 的「有差异」局面。',
+			point: '区外列合并情形；用于对照 #1～#3。',
 			before: [
 				[2, 2, 2, 2],
 				[0, 0, 2, 2],
@@ -199,21 +178,11 @@
 		html += '</div>';
 
 		var combos = [];
-		PACKS.forEach(function(pack) {
-			MERGES.forEach(function(mer) {
-				ROUNDS.forEach(function(round) {
-					var policy = {
-						afterClearPack: pack.key,
-						mergeStart: mer.key,
-						mergeRounds: round.key
-					};
-					var title = pack.label + ' · ' + mer.label + ' · ' + round.label;
-					var res = runOne(init.before, policy);
-					var sig = res.ok ? boardSig(res.board) : 'ERR';
-					combos.push({ title: title, res: res, sig: sig, policy: policy });
-				});
-			});
-		});
+		var policy = {};
+		var title = '固定策略（normalizeLineClearPolicy）';
+		var res = runOne(init.before, policy);
+		var sig = res.ok ? boardSig(res.board) : 'ERR';
+		combos.push({ title: title, res: res, sig: sig, policy: policy });
 
 		var sigToClass = {};
 		var classIdx = 0;

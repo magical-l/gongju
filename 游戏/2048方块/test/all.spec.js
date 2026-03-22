@@ -17,6 +17,10 @@ module.exports = function(r) {
 	};
 	const clearOneRound = logic.clearOneRound;
 	const applyPendingClearLines = logic.applyPendingClearLines;
+	const runUntilFirstLock = logic.runUntilFirstLock;
+	const isAtPreSpawnGate = logic.isAtPreSpawnGate;
+	const initGame = logic.init;
+	const createCustomPieceFromAbsCells = logic.createCustomPieceFromAbsCells;
 
 	function runClearUntilStable(board, rows, cols, maxRounds) {
 		maxRounds = maxRounds || 20;
@@ -352,6 +356,74 @@ module.exports = function(r) {
 			const final_ = runClearAndCascade(state);
 			const expected = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [4, 4, 0]];
 			_assertBoardEqual(final_.board, expected, '消两行后多列合并');
+		});
+	});
+
+	// ---------- 手动调试页：分步消行 + 整块上方行（U 形上框等）----------
+	describe('手动调试·分步消行（整块上方行）', function() {
+		it('8×6 U 形上框：落子后消行，终盘底行两侧为 4、中间为 2（不整行并成四个 4）', function() {
+			const fixed = [
+				[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0],
+				[2, 2, 2, 2, 2, 0], [2, 0, 0, 0, 2, 0], [2, 2, 2, 2, 2, 0],
+				[0, 0, 0, 0, 0, 32], [0, 0, 0, 0, 0, 0], [2, 2, 2, 2, 2, 0],
+			];
+			const piece = createCustomPieceFromAbsCells([{ r: 4, c: 5, value: 2 }]);
+			let g = initGame(0, { rows: 8, cols: 6, lineClearPolicy: { aboveRowsMode: 'whole' } });
+			g.board = fixed.map(row => row.slice());
+			g.currentPiece = piece;
+			g = runUntilFirstLock(g);
+			let n = 0;
+			while (!isAtPreSpawnGate(g) && n++ < 8000) {
+				if (g.clearLinesPending && g.clearLinesPending.length) {
+					g = applyPendingClearLines(g, { steppedLineClearRemainder: true, lineClearBundledApply: false });
+				} else if (g.postClearGravityState) {
+					g = applyPendingClearLines(g);
+				} else {
+					g = _tick(g, { suppressNextSpawn: true });
+				}
+			}
+			const expected = [
+				[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0],
+				[0, 0, 0, 0, 0, 32], [2, 2, 2, 2, 2, 0], [4, 2, 2, 2, 4, 0],
+			];
+			_assertBoardEqual(g.board, expected, 'U 形上框分步消行终盘');
+		});
+
+		/**
+		 * 底区两行满 2（无 cellGroup）：若左右已与下格异数无法竖并，中间列不得再单独 2+2 竖并（whole 边缘耦合）。
+		 * 与「仅一行底 2」用例对比：终盘底行应保持全 2，而非中间列变 4。
+		 */
+		it('8×6 双行底 2：whole 下两侧 4 与底行 2 异数时，中间列不单独竖并', function() {
+			const fixed = [
+				[0, 0, 0, 0, 0, 0],
+				[2, 2, 2, 2, 2, 0],
+				[2, 0, 0, 0, 2, 0],
+				[2, 2, 2, 2, 2, 0],
+				[0, 0, 0, 0, 0, 32],
+				[0, 0, 0, 0, 0, 0],
+				[2, 2, 2, 2, 2, 0],
+				[2, 2, 2, 2, 2, 0],
+			];
+			const piece = createCustomPieceFromAbsCells([{ r: 3, c: 5, value: 2 }]);
+			let g = initGame(0, { rows: 8, cols: 6, lineClearPolicy: { aboveRowsMode: 'whole' } });
+			g.board = fixed.map(row => row.slice());
+			g.currentPiece = piece;
+			g = runUntilFirstLock(g);
+			let n = 0;
+			while (!isAtPreSpawnGate(g) && n++ < 8000) {
+				if (g.clearLinesPending && g.clearLinesPending.length) {
+					g = applyPendingClearLines(g, { steppedLineClearRemainder: true, lineClearBundledApply: false });
+				} else if (g.postClearGravityState) {
+					g = applyPendingClearLines(g);
+				} else {
+					g = _tick(g, { suppressNextSpawn: true });
+				}
+			}
+			const expected = [
+				[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0],
+				[0, 0, 0, 0, 0, 32], [2, 2, 2, 2, 2, 0], [4, 2, 2, 2, 4, 0], [2, 2, 2, 2, 2, 0],
+			];
+			_assertBoardEqual(g.board, expected, '双行底 2 whole 边缘耦合终盘');
 		});
 	});
 };

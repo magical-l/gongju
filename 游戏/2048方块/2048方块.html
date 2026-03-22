@@ -83,31 +83,6 @@
 						<el-button type="danger" icon="RefreshRight" @click="onRestart">新局</el-button>
 					</el-form-item>
 				</div>
-				<div class="one setting group line-clear-pack">
-					<el-form-item label="消行后堆落" title="消行本身均为整行消除；此项指消行后真空填补时上方行的相对关系（整块/列）。">
-						<el-radio-group v-model="lineClearAfterPack" size="small" @change="onLineClearPolicyChange">
-							<el-radio-button label="whole">整块模式</el-radio-button>
-							<el-radio-button label="column">列模式</el-radio-button>
-						</el-radio-group>
-					</el-form-item>
-				</div>
-				<div class="one setting group line-clear-merge-start">
-					<el-form-item label="全场合并序">
-						<el-radio-group v-model="lineClearMergeStart" size="small" @change="onLineClearPolicyChange">
-							<el-radio-button label="top">自上而下</el-radio-button>
-							<el-radio-button label="bottom">自下而上</el-radio-button>
-							<el-radio-button label="contact">顶格相邻</el-radio-button>
-						</el-radio-group>
-					</el-form-item>
-				</div>
-				<div class="one setting group line-clear-rounds">
-					<el-form-item label="合并轮数">
-						<el-radio-group v-model="lineClearMergeRounds" size="small" @change="onLineClearPolicyChange">
-							<el-radio-button label="untilStable">直到稳定</el-radio-button>
-							<el-radio-button label="once">仅一步</el-radio-button>
-						</el-radio-group>
-					</el-form-item>
-				</div>
 			</section>
 			<section class="controller list area , single-line flex , items-near-x-start items-near-y-center no-gap">
 				<div class="one controller group">
@@ -242,9 +217,6 @@
 			paused: true,
 			gameResultVisible: false,
 			gameResultMessage: '',
-			lineClearAfterPack: 'whole',
-			lineClearMergeStart: 'top',
-			lineClearMergeRounds: 'untilStable',
 		});
 		const mainApp = createApp({
 			data: () => state,
@@ -344,23 +316,8 @@
 							rows: state.boardHeight,
 							cols: state.boardWidth,
 							fallIntervalMs: state.fallIntervalMs,
-							lineClearPolicy: {
-								afterClearPack: state.lineClearAfterPack,
-								mergeStart: state.lineClearMergeStart,
-								mergeRounds: state.lineClearMergeRounds,
-							},
 						}));
 					} catch (_) {}
-				},
-				onLineClearPolicyChange() {
-					const api = window.Game2048Blocks;
-					if (api && api.applyLineClearPolicy) {
-						api.applyLineClearPolicy({
-							afterClearPack: state.lineClearAfterPack,
-							mergeStart: state.lineClearMergeStart,
-							mergeRounds: state.lineClearMergeRounds,
-						});
-					}
 				},
 				onSpeedChange() {
 					window.Game2048Blocks.applyBoardSettings({
@@ -465,14 +422,6 @@
 							state.gameBoardHeight = s.boardHeight;
 							state.gameBoardWidth = s.boardWidth;
 							state.fallIntervalMs = s.fallIntervalMs;
-						}
-						if (api.getLineClearPolicy) {
-							const pol = api.getLineClearPolicy();
-							if (pol) {
-								state.lineClearAfterPack = pol.afterClearPack;
-								state.lineClearMergeStart = pol.mergeStart;
-								state.lineClearMergeRounds = pol.mergeRounds;
-							}
 						}
 					},
 					setPaused(p) {

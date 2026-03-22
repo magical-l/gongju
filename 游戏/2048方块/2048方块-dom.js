@@ -582,7 +582,7 @@ const stub = {
 	togglePause: function() {},
 	applyBoardSettings: function() {},
 	getBoardSettings: function() { return null; },
-	getLineClearPolicy: function() { return {afterClearPack: 'whole', mergeStart: 'top', mergeRounds: 'untilStable'}; },
+	getLineClearPolicy: function() { return {afterClearPack: 'whole', mergeStart: 'contact', mergeRounds: 'untilStable'}; },
 	applyLineClearPolicy: function() {},
 	getTileDisplayContent: function(_, value) { return {type: 'number', value: value != null ? value : 0}; },
 	onResultRestart: function() {},
