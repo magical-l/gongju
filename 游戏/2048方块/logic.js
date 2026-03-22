@@ -31,10 +31,10 @@
 	const MAX_COLS = 12;
 	const DEFAULT_CFG = {rows: 12, cols: 10, fallIntervalMs: 500};
 	/**
-	 * 消行后行为（试玩调参，默认值与线上历史逻辑一致：整行抽行、合并扫描自上而下、cascade 直到稳定）
-	 * - afterClearPack: whole=7.1 俄式抽行；column=每列内非零落底（与玩法最终稿可能不同，仅作对比）
+	 * 消行后行为（可调参；默认与历史逻辑一致）
+	 * - afterClearPack: **整块模式 whole** 与 **列模式 column** 在 7.1 收尾阶段应一致：均只执行「整行抽掉已空满行 + 顶补空行」（packAfterClearedEmptyRows），**保留**行内建造空隙，**不得**对整列做重力压实。旧版 column 误用 packColumnsStackBottom（逐列落底）已移除。
 	 * - mergeStart: top|bottom|contact — 全场竖向 cascade 每步选哪条合并先做
-	 * - mergeRounds: once=每段 cascade 只合并一步；untilStable=照旧多步直到不能再合并
+	 * - mergeRounds: once=每段 cascade 只合并一步；untilStable=多步直到不能再合并
 	 */
 	const DEFAULT_LINE_CLEAR_POLICY = {afterClearPack: 'whole', mergeStart: 'top', mergeRounds: 'untilStable'};
 
@@ -144,13 +144,151 @@
 		return {shape: shape, rotation: rotation, row: row, col: col, cells: cells, mergeCount: 0};
 	}
 
+	/**
+	 * 调试/关卡编辑：由棋盘绝对坐标构造活动块（任意连通形状）。shape 取 T 以便旋转走几何旋转分支。
+	 * @param {Array<{r:number,c:number,value?:number}>} entries
+	 */
+	function createCustomPieceFromAbsCells(entries) {
+		if (!entries || entries.length === 0) {
+			return null;
+		}
+		const cleaned = [];
+		const seen = {};
+		for (let i = 0; i < entries.length; i++) {
+			const e = entries[i];
+			const r = Number(e.r);
+			const c = Number(e.c);
+			const v = e.value != null && Number.isFinite(Number(e.value)) ? Number(e.value) : 2;
+			if (!Number.isFinite(r) || !Number.isFinite(c) || !(v > 0)) {
+				continue;
+			}
+			const k = r + ',' + c;
+			if (seen[k]) {
+				continue;
+			}
+			seen[k] = true;
+			cleaned.push({r: r, c: c, v: v});
+		}
+		if (cleaned.length === 0) {
+			return null;
+		}
+		let minR = cleaned[0].r;
+		let minC = cleaned[0].c;
+		for (let j = 1; j < cleaned.length; j++) {
+			if (cleaned[j].r < minR) {
+				minR = cleaned[j].r;
+			}
+			if (cleaned[j].c < minC) {
+				minC = cleaned[j].c;
+			}
+		}
+		const cells = cleaned.map(function(e) {
+			return {dr: e.r - minR, dc: e.c - minC, value: e.v, merged: false};
+		});
+		return {
+			shape: 'T',
+			rotation: 0,
+			row: minR,
+			col: minC,
+			cells: cells,
+			mergeCount: 0,
+		};
+	}
+
 	function pieceAbsCells(p) {
 		return p.cells.map(function(c) {
 			return {r: p.row + c.dr, c: p.col + c.dc, value: c.value};
 		});
 	}
 
-	function pieceOverlapsBoard(board, rows, cols, p, rowOffset, colOffset) {
+	/** 与 getShapeCells 相同：绕质心逆时针 90°，再 min 归一化；各格携带 value/merged。 */
+	function rotatePieceCells90CCW(piece) {
+		const cells = piece.cells;
+		const n = cells.length;
+		let cr = 0;
+		let cc = 0;
+		for (let i = 0; i < n; i++) {
+			cr += cells[i].dr;
+			cc += cells[i].dc;
+		}
+		cr /= n;
+		cc /= n;
+		const spun = cells.map(function(c) {
+			const r = c.dr;
+			const c0 = c.dc;
+			const nr = c0 - cc + cr;
+			const nc = -(r - cr) + cc;
+			return {
+				dr: Math.round(nr),
+				dc: Math.round(nc),
+				value: c.value,
+				merged: !!c.merged,
+			};
+		});
+		let minR = spun[0].dr;
+		let minC = spun[0].dc;
+		for (let k = 1; k < n; k++) {
+			if (spun[k].dr < minR) {
+				minR = spun[k].dr;
+			}
+			if (spun[k].dc < minC) {
+				minC = spun[k].dc;
+			}
+		}
+		const normalized = spun.map(function(c) {
+			return {
+				dr: c.dr - minR,
+				dc: c.dc - minC,
+				value: c.value,
+				merged: c.merged,
+			};
+		});
+		return {
+			shape: piece.shape,
+			rotation: (piece.rotation + 1) % 4,
+			row: piece.row,
+			col: piece.col,
+			cells: normalized,
+			mergeCount: piece.mergeCount,
+		};
+	}
+
+	/** O/S/Z：旋转后保持包围盒左上角（min r/c）在盘面上的绝对位置不变，避免「原地转」却左右漂移。 */
+	function rotatePieceKeepBoundingAnchor(piece) {
+		const oldAbs = pieceAbsCells(piece);
+		let oldMinR = oldAbs[0].r;
+		let oldMinC = oldAbs[0].c;
+		for (let i = 1; i < oldAbs.length; i++) {
+			if (oldAbs[i].r < oldMinR) {
+				oldMinR = oldAbs[i].r;
+			}
+			if (oldAbs[i].c < oldMinC) {
+				oldMinC = oldAbs[i].c;
+			}
+		}
+		const spun = rotatePieceCells90CCW(piece);
+		const tentative = Object.assign({}, spun, {row: piece.row, col: piece.col});
+		const newAbs = pieceAbsCells(tentative);
+		let newMinR = newAbs[0].r;
+		let newMinC = newAbs[0].c;
+		for (let j = 1; j < newAbs.length; j++) {
+			if (newAbs[j].r < newMinR) {
+				newMinR = newAbs[j].r;
+			}
+			if (newAbs[j].c < newMinC) {
+				newMinC = newAbs[j].c;
+			}
+		}
+		return Object.assign({}, spun, {
+			row: piece.row + (oldMinR - newMinR),
+			col: piece.col + (oldMinC - newMinC),
+		});
+	}
+
+	/**
+	 * 检测占用：格上有非 0 即视为阻挡。未锁定时 merged 只存在于活动块，不占棋盘。
+	 */
+	function pieceOverlapsBoardStrict(board, rows, cols, p, rowOffset, colOffset) {
 		const cells = pieceAbsCells(p);
 		for (let i = 0; i < cells.length; i++) {
 			const r2 = cells[i].r + rowOffset;
@@ -158,18 +296,15 @@
 			if (r2 < 0 || r2 >= rows || c2 < 0 || c2 >= cols || !board[r2]) {
 				continue;
 			}
-			const v = board[r2][c2];
-			if (v === 0) {
-				continue;
+			if (board[r2][c2] !== 0) {
+				return true;
 			}
-			const pc = p.cells[i];
-			// 仅 offset (0,0)：棋盘同格同值即本 merged 落地格（旋转/踢边等）。竖直 +1 不得按同值跳过，否则无法与正下方同色固定格再合并。
-			if (rowOffset === 0 && colOffset === 0 && pc.merged && v === pc.value) {
-				continue;
-			}
-			return true;
 		}
 		return false;
+	}
+
+	function pieceOverlapsBoard(board, rows, cols, p, rowOffset, colOffset) {
+		return pieceOverlapsBoardStrict(board, rows, cols, p, rowOffset, colOffset);
 	}
 
 	function pieceOutOfBounds(rows, cols, p, rowOffset, colOffset) {
@@ -192,7 +327,6 @@
 			return true;
 		}
 		return pieceOverlapsBoard(board, rows, cols, p, downRows, colOffset);
-		
 	}
 
 	/** 按前进方向返回最前线格（该方向上没有同块其它格的格）。不限定 y 轴，由 direction 决定。 */
@@ -248,15 +382,35 @@
 	function writePieceToBoard(board, rows, cols, piece) {
 		for (let i = 0; i < piece.cells.length; i++) {
 			const cell = piece.cells[i];
-			if (cell.merged) {
-				continue;
-			}
 			const r = piece.row + cell.dr;
 			const c = piece.col + cell.dc;
 			if (r >= 0 && r < rows && c >= 0 && c < cols) {
 				board[r][c] = cell.value;
 			}
 		}
+	}
+
+	/** 测试/展示：固化棋盘 + 当前活动块各格（含 merged）叠在最上，与 DOM 显示一致（不含消行剩格 overlay）。 */
+	function getBoardWithCurrentPiece(game) {
+		if (!game || !game.board) {
+			return null;
+		}
+		const rows = game.rows;
+		const cols = game.cols;
+		const b = game.board.map(function(row) { return row.slice(); });
+		const piece = game.currentPiece;
+		if (!piece) {
+			return b;
+		}
+		for (let i = 0; i < piece.cells.length; i++) {
+			const cell = piece.cells[i];
+			const r = piece.row + cell.dr;
+			const c = piece.col + cell.dc;
+			if (r >= 0 && r < rows && c >= 0 && c < cols && b[r]) {
+				b[r][c] = cell.value;
+			}
+		}
+		return b;
 	}
 
 	function getFullRowIndices(board, rows, cols) {
@@ -301,50 +455,6 @@
 	}
 
 	/**
-	 * 消行除法后，满行里每个非零剩格各自当成一块 1×1 活动块，按与 tick 相同的下落/合并/锁定规则依次处理。
-	 * 顺序：先按行索引 r **从大到小**（屏幕更靠下、数组 row 更大者先处理），再按列 c 升序。
-	 * 同一列里必须先处理下方的剩格，否则上方剩格下落时仍会撞到下方剩格占位；同行不同列互不挡路，列序仅用于结果确定。
-	 */
-	function runSequentialClearRemainderDrops(board, rows, cols, clearedSet, stats) {
-		const list = [];
-		for (let r = 0; r < rows; r++) {
-			if (!clearedSet[r]) {
-				continue;
-			}
-			for (let c = 0; c < cols; c++) {
-				const v = board[r][c];
-				if (v !== 0) {
-					list.push({ r: r, c: c, v: v });
-				}
-			}
-		}
-		if (list.length === 0) {
-			return;
-		}
-		for (let i = 0; i < list.length; i++) {
-			board[list[i].r][list[i].c] = 0;
-		}
-		list.sort(function(a, b) {
-			if (b.r !== a.r) {
-				return b.r - a.r;
-			}
-			return a.c - b.c;
-		});
-		for (let i = 0; i < list.length; i++) {
-			const x = list[i];
-			const piece = {
-				shape: '_REMAINDER1',
-				rotation: 0,
-				row: x.r,
-				col: x.c,
-				cells: [{ dr: 0, dc: 0, value: x.v }],
-				mergeCount: 0,
-			};
-			runRemainderPieceUntilLocked(board, rows, cols, piece, stats);
-		}
-	}
-
-	/**
 	 * 与 tick 下落/合并一致，但锁定后**不**生成下一块、不在这里接下一轮消行（交给后续整理流程）。
 	 * @param { { clearRemainderMergeSteps?: number } | null | undefined } stats 可选：统计消行剩格 1×1 下落过程中发生的合并步数
 	 */
@@ -368,7 +478,6 @@
 		while (true) {
 			const wouldHit = pieceOverlapsBoard(board, rows, cols, piece, 1, 0);
 			if (!wouldHit) {
-				// 先清非 merged（避免与 merged 下移写入顺序互相覆盖），再把棋盘上已落地的合并格整体下移一格
 				piece.cells.forEach(function(cell) {
 					if (cell.merged) {
 						return;
@@ -377,21 +486,6 @@
 					var c = piece.col + cell.dc;
 					if (r >= 0 && r < rows && c >= 0 && c < cols && board[r]) {
 						board[r][c] = 0;
-					}
-				});
-				piece.cells.forEach(function(cell) {
-					if (!cell.merged) {
-						return;
-					}
-					var r = piece.row + cell.dr;
-					var c = piece.col + cell.dc;
-					if (r < 0 || r >= rows || c < 0 || c >= cols || !board[r]) {
-						return;
-					}
-					board[r][c] = 0;
-					var nr = r + 1;
-					if (nr < rows && board[nr]) {
-						board[nr][c] = cell.value;
 					}
 				});
 				return Object.assign({}, g, {board: board, currentPiece: Object.assign({}, piece, {row: piece.row + 1})});
@@ -455,22 +549,22 @@
 				return Object.assign({}, cell);
 			});
 
+			for (let mi = 0; mi < piece.cells.length; mi++) {
+				if (!updatedCells[mi].merged) {
+					continue;
+				}
+				const c0 = piece.cells[mi];
+				var tr = pieceRow + c0.dr + direction.dr;
+				var tc = piece.col + c0.dc + direction.dc;
+				if (tr >= 0 && tr < rows && tc >= 0 && tc < cols && board[tr]) {
+					board[tr][tc] = 0;
+				}
+			}
 			piece.cells.forEach(function(cell) {
 				var r = pieceRow + cell.dr;
 				var c = piece.col + cell.dc;
 				if (r >= 0 && r < rows && c >= 0 && c < cols && board[r]) {
 					board[r][c] = 0;
-				}
-			});
-			piece.cells.forEach(function(cell, idx) {
-				if (!updatedCells[idx].merged) {
-					return;
-				}
-				var tr = pieceRow + cell.dr + direction.dr;
-				var tc = piece.col + cell.dc + direction.dc;
-				if (board[tr]) {
-					// 须用 updatedCells：已合并格本 tick 仅下落时 merged 仍为 true，cell.value 已是翻倍后的数，不能再 *2
-					board[tr][tc] = updatedCells[idx].value;
 				}
 			});
 			piece = Object.assign({}, piece, {row: newRow, col: newCol, cells: updatedCells, mergeCount: piece.mergeCount + mergedCount});
@@ -507,13 +601,6 @@
 				throw new Error('runRemainderPieceUntilLocked: exceeded guard');
 			}
 			state = tickLineClearRemainderStep(state, stats);
-		}
-	}
-
-	/** 试玩策略：消行剩格处理完后，每列独立把非零落到底（不抽行），与 whole 区分明显 */
-	function packColumnsStackBottom(board, rows, cols) {
-		for (let c = 0; c < cols; c++) {
-			gravityColumn(board, rows, c);
 		}
 	}
 
@@ -588,19 +675,10 @@
 		return false;
 	}
 
-	/** 消行处理 + 7.1：除法 → 各剩格 1×1 依次落到底 → 俄式整行抽行下移（或 column 策略）。 @param stats 可选；@param policy 可选 */
-	function doClearAndGravityOnly(board, rows, cols, fullRows, stats, policy) {
-		if (fullRows.length === 0) {
-			const rem = [];
-			for (let r = 0; r < rows; r++) {
-				const row = [];
-				for (let c = 0; c < cols; c++) {
-					row.push(false);
-				}
-				rem.push(row);
-			}
-			return {scoreAdd: 0, remainingInCleared: rem, remainingRows: []};
-		}
+	/**
+	 * 消行除法后：棋盘已写入除法结果，返回 clearedSet、得分、按序剩格列表（尚未从棋盘擦除）。
+	 */
+	function prepareLineClearDivisionPhase(board, rows, cols, fullRows) {
 		const clearedSet = {};
 		let scoreAdd = 0;
 		const afterClear = board.map(function(row) { return row.slice(); });
@@ -635,13 +713,46 @@
 				board[r][c] = afterClear[r][c];
 			}
 		}
-		runSequentialClearRemainderDrops(board, rows, cols, clearedSet, stats);
-		const pol = normalizeLineClearPolicy(policy);
-		if (pol.afterClearPack === 'column') {
-			packColumnsStackBottom(board, rows, cols);
-		} else {
-			packAfterClearedEmptyRows(board, rows, cols, clearedSet);
+		const sortedList = [];
+		for (let r = 0; r < rows; r++) {
+			if (!clearedSet[r]) {
+				continue;
+			}
+			for (let c = 0; c < cols; c++) {
+				const v = board[r][c];
+				if (v !== 0) {
+					sortedList.push({r: r, c: c, v: v});
+				}
+			}
 		}
+		sortedList.sort(function(a, b) {
+			if (b.r !== a.r) {
+				return b.r - a.r;
+			}
+			return a.c - b.c;
+		});
+		return {scoreAdd: scoreAdd, clearedSet: clearedSet, sortedList: sortedList};
+	}
+
+	function runRemainderDropsFromSortedList(board, rows, cols, sortedList, stats) {
+		for (let i = 0; i < sortedList.length; i++) {
+			board[sortedList[i].r][sortedList[i].c] = 0;
+		}
+		for (let i = 0; i < sortedList.length; i++) {
+			const x = sortedList[i];
+			const piece = {
+				shape: '_REMAINDER1',
+				rotation: 0,
+				row: x.r,
+				col: x.c,
+				cells: [{dr: 0, dc: 0, value: x.v}],
+				mergeCount: 0,
+			};
+			runRemainderPieceUntilLocked(board, rows, cols, piece, stats);
+		}
+	}
+
+	function buildRemainingInClearedSnapshot(board, rows, cols) {
 		const remainingInCleared = [];
 		for (let r = 0; r < rows; r++) {
 			const row = [];
@@ -654,7 +765,121 @@
 		for (let r = 0; r < rows; r++) {
 			remainingRows.push(r);
 		}
-		return {scoreAdd: scoreAdd, remainingInCleared: remainingInCleared, remainingRows: remainingRows};
+		return {remainingInCleared: remainingInCleared, remainingRows: remainingRows};
+	}
+
+	function clearedRowsArrayFromClearedSet(clearedSet) {
+		const arr = [];
+		for (const k in clearedSet) {
+			if (clearedSet[k]) {
+				arr.push(Number(k));
+			}
+		}
+		arr.sort(function(a, b) { return a - b; });
+		return arr;
+	}
+
+	function clearedSetFromRowsArray(rowsArr) {
+		const clearedSet = {};
+		for (let i = 0; i < rowsArr.length; i++) {
+			clearedSet[rowsArr[i]] = true;
+		}
+		return clearedSet;
+	}
+
+	function createRemainderOnePiece(x) {
+		const merged = !!(x && x.merged);
+		const mc = x && x.mergeCount != null ? x.mergeCount : 0;
+		return {
+			shape: '_REMAINDER1',
+			rotation: 0,
+			row: x.r,
+			col: x.c,
+			cells: [{dr: 0, dc: 0, value: x.v, merged: merged}],
+			mergeCount: mc,
+		};
+	}
+
+	function isLineClearRemainderPhase(g) {
+		return Array.isArray(g.lineClearRemainderCells) && g.lineClearRemainderCells.length > 0;
+	}
+
+	/**
+	 * 页面试玩：所有消行剩格留在棋盘上原位，同一 tick 内按「下优先、同行左先」各落一格（与单粒 tick 规则一致）。
+	 */
+	function tickLineClearSimultaneousRemainders(g, stats) {
+		const board = g.board;
+		const rows = g.rows;
+		const cols = g.cols;
+		const ordered = g.lineClearRemainderCells.slice();
+		ordered.sort(function(a, b) {
+			if (b.r !== a.r) {
+				return b.r - a.r;
+			}
+			return a.c - b.c;
+		});
+		const still = [];
+		for (let i = 0; i < ordered.length; i++) {
+			const e = ordered[i];
+			const piece = {
+				shape: '_REMAINDER1',
+				rotation: 0,
+				row: e.r,
+				col: e.c,
+				cells: [{dr: 0, dc: 0, value: e.v, merged: !!e.merged}],
+				mergeCount: e.mergeCount != null ? e.mergeCount : 0,
+			};
+			const mini = {
+				gameOver: false,
+				rows: rows,
+				cols: cols,
+				board: board,
+				currentPiece: piece,
+				clearLinesPending: null,
+				postClearGravityState: null,
+				cascadePending: false,
+			};
+			const out = tickLineClearRemainderStep(mini, stats);
+			if (out.currentPiece != null) {
+				const p = out.currentPiece;
+				still.push({
+					r: p.row,
+					c: p.col,
+					v: p.cells[0].value,
+					merged: !!p.cells[0].merged,
+					mergeCount: p.mergeCount != null ? p.mergeCount : 0,
+				});
+			}
+		}
+		const gBase = Object.assign({}, g, {board: board});
+		if (still.length === 0) {
+			return finishLineClearRemainderPhase(Object.assign({}, gBase, {lineClearRemainderCells: null}));
+		}
+		const fullRows = getFullRowIndices(board, rows, cols);
+		if (fullRows.length > 0) {
+			return syncFlushRemainingLineClearRemainders(Object.assign({}, gBase, {lineClearRemainderCells: still}));
+		}
+		return Object.assign({}, gBase, {lineClearRemainderCells: still});
+	}
+
+	/** 消行处理 + 7.1：除法 → 各剩格 1×1 依次落到底 → 俄式整行抽行下移（或 column 策略）。 @param stats 可选；@param policy 可选 */
+	function doClearAndGravityOnly(board, rows, cols, fullRows, stats, policy) {
+		if (fullRows.length === 0) {
+			const rem = [];
+			for (let r = 0; r < rows; r++) {
+				const row = [];
+				for (let c = 0; c < cols; c++) {
+					row.push(false);
+				}
+				rem.push(row);
+			}
+			return {scoreAdd: 0, remainingInCleared: rem, remainingRows: []};
+		}
+		const prep = prepareLineClearDivisionPhase(board, rows, cols, fullRows);
+		runRemainderDropsFromSortedList(board, rows, cols, prep.sortedList, stats);
+		packAfterClearedEmptyRows(board, rows, cols, prep.clearedSet);
+		const snap = buildRemainingInClearedSnapshot(board, rows, cols);
+		return {scoreAdd: prep.scoreAdd, remainingInCleared: snap.remainingInCleared, remainingRows: snap.remainingRows};
 	}
 
 	function doMergeInClearedRows(board, rows, cols, remainingInCleared, remainingRowsArr) {
@@ -804,7 +1029,83 @@
 		});
 	}
 
-	/** @param { { clearedVerticalMerges?: number, cascadeSteps?: number, clearRemainderMergeSteps?: number } | null | undefined } stats 可选，用于测试统计 */
+	function finishLineClearRemainderPhase(g) {
+		const rowsArr = g.lineClearClearedRows;
+		if (!rowsArr || rowsArr.length === 0) {
+			throw new Error('finishLineClearRemainderPhase: missing lineClearClearedRows');
+		}
+		const clearedSet = clearedSetFromRowsArray(rowsArr);
+		const scoreAdd = g.lineClearScoreAddPending != null ? g.lineClearScoreAddPending : 0;
+		packAfterClearedEmptyRows(g.board, g.rows, g.cols, clearedSet);
+		const snap = buildRemainingInClearedSnapshot(g.board, g.rows, g.cols);
+		return Object.assign({}, g, {
+			board: g.board,
+			currentPiece: null,
+			postClearGravityState: {
+				scoreAdd: scoreAdd,
+				remainingInCleared: snap.remainingInCleared,
+				remainingRows: snap.remainingRows,
+			},
+			lineClearRemainderCells: null,
+			lineClearClearedRows: null,
+			lineClearScoreAddPending: null,
+		});
+	}
+
+	/**
+	 * 极罕见：剩格同步下落中途又形成满行时，将仍活跃的剩格依次一口气落完再 pack。
+	 */
+	function syncFlushRemainingLineClearRemainders(g) {
+		const cells = g.lineClearRemainderCells || [];
+		const board = g.board;
+		const rows = g.rows;
+		const cols = g.cols;
+		for (let j = 0; j < cells.length; j++) {
+			const e = cells[j];
+			const piece = createRemainderOnePiece({
+				r: e.r,
+				c: e.c,
+				v: e.v,
+				merged: e.merged,
+				mergeCount: e.mergeCount,
+			});
+			runRemainderPieceUntilLocked(board, rows, cols, piece, null);
+		}
+		return finishLineClearRemainderPhase(Object.assign({}, g, {
+			lineClearRemainderCells: null,
+		}));
+	}
+
+	function resolveLockAfterTick(g, board, lockedPiece, suppressSpawn) {
+		const nextCount = g.pieceCount + 1;
+		const fullRows = getFullRowIndices(board, g.rows, g.cols);
+		if (fullRows.length > 0) {
+			return Object.assign({}, g, {
+				board: board,
+				currentPiece: null,
+				pieceCount: nextCount,
+				clearLinesPending: fullRows,
+			});
+		}
+		if (suppressSpawn) {
+			return Object.assign({}, g, {
+				board: board,
+				currentPiece: null,
+				pieceCount: nextCount,
+				clearLinesPending: null,
+				postClearGravityState: null,
+				cascadePending: false,
+				lineClearRemainderCells: null,
+				lineClearClearedRows: null,
+				lineClearScoreAddPending: null,
+			});
+		}
+		return spawnNextAfterLock(Object.assign({}, g, {board: board, pieceCount: nextCount}));
+	}
+
+	/**
+	 * @param { { clearedVerticalMerges?: number, cascadeSteps?: number, clearRemainderMergeSteps?: number, steppedLineClearRemainder?: boolean, lineClearBundledApply?: boolean } | null | undefined } stats 可选，用于测试统计 / 分步消行剩格（仅页面）
+	 */
 	function applyPendingClearLines(g, stats) {
 		const post = g.postClearGravityState;
 		if (post != null) {
@@ -841,6 +1142,42 @@
 		}
 		if (g.clearLinesPending == null || g.clearLinesPending.length === 0) {
 			return g;
+		}
+		const useBundled = !stats || !stats.steppedLineClearRemainder || stats.lineClearBundledApply;
+		if (!useBundled) {
+			const prep = prepareLineClearDivisionPhase(g.board, g.rows, g.cols, g.clearLinesPending);
+			const sorted = prep.sortedList;
+			const clearedRows = clearedRowsArrayFromClearedSet(prep.clearedSet);
+			if (sorted.length === 0) {
+				packAfterClearedEmptyRows(g.board, g.rows, g.cols, prep.clearedSet);
+				const snap0 = buildRemainingInClearedSnapshot(g.board, g.rows, g.cols);
+				return Object.assign({}, g, {
+					board: g.board,
+					clearLinesPending: null,
+					postClearGravityState: {
+						scoreAdd: prep.scoreAdd,
+						remainingInCleared: snap0.remainingInCleared,
+						remainingRows: snap0.remainingRows,
+					},
+				});
+			}
+			const listCopy = sorted.map(function(x) {
+				return {r: x.r, c: x.c, v: x.v, merged: false, mergeCount: 0};
+			});
+			for (let zi = 0; zi < sorted.length; zi++) {
+				const x = sorted[zi];
+				if (g.board[x.r] && x.c >= 0 && x.c < g.cols) {
+					g.board[x.r][x.c] = 0;
+				}
+			}
+			return Object.assign({}, g, {
+				board: g.board,
+				clearLinesPending: null,
+				currentPiece: null,
+				lineClearRemainderCells: listCopy,
+				lineClearClearedRows: clearedRows,
+				lineClearScoreAddPending: prep.scoreAdd,
+			});
 		}
 		const result = doClearAndGravityOnly(g.board, g.rows, g.cols, g.clearLinesPending, stats,
 			g.lineClearPolicy);
@@ -890,7 +1227,7 @@
 			if (++guardApply > 5000) {
 				throw new Error('advancePostLockLineClearNoSpawn: applyPendingClearLines exceeded guard');
 			}
-			state = applyPendingClearLines(state, stats);
+			state = applyPendingClearLines(state, Object.assign({}, stats || {}, {lineClearBundledApply: true}));
 		}
 		let guardCascade = 0;
 		const polAdv = normalizeLineClearPolicy(state.lineClearPolicy);
@@ -936,26 +1273,76 @@
 		};
 	}
 
+	/** 与正式局 scheduleNext 一致：下一拍本应 spawnNextAfterLock 时即为 true（活动块空且无消行/cascade 收尾工作）。 */
+	function isAtPreSpawnGate(g) {
+		if (!g || g.gameOver) {
+			return true;
+		}
+		if (g.currentPiece != null) {
+			return false;
+		}
+		if (g.clearLinesPending != null && g.clearLinesPending.length > 0) {
+			return false;
+		}
+		if (g.postClearGravityState != null) {
+			return false;
+		}
+		if (g.cascadePending) {
+			return false;
+		}
+		if (isLineClearRemainderPhase(g)) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * 手动调试：单步推进，与主界面调度顺序一致（bundled 消行）。默认 suppressNextSpawn，永不生成下一块。
+	 */
+	function debugSimulationStep(game, stepOpts) {
+		stepOpts = stepOpts || {};
+		const suppressNextSpawn = stepOpts.suppressNextSpawn !== false;
+		const g = game;
+		if (!g || g.gameOver) {
+			return g;
+		}
+		if (g.clearLinesPending != null && g.clearLinesPending.length > 0) {
+			return applyPendingClearLines(g, {lineClearBundledApply: true});
+		}
+		if (g.postClearGravityState != null) {
+			return applyPendingClearLines(g, {lineClearBundledApply: true});
+		}
+		return tick(g, suppressNextSpawn ? {suppressNextSpawn: true} : undefined);
+	}
+
 	function moveLeft(game) {
 		if (game.gameOver || !game.currentPiece) {
 			return game;
 		}
-		if (wouldCollide(game.board, game.rows, game.cols, game.currentPiece, 0, -1)) {
+		if (isLineClearRemainderPhase(game)) {
 			return game;
 		}
-		return Object.assign({}, game,
-			{currentPiece: Object.assign({}, game.currentPiece, {col: game.currentPiece.col - 1})});
+		const p = game.currentPiece;
+		const next = Object.assign({}, p, {col: p.col - 1});
+		if (wouldCollide(game.board, game.rows, game.cols, next, 0, 0)) {
+			return game;
+		}
+		return Object.assign({}, game, {currentPiece: next});
 	}
 
 	function moveRight(game) {
 		if (game.gameOver || !game.currentPiece) {
 			return game;
 		}
-		if (wouldCollide(game.board, game.rows, game.cols, game.currentPiece, 0, 1)) {
+		if (isLineClearRemainderPhase(game)) {
 			return game;
 		}
-		return Object.assign({}, game,
-			{currentPiece: Object.assign({}, game.currentPiece, {col: game.currentPiece.col + 1})});
+		const p = game.currentPiece;
+		const next = Object.assign({}, p, {col: p.col + 1});
+		if (wouldCollide(game.board, game.rows, game.cols, next, 0, 0)) {
+			return game;
+		}
+		return Object.assign({}, game, {currentPiece: next});
 	}
 
 	/**
@@ -991,24 +1378,16 @@
 		if (game.gameOver || !game.currentPiece) {
 			return game;
 		}
-		const p = game.currentPiece;
-		if (p.mergeCount > 0) {
+		if (isLineClearRemainderPhase(game)) {
 			return game;
 		}
-		const nextRotation = (p.rotation + 1) % 4;
-		const rel = getShapeCells(p.shape, nextRotation);
-		const baseNext = {
-			shape: p.shape,
-			rotation: nextRotation,
-			row: p.row,
-			col: p.col,
-			cells: rel.map(function(pt) { return {dr: pt[0], dc: pt[1], value: 2}; }),
-			mergeCount: p.mergeCount,
-		};
-		const tryOffsets = [0, -1, 1, -2, 2, -3, 3];
+		const p = game.currentPiece;
+		const osz = p.shape === 'O' || p.shape === 'S' || p.shape === 'Z';
+		const baseGeom = osz ? rotatePieceKeepBoundingAnchor(p) : rotatePieceCells90CCW(p);
+		const tryOffsets = osz ? [0] : [0, -1, 1, -2, 2, -3, 3];
 		for (let i = 0; i < tryOffsets.length; i++) {
 			const offset = tryOffsets[i];
-			let nextPiece = Object.assign({}, baseNext, {col: p.col + offset});
+			let nextPiece = Object.assign({}, baseGeom, {col: p.col + offset});
 			if (pieceOutOfBounds(game.rows, game.cols, nextPiece, 0, 0)) {
 				continue;
 			}
@@ -1053,7 +1432,9 @@
 		return state;
 	}
 
-	function tick(game) {
+	function tick(game, tickOpts) {
+		tickOpts = tickOpts || {};
+		const suppressSpawn = !!tickOpts.suppressNextSpawn;
 		if (game.gameOver) {
 			return game;
 		}
@@ -1068,15 +1449,24 @@
 			const pol = normalizeLineClearPolicy(g.lineClearPolicy);
 			const cascade = doOneCascadeStep(g.board, g.rows, g.cols, pol.mergeStart);
 			if (!cascade.didOne) {
-				return spawnNextAfterLock(g);
+				return suppressSpawn
+					? Object.assign({}, g, {cascadePending: false, currentPiece: null})
+					: spawnNextAfterLock(g);
 			}
 			if (pol.mergeRounds === 'once') {
-				return spawnNextAfterLock(g);
+				return suppressSpawn
+					? Object.assign({}, g, {cascadePending: false, currentPiece: null})
+					: spawnNextAfterLock(g);
 			}
 			if (cascade.more) {
 				return Object.assign({}, g, {cascadePending: true});
 			}
-			return spawnNextAfterLock(g);
+			return suppressSpawn
+				? Object.assign({}, g, {cascadePending: false, currentPiece: null})
+				: spawnNextAfterLock(g);
+		}
+		if (isLineClearRemainderPhase(g)) {
+			return tickLineClearSimultaneousRemainders(g, null);
 		}
 		let piece = g.currentPiece;
 		if (!piece) {
@@ -1088,17 +1478,7 @@
 			const lockRow = Math.min(piece.row, g.rows - 1 - maxDr);
 			const lockPieceAt = Object.assign({}, piece, {row: lockRow});
 			writePieceToBoard(g.board, g.rows, g.cols, lockPieceAt);
-			const nextCount = g.pieceCount + 1;
-			const fullRows = getFullRowIndices(g.board, g.rows, g.cols);
-			if (fullRows.length > 0) {
-				return Object.assign({}, g, {
-					board: g.board,
-					currentPiece: null,
-					pieceCount: nextCount,
-					clearLinesPending: fullRows,
-				});
-			}
-			return spawnNextAfterLock(Object.assign({}, g, {pieceCount: nextCount}));
+			return resolveLockAfterTick(g, g.board, lockPieceAt, suppressSpawn);
 		}
 
 		const rows = g.rows;
@@ -1108,7 +1488,7 @@
 		while (true) {
 			const wouldHit = pieceOverlapsBoard(board, rows, cols, piece, 1, 0);
 			if (!wouldHit) {
-				// 先清非 merged，再把棋盘上合并结果整体下移一格（否则旧格仍留数，会与块内 merged 叠成两份）
+				// 未锁定前 merged 不占棋盘；纯下落只清非 merged 可能留下的 ghost，再整块下移一行
 				piece.cells.forEach(function(cell) {
 					if (cell.merged) {
 						return;
@@ -1117,21 +1497,6 @@
 					var c = piece.col + cell.dc;
 					if (r >= 0 && r < rows && c >= 0 && c < cols && board[r]) {
 						board[r][c] = 0;
-					}
-				});
-				piece.cells.forEach(function(cell) {
-					if (!cell.merged) {
-						return;
-					}
-					var r = piece.row + cell.dr;
-					var c = piece.col + cell.dc;
-					if (r < 0 || r >= rows || c < 0 || c >= cols || !board[r]) {
-						return;
-					}
-					board[r][c] = 0;
-					var nr = r + 1;
-					if (nr < rows && board[nr]) {
-						board[nr][c] = cell.value;
 					}
 				});
 				return Object.assign({}, g, {board: board, currentPiece: Object.assign({}, piece, {row: piece.row + 1})});
@@ -1150,18 +1515,9 @@
 				}
 			}
 			if (hitBottom) {
-				writePieceToBoard(board, rows, cols, Object.assign({}, piece, {row: pieceRow}));
-				const nextCount = g.pieceCount + 1;
-				const fullRows = getFullRowIndices(board, rows, cols);
-				if (fullRows.length > 0) {
-					return Object.assign({}, g, {
-						board: board,
-						currentPiece: null,
-						pieceCount: nextCount,
-						clearLinesPending: fullRows,
-					});
-				}
-				return spawnNextAfterLock(Object.assign({}, g, {board: board, pieceCount: nextCount}));
+				const lockedAt = Object.assign({}, piece, {row: pieceRow});
+				writePieceToBoard(board, rows, cols, lockedAt);
+				return resolveLockAfterTick(g, board, lockedAt, suppressSpawn);
 			}
 
 			// 仅看前进方向上的「最前线」格：每个这样的格在前进方向上的目标格，要么为空要么为同数（二者满足其一即可，不是「全部为空」或「全部为同数」）。任一方格在该方向不可行进则整块不可行进，锁定。
@@ -1180,18 +1536,9 @@
 				}
 			}
 			if (!canMove) {
-				writePieceToBoard(board, rows, cols, Object.assign({}, piece, {row: pieceRow}));
-				var nextCount = g.pieceCount + 1;
-				var fullRows = getFullRowIndices(board, rows, cols);
-				if (fullRows.length > 0) {
-					return Object.assign({}, g, {
-						board: board,
-						currentPiece: null,
-						pieceCount: nextCount,
-						clearLinesPending: fullRows,
-					});
-				}
-				return spawnNextAfterLock(Object.assign({}, g, {board: board, pieceCount: nextCount}));
+				const lockedAt = Object.assign({}, piece, {row: pieceRow});
+				writePieceToBoard(board, rows, cols, lockedAt);
+				return resolveLockAfterTick(g, board, lockedAt, suppressSpawn);
 			}
 
 			// 最前线均允许：整块沿前进方向移一格；仅最前线格可与目标格同数合并（合并后数字翻倍写入目标格）
@@ -1217,23 +1564,24 @@
 				return Object.assign({}, cell);
 			});
 
-			// 整块离开原位置：清空所有块格在棋盘上的原格。未参与合并的格随整块一起移动，不单独写入棋盘空位（不「填空隙」）。
+			// 「吃掉」固定堆：被合并的堆格从棋盘移除；翻倍值只留在活动块 cells 上，不写棋盘直至锁定
+			for (let mi = 0; mi < piece.cells.length; mi++) {
+				if (!updatedCells[mi].merged) {
+					continue;
+				}
+				const c0 = piece.cells[mi];
+				var targetR = pieceRow + c0.dr + direction.dr;
+				var targetC = piece.col + c0.dc + direction.dc;
+				if (targetR >= 0 && targetR < rows && targetC >= 0 && targetC < cols && board[targetR]) {
+					board[targetR][targetC] = 0;
+				}
+			}
+			// 整块离开原位置：清空棋盘上原 footprint（merged 未写在棋盘上，此处多为 no-op）
 			piece.cells.forEach(function(cell) {
 				var r = pieceRow + cell.dr;
 				var c = piece.col + cell.dc;
 				if (r >= 0 && r < rows && c >= 0 && c < cols && board[r]) {
 					board[r][c] = 0;
-				}
-			});
-			// 合并结果写入前进方向上的目标格
-			piece.cells.forEach(function(cell, idx) {
-				if (!updatedCells[idx].merged) {
-					return;
-				}
-				var targetR = pieceRow + cell.dr + direction.dr;
-				var targetC = piece.col + cell.dc + direction.dc;
-				if (board[targetR]) {
-					board[targetR][targetC] = updatedCells[idx].value;
 				}
 			});
 			piece = Object.assign({}, piece, {row: newRow, col: newCol, cells: updatedCells, mergeCount: piece.mergeCount + mergedCount});
@@ -1271,6 +1619,9 @@
 			level: 0,
 			linesClearedTotal: 0,
 			lineClearPolicy: normalizeLineClearPolicy(overrides.lineClearPolicy),
+			lineClearRemainderCells: null,
+			lineClearClearedRows: null,
+			lineClearScoreAddPending: null,
 		};
 	}
 
@@ -1284,7 +1635,9 @@
 				rotation: p.rotation,
 				row: p.row,
 				col: p.col,
-				cells: p.cells.map(function(c) { return {dr: c.dr, dc: c.dc, value: c.value}; }),
+				cells: p.cells.map(function(c) {
+					return {dr: c.dr, dc: c.dc, value: c.value, merged: !!c.merged};
+				}),
 				mergeCount: p.mergeCount,
 			};
 		}
@@ -1313,6 +1666,19 @@
 			level: g.level != null ? g.level : 0,
 			linesClearedTotal: g.linesClearedTotal != null ? g.linesClearedTotal : 0,
 			lineClearPolicy: g.lineClearPolicy ? normalizeLineClearPolicy(g.lineClearPolicy) : getDefaultLineClearPolicy(),
+			lineClearRemainderCells: g.lineClearRemainderCells
+				? g.lineClearRemainderCells.map(function(x) {
+					return {
+						r: x.r,
+						c: x.c,
+						v: x.v,
+						merged: !!x.merged,
+						mergeCount: x.mergeCount != null ? x.mergeCount : 0,
+					};
+				})
+				: null,
+			lineClearClearedRows: g.lineClearClearedRows ? g.lineClearClearedRows.slice() : null,
+			lineClearScoreAddPending: g.lineClearScoreAddPending != null ? g.lineClearScoreAddPending : null,
 		};
 	}
 
@@ -1349,6 +1715,28 @@
 				return null;
 			}
 			const shape = String(p.shape || 'I');
+			if (shape === '_REMAINDER1') {
+				const row = Number(p.row);
+				const col = Number(p.col);
+				if (!Number.isFinite(row) || !Number.isFinite(col)) {
+					return null;
+				}
+				let val = 2;
+				const cellsRawRm = p.cells;
+				if (Array.isArray(cellsRawRm) && cellsRawRm.length >= 1) {
+					const cv = Number(cellsRawRm[0].value);
+					val = Number.isFinite(cv) && cv >= 2 ? cv : 2;
+				}
+				const merged0 = !!(cellsRawRm[0] && cellsRawRm[0].merged);
+				return {
+					shape: '_REMAINDER1',
+					rotation: 0,
+					row: row,
+					col: col,
+					cells: [{dr: 0, dc: 0, value: val, merged: merged0}],
+					mergeCount: Math.max(0, Number(p.mergeCount) || 0),
+				};
+			}
 			const rotation = Math.max(0, Math.min(3, Number(p.rotation) || 0));
 			const row = Number(p.row);
 			const col = Number(p.col);
@@ -1363,6 +1751,7 @@
 						dr: Number(c.dr) || 0,
 						dc: Number(c.dc) || 0,
 						value: Number(c.value) >= 2 ? Number(c.value) : 2,
+						merged: !!c.merged,
 					};
 				});
 			}
@@ -1407,6 +1796,64 @@
 			level: Math.max(0, Math.min(20, Number(o.level) || 0)),
 			linesClearedTotal: Math.max(0, Number(o.linesClearedTotal) || 0),
 			lineClearPolicy: normalizeLineClearPolicy(o.lineClearPolicy),
+			lineClearRemainderCells: (function() {
+				function parseCellList(raw) {
+					if (!Array.isArray(raw)) {
+						return null;
+					}
+					const out = [];
+					for (let i = 0; i < raw.length; i++) {
+						const it = raw[i];
+						if (!it || typeof it !== 'object') {
+							continue;
+						}
+						const rr = Number(it.r);
+						const cc = Number(it.c);
+						const vv = Number(it.v);
+						if (!Number.isFinite(rr) || !Number.isFinite(cc) || !Number.isFinite(vv)) {
+							continue;
+						}
+						out.push({
+							r: rr,
+							c: cc,
+							v: vv,
+							merged: !!it.merged,
+							mergeCount: Number.isFinite(Number(it.mergeCount)) ? Number(it.mergeCount) : 0,
+						});
+					}
+					return out.length > 0 ? out : null;
+				}
+				let cells = parseCellList(o.lineClearRemainderCells);
+				if (!cells && Array.isArray(o.lineClearRemainderList) && o.lineClearRemainderList.length > 0) {
+					const legacy = o.lineClearRemainderList;
+					const idx = o.lineClearRemainderIndex != null && Number.isFinite(Number(o.lineClearRemainderIndex))
+						? Math.max(0, Math.min(legacy.length - 1, Number(o.lineClearRemainderIndex)))
+						: 0;
+					const tail = legacy.slice(idx);
+					const conv = [];
+					for (let j = 0; j < tail.length; j++) {
+						const it = tail[j];
+						if (!it || typeof it !== 'object') {
+							continue;
+						}
+						const rr = Number(it.r);
+						const cc = Number(it.c);
+						const vv = Number(it.v);
+						if (!Number.isFinite(rr) || !Number.isFinite(cc) || !Number.isFinite(vv)) {
+							continue;
+						}
+						conv.push({r: rr, c: cc, v: vv, merged: false, mergeCount: 0});
+					}
+					cells = conv.length > 0 ? conv : null;
+				}
+				return cells;
+			})(),
+			lineClearClearedRows: Array.isArray(o.lineClearClearedRows)
+				? o.lineClearClearedRows.map(function(x) { return Number(x); }).filter(function(x) { return Number.isFinite(x); })
+				: null,
+			lineClearScoreAddPending: o.lineClearScoreAddPending != null && Number.isFinite(Number(o.lineClearScoreAddPending))
+				? Number(o.lineClearScoreAddPending)
+				: null,
 		};
 	}
 
@@ -1438,5 +1885,9 @@
 		DIR_DOWN: DIR_DOWN,
 		DIR_LEFT: DIR_LEFT,
 		DIR_RIGHT: DIR_RIGHT,
+		getBoardWithCurrentPiece: getBoardWithCurrentPiece,
+		createCustomPieceFromAbsCells: createCustomPieceFromAbsCells,
+		isAtPreSpawnGate: isAtPreSpawnGate,
+		debugSimulationStep: debugSimulationStep,
 	};
 });

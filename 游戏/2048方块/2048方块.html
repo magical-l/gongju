@@ -84,10 +84,10 @@
 					</el-form-item>
 				</div>
 				<div class="one setting group line-clear-pack">
-					<el-form-item label="消行后堆">
+					<el-form-item label="消行后堆落" title="消行本身均为整行消除；此项指消行后真空填补时上方行的相对关系（整块/列）。">
 						<el-radio-group v-model="lineClearAfterPack" size="small" @change="onLineClearPolicyChange">
-							<el-radio-button label="whole">整行抽行</el-radio-button>
-							<el-radio-button label="column">按列落底</el-radio-button>
+							<el-radio-button label="whole">整块模式</el-radio-button>
+							<el-radio-button label="column">列模式</el-radio-button>
 						</el-radio-group>
 					</el-form-item>
 				</div>

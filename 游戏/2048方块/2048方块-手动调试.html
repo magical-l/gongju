@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>2048方块 · 手动调试</title>
+	<link href="../../lib/element-plus/2.10.7/index.css" rel="stylesheet">
+	<link href="../../resources/el-plus.css" rel="stylesheet">
+	<link href="../../resources/common.css" rel="stylesheet">
+	<link href="../../resources/layout.css" rel="stylesheet">
+	<link href="../../resources/biz.css" rel="stylesheet">
+	<link href="../../resources/花活.css" rel="stylesheet">
+	<link href="2048方块.css" rel="stylesheet">
+	<style>
+		* { box-sizing: border-box; }
+		/* 反叵字形仅两列：无 footer 行 */
+		#dbg-article.grid { grid-template-rows: auto 1fr; grid-template-areas: 'header header' 'main right-sidebar'; }
+		@media (max-width: 900px) {
+			#dbg-article.grid { grid-template-columns: 1fr; grid-template-areas: 'header' 'main' 'right-sidebar'; }
+		}
+		.gaming.area.dbg-manual { --board-radius: 0; --board-padding: 0; }
+		/* 与 biz 一致：整块棋盘在 main 格内水平居中（勿写 margin:0 顶掉） */
+		.gaming.area.dbg-manual .dbg-board-section.main.map.area { max-width: none; width: auto; margin-left: auto; margin-right: auto; }
+		.dbg-board-col { align-self: center; }
+		.board-wrap { position: relative; user-select: none; -webkit-user-select: none; }
+		/* 编辑态：性质=左棕条(固定) / 顶蓝条(下落)；与「选中」分两条通道，避免 inset 圈被 ::before 盖住 */
+		.gaming.area.dbg-manual .board:not(.run) .cell.falling-slot { background: #a8b8a0; }
+		.gaming.area.dbg-manual .board:not(.run) .cell.dbg-cell-fixed::before {
+			content: '';
+			position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #8b6914; z-index: 3; pointer-events: none;
+		}
+		.gaming.area.dbg-manual .board:not(.run) .cell.dbg-cell-falling::before {
+			content: '';
+			position: absolute; left: 0; right: 0; top: 0; height: 4px; background: #1565c0; z-index: 3; pointer-events: none;
+		}
+		/* 选中：外扩一圈（非 inset），不压在格内性质条上；抬高 z-index 以免外圈被邻格盖住 */
+		.gaming.area.dbg-manual .board:not(.run) .cell.sel-preview {
+			position: relative;
+			z-index: 1;
+			box-shadow: 0 0 0 2px rgba(26, 90, 138, 0.45);
+		}
+		.gaming.area.dbg-manual .board:not(.run) .cell.sel {
+			position: relative;
+			z-index: 2;
+			box-shadow: 0 0 0 2px #1a5a8a;
+		}
+		.gaming.area.dbg-manual .board.run .cell { cursor: default; }
+		.gaming.area.dbg-manual .board.run .cell.sel,
+		.gaming.area.dbg-manual .board.run .cell.sel-preview { box-shadow: none !important; }
+		.gaming.area.dbg-manual .board:not(.run) .cell { cursor: pointer; }
+		.legend { margin-top: 8px; font-size: 12px; color: #555; }
+		.legend-swatch {
+			width: 14px; height: 14px; display: inline-block; border: 1px solid var(--grid-line); border-radius: 0;
+			vertical-align: middle; flex-shrink: 0;
+		}
+		.legend-swatch-empty { background: var(--cell-empty); }
+		.legend-swatch-fixed { background: #e2ead8; border-left: 4px solid #8b6914; }
+		.legend-swatch-falling { background: #a8b8a0; border-top: 4px solid #1565c0; }
+		.legend-swatch-run { background: #7cb37a; }
+		.edit-intro { font-size: 12px; color: #555; line-height: 1.5; margin: 0 0 10px 0; }
+		.edit-status { font-size: 13px; color: #3d5a35; min-height: 1.35em; margin: 0 0 12px 0; }
+		#edit-panel h2 { font-size: 1.1rem; margin: 0 0 8px 0; font-weight: 700; }
+		#edit-panel .flex.vertical.grp { margin-bottom: 16px; }
+		#edit-panel .flex.vertical.grp:last-of-type { margin-bottom: 0; }
+		#edit-panel .el-button[data-dbg-val] { min-width: 3.25rem; min-height: 42px; font-size: 16px; font-weight: 600; }
+		#edit-panel .el-button[data-dbg-kind] { min-height: 48px; font-size: 15px; font-weight: 600; }
+		#edit-panel .dbg-row-actions .el-button { flex: 1 1 140px; min-height: 44px; }
+		#edit-panel .edit-hint { font-size: 12px; color: #666; margin: 12px 0 0; line-height: 1.5; }
+		.hint-inline { font-weight: 600; font-size: 12px; margin-right: 4px; }
+		article.dbg-manual > header.toolbar .el-button { min-height: 38px; padding: 10px 18px; font-size: 14px; }
+		/* 导出弹层 */
+		#export-modal { position: fixed; inset: 0; z-index: 2000; display: none; align-items: center; justify-content: center; padding: 12px; }
+		#export-modal.is-open { display: flex; }
+		.export-modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.4); }
+		.export-modal-panel { position: relative; z-index: 1; background: #fff; padding: 12px; max-width: min(880px, 100%); width: 100%; max-height: 88vh; display: flex; flex-direction: column; border: 1px solid #ccc; }
+		.export-modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 8px; }
+		#export-area { width: 100%; flex: 1; min-height: 220px; font-family: Consolas, ui-monospace, monospace; font-size: 12px; line-height: 1.35; padding: 8px; resize: vertical; }
+	</style>
+</head>
+<body>
+<main>
+	<article class="gaming area , 反叵字形 grid dbg-manual" id="dbg-article" tabindex="0">
+	<header class="toolbar , multi-line flex , items-near-x-center items-stretch no-gap dbg-manual-toolbar one-row">
+		<section class="setting list area , multi-line flex , items-near-x-start items-near-y-center no-gap">
+			<div class="one setting group">
+				<label>行数 <select id="inp-rows" class="select-width-6ch"></select></label>
+				<label>列数 <select id="inp-cols" class="select-width-6ch"></select></label>
+				<button type="button" class="el-button el-button--default" id="btn-apply-size">应用棋盘尺寸</button>
+				<label>间隔 ms <input type="number" id="inp-interval" min="50" max="3000" step="50" value="400" style="width:88px"></label>
+			</div>
+			<div class="one setting group" title="消行本身均为整行消除；以下均为消行之后阶段（真空填补、全场合并等）。">
+				<span class="hint-inline">消行后</span>
+				<label><input type="radio" name="pack" value="whole" checked> 整块模式</label>
+				<label><input type="radio" name="pack" value="column"> 列模式</label>
+			</div>
+			<div class="one setting group">
+				<span class="hint-inline">全场合并序</span>
+				<label><input type="radio" name="merge" value="top" checked> 自上而下</label>
+				<label><input type="radio" name="merge" value="bottom"> 自下而上</label>
+				<label><input type="radio" name="merge" value="contact"> 顶格相邻</label>
+			</div>
+			<div class="one setting group">
+				<span class="hint-inline">合并轮数</span>
+				<label><input type="radio" name="rounds" value="untilStable" checked> 直到稳定</label>
+				<label><input type="radio" name="rounds" value="once"> 仅一步</label>
+			</div>
+		</section>
+		<section class="controller list area , single-line flex , items-near-x-start items-near-y-center no-gap">
+			<div class="one controller group">
+				<button type="button" class="el-button el-button--primary" id="btn-start" title="从当前布局开始模拟；若已停在「生成下一块」之前，会先恢复再重播">开始</button>
+				<button type="button" class="el-button el-button--warning" id="btn-pause" disabled>暂停</button>
+				<button type="button" class="el-button el-button--default" id="btn-back-start" disabled>回到开始</button>
+				<button type="button" class="el-button el-button--danger" id="btn-clear">清空棋盘</button>
+				<button type="button" class="el-button el-button--default" id="btn-export">导出报告</button>
+			</div>
+		</section>
+	</header>
+
+	<section class="main flex vertical items-near-x-start items-near-y-center flexible" style="min-width:0">
+		<section class="main map area , no-shrink , flex items-near-x-center dbg-board-section" id="dbg-board-section">
+			<div class="dbg-board-col flex vertical items-near-y-center">
+				<div class="board-wrap" id="board-wrap">
+					<div id="board" class="board" aria-label="棋盘"></div>
+				</div>
+			</div>
+		</section>
+	</section>
+
+	<aside class="right-sidebar flex vertical items-stretch" style="min-width:0;gap:1rem">
+		<div id="edit-panel">
+			<h2>编辑选区</h2>
+			<p class="edit-intro">单击只选一格；拖选一片；<kbd>Shift</kbd>+拖/点按为累加。点数字或固定/下落设定。「清空选中格」「清除选区」仍可用。选中=<strong>格外侧</strong>青框；固定堆=左棕条；下落块=顶蓝条+灰绿底。暂停点=在「生成下一块」之前停住（调试用）。「开始」=运行，再点=重播；「回到开始」=本轮布局。运行中 <kbd>空格</kbd> 暂停。</p>
+			<p id="status" class="edit-status"></p>
+			<div class="legend flex multi-line items-near-x-start items-near-y-center">
+				<span class="flex inline items-near-y-center"><i class="legend-swatch legend-swatch-empty"></i> 空</span>
+				<span class="flex inline items-near-y-center"><i class="legend-swatch legend-swatch-fixed"></i> 固定堆</span>
+				<span class="flex inline items-near-y-center"><i class="legend-swatch legend-swatch-falling"></i> 活动块</span>
+				<span id="legend-run" class="flex inline items-near-y-center" style="display:none"><i class="legend-swatch legend-swatch-run"></i> 当前块</span>
+			</div>
+			<div class="flex vertical grp">
+				<div class="flex multi-line items-near-x-start items-near-y-center">
+					<button type="button" class="el-button el-button--default" data-dbg-val="2">2</button>
+					<button type="button" class="el-button el-button--default" data-dbg-val="4">4</button>
+					<button type="button" class="el-button el-button--default" data-dbg-val="8">8</button>
+					<button type="button" class="el-button el-button--default" data-dbg-val="16">16</button>
+					<button type="button" class="el-button el-button--default" data-dbg-val="32">32</button>
+				</div>
+			</div>
+			<div class="flex vertical grp">
+				<div class="flex single-line items-near-x-start" style="width:100%;gap:10px">
+					<button type="button" class="el-button el-button--default stretch" data-dbg-kind="fixed">固定块堆</button>
+					<button type="button" class="el-button el-button--default stretch" data-dbg-kind="falling">下落块</button>
+				</div>
+			</div>
+			<div class="flex multi-line items-near-x-start dbg-row-actions" style="gap:10px;width:100%">
+				<button type="button" class="el-button el-button--default stretch" id="btn-clear-cells">清空选中格</button>
+				<button type="button" class="el-button el-button--default stretch" id="btn-clear-sel">清除选区</button>
+			</div>
+		</div>
+	</aside>
+	</article>
+
+	<div id="export-modal" hidden>
+		<div class="export-modal-backdrop" id="export-modal-backdrop"></div>
+		<div class="export-modal-panel" role="dialog" aria-modal="true" aria-labelledby="export-modal-title">
+			<div class="export-modal-head">
+				<strong id="export-modal-title">导出报告</strong>
+				<button type="button" class="el-button el-button--default" id="btn-export-close">关闭</button>
+			</div>
+			<textarea id="export-area" readonly></textarea>
+			<p style="margin:8px 0 0;font-size:12px;color:#555;">已全选，可 Ctrl+C 复制</p>
+		</div>
+	</div>
+</main>
+
+	<script src="constants.js"></script>
+	<script src="logic.js"></script>
+	<script>
+(function() {
+	'use strict';
+	var L = window.Game2048BlocksLogic;
+	if (!L) {
+		document.getElementById('status').textContent = '未加载 logic.js';
+		return;
+	}
+
+	var MIN_R = 8, MAX_R = 20, MIN_C = 6, MAX_C = 12;
+	var rows = 8, cols = 6;
+	var fixed = [];
+	var falling = {};
+	var selected = {};
+	var mode = 'edit';
+	var gameState = null;
+	var timer = null;
+	var pausedRun = false;
+	var replaySnapshot = null;
+	var stepGuard = 0;
+	/** 上一轮模拟结束时的结果（停在「生成下一块」之前 / 安全中止），供导出 */
+	var lastRunResult = null;
+
+	var drag = null;
+	var skipNextClick = false;
+
+	/** 与 2048方块-dom.js：消行闪烁后执行 stepped apply；消行后下落间隔、cascade 间隔 */
+	var CLEAR_LINE_FLASH_MS = 400;
+	var CASCADE_STEP_MS = 180;
+
+	function emptyGrid(r, c) {
+		var g = [];
+		for (var i = 0; i < r; i++) {
+			var row = [];
+			for (var j = 0; j < c; j++) {
+				row.push(0);
+			}
+			g.push(row);
+		}
+		return g;
+	}
+
+	function fillSelect(sel, min, max, cur) {
+		sel.innerHTML = '';
+		for (var v = min; v <= max; v++) {
+			var opt = document.createElement('option');
+			opt.value = String(v);
+			opt.textContent = String(v);
+			if (v === cur) {
+				opt.selected = true;
+			}
+			sel.appendChild(opt);
+		}
+	}
+
+	function policyFromUI() {
+		var pack = (document.querySelector('input[name="pack"]:checked') || {}).value || 'whole';
+		var merge = (document.querySelector('input[name="merge"]:checked') || {}).value || 'top';
+		var rounds = (document.querySelector('input[name="rounds"]:checked') || {}).value || 'untilStable';
+		return L.normalizeLineClearPolicy({
+			afterClearPack: pack,
+			mergeStart: merge,
+			mergeRounds: rounds
+		});
+	}
+
+	/** 取不小于 v 的最小 2 的幂（封顶 2048），与正式页 unit-2…unit-2048 配色档一致 */
+	function unitClassForValue(v) {
+		v = Math.max(2, Math.floor(Number(v)) || 2);
+		var p = 2;
+		while (p < v && p < 2048) {
+			p *= 2;
+		}
+		return 'unit unit-' + p;
+	}
+
+	function keyRc(r, c) {
+		return r + ',' + c;
+	}
+
+	function parseKey(k) {
+		var p = k.split(',');
+		return { r: parseInt(p[0], 10), c: parseInt(p[1], 10) };
+	}
+
+	function cellsInRect(r0, c0, r1, c1) {
+		var a = {};
+		var rmin = Math.min(r0, r1);
+		var rmax = Math.max(r0, r1);
+		var cmin = Math.min(c0, c1);
+		var cmax = Math.max(c0, c1);
+		for (var r = rmin; r <= rmax; r++) {
+			for (var c = cmin; c <= cmax; c++) {
+				if (r >= 0 && r < rows && c >= 0 && c < cols) {
+					a[keyRc(r, c)] = true;
+				}
+			}
+		}
+		return a;
+	}
+
+	function syncBoardCssVars() {
+		var root = document.getElementById('dbg-article');
+		if (root) {
+			root.style.setProperty('--board-cols', String(cols));
+			root.style.setProperty('--board-rows', String(rows));
+		}
+	}
+
+	function renderEdit() {
+		syncBoardCssVars();
+		var el = document.getElementById('board');
+		el.className = 'board';
+		el.innerHTML = '';
+		var preview = drag && drag.preview ? drag.preview : null;
+		for (var r = 0; r < rows; r++) {
+			for (var c = 0; c < cols; c++) {
+				var cell = document.createElement('div');
+				cell.className = 'cell';
+				cell.dataset.r = String(r);
+				cell.dataset.c = String(c);
+				var k = keyRc(r, c);
+				if (selected[k]) {
+					cell.classList.add('sel');
+				}
+				if (preview && preview[k]) {
+					cell.classList.add('sel-preview');
+				}
+				var fv = fixed[r] ? fixed[r][c] : 0;
+				var fallV = falling[k];
+				if (fallV) {
+					cell.classList.add('falling-slot', 'dbg-cell-falling');
+					var u = document.createElement('span');
+					u.className = unitClassForValue(fallV);
+					u.textContent = String(fallV);
+					cell.appendChild(u);
+				} else if (fv) {
+					cell.classList.add('dbg-cell-fixed');
+					var u2 = document.createElement('span');
+					u2.className = unitClassForValue(fv);
+					u2.textContent = String(fv);
+					cell.appendChild(u2);
+				}
+				cell.addEventListener('click', onCellClick);
+				cell.addEventListener('mousedown', onCellMouseDown);
+				el.appendChild(cell);
+			}
+		}
+		syncLegendMode();
+	}
+
+	function getDisplayBoard(state) {
+		var b = state.board.map(function(row) { return row.slice(); });
+		var rem = state.lineClearRemainderCells;
+		if (rem && rem.length) {
+			for (var i = 0; i < rem.length; i++) {
+				var cell = rem[i];
+				if (cell.r >= 0 && cell.r < state.rows && cell.c >= 0 && cell.c < state.cols) {
+					b[cell.r][cell.c] = cell.v;
+				}
+			}
+		}
+		var piece = state.currentPiece;
+		if (piece && !state.gameOver) {
+			var abs = L.pieceAbsCells(piece);
+			for (var j = 0; j < abs.length; j++) {
+				var a = abs[j];
+				if (a.r >= 0 && a.r < state.rows && a.c >= 0 && a.c < state.cols) {
+					b[a.r][a.c] = a.value;
+				}
+			}
+		}
+		return b;
+	}
+
+	/** @param {number[]|null} clearingRows 待消除行（仅闪烁阶段传入，与正式局一致） */
+	function renderRun(clearingRows) {
+		syncBoardCssVars();
+		var el = document.getElementById('board');
+		el.className = 'board run';
+		el.innerHTML = '';
+		if (!gameState) {
+			syncLegendMode();
+			return;
+		}
+		var flashRow = {};
+		if (clearingRows && clearingRows.length) {
+			for (var fi = 0; fi < clearingRows.length; fi++) {
+				flashRow[clearingRows[fi]] = true;
+			}
+		}
+		var disp = getDisplayBoard(gameState);
+		for (var r = 0; r < rows; r++) {
+			for (var c = 0; c < cols; c++) {
+				var cell = document.createElement('div');
+				cell.className = 'cell';
+				if (flashRow[r]) {
+					cell.classList.add('clearing');
+				}
+				var v = disp[r][c] || 0;
+				if (v) {
+					var u = document.createElement('span');
+					u.className = unitClassForValue(v);
+					u.textContent = String(v);
+					cell.appendChild(u);
+					if (gameState.currentPiece) {
+						var isPiece = L.pieceAbsCells(gameState.currentPiece).some(function(x) {
+							return x.r === r && x.c === c;
+						});
+						if (isPiece) {
+							cell.classList.add('falling-slot');
+						}
+					}
+				}
+				el.appendChild(cell);
+			}
+		}
+		syncLegendMode();
+	}
+
+	function onCellMouseDown(ev) {
+		if (mode !== 'edit' || ev.button !== 0) {
+			return;
+		}
+		skipNextClick = false;
+		var t = ev.currentTarget;
+		var r = parseInt(t.dataset.r, 10);
+		var c = parseInt(t.dataset.c, 10);
+		drag = {
+			r0: r,
+			c0: c,
+			r1: r,
+			c1: c,
+			additive: !!(ev.shiftKey || ev.ctrlKey || ev.metaKey),
+			clientX: ev.clientX,
+			clientY: ev.clientY,
+			moved: false,
+			preview: null
+		};
+		document.addEventListener('mousemove', onDocMouseMove);
+		document.addEventListener('mouseup', onDocMouseUp);
+	}
+
+	function pickCellAtPoint(clientX, clientY) {
+		var hit = document.elementFromPoint(clientX, clientY);
+		if (!hit) {
+			return null;
+		}
+		var cell = hit.closest('.cell');
+		if (!cell || !cell.dataset.r) {
+			return null;
+		}
+		var board = document.getElementById('board');
+		if (!board || !board.contains(cell)) {
+			return null;
+		}
+		return {
+			r: parseInt(cell.dataset.r, 10),
+			c: parseInt(cell.dataset.c, 10)
+		};
+	}
+
+	function onDocMouseMove(ev) {
+		if (!drag) {
+			return;
+		}
+		var dx = ev.clientX - drag.clientX;
+		var dy = ev.clientY - drag.clientY;
+		if (Math.abs(dx) + Math.abs(dy) > 4) {
+			drag.moved = true;
+		}
+		var end = pickCellAtPoint(ev.clientX, ev.clientY);
+		if (end) {
+			drag.r1 = end.r;
+			drag.c1 = end.c;
+		}
+		drag.preview = cellsInRect(drag.r0, drag.c0, drag.r1, drag.c1);
+		renderEdit();
+	}
+
+	function onDocMouseUp(ev) {
+		if (!drag) {
+			return;
+		}
+		document.removeEventListener('mousemove', onDocMouseMove);
+		document.removeEventListener('mouseup', onDocMouseUp);
+		var d = drag;
+		drag = null;
+		if (mode !== 'edit') {
+			renderEdit();
+			return;
+		}
+		if (d.moved) {
+			var rect = cellsInRect(d.r0, d.c0, d.r1, d.c1);
+			if (d.additive) {
+				for (var k in rect) {
+					if (Object.prototype.hasOwnProperty.call(rect, k)) {
+						selected[k] = true;
+					}
+				}
+			} else {
+				selected = rect;
+			}
+			skipNextClick = true;
+			renderEdit();
+			return;
+		}
+		/* 单击未拖动：非累加=只保留当前格（再点同格且仅该格选中则取消）；Shift/Ctrl=在原选区上点选切换 */
+		var k0 = keyRc(d.r0, d.c0);
+		if (d.additive) {
+			if (selected[k0]) {
+				delete selected[k0];
+			} else {
+				selected[k0] = true;
+			}
+		} else {
+			if (selected[k0] && Object.keys(selected).length === 1) {
+				delete selected[k0];
+			} else {
+				selected = {};
+				selected[k0] = true;
+			}
+		}
+		skipNextClick = true;
+		renderEdit();
+	}
+
+	function onCellClick(ev) {
+		if (mode !== 'edit') {
+			return;
+		}
+		if (skipNextClick) {
+			skipNextClick = false;
+			return;
+		}
+		var t = ev.currentTarget;
+		var r = parseInt(t.dataset.r, 10);
+		var c = parseInt(t.dataset.c, 10);
+		var k = keyRc(r, c);
+		var additive = !!(ev.shiftKey || ev.ctrlKey || ev.metaKey);
+		if (additive) {
+			if (selected[k]) {
+				delete selected[k];
+			} else {
+				selected[k] = true;
+			}
+		} else {
+			if (selected[k] && Object.keys(selected).length === 1) {
+				delete selected[k];
+			} else {
+				selected = {};
+				selected[k] = true;
+			}
+		}
+		renderEdit();
+	}
+
+	function setStatus(msg) {
+		var st = document.getElementById('status');
+		if (st) {
+			st.textContent = msg;
+		}
+	}
+
+	function syncBackButton() {
+		var btn = document.getElementById('btn-back-start');
+		if (!btn) {
+			return;
+		}
+		btn.disabled = !replaySnapshot || mode === 'run';
+	}
+
+	function syncLegendMode() {
+		var lr = document.getElementById('legend-run');
+		if (!lr) {
+			return;
+		}
+		lr.style.display = (mode === 'run' || mode === 'gate') ? '' : 'none';
+	}
+
+	/** 与正式页暂停按钮：运行中未暂停=暂停(黄)，暂停中=开始(绿) */
+	function syncPauseButtonUi() {
+		var btn = document.getElementById('btn-pause');
+		if (!btn) {
+			return;
+		}
+		btn.classList.remove('el-button--success', 'el-button--warning');
+		if (mode !== 'run') {
+			btn.textContent = '暂停';
+			btn.classList.add('el-button--warning');
+			return;
+		}
+		if (pausedRun) {
+			btn.textContent = '开始';
+			btn.classList.add('el-button--success');
+		} else {
+			btn.textContent = '暂停';
+			btn.classList.add('el-button--warning');
+		}
+	}
+
+	/** 「开始」后至「回到开始」前：仅禁用编辑选区内的按钮（文案/图例仍可读） */
+	function setEditPanelLocked(locked) {
+		var panel = document.getElementById('edit-panel');
+		if (!panel) {
+			return;
+		}
+		panel.querySelectorAll('button').forEach(function(el) {
+			el.disabled = !!locked;
+		});
+	}
+
+	function stopTimer() {
+		if (timer) {
+			clearTimeout(timer);
+			timer = null;
+		}
+	}
+
+	function snapshotEditor() {
+		var fallList = [];
+		for (var k in falling) {
+			if (!Object.prototype.hasOwnProperty.call(falling, k)) {
+				continue;
+			}
+			var o = parseKey(k);
+			fallList.push({ r: o.r, c: o.c, v: falling[k] });
+		}
+		return {
+			rows: rows,
+			cols: cols,
+			fixed: fixed.map(function(row) { return row.slice(); }),
+			falling: fallList,
+			policy: policyFromUI(),
+			intervalMs: Math.max(50, parseInt(document.getElementById('inp-interval').value, 10) || 400)
+		};
+	}
+
+	function applyPolicyToUI(pol) {
+		if (!pol) {
+			return;
+		}
+		var a = document.querySelector('input[name="pack"][value="' + pol.afterClearPack + '"]');
+		if (a) {
+			a.checked = true;
+		}
+		var b = document.querySelector('input[name="merge"][value="' + pol.mergeStart + '"]');
+		if (b) {
+			b.checked = true;
+		}
+		var c = document.querySelector('input[name="rounds"][value="' + pol.mergeRounds + '"]');
+		if (c) {
+			c.checked = true;
+		}
+	}
+
+	function restoreSnapshot(snap) {
+		rows = snap.rows;
+		cols = snap.cols;
+		fixed = snap.fixed.map(function(row) { return row.slice(); });
+		falling = {};
+		for (var i = 0; i < snap.falling.length; i++) {
+			var e = snap.falling[i];
+			falling[keyRc(e.r, e.c)] = e.v;
+		}
+		document.getElementById('inp-interval').value = String(snap.intervalMs);
+		fillSelect(document.getElementById('inp-rows'), MIN_R, MAX_R, rows);
+		fillSelect(document.getElementById('inp-cols'), MIN_C, MAX_C, cols);
+		applyPolicyToUI(snap.policy);
+		selected = {};
+	}
+
+	function buildGameFromEditor() {
+		var entries = [];
+		for (var k in falling) {
+			if (!Object.prototype.hasOwnProperty.call(falling, k)) {
+				continue;
+			}
+			var o = parseKey(k);
+			entries.push({ r: o.r, c: o.c, value: falling[k] });
+		}
+		var piece = L.createCustomPieceFromAbsCells(entries);
+		if (!piece) {
+			alert('请至少标记一个「下落块」格子后再开始。');
+			return null;
+		}
+		var board = fixed.map(function(row) { return row.slice(); });
+		return {
+			rows: rows,
+			cols: cols,
+			board: board,
+			currentPiece: piece,
+			nextPiece: null,
+			pieceCount: 1,
+			gameOver: false,
+			clearLinesPending: null,
+			postClearGravityState: null,
+			cascadePending: false,
+			score: 0,
+			highScore: 0,
+			seed: 0,
+			fallIntervalMs: Math.max(50, parseInt(document.getElementById('inp-interval').value, 10) || 400),
+			lineClearPolicy: policyFromUI(),
+			lineClearRemainderCells: null,
+			lineClearClearedRows: null,
+			lineClearScoreAddPending: null,
+			overlayVisible: false,
+			overlayMessage: '',
+			level: 0,
+			linesClearedTotal: 0
+		};
+	}
+
+	function scheduleStep() {
+		stopTimer();
+		if (pausedRun || mode !== 'run' || !gameState) {
+			return;
+		}
+		var ms = Math.max(50, parseInt(document.getElementById('inp-interval').value, 10) || 400);
+
+		if (gameState.clearLinesPending != null && gameState.clearLinesPending.length > 0) {
+			renderRun(gameState.clearLinesPending);
+			timer = setTimeout(function() {
+				timer = null;
+				if (pausedRun || mode !== 'run' || !gameState) {
+					return;
+				}
+				gameState = L.applyPendingClearLines(gameState, {steppedLineClearRemainder: true});
+				renderRun();
+				afterSimulationStep();
+			}, CLEAR_LINE_FLASH_MS);
+			return;
+		}
+
+		if (gameState.postClearGravityState != null) {
+			timer = setTimeout(function() {
+				timer = null;
+				if (pausedRun || mode !== 'run' || !gameState) {
+					return;
+				}
+				gameState = L.applyPendingClearLines(gameState);
+				renderRun();
+				afterSimulationStep();
+			}, ms);
+			return;
+		}
+
+		if (gameState.cascadePending) {
+			timer = setTimeout(function() {
+				timer = null;
+				if (pausedRun || mode !== 'run' || !gameState) {
+					return;
+				}
+				gameState = L.tick(gameState, {suppressNextSpawn: true});
+				renderRun();
+				afterSimulationStep();
+			}, CASCADE_STEP_MS);
+			return;
+		}
+
+		if (gameState.lineClearRemainderCells && gameState.lineClearRemainderCells.length > 0) {
+			timer = setTimeout(function() {
+				timer = null;
+				if (pausedRun || mode !== 'run' || !gameState) {
+					return;
+				}
+				gameState = L.tick(gameState, {suppressNextSpawn: true});
+				renderRun();
+				afterSimulationStep();
+			}, ms);
+			return;
+		}
+
+		timer = setTimeout(function() {
+			timer = null;
+			if (pausedRun || mode !== 'run' || !gameState) {
+				return;
+			}
+			gameState = L.tick(gameState, {suppressNextSpawn: true});
+			renderRun();
+			afterSimulationStep();
+		}, ms);
+	}
+
+	function afterSimulationStep() {
+		stepGuard++;
+		if (stepGuard > 50000) {
+			stopTimer();
+			try {
+				lastRunResult = {
+					stoppedAtPreSpawnGate: false,
+					stoppedReason: 'stepLimit',
+					steps: stepGuard,
+					score: gameState ? gameState.score : null,
+					gameStateSerialized: gameState && L.serializeGameState ? L.serializeGameState(gameState) : null
+				};
+			} catch (e) {
+				lastRunResult = { error: String(e) };
+			}
+			setStatus('安全步数上限，已停止。');
+			mode = 'edit';
+			gameState = null;
+			document.getElementById('btn-start').disabled = false;
+			document.getElementById('btn-pause').disabled = true;
+			syncPauseButtonUi();
+			syncBackButton();
+			syncLegendMode();
+			setEditPanelLocked(false);
+			document.querySelectorAll('.toolbar input, .toolbar select, #inp-interval').forEach(function(el) {
+				el.disabled = false;
+			});
+			renderEdit();
+			return;
+		}
+		if (L.isAtPreSpawnGate(gameState)) {
+			stopTimer();
+			try {
+				lastRunResult = {
+					stoppedAtPreSpawnGate: true,
+					stoppedReason: 'preSpawnGate',
+					steps: stepGuard,
+					score: gameState.score,
+					level: gameState.level != null ? gameState.level : 0,
+					linesClearedTotal: gameState.linesClearedTotal != null ? gameState.linesClearedTotal : 0,
+					gameStateSerialized: L.serializeGameState ? L.serializeGameState(gameState) : null
+				};
+			} catch (e) {
+				lastRunResult = { error: String(e) };
+			}
+			setStatus('已停在「生成下一块」之前（步数 ' + stepGuard + '）。点「开始」重播，或「回到开始」只恢复布局。');
+			finishRunUi(true);
+			return;
+		}
+		scheduleStep();
+	}
+
+	function finishRunUi(atGate) {
+		mode = atGate ? 'gate' : 'edit';
+		document.getElementById('btn-start').disabled = false;
+		document.getElementById('btn-pause').disabled = true;
+		pausedRun = false;
+		syncPauseButtonUi();
+		syncBackButton();
+		setEditPanelLocked(!!atGate);
+		document.querySelectorAll('.toolbar input, .toolbar select, #inp-interval').forEach(function(el) {
+			el.disabled = atGate;
+		});
+		syncLegendMode();
+	}
+
+	function backToStart() {
+		if (!replaySnapshot) {
+			return;
+		}
+		stopTimer();
+		restoreSnapshot(replaySnapshot);
+		mode = 'edit';
+		gameState = null;
+		pausedRun = false;
+		document.getElementById('btn-start').disabled = false;
+		document.getElementById('btn-pause').disabled = true;
+		syncPauseButtonUi();
+		syncBackButton();
+		setEditPanelLocked(false);
+		document.querySelectorAll('.toolbar input, .toolbar select, #inp-interval').forEach(function(el) {
+			el.disabled = false;
+		});
+		renderEdit();
+		setStatus('已恢复到本轮「开始」时的布局，可修改后再点「开始」。');
+	}
+
+	function startRun() {
+		if (mode === 'gate' && replaySnapshot) {
+			stopTimer();
+			restoreSnapshot(replaySnapshot);
+			gameState = null;
+			pausedRun = false;
+		}
+		var g = buildGameFromEditor();
+		if (!g) {
+			return;
+		}
+		lastRunResult = null;
+		replaySnapshot = snapshotEditor();
+		gameState = g;
+		mode = 'run';
+		stepGuard = 0;
+		pausedRun = false;
+		document.getElementById('btn-start').disabled = true;
+		document.getElementById('btn-pause').disabled = false;
+		syncPauseButtonUi();
+		syncBackButton();
+		setEditPanelLocked(true);
+		document.querySelectorAll('.toolbar input, .toolbar select, #inp-interval').forEach(function(el) {
+			el.disabled = true;
+		});
+		setStatus('运行中…');
+		renderRun();
+		scheduleStep();
+	}
+
+	function togglePause() {
+		if (mode !== 'run') {
+			return;
+		}
+		pausedRun = !pausedRun;
+		syncPauseButtonUi();
+		if (pausedRun) {
+			stopTimer();
+			setStatus('已暂停');
+		} else {
+			setStatus('运行中…');
+			scheduleStep();
+		}
+	}
+
+	function applySize() {
+		var nr = parseInt(document.getElementById('inp-rows').value, 10);
+		var nc = parseInt(document.getElementById('inp-cols').value, 10);
+		if (!Number.isFinite(nr) || !Number.isFinite(nc)) {
+			return;
+		}
+		nr = Math.max(MIN_R, Math.min(MAX_R, nr));
+		nc = Math.max(MIN_C, Math.min(MAX_C, nc));
+		var nf = emptyGrid(nr, nc);
+		for (var r = 0; r < Math.min(rows, nr); r++) {
+			for (var c = 0; c < Math.min(cols, nc); c++) {
+				nf[r][c] = fixed[r][c];
+			}
+		}
+		fixed = nf;
+		var newFall = {};
+		for (var k in falling) {
+			if (!Object.prototype.hasOwnProperty.call(falling, k)) {
+				continue;
+			}
+			var o = parseKey(k);
+			if (o.r < nr && o.c < nc) {
+				newFall[k] = falling[k];
+			}
+		}
+		falling = newFall;
+		selected = {};
+		rows = nr;
+		cols = nc;
+		renderEdit();
+		setStatus('已应用尺寸 ' + rows + '×' + cols);
+		syncBackButton();
+	}
+
+	function clearBoard() {
+		stopTimer();
+		fixed = emptyGrid(rows, cols);
+		falling = {};
+		selected = {};
+		gameState = null;
+		replaySnapshot = null;
+		lastRunResult = null;
+		mode = 'edit';
+		pausedRun = false;
+		document.getElementById('btn-start').disabled = false;
+		document.getElementById('btn-pause').disabled = true;
+		syncPauseButtonUi();
+		syncBackButton();
+		setEditPanelLocked(false);
+		document.querySelectorAll('.toolbar input, .toolbar select, #inp-interval').forEach(function(el) {
+			el.disabled = false;
+		});
+		renderEdit();
+		setStatus('已清空。');
+	}
+
+	function clearSelectedCells() {
+		var keys = Object.keys(selected);
+		if (keys.length === 0) {
+			alert('请先选择至少一格。');
+			return;
+		}
+		for (var z = 0; z < keys.length; z++) {
+			var o = parseKey(keys[z]);
+			fixed[o.r][o.c] = 0;
+			delete falling[keys[z]];
+		}
+		renderEdit();
+	}
+
+	function getExportSnapshot() {
+		if (mode === 'run' || mode === 'gate') {
+			return replaySnapshot || snapshotEditor();
+		}
+		return snapshotEditor();
+	}
+
+	function getExportConfigFromUI() {
+		var pol = policyFromUI();
+		var mergeZh = { top: '自上而下', bottom: '自下而上', contact: '顶格相邻' };
+		var roundsZh = { untilStable: '直到稳定', once: '仅一步' };
+		var packZh = pol.afterClearPack === 'column' ? '列模式' : '整块模式';
+		var ms = Math.max(50, parseInt(document.getElementById('inp-interval').value, 10) || 400);
+		return {
+			rows: parseInt(document.getElementById('inp-rows').value, 10) || rows,
+			cols: parseInt(document.getElementById('inp-cols').value, 10) || cols,
+			intervalMs: ms,
+			policy: pol,
+			labelsZh: {
+				pack: packZh,
+				merge: mergeZh[pol.mergeStart] || pol.mergeStart,
+				rounds: roundsZh[pol.mergeRounds] || pol.mergeRounds
+			}
+		};
+	}
+
+	function buildExportText() {
+		var snap = getExportSnapshot();
+		var pol = snap.policy || policyFromUI();
+		var ms = snap.intervalMs != null ? snap.intervalMs : (parseInt(document.getElementById('inp-interval').value, 10) || 400);
+		var mergeZh = { top: '自上而下', bottom: '自下而上', contact: '顶格相邻' };
+		var roundsZh = { untilStable: '直到稳定', once: '仅一步' };
+		var packZh = pol.afterClearPack === 'column' ? '列模式' : '整块模式';
+		var cfg = getExportConfigFromUI();
+		var lines = [];
+		lines.push('===== 2048方块 · 手动调试 · 导出报告 =====');
+		lines.push('导出时间（本地）：' + new Date().toISOString());
+		lines.push('');
+		lines.push('【一、当前界面配置】（与工具栏一致）');
+		lines.push('行数：' + cfg.rows + '，列数：' + cfg.cols);
+		lines.push('步进间隔(ms)：' + cfg.intervalMs);
+		lines.push('消行后 — 上方堆落：' + cfg.labelsZh.pack + ' (afterClearPack=' + pol.afterClearPack + ')');
+		lines.push('消行后 — 全场合并序：' + cfg.labelsZh.merge + ' (mergeStart=' + pol.mergeStart + ')');
+		lines.push('消行后 — 合并轮数：' + cfg.labelsZh.rounds + ' (mergeRounds=' + pol.mergeRounds + ')');
+		lines.push('');
+		lines.push('【lineClearPolicy JSON】');
+		lines.push(JSON.stringify(pol));
+		lines.push('');
+		lines.push('【二、本轮初始布局】（与本轮点「开始」时一致；若尚未跑过，则为当前编辑）');
+		lines.push('棋盘：' + snap.rows + ' 行 × ' + snap.cols + ' 列（行 0 在顶部）');
+		lines.push('步进间隔(ms)：' + ms);
+		lines.push('');
+		lines.push('【固定块堆】board 二维数组 JSON（行主序）');
+		lines.push(JSON.stringify(snap.fixed));
+		lines.push('');
+		lines.push('【下落块】编辑（每行：行, 列, 数值）');
+		var fall = snap.falling || [];
+		if (fall.length === 0) {
+			lines.push('（无）');
+		} else {
+			var arr = fall.slice().sort(function(a, b) {
+				return a.r !== b.r ? a.r - b.r : a.c - b.c;
+			});
+			for (var j = 0; j < arr.length; j++) {
+				lines.push(arr[j].r + ', ' + arr[j].c + ', ' + arr[j].v);
+			}
+		}
+		lines.push('');
+		lines.push('【三、本轮模拟执行结果】');
+		if (lastRunResult && !lastRunResult.error) {
+			if (lastRunResult.stoppedReason === 'preSpawnGate' || lastRunResult.stoppedAtPreSpawnGate) {
+				lines.push('结束原因：已到达「生成下一块」之前的暂停点（与调试逻辑一致）');
+			} else if (lastRunResult.stoppedReason === 'stepLimit') {
+				lines.push('结束原因：安全步数上限（50000）');
+			} else {
+				lines.push('结束原因：' + (lastRunResult.stoppedReason || 'unknown'));
+			}
+			if (lastRunResult.steps != null) {
+				lines.push('步数：' + lastRunResult.steps);
+			}
+			if (lastRunResult.score != null) {
+				lines.push('得分：' + lastRunResult.score);
+			}
+			if (lastRunResult.level != null) {
+				lines.push('等级：' + lastRunResult.level);
+			}
+			if (lastRunResult.linesClearedTotal != null) {
+				lines.push('累计消除行数：' + lastRunResult.linesClearedTotal);
+			}
+			lines.push('');
+			lines.push('【结束时游戏状态 JSON】（serializeGameState，与 logic 一致）');
+			if (lastRunResult.gameStateSerialized) {
+				lines.push(JSON.stringify(lastRunResult.gameStateSerialized, null, 2));
+			} else {
+				lines.push('（无）');
+			}
+		} else if (lastRunResult && lastRunResult.error) {
+			lines.push('记录结果时出错：' + lastRunResult.error);
+		} else {
+			lines.push('（尚未产生一轮完整结束记录：请先「开始」运行到暂停点或中止；导出中的布局与配置仍为当前项）');
+		}
+		lines.push('');
+		lines.push('【说明】消行本身均为整行消除；「消行后」指真空填补、全场合并等阶段（与 lineClearPolicy / 玩法 7.x 一致）。');
+		return lines.join('\n');
+	}
+
+	function closeExportModal() {
+		var modal = document.getElementById('export-modal');
+		if (!modal) {
+			return;
+		}
+		modal.classList.remove('is-open');
+		modal.setAttribute('hidden', '');
+	}
+
+	function doExport() {
+		var text = buildExportText();
+		var modal = document.getElementById('export-modal');
+		var ta = document.getElementById('export-area');
+		if (ta) {
+			ta.value = text;
+		}
+		if (modal) {
+			modal.removeAttribute('hidden');
+			modal.classList.add('is-open');
+		}
+		if (ta) {
+			ta.focus();
+			ta.select();
+		}
+		setStatus('已打开导出窗口。');
+		if (navigator.clipboard && navigator.clipboard.writeText) {
+			navigator.clipboard.writeText(text).then(function() {
+				setStatus('已复制到剪贴板；可在弹窗内再次复制。');
+			}).catch(function() {});
+		}
+	}
+
+	function applyValueToSelection(v) {
+		v = parseInt(v, 10);
+		if (!Number.isFinite(v) || v < 2) {
+			return;
+		}
+		var keys = Object.keys(selected);
+		if (keys.length === 0) {
+			alert('请先选择至少一格（单击或框选）。');
+			return;
+		}
+		for (var i = 0; i < keys.length; i++) {
+			var k = keys[i];
+			var o2 = parseKey(k);
+			if (Object.prototype.hasOwnProperty.call(falling, k)) {
+				falling[k] = v;
+				fixed[o2.r][o2.c] = 0;
+			} else {
+				fixed[o2.r][o2.c] = v;
+			}
+		}
+		renderEdit();
+	}
+
+	function applyKindToSelection(kind) {
+		var keys = Object.keys(selected);
+		if (keys.length === 0) {
+			alert('请先选择至少一格（单击或框选）。');
+			return;
+		}
+		for (var i = 0; i < keys.length; i++) {
+			var k = keys[i];
+			var o2 = parseKey(k);
+			var v = 0;
+			if (Object.prototype.hasOwnProperty.call(falling, k)) {
+				v = falling[k];
+			} else {
+				v = fixed[o2.r][o2.c] || 0;
+			}
+			if (v < 2) {
+				v = 2;
+			}
+			if (kind === 'fixed') {
+				fixed[o2.r][o2.c] = v;
+				delete falling[k];
+			} else {
+				fixed[o2.r][o2.c] = 0;
+				falling[k] = v;
+			}
+		}
+		renderEdit();
+	}
+
+	function clearSelectionOnly() {
+		selected = {};
+		renderEdit();
+	}
+
+	document.getElementById('btn-apply-size').addEventListener('click', applySize);
+	document.getElementById('btn-start').addEventListener('click', startRun);
+	document.getElementById('btn-pause').addEventListener('click', togglePause);
+	document.getElementById('btn-clear').addEventListener('click', clearBoard);
+	document.getElementById('btn-clear-cells').addEventListener('click', clearSelectedCells);
+	document.getElementById('btn-clear-sel').addEventListener('click', clearSelectionOnly);
+	document.getElementById('btn-back-start').addEventListener('click', backToStart);
+	document.getElementById('btn-export').addEventListener('click', doExport);
+	document.getElementById('btn-export-close').addEventListener('click', closeExportModal);
+	var exportBackdrop = document.getElementById('export-modal-backdrop');
+	if (exportBackdrop) {
+		exportBackdrop.addEventListener('click', closeExportModal);
+	}
+
+	document.getElementById('edit-panel').addEventListener('click', function(ev) {
+		var t = ev.target;
+		if (!t || !t.closest) {
+			return;
+		}
+		var valBtn = t.closest('[data-dbg-val]');
+		if (valBtn) {
+			applyValueToSelection(valBtn.getAttribute('data-dbg-val'));
+			return;
+		}
+		var kindBtn = t.closest('[data-dbg-kind]');
+		if (kindBtn) {
+			applyKindToSelection(kindBtn.getAttribute('data-dbg-kind'));
+		}
+	});
+
+	document.addEventListener('keydown', function(e) {
+		if (e.key === 'Escape') {
+			var em = document.getElementById('export-modal');
+			if (em && em.classList.contains('is-open')) {
+				e.preventDefault();
+				closeExportModal();
+			}
+			return;
+		}
+	});
+	/* 与正式游戏 2048方块-dom.js：空格在非输入框内时暂停/恢复运行 */
+	document.addEventListener('keydown', function(e) {
+		if (e.key !== ' ') {
+			return;
+		}
+		var active = document.activeElement;
+		var isEditable = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT' || active.isContentEditable === 'true');
+		if (isEditable) {
+			return;
+		}
+		if (mode !== 'run') {
+			return;
+		}
+		var btnPause = document.getElementById('btn-pause');
+		if (!btnPause || btnPause.disabled) {
+			return;
+		}
+		e.preventDefault();
+		togglePause();
+	});
+
+	fillSelect(document.getElementById('inp-rows'), MIN_R, MAX_R, rows);
+	fillSelect(document.getElementById('inp-cols'), MIN_C, MAX_C, cols);
+	fixed = emptyGrid(rows, cols);
+	syncPauseButtonUi();
+	syncBackButton();
+	setStatus('就绪。');
+	renderEdit();
+})();
+	</script>
+</body>
+</html>

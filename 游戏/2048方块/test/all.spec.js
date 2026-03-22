@@ -10,6 +10,11 @@ module.exports = function(r) {
 	const _createPiece = logic.createPiece;
 	const _makeState = r.makeState;
 	const _assertBoardEqual = r.assertBoardEqual;
+	const _visBoard = function(state) {
+		return state.currentPiece != null && !state.gameOver
+			? logic.getBoardWithCurrentPiece(state)
+			: state.board;
+	};
 	const clearOneRound = logic.clearOneRound;
 	const applyPendingClearLines = logic.applyPendingClearLines;
 
@@ -51,8 +56,9 @@ module.exports = function(r) {
 			const piece = _createPiece('I', 0, 1, 0);
 			const state = _makeState(rows, cols, before, piece);
 			const next = _tick(state);
-			const expected = [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [4, 0]];
-			_assertBoardEqual(next.board, expected, 'I 下落一格与 2 合并');
+			// 未锁定时合并值只在活动块上；期望为「底图 + 整块」叠图
+			const expected = [[0, 0], [0, 0], [2, 0], [2, 0], [2, 0], [4, 0]];
+			_assertBoardEqual(_visBoard(next), expected, 'I 下落一格与 2 合并');
 		});
 
 		it('O 下落一格与正下方 2 合并为 4', function() {
@@ -61,8 +67,8 @@ module.exports = function(r) {
 			const piece = _createPiece('O', 0, 0, 0);
 			const state = _makeState(rows, cols, before, piece);
 			const next = _tick(state);
-			const expected = [[0, 0], [0, 0], [4, 0], [2, 0]];
-			_assertBoardEqual(next.board, expected, 'O 下落一格与 2 合并');
+			const expected = [[0, 0], [2, 2], [4, 2], [2, 0]];
+			_assertBoardEqual(_visBoard(next), expected, 'O 下落一格与 2 合并');
 		});
 
 		it('T 下落一格与正下方 2 合并为 4', function() {
@@ -71,8 +77,8 @@ module.exports = function(r) {
 			const piece = _createPiece('T', 0, 0, 0);
 			const state = _makeState(rows, cols, before, piece);
 			const next = _tick(state);
-			const expected = [[0, 0], [0, 0], [0, 0], [0, 4]];
-			_assertBoardEqual(next.board, expected, 'T 下落一格与 2 合并');
+			const expected = [[0, 0], [0, 2], [2, 2], [0, 4]];
+			_assertBoardEqual(_visBoard(next), expected, 'T 下落一格与 2 合并');
 		});
 
 		it('Z 下落一格与正下方 2 合并为 4', function() {
@@ -81,8 +87,8 @@ module.exports = function(r) {
 			const piece = _createPiece('Z', 0, 0, 0);
 			const state = _makeState(rows, cols, before, piece);
 			const next = _tick(state);
-			const expected = [[0, 0], [0, 0], [0, 0], [4, 0]];
-			_assertBoardEqual(next.board, expected, 'Z 下落一格与 2 合并');
+			const expected = [[0, 0], [0, 2], [2, 2], [4, 0]];
+			_assertBoardEqual(_visBoard(next), expected, 'Z 下落一格与 2 合并');
 		});
 
 		it('S 下落一格与正下方 2 合并为 4', function() {
@@ -91,8 +97,8 @@ module.exports = function(r) {
 			const piece = _createPiece('S', 0, 0, 0);
 			const state = _makeState(rows, cols, before, piece);
 			const next = _tick(state);
-			const expected = [[0, 0], [0, 0], [0, 0], [0, 4]];
-			_assertBoardEqual(next.board, expected, 'S 下落一格与 2 合并');
+			const expected = [[0, 0], [2, 0], [2, 2], [0, 4]];
+			_assertBoardEqual(_visBoard(next), expected, 'S 下落一格与 2 合并');
 		});
 
 		it('J 下落一格与正下方 2 合并为 4', function() {
@@ -101,8 +107,8 @@ module.exports = function(r) {
 			const piece = _createPiece('J', 0, 0, 0);
 			const state = _makeState(rows, cols, before, piece);
 			const next = _tick(state);
-			const expected = [[0, 0], [0, 0], [0, 0], [4, 0]];
-			_assertBoardEqual(next.board, expected, 'J 下落一格与 2 合并');
+			const expected = [[0, 0], [0, 2], [0, 2], [4, 2]];
+			_assertBoardEqual(_visBoard(next), expected, 'J 下落一格与 2 合并');
 		});
 
 		it('L 下落一格与正下方 2 合并为 4', function() {
@@ -111,8 +117,8 @@ module.exports = function(r) {
 			const piece = _createPiece('L', 0, 0, 0);
 			const state = _makeState(rows, cols, before, piece);
 			const next = _tick(state);
-			const expected = [[0, 0], [0, 0], [0, 0], [4, 0]];
-			_assertBoardEqual(next.board, expected, 'L 下落一格与 2 合并');
+			const expected = [[0, 0], [2, 0], [2, 0], [4, 2]];
+			_assertBoardEqual(_visBoard(next), expected, 'L 下落一格与 2 合并');
 		});
 
 		// 连续两 tick：先合并再触底锁定
@@ -193,7 +199,7 @@ module.exports = function(r) {
 			let state = _makeState(5, 2, [[0, 0], [0, 0], [0, 0], [2, 0], [2, 0]], _createPiece('O', 0, 0, 0));
 			state = _tick(state);
 			state = _tick(state);
-			_assertBoardEqual(state.board, [[0, 0], [0, 0], [0, 0], [4, 0], [2, 0]], 'O 两 tick');
+			_assertBoardEqual(_visBoard(state), [[0, 0], [0, 0], [2, 2], [4, 2], [2, 0]], 'O 两 tick');
 		});
 
 		it('T 连续两 tick 先合并再触底锁定', function() {
@@ -201,36 +207,35 @@ module.exports = function(r) {
 			state = _tick(state);
 			state = _tick(state);
 			// 已合并格再落到空位时不得再次翻倍（曾为错误地得到 8）
-			_assertBoardEqual(state.board, [[0, 0], [0, 0], [0, 0], [0, 0], [0, 4]], 'T 两 tick');
+			_assertBoardEqual(_visBoard(state), [[0, 0], [0, 0], [0, 2], [2, 2], [0, 4]], 'T 两 tick');
 		});
 
 		it('Z 连续两 tick 先合并再触底锁定', function() {
 			let state = _makeState(5, 2, [[0, 0], [0, 0], [0, 0], [2, 0], [0, 0]], _createPiece('Z', 0, 0, 0));
 			state = _tick(state);
 			state = _tick(state);
-			_assertBoardEqual(state.board, [[0, 0], [0, 0], [0, 0], [0, 0], [4, 0]], 'Z 两 tick');
+			_assertBoardEqual(_visBoard(state), [[0, 0], [0, 0], [0, 2], [2, 2], [4, 0]], 'Z 两 tick');
 		});
 
 		it('S 连续两 tick 先合并再触底锁定', function() {
 			let state = _makeState(5, 2, [[0, 0], [0, 0], [0, 0], [0, 2], [0, 0]], _createPiece('S', 0, 0, 0));
 			state = _tick(state);
 			state = _tick(state);
-			_assertBoardEqual(state.board, [[0, 0], [0, 0], [0, 0], [0, 0], [0, 4]], 'S 两 tick');
+			_assertBoardEqual(_visBoard(state), [[0, 0], [0, 0], [2, 0], [2, 2], [0, 4]], 'S 两 tick');
 		});
 
 		it('J 连续两 tick 先合并再触底锁定', function() {
 			let state = _makeState(5, 2, [[0, 0], [0, 0], [0, 0], [2, 0], [0, 0]], _createPiece('J', 0, 0, 0));
 			state = _tick(state);
 			state = _tick(state);
-			// 第二 tick 纯下落会把 merged 在棋盘上的数同步下移一格，故 4 在底行而非倒数第二行
-			_assertBoardEqual(state.board, [[0, 0], [0, 0], [0, 0], [0, 0], [4, 0]], 'J 两 tick');
+			_assertBoardEqual(_visBoard(state), [[0, 0], [0, 0], [0, 2], [0, 2], [4, 2]], 'J 两 tick');
 		});
 
 		it('L 连续两 tick 先合并再触底锁定', function() {
 			let state = _makeState(5, 2, [[0, 0], [0, 0], [0, 0], [2, 0], [0, 0]], _createPiece('L', 0, 0, 0));
 			state = _tick(state);
 			state = _tick(state);
-			_assertBoardEqual(state.board, [[0, 0], [0, 0], [0, 0], [0, 0], [4, 0]], 'L 两 tick');
+			_assertBoardEqual(_visBoard(state), [[0, 0], [0, 0], [2, 0], [2, 0], [4, 2]], 'L 两 tick');
 		});
 	});
 
