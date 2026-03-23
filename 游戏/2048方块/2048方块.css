@@ -28,6 +28,9 @@
 .gaming.area .main.map.area .board .cell.lc-above {
 	--lc-s: #1f618d;
 }
+.gaming.area .main.map.area .board .cell.lc-reform {
+	--lc-s: #117864;
+}
 .gaming.area .main.map.area .board .cell.lc-cur-above-whole {
 	--lc-s: #16a085;
 }

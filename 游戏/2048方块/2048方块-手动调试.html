@@ -121,7 +121,7 @@
 	<aside class="right-sidebar flex vertical items-stretch" style="min-width:0;gap:1rem">
 		<div id="edit-panel">
 			<h2>编辑选区</h2>
-			<p class="edit-intro">单击只选一格；拖选一片；<kbd>Shift</kbd>+拖/点按为累加。点数字或固定/下落设定。「清空选中格」「清除选区」仍可用。选中=<strong>格外侧</strong>青框；固定堆=左棕条；下落块=顶蓝条+灰绿底。暂停点=在「生成下一块」之前停住（调试用）。「开始」=运行，再点=重播；「回到开始」=本轮布局。运行中 <kbd>空格</kbd> 暂停。<strong>消行整理</strong>时：剩格为<strong>橙框</strong>勾边，「上方行」抠出的块为<strong>深蓝框</strong>勾边（按连通块外沿描边，不重复画内部相邻线）。</p>
+			<p class="edit-intro">单击只选一格；拖选一片；<kbd>Shift</kbd>+拖/点按为累加。点数字或固定/下落设定。「清空选中格」「清除选区」仍可用。选中=<strong>格外侧</strong>青框；固定堆=左棕条；下落块=顶蓝条+灰绿底。暂停点=在「生成下一块」之前停住（调试用）。「开始」=运行，再点=重播；「回到开始」=本轮布局。运行中 <kbd>空格</kbd> 暂停。<strong>消行整理</strong>时：剩格为<strong>橙框</strong>，「上方行」抠块为<strong>深蓝框</strong>，整理中活动块为<strong>绿框</strong>（与正式游戏页相同；均按连通块外沿描边）。</p>
 			<p id="status" class="edit-status"></p>
 			<div class="legend flex multi-line items-near-x-start items-near-y-center">
 				<span class="flex inline items-near-y-center"><i class="legend-swatch legend-swatch-empty"></i> 空</span>
@@ -209,7 +209,6 @@
 
 	/** 与 2048方块-dom.js：消行闪烁后执行 stepped apply；消行后下落间隔、cascade 间隔 */
 	var CLEAR_LINE_FLASH_MS = 400;
-	var CASCADE_STEP_MS = 180;
 
 	function emptyGrid(r, c) {
 		var g = [];
@@ -351,6 +350,22 @@
 				}
 			}
 		}
+		var rp = state.reformPieces;
+		if (rp && rp.length) {
+			for (var pi = 0; pi < rp.length; pi++) {
+				var ent = rp[pi];
+				if (!ent || !ent.piece) {
+					continue;
+				}
+				var absRp = L.pieceAbsCells(ent.piece);
+				for (var jr = 0; jr < absRp.length; jr++) {
+					var cr = absRp[jr];
+					if (cr.r >= 0 && cr.r < state.rows && cr.c >= 0 && cr.c < state.cols) {
+						b[cr.r][cr.c] = cr.value;
+					}
+				}
+			}
+		}
 		var piece = state.currentPiece;
 		if (piece && !state.gameOver) {
 			var abs = L.pieceAbsCells(piece);
@@ -378,6 +393,21 @@
 		}
 		for (var ai = 0; ai < ap.length; ai++) {
 			var abs = L.pieceAbsCells(ap[ai]);
+			for (var j = 0; j < abs.length; j++) {
+				set[abs[j].r + ',' + abs[j].c] = true;
+			}
+		}
+	}
+	function addLcKeysFromReformPieces(rp, set) {
+		if (!rp || !set) {
+			return;
+		}
+		for (var i = 0; i < rp.length; i++) {
+			var e = rp[i];
+			if (!e || !e.piece) {
+				continue;
+			}
+			var abs = L.pieceAbsCells(e.piece);
 			for (var j = 0; j < abs.length; j++) {
 				set[abs[j].r + ',' + abs[j].c] = true;
 			}
@@ -416,7 +446,7 @@
 		}
 		return out;
 	}
-	/** 与 2048方块-dom.js getCellLineClearVisualClass 一致：剩格 / 上方行块 外框 */
+	/** 与正式游戏页（2048方块-dom.js）一致：剩格 / 上方行块 / 整理中块 / 特殊当前块 外框 */
 	function lineClearVisualClass(r, c, state) {
 		if (!state || state.rows == null) {
 			return '';
@@ -427,6 +457,8 @@
 		addLcKeysFromRemainder(state.lineClearRemainderCells, remSet);
 		var aboveSet = {};
 		addLcKeysFromAbovePieces(state.lineClearAbovePieces, aboveSet);
+		var reformSet = {};
+		addLcKeysFromReformPieces(state.reformPieces, reformSet);
 		var curSet = {};
 		addLcKeysFromSpecialCurrentPiece(state.currentPiece, curSet);
 		var pk = r + ',' + c;
@@ -435,6 +467,9 @@
 		}
 		if (aboveSet[pk]) {
 			return ['lc-above'].concat(lcBoundarySuffixes(r, c, aboveSet, nrows, ncols)).join(' ');
+		}
+		if (reformSet[pk]) {
+			return ['lc-reform'].concat(lcBoundarySuffixes(r, c, reformSet, nrows, ncols)).join(' ');
 		}
 		if (curSet[pk] && state.currentPiece) {
 			var sh2 = state.currentPiece.shape;
@@ -773,6 +808,7 @@
 			rows: rows,
 			cols: cols,
 			board: board,
+			boardCellGroup: emptyGrid(rows, cols),
 			currentPiece: piece,
 			nextPiece: null,
 			pieceCount: 1,
@@ -784,6 +820,10 @@
 			highScore: 0,
 			seed: 0,
 			fallIntervalMs: Math.max(50, parseInt(document.getElementById('inp-interval').value, 10) || 400),
+			lockDelayDurationMs: 500,
+			playerLockTicksRemaining: null,
+			reformPieces: null,
+			wholeAboveGroupSeq: 1,
 			lineClearPolicy: policyFromUI(),
 			lineClearRemainderCells: null,
 			lineClearAbovePieces: null,
@@ -792,7 +832,8 @@
 			overlayVisible: false,
 			overlayMessage: '',
 			level: 0,
-			linesClearedTotal: 0
+			linesClearedTotal: 0,
+			suppressSpawnAfterReform: true
 		};
 	}
 
@@ -817,45 +858,7 @@
 			return;
 		}
 
-		if (gameState.postClearGravityState != null) {
-			timer = setTimeout(function() {
-				timer = null;
-				if (pausedRun || mode !== 'run' || !gameState) {
-					return;
-				}
-				gameState = L.applyPendingClearLines(gameState);
-				renderRun();
-				afterSimulationStep();
-			}, ms);
-			return;
-		}
-
-		if (gameState.cascadePending) {
-			timer = setTimeout(function() {
-				timer = null;
-				if (pausedRun || mode !== 'run' || !gameState) {
-					return;
-				}
-				gameState = L.tick(gameState, {suppressNextSpawn: true});
-				renderRun();
-				afterSimulationStep();
-			}, CASCADE_STEP_MS);
-			return;
-		}
-
-		if (gameState.lineClearRemainderCells && gameState.lineClearRemainderCells.length > 0) {
-			timer = setTimeout(function() {
-				timer = null;
-				if (pausedRun || mode !== 'run' || !gameState) {
-					return;
-				}
-				gameState = L.tick(gameState, {suppressNextSpawn: true});
-				renderRun();
-				afterSimulationStep();
-			}, ms);
-			return;
-		}
-
+		/* 与正式页一致：消行闪烁之外，一律按「间隔 ms」一拍一推进（含玩家下落+锁定延迟、整理 reformPieces 等）；永不在这里提前生成下一块 */
 		timer = setTimeout(function() {
 			timer = null;
 			if (pausedRun || mode !== 'run' || !gameState) {

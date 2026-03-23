@@ -17,9 +17,7 @@ let gameState = null;
 let fallTimer = null;
 let hardDropTimer = null;
 let clearLinesTimeout = null;
-let cascadeStepTimeout = null;
 let paused = true;
-const CASCADE_STEP_MS = 180;
 
 /** 与 runFallLoop 一致的下落步长（含 DEV_FIXED_FALL_MS） */
 function getFallStepMs(state) {
@@ -70,6 +68,22 @@ function getDisplayBoard(state) {
 			}
 		}
 	}
+	const rp = state.reformPieces;
+	if (rp && rp.length > 0) {
+		for (let pi = 0; pi < rp.length; pi++) {
+			const ent = rp[pi];
+			if (!ent || !ent.piece) {
+				continue;
+			}
+			const absRp = pieceAbsCells(ent.piece);
+			for (let j = 0; j < absRp.length; j++) {
+				const cell = absRp[j];
+				if (cell.r >= 0 && cell.r < rows && cell.c >= 0 && cell.c < cols) {
+					flat[cell.r * cols + cell.c] = cell.value;
+				}
+			}
+		}
+	}
 	const piece = state.currentPiece;
 	if (piece && !state.gameOver) {
 		const abs = pieceAbsCells(piece);
@@ -99,6 +113,22 @@ function addKeysFromAbovePieces(ap, absFn, set) {
 	}
 	for (let i = 0; i < ap.length; i++) {
 		const abs = absFn(ap[i]);
+		for (let j = 0; j < abs.length; j++) {
+			set[abs[j].r + ',' + abs[j].c] = true;
+		}
+	}
+}
+
+function addKeysFromReformPieces(rp, absFn, set) {
+	if (!rp || !absFn || !set) {
+		return;
+	}
+	for (let i = 0; i < rp.length; i++) {
+		const ent = rp[i];
+		if (!ent || !ent.piece) {
+			continue;
+		}
+		const abs = absFn(ent.piece);
 		for (let j = 0; j < abs.length; j++) {
 			set[abs[j].r + ',' + abs[j].c] = true;
 		}
@@ -157,6 +187,8 @@ function getCellLineClearVisualClass(cellIndex, state) {
 	addKeysFromRemainder(state.lineClearRemainderCells, remSet);
 	const aboveSet = {};
 	addKeysFromAbovePieces(state.lineClearAbovePieces, pieceAbsCells, aboveSet);
+	const reformSet = {};
+	addKeysFromReformPieces(state.reformPieces, pieceAbsCells, reformSet);
 	const curSet = {};
 	addKeysFromSpecialCurrentPiece(state.currentPiece, pieceAbsCells, curSet);
 	const pk = r + ',' + c;
@@ -165,6 +197,9 @@ function getCellLineClearVisualClass(cellIndex, state) {
 	}
 	if (aboveSet[pk]) {
 		return ['lc-above'].concat(boundaryClassSuffixes(r, c, aboveSet, rows, cols)).join(' ');
+	}
+	if (reformSet[pk]) {
+		return ['lc-reform'].concat(boundaryClassSuffixes(r, c, reformSet, rows, cols)).join(' ');
 	}
 	if (curSet[pk] && state.currentPiece) {
 		const sh = state.currentPiece.shape;
@@ -225,39 +260,22 @@ function runHardDropStep() {
 		scheduleNext();
 		return;
 	}
-	if (gameState.postClearGravityState) {
-		scheduleNext();
-		return;
-	}
-	if (gameState.cascadePending) {
-		scheduleNext();
-		return;
-	}
 	if (!gameState.currentPiece) {
 		scheduleNext();
 		return;
 	}
-	gameState = tick(gameState);
+	gameState = tick(gameState, {hardDrop: true});
 	const prevHigh = Number(getStorage(STORAGE_HIGH_SCORE_BLOCKS)) || 0;
 	if (gameState.highScore > prevHigh) {
 		setStorage(STORAGE_HIGH_SCORE_BLOCKS, String(gameState.highScore));
 	}
 	commitState(gameState);
 	const stillPiece = gameState.currentPiece != null && !gameState.gameOver;
-	const blocked = (gameState.clearLinesPending && gameState.clearLinesPending.length > 0)
-		|| gameState.postClearGravityState
-		|| gameState.cascadePending;
+	const blocked = (gameState.clearLinesPending && gameState.clearLinesPending.length > 0);
 	if (stillPiece && !blocked) {
 		hardDropTimer = setTimeout(runHardDropStep, getFallStepMs(gameState));
 	} else {
 		scheduleNext();
-	}
-}
-
-function stopCascadeStepTimer() {
-	if (cascadeStepTimeout) {
-		clearTimeout(cascadeStepTimeout);
-		cascadeStepTimeout = null;
 	}
 }
 
@@ -268,10 +286,9 @@ function stopClearLinesTimer() {
 	}
 }
 
-/** 唯一调度入口：根据当前 gameState 决定下一步（下落 / cascade / 消行动画）。每次状态变化后都调此函数。 */
+/** 唯一调度入口：根据当前 gameState 决定下一步（下落 / 消行动画）。每次状态变化后都调此函数。 */
 function scheduleNext() {
 	stopFallTimer();
-	stopCascadeStepTimer();
 	stopClearLinesTimer();
 
 	if (paused || !gameState || gameState.gameOver) {
@@ -279,14 +296,6 @@ function scheduleNext() {
 	}
 	if (gameState.clearLinesPending && gameState.clearLinesPending.length > 0) {
 		runClearLinesAnimation();
-		return;
-	}
-	if (gameState.postClearGravityState) {
-		runPostClearGravityStep();
-		return;
-	}
-	if (gameState.cascadePending) {
-		runCascadeStep();
 		return;
 	}
 	runFallLoop();
@@ -297,14 +306,6 @@ function runFallLoop() {
 		return;
 	}
 	if (gameState.clearLinesPending && gameState.clearLinesPending.length > 0) {
-		scheduleNext();
-		return;
-	}
-	if (gameState.postClearGravityState) {
-		scheduleNext();
-		return;
-	}
-	if (gameState.cascadePending) {
 		scheduleNext();
 		return;
 	}
@@ -337,34 +338,6 @@ function runFallLoop() {
 	}, ms);
 }
 
-function runCascadeStep() {
-	if (paused || !gameState || gameState.gameOver) {
-		return;
-	}
-	if (!gameState.cascadePending) {
-		scheduleNext();
-		return;
-	}
-	cascadeStepTimeout = setTimeout(function() {
-		cascadeStepTimeout = null;
-		if (!gameState || gameState.gameOver) {
-			scheduleNext();
-			return;
-		}
-		if (!gameState.cascadePending) {
-			scheduleNext();
-			return;
-		}
-		gameState = tick(gameState);
-		const prevHigh = Number(getStorage(STORAGE_HIGH_SCORE_BLOCKS)) || 0;
-		if (gameState.highScore > prevHigh) {
-			setStorage(STORAGE_HIGH_SCORE_BLOCKS, String(gameState.highScore));
-		}
-		commitState(gameState);
-		scheduleNext();
-	}, CASCADE_STEP_MS);
-}
-
 function runClearLinesAnimation() {
 	stopFallTimer();
 	clearLinesTimeout = setTimeout(function() {
@@ -373,16 +346,6 @@ function runClearLinesAnimation() {
 		commitState(gameState);
 		scheduleNext();
 	}, 400);
-}
-
-function runPostClearGravityStep() {
-	const ms = getFallStepMs(gameState);
-	clearLinesTimeout = setTimeout(function() {
-		clearLinesTimeout = null;
-		gameState = applyPendingClearLines(gameState);
-		commitState(gameState);
-		scheduleNext();
-	}, ms);
 }
 
 function startFallTimer() {
@@ -424,11 +387,9 @@ function handleAction(action) {
 	if (gameState.clearLinesPending && gameState.clearLinesPending.length > 0) {
 		return;
 	}
-	if (gameState.postClearGravityState) {
-		return;
-	}
 	const remainderPhase = gameState.lineClearRemainderCells && gameState.lineClearRemainderCells.length > 0;
-	if (remainderPhase && action !== 'down') {
+	const reformPhase = gameState.reformPieces && gameState.reformPieces.length > 0;
+	if ((remainderPhase || reformPhase) && action !== 'down') {
 		return;
 	}
 	if (action === 'left') {
@@ -436,7 +397,7 @@ function handleAction(action) {
 	} else if (action === 'right') {
 		gameState = moveRight(gameState);
 	} else if (action === 'down') {
-		gameState = tick(gameState);
+		gameState = tick(gameState, {userSoftDrop: true});
 		const prevHigh = Number(getStorage(STORAGE_HIGH_SCORE_BLOCKS)) || 0;
 		if (gameState.highScore > prevHigh) {
 			setStorage(STORAGE_HIGH_SCORE_BLOCKS, String(gameState.highScore));
@@ -455,7 +416,6 @@ function handleAction(action) {
 
 function handleRestart() {
 	stopFallTimer();
-	stopCascadeStepTimer();
 	if (clearLinesTimeout) {
 		clearTimeout(clearLinesTimeout);
 		clearLinesTimeout = null;
@@ -469,6 +429,7 @@ function handleRestart() {
 		cols: gameState.cols,
 		fallIntervalMs: gameState.fallIntervalMs,
 		lineClearPolicy: gameState.lineClearPolicy,
+		lockDelayDurationMs: gameState.lockDelayDurationMs,
 	};
 	const highScore = Number(getStorage(STORAGE_HIGH_SCORE_BLOCKS)) || 0;
 	gameState = init(highScore, opts);
@@ -500,6 +461,9 @@ function loadSettingsFromStorage() {
 		if (Number(o.fallIntervalMs) >= 100) {
 			s.fallIntervalMs = Number(o.fallIntervalMs);
 		}
+		if (Number(o.lockDelayDurationMs) >= 100 && Number(o.lockDelayDurationMs) <= 1000) {
+			s.lockDelayDurationMs = Number(o.lockDelayDurationMs);
+		}
 		if (o.lineClearPolicy && typeof o.lineClearPolicy === 'object') {
 			s.lineClearPolicy = logic.normalizeLineClearPolicy(o.lineClearPolicy);
 		}
@@ -521,6 +485,7 @@ function applyBoardSettings(obj) {
 	const lineClearPolicy = logic.normalizeLineClearPolicy(
 		obj.lineClearPolicy != null ? obj.lineClearPolicy : (gameState && gameState.lineClearPolicy),
 	);
+	const lockDelayDurationMs = obj.lockDelayDurationMs != null ? obj.lockDelayDurationMs : (gameState && gameState.lockDelayDurationMs);
 	if (needRestart) {
 		stopFallTimer();
 		if (clearLinesTimeout) {
@@ -529,16 +494,29 @@ function applyBoardSettings(obj) {
 		}
 		paused = false;
 		const highScore = Number(getStorage(STORAGE_HIGH_SCORE_BLOCKS)) || 0;
-		gameState = init(highScore, {rows: rows, cols: cols, fallIntervalMs: fallIntervalMs, lineClearPolicy: lineClearPolicy});
+		gameState = init(highScore, {
+			rows: rows,
+			cols: cols,
+			fallIntervalMs: fallIntervalMs,
+			lineClearPolicy: lineClearPolicy,
+			lockDelayDurationMs: lockDelayDurationMs,
+		});
 	} else {
-		gameState = Object.assign({}, gameState, {fallIntervalMs: fallIntervalMs, lineClearPolicy: lineClearPolicy});
+		gameState = Object.assign({}, gameState, {
+			fallIntervalMs: fallIntervalMs,
+			lineClearPolicy: lineClearPolicy,
+			lockDelayDurationMs: lockDelayDurationMs,
+		});
 		if (!paused) {
 			startFallTimer();
 		}
 	}
 	try {
 		setStorage(STORAGE_SETTINGS_BLOCKS, JSON.stringify({
-			rows: rows, cols: cols, fallIntervalMs: fallIntervalMs,
+			rows: rows,
+			cols: cols,
+			fallIntervalMs: fallIntervalMs,
+			lockDelayDurationMs: gameState.lockDelayDurationMs,
 			lineClearPolicy: gameState.lineClearPolicy,
 		}));
 	} catch (e) {}
@@ -561,6 +539,7 @@ function getBoardSettings() {
 		boardHeight: gameState.rows,
 		boardWidth: gameState.cols,
 		fallIntervalMs: gameState.fallIntervalMs,
+		lockDelayDurationMs: gameState.lockDelayDurationMs,
 		lineClearPolicy: gameState.lineClearPolicy,
 	};
 }
@@ -586,6 +565,7 @@ function applyLineClearPolicy(pol) {
 			rows: gameState.rows,
 			cols: gameState.cols,
 			fallIntervalMs: gameState.fallIntervalMs,
+			lockDelayDurationMs: gameState.lockDelayDurationMs,
 			lineClearPolicy: gameState.lineClearPolicy,
 		})));
 	} catch (e) {}
@@ -612,7 +592,12 @@ function doInit() {
 			restored = deserializeGameState(JSON.parse(stateRaw));
 		}
 	} catch (e) {}
-	const useRestored = restored && !restored.gameOver && restored.currentPiece != null;
+	const inReform = restored && restored.reformPieces && restored.reformPieces.length > 0;
+	const midLineWork = restored && (
+		(restored.clearLinesPending && restored.clearLinesPending.length > 0)
+	);
+	const useRestored = restored && !restored.gameOver
+		&& (restored.currentPiece != null || inReform || midLineWork);
 	if (useRestored) {
 		gameState = restored;
 		const storedHigh = Number(getStorage(STORAGE_HIGH_SCORE_BLOCKS)) || 0;
@@ -626,7 +611,14 @@ function doInit() {
 		const fallIntervalMs = (constants && constants.DEV_FIXED_FALL_MS > 0) ? constants.DEV_FIXED_FALL_MS : rawFall;
 		const highScore = Number(getStorage(STORAGE_HIGH_SCORE_BLOCKS)) || 0;
 		const lp = loaded && loaded.lineClearPolicy ? loaded.lineClearPolicy : undefined;
-		gameState = init(highScore, {rows: rows, cols: cols, fallIntervalMs: fallIntervalMs, lineClearPolicy: lp});
+		const ld = loaded && loaded.lockDelayDurationMs != null ? loaded.lockDelayDurationMs : undefined;
+		gameState = init(highScore, {
+			rows: rows,
+			cols: cols,
+			fallIntervalMs: fallIntervalMs,
+			lineClearPolicy: lp,
+			lockDelayDurationMs: ld,
+		});
 	}
 	gameState = Object.assign({}, gameState, {
 		lineClearPolicy: logic.normalizeLineClearPolicy(gameState.lineClearPolicy),
@@ -740,7 +732,6 @@ const stub = {
 		}
 		paused = true;
 		stopFallTimer();
-		stopCascadeStepTimer();
 		if (view && view.setPaused) {
 			view.setPaused(paused);
 		}

@@ -17,6 +17,7 @@ module.exports = function(r) {
 	};
 	const clearOneRound = logic.clearOneRound;
 	const applyPendingClearLines = logic.applyPendingClearLines;
+	const advancePostLockLineClearNoSpawn = logic.advancePostLockLineClearNoSpawn;
 	const runUntilFirstLock = logic.runUntilFirstLock;
 	const isAtPreSpawnGate = logic.isAtPreSpawnGate;
 	const initGame = logic.init;
@@ -30,23 +31,18 @@ module.exports = function(r) {
 		}
 	}
 
-	function runClearAndCascade(state, maxSteps) {
-		maxSteps = maxSteps || 100;
+	function runClearAndCascade(state) {
+		return advancePostLockLineClearNoSpawn(state);
+	}
+
+	/** 与 logic：锁延迟下多拍后才写入固定堆；用于需终盘 board 的用例 */
+	function runTicksUntilNoCurrentPiece(state, max) {
 		let s = state;
-		for (let i = 0; i < maxSteps; i++) {
-			if (s.clearLinesPending && s.clearLinesPending.length > 0) {
-				s = applyPendingClearLines(s);
-				continue;
-			}
-			if (s.cascadePending) {
-				s = _tick(s);
-				continue;
-			}
-			if (s.postClearGravityState != null) {
-				s = applyPendingClearLines(s);
-				continue;
-			}
-			break;
+		let n = 0;
+		max = max || 200;
+		while (s.currentPiece && !s.gameOver && n < max) {
+			s = _tick(s, { suppressNextSpawn: true });
+			n++;
 		}
 		return s;
 	}
@@ -131,8 +127,7 @@ module.exports = function(r) {
 			const before = [[0, 0], [0, 0], [0, 0], [0, 0], [2, 0], [2, 0]];
 			const piece = _createPiece('I', 0, 0, 0);
 			let state = _makeState(rows, cols, before, piece);
-			state = _tick(state);
-			state = _tick(state);
+			state = runTicksUntilNoCurrentPiece(state);
 			const expected = [[0, 0], [2, 0], [2, 0], [2, 0], [4, 0], [2, 0]];
 			_assertBoardEqual(state.board, expected, 'I 两 tick 合并后锁定');
 		});
@@ -143,7 +138,7 @@ module.exports = function(r) {
 			const before = [[0, 0], [0, 0], [0, 0], [0, 0], [4, 0]];
 			const piece = _createPiece('I', 0, 0, 0);
 			const state = _makeState(rows, cols, before, piece);
-			const next = _tick(state);
+			const next = _tick(state, { hardDrop: true });
 			const expected = [[2, 0], [2, 0], [2, 0], [2, 0], [4, 0]];
 			_assertBoardEqual(next.board, expected, 'I 遇异数锁定并写出整块');
 		});
@@ -153,7 +148,7 @@ module.exports = function(r) {
 			const before = [[0, 0], [0, 0], [4, 0], [4, 0]];
 			const piece = _createPiece('O', 0, 0, 0);
 			const state = _makeState(rows, cols, before, piece);
-			const next = _tick(state);
+			const next = _tick(state, { hardDrop: true });
 			const expected = [[2, 2], [2, 2], [4, 0], [4, 0]];
 			_assertBoardEqual(next.board, expected, 'O 遇异数锁定并写出整块');
 		});
@@ -162,7 +157,7 @@ module.exports = function(r) {
 			const rows = 4, cols = 2;
 			const before = [[0, 0], [0, 0], [0, 0], [0, 4]];
 			const piece = _createPiece('T', 0, 0, 0);
-			const next = _tick(_makeState(rows, cols, before, piece));
+			const next = _tick(_makeState(rows, cols, before, piece), { hardDrop: true });
 			_assertBoardEqual(next.board, [[0, 2], [2, 2], [0, 2], [0, 4]], 'T 遇异数锁定');
 		});
 
@@ -170,7 +165,7 @@ module.exports = function(r) {
 			const rows = 4, cols = 2;
 			const before = [[0, 0], [0, 0], [0, 0], [4, 0]];
 			const piece = _createPiece('Z', 0, 0, 0);
-			const next = _tick(_makeState(rows, cols, before, piece));
+			const next = _tick(_makeState(rows, cols, before, piece), { hardDrop: true });
 			_assertBoardEqual(next.board, [[0, 2], [2, 2], [2, 0], [4, 0]], 'Z 遇异数锁定');
 		});
 
@@ -178,7 +173,7 @@ module.exports = function(r) {
 			const rows = 4, cols = 2;
 			const before = [[0, 0], [0, 0], [0, 0], [0, 4]];
 			const piece = _createPiece('S', 0, 0, 0);
-			const next = _tick(_makeState(rows, cols, before, piece));
+			const next = _tick(_makeState(rows, cols, before, piece), { hardDrop: true });
 			_assertBoardEqual(next.board, [[2, 0], [2, 2], [0, 2], [0, 4]], 'S 遇异数锁定');
 		});
 
@@ -186,7 +181,7 @@ module.exports = function(r) {
 			const rows = 4, cols = 2;
 			const before = [[0, 0], [0, 0], [0, 0], [4, 0]];
 			const piece = _createPiece('J', 0, 0, 0);
-			const next = _tick(_makeState(rows, cols, before, piece));
+			const next = _tick(_makeState(rows, cols, before, piece), { hardDrop: true });
 			_assertBoardEqual(next.board, [[0, 2], [0, 2], [2, 2], [4, 0]], 'J 遇异数锁定');
 		});
 
@@ -194,7 +189,7 @@ module.exports = function(r) {
 			const rows = 4, cols = 2;
 			const before = [[0, 0], [0, 0], [0, 0], [4, 0]];
 			const piece = _createPiece('L', 0, 0, 0);
-			const next = _tick(_makeState(rows, cols, before, piece));
+			const next = _tick(_makeState(rows, cols, before, piece), { hardDrop: true });
 			_assertBoardEqual(next.board, [[2, 0], [2, 0], [2, 2], [4, 0]], 'L 遇异数锁定');
 		});
 
@@ -284,7 +279,7 @@ module.exports = function(r) {
 		it('2.2 仅最后一行满有剩余、合并阶段与上一行同数合并', function() {
 			const rows = 6, cols = 4;
 			const before = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 2, 0, 0], [2, 4, 2, 2]];
-			const expected = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 4, 0, 0]];
+			const expected = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 2, 0, 0], [0, 2, 0, 0]];
 			const board = before.map(row => row.slice());
 			runClearUntilStable(board, rows, cols);
 			_assertBoardEqual(board, expected, '2.2');
@@ -311,7 +306,7 @@ module.exports = function(r) {
 		it('3.3 仅底两行满、有剩余、合并阶段一列合并', function() {
 			const rows = 6, cols = 4;
 			const before = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 2, 0, 0], [2, 4, 2, 2], [2, 2, 2, 2]];
-			const expected = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 4, 0, 0]];
+			const expected = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 2, 0, 0], [0, 2, 0, 0]];
 			const board = before.map(row => row.slice());
 			runClearUntilStable(board, rows, cols);
 			_assertBoardEqual(board, expected, '3.3');
@@ -329,7 +324,7 @@ module.exports = function(r) {
 		it('4.2 消三行有剩余、保形下落后合并（行内空隙保留）', function() {
 			const rows = 6, cols = 4;
 			const before = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 2, 0, 0], [2, 4, 2, 2], [2, 2, 4, 2], [2, 2, 2, 4]];
-			const expected = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 4, 2, 2]];
+			const expected = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 2, 0, 0], [0, 2, 2, 2]];
 			const board = before.map(row => row.slice());
 			runClearUntilStable(board, rows, cols);
 			_assertBoardEqual(board, expected, '4.2');
@@ -338,24 +333,22 @@ module.exports = function(r) {
 
 	// ---------- 消行后合并 ----------
 	describe('消行后合并', function() {
-		it('消一行后列内相邻 2+2 合并为 4', function() {
+		it('消一行后链式整理终盘（与主局 flush 一致）', function() {
 			const rows = 6, cols = 2;
 			const board = [[0, 0], [0, 0], [0, 0], [2, 0], [2, 0], [2, 2]];
 			const state = _makeState(rows, cols, board, null);
-			state.clearLinesPending = [5];
 			const final_ = runClearAndCascade(state);
-			const expected = [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0], [4, 0]];
-			_assertBoardEqual(final_.board, expected, '消一行后列内 2+2 合并');
+			const expected = [[0, 0], [0, 0], [0, 0], [0, 0], [2, 0], [2, 0]];
+			_assertBoardEqual(final_.board, expected, '消一行后链式整理');
 		});
 
-		it('消两行后多列有合并', function() {
+		it('消两行后链式整理终盘（与主局 flush 一致）', function() {
 			const rows = 6, cols = 3;
 			const board = [[0, 0, 0], [0, 0, 0], [2, 2, 0], [2, 2, 0], [2, 2, 2], [2, 2, 2]];
 			const state = _makeState(rows, cols, board, null);
-			state.clearLinesPending = [4, 5];
 			const final_ = runClearAndCascade(state);
-			const expected = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [4, 4, 0]];
-			_assertBoardEqual(final_.board, expected, '消两行后多列合并');
+			const expected = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [2, 2, 0], [2, 2, 0]];
+			_assertBoardEqual(final_.board, expected, '消两行后链式整理');
 		});
 	});
 
@@ -372,12 +365,11 @@ module.exports = function(r) {
 			g.board = fixed.map(row => row.slice());
 			g.currentPiece = piece;
 			g = runUntilFirstLock(g);
+			g.suppressSpawnAfterReform = true;
 			let n = 0;
 			while (!isAtPreSpawnGate(g) && n++ < 8000) {
 				if (g.clearLinesPending && g.clearLinesPending.length) {
-					g = applyPendingClearLines(g, { steppedLineClearRemainder: true, lineClearBundledApply: false });
-				} else if (g.postClearGravityState) {
-					g = applyPendingClearLines(g);
+					g = applyPendingClearLines(g, { suppressNextSpawn: true });
 				} else {
 					g = _tick(g, { suppressNextSpawn: true });
 				}
@@ -408,12 +400,11 @@ module.exports = function(r) {
 			g.board = fixed.map(row => row.slice());
 			g.currentPiece = piece;
 			g = runUntilFirstLock(g);
+			g.suppressSpawnAfterReform = true;
 			let n = 0;
 			while (!isAtPreSpawnGate(g) && n++ < 8000) {
 				if (g.clearLinesPending && g.clearLinesPending.length) {
-					g = applyPendingClearLines(g, { steppedLineClearRemainder: true, lineClearBundledApply: false });
-				} else if (g.postClearGravityState) {
-					g = applyPendingClearLines(g);
+					g = applyPendingClearLines(g, { suppressNextSpawn: true });
 				} else {
 					g = _tick(g, { suppressNextSpawn: true });
 				}
@@ -438,12 +429,11 @@ module.exports = function(r) {
 			g.board = fixed.map(row => row.slice());
 			g.currentPiece = piece;
 			g = runUntilFirstLock(g);
+			g.suppressSpawnAfterReform = true;
 			let n = 0;
 			while (!isAtPreSpawnGate(g) && n++ < 8000) {
 				if (g.clearLinesPending && g.clearLinesPending.length) {
-					g = applyPendingClearLines(g, { steppedLineClearRemainder: true, lineClearBundledApply: false });
-				} else if (g.postClearGravityState) {
-					g = applyPendingClearLines(g);
+					g = applyPendingClearLines(g, { suppressNextSpawn: true });
 				} else {
 					g = _tick(g, { suppressNextSpawn: true });
 				}

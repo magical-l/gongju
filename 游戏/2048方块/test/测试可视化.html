@@ -316,7 +316,6 @@
 				for (let i = 0; i < 100; i++) {
 					if (s.clearLinesPending && s.clearLinesPending.length > 0) { s = applyPendingClearLines(s); continue; }
 					if (s.cascadePending) { s = tick(s); continue; }
-					if (s.postClearGravityState != null) { s = applyPendingClearLines(s); continue; }
 					break;
 				}
 				resultBoard = deepCopyBoard(s.board);
