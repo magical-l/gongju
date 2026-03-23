@@ -44,6 +44,25 @@ function makeState(rows, cols, boardRows, piece) {
 }
 
 function assertBoardEqual(actual, expected, msg) {
+	const a1 = actual && actual.length > 0 && !Array.isArray(actual[0]);
+	const e1 = expected && expected.length > 0 && !Array.isArray(expected[0]);
+	if (a1 && e1) {
+		if (actual.length !== expected.length) {
+			console.error(msg || 'row length mismatch');
+			throw new Error(msg || 'row length mismatch');
+		}
+		for (let j = 0; j < actual.length; j++) {
+			const va = actual[j] == null ? 0 : actual[j];
+			const vb = expected[j] == null ? 0 : expected[j];
+			if (va !== vb) {
+				console.error(msg || 'board mismatch');
+				console.error('expected row:', expected.join(','));
+				console.error('actual row: ', actual.join(','));
+				throw new Error(msg || 'board mismatch');
+			}
+		}
+		return;
+	}
 	const rows = actual.length;
 	const cols = actual[0] && actual[0].length || 0;
 	if (!boardEquals(actual, expected, rows, cols)) {

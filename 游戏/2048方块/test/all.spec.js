@@ -390,9 +390,38 @@ module.exports = function(r) {
 		});
 
 		/**
-		 * 底区两行满 2（无 cellGroup）：若左右已与下格异数无法竖并，中间列不得再单独 2+2 竖并（whole 边缘耦合）。
-		 * 与「仅一行底 2」用例对比：终盘底行应保持全 2，而非中间列变 4。
+		 * 双排非零列区间内若存在「上≠下」，则整段禁止同数竖并（与是 2 还是 4 无关）；故本局 row5/6 有 4/2 异数时，row6 不得出现 4,4,2,4,4，也不得仅两端变 4——应全保持 2。
 		 */
+		it('8×6 三行顶 + 中行 4：横段有异数则该段不做同数竖并', function() {
+			const fixed = [
+				[2, 2, 2, 2, 2, 0],
+				[2, 2, 2, 2, 2, 0],
+				[2, 2, 2, 2, 2, 0],
+				[0, 0, 0, 0, 0, 32],
+				[0, 0, 0, 0, 0, 0],
+				[2, 2, 4, 2, 2, 0],
+				[2, 2, 2, 2, 2, 0],
+				[0, 0, 0, 0, 0, 0],
+			];
+			const piece = createCustomPieceFromAbsCells([{ r: 2, c: 5, value: 2 }]);
+			let g = initGame(0, { rows: 8, cols: 6, lineClearPolicy: { aboveRowsMode: 'whole' } });
+			g.board = fixed.map(row => row.slice());
+			g.currentPiece = piece;
+			g = runUntilFirstLock(g);
+			let n = 0;
+			while (!isAtPreSpawnGate(g) && n++ < 8000) {
+				if (g.clearLinesPending && g.clearLinesPending.length) {
+					g = applyPendingClearLines(g, { steppedLineClearRemainder: true, lineClearBundledApply: false });
+				} else if (g.postClearGravityState) {
+					g = applyPendingClearLines(g);
+				} else {
+					g = _tick(g, { suppressNextSpawn: true });
+				}
+			}
+			const b = g.board[6];
+			_assertBoardEqual(b, [2, 2, 2, 2, 2, 0], 'row6 在 5/6 行横段有异数时整段禁同数竖并，故保持全 2');
+		});
+
 		it('8×6 双行底 2：whole 下两侧 4 与底行 2 异数时，中间列不单独竖并', function() {
 			const fixed = [
 				[0, 0, 0, 0, 0, 0],

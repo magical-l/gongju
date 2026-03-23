@@ -99,7 +99,7 @@
 		<section class="main map area , no-shrink , flex items-near-x-center" ref="boardWrap" tabindex="0"
 						 :style="boardWrapStyle">
 			<div class="board" :style="boardWrapInnerStyle" ref="board">
-				<div class="cell" :class="{ clearing: isRowClearing(cell.index) }" :data-index="cell.index"
+				<div class="cell" :class="[cellLineClearClass(cell.index), { clearing: isRowClearing(cell.index) }]" :data-index="cell.index"
 						 v-for="(cell, index) in boardCells" :key="index">
 					<div v-if="cell.unit" class="unit" :class="'unit-' + cell.unit.val" :data-index="cell.index">
 						{{ cell.unit.text }}
@@ -377,6 +377,14 @@
 					const cols = state.boardView.cols || 8;
 					const row = Math.floor(cellIndex / cols);
 					return s.clearLinesPending.indexOf(row) !== -1;
+				},
+				cellLineClearClass(cellIndex) {
+					const api = window.Game2048Blocks;
+					const s = state.lastStateForDisplay;
+					if (!api || !api.getCellLineClearVisualClass || !s) {
+						return '';
+					}
+					return api.getCellLineClearVisualClass(cellIndex, s);
 				},
 			},
 			mounted() {

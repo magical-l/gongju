@@ -121,7 +121,7 @@
 	<aside class="right-sidebar flex vertical items-stretch" style="min-width:0;gap:1rem">
 		<div id="edit-panel">
 			<h2>编辑选区</h2>
-			<p class="edit-intro">单击只选一格；拖选一片；<kbd>Shift</kbd>+拖/点按为累加。点数字或固定/下落设定。「清空选中格」「清除选区」仍可用。选中=<strong>格外侧</strong>青框；固定堆=左棕条；下落块=顶蓝条+灰绿底。暂停点=在「生成下一块」之前停住（调试用）。「开始」=运行，再点=重播；「回到开始」=本轮布局。运行中 <kbd>空格</kbd> 暂停。</p>
+			<p class="edit-intro">单击只选一格；拖选一片；<kbd>Shift</kbd>+拖/点按为累加。点数字或固定/下落设定。「清空选中格」「清除选区」仍可用。选中=<strong>格外侧</strong>青框；固定堆=左棕条；下落块=顶蓝条+灰绿底。暂停点=在「生成下一块」之前停住（调试用）。「开始」=运行，再点=重播；「回到开始」=本轮布局。运行中 <kbd>空格</kbd> 暂停。<strong>消行整理</strong>时：剩格为<strong>橙框</strong>勾边，「上方行」抠出的块为<strong>深蓝框</strong>勾边（按连通块外沿描边，不重复画内部相邻线）。</p>
 			<p id="status" class="edit-status"></p>
 			<div class="legend flex multi-line items-near-x-start items-near-y-center">
 				<span class="flex inline items-near-y-center"><i class="legend-swatch legend-swatch-empty"></i> 空</span>
@@ -364,6 +364,86 @@
 		return b;
 	}
 
+	function addLcKeysFromRemainder(rem, set) {
+		if (!rem || !set) {
+			return;
+		}
+		for (var i = 0; i < rem.length; i++) {
+			set[rem[i].r + ',' + rem[i].c] = true;
+		}
+	}
+	function addLcKeysFromAbovePieces(ap, set) {
+		if (!ap || !set) {
+			return;
+		}
+		for (var ai = 0; ai < ap.length; ai++) {
+			var abs = L.pieceAbsCells(ap[ai]);
+			for (var j = 0; j < abs.length; j++) {
+				set[abs[j].r + ',' + abs[j].c] = true;
+			}
+		}
+	}
+	function addLcKeysFromSpecialCurrentPiece(piece, set) {
+		if (!piece || !set) {
+			return;
+		}
+		var sh = piece.shape;
+		if (sh !== '_REMAINDER1' && sh !== '_ABOVE_COL_' && sh !== '_ABOVE_WHOLE_') {
+			return;
+		}
+		var abs = L.pieceAbsCells(piece);
+		for (var i = 0; i < abs.length; i++) {
+			set[abs[i].r + ',' + abs[i].c] = true;
+		}
+	}
+	function lcBoundarySuffixes(r, c, inSet, nrows, ncols) {
+		var k = r + ',' + c;
+		if (!inSet[k]) {
+			return [];
+		}
+		var out = [];
+		if (r <= 0 || !inSet[(r - 1) + ',' + c]) {
+			out.push('lc-edge-top');
+		}
+		if (r >= nrows - 1 || !inSet[(r + 1) + ',' + c]) {
+			out.push('lc-edge-bottom');
+		}
+		if (c <= 0 || !inSet[r + ',' + (c - 1)]) {
+			out.push('lc-edge-left');
+		}
+		if (c >= ncols - 1 || !inSet[r + ',' + (c + 1)]) {
+			out.push('lc-edge-right');
+		}
+		return out;
+	}
+	/** 与 2048方块-dom.js getCellLineClearVisualClass 一致：剩格 / 上方行块 外框 */
+	function lineClearVisualClass(r, c, state) {
+		if (!state || state.rows == null) {
+			return '';
+		}
+		var nrows = state.rows;
+		var ncols = state.cols;
+		var remSet = {};
+		addLcKeysFromRemainder(state.lineClearRemainderCells, remSet);
+		var aboveSet = {};
+		addLcKeysFromAbovePieces(state.lineClearAbovePieces, aboveSet);
+		var curSet = {};
+		addLcKeysFromSpecialCurrentPiece(state.currentPiece, curSet);
+		var pk = r + ',' + c;
+		if (remSet[pk]) {
+			return ['lc-remainder'].concat(lcBoundarySuffixes(r, c, remSet, nrows, ncols)).join(' ');
+		}
+		if (aboveSet[pk]) {
+			return ['lc-above'].concat(lcBoundarySuffixes(r, c, aboveSet, nrows, ncols)).join(' ');
+		}
+		if (curSet[pk] && state.currentPiece) {
+			var sh2 = state.currentPiece.shape;
+			var kind = sh2 === '_ABOVE_WHOLE_' ? 'lc-cur-above-whole' : (sh2 === '_ABOVE_COL_' ? 'lc-cur-above-col' : 'lc-cur-remainder');
+			return [kind].concat(lcBoundarySuffixes(r, c, curSet, nrows, ncols)).join(' ');
+		}
+		return '';
+	}
+
 	/** @param {number[]|null} clearingRows 待消除行（仅闪烁阶段传入，与正式局一致） */
 	function renderRun(clearingRows) {
 		syncBoardCssVars();
@@ -387,6 +467,14 @@
 				cell.className = 'cell';
 				if (flashRow[r]) {
 					cell.classList.add('clearing');
+				}
+				var lcStr = lineClearVisualClass(r, c, gameState);
+				if (lcStr) {
+					lcStr.split(/\s+/).forEach(function(cl) {
+						if (cl) {
+							cell.classList.add(cl);
+						}
+					});
 				}
 				var v = disp[r][c] || 0;
 				if (v) {

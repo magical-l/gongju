@@ -58,6 +58,18 @@ function getDisplayBoard(state) {
 			}
 		}
 	}
+	const ap = state.lineClearAbovePieces;
+	if (ap && ap.length > 0) {
+		for (let ai = 0; ai < ap.length; ai++) {
+			const absAbove = pieceAbsCells(ap[ai]);
+			for (let j = 0; j < absAbove.length; j++) {
+				const aa = absAbove[j];
+				if (aa.r >= 0 && aa.r < rows && aa.c >= 0 && aa.c < cols) {
+					flat[aa.r * cols + aa.c] = aa.value;
+				}
+			}
+		}
+	}
 	const piece = state.currentPiece;
 	if (piece && !state.gameOver) {
 		const abs = pieceAbsCells(piece);
@@ -69,6 +81,99 @@ function getDisplayBoard(state) {
 		}
 	}
 	return flat;
+}
+
+function addKeysFromRemainder(rem, set) {
+	if (!rem || !set) {
+		return;
+	}
+	for (let i = 0; i < rem.length; i++) {
+		const e = rem[i];
+		set[e.r + ',' + e.c] = true;
+	}
+}
+
+function addKeysFromAbovePieces(ap, absFn, set) {
+	if (!ap || !absFn || !set) {
+		return;
+	}
+	for (let i = 0; i < ap.length; i++) {
+		const abs = absFn(ap[i]);
+		for (let j = 0; j < abs.length; j++) {
+			set[abs[j].r + ',' + abs[j].c] = true;
+		}
+	}
+}
+
+function addKeysFromSpecialCurrentPiece(piece, absFn, set) {
+	if (!piece || !absFn || !set) {
+		return;
+	}
+	const sh = piece.shape;
+	if (sh !== '_REMAINDER1' && sh !== '_ABOVE_COL_' && sh !== '_ABOVE_WHOLE_') {
+		return;
+	}
+	const abs = absFn(piece);
+	for (let i = 0; i < abs.length; i++) {
+		set[abs[i].r + ',' + abs[i].c] = true;
+	}
+}
+
+function boundaryClassSuffixes(r, c, inSet, rows, cols) {
+	const k = r + ',' + c;
+	if (!inSet[k]) {
+		return [];
+	}
+	const out = [];
+	if (r <= 0 || !inSet[(r - 1) + ',' + c]) {
+		out.push('lc-edge-top');
+	}
+	if (r >= rows - 1 || !inSet[(r + 1) + ',' + c]) {
+		out.push('lc-edge-bottom');
+	}
+	if (c <= 0 || !inSet[r + ',' + (c - 1)]) {
+		out.push('lc-edge-left');
+	}
+	if (c >= cols - 1 || !inSet[r + ',' + (c + 1)]) {
+		out.push('lc-edge-right');
+	}
+	return out;
+}
+
+/**
+ * 消行整理阶段：剩格 / 上方行抠块 的外框 class（与手动调试页一致）。
+ * @param {number} cellIndex row-major
+ * @param {object} state gameState
+ */
+function getCellLineClearVisualClass(cellIndex, state) {
+	if (!state || state.rows == null || state.cols == null || !pieceAbsCells) {
+		return '';
+	}
+	const rows = state.rows;
+	const cols = state.cols;
+	const r = Math.floor(cellIndex / cols);
+	const c = cellIndex % cols;
+	const remSet = {};
+	addKeysFromRemainder(state.lineClearRemainderCells, remSet);
+	const aboveSet = {};
+	addKeysFromAbovePieces(state.lineClearAbovePieces, pieceAbsCells, aboveSet);
+	const curSet = {};
+	addKeysFromSpecialCurrentPiece(state.currentPiece, pieceAbsCells, curSet);
+	const pk = r + ',' + c;
+	if (remSet[pk]) {
+		return ['lc-remainder'].concat(boundaryClassSuffixes(r, c, remSet, rows, cols)).join(' ');
+	}
+	if (aboveSet[pk]) {
+		return ['lc-above'].concat(boundaryClassSuffixes(r, c, aboveSet, rows, cols)).join(' ');
+	}
+	if (curSet[pk] && state.currentPiece) {
+		const sh = state.currentPiece.shape;
+		const kind = sh === '_ABOVE_WHOLE_'
+			? 'lc-cur-above-whole'
+			: (sh === '_ABOVE_COL_' ? 'lc-cur-above-col' : 'lc-cur-remainder');
+		return [kind].concat(boundaryClassSuffixes(r, c, curSet, rows, cols)).join(' ');
+	}
+	return '';
 }
 
 function commitState(state) {
@@ -699,6 +804,7 @@ const stub = {
 		getLineClearPolicy: getLineClearPolicy,
 		applyLineClearPolicy: applyLineClearPolicy,
 		getTileDisplayContent: getTileDisplayContent,
+		getCellLineClearVisualClass: getCellLineClearVisualClass,
 		onResultRestart: handleRestart,
 		onGesture: function(dx, dy) {
 			if (!gameState) {

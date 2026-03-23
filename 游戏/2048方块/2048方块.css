@@ -21,6 +21,40 @@
 	animation: clear-line-flash 0.12s ease-in-out infinite;
 }
 
+/* 消行整理阶段：剩格 / 上方行抠块 外框（按连通块边界描边，内部相邻格不重复画线） */
+.gaming.area .main.map.area .board .cell.lc-remainder {
+	--lc-s: #d35400;
+}
+.gaming.area .main.map.area .board .cell.lc-above {
+	--lc-s: #1f618d;
+}
+.gaming.area .main.map.area .board .cell.lc-cur-above-whole {
+	--lc-s: #16a085;
+}
+.gaming.area .main.map.area .board .cell.lc-cur-above-col {
+	--lc-s: #8e44ad;
+}
+.gaming.area .main.map.area .board .cell.lc-cur-remainder {
+	--lc-s: #e67e22;
+}
+.gaming.area .main.map.area .board .cell[class*="lc-edge"] {
+	position: relative;
+	z-index: 1;
+	box-sizing: border-box;
+}
+.gaming.area .main.map.area .board .cell.lc-edge-top {
+	border-top: 2px solid var(--lc-s);
+}
+.gaming.area .main.map.area .board .cell.lc-edge-bottom {
+	border-bottom: 2px solid var(--lc-s);
+}
+.gaming.area .main.map.area .board .cell.lc-edge-left {
+	border-left: 2px solid var(--lc-s);
+}
+.gaming.area .main.map.area .board .cell.lc-edge-right {
+	border-right: 2px solid var(--lc-s);
+}
+
 /* 下一块预览：4×4 格子拼出的方块图形，.next-block 即网格容器，水平居中 */
 .next-block {
 	display: grid;

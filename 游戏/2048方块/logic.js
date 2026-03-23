@@ -387,12 +387,9 @@
 	}
 
 	/**
-	 * whole 模式下竖合是否禁止：
-	 * 1) 同列相邻两格同一块「上方行」组号且非 0 → 同一块内部不竖并。
-	 * 2) 上格为整块抠出时打的组号（>0），下格为盘面原有固定格（组号 0）→ 不竖并。
-	 *    否则 U 形等：左右脚已落地与底行 2 合并后，中间列仍会与正下方满行 2 在 cascade 里并成 4，与「整块」语义不符。
-	 * 3) 见 isAdjacentVerticalMergeBlockedByWholeRim：两行间最左、最右列均已异数无法竖并时，闭区间内列亦禁止竖并（底行无组号时补充）。
-	 * （活动块下落时的同数合并仍走 tick，不受此条影响。）
+	 * whole 模式下：相邻两行 (rUpper,rLower) 在列 c 的竖向同数合并是否禁止。
+	 * 语义来源：《玩法补充》§十「一组上方行是一块」与主《玩法》旧 7.2「全盘按列扫」的冲突处理。
+	 * 分条由子函数实现；活动块下落 tick 不走此套判定。
 	 */
 	function isAdjacentVerticalMergeBlockedByWholeSlab(policy, cellGroup, rUpper, rLower, c) {
 		if (!cellGroup) {
@@ -414,9 +411,8 @@
 	}
 
 	/**
-	 * whole 模式补充：两相邻行上，若某一**连续列段**内两格均非零，且该段**最左、最右**列上≠下，则禁止该段**严格内部**的竖向同数合并。
-	 * 上一版用整行 min/max + 全段无空洞：当上排因先合并出现 0 时整段失效，中间列仍会与下排 2+2 竖并（与「整块一体」不符）。
-	 * 现改为按「两格均非零」的极大连续列段分别判断。
+	 * whole · 旧 rim：连续列段两格均非零且段两端列均「上≠下」时，禁止段内列号严格介于两端之间的同数竖并。
+	 * （与 NonuniformBandInterior 互补：后者处理「仅中间列不齐、两端仍同质」的情形。）
 	 */
 	function isAdjacentVerticalMergeBlockedByWholeRim(board, rows, cols, rUpper, rLower, c, policy) {
 		const pol = normalizeLineClearPolicy(policy || {});
@@ -460,10 +456,59 @@
 	}
 
 	/**
-	 * whole：两相邻行在「有效横杠」上逐列同值且两格均非零时，竖并只允许发生在**物理左右脚**列，禁止先并中间列。
-	 * 若仅用「两格均非零」段的 fnz/lnz 作左右界，当上排 col0 已空、下排仍为 2 时会把 col1 误当作左缘，中间列仍会抢先竖并。
-	 * 当前对 cols===6 且 0..4 为玩法宽、第 6 列为占位的情形：仅允许 c=0 与 c=4；其它列宽可再泛化。
-	 * 一旦出现空洞或上下逐列不等，本规则不满足，交回 rim/slab。
+	 * whole：相邻两行 (rUpper,rLower) 与列 c。
+	 * 定义「双排非零列区间」：包含 c 的连续列集合，这些列上两格均非零；且无法再向左或右各扩一列仍保持两格均非零（即常见的「极大」双非零连通块，此处用文字定义替代单独名词）。
+	 * 若该区间内存在列 k 使 board[rUpper][k] !== board[rLower][k]，则禁止在该区间内**任何**列做「上下同数」竖并（与具体是 2、4 或其它 2^n 无关；端点列不例外）。
+	 */
+	function wholeAdjacentMergeBlockedWhenDoubleNonzeroRunHasMismatch(board, rows, cols, rUpper, rLower, c, policy) {
+		const pol = normalizeLineClearPolicy(policy || {});
+		if (pol.aboveRowsMode !== 'whole') {
+			return false;
+		}
+		if (rUpper < 0 || rLower !== rUpper + 1 || rLower >= rows) {
+			return false;
+		}
+		if (!board[rUpper] || !board[rLower]) {
+			return false;
+		}
+		let cc = 0;
+		while (cc < cols) {
+			while (cc < cols && (board[rUpper][cc] === 0 || board[rLower][cc] === 0)) {
+				cc++;
+			}
+			if (cc >= cols) {
+				break;
+			}
+			const segL = cc;
+			while (cc < cols && board[rUpper][cc] !== 0 && board[rLower][cc] !== 0) {
+				cc++;
+			}
+			const segR = cc - 1;
+			if (c < segL || c > segR) {
+				continue;
+			}
+			let hasMismatch = false;
+			for (let k = segL; k <= segR; k++) {
+				if (board[rUpper][k] !== board[rLower][k]) {
+					hasMismatch = true;
+					break;
+				}
+			}
+			if (!hasMismatch) {
+				continue;
+			}
+			const u = board[rUpper][c];
+			const d = board[rLower][c];
+			if (u !== 0 && d !== 0 && u === d) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * whole · 全横杠同质：若某连续列段内各行对上=下且数值全相同（横杠齐），则禁止在段内列号非端点处竖并，避免「中间先并」。
+	 * cols===6 且 0..4 为玩法主宽度时，对应 c∈{1,2,3} 封禁；列宽变化时见 fnz/lnz 分支。
 	 */
 	function isAdjacentVerticalMergeBlockedByWholeUniformBarEdgesOnly(board, rows, cols, rUpper, rLower, c, policy) {
 		const pol = normalizeLineClearPolicy(policy || {});
@@ -531,6 +576,9 @@
 
 	function isAdjacentVerticalMergeBlockedWhole(policy, cellGroup, board, rows, cols, rUpper, rLower, c) {
 		if (isAdjacentVerticalMergeBlockedByWholeSlab(policy, cellGroup, rUpper, rLower, c)) {
+			return true;
+		}
+		if (wholeAdjacentMergeBlockedWhenDoubleNonzeroRunHasMismatch(board, rows, cols, rUpper, rLower, c, policy)) {
 			return true;
 		}
 		if (isAdjacentVerticalMergeBlockedByWholeUniformBarEdgesOnly(board, rows, cols, rUpper, rLower, c, policy)) {
