@@ -1,0 +1,296 @@
+# 俄罗斯方块 × 2048 融合玩法技术设计文档
+
+## 1. 概述
+本文档基于《2048方块玩法规则说明书》提供技术实现方案。**实现《玩法》所描述的业务逻辑是真正的、唯一的重点**；计分、升级等相对次要，可在核心循环跑通后再接，本架构以玩法闭环为先。
+
+**文档范围**：登顶（生成重叠则游戏结束）、软降、场地与锁定等可配置参数，相对棋盘与活动块主循环而言实现直白，**不必**在本架构文档中单独展开章节；实现时直接对照《玩法》对应条款即可。
+
+核心目标：
+- 实现活动块与固定块堆的数字合并（移动时相同数字合并）。
+- 实现固化后的**消行**（检测满行、数字除法、生成消行剩余与上方块、多块下落直至整理结束）。
+- 仅在**整理已结束**（无待处理活动块、且本次消行链不再产生新满行需继续整理）后，再**生成新生块**（《玩法》第8节；勿与英文里的 spawn 混称，下文统一用「生成新生块」）。
+- 多活动块同时下落、接触、锁定延迟、由主循环推进的连续消行等与《玩法》第7节一致。
+
+本文档面向开发人员，描述核心类设计、关键算法和实现细节。
+
+### 1.1 术语与《玩法》对齐（讨论与文档用）
+
+- 规则与产品讨论**只**使用《玩法》§1、§7 已定义的概念：**上方块**、**下方块**、**消行剩余**、**剩余块**、**消行组**、**消行空隙** 等。
+- **「没有上方块」**：按《玩法》§7.1 第3步划分**剩余块**后，不存在「位于某个消行组之上的剩余块」；即**没有**这样的**上方块**（等价于：在消行组**之上**不再存在仍构成剩余块的固定堆区域）。若此前对话中把「上方块」与「满行上方的固定格」拆成两套说法，**以《玩法》为准**：上方块是规则里已定义的**剩余块**类型，步骤 7.1.4 再整体变为活动块；**不应**再发明第三种「只有固定格、不算上方块」的说法。
+- **合并**：一律归入《玩法》§4 活动块移动与 §7.2 整理中活动块下落；**不**单独在规则里再立一条「竖向合并」规则名。
+- **实现用简称（仅本技术文档与代码注释）**：**删行下移** — 满行经除法与擦除后，从场地表示中**删除这些空行**（行号收缩），使**原行号之上**的固定堆整体**向下**平移填补空缺；效果等价于《玩法》中消行空隙可被上方填上（**不是**建造空隙）。**勿**使用未在此定义的口语「压实」指代本操作，除非与「删行下移」同义并注明。
+
+**主局消行链**：已取消独立的 `postClearGravityState` / `cascadePending` 收尾；无整理列表时仅「删行下移」、计分，并链式检测新满行或生成新生块，与《玩法》§7 一致。棋盘辅助 `clearOneRound` / `clearFullLines`、`advancePostLockLineClearNoSpawn` 均走同一套 `applyPendingClearLines` → `syncFlushRemainingLineClearReform` → `tick` 整理链（`flushEntireLineClearChain`），与主局一致，仅不生成新生块。
+
+## 2. 核心类设计
+
+### 2.1 类图概览
+```
++----------------+       +-----------------+       +-------------------+
+|   GameBoard    |       |   ActivePiece   |       |  PieceManager     |
++----------------+       +-----------------+       +-------------------+
+| - grid[][Cell] |       | - shape[4][4]   |       | - pieces: List    |
+| - width        |       | - numbers[4][4] |       | - board: GameBoard|
+| - height       |       | - x, y          |       | - fallInterval    |
++----------------+       | - direction     |       | - lastFallTime    |
+| + getCell()    |       | - playerControllable |    +-------------------+
+| + setCell()    |       | - lockDelay     |       | + addPiece()      |
+| + canPlace()   |       | - isLanded      |       | + update()        |
+| + canMerge()   |       +-----------------+       | + processFall()   |
+| + solidify()   |       | + getCells()    |       | + sortPieces()    |
+| + processFullRows()|   | + canMove()     |       | + resolveCollisions()|
+| + mergeAt()    |       | + move()        |       | + onPieceLocked() |
++----------------+       | + rotate()      |       +-------------------+
+                         | + stepDown()            ^
+                         | + hardDrop()            |
+                         | + lock()                |
+                         | + getTopmostRow()       |
+                         | + getLeftmostCol()      |
+                         +-----------------+       |
+                               ^                   |
+                               |                   |
+                      +-----------------+          |
+                      | PlayerPiece     |----------+
+                      +-----------------+
+                      | (playerControllable=true) |
+                      +-----------------+
+```
+### 2.2 类详细说明
+
+#### 2.2.1 `Cell`（格子）
+- 字段：
+  - `int value`：数字（2的幂），0表示空。
+- 方法：
+  - `boolean isEmpty()`：返回 value == 0。
+
+#### 2.2.2 `GameBoard`（游戏棋盘）
+管理固定块堆、消行逻辑、碰撞检测。
+
+- 字段：
+  - `int width, height`：场地尺寸。
+  - `Cell[][] grid`：二维数组，索引[行][列]（行y从0底部到height-1顶部）。
+  - `int currentLevel`：当前等级。
+  - `int totalLinesCleared`：累计消除行数。
+- 方法：
+  - `Cell getCell(int row, int col)`：获取格子。
+  - `void setCell(int row, int col, int value)`：设置格子值（value=0表示清空）。
+  - `boolean canPlace(ActivePiece piece, int x, int y)`：碰撞检测，检查piece在(x,y)位置时，其所有格子是否与边界或grid中非空格重叠（不考虑合并）。
+  - `boolean canMergeWithFixed(ActivePiece piece, int dx, int dy)`：检查移动时是否可与固定块合并。返回真当且仅当所有格子的目标位置要么为空，要么有固定块且数字相同。
+  - `void solidify(ActivePiece piece)`：将piece的格子写入grid（合并已由piece完成，此处只负责写入）。
+  - `void mergeAt(int row, int col, int newValue)`：将固定块堆中(row,col)的格子替换为新值（若newValue=0则清空）。
+  - `List<ActivePiece> processFullRows()`：检测满行，执行除法，生成消行剩余和上方块。返回活动块列表。
+    - 内部实现见算法3.3。
+  - `int getMinInRow(int row)`：获取某行最小值（忽略空格）。
+  - `boolean isFullRow(int row)`：检查某行是否全满。
+
+#### 2.2.3 `ActivePiece`（活动块基类）
+表示一个下落中的方块，可以是玩家控制的，也可以是消行生成的。
+
+- 字段：
+  - `int[][] shape`：4x4矩阵，1表示有块，0表示空。
+  - `int[][] numbers`：与shape对应的4x4矩阵，记录每个格子的当前数字。
+  - `int x, y`：包围盒左下角坐标。
+  - `int direction`：0~3（旋转方向，用于SRS）。
+  - `boolean playerControllable`：是否由玩家操控（是否响应输入）。**非玩法里的产品名词**，仅技术区分：见下文锁定延迟说明。
+  - `int lockDelayRemaining`：锁定延迟剩余时间（毫秒）。
+  - `boolean isLanded`：是否已接触底部。
+  - `GameBoard board`：引用棋盘。
+- 方法：
+  - `List<CellPos> getCells()`：返回所有当前方格的绝对坐标列表，每个元素包含`col, row, value`。遍历shape，当值为1时，计算`col = x + j`, `row = y + (3 - i)`，并从`numbers[i][j]`取值。
+  - `boolean canMove(int dx, int dy)`：判断整个块是否能向(dx,dy)移动一格。逻辑与《玩法》§4.1 一致：只在该前进方向上考察**所有前线格**及其**下一格**（目标格）是否为空或可同数合并；不要求对非前线格逐格重复同一套语义（非前线格的下一格由同块其它格占据，由形状保证一致）。
+    1. 求前进方向 `(dx,dy)` 下的前线格集合。
+    2. 对每个前线格计算目标坐标；检查边界与固定堆：目标格须为空或数字与当前格相同，否则整块不可动。
+  - `boolean move(int dx, int dy)`：尝试移动。先调用`canMove`，若返回true：
+    1. 保存每个格子是否与固定块合并的信息（目标有固定块且数字相同）。
+    2. 更新位置：`x += dx; y += dy`。
+    3. 对于每个合并的格子，调用`board.mergeAt(targetRow, targetCol, value*2)`，并更新本块中对应格子的数字为`value*2`。
+    4. 返回true；否则返回false。
+  - `boolean rotate(boolean clockwise)`：旋转，调用SRS系统，不涉及合并。
+  - `void stepDown()`：尝试`move(0,-1)`，若失败则设置`isLanded=true`并初始化锁定延迟：玩家操控块为《玩法》`LOCK_DELAY_DURATION`（可配置）；消行产生的活动块见 2.2.3 补充说明。
+  - `void hardDrop()`：循环调用`stepDown`直到无法下落，然后调用`lock()`。
+  - `void lock()`：通知`PieceManager.onPieceLocked(this)`，由管理器完成**固化 → 消行 → 仅在应生成时生成新生块**（见 4.1），**不在此**无条件生成下一块。
+  - `void update(int deltaMs)`：更新锁定延迟，若`isLanded`且`lockDelayRemaining>0`则递减，若减至0则调用`lock()`。
+  - `int getTopmostRow()`：返回块中最高格子的行号（通过`getCells`计算最大值）。
+  - `int getLeftmostColumn()`：返回块中最左格子的列号（最小值）。
+
+**锁定延迟（技术说明，非《玩法》另立规则）**：消行剩余、上方块转化来的活动块**不可玩家操控**，但为复用同一套「下落—接触—固化—写回棋盘」管线，仍可采用与普通活动块相同的类与状态机。此类块**不需要**《玩法》意义上的锁定延迟窗口；若实现上能去掉「落地后等待再固化」这一支，应直接固化或等价处理。若与玩家块共用代码路径导致必须带一个延时字段，则取**尽量短**的数值（文档示例 50ms），仅为穿过同一套逻辑，**不是**与玩家块对称的第二种产品设计。
+
+#### 2.2.4 `PlayerPiece`（玩家控制的活动块）
+继承自`ActivePiece`，在构造函数中设置`playerControllable=true`，锁定延迟使用《玩法》第12节 `LOCK_DELAY_DURATION`。无需额外方法。
+
+#### 2.2.5 `PieceManager`（活动块管理器）
+管理所有当前存在的活动块（玩家块 + 消行生成的块），实现多块同时下落、排序、延迟处理。
+
+- 字段：
+  - `List<ActivePiece> pieces`：当前所有活动块。
+  - `GameBoard board`：引用棋盘。
+  - `int fallInterval`：当前下落周期（毫秒）。
+  - `int lastFallTime`：上次下落时间戳（毫秒）。
+- 方法：
+  - `void addPiece(ActivePiece piece)`：添加新活动块，并触发重排序。
+  - `void update(int deltaMs)`：每帧调用，处理下落、锁定延迟。
+  - `void processFall()`：每个下落周期调用，执行所有块的同时下落。
+  - `void sortPieces()`：按“块中最上方行号从小到大，相同则最左列号从小到大”排序。
+  - `void resolveCollisions()`：解决多块争抢同一格子的冲突（按排序顺序，下方块优先）。
+  - `void onPieceLocked(ActivePiece p)`：**任意活动块**固化后的统一入口。顺序为：`board.solidify(p)` → 从`pieces`移除`p` → 调用`board.processFullRows()`（即「消行」：若无满行则返回空列表）→ 若非空则将返回的活动块全部`addPiece`并`sortPieces`；**若为空且当前`pieces`已无任何活动块**，则执行《玩法》第8节的**生成新生块**（并检测登顶）。**不在**此处于「仍有整理中活动块」或「刚生成了待下落块」时生成新生块。
+
+#### 2.2.6 `SRS`（旋转系统）
+静态类，提供踢墙偏移表。
+
+- 方法：
+  - `static int[][] getOffset(String pieceType, int fromDir, int toDir, int testIndex)`：返回偏移量(dx,dy)。
+  - `static boolean tryRotate(ActivePiece piece, boolean clockwise, GameBoard board)`：尝试旋转，应用踢墙。返回是否成功。
+
+**与《玩法》对齐说明**：经典 SRS 指各块型（I、O、J、L、S、T、Z）在 0↔1↔2↔3 之间的**标准踢墙次序与偏移表**。若某版实现仍采用「绕质心旋转 + 简单水平试探」等近似，则**尚未**实现 SRS，与《玩法》§4.3 不等价，应在实现层替换为上述标准表。
+
+## 3. 关键算法详解
+
+### 3.1 活动块移动与合并（ActivePiece.move）
+```
+boolean move(int dx, int dy):
+    if (!canMove(dx, dy)) return false;
+    // 保存合并信息
+    List<MergeInfo> merges = new ArrayList<>();
+    for (CellPos cell : getCells()) {
+        int newCol = cell.col + dx;
+        int newRow = cell.row + dy;
+        if (newRow < board.height) { // 只考虑在场地内的
+            Cell target = board.getCell(newRow, newCol);
+            if (!target.isEmpty() && target.value == cell.value) {
+                merges.add(new MergeInfo(cell, newRow, newCol));
+            }
+        }
+    }
+    // 更新位置
+    x += dx;
+    y += dy;
+    // 执行合并
+    for (MergeInfo m : merges) {
+        board.mergeAt(m.row, m.col, m.cell.value * 2);
+        // 更新本块中对应格子的数字
+        updateNumberAt(m.cell.localRow, m.cell.localCol, m.cell.value * 2);
+    }
+    return true;
+```
+
+### 3.2 多活动块同时下落（PieceManager.processFall）
+```
+void processFall():
+    sortPieces();
+    // 预计算每个块的目标位置
+    for (ActivePiece p : pieces) {
+        p.targetY = p.y - 1;
+    }
+    resolveCollisions();
+    for (ActivePiece p : pieces) {
+        if (p.targetY != p.y) {
+            boolean success = p.move(0, -1);
+            if (!success) {
+                p.isLanded = true;
+                p.lockDelayRemaining = p.playerControllable ? PLAYER_LOCK_DELAY : NON_PLAYER_LOCK_DELAY; // 后者尽量短，见 2.2.3
+            }
+        }
+    }
+```
+
+### 3.3 消行处理与生成新活动块（GameBoard.processFullRows）
+```
+List<ActivePiece> processFullRows():
+    List<Integer> fullRows = new ArrayList<>();
+    for (int row = 0; row < height; row++) {
+        if (isFullRow(row)) fullRows.add(row);
+    }
+    if (fullRows.isEmpty()) return emptyList();
+    // 执行除法
+    for (int row : fullRows) {
+        int min = getMinInRow(row);
+        for (int col = 0; col < width; col++) {
+            int val = grid[row][col].value;
+            int newVal = val / min;
+            if (newVal == 1) {
+                grid[row][col].value = 0;
+            } else {
+                grid[row][col].value = newVal;
+            }
+        }
+    }
+    // 分组消行组
+    List<List<Integer>> clearGroups = groupContinuous(fullRows);
+    // 分组剩余行
+    List<RowRange> remainingRanges = getRemainingRanges(clearGroups);
+    List<ActivePiece> newPieces = new ArrayList<>();
+    // 处理上方块
+    for (RowRange range : remainingRanges) {
+        if (isAboveAnyClearGroup(range, clearGroups)) {
+            ActivePiece piece = createPieceFromRange(range);
+            newPieces.add(piece);
+        }
+    }
+    // 处理消行剩余格子
+    for (int row : fullRows) {
+        for (int col = 0; col < width; col++) {
+            if (grid[row][col].value > 0) {
+                ActivePiece piece = create1x1Piece(grid[row][col].value, col, row);
+                newPieces.add(piece);
+            }
+        }
+    }
+    return newPieces;
+```
+
+### 3.4 固化后入口：消行与是否生成新生块（PieceManager.onPieceLocked）
+```
+void onPieceLocked(ActivePiece p):
+    board.solidify(p);
+    pieces.remove(p);
+
+    // 消行：《玩法》第7节；无满行时 newPieces 为空
+    List<ActivePiece> newPieces = board.processFullRows();
+
+    if (!newPieces.isEmpty()) {
+        for (ActivePiece q : newPieces) {
+            addPiece(q);
+        }
+        sortPieces();
+        return; // 整理未结束，不生成新生块
+    }
+
+    // 无满行需继续处理，且当前已无任何活动块 → 整理结束，生成新生块
+    if (pieces.isEmpty()) {
+        addPiece(new PlayerPiece(...)); // 生成位置、朝向等按《玩法》第8、12节
+        // 若与固定堆重叠 → 登顶，游戏结束（实现细节从略）
+    }
+```
+
+## 4. 关键流程时序
+
+### 4.1 玩家硬降与固化后走向
+```
+PlayerPiece.hardDrop():
+    while (move(0, -1)) {}
+    lock();
+
+ActivePiece.lock():
+    pieceManager.onPieceLocked(this);   // 内部：solidify → processFullRows → 按需 add 新活动块或生成新生块
+```
+
+**要点**：锁定只表示「本块需要写入固定堆并触发后续流程」；**并非**每次锁定后都生成新生块。必须先走**消行**（`processFullRows`）：有满行则进入多块整理；无满行且列表中已无任何活动块时，才进入《玩法》的**生成新生块**。
+
+### 4.2 消行链与主循环
+```
+1. 任意活动块固化 -> onPieceLocked -> solidify -> processFullRows
+2. 若有新活动块：加入 pieces，sortPieces()
+3. update 循环继续：下落、接触、固化
+4. 再次固化则重复步骤 1；直至某次 processFullRows 为空且 pieces 为空，再生成新生块
+```
+
+## 5. 数据存储与性能考虑
+- **固定块堆**：`Cell[][]`，每次固化或消行时更新。
+- **活动块列表**：`ArrayList<ActivePiece>`，数量通常≤20，排序使用`Collections.sort`，复杂度可接受。
+- **时间管理**：使用`deltaMs`累加，独立管理每个块的锁定延迟剩余时间。
+- **缓存**：`getCells()`每次调用都重新计算，但块数量少，开销小。如需优化，可在位置变化时缓存结果。
+
+## 6. 扩展与调试
+- **锁定延迟**：玩家操控块与《玩法》`LOCK_DELAY_DURATION`一致；消行产生的活动块若共用代码路径，使用极短延时或等价「立即固化」，见 2.2.3，勿理解为第二种玩法规则。
+- **调试开关**：可设置全局标志`DEBUG_SLOW_FALL`，强制下落周期为800ms，便于观察多块下落过程。
+- **日志**：关键步骤可打印日志，如消行数量、生成活动块数量等。
