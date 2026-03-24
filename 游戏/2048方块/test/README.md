@@ -10,12 +10,18 @@ npm test
 
 等价于 `node test/run.js`：内置迷你 `describe` / `it` 运行器，按顺序加载 **`core.spec.js`**、**`clearing.spec.js`** 后退出（失败时非零码，适合 CI）。
 
-**参与 `npm test` 的**有 `run.js`、`spec-common.js`、`core.spec.js`、`clearing.spec.js`。同目录下的 **`2048方块-手动调试.html`** 是手工调试页，**不参与**自动化（通过 `../logic.js`、`../constants.js`、`../2048方块.css` 引用游戏目录资源）。历史浏览器场景、独立 `scenarios`、生成脚本等已删，需找回可用 Git。
+**参与 `npm test` 的**有 `run.js`、`spec-common.js`、`clearing-data.js`、`core.spec.js`、`clearing.spec.js`。同目录下的 **`2048方块-手动调试.html`**、**`整理测试可视化.html`** 是手工/可视化页，**不参与**自动化。历史浏览器场景、独立 `scenarios`、生成脚本等已删，需找回可用 Git。
 
 ### 文件分工
 
 - **`core.spec.js`**：基础与常规路径——§4.1 合并、§7.1 一般消行（无完整「整理」链的断言）、§11 计分等与主流程相近的用例。
-- **`clearing.spec.js`**：**整理**与多块路径——§7.2～7.3 链式 flush、`advancePostLockLineClearNoSpawn` 终盘；锁定后分步消行、整块上方行、`lineClearPolicy` 等。此处是测试重点，后续可继续增加多块争格、连续 reform、链式记分等多路径用例。
+- **`clearing-data.js`**：整理用例表 + **`PLAYBOOK`**：按《玩法》§7.1 用 **§0～§4** 区分「无满行 / 仅有消行剩余 / 仅有上方块 / 二者兼有（含 §3.1～§3.3）/ 宽6 分步」；每条用例带稳定编号 **`caseNo`（C-01…）**、`playbook` 与期望盘面。整理链终盘含「上方块脚印底空行」时不再误抽底行（见 `logic.js` 中 `packAfterClearedEmptyRows`）。在 **`整理测试可视化.html`** 里可点标签看释义。
+- **`clearing.spec.js`**：按 §0～§4 分组跑 `clearing-data.js`：`advancePostLockLineClearNoSpawn`（固定盘链）与宽6 的落子锁定分步用例。
+
+### 覆盖率怎么理解
+
+整理回归的「路径」指 **规则在盘面上的切分结果**：本轮消行后是只剩 1×1 剩格、还是只剩抠出来的上方块、还是两种活动块一起参加 §7.2——每一类下面再用**不同棋盘**把剩格个数、商为 2 或 4、上方块形状、§3 下列间错开/异数叠压/同数合并等**具体化**。  
+仍可按同一 PLAYBOOK 继续加盘（例如 §1 下更多除法组合、§3 下更复杂的并排剩格）；§4 下继续加宽6 策略场景。那不等于「已证明遍历了 `logic.js` 每个分支」，但能把 **§7.1～§7.2 产品语义**压到可回归的期望终盘上。
 
 与先前「分层设想」的关系：`npm test` 里这两份文件对应**已落地的回归子集**；像坐标公式单测、SRS 全套、锁延迟可控时间、软降/生成/登顶、`fallDelayMs` 与等级公式等，**尚未**写进仓库，可在 `core.spec.js` 或立新文件后列入 `run.js` 的 `testFiles`。
 
@@ -33,9 +39,9 @@ npm test
 | §4.3 旋转 | SRS | 无 | 踢墙、旋转后下一 tick 合并 |
 | §5 锁定延迟 | 接触后可操作至超时 | 无 | 锁定期内操作 |
 | §6 固化 | 合并后进堆 | 间接 | 可选：显式固化断言 |
-| §7.1 消行 | 满行除法、剩格、重力 | core：1.x～4.x | 多组非相邻满行等 |
-| §7.2～7.3 整理链 | 多活动块、递归消行 | clearing：链式 flush 等 | 争格顺序全组合 |
-| §7 + 策略 | 整块上方行、竖并 | clearing：U 形、异数禁竖并等 | 与 policy 矩阵对照 |
+| §7.1 消行 | 满行除法、剩格、重力 | core：1.x～4.x；clearing：顶行满+区外列等 flush | 更细除法边角 |
+| §7.2～7.3 整理链 | 多活动块、递归消行 | clearing：PLAYBOOK §1～§3、flush、空隙、竖并 | 同 PLAYBOOK 下更多盘面组合 |
+| §7 + 策略 | 整块上方行、竖并 | clearing：§4 宽6 三则 + §2 非矩形上方块 | 同 §4 继续加断言行/终盘 |
 | §8 生成与登顶 | 重叠则结束 | 无 | 顶行占满 + 生成失败 |
 | §9～§10 | SRS / 碰撞 | 间接 | 专项断言 |
 | §11 计分与等级 | 基础分、数字奖励、按得分升级、指数下落 | core：`clearOneRound` 单行得分（等级 0）、`getLineClearBaseScore` | **未测**：累计得分升多级、`fallDelayMs` 与等级公式、链式多轮记分 |

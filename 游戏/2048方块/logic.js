@@ -415,7 +415,11 @@
 	 */
 	function pieceOverlapsBoardStrict(board, rows, cols, p, rowOffset, colOffset) {
 		const cells = pieceAbsCells(p);
+		const wholeAbove = p && p.shape === '_ABOVE_WHOLE_';
 		for (let i = 0; i < cells.length; i++) {
+			if (wholeAbove && cells[i].value === 0) {
+				continue;
+			}
 			const r2 = cells[i].r + rowOffset;
 			const c2 = cells[i].c + colOffset;
 			if (r2 < 0 || r2 >= rows || c2 < 0 || c2 >= cols || !board[r2]) {
@@ -430,6 +434,11 @@
 
 	function pieceOverlapsBoard(board, rows, cols, p, rowOffset, colOffset) {
 		return pieceOverlapsBoardStrict(board, rows, cols, p, rowOffset, colOffset);
+	}
+
+	/** §7.1.4 上方块：cells 含全宽 0（建造空隙），触底/越界与 OOB 锁行一律按整块包围盒底边（max dr），与非零格无关。 */
+	function pieceMaxDrForOobLock(piece) {
+		return Math.max.apply(null, piece.cells.map(function(c) { return c.dr; }));
 	}
 
 	function pieceOutOfBounds(rows, cols, p, rowOffset, colOffset) {
@@ -505,9 +514,13 @@
 				return {kind: 'solidify'};
 			}
 		}
+		const wholeAboveDown = piece.shape === '_ABOVE_WHOLE_';
 		let canMove = true;
 		for (let ci = 0; ci < frontLineCells.length; ci++) {
 			const cell = frontLineCells[ci];
+			if (wholeAboveDown && cell.value === 0) {
+				continue;
+			}
 			const targetR2 = pieceRow + cell.dr + direction.dr;
 			const targetC2 = piece.col + cell.dc + direction.dc;
 			if (targetC2 < 0 || targetC2 >= cols || targetR2 >= rows || targetR2 < 0 || !board[targetR2]) {
@@ -542,7 +555,7 @@
 				return Object.assign({}, cell);
 			}
 			const tv = board[tr][tc];
-			if (tv === cell.value) {
+			if (cell.value !== 0 && tv === cell.value) {
 				if (mob && mBoard && mCg && pol != null
 						&& isAdjacentVerticalMergeBlockedWholeReformPhase(pol, mCg, mBoard, rows, cols, tr - 1, tr, tc)) {
 					return Object.assign({}, cell);
@@ -596,6 +609,9 @@
 				const r = pieceRow + cell.dr;
 				const c = pieceBefore.col + cell.dc;
 				if (r >= 0 && r < rows && c >= 0 && c < cols && board[r]) {
+					if (pieceBefore.shape === '_ABOVE_WHOLE_' && cell.value === 0 && board[r][c] !== 0) {
+						return;
+					}
 					board[r][c] = 0;
 					if (cg) {
 						cg[r][c] = 0;
@@ -611,6 +627,9 @@
 			const r = pieceRow + cell.dr;
 			const c = pieceBefore.col + cell.dc;
 			if (r >= 0 && r < rows && c >= 0 && c < cols && board[r]) {
+				if (pieceBefore.shape === '_ABOVE_WHOLE_' && cell.value === 0 && board[r][c] !== 0) {
+					return;
+				}
 				board[r][c] = 0;
 				if (cg) {
 					cg[r][c] = 0;
@@ -643,7 +662,7 @@
 
 		const r = computeOneStepDownFall(board, rows, cols, piece);
 		if (r.kind === 'oob') {
-			const maxDr = Math.max.apply(null, piece.cells.map(function(c) { return c.dr; }));
+			const maxDr = pieceMaxDrForOobLock(piece);
 			const lockRow = Math.min(piece.row, rows - 1 - maxDr);
 			const lockPieceAt = Object.assign({}, piece, {row: lockRow});
 			writePieceToBoard(board, rows, cols, lockPieceAt, cg);
@@ -731,7 +750,7 @@
 				writePieceToBoard(board, rows, cols, Object.assign({}, pieceBeforeMove, {row: pieceBeforeMove.row}), cg);
 				working[i].piece = null;
 			} else if (fallR.kind === 'oob') {
-				const maxDr = Math.max.apply(null, pieceBeforeMove.cells.map(function(c) { return c.dr; }));
+				const maxDr = pieceMaxDrForOobLock(pieceBeforeMove);
 				const lockRow = Math.min(pieceBeforeMove.row, rows - 1 - maxDr);
 				writePieceToBoard(board, rows, cols, Object.assign({}, pieceBeforeMove, {row: lockRow}), cg);
 				working[i].piece = null;
@@ -763,7 +782,7 @@
 		}
 		const clearedSet = clearedSetFromRowsArray(rowsArr);
 		const scoreAdd = g.lineClearScoreAddPending != null ? g.lineClearScoreAddPending : 0;
-		packAfterClearedEmptyRows(g.board, g.rows, g.cols, clearedSet, g.boardCellGroup);
+		packAfterClearedEmptyRows(g.board, g.rows, g.cols, clearedSet, g.boardCellGroup, g.lineClearPackSkipRows);
 		const score = g.score + scoreAdd;
 		const highScore = g.highScore >= score ? g.highScore : score;
 		const nextCount = g.pieceCount + 1;
@@ -776,6 +795,7 @@
 			lineClearScoreAddPending: null,
 			lineClearRemainderCells: null,
 			lineClearAbovePieces: null,
+			lineClearPackSkipRows: null,
 			postClearGravityState: null,
 			cascadePending: false,
 			currentPiece: null,
@@ -1059,11 +1079,15 @@
 	function writePieceToBoard(board, rows, cols, piece, cellGroup) {
 		const gid = piece && piece.shape === '_ABOVE_WHOLE_' && piece.aboveWholeGroupId != null
 			&& piece.aboveWholeGroupId > 0 ? piece.aboveWholeGroupId : 0;
+		const wholeAbove = piece && piece.shape === '_ABOVE_WHOLE_';
 		for (let i = 0; i < piece.cells.length; i++) {
 			const cell = piece.cells[i];
 			const r = piece.row + cell.dr;
 			const c = piece.col + cell.dc;
 			if (r >= 0 && r < rows && c >= 0 && c < cols) {
+				if (wholeAbove && cell.value === 0 && board[r][c] !== 0) {
+					continue;
+				}
 				board[r][c] = cell.value;
 				if (cellGroup) {
 					cellGroup[r][c] = gid;
@@ -1162,8 +1186,9 @@
 	 * **整行抽掉**（行数变少），再在**顶部**补回等量空行，使场地高度不变；其余行**上下相对顺序不变**，
 	 * 行内图案（含建造空隙）不变。这样上方悬空行与下方被消行之间的全空行会保留，不会把非空行压缩到场地最底。
 	 * @param {Object<number, boolean>} clearedSet 本轮处理过的满行行号集合
+	 * @param {Object<number, boolean> | null | undefined} packSkipRows 并入 _ABOVE_WHOLE_ 的空消行层：整理时曾消行且全 0 仍保留在表示中
 	 */
-	function packAfterClearedEmptyRows(board, rows, cols, clearedSet, cellGroup) {
+	function packAfterClearedEmptyRows(board, rows, cols, clearedSet, cellGroup, packSkipRows) {
 		const kept = [];
 		const keptG = [];
 		for (let r = 0; r < rows; r++) {
@@ -1175,7 +1200,7 @@
 					break;
 				}
 			}
-			if (wasClearedLine && allZero) {
+			if (wasClearedLine && allZero && !(packSkipRows && packSkipRows[r])) {
 				continue;
 			}
 			kept.push(board[r].slice());
@@ -1255,6 +1280,7 @@
 			lineClearRemainderCells: null,
 			lineClearAbovePieces: null,
 			lineClearClearedRows: null,
+			lineClearPackSkipRows: null,
 			lineClearScoreAddPending: null,
 			reformPieces: null,
 			fallIntervalMs: INITIAL_FALL_DELAY_MS,
@@ -1388,6 +1414,29 @@
 		return clearedSet;
 	}
 
+	function mergeLineClearPackSkipRows(prev, add) {
+		if (!add) {
+			return prev || null;
+		}
+		let addAny = false;
+		for (const key in add) {
+			if (add[key]) {
+				addAny = true;
+				break;
+			}
+		}
+		if (!addAny) {
+			return prev || null;
+		}
+		const out = prev ? Object.assign({}, prev) : {};
+		for (const k in add) {
+			if (add[k]) {
+				out[k] = true;
+			}
+		}
+		return out;
+	}
+
 	/** 升序满行行号拆成若干组，每组内行号两两相邻 */
 	function clusterClearedRowGroups(sortedAsc) {
 		const groups = [];
@@ -1404,6 +1453,61 @@
 		return groups;
 	}
 
+	/**
+	 * 抠块矩形内：若存在「上有非空、下有非空或紧邻本组消行层」的全零行，则全空消行层在删行整理中需保留（packSkip）。
+	 * 单列贴底等情形不标保留，以免 2.2 类剩格竖并失败。
+	 */
+	function groupNeedsFootprintPackPreserve(board, rowStart, rowEnd, cols, clearedGroupRows) {
+		for (let rGap = rowStart; rGap <= rowEnd; rGap++) {
+			let allZ = true;
+			for (let c = 0; c < cols; c++) {
+				if (board[rGap][c] !== 0) {
+					allZ = false;
+					break;
+				}
+			}
+			if (!allZ) {
+				continue;
+			}
+			let hasAbove = false;
+			for (let ra = rowStart; ra < rGap; ra++) {
+				for (let c = 0; c < cols; c++) {
+					if (board[ra][c] !== 0) {
+						hasAbove = true;
+						break;
+					}
+				}
+				if (hasAbove) {
+					break;
+				}
+			}
+			if (!hasAbove) {
+				continue;
+			}
+			let hasBelow = false;
+			if (rGap < rowEnd) {
+				for (let rb = rGap + 1; rb <= rowEnd; rb++) {
+					for (let c = 0; c < cols; c++) {
+						if (board[rb][c] !== 0) {
+							hasBelow = true;
+							break;
+						}
+					}
+					if (hasBelow) {
+						break;
+					}
+				}
+			}
+			if (!hasBelow && rGap === rowEnd && clearedGroupRows && clearedGroupRows.length > 0) {
+				hasBelow = true;
+			}
+			if (hasBelow) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	function pieceMaxFootprintRow(piece) {
 		let mx = -1e9;
 		for (let i = 0; i < piece.cells.length; i++) {
@@ -1416,14 +1520,16 @@
 	}
 
 	/**
-	 * 从棋盘上抠出「各组被消行之上的上方行」里的非零格，改为活动块列表，并把这些格置 0。
+	 * 从棋盘上抠出「各组被消行之上的上方行」矩形区域（行 …、列 0..cols-1）：先去掉紧贴场顶一侧的连续**全空行**（与玩法「上方块」顶沿对齐），再取 rTop..rowEnd 整块为 _ABOVE_WHOLE_。
+	 * 《玩法》§7.1.4：整块保持相对位置（含建造空隙）；格上为 0 的也进 cells。被消行本身（擦后全 0 的满行层）不属于上方块 cells，否则会误扩包围盒底边；删行整理时是否保留该空层由 packSkipRows 另行标记。
 	 * @param {{ next: number }} groupSeq 为每块分配 aboveWholeGroupId，并递增 next
-	 * @returns {Array<Object>} piece 列表（shape 均为 _ABOVE_WHOLE_）
+	 * @returns {{ pieces: Array<Object>, packSkipRows: Object<number, boolean> }}
 	 */
 	function extractLineClearAbovePiecesAndClearBoard(board, cellGroup, rows, cols, clearedRowsArr, groupSeq) {
 		const sorted = clearedRowsArr.slice().sort(function(a, b) { return a - b; });
 		const groups = clusterClearedRowGroups(sorted);
 		const outPieces = [];
+		const packSkipRows = {};
 		let prevGroupMax = -1;
 		for (let gi = 0; gi < groups.length; gi++) {
 			const g = groups[gi];
@@ -1434,38 +1540,65 @@
 			if (rowStart > rowEnd || rowStart < 0) {
 				continue;
 			}
-			const cells = [];
+			let anyNz = false;
 			for (let r = rowStart; r <= rowEnd; r++) {
 				for (let c = 0; c < cols; c++) {
-					const v = board[r][c];
-					if (v !== 0) {
-						cells.push({r: r, c: c, v: v});
+					if (board[r][c] !== 0) {
+						anyNz = true;
+						break;
 					}
 				}
+				if (anyNz) {
+					break;
+				}
 			}
-			if (cells.length === 0) {
+			if (!anyNz) {
 				continue;
 			}
-			let minR = cells[0].r;
-			let minC = cells[0].c;
-			for (let i = 1; i < cells.length; i++) {
-				if (cells[i].r < minR) {
-					minR = cells[i].r;
+			/** 剩块顶沿以上、至场地顶之间的「全空行」不属于上方块，抠块上沿从首个含非零的行起（内部全同行仍保留作建造空隙）。 */
+			let rTop = rowStart;
+			while (rTop <= rowEnd) {
+				let rowZ = true;
+				for (let cz = 0; cz < cols; cz++) {
+					if (board[rTop][cz] !== 0) {
+						rowZ = false;
+						break;
+					}
 				}
-				if (cells[i].c < minC) {
-					minC = cells[i].c;
+				if (!rowZ) {
+					break;
+				}
+				rTop++;
+			}
+			const minR = rTop;
+			const minC = 0;
+			const pcells = [];
+			for (let r = rTop; r <= rowEnd; r++) {
+				for (let c = 0; c < cols; c++) {
+					pcells.push({dr: r - minR, dc: c - minC, value: board[r][c]});
 				}
 			}
-			const pcells = cells.map(function(x) {
-				return {dr: x.r - minR, dc: x.c - minC, value: x.v};
-			});
+			const markPackSkip = groupNeedsFootprintPackPreserve(board, rTop, rowEnd, cols, g);
+			for (let gri = 0; gri < g.length; gri++) {
+				const cr = g[gri];
+				let rowAllZero = true;
+				for (let c = 0; c < cols; c++) {
+					if (board[cr][c] !== 0) {
+						rowAllZero = false;
+						break;
+					}
+				}
+				if (rowAllZero && markPackSkip) {
+					packSkipRows[cr] = true;
+				}
+			}
 			const gid = groupSeq.next++;
-			for (let i = 0; i < cells.length; i++) {
-				const cr = cells[i].r;
-				const cc = cells[i].c;
-				board[cr][cc] = 0;
-				if (cellGroup) {
-					cellGroup[cr][cc] = 0;
+			for (let r = rTop; r <= rowEnd; r++) {
+				for (let c = 0; c < cols; c++) {
+					board[r][c] = 0;
+					if (cellGroup) {
+						cellGroup[r][c] = 0;
+					}
 				}
 			}
 			outPieces.push({
@@ -1479,7 +1612,7 @@
 				aboveWholeGroupId: gid,
 			});
 		}
-		return outPieces;
+		return {pieces: outPieces, packSkipRows: packSkipRows};
 	}
 
 	function createRemainderOnePiece(x) {
@@ -1524,8 +1657,9 @@
 				this.boardCellGroup[x.r][x.c] = 0;
 			}
 		}
-		const abovePieces = extractLineClearAbovePiecesAndClearBoard(
+		const extracted = extractLineClearAbovePiecesAndClearBoard(
 			this.board, this.boardCellGroup, this.rows, this.cols, clearedRows, wholeAboveGroupSeq);
+		const abovePieces = extracted.pieces;
 		const reformPieces = [];
 		for (let ri = 0; ri < sorted.length; ri++) {
 			const xx = sorted[ri];
@@ -1549,6 +1683,7 @@
 			clearedRows: clearedRows,
 			reformPieces: reformPieces,
 			scoreAddFromDivision: prep.scoreAdd,
+			packSkipRows: extracted.packSkipRows,
 		};
 	};
 
@@ -1784,6 +1919,7 @@
 				lineClearRemainderCells: null,
 				lineClearAbovePieces: null,
 				lineClearClearedRows: null,
+				lineClearPackSkipRows: null,
 				lineClearScoreAddPending: null,
 			});
 		}
@@ -2093,6 +2229,7 @@
 		const prep = built.prep;
 		const clearedRows = built.clearedRows;
 		const reformPieces = built.reformPieces;
+		const mergedPackSkip = mergeLineClearPackSkipRows(g.lineClearPackSkipRows, built.packSkipRows);
 		const prevRows = g.lineClearClearedRows || [];
 		const mergedRows = prevRows.concat(clearedRows).filter(function(v, i, a) {
 			return a.indexOf(v) === i;
@@ -2126,13 +2263,14 @@
 					reformPieces: g.reformPieces,
 					lineClearRemainderCells: null,
 					lineClearAbovePieces: null,
+					lineClearPackSkipRows: mergedPackSkip,
 					lineClearClearedRows: mergedRows,
 					lineClearScoreAddPending: scoreAddTotal,
 					wholeAboveGroupSeq: groupSeq.next,
 				}, scoreStatePendingOnly);
 				return attachChainIfAny(out);
 			}
-			packAfterClearedEmptyRows(g.board, g.rows, g.cols, prep.clearedSet, g.boardCellGroup);
+			packAfterClearedEmptyRows(g.board, g.rows, g.cols, prep.clearedSet, g.boardCellGroup, mergedPackSkip);
 			const score = g.score + scoreAddTotal;
 			const highScore = g.highScore >= score ? g.highScore : score;
 			const suppressSpawn = stats.suppressNextSpawn === true || g.suppressSpawnAfterReform === true;
@@ -2151,6 +2289,7 @@
 					lineClearScoreAddPending: 0,
 					lineClearRemainderCells: null,
 					lineClearAbovePieces: null,
+					lineClearPackSkipRows: null,
 					currentPiece: null,
 					wholeAboveGroupSeq: groupSeq.next,
 				}, scoreStateApplied);
@@ -2168,6 +2307,7 @@
 				lineClearScoreAddPending: null,
 				lineClearRemainderCells: null,
 				lineClearAbovePieces: null,
+				lineClearPackSkipRows: null,
 				currentPiece: null,
 				pieceCount: nextCount,
 				playerLockTicksRemaining: null,
@@ -2196,6 +2336,7 @@
 			reformPieces: finalReform,
 			lineClearRemainderCells: null,
 			lineClearAbovePieces: null,
+			lineClearPackSkipRows: mergedPackSkip,
 			lineClearClearedRows: hadReform ? mergedRows : clearedRows,
 			lineClearScoreAddPending: scoreAddTotal,
 			wholeAboveGroupSeq: groupSeq.next,
@@ -2502,6 +2643,7 @@
 			lineClearRemainderCells: null,
 			lineClearAbovePieces: null,
 			lineClearClearedRows: null,
+			lineClearPackSkipRows: null,
 			lineClearScoreAddPending: null,
 			suppressSpawnAfterReform: overrides.suppressSpawnAfterReform === true,
 		};
@@ -2575,6 +2717,22 @@
 				? g.lineClearAbovePieces.map(function(p) { return serPiece(p); })
 				: null,
 			lineClearClearedRows: g.lineClearClearedRows ? g.lineClearClearedRows.slice() : null,
+			lineClearPackSkipRows: (function() {
+				const s = g.lineClearPackSkipRows;
+				if (!s) {
+					return null;
+				}
+				const arr = [];
+				for (const k in s) {
+					if (s[k]) {
+						const n = Number(k);
+						if (Number.isFinite(n)) {
+							arr.push(n);
+						}
+					}
+				}
+				return arr.length > 0 ? arr.sort(function(a, b) { return a - b; }) : null;
+			})(),
 			lineClearScoreAddPending: g.lineClearScoreAddPending != null ? g.lineClearScoreAddPending : null,
 			lockDelayDurationMs: (function() {
 				const ld = Number(g.lockDelayDurationMs);
@@ -2839,6 +2997,21 @@
 			lineClearClearedRows: Array.isArray(o.lineClearClearedRows)
 				? o.lineClearClearedRows.map(function(x) { return Number(x); }).filter(function(x) { return Number.isFinite(x); })
 				: null,
+			lineClearPackSkipRows: (function() {
+				const raw = o.lineClearPackSkipRows;
+				if (!raw) {
+					return null;
+				}
+				const rowsList = Array.isArray(raw) ? raw : [];
+				const obj = {};
+				for (let pi = 0; pi < rowsList.length; pi++) {
+					const n = Number(rowsList[pi]);
+					if (Number.isFinite(n)) {
+						obj[n] = true;
+					}
+				}
+				return Object.keys(obj).length > 0 ? obj : null;
+			})(),
 			lineClearScoreAddPending: o.lineClearScoreAddPending != null && Number.isFinite(Number(o.lineClearScoreAddPending))
 				? Number(o.lineClearScoreAddPending)
 				: null,

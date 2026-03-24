@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>2048方块 · 整理测试可视化（clearing-data）</title>
+	<style>
+		:root {
+			--bg: #f2f4ef;
+			--card: #fff;
+			--text: #2d3d27;
+			--muted: #5a6b52;
+			--border: #c8d4be;
+			--ok: #2e7d32;
+			--bad: #c62828;
+			--accent: #4a6b3a;
+		}
+		* { box-sizing: border-box; }
+		body {
+			font-family: "Segoe UI", "PingFang SC", "Microsoft Yahei", sans-serif;
+			margin: 0; padding: 20px 18px 40px;
+			background: var(--bg); color: var(--text); line-height: 1.55;
+			max-width: 1200px; margin-left: auto; margin-right: auto;
+		}
+		h1 { font-size: 1.35rem; margin: 0 0 8px; font-weight: 700; }
+		h2.catalog-title { font-size: 1.05rem; margin: 0 0 10px; }
+		.lead { font-size: 14px; color: var(--muted); margin: 0 0 18px; max-width: 55rem; }
+		.lead code { background: #e6ebe2; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+		.note {
+			background: #e8f0e4; border-left: 4px solid var(--accent);
+			padding: 10px 14px; margin: 0 0 22px; font-size: 13px; color: #333;
+		}
+		.path-catalog {
+			background: var(--card); border: 1px solid var(--border);
+			border-radius: 12px; padding: 14px 18px 18px; margin-bottom: 24px;
+			box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+		}
+		.path-catalog dl { margin: 0; font-size: 13px; }
+		.path-catalog dt {
+			margin-top: 10px; font-weight: 700; color: var(--accent);
+			font-family: Consolas, ui-monospace, monospace;
+			font-size: 12px;
+		}
+		.path-catalog dt:first-child { margin-top: 0; }
+		.path-catalog dd { margin: 4px 0 0 0; color: #444; padding-left: 0; }
+		.case {
+			background: var(--card); border: 1px solid var(--border);
+			border-radius: 12px; padding: 16px 18px; margin-bottom: 22px;
+			box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+		}
+		.case h2 { font-size: 1.02rem; margin: 0 0 6px; color: var(--text); }
+		.case .tag { font-size: 11px; color: var(--muted); font-weight: 600; margin-bottom: 8px; }
+		.path-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+		.path-chips span {
+			font-size: 11px; font-weight: 600;
+			background: #e3ebe0; color: #355030;
+			padding: 3px 8px; border-radius: 6px;
+			font-family: Consolas, ui-monospace, monospace;
+		}
+		.case .badge {
+			display: inline-block; font-size: 12px; font-weight: 700;
+			padding: 3px 10px; border-radius: 999px; margin-top: 8px;
+		}
+		.badge.pass { background: #c8e6c9; color: var(--ok); }
+		.badge.fail { background: #ffcdd2; color: var(--bad); }
+		.row-boards {
+			display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start;
+		}
+		.panel { flex: 0 0 auto; }
+		.panel .lbl {
+			font-size: 11px; color: #666; font-weight: 600; margin-bottom: 6px;
+			text-transform: uppercase; letter-spacing: 0.04em;
+		}
+		.board-wrap {
+			display: inline-grid; gap: 2px; padding: 6px;
+			background: #d4dcc8; border-radius: 8px;
+			border: 1px solid #a8b89a;
+		}
+		.board-wrap .cell {
+			width: 32px; height: 32px;
+			display: flex; align-items: center; justify-content: center;
+			font-size: 12px; font-weight: 700;
+			background: #faf8f3; color: #5c4a3a;
+			border-radius: 4px;
+		}
+		.board-wrap .cell.empty { color: transparent; background: #eee9e0; }
+		.board-wrap .cell.v2 { background: #eee4da; }
+		.board-wrap .cell.v4 { background: #ede0c8; }
+		.board-wrap .cell.v8 { background: #f4b17a; color: #fff; }
+		.board-wrap .cell.v16 { background: #f59563; color: #fff; }
+		.board-wrap .cell.v32 { background: #f67c5f; color: #fff; }
+		.board-wrap .cell.v64 { background: #f65e3b; color: #fff; }
+		.board-wrap .cell.v128 { background: #edcf72; color: #fff; }
+		.board-wrap .cell.falling {
+			box-shadow: inset 0 0 0 2px #1565c0; background: #d7e4f0;
+		}
+		.board-wrap .cell.row-assert {
+			box-shadow: inset 0 0 0 2px #6a1b9a;
+		}
+	</style>
+</head>
+<body>
+	<h1>整理测试可视化</h1>
+	<p class="lead">
+		用例表来自 <code>test/clearing-data.js</code>。每条用例有稳定编号 <strong>C-01…C-20</strong>（字段 <code>caseNo</code>），便于和 <code>npm test</code> / 文档对口。下方 <strong>PLAYBOOK</strong> 按《玩法》§7.1 把盘面切成「仅有消行剩余 / 仅有上方块 / 二者皆有 / 宽6 分步」等类，期望终盘与实现比对——是在<strong>补具体盘面上的覆盖率</strong>，而不是靠函数名去猜实现。
+	</p>
+	<div class="note">
+		<strong>读盘约定：</strong>行 0 在顶部。Flush = <code>advancePostLockLineClearNoSpawn</code>。分步消行 = <code>runUntilFirstLock</code> 后 <code>applyPendingClearLines</code> / <code>tick</code> 至 <code>isAtPreSpawnGate</code>。
+	</div>
+	<div id="path-catalog" class="path-catalog"></div>
+	<div id="root"></div>
+
+	<script src="../constants.js"></script>
+	<script src="../logic.js"></script>
+	<script src="clearing-data.js"></script>
+	<script>
+(function() {
+	'use strict';
+	var L = window.Game2048BlocksLogic;
+	var CASES = window.CLEARING_TEST_CASES;
+	var PLAYBOOK = window.CLEARING_TEST_PLAYBOOK;
+	var catEl = document.getElementById('path-catalog');
+	var root = document.getElementById('root');
+
+	if (!L) {
+		document.getElementById('root').innerHTML = '<p style="color:red">未加载 logic.js</p>';
+		return;
+	}
+	if (!CASES || !PLAYBOOK) {
+		document.getElementById('root').innerHTML = '<p style="color:red">未加载 clearing-data.js（请与本页同目录打开）</p>';
+		return;
+	}
+
+	function playbookAnchorId(p) {
+		return 'play-' + String(p).replace(/§/g, 'S').replace(/\./g, '-');
+	}
+
+	var fragCat = document.createDocumentFragment();
+	var h2c = document.createElement('h2');
+	h2c.className = 'catalog-title';
+	h2c.textContent = '玩法视角 PLAYBOOK（§7.1 剩格 / 上方块）';
+	fragCat.appendChild(h2c);
+	var dl = document.createElement('dl');
+	Object.keys(PLAYBOOK).forEach(function(key) {
+		var dt = document.createElement('dt');
+		dt.id = playbookAnchorId(key);
+		dt.textContent = key;
+		var dd = document.createElement('dd');
+		dd.textContent = PLAYBOOK[key];
+		dl.appendChild(dt);
+		dl.appendChild(dd);
+	});
+	fragCat.appendChild(dl);
+	catEl.appendChild(fragCat);
+
+	function cellClass(v) {
+		if (!v) return 'empty';
+		var key = 'v' + v;
+		if (v >= 128) return 'v128';
+		return { v2:1, v4:1, v8:1, v16:1, v32:1, v64:1 }[key] ? key : 'v128';
+	}
+
+	function renderBoard(board, options) {
+		options = options || {};
+		var rows = board.length;
+		var cols = board[0] ? board[0].length : 0;
+		var wrap = document.createElement('span');
+		wrap.className = 'board-wrap';
+		wrap.style.gridTemplateColumns = 'repeat(' + cols + ', 1fr)';
+		for (var r = 0; r < rows; r++) {
+			for (var c = 0; c < cols; c++) {
+				var cell = document.createElement('span');
+				var v = board[r][c] || 0;
+				cell.className = 'cell ' + cellClass(v);
+				if (options.highlightRow === r) cell.className += ' row-assert';
+				if (options.falling && options.falling[r + ',' + c]) cell.className += ' falling';
+				cell.textContent = v ? String(v) : '';
+				wrap.appendChild(cell);
+			}
+		}
+		return wrap;
+	}
+
+	function boardEquals(a, b) {
+		if (!a || !b || a.length !== b.length) return false;
+		for (var r = 0; r < a.length; r++) {
+			if (!b[r] || a[r].length !== b[r].length) return false;
+			for (var c = 0; c < a[r].length; c++) {
+				var va = a[r][c] == null ? 0 : a[r][c];
+				var vb = b[r][c] == null ? 0 : b[r][c];
+				if (va !== vb) return false;
+			}
+		}
+		return true;
+	}
+
+	function rowEquals(row, exp) {
+		if (!row || !exp || row.length !== exp.length) return false;
+		for (var i = 0; i < row.length; i++) {
+			if ((row[i] == null ? 0 : row[i]) !== (exp[i] == null ? 0 : exp[i])) return false;
+		}
+		return true;
+	}
+
+	function makeState(rows, cols, boardRows, piece) {
+		var board = boardRows.map(function(row) { return row.slice(); });
+		var state = L.init(0, { rows: rows, cols: cols });
+		state.board = board;
+		state.rows = board.length;
+		state.cols = board[0].length;
+		state.currentPiece = piece || null;
+		state.pieceCount = piece ? 1 : 0;
+		state.nextPiece = null;
+		return state;
+	}
+
+	function runFlush(board) {
+		var rows = board.length;
+		var cols = board[0].length;
+		var st = makeState(rows, cols, board, null);
+		var out = L.advancePostLockLineClearNoSpawn(st, null);
+		return out.board;
+	}
+
+	function fallingMapFromComposite(fixed, composite) {
+		var map = {};
+		for (var r = 0; r < fixed.length; r++) {
+			for (var c = 0; c < fixed[r].length; c++) {
+				var fc = fixed[r][c] || 0;
+				var cc = composite[r][c] || 0;
+				if (cc !== fc) map[r + ',' + c] = true;
+			}
+		}
+		return map;
+	}
+
+	function runLockCascade(fixed, pieceCells) {
+		var piece = L.createCustomPieceFromAbsCells(pieceCells);
+		var g = L.init(0, { rows: fixed.length, cols: fixed[0].length });
+		g.board = fixed.map(function(row) { return row.slice(); });
+		g.currentPiece = piece;
+		g = L.runUntilFirstLock(g);
+		g.suppressSpawnAfterReform = true;
+		var n = 0;
+		while (!L.isAtPreSpawnGate(g) && n++ < 8000) {
+			if (g.clearLinesPending && g.clearLinesPending.length) {
+				g = L.applyPendingClearLines(g, { suppressNextSpawn: true });
+			} else {
+				g = L.tick(g, { suppressNextSpawn: true });
+			}
+		}
+		return g.board;
+	}
+
+	CASES.forEach(function(sc) {
+		var pass = false;
+		var detail = '';
+		var actual;
+		var startComposite = null;
+		var falling = null;
+
+		if (sc.kind === 'flush') {
+			actual = runFlush(sc.board);
+			pass = boardEquals(actual, sc.expected);
+			if (!pass) detail = '终盘与 expected 不一致';
+		} else {
+			var g0 = L.init(0, { rows: sc.fixed.length, cols: sc.fixed[0].length });
+			g0.board = sc.fixed.map(function(row) { return row.slice(); });
+			g0.currentPiece = L.createCustomPieceFromAbsCells(sc.pieceCells);
+			startComposite = L.getBoardWithCurrentPiece(g0);
+			falling = fallingMapFromComposite(sc.fixed, startComposite);
+			actual = runLockCascade(sc.fixed, sc.pieceCells);
+			if (sc.assertFull) {
+				pass = boardEquals(actual, sc.expected);
+				if (!pass) detail = '终盘与 expected 不一致';
+			} else {
+				pass = rowEquals(actual[sc.assertRowIndex], sc.expectedRow);
+				if (!pass) detail = '第 ' + sc.assertRowIndex + ' 行与 expectedRow 不一致';
+			}
+		}
+
+		var box = document.createElement('div');
+		box.className = 'case';
+		box.innerHTML = '<h2>' + (sc.caseNo ? '<span style="color:#355030">' + sc.caseNo + '</span> · ' : '') + sc.title + '</h2><div class="tag"><code>' +
+			(sc.caseNo ? sc.caseNo + ' · ' : '') + sc.id + '</code> · ' + sc.section + '</div>';
+
+		var chips = document.createElement('div');
+		chips.className = 'path-chips';
+		var pk = sc.playbook || '';
+		if (pk) {
+			var sp = document.createElement('span');
+			var a = document.createElement('a');
+			a.href = '#' + playbookAnchorId(pk);
+			a.textContent = pk;
+			a.style.cssText = 'color:inherit;text-decoration:none;';
+			sp.appendChild(a);
+			chips.appendChild(sp);
+		}
+		box.appendChild(chips);
+
+		var boards = document.createElement('div');
+		boards.className = 'row-boards';
+
+		function addPanel(label, el) {
+			var p = document.createElement('div');
+			p.className = 'panel';
+			var lb = document.createElement('div');
+			lb.className = 'lbl';
+			lb.textContent = label;
+			p.appendChild(lb);
+			p.appendChild(el);
+			boards.appendChild(p);
+		}
+
+		if (sc.kind === 'flush') {
+			addPanel('消行前（固定盘）', renderBoard(sc.board));
+			addPanel('实际终盘', renderBoard(actual));
+			addPanel('期望终盘', renderBoard(sc.expected));
+		} else {
+			addPanel('开局（固定 + 活动块）', renderBoard(startComposite, { falling: falling }));
+			addPanel('实际终盘', renderBoard(actual, sc.assertFull ? {} : { highlightRow: sc.assertRowIndex }));
+			if (sc.assertFull) {
+				addPanel('期望终盘', renderBoard(sc.expected));
+			} else {
+				var mini = [];
+				for (var rr = 0; rr < sc.fixed.length; rr++) {
+					mini.push(rr === sc.assertRowIndex ? sc.expectedRow.slice() : actual[rr].slice());
+				}
+				addPanel('期望（高亮行断言；余行=实际示意）', renderBoard(mini, { highlightRow: sc.assertRowIndex }));
+			}
+		}
+
+		box.appendChild(boards);
+		var badge = document.createElement('div');
+		badge.className = 'badge ' + (pass ? 'pass' : 'fail');
+		badge.textContent = pass ? '与 clearing.spec 一致 ✓' : '不一致 ✗ ' + (detail || '');
+		box.appendChild(badge);
+		root.appendChild(box);
+	});
+})();
+	</script>
+</body>
+</html>
