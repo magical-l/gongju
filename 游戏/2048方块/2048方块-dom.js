@@ -161,6 +161,65 @@ function boundaryClassSuffixes(r, c, inSet, rows, cols) {
 }
 
 /**
+ * 数字格最小包围盒对应的闭矩形（含盒内空隙）的格子键集合。
+ * 整块上方块（_ABOVE_WHOLE_）描边按此外凸长方形，不再沿数字格内凹把空隙「摘出去」。
+ */
+function bboxRectKeySet(minR, maxR, minC, maxC) {
+	const set = {};
+	for (let r = minR; r <= maxR; r++) {
+		for (let c = minC; c <= maxC; c++) {
+			set[r + ',' + c] = true;
+		}
+	}
+	return set;
+}
+
+function bboxFromAbsCells(abs) {
+	let minR = Infinity;
+	let maxR = -Infinity;
+	let minC = Infinity;
+	let maxC = -Infinity;
+	for (let i = 0; i < abs.length; i++) {
+		const ar = abs[i].r;
+		const ac = abs[i].c;
+		if (ar < minR) {
+			minR = ar;
+		}
+		if (ar > maxR) {
+			maxR = ar;
+		}
+		if (ac < minC) {
+			minC = ac;
+		}
+		if (ac > maxC) {
+			maxC = ac;
+		}
+	}
+	return {minR: minR, maxR: maxR, minC: minC, maxC: maxC};
+}
+
+function absCellsToKeySet(abs) {
+	const set = {};
+	for (let i = 0; i < abs.length; i++) {
+		set[abs[i].r + ',' + abs[i].c] = true;
+	}
+	return set;
+}
+
+/** 视图 state.board 可能为一维 row-major（与 getDisplayBoard 一致） */
+function boardCellAt(board, cols, r, c) {
+	if (!board) {
+		return 0;
+	}
+	const row = board[r];
+	if (Array.isArray(row)) {
+		return row[c] || 0;
+	}
+	const i = r * cols + c;
+	return board[i] || 0;
+}
+
+/**
  * 消行整理阶段：剩格 / 上方行抠块 的外框 class（与手动调试页一致）。
  * @param {number} cellIndex row-major
  * @param {object} state gameState
@@ -171,6 +230,7 @@ function getCellLineClearVisualClass(cellIndex, state) {
 	}
 	const rows = state.rows;
 	const cols = state.cols;
+	const boardDisp = state.board;
 	const r = Math.floor(cellIndex / cols);
 	const c = cellIndex % cols;
 	const curSet = {};
@@ -192,10 +252,15 @@ function getCellLineClearVisualClass(cellIndex, state) {
 	const apList = state.lineClearAbovePieces;
 	if (apList && apList.length > 0) {
 		for (let ai = 0; ai < apList.length; ai++) {
-			const oneAboveSet = {};
-			addKeysFromAbovePieces([apList[ai]], pieceAbsCells, oneAboveSet);
-			if (oneAboveSet[pk]) {
-				return ['lc-above'].concat(boundaryClassSuffixes(r, c, oneAboveSet, rows, cols)).join(' ');
+			const absA = pieceAbsCells(apList[ai]);
+			const oneAboveSet = absCellsToKeySet(absA);
+			const bb = bboxFromAbsCells(absA);
+			const rectSet = bboxRectKeySet(bb.minR, bb.maxR, bb.minC, bb.maxC);
+			if (!rectSet[pk]) {
+				continue;
+			}
+			if (oneAboveSet[pk] || boardCellAt(boardDisp, cols, r, c) === 0) {
+				return ['lc-above'].concat(boundaryClassSuffixes(r, c, rectSet, rows, cols)).join(' ');
 			}
 		}
 	}
@@ -206,17 +271,34 @@ function getCellLineClearVisualClass(cellIndex, state) {
 			if (!ent || !ent.piece) {
 				continue;
 			}
-			const oneReformSet = {};
-			addKeysFromReformPieces([ent], pieceAbsCells, oneReformSet);
+			const absRp = pieceAbsCells(ent.piece);
+			const oneReformSet = absCellsToKeySet(absRp);
+			if (ent.piece.shape === '_ABOVE_WHOLE_') {
+				const bb = bboxFromAbsCells(absRp);
+				const rectR = bboxRectKeySet(bb.minR, bb.maxR, bb.minC, bb.maxC);
+				if (rectR[pk] && (oneReformSet[pk] || boardCellAt(boardDisp, cols, r, c) === 0)) {
+					return ['lc-reform'].concat(boundaryClassSuffixes(r, c, rectR, rows, cols)).join(' ');
+				}
+				continue;
+			}
 			if (oneReformSet[pk]) {
 				return ['lc-reform'].concat(boundaryClassSuffixes(r, c, oneReformSet, rows, cols)).join(' ');
 			}
 		}
 	}
-	if (curSet[pk] && state.currentPiece) {
+	if (state.currentPiece) {
 		const sh = state.currentPiece.shape;
 		const kind = sh === '_ABOVE_WHOLE_' ? 'lc-cur-above-whole' : 'lc-cur-remainder';
-		return [kind].concat(boundaryClassSuffixes(r, c, curSet, rows, cols)).join(' ');
+		if (sh === '_ABOVE_WHOLE_') {
+			const absC = pieceAbsCells(state.currentPiece);
+			const bb = bboxFromAbsCells(absC);
+			const rectC = bboxRectKeySet(bb.minR, bb.maxR, bb.minC, bb.maxC);
+			if (rectC[pk] && (curSet[pk] || boardCellAt(boardDisp, cols, r, c) === 0)) {
+				return [kind].concat(boundaryClassSuffixes(r, c, rectC, rows, cols)).join(' ');
+			}
+		} else if (curSet[pk]) {
+			return [kind].concat(boundaryClassSuffixes(r, c, curSet, rows, cols)).join(' ');
+		}
 	}
 	return '';
 }

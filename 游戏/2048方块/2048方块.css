@@ -21,7 +21,7 @@
 	animation: clear-line-flash 0.12s ease-in-out infinite;
 }
 
-/* 消行整理阶段：剩格 / 上方块 / 整理块 外框（每个活动块条目单独描边；同条目内相邻格不重复画线） */
+/* 消行整理阶段：剩格 / 整理块（剩格）外框按格；整块上方块（_ABOVE_WHOLE_）按数字格最小包围盒的外凸长方形描边；盒内空格在框边上也画线段，与数字格边框连成闭合矩形 */
 .gaming.area .main.map.area .board .cell.lc-remainder {
 	--lc-s: #d35400;
 }

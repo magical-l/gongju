@@ -438,13 +438,52 @@
 		}
 		return out;
 	}
+	function lcBboxFromAbs(abs) {
+		var minR = Infinity, maxR = -Infinity, minC = Infinity, maxC = -Infinity;
+		for (var i = 0; i < abs.length; i++) {
+			var ar = abs[i].r, ac = abs[i].c;
+			if (ar < minR) minR = ar;
+			if (ar > maxR) maxR = ar;
+			if (ac < minC) minC = ac;
+			if (ac > maxC) maxC = ac;
+		}
+		return { minR: minR, maxR: maxR, minC: minC, maxC: maxC };
+	}
+	function lcAbsToSet(abs) {
+		var set = {};
+		for (var i = 0; i < abs.length; i++) {
+			set[abs[i].r + ',' + abs[i].c] = true;
+		}
+		return set;
+	}
+	/** 数字格 bbox 的闭矩形（与 2048方块-dom.js bboxRectKeySet 一致） */
+	function lcBboxRectKeySet(minR, maxR, minC, maxC) {
+		var set = {};
+		for (var br = minR; br <= maxR; br++) {
+			for (var bc = minC; bc <= maxC; bc++) {
+				set[br + ',' + bc] = true;
+			}
+		}
+		return set;
+	}
+	function lcBoardCell(board, ncols, br, bc) {
+		if (!board) {
+			return 0;
+		}
+		var row = board[br];
+		if (Array.isArray(row)) {
+			return row[bc] || 0;
+		}
+		return board[br * ncols + bc] || 0;
+	}
 	/** 与正式游戏页（2048方块-dom.js）一致：剩格 / 上方行块 / 整理中块 / 特殊当前块 外框 */
-	function lineClearVisualClass(r, c, state) {
+	function lineClearVisualClass(r, c, state, dispBoard) {
 		if (!state || state.rows == null) {
 			return '';
 		}
 		var nrows = state.rows;
 		var ncols = state.cols;
+		var boardDisp = dispBoard || state.board;
 		var remList = state.lineClearRemainderCells;
 		if (remList && remList.length) {
 			for (var ri = 0; ri < remList.length; ri++) {
@@ -460,14 +499,16 @@
 		var apList = state.lineClearAbovePieces;
 		if (apList && apList.length) {
 			for (var ai = 0; ai < apList.length; ai++) {
-				var oneAboveSet = {};
 				var absA = L.pieceAbsCells(apList[ai]);
-				for (var aj = 0; aj < absA.length; aj++) {
-					oneAboveSet[absA[aj].r + ',' + absA[aj].c] = true;
-				}
+				var oneAboveSet = lcAbsToSet(absA);
+				var bbA = lcBboxFromAbs(absA);
+				var rectA = lcBboxRectKeySet(bbA.minR, bbA.maxR, bbA.minC, bbA.maxC);
 				var pk2 = r + ',' + c;
-				if (oneAboveSet[pk2]) {
-					return ['lc-above'].concat(lcBoundarySuffixes(r, c, oneAboveSet, nrows, ncols)).join(' ');
+				if (!rectA[pk2]) {
+					continue;
+				}
+				if (oneAboveSet[pk2] || lcBoardCell(boardDisp, ncols, r, c) === 0) {
+					return ['lc-above'].concat(lcBoundarySuffixes(r, c, rectA, nrows, ncols)).join(' ');
 				}
 			}
 		}
@@ -478,12 +519,17 @@
 				if (!ent || !ent.piece) {
 					continue;
 				}
-				var oneReformSet = {};
 				var absR = L.pieceAbsCells(ent.piece);
-				for (var bj = 0; bj < absR.length; bj++) {
-					oneReformSet[absR[bj].r + ',' + absR[bj].c] = true;
-				}
+				var oneReformSet = lcAbsToSet(absR);
 				var pk3 = r + ',' + c;
+				if (ent.piece.shape === '_ABOVE_WHOLE_') {
+					var bbR = lcBboxFromAbs(absR);
+					var rectR = lcBboxRectKeySet(bbR.minR, bbR.maxR, bbR.minC, bbR.maxC);
+					if (rectR[pk3] && (oneReformSet[pk3] || lcBoardCell(boardDisp, ncols, r, c) === 0)) {
+						return ['lc-reform'].concat(lcBoundarySuffixes(r, c, rectR, nrows, ncols)).join(' ');
+					}
+					continue;
+				}
 				if (oneReformSet[pk3]) {
 					return ['lc-reform'].concat(lcBoundarySuffixes(r, c, oneReformSet, nrows, ncols)).join(' ');
 				}
@@ -492,10 +538,19 @@
 		var curSet = {};
 		addLcKeysFromSpecialCurrentPiece(state.currentPiece, curSet);
 		var pk = r + ',' + c;
-		if (curSet[pk] && state.currentPiece) {
+		if (state.currentPiece) {
 			var sh2 = state.currentPiece.shape;
 			var kind = sh2 === '_ABOVE_WHOLE_' ? 'lc-cur-above-whole' : 'lc-cur-remainder';
-			return [kind].concat(lcBoundarySuffixes(r, c, curSet, nrows, ncols)).join(' ');
+			if (sh2 === '_ABOVE_WHOLE_') {
+				var absC = L.pieceAbsCells(state.currentPiece);
+				var bbC = lcBboxFromAbs(absC);
+				var rectC = lcBboxRectKeySet(bbC.minR, bbC.maxR, bbC.minC, bbC.maxC);
+				if (rectC[pk] && (curSet[pk] || lcBoardCell(boardDisp, ncols, r, c) === 0)) {
+					return [kind].concat(lcBoundarySuffixes(r, c, rectC, nrows, ncols)).join(' ');
+				}
+			} else if (curSet[pk]) {
+				return [kind].concat(lcBoundarySuffixes(r, c, curSet, nrows, ncols)).join(' ');
+			}
 		}
 		return '';
 	}
@@ -524,7 +579,7 @@
 				if (flashRow[r]) {
 					cell.classList.add('clearing');
 				}
-				var lcStr = lineClearVisualClass(r, c, gameState);
+				var lcStr = lineClearVisualClass(r, c, gameState, disp);
 				if (lcStr) {
 					lcStr.split(/\s+/).forEach(function(cl) {
 						if (cl) {
