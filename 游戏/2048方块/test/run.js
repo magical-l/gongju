@@ -8,7 +8,7 @@ const path = require('path');
 const logicPath = path.join(__dirname, '..', 'logic.js');
 const logic = require(logicPath);
 
-// --- 公共断言与工具（与 logic.test.js 一致） ---
+// --- 公共断言与工具（供 all.spec.js 使用） ---
 function boardFromRows(rows) {
 	return rows.map(function(row) { return row.slice(); });
 }
@@ -141,7 +141,7 @@ const testEnv = {
 // --- 加载并执行测试文件（单文件：合并 / 消行 / 消行后合并）---
 const testFiles = ['all.spec.js'];
 
-console.log('2048方块 测试（合并 / 消行 / 消行后合并）\n');
+console.log('2048方块 测试（《玩法》对照见 test/README.md）\n');
 
 let totalPassed = 0;
 let totalFailed = 0;

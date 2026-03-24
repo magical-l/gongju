@@ -1,7 +1,7 @@
 {
   "name": "2048-blocks",
   "private": true,
-  "description": "仅用于 npm test：在 Node 下跑 logic 单元测试（test/run.js + test/all.spec.js）",
+  "description": "npm test：Node 下跑 logic 测试（test/run.js）；规则与用例对照见 test/README.md",
   "scripts": {
     "test": "node test/run.js"
   }

@@ -35,13 +35,17 @@
 	const SCORE_2 = 100;
 	const SCORE_3 = 300;
 	const SCORE_4 = 1200;
-	/** 每消除多少行升 1 级（玩法 12.1） */
-	const LINES_PER_LEVEL = 10;
+	/**
+	 * §11.2 每累计多少分升 1 级。《玩法》未规定默认值，与 logic.js 的 SCORE_PER_LEVEL 一致。
+	 */
+	const SCORE_PER_LEVEL = 5000;
 	/** 锁定延迟 ms（玩法 12.1），100～1000，默认 500 */
 	const LOCK_DELAY_DURATION = 500;
-	/** 下落周期表 ms，索引为等级 0～19+（玩法 12.2） */
-	const FALL_DELAY = [800, 720, 640, 560, 480, 400, 320, 240, 160, 120, 80, 70, 60, 50, 40, 30, 20, 15, 10, 8];
-	/** 软降间隔 ms（玩法 12.2） */
+	/** §11.3 与 logic.js 一致，供说明或外显；实际下落间隔由逻辑层公式计算 */
+	const INITIAL_FALL_DELAY_MS = 800;
+	const FALL_DELAY_DECAY_FACTOR = 0.93;
+	const MIN_FALL_DELAY_MS = 100;
+	/** 软降间隔 ms */
 	const SOFT_DROP_INTERVAL = 50;
 
 	/** 开发/测试：为 true 时下落速度固定为较慢值，忽略等级与玩家速度 */
@@ -62,9 +66,11 @@
 		SCORE_2: SCORE_2,
 		SCORE_3: SCORE_3,
 		SCORE_4: SCORE_4,
-		LINES_PER_LEVEL: LINES_PER_LEVEL,
+		SCORE_PER_LEVEL: SCORE_PER_LEVEL,
 		LOCK_DELAY_DURATION: LOCK_DELAY_DURATION,
-		FALL_DELAY: FALL_DELAY,
+		INITIAL_FALL_DELAY_MS: INITIAL_FALL_DELAY_MS,
+		FALL_DELAY_DECAY_FACTOR: FALL_DELAY_DECAY_FACTOR,
+		MIN_FALL_DELAY_MS: MIN_FALL_DELAY_MS,
 		SOFT_DROP_INTERVAL: SOFT_DROP_INTERVAL,
 		DEV_FIXED_FALL_MS: DEV_FIXED_FALL_MS,
 		SPEED_OPTIONS_MS: SPEED_OPTIONS_MS,

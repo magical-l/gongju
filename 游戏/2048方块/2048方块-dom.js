@@ -19,12 +19,16 @@ let hardDropTimer = null;
 let clearLinesTimeout = null;
 let paused = true;
 
-/** 与 runFallLoop 一致的下落步长（含 DEV_FIXED_FALL_MS） */
+/** 与 runFallLoop 一致的下落步长：按《玩法》§11.3 公式（含 DEV_FIXED_FALL_MS） */
 function getFallStepMs(state) {
 	const s = state || gameState;
-	return (constants && constants.DEV_FIXED_FALL_MS > 0)
-		? constants.DEV_FIXED_FALL_MS
-		: Math.max(100, (s && s.fallIntervalMs) || 500);
+	if (constants && constants.DEV_FIXED_FALL_MS > 0) {
+		return constants.DEV_FIXED_FALL_MS;
+	}
+	if (logic && typeof logic.getEffectiveFallIntervalMs === 'function' && s) {
+		return Math.max(100, logic.getEffectiveFallIntervalMs(s));
+	}
+	return Math.max(100, (s && s.fallIntervalMs) || 800);
 }
 
 function getStorage(key) {
@@ -277,12 +281,12 @@ function getCellLineClearVisualClass(cellIndex, state) {
 				const bb = bboxFromAbsCells(absRp);
 				const rectR = bboxRectKeySet(bb.minR, bb.maxR, bb.minC, bb.maxC);
 				if (rectR[pk] && (oneReformSet[pk] || boardCellAt(boardDisp, cols, r, c) === 0)) {
-					return ['lc-reform'].concat(boundaryClassSuffixes(r, c, rectR, rows, cols)).join(' ');
+					return ['lc-above'].concat(boundaryClassSuffixes(r, c, rectR, rows, cols)).join(' ');
 				}
 				continue;
 			}
 			if (oneReformSet[pk]) {
-				return ['lc-reform'].concat(boundaryClassSuffixes(r, c, oneReformSet, rows, cols)).join(' ');
+				return ['lc-remainder'].concat(boundaryClassSuffixes(r, c, oneReformSet, rows, cols)).join(' ');
 			}
 		}
 	}
@@ -520,6 +524,7 @@ function handleRestart() {
 		rows: gameState.rows,
 		cols: gameState.cols,
 		fallIntervalMs: gameState.fallIntervalMs,
+		initialLevel: gameState.initialLevel,
 		lineClearPolicy: gameState.lineClearPolicy,
 		lockDelayDurationMs: gameState.lockDelayDurationMs,
 	};
@@ -553,6 +558,9 @@ function loadSettingsFromStorage() {
 		if (Number(o.fallIntervalMs) >= 100) {
 			s.fallIntervalMs = Number(o.fallIntervalMs);
 		}
+		if (o.initialLevel != null && Number.isFinite(Number(o.initialLevel))) {
+			s.initialLevel = Math.max(0, Math.min(20, Math.floor(Number(o.initialLevel))));
+		}
 		if (Number(o.lockDelayDurationMs) >= 100 && Number(o.lockDelayDurationMs) <= 1000) {
 			s.lockDelayDurationMs = Number(o.lockDelayDurationMs);
 		}
@@ -573,7 +581,22 @@ function applyBoardSettings(obj) {
 	const fallIntervalMs = (constants && constants.DEV_FIXED_FALL_MS > 0)
 		? constants.DEV_FIXED_FALL_MS
 		: rawFall;
-	const needRestart = !gameState || rows !== gameState.rows || cols !== gameState.cols;
+	let initialLevel;
+	if (obj.initialLevel != null && Number.isFinite(Number(obj.initialLevel))) {
+		initialLevel = Math.max(0, Math.min(20, Math.floor(Number(obj.initialLevel))));
+	} else if (gameState && gameState.initialLevel != null && Number.isFinite(Number(gameState.initialLevel))) {
+		initialLevel = Math.max(0, Math.min(20, Math.floor(Number(gameState.initialLevel))));
+	} else if (logic && typeof logic.inferInitialLevelFromLegacyFallMs === 'function') {
+		initialLevel = logic.inferInitialLevelFromLegacyFallMs(fallIntervalMs);
+	} else {
+		initialLevel = 0;
+	}
+	const prevIv = !gameState ? -999 : (gameState.initialLevel != null && Number.isFinite(Number(gameState.initialLevel))
+		? Math.max(0, Math.min(20, Math.floor(Number(gameState.initialLevel))))
+		: (logic && typeof logic.inferInitialLevelFromLegacyFallMs === 'function'
+			? logic.inferInitialLevelFromLegacyFallMs(gameState.fallIntervalMs) : 0));
+	const needRestart = !gameState || rows !== gameState.rows || cols !== gameState.cols
+		|| (obj.initialLevel != null && initialLevel !== prevIv);
 	const lineClearPolicy = logic.normalizeLineClearPolicy(
 		obj.lineClearPolicy != null ? obj.lineClearPolicy : (gameState && gameState.lineClearPolicy),
 	);
@@ -590,12 +613,14 @@ function applyBoardSettings(obj) {
 			rows: rows,
 			cols: cols,
 			fallIntervalMs: fallIntervalMs,
+			initialLevel: initialLevel,
 			lineClearPolicy: lineClearPolicy,
 			lockDelayDurationMs: lockDelayDurationMs,
 		});
 	} else {
 		gameState = Object.assign({}, gameState, {
 			fallIntervalMs: fallIntervalMs,
+			initialLevel: initialLevel,
 			lineClearPolicy: lineClearPolicy,
 			lockDelayDurationMs: lockDelayDurationMs,
 		});
@@ -608,6 +633,7 @@ function applyBoardSettings(obj) {
 			rows: rows,
 			cols: cols,
 			fallIntervalMs: fallIntervalMs,
+			initialLevel: gameState.initialLevel,
 			lockDelayDurationMs: gameState.lockDelayDurationMs,
 			lineClearPolicy: gameState.lineClearPolicy,
 		}));
@@ -631,6 +657,7 @@ function getBoardSettings() {
 		boardHeight: gameState.rows,
 		boardWidth: gameState.cols,
 		fallIntervalMs: gameState.fallIntervalMs,
+		initialLevel: gameState.initialLevel,
 		lockDelayDurationMs: gameState.lockDelayDurationMs,
 		lineClearPolicy: gameState.lineClearPolicy,
 	};
@@ -657,6 +684,7 @@ function applyLineClearPolicy(pol) {
 			rows: gameState.rows,
 			cols: gameState.cols,
 			fallIntervalMs: gameState.fallIntervalMs,
+			initialLevel: gameState.initialLevel,
 			lockDelayDurationMs: gameState.lockDelayDurationMs,
 			lineClearPolicy: gameState.lineClearPolicy,
 		})));
@@ -701,6 +729,15 @@ function doInit() {
 		const cols = loaded && loaded.cols || restored && restored.cols || 10;
 		const rawFall = (loaded && loaded.fallIntervalMs) != null ? loaded.fallIntervalMs : ((restored && restored.fallIntervalMs) != null ? restored.fallIntervalMs : 500);
 		const fallIntervalMs = (constants && constants.DEV_FIXED_FALL_MS > 0) ? constants.DEV_FIXED_FALL_MS : rawFall;
+		let initLv = loaded && loaded.initialLevel != null && Number.isFinite(Number(loaded.initialLevel))
+			? Math.max(0, Math.min(20, Math.floor(Number(loaded.initialLevel))))
+			: null;
+		if (initLv == null && logic && typeof logic.inferInitialLevelFromLegacyFallMs === 'function') {
+			initLv = logic.inferInitialLevelFromLegacyFallMs(rawFall);
+		}
+		if (initLv == null) {
+			initLv = 0;
+		}
 		const highScore = Number(getStorage(STORAGE_HIGH_SCORE_BLOCKS)) || 0;
 		const lp = loaded && loaded.lineClearPolicy ? loaded.lineClearPolicy : undefined;
 		const ld = loaded && loaded.lockDelayDurationMs != null ? loaded.lockDelayDurationMs : undefined;
@@ -708,6 +745,7 @@ function doInit() {
 			rows: rows,
 			cols: cols,
 			fallIntervalMs: fallIntervalMs,
+			initialLevel: initLv,
 			lineClearPolicy: lp,
 			lockDelayDurationMs: ld,
 		});
@@ -879,6 +917,11 @@ const stub = {
 
 	window.Game2048Blocks = {
 		init: initBridge,
+		getEffectiveFallIntervalMs: function(gs) {
+			return logic && typeof logic.getEffectiveFallIntervalMs === 'function'
+				? logic.getEffectiveFallIntervalMs(gs != null ? gs : gameState)
+				: null;
+		},
 		getState: function() { return gameState; },
 		getPaused: getPaused,
 		togglePause: togglePause,

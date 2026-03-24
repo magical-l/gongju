@@ -116,7 +116,7 @@
 	<aside class="right-sidebar flex vertical items-stretch" style="min-width:0;gap:1rem">
 		<div id="edit-panel">
 			<h2>编辑选区</h2>
-			<p class="edit-intro">单击只选一格；拖选一片；<kbd>Shift</kbd>+拖/点按为累加。点数字或固定/下落设定。「清空选中格」「清除选区」仍可用。选中=<strong>格外侧</strong>青框；固定堆=左棕条；下落块=顶蓝条+灰绿底。暂停点=在「生成下一块」之前停住（调试用）。「开始」=运行，再点=重播；「回到开始」=本轮布局。运行中 <kbd>空格</kbd> 暂停。<strong>消行整理</strong>时：剩格为<strong>橙框</strong>，「上方行」抠块为<strong>深蓝框</strong>，整理中活动块为<strong>绿框</strong>（与正式游戏页相同；均按连通块外沿描边）。</p>
+			<p class="edit-intro">单击只选一格；拖选一片；<kbd>Shift</kbd>+拖/点按为累加。点数字或固定/下落设定。「清空选中格」「清除选区」仍可用。选中=<strong>格外侧</strong>青框；固定堆=左棕条；下落块=顶蓝条+灰绿底。暂停点=在「生成下一块」之前停住（调试用）。「开始」=运行，再点=重播；「回到开始」=本轮布局。运行中 <kbd>空格</kbd> 暂停。<strong>消行整理</strong>时：剩格为<strong>红框</strong>，上方行抠块为<strong>蓝框</strong>；当前操控的剩格/整块上方为略亮的同色系描边（与正式游戏页一致）。</p>
 			<p id="status" class="edit-status"></p>
 			<div class="legend flex multi-line items-near-x-start items-near-y-center">
 				<span class="flex inline items-near-y-center"><i class="legend-swatch legend-swatch-empty"></i> 空</span>
@@ -526,12 +526,12 @@
 					var bbR = lcBboxFromAbs(absR);
 					var rectR = lcBboxRectKeySet(bbR.minR, bbR.maxR, bbR.minC, bbR.maxC);
 					if (rectR[pk3] && (oneReformSet[pk3] || lcBoardCell(boardDisp, ncols, r, c) === 0)) {
-						return ['lc-reform'].concat(lcBoundarySuffixes(r, c, rectR, nrows, ncols)).join(' ');
+						return ['lc-above'].concat(lcBoundarySuffixes(r, c, rectR, nrows, ncols)).join(' ');
 					}
 					continue;
 				}
 				if (oneReformSet[pk3]) {
-					return ['lc-reform'].concat(lcBoundarySuffixes(r, c, oneReformSet, nrows, ncols)).join(' ');
+					return ['lc-remainder'].concat(lcBoundarySuffixes(r, c, oneReformSet, nrows, ncols)).join(' ');
 				}
 			}
 		}

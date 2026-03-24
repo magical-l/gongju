@@ -21,21 +21,22 @@
 	animation: clear-line-flash 0.12s ease-in-out infinite;
 }
 
-/* 消行整理阶段：剩格 / 整理块（剩格）外框按格；整块上方块（_ABOVE_WHOLE_）按数字格最小包围盒的外凸长方形描边；盒内空格在框边上也画线段，与数字格边框连成闭合矩形 */
+/* 消行整理阶段：剩格（暖色）与上方块（冷色）描边区分；整块上方块按 bbox 外凸矩形含空隙 */
 .gaming.area .main.map.area .board .cell.lc-remainder {
-	--lc-s: #d35400;
+	--lc-s: #c62828;
 }
 .gaming.area .main.map.area .board .cell.lc-above {
-	--lc-s: #1f618d;
+	--lc-s: #1565c0;
 }
+/* 兼容旧 class，与同阶段 lc-above 同色（整理态已改用 lc-above / lc-remainder） */
 .gaming.area .main.map.area .board .cell.lc-reform {
-	--lc-s: #117864;
+	--lc-s: #1565c0;
 }
 .gaming.area .main.map.area .board .cell.lc-cur-above-whole {
-	--lc-s: #16a085;
+	--lc-s: #1976d2;
 }
 .gaming.area .main.map.area .board .cell.lc-cur-remainder {
-	--lc-s: #e67e22;
+	--lc-s: #e53935;
 }
 .gaming.area .main.map.area .board .cell[class*="lc-edge"] {
 	position: relative;

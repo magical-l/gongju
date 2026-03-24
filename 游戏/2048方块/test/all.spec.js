@@ -1,5 +1,5 @@
 /**
- * 2048方块 全部用例（合并 / 消行 / 消行后合并），单文件版。
+ * 2048方块 全部用例：与《玩法.txt》对照见 test/README.md。
  * 由 run.js 加载，接收 testEnv（describe, it, logic, makeState, assertBoardEqual 等）。
  */
 'use strict';
@@ -47,8 +47,8 @@ module.exports = function(r) {
 		return s;
 	}
 
-	// ---------- 合并（覆盖：形状 × 下方状态。每形状至少一例「下落一格与2合并」+ 一例「遇异数锁定」）----------
-	describe('合并', function() {
+	// ---------- §4.1 合并：前线格、整块同进同退、同数合并 / 异数阻挡 ----------
+	describe('§4.1 合并（前线格 · 同数/异数 · 七形状）', function() {
 		// 下落一格与正下方 2 合并为 4（每形状一例，rotation 0）
 		it('I 竖条下落一格与正下方 2 合并为 4', function() {
 			const rows = 6, cols = 2;
@@ -119,6 +119,30 @@ module.exports = function(r) {
 			const next = _tick(state);
 			const expected = [[0, 0], [2, 0], [2, 0], [4, 2]];
 			_assertBoardEqual(_visBoard(next), expected, 'L 下落一格与 2 合并');
+		});
+
+		// T 180°：顶三行空，T 在 row2；一落 tick 即触底锁定
+		it('T 旋转 180° 触底锁定、与正下方同数行合并为 4', function() {
+			const rows = 5;
+			const cols = 3;
+			const before = [
+				[0, 0, 0],
+				[0, 0, 0],
+				[0, 0, 0],
+				[2, 2, 2],
+				[0, 4, 0],
+			];
+			const piece = _createPiece('T', 2, 2, 0);
+			const state = _makeState(rows, cols, before, piece);
+			const next = _tick(state);
+			const expected = [
+				[0, 0, 0],
+				[0, 0, 0],
+				[2, 0, 0],
+				[2, 2, 2],
+				[2, 4, 0],
+			];
+			_assertBoardEqual(next.board, expected, 'T180 触底写入固定堆');
 		});
 
 		// 连续两 tick：先合并再触底锁定
@@ -238,8 +262,8 @@ module.exports = function(r) {
 		});
 	});
 
-	// ---------- 消行 ----------
-	describe('消行', function() {
+	// ---------- §7.1 满行除法、消行空隙、消行剩余、重力 ----------
+	describe('§7.1 消行（除法 min、消行空隙、重力）', function() {
 		it('1.1 仅最后一行满(全2)、上方全空', function() {
 			const rows = 6, cols = 4;
 			const before = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [2, 2, 2, 2]];
@@ -332,8 +356,8 @@ module.exports = function(r) {
 		});
 	});
 
-	// ---------- 消行后合并 ----------
-	describe('消行后合并', function() {
+	// ---------- §7.2～7.3 整理链（与主局 flush 一致）----------
+	describe('§7.2～7.3 整理链（flush）', function() {
 		it('消一行后链式整理终盘（与主局 flush 一致）', function() {
 			const rows = 6, cols = 2;
 			const board = [[0, 0], [0, 0], [0, 0], [2, 0], [2, 0], [2, 2]];
@@ -353,8 +377,8 @@ module.exports = function(r) {
 		});
 	});
 
-	// ---------- 手动调试页：分步消行 + 整块上方行（U 形上框等）----------
-	describe('手动调试·分步消行（整块上方行）', function() {
+	// ---------- §7 整块上方行、lineClearPolicy（分步消行，与手动调试页一致）----------
+	describe('§7 整块上方行与 lineClearPolicy（分步消行）', function() {
 		it('8×6 U 形上框：落子后消行，终盘底行两侧为 4、中间为 2（不整行并成四个 4）', function() {
 			const fixed = [
 				[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0],
@@ -444,6 +468,40 @@ module.exports = function(r) {
 				[0, 0, 0, 0, 0, 32], [2, 2, 2, 2, 2, 0], [4, 2, 2, 2, 4, 0], [2, 2, 2, 2, 2, 0],
 			];
 			_assertBoardEqual(g.board, expected, '双行底 2 边缘耦合终盘');
+		});
+	});
+
+	// ---------- §11 计分：消行基础分 ×(level+1) + 被消格原数字之和 ----------
+	describe('§11 计分', function() {
+		const getLineClearBaseScore = logic.getLineClearBaseScore;
+		it('消一行全 2：基础 40 + 数字奖励 8', function() {
+			const rows = 6, cols = 4;
+			const before = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [2, 2, 2, 2]];
+			const board = before.map(row => row.slice());
+			const result = clearOneRound(board, rows, cols);
+			if (result.scoreAdd !== 48) {
+				throw new Error('scoreAdd expected 48, got ' + result.scoreAdd);
+			}
+		});
+		it('消一行 2 与 4 混合：基础 40 + 原数字之和 6', function() {
+			const rows = 6, cols = 4;
+			const before = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [2, 4, 2, 2]];
+			const board = before.map(row => row.slice());
+			const result = clearOneRound(board, rows, cols);
+			if (result.scoreAdd !== 46) {
+				throw new Error('scoreAdd expected 46, got ' + result.scoreAdd);
+			}
+		});
+		it('getLineClearBaseScore：n 行 × (level+1)', function() {
+			if (getLineClearBaseScore(1, 0) !== 40) {
+				throw new Error('1 line L0');
+			}
+			if (getLineClearBaseScore(4, 0) !== 1200) {
+				throw new Error('4 lines L0');
+			}
+			if (getLineClearBaseScore(1, 1) !== 80) {
+				throw new Error('1 line L1');
+			}
 		});
 	});
 };

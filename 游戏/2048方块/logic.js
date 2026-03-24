@@ -29,7 +29,7 @@
 	const MIN_COLS = 6;
 	const MAX_ROWS = 20;
 	const MAX_COLS = 12;
-	const DEFAULT_CFG = {rows: 12, cols: 10, fallIntervalMs: 500, lockDelayDurationMs: 500};
+	const DEFAULT_CFG = {rows: 12, cols: 10, fallIntervalMs: 800, lockDelayDurationMs: 500};
 	const MIN_LOCK_DELAY_MS = 100;
 	const MAX_LOCK_DELAY_MS = 1000;
 	/**
@@ -65,6 +65,63 @@
 
 	/** 消行基础分系数（玩法 12.2），供 getLineClearBaseScore 使用 */
 	const SCORE_BY_LINES = [0, 40, 100, 300, 1200];
+	/**
+	 * §11.2 每累计多少分升 1 级（有效等级 = INITIAL_LEVEL + floor(score / SCORE_PER_LEVEL)）。
+	 * 《玩法》未规定数值，与 constants.js 保持一致，可按产品调整。
+	 */
+	const SCORE_PER_LEVEL = 5000;
+	/** §11.3 指数下落参数（ms），与《玩法》默认值一致 */
+	const INITIAL_FALL_DELAY_MS = 800;
+	const FALL_DELAY_DECAY_FACTOR = 0.93;
+	const MIN_FALL_DELAY_MS = 100;
+
+	function fallDelayMsForLevel(level) {
+		const lv = level != null && Number.isFinite(level) ? Math.max(0, Math.floor(level)) : 0;
+		const raw = INITIAL_FALL_DELAY_MS * Math.pow(FALL_DELAY_DECAY_FACTOR, lv);
+		return Math.max(MIN_FALL_DELAY_MS, Math.round(raw));
+	}
+
+	function clampInitialLevelUi(initialLevel) {
+		return initialLevel != null && Number.isFinite(Number(initialLevel))
+			? Math.max(0, Math.min(20, Math.floor(Number(initialLevel))))
+			: 0;
+	}
+
+	function levelFromInitialAndScore(initialLevel, score) {
+		const il = clampInitialLevelUi(initialLevel);
+		const sc = score != null && Number.isFinite(Number(score)) ? Math.max(0, Math.floor(Number(score))) : 0;
+		return il + Math.floor(sc / SCORE_PER_LEVEL);
+	}
+
+	function syncLevelAndFallMsPatch(initialLevel, score) {
+		const level = levelFromInitialAndScore(initialLevel, score);
+		return {level: level, fallIntervalMs: fallDelayMsForLevel(level)};
+	}
+
+	/**
+	 * Tetris Guideline SRS：踢墙表为 (x,y)，x 右为正、y **上**为正。
+	 * 本盘 row 向下增长，故 dRow = -y，dCol = x。
+	 */
+	function kicksGuidelineToBoard(kicksUpY) {
+		return kicksUpY.map(function(t) {
+			return [t[0], -t[1]];
+		});
+	}
+
+	/** J/L/S/T/Z：玩家逆时针一档；rotation 下标 k = 自 spawn 起累计 CCW 次数 mod 4（与 rotatePieceCells90CCW 一致）。 */
+	const SRS_JLSTZ_CCW_dcsdrs = [
+		kicksGuidelineToBoard([[0, 0], [1, 0], [1, 1], [0, -2], [1, -2]]),
+		kicksGuidelineToBoard([[0, 0], [-1, 0], [-1, -1], [0, 2], [-1, 2]]),
+		kicksGuidelineToBoard([[0, 0], [-1, 0], [-1, 1], [0, -2], [-1, -2]]),
+		kicksGuidelineToBoard([[0, 0], [1, 0], [1, -1], [0, 2], [1, 2]]),
+	];
+
+	const SRS_I_CCW_dcsdrs = [
+		kicksGuidelineToBoard([[0, 0], [-1, 0], [2, 0], [-1, 2], [2, -1]]),
+		kicksGuidelineToBoard([[0, 0], [2, 0], [-1, 0], [2, -1], [-1, 2]]),
+		kicksGuidelineToBoard([[0, 0], [1, 0], [-2, 0], [1, -2], [-2, 1]]),
+		kicksGuidelineToBoard([[0, 0], [2, 0], [-1, 0], [2, 1], [-1, -2]]),
+	];
 
 	/** 前进方向：{ dr, dc }，与坐标轴无关，如向下为 dr=1, dc=0 */
 	const DIR_DOWN = { dr: 1, dc: 0 };
@@ -106,11 +163,46 @@
 		};
 	};
 
-	/** 消行基础分（玩法 11）：消除 n 行时返回 SCORE_n × (level+1)，n 取 1～4。接口预留，计分可后续接入。 */
+	/** 消行基础分（玩法 §11）：消除 n 行时返回 SCORE_n × (level+1)，n 取 1～4。 */
 	function getLineClearBaseScore(numLinesCleared, level) {
 		level = level != null && Number.isFinite(level) ? Math.max(0, level) : 0;
 		const n = Math.max(0, Math.min(4, Math.floor(numLinesCleared) || 0));
 		return (SCORE_BY_LINES[n] || 0) * (level + 1);
+	}
+
+	function inferInitialLevelFromLegacyFallMs(ms) {
+		if (ms == null || !Number.isFinite(Number(ms))) {
+			return 0;
+		}
+		const x = Math.max(MIN_FALL_DELAY_MS, Number(ms));
+		const candidates = [x];
+		if (x > 2500) {
+			candidates.push(Math.max(MIN_FALL_DELAY_MS, Math.round(x / 10)));
+		}
+		let best = 0;
+		let bestD = Infinity;
+		for (let ci = 0; ci < candidates.length; ci++) {
+			const target = candidates[ci];
+			for (let L = 0; L < 600; L++) {
+				const d = Math.abs(fallDelayMsForLevel(L) - target);
+				if (d < bestD) {
+					bestD = d;
+					best = L;
+				}
+			}
+		}
+		return Math.min(20, best);
+	}
+
+	function getEffectiveLevel(g) {
+		if (!g) {
+			return 0;
+		}
+		return levelFromInitialAndScore(g.initialLevel, g.score);
+	}
+
+	function getEffectiveFallIntervalMs(g) {
+		return fallDelayMsForLevel(getEffectiveLevel(g));
 	}
 
 	function getShapeCells(shape, rotation) {
@@ -657,7 +749,7 @@
 			currentPiece: null,
 			pieceCount: nextCount,
 			playerLockTicksRemaining: null,
-		});
+		}, syncLevelAndFallMsPatch(g.initialLevel, score));
 		if (suppressSpawn || g.suppressSpawnAfterReform === true) {
 			return base;
 		}
@@ -1112,7 +1204,7 @@
 		const bg = cellGroup
 			? cellGroup.map(function(row) { return row.slice(); })
 			: emptyBoardCellGroup(rows, cols);
-		return {
+		const st = {
 			rows: rows,
 			cols: cols,
 			board: b,
@@ -1133,7 +1225,8 @@
 			lineClearClearedRows: null,
 			lineClearScoreAddPending: null,
 			reformPieces: null,
-			fallIntervalMs: 500,
+			fallIntervalMs: INITIAL_FALL_DELAY_MS,
+			initialLevel: 0,
 			lockDelayDurationMs: 500,
 			playerLockTicksRemaining: null,
 			suppressSpawnAfterReform: true,
@@ -1143,6 +1236,7 @@
 			overlayVisible: false,
 			overlayMessage: '',
 		};
+		return Object.assign(st, syncLevelAndFallMsPatch(st.initialLevel, st.score));
 	}
 
 	function clearOneRound(board, rows, cols, policy, cellGroup) {
@@ -1170,14 +1264,12 @@
 
 	function clearFullLines(board, rows, cols) {
 		let totalScore = 0;
-		let chainBonus = 1;
 		while (true) {
 			const result = clearOneRound(board, rows, cols);
 			if (result.scoreAdd === 0 && result.newFullRows.length === 0) {
 				break;
 			}
-			totalScore += result.scoreAdd * chainBonus;
-			chainBonus += 1;
+			totalScore += result.scoreAdd;
 			if (result.newFullRows.length === 0) {
 				break;
 			}
@@ -1205,10 +1297,11 @@
 			}
 			clearedSet[r] = true;
 			for (let c = 0; c < cols; c++) {
-				const v = board[r][c] / minVal;
+				const orig = board[r][c];
+				const v = orig / minVal;
 				if (v === 1) {
 					afterClear[r][c] = 0;
-					scoreAdd += minVal;
+					scoreAdd += orig;
 				} else {
 					afterClear[r][c] = v;
 				}
@@ -1773,6 +1866,110 @@
 		return Object.assign({}, g, {board: board, currentPiece: piece, playerLockTicksRemaining: null});
 	}
 
+	/** 玩家块水平一格：《玩法》§4.1 前线格与下落相同判定。 */
+	function tryPlayerHorizontalOneStep(g, direction) {
+		const board = g.board;
+		const rows = g.rows;
+		const cols = g.cols;
+		const cg = g.boardCellGroup;
+		let piece = g.currentPiece;
+		const dc = direction.dc;
+		if (!piece || g.gameOver || direction.dr !== 0 || dc === 0) {
+			return null;
+		}
+		if (pieceOutOfBounds(rows, cols, piece, 0, dc)) {
+			return null;
+		}
+		const wouldHit = pieceOverlapsBoard(board, rows, cols, piece, 0, dc);
+		if (!wouldHit) {
+			piece.cells.forEach(function(cell) {
+				if (cell.merged) {
+					return;
+				}
+				const r = piece.row + cell.dr;
+				const c = piece.col + cell.dc;
+				if (r >= 0 && r < rows && c >= 0 && c < cols && board[r]) {
+					board[r][c] = 0;
+					if (cg) {
+						cg[r][c] = 0;
+					}
+				}
+			});
+			return Object.assign({}, g, {
+				board: board,
+				currentPiece: Object.assign({}, piece, {col: piece.col + dc}),
+				playerLockTicksRemaining: null,
+			});
+		}
+		const pieceRow = piece.row;
+		const pieceCol = piece.col;
+		const frontLineCells = getFrontLineCells(piece, direction);
+		for (let ci = 0; ci < frontLineCells.length; ci++) {
+			const cell = frontLineCells[ci];
+			const tr = pieceRow + cell.dr + direction.dr;
+			const tc = pieceCol + cell.dc + direction.dc;
+			if (tr < 0 || tr >= rows || tc < 0 || tc >= cols || !board[tr]) {
+				return null;
+			}
+			const tv = board[tr][tc];
+			if (tv !== 0 && tv !== cell.value) {
+				return null;
+			}
+		}
+		const newRow = pieceRow + direction.dr;
+		const newCol = pieceCol + dc;
+		const frontKey = {};
+		frontLineCells.forEach(function(c) { frontKey[c.dr + ',' + c.dc] = true; });
+		let mergedCount = 0;
+		const updatedCells = piece.cells.map(function(cell) {
+			if (!frontKey[cell.dr + ',' + cell.dc]) {
+				return Object.assign({}, cell);
+			}
+			const tr2 = pieceRow + cell.dr + direction.dr;
+			const tc2 = pieceCol + cell.dc + direction.dc;
+			if (tr2 < 0 || tr2 >= rows || tc2 < 0 || tc2 >= cols || !board[tr2]) {
+				return Object.assign({}, cell);
+			}
+			const tv2 = board[tr2][tc2];
+			if (tv2 === cell.value) {
+				mergedCount++;
+				return Object.assign({}, cell, {value: cell.value * 2, merged: true});
+			}
+			return Object.assign({}, cell);
+		});
+		for (let mi = 0; mi < piece.cells.length; mi++) {
+			if (!updatedCells[mi].merged) {
+				continue;
+			}
+			const c0 = piece.cells[mi];
+			const trM = pieceRow + c0.dr + direction.dr;
+			const tcM = pieceCol + c0.dc + direction.dc;
+			if (trM >= 0 && trM < rows && tcM >= 0 && tcM < cols && board[trM]) {
+				board[trM][tcM] = 0;
+				if (cg) {
+					cg[trM][tcM] = 0;
+				}
+			}
+		}
+		piece.cells.forEach(function(cell) {
+			const r = pieceRow + cell.dr;
+			const c = pieceCol + cell.dc;
+			if (r >= 0 && r < rows && c >= 0 && c < cols && board[r]) {
+				board[r][c] = 0;
+				if (cg) {
+					cg[r][c] = 0;
+				}
+			}
+		});
+		piece = Object.assign({}, piece, {
+			row: newRow,
+			col: newCol,
+			cells: updatedCells,
+			mergeCount: piece.mergeCount + mergedCount,
+		});
+		return Object.assign({}, g, {board: board, currentPiece: piece, playerLockTicksRemaining: null});
+	}
+
 	function solidifyPlayerPieceNow(g, lockedPiece, suppressSpawn) {
 		writePieceToBoard(g.board, g.rows, g.cols, lockedPiece, g.boardCellGroup);
 		const ss = !!suppressSpawn || g.suppressSpawnAfterReform === true;
@@ -1801,7 +1998,7 @@
 		const userSoftDrop = tickOpts.userSoftDrop === true;
 		const g = this.game;
 		const piece = g.currentPiece;
-		const lockFull = computePlayerLockTicks(g.lockDelayDurationMs, g.fallIntervalMs);
+		const lockFull = computePlayerLockTicks(g.lockDelayDurationMs, getEffectiveFallIntervalMs(g));
 		if (pieceOutOfBounds(g.rows, g.cols, piece, 1, 0)) {
 			const maxDr = Math.max.apply(null, piece.cells.map(function(c) { return c.dr; }));
 			const lockRow = Math.min(piece.row, g.rows - 1 - maxDr);
@@ -1868,7 +2065,15 @@
 		const mergedRows = prevRows.concat(clearedRows).filter(function(v, i, a) {
 			return a.indexOf(v) === i;
 		});
-		const scoreAddTotal = (g.lineClearScoreAddPending || 0) + prep.scoreAdd;
+		const numLines = clearedRows.length;
+		const lv = getEffectiveLevel(g);
+		const baseLineScore = getLineClearBaseScore(numLines, lv);
+		const scoreAddTotal = (g.lineClearScoreAddPending || 0) + prep.scoreAdd + baseLineScore;
+		const newLinesCleared = (g.linesClearedTotal || 0) + numLines;
+		function lineClearProgressAtScore(scoreForLevel) {
+			return Object.assign({linesClearedTotal: newLinesCleared}, syncLevelAndFallMsPatch(g.initialLevel, scoreForLevel));
+		}
+		const scoreStatePendingOnly = lineClearProgressAtScore(g.score);
 
 		function attachChainIfAny(out) {
 			const chainFr = getFullRowIndices(g.board, g.rows, g.cols);
@@ -1892,13 +2097,14 @@
 					lineClearClearedRows: mergedRows,
 					lineClearScoreAddPending: scoreAddTotal,
 					wholeAboveGroupSeq: groupSeq.next,
-				});
+				}, scoreStatePendingOnly);
 				return attachChainIfAny(out);
 			}
 			packAfterClearedEmptyRows(g.board, g.rows, g.cols, prep.clearedSet, g.boardCellGroup);
 			const score = g.score + scoreAddTotal;
 			const highScore = g.highScore >= score ? g.highScore : score;
 			const suppressSpawn = stats.suppressNextSpawn === true || g.suppressSpawnAfterReform === true;
+			const scoreStateApplied = lineClearProgressAtScore(score);
 			const newFullRows = getFullRowIndices(g.board, g.rows, g.cols);
 			if (newFullRows.length > 0) {
 				return Object.assign({}, g, {
@@ -1915,7 +2121,7 @@
 					lineClearAbovePieces: null,
 					currentPiece: null,
 					wholeAboveGroupSeq: groupSeq.next,
-				});
+				}, scoreStateApplied);
 			}
 			const nextCount = g.pieceCount + 1;
 			const base = Object.assign({}, g, {
@@ -1934,7 +2140,7 @@
 				pieceCount: nextCount,
 				playerLockTicksRemaining: null,
 				wholeAboveGroupSeq: groupSeq.next,
-			});
+			}, scoreStateApplied);
 			if (suppressSpawn) {
 				return base;
 			}
@@ -1959,9 +2165,9 @@
 			lineClearRemainderCells: null,
 			lineClearAbovePieces: null,
 			lineClearClearedRows: hadReform ? mergedRows : clearedRows,
-			lineClearScoreAddPending: hadReform ? scoreAddTotal : prep.scoreAdd,
+			lineClearScoreAddPending: scoreAddTotal,
 			wholeAboveGroupSeq: groupSeq.next,
-		});
+		}, scoreStatePendingOnly);
 		return attachChainIfAny(outReform);
 	}
 
@@ -2064,16 +2270,15 @@
 		if (isLineClearReformPhase(game)) {
 			return game;
 		}
-		const p = game.currentPiece;
-		const next = Object.assign({}, p, {col: p.col - 1});
-		if (wouldCollide(game.board, game.rows, game.cols, next, 0, 0)) {
-			return game;
+		const moved = tryPlayerHorizontalOneStep(game, DIR_LEFT);
+		if (moved) {
+			const nx = moved.currentPiece;
+			if (nx && playerCurrentPieceCanMoveDown(moved.board, moved.rows, moved.cols, nx)) {
+				return Object.assign({}, moved, {playerLockTicksRemaining: null});
+			}
+			return moved;
 		}
-		const outL = Object.assign({}, game, {currentPiece: next});
-		if (playerCurrentPieceCanMoveDown(outL.board, outL.rows, outL.cols, next)) {
-			outL.playerLockTicksRemaining = null;
-		}
-		return outL;
+		return game;
 	}
 
 	function moveRight(game) {
@@ -2083,16 +2288,15 @@
 		if (isLineClearReformPhase(game)) {
 			return game;
 		}
-		const p = game.currentPiece;
-		const next = Object.assign({}, p, {col: p.col + 1});
-		if (wouldCollide(game.board, game.rows, game.cols, next, 0, 0)) {
-			return game;
+		const moved = tryPlayerHorizontalOneStep(game, DIR_RIGHT);
+		if (moved) {
+			const nx = moved.currentPiece;
+			if (nx && playerCurrentPieceCanMoveDown(moved.board, moved.rows, moved.cols, nx)) {
+				return Object.assign({}, moved, {playerLockTicksRemaining: null});
+			}
+			return moved;
 		}
-		const outR = Object.assign({}, game, {currentPiece: next});
-		if (playerCurrentPieceCanMoveDown(outR.board, outR.rows, outR.cols, next)) {
-			outR.playerLockTicksRemaining = null;
-		}
-		return outR;
+		return game;
 	}
 
 	/**
@@ -2132,40 +2336,53 @@
 			return game;
 		}
 		const p = game.currentPiece;
-		const osz = p.shape === 'O' || p.shape === 'S' || p.shape === 'Z';
-		const baseGeom = osz ? rotatePieceKeepBoundingAnchor(p) : rotatePieceCells90CCW(p);
-		const tryOffsets = osz ? [0] : [0, -1, 1, -2, 2, -3, 3];
-		for (let i = 0; i < tryOffsets.length; i++) {
-			const offset = tryOffsets[i];
-			let nextPiece = Object.assign({}, baseGeom, {col: p.col + offset});
-			if (pieceOutOfBounds(game.rows, game.cols, nextPiece, 0, 0)) {
-				continue;
+		function finalizeRotation(nextPiece) {
+			if (!nextPiece) {
+				return null;
 			}
-			if (pieceOverlapsBoard(game.board, game.rows, game.cols, nextPiece, 0, 0)) {
-				continue;
-			}
-			nextPiece = kickPieceVerticallyIntoView(game.rows, game.cols, game.board, nextPiece);
-			const abs = pieceAbsCells(nextPiece);
-			let minR = abs[0].r;
-			for (let j = 1; j < abs.length; j++) {
-				if (abs[j].r < minR) {
-					minR = abs[j].r;
+			const abs0 = pieceAbsCells(nextPiece);
+			let minR0 = abs0[0].r;
+			for (let j = 1; j < abs0.length; j++) {
+				if (abs0[j].r < minR0) {
+					minR0 = abs0[j].r;
 				}
 			}
-			if (minR < 0) {
-				continue;
+			if (minR0 < 0) {
+				return null;
 			}
 			if (pieceOverlapsBoard(game.board, game.rows, game.cols, nextPiece, 0, 0)) {
-				continue;
+				return null;
 			}
 			if (pieceOutOfBounds(game.rows, game.cols, nextPiece, 0, 0)) {
-				continue;
+				return null;
 			}
 			const outRt = Object.assign({}, game, {currentPiece: nextPiece});
 			if (playerCurrentPieceCanMoveDown(outRt.board, outRt.rows, outRt.cols, nextPiece)) {
 				outRt.playerLockTicksRemaining = null;
 			}
 			return outRt;
+		}
+		if (p.shape === 'O') {
+			const nextO = rotatePieceKeepBoundingAnchor(p);
+			let kicked = kickPieceVerticallyIntoView(game.rows, game.cols, game.board, nextO);
+			return finalizeRotation(kicked) || game;
+		}
+		const kOld = ((Number(p.rotation) || 0) % 4 + 4) % 4;
+		const spun = rotatePieceCells90CCW(p);
+		const useI = p.shape === 'I';
+		const kickRows = useI ? SRS_I_CCW_dcsdrs[kOld] : SRS_JLSTZ_CCW_dcsdrs[kOld];
+		for (let ki = 0; ki < kickRows.length; ki++) {
+			const dCol = kickRows[ki][0];
+			const dRow = kickRows[ki][1];
+			let cand = Object.assign({}, spun, {
+				row: p.row + dRow,
+				col: p.col + dCol,
+			});
+			cand = kickPieceVerticallyIntoView(game.rows, game.cols, game.board, cand);
+			const done = finalizeRotation(cand);
+			if (done) {
+				return done;
+			}
 		}
 		return game;
 	}
@@ -2214,6 +2431,9 @@
 		const rows = Math.max(MIN_ROWS, Math.min(MAX_ROWS, overrides.rows != null ? overrides.rows : DEFAULT_CFG.rows));
 		const cols = Math.max(MIN_COLS, Math.min(MAX_COLS, overrides.cols != null ? overrides.cols : DEFAULT_CFG.cols));
 		const fallIntervalMs = overrides.fallIntervalMs != null ? overrides.fallIntervalMs : DEFAULT_CFG.fallIntervalMs;
+		const initialLevel = overrides.initialLevel != null && Number.isFinite(Number(overrides.initialLevel))
+			? Math.max(0, Math.min(20, Math.floor(Number(overrides.initialLevel))))
+			: inferInitialLevelFromLegacyFallMs(fallIntervalMs);
 		let lockDelayDurationMs = overrides.lockDelayDurationMs != null ? overrides.lockDelayDurationMs : DEFAULT_CFG.lockDelayDurationMs;
 		lockDelayDurationMs = Math.max(MIN_LOCK_DELAY_MS, Math.min(MAX_LOCK_DELAY_MS, lockDelayDurationMs));
 		const seed = overrides.seed != null ? overrides.seed : Date.now();
@@ -2221,7 +2441,7 @@
 		const boardCellGroup = emptyBoardCellGroup(rows, cols);
 		const currentPiece = spawnNextPiece(rows, cols, seed, 0);
 		const nextPiece = spawnNextPiece(rows, cols, seed, 1);
-		return {
+		const game = {
 			rows: rows,
 			cols: cols,
 			board: board,
@@ -2235,6 +2455,7 @@
 			overlayVisible: false,
 			overlayMessage: '',
 			fallIntervalMs: fallIntervalMs,
+			initialLevel: initialLevel,
 			lockDelayDurationMs: lockDelayDurationMs,
 			playerLockTicksRemaining: null,
 			reformPieces: null,
@@ -2243,7 +2464,7 @@
 			seed: seed,
 			clearLinesPending: null,
 			postClearGravityState: null,
-			level: 0,
+			level: initialLevel,
 			linesClearedTotal: 0,
 			lineClearPolicy: normalizeLineClearPolicy(overrides.lineClearPolicy),
 			lineClearRemainderCells: null,
@@ -2252,6 +2473,7 @@
 			lineClearScoreAddPending: null,
 			suppressSpawnAfterReform: overrides.suppressSpawnAfterReform === true,
 		};
+		return Object.assign(game, syncLevelAndFallMsPatch(game.initialLevel, game.score));
 	}
 
 	function serializeGameState(g) {
@@ -2291,6 +2513,9 @@
 			overlayVisible: g.overlayVisible,
 			overlayMessage: g.overlayMessage,
 			fallIntervalMs: g.fallIntervalMs,
+			initialLevel: g.initialLevel != null && Number.isFinite(Number(g.initialLevel))
+				? Math.max(0, Math.min(20, Math.floor(Number(g.initialLevel))))
+				: 0,
 			cascadePending: g.cascadePending,
 			pieceCount: g.pieceCount,
 			seed: g.seed,
@@ -2354,7 +2579,6 @@
 
 	const MIN_ROWS_BLOCKS = 8;
 	const MIN_COLS_BLOCKS = 6;
-	const DEFAULT_FALL_INTERVAL_MS_BLOCKS = 500;
 
 	function deserializeGameState(raw) {
 		if (!raw || typeof raw !== 'object') {
@@ -2487,10 +2711,21 @@
 
 		const currentPiece = dePiece(o.currentPiece);
 		const nextPiece = dePiece(o.nextPiece);
-		const fallIntervalMs = Math.max(100, Number(o.fallIntervalMs) || DEFAULT_FALL_INTERVAL_MS_BLOCKS);
 		const clearLinesPending = Array.isArray(o.clearLinesPending) ? o.clearLinesPending.slice() : null;
 		/** 旧存档中的 postClearGravityState 已废弃，不再恢复（与《玩法》§7 多块整理一致）。 */
 		const postClearGravityState = null;
+		const linesClearedTotal = Math.max(0, Number(o.linesClearedTotal) || 0);
+		const score = Math.max(0, Number(o.score) || 0);
+		const initialLevel = (function() {
+			if (o.initialLevel != null && Number.isFinite(Number(o.initialLevel))) {
+				return Math.max(0, Math.min(20, Math.floor(Number(o.initialLevel))));
+			}
+			const legacyLv = Math.max(0, Math.min(20, Number(o.level) || 0));
+			const fromScore = Math.floor(score / SCORE_PER_LEVEL);
+			return Math.max(0, Math.min(20, legacyLv - fromScore));
+		})();
+		const levelSynced = levelFromInitialAndScore(initialLevel, score);
+		const fallIntervalMs = fallDelayMsForLevel(levelSynced);
 		return {
 			rows: rows,
 			cols: cols,
@@ -2499,7 +2734,7 @@
 			wholeAboveGroupSeq: Math.max(1, Number(o.wholeAboveGroupSeq) || 1),
 			currentPiece: currentPiece,
 			nextPiece: nextPiece,
-			score: Math.max(0, Number(o.score) || 0),
+			score: score,
 			highScore: Math.max(0, Number(o.highScore) || 0),
 			gameOver: Boolean(o.gameOver),
 			overlayVisible: Boolean(o.overlayVisible),
@@ -2510,8 +2745,9 @@
 			seed: Number.isFinite(Number(o.seed)) ? Number(o.seed) : Date.now(),
 			clearLinesPending: clearLinesPending,
 			postClearGravityState: postClearGravityState,
-			level: Math.max(0, Math.min(20, Number(o.level) || 0)),
-			linesClearedTotal: Math.max(0, Number(o.linesClearedTotal) || 0),
+			level: levelSynced,
+			linesClearedTotal: linesClearedTotal,
+			initialLevel: initialLevel,
 			lineClearPolicy: normalizeLineClearPolicy(o.lineClearPolicy),
 			lineClearRemainderCells: (function() {
 				function parseCellList(raw) {
@@ -2621,6 +2857,10 @@
 		getDefaultLineClearPolicy: getDefaultLineClearPolicy,
 		normalizeLineClearPolicy: normalizeLineClearPolicy,
 		getLineClearBaseScore: getLineClearBaseScore,
+		getEffectiveLevel: getEffectiveLevel,
+		getEffectiveFallIntervalMs: getEffectiveFallIntervalMs,
+		inferInitialLevelFromLegacyFallMs: inferInitialLevelFromLegacyFallMs,
+		SCORE_PER_LEVEL: SCORE_PER_LEVEL,
 		init: init,
 		tick: tick,
 		moveLeft: moveLeft,
