@@ -8,7 +8,7 @@ const path = require('path');
 const logicPath = path.join(__dirname, '..', 'logic.js');
 const logic = require(logicPath);
 
-// --- 公共断言与工具（供 all.spec.js 使用） ---
+// --- 公共断言与工具（供 spec-common / *.spec.js 使用） ---
 function boardFromRows(rows) {
 	return rows.map(function(row) { return row.slice(); });
 }
@@ -138,8 +138,8 @@ const testEnv = {
 	boardFromRows,
 };
 
-// --- 加载并执行测试文件（单文件：合并 / 消行 / 消行后合并）---
-const testFiles = ['all.spec.js'];
+// --- 加载并执行测试文件：core = 基础与常规路径，clearing = 整理与多块路径 ---
+const testFiles = ['core.spec.js', 'clearing.spec.js'];
 
 console.log('2048方块 测试（《玩法》对照见 test/README.md）\n');
 
