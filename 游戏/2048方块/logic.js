@@ -210,6 +210,83 @@
 		});
 	}
 
+	/** 从整理活动块中抠掉绝对坐标 (absR,absC) 一格，重算 row/col 与 dr/dc；无格则返回 null。 */
+	function reformPieceAfterRemovingAbsCell(piece, absR, absC) {
+		const remaining = [];
+		for (let i = 0; i < piece.cells.length; i++) {
+			const c = piece.cells[i];
+			const ar = piece.row + c.dr;
+			const ac = piece.col + c.dc;
+			if (ar === absR && ac === absC) {
+				continue;
+			}
+			remaining.push(c);
+		}
+		if (remaining.length === 0) {
+			return null;
+		}
+		let minR = Infinity;
+		let minC = Infinity;
+		for (let ri = 0; ri < remaining.length; ri++) {
+			const ar = piece.row + remaining[ri].dr;
+			const ac = piece.col + remaining[ri].dc;
+			if (ar < minR) {
+				minR = ar;
+			}
+			if (ac < minC) {
+				minC = ac;
+			}
+		}
+		const newCells = remaining.map(function(c) {
+			const ar = piece.row + c.dr;
+			const ac = piece.col + c.dc;
+			return Object.assign({}, c, {
+				dr: ar - minR,
+				dc: ac - minC,
+			});
+		});
+		return Object.assign({}, piece, {
+			row: minR,
+			col: minC,
+			cells: newCells,
+		});
+	}
+
+	/**
+	 * 当前块与下方「另一整理块」同数合并后，从被吃块中去掉对应格（真实 board 上该格本为 0，仅靠 vboard 无法区分）。
+	 */
+	function consumeReformMergeFromOtherPieces(working, moverIndex, pieceBefore, newPiece) {
+		const pieceRow = pieceBefore.row;
+		const direction = DIR_DOWN;
+		for (let mi = 0; mi < newPiece.cells.length; mi++) {
+			if (!newPiece.cells[mi].merged) {
+				continue;
+			}
+			const c0 = pieceBefore.cells[mi];
+			const trM = pieceRow + c0.dr + direction.dr;
+			const tcM = pieceBefore.col + c0.dc + direction.dc;
+			const srcVal = c0.value;
+			for (let j = 0; j < working.length; j++) {
+				if (j === moverIndex || !working[j].piece) {
+					continue;
+				}
+				const abs = pieceAbsCells(working[j].piece);
+				let hit = false;
+				for (let k = 0; k < abs.length; k++) {
+					if (abs[k].r === trM && abs[k].c === tcM && abs[k].value === srcVal) {
+						hit = true;
+						break;
+					}
+				}
+				if (!hit) {
+					continue;
+				}
+				working[j].piece = reformPieceAfterRemovingAbsCell(working[j].piece, trM, tcM);
+				break;
+			}
+		}
+	}
+
 	/** 与 getShapeCells 相同：绕质心逆时针 90°，再 min 归一化；各格携带 value/merged。 */
 	function rotatePieceCells90CCW(piece) {
 		const cells = piece.cells;
@@ -362,6 +439,147 @@
 	};
 
 	/**
+	 * 消行剩格一步下落 / 整理块一步下落的共用判定（只读 board，不写字）。
+	 * mergeOpts（可选）：整理阶段传入 mergeCheckBoard / mergeCheckCellGroup / lineClearPolicy 并 enableWholeMergeBlock，
+	 * 使竖并与链式整理共用 isAdjacentVerticalMergeBlockedWhole；剩格迷你局不传。
+	 * @returns {{ kind: 'oob' } | { kind: 'solidify' } | { kind: 'free', newPiece: object } | { kind: 'afterHit', newPiece: object, mergedCount: number }}
+	 */
+	function computeOneStepDownFall(board, rows, cols, piece, mergeOpts) {
+		mergeOpts = mergeOpts || {};
+		const mob = mergeOpts.enableWholeMergeBlock === true;
+		const mBoard = mergeOpts.mergeCheckBoard;
+		const mCg = mergeOpts.mergeCheckCellGroup;
+		const pol = mergeOpts.lineClearPolicy;
+		if (pieceOutOfBounds(rows, cols, piece, 1, 0)) {
+			return {kind: 'oob'};
+		}
+		const wouldHit = pieceOverlapsBoard(board, rows, cols, piece, 1, 0);
+		if (!wouldHit) {
+			return {kind: 'free', newPiece: Object.assign({}, piece, {row: piece.row + 1})};
+		}
+		const pieceRow = piece.row;
+		const direction = DIR_DOWN;
+		const frontLineCells = getFrontLineCells(piece, direction);
+		for (let fi = 0; fi < frontLineCells.length; fi++) {
+			if (pieceRow + frontLineCells[fi].dr + direction.dr >= rows) {
+				return {kind: 'solidify'};
+			}
+		}
+		let canMove = true;
+		for (let ci = 0; ci < frontLineCells.length; ci++) {
+			const cell = frontLineCells[ci];
+			const targetR2 = pieceRow + cell.dr + direction.dr;
+			const targetC2 = piece.col + cell.dc + direction.dc;
+			if (targetC2 < 0 || targetC2 >= cols || targetR2 >= rows || targetR2 < 0 || !board[targetR2]) {
+				continue;
+			}
+			const targetValue = board[targetR2][targetC2];
+			if (targetValue !== 0 && targetValue !== cell.value) {
+				canMove = false;
+				break;
+			}
+			if (targetValue === cell.value && mob && mBoard && mCg && pol != null
+					&& isAdjacentVerticalMergeBlockedWholeReformPhase(pol, mCg, mBoard, rows, cols, targetR2 - 1, targetR2, targetC2)) {
+				canMove = false;
+				break;
+			}
+		}
+		if (!canMove) {
+			return {kind: 'solidify'};
+		}
+		const newRow = pieceRow + direction.dr;
+		const newCol = piece.col + direction.dc;
+		const frontKey = {};
+		frontLineCells.forEach(function(c) { frontKey[c.dr + ',' + c.dc] = true; });
+		let mergedCount = 0;
+		const updatedCells = piece.cells.map(function(cell) {
+			if (!frontKey[cell.dr + ',' + cell.dc]) {
+				return Object.assign({}, cell);
+			}
+			const tr = pieceRow + cell.dr + direction.dr;
+			const tc = piece.col + cell.dc + direction.dc;
+			if (tc < 0 || tc >= cols || tr >= rows || tr < 0 || !board[tr]) {
+				return Object.assign({}, cell);
+			}
+			const tv = board[tr][tc];
+			if (tv === cell.value) {
+				if (mob && mBoard && mCg && pol != null
+						&& isAdjacentVerticalMergeBlockedWholeReformPhase(pol, mCg, mBoard, rows, cols, tr - 1, tr, tc)) {
+					return Object.assign({}, cell);
+				}
+				mergedCount++;
+				return Object.assign({}, cell, {value: cell.value * 2, merged: true});
+			}
+			return Object.assign({}, cell);
+		});
+		return {
+			kind: 'afterHit',
+			newPiece: Object.assign({}, piece, {
+				row: newRow,
+				col: newCol,
+				cells: updatedCells,
+				mergeCount: piece.mergeCount + mergedCount,
+			}),
+			mergedCount: mergedCount,
+		};
+	}
+
+	/**
+	 * 一步下落（free 或 afterHit）后，在真实 board 上清除被合并的静态格与旧占位；与 computeOneStepDownFall 成对使用。
+	 */
+	function applyBoardWritesAfterFallStep(board, cg, rows, cols, pieceBefore, newPiece) {
+		const pieceRow = pieceBefore.row;
+		const direction = DIR_DOWN;
+		let anyMerged = false;
+		for (let i = 0; i < newPiece.cells.length; i++) {
+			if (newPiece.cells[i].merged) {
+				anyMerged = true;
+				break;
+			}
+		}
+		if (anyMerged) {
+			for (let mi = 0; mi < newPiece.cells.length; mi++) {
+				if (!newPiece.cells[mi].merged) {
+					continue;
+				}
+				const c0 = pieceBefore.cells[mi];
+				const trM = pieceRow + c0.dr + direction.dr;
+				const tcM = pieceBefore.col + c0.dc + direction.dc;
+				if (trM >= 0 && trM < rows && tcM >= 0 && tcM < cols && board[trM]) {
+					board[trM][tcM] = 0;
+					if (cg) {
+						cg[trM][tcM] = 0;
+					}
+				}
+			}
+			pieceBefore.cells.forEach(function(cell) {
+				const r = pieceRow + cell.dr;
+				const c = pieceBefore.col + cell.dc;
+				if (r >= 0 && r < rows && c >= 0 && c < cols && board[r]) {
+					board[r][c] = 0;
+					if (cg) {
+						cg[r][c] = 0;
+					}
+				}
+			});
+			return;
+		}
+		pieceBefore.cells.forEach(function(cell) {
+			if (cell.merged) {
+				return;
+			}
+			const r = pieceRow + cell.dr;
+			const c = pieceBefore.col + cell.dc;
+			if (r >= 0 && r < rows && c >= 0 && c < cols && board[r]) {
+				board[r][c] = 0;
+				if (cg) {
+					cg[r][c] = 0;
+				}
+			}
+		});
+	}
+
+	/**
 	 * 整理阶段下落中的活动块：封装前线格判定与一步下落/固化（对齐《玩法》§4.1、`playerControllable === false`）。
 	 */
 	function ReformActivePiece(legacyPiece) {
@@ -381,212 +599,81 @@
 		const rows = g.rows;
 		const cols = g.cols;
 		const cg = g.boardCellGroup || null;
-		let piece = g.currentPiece;
+		const piece = g.currentPiece;
 
-		if (pieceOutOfBounds(rows, cols, piece, 1, 0)) {
+		const r = computeOneStepDownFall(board, rows, cols, piece);
+		if (r.kind === 'oob') {
 			const maxDr = Math.max.apply(null, piece.cells.map(function(c) { return c.dr; }));
 			const lockRow = Math.min(piece.row, rows - 1 - maxDr);
 			const lockPieceAt = Object.assign({}, piece, {row: lockRow});
 			writePieceToBoard(board, rows, cols, lockPieceAt, cg);
 			return Object.assign({}, g, {board: board, currentPiece: null});
 		}
-
-		const wouldHit = pieceOverlapsBoard(board, rows, cols, piece, 1, 0);
-		if (!wouldHit) {
-			piece.cells.forEach(function(cell) {
-				if (cell.merged) {
-					return;
-				}
-				var r = piece.row + cell.dr;
-				var c = piece.col + cell.dc;
-				if (r >= 0 && r < rows && c >= 0 && c < cols && board[r]) {
-					board[r][c] = 0;
-					if (cg) {
-						cg[r][c] = 0;
-					}
-				}
-			});
-			return Object.assign({}, g, {board: board, currentPiece: Object.assign({}, piece, {row: piece.row + 1})});
-		}
-
-		const pieceRow = piece.row;
-		const direction = DIR_DOWN;
-		const frontLineCells = getFrontLineCells(piece, direction);
-
-		var hitBottom = false;
-		for (var fi = 0; fi < frontLineCells.length; fi++) {
-			var targetR = pieceRow + frontLineCells[fi].dr + direction.dr;
-			if (targetR >= rows) {
-				hitBottom = true;
-				break;
-			}
-		}
-		if (hitBottom) {
-			writePieceToBoard(board, rows, cols, Object.assign({}, piece, {row: pieceRow}), cg);
+		if (r.kind === 'solidify') {
+			writePieceToBoard(board, rows, cols, Object.assign({}, piece, {row: piece.row}), cg);
 			return Object.assign({}, g, {board: board, currentPiece: null});
 		}
-
-		var canMove = true;
-		for (var ci = 0; ci < frontLineCells.length; ci++) {
-			var cell = frontLineCells[ci];
-			var targetR2 = pieceRow + cell.dr + direction.dr;
-			var targetC2 = piece.col + cell.dc + direction.dc;
-			if (targetC2 < 0 || targetC2 >= cols || targetR2 >= rows || targetR2 < 0 || !board[targetR2]) {
-				continue;
-			}
-			var targetValue = board[targetR2][targetC2];
-			if (targetValue !== 0 && targetValue !== cell.value) {
-				canMove = false;
-				break;
-			}
+		if (r.kind === 'free') {
+			applyBoardWritesAfterFallStep(board, cg, rows, cols, piece, r.newPiece);
+			return Object.assign({}, g, {board: board, currentPiece: r.newPiece});
 		}
-		if (!canMove) {
-			writePieceToBoard(board, rows, cols, Object.assign({}, piece, {row: pieceRow}), cg);
-			return Object.assign({}, g, {board: board, currentPiece: null});
+		if (r.kind === 'afterHit') {
+			applyBoardWritesAfterFallStep(board, cg, rows, cols, piece, r.newPiece);
+			if (stats && r.mergedCount > 0) {
+				stats.clearRemainderMergeSteps = (stats.clearRemainderMergeSteps || 0) + 1;
+			}
+			return Object.assign({}, g, {board: board, currentPiece: r.newPiece});
 		}
-
-		var newRow = pieceRow + direction.dr;
-		var newCol = piece.col + direction.dc;
-		var frontKey = {};
-		frontLineCells.forEach(function(c) { frontKey[c.dr + ',' + c.dc] = true; });
-		var mergedCount = 0;
-		var updatedCells = piece.cells.map(function(cell) {
-			if (!frontKey[cell.dr + ',' + cell.dc]) {
-				return Object.assign({}, cell);
-			}
-			var tr = pieceRow + cell.dr + direction.dr;
-			var tc = piece.col + cell.dc + direction.dc;
-			if (tc < 0 || tc >= cols || tr >= rows || tr < 0 || !board[tr]) {
-				return Object.assign({}, cell);
-			}
-			var tv = board[tr][tc];
-			if (tv === cell.value) {
-				mergedCount++;
-				return Object.assign({}, cell, {value: cell.value * 2, merged: true});
-			}
-			return Object.assign({}, cell);
-		});
-
-		for (let mi = 0; mi < piece.cells.length; mi++) {
-			if (!updatedCells[mi].merged) {
-				continue;
-			}
-			const c0 = piece.cells[mi];
-			var trM = pieceRow + c0.dr + direction.dr;
-			var tcM = piece.col + c0.dc + direction.dc;
-			if (trM >= 0 && trM < rows && tcM >= 0 && tcM < cols && board[trM]) {
-				board[trM][tcM] = 0;
-				if (cg) {
-					cg[trM][tcM] = 0;
-				}
-			}
-		}
-		piece.cells.forEach(function(cell) {
-			var r = pieceRow + cell.dr;
-			var c = piece.col + cell.dc;
-			if (r >= 0 && r < rows && c >= 0 && c < cols && board[r]) {
-				board[r][c] = 0;
-				if (cg) {
-					cg[r][c] = 0;
-				}
-			}
-		});
-		piece = Object.assign({}, piece, {
-			row: newRow,
-			col: newCol,
-			cells: updatedCells,
-			mergeCount: piece.mergeCount + mergedCount,
-		});
-		if (stats && mergedCount > 0) {
-			stats.clearRemainderMergeSteps = (stats.clearRemainderMergeSteps || 0) + 1;
-		}
-		return Object.assign({}, g, {board: board, currentPiece: piece});
+		return g;
 	};
 
-	/** 将其它整理中活动块画在只读副本上为 -1，避免互并，仅作障碍。 */
+	/** 将其它整理中活动块叠在只读副本上（写入真实数值，供碰撞与合并判定）。 */
 	function buildVirtualBoardForReform(board, rows, cols, workingEntries, skipIndex) {
 		const b = board.map(function(row) { return row.slice(); });
 		for (let i = 0; i < workingEntries.length; i++) {
-			if (i === skipIndex) {
+			if (i === skipIndex || !workingEntries[i].piece) {
 				continue;
 			}
 			const abs = pieceAbsCells(workingEntries[i].piece);
 			for (let k = 0; k < abs.length; k++) {
 				const a = abs[k];
 				if (a.r >= 0 && a.r < rows && a.c >= 0 && a.c < cols) {
-					b[a.r][a.c] = -1;
+					b[a.r][a.c] = a.value;
 				}
 			}
 		}
 		return b;
 	}
 
-	/**
-	 * 整理用：在 board 上预览一步下落（只读 board），不固化；与其它活动块互斥由虚拟盘处理。
-	 * @returns {{ moved: boolean, newPiece?: object }}
-	 */
-	function reformPreviewOneStepDown(board, rows, cols, piece) {
-		if (pieceOutOfBounds(rows, cols, piece, 1, 0)) {
-			return {moved: false};
-		}
-		const wouldHit = pieceOverlapsBoard(board, rows, cols, piece, 1, 0);
-		if (!wouldHit) {
-			return {moved: true, newPiece: Object.assign({}, piece, {row: piece.row + 1})};
-		}
-		const pieceRow = piece.row;
-		const direction = DIR_DOWN;
-		const frontLineCells = getFrontLineCells(piece, direction);
-		for (let fi = 0; fi < frontLineCells.length; fi++) {
-			if (pieceRow + frontLineCells[fi].dr + direction.dr >= rows) {
-				return {moved: false};
-			}
-		}
-		for (let ci = 0; ci < frontLineCells.length; ci++) {
-			const cell = frontLineCells[ci];
-			const tr = pieceRow + cell.dr + direction.dr;
-			const tc = piece.col + cell.dc + direction.dc;
-			if (tc < 0 || tc >= cols || tr >= rows || tr < 0 || !board[tr]) {
+	/** 固定堆 + 当前所有整理块叠图，供 isAdjacentVerticalMergeBlockedWhole 与真实盘面一致。 */
+	function buildCompositeBoardGroupAllReformPieces(board, boardCellGroup, rows, cols, workingEntries) {
+		const b = board.map(function(row) { return row.slice(); });
+		const g = boardCellGroup
+			? boardCellGroup.map(function(row) { return row.slice(); })
+			: emptyBoardCellGroup(rows, cols);
+		for (let i = 0; i < workingEntries.length; i++) {
+			if (!workingEntries[i].piece) {
 				continue;
 			}
-			const tv = board[tr][tc];
-			if (tv !== 0 && tv !== cell.value) {
-				return {moved: false};
+			const piece = workingEntries[i].piece;
+			const abs = pieceAbsCells(piece);
+			const gid = piece.shape === '_ABOVE_WHOLE_' && piece.aboveWholeGroupId != null && piece.aboveWholeGroupId > 0
+				? piece.aboveWholeGroupId
+				: 0;
+			for (let k = 0; k < abs.length; k++) {
+				const a = abs[k];
+				if (a.r >= 0 && a.r < rows && a.c >= 0 && a.c < cols) {
+					b[a.r][a.c] = a.value;
+					g[a.r][a.c] = gid;
+				}
 			}
 		}
-		const newRow = pieceRow + direction.dr;
-		const newCol = piece.col + direction.dc;
-		const frontKey = {};
-		frontLineCells.forEach(function(c) { frontKey[c.dr + ',' + c.dc] = true; });
-		let mergedCount = 0;
-		const updatedCells = piece.cells.map(function(cell) {
-			if (!frontKey[cell.dr + ',' + cell.dc]) {
-				return Object.assign({}, cell);
-			}
-			const tr2 = pieceRow + cell.dr + direction.dr;
-			const tc2 = piece.col + cell.dc + direction.dc;
-			if (tc2 < 0 || tc2 >= cols || tr2 >= rows || tr2 < 0 || !board[tr2]) {
-				return Object.assign({}, cell);
-			}
-			const tv2 = board[tr2][tc2];
-			if (tv2 === cell.value) {
-				mergedCount++;
-				return Object.assign({}, cell, {value: cell.value * 2, merged: true});
-			}
-			return Object.assign({}, cell);
-		});
-		return {
-			moved: true,
-			newPiece: Object.assign({}, piece, {
-				row: newRow,
-				col: newCol,
-				cells: updatedCells,
-				mergeCount: piece.mergeCount + mergedCount,
-			}),
-		};
+		return {board: b, cellGroup: g};
 	}
 
 	function playerCurrentPieceCanMoveDown(board, rows, cols, piece) {
-		return reformPreviewOneStepDown(board, rows, cols, piece).moved;
+		const r = computeOneStepDownFall(board, rows, cols, piece);
+		return r.kind === 'free' || r.kind === 'afterHit';
 	}
 
 	function computePlayerLockTicks(lockDelayDurationMs, fallIntervalMs) {
@@ -596,15 +683,21 @@
 	}
 
 	/**
-	 * 《玩法》§7.2：多块同拍按序尝试下移；未动者累计锁定拍，耗尽则写入固定堆并可能触发新一轮消行。
+	 * 《玩法》§7.2：整理阶段多块同拍下移、固化、链式消行。
 	 */
-	function tickReformPhase(g, tickOpts) {
+	function ReformPhaseController() {}
+
+	ReformPhaseController.prototype.tickFrame = function(g, tickOpts) {
 		tickOpts = tickOpts || {};
 		const suppressSpawn = !!tickOpts.suppressNextSpawn || g.suppressSpawnAfterReform === true;
+		ensureBoardCellGroup(g);
+		if (g.clearLinesPending != null && g.clearLinesPending.length > 0) {
+			return applyPendingClearLines(g, tickOpts);
+		}
 		const board = g.board;
 		const rows = g.rows;
 		const cols = g.cols;
-		const cg = g.boardCellGroup || null;
+		const cg = g.boardCellGroup;
 		let working = g.reformPieces.map(function(e) {
 			return {piece: e.piece, lockTicks: e.lockTicks};
 		});
@@ -625,15 +718,41 @@
 		}
 		for (let si = 0; si < order.length; si++) {
 			const i = order[si];
+			const pieceBeforeMove = working[i].piece;
+			if (!pieceBeforeMove) {
+				continue;
+			}
+			const mergeCtx = buildCompositeBoardGroupAllReformPieces(board, cg, rows, cols, working);
 			const vboard = buildVirtualBoardForReform(board, rows, cols, working, i);
-			const pr = reformPreviewOneStepDown(vboard, rows, cols, working[i].piece);
-			if (pr.moved) {
-				working[i].piece = pr.newPiece;
+			const fallR = computeOneStepDownFall(vboard, rows, cols, pieceBeforeMove, {
+				lineClearPolicy: g.lineClearPolicy,
+				mergeCheckBoard: mergeCtx.board,
+				mergeCheckCellGroup: mergeCtx.cellGroup,
+				enableWholeMergeBlock: true,
+			});
+			if (fallR.kind === 'free' || fallR.kind === 'afterHit') {
+				applyBoardWritesAfterFallStep(board, cg, rows, cols, pieceBeforeMove, fallR.newPiece);
+				working[i].piece = fallR.newPiece;
+				if (fallR.kind === 'afterHit') {
+					let anyMerged = false;
+					for (let mk = 0; mk < fallR.newPiece.cells.length; mk++) {
+						if (fallR.newPiece.cells[mk].merged) {
+							anyMerged = true;
+							break;
+						}
+					}
+					if (anyMerged) {
+						consumeReformMergeFromOtherPieces(working, i, pieceBeforeMove, fallR.newPiece);
+					}
+				}
 				working[i].lockTicks = null;
 				movedThisRound[i] = true;
 			}
 		}
 		for (let wi = 0; wi < working.length; wi++) {
+			if (!working[wi].piece) {
+				continue;
+			}
 			if (movedThisRound[wi]) {
 				continue;
 			}
@@ -645,6 +764,9 @@
 		}
 		const solidifyIndices = [];
 		for (let zi = 0; zi < working.length; zi++) {
+			if (!working[zi].piece) {
+				continue;
+			}
 			if (movedThisRound[zi]) {
 				continue;
 			}
@@ -659,61 +781,23 @@
 			writePieceToBoard(board, rows, cols, p, cg);
 			working.splice(idx, 1);
 		}
+		working = working.filter(function(e) {
+			return e.piece != null;
+		});
 		let gNext = Object.assign({}, g, {board: board, reformPieces: working});
-		let guard = 0;
-		while (++guard < 64) {
-			const fr = getFullRowIndices(board, rows, cols);
-			if (fr.length === 0) {
-				break;
-			}
-			const prep = prepareLineClearDivisionPhase(board, rows, cols, fr);
-			const clearedRows = clearedRowsArrayFromClearedSet(prep.clearedSet);
-			const pol = normalizeLineClearPolicy(g.lineClearPolicy);
-			const sorted = prep.sortedList;
-			for (let ui = 0; ui < sorted.length; ui++) {
-				const x = sorted[ui];
-				if (board[x.r] && x.c >= 0 && x.c < cols) {
-					board[x.r][x.c] = 0;
-					if (cg) {
-						cg[x.r][x.c] = 0;
-					}
-				}
-			}
-			const groupSeq = {next: gNext.wholeAboveGroupSeq != null ? gNext.wholeAboveGroupSeq : 1};
-			const abovePieces = extractLineClearAbovePiecesAndClearBoard(
-				board, cg, rows, cols, clearedRows, pol.aboveRowsMode, groupSeq);
-			gNext = Object.assign({}, gNext, {wholeAboveGroupSeq: groupSeq.next});
-			const scoreAdd = (gNext.lineClearScoreAddPending || 0) + prep.scoreAdd;
-			const prevRows = gNext.lineClearClearedRows || [];
-			const mergedRows = prevRows.concat(clearedRows).filter(function(v, i, a) { return a.indexOf(v) === i; });
-			gNext = Object.assign({}, gNext, {
-				lineClearScoreAddPending: scoreAdd,
-				lineClearClearedRows: mergedRows,
-			});
-			for (let ri = 0; ri < sorted.length; ri++) {
-				const xx = sorted[ri];
-				working.push({
-					piece: createRemainderOnePiece({
-						r: xx.r,
-						c: xx.c,
-						v: xx.v,
-						merged: false,
-						mergeCount: 0,
-					}),
-					lockTicks: null,
-				});
-			}
-			for (let ai = 0; ai < abovePieces.length; ai++) {
-				abovePieces[ai].playerControllable = false;
-				working.push({piece: abovePieces[ai], lockTicks: null});
-			}
-			gNext.reformPieces = working.slice();
+		const frDefer = getFullRowIndices(board, rows, cols);
+		if (frDefer.length > 0) {
+			return Object.assign({}, gNext, {clearLinesPending: frDefer.slice()});
 		}
 		if (working.length === 0) {
 			return completeReformPackAndSpawn(gNext, suppressSpawn);
 		}
 		gNext.reformPieces = working;
 		return gNext;
+	};
+
+	function tickReformPhase(g, tickOpts) {
+		return new ReformPhaseController().tickFrame(g, tickOpts);
 	}
 
 	function completeReformPackAndSpawn(g, suppressSpawn) {
@@ -993,6 +1077,20 @@
 		return isAdjacentVerticalMergeBlockedByWholeRim(board, rows, cols, rUpper, rLower, c, policy);
 	}
 
+	/**
+	 * 整理阶段竖并封禁：不用 wholeSlab（浮动块在合成盘上同 aboveWholeGroupId 与固化堆语义不同，会误杀合法合并）。
+	 * 与 isAdjacentVerticalMergeBlockedWhole 共用 rim / 横杠同质 / 双排异质 三条。
+	 */
+	function isAdjacentVerticalMergeBlockedWholeReformPhase(policy, cellGroup, board, rows, cols, rUpper, rLower, c) {
+		if (wholeAdjacentMergeBlockedWhenDoubleNonzeroRunHasMismatch(board, rows, cols, rUpper, rLower, c, policy)) {
+			return true;
+		}
+		if (isAdjacentVerticalMergeBlockedByWholeUniformBarEdgesOnly(board, rows, cols, rUpper, rLower, c, policy)) {
+			return true;
+		}
+		return isAdjacentVerticalMergeBlockedByWholeRim(board, rows, cols, rUpper, rLower, c, policy);
+	}
+
 	function seededRandom(seed, pieceIndex) {
 		let s = seed + pieceIndex * 7919 >>> 0;
 		s = Math.imul(s, 1103515245) + 12345 >>> 0;
@@ -1178,7 +1276,7 @@
 			state = syncFlushRemainingLineClearReform(state);
 			let rg = 0;
 			while (state.reformPieces && state.reformPieces.length > 0 && ++rg < 200000) {
-				state = tick(state, {suppressNextSpawn: true});
+				state = tickReformPhase(state, {suppressNextSpawn: true});
 			}
 			const fr = getFullRowIndices(state.board, state.rows, state.cols);
 			if (fr.length === 0) {
@@ -1489,6 +1587,64 @@
 			mergeCount: mc,
 		};
 	}
+
+	/**
+	 * 消行管线（面向对象）：对棋盘就地执行 §7.1「除法 → 擦剩格 → 抠上方块 → 进入整理列表」。
+	 * 「待消行 apply」与「整理态内再满行」共用本类，避免两处复制粘贴。
+	 * @param {number[][]} board
+	 * @param {number[][]} boardCellGroup
+	 * @param {{ next: number }} wholeAboveGroupSeq 可变异，与 extractLineClearAbovePiecesAndClearBoard 一致
+	 */
+	function LineClearPipeline(board, boardCellGroup, rows, cols, lineClearPolicy) {
+		this.board = board;
+		this.boardCellGroup = boardCellGroup;
+		this.rows = rows;
+		this.cols = cols;
+		this.policy = normalizeLineClearPolicy(lineClearPolicy);
+	}
+
+	/**
+	 * 对一批满行行号执行一次完整消行切片，返回整理列表与计分增量（不写入 GameState）。
+	 */
+	LineClearPipeline.prototype.buildReformListFromFullRows = function(fullRows, wholeAboveGroupSeq) {
+		const prep = prepareLineClearDivisionPhase(this.board, this.rows, this.cols, fullRows);
+		const sorted = prep.sortedList;
+		const clearedRows = clearedRowsArrayFromClearedSet(prep.clearedSet);
+		const pol = this.policy;
+		for (let zi = 0; zi < sorted.length; zi++) {
+			const x = sorted[zi];
+			if (this.board[x.r] && x.c >= 0 && x.c < this.cols) {
+				this.board[x.r][x.c] = 0;
+				this.boardCellGroup[x.r][x.c] = 0;
+			}
+		}
+		const abovePieces = extractLineClearAbovePiecesAndClearBoard(
+			this.board, this.boardCellGroup, this.rows, this.cols, clearedRows, pol.aboveRowsMode, wholeAboveGroupSeq);
+		const reformPieces = [];
+		for (let ri = 0; ri < sorted.length; ri++) {
+			const xx = sorted[ri];
+			reformPieces.push({
+				piece: createRemainderOnePiece({
+					r: xx.r,
+					c: xx.c,
+					v: xx.v,
+					merged: false,
+					mergeCount: 0,
+				}),
+				lockTicks: null,
+			});
+		}
+		for (let ai = 0; ai < abovePieces.length; ai++) {
+			abovePieces[ai].playerControllable = false;
+			reformPieces.push({piece: abovePieces[ai], lockTicks: null});
+		}
+		return {
+			prep: prep,
+			clearedRows: clearedRows,
+			reformPieces: reformPieces,
+			scoreAddFromDivision: prep.scoreAdd,
+		};
+	};
 
 	/** 是否处于消行后的整理阶段（多块下落中） */
 	function isLineClearReformPhase(g) {
@@ -1871,6 +2027,75 @@
 	}
 
 	/**
+	 * 玩家活动块一帧：锁定延迟、软降/硬降、重力一步与固化（《玩法》§4 + 锁定）。
+	 */
+	function ActivePieceController(game) {
+		this.game = game;
+	}
+	ActivePieceController.prototype.tryGravityOneStep = function() {
+		return tryPlayerGravityOneStep(this.game);
+	};
+	ActivePieceController.prototype.solidify = function(lockedPiece, suppressSpawn) {
+		return solidifyPlayerPieceNow(this.game, lockedPiece, suppressSpawn);
+	};
+	/**
+	 * 当前活动块的一拍（无活动块时勿调；由 tick 保证）。
+	 */
+	ActivePieceController.prototype.tickPlayerPhase = function(tickOpts) {
+		tickOpts = tickOpts || {};
+		const suppressSpawn = !!tickOpts.suppressNextSpawn;
+		const hardDrop = tickOpts.hardDrop === true;
+		const userSoftDrop = tickOpts.userSoftDrop === true;
+		const g = this.game;
+		const piece = g.currentPiece;
+		const lockFull = computePlayerLockTicks(g.lockDelayDurationMs, g.fallIntervalMs);
+		if (pieceOutOfBounds(g.rows, g.cols, piece, 1, 0)) {
+			const maxDr = Math.max.apply(null, piece.cells.map(function(c) { return c.dr; }));
+			const lockRow = Math.min(piece.row, g.rows - 1 - maxDr);
+			const lockPieceAt = Object.assign({}, piece, {row: lockRow});
+			return solidifyPlayerPieceNow(g, lockPieceAt, suppressSpawn);
+		}
+		if (!hardDrop && g.playerLockTicksRemaining != null) {
+			if (userSoftDrop) {
+				const moved = tryPlayerGravityOneStep(g);
+				if (moved) {
+					return moved;
+				}
+				const nk = g.playerLockTicksRemaining - 1;
+				if (nk <= 0) {
+					const lockedAt = Object.assign({}, piece, {row: piece.row});
+					return solidifyPlayerPieceNow(g, lockedAt, suppressSpawn);
+				}
+				return Object.assign({}, g, {playerLockTicksRemaining: nk});
+			}
+			const nkAuto = g.playerLockTicksRemaining - 1;
+			if (nkAuto <= 0) {
+				const lockedAt2 = Object.assign({}, piece, {row: piece.row});
+				return solidifyPlayerPieceNow(g, lockedAt2, suppressSpawn);
+			}
+			return Object.assign({}, g, {playerLockTicksRemaining: nkAuto});
+		}
+		const moved2 = tryPlayerGravityOneStep(g);
+		if (moved2) {
+			return moved2;
+		}
+		if (hardDrop) {
+			const lockedHd = Object.assign({}, piece, {row: piece.row});
+			return solidifyPlayerPieceNow(g, lockedHd, suppressSpawn);
+		}
+		if (userSoftDrop) {
+			const baseTicks = g.playerLockTicksRemaining != null ? g.playerLockTicksRemaining : lockFull;
+			const nkSd = baseTicks - 1;
+			if (nkSd <= 0) {
+				const lockedSd = Object.assign({}, piece, {row: piece.row});
+				return solidifyPlayerPieceNow(g, lockedSd, suppressSpawn);
+			}
+			return Object.assign({}, g, {playerLockTicksRemaining: nkSd});
+		}
+		return Object.assign({}, g, {playerLockTicksRemaining: lockFull});
+	};
+
+	/**
 	 * @param { { clearedVerticalMerges?: number, cascadeSteps?: number, clearRemainderMergeSteps?: number, steppedLineClearRemainder?: boolean, lineClearBundledApply?: boolean } | null | undefined } stats 可选，用于测试统计 / 分步消行剩格（仅页面）
 	 */
 	function applyPendingClearLines(g, stats) {
@@ -1879,45 +2104,45 @@
 		if (g.clearLinesPending == null || g.clearLinesPending.length === 0) {
 			return g;
 		}
-		const prep = prepareLineClearDivisionPhase(g.board, g.rows, g.cols, g.clearLinesPending);
-		const sorted = prep.sortedList;
-		const clearedRows = clearedRowsArrayFromClearedSet(prep.clearedSet);
-		const pol = normalizeLineClearPolicy(g.lineClearPolicy);
-		for (let zi = 0; zi < sorted.length; zi++) {
-			const x = sorted[zi];
-			if (g.board[x.r] && x.c >= 0 && x.c < g.cols) {
-				g.board[x.r][x.c] = 0;
-				g.boardCellGroup[x.r][x.c] = 0;
-			}
-		}
+		const hadReform = g.reformPieces != null && g.reformPieces.length > 0;
 		const groupSeq = {next: g.wholeAboveGroupSeq != null ? g.wholeAboveGroupSeq : 1};
-		const abovePieces = extractLineClearAbovePiecesAndClearBoard(
-			g.board, g.boardCellGroup, g.rows, g.cols, clearedRows, pol.aboveRowsMode, groupSeq);
-		const reformPieces = [];
-		for (let ri = 0; ri < sorted.length; ri++) {
-			const xx = sorted[ri];
-			reformPieces.push({
-				piece: createRemainderOnePiece({
-					r: xx.r,
-					c: xx.c,
-					v: xx.v,
-					merged: false,
-					mergeCount: 0,
-				}),
-				lockTicks: null,
-			});
+		const applyPipeline = new LineClearPipeline(g.board, g.boardCellGroup, g.rows, g.cols, g.lineClearPolicy);
+		const built = applyPipeline.buildReformListFromFullRows(g.clearLinesPending, groupSeq);
+		const prep = built.prep;
+		const clearedRows = built.clearedRows;
+		const reformPieces = built.reformPieces;
+		const prevRows = g.lineClearClearedRows || [];
+		const mergedRows = prevRows.concat(clearedRows).filter(function(v, i, a) {
+			return a.indexOf(v) === i;
+		});
+		const scoreAddTotal = (g.lineClearScoreAddPending || 0) + prep.scoreAdd;
+
+		function attachChainIfAny(out) {
+			const chainFr = getFullRowIndices(g.board, g.rows, g.cols);
+			if (chainFr.length > 0) {
+				return Object.assign({}, out, {clearLinesPending: chainFr.slice()});
+			}
+			return out;
 		}
-		for (let ai = 0; ai < abovePieces.length; ai++) {
-			abovePieces[ai].playerControllable = false;
-			reformPieces.push({piece: abovePieces[ai], lockTicks: null});
-		}
+
 		if (reformPieces.length === 0) {
+			if (hadReform) {
+				const out = Object.assign({}, g, {
+					board: g.board,
+					clearLinesPending: null,
+					postClearGravityState: null,
+					cascadePending: false,
+					currentPiece: null,
+					reformPieces: g.reformPieces,
+					lineClearRemainderCells: null,
+					lineClearAbovePieces: null,
+					lineClearClearedRows: mergedRows,
+					lineClearScoreAddPending: scoreAddTotal,
+					wholeAboveGroupSeq: groupSeq.next,
+				});
+				return attachChainIfAny(out);
+			}
 			packAfterClearedEmptyRows(g.board, g.rows, g.cols, prep.clearedSet, g.boardCellGroup);
-			const prevRows = g.lineClearClearedRows || [];
-			const mergedRows = prevRows.concat(clearedRows).filter(function(v, i, a) {
-				return a.indexOf(v) === i;
-			});
-			const scoreAddTotal = (g.lineClearScoreAddPending || 0) + prep.scoreAdd;
 			const score = g.score + scoreAddTotal;
 			const highScore = g.highScore >= score ? g.highScore : score;
 			const suppressSpawn = stats.suppressNextSpawn === true || g.suppressSpawnAfterReform === true;
@@ -1962,19 +2187,29 @@
 			}
 			return spawnNextAfterLock(base);
 		}
-		return Object.assign({}, g, {
+		let finalReform = reformPieces;
+		if (hadReform) {
+			finalReform = g.reformPieces.map(function(e) {
+				return {piece: e.piece, lockTicks: e.lockTicks};
+			});
+			for (let wi = 0; wi < reformPieces.length; wi++) {
+				finalReform.push(reformPieces[wi]);
+			}
+		}
+		const outReform = Object.assign({}, g, {
 			board: g.board,
 			clearLinesPending: null,
 			postClearGravityState: null,
 			cascadePending: false,
 			currentPiece: null,
-			reformPieces: reformPieces,
+			reformPieces: finalReform,
 			lineClearRemainderCells: null,
 			lineClearAbovePieces: null,
-			lineClearClearedRows: clearedRows,
-			lineClearScoreAddPending: prep.scoreAdd,
+			lineClearClearedRows: hadReform ? mergedRows : clearedRows,
+			lineClearScoreAddPending: hadReform ? scoreAddTotal : prep.scoreAdd,
 			wholeAboveGroupSeq: groupSeq.next,
 		});
+		return attachChainIfAny(outReform);
 	}
 
 	/**
@@ -2198,11 +2433,11 @@
 		return state;
 	}
 
+	/**
+	 * 全局一拍：待消行占位 → 整理阶段 → 玩家活动块阶段。
+	 */
 	function tick(game, tickOpts) {
 		tickOpts = tickOpts || {};
-		const suppressSpawn = !!tickOpts.suppressNextSpawn;
-		const hardDrop = tickOpts.hardDrop === true;
-		const userSoftDrop = tickOpts.userSoftDrop === true;
 		if (game.gameOver) {
 			return game;
 		}
@@ -2214,55 +2449,10 @@
 		if (g.reformPieces && g.reformPieces.length > 0) {
 			return tickReformPhase(g, tickOpts);
 		}
-		const piece = g.currentPiece;
-		if (!piece) {
+		if (!g.currentPiece) {
 			return g;
 		}
-		const lockFull = computePlayerLockTicks(g.lockDelayDurationMs, g.fallIntervalMs);
-		if (pieceOutOfBounds(g.rows, g.cols, piece, 1, 0)) {
-			const maxDr = Math.max.apply(null, piece.cells.map(function(c) { return c.dr; }));
-			const lockRow = Math.min(piece.row, g.rows - 1 - maxDr);
-			const lockPieceAt = Object.assign({}, piece, {row: lockRow});
-			return solidifyPlayerPieceNow(g, lockPieceAt, suppressSpawn);
-		}
-		if (!hardDrop && g.playerLockTicksRemaining != null) {
-			if (userSoftDrop) {
-				const moved = tryPlayerGravityOneStep(g);
-				if (moved) {
-					return moved;
-				}
-				const nk = g.playerLockTicksRemaining - 1;
-				if (nk <= 0) {
-					const lockedAt = Object.assign({}, piece, {row: piece.row});
-					return solidifyPlayerPieceNow(g, lockedAt, suppressSpawn);
-				}
-				return Object.assign({}, g, {playerLockTicksRemaining: nk});
-			}
-			const nkAuto = g.playerLockTicksRemaining - 1;
-			if (nkAuto <= 0) {
-				const lockedAt2 = Object.assign({}, piece, {row: piece.row});
-				return solidifyPlayerPieceNow(g, lockedAt2, suppressSpawn);
-			}
-			return Object.assign({}, g, {playerLockTicksRemaining: nkAuto});
-		}
-		const moved2 = tryPlayerGravityOneStep(g);
-		if (moved2) {
-			return moved2;
-		}
-		if (hardDrop) {
-			const lockedHd = Object.assign({}, piece, {row: piece.row});
-			return solidifyPlayerPieceNow(g, lockedHd, suppressSpawn);
-		}
-		if (userSoftDrop) {
-			const baseTicks = g.playerLockTicksRemaining != null ? g.playerLockTicksRemaining : lockFull;
-			const nkSd = baseTicks - 1;
-			if (nkSd <= 0) {
-				const lockedSd = Object.assign({}, piece, {row: piece.row});
-				return solidifyPlayerPieceNow(g, lockedSd, suppressSpawn);
-			}
-			return Object.assign({}, g, {playerLockTicksRemaining: nkSd});
-		}
-		return Object.assign({}, g, {playerLockTicksRemaining: lockFull});
+		return new ActivePieceController(g).tickPlayerPhase(tickOpts);
 	}
 
 	function init(highScore, overrides) {
@@ -2692,6 +2882,9 @@
 		deserializeGameState: deserializeGameState,
 		Cell: Cell,
 		Block: Block,
+		LineClearPipeline: LineClearPipeline,
+		ReformPhaseController: ReformPhaseController,
+		ActivePieceController: ActivePieceController,
 		getFrontLineCells: getFrontLineCells,
 		ReformPieceCell: ReformPieceCell,
 		ReformActivePiece: ReformActivePiece,

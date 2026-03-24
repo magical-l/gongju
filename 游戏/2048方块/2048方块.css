@@ -21,7 +21,7 @@
 	animation: clear-line-flash 0.12s ease-in-out infinite;
 }
 
-/* 消行整理阶段：剩格 / 上方行抠块 外框（按连通块边界描边，内部相邻格不重复画线） */
+/* 消行整理阶段：剩格 / 上方块 / 整理块 外框（每个活动块条目单独描边；同条目内相邻格不重复画线） */
 .gaming.area .main.map.area .board .cell.lc-remainder {
 	--lc-s: #d35400;
 }

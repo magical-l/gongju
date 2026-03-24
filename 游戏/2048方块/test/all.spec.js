@@ -279,7 +279,8 @@ module.exports = function(r) {
 		it('2.2 仅最后一行满有剩余、合并阶段与上一行同数合并', function() {
 			const rows = 6, cols = 4;
 			const before = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 2, 0, 0], [2, 4, 2, 2]];
-			const expected = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 2, 0, 0], [0, 2, 0, 0]];
+			// 整理阶段剩格与上方行抠块同列同数可竖并（与 §7.2 一致），终盘为单列 4
+			const expected = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 4, 0, 0]];
 			const board = before.map(row => row.slice());
 			runClearUntilStable(board, rows, cols);
 			_assertBoardEqual(board, expected, '2.2');
@@ -306,7 +307,7 @@ module.exports = function(r) {
 		it('3.3 仅底两行满、有剩余、合并阶段一列合并', function() {
 			const rows = 6, cols = 4;
 			const before = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 2, 0, 0], [2, 4, 2, 2], [2, 2, 2, 2]];
-			const expected = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 2, 0, 0], [0, 2, 0, 0]];
+			const expected = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 4, 0, 0]];
 			const board = before.map(row => row.slice());
 			runClearUntilStable(board, rows, cols);
 			_assertBoardEqual(board, expected, '3.3');
@@ -324,7 +325,7 @@ module.exports = function(r) {
 		it('4.2 消三行有剩余、保形下落后合并（行内空隙保留）', function() {
 			const rows = 6, cols = 4;
 			const before = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 2, 0, 0], [2, 4, 2, 2], [2, 2, 4, 2], [2, 2, 2, 4]];
-			const expected = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 2, 0, 0], [0, 2, 2, 2]];
+			const expected = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 4, 2, 2]];
 			const board = before.map(row => row.slice());
 			runClearUntilStable(board, rows, cols);
 			_assertBoardEqual(board, expected, '4.2');

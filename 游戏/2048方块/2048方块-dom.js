@@ -97,16 +97,6 @@ function getDisplayBoard(state) {
 	return flat;
 }
 
-function addKeysFromRemainder(rem, set) {
-	if (!rem || !set) {
-		return;
-	}
-	for (let i = 0; i < rem.length; i++) {
-		const e = rem[i];
-		set[e.r + ',' + e.c] = true;
-	}
-}
-
 function addKeysFromAbovePieces(ap, absFn, set) {
 	if (!ap || !absFn || !set) {
 		return;
@@ -183,23 +173,45 @@ function getCellLineClearVisualClass(cellIndex, state) {
 	const cols = state.cols;
 	const r = Math.floor(cellIndex / cols);
 	const c = cellIndex % cols;
-	const remSet = {};
-	addKeysFromRemainder(state.lineClearRemainderCells, remSet);
-	const aboveSet = {};
-	addKeysFromAbovePieces(state.lineClearAbovePieces, pieceAbsCells, aboveSet);
-	const reformSet = {};
-	addKeysFromReformPieces(state.reformPieces, pieceAbsCells, reformSet);
 	const curSet = {};
 	addKeysFromSpecialCurrentPiece(state.currentPiece, pieceAbsCells, curSet);
 	const pk = r + ',' + c;
-	if (remSet[pk]) {
-		return ['lc-remainder'].concat(boundaryClassSuffixes(r, c, remSet, rows, cols)).join(' ');
+	// 《玩法》§7.1：每个消行剩余为独立 1×1 活动块 —— 边界按单格集合计算，不得把所有剩格合成一连通块描边。
+	const remList = state.lineClearRemainderCells;
+	if (remList && remList.length > 0) {
+		for (let ri = 0; ri < remList.length; ri++) {
+			const e = remList[ri];
+			if (e.r === r && e.c === c) {
+				const oneRem = {};
+				oneRem[pk] = true;
+				return ['lc-remainder'].concat(boundaryClassSuffixes(r, c, oneRem, rows, cols)).join(' ');
+			}
+		}
 	}
-	if (aboveSet[pk]) {
-		return ['lc-above'].concat(boundaryClassSuffixes(r, c, aboveSet, rows, cols)).join(' ');
+	// 每个上方块单独描边，不得把所有上方块合成一连通块。
+	const apList = state.lineClearAbovePieces;
+	if (apList && apList.length > 0) {
+		for (let ai = 0; ai < apList.length; ai++) {
+			const oneAboveSet = {};
+			addKeysFromAbovePieces([apList[ai]], pieceAbsCells, oneAboveSet);
+			if (oneAboveSet[pk]) {
+				return ['lc-above'].concat(boundaryClassSuffixes(r, c, oneAboveSet, rows, cols)).join(' ');
+			}
+		}
 	}
-	if (reformSet[pk]) {
-		return ['lc-reform'].concat(boundaryClassSuffixes(r, c, reformSet, rows, cols)).join(' ');
+	const rpVis = state.reformPieces;
+	if (rpVis && rpVis.length > 0) {
+		for (let pi = 0; pi < rpVis.length; pi++) {
+			const ent = rpVis[pi];
+			if (!ent || !ent.piece) {
+				continue;
+			}
+			const oneReformSet = {};
+			addKeysFromReformPieces([ent], pieceAbsCells, oneReformSet);
+			if (oneReformSet[pk]) {
+				return ['lc-reform'].concat(boundaryClassSuffixes(r, c, oneReformSet, rows, cols)).join(' ');
+			}
+		}
 	}
 	if (curSet[pk] && state.currentPiece) {
 		const sh = state.currentPiece.shape;

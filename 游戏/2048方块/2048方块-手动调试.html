@@ -453,24 +453,53 @@
 		}
 		var nrows = state.rows;
 		var ncols = state.cols;
-		var remSet = {};
-		addLcKeysFromRemainder(state.lineClearRemainderCells, remSet);
-		var aboveSet = {};
-		addLcKeysFromAbovePieces(state.lineClearAbovePieces, aboveSet);
-		var reformSet = {};
-		addLcKeysFromReformPieces(state.reformPieces, reformSet);
+		var remList = state.lineClearRemainderCells;
+		if (remList && remList.length) {
+			for (var ri = 0; ri < remList.length; ri++) {
+				var er = remList[ri];
+				if (er.r === r && er.c === c) {
+					var oneRem = {};
+					var pk = r + ',' + c;
+					oneRem[pk] = true;
+					return ['lc-remainder'].concat(lcBoundarySuffixes(r, c, oneRem, nrows, ncols)).join(' ');
+				}
+			}
+		}
+		var apList = state.lineClearAbovePieces;
+		if (apList && apList.length) {
+			for (var ai = 0; ai < apList.length; ai++) {
+				var oneAboveSet = {};
+				var absA = L.pieceAbsCells(apList[ai]);
+				for (var aj = 0; aj < absA.length; aj++) {
+					oneAboveSet[absA[aj].r + ',' + absA[aj].c] = true;
+				}
+				var pk2 = r + ',' + c;
+				if (oneAboveSet[pk2]) {
+					return ['lc-above'].concat(lcBoundarySuffixes(r, c, oneAboveSet, nrows, ncols)).join(' ');
+				}
+			}
+		}
+		var rp = state.reformPieces;
+		if (rp && rp.length) {
+			for (var pi = 0; pi < rp.length; pi++) {
+				var ent = rp[pi];
+				if (!ent || !ent.piece) {
+					continue;
+				}
+				var oneReformSet = {};
+				var absR = L.pieceAbsCells(ent.piece);
+				for (var bj = 0; bj < absR.length; bj++) {
+					oneReformSet[absR[bj].r + ',' + absR[bj].c] = true;
+				}
+				var pk3 = r + ',' + c;
+				if (oneReformSet[pk3]) {
+					return ['lc-reform'].concat(lcBoundarySuffixes(r, c, oneReformSet, nrows, ncols)).join(' ');
+				}
+			}
+		}
 		var curSet = {};
 		addLcKeysFromSpecialCurrentPiece(state.currentPiece, curSet);
 		var pk = r + ',' + c;
-		if (remSet[pk]) {
-			return ['lc-remainder'].concat(lcBoundarySuffixes(r, c, remSet, nrows, ncols)).join(' ');
-		}
-		if (aboveSet[pk]) {
-			return ['lc-above'].concat(lcBoundarySuffixes(r, c, aboveSet, nrows, ncols)).join(' ');
-		}
-		if (reformSet[pk]) {
-			return ['lc-reform'].concat(lcBoundarySuffixes(r, c, reformSet, nrows, ncols)).join(' ');
-		}
 		if (curSet[pk] && state.currentPiece) {
 			var sh2 = state.currentPiece.shape;
 			var kind = sh2 === '_ABOVE_WHOLE_' ? 'lc-cur-above-whole' : (sh2 === '_ABOVE_COL_' ? 'lc-cur-above-col' : 'lc-cur-remainder');

@@ -22,6 +22,15 @@
 
 **主局消行链**：已取消独立的 `postClearGravityState` / `cascadePending` 收尾；无整理列表时仅「删行下移」、计分，并链式检测新满行或生成新生块，与《玩法》§7 一致。棋盘辅助 `clearOneRound` / `clearFullLines`、`advancePostLockLineClearNoSpawn` 均走同一套 `applyPendingClearLines` → `syncFlushRemainingLineClearReform` → `tick` 整理链（`flushEntireLineClearChain`），与主局一致，仅不生成新生块。
 
+### 1.2 面向对象（logic.js 中已与《玩法》步骤对齐的命名）
+
+实现上长期以「一个大模块 + 若干函数」为主，与「活动块下落 → 接触 → 合并 → 固化 → 消行」的**概念顺序**不一致。正在按对象收敛，避免同一消行流程在两处复制粘贴：
+
+- **消行管线（类）**：一次「给定满行行号 → 除法 → 擦剩格 → 抠上方块 → 得到本段整理列表」。**待消行后的 apply** 与 **整理态内再次出现满行** 共用该类，不再各写一长段。
+- **整理阶段控制器（类）**：`tick` 在「多块整理」时委托给该类的一帧（下移、固化、链式消行），对应《玩法》§7.2。
+- **活动块控制器（类）**：玩家活动块整拍逻辑（锁定延迟、软/硬降、重力、固化）在 `tickPlayerPhase`；全局 `tick` 仅调度：待消行占位 → 整理阶段 → 玩家阶段。
+- 文档 §2 下旧类图（GameBoard / PieceManager 等）仍为**规划示意**；与当前 `logic.js` 逐行对应关系以本节与导出对象为准。
+
 ## 2. 核心类设计
 
 ### 2.1 类图概览
