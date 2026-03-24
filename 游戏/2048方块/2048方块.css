@@ -34,9 +34,6 @@
 .gaming.area .main.map.area .board .cell.lc-cur-above-whole {
 	--lc-s: #16a085;
 }
-.gaming.area .main.map.area .board .cell.lc-cur-above-col {
-	--lc-s: #8e44ad;
-}
 .gaming.area .main.map.area .board .cell.lc-cur-remainder {
 	--lc-s: #e67e22;
 }

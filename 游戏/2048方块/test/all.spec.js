@@ -362,7 +362,7 @@ module.exports = function(r) {
 				[0, 0, 0, 0, 0, 32], [0, 0, 0, 0, 0, 0], [2, 2, 2, 2, 2, 0],
 			];
 			const piece = createCustomPieceFromAbsCells([{ r: 4, c: 5, value: 2 }]);
-			let g = initGame(0, { rows: 8, cols: 6, lineClearPolicy: { aboveRowsMode: 'whole' } });
+			let g = initGame(0, { rows: 8, cols: 6 });
 			g.board = fixed.map(row => row.slice());
 			g.currentPiece = piece;
 			g = runUntilFirstLock(g);
@@ -397,7 +397,7 @@ module.exports = function(r) {
 				[0, 0, 0, 0, 0, 0],
 			];
 			const piece = createCustomPieceFromAbsCells([{ r: 2, c: 5, value: 2 }]);
-			let g = initGame(0, { rows: 8, cols: 6, lineClearPolicy: { aboveRowsMode: 'whole' } });
+			let g = initGame(0, { rows: 8, cols: 6 });
 			g.board = fixed.map(row => row.slice());
 			g.currentPiece = piece;
 			g = runUntilFirstLock(g);
@@ -414,7 +414,7 @@ module.exports = function(r) {
 			_assertBoardEqual(b, [2, 2, 2, 2, 2, 0], 'row6 在 5/6 行横段有异数时整段禁同数竖并，故保持全 2');
 		});
 
-		it('8×6 双行底 2：whole 下两侧 4 与底行 2 异数时，中间列不单独竖并', function() {
+		it('8×6 双行底 2：两侧 4 与底行 2 异数时，中间列不单独竖并', function() {
 			const fixed = [
 				[0, 0, 0, 0, 0, 0],
 				[2, 2, 2, 2, 2, 0],
@@ -426,7 +426,7 @@ module.exports = function(r) {
 				[2, 2, 2, 2, 2, 0],
 			];
 			const piece = createCustomPieceFromAbsCells([{ r: 3, c: 5, value: 2 }]);
-			let g = initGame(0, { rows: 8, cols: 6, lineClearPolicy: { aboveRowsMode: 'whole' } });
+			let g = initGame(0, { rows: 8, cols: 6 });
 			g.board = fixed.map(row => row.slice());
 			g.currentPiece = piece;
 			g = runUntilFirstLock(g);
@@ -443,7 +443,7 @@ module.exports = function(r) {
 				[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0],
 				[0, 0, 0, 0, 0, 32], [2, 2, 2, 2, 2, 0], [4, 2, 2, 2, 4, 0], [2, 2, 2, 2, 2, 0],
 			];
-			_assertBoardEqual(g.board, expected, '双行底 2 whole 边缘耦合终盘');
+			_assertBoardEqual(g.board, expected, '双行底 2 边缘耦合终盘');
 		});
 	});
 };

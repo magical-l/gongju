@@ -130,7 +130,7 @@ function addKeysFromSpecialCurrentPiece(piece, absFn, set) {
 		return;
 	}
 	const sh = piece.shape;
-	if (sh !== '_REMAINDER1' && sh !== '_ABOVE_COL_' && sh !== '_ABOVE_WHOLE_') {
+	if (sh !== '_REMAINDER1' && sh !== '_ABOVE_WHOLE_') {
 		return;
 	}
 	const abs = absFn(piece);
@@ -215,9 +215,7 @@ function getCellLineClearVisualClass(cellIndex, state) {
 	}
 	if (curSet[pk] && state.currentPiece) {
 		const sh = state.currentPiece.shape;
-		const kind = sh === '_ABOVE_WHOLE_'
-			? 'lc-cur-above-whole'
-			: (sh === '_ABOVE_COL_' ? 'lc-cur-above-col' : 'lc-cur-remainder');
+		const kind = sh === '_ABOVE_WHOLE_' ? 'lc-cur-above-whole' : 'lc-cur-remainder';
 		return [kind].concat(boundaryClassSuffixes(r, c, curSet, rows, cols)).join(' ');
 	}
 	return '';

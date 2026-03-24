@@ -22,6 +22,8 @@
 
 **主局消行链**：已取消独立的 `postClearGravityState` / `cascadePending` 收尾；无整理列表时仅「删行下移」、计分，并链式检测新满行或生成新生块，与《玩法》§7 一致。棋盘辅助 `clearOneRound` / `clearFullLines`、`advancePostLockLineClearNoSpawn` 均走同一套 `applyPendingClearLines` → `syncFlushRemainingLineClearReform` → `tick` 整理链（`flushEntireLineClearChain`），与主局一致，仅不生成新生块。
 
+**整理阶段一帧（产品「同时下落一行」）**：读者按完全并行想象即可。实现上为同一下落周期内各活动块各尝试一步下落：按《玩法》§7.2 排序（较下方、较左优先）**依次**处理；每一步**仅**用固定块堆（`board` + `boardCellGroup`）做挡格与可合并判定，**不**把其它尚未固化的活动块叠进判定位面。尚未轮到处理的活动块不占固定堆；已在本帧内固化的格随 `writePieceToBoard` 进入固定堆，供后续块使用。不再使用「所有整理块叠成一张虚拟盘」的旧做法。
+
 ### 1.2 面向对象（logic.js 中已与《玩法》步骤对齐的命名）
 
 实现上长期以「一个大模块 + 若干函数」为主，与「活动块下落 → 接触 → 合并 → 固化 → 消行」的**概念顺序**不一致。正在按对象收敛，避免同一消行流程在两处复制粘贴：

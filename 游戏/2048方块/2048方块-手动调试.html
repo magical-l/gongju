@@ -90,11 +90,6 @@
 				<button type="button" class="el-button el-button--default" id="btn-apply-size">应用棋盘尺寸</button>
 				<label>间隔 ms <input type="number" id="inp-interval" min="50" max="3000" step="50" value="400" style="width:88px"></label>
 			</div>
-			<div class="one setting group" title="玩法补充 2.2：满行上方那段固定堆如何切成活动块，与剩格同步下落。">
-				<span class="hint-inline">上方行</span>
-				<label><input type="radio" name="aboveRows" value="whole" checked> 整段一块</label>
-				<label><input type="radio" name="aboveRows" value="column"> 按列竖条</label>
-			</div>
 		</section>
 		<section class="controller list area , single-line flex , items-near-x-start items-near-y-center no-gap">
 			<div class="one controller group">
@@ -173,7 +168,7 @@
 					<button type="button" class="el-button el-button--default" id="btn-import-close">取消</button>
 				</div>
 			</div>
-			<textarea id="import-area" placeholder="粘贴导出文本（从 aboveRows / size / fixed / falling 起；旧版带 policy、ms 亦可）"></textarea>
+			<textarea id="import-area" placeholder="粘贴导出文本（从 size / fixed / falling 起；旧版含 aboveRows 行会忽略）"></textarea>
 			<p style="margin:8px 0 0;font-size:12px;color:#555;">仅读取 <code>---</code> 之前的布局段；会清空当前运行状态并回到编辑模式。</p>
 		</div>
 	</div>
@@ -236,10 +231,7 @@
 	}
 
 	function policyFromUI() {
-		var aboveRows = (document.querySelector('input[name="aboveRows"]:checked') || {}).value || 'whole';
-		return L.normalizeLineClearPolicy({
-			aboveRowsMode: aboveRows
-		});
+		return L.normalizeLineClearPolicy({});
 	}
 
 	/** 取不小于 v 的最小 2 的幂（封顶 2048），与正式页 unit-2…unit-2048 配色档一致 */
@@ -418,7 +410,7 @@
 			return;
 		}
 		var sh = piece.shape;
-		if (sh !== '_REMAINDER1' && sh !== '_ABOVE_COL_' && sh !== '_ABOVE_WHOLE_') {
+		if (sh !== '_REMAINDER1' && sh !== '_ABOVE_WHOLE_') {
 			return;
 		}
 		var abs = L.pieceAbsCells(piece);
@@ -502,7 +494,7 @@
 		var pk = r + ',' + c;
 		if (curSet[pk] && state.currentPiece) {
 			var sh2 = state.currentPiece.shape;
-			var kind = sh2 === '_ABOVE_WHOLE_' ? 'lc-cur-above-whole' : (sh2 === '_ABOVE_COL_' ? 'lc-cur-above-col' : 'lc-cur-remainder');
+			var kind = sh2 === '_ABOVE_WHOLE_' ? 'lc-cur-above-whole' : 'lc-cur-remainder';
 			return [kind].concat(lcBoundarySuffixes(r, c, curSet, nrows, ncols)).join(' ');
 		}
 		return '';
@@ -779,16 +771,6 @@
 		};
 	}
 
-	function applyPolicyToUI(pol) {
-		if (!pol) {
-			return;
-		}
-		var ar = document.querySelector('input[name="aboveRows"][value="' + (pol.aboveRowsMode === 'column' ? 'column' : 'whole') + '"]');
-		if (ar) {
-			ar.checked = true;
-		}
-	}
-
 	/** 与编辑器一致：下落块所在格在 fixed 中应为 0 */
 	function normalizeFixedForFalling(fxRows, fallArr) {
 		var out = fxRows.map(function(row) { return row.slice(); });
@@ -814,7 +796,6 @@
 		document.getElementById('inp-interval').value = String(snap.intervalMs != null ? snap.intervalMs : 400);
 		fillSelect(document.getElementById('inp-rows'), MIN_R, MAX_R, rows);
 		fillSelect(document.getElementById('inp-cols'), MIN_C, MAX_C, cols);
-		applyPolicyToUI(snap.policy);
 		selected = {};
 	}
 
@@ -1110,7 +1091,7 @@
 
 	/**
 	 * 解析导出文本（含旧版）。仅布局段用于导入；--- 以下为可选对照，忽略。
-	 * 可调策略在逻辑里已固定，导出只标「上方行」切块：aboveRows whole|column。
+	 * 旧版「aboveRows」行已忽略；消行策略固定为《玩法》 §7.1 整段上方块。
 	 */
 	function parseImportText(raw) {
 		var text = String(raw || '').replace(/\r\n/g, '\n');
@@ -1142,9 +1123,7 @@
 			if (/^policyNote\s+/.test(line)) {
 				continue;
 			}
-			var mAbove = line.match(/^aboveRows\s+(whole|column)\s*$/i);
-			if (mAbove) {
-				policy = L.normalizeLineClearPolicy({ aboveRowsMode: mAbove[1].toLowerCase() });
+			if (/^aboveRows\s+/i.test(line)) {
 				continue;
 			}
 			if (/^policy\s+/.test(line)) {
@@ -1176,7 +1155,7 @@
 			}
 		}
 		if (nrow == null || ncol == null || fixedJson == null) {
-			throw new Error('缺少 size 或 fixed；aboveRows 可省略（默认 whole）');
+			throw new Error('缺少 size 或 fixed');
 		}
 		if (nrow < MIN_R || nrow > MAX_R || ncol < MIN_C || ncol > MAX_C) {
 			throw new Error('行/列超出允许范围（行 ' + MIN_R + '–' + MAX_R + '，列 ' + MIN_C + '–' + MAX_C + '）');
@@ -1226,7 +1205,7 @@
 			});
 		}
 		if (!policy) {
-			policy = L.normalizeLineClearPolicy({ aboveRowsMode: 'whole' });
+			policy = L.normalizeLineClearPolicy({});
 		}
 		intervalMs = Math.max(50, intervalMs || 400);
 		return {
@@ -1263,10 +1242,7 @@
 
 	function buildExportText() {
 		var snap = getExportSnapshot();
-		var pol = snap.policy || policyFromUI();
-		var above = (pol && pol.aboveRowsMode === 'column') ? 'column' : 'whole';
 		var lines = [];
-		lines.push('aboveRows ' + above);
 		lines.push('size ' + snap.rows + 'x' + snap.cols);
 		lines.push('fixed ' + JSON.stringify(snap.fixed));
 		var fall = snap.falling || [];

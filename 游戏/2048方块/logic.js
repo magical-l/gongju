@@ -32,20 +32,15 @@
 	const DEFAULT_CFG = {rows: 12, cols: 10, fallIntervalMs: 500, lockDelayDurationMs: 500};
 	const MIN_LOCK_DELAY_MS = 100;
 	const MAX_LOCK_DELAY_MS = 1000;
-	/** 整理阶段非玩家块：0 = 本拍内接触后即固化（尽量短） */
-	const REFORM_LOCK_TICKS = 0;
 	/**
 	 * 消行后行为（normalize 写死，非用户策略）
-	 * - afterClearPack：恒为 whole（7.1 仅 `packAfterClearedEmptyRows`；旧 whole/column 已废弃）
+	 * - afterClearPack：恒为 whole（7.1 即 `packAfterClearedEmptyRows`）
 	 * - mergeStart / mergeRounds：contact + untilStable
-	 * - aboveRowsMode：分步消行时「上方行」切块方式，手动调试可调
 	 */
 	const DEFAULT_LINE_CLEAR_POLICY = {
 		afterClearPack: 'whole',
 		mergeStart: 'contact',
 		mergeRounds: 'untilStable',
-		/** 分步消行整理：「上方行」视为活动块的方式 — column 每列竖条；whole 每组上方区域整体一块（可多断格）。默认 whole，与玩法补充 2.2「整体模式」一致；与 afterClearPack 无关。 */
-		aboveRowsMode: 'whole',
 	};
 
 	function getDefaultLineClearPolicy() {
@@ -53,7 +48,6 @@
 			afterClearPack: DEFAULT_LINE_CLEAR_POLICY.afterClearPack,
 			mergeStart: DEFAULT_LINE_CLEAR_POLICY.mergeStart,
 			mergeRounds: DEFAULT_LINE_CLEAR_POLICY.mergeRounds,
-			aboveRowsMode: DEFAULT_LINE_CLEAR_POLICY.aboveRowsMode,
 		};
 	}
 
@@ -62,12 +56,10 @@
 		if (!raw || typeof raw !== 'object') {
 			return d;
 		}
-		const aboveRowsMode = raw.aboveRowsMode === 'column' ? 'column' : 'whole';
 		return {
 			afterClearPack: 'whole',
 			mergeStart: 'contact',
 			mergeRounds: 'untilStable',
-			aboveRowsMode: aboveRowsMode,
 		};
 	}
 
@@ -208,83 +200,6 @@
 		return p.cells.map(function(c) {
 			return {r: p.row + c.dr, c: p.col + c.dc, value: c.value};
 		});
-	}
-
-	/** 从整理活动块中抠掉绝对坐标 (absR,absC) 一格，重算 row/col 与 dr/dc；无格则返回 null。 */
-	function reformPieceAfterRemovingAbsCell(piece, absR, absC) {
-		const remaining = [];
-		for (let i = 0; i < piece.cells.length; i++) {
-			const c = piece.cells[i];
-			const ar = piece.row + c.dr;
-			const ac = piece.col + c.dc;
-			if (ar === absR && ac === absC) {
-				continue;
-			}
-			remaining.push(c);
-		}
-		if (remaining.length === 0) {
-			return null;
-		}
-		let minR = Infinity;
-		let minC = Infinity;
-		for (let ri = 0; ri < remaining.length; ri++) {
-			const ar = piece.row + remaining[ri].dr;
-			const ac = piece.col + remaining[ri].dc;
-			if (ar < minR) {
-				minR = ar;
-			}
-			if (ac < minC) {
-				minC = ac;
-			}
-		}
-		const newCells = remaining.map(function(c) {
-			const ar = piece.row + c.dr;
-			const ac = piece.col + c.dc;
-			return Object.assign({}, c, {
-				dr: ar - minR,
-				dc: ac - minC,
-			});
-		});
-		return Object.assign({}, piece, {
-			row: minR,
-			col: minC,
-			cells: newCells,
-		});
-	}
-
-	/**
-	 * 当前块与下方「另一整理块」同数合并后，从被吃块中去掉对应格（真实 board 上该格本为 0，仅靠 vboard 无法区分）。
-	 */
-	function consumeReformMergeFromOtherPieces(working, moverIndex, pieceBefore, newPiece) {
-		const pieceRow = pieceBefore.row;
-		const direction = DIR_DOWN;
-		for (let mi = 0; mi < newPiece.cells.length; mi++) {
-			if (!newPiece.cells[mi].merged) {
-				continue;
-			}
-			const c0 = pieceBefore.cells[mi];
-			const trM = pieceRow + c0.dr + direction.dr;
-			const tcM = pieceBefore.col + c0.dc + direction.dc;
-			const srcVal = c0.value;
-			for (let j = 0; j < working.length; j++) {
-				if (j === moverIndex || !working[j].piece) {
-					continue;
-				}
-				const abs = pieceAbsCells(working[j].piece);
-				let hit = false;
-				for (let k = 0; k < abs.length; k++) {
-					if (abs[k].r === trM && abs[k].c === tcM && abs[k].value === srcVal) {
-						hit = true;
-						break;
-					}
-				}
-				if (!hit) {
-					continue;
-				}
-				working[j].piece = reformPieceAfterRemovingAbsCell(working[j].piece, trM, tcM);
-				break;
-			}
-		}
 	}
 
 	/** 与 getShapeCells 相同：绕质心逆时针 90°，再 min 归一化；各格携带 value/merged。 */
@@ -442,6 +357,7 @@
 	 * 消行剩格一步下落 / 整理块一步下落的共用判定（只读 board，不写字）。
 	 * mergeOpts（可选）：整理阶段传入 mergeCheckBoard / mergeCheckCellGroup / lineClearPolicy 并 enableWholeMergeBlock，
 	 * 使竖并与链式整理共用 isAdjacentVerticalMergeBlockedWhole；剩格迷你局不传。
+	 * 整理阶段多块的 tick 自下而上依次调用时，mergeCheckBoard/cellGroup 仅应反映**固定块堆**（真实 board），不含其它浮动块。
 	 * @returns {{ kind: 'oob' } | { kind: 'solidify' } | { kind: 'free', newPiece: object } | { kind: 'afterHit', newPiece: object, mergedCount: number }}
 	 */
 	function computeOneStepDownFall(board, rows, cols, piece, mergeOpts) {
@@ -627,50 +543,6 @@
 		return g;
 	};
 
-	/** 将其它整理中活动块叠在只读副本上（写入真实数值，供碰撞与合并判定）。 */
-	function buildVirtualBoardForReform(board, rows, cols, workingEntries, skipIndex) {
-		const b = board.map(function(row) { return row.slice(); });
-		for (let i = 0; i < workingEntries.length; i++) {
-			if (i === skipIndex || !workingEntries[i].piece) {
-				continue;
-			}
-			const abs = pieceAbsCells(workingEntries[i].piece);
-			for (let k = 0; k < abs.length; k++) {
-				const a = abs[k];
-				if (a.r >= 0 && a.r < rows && a.c >= 0 && a.c < cols) {
-					b[a.r][a.c] = a.value;
-				}
-			}
-		}
-		return b;
-	}
-
-	/** 固定堆 + 当前所有整理块叠图，供 isAdjacentVerticalMergeBlockedWhole 与真实盘面一致。 */
-	function buildCompositeBoardGroupAllReformPieces(board, boardCellGroup, rows, cols, workingEntries) {
-		const b = board.map(function(row) { return row.slice(); });
-		const g = boardCellGroup
-			? boardCellGroup.map(function(row) { return row.slice(); })
-			: emptyBoardCellGroup(rows, cols);
-		for (let i = 0; i < workingEntries.length; i++) {
-			if (!workingEntries[i].piece) {
-				continue;
-			}
-			const piece = workingEntries[i].piece;
-			const abs = pieceAbsCells(piece);
-			const gid = piece.shape === '_ABOVE_WHOLE_' && piece.aboveWholeGroupId != null && piece.aboveWholeGroupId > 0
-				? piece.aboveWholeGroupId
-				: 0;
-			for (let k = 0; k < abs.length; k++) {
-				const a = abs[k];
-				if (a.r >= 0 && a.r < rows && a.c >= 0 && a.c < cols) {
-					b[a.r][a.c] = a.value;
-					g[a.r][a.c] = gid;
-				}
-			}
-		}
-		return {board: b, cellGroup: g};
-	}
-
 	function playerCurrentPieceCanMoveDown(board, rows, cols, piece) {
 		const r = computeOneStepDownFall(board, rows, cols, piece);
 		return r.kind === 'free' || r.kind === 'afterHit';
@@ -683,7 +555,10 @@
 	}
 
 	/**
-	 * 《玩法》§7.2：整理阶段多块同拍下移、固化、链式消行。
+	 * 《玩法》§7.2：整理阶段一帧内，各活动块在**同一下落周期**内各尝试下落一行（产品「同时」）。
+	 * 实现：按「最下方行」优先（降序 pieceMaxFootprintRow，同列左先）依次处理；每块**仅**与固定块堆（board + boardCellGroup）做碰撞与合并判定；
+	 * 若本块已先处理并移动，则**不写回 board**，下一块仍只认固定堆；若本块先处理并固化，则写入 board，后续块自然看到已固化的格。
+	 * 若一步内不能下落则立即固化（不再使用虚拟叠图与其它整块占位）。
 	 */
 	function ReformPhaseController() {}
 
@@ -712,74 +587,31 @@
 			}
 			return working[ia].piece.row - working[ib].piece.row;
 		});
-		const movedThisRound = [];
-		for (let oi = 0; oi < order.length; oi++) {
-			movedThisRound[order[oi]] = false;
-		}
+		const pol = g.lineClearPolicy;
 		for (let si = 0; si < order.length; si++) {
 			const i = order[si];
 			const pieceBeforeMove = working[i].piece;
 			if (!pieceBeforeMove) {
 				continue;
 			}
-			const mergeCtx = buildCompositeBoardGroupAllReformPieces(board, cg, rows, cols, working);
-			const vboard = buildVirtualBoardForReform(board, rows, cols, working, i);
-			const fallR = computeOneStepDownFall(vboard, rows, cols, pieceBeforeMove, {
-				lineClearPolicy: g.lineClearPolicy,
-				mergeCheckBoard: mergeCtx.board,
-				mergeCheckCellGroup: mergeCtx.cellGroup,
+			const fallR = computeOneStepDownFall(board, rows, cols, pieceBeforeMove, {
+				lineClearPolicy: pol,
+				mergeCheckBoard: board,
+				mergeCheckCellGroup: cg,
 				enableWholeMergeBlock: true,
 			});
 			if (fallR.kind === 'free' || fallR.kind === 'afterHit') {
 				applyBoardWritesAfterFallStep(board, cg, rows, cols, pieceBeforeMove, fallR.newPiece);
 				working[i].piece = fallR.newPiece;
-				if (fallR.kind === 'afterHit') {
-					let anyMerged = false;
-					for (let mk = 0; mk < fallR.newPiece.cells.length; mk++) {
-						if (fallR.newPiece.cells[mk].merged) {
-							anyMerged = true;
-							break;
-						}
-					}
-					if (anyMerged) {
-						consumeReformMergeFromOtherPieces(working, i, pieceBeforeMove, fallR.newPiece);
-					}
-				}
-				working[i].lockTicks = null;
-				movedThisRound[i] = true;
+			} else if (fallR.kind === 'solidify') {
+				writePieceToBoard(board, rows, cols, Object.assign({}, pieceBeforeMove, {row: pieceBeforeMove.row}), cg);
+				working[i].piece = null;
+			} else if (fallR.kind === 'oob') {
+				const maxDr = Math.max.apply(null, pieceBeforeMove.cells.map(function(c) { return c.dr; }));
+				const lockRow = Math.min(pieceBeforeMove.row, rows - 1 - maxDr);
+				writePieceToBoard(board, rows, cols, Object.assign({}, pieceBeforeMove, {row: lockRow}), cg);
+				working[i].piece = null;
 			}
-		}
-		for (let wi = 0; wi < working.length; wi++) {
-			if (!working[wi].piece) {
-				continue;
-			}
-			if (movedThisRound[wi]) {
-				continue;
-			}
-			if (working[wi].lockTicks == null) {
-				working[wi].lockTicks = REFORM_LOCK_TICKS;
-			} else {
-				working[wi].lockTicks -= 1;
-			}
-		}
-		const solidifyIndices = [];
-		for (let zi = 0; zi < working.length; zi++) {
-			if (!working[zi].piece) {
-				continue;
-			}
-			if (movedThisRound[zi]) {
-				continue;
-			}
-			if (working[zi].lockTicks != null && working[zi].lockTicks <= 0) {
-				solidifyIndices.push(zi);
-			}
-		}
-		solidifyIndices.sort(function(a, b) { return b - a; });
-		for (let si = 0; si < solidifyIndices.length; si++) {
-			const idx = solidifyIndices[si];
-			const p = working[idx].piece;
-			writePieceToBoard(board, rows, cols, p, cg);
-			working.splice(idx, 1);
 		}
 		working = working.filter(function(e) {
 			return e.piece != null;
@@ -885,10 +717,7 @@
 		if (!cellGroup) {
 			return false;
 		}
-		const pol = normalizeLineClearPolicy(policy || {});
-		if (pol.aboveRowsMode !== 'whole') {
-			return false;
-		}
+		normalizeLineClearPolicy(policy || {});
 		const a = cellGroup[rUpper][c];
 		const b = cellGroup[rLower][c];
 		if (a > 0 && a === b) {
@@ -905,10 +734,7 @@
 	 * （与 NonuniformBandInterior 互补：后者处理「仅中间列不齐、两端仍同质」的情形。）
 	 */
 	function isAdjacentVerticalMergeBlockedByWholeRim(board, rows, cols, rUpper, rLower, c, policy) {
-		const pol = normalizeLineClearPolicy(policy || {});
-		if (pol.aboveRowsMode !== 'whole') {
-			return false;
-		}
+		normalizeLineClearPolicy(policy || {});
 		if (rUpper < 0 || rLower !== rUpper + 1 || rLower >= rows) {
 			return false;
 		}
@@ -951,10 +777,7 @@
 	 * 若该区间内存在列 k 使 board[rUpper][k] !== board[rLower][k]，则禁止在该区间内**任何**列做「上下同数」竖并（与具体是 2、4 或其它 2^n 无关；端点列不例外）。
 	 */
 	function wholeAdjacentMergeBlockedWhenDoubleNonzeroRunHasMismatch(board, rows, cols, rUpper, rLower, c, policy) {
-		const pol = normalizeLineClearPolicy(policy || {});
-		if (pol.aboveRowsMode !== 'whole') {
-			return false;
-		}
+		normalizeLineClearPolicy(policy || {});
 		if (rUpper < 0 || rLower !== rUpper + 1 || rLower >= rows) {
 			return false;
 		}
@@ -1001,10 +824,7 @@
 	 * cols===6 且 0..4 为玩法主宽度时，对应 c∈{1,2,3} 封禁；列宽变化时见 fnz/lnz 分支。
 	 */
 	function isAdjacentVerticalMergeBlockedByWholeUniformBarEdgesOnly(board, rows, cols, rUpper, rLower, c, policy) {
-		const pol = normalizeLineClearPolicy(policy || {});
-		if (pol.aboveRowsMode !== 'whole') {
-			return false;
-		}
+		normalizeLineClearPolicy(policy || {});
 		if (rUpper < 0 || rLower !== rUpper + 1 || rLower >= rows) {
 			return false;
 		}
@@ -1472,11 +1292,10 @@
 
 	/**
 	 * 从棋盘上抠出「各组被消行之上的上方行」里的非零格，改为活动块列表，并把这些格置 0。
-	 * @param {'column'|'whole'} mode
-	 * @param {{ next: number }} groupSeq whole 模式下为每块分配 aboveWholeGroupId，并递增 next
-	 * @returns {Array<Object>} piece 列表（shape 为 _ABOVE_COL_ / _ABOVE_WHOLE_）
+	 * @param {{ next: number }} groupSeq 为每块分配 aboveWholeGroupId，并递增 next
+	 * @returns {Array<Object>} piece 列表（shape 均为 _ABOVE_WHOLE_）
 	 */
-	function extractLineClearAbovePiecesAndClearBoard(board, cellGroup, rows, cols, clearedRowsArr, mode, groupSeq) {
+	function extractLineClearAbovePiecesAndClearBoard(board, cellGroup, rows, cols, clearedRowsArr, groupSeq) {
 		const sorted = clearedRowsArr.slice().sort(function(a, b) { return a - b; });
 		const groups = clusterClearedRowGroups(sorted);
 		const outPieces = [];
@@ -1490,87 +1309,50 @@
 			if (rowStart > rowEnd || rowStart < 0) {
 				continue;
 			}
-			if (mode === 'whole') {
-				const cells = [];
-				for (let r = rowStart; r <= rowEnd; r++) {
-					for (let c = 0; c < cols; c++) {
-						const v = board[r][c];
-						if (v !== 0) {
-							cells.push({r: r, c: c, v: v});
-						}
-					}
-				}
-				if (cells.length === 0) {
-					continue;
-				}
-				let minR = cells[0].r;
-				let minC = cells[0].c;
-				for (let i = 1; i < cells.length; i++) {
-					if (cells[i].r < minR) {
-						minR = cells[i].r;
-					}
-					if (cells[i].c < minC) {
-						minC = cells[i].c;
-					}
-				}
-				const pcells = cells.map(function(x) {
-					return {dr: x.r - minR, dc: x.c - minC, value: x.v};
-				});
-				const gid = groupSeq.next++;
-				for (let i = 0; i < cells.length; i++) {
-					const cr = cells[i].r;
-					const cc = cells[i].c;
-					board[cr][cc] = 0;
-					if (cellGroup) {
-						cellGroup[cr][cc] = 0;
-					}
-				}
-				outPieces.push({
-					shape: '_ABOVE_WHOLE_',
-					rotation: 0,
-					row: minR,
-					col: minC,
-					cells: pcells,
-					mergeCount: 0,
-					playerControllable: false,
-					aboveWholeGroupId: gid,
-				});
-			} else {
+			const cells = [];
+			for (let r = rowStart; r <= rowEnd; r++) {
 				for (let c = 0; c < cols; c++) {
-					let runStart = -1;
-					for (let r = rowStart; r <= rowEnd + 1; r++) {
-						const inRange = r <= rowEnd;
-						const v = inRange && r >= 0 && r < rows ? board[r][c] : 0;
-						const nz = v !== 0;
-						if (nz && runStart < 0) {
-							runStart = r;
-						}
-						if ((!nz || r > rowEnd) && runStart >= 0) {
-							const runEnd = r > rowEnd ? rowEnd : r - 1;
-							const pcells = [];
-							for (let rr = runStart; rr <= runEnd; rr++) {
-								pcells.push({dr: rr - runStart, dc: 0, value: board[rr][c]});
-							}
-							for (let rr = runStart; rr <= runEnd; rr++) {
-								board[rr][c] = 0;
-								if (cellGroup) {
-									cellGroup[rr][c] = 0;
-								}
-							}
-							outPieces.push({
-								shape: '_ABOVE_COL_',
-								rotation: 0,
-								row: runStart,
-								col: c,
-								cells: pcells,
-								mergeCount: 0,
-								playerControllable: false,
-							});
-							runStart = -1;
-						}
+					const v = board[r][c];
+					if (v !== 0) {
+						cells.push({r: r, c: c, v: v});
 					}
 				}
 			}
+			if (cells.length === 0) {
+				continue;
+			}
+			let minR = cells[0].r;
+			let minC = cells[0].c;
+			for (let i = 1; i < cells.length; i++) {
+				if (cells[i].r < minR) {
+					minR = cells[i].r;
+				}
+				if (cells[i].c < minC) {
+					minC = cells[i].c;
+				}
+			}
+			const pcells = cells.map(function(x) {
+				return {dr: x.r - minR, dc: x.c - minC, value: x.v};
+			});
+			const gid = groupSeq.next++;
+			for (let i = 0; i < cells.length; i++) {
+				const cr = cells[i].r;
+				const cc = cells[i].c;
+				board[cr][cc] = 0;
+				if (cellGroup) {
+					cellGroup[cr][cc] = 0;
+				}
+			}
+			outPieces.push({
+				shape: '_ABOVE_WHOLE_',
+				rotation: 0,
+				row: minR,
+				col: minC,
+				cells: pcells,
+				mergeCount: 0,
+				playerControllable: false,
+				aboveWholeGroupId: gid,
+			});
 		}
 		return outPieces;
 	}
@@ -1610,7 +1392,6 @@
 		const prep = prepareLineClearDivisionPhase(this.board, this.rows, this.cols, fullRows);
 		const sorted = prep.sortedList;
 		const clearedRows = clearedRowsArrayFromClearedSet(prep.clearedSet);
-		const pol = this.policy;
 		for (let zi = 0; zi < sorted.length; zi++) {
 			const x = sorted[zi];
 			if (this.board[x.r] && x.c >= 0 && x.c < this.cols) {
@@ -1619,7 +1400,7 @@
 			}
 		}
 		const abovePieces = extractLineClearAbovePiecesAndClearBoard(
-			this.board, this.boardCellGroup, this.rows, this.cols, clearedRows, pol.aboveRowsMode, wholeAboveGroupSeq);
+			this.board, this.boardCellGroup, this.rows, this.cols, clearedRows, wholeAboveGroupSeq);
 		const reformPieces = [];
 		for (let ri = 0; ri < sorted.length; ri++) {
 			const xx = sorted[ri];
@@ -1697,52 +1478,24 @@
 		const pol = lineClearPolicy != null ? lineClearPolicy : getDefaultLineClearPolicy();
 		const mode = mergeStart === 'bottom' ? 'bottom' : (mergeStart === 'contact' ? 'contact' : 'top');
 		if (mode === 'contact') {
-			/* whole：自下而上尝试相邻行对 (r,r+1)，先于「每列最上接触」顺序，使较深行对（如 6–7）先与边缘耦合/rim 判定，避免仅因先合并 5–6 而中间列抢在两侧定型前竖并。 */
-			if (pol.aboveRowsMode === 'whole') {
-				for (let r = rows - 2; r >= 0; r--) {
-					for (let c = 0; c < cols; c++) {
-						const u = board[r][c];
-						const d = board[r + 1][c];
-						if (u === 0 || d === 0 || u !== d) {
-							continue;
-						}
-						if (isAdjacentVerticalMergeBlockedWhole(pol, cellGroup, board, rows, cols, r, r + 1, c)) {
-							continue;
-						}
-						board[r + 1][c] *= 2;
-						board[r][c] = 0;
-						if (cellGroup) {
-							cellGroup[r + 1][c] = 0;
-							cellGroup[r][c] = 0;
-						}
-						mergeGapGravityColumn(board, rows, r, c, cellGroup);
-						return {didOne: true, more: hasAnyCascade(board, rows, cols, cellGroup, pol)};
-					}
-				}
-				return {didOne: false, more: false};
-			}
-			for (let c = 0; c < cols; c++) {
-				let topR = -1;
-				for (let r = 0; r < rows; r++) {
-					if (board[r][c] !== 0) {
-						topR = r;
-						break;
-					}
-				}
-				if (topR < 0) {
-					continue;
-				}
-				if (topR + 1 < rows && board[topR][c] === board[topR + 1][c]) {
-					if (isAdjacentVerticalMergeBlockedWhole(pol, cellGroup, board, rows, cols, topR, topR + 1, c)) {
+			/* 自下而上尝试相邻行对 (r,r+1)，先于「每列最上接触」顺序，使较深行对先与边缘耦合/rim 判定。 */
+			for (let r = rows - 2; r >= 0; r--) {
+				for (let c = 0; c < cols; c++) {
+					const u = board[r][c];
+					const d = board[r + 1][c];
+					if (u === 0 || d === 0 || u !== d) {
 						continue;
 					}
-					board[topR + 1][c] *= 2;
-					board[topR][c] = 0;
-					if (cellGroup) {
-						cellGroup[topR + 1][c] = 0;
-						cellGroup[topR][c] = 0;
+					if (isAdjacentVerticalMergeBlockedWhole(pol, cellGroup, board, rows, cols, r, r + 1, c)) {
+						continue;
 					}
-					mergeGapGravityColumn(board, rows, topR, c, cellGroup);
+					board[r + 1][c] *= 2;
+					board[r][c] = 0;
+					if (cellGroup) {
+						cellGroup[r + 1][c] = 0;
+						cellGroup[r][c] = 0;
+					}
+					mergeGapGravityColumn(board, rows, r, c, cellGroup);
 					return {didOne: true, more: hasAnyCascade(board, rows, cols, cellGroup, pol)};
 				}
 			}
@@ -2652,7 +2405,10 @@
 			if (!p || typeof p !== 'object') {
 				return null;
 			}
-			const shape = String(p.shape || 'I');
+			let shape = String(p.shape || 'I');
+			if (shape === '_ABOVE_COL_') {
+				shape = '_ABOVE_WHOLE_';
+			}
 			if (shape === '_REMAINDER1') {
 				const row = Number(p.row);
 				const col = Number(p.col);
@@ -2675,7 +2431,7 @@
 					mergeCount: Math.max(0, Number(p.mergeCount) || 0),
 				};
 			}
-			if (shape === '_ABOVE_COL_' || shape === '_ABOVE_WHOLE_') {
+			if (shape === '_ABOVE_WHOLE_') {
 				const rowA = Number(p.row);
 				const colA = Number(p.col);
 				if (!Number.isFinite(rowA) || !Number.isFinite(colA)) {
