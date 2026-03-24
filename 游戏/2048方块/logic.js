@@ -1,16 +1,24 @@
 /**
  * 2048方块 - 纯逻辑（Web 版）。俄罗斯方块式下落，同数合并、行消除。
  * 从 test1 miniprogram/games/2048blocks/logic.ts 移植，localStorage 由 dom 层处理。
+ *
+ * 玩法相关数值一律来自 constants.js（浏览器须先加载该脚本；Node 下自动 require 同目录 constants.js）。
  */
 'use strict';
 
 (function(root, factory) {
+	var injectedConstants = null;
 	if (typeof module !== 'undefined' && module.exports) {
-		module.exports = factory();
+		try {
+			injectedConstants = require('./constants.js');
+		} catch (e) {
+			injectedConstants = null;
+		}
+		module.exports = factory(root, injectedConstants);
 	} else {
-		root.Game2048BlocksLogic = factory();
+		root.Game2048BlocksLogic = factory(root, root.Game2048BlocksConstants || null);
 	}
-})(typeof self !== 'undefined' ? self : this, function() {
+})(typeof self !== 'undefined' ? self : this, function(root, gameConstants) {
 	const STORAGE_HIGH_SCORE_BLOCKS = '2048blocks-high-score';
 	const STORAGE_SETTINGS_BLOCKS = '2048blocks-settings';
 	const STORAGE_GAME_STATE_BLOCKS = '2048blocks-game-state';
@@ -25,13 +33,49 @@
 		L: [[0, 0], [1, 0], [2, 0], [2, 1]],
 	};
 	const SHAPE_KEYS = Object.keys(SHAPES);
-	const MIN_ROWS = 8;
-	const MIN_COLS = 6;
-	const MAX_ROWS = 20;
-	const MAX_COLS = 12;
-	const DEFAULT_CFG = {rows: 12, cols: 10, fallIntervalMs: 800, lockDelayDurationMs: 500};
-	const MIN_LOCK_DELAY_MS = 100;
-	const MAX_LOCK_DELAY_MS = 1000;
+
+	const C = gameConstants || {};
+	function pickNum(key, fallback) {
+		const v = C[key];
+		return v != null && Number.isFinite(Number(v)) ? Number(v) : fallback;
+	}
+	const ROWS_OPT = Array.isArray(C.ROWS_OPTIONS) && C.ROWS_OPTIONS.length
+		? C.ROWS_OPTIONS
+		: [8, 10, 12, 14, 16, 18, 20];
+	const COLS_OPT = Array.isArray(C.COLS_OPTIONS) && C.COLS_OPTIONS.length
+		? C.COLS_OPTIONS
+		: [6, 7, 8, 9, 10, 11, 12];
+	const MIN_ROWS = Math.min.apply(null, ROWS_OPT);
+	const MAX_ROWS = Math.max.apply(null, ROWS_OPT);
+	const MIN_COLS = Math.min.apply(null, COLS_OPT);
+	const MAX_COLS = Math.max.apply(null, COLS_OPT);
+
+	const LOCK_DELAY_DURATION = pickNum('LOCK_DELAY_DURATION', 500);
+	const MIN_LOCK_DELAY_MS = pickNum('LOCK_DELAY_MIN_MS', 100);
+	const MAX_LOCK_DELAY_MS = pickNum('LOCK_DELAY_MAX_MS', 1000);
+	const INITIAL_FALL_DELAY_MS = pickNum('INITIAL_FALL_DELAY_MS', 800);
+	const FALL_DELAY_DECAY_FACTOR = pickNum('FALL_DELAY_DECAY_FACTOR', 0.93);
+	const MIN_FALL_DELAY_MS = pickNum('MIN_FALL_DELAY_MS', 100);
+	const SCORE_PER_LEVEL = pickNum('SCORE_PER_LEVEL', 5000);
+	const INITIAL_LEVEL_UI_MAX = pickNum('INITIAL_LEVEL_UI_MAX', 20);
+	const LEGACY_FALL_INTERVAL_SCALE_THRESHOLD_MS = pickNum('LEGACY_FALL_INTERVAL_SCALE_THRESHOLD_MS', 2500);
+	const LINE_CLEAR_CHAIN_STEP_LIMIT = pickNum('LINE_CLEAR_CHAIN_STEP_LIMIT', 5000);
+
+	const DEFAULT_CFG = {
+		rows: pickNum('DEFAULT_ROWS', 12),
+		cols: pickNum('DEFAULT_COLS', 8),
+		fallIntervalMs: INITIAL_FALL_DELAY_MS,
+		lockDelayDurationMs: LOCK_DELAY_DURATION,
+	};
+
+	/** 消行基础分系数（玩法 12.2），来自 constants 的 SCORE_1～4 */
+	const SCORE_BY_LINES = [
+		0,
+		pickNum('SCORE_1', 40),
+		pickNum('SCORE_2', 100),
+		pickNum('SCORE_3', 300),
+		pickNum('SCORE_4', 1200),
+	];
 	/**
 	 * 消行后行为（normalize 写死，非用户策略）
 	 * - afterClearPack：恒为 whole（7.1 即 `packAfterClearedEmptyRows`）
@@ -63,18 +107,6 @@
 		};
 	}
 
-	/** 消行基础分系数（玩法 12.2），供 getLineClearBaseScore 使用 */
-	const SCORE_BY_LINES = [0, 40, 100, 300, 1200];
-	/**
-	 * §11.2 每累计多少分升 1 级（有效等级 = INITIAL_LEVEL + floor(score / SCORE_PER_LEVEL)）。
-	 * 《玩法》未规定数值，与 constants.js 保持一致，可按产品调整。
-	 */
-	const SCORE_PER_LEVEL = 5000;
-	/** §11.3 指数下落参数（ms），与《玩法》默认值一致 */
-	const INITIAL_FALL_DELAY_MS = 800;
-	const FALL_DELAY_DECAY_FACTOR = 0.93;
-	const MIN_FALL_DELAY_MS = 100;
-
 	function fallDelayMsForLevel(level) {
 		const lv = level != null && Number.isFinite(level) ? Math.max(0, Math.floor(level)) : 0;
 		const raw = INITIAL_FALL_DELAY_MS * Math.pow(FALL_DELAY_DECAY_FACTOR, lv);
@@ -83,7 +115,7 @@
 
 	function clampInitialLevelUi(initialLevel) {
 		return initialLevel != null && Number.isFinite(Number(initialLevel))
-			? Math.max(0, Math.min(20, Math.floor(Number(initialLevel))))
+			? Math.max(0, Math.min(INITIAL_LEVEL_UI_MAX, Math.floor(Number(initialLevel))))
 			: 0;
 	}
 
@@ -176,7 +208,7 @@
 		}
 		const x = Math.max(MIN_FALL_DELAY_MS, Number(ms));
 		const candidates = [x];
-		if (x > 2500) {
+		if (x > LEGACY_FALL_INTERVAL_SCALE_THRESHOLD_MS) {
 			candidates.push(Math.max(MIN_FALL_DELAY_MS, Math.round(x / 10)));
 		}
 		let best = 0;
@@ -191,7 +223,7 @@
 				}
 			}
 		}
-		return Math.min(20, best);
+		return Math.min(INITIAL_LEVEL_UI_MAX, best);
 	}
 
 	function getEffectiveLevel(g) {
@@ -641,8 +673,8 @@
 	}
 
 	function computePlayerLockTicks(lockDelayDurationMs, fallIntervalMs) {
-		const fd = Math.max(1, fallIntervalMs || 500);
-		const ld = Math.max(MIN_LOCK_DELAY_MS, Math.min(MAX_LOCK_DELAY_MS, lockDelayDurationMs || 500));
+		const fd = Math.max(1, fallIntervalMs || INITIAL_FALL_DELAY_MS);
+		const ld = Math.max(MIN_LOCK_DELAY_MS, Math.min(MAX_LOCK_DELAY_MS, lockDelayDurationMs || LOCK_DELAY_DURATION));
 		return Math.max(1, Math.ceil(ld / fd));
 	}
 
@@ -1180,9 +1212,9 @@
 		const opts = Object.assign({}, stats || {}, {suppressNextSpawn: true});
 		let state = g;
 		let outer = 0;
-		while (++outer < 5000) {
+		while (++outer < LINE_CLEAR_CHAIN_STEP_LIMIT) {
 			let inner = 0;
-			while (state.clearLinesPending && state.clearLinesPending.length > 0 && ++inner < 5000) {
+			while (state.clearLinesPending && state.clearLinesPending.length > 0 && ++inner < LINE_CLEAR_CHAIN_STEP_LIMIT) {
 				state = applyPendingClearLines(state, opts);
 			}
 			state = syncFlushRemainingLineClearReform(state);
@@ -1227,7 +1259,7 @@
 			reformPieces: null,
 			fallIntervalMs: INITIAL_FALL_DELAY_MS,
 			initialLevel: 0,
-			lockDelayDurationMs: 500,
+			lockDelayDurationMs: LOCK_DELAY_DURATION,
 			playerLockTicksRemaining: null,
 			suppressSpawnAfterReform: true,
 			seed: 0,
@@ -2432,7 +2464,7 @@
 		const cols = Math.max(MIN_COLS, Math.min(MAX_COLS, overrides.cols != null ? overrides.cols : DEFAULT_CFG.cols));
 		const fallIntervalMs = overrides.fallIntervalMs != null ? overrides.fallIntervalMs : DEFAULT_CFG.fallIntervalMs;
 		const initialLevel = overrides.initialLevel != null && Number.isFinite(Number(overrides.initialLevel))
-			? Math.max(0, Math.min(20, Math.floor(Number(overrides.initialLevel))))
+			? Math.max(0, Math.min(INITIAL_LEVEL_UI_MAX, Math.floor(Number(overrides.initialLevel))))
 			: inferInitialLevelFromLegacyFallMs(fallIntervalMs);
 		let lockDelayDurationMs = overrides.lockDelayDurationMs != null ? overrides.lockDelayDurationMs : DEFAULT_CFG.lockDelayDurationMs;
 		lockDelayDurationMs = Math.max(MIN_LOCK_DELAY_MS, Math.min(MAX_LOCK_DELAY_MS, lockDelayDurationMs));
@@ -2514,7 +2546,7 @@
 			overlayMessage: g.overlayMessage,
 			fallIntervalMs: g.fallIntervalMs,
 			initialLevel: g.initialLevel != null && Number.isFinite(Number(g.initialLevel))
-				? Math.max(0, Math.min(20, Math.floor(Number(g.initialLevel))))
+				? Math.max(0, Math.min(INITIAL_LEVEL_UI_MAX, Math.floor(Number(g.initialLevel))))
 				: 0,
 			cascadePending: g.cascadePending,
 			pieceCount: g.pieceCount,
@@ -2718,11 +2750,11 @@
 		const score = Math.max(0, Number(o.score) || 0);
 		const initialLevel = (function() {
 			if (o.initialLevel != null && Number.isFinite(Number(o.initialLevel))) {
-				return Math.max(0, Math.min(20, Math.floor(Number(o.initialLevel))));
+				return Math.max(0, Math.min(INITIAL_LEVEL_UI_MAX, Math.floor(Number(o.initialLevel))));
 			}
-			const legacyLv = Math.max(0, Math.min(20, Number(o.level) || 0));
+			const legacyLv = Math.max(0, Math.min(INITIAL_LEVEL_UI_MAX, Number(o.level) || 0));
 			const fromScore = Math.floor(score / SCORE_PER_LEVEL);
-			return Math.max(0, Math.min(20, legacyLv - fromScore));
+			return Math.max(0, Math.min(INITIAL_LEVEL_UI_MAX, legacyLv - fromScore));
 		})();
 		const levelSynced = levelFromInitialAndScore(initialLevel, score);
 		const fallIntervalMs = fallDelayMsForLevel(levelSynced);

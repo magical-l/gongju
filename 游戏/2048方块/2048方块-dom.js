@@ -19,16 +19,30 @@ let hardDropTimer = null;
 let clearLinesTimeout = null;
 let paused = true;
 
+function constNum(name, fallback) {
+	return constants && constants[name] != null && Number.isFinite(Number(constants[name]))
+		? Number(constants[name]) : fallback;
+}
+
+function clampInitialLevelUiDom(v) {
+	const mx = constNum('INITIAL_LEVEL_UI_MAX', 20);
+	if (v == null || !Number.isFinite(Number(v))) {
+		return 0;
+	}
+	return Math.max(0, Math.min(mx, Math.floor(Number(v))));
+}
+
 /** 与 runFallLoop 一致的下落步长：按《玩法》§11.3 公式（含 DEV_FIXED_FALL_MS） */
 function getFallStepMs(state) {
 	const s = state || gameState;
+	const minFall = constNum('MIN_FALL_DELAY_MS', 100);
 	if (constants && constants.DEV_FIXED_FALL_MS > 0) {
 		return constants.DEV_FIXED_FALL_MS;
 	}
 	if (logic && typeof logic.getEffectiveFallIntervalMs === 'function' && s) {
-		return Math.max(100, logic.getEffectiveFallIntervalMs(s));
+		return Math.max(minFall, logic.getEffectiveFallIntervalMs(s));
 	}
-	return Math.max(100, (s && s.fallIntervalMs) || 800);
+	return Math.max(minFall, (s && s.fallIntervalMs) || constNum('INITIAL_FALL_DELAY_MS', 800));
 }
 
 function getStorage(key) {
@@ -549,19 +563,24 @@ function loadSettingsFromStorage() {
 			return null;
 		}
 		const s = {};
-		if (Number(o.rows) >= 8) {
+		const minR = constNum('MIN_FIELD_ROWS', 8);
+		const minC = constNum('MIN_FIELD_COLS', 6);
+		const lockMin = constNum('LOCK_DELAY_MIN_MS', 100);
+		const lockMax = constNum('LOCK_DELAY_MAX_MS', 1000);
+		const fallMin = constNum('MIN_FALL_DELAY_MS', 100);
+		if (Number(o.rows) >= minR) {
 			s.rows = Number(o.rows);
 		}
-		if (Number(o.cols) >= 6) {
+		if (Number(o.cols) >= minC) {
 			s.cols = Number(o.cols);
 		}
-		if (Number(o.fallIntervalMs) >= 100) {
+		if (Number(o.fallIntervalMs) >= fallMin) {
 			s.fallIntervalMs = Number(o.fallIntervalMs);
 		}
 		if (o.initialLevel != null && Number.isFinite(Number(o.initialLevel))) {
-			s.initialLevel = Math.max(0, Math.min(20, Math.floor(Number(o.initialLevel))));
+			s.initialLevel = clampInitialLevelUiDom(o.initialLevel);
 		}
-		if (Number(o.lockDelayDurationMs) >= 100 && Number(o.lockDelayDurationMs) <= 1000) {
+		if (Number(o.lockDelayDurationMs) >= lockMin && Number(o.lockDelayDurationMs) <= lockMax) {
 			s.lockDelayDurationMs = Number(o.lockDelayDurationMs);
 		}
 		if (o.lineClearPolicy && typeof o.lineClearPolicy === 'object') {
@@ -583,16 +602,16 @@ function applyBoardSettings(obj) {
 		: rawFall;
 	let initialLevel;
 	if (obj.initialLevel != null && Number.isFinite(Number(obj.initialLevel))) {
-		initialLevel = Math.max(0, Math.min(20, Math.floor(Number(obj.initialLevel))));
+		initialLevel = clampInitialLevelUiDom(obj.initialLevel);
 	} else if (gameState && gameState.initialLevel != null && Number.isFinite(Number(gameState.initialLevel))) {
-		initialLevel = Math.max(0, Math.min(20, Math.floor(Number(gameState.initialLevel))));
+		initialLevel = clampInitialLevelUiDom(gameState.initialLevel);
 	} else if (logic && typeof logic.inferInitialLevelFromLegacyFallMs === 'function') {
 		initialLevel = logic.inferInitialLevelFromLegacyFallMs(fallIntervalMs);
 	} else {
 		initialLevel = 0;
 	}
 	const prevIv = !gameState ? -999 : (gameState.initialLevel != null && Number.isFinite(Number(gameState.initialLevel))
-		? Math.max(0, Math.min(20, Math.floor(Number(gameState.initialLevel))))
+		? clampInitialLevelUiDom(gameState.initialLevel)
 		: (logic && typeof logic.inferInitialLevelFromLegacyFallMs === 'function'
 			? logic.inferInitialLevelFromLegacyFallMs(gameState.fallIntervalMs) : 0));
 	const needRestart = !gameState || rows !== gameState.rows || cols !== gameState.cols
@@ -725,12 +744,12 @@ function doInit() {
 			setStorage(STORAGE_HIGH_SCORE_BLOCKS, String(gameState.highScore));
 		}
 	} else {
-		const rows = loaded && loaded.rows || restored && restored.rows || 12;
-		const cols = loaded && loaded.cols || restored && restored.cols || 10;
-		const rawFall = (loaded && loaded.fallIntervalMs) != null ? loaded.fallIntervalMs : ((restored && restored.fallIntervalMs) != null ? restored.fallIntervalMs : 500);
+		const rows = loaded && loaded.rows || restored && restored.rows || constNum('DEFAULT_ROWS', 12);
+		const cols = loaded && loaded.cols || restored && restored.cols || constNum('DEFAULT_COLS', 8);
+		const rawFall = (loaded && loaded.fallIntervalMs) != null ? loaded.fallIntervalMs : ((restored && restored.fallIntervalMs) != null ? restored.fallIntervalMs : constNum('INITIAL_FALL_DELAY_MS', 800));
 		const fallIntervalMs = (constants && constants.DEV_FIXED_FALL_MS > 0) ? constants.DEV_FIXED_FALL_MS : rawFall;
 		let initLv = loaded && loaded.initialLevel != null && Number.isFinite(Number(loaded.initialLevel))
-			? Math.max(0, Math.min(20, Math.floor(Number(loaded.initialLevel))))
+			? clampInitialLevelUiDom(loaded.initialLevel)
 			: null;
 		if (initLv == null && logic && typeof logic.inferInitialLevelFromLegacyFallMs === 'function') {
 			initLv = logic.inferInitialLevelFromLegacyFallMs(rawFall);

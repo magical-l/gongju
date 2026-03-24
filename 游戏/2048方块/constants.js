@@ -28,20 +28,28 @@
 	/** 场地列数可选：6～12，对应玩法 12.1 FIELD_WIDTH */
 	const COLS_OPTIONS = [6, 7, 8, 9, 10, 11, 12];
 	const DEFAULT_ROWS = 12;
-	const DEFAULT_COLS = 10;
+	const DEFAULT_COLS = 8;
+	const MIN_FIELD_ROWS = Math.min.apply(null, ROWS_OPTIONS);
+	const MAX_FIELD_ROWS = Math.max.apply(null, ROWS_OPTIONS);
+	const MIN_FIELD_COLS = Math.min.apply(null, COLS_OPTIONS);
+	const MAX_FIELD_COLS = Math.max.apply(null, COLS_OPTIONS);
 
 	/** 计分：消行基础分系数（玩法 12.2） */
 	const SCORE_1 = 40;
 	const SCORE_2 = 100;
 	const SCORE_3 = 300;
 	const SCORE_4 = 1200;
-	/**
-	 * §11.2 每累计多少分升 1 级。《玩法》未规定默认值，与 logic.js 的 SCORE_PER_LEVEL 一致。
-	 */
+	/** §11.2 每累计多少分升 1 级。《玩法》未规定程序默认值。logic.js 仅读此常量。 */
 	const SCORE_PER_LEVEL = 5000;
-	/** 锁定延迟 ms（玩法 12.1），100～1000，默认 500 */
+	/** 锁定延迟默认与中限（ms，玩法 12.1） */
 	const LOCK_DELAY_DURATION = 500;
-	/** §11.3 与 logic.js 一致，供说明或外显；实际下落间隔由逻辑层公式计算 */
+	const LOCK_DELAY_MIN_MS = 100;
+	const LOCK_DELAY_MAX_MS = 1000;
+	/** 工具栏「初始等级」与存档里 initialLevel 的合法上限 */
+	const INITIAL_LEVEL_UI_MAX = 20;
+	/** 旧存档 fallIntervalMs 疑似整体 ×10 标度时的阈值，仅用于推断初始等级 */
+	const LEGACY_FALL_INTERVAL_SCALE_THRESHOLD_MS = 2500;
+	/** §11.3 指数下落；logic.js 仅读这些常量 */
 	const INITIAL_FALL_DELAY_MS = 800;
 	const FALL_DELAY_DECAY_FACTOR = 0.93;
 	const MIN_FALL_DELAY_MS = 100;
@@ -54,6 +62,8 @@
 	const SPEED_OPTIONS_MS = [1200, 700, 500, 350, 200];
 	const SPEED_LABELS = ['慢', '中慢', '中', '快', '很快'];
 	const MIN_SWIPE_PX = 30;
+	/** 主局 flush 消行链外层/内层循环安全上限（非玩法数值，防死循环） */
+	const LINE_CLEAR_CHAIN_STEP_LIMIT = 5000;
 
 	return {
 		TILE_COLORS: TILE_COLORS,
@@ -62,12 +72,20 @@
 		COLS_OPTIONS: COLS_OPTIONS,
 		DEFAULT_ROWS: DEFAULT_ROWS,
 		DEFAULT_COLS: DEFAULT_COLS,
+		MIN_FIELD_ROWS: MIN_FIELD_ROWS,
+		MAX_FIELD_ROWS: MAX_FIELD_ROWS,
+		MIN_FIELD_COLS: MIN_FIELD_COLS,
+		MAX_FIELD_COLS: MAX_FIELD_COLS,
 		SCORE_1: SCORE_1,
 		SCORE_2: SCORE_2,
 		SCORE_3: SCORE_3,
 		SCORE_4: SCORE_4,
 		SCORE_PER_LEVEL: SCORE_PER_LEVEL,
 		LOCK_DELAY_DURATION: LOCK_DELAY_DURATION,
+		LOCK_DELAY_MIN_MS: LOCK_DELAY_MIN_MS,
+		LOCK_DELAY_MAX_MS: LOCK_DELAY_MAX_MS,
+		INITIAL_LEVEL_UI_MAX: INITIAL_LEVEL_UI_MAX,
+		LEGACY_FALL_INTERVAL_SCALE_THRESHOLD_MS: LEGACY_FALL_INTERVAL_SCALE_THRESHOLD_MS,
 		INITIAL_FALL_DELAY_MS: INITIAL_FALL_DELAY_MS,
 		FALL_DELAY_DECAY_FACTOR: FALL_DELAY_DECAY_FACTOR,
 		MIN_FALL_DELAY_MS: MIN_FALL_DELAY_MS,
@@ -76,5 +94,6 @@
 		SPEED_OPTIONS_MS: SPEED_OPTIONS_MS,
 		SPEED_LABELS: SPEED_LABELS,
 		MIN_SWIPE_PX: MIN_SWIPE_PX,
+		LINE_CLEAR_CHAIN_STEP_LIMIT: LINE_CLEAR_CHAIN_STEP_LIMIT,
 	};
 });

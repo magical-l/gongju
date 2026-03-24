@@ -189,16 +189,18 @@
 	(function() {
 		const {createApp, reactive} = Vue;
 		const collapseKey = 'gaming-info-2048blocks';
-		const defaultPanels = ['shortcut', 'gaming info'];
+		const defaultPanels = ['next-block', 'gaming info', 'shortcut'];
 		let saved;
 		try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
 		const constants = window.Game2048BlocksConstants || {};
 		const boardSizeOptionsRows = constants.ROWS_OPTIONS || [8, 10, 12, 14, 16, 18, 20];
 		const boardSizeOptionsCols = constants.COLS_OPTIONS || [6, 7, 8, 9, 10, 11, 12];
 		const defaultRows = constants.DEFAULT_ROWS != null ? constants.DEFAULT_ROWS : 12;
-		const defaultCols = constants.DEFAULT_COLS != null ? constants.DEFAULT_COLS : 10;
+		const defaultCols = constants.DEFAULT_COLS != null ? constants.DEFAULT_COLS : 8;
+		const initialLevelUiMax = constants.INITIAL_LEVEL_UI_MAX != null ? constants.INITIAL_LEVEL_UI_MAX : 20;
+		const initialFallMs = constants.INITIAL_FALL_DELAY_MS != null ? constants.INITIAL_FALL_DELAY_MS : 800;
 		const initialLevelOptions = [];
-		for (let lv = 0; lv <= 20; lv++) {
+		for (let lv = 0; lv <= initialLevelUiMax; lv++) {
 			initialLevelOptions.push({value: lv, label: String(lv)});
 		}
 		const state = reactive({
@@ -206,7 +208,7 @@
 			highScore: 0,
 			boardHeight: defaultRows,
 			boardWidth: defaultCols,
-			fallIntervalMs: 500,
+			fallIntervalMs: initialFallMs,
 			initialLevel: 0,
 			gameBoardHeight: defaultRows,
 			gameBoardWidth: defaultCols,
