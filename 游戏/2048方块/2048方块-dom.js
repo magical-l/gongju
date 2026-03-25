@@ -53,6 +53,14 @@ function setStorage(key, value) {
 	try { localStorage.setItem(key, value); } catch (e) {}
 }
 
+/** 上方块矩形内 value===0 为建造空隙：显示须透底，不得用 0 盖住固定堆（与 logic writePieceToBoard 一致）。 */
+function displayCellValueForAboveWholePiece(piece, cellValue, flatIdx, flat) {
+	if (piece && piece.shape === '_ABOVE_WHOLE_' && cellValue === 0) {
+		return;
+	}
+	flat[flatIdx] = cellValue;
+}
+
 /** 合并 board + 消行剩格 + currentPiece 为显示用的一维数组 (row-major)，空为 0；剩格与活动块后绘覆盖底图 */
 function getDisplayBoard(state) {
 	const rows = state.rows;
@@ -77,11 +85,12 @@ function getDisplayBoard(state) {
 	const ap = state.lineClearAbovePieces;
 	if (ap && ap.length > 0) {
 		for (let ai = 0; ai < ap.length; ai++) {
-			const absAbove = pieceAbsCells(ap[ai]);
+			const pAbove = ap[ai];
+			const absAbove = pieceAbsCells(pAbove);
 			for (let j = 0; j < absAbove.length; j++) {
 				const aa = absAbove[j];
 				if (aa.r >= 0 && aa.r < rows && aa.c >= 0 && aa.c < cols) {
-					flat[aa.r * cols + aa.c] = aa.value;
+					displayCellValueForAboveWholePiece(pAbove, aa.value, aa.r * cols + aa.c, flat);
 				}
 			}
 		}
@@ -93,11 +102,12 @@ function getDisplayBoard(state) {
 			if (!ent || !ent.piece) {
 				continue;
 			}
-			const absRp = pieceAbsCells(ent.piece);
+			const pRp = ent.piece;
+			const absRp = pieceAbsCells(pRp);
 			for (let j = 0; j < absRp.length; j++) {
 				const cell = absRp[j];
 				if (cell.r >= 0 && cell.r < rows && cell.c >= 0 && cell.c < cols) {
-					flat[cell.r * cols + cell.c] = cell.value;
+					displayCellValueForAboveWholePiece(pRp, cell.value, cell.r * cols + cell.c, flat);
 				}
 			}
 		}
@@ -108,7 +118,7 @@ function getDisplayBoard(state) {
 		for (let i = 0; i < abs.length; i++) {
 			const cell = abs[i];
 			if (cell.r >= 0 && cell.r < rows && cell.c >= 0 && cell.c < cols) {
-				flat[cell.r * cols + cell.c] = cell.value;
+				displayCellValueForAboveWholePiece(piece, cell.value, cell.r * cols + cell.c, flat);
 			}
 		}
 	}
