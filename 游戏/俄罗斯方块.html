@@ -38,58 +38,55 @@
 <style>
 	.gaming.area { --反叵字形-gap: 2em; }
 
-	.board-container {
-		position: relative;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-		border: 2px solid #ced4da;
-		padding: 2px;
-		display: inline-block;
-	}
 
-	.board {
-				--cell-empty: rgba(0, 0, 0, 0.05);
-				--cell-size: 30px;
-				--unit-radius: 2px;
-			background: #e9ecef;
-		border: 2px solid #495057;
-		grid-gap: 1px;
-	}
+		.board {
+			--cell-empty: rgba(0, 0, 0, 0.08);
+			--cell-size: 30px;
+			--unit-radius: 0;
+			grid-gap: 0;
+		}
 
+		.board.preview {
+			--board-cols: 4;
+			--board-rows: 4;
+			--board-padding: 0;
+			--board-bg: transparent;
+			--grid-line: transparent;
+			--board-radius: 0;
+			width: fit-content;
+			height: fit-content;
+		}
 
-	.board .cell:not(:empty) { background-color: #ccc; }
-
-	.board .cell.I { background-color: #a0e7e5; }
-
-	.board .cell.O { background-color: #ffd6a5; }
-
-	.board .cell.T { background-color: #d4a5a5; }
-
-	.board .cell.J { background-color: #89c2d9; }
-
-	.board .cell.L { background-color: #f4a261; }
-
-	.board .cell.S { background-color: #b2e0b8; }
-
-	.board .cell.Z { background-color: #ffb3c1; }
-
-	.board .cell.ghost { background-color: #495057; opacity: 0.15; }
+		.scoreboard .el-card__header { padding: 8px 12px; }
 
 
-	.board.preview {
-		grid-gap: 0;
-		background: transparent;
-		border: none;
-		padding: 0;
-	}
+	.board .cell.I { background-color: #7dd3c0; }
+
+	.board .cell.O { background-color: #f9e2af; }
+
+	.board .cell.T { background-color: #cba6f7; }
+
+	.board .cell.J { background-color: #89b4fa; }
+
+	.board .cell.L { background-color: #fab387; }
+
+	.board .cell.S { background-color: #a6e3a1; }
+
+	.board .cell.Z { background-color: #f38ba8; }
+
+	.board .cell.ghost { background-color: #495057; opacity: 0.25; }
+
+		.board .cell {
+			border: 1px solid rgba(0, 0, 0, 0.15);
+		}
+
 
 	#pause-overlay {
-		position: absolute; top: 0; left: 0;
+	position: absolute; top: 0; left: 0;
 		width: 100%; height: 100%;
 		background: rgba(73, 80, 87, 0.7);
 		line-height: 1.5; color: white; font-size: 2em; font-weight: bold;
 	}
-
-	.start.play.btn {font-size: larger;}
 
 	.one.setting.input.number {width: 80px;}
 
@@ -191,9 +188,6 @@
 							<el-radio-button v-for="opt in difficultyOptions" :key="opt.value" :label="opt.value">{{opt.name}}
 							</el-radio-button>
 						</el-radio-group>
-						<!--<el-select v-model="settings.difficulty" class="select-width-6ch">
-							<el-option v-for="opt in difficultyOptions" :key="opt.value" :label="opt.name" :value="opt.value"/>
-						</el-select>-->
 					</el-form-item>
 				</div>
 				<div class="one setting group">
@@ -219,19 +213,15 @@
 				</div>
 			</section>
 		</header>
-
-		<article class="flex items-near-x-center items-near-y-start" style="grid-row:2">
-			<section class="board-container">
-				<div class="board grid" :style="boardStyle">
+			<article class="main map area flex items-near-x-center items-near-y-start" style="grid-row:2">
+				<div class="board" :style="boardStyle">
 					<div v-for="(cell, index) in displayGrid" :key="index" :class="['cell', cell]"></div>
+					<div id="pause-overlay" v-if="isPaused || isGameOver" class="flex vertical near-center">
+						<div id="overlay-text">{{ overlayText }}</div>
+						<el-button class="start play btn" v-if="!isGameOver" @click="togglePause" icon="CaretRight"></el-button>
+					</div>
 				</div>
-				<div id="pause-overlay" v-if="isPaused || isGameOver" class="flex vertical near-center">
-					<div id="overlay-text">{{ overlayText }}</div>
-					<el-button class="start play btn" v-if="!isGameOver" @click="togglePause"
-										 icon="CaretRight"></el-button>
-				</div>
-			</section>
-		</article>
+			</article>
 		<aside class="left-sidebar">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
@@ -241,22 +231,20 @@
 						<p>回车：砖块直接落到底</p>
 						<p>空格：暂停/开始</p>
 					</el-collapse-item>
-					<el-collapse-item name="next" title="下一个">
-					<div class="board preview" :style="nextPieceStyle">
-						<div class="cell" v-for="(block, index) in nextPieceBlocks" :key="index" :class="block"></div>
-					</div>
-						<section>
-							<h3>分数</h3>
-							<p>{{ score }}</p>
-						</section>
-						<section>
-							<h3>行数</h3>
-							<p>{{ lines }}</p>
-						</section>
-						<section>
-							<h3>等级</h3>
-							<p>{{ level }}</p>
-						</section>
+					<el-collapse-item name="next" title="下一块">
+						<div class="board preview">
+							<div class="cell" v-for="(block, index) in nextPieceBlocks" :key="index" :class="block"></div>
+						</div>
+					</el-collapse-item>
+					<el-collapse-item name="score" title="本局信息">
+						<el-card header="分数" class="scoreboard" body-class="value" shadow="never">
+							{{ score }}
+						</el-card>
+						<el-descriptions class="info list" :column="1" border :label-width="80">
+							<el-descriptions-item label="行数">{{ lines }}</el-descriptions-item>
+							<el-descriptions-item label="等级">{{ level }}</el-descriptions-item>
+							<el-descriptions-item label="最高记录">{{ highScore }}</el-descriptions-item>
+						</el-descriptions>
 					</el-collapse-item>
 				</el-collapse>
 			</el-card>
@@ -308,6 +296,7 @@
 			try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
 			return {
 				score: 0,
+					highScore: parseInt(localStorage.getItem('tetrisHighScore') || '0', 10),
 				lines: 0,
 				level: 1,
 				grid: [],
@@ -317,7 +306,6 @@
 				nextTetromino: null,
 				isGameOver: false,
 				isPaused: true,
-				helpVisible: false,
 				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
 				_gamingInfoCollapseKey: collapseKey,
 				_gamingInfoDefaultPanels: defaultPanels,
@@ -388,30 +376,26 @@
 				}
 				return newGrid.flat();
 			},
-			nextPieceStyle() {
-				if (!this.nextTetromino) {
-					return {};
-				}
-				const shape = this.nextTetromino.shape.filter(row => row.some(val => val !== 0));
-				const height = shape.length;
-				if (height === 0) {
-					return {};
-				}
-				const width = shape[0].length;
-				return {
-					display: 'grid',
-					gridTemplateColumns: `repeat(${width}, 30px)`,
-					gridTemplateRows: `repeat(${height}, 30px)`,
-					gridGap: '1px',
-				};
-			},
 			nextPieceBlocks() {
 				if (!this.nextTetromino) {
-					return [];
+					return Array(16).fill('');
 				}
 				const {shape, color} = this.nextTetromino;
-				const realShape = shape.filter(row => row.some(val => val !== 0));
-				return realShape.flat().map(val => val === 0 ? '' : color);
+				// 创建4x4网格，居中放置方块
+				const result = Array(16).fill('');
+				const rows = shape.length;
+				const cols = shape[0].length;
+				const startRow = Math.floor((4 - rows) / 2);
+				const startCol = Math.floor((4 - cols) / 2);
+				for (let r = 0; r < rows; r++) {
+					for (let c = 0; c < cols; c++) {
+						if (shape[r][c] !== 0) {
+							const idx = (startRow + r) * 4 + (startCol + c);
+							result[idx] = color;
+						}
+					}
+				}
+				return result;
 			},
 			overlayText() {
 				if (this.isGameOver) {
@@ -534,6 +518,10 @@
 				if (clearedLines > 0) {
 					this.lines += clearedLines;
 					this.score += clearedLines * 10 * clearedLines * this.level;
+					if (this.score > this.highScore) {
+						this.highScore = this.score;
+						localStorage.setItem('tetrisHighScore', this.highScore);
+					}
 					const newLevel = Math.floor(this.lines / 10) + this.settings.startLevel;
 					if (newLevel > this.level) {
 						this.level = newLevel;
@@ -598,9 +586,6 @@
 				this.playerReset();
 			},
 			saveSettings() {
-				localStorage.setItem('tetrisSettings', JSON.stringify(this.settings));
-			},
-			restoreDefaultSize() {
 				this.settings.cols = 10;
 				this.settings.rows = 20;
 			},
