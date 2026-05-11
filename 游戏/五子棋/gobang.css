@@ -3,10 +3,13 @@
 :root {
 	--board-bg-color: #deb887; /* 棋盘背景色 */
 	--line-color: #333; /* 线条颜色 */
+	--cell-size: 40px; /* 棋盘格尺寸 */
 	--board-size: 15; /* 棋盘路数 */
 }
 
-.one.chessboard {
+.board {
+	--board-cols: 15;
+	--board-rows: 15;
 	--cell-size: 40px; /* 格子尺寸，覆盖 biz.css 继承的值 */
 	--board-total-size: calc(var(--cell-size) * var(--board-size));
 	display: grid;
@@ -21,7 +24,7 @@
 	height: fit-content;
 }
 
-.one.chessboard .cell {
+.board .cell {
 	display: flex;
 	justify-content: center;
 	align-items: center;

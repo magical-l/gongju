@@ -110,10 +110,10 @@
 
 	/* 棋子库内棋子尺寸见 xiangqi.css .piece.palette .unit.display */
 
-	.chessboard.container {
+	.gaming.area .main.map.area {
 		justify-self: center;
 		align-self: start;
-		gap: var(--gap);
+		
 	}
 
 	.card.header.content {
@@ -308,8 +308,8 @@
 		</header>
 
 		<!-- 主棋盘固定 60px/格，水平居中、垂直靠顶 -->
-		<div class="chessboard container flex items-near-x-center items-near-y-start">
-			<article v-if="!showReversedView" class="one chessboard , grid no-gap"
+		<article class="main map area flex items-near-x-center items-near-y-start">
+			<section v-if="!showReversedView" class="board grid no-gap"
 							 :class="{ editor: !isGaming, area: isGaming }">
 				<template v-if="positions && positions.length > 0" v-for="(row, r) in positions">
 					<div class="cell" v-for="(position, c) in row" :key="position.toString()"
@@ -326,8 +326,8 @@
 						</div>
 					</div>
 				</template>
-			</article>
-			<article v-else class="one chessboard reversed view , grid no-gap"
+			</section>
+			<section v-else class="board reversed view grid no-gap"
 							 v-if="positions && positions.length > 0">
 				<template v-for="(row,rIndex) of reversedPositions">
 					<div class="cell" v-for="(position,cIndex) in row" :key="position.toString()"
@@ -341,8 +341,8 @@
 						</div>
 					</div>
 				</template>
-			</article>
-		</div>
+			</section>
+		</article>
 
 		<aside class="left-sidebar">
 			<el-card shadow="never">
@@ -350,7 +350,7 @@
 					<el-collapse-item name="view" title="对面视角" class="sidebar-view-panel">
 						<div class="reversed-board-in-sidebar" v-if="positions && positions.length > 0">
 							<!-- 交换视角：开关开时主区为对面、侧栏为正常；关时主区为正常、侧栏为对面 -->
-							<article v-if="showReversedView" class="one chessboard sidebar-reversed-board , grid no-gap"
+							<article v-if="showReversedView" class="board sidebar-reversed-board , grid no-gap"
 											 :class="{ editor: !isGaming, area: isGaming }">
 								<template v-for="(row, r) in positions">
 									<div class="cell" v-for="(position, c) in row" :key="'sb-'+position.toString()"
@@ -365,7 +365,7 @@
 									</div>
 								</template>
 							</article>
-							<article v-else class="one chessboard reversed view sidebar-reversed-board , grid no-gap">
+							<article v-else class="board reversed view sidebar-reversed-board , grid no-gap">
 								<template v-for="(row,rIndex) of reversedPositions">
 									<div class="cell" v-for="(position,cIndex) in row" :key="'rev-'+position.toString()"
 											 :class="getDynamicCellClasses(9-rIndex, 8-cIndex, position, rIndex, cIndex)"

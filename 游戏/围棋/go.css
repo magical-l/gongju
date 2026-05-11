@@ -142,7 +142,7 @@
 }
 
 /* 棋盘区域 */
-.one.chessboard {
+.board {
 	display: grid;
 	justify-content: center;
 	background: #cda66e; /* 略深木纹色 */
@@ -153,7 +153,7 @@
 }
 
 /* 单元格：交叉点所在的可点击面积（含线），限定在棋盘内避免影响 el-table .cell */
-.one.chessboard .cell {
+.board .cell {
 	position: relative;
 	width: var(--cell);
 	height: var(--cell);
@@ -161,34 +161,34 @@
 
 /* 画线：使用::before/::after生成网格线条（交叉对齐） */
 /* 网格线：每格仅绘制右半段横线与下半段竖线，自动形成四角L形 */
-.one.chessboard .cell::before, .one.chessboard .cell::after {
+.board .cell::before, .board .cell::after {
 	content: '';
 	position: absolute;
 	background: #6e4f2e; /* 更深网格线 */
 	opacity: .9;
 }
 
-.one.chessboard .cell::before { /* 横线 */
+.board .cell::before { /* 横线 */
 	left: 0; right: 0; top: 50%;
 	height: 1px; transform: translateY(-.5px);
 }
 
-.one.chessboard .cell::after { /* 竖线 */
+.board .cell::after { /* 竖线 */
 	top: 0; bottom: 0; left: 50%;
 	width: 1px; transform: translateX(-.5px);
 }
 
 /* 棋盘边界：首/末行列仅保留“向内半段”以形成L角 */
-.one.chessboard .cell.edge-top::after { top: 50%; bottom: 0; }
+.board .cell.edge-top::after { top: 50%; bottom: 0; }
 
-.one.chessboard .cell.edge-bottom::after { top: 0; bottom: 50%; }
+.board .cell.edge-bottom::after { top: 0; bottom: 50%; }
 
-.one.chessboard .cell.edge-left::before { left: 50%; right: 0; }
+.board .cell.edge-left::before { left: 50%; right: 0; }
 
-.one.chessboard .cell.edge-right::before { left: 0; right: 50%; }
+.board .cell.edge-right::before { left: 0; right: 50%; }
 
 /* 星位点（更显眼） */
-.one.chessboard .cell .star {
+.board .cell .star {
 	position: absolute;
 	width: calc(var(--cell) * 0.266); height: calc(var(--cell) * 0.266); border-radius: 50%;
 	background: #2f2f2f;
@@ -247,11 +247,11 @@
 .preview-white { background: radial-gradient(circle at 30% 30%, #fff, #e9e9e9); }
 
 /* 悬停边框辅助 */
-.one.chessboard .cell.hoverable:hover { outline: 2px dashed rgba(42, 133, 255, .30); outline-offset: -2px; }
+.board .cell.hoverable:hover { outline: 2px dashed rgba(42, 133, 255, .30); outline-offset: -2px; }
 
 /* 触屏设备不显示 hover 虚线 */
 @media (hover: none) {
-	.one.chessboard .cell.hoverable:hover { outline: none; }
+	.board .cell.hoverable:hover { outline: none; }
 }
 
 /* 新落子动画 */
@@ -275,7 +275,7 @@
 	display: none !important;
 }
 
-.is-replaying .one.chessboard .cell.hoverable:hover {
+.is-replaying .board .cell.hoverable:hover {
 	outline: none !important;
 }
 

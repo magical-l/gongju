@@ -38,7 +38,7 @@
 <style>
 	.gaming.area { --反叵字形-gap: 2em; }
 
-	#game-board-container {
+	.board-container {
 		position: relative;
 		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 		border: 2px solid #ced4da;
@@ -46,37 +46,41 @@
 		display: inline-block;
 	}
 
-	#game-board {
-		background: #e9ecef;
+	.board {
+				--cell-empty: rgba(0, 0, 0, 0.05);
+				--cell-size: 30px;
+				--unit-radius: 2px;
+			background: #e9ecef;
 		border: 2px solid #495057;
 		grid-gap: 1px;
 	}
 
-	.cell {
-		width: 30px; height: 30px;
-		background-color: rgba(0, 0, 0, 0.05);
-		border-radius: 2px;
+
+	.board .cell:not(:empty) { background-color: #ccc; }
+
+	.board .cell.I { background-color: #a0e7e5; }
+
+	.board .cell.O { background-color: #ffd6a5; }
+
+	.board .cell.T { background-color: #d4a5a5; }
+
+	.board .cell.J { background-color: #89c2d9; }
+
+	.board .cell.L { background-color: #f4a261; }
+
+	.board .cell.S { background-color: #b2e0b8; }
+
+	.board .cell.Z { background-color: #ffb3c1; }
+
+	.board .cell.ghost { background-color: #495057; opacity: 0.15; }
+
+
+	.board.preview {
+		grid-gap: 0;
+		background: transparent;
+		border: none;
+		padding: 0;
 	}
-
-	.cell:not(:empty) { background-color: #ccc; }
-
-	.cell.I { background-color: #a0e7e5; }
-
-	.cell.O { background-color: #ffd6a5; }
-
-	.cell.T { background-color: #d4a5a5; }
-
-	.cell.J { background-color: #89c2d9; }
-
-	.cell.L { background-color: #f4a261; }
-
-	.cell.S { background-color: #b2e0b8; }
-
-	.cell.Z { background-color: #ffb3c1; }
-
-	.cell.ghost { background-color: #495057; opacity: 0.15; }
-
-	.next.piece.container {min-height: 129px; }
 
 	#pause-overlay {
 		position: absolute; top: 0; left: 0;
@@ -217,8 +221,8 @@
 		</header>
 
 		<article class="flex items-near-x-center items-near-y-start" style="grid-row:2">
-			<section id="game-board-container">
-				<div id="game-board" class="grid" :style="boardStyle">
+			<section class="board-container">
+				<div class="board grid" :style="boardStyle">
 					<div v-for="(cell, index) in displayGrid" :key="index" :class="['cell', cell]"></div>
 				</div>
 				<div id="pause-overlay" v-if="isPaused || isGameOver" class="flex vertical near-center">
@@ -238,13 +242,9 @@
 						<p>空格：暂停/开始</p>
 					</el-collapse-item>
 					<el-collapse-item name="next" title="下一个">
-						<div class="next piece container , flex near-center">
-							<div :style="nextPieceStyle">
-								<div class="cell" v-for="(block, index) in nextPieceBlocks" :key="index" :class="block"></div>
-							</div>
-						</div>
-					</el-collapse-item>
-					<el-collapse-item name="score" title="本局信息">
+					<div class="board preview" :style="nextPieceStyle">
+						<div class="cell" v-for="(block, index) in nextPieceBlocks" :key="index" :class="block"></div>
+					</div>
 						<section>
 							<h3>分数</h3>
 							<p>{{ score }}</p>

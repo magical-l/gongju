@@ -27,7 +27,7 @@
 		align-items: start;
 	}
 
-	#main-map {
+	.board {
 		align-self: start;
 		box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
 		background: #e6eaf0;
@@ -184,8 +184,8 @@
 		</header>
 
 		<article class="main map area , flex items-near-x-center">
-			<section id="main-map" class="grid"
-							 :style="{ gridTemplateColumns: `repeat(${gameBoardCols}, 1fr)`, gridTemplateRows: `repeat(${gameBoardRows}, 1fr)` }">
+			<section class="board grid"
+							 :style="{ '--board-cols': gameBoardCols, '--board-rows': gameBoardRows, '--cell-size': '50px', gridTemplateColumns: `repeat(${gameBoardCols}, 1fr)`, gridTemplateRows: `repeat(${gameBoardRows}, 1fr)` }">
 				<template v-for="(row, rowIndex) in board" :key="rowIndex">
 					<div class="cell" v-for="(cell, colIndex) in row" :key="colIndex"
 							 :class="[cell ? 'b' : 'a', {'highlighted': highlightedCells[rowIndex * gameBoardCols + colIndex]}]"

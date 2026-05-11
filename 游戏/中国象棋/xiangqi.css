@@ -10,7 +10,10 @@
 	--black-color: #333;
 }
 
-.one.chessboard {
+.board {
+	--board-cols: 9;
+	--board-rows: 10;
+	--cell-size: 60px;
 	--min-cell-len: 60px;
 	--line-color: #333;
 	--line-stroke-width: 1px; /* 定义棋盘线条的粗细 */
@@ -21,18 +24,18 @@
 	height: fit-content; /* 避免被拉伸 */
 }
 
-.dual-view .one.chessboard {
+.dual-view .board {
 	--min-cell-len: 55px;
 }
 
-.one.chessboard .cell {
+.board .cell {
 	position: relative;
 	display: flex;
 	justify-content: center;
 	align-items: center;
 }
 
-.one.chessboard .cell .texture {
+.board .cell .texture {
 	position: absolute;
 	width: 100%;
 	height: 100%;
@@ -44,97 +47,97 @@
 }
 
 /* -------------边框线------------ */
-.one.chessboard .row-1 .texture,
-.one.chessboard .row-6 .texture {
+.board .row-1 .texture,
+.board .row-6 .texture {
 	background-image: url('棋盘纹理-顶边.svg');
 }
 
-.one.chessboard .row-10 .texture,
-.one.chessboard .row-5 .texture {
+.board .row-10 .texture,
+.board .row-5 .texture {
 	background-image: url('棋盘纹理-底边.svg');
 }
 
-.one.chessboard .col-1 .texture {
+.board .col-1 .texture {
 	background-image: url('棋盘纹理-左边.svg');
 }
 
-.one.chessboard .col-9 .texture {
+.board .col-9 .texture {
 	background-image: url('棋盘纹理-右边.svg');
 }
 
 /* -------------角------------- */
-.one.chessboard .row-1.col-1 .texture {
+.board .row-1.col-1 .texture {
 	background-image: url('棋盘纹理-角.svg');
 }
 
-.one.chessboard .row-1.col-9 .texture {
+.board .row-1.col-9 .texture {
 	background-image: url('棋盘纹理-角.svg');
 	rotate: 90deg;
 }
 
-.one.chessboard .row-10.col-1 .texture {
+.board .row-10.col-1 .texture {
 	background-image: url('棋盘纹理-角.svg');
 	rotate: -90deg;
 }
 
-.one.chessboard .row-10.col-9 .texture {
+.board .row-10.col-9 .texture {
 	background-image: url('棋盘纹理-角.svg');
 	rotate: 180deg;
 }
 
 /* -------九宫格、炮位、兵卒位------- */
-.one.chessboard .九宫 .texture::after,
-.one.chessboard .炮位.cell .texture::before,
-.one.chessboard .兵卒位.cell .texture::before,
-.one.chessboard .炮位 .texture::after,
-.one.chessboard .兵卒位 .texture::after {
+.board .九宫 .texture::after,
+.board .炮位.cell .texture::before,
+.board .兵卒位.cell .texture::before,
+.board .炮位 .texture::after,
+.board .兵卒位 .texture::after {
 	position: absolute;
 	width: 100%;
 	height: 100%;
 	display: block;
 }
 
-.one.chessboard .row-1.col-4 .texture::after,
-.one.chessboard .row-8.col-4 .texture::after {
+.board .row-1.col-4 .texture::after,
+.board .row-8.col-4 .texture::after {
 	content: url('棋盘纹理-半斜线.svg');
 	rotate: 180deg;
 }
 
-.one.chessboard .row-1.col-6 .texture::after,
-.one.chessboard .row-8.col-6 .texture::after {
+.board .row-1.col-6 .texture::after,
+.board .row-8.col-6 .texture::after {
 	content: url('棋盘纹理-半斜线.svg');
 	rotate: -90deg;
 }
 
-.one.chessboard .row-3.col-4 .texture::after,
-.one.chessboard .row-10.col-4 .texture::after {
+.board .row-3.col-4 .texture::after,
+.board .row-10.col-4 .texture::after {
 	content: url('棋盘纹理-半斜线.svg');
 	rotate: 90deg;
 }
 
-.one.chessboard .row-3.col-6 .texture::after,
-.one.chessboard .row-10.col-6 .texture::after {
+.board .row-3.col-6 .texture::after,
+.board .row-10.col-6 .texture::after {
 	content: url('棋盘纹理-半斜线.svg');
 }
 
 /* 窝心 */
-.one.chessboard .row-2.col-5 .texture::after,
-.one.chessboard .row-9.col-5 .texture::after {
+.board .row-2.col-5 .texture::after,
+.board .row-9.col-5 .texture::after {
 	content: url('棋盘纹理-交叉.svg');
 }
 
-.one.chessboard .炮位.cell .texture::before,
-.one.chessboard .兵卒位.cell .texture::before {
+.board .炮位.cell .texture::before,
+.board .兵卒位.cell .texture::before {
 	content: url('棋盘纹理-左花.svg');
 }
 
-.one.chessboard .炮位.cell .texture::after,
-.one.chessboard .兵卒位.cell .texture::after {
+.board .炮位.cell .texture::after,
+.board .兵卒位.cell .texture::after {
 	content: url('棋盘纹理-右花.svg');
 }
 
-.one.chessboard .兵卒位.cell.col-1 .texture::before,
-.one.chessboard .兵卒位.cell.col-9 .texture::after {
+.board .兵卒位.cell.col-1 .texture::before,
+.board .兵卒位.cell.col-9 .texture::after {
 	content: none;
 }
 
@@ -164,7 +167,7 @@
 	color: var(--red-color);
 }
 
-.one.chessboard .selected.unit.display {
+.board .selected.unit.display {
 	outline: 3px solid #007bff;
 	box-shadow: 0 0 10px #007bff;
 }
@@ -184,11 +187,11 @@
 }
 
 /* 统一用伪元素实现提示图标 */
-.one.chessboard .cell.movable::after,
-.one.chessboard .cell.attack::before,
-.one.chessboard .cell.attack::after,
-.one.chessboard .cell.blocked::before,
-.one.chessboard .cell.blocked::after {
+.board .cell.movable::after,
+.board .cell.attack::before,
+.board .cell.attack::after,
+.board .cell.blocked::before,
+.board .cell.blocked::after {
 	content: '';
 	position: absolute;
 	z-index: 20;
@@ -197,7 +200,7 @@
 }
 
 /* 可移动 */
-.one.chessboard .cell.movable::after {
+.board .cell.movable::after {
 	width: 40%;
 	height: 40%;
 	top: 30%;
@@ -207,8 +210,8 @@
 }
 
 /* 攻击 */
-.one.chessboard .cell.attack::before,
-.one.chessboard .cell.attack::after {
+.board .cell.attack::before,
+.board .cell.attack::after {
 	width: 60%;
 	height: 15%;
 	top: 42.5%;
@@ -217,16 +220,16 @@
 	border-radius: 2px;
 }
 
-.one.chessboard .cell.attack::before {
+.board .cell.attack::before {
 	transform: rotate(45deg);
 }
 
-.one.chessboard .cell.attack::after {
+.board .cell.attack::after {
 	transform: rotate(-45deg);
 }
 
 /* 阻挡 */
-.one.chessboard .cell.blocked::after { /* 圆圈 */
+.board .cell.blocked::after { /* 圆圈 */
 	width: 60%;
 	height: 60%;
 	top: 20%;
@@ -236,7 +239,7 @@
 	background-color: rgba(255, 255, 255, 0.3);
 }
 
-.one.chessboard .cell.blocked::before { /* 斜线 */
+.board .cell.blocked::before { /* 斜线 */
 	width: 70%;
 	height: 15%;
 	top: 42.5%;
@@ -247,6 +250,6 @@
 }
 
 /* 小视图（如右侧栏「交换视角」）棋盘：格子放大以便看清，整盘随侧栏加宽 */
-.reversed-board-in-sidebar .one.chessboard {
+.reversed-board-in-sidebar .board {
 	--min-cell-len: 36px;
 }

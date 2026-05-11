@@ -25,7 +25,7 @@
 		align-items: start;
 	}
 
-	#game-board {
+	.board {
 		display: grid;
 		gap: 6px;
 		border-radius: 12px;
@@ -35,11 +35,11 @@
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 	}
 
-	#game-board.board-won {
+	.board.board-won {
 		cursor: not-allowed;
 	}
 
-	#game-board.board-won .position {
+	.board.board-won .position {
 		cursor: not-allowed;
 	}
 
@@ -185,7 +185,7 @@
 	}
 
 	@media (max-width: 500px) {
-		#game-board {
+		.board {
 			padding: 8px;
 			gap: 4px;
 		}
@@ -278,7 +278,7 @@
 		</header>
 
 		<article class="main map area , flex items-near-x-center">
-			<div id="game-board" :style="boardStyle" :class="{ 'board-won': isWin && !showWinModal }">
+			<div class="board" :style="boardStyle" :class="{ 'board-won': isWin && !showWinModal }">
 				<div v-for="(val, index) in board" :key="index" :class="cellPositionClass(index)" @click="onCellClick(index)"
 					:draggable="layoutMode" @dragstart="onLayoutDragStart($event, index)" @dragend="onLayoutDragEnd"
 					@dragover.prevent @drop="onLayoutDrop($event, index)">
@@ -525,6 +525,8 @@
 				const innerH = boardH - padding * 2;
 				const cellSizePx = Math.min((innerW - (w - 1) * gap) / w, (innerH - (h - 1) * gap) / h);
 				return {
+					'--board-cols': w,
+					'--board-rows': h,
 					width: `${boardW}px`,
 					height: `${boardH}px`,
 					gridTemplateColumns: `repeat(${w}, 1fr)`,

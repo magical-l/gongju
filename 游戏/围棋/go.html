@@ -121,7 +121,7 @@
 				</div>
 
 				<!-- 棋盘 -->
-				<section class="one chessboard" :style="gridStyle">
+				<section class="board" :style="gridStyle">
 					<div v-if="!isGaming" v-for="i in pendingBoardSize * pendingBoardSize" :key="'cell-'+i"
 								class="cell"
 								:class="edgeClass({ rowNum: Math.ceil(i / pendingBoardSize), colNum: ((i - 1) % pendingBoardSize) + 1 })">

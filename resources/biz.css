@@ -102,18 +102,16 @@
 .gaming.area .main.map.area {
 	--cell-size: min(70vmin / var(--board-cols, 4), 70vmin / var(--board-rows, 4));
 }
-.gaming.area .main.map.area .board {
+.main.map.area .board {
 	grid-template-columns: repeat(var(--board-cols, 4), var(--cell-size));
 	grid-template-rows: repeat(var(--board-rows, 4), var(--cell-size));
 	width: fit-content;
 	height: fit-content;
 }
-.gaming.area .main.map.area .board .cell {
+.board .cell {
 	width: var(--cell-size);
 	height: var(--cell-size);
 	box-sizing: border-box;
-}
-.gaming.area .board .cell {
 	background: var(--cell-empty);
 	border-radius: var(--unit-radius);
 	min-width: 0;
