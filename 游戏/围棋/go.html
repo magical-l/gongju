@@ -109,60 +109,58 @@
 			</section>
 		</header>
 
-		<article class="gaming area , 叵字形 grid">
-			<article class="main map area one-row flex items-near-x-center">
-				<div class="board-wrapper">
-					<!-- 顶部列坐标 -->
-					<div v-if="showCoords" class="top-labels" :style="topGridStyle">
-						<div v-for="(c, i) in colLabels" :key="'col-'+i">{{ c }}</div>
-					</div>
-					<!-- 左侧行坐标 -->
-					<div v-if="showCoords" class="left-labels" :style="leftGridStyle">
-						<div v-for="(r, i) in rowLabels" :key="'row-'+i">{{ r }}</div>
-					</div>
-
-					<!-- 棋盘 -->
-					<section class="one chessboard" :style="gridStyle">
-						<div v-if="!isGaming" v-for="i in pendingBoardSize * pendingBoardSize" :key="'cell-'+i"
-								 class="cell"
-								 :class="edgeClass({ rowNum: Math.ceil(i / pendingBoardSize), colNum: ((i - 1) % pendingBoardSize) + 1 })">
-						</div>
-						<div v-if="isGaming" v-for="wrapper in flatPositions" :key="wrapper.position.toString()"
-								 class="cell"
-								 :class="[{ hoverable: isGaming && !isGameOver && isEmpty(wrapper.position) }, edgeClass(wrapper.position)]"
-								 @mouseenter="setPreview(wrapper.position)"
-								 @mouseleave="clearPreview()"
-								 @click="handleCellClick(wrapper.position)">
-							<div v-if="starSet.has(wrapper.position.toString())" class="star"></div>
-
-							<!-- 棋子 -->
-							<div v-if="wrapper.unit" class="unit piece display" :class="getUnitColor(wrapper.unit)">
-								<span v-if="showMoveNumbers" class="move-number">{{ wrapper.unit.moveNumber }}</span>
-							</div>
-
-							<!-- 影子棋预览 -->
-							<div v-else-if="previewPos && previewPos.isEqualTo(wrapper.position)"
-									 class="preview-stone" :class="previewClass"></div>
-						</div>
-					</section>
+		<article class="main map area one-row flex items-near-x-center">
+			<div class="board-wrapper">
+				<!-- 顶部列坐标 -->
+				<div v-if="showCoords" class="top-labels" :style="topGridStyle">
+					<div v-for="(c, i) in colLabels" :key="'col-'+i">{{ c }}</div>
 				</div>
-				<div v-if="showReplaySliderBar" class="replay-bar">
-					<span class="replay-bar-label">回放</span>
-					<el-slider
-							:key="sliderKey"
-							v-model="historySeek"
-							:min="0"
-							:max="historyTotal"
-							:step="1"
-							:show-tooltip="false"
-							:show-input="true"
-							:show-input-controls="true"
-							class="replay-bar-slider"
-							@change="onSeekHistory"
-					></el-slider>
-					<span class="replay-bar-index">{{ historyIndex }}/{{ historyTotal }}</span>
+				<!-- 左侧行坐标 -->
+				<div v-if="showCoords" class="left-labels" :style="leftGridStyle">
+					<div v-for="(r, i) in rowLabels" :key="'row-'+i">{{ r }}</div>
 				</div>
-			</article>
+
+				<!-- 棋盘 -->
+				<section class="one chessboard" :style="gridStyle">
+					<div v-if="!isGaming" v-for="i in pendingBoardSize * pendingBoardSize" :key="'cell-'+i"
+								class="cell"
+								:class="edgeClass({ rowNum: Math.ceil(i / pendingBoardSize), colNum: ((i - 1) % pendingBoardSize) + 1 })">
+					</div>
+					<div v-if="isGaming" v-for="wrapper in flatPositions" :key="wrapper.position.toString()"
+								class="cell"
+								:class="[{ hoverable: isGaming && !isGameOver && isEmpty(wrapper.position) }, edgeClass(wrapper.position)]"
+								@mouseenter="setPreview(wrapper.position)"
+								@mouseleave="clearPreview()"
+								@click="handleCellClick(wrapper.position)">
+						<div v-if="starSet.has(wrapper.position.toString())" class="star"></div>
+
+						<!-- 棋子 -->
+						<div v-if="wrapper.unit" class="unit piece display" :class="getUnitColor(wrapper.unit)">
+							<span v-if="showMoveNumbers" class="move-number">{{ wrapper.unit.moveNumber }}</span>
+						</div>
+
+						<!-- 影子棋预览 -->
+						<div v-else-if="previewPos && previewPos.isEqualTo(wrapper.position)"
+									class="preview-stone" :class="previewClass"></div>
+					</div>
+				</section>
+			</div>
+			<div v-if="showReplaySliderBar" class="replay-bar">
+				<span class="replay-bar-label">回放</span>
+				<el-slider
+						:key="sliderKey"
+						v-model="historySeek"
+						:min="0"
+						:max="historyTotal"
+						:step="1"
+						:show-tooltip="false"
+						:show-input="true"
+						:show-input-controls="true"
+						class="replay-bar-slider"
+						@change="onSeekHistory"
+				></el-slider>
+				<span class="replay-bar-index">{{ historyIndex }}/{{ historyTotal }}</span>
+			</div>
 		</article>
 
 		<aside class="left-sidebar">

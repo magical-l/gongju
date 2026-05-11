@@ -3,23 +3,22 @@
 :root {
 	--board-bg-color: #deb887; /* 棋盘背景色 */
 	--line-color: #333; /* 线条颜色 */
-	--cell-size: 40px; /* 棋盘格尺寸 */
 	--board-size: 15; /* 棋盘路数 */
 }
 
 .one.chessboard {
+	--cell-size: 40px; /* 格子尺寸，覆盖 biz.css 继承的值 */
 	--board-total-size: calc(var(--cell-size) * var(--board-size));
-	width: var(--board-total-size);
-	height: var(--board-total-size);
 	display: grid;
-	grid-template-columns: repeat(var(--board-size), 1fr);
-	grid-template-rows: repeat(var(--board-size), 1fr);
+	grid-template-columns: repeat(var(--board-size), var(--cell-size));
+	grid-template-rows: repeat(var(--board-size), var(--cell-size));
 	background-color: var(--board-bg-color);
 	border: none;
 	border-right: 1px solid var(--line-color);
 	border-bottom: 1px solid var(--line-color);
 	box-sizing: content-box;
 	position: relative;
+	height: fit-content;
 }
 
 .one.chessboard .cell {
