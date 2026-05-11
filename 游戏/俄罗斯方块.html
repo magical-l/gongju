@@ -38,59 +38,45 @@
 <style>
 	.gaming.area { --反叵字形-gap: 2em; }
 
-
-		.board {
-			--cell-empty: rgba(0, 0, 0, 0.08);
-			--cell-size: 30px;
-			--unit-radius: 0;
-			grid-gap: 0;
-		}
-
-		.board.preview {
-			--board-cols: 4;
-			--board-rows: 4;
-			--board-padding: 0;
-			--board-bg: transparent;
-			--grid-line: transparent;
-			--board-radius: 0;
-			width: fit-content;
-			height: fit-content;
-		}
-
-		.scoreboard .el-card__header { padding: 8px 12px; }
-
-
+	.board {
+		--cell-empty: rgba(0, 0, 0, 0.08);
+		--cell-size: 30px;
+		--unit-radius: 0;
+		grid-gap: 0;
+	}
+	.board.preview {
+		--board-cols: 4;
+		--board-rows: 4;
+		--board-padding: 0;
+		--board-bg: transparent;
+		--grid-line: transparent;
+		--board-radius: 0;
+		width: fit-content;
+		height: fit-content;
+	}
 	.board .cell.I { background-color: #7dd3c0; }
-
 	.board .cell.O { background-color: #f9e2af; }
-
 	.board .cell.T { background-color: #cba6f7; }
-
 	.board .cell.J { background-color: #89b4fa; }
-
 	.board .cell.L { background-color: #fab387; }
-
 	.board .cell.S { background-color: #a6e3a1; }
-
 	.board .cell.Z { background-color: #f38ba8; }
-
 	.board .cell.ghost { background-color: #495057; opacity: 0.25; }
+	.board .cell {
+		border: 1px solid rgba(0, 0, 0, 0.15);
+	}
 
-		.board .cell {
-			border: 1px solid rgba(0, 0, 0, 0.15);
-		}
-
-
-	#pause-overlay {
-	position: absolute; top: 0; left: 0;
+	.pause.overlay {
+		position: absolute; top: 0; left: 0;
 		width: 100%; height: 100%;
 		background: rgba(73, 80, 87, 0.7);
 		line-height: 1.5; color: white; font-size: 2em; font-weight: bold;
 	}
 
-	.one.setting.input.number {width: 80px;}
+	.one.setting.number.input {width: 80px;}
 
 	.scoreboard section {text-align: center;}
+	.scoreboard .el-card__header { padding: 8px 12px; }
 </style>
 </head>
 <body class="grid 反叵字形">
@@ -164,7 +150,6 @@
 
 	<article class="gaming area , 叵字形 grid" v-cloak>
 		<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
-			<!--		<header class="item monopoly , toolbar flex items-mutex">-->
 			<section class="setting list area , flex single-line no-gap items-near-x-start items-near-y-center">
 				<div class="one setting group">
 					<el-form-item label="行" class="one setting : rows">
@@ -198,10 +183,10 @@
 			<section class="controller list area , flex single-line no-gap items-near-x-start items-near-y-center">
 				<div class="one controller group">
 					<el-button v-if="isPaused" class="one controller : pause" title="开始（快捷键：空格）" @click="togglePause"
-									 :disabled="isGameOver" type="primary" icon="VideoPlay">开始
+									:disabled="isGameOver" type="primary" icon="VideoPlay">开始
 					</el-button>
 					<el-button v-else class="one controller : pause" title="暂停（快捷键：空格）" @click="togglePause"
-									 :disabled="isGameOver" icon="VideoPause">暂停
+									:disabled="isGameOver" icon="VideoPause">暂停
 					</el-button>
 				</div>
 			</section>
@@ -213,15 +198,15 @@
 				</div>
 			</section>
 		</header>
-			<article class="main map area flex items-near-x-center items-near-y-start" style="grid-row:2">
-				<div class="board" :style="boardStyle">
-					<div v-for="(cell, index) in displayGrid" :key="index" :class="['cell', cell]"></div>
-					<div id="pause-overlay" v-if="isPaused || isGameOver" class="flex vertical near-center">
-						<div id="overlay-text">{{ overlayText }}</div>
-						<el-button class="start play btn" v-if="!isGameOver" @click="togglePause" icon="CaretRight"></el-button>
-					</div>
+		<article class="main map area , flex items-near-x-center items-near-y-start" style="grid-row:2">
+			<div class="board" :style="boardStyle">
+				<div v-for="(cell, index) in displayGrid" :key="index" :class="['cell', cell]"></div>
+				<div class="pause overlay , flex vertical near-center" v-if="isPaused || isGameOver">
+					<div class="overlay-text">{{ overlayText }}</div>
+					<el-button class="start play btn" v-if="!isGameOver" @click="togglePause" icon="CaretRight"></el-button>
 				</div>
-			</article>
+			</div>
+		</article>
 		<aside class="left-sidebar">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
@@ -676,7 +661,7 @@
 					crossorigin="anonymous"></script>
 	<!-- 展示广告1 -->
 	<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true"
-			 data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
+			data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
 	<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 </div>
 </body>
