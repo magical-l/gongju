@@ -84,7 +84,7 @@
 .grid.亚字形, .inline-grid.亚字形 {
 	grid-template-rows:
 		auto    /* Header 高度自适应内容 */
-		minmax(var(--layout-main-row-min), auto)     /* 主内容区：有最小高度，再填充剩余 */
+		minmax(var(--layout-main-row-min), 1fr)     /* 主内容区：有最小高度，再填充剩余 */
 		auto; /* Footer 高度自适应 */
 	grid-template-columns:
 		minmax(var(--亚字形-left-sidebar-min-width), var(--亚字形-left-sidebar-max-width))   /* 左侧：最小150px，最大占20%宽度 */
@@ -101,7 +101,7 @@
 .grid.叵字形, .inline-grid.叵字形 {
 	grid-template-rows:
 		auto    /* Header 高度自适应内容 */
-		minmax(var(--layout-main-row-min), auto)     /* 主内容区：有最小高度，再填充剩余 */
+		minmax(var(--layout-main-row-min), 1fr)     /* 主内容区：有最小高度，再填充剩余 */
 		auto; /* Footer 高度自适应 */
 	grid-template-columns: minmax(var(--叵字形-left-sidebar-min-width), var(--叵字形-left-sidebar-max-width)) 1fr;
 	grid-template-areas:
@@ -115,7 +115,7 @@
 .grid.反叵字形, .inline-grid.反叵字形 {
 	grid-template-rows:
 		auto    /* Header 高度自适应内容 */
-		minmax(var(--layout-main-row-min), auto)     /* 主内容区：有最小高度，再填充剩余 */
+		minmax(var(--layout-main-row-min), 1fr)     /* 主内容区：有最小高度，再填充剩余 */
 		auto; /* Footer 高度自适应 */
 	grid-template-columns: 1fr minmax(var(--反叵字形-right-sidebar-min-width), var(--反叵字形-right-sidebar-max-width));
 	grid-template-areas:
@@ -129,7 +129,7 @@
 .grid.目字形, .inline-grid.目字形 {
 	grid-template-rows:
 		auto    /* Header 高度自适应内容 */
-		minmax(var(--layout-main-row-min), auto)     /* 主内容区：有最小高度，再填充剩余 */
+		minmax(var(--layout-main-row-min), 1fr)     /* 主内容区：有最小高度，再填充剩余 */
 		auto; /* Footer 高度自适应 */
 	grid-template-columns: 1fr;
 	grid-template-areas:

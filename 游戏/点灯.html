@@ -25,20 +25,31 @@
 		margin-top: 20px;
 		gap: var(--gap);
 		align-items: start;
+		grid-template-rows: auto 1fr;
+	}
+
+	.main.map.area {
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 
 	.board {
-		align-self: start;
 		box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
 		background: #e6eaf0;
 		border-radius: 10px;
 		padding: 10px;
 		gap: var(--gap);
+		--cell-size: min(calc((100vh - 250px - var(--board-rows) * 10px) / var(--board-rows)),
+		                 calc((100vw - 200px - var(--board-cols) * 10px) / var(--board-cols)),
+		                 80px);
+		grid-template-columns: repeat(var(--board-cols), var(--cell-size));
+		grid-template-rows: repeat(var(--board-rows), var(--cell-size));
 	}
 
 	.cell {
-		width: 50px;
-		height: 50px;
+		width: var(--cell-size);
+		height: var(--cell-size);
 		border-radius: 8px;
 		cursor: pointer;
 		transition: all 0.2s;
@@ -57,16 +68,15 @@
 		background: linear-gradient(135deg, #a8e6cf 0%, #dcedc1 100%);
 	}
 
-	.scoreboard section { text-align: center; }
+	.scoreboard .el-card__header { padding: 8px 12px; }
 
-	.moves {
-		margin: 15px 0;
-		font-size: 1.2rem;
-		font-weight: bold;
-		color: #4a4a4a;
+	.left-sidebar .el-empty {
+		min-height: 100px;
+		padding: 30px 0;
 	}
 
 	.round.list.container {
+		min-height: 100px;
 		max-height: 330px;
 		overflow-y: auto;
 		background-color: #fff;
@@ -95,11 +105,6 @@
 	}
 
 	@media (max-width: 500px) {
-		.cell {
-			width: 40px;
-			height: 40px;
-		}
-
 		h1 {
 			font-size: 2rem;
 		}
@@ -140,11 +145,11 @@
 			<el-button class="page-lv help btn" title="游戏介绍" @click="introVisible = true" size="small" circle>?
 			</el-button>
 			<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
-				<p>欢迎来到“熄灯游戏”（Lights Out），这是一款经典的益智游戏，由 Tiger Electronics 在 1995 年推出。</p>
+				<p>欢迎来到"熄灯游戏"（Lights Out），这是一款经典的益智游戏，由 Tiger Electronics 在 1995 年推出。</p>
 				<p>游戏的目标非常简单：通过点击格子，将棋盘上所有的灯光都点亮/熄灭（变成蓝色）。</p>
 				<p>游戏的规则是：点击任意一个格子，该格子以及其上下左右相邻的格子都会切换状态（亮变灭，灭变亮）。您需要巧妙地选择点击的顺序和位置，才能最终让所有灯光都点亮/熄灭。
 				</p>
-				<p>您可以选择不同大小的棋盘（例如 3x3、5x5、7x7 等）来挑战自己。游戏还提供了“提示”和“答案”功能，帮助您在遇到困难时找到解决方案。祝您玩得愉快！
+				<p>您可以选择不同大小的棋盘（例如 3x3、5x5、7x7 等）来挑战自己。游戏还提供了"提示"和"答案"功能，帮助您在遇到困难时找到解决方案。祝您玩得愉快！
 				</p>
 			</el-dialog>
 		</div>
@@ -167,7 +172,7 @@
 				</div>
 				<div class="one setting group">
 					<el-button :type="moveCount > 0 ? 'danger' : 'primary'" class="one setting : new-game" @click="initGame"
-										 icon="RefreshRight">新局
+									 icon="RefreshRight">新局
 					</el-button>
 				</div>
 			</section>
@@ -175,7 +180,7 @@
 				<div class="one tool group">
 					<el-button-group>
 						<el-button class="one tool : hint" @click="showRandomHint"
-										 :type="hintCellIndex !== null ? 'primary' : 'default'" icon="MagicStick">提示
+								 :type="hintCellIndex !== null ? 'primary' : 'default'" icon="MagicStick">提示
 						</el-button>
 						<el-button class="one tool : answer" @click="showAnswer" icon="Key">答案</el-button>
 					</el-button-group>
@@ -185,7 +190,7 @@
 
 		<article class="main map area , flex items-near-x-center">
 			<section class="board grid"
-							 :style="{ '--board-cols': gameBoardCols, '--board-rows': gameBoardRows, '--cell-size': '50px', gridTemplateColumns: `repeat(${gameBoardCols}, 1fr)`, gridTemplateRows: `repeat(${gameBoardRows}, 1fr)` }">
+							 :style="{ '--board-cols': gameBoardCols, '--board-rows': gameBoardRows }">
 				<template v-for="(row, rowIndex) in board" :key="rowIndex">
 					<div class="cell" v-for="(cell, colIndex) in row" :key="colIndex"
 							 :class="[cell ? 'b' : 'a', {'highlighted': highlightedCells[rowIndex * gameBoardCols + colIndex]}]"
@@ -199,14 +204,13 @@
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
 					<el-collapse-item name="score" title="本局信息">
-						<section>
-							<h3>移动次数</h3>
-							<p>{{ moveCount }}</p>
-						</section>
+						<el-card header="移动次数" class="scoreboard" body-class="value" shadow="never">
+							{{ moveCount }}
+						</el-card>
 					</el-collapse-item>
 					<el-collapse-item name="rounds" title="回合记录">
 						<el-button @click="exportRounds" :disabled="!rounds.length" icon="Download" size="small"
-											 style="margin-bottom: 8px;">导出
+								 style="margin-bottom: 8px;">导出
 						</el-button>
 						<el-empty v-if="!rounds.length" description="尚无记录。请开始吧！"></el-empty>
 						<div v-else class="round list container" ref="roundList">
@@ -231,7 +235,6 @@
 				<div class="confetti" v-for="i in 150" :key="'confetti'+i"></div>
 			</div>
 		</article>
-		</aside>
 	</article>
 </main>
 
@@ -349,7 +352,7 @@
 				board: [],
 				rounds: [],
 				highlightedCells: [],
-				hintCellIndex: null, // 提示开关：非 null 表示正在显示该格为提示，再点一次关闭
+				hintCellIndex: null,
 				showWinModal: false,
 				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
 				_gamingInfoCollapseKey: collapseKey,
@@ -431,13 +434,11 @@
 				}
 				this.rounds.push({row: row + 1, col: col + 1});
 			},
-			/** 提示：开关。开时随机显示一个建议按的格子，关时取消显示 */
 			showRandomHint() {
 				if (this.isWin) {
 					this.$message.success('已经赢了，无需提示！');
 					return;
 				}
-				// 当前已显示提示 → 再点一次即关闭
 				if (this.hintCellIndex !== null) {
 					this.highlightedCells = Array(this.gameBoardRows * this.gameBoardCols).fill(false);
 					this.hintCellIndex = null;
@@ -468,8 +469,7 @@
 				const randomIndex = Math.floor(Math.random() * solutionPresses.length);
 				const hintIndex = solutionPresses[randomIndex];
 
-				this.highlightedCells = Array(this.gameBoardRows * this.gameBoardCols).fill(false);
-				const newHighlights = [...this.highlightedCells];
+				const newHighlights = Array(this.gameBoardRows * this.gameBoardCols).fill(false);
 				newHighlights[hintIndex] = true;
 				this.highlightedCells = newHighlights;
 				this.hintCellIndex = hintIndex;
@@ -480,7 +480,7 @@
 					return;
 				}
 				const content = this.rounds.map((round, index) => `${index + 1}：第${round.row}行, 第${round.col}列`)
-														.join('\n');
+												.join('\n');
 
 				const blob = new Blob([content], {type: 'text/plain;charset=utf-8'});
 				const a = document.createElement('a');
@@ -496,7 +496,7 @@
 					this.$message.success('已经赢了，无需提示！');
 					return;
 				}
-				this.hintCellIndex = null; // 显示答案时关闭提示
+				this.hintCellIndex = null;
 				const solution = solveLightsOut(this.board);
 
 				if (!solution) {
@@ -555,10 +555,10 @@
 <div class="ad-container">
 	<!-- 谷歌广告联盟 -->
 	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"
-					crossorigin="anonymous"></script>
+				crossorigin="anonymous"></script>
 	<!-- 展示广告1 -->
 	<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true"
-			 data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
+		 data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
 	<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 </div>
 </body>
