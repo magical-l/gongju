@@ -2,10 +2,9 @@
 
 :root {
 	--page-bg: #E8F0E0;
-	/* 主题变量已由 .gaming.area 提供默认，此处仅覆盖本页需要的 */
 }
 
-/* 棋盘格子里的数字方块：填满格子、圆角、字体 */
+/* 棋盘格子里的数字方块 */
 .board .cell > .unit[class*="unit-"] {
 	inset: 0;
 	font-weight: bold;
@@ -15,71 +14,54 @@
 	user-select: none;
 }
 
-/* 各数字的颜色 */
-.unit.unit-2 { background: #e2ead8; color: #5a6b52; }
-.unit.unit-4 { background: #d4e0c8; color: #5a6b52; }
-.unit.unit-8 { background: #a8c99e; color: #f5f9f2; }
-.unit.unit-16 { background: #8fbc85; color: #f5f9f2; }
-.unit.unit-32 { background: #7cb37a; color: #f5f9f2; }
-.unit.unit-64 { background: #6ba36b; color: #f5f9f2; }
-.unit.unit-128 { background: #9cb87c; color: #f5f9f2; }
-.unit.unit-256 { background: #8ab06e; color: #f5f9f2; }
-.unit.unit-512 { background: #7aa862; color: #f5f9f2; }
-.unit.unit-1024 { background: #6a9f56; color: #f5f9f2; }
-.unit.unit-2048 { background: #5a8f4a; color: #f5f9f2; }
+/* 数字颜色 */
+.unit {
+	&.unit-2 { background: #e2ead8; color: #5a6b52; }
+	&.unit-4 { background: #d4e0c8; color: #5a6b52; }
+	&.unit-8 { background: #a8c99e; color: #f5f9f2; }
+	&.unit-16 { background: #8fbc85; color: #f5f9f2; }
+	&.unit-32 { background: #7cb37a; color: #f5f9f2; }
+	&.unit-64 { background: #6ba36b; color: #f5f9f2; }
+	&.unit-128 { background: #9cb87c; color: #f5f9f2; }
+	&.unit-256 { background: #8ab06e; color: #f5f9f2; }
+	&.unit-512 { background: #7aa862; color: #f5f9f2; }
+	&.unit-1024 { background: #6a9f56; color: #f5f9f2; }
+	&.unit-2048 { background: #5a8f4a; color: #f5f9f2; }
+}
 
-/* 棋盘尺寸与格子正方形由 biz.css .gaming.area .main.map.area .board 统一处理，此处仅保留消行动画等本页独有样式 */
-
-/* 消行动画：待消除行闪烁 */
+/* 消行动画 */
 @keyframes clear-line-flash {
 	0%, 100% { background: rgba(255, 255, 255, 0.95); color: #333; }
 	50% { background: rgba(255, 240, 180, 0.98); color: #333; }
 }
 
-.gaming.area .main.map.area .board .cell.clearing {
-	animation: clear-line-flash 0.12s ease-in-out infinite;
+.board .cell {
+	&.clearing {
+		animation: clear-line-flash 0.12s ease-in-out infinite;
+
+		> .unit { animation: clear-line-flash 0.12s ease-in-out infinite; }
+	}
+
+	/* 消行整理阶段 */
+	&.lc-remainder { --lc-s: #c62828; }
+	&.lc-above { --lc-s: #1565c0; }
+	&.lc-reform { --lc-s: #1565c0; }
+	&.lc-cur-above-whole { --lc-s: #1976d2; }
+	&.lc-cur-remainder { --lc-s: #e53935; }
+
+	[class*="lc-edge"] {
+		position: relative;
+		z-index: 1;
+		box-sizing: border-box;
+	}
+
+	&.lc-edge-top { border-top: 2px solid var(--lc-s); }
+	&.lc-edge-bottom { border-bottom: 2px solid var(--lc-s); }
+	&.lc-edge-left { border-left: 2px solid var(--lc-s); }
+	&.lc-edge-right { border-right: 2px solid var(--lc-s); }
 }
 
-.gaming.area .main.map.area .board .cell.clearing > .unit {
-	animation: clear-line-flash 0.12s ease-in-out infinite;
-}
-
-/* 消行整理阶段：剩格（暖色）与上方块（冷色）描边区分；整块上方块按 bbox 外凸矩形含空隙 */
-.gaming.area .main.map.area .board .cell.lc-remainder {
-	--lc-s: #c62828;
-}
-.gaming.area .main.map.area .board .cell.lc-above {
-	--lc-s: #1565c0;
-}
-/* 兼容旧 class，与同阶段 lc-above 同色（整理态已改用 lc-above / lc-remainder） */
-.gaming.area .main.map.area .board .cell.lc-reform {
-	--lc-s: #1565c0;
-}
-.gaming.area .main.map.area .board .cell.lc-cur-above-whole {
-	--lc-s: #1976d2;
-}
-.gaming.area .main.map.area .board .cell.lc-cur-remainder {
-	--lc-s: #e53935;
-}
-.gaming.area .main.map.area .board .cell[class*="lc-edge"] {
-	position: relative;
-	z-index: 1;
-	box-sizing: border-box;
-}
-.gaming.area .main.map.area .board .cell.lc-edge-top {
-	border-top: 2px solid var(--lc-s);
-}
-.gaming.area .main.map.area .board .cell.lc-edge-bottom {
-	border-bottom: 2px solid var(--lc-s);
-}
-.gaming.area .main.map.area .board .cell.lc-edge-left {
-	border-left: 2px solid var(--lc-s);
-}
-.gaming.area .main.map.area .board .cell.lc-edge-right {
-	border-right: 2px solid var(--lc-s);
-}
-
-/* 下一块预览：完全参考俄罗斯方块 .board.preview */
+/* 下一块预览 */
 .board.next-block {
 	--board-cols: 4;
 	--board-rows: 4;
@@ -91,8 +73,6 @@
 	width: fit-content;
 	height: fit-content;
 	margin: 0 auto;
-}
 
-.board.next-block .cell > .unit {
-	font-size: 12px;
+	.cell > .unit { font-size: 12px; }
 }

@@ -1,16 +1,16 @@
 @charset "UTF-8";
 
 :root {
-	--board-bg-color: #deb887; /* 棋盘背景色 */
-	--line-color: #333; /* 线条颜色 */
-	--cell-size: 40px; /* 棋盘格尺寸 */
-	--board-size: 15; /* 棋盘路数 */
+	--board-bg-color: #deb887;
+	--line-color: #333;
+	--cell-size: 40px;
+	--board-size: 15;
 }
 
 .board {
 	--board-cols: 15;
 	--board-rows: 15;
-	--cell-size: 40px; /* 格子尺寸，覆盖 biz.css 继承的值 */
+	--cell-size: 40px;
 	--board-total-size: calc(var(--cell-size) * var(--board-size));
 	display: grid;
 	grid-template-columns: repeat(var(--board-size), var(--cell-size));
@@ -22,76 +22,63 @@
 	box-sizing: content-box;
 	position: relative;
 	height: fit-content;
-}
 
-.board .cell {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	border-left: 1px solid var(--line-color);
-	border-top: 1px solid var(--line-color);
-}
+	.cell {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		border-left: 1px solid var(--line-color);
+		border-top: 1px solid var(--line-color);
 
-.unit.piece.display {
-	position: relative;
-	width: 90%;
-	height: 90%;
-	border-radius: 50%;
-	cursor: pointer;
-	box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
-}
+		&.hoverable:hover::after {
+			content: '';
+			width: 90%;
+			height: 90%;
+			border-radius: 50%;
+			opacity: 0.3;
+			z-index: 5;
+			cursor: pointer;
+		}
 
-.unit.piece.display.player-black {
-	background-color: #333;
-}
+		&.hoverable.player-black-hover:hover::after { background-color: black; }
+		&.hoverable.player-white-hover:hover::after { background-color: white; }
+	}
 
-.unit.piece.display.player-white {
-	background-color: #f0f0f0;
-	border: 1px solid #ccc;
-}
+	.unit.piece.display {
+		position: relative;
+		width: 90%;
+		height: 90%;
+		border-radius: 50%;
+		cursor: pointer;
+		box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
 
-.cell.hoverable:hover::after {
-	content: '';
-	width: 90%;
-	height: 90%;
-	border-radius: 50%;
-	opacity: 0.3;
-	z-index: 5;
-	cursor: pointer;
-}
+		&.player-black { background-color: #333; }
+		&.player-white { background-color: #f0f0f0; border: 1px solid #ccc; }
 
-.cell.hoverable.player-black-hover:hover::after {
-	background-color: black;
-}
+		.last-move-marker {
+			position: absolute;
+			width: 10px;
+			height: 10px;
+			background-color: rgba(255, 0, 0, 0.7);
+			border-radius: 50%;
+			z-index: 15;
+			top: -5px;
+			right: -5px;
+		}
 
-.cell.hoverable.player-white-hover:hover::after {
-	background-color: white;
-}
+		.move-number {
+			position: absolute;
+			font-size: 0.8em;
+			font-weight: bold;
+			color: white;
+			text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+			z-index: 10;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			pointer-events: none;
+		}
 
-.piece.last-move-marker {
-	position: absolute;
-	width: 10px;
-	height: 10px;
-	background-color: rgba(255, 0, 0, 0.7);
-	border-radius: 50%;
-	z-index: 15;
-	top: -5px;
-	right: -5px;
-}
-
-.piece.move-number {
-	position: absolute;
-	font-size: 0.8em;
-	font-weight: bold;
-	color: white;
-	text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
-	z-index: 10;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-	pointer-events: none;
-}
-
-.unit.piece.display.player-white .piece.move-number {
-	color: black;
+		&.player-white .move-number { color: black; }
+	}
 }

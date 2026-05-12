@@ -4,7 +4,9 @@
 	--page-bg: #E8F0E0;
 }
 
-/* 棋盘格子里的数字方块：填满格子、圆角、字体 */
+/* 本页 .board 需 min-height（通用见 biz.css） */
+.gaming.area .board { min-height: 200px; }
+
 .board .cell > .unit[class*="unit-"] {
 	inset: 0;
 	font-weight: bold;
@@ -14,52 +16,48 @@
 	user-select: none;
 }
 
-/* 各数字的颜色 */
-.unit.unit-2 { background: #e2ead8; color: #5a6b52; }
-.unit.unit-4 { background: #d4e0c8; color: #5a6b52; }
-.unit.unit-8 { background: #a8c99e; color: #f5f9f2; }
-.unit.unit-16 { background: #8fbc85; color: #f5f9f2; }
-.unit.unit-32 { background: #7cb37a; color: #f5f9f2; }
-.unit.unit-64 { background: #6ba36b; color: #f5f9f2; }
-.unit.unit-128 { background: #9cb87c; color: #f5f9f2; }
-.unit.unit-256 { background: #8ab06e; color: #f5f9f2; }
-.unit.unit-512 { background: #7aa862; color: #f5f9f2; }
-.unit.unit-1024 { background: #6a9f56; color: #f5f9f2; }
-.unit.unit-2048 { background: #5a8f4a; color: #f5f9f2; }
-
-/* 本页 .board 需 min-height（通用见 biz.css） */
-.gaming.area .board {
-	min-height: 200px;
-}
-
-.unit img {
-	width: 100%;
-	height: 100%;
-	object-fit: contain;
-	display: block;
-}
-
-.unit > .new-badge {
-	position: absolute;
-	top: 2px;
-	right: 2px;
-	min-width: 14px;
-	height: 14px;
-	padding: 0 3px;
-	background: #C00;
-	color: #FFF;
-	border-radius: 50%;
-	font-size: 10px;
-	font-weight: bold;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	line-height: 1;
-	pointer-events: none;
-	z-index: 2;
-}
-
-/* 蛇头高亮（与普通格区分） */
-.cell > .unit.snake-head {
+.board .cell > .unit.snake-head {
 	box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.4);
+}
+
+/* 数字颜色 */
+.unit {
+	&.unit-2 { background: #e2ead8; color: #5a6b52; }
+	&.unit-4 { background: #d4e0c8; color: #5a6b52; }
+	&.unit-8 { background: #a8c99e; color: #f5f9f2; }
+	&.unit-16 { background: #8fbc85; color: #f5f9f2; }
+	&.unit-32 { background: #7cb37a; color: #f5f9f2; }
+	&.unit-64 { background: #6ba36b; color: #f5f9f2; }
+	&.unit-128 { background: #9cb87c; color: #f5f9f2; }
+	&.unit-256 { background: #8ab06e; color: #f5f9f2; }
+	&.unit-512 { background: #7aa862; color: #f5f9f2; }
+	&.unit-1024 { background: #6a9f56; color: #f5f9f2; }
+	&.unit-2048 { background: #5a8f4a; color: #f5f9f2; }
+
+	img {
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+		display: block;
+	}
+
+	.new-badge {
+		position: absolute;
+		top: 2px;
+		right: 2px;
+		min-width: 14px;
+		height: 14px;
+		padding: 0 3px;
+		background: #C00;
+		color: #FFF;
+		border-radius: 50%;
+		font-size: 10px;
+		font-weight: bold;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		line-height: 1;
+		pointer-events: none;
+		z-index: 2;
+	}
 }

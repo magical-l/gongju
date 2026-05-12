@@ -1,73 +1,70 @@
 @charset "UTF-8";
 
 /* 设置单选组/多选组在按钮模式下第一个按钮的圆角。
-	原生element-plus标在了内部的span上，导致如果在最外层设置background的话，没有圆角
-	*/
-.el-radio-group > .el-radio-button:first-child,
-.el-checkbox-group > .el-checkbox-button:first-child {
-	border-bottom-left-radius: var(--el-border-radius-base);
-	border-left: var(--el-border);
-	border-top-left-radius: var(--el-border-radius-base);
-	box-shadow: none !important;
-}
+原生element-plus标在了内部的span上，导致如果在最外层设置background的话，没有圆角
+*/
+.el-radio-group, .el-checkbox-group {
+	> .el-radio-button:first-child, > .el-checkbox-button:first-child {
+		border-bottom-left-radius: var(--el-border-radius-base);
+		border-left: var(--el-border);
+		border-top-left-radius: var(--el-border-radius-base);
+		box-shadow: none !important;
+	}
 
-/* 原本居然有30px的右外边距，当同组的两个radio并排时，显得不亲，还不如跟其他元素亲近。 */
-.el-radio-group > .el-radio {margin-right: 0;}
+	> .el-radio { margin-right: 0; }
+}
 
 /* type="info"的按钮也是灰色的，看起来像禁用，所以改改 */
 .el-button--info {
-	background-color: #ffffff; /* 纯白背景 */
-	border-color: #dcdfe6; /* 默认边框色 */
-	color: #606266; /* 默认文字色 */
+	background-color: #ffffff;
+	border-color: #dcdfe6;
+	color: #606266;
+
+	&:hover, &:focus {
+		background-color: #f5f7fa;
+		border-color: #c8c9cc;
+		color: #303133;
+	}
 }
 
-.el-button--info:hover,
-.el-button--info:focus {
-	background-color: #f5f7fa; /* 悬停时浅灰 */
-	border-color: #c8c9cc;
-	color: #303133; /* 悬停时文字稍深 */
-}
+.compact { --el-card-padding: 10px; }
 
-.compact {
-	--el-card-padding: 10px;
-}
+/* el-input prefix和placeholder间距 */
+.el-input__prefix { margin-right: 0.5em; }
 
-/* el-input / el-input-number 如果有prefix和placeholder，看起来就像连在一起，需要留出间距 */
-.el-input__prefix {
-	margin-right: 0.5em;
-}
-
-/* 按压式按钮：未按=凸起，按下=凹陷，配合 .pressed；用 el-button 加此类即可 */
+/* 按压式按钮：未按=凸起，按下=凹陷 */
 .按压式.el-button {
 	border-radius: var(--el-border-radius-base, 4px);
 	transition: box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 	cursor: pointer;
 	user-select: none;
-}
-.按压式.el-button:not(.pressed) {
-	background: var(--el-button-bg-color, #fff);
-	color: var(--el-text-color-regular);
-	box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
-}
-.按压式.el-button:not(.pressed):hover {
-	background: var(--el-button-hover-bg-color, #ecf5ff);
-	border-color: var(--el-color-primary-light-7);
-	color: var(--el-color-primary);
-}
-.按压式.el-button.pressed {
-	background: var(--el-color-primary);
-	border-color: var(--el-color-primary);
-	color: var(--el-color-white);
-	box-shadow:
-		inset 0 2px 4px rgba(0, 0, 0, 0.2),
-		inset 0 0 0 1px rgba(0, 0, 0, 0.08);
-}
-.按压式.el-button.pressed:hover {
-	background: var(--el-color-primary-light-3);
-	border-color: var(--el-color-primary-light-3);
+
+	&:not(.pressed) {
+		background: var(--el-button-bg-color, #fff);
+		color: var(--el-text-color-regular);
+		box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
+
+		&:hover {
+			background: var(--el-button-hover-bg-color, #ecf5ff);
+			border-color: var(--el-color-primary-light-7);
+			color: var(--el-color-primary);
+		}
+	}
+
+	&.pressed {
+		background: var(--el-color-primary);
+		border-color: var(--el-color-primary);
+		color: var(--el-color-white);
+		box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+
+		&:hover {
+			background: var(--el-color-primary-light-3);
+			border-color: var(--el-color-primary-light-3);
+		}
+	}
 }
 
-/* 打开 el-dialog / el-drawer 时，禁止背后的 body 滚动。 */
+/* 打开 el-dialog / el-drawer 时，禁止背后的 body 滚动 */
 body:has(.el-overlay:not([style*="display: none"]):not([style*="display:none"])) {
 	overflow: hidden;
 }

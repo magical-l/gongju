@@ -24,10 +24,8 @@
 }
 
 /* ======================== CDN补充样式 ======================== */
-/* 工具类：禁止指针事件 */
 .pointer-events-none { pointer-events: none; }
 
-/* 花活.css CDN版本缺少胜利弹窗内容样式 */
 .modal > .body {
 	position: relative;
 	z-index: 1001;
@@ -39,32 +37,17 @@
 	text-align: center;
 	transform: scale(0.7);
 	animation: zoomIn 0.5s forwards;
+
+	> h2 { color: #27AE60; font-size: 2.5em; margin-bottom: 15px; }
+	> p { color: #555; font-size: 1.2em; margin-bottom: 30px; }
 }
 
-@keyframes zoomIn {
-	to {
-		transform: scale(1);
-	}
-}
-
-.modal > .body > h2 {
-	color: #27AE60;
-	font-size: 2.5em;
-	margin-bottom: 15px;
-}
-
-.modal > .body > p {
-	color: #555;
-	font-size: 1.2em;
-	margin-bottom: 30px;
-}
+@keyframes zoomIn { to { transform: scale(1); } }
 
 /* ======================== 游戏布局变量 ======================== */
-
 .gaming.area {
 	--right-sidebar-min-width: 380px;
-	--gap: 0.75rem; /* toolbar 与 main、main 与 right-sidebar 的间隙 */
-	/* 2048 系主题默认，各页可借 :root 覆盖 */
+	--gap: 0.75rem;
 	--board-cols: 4;
 	--board-rows: 4;
 	--text-dark: #5a6b52;
@@ -75,13 +58,11 @@
 	--unit-radius: 0;
 	--board-radius: 8px;
 	--board-padding: 12px;
+
+	&:focus, .main.map.area:focus { outline: none; }
 }
 
-.gaming.area:focus, .main.map.area:focus {
-	outline: none;
-}
-
-/* 主地图区通用：尽量铺满父级、定位、flex、与 right-sidebar 上沿对齐；默认尺寸与主区颜色/gap 统一，仅在有特殊需求时覆盖 */
+/* 主地图区 */
 .main.map.area {
 	position: relative;
 	width: 100%;
@@ -100,9 +81,7 @@
 	-webkit-user-select: none;
 }
 
-/* 棋盘格：格子无间隙、单位铺满格子；格线用 border（--grid-line）。
- * .board .cell position:relative 作为定位上下文，使子元素 .unit 的 absolute 相对于格子定位；
- * .unit position:absolute; inset:0 使方块填满整格、不参与文档流，便于动画（如 2048 滑格）与统一尺寸。 */
+/* 棋盘格 */
 .board .cell {
 	position: relative;
 	width: var(--cell-size);
@@ -116,15 +95,16 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-}
-.board .cell > .unit {
-	position: absolute;
-	display: flex;
-	align-items: center;
-	justify-content: center;
+
+	> .unit {
+		position: absolute;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
 }
 
-/* 游戏区 .board 通用（依赖 --board-cols/--board-rows，各页设于根或元素）；100% 宽高仅用于主地图区棋盘，侧栏等小棋盘自行设尺寸 */
+/* 游戏区棋盘 */
 .gaming.area .board {
 	display: grid;
 	grid-template-columns: repeat(var(--board-cols, 4), 1fr);
@@ -137,10 +117,11 @@
 	position: relative;
 	box-sizing: border-box;
 }
-/* 主地图区棋盘：格子固定为 --cell-size 正方形，棋盘 = 行列×格；--cell-size 用 vmin 避免依赖父尺寸导致 0 */
+
 .gaming.area .main.map.area {
 	--cell-size: min(70vmin / var(--board-cols, 4), 70vmin / var(--board-rows, 4));
 }
+
 .main.map.area .board {
 	grid-template-columns: repeat(var(--board-cols, 4), var(--cell-size));
 	grid-template-rows: repeat(var(--board-rows, 4), var(--cell-size));
@@ -148,7 +129,7 @@
 	height: fit-content;
 }
 
-/* 暂停遮罩（放在棋盘等 position:relative 的容器内即可盖住该区域） */
+/* 暂停遮罩 */
 .gaming.area .pause.overlay {
 	position: absolute;
 	inset: 0;
@@ -161,20 +142,22 @@
 	background: rgba(0, 0, 0, 0.5);
 	border-radius: var(--board-radius);
 	pointer-events: auto;
-}
-.gaming.area .pause.overlay .title {
-	font-size: clamp(1.25rem, 4vw, 2rem);
-	font-weight: 600;
-	color: var(--text-light);
-	text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-}
-.gaming.area .pause.overlay .hint {
-	margin: 0;
-	font-size: 0.875rem;
-	color: rgba(255, 255, 255, 0.85);
+
+	.title {
+		font-size: clamp(1.25rem, 4vw, 2rem);
+		font-weight: 600;
+		color: var(--text-light);
+		text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+	}
+
+	.hint {
+		margin: 0;
+		font-size: 0.875rem;
+		color: rgba(255, 255, 255, 0.85);
+	}
 }
 
-/* 结算弹框：本局统计与提示 */
+/* 结算弹框 */
 .game.result.stats {
 	display: grid;
 	grid-template-columns: auto 1fr;
@@ -182,15 +165,18 @@
 	margin: 0;
 	font-size: 14px;
 	color: var(--text-dark);
+
+	dt { font-weight: 600; margin: 0; }
+	dd { margin: 0; }
 }
-.game.result.stats dt { font-weight: 600; margin: 0; }
-.game.result.stats dd { margin: 0; }
+
 .game.result .hint {
 	font-size: 12px;
 	color: var(--text-dark);
 	margin: 0 0 0.5rem;
 	opacity: 0.85;
 }
+
 .scoreboard .value {
 	font-size: clamp(1.75rem, 5vw, 2.5rem);
 	font-weight: 700;
@@ -199,10 +185,9 @@
 	color: var(--text-dark);
 }
 
-/*===========================网站结构=======================*/
-/*-------------------------整个导航栏--------------------*/
+/* ======================== 网站结构 ======================== */
 body > header {
-	grid-area: header; /* 若外层非grid容器，无影响。 */
+	grid-area: header;
 	background-color: #FFF;
 	border-bottom: 1px solid #DEE2E6;
 	padding: 1rem 1rem;
@@ -211,54 +196,43 @@ body > header {
 	gap: 1rem;
 	justify-content: space-between;
 	align-items: center;
+
+	.website.name { margin: 0; font-size: 1.5rem; font-weight: 600; }
+
+	nav {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.35rem;
+		font-size: 0.875rem;
+		flex: 1;
+		min-width: 0;
+
+		.nav-row {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 1rem;
+			align-items: center;
+			justify-content: flex-start;
+			width: 100%;
+
+			&:last-child { padding-left: 1.5em; }
+		}
+
+		a {
+			text-decoration: none;
+			color: #333;
+			font-weight: 500;
+			padding-bottom: 3px;
+			border-bottom: 2px solid transparent;
+			transition: border-color 0.2s, color 0.2s;
+
+			&:hover, &.active { color: #007BFF; border-bottom-color: #007BFF; }
+		}
+	}
 }
 
-body > header > .website.name {
-	margin: 0;
-	font-size: 1.5rem;
-	font-weight: 600;
-}
-
-/*------------导航栏（两行：工具行靠左，游戏行靠右）------------*/
-body > header nav {
-	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	gap: 0.35rem;
-	font-size: 0.875rem;
-	flex: 1;
-	min-width: 0;
-}
-
-body > header nav .nav-row {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 1rem;
-	align-items: center;
-	justify-content: flex-start;
-	width: 100%;
-}
-
-body > header nav .nav-row:last-child {
-	padding-left: 1.5em;
-}
-
-/*-----导航按钮-----*/
-body > header nav a {
-	text-decoration: none;
-	color: #333;
-	font-weight: 500;
-	padding-bottom: 3px;
-	border-bottom: 2px solid transparent;
-	transition: border-color 0.2s, color 0.2s;
-}
-
-body > header nav a:hover, body > header nav a.active {
-	color: #007BFF;
-	border-bottom-color: #007BFF;
-}
-
-/*---------------------网站信息---------------------*/
+/* 网站信息 */
 .website.info {
 	background-color: #F8F9FA;
 	display: flex;
@@ -269,43 +243,26 @@ body > header nav a:hover, body > header nav a.active {
 	text-align: center;
 	font-size: 0.85rem;
 	color: #6C757D;
+
+	.patronage.area {
+		width: 120px;
+		background-color: #E9ECEF;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		font-style: italic;
+		padding: 5px;
+		border-radius: 4px;
+	}
+
+	p { margin: 0.5em; }
+
+	a { color: #007BFF; text-decoration: none; &:hover { text-decoration: underline; } }
 }
 
-.website.info .patronage.area {
-	width: 120px;
-	background-color: #E9ECEF;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	font-style: italic;
-	padding: 5px;
-	border-radius: 4px;
-}
-
-.qr-code {
-	max-width: 100%;
-	height: auto;
-	margin-bottom: 5px;
-}
-
-.slogan {
-	font-size: 0.75rem;
-	color: #333;
-}
-
-.website.info p {
-	margin: 0.5em;
-}
-
-.website.info a {
-	color: #007BFF;
-	text-decoration: none;
-}
-
-.website.info a:hover {
-	text-decoration: underline;
-}
+.qr-code { max-width: 100%; height: auto; margin-bottom: 5px; }
+.slogan { font-size: 0.75rem; color: #333; }
 
 main {
 	flex: 1;
@@ -315,88 +272,73 @@ main {
 	background-color: #FFF;
 	border-radius: 8px;
 	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+
+	> header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 0 15px;
+
+		h2 { margin: 0; }
+	}
 }
 
-main > header {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	padding: 0 15px; /* 保持内边距 */
-}
-
-main > header h2 {
-	margin: 0; /* 移除默认h2的外边距 */
-}
-
-/* ======================== 工具栏 ======================= */
+/* ======================== 工具栏 ======================== */
 .toolbar {
 	display: flex;
 	flex-wrap: wrap;
-	justify-content: flex-start; /* 区域水平靠左 */
+	justify-content: flex-start;
 	gap: 0.5rem 0;
+
+	> .area {
+		flex: 1 1 auto;
+		min-width: min-content;
+		padding: 6px 10px;
+		box-sizing: border-box;
+		border-radius: 0;
+		background: #F5F5F5;
+
+		+ .area { border-left: 1px solid rgba(0, 0, 0, 0.22); }
+
+		&:not(:has(> *)) { display: none !important; }
+	}
+
+	.one.group {
+		flex: 0 0 auto !important;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem 1rem;
+		flex-wrap: wrap;
+		padding: 0 0.75rem;
+		border-left: 1px solid rgba(0, 0, 0, 0.12);
+
+		&:first-child { padding-left: 0; border-left: none; }
+	}
+
+	.select-width-6ch { min-width: 5.5rem; }
+	.el-form-item { margin-bottom: 0; flex: 0 0 auto !important; }
+
+	.el-select {
+		flex: 0 0 auto !important;
+		display: inline-block;
+		min-width: 4rem;
+		width: auto;
+
+		.el-select__selection {
+			flex: 0 0 auto !important;
+			min-width: 2em !important;
+
+			.el-select__input-wrapper {
+				position: absolute !important;
+				width: 0 !important;
+				overflow: hidden !important;
+			}
+		}
+	}
 }
 
-/* -------------- 工具栏里的区域（整体可换行，单区不换行） --------------- */
-.toolbar > .area {
-	flex: 1 1 auto;
-	min-width: min-content;
-	padding: 6px 10px;
-	box-sizing: border-box;
-	border-radius: 0;
-	background: #F5F5F5;
-}
+.flex > .el-button + .el-button { margin-left: 0; }
 
-/* 区域之间边界 */
-.toolbar > .area + .area {
-	border-left: 1px solid rgba(0, 0, 0, 0.22);
-}
-
-.toolbar > .area:not(:has(> *)) {
-	display: none !important;
-}
-
-/* 工具栏为 flex 时，组不拉伸才能与相邻区域边界清晰、不抢宽 */
-.toolbar .one.group {
-	flex: 0 0 auto !important;
-	display: inline-flex;
-	align-items: center;
-	gap: 0.5rem 1rem;
-	flex-wrap: wrap;
-	padding: 0 0.75rem;
-	border-left: 1px solid rgba(0, 0, 0, 0.12);
-}
-
-.toolbar .one.group:first-child {
-	padding-left: 0;
-	border-left: none;
-}
-
-.toolbar .select-width-6ch { min-width: 5.5rem; }
-
-/* 工具栏内 el 组件：与 flex 并排时去掉多余间距、不拉伸 */
-.flex > .el-button + .el-button {margin-left: 0;}
-
-.toolbar .el-form-item {margin-bottom: 0; flex: 0 0 auto !important;}
-
-.toolbar .el-select {
-	flex: 0 0 auto !important;
-	display: inline-block;
-	min-width: 4rem;
-	width: auto;
-}
-
-.toolbar .el-select .el-select__selection .el-select__input-wrapper {
-	position: absolute !important;
-	width: 0 !important;
-	overflow: hidden !important;
-}
-
-.toolbar .el-select .el-select__selection {
-	flex: 0 0 auto !important;
-	min-width: 2em !important;
-}
-
-/* ========================================================== */
 .toggle-description {
 	padding: 8px 16px;
 	border: 1px solid #CCC;
@@ -412,10 +354,8 @@ main > header h2 {
 	padding: 15px;
 	background: #F9F9F9;
 	border-radius: 8px;
-}
 
-.intro p {
-	margin-bottom: 10px;
+	p { margin-bottom: 10px; }
 }
 
 .input.area textarea {
@@ -425,48 +365,34 @@ main > header h2 {
 	box-sizing: border-box;
 }
 
-@media (max-width: 1024px) {
-	.result.area {
-		grid-template-columns: repeat(2, 1fr);
-	}
-}
+@media (max-width: 1024px) { .result.area { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 768px) { .result.area { grid-template-columns: 1fr; } }
 
-@media (max-width: 768px) {
-	.result.area {
-		grid-template-columns: 1fr;
-	}
-}
-
-/* ======================================= 状态信息区 ================================== */
+/* ======================== 状态信息区 ======================== */
 .status.info.area {
 	display: flex;
 	flex-direction: column;
 	gap: 0.75rem;
 }
 
-/* ======================================= 游戏信息区（article.gaming.area > aside.right-sidebar）================================== */
-.right-sidebar > .el-card:not(:last-child) {margin-bottom: 0;}
+/* ======================== 游戏信息区 ======================== */
+.right-sidebar > .el-card:not(:last-child) { margin-bottom: 0; }
 
 article.gaming.area .right-sidebar .el-collapse {
 	border-top: none;
 	border-bottom: none;
+
+	.el-collapse-item:last-child .el-collapse-item__header,
+	.el-collapse-item:last-child .el-collapse-item__wrap { border-bottom: none; }
+
+	.el-collapse-item__header {
+		font-weight: 600;
+		font-size: 1.2rem;
+
+		&:focus { color: var(--el-collapse-header-text-color); }
+	}
 }
 
-article.gaming.area .right-sidebar .el-collapse-item:last-child .el-collapse-item__header,
-article.gaming.area .right-sidebar .el-collapse-item:last-child .el-collapse-item__wrap {
-	border-bottom: none;
-}
-
-article.gaming.area .right-sidebar .el-collapse-item__header {
-	font-weight: 600;
-	font-size: 1.2rem;
-}
-
-article.gaming.area .right-sidebar .el-collapse-item__header:focus {
-	color: var(--el-collapse-header-text-color);
-}
-
-/* 记分牌分数：醒目显示，各游戏通用 */
 .scoreboard .score.value {
 	margin: 0;
 	font-size: 1.75rem;
@@ -476,55 +402,43 @@ article.gaming.area .right-sidebar .el-collapse-item__header:focus {
 	text-align: center;
 }
 
-/*=================================与primevue有关=================================*/
+/* ======================== primevue ======================== */
 .chooser.p-selectbutton button {
 	padding: 0.1rem 0.3rem;
 	font-size: 0.8rem;
 	min-width: 2rem;
+
+	.p-togglebutton-label { font-weight: normal; }
 }
 
-.chooser.p-selectbutton button .p-togglebutton-label {
-	font-weight: normal;
-}
-
-/* 按钮工具类：多类组合；.btn.circle 共性，.lg/.sm 尺寸与样式 */
+/* 按钮工具类 */
 .btn.circle {
 	padding: 0;
 	border-radius: 50%;
+
+	&.lg {
+		width: 64px;
+		height: 64px;
+		min-width: 64px;
+		font-size: 32px;
+		line-height: 1;
+		flex-shrink: 0;
+
+		&:disabled { opacity: 0.5; cursor: not-allowed; }
+	}
+
+	&.sm {
+		width: 24px;
+		height: 24px;
+		min-width: 24px;
+		border: none;
+		background: rgba(0, 0, 0, 0.5);
+		color: #FFF;
+		font-size: 18px;
+
+		&:hover { background: rgba(0, 0, 0, 0.7); }
+	}
 }
 
-.btn.circle.lg {
-	width: 64px;
-	height: 64px;
-	min-width: 64px;
-	font-size: 32px;
-	line-height: 1;
-	flex-shrink: 0;
-}
-
-.btn.circle.lg:disabled {
-	opacity: 0.5;
-	cursor: not-allowed;
-}
-
-.btn.circle.sm {
-	width: 24px;
-	height: 24px;
-	min-width: 24px;
-	border: none;
-	background: rgba(0, 0, 0, 0.5);
-	color: #FFF;
-	font-size: 18px;
-}
-
-.btn.circle.sm:hover {
-	background: rgba(0, 0, 0, 0.7);
-}
-
-.overlay.top.right {
-	position: absolute;
-	top: 4px;
-	right: 4px;
-}
-
+.overlay.top.right { position: absolute; top: 4px; right: 4px; }
 .push-right { margin-left: auto; }
