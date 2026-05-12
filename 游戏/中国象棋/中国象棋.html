@@ -204,8 +204,7 @@
 		justify-content: center;
 		margin-bottom: 10px;
 		box-sizing: border-box;
-		align-self: flex-start;
-		flex-shrink: 0;
+		align-self: center;
 		}
 
 		.no-kills {
@@ -216,7 +215,7 @@
 		}
 
 		/* 当前选中卡片：子项不横向拉伸，避免棋子预览和杀敌列表占满一行 */
-		.selected.unit {
+		.selected.unit.area {
 			display: flex;
 			flex-direction: column;
 			align-items: flex-start;
@@ -385,7 +384,7 @@
 						</div>
 					</el-collapse-item>
 					<el-collapse-item name="selected" title="当前选中">
-						<div v-if="isGaming && selectedUnit" class="selected unit">
+						<div v-if="isGaming && selectedUnit" class="selected unit area">
 							<div class="selected unit preview">
 								<div class="unit display" :class="getUnitClasses(selectedUnit)">{{ selectedUnit.display }}</div>
 							</div>
