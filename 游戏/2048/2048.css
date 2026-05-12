@@ -32,9 +32,13 @@
 .unit.unit-1024 { background: #6a9f56; }
 .unit.unit-2048 { background: #5a8f4a; }
 
-/* 滑动动画层：.cell 为绝对定位的“飞格”，.unit 填满整格滑动 */
+/* 滑动动画层：.cell 为绝对定位的”飞格”，.unit 填满整格滑动 */
 .gaming.area .slide-layer .cell > .unit {
-	transition: left 0.08s linear, top 0.08s linear;
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .unit img {
@@ -86,8 +90,9 @@
 	overflow-y: auto;
 }
 
-/* 弹框内预览格：.cell 需固定尺寸，否则被 biz 的 .cell > .unit 绝对定位撑开导致布局塌陷 */
+/* 弹框内预览格：固定尺寸 + 定位上下文，使清除按钮相对于格子定位 */
 .customize.unit.display.area .cell {
+	position: relative;
 	width: var(--cell-size, 80px);
 	height: var(--cell-size, 80px);
 	min-width: 48px;
@@ -95,7 +100,7 @@
 	flex-shrink: 0;
 }
 
-/* 预览态：固定尺寸方框，与棋盘/滑层“填满格”不同 */
+/* 预览态：固定尺寸方框，居中显示 */
 .cell .unit.preview {
 	width: var(--cell-size, 80px);
 	height: var(--cell-size, 80px);
@@ -103,6 +108,9 @@
 	min-height: 48px;
 	overflow: hidden;
 	font-size: clamp(12px, 3vw, 20px);
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .cell .unit.preview-error { background: #F8D7DA !important; }

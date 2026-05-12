@@ -214,7 +214,7 @@
 										 @error="previewImageErrors[pu.key]=true">
 								<template v-else>{{ pu.text }}</template>
 							</div>
-							<el-button class="sm circle btn , overlay top right" circle size="small" @click="clearCustomTile(pu.key)">
+							<el-button v-if="customLabels[pu.key] || customImages[pu.key]" class="sm circle btn , overlay top right" circle size="small" @click="clearCustomTile(pu.key)">
 								×
 							</el-button>
 						</div>
