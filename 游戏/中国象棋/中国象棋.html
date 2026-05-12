@@ -239,15 +239,15 @@
 		</aside>
 
 		<!-- 将军提示 -->
-		<div v-if="showCheck" class="game overlay non-interactive">
+		<div v-if="showCheck" class="gaming check overlay">
 			<div class="check text">将</div>
 		</div>
 
 		<!-- 游戏结束对话框 -->
-		<el-dialog v-model="isGameOverForRender" class="game-result" :show-close="true" align-center>
-			<header class="game over text">游戏结束</header>
+		<el-dialog v-model="isGameOverForRender" class="gaming result area" header-class="title" body-class="body" :show-close="true" align-center>
+			<header class="gameover">游戏结束</header>
 			<div class="winner">{{ winnerName }} 胜利</div>
-			<footer class="button group">
+			<footer class="toolbar">
 				<el-button type="primary" size="large" icon="RefreshLeft" @click="restartGame">重来</el-button>
 				<el-button type="info" size="large" @click="returnToSettings">换一盘</el-button>
 				<el-button type="info" size="large" @click="downloadNotation">记谱</el-button>
