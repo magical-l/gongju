@@ -23,9 +23,47 @@
 	--反叵字形-gap: var(--gap);
 }
 
+/* ======================== CDN补充样式 ======================== */
+/* 工具类：禁止指针事件 */
+.pointer-events-none { pointer-events: none; }
+
+/* 花活.css CDN版本缺少胜利弹窗内容样式 */
+.modal > .body {
+	position: relative;
+	z-index: 1001;
+	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+	border-radius: 15px;
+	background: white;
+	padding: 40px 50px;
+	flex: unset;
+	text-align: center;
+	transform: scale(0.7);
+	animation: zoomIn 0.5s forwards;
+}
+
+@keyframes zoomIn {
+	to {
+		transform: scale(1);
+	}
+}
+
+.modal > .body > h2 {
+	color: #27AE60;
+	font-size: 2.5em;
+	margin-bottom: 15px;
+}
+
+.modal > .body > p {
+	color: #555;
+	font-size: 1.2em;
+	margin-bottom: 30px;
+}
+
+/* ======================== 游戏布局变量 ======================== */
+
 .gaming.area {
-	--反叵字形-right-sidebar-min-width: 380px;
-	--反叵字形-gap: 0.75rem; /* toolbar 与 main、main 与 right-sidebar 的间隙 */
+	--right-sidebar-min-width: 380px;
+	--gap: 0.75rem; /* toolbar 与 main、main 与 right-sidebar 的间隙 */
 	/* 2048 系主题默认，各页可借 :root 覆盖 */
 	--board-cols: 4;
 	--board-rows: 4;

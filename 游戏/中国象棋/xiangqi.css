@@ -329,8 +329,8 @@
 }
 
 .grid.反叵字形.gaming.area {
-	--反叵字形-right-sidebar-min-width: 380px;
-	--反叵字形-right-sidebar-max-width: 28%;
+	--right-sidebar-min-width: 380px;
+	--right-sidebar-max-width: 28%;
 }
 
 /* 主棋盘区域定位 */

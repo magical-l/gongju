@@ -16,10 +16,10 @@
 
 <link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
 <link href="../resources/el-plus.css" rel="stylesheet">
-<link href="../resources/common.css?v=250821" rel="stylesheet">
-<link href="../resources/layout.css?v=0821" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/common.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/layout.css" rel="stylesheet">
 <link href="../resources/biz.css?v=250821" rel="stylesheet">
-<link href="../resources/花活.css?v=250821" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/花活.css" rel="stylesheet">
 <style>
 	.gaming.area {
 		margin-top: 20px;
@@ -221,7 +221,7 @@
 			</el-card>
 		</aside>
 
-		<article class="modal-overlay fullscreen" v-if="isWin && showWinModal">
+		<article class="modal fullscreen" v-if="isWin && showWinModal">
 			<section class="body">
 				<h2>恭喜你，挑战成功！</h2>
 				<p>您总共使用了 {{ moveCount }} 步。</p>
@@ -231,8 +231,8 @@
 					<el-button @click="closeWinModal" size="large">关闭</el-button>
 				</footer>
 			</section>
-			<div class="confetti-container">
-				<div class="confetti" v-for="i in 150" :key="'confetti'+i"></div>
+			<div class="fullscreen pointer-events-none">
+				<div class="confetti-piece" v-for="i in 150" :key="'confetti'+i"></div>
 			</div>
 		</article>
 	</article>
