@@ -4,6 +4,30 @@
 	--page-bg: #E8F0E0;
 }
 
+/* 棋盘格子里的数字方块：填满格子、圆角、字体 */
+.board .cell > .unit[class*="unit-"] {
+	inset: 0;
+	font-weight: bold;
+	font-size: clamp(10px, 2.5vw, 24px);
+	color: var(--text-light);
+	border: 1px solid var(--grid-line, rgba(0,0,0,0.12));
+	border-radius: var(--unit-radius);
+	user-select: none;
+}
+
+/* 各数字的颜色 */
+.unit.unit-2 { background: #e2ead8; color: #5a6b52; }
+.unit.unit-4 { background: #d4e0c8; color: #5a6b52; }
+.unit.unit-8 { background: #a8c99e; }
+.unit.unit-16 { background: #8fbc85; }
+.unit.unit-32 { background: #7cb37a; }
+.unit.unit-64 { background: #6ba36b; }
+.unit.unit-128 { background: #9cb87c; }
+.unit.unit-256 { background: #8ab06e; }
+.unit.unit-512 { background: #7aa862; }
+.unit.unit-1024 { background: #6a9f56; }
+.unit.unit-2048 { background: #5a8f4a; }
+
 /* 本页 .board 需 min-height（通用见 biz.css） */
 .gaming.area .board {
 	min-height: 200px;

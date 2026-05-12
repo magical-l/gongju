@@ -193,7 +193,7 @@
 		</header>
 
 		<section class="grid-wrapper flex near-center">
-			<div id="grid-container" class="grid" :style="gridContainerStyle">
+			<div id="grid-container" class="board grid" :style="gridContainerStyle">
 				<template v-for="(row, rowIndex) in gridData" :key="rowIndex">
 					<div class="cell" v-for="(cell, colIndex) in row" :key="colIndex"
 							 :style="{backgroundColor: cell.bgColor, borderColor: cell.borderColor,

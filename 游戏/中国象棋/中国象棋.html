@@ -123,101 +123,96 @@
 		min-height: 40px;
 	}
 
-	.player.turn.selector {
-		display: flex;
-		align-items: center;
-		margin-left: 10px;
-		gap: var(--gap);
 
 		.push-right {
-			margin-left: auto;
+		margin-left: auto;
 		}
 
 		.selected-unit-panel {
-			min-height: 160px;
+		min-height: 160px;
 		}
 
 		/* 杀敌信息样式 */
 
 		.kill.info > .header {
-			display: flex;
-			align-items: center;
-			gap: var(--gap);
-			margin-bottom: 10px;
-			border-bottom: 1px solid #eee;
-			padding-bottom: 8px;
+		display: flex;
+		align-items: center;
+		gap: var(--gap);
+		margin-bottom: 10px;
+		border-bottom: 1px solid #eee;
+		padding-bottom: 8px;
 		}
 
 		.kill.info .count {
-			display: inline-block;
-			min-width: 24px;
-			height: 24px;
-			line-height: 24px;
-			text-align: center;
-			background-color: #f56c6c;
-			color: white;
-			border-radius: 50%;
-			font-weight: bold;
-			font-size: 16px;
+		display: inline-block;
+		min-width: 24px;
+		height: 24px;
+		line-height: 24px;
+		text-align: center;
+		background-color: #f56c6c;
+		color: white;
+		border-radius: 50%;
+		font-weight: bold;
+		font-size: 16px;
 		}
 
 		.kill.info .details {
-			max-height: 150px;
-			overflow-y: auto;
+		max-height: 150px;
+		overflow-y: auto;
 		}
 
 		.kill.info .record {
-			display: flex;
-			align-items: center;
-			gap: 8px;
-			padding: 5px 0;
-			border-bottom: 1px dashed #eee;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 5px 0;
+		border-bottom: 1px dashed #eee;
 		}
 
 		.kill.info .record-piece {
-			display: inline-flex;
-			flex: 0 0 45px;
-			width: 45px;
-			min-width: 45px;
-			max-width: 45px;
-			height: 45px;
-			min-height: 45px;
-			max-height: 45px;
-			align-items: center;
-			justify-content: center;
-			box-sizing: border-box;
-			align-self: center;
-			flex-shrink: 0;
+		display: inline-flex;
+		flex: 0 0 45px;
+		width: 45px;
+		min-width: 45px;
+		max-width: 45px;
+		height: 45px;
+		min-height: 45px;
+		max-height: 45px;
+		align-items: center;
+		justify-content: center;
+		box-sizing: border-box;
+		align-self: center;
+		flex-shrink: 0;
 		}
 
 		.kill.info .meta {
-			font-size: 12px;
-			color: #909399;
+		font-size: 12px;
+		color: #909399;
 		}
 
 		/* 当前选中：顶部展示的棋子容器，固定尺寸且不参与父级拉伸；棋子样式见 xiangqi.css .selected.unit.preview .unit.display */
 		.selected.unit.preview {
-			display: inline-flex;
-			flex: 0 0 50px;
-			width: 50px;
-			min-width: 50px;
-			max-width: 50px;
-			height: 50px;
-			min-height: 50px;
-			max-height: 50px;
-			align-items: center;
-			justify-content: center;
-			margin-bottom: 10px;
-			box-sizing: border-box;
-			align-self: flex-start;
-			flex-shrink: 0;
+		display: inline-flex;
+		flex: 0 0 50px;
+		width: 50px;
+		min-width: 50px;
+		max-width: 50px;
+		height: 50px;
+		min-height: 50px;
+		max-height: 50px;
+		align-items: center;
+		justify-content: center;
+		margin-bottom: 10px;
+		box-sizing: border-box;
+		align-self: flex-start;
+		flex-shrink: 0;
 		}
 
 		.no-kills {
-			color: #909399;
-			font-style: italic;
-			padding: 10px 0;
-			text-align: center;
+		color: #909399;
+		font-style: italic;
+		padding: 10px 0;
+		text-align: center;
 		}
 
 		/* 当前选中卡片：子项不横向拉伸，避免棋子预览和杀敌列表占满一行 */
@@ -229,7 +224,7 @@
 
 </style>
 </head>
-<body class="grid 反叵字形">
+<body class="grid 目字形">
 <header>
 	<h1 class="website name" title="工具人（gongju.ren）域名太贵买不起">工具兽</h1>
 	<nav>
@@ -260,7 +255,7 @@
 	<header>
 		<h2 class="game name">中国象棋</h2>
 	</header>
-	<article class="gaming area , 叵字形 grid" v-cloak>
+	<article class="gaming area , 反叵字形 grid" v-cloak>
 		<!-- 模式工具栏 -->
 		<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
 			<section class="setting list area , flex single-line no-gap items-near-x-start items-near-y-center">
@@ -344,7 +339,7 @@
 			</section>
 		</article>
 
-		<aside class="left-sidebar">
+		<aside class="right-sidebar">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
 					<el-collapse-item name="view" title="对面视角" class="sidebar-view-panel">
@@ -482,7 +477,7 @@
 	</article>
 </main>
 
-<aside class="right-sidebar">
+<footer>
 	<article class="website info">
 		<section class="patronage area">
 			<img class="qr-code" src="../../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
@@ -492,7 +487,7 @@
 		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
 		</section>
 	</article>
-</aside>
+</footer>
 
 <div class="js container">
 	<script src="../../resources/math.js"></script>

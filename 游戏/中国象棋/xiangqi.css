@@ -33,6 +33,7 @@
 	display: flex;
 	justify-content: center;
 	align-items: center;
+	border: none; /* 覆盖biz.css的边框，中国象棋用texture画线 */
 }
 
 .board .cell .texture {
@@ -142,46 +143,53 @@
 }
 
 /* ============================棋子======================== */
+/* 所有棋子的基础外观：圆形、字体、颜色、圆角边框 */
 .unit.display {
-	position: relative;
-	z-index: 10;
-	width: 90%;
-	height: 90%;
 	border-radius: 50%;
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	font-family: 'NotoSansSymbols2', sans-serif;
-	font-size: calc(var(--min-cell-len) * 0.7);
 	cursor: pointer;
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-	background-color: #f0f0f0;
-	border: 1px solid #888;
-	color: var(--black-color);
 	user-select: none;
 }
 
+/* 红棋 */
 .unit.display.red {
 	background-color: #fdd;
-	border-color: var(--red-color);
+	border: 0.5px solid var(--red-color);
 	color: var(--red-color);
 }
 
-.board .selected.unit.display {
+/* 黑棋 */
+.unit.display.black {
+	background-color: #f0f0f0;
+	border: 0.5px solid #888;
+	color: var(--black-color);
+}
+
+/* 棋盘内的棋子：相对于格子absolute定位，90%尺寸 */
+.board .unit.display {
+	position: absolute;
+	z-index: 10;
+	width: 90%;
+	height: 90%;
+	font-size: calc(var(--min-cell-len) * 0.7);
+}
+
+/* 选中高亮 */
+.unit.display.selected {
 	outline: 3px solid #007bff;
 	box-shadow: 0 0 10px #007bff;
 }
 
-/* 非棋盘内的棋子展示（选中预览 / 杀敌记录 / 棋子库）：无格子约束，用固定尺寸覆盖基类 90%，避免 flex 下被拉满一行 */
+/* 棋子库、选中预览、杀敌记录：固定尺寸 */
+.piece.palette .unit.display,
 .selected.unit.preview .unit.display,
-.record-piece .unit.display,
-.piece.palette .unit.display {
+.record-piece .unit.display {
 	width: 45px;
 	height: 45px;
-	min-width: 45px;
-	min-height: 45px;
-	max-width: 45px;
-	max-height: 45px;
 	flex: none;
 	font-size: calc(45px * 0.7);
 }
@@ -249,7 +257,15 @@
 	border-radius: 2px;
 }
 
-/* 小视图（如右侧栏「交换视角」）棋盘：格子放大以便看清，整盘随侧栏加宽 */
-.reversed-board-in-sidebar .board {
-	--min-cell-len: 36px;
+/* 小视图（如右侧栏「对面视角」）棋盘：格子稍小以适应侧栏 */
+.board.reversed.view {
+	--min-cell-len: 34px;
+	--cell-size: 34px;
+	width: fit-content;
+}
+
+/* 中国象棋页面右侧栏需要足够宽度容纳对面视角棋盘 */
+.grid.反叵字形.gaming.area {
+	--反叵字形-right-sidebar-min-width: 380px;
+	--反叵字形-right-sidebar-max-width: 28%;
 }

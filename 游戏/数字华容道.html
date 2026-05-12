@@ -295,10 +295,10 @@
 						<p>点击与空位相邻的块也可移动</p>
 					</el-collapse-item>
 					<el-collapse-item title="本局信息" name="score" class="score">
-						<section class="initial map area">
+						<section class="action record area">
 							<h3>初始局面</h3>
-							<div class="mini map" :style="initialBoardStyle">
-								<span v-for="(val, idx) in initialBoard" :key="idx" class="cell" :class="{ empty: val === 0 }">{{ val || '' }}</span>
+							<div class="mini board" :style="initialBoardStyle">
+								<span v-for="(val, idx) in initialBoard" :key="idx" class="unit" :class="{ empty: val === 0 }">{{ val || '' }}</span>
 							</div>
 						</section>
 					</el-collapse-item>

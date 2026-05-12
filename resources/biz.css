@@ -63,26 +63,27 @@
 }
 
 /* 棋盘格：格子无间隙、单位铺满格子；格线用 border（--grid-line）。
- * .cell position:relative 作为定位上下文，使子元素 .unit 的 absolute 相对于格子定位；
+ * .board .cell position:relative 作为定位上下文，使子元素 .unit 的 absolute 相对于格子定位；
  * .unit position:absolute; inset:0 使方块填满整格、不参与文档流，便于动画（如 2048 滑格）与统一尺寸。 */
-.cell {
+.board .cell {
 	position: relative;
+	width: var(--cell-size);
+	height: var(--cell-size);
+	box-sizing: border-box;
+	background: var(--cell-empty);
 	border: 1px solid var(--grid-line, rgba(0,0,0,0.12));
-}
-.cell > .unit {
-	position: absolute;
-	inset: 0;
+	border-radius: var(--unit-radius);
+	min-width: 0;
+	min-height: 0;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-weight: bold;
-	color: var(--text-light);
-	border: 1px solid var(--grid-line, rgba(0,0,0,0.12));
-	border-radius: var(--unit-radius);
-	font-size: clamp(10px, 2.5vw, 24px);
-	user-select: none;
-	-webkit-user-select: none;
-	background: #4a5a42;
+}
+.board .cell > .unit {
+	position: absolute;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 /* 游戏区 .board 通用（依赖 --board-cols/--board-rows，各页设于根或元素）；100% 宽高仅用于主地图区棋盘，侧栏等小棋盘自行设尺寸 */
@@ -108,31 +109,6 @@
 	width: fit-content;
 	height: fit-content;
 }
-.board .cell {
-	width: var(--cell-size);
-	height: var(--cell-size);
-	box-sizing: border-box;
-	background: var(--cell-empty);
-	border-radius: var(--unit-radius);
-	min-width: 0;
-	min-height: 0;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-/* 2048 系单位数字颜色（通用） */
-.unit.unit-2 { background: #e2ead8; color: #5a6b52; }
-.unit.unit-4 { background: #d4e0c8; color: #5a6b52; }
-.unit.unit-8 { background: #a8c99e; }
-.unit.unit-16 { background: #8fbc85; }
-.unit.unit-32 { background: #7cb37a; }
-.unit.unit-64 { background: #6ba36b; }
-.unit.unit-128 { background: #9cb87c; }
-.unit.unit-256 { background: #8ab06e; }
-.unit.unit-512 { background: #7aa862; }
-.unit.unit-1024 { background: #6a9f56; }
-.unit.unit-2048 { background: #5a8f4a; }
 
 /* 暂停遮罩（放在棋盘等 position:relative 的容器内即可盖住该区域） */
 .gaming.area .pause.overlay {
