@@ -13,22 +13,193 @@
 	--line-stroke-width: 1px;
 }
 
-/* ============================将军提示======================== */
-.gaming.check.overlay { pointer-events: none; }
-.gaming.check.overlay .check.text {
-	font-size: 120px;
+/* ======================== 棋子 ======================== */
+.unit.display {
+	width: var(--unit-size);
+	height: var(--unit-size);
+	border-radius: 50%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-family: 'NotoSansSymbols2', sans-serif;
+	font-size: calc(var(--unit-size) * 0.78);
+	cursor: pointer;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+	user-select: none;
+	flex: none;
+
+	&.red {
+		background-color: #fdd;
+		border: 0.5px solid var(--red-color);
+		color: var(--red-color);
+	}
+
+	&.black {
+		background-color: #f0f0f0;
+		border: 0.5px solid #888;
+		color: var(--black-color);
+	}
+
+	&.selected {
+		outline: 3px solid #007bff;
+		box-shadow: 0 0 10px #007bff;
+	}
+}
+
+/* ======================== 棋盘 ======================== */
+.board {
+	--board-cols: 9;
+	--board-rows: 10;
+	--cell-size: 60px;
+	--unit-size: calc(var(--cell-size) * 0.9);
+	grid-template-rows: repeat(10, var(--cell-size));
+	grid-template-columns: repeat(9, var(--cell-size));
+	background-color: antiquewhite;
+	position: relative;
+	height: fit-content;
+
+	.cell {
+		position: relative;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		border: none;
+		/* 普通位置纹理 */
+		.texture {
+			position: absolute;
+			width: 100%;
+			height: 100%;
+			z-index: 1;
+			background-image: url('棋盘纹理-十字.svg');
+			stroke-width: var(--line-stroke-width);
+			background-size: 100% 100%;
+			background-repeat: no-repeat;
+
+			/* 伪元素基础样式：绝对定位、填满父容器 */
+			&::before, &::after {
+				position: absolute;
+				width: 100%;
+				height: 100%;
+				display: block;
+			}
+		}
+		/* 边框线 */
+		&.row-1, &.row-6 { .texture { background-image: url('棋盘纹理-顶边.svg'); } }
+		&.row-10, &.row-5 { .texture { background-image: url('棋盘纹理-底边.svg'); } }
+		&.col-1 { .texture { background-image: url('棋盘纹理-左边.svg'); } }
+		&.col-9 { .texture { background-image: url('棋盘纹理-右边.svg'); } }
+		/* 角 */
+		&.row-1.col-1 { .texture { background-image: url('棋盘纹理-角.svg'); } }
+		&.row-1.col-9 { .texture { background-image: url('棋盘纹理-角.svg'); rotate: 90deg; } }
+		&.row-10.col-1 { .texture { background-image: url('棋盘纹理-角.svg'); rotate: -90deg; } }
+		&.row-10.col-9 { .texture { background-image: url('棋盘纹理-角.svg'); rotate: 180deg; } }
+		/* 九宫格斜线（黑方九宫：row 1,8; 红方九宫：row 3,10） */
+		&.row-1.col-4, &.row-8.col-4 { .texture::after { content: url('棋盘纹理-半斜线.svg'); rotate: 180deg; } }
+		&.row-1.col-6, &.row-8.col-6 { .texture::after { content: url('棋盘纹理-半斜线.svg'); rotate: -90deg; } }
+		&.row-3.col-4, &.row-10.col-4 { .texture::after { content: url('棋盘纹理-半斜线.svg'); rotate: 90deg; } }
+		&.row-3.col-6, &.row-10.col-6 { .texture::after { content: url('棋盘纹理-半斜线.svg'); } }
+		/* 窝心 */
+		&.row-2.col-5, &.row-9.col-5 { .texture::after { content: url('棋盘纹理-交叉.svg'); } }
+		/* 炮位、兵卒位 */
+		&.炮位 { .texture::before { content: url('棋盘纹理-左花.svg'); } .texture::after { content: url('棋盘纹理-右花.svg'); } }
+		&.兵卒位 { .texture::before { content: url('棋盘纹理-左花.svg'); } .texture::after { content: url('棋盘纹理-右花.svg'); } }
+		&.兵卒位.col-1 { .texture::before { content: none; } }
+		&.兵卒位.col-9 { .texture::after { content: none; } }
+
+		/* ------ 提示图标 ------ */
+		/* 可移动的位置 */
+		&.movable::after {
+			content: '';
+			position: absolute;
+			z-index: 20;
+			width: 40%;
+			height: 40%;
+			top: 30%;
+			left: 30%;
+			background-color: rgba(40, 167, 69, 0.5);
+			border-radius: 50%;
+			pointer-events: none;
+		}
+		/* 不能移动的位置 */
+		&.blocked {
+			:before, :after {
+				content: '';
+				position: absolute;
+				z-index: 20;
+				pointer-events: none;
+				box-sizing: border-box;
+			}
+			:before {
+				width: 70%;
+				height: 15%;
+				top: 42.5%;
+				left: 15%;
+				background-color: rgba(220, 53, 69, 0.9);
+				transform: rotate(45deg);
+				border-radius: 2px;
+			}
+			:after {
+				width: 60%;
+				height: 60%;
+				top: 20%;
+				left: 20%;
+				border-radius: 50%;
+				border: 4px solid rgba(220, 53, 69, 0.9);
+				background-color: rgba(255, 255, 255, 0.3);
+			}
+		}
+		/* 可攻击的位置 */
+		&.attack {
+			:before, :after {
+				content: '';
+				position: absolute;
+				z-index: 20;
+				width: 60%;
+				height: 15%;
+				top: 42.5%;
+				left: 20%;
+				background-color: rgba(255, 0, 0, 0.7);
+				border-radius: 2px;
+				pointer-events: none;
+			}
+			:before { transform: rotate(45deg); }
+			:after { transform: rotate(-45deg); }
+		}
+	}
+
+	/* 棋盘内的棋子定位 */
+	.unit.display { position: absolute; z-index: 10; }
+}
+
+
+/* ======================== 棋盘编辑器 ======================== */
+.piece.palette {
+	grid-template-columns: repeat(auto-fill, var(--unit-size));
+	gap: var(--gap);
+	padding: 10px;
+}
+
+.remove.piece.btn {
+	position: absolute;
+	top: -5px;
+	right: -5px;
+	z-index: 20;
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	background-color: #ff4d4f;
+	color: white;
+	border: 1px solid white;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-size: 14px;
 	font-weight: bold;
-	color: #ffc107;
-	text-shadow: 0 0 15px red, 0 0 25px red;
-	animation: check-animation 1s ease-out;
+	cursor: pointer;
+	box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
 }
 
-@keyframes check-animation {
-	0% { transform: scale(1); opacity: 1; }
-	50% { transform: scale(1.5); opacity: 0.7; }
-	100% { transform: scale(2); opacity: 0; }
-}
-
+/* ======================== 游戏局 ======================== */
 .gaming.area {
 	--right-sidebar-min-width: 380px;
 	--right-sidebar-max-width: 28%;
@@ -43,6 +214,30 @@
 		--cell-size: 34px;
 		--unit-size: calc(var(--cell-size) * 0.9);
 		width: fit-content;
+	}
+
+	/* 当前选中 */
+	.selected.unit.area {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+
+		.preview {
+			--unit-size: 50px;
+			display: inline-flex;
+			flex: 0 0 50px;
+			width: 50px;
+			min-width: 50px;
+			max-width: 50px;
+			height: 50px;
+			min-height: 50px;
+			max-height: 50px;
+			align-items: center;
+			justify-content: center;
+			margin-bottom: 10px;
+			box-sizing: border-box;
+			align-self: center;
+		}
 	}
 
 	/* 功勋区 */
@@ -95,6 +290,23 @@
 		}
 	}
 
+	
+	/* 将军提示 */
+	.gaming.check.overlay { pointer-events: none; }
+	.gaming.check.overlay .check.text {
+		font-size: 120px;
+		font-weight: bold;
+		color: #ffc107;
+		text-shadow: 0 0 15px red, 0 0 25px red;
+		animation: check-animation 1s ease-out;
+	}
+
+	@keyframes check-animation {
+		0% { transform: scale(1); opacity: 1; }
+		50% { transform: scale(1.5); opacity: 0.7; }
+		100% { transform: scale(2); opacity: 0; }
+	}
+
 	/* 结算界面 */
 	.result {
 		background: #f9f9f9;
@@ -123,220 +335,10 @@
 
 		.winner { font-size: 40px; margin-top: 10px; }
 	}
-}
+}/* .gaming.area */
 
-/* ============================棋盘编辑器======================== */
-.piece.palette {
-	grid-template-columns: repeat(auto-fill, var(--unit-size));
-	gap: var(--gap);
-	padding: 10px;
-}
-
-.remove.piece.btn {
-	position: absolute;
-	top: -5px;
-	right: -5px;
-	z-index: 20;
-	width: 20px;
-	height: 20px;
-	border-radius: 50%;
-	background-color: #ff4d4f;
-	color: white;
-	border: 1px solid white;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	font-size: 14px;
-	font-weight: bold;
-	cursor: pointer;
-	box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-}
-
+/* 通用 */
 .push-right { margin-left: auto; }
-
-/* ============================棋盘======================== */
-.board {
-	--board-cols: 9;
-	--board-rows: 10;
-	--cell-size: 60px;
-	--unit-size: calc(var(--cell-size) * 0.9);
-	grid-template-rows: repeat(10, var(--cell-size));
-	grid-template-columns: repeat(9, var(--cell-size));
-	background-color: antiquewhite;
-	position: relative;
-	height: fit-content;
-
-	.cell {
-		position: relative;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		border: none;
-
-		.texture {
-			position: absolute;
-			width: 100%;
-			height: 100%;
-			z-index: 1;
-			background-image: url('棋盘纹理-十字.svg');
-			stroke-width: var(--line-stroke-width);
-			background-size: 100% 100%;
-			background-repeat: no-repeat;
-
-			/* 伪元素基础样式：绝对定位、填满父容器 */
-			&::before, &::after {
-				position: absolute;
-				width: 100%;
-				height: 100%;
-				display: block;
-			}
-		}
-
-		/* 边框线 */
-		&.row-1, &.row-6 { .texture { background-image: url('棋盘纹理-顶边.svg'); } }
-		&.row-10, &.row-5 { .texture { background-image: url('棋盘纹理-底边.svg'); } }
-		&.col-1 { .texture { background-image: url('棋盘纹理-左边.svg'); } }
-		&.col-9 { .texture { background-image: url('棋盘纹理-右边.svg'); } }
-
-		/* 角 */
-		&.row-1.col-1 { .texture { background-image: url('棋盘纹理-角.svg'); } }
-		&.row-1.col-9 { .texture { background-image: url('棋盘纹理-角.svg'); rotate: 90deg; } }
-		&.row-10.col-1 { .texture { background-image: url('棋盘纹理-角.svg'); rotate: -90deg; } }
-		&.row-10.col-9 { .texture { background-image: url('棋盘纹理-角.svg'); rotate: 180deg; } }
-
-		/* 九宫格斜线（黑方九宫：row 1,8; 红方九宫：row 3,10） */
-		&.row-1.col-4, &.row-8.col-4 { .texture::after { content: url('棋盘纹理-半斜线.svg'); rotate: 180deg; } }
-		&.row-1.col-6, &.row-8.col-6 { .texture::after { content: url('棋盘纹理-半斜线.svg'); rotate: -90deg; } }
-		&.row-3.col-4, &.row-10.col-4 { .texture::after { content: url('棋盘纹理-半斜线.svg'); rotate: 90deg; } }
-		&.row-3.col-6, &.row-10.col-6 { .texture::after { content: url('棋盘纹理-半斜线.svg'); } }
-
-		/* 窝心 */
-		&.row-2.col-5, &.row-9.col-5 { .texture::after { content: url('棋盘纹理-交叉.svg'); } }
-
-		/* 炮位、兵卒位 */
-		&.炮位 { .texture::before { content: url('棋盘纹理-左花.svg'); } .texture::after { content: url('棋盘纹理-右花.svg'); } }
-		&.兵卒位 { .texture::before { content: url('棋盘纹理-左花.svg'); } .texture::after { content: url('棋盘纹理-右花.svg'); } }
-		&.兵卒位.col-1 { .texture::before { content: none; } }
-		&.兵卒位.col-9 { .texture::after { content: none; } }
-
-		/* 提示图标 */
-		&.movable::after {
-			content: '';
-			position: absolute;
-			z-index: 20;
-			width: 40%;
-			height: 40%;
-			top: 30%;
-			left: 30%;
-			background-color: rgba(40, 167, 69, 0.5);
-			border-radius: 50%;
-			pointer-events: none;
-		}
-
-		&.attack::before,
-		&.attack::after {
-			content: '';
-			position: absolute;
-			z-index: 20;
-			width: 60%;
-			height: 15%;
-			top: 42.5%;
-			left: 20%;
-			background-color: rgba(255, 0, 0, 0.7);
-			border-radius: 2px;
-			pointer-events: none;
-		}
-		&.attack::before { transform: rotate(45deg); }
-		&.attack::after { transform: rotate(-45deg); }
-
-		&.blocked::before,
-		&.blocked::after {
-			content: '';
-			position: absolute;
-			z-index: 20;
-			pointer-events: none;
-			box-sizing: border-box;
-		}
-		&.blocked::after {
-			width: 60%;
-			height: 60%;
-			top: 20%;
-			left: 20%;
-			border-radius: 50%;
-			border: 4px solid rgba(220, 53, 69, 0.9);
-			background-color: rgba(255, 255, 255, 0.3);
-		}
-		&.blocked::before {
-			width: 70%;
-			height: 15%;
-			top: 42.5%;
-			left: 15%;
-			background-color: rgba(220, 53, 69, 0.9);
-			transform: rotate(45deg);
-			border-radius: 2px;
-		}
-	}
-
-	/* 棋盘内的棋子定位 */
-	.unit.display { position: absolute; z-index: 10; }
-}
-
-/* ============================棋子======================== */
-.unit.display {
-	width: var(--unit-size);
-	height: var(--unit-size);
-	border-radius: 50%;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	font-family: 'NotoSansSymbols2', sans-serif;
-	font-size: calc(var(--unit-size) * 0.78);
-	cursor: pointer;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-	user-select: none;
-	flex: none;
-
-	&.red {
-		background-color: #fdd;
-		border: 0.5px solid var(--red-color);
-		color: var(--red-color);
-	}
-
-	&.black {
-		background-color: #f0f0f0;
-		border: 0.5px solid #888;
-		color: var(--black-color);
-	}
-
-	&.selected {
-		outline: 3px solid #007bff;
-		box-shadow: 0 0 10px #007bff;
-	}
-}
-
-/* ============================当前选中卡片======================== */
-.selected.unit.area {
-	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-
-	.preview {
-		--unit-size: 50px;
-		display: inline-flex;
-		flex: 0 0 50px;
-		width: 50px;
-		min-width: 50px;
-		max-width: 50px;
-		height: 50px;
-		min-height: 50px;
-		max-height: 50px;
-		align-items: center;
-		justify-content: center;
-		margin-bottom: 10px;
-		box-sizing: border-box;
-		align-self: center;
-	}
-}
 
 .card.header.content {
 	display: flex;
