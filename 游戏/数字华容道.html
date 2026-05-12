@@ -43,6 +43,25 @@
 		cursor: not-allowed;
 	}
 
+	/* 小棋盘（初始局面）样式 */
+	.mini.board .unit {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 0.7rem;
+		font-weight: bold;
+		border-radius: 3px;
+		background: linear-gradient(145deg, #ecf0f1 0%, #bdc3c7 100%);
+		color: #2c3e50;
+		min-width: 0;
+		min-height: 0;
+	}
+
+	.mini.board .unit.empty {
+		background: rgba(0, 0, 0, 0.25);
+		color: transparent;
+	}
+
 	.position {
 		min-width: 0;
 		min-height: 0;
