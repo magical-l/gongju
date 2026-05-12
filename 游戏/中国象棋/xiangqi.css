@@ -29,33 +29,94 @@
 	100% { transform: scale(2); opacity: 0; }
 }
 
-/* ============================结算界面======================== */
-.gaming.result.area {
-	background: #f9f9f9;
-	color: #303133;
-	border-radius: 8px;
-	min-width: 420px;
-	border: 1px solid #e4e7ed;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+.gaming.area {
+	--right-sidebar-min-width: 380px;
+	--right-sidebar-max-width: 28%;
 
-	.title { padding: 10px 10px 0 0; }
-	.body { padding: 0 50px 30px 50px; text-align: center; }
-
-	.toolbar {
-		margin-top: 30px;
-		display: flex;
-		gap: var(--gap);
-		justify-content: center;
+	/* 主棋盘区 */
+	.main.map {
+		justify-self: center;
+		align-self: start;
 	}
 
-	.gameover {
-		font-size: 80px;
-		font-weight: bold;
-		color: #4caf50;
-		text-shadow: 0 0 10px white;
+	/* 功勋区 */
+	.kill.info {
+		.header {
+			display: flex;
+			align-items: center;
+			gap: var(--gap);
+			margin-bottom: 10px;
+			border-bottom: 1px solid #eee;
+			padding-bottom: 8px;
+		}
+
+		.count {
+			display: inline-block;
+			min-width: 24px;
+			height: 24px;
+			line-height: 24px;
+			text-align: center;
+			background-color: #f56c6c;
+			color: white;
+			border-radius: 50%;
+			font-weight: bold;
+			font-size: 16px;
+		}
+
+		.details {
+			max-height: 150px;
+			overflow-y: auto;
+
+			.record {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				padding: 5px 0;
+				border-bottom: 1px dashed #eee;
+
+				.meta {
+					font-size: 12px;
+					color: #909399;
+				}
+			}
+		}
+
+		.no-kills {
+			color: #909399;
+			font-style: italic;
+			padding: 10px 0;
+			text-align: center;
+		}
 	}
 
-	.winner { font-size: 40px; margin-top: 10px; }
+	/* 结算界面 */
+	.result {
+		background: #f9f9f9;
+		color: #303133;
+		border-radius: 8px;
+		min-width: 420px;
+		border: 1px solid #e4e7ed;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+		.title { padding: 10px 10px 0 0; }
+		.body { padding: 0 50px 30px 50px; text-align: center; }
+
+		.toolbar {
+			margin-top: 30px;
+			display: flex;
+			gap: var(--gap);
+			justify-content: center;
+		}
+
+		.gameover {
+			font-size: 80px;
+			font-weight: bold;
+			color: #4caf50;
+			text-shadow: 0 0 10px white;
+		}
+
+		.winner { font-size: 40px; margin-top: 10px; }
+	}
 }
 
 /* ============================棋盘编辑器======================== */
@@ -86,56 +147,6 @@
 }
 
 .push-right { margin-left: auto; }
-
-/* ============================杀敌信息======================== */
-.kill.info {
-	.header {
-		display: flex;
-		align-items: center;
-		gap: var(--gap);
-		margin-bottom: 10px;
-		border-bottom: 1px solid #eee;
-		padding-bottom: 8px;
-	}
-
-	.count {
-		display: inline-block;
-		min-width: 24px;
-		height: 24px;
-		line-height: 24px;
-		text-align: center;
-		background-color: #f56c6c;
-		color: white;
-		border-radius: 50%;
-		font-weight: bold;
-		font-size: 16px;
-	}
-
-	.details {
-		max-height: 150px;
-		overflow-y: auto;
-
-		.record {
-			display: flex;
-			align-items: center;
-			gap: 8px;
-			padding: 5px 0;
-			border-bottom: 1px dashed #eee;
-
-			.meta {
-				font-size: 12px;
-				color: #909399;
-			}
-		}
-	}
-
-	.no-kills {
-		color: #909399;
-		font-style: italic;
-		padding: 10px 0;
-		text-align: center;
-	}
-}
 
 /* ============================棋盘======================== */
 .board {
@@ -326,17 +337,6 @@
 	--cell-size: 34px;
 	--unit-size: calc(var(--cell-size) * 0.9);
 	width: fit-content;
-}
-
-.grid.反叵字形.gaming.area {
-	--right-sidebar-min-width: 380px;
-	--right-sidebar-max-width: 28%;
-}
-
-/* 主棋盘区域定位 */
-.gaming.area .main.map.area {
-	justify-self: center;
-	align-self: start;
 }
 
 .card.header.content {

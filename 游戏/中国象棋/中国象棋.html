@@ -90,7 +90,7 @@
 			</section>
 		</header>
 
-		<article class="main map area flex items-near-x-center items-near-y-start">
+		<article class="main map flex items-near-x-center items-near-y-start">
 			<section v-if="!showReversedView" class="board grid no-gap"
 							:class="{ editor: !isGaming, area: isGaming }">
 				<template v-if="positions && positions.length > 0" v-for="(row, r) in positions">
@@ -244,7 +244,7 @@
 		</div>
 
 		<!-- 游戏结束对话框 -->
-		<el-dialog v-model="isGameOverForRender" class="gaming result area" header-class="title" body-class="body" :show-close="true" align-center>
+		<el-dialog v-model="isGameOverForRender" class="result" header-class="title" body-class="body" :show-close="true" align-center>
 			<header class="gameover">游戏结束</header>
 			<div class="winner">{{ winnerName }} 胜利</div>
 			<footer class="toolbar">
