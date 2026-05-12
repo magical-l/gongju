@@ -754,22 +754,25 @@ class 棋局 extends BattlefieldBasedGaming {
 			if (result && skill?.owner?.owner && this.situation?.curPlayer?.id === skill.owner.owner.id) {
 				const currentPlayer = this.situation.curPlayer;
 				const currentIndex = this.playerTurnSequence.findIndex(p => p.id === currentPlayer.id);
-				// 发布“轮次结束”，然后切换到下一个玩家或开启新回合
+				// 发布”轮次结束”，然后切换到下一个玩家或开启新回合
 				this.bulletin.notice('playerTurn end', {player: currentPlayer});
+				let nextPlayer;
 				if (currentIndex === this.playerTurnSequence.length - 1) {
 					// 末位玩家后启动新回合并设置第一个玩家
 					this.bulletin.notice('round end', {roundIndex: this.situation.currentRoundIndex});
 					// 简化处理：直接切到第一个玩家
-					const nextPlayer = this.playerTurnSequence[0];
+					nextPlayer = this.playerTurnSequence[0];
 					this.situation.curPlayer = nextPlayer;
 					nextPlayer.prepareForNewTurn();
 					this.bulletin.notice('playerTurn start', {player: nextPlayer});
 				} else {
-					const nextPlayer = this.playerTurnSequence[currentIndex + 1];
+					nextPlayer = this.playerTurnSequence[currentIndex + 1];
 					this.situation.curPlayer = nextPlayer;
 					nextPlayer.prepareForNewTurn();
 					this.bulletin.notice('playerTurn start', {player: nextPlayer});
 				}
+				// 将军检测：检查新玩家是否被将军
+				this._checkCheck(nextPlayer);
 			}
 		});
 
@@ -820,6 +823,32 @@ class 棋局 extends BattlefieldBasedGaming {
 		super.build();
 
 		notice(this, '棋局 build end', {gaming: this});
+	}
+
+	// 将军检测：检查指定玩家的将帅是否被敌方棋子威胁
+	_checkCheck(player) {
+		// 遍历棋盘找到所有棋子
+		const allUnits = this.battlefield.positions.flat().flatMap(p => this.battlefield.getUnitsAt(p));
+
+		// 找到该玩家的将帅
+		const king = allUnits.find(u =>
+			(u.name === '将' || u.name === '帅') && u.owner.id === player.id
+		);
+		if (!king) return;
+
+		// 检查敌方棋子是否能攻击将帅
+		const enemyUnits = allUnits.filter(u => u.owner.id !== player.id);
+		for (const enemy of enemyUnits) {
+			const attackSkill = enemy.skills?.find(s => s instanceof Attack);
+			if (attackSkill) {
+				const targets = attackSkill.availableTargets;
+				if (targets?.some(t => t._id === king._id || t.id === king.id ||
+					(t.position && t.position.isEqualTo(king.position)))) {
+					this.bulletin.notice('将军', {attacker: enemy, target: king, player});
+					break;
+				}
+			}
+		}
 	}
 
 	_buildGlobalRule(ruleCfg) {
