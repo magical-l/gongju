@@ -343,9 +343,8 @@
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
 					<el-collapse-item name="view" title="对面视角" class="sidebar-view-panel">
-						<div class="reversed-board-in-sidebar" v-if="positions && positions.length > 0">
 							<!-- 交换视角：开关开时主区为对面、侧栏为正常；关时主区为正常、侧栏为对面 -->
-							<article v-if="showReversedView" class="board sidebar-reversed-board , grid no-gap"
+						<article v-if="showReversedView && positions && positions.length > 0" class="board grid no-gap"
 											 :class="{ editor: !isGaming, area: isGaming }">
 								<template v-for="(row, r) in positions">
 									<div class="cell" v-for="(position, c) in row" :key="'sb-'+position.toString()"
@@ -360,7 +359,7 @@
 									</div>
 								</template>
 							</article>
-							<article v-else class="board reversed view sidebar-reversed-board , grid no-gap">
+							<article v-else-if="!showReversedView && positions && positions.length > 0" class="board reversed view grid no-gap">
 								<template v-for="(row,rIndex) of reversedPositions">
 									<div class="cell" v-for="(position,cIndex) in row" :key="'rev-'+position.toString()"
 											 :class="getDynamicCellClasses(9-rIndex, 8-cIndex, position, rIndex, cIndex)"
@@ -374,7 +373,6 @@
 									</div>
 								</template>
 							</article>
-						</div>
 					</el-collapse-item>
 					<el-collapse-item v-if="!isGaming" name="palette" title="棋子库">
 						<div class="piece type grid piece palette grid flex vertical" style="--min-cell-len: 45px">

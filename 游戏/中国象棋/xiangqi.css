@@ -257,8 +257,8 @@
 	border-radius: 2px;
 }
 
-/* 小视图（如右侧栏「对面视角」）棋盘：格子稍小以适应侧栏 */
-.board.reversed.view {
+/* 侧栏棋盘：格子较小以适应侧栏宽度 */
+.right-sidebar .board {
 	--min-cell-len: 34px;
 	--cell-size: 34px;
 	width: fit-content;
