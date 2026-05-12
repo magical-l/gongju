@@ -91,14 +91,14 @@
 
 		<section v-if="mainCells.length" class="board , main map , grid no-gap" :class="{ 'reversed view': showReversedView, editor: !isGaming }">
 			<div class="cell" :class="cell.classes" v-for="cell in mainCells" :key="cell.position.toString()"
-					@click="clickCell(cell.position)"
-					@dragover.prevent @drop="handleCellDrop(cell.position.rowNum-1, cell.position.colNum-1, cell.position)">
+					@click="handleCellClick(cell)"
+					@dragover.prevent @drop="handleCellDrop(cell)">
 				<div class="unit display" v-for="unit in cell.units" :key="unit.id"
 					:class="unit.classes"
 					:draggable="unit.canDrag"
-					@dragstart="dragStartPiece(unit.name, 'board', unit.r, unit.c)" @dragend="clearDraggedPiece">
+					@dragstart="dragStartPiece(unit, 'board')" @dragend="clearDraggedPiece">
 					{{ unit.display }}
-					<div v-if="unit.canDrag" class="remove unit btn" @click.stop="removeEditorPiece(unit.r, unit.c)">×</div>
+					<div v-if="unit.canDrag" class="remove unit btn" @click.stop="removeEditorPiece(unit)">×</div>
 				</div>
 				<div class="texture"></div>
 			</div>
@@ -111,7 +111,7 @@
 						<article v-if="miniCells.length"
 							class="mini map , board , grid no-gap" :class="{ 'reversed view': !showReversedView, editor: !isGaming, area: isGaming }">
 							<div class="cell" :class="cell.classes" v-for="cell in miniCells" :key="'mini-'+cell.position.toString()"
-									@click="clickCell(cell.position)">
+									@click="handleCellClick(cell)">
 								<div class="texture"></div>
 								<div class="unit display" :class="unit.classes" v-for="unit in cell.units" :key="unit.id">
 									{{ unit.display }}
@@ -124,7 +124,7 @@
 							<div class="unit display" :class="[getEditorUnitColor(piece), { 'selected': boardEditor.selectedPieceType === type }]"
 									v-for="(piece, type) in boardEditor.pieceTypes" :key="type"
 									@click="boardEditor.selectedPieceType = (boardEditor.selectedPieceType === type ? null : type)"
-									draggable="true" @dragstart="dragStartPiece(type, 'palette')" @dragend="clearDraggedPiece">
+									draggable="true" @dragstart="dragStartPiece({name: type}, 'palette')" @dragend="clearDraggedPiece">
 								{{ piece.显示 }}
 							</div>
 						</div>
@@ -272,6 +272,7 @@
 				},
 				gameCfg: {},
 				gaming: null,
+				battlefieldVersion: 0, // 响应式触发变量，游戏引擎是非Vue对象，需手动触发更新
 				turnHistoryForRender: [], // 用于渲染回合历史的数组
 				isGameOverForRender: false,
 				winnerNameForRender: '',
@@ -376,6 +377,7 @@
 			},
 			boardForRender() {
 				if (this.isGaming) {
+					const _ = this.battlefieldVersion; // 强制依赖追踪，触发重新计算
 					if (!this.gaming?.battlefield?.positions) {
 						return [];
 					}
@@ -442,7 +444,7 @@
 					this.attackTargets.forEach(unit => {
 						const posStr = unit.position.toString();
 						if (unit.owner.id !== curPlayer.id) {
-							markers[posStr] = 'attack'; // 敌方单位
+							markers[posStr] = 'attackable'; // 敌方单位
 						} else {
 							markers[posStr] = 'blocked'; // 己方单位
 						}
@@ -472,15 +474,16 @@
 			},
 			getUnitsAt(position) {
 				const units = this.boardForRender[position.rowNum - 1]?.[position.colNum - 1] || [];
-				if (units.length > 0) {
-				}
-				return units.map(unit => ({
-					...unit,
-					classes: this.isGaming ? this.getUnitClasses(unit) : this.getEditorPieceClasses(unit.name, position.rowNum - 1, position.colNum - 1),
-					canDrag: !this.isGaming,
-					r: position.rowNum - 1,
-					c: position.colNum - 1,
-				}));
+				return units.map(unit => {
+					const r = position.rowNum - 1;
+					const c = position.colNum - 1;
+					return {
+						...unit,
+						r, c,
+						classes: this.isGaming ? this.getUnitClasses(unit) : this.getEditorPieceClasses({name: unit.name, r, c}),
+						canDrag: !this.isGaming,
+					};
+				});
 			},
 			onGamingInfoCollapseChange(val) {
 				const def = this._gamingInfoDefaultPanels || [];
@@ -499,8 +502,9 @@
 				if (!this.gaming) {
 					return;
 				}
+				// 游戏引擎内部状态变化无法被Vue追踪，通过版本号触发boardForRender重新计算
+				this.battlefieldVersion++;
 				this.isUndoAvailable = this.gaming.situation.canRewind();
-				// boardForRender 已被提升为计算属性，无需手动更新
 
 				// 更新回合历史
 				this.turnHistoryForRender = this.gaming.situation?._roundNotations?.map((round, index) => ({
@@ -537,14 +541,19 @@
 				this.boardEditor.selectedPiece = null;
 				this.updateEditorRenderData();
 			},
-			dragStartPiece(type, from, r = null, c = null) {
-				this.boardEditor.draggedPiece = {type, from, r, c};
+			dragStartPiece(piece, from) {
+				this.boardEditor.draggedPiece = {
+					type: piece.name,
+					from,
+					r: piece.r,
+					c: piece.c,
+				};
 				this.boardEditor.selectedPiece = null;
 			},
-			dropOnBoard(r, c) {
-				if (!this.boardEditor.draggedPiece) {
-					return;
-				}
+			dropOnBoard(position) {
+				if (!this.boardEditor.draggedPiece) return;
+				const r = position.rowNum - 1;
+				const c = position.colNum - 1;
 
 				// 如果是从棋盘上拖动，先清空原来的位置
 				if (this.boardEditor.draggedPiece.from === 'board') {
@@ -554,11 +563,12 @@
 				// 在新位置上放置棋子
 				this.boardEditor.layout[r][c] = this.boardEditor.draggedPiece.type;
 				this.boardEditor.draggedPiece = null;
-				// 强制更新视图
 				this.boardEditor.layout = [...this.boardEditor.layout];
 				this.updateEditorRenderData();
 			},
-			selectEditorPiece(r, c) {
+			selectEditorPiece(cell) {
+				const r = cell.rowNum - 1;
+				const c = cell.colNum - 1;
 				const selected = this.boardEditor.selectedPiece;
 				// 如果点击的是已有棋子，则选中它
 				if (this.boardEditor.layout[r][c] !== '空') {
@@ -573,12 +583,12 @@
 					this.boardEditor.selectedPiece = null;
 				}
 			},
-			isEditorPieceSelected(r, c) {
+			isEditorPieceSelected(unit) {
 				const selected = this.boardEditor.selectedPiece;
-				return selected && selected.r === r && selected.c === c;
+				return selected && selected.r === unit.r && selected.c === unit.c;
 			},
-			removeEditorPiece(r, c) {
-				this.boardEditor.layout[r][c] = '空';
+			removeEditorPiece(unit) {
+				this.boardEditor.layout[unit.r][unit.c] = '空';
 				this.boardEditor.selectedPiece = null;
 				this.updateEditorRenderData();
 			},
@@ -757,23 +767,20 @@
 
 				return rt;
 			},
-			getEditorPieceClasses(pieceName, r, c) {
-				const piece = this.boardEditor.pieceTypes[pieceName];
+			getEditorPieceClasses(unit) {
+				const piece = this.boardEditor.pieceTypes[unit.name];
 				const color = this.getEditorUnitColor(piece);
-				const selected = this.isEditorPieceSelected(r, c);
+				const selected = this.isEditorPieceSelected(unit);
 				return [color, {selected}];
 			},
-			handleCellClick(r, c, item) {
-				if (this.isGaming) {
-					const position = item;
-					this.clickCell(position);
-				} else {
-					this.selectEditorPiece(r, c);
-				}
+			handleCellDrop(cell) {
+				if (!this.isGaming) this.dropOnBoard(cell.position);
 			},
-			handleCellDrop(r, c, position) {
-				if (!this.isGaming) {
-					this.dropOnBoard(r, c);
+			handleCellClick(cell) {
+				if (this.isGaming) {
+					this.clickCell(cell.position);
+				} else {
+					this.selectEditorPiece(cell.position);
 				}
 			},
 			getUnitClasses(unit) {
