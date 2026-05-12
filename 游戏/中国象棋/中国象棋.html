@@ -90,7 +90,7 @@
 			</section>
 		</header>
 
-		<article class="main map flex items-near-x-center items-near-y-start">
+		<article class="main map , flex items-near-x-center items-near-y-start">
 			<section v-if="!showReversedView" class="board grid no-gap"
 							:class="{ editor: !isGaming, area: isGaming }">
 				<template v-if="positions && positions.length > 0" v-for="(row, r) in positions">
@@ -104,7 +104,7 @@
 								:draggable="!isGaming"
 								@dragstart="dragStartPiece(unit.name, 'board', r, c)" @dragend="clearDraggedPiece">
 							{{ unit.display }}
-							<div v-if="!isGaming" class="remove piece btn" @click.stop="removeEditorPiece(r, c)">×</div>
+							<div v-if="!isGaming" class="remove unit btn" @click.stop="removeEditorPiece(r, c)">×</div>
 						</div>
 					</div>
 				</template>
@@ -130,7 +130,7 @@
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
 					<el-collapse-item name="view" title="对面视角" class="sidebar-view-panel">
-						<article v-if="miniBoardData" class="mini board , grid no-gap"
+						<article v-if="miniBoardData" class="mini map , board , grid no-gap"
 									:class="{ 'reversed view': miniBoardData.isReversed, editor: !isGaming, area: isGaming }">
 							<template v-for="(row, r) in miniBoardData.rows">
 								<div class="cell" v-for="(position, c) in row" :key="'mini-'+r+'-'+c"
@@ -147,7 +147,7 @@
 						</article>
 					</el-collapse-item>
 					<el-collapse-item v-if="!isGaming" name="palette" title="棋子库">
-						<div class="piece type piece palette grid">
+						<div class="unit type unit palette grid">
 							<div class="unit display" v-for="(piece, type) in boardEditor.pieceTypes" :key="type"
 									:class="[getEditorUnitColor(piece), { 'selected': boardEditor.selectedPieceType === type }]"
 									@click="boardEditor.selectedPieceType = (boardEditor.selectedPieceType === type ? null : type)"
