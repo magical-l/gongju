@@ -12,7 +12,6 @@
 	inset: 0;
 	font-weight: bold;
 	font-size: clamp(10px, 2.5vw, 24px);
-	color: var(--text-light);
 	border: 1px solid var(--grid-line, rgba(0,0,0,0.12));
 	border-radius: var(--unit-radius);
 	user-select: none;
@@ -22,15 +21,15 @@
 /* 各数字的颜色 */
 .unit.unit-2 { background: #e2ead8; color: #5a6b52; }
 .unit.unit-4 { background: #d4e0c8; color: #5a6b52; }
-.unit.unit-8 { background: #a8c99e; }
-.unit.unit-16 { background: #8fbc85; }
-.unit.unit-32 { background: #7cb37a; }
-.unit.unit-64 { background: #6ba36b; }
-.unit.unit-128 { background: #9cb87c; }
-.unit.unit-256 { background: #8ab06e; }
-.unit.unit-512 { background: #7aa862; }
-.unit.unit-1024 { background: #6a9f56; }
-.unit.unit-2048 { background: #5a8f4a; }
+.unit.unit-8 { background: #a8c99e; color: #f5f9f2; }
+.unit.unit-16 { background: #8fbc85; color: #f5f9f2; }
+.unit.unit-32 { background: #7cb37a; color: #f5f9f2; }
+.unit.unit-64 { background: #6ba36b; color: #f5f9f2; }
+.unit.unit-128 { background: #9cb87c; color: #f5f9f2; }
+.unit.unit-256 { background: #8ab06e; color: #f5f9f2; }
+.unit.unit-512 { background: #7aa862; color: #f5f9f2; }
+.unit.unit-1024 { background: #6a9f56; color: #f5f9f2; }
+.unit.unit-2048 { background: #5a8f4a; color: #f5f9f2; }
 
 /* 滑动动画层：.cell 为绝对定位的”飞格”，.unit 填满整格滑动 */
 .gaming.area .slide-layer .cell > .unit {
