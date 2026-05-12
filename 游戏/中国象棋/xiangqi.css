@@ -9,6 +9,8 @@
 	--red-color: #d43d3d;
 	--black-color: #333;
 	--unit-size: 45px;
+	--cell-size: 60px;
+	--line-stroke-width: 1px;
 }
 
 /* ============================游戏提示======================== */
@@ -61,7 +63,6 @@
 	grid-template-columns: repeat(auto-fill, var(--unit-size));
 	gap: var(--gap);
 	padding: 10px;
-	--unit-size: 45px;
 }
 
 .remove.piece.btn {
@@ -84,17 +85,6 @@
 	box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
 }
 
-.piece.type.grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, 30px);
-	gap: var(--gap);
-	padding: 10px;
-	background: #f5f5f5;
-	border: 1px solid #ddd;
-	border-radius: 4px;
-}
-
-.selected-unit-panel { min-height: 160px; }
 .push-right { margin-left: auto; }
 
 /* ============================杀敌信息======================== */
@@ -132,8 +122,6 @@
 			padding: 5px 0;
 			border-bottom: 1px dashed #eee;
 
-			.piece { --unit-size: 45px; }
-
 			.meta {
 				font-size: 12px;
 				color: #909399;
@@ -154,15 +142,12 @@
 	--board-cols: 9;
 	--board-rows: 10;
 	--cell-size: 60px;
-	--min-cell-len: 60px;
-	--line-color: #333;
-	--line-stroke-width: 1px;
-	grid-template-rows: repeat(10, var(--min-cell-len));
-	grid-template-columns: repeat(9, var(--min-cell-len));
+	--unit-size: calc(var(--cell-size) * 0.9);
+	grid-template-rows: repeat(10, var(--cell-size));
+	grid-template-columns: repeat(9, var(--cell-size));
 	background-color: antiquewhite;
 	position: relative;
 	height: fit-content;
-	--unit-size: calc(var(--min-cell-len) * 0.9);
 
 	.cell {
 		position: relative;
@@ -274,6 +259,9 @@
 			border-radius: 2px;
 		}
 	}
+
+	/* 棋盘内的棋子定位 */
+	.unit.display { position: absolute; z-index: 10; }
 }
 
 /* ============================棋子======================== */
@@ -309,14 +297,11 @@
 	}
 }
 
-.board .unit.display { position: absolute; z-index: 10; }
-
 /* ============================当前选中卡片======================== */
 .selected.unit.area {
 	display: flex;
 	flex-direction: column;
 	align-items: flex-start;
-	--unit-size: 45px;
 
 	.preview {
 		--unit-size: 50px;
@@ -338,8 +323,8 @@
 
 /* ============================侧栏棋盘======================== */
 .right-sidebar .board {
-	--min-cell-len: 34px;
 	--cell-size: 34px;
+	--unit-size: calc(var(--cell-size) * 0.9);
 	width: fit-content;
 }
 
