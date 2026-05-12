@@ -12,216 +12,6 @@
 <link href="../../resources/biz.css?v=250821" rel="stylesheet">
 <link href="../../resources/花活.css?v=250821" rel="stylesheet">
 <link href="xiangqi.css" rel="stylesheet">
-<style>
-	/* ==============================游戏提示覆盖层=========================== */
-	.game.overlay.non-interactive {
-		pointer-events: none;
-	}
-
-	.el-dialog.game-result {
-		background: #f9f9f9;
-		color: #303133;
-		border-radius: 8px;
-		min-width: 420px;
-		border: 1px solid #e4e7ed;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-	}
-
-	.game-result .el-dialog__header {
-		padding: 10px 10px 0 0;
-	}
-
-	.game-result .el-dialog__body {
-		padding: 0 50px 30px 50px;
-		text-align: center;
-	}
-
-	.game-result .button.group {
-		margin-top: 30px;
-		display: flex;
-		gap: var(--gap);
-		justify-content: center;
-	}
-
-	.game.over.text {
-		font-size: 80px;
-		font-weight: bold;
-		color: #4caf50;
-		text-shadow: 0 0 10px white;
-	}
-
-	.winner {
-		font-size: 40px;
-		margin-top: 10px;
-	}
-
-	@keyframes check-animation {
-		0% { transform: scale(1); opacity: 1; }
-		50% { transform: scale(1.5); opacity: 0.7; }
-		100% { transform: scale(2); opacity: 0; }
-	}
-
-	.check.text {
-		font-size: 120px;
-		font-weight: bold;
-		color: #ffc107;
-		text-shadow: 0 0 15px red, 0 0 25px red;
-		animation: check-animation 1s ease-out;
-	}
-
-	/* ==============================棋盘编辑器=========================== */
-	.piece.palette {
-		grid-template-columns: repeat(auto-fill, 45px);
-		gap: var(--gap);
-		padding: 10px;
-	}
-
-	.remove.piece.btn {
-		position: absolute;
-		top: -5px;
-		right: -5px;
-		z-index: 20;
-		width: 20px;
-		height: 20px;
-		border-radius: 50%;
-		background-color: #ff4d4f;
-		color: white;
-		border: 1px solid white;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		font-size: 14px;
-		font-weight: bold;
-		cursor: pointer;
-		box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-	}
-
-	/* ==============================棋子类型编辑器=========================== */
-
-	.piece.type.grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, 30px);
-		gap: var(--gap);
-		padding: 10px;
-		background: #f5f5f5;
-		border: 1px solid #ddd;
-		border-radius: 4px;
-	}
-
-	/* 棋子库内棋子尺寸见 xiangqi.css .piece.palette .unit.display */
-
-	.gaming.area .main.map.area {
-		justify-self: center;
-		align-self: start;
-		
-	}
-
-	.card.header.content {
-		display: flex;
-		align-items: center;
-		gap: var(--gap);
-		min-height: 40px;
-	}
-
-
-		.push-right {
-		margin-left: auto;
-		}
-
-		.selected-unit-panel {
-		min-height: 160px;
-		}
-
-		/* 杀敌信息样式 */
-
-		.kill.info > .header {
-		display: flex;
-		align-items: center;
-		gap: var(--gap);
-		margin-bottom: 10px;
-		border-bottom: 1px solid #eee;
-		padding-bottom: 8px;
-		}
-
-		.kill.info .count {
-		display: inline-block;
-		min-width: 24px;
-		height: 24px;
-		line-height: 24px;
-		text-align: center;
-		background-color: #f56c6c;
-		color: white;
-		border-radius: 50%;
-		font-weight: bold;
-		font-size: 16px;
-		}
-
-		.kill.info .details {
-		max-height: 150px;
-		overflow-y: auto;
-		}
-
-		.kill.info .record {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		padding: 5px 0;
-		border-bottom: 1px dashed #eee;
-		}
-
-		.kill.info .record-piece {
-		display: inline-flex;
-		flex: 0 0 45px;
-		width: 45px;
-		min-width: 45px;
-		max-width: 45px;
-		height: 45px;
-		min-height: 45px;
-		max-height: 45px;
-		align-items: center;
-		justify-content: center;
-		box-sizing: border-box;
-		align-self: center;
-		flex-shrink: 0;
-		}
-
-		.kill.info .meta {
-		font-size: 12px;
-		color: #909399;
-		}
-
-		/* 当前选中：顶部展示的棋子容器，固定尺寸且不参与父级拉伸；棋子样式见 xiangqi.css .selected.unit.preview .unit.display */
-		.selected.unit.preview {
-		display: inline-flex;
-		flex: 0 0 50px;
-		width: 50px;
-		min-width: 50px;
-		max-width: 50px;
-		height: 50px;
-		min-height: 50px;
-		max-height: 50px;
-		align-items: center;
-		justify-content: center;
-		margin-bottom: 10px;
-		box-sizing: border-box;
-		align-self: center;
-		}
-
-		.no-kills {
-		color: #909399;
-		font-style: italic;
-		padding: 10px 0;
-		text-align: center;
-		}
-
-		/* 当前选中卡片：子项不横向拉伸，避免棋子预览和杀敌列表占满一行 */
-		.selected.unit.area {
-			display: flex;
-			flex-direction: column;
-			align-items: flex-start;
-		}
-
-</style>
 </head>
 <body class="grid 目字形">
 <header>
@@ -255,7 +45,6 @@
 		<h2 class="game name">中国象棋</h2>
 	</header>
 	<article class="gaming area , 反叵字形 grid" v-cloak>
-		<!-- 模式工具栏 -->
 		<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
 			<section class="setting list area , flex single-line no-gap items-near-x-start items-near-y-center">
 				<div v-if="isGaming" class="one setting group">
@@ -301,20 +90,19 @@
 			</section>
 		</header>
 
-		<!-- 主棋盘固定 60px/格，水平居中、垂直靠顶 -->
 		<article class="main map area flex items-near-x-center items-near-y-start">
 			<section v-if="!showReversedView" class="board grid no-gap"
-							 :class="{ editor: !isGaming, area: isGaming }">
+							:class="{ editor: !isGaming, area: isGaming }">
 				<template v-if="positions && positions.length > 0" v-for="(row, r) in positions">
 					<div class="cell" v-for="(position, c) in row" :key="position.toString()"
-							 :class="getDynamicCellClasses(r, c, position)"
-							 @click="handleCellClick(r, c, position)"
-							 @dragover.prevent @drop="handleCellDrop(r, c, position)">
+							:class="getDynamicCellClasses(r, c, position)"
+							@click="handleCellClick(r, c, position)"
+							@dragover.prevent @drop="handleCellDrop(r, c, position)">
 						<div class="texture"></div>
 						<div class="unit display" :class="isGaming ? getUnitClasses(unit) : getEditorPieceClasses(unit.name, r, c)"
-								 v-for="unit in boardForRender[r][c]" :key="unit.id"
-								 :draggable="!isGaming"
-								 @dragstart="dragStartPiece(unit.name, 'board', r, c)" @dragend="clearDraggedPiece">
+								v-for="unit in boardForRender[r][c]" :key="unit.id"
+								:draggable="!isGaming"
+								@dragstart="dragStartPiece(unit.name, 'board', r, c)" @dragend="clearDraggedPiece">
 							{{ unit.display }}
 							<div v-if="!isGaming" class="remove piece btn" @click.stop="removeEditorPiece(r, c)">×</div>
 						</div>
@@ -322,15 +110,15 @@
 				</template>
 			</section>
 			<section v-else class="board reversed view grid no-gap"
-							 v-if="positions && positions.length > 0">
+							v-if="positions && positions.length > 0">
 				<template v-for="(row,rIndex) of reversedPositions">
 					<div class="cell" v-for="(position,cIndex) in row" :key="position.toString()"
-							 :class="getDynamicCellClasses(9-rIndex, 8-cIndex, position, rIndex, cIndex)"
-							 @click="handleCellClick(9-rIndex, 8-cIndex, position)">
+							:class="getDynamicCellClasses(9-rIndex, 8-cIndex, position, rIndex, cIndex)"
+							@click="handleCellClick(9-rIndex, 8-cIndex, position)">
 						<div class="texture"></div>
 						<div class="unit display"
-								 v-for="unit in boardForRender[position.rowNum - 1][position.colNum - 1]" :key="unit.id"
-								 :class="isGaming ? getUnitClasses(unit) : getEditorPieceClasses(unit.name, position.rowNum - 1, position.colNum - 1)">
+								v-for="unit in boardForRender[position.rowNum - 1][position.colNum - 1]" :key="unit.id"
+								:class="isGaming ? getUnitClasses(unit) : getEditorPieceClasses(unit.name, position.rowNum - 1, position.colNum - 1)">
 							{{ unit.display }}
 						</div>
 					</div>
@@ -343,55 +131,52 @@
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
 					<el-collapse-item name="view" title="对面视角" class="sidebar-view-panel">
 							<!-- 交换视角：开关开时主区为对面、侧栏为正常；关时主区为正常、侧栏为对面 -->
-						<article v-if="showReversedView && positions && positions.length > 0" class="board grid no-gap"
-											 :class="{ editor: !isGaming, area: isGaming }">
-								<template v-for="(row, r) in positions">
-									<div class="cell" v-for="(position, c) in row" :key="'sb-'+position.toString()"
-											 :class="getDynamicCellClasses(r, c, position)"
-											 @click="handleCellClick(r, c, position)">
-										<div class="texture"></div>
-										<div class="unit display"
-												 :class="isGaming ? getUnitClasses(unit) : getEditorPieceClasses(unit.name, r, c)"
-												 v-for="unit in boardForRender[r][c]" :key="unit.id">
-											{{ unit.display }}
-										</div>
+						<article v-if="showReversedView && positions && positions.length > 0" class="board grid no-gap" :class="{ editor: !isGaming, area: isGaming }">
+							<template v-for="(row, r) in positions">
+								<div class="cell" v-for="(position, c) in row" :key="'sb-'+position.toString()"
+										:class="getDynamicCellClasses(r, c, position)"
+										@click="handleCellClick(r, c, position)">
+									<div class="texture"></div>
+									<div class="unit display"
+											:class="isGaming ? getUnitClasses(unit) : getEditorPieceClasses(unit.name, r, c)"
+											v-for="unit in boardForRender[r][c]" :key="unit.id">
+										{{ unit.display }}
 									</div>
-								</template>
-							</article>
-							<article v-else-if="!showReversedView && positions && positions.length > 0" class="board reversed view grid no-gap">
-								<template v-for="(row,rIndex) of reversedPositions">
-									<div class="cell" v-for="(position,cIndex) in row" :key="'rev-'+position.toString()"
-											 :class="getDynamicCellClasses(9-rIndex, 8-cIndex, position, rIndex, cIndex)"
-											 @click="handleCellClick(9-rIndex, 8-cIndex, position)">
-										<div class="texture"></div>
-										<div class="unit display"
-												 v-for="unit in boardForRender[position.rowNum - 1][position.colNum - 1]" :key="unit.id"
-												 :class="isGaming ? getUnitClasses(unit) : getEditorPieceClasses(unit.name, position.rowNum - 1, position.colNum - 1)">
-											{{ unit.display }}
-										</div>
+								</div>
+							</template>
+						</article>
+						<article v-else-if="!showReversedView && positions && positions.length > 0" class="board reversed view grid no-gap">
+							<template v-for="(row,rIndex) of reversedPositions">
+								<div class="cell" v-for="(position,cIndex) in row" :key="'rev-'+position.toString()" :class="getDynamicCellClasses(9-rIndex, 8-cIndex, position, rIndex, cIndex)"
+											@click="handleCellClick(9-rIndex, 8-cIndex, position)">
+									<div class="texture"></div>
+									<div class="unit display"
+										v-for="unit in boardForRender[position.rowNum - 1][position.colNum - 1]" :key="unit.id"
+										:class="isGaming ? getUnitClasses(unit) : getEditorPieceClasses(unit.name, position.rowNum - 1, position.colNum - 1)">
+										{{ unit.display }}
 									</div>
-								</template>
-							</article>
+								</div>
+							</template>
+						</article>
 					</el-collapse-item>
 					<el-collapse-item v-if="!isGaming" name="palette" title="棋子库">
 						<div class="piece type grid piece palette grid flex vertical" style="--min-cell-len: 45px">
 							<div class="unit display" v-for="(piece, type) in boardEditor.pieceTypes" :key="type"
-									 :class="[getEditorUnitColor(piece), { 'selected': boardEditor.selectedPieceType === type }]"
-									 @click="boardEditor.selectedPieceType = (boardEditor.selectedPieceType === type ? null : type)"
-									 draggable="true" @dragstart="dragStartPiece(type, 'palette')" @dragend="clearDraggedPiece">
+									:class="[getEditorUnitColor(piece), { 'selected': boardEditor.selectedPieceType === type }]"
+									@click="boardEditor.selectedPieceType = (boardEditor.selectedPieceType === type ? null : type)"
+									draggable="true" @dragstart="dragStartPiece(type, 'palette')" @dragend="clearDraggedPiece">
 								{{ piece.显示 }}
 							</div>
 						</div>
 					</el-collapse-item>
 					<el-collapse-item name="selected" title="当前选中">
 						<div v-if="isGaming && selectedUnit" class="selected unit area">
-							<div class="selected unit preview">
+							<div class="preview">
 								<div class="unit display" :class="getUnitClasses(selectedUnit)">{{ selectedUnit.display }}</div>
 							</div>
 							<strong>技能:</strong>
 							<div style="margin-top: 5px;">
-								<el-tag v-if="selectedUnit.skills" v-for="skill in selectedUnit.skills" :key="skill.name" type="info"
-												style="margin: 2px;">{{ skill.name }}
+								<el-tag v-if="selectedUnit.skills" v-for="skill in selectedUnit.skills" :key="skill.name" type="info" style="margin: 2px;">{{ skill.name }}
 								</el-tag>
 							</div>
 							<div class="kill info" style="margin-top: 15px;">
@@ -408,9 +193,7 @@
 						<div v-else-if="!isGaming && boardEditor.selectedPieceType">
 							<el-form label-width="60px">
 								<el-form-item label="显示">
-									<el-input v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].显示" autofocus
-														:input-style="{ fontFamily: 'NotoSansSymbols2, sans-serif', fontSize: '28px', textAlign: 'center' }"
-														style="width: 60px;"/>
+									<el-input v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].显示" autofocus :input-style="{ fontFamily: 'NotoSansSymbols2, sans-serif', fontSize: '28px', textAlign: 'center' }" style="width: 60px" />
 								</el-form-item>
 								<el-form-item label="技能">
 									<el-checkbox-group v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].技能">
