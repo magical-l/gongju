@@ -38,9 +38,15 @@
 		justify-self: center;
 		align-self: start;
 	}
+	
+	.mini.board {
+		--cell-size: 34px;
+		--unit-size: calc(var(--cell-size) * 0.9);
+		width: fit-content;
+	}
 
 	/* 功勋区 */
-	.kill.info {
+	.merit {
 		.header {
 			display: flex;
 			align-items: center;
@@ -81,7 +87,7 @@
 			}
 		}
 
-		.no-kills {
+		.empty {
 			color: #909399;
 			font-style: italic;
 			padding: 10px 0;
@@ -330,13 +336,6 @@
 		box-sizing: border-box;
 		align-self: center;
 	}
-}
-
-/* ============================侧栏棋盘======================== */
-.right-sidebar .board {
-	--cell-size: 34px;
-	--unit-size: calc(var(--cell-size) * 0.9);
-	width: fit-content;
 }
 
 .card.header.content {

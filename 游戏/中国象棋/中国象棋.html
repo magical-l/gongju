@@ -85,7 +85,7 @@
 					</el-button>
 				</div>
 				<div class="one tool group">
-					<el-button type="info" plain class="one tool : reversed-view" @click="showReversedView = !showReversedView">交换视角</el-button>
+					<el-button type="info" plain class="one tool : reverse view btn" @click="showReversedView = !showReversedView">交换视角</el-button>
 				</div>
 			</section>
 		</header>
@@ -130,29 +130,16 @@
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
 					<el-collapse-item name="view" title="对面视角" class="sidebar-view-panel">
-							<!-- 交换视角：开关开时主区为对面、侧栏为正常；关时主区为正常、侧栏为对面 -->
-						<article v-if="showReversedView && positions && positions.length > 0" class="board grid no-gap" :class="{ editor: !isGaming, area: isGaming }">
-							<template v-for="(row, r) in positions">
-								<div class="cell" v-for="(position, c) in row" :key="'sb-'+position.toString()"
-										:class="getDynamicCellClasses(r, c, position)"
-										@click="handleCellClick(r, c, position)">
+						<article v-if="miniBoardData" class="mini board , grid no-gap"
+									:class="{ 'reversed view': miniBoardData.isReversed, editor: !isGaming, area: isGaming }">
+							<template v-for="(row, r) in miniBoardData.rows">
+								<div class="cell" v-for="(position, c) in row" :key="'mini-'+r+'-'+c"
+										:class="miniBoardData.isReversed ? getDynamicCellClasses(9-r, 8-c, position, r, c) : getDynamicCellClasses(r, c, position)"
+										@click="clickCell(position)">
 									<div class="texture"></div>
 									<div class="unit display"
-											:class="isGaming ? getUnitClasses(unit) : getEditorPieceClasses(unit.name, r, c)"
-											v-for="unit in boardForRender[r][c]" :key="unit.id">
-										{{ unit.display }}
-									</div>
-								</div>
-							</template>
-						</article>
-						<article v-else-if="!showReversedView && positions && positions.length > 0" class="board reversed view grid no-gap">
-							<template v-for="(row,rIndex) of reversedPositions">
-								<div class="cell" v-for="(position,cIndex) in row" :key="'rev-'+position.toString()" :class="getDynamicCellClasses(9-rIndex, 8-cIndex, position, rIndex, cIndex)"
-											@click="handleCellClick(9-rIndex, 8-cIndex, position)">
-									<div class="texture"></div>
-									<div class="unit display"
-										v-for="unit in boardForRender[position.rowNum - 1][position.colNum - 1]" :key="unit.id"
-										:class="isGaming ? getUnitClasses(unit) : getEditorPieceClasses(unit.name, position.rowNum - 1, position.colNum - 1)">
+											v-for="unit in boardForRender[position.rowNum - 1][position.colNum - 1]" :key="unit.id"
+											:class="isGaming ? getUnitClasses(unit) : getEditorPieceClasses(unit.name, position.rowNum - 1, position.colNum - 1)">
 										{{ unit.display }}
 									</div>
 								</div>
@@ -179,7 +166,7 @@
 								<el-tag v-if="selectedUnit.skills" v-for="skill in selectedUnit.skills" :key="skill.name" type="info" style="margin: 2px;">{{ skill.name }}
 								</el-tag>
 							</div>
-							<div class="kill info" style="margin-top: 15px;">
+							<div class="merit" style="margin-top: 15px;">
 								<header>杀敌数 <span class="count">{{ selectedUnit.killCount }}</span></header>
 								<div class="details" v-if="selectedUnit.kills && selectedUnit.kills.length > 0">
 									<div class="record" v-for="(kill, ki) in selectedUnit.kills" :key="ki">
@@ -187,7 +174,7 @@
 										<span class="meta">第{{ kill.round }}回合</span>
 									</div>
 								</div>
-								<div v-else class="no-kills">暂无杀敌记录</div>
+								<div v-else class="empty">暂无杀敌记录</div>
 							</div>
 						</div>
 						<div v-else-if="!isGaming && boardEditor.selectedPieceType">
@@ -383,6 +370,14 @@
 					return [];
 				}
 				return this.boardEditor.editorPositions.slice().reverse().map(row => row.slice().reverse());
+			},
+			miniBoardData() {
+				if (!this.positions?.length) return null;
+				const isReversed = !this.showReversedView;
+				return {
+					rows: isReversed ? this.reversedPositions : this.positions,
+					isReversed,
+				};
 			},
 			boardForRender() {
 				if (this.isGaming) {
