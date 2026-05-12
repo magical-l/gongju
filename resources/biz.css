@@ -526,3 +526,5 @@ article.gaming.area .right-sidebar .el-collapse-item__header:focus {
 	top: 4px;
 	right: 4px;
 }
+
+.push-right { margin-left: auto; }
