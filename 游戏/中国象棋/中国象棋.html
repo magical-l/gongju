@@ -90,60 +90,37 @@
 			</section>
 		</header>
 
-		<article class="main map , flex items-near-x-center items-near-y-start">
-			<section v-if="!showReversedView" class="board grid no-gap"
-							:class="{ editor: !isGaming, area: isGaming }">
-				<template v-if="positions && positions.length > 0" v-for="(row, r) in positions">
-					<div class="cell" v-for="(position, c) in row" :key="position.toString()"
-							:class="getDynamicCellClasses(r, c, position)"
-							@click="handleCellClick(r, c, position)"
-							@dragover.prevent @drop="handleCellDrop(r, c, position)">
-						<div class="texture"></div>
-						<div class="unit display" :class="isGaming ? getUnitClasses(unit) : getEditorPieceClasses(unit.name, r, c)"
-								v-for="unit in boardForRender[r][c]" :key="unit.id"
-								:draggable="!isGaming"
-								@dragstart="dragStartPiece(unit.name, 'board', r, c)" @dragend="clearDraggedPiece">
-							{{ unit.display }}
-							<div v-if="!isGaming" class="remove unit btn" @click.stop="removeEditorPiece(r, c)">×</div>
-						</div>
-					</div>
-				</template>
-			</section>
-			<section v-else class="board reversed view grid no-gap"
-							v-if="positions && positions.length > 0">
-				<template v-for="(row,rIndex) of reversedPositions">
-					<div class="cell" v-for="(position,cIndex) in row" :key="position.toString()"
-							:class="getDynamicCellClasses(9-rIndex, 8-cIndex, position, rIndex, cIndex)"
-							@click="handleCellClick(9-rIndex, 8-cIndex, position)">
-						<div class="texture"></div>
-						<div class="unit display"
-								v-for="unit in boardForRender[position.rowNum - 1][position.colNum - 1]" :key="unit.id"
-								:class="isGaming ? getUnitClasses(unit) : getEditorPieceClasses(unit.name, position.rowNum - 1, position.colNum - 1)">
-							{{ unit.display }}
-						</div>
-					</div>
-				</template>
-			</section>
-		</article>
+		<section v-if="mainCells.length" class="board , main map , grid no-gap" :class="{ 'reversed view': showReversedView, editor: !isGaming }">
+			<div class="cell" v-for="cell in mainCells" :key="cell.position.toString()"
+					:class="cell.classes"
+					@click="clickCell(cell.position)"
+					@dragover.prevent @drop="handleCellDrop(cell.position.rowNum-1, cell.position.colNum-1, cell.position)">
+				<div class="texture"></div>
+				<div class="unit display" v-for="unit in cell.units" :key="unit.id"
+						:class="unit.classes"
+						:draggable="unit.canDrag"
+						@dragstart="dragStartPiece(unit.name, 'board', unit.r, unit.c)" @dragend="clearDraggedPiece">
+					{{ unit.display }}
+					<div v-if="unit.canDrag" class="remove unit btn" @click.stop="removeEditorPiece(unit.r, unit.c)">×</div>
+				</div>
+			</div>
+		</section>
 
 		<aside class="right-sidebar">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
 					<el-collapse-item name="view" title="对面视角" class="sidebar-view-panel">
-						<article v-if="miniBoardData" class="mini map , board , grid no-gap"
-									:class="{ 'reversed view': miniBoardData.isReversed, editor: !isGaming, area: isGaming }">
-							<template v-for="(row, r) in miniBoardData.rows">
-								<div class="cell" v-for="(position, c) in row" :key="'mini-'+r+'-'+c"
-										:class="miniBoardData.isReversed ? getDynamicCellClasses(9-r, 8-c, position, r, c) : getDynamicCellClasses(r, c, position)"
-										@click="clickCell(position)">
-									<div class="texture"></div>
-									<div class="unit display"
-											v-for="unit in boardForRender[position.rowNum - 1][position.colNum - 1]" :key="unit.id"
-											:class="isGaming ? getUnitClasses(unit) : getEditorPieceClasses(unit.name, position.rowNum - 1, position.colNum - 1)">
-										{{ unit.display }}
-									</div>
+						<article v-if="miniCells.length" class="mini map , board , grid no-gap"
+									:class="{ 'reversed view': !showReversedView, editor: !isGaming, area: isGaming }">
+							<div class="cell" v-for="cell in miniCells" :key="'mini-'+cell.position.toString()"
+									:class="cell.classes"
+									@click="clickCell(cell.position)">
+								<div class="texture"></div>
+								<div class="unit display" v-for="unit in cell.units" :key="unit.id"
+										:class="unit.classes">
+									{{ unit.display }}
 								</div>
-							</template>
+							</div>
 						</article>
 					</el-collapse-item>
 					<el-collapse-item v-if="!isGaming" name="palette" title="棋子库">
@@ -371,20 +348,51 @@
 				}
 				return this.boardEditor.editorPositions.slice().reverse().map(row => row.slice().reverse());
 			},
-			miniBoardData() {
-				if (!this.positions?.length) return null;
+			mainCells() {
+				const _ = this.boardForRender; // 强制依赖追踪
+				const isReversed = this.showReversedView;
+				const rows = isReversed ? this.reversedPositions : this.positions;
+				if (!rows?.length) return [];
+				const cells = rows.flatMap((row, visualR) =>
+					row.map((position, visualC) => {
+						const units = this.getUnitsAt(position);
+						return {
+							position,
+							classes: this.getCellClasses(position, visualR, visualC, isReversed),
+							units,
+						};
+					})
+				);
+				return cells;
+			},
+			miniCells() {
+				const _ = this.boardForRender; // 强制依赖追踪
 				const isReversed = !this.showReversedView;
-				return {
-					rows: isReversed ? this.reversedPositions : this.positions,
-					isReversed,
-				};
+				const rows = isReversed ? this.reversedPositions : this.positions;
+				if (!rows?.length) return [];
+				return rows.flatMap((row, visualR) =>
+					row.map((position, visualC) => ({
+						position,
+						classes: this.getCellClasses(position, visualR, visualC, isReversed),
+						units: this.getUnitsAt(position),
+					}))
+				);
 			},
 			boardForRender() {
 				if (this.isGaming) {
 					if (!this.gaming?.battlefield?.positions) {
 						return [];
 					}
-					return this.gaming.battlefield.positions.map(row => row.map(pos => this.gaming.battlefield.getUnitsAt(pos)));
+					return this.gaming.battlefield.positions.map(row => row.map(pos => {
+						const units = this.gaming.battlefield.getUnitsAt(pos);
+						return units.map(unit => ({
+							...unit,
+							id: unit._id || unit.id,
+							name: unit.name,
+							display: 默认棋子类型[unit.name]?.显示 || unit.name,
+							owner: unit.owner,
+						}));
+					}));
 				}
 				// 编辑模式下，根据布局和棋子类型动态生成渲染数据
 				const newBoardForRender = [];
@@ -461,6 +469,23 @@
 			this.resetBoard();
 		},
 		methods: {
+			getCellClasses(position, visualR, visualC, isReversed) {
+				return isReversed
+					? this.getDynamicCellClasses(9 - visualR, 8 - visualC, position, visualR, visualC)
+					: this.getDynamicCellClasses(visualR, visualC, position);
+			},
+			getUnitsAt(position) {
+				const units = this.boardForRender[position.rowNum - 1]?.[position.colNum - 1] || [];
+				if (units.length > 0) {
+				}
+				return units.map(unit => ({
+					...unit,
+					classes: this.isGaming ? this.getUnitClasses(unit) : this.getEditorPieceClasses(unit.name, position.rowNum - 1, position.colNum - 1),
+					canDrag: !this.isGaming,
+					r: position.rowNum - 1,
+					c: position.colNum - 1,
+				}));
+			},
 			onGamingInfoCollapseChange(val) {
 				const def = this._gamingInfoDefaultPanels || [];
 				const open = val || [];
