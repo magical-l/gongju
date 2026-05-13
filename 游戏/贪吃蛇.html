@@ -93,7 +93,7 @@
 
 	<article class="gaming area , 叵字形 grid" v-cloak>
 		<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
-			<section class="setting list area , flex single-line no-gap items-near-x-start items-near-y-center">
+			<section class="setting list , flex single-line no-gap items-near-x-start items-near-y-center">
 				<div class="one setting group">
 					<el-form-item label="行" class="one setting : height">
 						<el-select v-model="gridHeight">
@@ -118,7 +118,7 @@
 					</el-button>
 				</div>
 			</section>
-			<section class="controller list area , flex single-line no-gap items-near-x-start items-near-y-center">
+			<section class="controller list , flex single-line no-gap items-near-x-start items-near-y-center">
 				<div class="one controller group">
 					<el-button type="primary" class="one controller : pause" @click="togglePause" :icon="isPaused ? 'VideoPlay' : 'VideoPause'">
 						{{ isPaused ? (score === 0 && !gameOver ? '开始' : '继续') : '暂停' }}

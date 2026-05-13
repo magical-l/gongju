@@ -61,7 +61,7 @@
 	</header>
 	<article class="gaming area , 叵字形 grid" tabindex="0" v-cloak>
 		<header class="toolbar , multi-line flex , items-near-x-center items-stretch no-gap">
-			<section class="setting list area , single-line flex , items-near-x-start items-near-y-center no-gap">
+			<section class="setting list , single-line flex , items-near-x-start items-near-y-center no-gap">
 				<div class="one setting group">
 					<el-form-item class="one setting : height" label="行数">
 						<el-select v-model.number="boardHeight" @change="onBoardSizeChange">
@@ -87,7 +87,7 @@
 					</el-form-item>
 				</div>
 			</section>
-			<section class="controller list area , single-line flex , items-near-x-start items-near-y-center no-gap">
+			<section class="controller list , single-line flex , items-near-x-start items-near-y-center no-gap">
 				<div class="one controller group">
 					<el-form-item class="one controller : pause">
 						<el-button :type="paused ? 'success' : 'warning'" :icon="paused ? 'VideoPlay' : 'VideoPause'"

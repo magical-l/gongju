@@ -153,7 +153,7 @@
 
 	<article class="gaming area , 叵字形 grid" v-cloak>
 		<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
-			<section class="setting list area , flex single-line no-gap items-near-x-start items-near-y-center">
+			<section class="setting list , flex single-line no-gap items-near-x-start items-near-y-center">
 				<div class="one setting group">
 					<el-form-item label="行" class="one setting : rows">
 						<el-select v-model="settings.rows">
@@ -183,7 +183,7 @@
 					</el-button>
 				</div>
 			</section>
-			<section class="controller list area , flex single-line no-gap items-near-x-start items-near-y-center">
+			<section class="controller list , flex single-line no-gap items-near-x-start items-near-y-center">
 				<div class="one controller group">
 					<el-button v-if="isPaused" class="one controller : pause" title="开始（快捷键：空格）" @click="togglePause"
 									:disabled="isGameOver" type="primary" icon="VideoPlay">开始
@@ -193,7 +193,7 @@
 					</el-button>
 				</div>
 			</section>
-			<section class="tool list area , flex single-line no-gap items-near-x-start items-near-y-center">
+			<section class="tool list , flex single-line no-gap items-near-x-start items-near-y-center">
 				<div class="one tool group">
 					<el-form-item label="显示落点" class="one tool : show-ghost">
 						<el-switch v-model="settings.showGhost"></el-switch>

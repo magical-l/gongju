@@ -49,7 +49,7 @@
 	</header>
 	<article class="gaming area , 反叵字形 grid" v-cloak>
 		<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
-			<section class="setting list area , flex single-line no-gap items-near-x-start items-near-y-center">
+			<section class="setting list , flex single-line no-gap items-near-x-start items-near-y-center">
 				<div v-if="isGaming" class="one setting group">
 					<el-button type="danger" class="one setting : new-game" @click="returnToSettings" icon="RefreshRight">新局
 					</el-button>
@@ -75,13 +75,13 @@
 					</div>
 				</template>
 			</section>
-			<section class="controller list area , flex multi-line no-gap items-near-x-start items-near-y-center">
+			<section class="controller list , flex multi-line no-gap items-near-x-start items-near-y-center">
 				<div v-if="isGaming" class="one controller group">
 					<el-button type="danger" icon="RefreshLeft" class="one controller : restart" @click="restartGame">重来
 					</el-button>
 				</div>
 			</section>
-			<section class="tool list area , flex single-line no-gap items-near-x-start items-near-y-center">
+			<section class="tool list , flex single-line no-gap items-near-x-start items-near-y-center">
 				<div v-if="isGaming" class="one tool group">
 					<el-button type="warning" @click="undoMove" :disabled="!isUndoAvailable" class="one tool : undo">悔棋
 					</el-button>
