@@ -14,13 +14,13 @@
 			content="在线玩经典的五子棋游戏。工具兽提供免费、无需下载的五子棋体验，支持双人对弈。立即开始你的五子棋之旅！">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://gongju.ren/游戏/五子棋/gobang.html">
-<meta property="og:image" content="https://gongju.ren/resources/gobang-share.jpg"> <!-- 假设有一个五子棋的分享图片 -->
+<meta property="og:image" content="https://gongju.ren/resources/gobang-share.jpg">
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="五子棋 | 工具兽 - 在线玩经典的棋类游戏">
 <meta name="twitter:description"
 			content="在线玩经典的五子棋游戏。工具兽提供免费、无需下载的五子棋体验，支持双人对弈。立即开始你的五子棋之旅！">
-<meta name="twitter:image" content="https://gongju.ren/resources/gobang-share.jpg"> <!-- 假设有一个五子棋的分享图片 -->
+<meta name="twitter:image" content="https://gongju.ren/resources/gobang-share.jpg">
 
 <link href="../../lib/element-plus/2.10.7/index.css" rel="stylesheet">
 <link href="../../resources/el-plus.css" rel="stylesheet">
@@ -61,15 +61,14 @@
 	<header>
 		<h2 class="game name">五子棋</h2>
 		<div class="page-lv help area" v-cloak>
-			<el-button class="page-lv help btn" title="游戏介绍" @click="introVisible = true" size="small" circle>?
+			<el-button title="游戏介绍" class="page-lv help btn" @click="introVisible = true" size="small" circle>?
 			</el-button>
 			<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
 				<article class="description">
 					<h3>游戏目标</h3>
 					<p>五子棋是一种两人对弈的纯策略棋类游戏，目标是先在棋盘上形成连续的五子（横、竖、斜皆可）。</p>
 					<h3>操作方式</h3>
-					<p>
-						玩家轮流在棋盘的交叉点上放置自己的棋子。黑子先行，然后白子。当一方的棋子在横向、纵向或斜向形成连续的五子时，该方获胜。</p>
+					<p>玩家轮流在棋盘的交叉点上放置自己的棋子。黑子先行，然后白子。当一方的棋子在横向、纵向或斜向形成连续的五子时，该方获胜。</p>
 					<h3>胜负判定</h3>
 					<p>先形成五子连线者获胜。如果棋盘被填满而没有一方形成五子连线，则为平局。</p>
 				</article>
@@ -87,15 +86,12 @@
 		</header>
 
 		<article class="main map area one-row flex items-near-x-center">
-			<section class="board" v-if="flatPositions.length">
-				<div v-for="wrapper in flatPositions" :key="wrapper.position.toString()"
-							class="cell" :class="[{ hoverable: isGaming && !isGameOver && !wrapper.unit }, currentPlayerColorClass]"
-							@click="handleCellClick(wrapper.position)">
-					<!-- 棋子渲染在 cell 内部 -->
-					<div v-if="wrapper.unit" class="unit piece display" :class="getUnitColor(wrapper.unit)">
-						<span class="piece move-number">{{ wrapper.unit.moveNumber }}</span>
-						<div v-if="lastMove && lastMove.position.isEqualTo(wrapper.position)"
-									class="piece last-move-marker"></div>
+			<section class="board" v-if="cells.length">
+				<div v-for="cell in cells" :key="cell.position.toString()"
+							class="cell" :class="cell.classes"
+							@click="handleCellClick(cell)">
+					<div v-if="cell.unit" class="unit display" :class="cell.unit.classes">
+						<span class="order">{{ cell.unit.moveNumber }}</span>
 					</div>
 				</div>
 			</section>
@@ -111,9 +107,9 @@
 			</el-card>
 		</aside>
 
-		<el-dialog v-model="isGameOver" title="游戏结束" width="300px" align-center>
+		<el-dialog title="游戏结束" v-model="isGameOver" width="300px" align-center>
 			<div style="text-align: center; font-size: 24px;">
-				<span>{{ winnerName }} 获胜!</span>
+				<span>{{ winner }} 获胜!</span>
 			</div>
 			<template #footer>
 				<el-button type="primary" @click="restartGame">再来一局</el-button>
@@ -129,8 +125,7 @@
 			<p class="slogan">赞助一下</p>
 		</section>
 		<section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
-		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
-		</section>
+		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p></section>
 	</article>
 </aside>
 
@@ -145,7 +140,7 @@
 <script type="module">
 	import {Gobang} from './gobang.esm.js';
 
-	const {createApp, ref, computed, nextTick} = Vue;
+	const {createApp} = Vue;
 
 	const app = createApp({
 		data() {
@@ -155,26 +150,33 @@
 			try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
 			return {
 				gaming: null,
-				positions: [], //二维数组
-				flatPositions: [], // 1D array of wrapper objects { position: 棋盘点位, unit: Unit }
 				lastMove: null,
 				curPlayer: null,
 				isGameOver: false,
-				winnerName: '',
+				winner: '',
 				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
 				_gamingInfoCollapseKey: collapseKey,
 				_gamingInfoDefaultPanels: defaultPanels,
 			};
 		},
 		computed: {
-			isGaming() {
-				return !!this.gaming;
-			},
-			currentPlayerColorClass() {
-				if (!this.curPlayer) {
-					return '';
-				}
-				return this.curPlayer.team.id === '黑方' ? 'player-black-hover' : 'player-white-hover';
+			isGaming() { return !!this.gaming; },
+			cells() {
+				if (!this.gaming?.battlefield?.positions) return [];
+				const positions = this.gaming.battlefield.positions;
+				const canPlay = this.isGaming && !this.isGameOver;
+				return positions.flat().map(pos => {
+					const units = this.gaming.battlefield.getUnitsAt(pos);
+					const unit = units[0];
+					const isLast = this.lastMove && this.lastMove.position.isEqualTo(pos);
+					const isTargetable = canPlay && !unit;
+					const color = this.curPlayer?.team.id === '黑方' ? 'black' : 'white';
+					return {
+						position: pos,
+						unit: unit ? { ...unit, moveNumber: unit.moveNumber, classes: [unit.owner.team.id === '黑方' ? 'black' : 'white', { last: isLast }] } : null,
+						classes: isTargetable ? [color, 'targetable'] : [],
+					};
+				});
 			},
 		},
 		methods: {
@@ -192,52 +194,25 @@
 				const game = new Gobang();
 				this.gaming = game.newGaming();
 				this.isGameOver = false;
-				this.winnerName = '';
+				this.winner = '';
 				this.lastMove = null;
-
-				this.positions = this.gaming.battlefield.positions;
-				this.flatPositions = this.positions.flat().map(pos => ({position: pos, unit: null}));
-
 				this.curPlayer = this.gaming.situation.curPlayer;
 
 				this.gaming.bulletin.watch('playerTurn start', ({player}) => this.curPlayer = player);
-
-				this.gaming.bulletin.watch('buildUnit end', ({unit}) => {
-					this.lastMove = {unit, position: unit.position};
-					this.syncBoardState();
-				});
-
+				this.gaming.bulletin.watch('buildUnit end', ({unit}) => this.lastMove = {unit, position: unit.position});
 				this.gaming.bulletin.watch('game over', ({winner}) => {
 					this.isGameOver = true;
-					this.winnerName = winner.name;
-				});
-
-				this.syncBoardState();
-			},
-			restartGame() {
-				this.startGame();
-			},
-			syncBoardState() {
-				if (!this.gaming) {
-					return;
-				}
-				this.flatPositions.forEach(wrapper => {
-					const unitsAtPos = this.gaming.battlefield.getUnitsAt(wrapper.position);
-					wrapper.unit = unitsAtPos.length > 0 ? unitsAtPos[0] : null;
+					this.winner = winner.name;
 				});
 			},
-			handleCellClick(position) {
+			restartGame() { this.startGame(); },
+			handleCellClick(cell) {
 				if (this.isGaming && !this.isGameOver) {
-					this.gaming.bulletin.notice('ui input', position);
+					this.gaming.bulletin.notice('ui input', cell.position);
 				}
 			},
-			getUnitColor(unit) {
-				return unit.owner.team.id === '黑方' ? 'player-black' : 'player-white';
-			},
 		},
-		mounted() {
-			this.startGame();
-		},
+		mounted() { this.startGame(); },
 	});
 
 	app.use(ElementPlus);

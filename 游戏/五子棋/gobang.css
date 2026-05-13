@@ -30,7 +30,8 @@
 		border-left: 1px solid var(--line-color);
 		border-top: 1px solid var(--line-color);
 
-		&.hoverable:hover::after {
+		/* 可落子位置预览 */
+		&.targetable:hover::after {
 			content: '';
 			width: 90%;
 			height: 90%;
@@ -39,12 +40,11 @@
 			z-index: 5;
 			cursor: pointer;
 		}
-
-		&.hoverable.player-black-hover:hover::after { background-color: black; }
-		&.hoverable.player-white-hover:hover::after { background-color: white; }
+		&.targetable.black:hover::after { background-color: black; }
+		&.targetable.white:hover::after { background-color: white; }
 	}
 
-	.unit.piece.display {
+	.unit.display {
 		position: relative;
 		width: 90%;
 		height: 90%;
@@ -52,10 +52,28 @@
 		cursor: pointer;
 		box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
 
-		&.player-black { background-color: #333; }
-		&.player-white { background-color: #f0f0f0; border: 1px solid #ccc; }
+		&.black { background-color: #333; }
+		&.white { background-color: #f0f0f0; }
 
-		.last-move-marker {
+		/* 步数 */
+		& .order {
+			position: absolute;
+			font-size: 0.8em;
+			font-weight: bold;
+			z-index: 10;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			pointer-events: none;
+		}
+
+		/* 黑棋白字，白棋黑字 */
+		&.black .order { color: white; }
+		&.white .order { color: black; }
+
+		/* 最后落子 */
+		&.last::after {
+			content: '';
 			position: absolute;
 			width: 10px;
 			height: 10px;
@@ -65,20 +83,5 @@
 			top: -5px;
 			right: -5px;
 		}
-
-		.move-number {
-			position: absolute;
-			font-size: 0.8em;
-			font-weight: bold;
-			color: white;
-			text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
-			z-index: 10;
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%, -50%);
-			pointer-events: none;
-		}
-
-		&.player-white .move-number { color: black; }
 	}
 }
