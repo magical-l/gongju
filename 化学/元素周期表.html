@@ -431,7 +431,7 @@
 		</el-dialog>
 	</header><!-- /工具栏 -->
 
-	<article class="periodic-table-of-chemical-element grid" :class="tableClasses">
+	<article class="periodic-table-of-chemical-element , grid" :class="tableClasses">
 		<section class="周期序号" :class="`周期`+n" v-for="n in 7" :key="n">
 			<p>{{n}}</p>
 		</section>
@@ -440,11 +440,11 @@
 			<p>{{group.name}}</p>
 		</section>-->
 
-		<section :id="element.name" class="one element flex go-y"
+		<section :id="element.name" class="one element , flex go-y"
 						 :class="[...element.tags, `周期`+element.period, getElementPhase(element)]"
 						 :style="[getElementStyle(element), getYearFilterStyle(element)]"
 						 v-for="element in elements" :key="element.id" @click="curElement=element">
-			<div class="element info 目字形"><!-- 窄版时作为镧系锕系的正式内容，底部对齐至下一行 -->
+			<div class="element info , 目字形"><!-- 窄版时作为镧系锕系的正式内容，底部对齐至下一行 -->
 				<header>
 					<p class="element id">{{element.id}}</p>
 					<p class="element symbol">{{element.symbol}}</p>

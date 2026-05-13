@@ -77,7 +77,7 @@
 	<article v-cloak>
 		<section class="音节">
 			<div class="显示">
-				<div class="equation-center-group flex near-center multi-line">
+				<div class="equation-center-group , flex near-center multi-line">
 					<div class="equation-left">
 						<div class="part-container">
 							<span class="sign">{{ 声母?.sign }}</span>
@@ -109,7 +109,7 @@
 						<span class="sign pinyin-result" :class="validity">{{result?.sign}}</span>
 					</div>
 
-					<div class="validation-area flex items-near-y-center">
+					<div class="validation-area , flex items-near-y-center">
 						<span v-if="validity === 'correct'" class="text-correct icon">✔️</span>
 						<span v-if="validity === 'incorrect'" class="text-incorrect icon">❌</span>
 						<span v-if="validity === 'incomplete'" class="text-half-correct icon">❓</span>

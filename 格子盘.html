@@ -168,7 +168,7 @@
 	</header>
 
 	<article v-cloak>
-		<header class="toolbar flex items-mutex">
+		<header class="toolbar , flex items-mutex">
 			<div class="tool group , grid 朋字形">
 				<label>行：
 					<el-input-number v-model="rows" :min="1" :max="maxSize" size="small"></el-input-number>
@@ -194,7 +194,7 @@
 			</div>
 		</header>
 
-		<section class="grid-wrapper flex near-center">
+		<section class="grid-wrapper , flex near-center">
 			<div id="grid-container" class="board grid" :style="gridContainerStyle">
 				<template v-for="(row, rowIndex) in gridData" :key="rowIndex">
 					<div class="cell" v-for="(cell, colIndex) in row" :key="colIndex"
