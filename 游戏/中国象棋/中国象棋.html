@@ -92,7 +92,7 @@
 			</section>
 		</header>
 
-		<section v-if="mainCells.length" class="board , main map , grid no-gap" :class="{ 'reversed view': showReversedView, editor: !isGaming }">
+		<section class="board , main map , grid no-gap" :class="{ 'reversed view': showReversedView, editor: !isGaming }">
 			<div class="cell" :class="cell.classes" v-for="cell in mainCells" :key="cell.position"
 					@click="handleCellClick(cell)"
 					@dragover.prevent @drop="handleCellDrop(cell)">
@@ -111,8 +111,7 @@
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
 					<el-collapse-item name="view" title="对面视角">
-						<article v-if="miniCells.length"
-							class="mini map , board , grid no-gap" :class="{ 'reversed view': !showReversedView, editor: !isGaming}">
+						<article class="mini map , board , grid no-gap" :class="{ 'reversed view': !showReversedView, editor: !isGaming}">
 							<div class="cell" :class="cell.classes" v-for="cell in miniCells" :key="'mini-'+cell.position"
 									@click="handleCellClick(cell)">
 								<div class="texture"></div>
