@@ -90,7 +90,7 @@
 
 		<article class="main map area one-row flex items-near-x-center">
 			<section class="board" v-if="cells.length">
-				<div v-for="cell in cells" :key="cell.position.toString()"
+				<div v-for="cell in cells" :key="cell.position"
 							class="cell" :class="cell.classes"
 							@click="handleCellClick(cell)">
 					<div v-if="cell.unit" class="unit display" :class="cell.unit.classes">

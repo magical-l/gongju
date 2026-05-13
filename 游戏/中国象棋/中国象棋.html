@@ -93,7 +93,7 @@
 		</header>
 
 		<section v-if="mainCells.length" class="board , main map , grid no-gap" :class="{ 'reversed view': showReversedView, editor: !isGaming }">
-			<div class="cell" :class="cell.classes" v-for="cell in mainCells" :key="cell.position.toString()"
+			<div class="cell" :class="cell.classes" v-for="cell in mainCells" :key="cell.position"
 					@click="handleCellClick(cell)"
 					@dragover.prevent @drop="handleCellDrop(cell)">
 				<div class="unit display" v-for="unit in cell.units" :key="unit.id"
@@ -110,10 +110,10 @@
 		<aside class="right-sidebar">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-					<el-collapse-item name="view" title="对面视角" class="sidebar-view-panel">
+					<el-collapse-item name="view" title="对面视角">
 						<article v-if="miniCells.length"
-							class="mini map , board , grid no-gap" :class="{ 'reversed view': !showReversedView, editor: !isGaming, area: isGaming }">
-							<div class="cell" :class="cell.classes" v-for="cell in miniCells" :key="'mini-'+cell.position.toString()"
+							class="mini map , board , grid no-gap" :class="{ 'reversed view': !showReversedView, editor: !isGaming}">
+							<div class="cell" :class="cell.classes" v-for="cell in miniCells" :key="'mini-'+cell.position"
 									@click="handleCellClick(cell)">
 								<div class="texture"></div>
 								<div class="unit display" :class="unit.classes" v-for="unit in cell.units" :key="unit.id">
@@ -124,7 +124,7 @@
 					</el-collapse-item>
 					<el-collapse-item v-if="!isGaming" name="palette" title="棋子库">
 						<div class="unit type unit palette grid">
-							<div class="unit display" :class="[getEditorUnitColor(piece), { 'selected': boardEditor.selectedPieceType === type }]"
+							<div class="unit display" :class="getEditorPaletteClass(type)"
 									v-for="(piece, type) in boardEditor.pieceTypes" :key="type"
 									@click="boardEditor.selectedPieceType = (boardEditor.selectedPieceType === type ? null : type)"
 									draggable="true" @dragstart="dragStartPiece({name: type}, 'palette')" @dragend="clearDraggedPiece">
@@ -775,6 +775,10 @@
 				const color = this.getEditorUnitColor(piece);
 				const selected = this.isEditorPieceSelected(unit);
 				return [color, {selected}];
+			},
+			getEditorPaletteClass(type) {
+				const piece = this.boardEditor.pieceTypes[type];
+				return [this.getEditorUnitColor(piece), {selected: this.boardEditor.selectedPieceType === type}];
 			},
 			handleCellDrop(cell) {
 				if (!this.isGaming) this.dropOnBoard(cell.position);
