@@ -103,7 +103,7 @@
 		<aside class="left-sidebar">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-					<el-collapse-item name="score" title="本局信息">
+					<el-collapse-item title="本局信息" name="score">
 						<span v-if="isGaming" class="game-info">当前玩家: {{ curPlayer.name }}</span>
 					</el-collapse-item>
 				</el-collapse>

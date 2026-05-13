@@ -204,12 +204,12 @@
 		<aside class="left-sidebar">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-					<el-collapse-item name="score" title="本局信息">
+					<el-collapse-item title="本局信息" name="score">
 						<el-card header="移动次数" class="scoreboard" body-class="value" shadow="never">
 							{{ moveCount }}
 						</el-card>
 					</el-collapse-item>
-					<el-collapse-item name="rounds" title="回合记录">
+					<el-collapse-item title="回合记录" name="rounds">
 						<el-button @click="exportRounds" :disabled="!rounds.length" icon="Download" size="small" style="margin-bottom: 8px;">导出
 						</el-button>
 						<el-empty v-if="!rounds.length" description="尚无记录。请开始吧！"></el-empty>

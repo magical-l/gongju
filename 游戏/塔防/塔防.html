@@ -369,7 +369,7 @@
 		<aside class="left-sidebar">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-					<el-collapse-item name="score" title="本局信息">
+					<el-collapse-item title="本局信息" name="score">
 						<div v-if="currentLevel">
 							<div class="stat-item"><span>❤️ 生命:</span> <span class="stat-value">{{ health }}</span></div>
 							<div class="stat-item"><span>💰 金币:</span> <span class="stat-value">{{ coins }}</span></div>
