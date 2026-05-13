@@ -49,7 +49,7 @@
 	&.lc-cur-above-whole { --lc-s: #1976d2; }
 	&.lc-cur-remainder { --lc-s: #e53935; }
 
-	[class*="lc-edge"] {
+	& [class*="lc-edge"] {
 		position: relative;
 		z-index: 1;
 		box-sizing: border-box;
@@ -74,5 +74,5 @@
 	height: fit-content;
 	margin: 0 auto;
 
-	.cell > .unit { font-size: 12px; }
+	& .cell > .unit { font-size: 12px; }
 }

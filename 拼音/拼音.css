@@ -25,7 +25,7 @@
 		--el-button-border-color: #ffcc80;
 		--el-button-hover-border-color: #ffb74d;
 
-		.sign { font-size: 1.5rem; color: #E91E63; }
+		& .sign { font-size: 1.5rem; color: #E91E63; }
 	}
 
 	&.非正规 {
@@ -56,16 +56,16 @@ main > header {
 }
 
 .keyboard {
-	.row { display: flex; justify-content: space-between; }
+	& .row { display: flex; justify-content: space-between; }
 
-	.el-button {
+	& .el-button {
 		display: inline-block;
 		width: 60px;
 		height: 60px;
 		margin: 5px;
 		position: relative;
 
-		.badge {
+		& .badge {
 			position: absolute;
 			bottom: 4px;
 			left: 50%;
@@ -108,7 +108,7 @@ main > header {
 	min-height: 90px;
 	gap: var(--gap);
 
-	.sign {
+	& .sign {
 		font-size: 52px;
 		height: 60px;
 		display: flex;
@@ -117,7 +117,7 @@ main > header {
 		letter-spacing: 0.05em;
 	}
 
-	.badge { font-size: 14px; }
+	& .badge { font-size: 14px; }
 }
 
 .equals-sign {

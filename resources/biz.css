@@ -59,7 +59,7 @@
 	--board-radius: 8px;
 	--board-padding: 12px;
 
-	&:focus, .main.map.area:focus { outline: none; }
+	&:focus, & .main.map.area:focus { outline: none; }
 }
 
 /* 主地图区 */
@@ -143,14 +143,14 @@
 	border-radius: var(--board-radius);
 	pointer-events: auto;
 
-	.title {
+	& .title {
 		font-size: clamp(1.25rem, 4vw, 2rem);
 		font-weight: 600;
 		color: var(--text-light);
 		text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 	}
 
-	.hint {
+	& .hint {
 		margin: 0;
 		font-size: 0.875rem;
 		color: rgba(255, 255, 255, 0.85);
@@ -166,8 +166,8 @@
 	font-size: 14px;
 	color: var(--text-dark);
 
-	dt { font-weight: 600; margin: 0; }
-	dd { margin: 0; }
+	& dt { font-weight: 600; margin: 0; }
+	& dd { margin: 0; }
 }
 
 .game.result .hint {
@@ -197,9 +197,9 @@ body > header {
 	justify-content: space-between;
 	align-items: center;
 
-	.website.name { margin: 0; font-size: 1.5rem; font-weight: 600; }
+	& .website.name { margin: 0; font-size: 1.5rem; font-weight: 600; }
 
-	nav {
+	& nav {
 		display: flex;
 		flex-direction: column;
 		align-items: flex-start;
@@ -208,7 +208,7 @@ body > header {
 		flex: 1;
 		min-width: 0;
 
-		.nav-row {
+		& .nav-row {
 			display: flex;
 			flex-wrap: wrap;
 			gap: 1rem;
@@ -219,7 +219,7 @@ body > header {
 			&:last-child { padding-left: 1.5em; }
 		}
 
-		a {
+		& a {
 			text-decoration: none;
 			color: #333;
 			font-weight: 500;
@@ -244,7 +244,7 @@ body > header {
 	font-size: 0.85rem;
 	color: #6C757D;
 
-	.patronage.area {
+	& .patronage.area {
 		width: 120px;
 		background-color: #E9ECEF;
 		display: flex;
@@ -256,9 +256,9 @@ body > header {
 		border-radius: 4px;
 	}
 
-	p { margin: 0.5em; }
+	& p { margin: 0.5em; }
 
-	a { color: #007BFF; text-decoration: none; &:hover { text-decoration: underline; } }
+	& a { color: #007BFF; text-decoration: none; &:hover { text-decoration: underline; } }
 }
 
 .qr-code { max-width: 100%; height: auto; margin-bottom: 5px; }
@@ -279,7 +279,7 @@ main {
 		align-items: center;
 		padding: 0 15px;
 
-		h2 { margin: 0; }
+		& h2 { margin: 0; }
 	}
 }
 
@@ -298,12 +298,12 @@ main {
 		border-radius: 0;
 		background: #F5F5F5;
 
-		+ .list { border-left: 1px solid rgba(0, 0, 0, 0.22); }
+		& + .list { border-left: 1px solid rgba(0, 0, 0, 0.22); }
 
 		&:not(:has(> *)) { display: none !important; }
 	}
 
-	.one.group {
+	& .one.group {
 		flex: 0 0 auto !important;
 		display: inline-flex;
 		align-items: center;
@@ -315,20 +315,20 @@ main {
 		&:first-child { padding-left: 0; border-left: none; }
 	}
 
-	.select-width-6ch { min-width: 5.5rem; }
-	.el-form-item { margin-bottom: 0; flex: 0 0 auto !important; }
+	& .select-width-6ch { min-width: 5.5rem; }
+	& .el-form-item { margin-bottom: 0; flex: 0 0 auto !important; }
 
-	.el-select {
+	& .el-select {
 		flex: 0 0 auto !important;
 		display: inline-block;
 		min-width: 4rem;
 		width: auto;
 
-		.el-select__selection {
+		& .el-select__selection {
 			flex: 0 0 auto !important;
 			min-width: 2em !important;
 
-			.el-select__input-wrapper {
+			& .el-select__input-wrapper {
 				position: absolute !important;
 				width: 0 !important;
 				overflow: hidden !important;
@@ -355,7 +355,7 @@ main {
 	background: #F9F9F9;
 	border-radius: 8px;
 
-	p { margin-bottom: 10px; }
+	& p { margin-bottom: 10px; }
 }
 
 .input.area textarea {
@@ -382,10 +382,10 @@ article.gaming.area .right-sidebar .el-collapse {
 	border-top: none;
 	border-bottom: none;
 
-	.el-collapse-item:last-child .el-collapse-item__header,
-	.el-collapse-item:last-child .el-collapse-item__wrap { border-bottom: none; }
+	& .el-collapse-item:last-child .el-collapse-item__header,
+	& .el-collapse-item:last-child .el-collapse-item__wrap { border-bottom: none; }
 
-	.el-collapse-item__header {
+	& .el-collapse-item__header {
 		font-weight: 600;
 		font-size: 1.2rem;
 
@@ -408,7 +408,7 @@ article.gaming.area .right-sidebar .el-collapse {
 	font-size: 0.8rem;
 	min-width: 2rem;
 
-	.p-togglebutton-label { font-weight: normal; }
+	& .p-togglebutton-label { font-weight: normal; }
 }
 
 /* 按钮工具类 */
