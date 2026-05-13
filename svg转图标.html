@@ -41,7 +41,7 @@
 </head>
 <body class="grid 反叵字形">
 <header>
-	<h1 class="website name" title="工具人（gongju.ren）域名太贵买不起">工具兽</h1>
+	<h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
 	<nav>
 		<div class="nav-row">
 			<a href="文本转化.html">文本转化</a>
@@ -70,7 +70,7 @@
 	<header>
 		<h2 class="page-lv name">SVG转图片</h2>
 		<div class="page-lv help area" v-cloak>
-			<el-button title="显示说明" class="page-lv help btn" @click="introVisible = true" size="small" circle>?
+			<el-button title="显示说明" class="page-lv help btn" size="small" circle @click="introVisible = true">?
 			</el-button>
 			<el-dialog title="页面说明" class="page-lv intro" v-model="introVisible" width="60%">
 				<p>
@@ -89,18 +89,17 @@
 
 	<article v-cloak>
 		<section class="input area">
-			<el-input type="textarea" placeholder="粘贴SVG代码到这里" :rows="8" v-model="input"></el-input>
+			<el-input type="textarea" :rows="8" placeholder="粘贴SVG代码到这里" v-model="input"></el-input>
 		</section>
 
 		<section class="result area , grid">
-			<el-card class="one result" :header="size+'x'+size" v-for="size in sizes" :key="size">
-				<svg class="preview-icon" :width="size" :height="size" :view-box.camel="parsedSvg.viewBox"
-						 v-html="parsedSvg.inner"></svg>
+			<el-card class="one result" v-for="size in sizes" :key="size" :header="size+'x'+size">
+				<svg class="preview-icon" v-html="parsedSvg.inner" :width="size" :height="size" :view-box.camel="parsedSvg.viewBox"></svg>
 			</el-card>
 		</section>
 
 		<footer class="toolbar near-center" style="margin-top: 1.5rem;">
-			<el-button type="primary" @click="downloadIcons" size="large">下载图标（png）</el-button>
+			<el-button type="primary" size="large" @click="downloadIcons">下载图标（png）</el-button>
 		</footer>
 	</article>
 </main>
@@ -108,7 +107,7 @@
 <aside class="right-sidebar">
 	<article class="website info">
 		<section class="patronage area">
-			<img class="qr-code" src="resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+			<img title="赞助一下" class="qr-code" alt="支付宝收款码" src="resources/支付宝收款码.jpg">
 			<p class="slogan">赞助一下</p>
 		</section>
 		<section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
@@ -234,8 +233,7 @@
 
 <div>
 	<!-- 谷歌广告联盟 -->
-	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"
-					crossorigin="anonymous"></script>
+	<script async crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"></script>
 	<!-- 展示广告1 -->
 	<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true"
 			 data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
