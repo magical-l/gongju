@@ -276,8 +276,7 @@
 			<div class="game-container" @click="handleGameClick"
 					 :style="{width: gameContainerWidth + 'px', height: gameContainerHeight + 'px'}">
 				<!-- 地面和路径 -->
-				<div v-for="(cell, index) in gridCells" :key="index"
-						 :class="['cell', {'path': cell.isPath, 'selected': placementPopup.visible && placementPopup.cell === cell}]"></div>
+				<div v-for="(cell, index) in gridCells" :key="index" :class="cellClass(cell)"></div>
 				<!-- 攻击范围圈 -->
 				<div v-if="rangeIndicatorStyle.display === 'block'" class="range-indicator" :style="rangeIndicatorStyle"></div>
 				<!-- 终点 -->

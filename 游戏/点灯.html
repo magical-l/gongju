@@ -194,8 +194,8 @@
 			<section class="board grid" :style="{ '--board-cols': gameBoardCols, '--board-rows': gameBoardRows }">
 				<template v-for="(row, rowIndex) in board" :key="rowIndex">
 					<div class="cell" v-for="(cell, colIndex) in row" :key="colIndex"
-							:class="[cell ? 'b' : 'a', {'highlighted': highlightedCells[rowIndex * gameBoardCols + colIndex]}]"
-							ref="cells" @click="handleCellClick(rowIndex, colIndex)">
+							 :class="cellClass(rowIndex, colIndex)"
+							 ref="cells" @click="handleCellClick(rowIndex, colIndex)">
 					</div>
 				</template>
 			</section>
@@ -389,6 +389,10 @@
 			},
 		},
 		methods: {
+			cellClass(row, col) {
+				const index = row * this.gameBoardCols + col;
+				return [this.board[row][col] ? 'b' : 'a', {highlighted: this.highlightedCells[index]}];
+			},
 			onGamingInfoCollapseChange(val) {
 				const def = this._gamingInfoDefaultPanels || [];
 				const open = val || [];
