@@ -26,6 +26,11 @@
 		margin-top: 20px;
 		gap: var(--gap);
 		align-items: start;
+
+		.main.map {
+			justify-self: center;
+			align-self: start;
+		}
 	}
 
 	.board {
@@ -327,15 +332,13 @@
 			</section>
 		</header>
 
-		<article class="main map area , flex items-near-x-center">
-			<div class="board" :style="boardStyle" :class="{ 'board-won': isWin && !showWinModal }">
-				<div v-for="(val, index) in board" :key="index" :class="cellPositionClass(index)" @click="onCellClick(index)"
-					:draggable="layoutMode" @dragstart="onLayoutDragStart($event, index)" @dragend="onLayoutDragEnd"
-					@dragover.prevent @drop="onLayoutDrop($event, index)">
-					{{ val || '' }}
-				</div>
+		<section class="board , main map , grid" :style="boardStyle" :class="{ 'board-won': isWin && !showWinModal }">
+			<div v-for="(val, index) in board" :key="index" :class="cellPositionClass(index)" @click="onCellClick(index)"
+				:draggable="layoutMode" @dragstart="onLayoutDragStart($event, index)" @dragend="onLayoutDragEnd"
+				@dragover.prevent @drop="onLayoutDrop($event, index)">
+				{{ val || '' }}
 			</div>
-		</article>
+		</section>
 
 		<aside class="sidebar at-left">
 			<el-card shadow="never">
