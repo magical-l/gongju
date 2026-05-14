@@ -10,11 +10,8 @@ html {
 	--sqrt3: 1.73205080757;
 	--golden-ratio: 1.61803398875;
 
-	/* 声明确定的宽高（可以是百分比型值），供后代元素宽高定义x%参考。
-		100%相对于父元素（视口），比100vh避免了safari工具栏高度的问题
-		不需要设置min-height（未理解）
-	*/
-	height: 100%;
+	margin: 0;
+	padding: 0;
 
 	scrollbar-gutter: stable; /*为滚动条预留空间，防止滚动条在出现/隐藏间切换时影响内容宽高计算变化*/
 	scroll-behavior: smooth; /*跳转至锚点时平滑滚动，而非突然跳走*/
@@ -54,42 +51,6 @@ body {
 	image-rendering: optimize-contrast; /*高清图片渲染*/
 
 	touch-action: manipulation; /*移动端点击延迟问题：立即响应触摸事件*/
-}
-
-body:focus { /*为键盘导航用户清晰焦点指示*/
-	outline: 2px solid #06C;
-}
-
-/* 深色模式 */
-@media (prefers-color-scheme: dark) {
-	body {
-		background-color: #121212;
-		color: #F0F0F0;
-	}
-
-	h1, h2, h3 { color: #E0E0E0; }
-}
-
-/* 打印优化 */
-@media print {
-	body {
-		background: white;
-		color: black;
-		font-size: 12pt;
-	}
-
-	/* 隐藏广告等非必要元素 */
-	.ad-banner {
-		display: none;
-	}
-}
-
-/* 移动端 Safari：视口高度、下拉刷新区域 */
-@supports (-webkit-touch-callout: none) {
-	body {
-		min-height: -webkit-fill-available;
-		overscroll-behavior-y: contain;
-	}
 }
 
 /* ======================== 设定一些元素的初始值 ======================== */
@@ -149,18 +110,22 @@ template, .template, .hidden, [v-cloak], .js.container {display: none !important
 /* 在 flex/grid 子项上水平+垂直居中（xy 两轴） */
 .xy-middle {align-self: center; justify-self: center;}
 
-.position-fixed {position: fixed;}
-
-.position-fixed.in-center { /* 固定于视口并居中 */
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
+.position-fixed {
+	position: fixed;
+	
+	&.in-center { /* 固定于视口并居中 */
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+	}
 }
 
-.sticky {position: sticky;}
+.sticky {
+	position: sticky;
 
-footer.sticky {bottom: 0;}
-nav.sticky {top: 0;}
+	&:is(nav) {top: 0;}
+	&:is(footer) {bottom: 0;}
+}
 
 /* ================== 尺寸 ================== */
 /* ------ 可拖放调整大小的元素 ------ */
@@ -168,10 +133,10 @@ nav.sticky {top: 0;}
 	display: block; /* 确保是块级元素 */
 	overflow: auto; /* 必须设置且不能是visible */
 	resize: both;
-}
 
-.resizable.x {resize: horizontal;}
-.resizable.y {resize: vertical;}
+	&.x {resize: horizontal;}
+	&.y {resize: vertical;}
+}
 
 .scrollable {overflow: auto; min-height: 0; min-width: 0;}
 
@@ -181,36 +146,49 @@ nav.sticky {top: 0;}
 /* 禁止该元素内部滚动（overflow: hidden）；加在 body 上可避免整页出现滚动条 */
 .no-scroll {overflow: hidden;}
 
-/* ================== 颜色 ================== */
-
-.note strong {color: red;}
-
-.text-correct {color: var(--correct-color);}
-.text-incorrect {color: var(--incorrect-color);}
-.text-half-correct {color: var(--half-correct-color);}
-.text-dangerous {color: var(--dangerous-color);}
-.bg-dangerous {background-color: var(--dangerous-color);}
+/* ================== 背景 ================== */
+.background {
+	&.correct {background-color: var(--correct-color);}
+	&.incorrect {background-color: var(--incorrect-color);}
+	&.half-correct {background-color: var(--half-correct-color);}
+	&.dangerous {background-color: var(--dangerous-color);}
+}
 
 /* ================== 文字 ================== */
-.semi-bold {font-weight: 600;}
+.text {
+	&.correct {color: var(--correct-color);}
+	&.incorrect {color: var(--incorrect-color);}
+	&.half-correct {color: var(--half-correct-color);}
+	&.dangerous {color: var(--dangerous-color);}
+
+	/* &.left {text-align: left;}
+	&.center {text-align: center;}
+	&.right {text-align: right;} */
+
+	&.normal {font-weight: 400;}
+	&.medium {font-weight: 500;}
+	&.semi-bold {font-weight: 600;}
+	&.bold {font-weight: 700;}
+
+	/* 长文本隐藏 */
+	&.hide.long {
+		overflow: hidden;
+		white-space: nowrap;
+		/* 鼠标指向时显示 */
+		&:hover {
+			overflow: visible;
+			text-overflow: inherit;
+		}
+		/* 结尾再加个省略号 */
+		&.ellipsis {text-overflow: ellipsis;}
+	}
+
+	& strong {color: red;/* 纯红的字是不是太扎眼了？也许用其他强调方式更好？ */}
+}
 
 .em-as-10x-px {
 	font-size: 62.5%; /* 浏览器默认字号16px，62.5%即10px，这样可令1em=10px，方便换算 */
 }
-
-/* ------ 长文本隐藏 ------ */
-.hide-long-text {
-	overflow: hidden;
-	white-space: nowrap;
-}
-
-.hide-long-text:hover {
-	overflow: visible;
-	text-overflow: inherit;
-}
-
-/*结尾再加个省略号*/
-.hide-long-text.end-with-ellipsis {text-overflow: ellipsis;}
 
 /* ======================== 模态遮罩 ======================== */
 .modal {

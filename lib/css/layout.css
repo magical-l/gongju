@@ -30,7 +30,24 @@
 .grid.inline {display: inline-grid}
 
 .single-line {flex-wrap: nowrap;}
-.multi-line {flex-wrap: wrap;}
+.multi-line {
+	flex-wrap: wrap;
+	/* ------ 线路之间（align-content） ------ */
+	/* 所有线路都拉伸膨胀，充满空间。受项目实际排布方向影响。 */
+	&.lines-stretch { align-content: stretch; }
+	/* 所有线路都拥到第一条线路这边。受项目实际排布方向影响。 */
+	&.lines-near-start { align-content: start; }
+	/* 所有线路都退到最后一条线路这边。受项目实际排布方向影响。 */
+	&.lines-near-end { align-content: end; }
+	/* 所有线路都挤在中间。受项目实际排布方向影响。 */
+	&.lines-near-center { align-content: center; }
+	/* 线路互斥（社恐），即线路互相之间距离尽量远。受项目实际排布方向影响。 */
+	&:is(.lines-space-between, .lines-mutex, .lines-social-phobia) { align-content: space-between; }
+	/* 线路不熟，即线路互相之间保持距离但又不极端排斥。受项目实际排布方向影响。 */
+	&:is(.lines-space-around, .lines-unfamiliar) { align-content: space-around; }
+	/* 线路不熟但比较友好。受项目实际排布方向影响。 */
+	&:is(.lines-space-evenly, .lines-friendly) { align-content: space-evenly; }
+}
 
 /* ================== 物理方向/绝对方向 ================== */
 /* ------ 保证按x轴/物理横向/行方向铺陈子元素（适配任何书写模式）。 ------ */
@@ -75,28 +92,6 @@
 /* ------ .go-y.from-bottom：在纵向铺陈子元素时，保证从下方开始（适配任何书写模式）。 ------ */
 .go-y.from-bottom { flex-direction: column-reverse; }
 .go-y.from-bottom:where(.content-N, .content-И, .content-N *, .content-И *) { flex-direction: row-reverse; }
-
-/* ============ 线路之间（align-content） ============ */
-/* ------ 所有线路都拉伸膨胀，充满空间。受项目实际排布方向影响。 ------ */
-.multi-line.lines-stretch { align-content: stretch; }
-
-/* ------ 所有线路都拥到第一条线路这边。受项目实际排布方向影响。 ------ */
-.multi-line.lines-near-start { align-content: start; }
-
-/* ------ 所有线路都退到最后一条线路这边。受项目实际排布方向影响。 ------ */
-.multi-line.lines-near-end { align-content: end; }
-
-/* ------ 所有线路都挤在中间。受项目实际排布方向影响。 ------ */
-.multi-line.lines-near-center { align-content: center; }
-
-/* ------ 线路互斥（社恐），即线路互相之间距离尽量远。受项目实际排布方向影响。 ------ */
-.multi-line:is(.lines-space-between, .lines-mutex, .lines-social-phobia) { align-content: space-between; }
-
-/* ------ 线路不熟，即线路互相之间保持距离但又不极端排斥。受项目实际排布方向影响。 ------ */
-.multi-line:is(.lines-space-around, .lines-unfamiliar) { align-content: space-around; }
-
-/* ------ 线路不熟但比较友好。受项目实际排布方向影响。 ------ */
-.multi-line:is(.lines-space-evenly, .lines-friendly) { align-content: space-evenly; }
 
 /* ================== 行列位置：在任何书写模式、任何方向，grid或flex下，保证行/列视觉效果的统一（靠上/下/左/右之类） ================== */
 /* ============ 行位置 ============ */
@@ -352,8 +347,12 @@
 	flex: 1;
 }
 /* ------ .items-stretch：在xy两个方向都尽量拉伸，占满容器。注：多行flex布局下，最后一行/列若“不满”，在排列方向上无法拉伸占满 ------ */
-.items-stretch { justify-items: stretch; align-items: stretch; }
-.items-stretch > * { flex: 1; }
+.items-stretch {
+	justify-items: stretch;
+	align-items: stretch;
+	/* 直接子元素配合拉伸 */
+	> * { flex: 1; }
+}
 
 /* ------ flex专属拉伸 ------ */
 /* 在横向flex容器里，保证本项目独占一行 */
@@ -531,8 +530,9 @@
 .items-space-evenly,
 .items-friendly { justify-content: space-evenly; align-content: space-evenly; flex-wrap: wrap; }
 
-/* ============================== Grid 预设布局 ============================== */
-.grid.朋字形 {
+/* ============================== Grid/Flex 预设布局 ============================== */
+/* 为防没有使用.grid/.flex之类，所以不显式结合.grid/.flex，直接设置。若非display:grid/flex也没事，会被浏览器忽略。下同 */
+.朋字形 {
 	grid-template-columns: 50% 50%;
 	grid-template-rows: auto 1fr auto;
 	grid-template-areas:
@@ -542,7 +542,7 @@
 }
 
 /* ------ "亚字形"布局，上部导航栏，底部页脚，中间有左右侧栏，中部是主要内容 ------ */
-.grid.亚字形 {
+.亚字形 {
 	grid-template-rows:
 		auto /* Header 高度自适应内容 */
 		minmax(var(--layout-main-row-min), auto) /* 主内容区：有最小高度，再填充剩余 */
@@ -558,7 +558,7 @@
 }
 
 /* ------ "叵字形"布局，上部导航栏，底部页脚，中间左侧栏宽度固定，右侧主要内容自适应 ------ */
-.grid.叵字形 {
+.叵字形 {
 	grid-template-rows:
 		auto /* Header 高度自适应内容 */
 		minmax(var(--layout-main-row-min), auto) /* 主内容区：有最小高度，再填充剩余 */
@@ -571,7 +571,7 @@
 }
 
 /*------ "反叵字形"布局，上部导航栏，底部页脚，中间右侧栏宽度固定，左侧主要内容自适应 ------ */
-.grid.反叵字形 {
+.反叵字形 {
 	grid-template-rows:
 		auto /* Header 高度自适应内容 */
 		minmax(var(--layout-main-row-min), auto) /* 主内容区：有最小高度，再填充剩余 */
@@ -584,7 +584,7 @@
 }
 
 /* ------ "目字形"布局，上部导航栏，底部页脚 ------ */
-.grid.目字形 {
+.目字形 {
 	grid-template-rows:
 		auto /* Header 高度自适应内容 */
 		minmax(var(--layout-main-row-min), auto) /* 主内容区：有最小高度，再填充剩余 */
@@ -597,7 +597,6 @@
 }
 
 /* ------------ 配套 ------------ */
-/* 为防父元素没有使用.grid类之类，所以不使用 .grid > header ，直接设置grid-area。若父元素非display:grid也没事，会被浏览器忽略。下同 */
 header, .header {
 	grid-area: header;
 	grid-row: 1;

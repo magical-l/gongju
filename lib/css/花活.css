@@ -9,25 +9,27 @@
 	position: relative;
 	width: 100px;
 	height: 100px;
-}
 
-.taiji::before {
-	content: '';
-	position: absolute;
-	inset: 0;
-	border-radius: 50%;
-	border: 1px solid var(--taiji-border-color);
-	background:
-		/* 阴鱼头（在上，白色） */ radial-gradient(circle closest-side at 50% 25%,
-			var(--taiji-yang-color) 0%, var(--taiji-yang-color) 25%,
-			var(--taiji-yin-color) 25%, var(--taiji-yin-color) 100%,
-			transparent 100%),
-		/* 阳鱼头（在下，黑色） */ radial-gradient(circle closest-side at 50% 75%,
-			var(--taiji-yin-color) 0%, var(--taiji-yin-color) 25%,
-			var(--taiji-yang-color) 25%, var(--taiji-yang-color) 100%,
-			transparent 100%),
-		/* 左阴右阳 */ linear-gradient(to right,
-			var(--taiji-yin-color) 50%, var(--taiji-yang-color) 50%);
+	&::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		border-radius: 50%;
+		border: 1px solid var(--taiji-border-color);
+		background:
+			/* 阴鱼头（在上，白色） */
+			radial-gradient(circle closest-side at 50% 25%,
+				var(--taiji-yang-color) 0%, var(--taiji-yang-color) 25%,
+				var(--taiji-yin-color) 25%, var(--taiji-yin-color) 100%,
+				transparent 100%),
+			/* 阳鱼头（在下，黑色） */
+			radial-gradient(circle closest-side at 50% 75%,
+				var(--taiji-yin-color) 0%, var(--taiji-yin-color) 25%,
+				var(--taiji-yang-color) 25%, var(--taiji-yang-color) 100%,
+				transparent 100%),
+			/* 左阴右阳 */
+			linear-gradient(to right, var(--taiji-yin-color) 50%,var(--taiji-yang-color) 50%);
+	}
 }
 
 /* ------------ 三角箭头 ------------ */
@@ -36,35 +38,29 @@
 	--triangle-size: 6px;
 	--triangle-offset: 5px;
 	position: relative;
+
+	/* 只给有位置类的伪元素设置content */
+	&.at-top::before, &.at-left::before,
+	&.at-bottom::after, &.at-right::after {
+		content: '';
+		position: absolute;
+		width: 0;
+		height: 0;
+		border: var(--triangle-size) solid transparent;
+	}
+
+	/* 箭头位置 */
+	&.at-top::before { top: var(--triangle-offset); left: 50%; transform: translateX(-50%); }
+	&.at-left::before { left: var(--triangle-offset); top: 50%; transform: translateY(-50%); }
+	&.at-bottom::after { bottom: var(--triangle-offset); left: 50%; transform: translateX(-50%); }
+	&.at-right::after { right: var(--triangle-offset); top: 50%; transform: translateY(-50%); }
+
+	/* 箭头方向 */
+	&.to-down::before, &.to-down::after { border-top-color: var(--triangle-color); border-bottom-width: 0; }
+	&.to-up::before, &.to-up::after { border-bottom-color: var(--triangle-color); border-top-width: 0; }
+	&.to-left::before, &.to-left::after { border-right-color: var(--triangle-color); border-left-width: 0; }
+	&.to-right::before, &.to-right::after { border-left-color: var(--triangle-color); border-right-width: 0; }
 }
-
-/* 只给有位置类的伪元素设置content */
-.shape.triangle.at-top::before,
-.shape.triangle.at-left::before,
-.shape.triangle.at-bottom::after,
-.shape.triangle.at-right::after {
-	content: '';
-	position: absolute;
-	width: 0;
-	height: 0;
-	border: var(--triangle-size) solid transparent;
-}
-
-/* 箭头方向 */
-.shape.triangle.to-down::before,
-.shape.triangle.to-down::after { border-top-color: var(--triangle-color); border-bottom-width: 0; }
-.shape.triangle.to-up::before,
-.shape.triangle.to-up::after { border-bottom-color: var(--triangle-color); border-top-width: 0; }
-.shape.triangle.to-left::before,
-.shape.triangle.to-left::after { border-right-color: var(--triangle-color); border-left-width: 0; }
-.shape.triangle.to-right::before,
-.shape.triangle.to-right::after { border-left-color: var(--triangle-color); border-right-width: 0; }
-
-/* 箭头位置 */
-.shape.triangle.at-top::before { top: var(--triangle-offset); left: 50%; transform: translateX(-50%); }
-.shape.triangle.at-left::before { left: var(--triangle-offset); top: 50%; transform: translateY(-50%); }
-.shape.triangle.at-bottom::after { bottom: var(--triangle-offset); left: 50%; transform: translateX(-50%); }
-.shape.triangle.at-right::after { right: var(--triangle-offset); top: 50%; transform: translateY(-50%); }
 
 /* ======================== 动画 ======================== */
 /* ------------ 撒花 ------------ */
@@ -75,20 +71,118 @@
 	width: 8px;
 	height: 8px;
 	animation: confetti-fall 4s linear infinite;
-}
 
-/* 伪元素：偏移到左右两侧，只旋转，跟随主体下落和opacity */
-.confetti-piece::before,
-.confetti-piece::after {
-	content: '';
-	position: absolute;
-	width: 10px;
-	height: 10px;
-	animation: confetti-spin 4s linear infinite;
-}
+	/* 伪元素：偏移到左右两侧，只旋转，跟随主体下落和opacity */
+	&::before, &::after {
+		content: '';
+		position: absolute;
+		width: 10px;
+		height: 10px;
+		animation: confetti-spin 4s linear infinite;
+	}
+	&::before { left: -400px; }
+	&::after { left: 400px; }
 
-.confetti-piece::before { left: -400px }
-.confetti-piece::after { left: 400px }
+	/* nth-child 设置位置、颜色、时长 */
+	&:nth-child(10n+1) {
+		left: 9%;
+		animation-duration: 5s;
+		background: #f44336;
+
+		&::before { background: #e91e63; animation-duration: 4s; }
+		&::after { background: #ff5722; animation-duration: 6s; animation-delay: -2s; }
+	}
+
+	&:nth-child(10n+2) {
+		left: 18%;
+		animation-duration: 4s;
+		animation-delay: -1s;
+		background: #9c27b0;
+
+		&::before { background: #673ab7; animation-duration: 3s; }
+		&::after { background: #3f51b5; animation-duration: 5s; animation-delay: -1.5s; }
+	}
+
+	&:nth-child(10n+3) {
+		left: 27%;
+		animation-duration: 5.5s;
+		animation-delay: -2s;
+		background: #3f51b5;
+
+		&::before { background: #2196f3; animation-duration: 4s; }
+		&::after { background: #03a9f4; animation-duration: 7s; animation-delay: -3s; }
+	}
+
+	&:nth-child(10n+4) {
+		left: 36%;
+		animation-duration: 4.5s;
+		animation-delay: -3s;
+		background: #03a9f4;
+
+		&::before { background: #00bcd4; animation-duration: 3.5s; }
+		&::after { background: #009688; animation-duration: 6s; animation-delay: -2s; }
+	}
+
+	&:nth-child(10n+5) {
+		left: 45%;
+		animation-duration: 4s;
+		animation-delay: -4s;
+		background: #009688;
+
+		&::before { background: #4caf50; animation-duration: 3s; }
+		&::after { background: #8bc34a; animation-duration: 5s; animation-delay: -1s; }
+	}
+
+	&:nth-child(10n+6) {
+		left: 54%;
+		animation-duration: 3.5s;
+		animation-delay: -5s;
+		background: #8bc34a;
+
+		&::before { background: #cddc39; animation-duration: 2.5s; }
+		&::after { background: #ffeb3b; animation-duration: 4.5s; animation-delay: -2s; }
+	}
+
+	&:nth-child(10n+7) {
+		left: 63%;
+		animation-duration: 3s;
+		animation-delay: -6s;
+		background: #ffeb3b;
+
+		&::before { background: #ffc107; animation-duration: 2s; }
+		&::after { background: #ff9800; animation-duration: 4s; animation-delay: -1s; }
+	}
+
+	&:nth-child(10n+8) {
+		left: 72%;
+		animation-duration: 5s;
+		animation-delay: -7s;
+		background: #ff9800;
+
+		&::before { background: #ff5722; animation-duration: 4s; }
+		&::after { background: #e91e63; animation-duration: 6s; animation-delay: -3s; }
+	}
+
+	&:nth-child(10n+9) {
+		left: 81%;
+		animation-duration: 5.5s;
+		animation-delay: -8s;
+		background: #795548;
+
+		&::before { background: #9e9e9e; animation-duration: 4s; }
+		&::after { background: #607d8b; animation-duration: 7s; animation-delay: -3s; }
+	}
+
+	&:nth-child(10n) {
+		left: 90%;
+		animation-duration: 4s;
+		animation-delay: -9s;
+		background: #607d8b;
+
+		&::before { background: #f44336; animation-duration: 3s; }
+		&::after { background: #e91e63; animation-duration: 5s; animation-delay: -2s; }
+	}
+}
 
 @keyframes confetti-fall {
 	0% { opacity: 1; transform: translateY(0); }
@@ -101,56 +195,44 @@
 	to { transform: rotate(720deg); }
 }
 
-/* nth-child 设置位置、颜色、时长 */
-.confetti-piece:nth-child(10n+1) { left: 9%; animation-duration: 5s; background: #f44336; }
-.confetti-piece:nth-child(10n+1)::before { background: #e91e63; animation-duration: 4s; }
-.confetti-piece:nth-child(10n+1)::after { background: #ff5722; animation-duration: 6s; animation-delay: -2s; }
+/* ============ 动画 ============ */
+.animation {
+	/* 光晕脉冲类 */
+	&.pulse {
+		--pulse-color: #3498db;
+		--pulse-time: 2s;
+		--pulse-count: infinite;
+		/* 设置为阴影脉冲 */
+		&.shadow { animation: shadow-pulse var(--pulse-time) var(--pulse-count); }
+		/* 设置为文字脉冲 */
+		&.color {
+			color: var(--pulse-color);
+			animation: color-pulse var(--pulse-time) var(--pulse-count);
+		}
+	}
 
-.confetti-piece:nth-child(10n+2) { left: 18%; animation-duration: 4s; animation-delay: -1s; background: #9c27b0; }
-.confetti-piece:nth-child(10n+2)::before { background: #673ab7; animation-duration: 3s; }
-.confetti-piece:nth-child(10n+2)::after { background: #3f51b5; animation-duration: 5s; animation-delay: -1.5s; }
-
-.confetti-piece:nth-child(10n+3) { left: 27%; animation-duration: 5.5s; animation-delay: -2s; background: #3f51b5; }
-.confetti-piece:nth-child(10n+3)::before { background: #2196f3; animation-duration: 4s; }
-.confetti-piece:nth-child(10n+3)::after { background: #03a9f4; animation-duration: 7s; animation-delay: -3s; }
-
-.confetti-piece:nth-child(10n+4) { left: 36%; animation-duration: 4.5s; animation-delay: -3s; background: #03a9f4; }
-.confetti-piece:nth-child(10n+4)::before { background: #00bcd4; animation-duration: 3.5s; }
-.confetti-piece:nth-child(10n+4)::after { background: #009688; animation-duration: 6s; animation-delay: -2s; }
-
-.confetti-piece:nth-child(10n+5) { left: 45%; animation-duration: 4s; animation-delay: -4s; background: #009688; }
-.confetti-piece:nth-child(10n+5)::before { background: #4caf50; animation-duration: 3s; }
-.confetti-piece:nth-child(10n+5)::after { background: #8bc34a; animation-duration: 5s; animation-delay: -1s; }
-
-.confetti-piece:nth-child(10n+6) { left: 54%; animation-duration: 3.5s; animation-delay: -5s; background: #8bc34a; }
-.confetti-piece:nth-child(10n+6)::before { background: #cddc39; animation-duration: 2.5s; }
-.confetti-piece:nth-child(10n+6)::after { background: #ffeb3b; animation-duration: 4.5s; animation-delay: -2s; }
-
-.confetti-piece:nth-child(10n+7) { left: 63%; animation-duration: 3s; animation-delay: -6s; background: #ffeb3b; }
-.confetti-piece:nth-child(10n+7)::before { background: #ffc107; animation-duration: 2s; }
-.confetti-piece:nth-child(10n+7)::after { background: #ff9800; animation-duration: 4s; animation-delay: -1s; }
-
-.confetti-piece:nth-child(10n+8) { left: 72%; animation-duration: 5s; animation-delay: -7s; background: #ff9800; }
-.confetti-piece:nth-child(10n+8)::before { background: #ff5722; animation-duration: 4s; }
-.confetti-piece:nth-child(10n+8)::after { background: #e91e63; animation-duration: 6s; animation-delay: -3s; }
-
-.confetti-piece:nth-child(10n+9) { left: 81%; animation-duration: 5.5s; animation-delay: -8s; background: #795548; }
-.confetti-piece:nth-child(10n+9)::before { background: #9e9e9e; animation-duration: 4s; }
-.confetti-piece:nth-child(10n+9)::after { background: #607d8b; animation-duration: 7s; animation-delay: -3s; }
-
-.confetti-piece:nth-child(10n) { left: 90%; animation-duration: 4s; animation-delay: -9s; background: #607d8b; }
-.confetti-piece:nth-child(10n)::before { background: #f44336; animation-duration: 3s; }
-.confetti-piece:nth-child(10n)::after { background: #e91e63; animation-duration: 5s; animation-delay: -2s; }
-
-/* ============ 脉动动画 ============ */
-.animation.pulse {
-	--pulse-color: #3498db;
-	--pulse-time: 2s;
-	--pulse-count: infinite;
-}
-
-.animation.shadow.pulse {
-	animation: shadow-pulse var(--pulse-time) var(--pulse-count);
+	/* 阴影光晕脉冲（呼吸灯） */
+	&.shadow-breathing {
+		--pulse-glow-color-1: rgba(0, 255, 255, 0.6);
+		--pulse-glow-color-2: rgba(255, 0, 255, 0.4);
+		--pulse-glow-color-3: rgba(0, 255, 128, 0.2);
+		--pulse-glow-duration: 1.5s;
+		--pulse-glow-size-1: 20px;
+		--pulse-glow-size-2: 40px;
+		--pulse-glow-size-3: 60px;
+		/* 设置为鼠标悬停时触发 */
+		&.on-hover:hover:not(:has(:hover)) { animation: box-shadow-breathing var(--pulse-glow-duration, 1.5s) ease-out infinite; }
+		/* 定制：金色光晕 */
+		&.golden-glow {
+			--pulse-glow-color-1: rgba(255, 215, 0, 0.8);
+			--pulse-glow-color-2: rgba(255, 180, 0, 0.5);
+			--pulse-glow-color-3: rgba(255, 150, 50, 0.3);
+			--pulse-glow-duration: 1.2s;
+			--pulse-glow-size-1: 15px;
+			--pulse-glow-size-2: 30px;
+			--pulse-glow-size-3: 50px;
+		}
+	}
 }
 
 @keyframes shadow-pulse {
@@ -159,50 +241,17 @@
 	100% { box-shadow: 0 0 0 0 transparent; }
 }
 
-.animation.color.pulse {
-	color: var(--pulse-color);
-	animation: color-pulse var(--pulse-time) var(--pulse-count);
-}
-
 @keyframes color-pulse {
 	0%, 100% { color: var(--pulse-color); }
 	50% { color: transparent; }
 }
 
-/* ============ 边框光晕脉冲 ============ */
-.animation.shadow-breathing.on-hover {
-	--pulse-glow-color-1: rgba(0, 255, 255, 0.6);
-	--pulse-glow-color-2: rgba(255, 0, 255, 0.4);
-	--pulse-glow-color-3: rgba(0, 255, 128, 0.2);
-	--pulse-glow-duration: 1.5s;
-	--pulse-glow-size-1: 20px;
-	--pulse-glow-size-2: 40px;
-	--pulse-glow-size-3: 60px;
-}
-
-.animation.shadow-breathing.on-hover:hover:not(:has(:hover)) {
-	animation: box-shadow-breathing var(--pulse-glow-duration, 1.5s) ease-out infinite;
-}
-
 @keyframes box-shadow-breathing {
-	0%, 100% {
-		box-shadow: 0 0 0 0 transparent;
-	}
+	0%, 100% { box-shadow: 0 0 0 0 transparent; }
 	50% {
 		box-shadow:
 			0 0 var(--pulse-glow-size-1, 20px) 8px var(--pulse-glow-color-1, rgba(0, 255, 255, 0.6)),
 			0 0 var(--pulse-glow-size-2, 40px) 16px var(--pulse-glow-color-2, rgba(255, 0, 255, 0.4)),
 			0 0 var(--pulse-glow-size-3, 60px) 24px var(--pulse-glow-color-3, rgba(0, 255, 128, 0.2));
 	}
-}
-
-/* ------ 金色光晕 ------ */
-.animation.shadow-breathing.on-hover.golden-glow {
-	--pulse-glow-color-1: rgba(255, 215, 0, 0.8);
-	--pulse-glow-color-2: rgba(255, 180, 0, 0.5);
-	--pulse-glow-color-3: rgba(255, 150, 50, 0.3);
-	--pulse-glow-duration: 1.2s;
-	--pulse-glow-size-1: 15px;
-	--pulse-glow-size-2: 30px;
-	--pulse-glow-size-3: 50px;
 }
