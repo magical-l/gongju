@@ -99,6 +99,12 @@ template, .template, .hidden, [v-cloak], .js.container {display: none !important
 	pointer-events: none;
 }
 
+/* 不可交互（视觉可见，但不响应鼠标事件，让点击穿透到下层） */
+.non-interactive { pointer-events: none; }
+
+/* 最高层级（盖在所有元素之上） */
+.top-layer { z-index: 9999; }
+
 /* ================== 定位 ================== */
 
 /* 行内元素与同行文字垂直对齐（y 轴方向居中），否则会偏上 */
