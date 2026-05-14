@@ -39,7 +39,7 @@
 		background: linear-gradient(145deg, #2c3e50 0%, #34495e 100%);
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 
-		&.board-won { cursor: not-allowed; & .position { cursor: not-allowed; } }
+		&.non-interactive { cursor: not-allowed; & .cell { cursor: not-allowed; } }
 
 		&.mini {
 			& .unit {
@@ -59,7 +59,7 @@
 		}
 	}
 
-	.position {
+	.cell {
 		min-width: 0;
 		min-height: 0;
 		border-radius: 8px;
@@ -87,17 +87,8 @@
 		&.selected { outline: 3px solid var(--el-color-primary); outline-offset: -3px; box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.4); z-index: 2; }
 	}
 
-	.moves-display {
-		margin: 15px 0;
-		font-size: 1.2rem;
-		font-weight: bold;
-		color: #4a4a4a;
-	}
-
-	.scoreboard section { text-align: center; }
-
 	.answer {
-		& .step.list {
+		& .round.list {
 			display: grid;
 			grid-template-columns: repeat(auto-fill, 28px);
 			gap: 4px;
@@ -105,7 +96,7 @@
 			max-width: 100%;
 		}
 
-		& .one.step {
+		& .one.round {
 			width: 28px;
 			height: 28px;
 			display: flex;
@@ -125,17 +116,16 @@
 			&.done { border-color: var(--el-color-success); }
 		}
 
-		& .total {
-			font-size: 0.8rem;
-			color: #606266;
-			margin: 4px 0 0;
+			& .total {
+				font-size: 0.8rem;
+				color: #606266;
+				margin: 4px 0 0;
+			}
 
-			&.done-tip { color: var(--el-color-success); margin-top: 6px; }
+			& .win.tip { color: var(--el-color-success); margin-top: 6px; }
+			& .controller.list { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px; }
+			& .error { color: var(--el-color-danger); }
 		}
-
-		& .action.list { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px; }
-		& .error { color: var(--el-color-danger); }
-	}
 
 	.score {
 		& .mini.map {
@@ -272,18 +262,18 @@
 				<div class="one tool group">
 					<el-button-group>
 						<el-button class="one tool : hint" @click="showHint" :type="hintIndex !== -1 ? 'primary' : 'default'"
-											 icon="MagicStick" :disabled="layoutMode">提示
+							icon="MagicStick" :disabled="layoutMode">提示
 						</el-button>
 						<el-button class="one tool : answer" :type="solutionSteps.length ? 'primary' : 'default'" icon="Key"
-											 @click="toggleAnswer" :disabled="layoutMode">答案
+							@click="toggleAnswer" :disabled="layoutMode">答案
 						</el-button>
 					</el-button-group>
 				</div>
 			</section>
 		</header>
 
-		<section class="board , main map , grid" :style="boardStyle" :class="{ 'board-won': isWin && !showWinModal }">
-			<div v-for="(val, index) in board" :key="index" :class="cellPositionClass(index)" @click="onCellClick(index)"
+		<section class="board , main map , grid" :style="boardStyle" :class="{ 'non-interactive': isWin && !showWinModal }">
+			<div v-for="(val, index) in board" :key="index" class="cell" :class="cellStateClass(index)" @click="onCellClick(index)"
 				:draggable="layoutMode" @dragstart="onLayoutDragStart($event, index)" @dragend="onLayoutDragEnd"
 				@dragover.prevent @drop="onLayoutDrop($event, index)">
 				{{ val || '' }}
@@ -298,7 +288,7 @@
 						<p>点击与空位相邻的块也可移动</p>
 					</el-collapse-item>
 					<el-collapse-item title="本局信息" name="score" class="score">
-						<section class="action record area">
+						<section class="init map">
 							<h3>初始局面</h3>
 							<div class="mini board" :style="initialBoardStyle">
 								<span v-for="(val, idx) in initialBoard" :key="idx" class="unit" :class="{ empty: val === 0 }">{{ val || '' }}</span>
@@ -306,9 +296,9 @@
 						</section>
 					</el-collapse-item>
 					<el-collapse-item title="回合" name="answer" class="answer">
-						<div class="action list">
+						<div class="controller list">
 							<el-button v-if="solutionSteps.length && !isWin" type="primary" size="small" @click="applyNextStep"
-												 :disabled="solutionDone">
+												:disabled="solutionDone">
 								{{ solutionDone ? '已执行完' : '执行下一步' }}
 							</el-button>
 						</div>
@@ -316,11 +306,11 @@
 							<template v-if="isWin">已完成，共 {{ moves }} 步</template>
 							<template v-else>已走 {{ moves }} 步<span v-if="solutionSteps.length">，共 {{ roundSteps.length }} 步</span></template>
 						</p>
-						<div class="step list">
-							<span v-for="(val, i) in roundSteps" :key="i" class="one step"
+						<div class="round list">
+							<span v-for="(val, i) in roundSteps" :key="i" class="one round"
 										:class="{ current: i === currentStepIndex && !isWin, done: isWin && i === roundSteps.length - 1 }">{{ val }}</span>
 						</div>
-						<p v-if="isWin" class="total done-tip">本局已过关</p>
+						<p v-if="isWin" class="win tip">本局已过关</p>
 						<div v-if="solutionError" class="error">{{ solutionError }}</div>
 					</el-collapse-item>
 				</el-collapse>
@@ -328,7 +318,7 @@
 			</aside>
 
 			<!-- 结算弹窗 -->
-			<el-dialog v-model="showWinModal" class="result" header-class="title" body-class="body" :show-close="true" align-center>
+			<el-dialog v-model="showWinModal" class="result" header-class="title" :show-close="true" align-center>
 				<header class="success">恭喜过关！</header>
 				<div class="stats">共 {{ moves }} 步</div>
 				<footer class="toolbar">
@@ -639,10 +629,9 @@
 			clearHint() {
 				this.hintIndex = -1;
 			},
-			cellPositionClass(index) {
+			cellStateClass(index) {
 				const val = this.board[index];
 				return {
-					position: true,
 					empty: val === 0,
 					tile: val !== 0,
 					sliding: this.slidingIndex === index,
