@@ -376,9 +376,9 @@ main {
 }
 
 /* ======================== 游戏信息区 ======================== */
-.right-sidebar > .el-card:not(:last-child) { margin-bottom: 0; }
+.sidebar > .el-card:not(:last-child) { margin-bottom: 0; }
 
-article.gaming.area .right-sidebar .el-collapse {
+article.gaming.area .sidebar .el-collapse {
 	border-top: none;
 	border-bottom: none;
 

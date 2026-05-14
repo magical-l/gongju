@@ -612,6 +612,6 @@ footer, .footer {
 
 main, .main, .body {grid-area: main; flex: 1;}
 
-.left-sidebar {grid-area: left-sidebar;}
-.right-sidebar {grid-area: right-sidebar;}
+.sidebar.at-left {grid-area: left-sidebar;}
+.sidebar.at-right {grid-area: right-sidebar;}
 
