@@ -29,23 +29,24 @@
 		gap: var(--gap);
 		align-items: start;
 		grid-template-rows: auto 1fr;
-	}
 
-	.main.map.area {
-		display: flex;
-		align-items: center;
-		justify-content: center;
+		.main.map {
+			justify-self: center;
+			align-self: start;
+		}
 	}
 
 	.board {
+		--cell-size: min(calc((100vh - 250px - var(--board-rows) * 10px) / var(--board-rows)),
+						calc((100vw - 200px - var(--board-cols) * 10px) / var(--board-cols)),
+						80px);
+		display: grid;
+		height: fit-content;
 		box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
 		background: #e6eaf0;
 		border-radius: 10px;
 		padding: 10px;
 		gap: var(--gap);
-		--cell-size: min(calc((100vh - 250px - var(--board-rows) * 10px) / var(--board-rows)),
-		                 calc((100vw - 200px - var(--board-cols) * 10px) / var(--board-cols)),
-		                 80px);
 		grid-template-columns: repeat(var(--board-cols), var(--cell-size));
 		grid-template-rows: repeat(var(--board-rows), var(--cell-size));
 	}
@@ -57,18 +58,19 @@
 		cursor: pointer;
 		transition: all 0.2s;
 		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-	}
 
-	.cell:hover {
-		transform: scale(1.05);
-	}
+		&:hover { scale: 1.05; }
 
-	.cell.a {
-		background: #dce1e6;
-	}
+		&.off { background: #dce1e6; }
 
-	.cell.b {
-		background: linear-gradient(135deg, #a8e6cf 0%, #dcedc1 100%);
+		&.on { background: linear-gradient(135deg, #a8e6cf 0%, #dcedc1 100%); }
+
+		&.highlighted {
+			outline: 3px solid #3295ff;
+			outline-offset: -3px;
+			scale: 1.05;
+			transition: all 0.3s ease;
+		}
 	}
 
 	.scoreboard .el-card__header { padding: 8px 12px; }
@@ -86,25 +88,16 @@
 		border: 1px solid #dce1e6;
 		border-radius: 5px;
 		padding: 10px;
-	}
 
-	.round.list.area p {
-		margin: 0;
-		padding: 6px 4px;
-		border-bottom: 1px solid #f0f2f5;
-		color: #555;
-		font-size: 0.9em;
-	}
+		p {
+			margin: 0;
+			padding: 6px 4px;
+			border-bottom: 1px solid #f0f2f5;
+			color: #555;
+			font-size: 0.9em;
 
-	.round.list.area p:last-child {
-		border-bottom: none;
-	}
-
-	.cell.highlighted {
-		outline: 3px solid #3295ff;
-		outline-offset: -3px;
-		transform: scale(1.05);
-		transition: all 0.3s ease;
+			&:last-child { border-bottom: none; }
+		}
 	}
 
 	@media (max-width: 500px) {
@@ -174,32 +167,27 @@
 					</el-form-item>
 				</div>
 				<div class="one setting group">
-					<el-button :type="moveCount > 0 ? 'danger' : 'primary'" class="one setting : new-game" @click="initGame" icon="RefreshRight">新局
+					<el-button class="one setting : new-game" :type="moveCount > 0 ? 'danger' : 'primary'" icon="RefreshRight" @click="initGame">新局
 					</el-button>
 				</div>
 			</section>
 			<section class="tool list , flex single-line no-gap items-near-x-start items-near-y-center">
 				<div class="one tool group">
 					<el-button-group>
-						<el-button class="one tool : hint" @click="showRandomHint"
-								:type="hintCellIndex !== null ? 'primary' : 'default'" icon="MagicStick">提示
+						<el-button class="one tool : hint" :type="hintCellIndex !== null ? 'primary' : 'default'" icon="MagicStick" @click="showRandomHint">提示
 						</el-button>
-						<el-button class="one tool : answer" @click="showAnswer" icon="Key">答案</el-button>
+						<el-button class="one tool : answer" icon="Key" @click="showAnswer">答案</el-button>
 					</el-button-group>
 				</div>
 			</section>
 		</header>
 
-		<article class="main map area , flex items-near-x-center">
-			<section class="board grid" :style="{ '--board-cols': gameBoardCols, '--board-rows': gameBoardRows }">
-				<template v-for="(row, rowIndex) in board" :key="rowIndex">
-					<div class="cell" v-for="(cell, colIndex) in row" :key="colIndex"
-							 :class="cellClass(rowIndex, colIndex)"
-							 ref="cells" @click="handleCellClick(rowIndex, colIndex)">
-					</div>
-				</template>
-			</section>
-		</article>
+		<section class="board , main map , grid" :style="{ '--board-cols': gameBoardCols, '--board-rows': gameBoardRows }">
+			<template v-for="(row, rowIndex) in board" :key="rowIndex">
+				<div class="cell" :class="cellClass(rowIndex, colIndex)" v-for="(cell, colIndex) in row" :key="colIndex" :ref="cells" @click="handleCellClick(rowIndex, colIndex)">
+				</div>
+			</template>
+		</section>
 
 		<aside class="left-sidebar">
 			<el-card shadow="never">
@@ -210,7 +198,7 @@
 						</el-card>
 					</el-collapse-item>
 					<el-collapse-item title="回合记录" name="rounds">
-						<el-button @click="exportRounds" :disabled="!rounds.length" icon="Download" size="small" style="margin-bottom: 8px;">导出
+						<el-button :disabled="!rounds.length" icon="Download" size="small" style="margin-bottom: 8px;" @click="exportRounds">导出
 						</el-button>
 						<el-empty v-if="!rounds.length" description="尚无记录。请开始吧！"></el-empty>
 						<div v-else class="round list container" ref="roundList">
@@ -226,9 +214,9 @@
 				<h2>恭喜你，挑战成功！</h2>
 				<p>您总共使用了 {{ moveCount }} 步。</p>
 				<footer class="actions">
-					<el-button @click="initGame" icon="RefreshRight">新局</el-button>
-					<el-button @click="exportRounds" size="large" icon="Download">导出回合记录</el-button>
-					<el-button @click="closeWinModal" size="large">关闭</el-button>
+					<el-button icon="RefreshRight" @click="initGame">新局</el-button>
+					<el-button size="large" icon="Download" @click="exportRounds">导出回合记录</el-button>
+					<el-button size="large" @click="closeWinModal">关闭</el-button>
 				</footer>
 			</section>
 			<div class="fullscreen pointer-events-none">
@@ -391,7 +379,7 @@
 		methods: {
 			cellClass(row, col) {
 				const index = row * this.gameBoardCols + col;
-				return [this.board[row][col] ? 'b' : 'a', {highlighted: this.highlightedCells[index]}];
+				return [this.board[row][col] ? 'on' : 'off', {highlighted: this.highlightedCells[index]}];
 			},
 			onGamingInfoCollapseChange(val) {
 				const def = this._gamingInfoDefaultPanels || [];
