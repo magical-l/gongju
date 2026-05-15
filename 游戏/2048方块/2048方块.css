@@ -1,32 +1,7 @@
-/* 2048方块 网页版 - 样式限定在 .gaming.area 内，通用见 biz.css */
+/* 2048方块 网页版 - 通用样式见 ../2048/2048.css */
 
 :root {
 	--page-bg: #E8F0E0;
-}
-
-/* 棋盘格子里的数字方块 */
-.board .cell > .unit[class*="unit-"] {
-	inset: 0;
-	font-weight: bold;
-	font-size: clamp(10px, 2.5vw, 24px);
-	border: 1px solid var(--grid-line, rgba(0,0,0,0.12));
-	border-radius: var(--unit-radius);
-	user-select: none;
-}
-
-/* 数字颜色 */
-.unit {
-	&.unit-2 { background: #e2ead8; color: #5a6b52; }
-	&.unit-4 { background: #c8d4b8; color: #5a6b52; }
-	&.unit-8 { background: #a8c99e; color: #f5f9f2; }
-	&.unit-16 { background: #8fbc85; color: #f5f9f2; }
-	&.unit-32 { background: #7cb37a; color: #f5f9f2; }
-	&.unit-64 { background: #6ba36b; color: #f5f9f2; }
-	&.unit-128 { background: #9cb87c; color: #f5f9f2; }
-	&.unit-256 { background: #8ab06e; color: #f5f9f2; }
-	&.unit-512 { background: #7aa862; color: #f5f9f2; }
-	&.unit-1024 { background: #6a9f56; color: #f5f9f2; }
-	&.unit-2048 { background: #5a8f4a; color: #f5f9f2; }
 }
 
 /* 消行动画 */

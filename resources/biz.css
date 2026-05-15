@@ -54,15 +54,6 @@
 	-webkit-user-select: none;
 }
 
-/* 2048系特有：尺寸限制 */
-.game-2048 .main.board {
-	max-width: min(560px, 96vw);
-	max-height: min(85vh, 900px);
-	min-height: min(320px, 55vmin);
-	color: var(--text-dark);
-	font-family: system-ui, -apple-system, sans-serif;
-}
-
 /* 棋盘格 */
 .board .cell {
 	position: relative;

@@ -1,4 +1,4 @@
-/* 2048 网页版 - 样式限定在 .gaming.area 内，通用见 biz.css */
+/* 2048系通用样式 - 2048/2048蛇/2048方块 共用 */
 
 :root {
 	--page-bg: #E8F0E0;
@@ -7,7 +7,16 @@
 	--merge-duration: 0.2s;
 }
 
-/* 数字方块 */
+/* 2048系特有：尺寸限制 */
+.game-2048 .board.main.map {
+	max-width: min(560px, 96vw);
+	max-height: min(85vh, 900px);
+	min-height: min(320px, 55vmin);
+	color: var(--text-dark);
+	font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* 数字方块：共性 */
 .board .cell > .unit[class*="unit-"] {
 	inset: 0;
 	font-weight: bold;
@@ -18,7 +27,7 @@
 	-webkit-user-select: none;
 }
 
-/* 各数字颜色 */
+/* 数字颜色 */
 .unit {
 	&.unit-2 { background: #e2ead8; color: #5a6b52; }
 	&.unit-4 { background: #c8d4b8; color: #5a6b52; }
