@@ -6,25 +6,10 @@
 	--right-sidebar-min-width: 150px;
 	--right-sidebar-max-width: 300px;
 	--gap: 0.5rem;
-	--亚字形-left-sidebar-min-width: var(--left-sidebar-min-width);
-	--亚字形-left-sidebar-max-width: var(--left-sidebar-max-width);
-	--亚字形-right-sidebar-min-width: var(--right-sidebar-min-width);
-	--亚字形-right-sidebar-max-width: var(--right-sidebar-max-width);
-	--亚字形-gap: var(--gap);
-	--叵字形-left-sidebar-min-width: var(--left-sidebar-min-width);
-	--叵字形-left-sidebar-max-width: var(--left-sidebar-max-width);
-	--叵字形-right-sidebar-min-width: var(--right-sidebar-min-width);
-	--叵字形-right-sidebar-max-width: var(--right-sidebar-max-width);
-	--叵字形-gap: var(--gap);
-	--反叵字形-left-sidebar-min-width: var(--left-sidebar-min-width);
-	--反叵字形-left-sidebar-max-width: var(--left-sidebar-max-width);
-	--反叵字形-right-sidebar-min-width: var(--right-sidebar-min-width);
-	--反叵字形-right-sidebar-max-width: var(--right-sidebar-max-width);
-	--反叵字形-gap: var(--gap);
 }
 
 /* ======================== CDN补充样式 ======================== */
-.pointer-events-none { pointer-events: none; }
+/* modal 弹窗内容体样式补充 */
 
 .modal > .body {
 	position: relative;

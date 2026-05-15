@@ -183,7 +183,7 @@
 		<!-- 结算区：撒花在 dialog 内，用 .fullscreen 铺满视口 -->
 		<el-dialog class="game result" v-model="gameResultVisible" :title="gameResultMessage" width="400px" align-center
 							 @opened="onResultDialogOpened" @closed="onResultOverlayClick">
-			<div class="fullscreen pointer-events-none" v-if="gameResultIsWin">
+			<div class="fullscreen non-interactive" v-if="gameResultIsWin">
 				<span class="confetti-piece" v-for="i in 150" :key="i"></span>
 			</div>
 			<dl class="game result stats">
