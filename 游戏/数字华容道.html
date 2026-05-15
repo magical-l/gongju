@@ -14,20 +14,20 @@
 
 <link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
 <link href="../resources/el-plus.css" rel="stylesheet">
-	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/common.css" rel="stylesheet"> -->
-	<link href="../lib/css/common.css" rel="stylesheet">
-	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/layout.css" rel="stylesheet"> -->
-	<link href="../lib/css/layout.css" rel="stylesheet">
+<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/common.css" rel="stylesheet"> -->
+<link href="../lib/css/common.css" rel="stylesheet">
+<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/layout.css" rel="stylesheet"> -->
+<link href="../lib/css/layout.css" rel="stylesheet">
 <link href="../resources/biz.css?v=250821" rel="stylesheet">
-	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/花活.css" rel="stylesheet"> -->
-	<link href="../lib/css/花活.css" rel="stylesheet">
+<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/花活.css" rel="stylesheet"> -->
+<link href="../lib/css/花活.css" rel="stylesheet">
 <style>
 	.gaming.area {
 		margin-top: 20px;
 		gap: var(--gap);
 		align-items: start;
 
-		& .main.map { justify-self: center; align-self: start; }
+		& .main.board { justify-self: center; align-self: start; }
 	}
 
 	/* 格子基础样式：布局与文字 */
@@ -44,14 +44,10 @@
 		&.empty { background: transparent; color: transparent; }
 	}
 
-	/* 棋盘基础样式：布局与默认尺寸 */
-	.board {
-		--cell-size: 80px;
-	}
-
 	/* 主棋盘：装饰 + 交互 */
 	.main.board {
 		--board-gap: 6px;
+		--cell-size: 80px;
 		padding: 12px;
 		border-radius: 12px;
 		overflow: hidden;
@@ -73,11 +69,15 @@
 		}
 	}
 
-	/* 小棋盘：覆盖尺寸变量 */
+	/* 小棋盘：缩小版主棋盘 */
 	.mini.board {
-		--cell-size: 22px;
+		--board-padding: 0;
 		--board-gap: 0;
-		margin-top: 8px;
+		--cell-size: 22px;
+		grid-template-columns: repeat(var(--board-cols), var(--cell-size));
+		grid-template-rows: repeat(var(--board-rows), var(--cell-size));
+		width: fit-content;
+		height: fit-content;
 	}
 
 	/* 初始局面：禁止交互 */
@@ -236,7 +236,7 @@
 			</section>
 		</header>
 
-		<section class="main board , grid" :style="boardStyle" :class="{ 'non-interactive': isWin && !showWinModal }">
+		<section class="board , main map , grid" :style="boardStyle" :class="{ 'non-interactive': isWin && !showWinModal }">
 			<div v-for="(val, index) in board" :key="index" class="cell" :class="cellStateClass(index)" @click="onCellClick(index)"
 				:draggable="layoutMode" @dragstart="onLayoutDragStart($event, index)" @dragend="onLayoutDragEnd"
 				@dragover.prevent @drop="onLayoutDrop($event, index)">
@@ -264,10 +264,10 @@
 							共 {{ roundSteps.length }} 步。注：未必最优。
 						</p>
 						<div class="controller list">
-							<el-button v-if="solutionSteps" type="primary" size="small" @click="applyNextStep" :disabled="solutionDone || autoPlayTimer">
+							<el-button v-if="solutionSteps.length" type="primary" size="small" @click="applyNextStep" :disabled="solutionDone || autoPlayTimer">
 								{{ solutionDone ? '已完成' : '走一步' }}
 							</el-button>
-							<el-button v-if="solutionSteps" size="small" @click="toggleAutoPlay" :disabled="solutionDone">
+							<el-button v-if="solutionSteps.length" size="small" @click="toggleAutoPlay" :disabled="solutionDone">
 								{{ autoPlayTimer ? '停止' : '自动' }}
 							</el-button>
 						</div>
