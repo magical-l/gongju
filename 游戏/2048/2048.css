@@ -17,15 +17,14 @@
 	--unit-radius: 0;
 	--board-radius: 8px;
 	--board-padding: 12px;
+	color: var(--text-dark);
+	font-family: system-ui, -apple-system, sans-serif;
 }
 
 /* 2048系特有：尺寸限制 */
 .game-2048 .board.main.map {
-	max-width: min(560px, 96vw);
 	max-height: min(85vh, 900px);
 	min-height: min(320px, 55vmin);
-	color: var(--text-dark);
-	font-family: system-ui, -apple-system, sans-serif;
 }
 
 /* 数字方块：共性 */
@@ -135,4 +134,21 @@
 			&.preview-error { background: #F8D7DA !important; }
 		}
 	}
+}
+
+/* 2048系结算弹窗 */
+.game.result.stats {
+	margin: 0;
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: 0.5rem 1rem;
+	align-items: center;
+
+	> dt { font-weight: 600; }
+	> dd { margin: 0; text-align: right; }
+}
+
+.game.result .hint {
+	margin: 0.5rem 0;
+	text-align: center;
 }

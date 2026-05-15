@@ -33,13 +33,19 @@
 .gaming.area {
 	--right-sidebar-min-width: 380px;
 	--gap: 0.75rem;
-	--board-cols: 4;
-	--board-rows: 4;
+	--text-dark: #5a6b52;
+	--text-light: #f5f9f2;
+	--board-bg: #b8c9a8;
+	--grid-line: #9bad8f;
+	--cell-empty: #d4e0c8;
+	--unit-radius: 0;
+	--board-radius: 8px;
+	--board-padding: 12px;
 
 	&:focus, & .board:focus { outline: none; }
 }
 
-/* 主地图区：共性样式 */
+/* 主地图区：共性样式 */ 
 .main.map {
 	margin: auto;
 	user-select: none;
@@ -69,10 +75,12 @@
 
 /* 游戏区棋盘 */
 .board {
+	--board-cols: 4;
+	--board-rows: 4;
+	--cell-size: min(70vmin / var(--board-cols), 70vmin / var(--board-rows));
 	display: grid;
-	--cell-size: min(70vmin / var(--board-cols, 4), 70vmin / var(--board-rows, 4));
-	grid-template-columns: repeat(var(--board-cols, 4), var(--cell-size));
-	grid-template-rows: repeat(var(--board-rows, 4), var(--cell-size));
+	grid-template-columns: repeat(var(--board-cols), var(--cell-size));
+	grid-template-rows: repeat(var(--board-rows), var(--cell-size));
 	width: fit-content;
 	height: fit-content;
 	gap: 0;
@@ -110,34 +118,6 @@
 		font-size: 0.875rem;
 		color: rgba(255, 255, 255, 0.85);
 	}
-}
-
-/* 结算弹框 */
-.game.result.stats {
-	display: grid;
-	grid-template-columns: auto 1fr;
-	gap: 0.25em 1.5em;
-	margin: 0;
-	font-size: 14px;
-	color: var(--text-dark, #333);
-
-	> dt { font-weight: 600; margin: 0; }
-	> dd { margin: 0; }
-}
-
-.game.result > .hint {
-	font-size: 12px;
-	margin: 0 0 0.5rem;
-	opacity: 0.85;
-	color: var(--text-dark, #333);
-}
-
-.scoreboard .value {
-	font-size: clamp(1.75rem, 5vw, 2.5rem);
-	font-weight: 700;
-	text-align: center;
-	line-height: 1.2;
-	color: var(--text-dark, inherit);
 }
 
 /* ======================== 网站结构 ======================== */
@@ -333,6 +313,14 @@ main {
 /* ======================== 游戏信息区 ======================== */
 .sidebar > .el-card:not(:last-child) { margin-bottom: 0; }
 
+.scoreboard .value {
+	font-size: clamp(1.75rem, 5vw, 2.5rem);
+	font-weight: 700;
+	text-align: center;
+	line-height: 1.2;
+	color: var(--text-dark, inherit);
+}
+
 article.gaming.area .sidebar .el-collapse {
 	border-top: none;
 	border-bottom: none;
@@ -346,15 +334,6 @@ article.gaming.area .sidebar .el-collapse {
 
 		&:focus { color: var(--el-collapse-header-text-color); }
 	}
-}
-
-.scoreboard .score.value {
-	margin: 0;
-	font-size: 1.75rem;
-	font-weight: bold;
-	line-height: 1.2;
-	display: block;
-	text-align: center;
 }
 
 /* ======================== primevue ======================== */
