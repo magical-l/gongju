@@ -30,92 +30,84 @@
 		& .main.map { justify-self: center; align-self: start; }
 	}
 
+	/* 格子基础样式：布局与文字 */
+	.cell {
+		min-width: 0;
+		min-height: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-weight: bold;
+		font-size: calc(0.4 * var(--cell-size));
+		user-select: none;
+		box-sizing: border-box;
+	}
+
+	/* 棋盘基础样式：布局 */
 	.board {
+		--cell-size: 80px;
+		--board-gap: 6px;
 		display: grid;
-		gap: 6px;
+		gap: var(--board-gap);
+
+		& .cell { background: #d4e0c8; color: #5a6b52; }
+		& .cell.empty { background: rgba(0, 0, 0, 0.25); color: transparent; }
+	}
+
+	/* 主棋盘：装饰与交互 */
+	.main.map {
+		--cell-size: var(--computed-cell-size, 80px);
+		--board-gap: 6px;
+		--board-padding: 12px;
+		padding: var(--board-padding);
 		border-radius: 12px;
-		padding: 12px;
 		overflow: hidden;
 		background: linear-gradient(145deg, #2c3e50 0%, #34495e 100%);
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 
 		&.non-interactive { cursor: not-allowed; & .cell { cursor: not-allowed; } }
 
-		&.mini {
-			& .unit {
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				font-size: 0.7rem;
-				font-weight: bold;
-				border-radius: 3px;
-				background: linear-gradient(145deg, #ecf0f1 0%, #bdc3c7 100%);
-				color: #2c3e50;
-				min-width: 0;
-				min-height: 0;
+		& .cell {
+			cursor: pointer;
+			transition: transform 0.15s ease, box-shadow 0.15s ease;
 
-				&.empty { background: rgba(0, 0, 0, 0.25); color: transparent; }
-			}
+			&:hover { transform: scale(1.03); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35); }
+			&.empty { cursor: default; &:hover { transform: none; box-shadow: none; } }
+			&.sliding { transition: none; z-index: 5; }
+			&.hint { outline: 3px solid #e6a23c; outline-offset: -3px; box-shadow: 0 0 0 3px rgba(230, 162, 60, 0.5); z-index: 2; }
+			&.selected { outline: 3px solid var(--el-color-primary); outline-offset: -3px; box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.4); z-index: 2; }
 		}
 	}
 
-	.cell {
-		min-width: 0;
-		min-height: 0;
-		border-radius: 8px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-weight: bold;
-		font-size: calc(0.4 * var(--cell-size, 1rem));
-		user-select: none;
-		cursor: pointer;
-		transition: transform 0.15s ease, box-shadow 0.15s ease;
-		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-		box-sizing: border-box;
+	/* 小棋盘：初始局面 */
+	.init.map.situation {
+		--cell-size: 22px;
+		--board-gap: 0;
+		margin-top: 8px;
 
-		&.tile {
-			background: #d4e0c8;
-			color: #5a6b52;
+		& .cell { cursor: default; }
+	}
 
-			&:hover { transform: scale(1.03); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35); }
+	/* 回合列表 */
+	.round.list {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, 28px);
+		gap: 4px;
+		margin-top: 6px;
+		max-width: 100%;
+
+		& .cell {
+			width: 28px;
+			height: 28px;
+			border: 2px solid transparent;
+			transition: border-color 0.2s;
+
+			&.current { border-color: var(--el-color-primary); }
+			&.done { border-color: var(--el-color-success); }
 		}
-
-		&.empty { background: rgba(0, 0, 0, 0.25); cursor: default; box-shadow: none; }
-		&.sliding { transition: none; z-index: 5; }
-		&.hint { outline: 3px solid #e6a23c; outline-offset: -3px; box-shadow: 0 0 0 3px rgba(230, 162, 60, 0.5); z-index: 2; }
-		&.selected { outline: 3px solid var(--el-color-primary); outline-offset: -3px; box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.4); z-index: 2; }
 	}
 
 	.rounds {
-		& .round.list {
-			display: grid;
-			grid-template-columns: repeat(auto-fill, 28px);
-			gap: 4px;
-			margin-top: 6px;
-			max-width: 100%;
-
-			& .unit {
-				width: 28px;
-				height: 28px;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				background: #d4e0c8;
-				color: #5a6b52;
-				border-radius: 5px;
-				font-size: 0.8rem;
-				font-weight: bold;
-				box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-				border: 2px solid transparent;
-				transition: border-color 0.2s;
-				box-sizing: border-box;
-
-				&.current { border-color: var(--el-color-primary); }
-				&.done { border-color: var(--el-color-success); }
-			}
-		}
-
 		& .total {
 			font-size: 0.8rem;
 			color: #606266;
@@ -125,26 +117,6 @@
 		& .win.tip { color: var(--el-color-success); margin-top: 6px; }
 		& .controller.list { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px; }
 		& .error { color: var(--el-color-danger); }
-	}
-
-	.mini.board {
-		display: grid;
-		border-radius: 6px;
-		overflow: hidden;
-		margin-top: 8px;
-
-		& .unit {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			font-size: 0.65rem;
-			font-weight: 600;
-			border-radius: 3px;
-			background: #d4e0c8;
-			color: #5a6b52;
-
-			&.empty { background: rgba(0, 0, 0, 0.2); color: transparent; }
-		}
 	}
 
 	/* 结算弹窗 */
@@ -286,8 +258,8 @@
 					<el-collapse-item title="本局信息" name="gaming-info" class="gaming info">
 						<section class="init map">
 							<h3>初始局面</h3>
-							<div class="mini board" :style="initialBoardStyle">
-								<span v-for="(val, idx) in initialBoard" :key="idx" class="unit" :class="{ empty: val === 0 }">{{ val || '' }}</span>
+							<div class="board , mini map , init map situation , grid" :style="initialBoardStyle">
+								<span v-for="(val, idx) in initialBoard" :key="idx" class="cell" :class="{ empty: val === 0 }">{{ val || '' }}</span>
 							</div>
 						</section>
 					</el-collapse-item>
@@ -303,7 +275,7 @@
 							<template v-else>已走 {{ moves }} 步<span v-if="solutionSteps.length">，共 {{ roundSteps.length }} 步</span></template>
 						</p>
 						<div class="round list">
-							<span v-for="(val, i) in roundSteps" :key="i" class="unit"
+							<span v-for="(val, i) in roundSteps" :key="i" class="cell"
 										:class="{ current: i === currentStepIndex && !isWin, done: isWin && i === roundSteps.length - 1 }">{{ val }}</span>
 						</div>
 						<p v-if="isWin" class="win tip">本局已过关</p>
@@ -543,13 +515,12 @@
 			initialBoardStyle() {
 				const w = this.gameGridWidth;
 				const h = this.gameGridHeight;
-				const cellPx = Math.min(18, Math.floor(120 / Math.max(w, h)));
-				const gap = 2;
 				return {
-					gridTemplateColumns: `repeat(${w}, ${cellPx}px)`,
-					gridTemplateRows: `repeat(${h}, ${cellPx}px)`,
-					gap: gap + 'px',
-				};
+						'--board-cols': w,
+						'--board-rows': h,
+						gridTemplateColumns: `repeat(${w}, var(--cell-size))`,
+						gridTemplateRows: `repeat(${h}, var(--cell-size))`,
+					};
 			},
 		},
 		watch: {
@@ -629,7 +600,6 @@
 				const val = this.board[index];
 				return {
 					empty: val === 0,
-					tile: val !== 0,
 					sliding: this.slidingIndex === index,
 					hint: this.hintIndex === index,
 					selected: this.layoutMode && this.layoutSelectedIndex === index,
