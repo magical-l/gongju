@@ -31,8 +31,10 @@
 
 /* ======================== 游戏布局 ======================== */
 .gaming.area {
-	gap: 0.75rem;
+	margin: 0;
+	padding: 0;
 
+	/* 获得焦点时不显示选中框 */
 	&:focus { outline: none; }
 }
 
@@ -44,6 +46,7 @@
 	user-select: none;
 	-webkit-user-select: none;
 
+	/* 获得焦点时不显示选中框 */
 	&:focus { outline: none; }
 }
 
