@@ -225,7 +225,7 @@
 							{{ moveCount }}
 						</el-card>
 					</el-collapse-item>
-					<el-collapse-item title="回合记录" name="rounds">
+					<el-collapse-item title="回合记录" name="record-area" class="record area">
 						<el-button :disabled="!rounds.length" icon="Download" size="small" style="margin-bottom: 8px;" @click="exportRounds">导出
 						</el-button>
 						<el-empty v-if="!rounds.length" description="尚无记录。请开始吧！"></el-empty>

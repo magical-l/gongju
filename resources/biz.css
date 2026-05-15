@@ -105,11 +105,12 @@
 }
 
 /* 游戏区棋盘 */
-.gaming.area .board {
+.board {
 	display: grid;
 	grid-template-columns: repeat(var(--board-cols, 4), 1fr);
 	grid-template-rows: repeat(var(--board-rows, 4), 1fr);
-	gap: 0;
+	--board-gap: 0;
+	gap: var(--board-gap);
 	padding: var(--board-padding);
 	background: var(--board-bg);
 	border: 2px solid var(--grid-line);
