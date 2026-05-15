@@ -79,25 +79,39 @@
 		padding: 30px 0;
 	}
 
-	.round.list.container {
-		min-height: 100px;
-		max-height: 330px;
-		overflow-y: auto;
-		background-color: #fff;
-		border: 1px solid #dce1e6;
-		border-radius: 5px;
-		padding: 10px;
+	/* 回合记录区 */
+		.record.area {
+			& .tip {
+				font-size: 0.8rem; color: #606266;
 
-		p {
-			margin: 0;
-			padding: 6px 4px;
-			border-bottom: 1px solid #f0f2f5;
-			color: #555;
-			font-size: 0.9em;
+				&.at-top { margin: 0; color: var(--el-color-warning); }
+				&.at-bottom { color: var(--el-color-success); margin-top: 6px; }
+			}
+			& .controller.list { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px; }
+			& .rounds {
+				> .summary { font-size: 0.8rem; color: #606266; margin: 4px 0 0; }
+				> .list {
+					min-height: 100px;
+					max-height: 330px;
+					overflow-y: auto;
+					background-color: #fff;
+					border: 1px solid #dce1e6;
+					border-radius: 5px;
+					padding: 10px;
 
-			&:last-child { border-bottom: none; }
+					p {
+						margin: 0;
+						padding: 6px 4px;
+						border-bottom: 1px solid #f0f2f5;
+						color: #555;
+						font-size: 0.9em;
+
+						&:last-child { border-bottom: none; }
+					}
+				}
+			}
+			& .error { color: var(--el-color-danger); }
 		}
-	}
 
 	/* 结算弹窗 */
 	.result {
@@ -226,11 +240,15 @@
 						</el-card>
 					</el-collapse-item>
 					<el-collapse-item title="回合记录" name="record-area" class="record area">
-						<el-button :disabled="!rounds.length" icon="Download" size="small" style="margin-bottom: 8px;" @click="exportRounds">导出
-						</el-button>
+						<div class="controller list">
+							<el-button :disabled="!rounds.length" icon="Download" size="small" @click="exportRounds">导出
+							</el-button>
+						</div>
 						<el-empty v-if="!rounds.length" description="尚无记录。请开始吧！"></el-empty>
-						<div v-else class="round list container" ref="roundList">
-							<p v-for="(round, roundI) in rounds">{{roundI+1}}：第{{round.row}}行, 第{{round.col}}列</p>
+						<div v-else class="rounds">
+							<div class="list" ref="roundList">
+								<p v-for="(round, roundI) in rounds">{{roundI+1}}：第{{round.row}}行, 第{{round.col}}列</p>
+							</div>
 						</div>
 					</el-collapse-item>
 				</el-collapse>

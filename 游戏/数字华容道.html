@@ -23,6 +23,7 @@
 <link href="../lib/css/花活.css" rel="stylesheet">
 <style>
 	.gaming.area {
+		--left-sidebar-min-width: 300px;
 		margin-top: 20px;
 		gap: var(--gap);
 		align-items: start;
@@ -108,7 +109,6 @@
 					transition: border-color 0.2s;
 
 					&.current { border-color: var(--el-color-primary); }
-					&.done { border-color: var(--el-color-success); }
 				}
 			}
 		}
@@ -259,7 +259,7 @@
 							</div>
 						</section>
 					</el-collapse-item>
-					<el-collapse-item title="回合" name="round-area" class="record area">
+					<el-collapse-item title="回合" name="record-area" class="record area">
 						<p v-if="solutionSteps.length" class="tip at-top">
 							共 {{ roundSteps.length }} 步。注：未必最优。
 						</p>
@@ -270,14 +270,17 @@
 							<el-button v-if="solutionSteps.length" size="small" @click="toggleAutoPlay" :disabled="solutionDone">
 								{{ autoPlayTimer ? '停止' : '自动' }}
 							</el-button>
+							<el-button :disabled="!stepsDone.length" icon="Download" size="small" @click="exportRounds">导出
+							</el-button>
 						</div>
-						<div class="rounds">
+						<el-empty v-if="!stepsDone.length && !solutionSteps.length" description="尚无记录。请开始吧！"></el-empty>
+						<div v-else class="rounds">
 							<p class="summary">
 								<template v-if="isWin">已完成，共 {{ moves }} 步。</template>
-								<template v-else>已走 {{ moves }}/{{ roundSteps.length }}。</template>
+								<template v-else-if="solutionSteps.length">已走 {{ moves }}/{{ roundSteps.length }}。</template>
 							</p>
 							<div class="list">
-								<span class="cell" :class="{ current: i === currentStepIndex}" v-for="(val, i) in roundSteps" :key="i">{{ val }}</span>
+								<span class="cell" :class="{ current: i === currentStepIndex }" v-for="(val, i) in roundSteps" :key="i">{{ val }}</span>
 							</div>
 							<p v-if="isWin" class="tip at-bottom">本局已过关</p>
 						</div>
@@ -293,7 +296,7 @@
 				<div class="stats">共 {{ moves }} 步</div>
 				<footer class="toolbar">
 					<el-button type="primary" size="large" icon="RefreshRight" @click="closeWinAndNew">新局</el-button>
-					<el-button type="info" size="large" icon="Grid" @click="closeWinAndLayout">布局</el-button>
+					<el-button type="info" size="large" icon="Download" @click="exportRounds">导出回合记录</el-button>
 					<el-button type="warning" size="large" @click="closeWinModal">关闭</el-button>
 				</footer>
 			</el-dialog>
@@ -961,6 +964,21 @@
 				if (tileIndex >= 0) {
 					this.slideTile(tileIndex, false);
 				}
+			},
+			exportRounds() {
+				if (this.stepsDone.length === 0) {
+					this.$message.info('没有回合记录可导出');
+					return;
+				}
+				const content = this.stepsDone.map((val, i) => `${i + 1}：移动数字 ${val}`).join('\n');
+				const blob = new Blob([content], {type: 'text/plain;charset=utf-8'});
+				const a = document.createElement('a');
+				a.href = URL.createObjectURL(blob);
+				a.download = `数字华容道-回合记录（${this.gameGridWidth}x${this.gameGridHeight}）.txt`;
+				document.body.appendChild(a);
+				a.click();
+				document.body.removeChild(a);
+				URL.revokeObjectURL(a.href);
 			},
 		},
 	});
