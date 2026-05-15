@@ -83,34 +83,35 @@
 	/* 初始局面：禁止交互 */
 	.init.board.situation .cell { cursor: default; }
 
-	/* 回合列表 */
-	.round.list {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, 28px);
-		gap: 4px;
-		margin-top: 6px;
-		max-width: 100%;
+	/* 回合记录区 */
+	.record.area {
+		& .tip {
+			font-size: 0.8rem; color: #606266;
 
-		& .cell {
-			width: 28px;
-			height: 28px;
-			border: 2px solid transparent;
-			transition: border-color 0.2s;
-
-			&.current { border-color: var(--el-color-primary); }
-			&.done { border-color: var(--el-color-success); }
+			&.at-top { margin-bottom: 4px; color: var(--el-color-warning); }
+			&.at-bottom { color: var(--el-color-success); margin-top: 6px; }
 		}
-	}
-
-	.rounds {
-		& .total {
-			font-size: 0.8rem;
-			color: #606266;
-			margin: 4px 0 0;
-		}
-
-		& .win.tip { color: var(--el-color-success); margin-top: 6px; }
 		& .controller.list { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px; }
+		& .rounds {
+			> .summary { font-size: 0.8rem; color: #606266; margin: 4px 0 0; }
+			> .list {
+				display: grid;
+				grid-template-columns: repeat(auto-fill, 28px);
+				gap: 4px;
+				margin-top: 6px;
+				max-width: 100%;
+
+				& .cell {
+					width: 28px;
+					height: 28px;
+					border: 2px solid transparent;
+					transition: border-color 0.2s;
+
+					&.current { border-color: var(--el-color-primary); }
+					&.done { border-color: var(--el-color-success); }
+				}
+			}
+		}
 		& .error { color: var(--el-color-danger); }
 	}
 
@@ -258,22 +259,25 @@
 							</div>
 						</section>
 					</el-collapse-item>
-					<el-collapse-item title="回合" name="rounds" class="rounds">
+					<el-collapse-item title="回合" name="round-area" class="record area">
+						<p v-if="solutionSteps.length" class="tip at-top">
+							共 {{ roundSteps.length }} 步。注：未必最优。
+						</p>
 						<div class="controller list">
-							<el-button v-if="solutionSteps.length && !isWin" type="primary" size="small" @click="applyNextStep"
-												:disabled="solutionDone">
-								{{ solutionDone ? '已执行完' : '执行下一步' }}
+							<el-button v-if="solutionSteps" type="primary" size="small" @click="applyNextStep" :disabled="solutionDone">
+								{{ solutionDone ? '已完成' : '走一步' }}
 							</el-button>
 						</div>
-						<p class="total">
-							<template v-if="isWin">已完成，共 {{ moves }} 步</template>
-							<template v-else>已走 {{ moves }} 步<span v-if="solutionSteps.length">，共 {{ roundSteps.length }} 步</span></template>
-						</p>
-						<div class="round list">
-							<span v-for="(val, i) in roundSteps" :key="i" class="cell"
-										:class="{ current: i === currentStepIndex && !isWin, done: isWin && i === roundSteps.length - 1 }">{{ val }}</span>
+						<div class="rounds">
+							<p class="summary">
+								<template v-if="isWin">已完成，共 {{ moves }} 步。</template>
+								<template v-else>已走 {{ moves }}/{{ roundSteps.length }}。</template>
+							</p>
+							<div class="list">
+								<span class="cell" :class="{ current: i === currentStepIndex}" v-for="(val, i) in roundSteps" :key="i">{{ val }}</span>
+							</div>
+							<p v-if="isWin" class="tip at-bottom">本局已过关</p>
 						</div>
-						<p v-if="isWin" class="win tip">本局已过关</p>
 						<div v-if="solutionError" class="error">{{ solutionError }}</div>
 					</el-collapse-item>
 				</el-collapse>
