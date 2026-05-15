@@ -67,8 +67,11 @@
 	background: #b8c9a8;
 	border: 2px solid var(--line-color);
 	border-radius: 8px;
+}
+
+/* 为遮罩层提供定位基准 */
+:has(.pause.overlay) {
 	position: relative;
-	box-sizing: border-box;
 }
 
 /* ======================== 格子 ======================== */
