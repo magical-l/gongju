@@ -7,6 +7,18 @@
 	--merge-duration: 0.2s;
 }
 
+/* 2048系颜色主题 */
+.game-2048 {
+	--text-dark: #5a6b52;
+	--text-light: #f5f9f2;
+	--board-bg: #b8c9a8;
+	--grid-line: #9bad8f;
+	--cell-empty: #d4e0c8;
+	--unit-radius: 0;
+	--board-radius: 8px;
+	--board-padding: 12px;
+}
+
 /* 2048系特有：尺寸限制 */
 .game-2048 .board.main.map {
 	max-width: min(560px, 96vw);
