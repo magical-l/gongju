@@ -98,7 +98,7 @@ function startTurnTimer() {
 }
 
 function focusMapArea() {
-	var el = document.querySelector('.main.map.area');
+	var el = document.querySelector('.main.map');
 	if (el && typeof el.focus === 'function') {
 		el.focus();
 	}
@@ -359,7 +359,7 @@ var stub = {
 		if (e.target.closest && e.target.closest('.one.controller')) {
 			return;
 		}
-		var mapArea = document.querySelector('.main.map.area');
+		var mapArea = document.querySelector('.main.map');
 		if (!mapArea || mapArea.contains(e.target)) {
 			return;
 		}

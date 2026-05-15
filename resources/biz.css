@@ -44,11 +44,11 @@
 	--board-radius: 8px;
 	--board-padding: 12px;
 
-	&:focus, & .main.map.area:focus { outline: none; }
+	&:focus, & .main.map:focus { outline: none; }
 }
 
 /* 主地图区 */
-.main.map.area {
+.main.map {
 	position: relative;
 	width: 100%;
 	max-width: min(560px, 96vw);
@@ -104,11 +104,11 @@
 	box-sizing: border-box;
 }
 
-.gaming.area .main.map.area {
+.gaming.area .main.map {
 	--cell-size: min(70vmin / var(--board-cols, 4), 70vmin / var(--board-rows, 4));
 }
 
-.main.map.area .board {
+.main.map .board {
 	grid-template-columns: repeat(var(--board-cols, 4), var(--cell-size));
 	grid-template-rows: repeat(var(--board-rows, 4), var(--cell-size));
 	width: fit-content;

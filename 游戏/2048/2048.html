@@ -130,7 +130,7 @@
 		</header>
 
 		<!-- 主地图区 -->
-		<section class="main map area , no-shrink , flex items-near-x-center" ref="boardWrap" :style="boardWrapStyle">
+		<section class="main map , no-shrink , flex items-near-x-center" ref="boardWrap" :style="boardWrapStyle">
 			<div class="board" :style="{ '--board-cols': boardView.cols || 4, '--board-rows': boardView.rows || 4 }"
 					 ref="board">
 				<div class="cell" :data-index="cell.index" v-for="(cell, index) in boardCells" :key="index">

@@ -176,7 +176,7 @@
         { el: document.body, label: 'body' },
         { selector: 'body.grid.反叵字形 main', label: 'main.scrollable' },
         { selector: 'article.gaming.area', label: 'article.gaming.area' },
-        { selector: '.main.map.area', label: '.main.map.area' },
+        { selector: '.main.map', label: '.main.map' },
         { selector: '#board-wrap', label: '#board-wrap' },
         { selector: '#board', label: '#board' },
         { el: board ? board.querySelector('.cell') : null, label: '.cell 首个' }

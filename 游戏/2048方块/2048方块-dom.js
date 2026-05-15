@@ -726,7 +726,7 @@ function applyLineClearPolicy(pol) {
 }
 
 function focusMapArea() {
-	const el = document.querySelector('.main.map.area');
+	const el = document.querySelector('.main.map');
 	if (el && typeof el.focus === 'function') {
 		el.focus();
 	}
@@ -885,7 +885,7 @@ const stub = {
 		if (e.target.closest && e.target.closest('.one.controller')) {
 			return;
 		}
-		const mapArea = document.querySelector('.main.map.area');
+		const mapArea = document.querySelector('.main.map');
 		if (!mapArea || mapArea.contains(e.target)) {
 			return;
 		}

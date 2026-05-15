@@ -110,7 +110,7 @@
 		</header>
 
 		<!-- 主地图区 -->
-		<section class="main map area , no-shrink , flex items-near-x-center" ref="boardWrap" tabindex="0"
+		<section class="main map , no-shrink , flex items-near-x-center" ref="boardWrap" tabindex="0"
 						 :style="boardWrapStyle">
 			<div class="board" :style="boardStyle" ref="board">
 				<div class="cell" :data-index="cell.index" v-for="(cell, index) in boardCells" :key="index">
