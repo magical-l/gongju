@@ -34,7 +34,6 @@
 	border-right: 1px solid var(--line-color);
 	border-bottom: 1px solid var(--line-color);
 	box-sizing: content-box;
-	position: relative;
 	height: fit-content;
 
 	.cell {
@@ -59,7 +58,6 @@
 	}
 
 	.unit.display {
-		position: relative;
 		width: 90%;
 		height: 90%;
 		border-radius: 50%;
@@ -69,33 +67,30 @@
 		&.black { background-color: #333; }
 		&.white { background-color: #f0f0f0; }
 
-		/* 步数 */
+		/* 步数：利用父容器的 flex 居中，同时为红点提供定位基准 */
 		& .order {
-			position: absolute;
+			position: relative;
 			font-size: 0.8em;
 			font-weight: bold;
 			z-index: 10;
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%, -50%);
 			pointer-events: none;
 		}
 
 		/* 黑棋白字，白棋黑字 */
 		&.black .order { color: white; }
 		&.white .order { color: black; }
+	}
 
-		/* 最后落子 */
-		&.last::after {
-			content: '';
-			position: absolute;
-			width: 10px;
-			height: 10px;
-			background-color: rgba(255, 0, 0, 0.7);
-			border-radius: 50%;
-			z-index: 15;
-			top: -5px;
-			right: -5px;
-		}
+	/* 最后落子红点：相对于数字定位 */
+	.unit.display.last .order::after {
+		content: '';
+		position: absolute;
+		width: 8px;
+		height: 8px;
+		background-color: rgba(255, 0, 0, 0.7);
+		border-radius: 50%;
+		z-index: 15;
+		top: -4px;
+		right: -8px;
 	}
 }

@@ -54,15 +54,19 @@
 	--unit-size: calc(var(--cell-size) * 0.9);
 	grid-template-rows: repeat(10, var(--cell-size));
 	grid-template-columns: repeat(9, var(--cell-size));
-	position: relative;
 	height: fit-content;
 
 	.cell {
-		position: relative;
 		display: flex;
 		justify-content: center;
 		align-items: center;
 		border: none;
+
+		/* 为纹理层提供定位基准 */
+		&:has(.texture) {
+			position: relative;
+		}
+
 		/* 普通位置纹理 */
 		.texture {
 			position: absolute;

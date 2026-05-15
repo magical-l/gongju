@@ -76,19 +76,14 @@
 
 /* ======================== 格子 ======================== */
 .cell {
-	position: relative;
 	width: var(--cell-size);
 	height: var(--cell-size);
-	box-sizing: border-box;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 
 	> .unit {
-		position: absolute;
-		display: flex;
-		align-items: center;
-		justify-content: center;
+		text-align: center;
 	}
 }
 
@@ -100,7 +95,7 @@
 }
 
 /* 暂停遮罩 */
-.board .pause.overlay {
+.pause.overlay {
 	position: absolute;
 	inset: 0;
 	z-index: 10;
