@@ -251,7 +251,7 @@
 						<p>↑ ↓ ← → ：移动与空位相邻的块</p>
 						<p>点击与空位相邻的块也可移动</p>
 					</el-collapse-item>
-					<el-collapse-item title="本局信息" name="gaming-info" class="gaming info">
+					<el-collapse-item title="本局信息" name="gaming info" class="gaming info">
 						<section class="init map">
 							<h3>初始局面</h3>
 							<div class="mini board , init board situation , grid" :style="initialBoardStyle">
@@ -450,7 +450,7 @@
 	const app = createApp({
 		data() {
 			const collapseKey = 'gaming-info-huarong';
-			const defaultPanels = ['shortcut', 'gaming-info', 'rounds'];
+			const defaultPanels = ['shortcut', 'gaming info', 'record-area'];
 			let saved;
 			try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
 			return {

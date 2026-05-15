@@ -25,6 +25,33 @@
 		margin-top: 20px;
 		gap: var(--gap);
 		align-items: start;
+
+		/* 本局信息区 */
+		.gaming.info .game-info .progress { margin-top: 10px; }
+
+		/* 连线记录区 */
+		.record.area {
+			& .controller.list { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px; }
+			& .rounds > .list {
+				min-height: 100px;
+				max-height: 330px;
+				overflow-y: auto;
+				background-color: #fff;
+				border: 1px solid #dce1e6;
+				border-radius: 5px;
+				padding: 10px;
+
+				p {
+					margin: 0;
+					padding: 6px 4px;
+					border-bottom: 1px solid #f0f2f5;
+					color: #555;
+					font-size: 0.9em;
+
+					&:last-child { border-bottom: none; }
+				}
+			}
+		}
 	}
 
 	#game-container {
@@ -252,13 +279,25 @@
 		<aside class="sidebar at-left">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-					<el-collapse-item title="本局信息" name="score">
+					<el-collapse-item title="本局信息" name="gaming info" class="gaming info">
 						<div class="game-info">
 							<div class="progress">
 								<el-progress :percentage="completionPercentage" :status="gameWin ? 'success' : ''"></el-progress>
 								<div style="margin-top: 5px; font-size: 0.9rem; color: #909399;">
 									已填充: {{ filledCells }} / {{ totalCells }}
 								</div>
+							</div>
+						</div>
+					</el-collapse-item>
+					<el-collapse-item title="连线记录" name="record-area" class="record area">
+						<div class="controller list">
+							<el-button :disabled="!connectionHistory.length" icon="Download" size="small" @click="exportConnections">导出
+							</el-button>
+						</div>
+						<el-empty v-if="!connectionHistory.length" description="尚未连线"></el-empty>
+						<div v-else class="rounds">
+							<div class="list" ref="connectionList">
+								<p v-for="(conn, connI) in connectionHistory">{{connI+1}}：{{conn.from}} → {{conn.to}}</p>
 							</div>
 						</div>
 					</el-collapse-item>
@@ -328,7 +367,7 @@
 		data() {
 			const settings = loadSettings();
 			const collapseKey = 'gaming-info-star';
-			const defaultPanels = ['score'];
+			const defaultPanels = ['gaming info', 'record-area'];
 			let saved;
 			try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
 			return {
@@ -346,6 +385,7 @@
 				showAnswerOverlay: false,
 				hintColorIndex: null, // 提示时显示的未连接线颜色索引，null 表示不显示
 				settings,
+				connectionHistory: [],
 				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
 				_gamingInfoCollapseKey: collapseKey,
 				_gamingInfoDefaultPanels: defaultPanels,
@@ -399,6 +439,7 @@
 			newGame() {
 				this.gameWin = false;
 				this.paths = [];
+				this.connectionHistory = [];
 				this.currentPath = null;
 				this.isDrawing = false;
 				this.showAnswerOverlay = false;
@@ -406,6 +447,21 @@
 				this.gridSize = this.settings.gridSize;
 				this.generateLevel();
 				this.initCanvas();
+			},
+			exportConnections() {
+				if (this.connectionHistory.length === 0) {
+					this.$message.info('没有连线记录可导出');
+					return;
+				}
+				const content = this.connectionHistory.map((conn, i) => `${i + 1}：颜色${conn.color} ${conn.from} → ${conn.to}`).join('\n');
+				const blob = new Blob([content], {type: 'text/plain;charset=utf-8'});
+				const a = document.createElement('a');
+				a.href = URL.createObjectURL(blob);
+				a.download = '星连星-连线记录.txt';
+				document.body.appendChild(a);
+				a.click();
+				document.body.removeChild(a);
+				URL.revokeObjectURL(a.href);
 			},
 			generateLevel() {
 				this.gridSize = this.settings.gridSize;
@@ -2278,6 +2334,13 @@
 					this.paths.push({
 						color: this.currentPath.color,
 						points: [...this.currentPath.points],
+					});
+					const startPoint = this.currentPath.points[0];
+					const endPoint = this.currentPath.points[this.currentPath.points.length - 1];
+					this.connectionHistory.push({
+						color: this.currentPath.color,
+						from: `(${startPoint.row}, ${startPoint.col})`,
+						to: `(${endPoint.row}, ${endPoint.col})`,
 					});
 				}
 

@@ -369,7 +369,7 @@
 		<aside class="sidebar at-left">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-					<el-collapse-item title="本局信息" name="score">
+					<el-collapse-item title="本局信息" name="gaming info" class="gaming info">
 						<div v-if="currentLevel">
 							<div class="stat-item"><span>❤️ 生命:</span> <span class="stat-value">{{ health }}</span></div>
 							<div class="stat-item"><span>💰 金币:</span> <span class="stat-value">{{ coins }}</span></div>
@@ -481,14 +481,14 @@
 
 				gamingInfoOpenPanels: (() => {
 					const key = 'gaming-info-tower';
-					const defaultPanels = ['score'];
+					const defaultPanels = ['gaming info'];
 					try {
 						const saved = JSON.parse(localStorage.getItem(key) || 'null');
 						return Array.isArray(saved) ? saved : defaultPanels;
 					} catch (_) { return defaultPanels; }
 				})(),
 				_gamingInfoCollapseKey: 'gaming-info-tower',
-				_gamingInfoDefaultPanels: ['score'],
+				_gamingInfoDefaultPanels: ['gaming info'],
 			};
 		},
 		computed: {

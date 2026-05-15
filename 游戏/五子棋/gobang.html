@@ -103,8 +103,20 @@
 		<aside class="sidebar at-left">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-					<el-collapse-item title="本局信息" name="score">
+					<el-collapse-item title="本局信息" name="gaming info" class="gaming info">
 						<span v-if="isGaming" class="game-info">当前玩家: {{ curPlayer.name }}</span>
+					</el-collapse-item>
+					<el-collapse-item title="落子记录" name="record-area" class="record area">
+						<div class="controller list">
+							<el-button :disabled="!moveHistory.length" icon="Download" size="small" @click="exportMoves">导出
+							</el-button>
+						</div>
+						<el-empty v-if="!moveHistory.length" description="尚未落子"></el-empty>
+						<div v-else class="rounds">
+							<div class="list" ref="moveList">
+								<p v-for="(move, moveI) in moveHistory">{{moveI+1}}：{{move.player}}落子于{{move.position}}</p>
+							</div>
+						</div>
 					</el-collapse-item>
 				</el-collapse>
 			</el-card>
@@ -148,7 +160,7 @@
 	const app = createApp({
 		data() {
 			const collapseKey = 'gaming-info-gobang';
-			const defaultPanels = ['score'];
+			const defaultPanels = ['gaming info', 'record-area'];
 			let saved;
 			try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
 			return {
@@ -157,6 +169,7 @@
 				curPlayer: null,
 				isGameOver: false,
 				winner: '',
+				moveHistory: [],
 				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
 				_gamingInfoCollapseKey: collapseKey,
 				_gamingInfoDefaultPanels: defaultPanels,
@@ -199,16 +212,38 @@
 				this.isGameOver = false;
 				this.winner = '';
 				this.lastMove = null;
+				this.moveHistory = [];
 				this.curPlayer = this.gaming.situation.curPlayer;
 
 				this.gaming.bulletin.watch('playerTurn start', ({player}) => this.curPlayer = player);
-				this.gaming.bulletin.watch('buildUnit end', ({unit}) => this.lastMove = {unit, position: unit.position});
+				this.gaming.bulletin.watch('buildUnit end', ({unit}) => {
+					this.lastMove = {unit, position: unit.position};
+					this.moveHistory.push({
+						player: unit.owner.name,
+						position: `(${unit.position.colNum}, ${unit.position.rowNum})`,
+					});
+				});
 				this.gaming.bulletin.watch('game over', ({winner}) => {
 					this.isGameOver = true;
 					this.winner = winner.name;
 				});
 			},
 			restartGame() { this.startGame(); },
+			exportMoves() {
+				if (this.moveHistory.length === 0) {
+					this.$message.info('没有落子记录可导出');
+					return;
+				}
+				const content = this.moveHistory.map((move, i) => `${i + 1}：${move.player}落子于${move.position}`).join('\n');
+				const blob = new Blob([content], {type: 'text/plain;charset=utf-8'});
+				const a = document.createElement('a');
+				a.href = URL.createObjectURL(blob);
+				a.download = '五子棋-落子记录.txt';
+				document.body.appendChild(a);
+				a.click();
+				document.body.removeChild(a);
+				URL.revokeObjectURL(a.href);
+			},
 			handleCellClick(cell) {
 				if (this.isGaming && !this.isGameOver) {
 					this.gaming.bulletin.notice('ui input', cell.position);

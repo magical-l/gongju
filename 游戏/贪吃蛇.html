@@ -138,7 +138,7 @@
 						<p>↑ ↓ → ← ：控制方向，不能转向当前反方向。</p>
 						<p>空格：暂停/开始</p>
 					</el-collapse-item>
-					<el-collapse-item title="本局信息" name="score">
+					<el-collapse-item title="本局信息" name="gaming info" class="gaming info">
 						<section>
 							<h3>分数</h3>
 							<p>{{ score }}</p>
@@ -177,7 +177,7 @@
 	const app = createApp({
 		data() {
 			const collapseKey = 'gaming-info-snake';
-			const defaultPanels = ['shortcut', 'score'];
+			const defaultPanels = ['shortcut', 'gaming info'];
 			let saved;
 			try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
 			return {

@@ -224,7 +224,7 @@
 							<div class="cell" v-for="(block, index) in nextPieceBlocks" :key="index" :class="block"></div>
 						</div>
 					</el-collapse-item>
-					<el-collapse-item title="本局信息" name="score">
+					<el-collapse-item title="本局信息" name="gaming info" class="gaming info">
 						<el-card header="分数" class="scoreboard" body-class="value" shadow="never">
 							{{ score }}
 						</el-card>
@@ -279,7 +279,7 @@
 	const app = createApp({
 		data() {
 			const collapseKey = 'gaming-info-tetris';
-			const defaultPanels = ['shortcut', 'next', 'score'];
+			const defaultPanels = ['shortcut', 'next', 'gaming info'];
 			let saved;
 			try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
 			return {

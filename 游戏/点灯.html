@@ -234,7 +234,7 @@
 		<aside class="sidebar at-left">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-					<el-collapse-item title="本局信息" name="score">
+					<el-collapse-item title="本局信息" name="gaming info" class="gaming info">
 						<el-card header="移动次数" class="scoreboard" body-class="value" shadow="never">
 							{{ moveCount }}
 						</el-card>
@@ -374,7 +374,7 @@
 	const app = createApp({
 		data() {
 			const collapseKey = 'gaming-info-light';
-			const defaultPanels = ['score', 'rounds'];
+			const defaultPanels = ['gaming info', 'record-area'];
 			let saved;
 			try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
 			return {

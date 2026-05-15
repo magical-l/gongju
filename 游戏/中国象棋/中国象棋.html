@@ -179,7 +179,7 @@
 							<el-checkbox v-for="plugin in allAvailablePlugins" :key="plugin" :label="plugin"/>
 						</el-checkbox-group>
 					</el-collapse-item>
-					<el-collapse-item v-if="isGaming" title="本局信息" name="score">
+					<el-collapse-item v-if="isGaming" title="本局信息" name="gaming info" class="gaming info">
 						<div class="game-info">
 							<div>先手：{{ gameFirstLabel }}</div>
 							<div>当前：{{ curPlayerLabel || '—' }}</div>
@@ -271,7 +271,7 @@
 	const app = createApp({
 		data() {
 			const collapseKey = 'gaming-info-xiangqi';
-			const defaultPanels = ['view', 'palette', 'selected', 'globalRules', 'plugins', 'score', 'record-area'];
+			const defaultPanels = ['view', 'palette', 'selected', 'globalRules', 'plugins', 'gaming info', 'record-area'];
 			let saved;
 			try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
 			return {
