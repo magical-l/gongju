@@ -59,7 +59,7 @@
 			</el-dialog>
 		</div>
 	</header>
-	<article class="gaming area , 叵字形 grid" tabindex="0" v-cloak>
+	<article class="gaming area , game-2048 , 叵字形 grid" tabindex="0" v-cloak>
 		<header class="toolbar , multi-line flex , items-near-x-center items-stretch no-gap">
 			<section class="setting list , single-line flex , items-near-x-start items-near-y-center no-gap">
 				<div class="one setting group">
@@ -98,21 +98,19 @@
 			</section>
 		</header>
 
-		<!-- 主地图区：定位在此；棋盘 .board 自管尺寸，内含暂停遮罩 -->
-		<section class="main map , no-shrink , flex items-near-x-center" ref="boardWrap" tabindex="0"
-						 :style="boardWrapStyle">
-			<div class="board" :style="boardWrapInnerStyle" ref="board">
-				<div class="cell" :class="cellLineClearClass(cell.index)" :data-index="cell.index"
-						 v-for="(cell, index) in boardCells" :key="index">
-					<div v-if="cell.unit" class="unit" :class="'unit-' + cell.unit.val" :data-index="cell.index">
-						{{ cell.unit.text }}
-					</div>
+
+		<!-- 主地图区 -->
+		<section class="board , main map , no-shrink" ref="board" tabindex="0" :style="boardStyle">
+			<div class="cell" :class="cellLineClearClass(cell.index)" :data-index="cell.index"
+					 v-for="(cell, index) in boardCells" :key="index">
+				<div v-if="cell.unit" class="unit" :class="'unit-' + cell.unit.val" :data-index="cell.index">
+					{{ cell.unit.text }}
 				</div>
-				<div class="pause overlay" v-show="paused">
-					<span class="title">已暂停</span>
-					<el-button type="success" size="large" @click="onTogglePause">开始</el-button>
-					<p class="hint">按空格开始</p>
-				</div>
+			</div>
+			<div class="pause overlay" v-show="paused">
+				<span class="title">已暂停</span>
+				<el-button type="success" size="large" @click="onTogglePause">开始</el-button>
+				<p class="hint">按空格开始</p>
 			</div>
 		</section>
 
@@ -245,18 +243,8 @@
 					}
 					return String(state.initialLevel != null ? state.initialLevel : 0);
 				},
-				boardWrapStyle() {
-					const r = state.boardView;
-					const rows = Math.max(1, r && r.rows || 8);
-					const cols = Math.max(1, r && r.cols || 8);
-					return {'--board-rows': rows, '--board-cols': cols};
-				},
-				boardWrapInnerStyle() {
-					const r = state.boardView;
-					const rows = Math.max(1, r && r.rows || 8);
-					const cols = Math.max(1, r && r.cols || 8);
-					return {'--board-rows': rows, '--board-cols': cols};
-				},
+
+
 				boardCells() {
 					const cells = state.boardView.cells || [];
 					const rows = Math.max(1, state.boardView.rows || 8);
@@ -456,7 +444,7 @@
 				api.init(bridge);
 				state.paused = api.getPaused ? api.getPaused() : true;
 				this.$nextTick(() => {
-					const wrap = this.$refs.boardWrap;
+					const wrap = this.$refs.board;
 					if (!wrap) {
 						return;
 					}

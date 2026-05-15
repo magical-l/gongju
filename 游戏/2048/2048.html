@@ -58,7 +58,7 @@
 			</el-dialog>
 		</div>
 	</header>
-	<article class="gaming area , 叵字形 grid" tabindex="0" v-cloak>
+	<article class="gaming area , game-2048 , 叵字形 grid" tabindex="0" v-cloak>
 		<header class="toolbar , multi-line flex , items-near-x-center items-stretch no-gap">
 			<section class="setting list , single-line flex , items-near-x-start items-near-y-center no-gap">
 				<div class="one setting group">
@@ -130,26 +130,23 @@
 		</header>
 
 		<!-- 主地图区 -->
-		<section class="main map , no-shrink , flex items-near-x-center" ref="boardWrap" :style="boardWrapStyle">
-			<div class="board" :style="{ '--board-cols': boardView.cols || 4, '--board-rows': boardView.rows || 4 }"
-					 ref="board">
-				<div class="cell" :data-index="cell.index" v-for="(cell, index) in boardCells" :key="index">
-					<div v-if="cell.unit" class="unit" :class="'unit-' + cell.unit.val" :data-index="cell.index">
-						<img v-if="cell.unit.image" :src="cell.unit.image" :alt="cell.unit.text" loading="lazy">
-						<template v-else>{{ cell.unit.text }}</template>
-						<span v-if="showNewTileMarker && cell.unit.isNew" class="new-badge">!</span>
-					</div>
+		<section class="board , main map , no-shrink" ref="board" :style="boardWrapStyle">
+			<div class="cell" :data-index="cell.index" v-for="(cell, index) in boardCells" :key="index">
+				<div v-if="cell.unit" class="unit" :class="'unit-' + cell.unit.val" :data-index="cell.index">
+					<img v-if="cell.unit.image" :src="cell.unit.image" :alt="cell.unit.text" loading="lazy">
+					<template v-else>{{ cell.unit.text }}</template>
+					<span v-if="showNewTileMarker && cell.unit.isNew" class="new-badge">!</span>
 				</div>
 			</div>
-			<!-- 滑动动画层：与 .board 同级的浮层，用于播放方块滑动动画 -->
-			<div class="slide-layer">
-				<div class="cell" :style="floatingUnitStyle(unit)" v-for="(unit, idx) in slideAnimationTiles" :key="idx">
-					<div class="unit" :class="'unit-' + unit.value">
-						<img v-if="unit.displayImage" :src="unit.displayImage" :alt="unit.displayText" loading="lazy">
-						<template v-else>{{ unit.displayText }}</template>
-					</div>
+		<!-- 滑动动画层：与 .board 同级的浮层，用于播放方块滑动动画 -->
+		<div class="slide-layer">
+			<div class="cell" :style="floatingUnitStyle(unit)" v-for="(unit, idx) in slideAnimationTiles" :key="idx">
+				<div class="unit" :class="'unit-' + unit.value">
+					<img v-if="unit.displayImage" :src="unit.displayImage" :alt="unit.displayText" loading="lazy">
+					<template v-else>{{ unit.displayText }}</template>
 				</div>
 			</div>
+		</div>
 		</section>
 
 		<!-- 信息区 -->
@@ -614,17 +611,17 @@
 						});
 					},
 					getCellPositions() {
-						if (!self.$refs.boardWrap || !self.$refs.board) {
+						if (!self.$refs.board) {
 							return [];
 						}
-						const wrap = self.$refs.boardWrap;
+						
 						const board = self.$refs.board;
-						const wrapRect = wrap.getBoundingClientRect();
+						const boardRect = board.getBoundingClientRect();
 						const cells = board.querySelectorAll('.cell');
 						const out = [];
 						for (let i = 0; i < cells.length; i++) {
 							const r = cells[i].getBoundingClientRect();
-							out.push({left: r.left - wrapRect.left, top: r.top - wrapRect.top, width: r.width, height: r.height});
+							out.push({left: r.left - boardRect.left, top: r.top - boardRect.top, width: r.width, height: r.height});
 						}
 						return out;
 					},
@@ -743,19 +740,19 @@
 				};
 				api.init(bridge);
 				this.$nextTick(() => {
-					const wrap = this.$refs.boardWrap;
-					if (!wrap) {
+					const board = this.$refs.board;
+					if (!board) {
 						return;
 					}
 					let touchStartX = 0, touchStartY = 0;
-					wrap.addEventListener('touchstart', e => {
+					board.addEventListener('touchstart', e => {
 						const t = e.touches[0];
 						if (t) {
 							touchStartX = t.clientX;
 							touchStartY = t.clientY;
 						}
 					}, {passive: true});
-					wrap.addEventListener('touchend', e => {
+					board.addEventListener('touchend', e => {
 						const t = e.changedTouches[0];
 						if (!t) {
 							return;
@@ -763,11 +760,11 @@
 						api.onGesture(t.clientX - touchStartX, t.clientY - touchStartY);
 					}, {passive: true});
 					let mouseDownX = 0, mouseDownY = 0;
-					wrap.addEventListener('mousedown', e => {
+					board.addEventListener('mousedown', e => {
 						mouseDownX = e.clientX;
 						mouseDownY = e.clientY;
 					});
-					wrap.addEventListener('mouseup', e => {
+					board.addEventListener('mouseup', e => {
 						api.onGesture(e.clientX - mouseDownX, e.clientY - mouseDownY);
 					});
 				});

@@ -62,7 +62,7 @@
 }
 
 /* 下一块预览 */
-.board.next-block {
+.gaming.area .board.next-block {
 	--board-cols: 4;
 	--board-rows: 4;
 	--cell-size: 30px;
