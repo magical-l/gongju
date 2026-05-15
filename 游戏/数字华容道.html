@@ -39,7 +39,6 @@
 		font-weight: bold;
 		font-size: calc(0.4 * var(--cell-size));
 		user-select: none;
-		background: var(--cell-empty);
 		color: #5a6b52;
 
 		&.empty { background: transparent; color: transparent; }
@@ -72,7 +71,7 @@
 
 	/* 小棋盘：缩小版主棋盘 */
 	.mini.board {
-		--board-padding: 0;
+		padding: 0;
 		--board-gap: 0;
 		--cell-size: 22px;
 		grid-template-columns: repeat(var(--board-cols), var(--cell-size));

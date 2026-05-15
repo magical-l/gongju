@@ -54,7 +54,6 @@
 	--unit-size: calc(var(--cell-size) * 0.9);
 	grid-template-rows: repeat(10, var(--cell-size));
 	grid-template-columns: repeat(9, var(--cell-size));
-	background: var(--board-bg);
 	position: relative;
 	height: fit-content;
 

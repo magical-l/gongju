@@ -41,10 +41,10 @@
 	--board-cols: 4;
 	--board-rows: 4;
 	--cell-size: 30px;
-	--board-padding: 0;
-	--board-bg: transparent;
-	--grid-line: rgba(0, 0, 0, 0.15);
-	--board-radius: 0;
+	--line-color: rgba(0, 0, 0, 0.15);
+	padding: 0;
+	background: transparent;
+	border-radius: 0;
 	width: fit-content;
 	height: fit-content;
 	margin: 0 auto;

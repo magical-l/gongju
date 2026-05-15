@@ -38,7 +38,9 @@
 
 /* ======================== 地图 ======================== */
 .map {
+	/* 水平居中 */
 	margin: auto;
+	/* 防止内容被选中 */
 	user-select: none;
 	-webkit-user-select: none;
 
@@ -50,22 +52,18 @@
 	--board-cols: 4;
 	--board-rows: 4;
 	--cell-size: min(70vmin / var(--board-cols), 70vmin / var(--board-rows));
-	--board-bg: #b8c9a8;
-	--grid-line: #9bad8f;
-	--cell-empty: #d4e0c8;
-	--unit-radius: 0;
-	--board-radius: 8px;
-	--board-padding: 12px;
+	--line-color: #9bad8f;
 	display: grid;
 	grid-template-columns: repeat(var(--board-cols), var(--cell-size));
 	grid-template-rows: repeat(var(--board-rows), var(--cell-size));
+	gap: 0;
+	/* 确保被内容撑开而非突破 */
 	width: fit-content;
 	height: fit-content;
-	gap: 0;
-	padding: var(--board-padding);
-	background: var(--board-bg);
-	border: 2px solid var(--grid-line);
-	border-radius: var(--board-radius);
+	padding: 12px;
+	background: #b8c9a8;
+	border: 2px solid var(--line-color);
+	border-radius: 8px;
 	position: relative;
 	box-sizing: border-box;
 }
@@ -90,9 +88,9 @@
 
 /* 棋盘格特化 */
 .board .cell {
-	background: var(--cell-empty);
-	border: 1px solid var(--grid-line);
-	border-radius: var(--unit-radius);
+	background: #d4e0c8;
+	border: 1px solid var(--line-color);
+	border-radius: 0;
 }
 
 /* 暂停遮罩 */

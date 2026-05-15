@@ -42,18 +42,16 @@
 	.gaming.area { --反叵字形-gap: 2em; }
 
 	.board {
-		--cell-empty: rgba(0, 0, 0, 0.08);
 		--cell-size: 30px;
-		--unit-radius: 0;
 		grid-gap: 0;
 
 		&.preview {
 			--board-cols: 4;
 			--board-rows: 4;
-			--board-padding: 0;
-			--board-bg: transparent;
-			--grid-line: transparent;
-			--board-radius: 0;
+				padding: 0;
+				background: transparent;
+				border-color: transparent;
+				border-radius: 0;
 			width: fit-content;
 			height: fit-content;
 		}
