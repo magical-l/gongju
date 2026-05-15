@@ -42,7 +42,7 @@
 		display: grid;
 		height: fit-content;
 		box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
-		background: #e6eaf0;
+		background: var(--board-bg);
 		border-radius: 10px;
 		padding: 10px;
 		gap: var(--gap);
@@ -60,9 +60,9 @@
 
 		&:hover { scale: 1.05; }
 
-		&.off { background: #dce1e6; }
+		&.off { background: #e2ead8; }
 
-		&.on { background: linear-gradient(135deg, #a8e6cf 0%, #dcedc1 100%); }
+		&.on { background: #a8c99e; }
 
 		&.highlighted {
 			outline: 3px solid #3295ff;
