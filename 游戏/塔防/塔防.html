@@ -18,26 +18,9 @@
 		align-items: start;
 	}
 
-	.stat-item {
-		font-size: 1.1rem;
-		margin-bottom: 12px;
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-	}
-
-	.stat-value {
-		font-weight: bold;
-		color: #409EFF;
-	}
-
-	.el-card__header {
-		font-weight: bold;
-	}
-
 	.game-container {
 		position: relative;
-		background-color: #f0f2f5;
+		background: var(--board-bg);
 		border-radius: 10px;
 		box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
 		cursor: pointer;
@@ -49,15 +32,25 @@
 	.cell {
 		box-sizing: border-box;
 		border: 1px solid rgba(0, 0, 0, 0.05);
+
+		&.selected {
+			border: 2px solid #67C23A;
+			background-color: rgba(103, 194, 58, 0.2);
+		}
+
+		&.path { background-color: #c8d8b8; }
 	}
 
-	.cell.selected {
-		border: 2px solid #67C23A;
-		background-color: rgba(103, 194, 58, 0.2);
-	}
+	.gaming.info {
+		& .stat-item {
+			font-size: 1.1rem;
+			margin-bottom: 12px;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
 
-	.path.cell {
-		background-color: #e0e0e0;
+		& .stat-value { font-weight: bold; color: #409EFF; }
 	}
 
 	.carrot, .enemy, .tower, .bullet, .obstacle {

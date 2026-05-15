@@ -46,27 +46,30 @@
 		--cell-size: 30px;
 		--unit-radius: 0;
 		grid-gap: 0;
-	}
-	.board.preview {
-		--board-cols: 4;
-		--board-rows: 4;
-		--board-padding: 0;
-		--board-bg: transparent;
-		--grid-line: transparent;
-		--board-radius: 0;
-		width: fit-content;
-		height: fit-content;
-	}
-	.board .cell.I { background-color: #7dd3c0; }
-	.board .cell.O { background-color: #f9e2af; }
-	.board .cell.T { background-color: #cba6f7; }
-	.board .cell.J { background-color: #89b4fa; }
-	.board .cell.L { background-color: #fab387; }
-	.board .cell.S { background-color: #a6e3a1; }
-	.board .cell.Z { background-color: #f38ba8; }
-	.board .cell.ghost { background-color: #495057; opacity: 0.25; }
-	.board .cell {
-		border: 1px solid rgba(0, 0, 0, 0.15);
+
+		&.preview {
+			--board-cols: 4;
+			--board-rows: 4;
+			--board-padding: 0;
+			--board-bg: transparent;
+			--grid-line: transparent;
+			--board-radius: 0;
+			width: fit-content;
+			height: fit-content;
+		}
+
+		& .cell {
+			border: 1px solid rgba(0, 0, 0, 0.15);
+
+			&.I { background-color: #7dd3c0; }
+			&.O { background-color: #f9e2af; }
+			&.T { background-color: #cba6f7; }
+			&.J { background-color: #89b4fa; }
+			&.L { background-color: #fab387; }
+			&.S { background-color: #a6e3a1; }
+			&.Z { background-color: #f38ba8; }
+			&.ghost { background-color: #495057; opacity: 0.25; }
+		}
 	}
 
 	.pause.overlay {
