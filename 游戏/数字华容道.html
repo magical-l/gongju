@@ -88,7 +88,7 @@
 		& .tip {
 			font-size: 0.8rem; color: #606266;
 
-			&.at-top { margin-bottom: 4px; color: var(--el-color-warning); }
+			&.at-top { margin: 0; color: var(--el-color-warning); }
 			&.at-bottom { color: var(--el-color-success); margin-top: 6px; }
 		}
 		& .controller.list { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px; }
@@ -264,8 +264,11 @@
 							共 {{ roundSteps.length }} 步。注：未必最优。
 						</p>
 						<div class="controller list">
-							<el-button v-if="solutionSteps" type="primary" size="small" @click="applyNextStep" :disabled="solutionDone">
+							<el-button v-if="solutionSteps" type="primary" size="small" @click="applyNextStep" :disabled="solutionDone || autoPlayTimer">
 								{{ solutionDone ? '已完成' : '走一步' }}
+							</el-button>
+							<el-button v-if="solutionSteps" size="small" @click="toggleAutoPlay" :disabled="solutionDone">
+								{{ autoPlayTimer ? '停止' : '自动' }}
 							</el-button>
 						</div>
 						<div class="rounds">
@@ -474,6 +477,7 @@
 				layoutMode: false,
 				layoutSelectedIndex: -1,
 				layoutDragSourceIndex: -1,
+				autoPlayTimer: null,
 			};
 		},
 		computed: {
@@ -543,6 +547,10 @@
 		beforeUnmount() {
 			window.removeEventListener('keydown', this.onKeydown);
 			this.clearHint();
+			if (this.autoPlayTimer) {
+				clearInterval(this.autoPlayTimer);
+				this.autoPlayTimer = null;
+			}
 		},
 		methods: {
 			onGamingInfoCollapseChange(val) {
@@ -579,6 +587,10 @@
 				this.showWinModal = false;
 				this.slidingIndex = -1;
 				this.clearHint();
+				if (this.autoPlayTimer) {
+					clearInterval(this.autoPlayTimer);
+					this.autoPlayTimer = null;
+				}
 				this.$nextTick(() => this.updateMovable(this.board.indexOf(0)));
 			},
 			closeWinModal() {
@@ -687,7 +699,7 @@
 					this.solutionSteps = this.initialSolution.slice();
 					this.solutionIndex = 0;
 					this.solutionError = null;
-					this.$message.success('本局答案已就绪，见右侧回合');
+					this.$message.success('答案已就绪，见“回合”');
 					return;
 				}
 				const w = this.gameGridWidth;
@@ -736,6 +748,21 @@
 					return;
 				}
 				this.slideTile(idx, true);
+			},
+			toggleAutoPlay() {
+				if (this.autoPlayTimer) {
+					clearInterval(this.autoPlayTimer);
+					this.autoPlayTimer = null;
+				} else {
+					this.autoPlayTimer = setInterval(() => {
+						if (this.solutionDone || this.isWin) {
+							clearInterval(this.autoPlayTimer);
+							this.autoPlayTimer = null;
+							return;
+						}
+						this.applyNextStep();
+					}, 1000);
+				}
 			},
 			updateMovable() {
 				// 保留空位变化时的钩子，供后续扩展
