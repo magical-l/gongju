@@ -108,13 +108,17 @@
 					</el-collapse-item>
 					<el-collapse-item title="落子记录" name="record-area" class="record area">
 						<div class="controller list">
-							<el-button :disabled="!moveHistory.length" icon="Download" size="small" @click="exportMoves">导出
+							<el-button :disabled="!turnHistory.length" icon="Download" size="small" @click="exportMoves">导出
 							</el-button>
 						</div>
-						<el-empty v-if="!moveHistory.length" description="尚未落子"></el-empty>
+						<el-empty v-if="!turnHistory.length" description="尚未落子"></el-empty>
 						<div v-else class="rounds">
-							<div class="list" ref="moveList">
-								<p v-for="(move, moveI) in moveHistory">{{moveI+1}}：{{move.player}}落子于{{move.position}}</p>
+							<div class="list">
+								<el-table :data="turnHistory" row-key="id" stripe style="width: 100%" height="400" size="small">
+									<el-table-column prop="id" label="回合" width="60"></el-table-column>
+									<el-table-column prop="blackMove" label="黑方"></el-table-column>
+									<el-table-column prop="whiteMove" label="白方"></el-table-column>
+								</el-table>
 							</div>
 						</div>
 					</el-collapse-item>
@@ -169,7 +173,7 @@
 				curPlayer: null,
 				isGameOver: false,
 				winner: '',
-				moveHistory: [],
+				turnHistory: [],
 				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
 				_gamingInfoCollapseKey: collapseKey,
 				_gamingInfoDefaultPanels: defaultPanels,
@@ -212,16 +216,28 @@
 				this.isGameOver = false;
 				this.winner = '';
 				this.lastMove = null;
-				this.moveHistory = [];
+				this.turnHistory = [];
 				this.curPlayer = this.gaming.situation.curPlayer;
 
 				this.gaming.bulletin.watch('playerTurn start', ({player}) => this.curPlayer = player);
 				this.gaming.bulletin.watch('buildUnit end', ({unit}) => {
 					this.lastMove = {unit, position: unit.position};
-					this.moveHistory.push({
-						player: unit.owner.name,
-						position: `(${unit.position.colNum}, ${unit.position.rowNum})`,
-					});
+					const posStr = `(${unit.position.colNum}, ${unit.position.rowNum})`;
+					const isBlack = unit.owner.team.id === '黑方';
+					if (isBlack) {
+						// 黑方落子，创建新回合
+						this.turnHistory.push({
+							id: this.turnHistory.length + 1,
+							blackMove: posStr,
+							whiteMove: null,
+						});
+					} else {
+						// 白方落子，补充当前回合
+						const lastTurn = this.turnHistory[this.turnHistory.length - 1];
+						if (lastTurn) {
+							lastTurn.whiteMove = posStr;
+						}
+					}
 				});
 				this.gaming.bulletin.watch('game over', ({winner}) => {
 					this.isGameOver = true;
@@ -230,11 +246,15 @@
 			},
 			restartGame() { this.startGame(); },
 			exportMoves() {
-				if (this.moveHistory.length === 0) {
+				if (this.turnHistory.length === 0) {
 					this.$message.info('没有落子记录可导出');
 					return;
 				}
-				const content = this.moveHistory.map((move, i) => `${i + 1}：${move.player}落子于${move.position}`).join('\n');
+				const content = this.turnHistory.map(turn => {
+					const blackMove = turn.blackMove ? turn.blackMove.padEnd(8) : ' '.repeat(8);
+					const whiteMove = turn.whiteMove || '';
+					return `${turn.id.toString().padStart(2)}. ${blackMove}${whiteMove}`;
+				}).join('\n');
 				const blob = new Blob([content], {type: 'text/plain;charset=utf-8'});
 				const a = document.createElement('a');
 				a.href = URL.createObjectURL(blob);

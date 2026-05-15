@@ -1,11 +1,13 @@
 @charset "UTF-8";
 
 :root {
-	--board-bg-color: #deb887;
 	--line-color: #333;
 	--cell-size: 40px;
 	--board-size: 15;
 }
+
+/* 侧边栏宽度 */
+.gaming.area { --left-sidebar-min-width: 280px; }
 
 /* 本局信息区 */
 .gaming.info .game-info {
@@ -17,25 +19,7 @@
 /* 落子记录区 */
 .record.area {
 	& .controller.list { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px; }
-	& .rounds > .list {
-		min-height: 100px;
-		max-height: 330px;
-		overflow-y: auto;
-		background-color: #fff;
-		border: 1px solid #dce1e6;
-		border-radius: 5px;
-		padding: 10px;
-
-		p {
-			margin: 0;
-			padding: 6px 4px;
-			border-bottom: 1px solid #f0f2f5;
-			color: #555;
-			font-size: 0.9em;
-
-			&:last-child { border-bottom: none; }
-		}
-	}
+	& .rounds > .list { margin-top: 6px; }
 }
 
 .board {
@@ -46,7 +30,6 @@
 	display: grid;
 	grid-template-columns: repeat(var(--board-size), var(--cell-size));
 	grid-template-rows: repeat(var(--board-size), var(--cell-size));
-	background-color: var(--board-bg-color);
 	border: none;
 	border-right: 1px solid var(--line-color);
 	border-bottom: 1px solid var(--line-color);

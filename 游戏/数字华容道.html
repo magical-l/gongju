@@ -247,10 +247,6 @@
 		<aside class="sidebar at-left">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-					<el-collapse-item title="快捷键" name="shortcut">
-						<p>↑ ↓ ← → ：移动与空位相邻的块</p>
-						<p>点击与空位相邻的块也可移动</p>
-					</el-collapse-item>
 					<el-collapse-item title="本局信息" name="gaming info" class="gaming info">
 						<section class="init map">
 							<h3>初始局面</h3>
@@ -285,6 +281,10 @@
 							<p v-if="isWin" class="tip at-bottom">本局已过关</p>
 						</div>
 						<div v-if="solutionError" class="error">{{ solutionError }}</div>
+					</el-collapse-item>
+					<el-collapse-item title="快捷键" name="shortcut">
+						<p>↑ ↓ ← → ：移动与空位相邻的块</p>
+						<p>点击与空位相邻的块也可移动</p>
 					</el-collapse-item>
 				</el-collapse>
 			</el-card>
@@ -450,7 +450,7 @@
 	const app = createApp({
 		data() {
 			const collapseKey = 'gaming-info-huarong';
-			const defaultPanels = ['shortcut', 'gaming info', 'record-area'];
+			const defaultPanels = ['gaming info', 'record-area', 'shortcut'];
 			let saved;
 			try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
 			return {

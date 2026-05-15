@@ -297,7 +297,7 @@
 						<el-empty v-if="!connectionHistory.length" description="尚未连线"></el-empty>
 						<div v-else class="rounds">
 							<div class="list" ref="connectionList">
-								<p v-for="(conn, connI) in connectionHistory">{{connI+1}}：{{conn.from}} → {{conn.to}}</p>
+								<p v-for="(conn, connI) in connectionHistory">{{connI+1}}：颜色{{conn.color}} {{conn.path.map(p => '(' + p.row + ',' + p.col + ')').join(' → ')}}</p>
 							</div>
 						</div>
 					</el-collapse-item>
@@ -453,7 +453,10 @@
 					this.$message.info('没有连线记录可导出');
 					return;
 				}
-				const content = this.connectionHistory.map((conn, i) => `${i + 1}：颜色${conn.color} ${conn.from} → ${conn.to}`).join('\n');
+				const content = this.connectionHistory.map((conn, i) => {
+					const pathStr = conn.path.map(p => `(${p.row},${p.col})`).join(' → ');
+					return `${i + 1}：颜色${conn.color} ${pathStr}`;
+				}).join('\n');
 				const blob = new Blob([content], {type: 'text/plain;charset=utf-8'});
 				const a = document.createElement('a');
 				a.href = URL.createObjectURL(blob);
@@ -2335,12 +2338,9 @@
 						color: this.currentPath.color,
 						points: [...this.currentPath.points],
 					});
-					const startPoint = this.currentPath.points[0];
-					const endPoint = this.currentPath.points[this.currentPath.points.length - 1];
 					this.connectionHistory.push({
 						color: this.currentPath.color,
-						from: `(${startPoint.row}, ${startPoint.col})`,
-						to: `(${endPoint.row}, ${endPoint.col})`,
+						path: [...this.currentPath.points],
 					});
 				}
 

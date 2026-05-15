@@ -134,10 +134,6 @@
 		<aside class="sidebar at-left">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-					<el-collapse-item title="快捷键" name="shortcut">
-						<p>↑ ↓ → ← ：控制方向，不能转向当前反方向。</p>
-						<p>空格：暂停/开始</p>
-					</el-collapse-item>
 					<el-collapse-item title="本局信息" name="gaming info" class="gaming info">
 						<section>
 							<h3>分数</h3>
@@ -147,6 +143,10 @@
 							<h3>最高分</h3>
 							<p>{{ highScore }}</p>
 						</section>
+					</el-collapse-item>
+					<el-collapse-item title="快捷键" name="shortcut">
+						<p>↑ ↓ → ← ：控制方向，不能转向当前反方向。</p>
+						<p>空格：暂停/开始</p>
 					</el-collapse-item>
 				</el-collapse>
 			</el-card>
@@ -177,7 +177,7 @@
 	const app = createApp({
 		data() {
 			const collapseKey = 'gaming-info-snake';
-			const defaultPanels = ['shortcut', 'gaming info'];
+			const defaultPanels = ['gaming info', 'shortcut'];
 			let saved;
 			try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
 			return {

@@ -23,7 +23,7 @@
 /* 数字颜色 */
 .unit {
 	&.unit-2 { background: #e2ead8; color: #5a6b52; }
-	&.unit-4 { background: #d4e0c8; color: #5a6b52; }
+	&.unit-4 { background: #c8d4b8; color: #5a6b52; }
 	&.unit-8 { background: #a8c99e; color: #f5f9f2; }
 	&.unit-16 { background: #8fbc85; color: #f5f9f2; }
 	&.unit-32 { background: #7cb37a; color: #f5f9f2; }

@@ -213,12 +213,6 @@
 		<aside class="sidebar at-left">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-					<el-collapse-item title="快捷键" name="shortcut">
-						<p>← ↓ → ：方向</p>
-						<p>↑ ：变形</p>
-						<p>回车：砖块直接落到底</p>
-						<p>空格：暂停/开始</p>
-					</el-collapse-item>
 					<el-collapse-item title="下一块" name="next">
 						<div class="board preview">
 							<div class="cell" v-for="(block, index) in nextPieceBlocks" :key="index" :class="block"></div>
@@ -233,6 +227,12 @@
 							<el-descriptions-item label="等级">{{ level }}</el-descriptions-item>
 							<el-descriptions-item label="最高记录">{{ highScore }}</el-descriptions-item>
 						</el-descriptions>
+					</el-collapse-item>
+					<el-collapse-item title="快捷键" name="shortcut">
+						<p>← ↓ → ：方向</p>
+						<p>↑ ：变形</p>
+						<p>回车：砖块直接落到底</p>
+						<p>空格：暂停/开始</p>
 					</el-collapse-item>
 				</el-collapse>
 			</el-card>
@@ -279,7 +279,7 @@
 	const app = createApp({
 		data() {
 			const collapseKey = 'gaming-info-tetris';
-			const defaultPanels = ['shortcut', 'next', 'gaming info'];
+			const defaultPanels = ['next', 'gaming info', 'shortcut'];
 			let saved;
 			try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
 			return {
