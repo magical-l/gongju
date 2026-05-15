@@ -29,38 +29,53 @@
 
 @keyframes zoomIn { to { transform: scale(1); } }
 
-/* ======================== 游戏布局变量 ======================== */
+/* ======================== 游戏布局 ======================== */
 .gaming.area {
-	--right-sidebar-min-width: 380px;
-	--gap: 0.75rem;
-	--text-dark: #5a6b52;
-	--text-light: #f5f9f2;
+	gap: 0.75rem;
+
+	&:focus { outline: none; }
+}
+
+/* ======================== 地图 ======================== */
+.map {
+	margin: auto;
+	user-select: none;
+	-webkit-user-select: none;
+
+	&:focus { outline: none; }
+}
+
+/* ======================== 棋盘 ======================== */
+.board {
+	--board-cols: 4;
+	--board-rows: 4;
+	--cell-size: min(70vmin / var(--board-cols), 70vmin / var(--board-rows));
 	--board-bg: #b8c9a8;
 	--grid-line: #9bad8f;
 	--cell-empty: #d4e0c8;
 	--unit-radius: 0;
 	--board-radius: 8px;
 	--board-padding: 12px;
-
-	&:focus, & .board:focus { outline: none; }
+	display: grid;
+	grid-template-columns: repeat(var(--board-cols), var(--cell-size));
+	grid-template-rows: repeat(var(--board-rows), var(--cell-size));
+	width: fit-content;
+	height: fit-content;
+	gap: 0;
+	padding: var(--board-padding);
+	background: var(--board-bg);
+	border: 2px solid var(--grid-line);
+	border-radius: var(--board-radius);
+	position: relative;
+	box-sizing: border-box;
 }
 
-/* 主地图区：共性样式 */ 
-.main.map {
-	margin: auto;
-	user-select: none;
-	-webkit-user-select: none;
-}
-
-/* 棋盘格 */
-.board .cell {
+/* ======================== 格子 ======================== */
+.cell {
 	position: relative;
 	width: var(--cell-size);
 	height: var(--cell-size);
 	box-sizing: border-box;
-	background: var(--cell-empty, transparent);
-	border: 1px solid var(--grid-line, rgba(0,0,0,0.12));
-	border-radius: var(--unit-radius, 0);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -73,23 +88,11 @@
 	}
 }
 
-/* 游戏区棋盘 */
-.board {
-	--board-cols: 4;
-	--board-rows: 4;
-	--cell-size: min(70vmin / var(--board-cols), 70vmin / var(--board-rows));
-	display: grid;
-	grid-template-columns: repeat(var(--board-cols), var(--cell-size));
-	grid-template-rows: repeat(var(--board-rows), var(--cell-size));
-	width: fit-content;
-	height: fit-content;
-	gap: 0;
-	padding: var(--board-padding, 0);
-	background: var(--board-bg, transparent);
-	border: 2px solid var(--grid-line, rgba(0,0,0,0.2));
-	border-radius: var(--board-radius, 0);
-	position: relative;
-	box-sizing: border-box;
+/* 棋盘格特化 */
+.board .cell {
+	background: var(--cell-empty);
+	border: 1px solid var(--grid-line);
+	border-radius: var(--unit-radius);
 }
 
 /* 暂停遮罩 */
@@ -109,7 +112,7 @@
 	> .title {
 		font-size: clamp(1.25rem, 4vw, 2rem);
 		font-weight: 600;
-		color: var(--text-light, #fff);
+		color: #fff;
 		text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 	}
 
@@ -318,7 +321,7 @@ main {
 	font-weight: 700;
 	text-align: center;
 	line-height: 1.2;
-	color: var(--text-dark, inherit);
+	color: inherit;
 }
 
 article.gaming.area .sidebar .el-collapse {

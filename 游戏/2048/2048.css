@@ -9,15 +9,7 @@
 
 /* 2048系颜色主题 */
 .game-2048 {
-	--text-dark: #5a6b52;
-	--text-light: #f5f9f2;
-	--board-bg: #b8c9a8;
-	--grid-line: #9bad8f;
-	--cell-empty: #d4e0c8;
-	--unit-radius: 0;
-	--board-radius: 8px;
-	--board-padding: 12px;
-	color: var(--text-dark);
+	color: #5a6b52;
 	font-family: system-ui, -apple-system, sans-serif;
 }
 
