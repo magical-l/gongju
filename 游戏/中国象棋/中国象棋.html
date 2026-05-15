@@ -189,12 +189,21 @@
 							</div>
 						</div>
 					</el-collapse-item>
-					<el-collapse-item v-if="isGaming" title="回合" name="round">
-						<el-table :data="turnHistory" row-key="id" stripe style="width: 100%" height="400" empty-text="尚未走棋">
-							<el-table-column prop="id" label="回合" width="60"></el-table-column>
-							<el-table-column prop="redMove" label="红方"></el-table-column>
-							<el-table-column prop="blackMove" label="黑方"></el-table-column>
-						</el-table>
+					<el-collapse-item v-if="isGaming" title="回合" name="record-area" class="record area">
+						<div class="controller list">
+							<el-button :disabled="!turnHistory.length" icon="Download" size="small" @click="downloadNotation">导出
+							</el-button>
+						</div>
+						<el-empty v-if="!turnHistory.length" description="尚未走棋"></el-empty>
+						<div v-else class="rounds">
+							<div class="list">
+								<el-table :data="turnHistory" row-key="id" stripe style="width: 100%" height="400">
+									<el-table-column prop="id" label="回合" width="60"></el-table-column>
+									<el-table-column prop="redMove" label="红方"></el-table-column>
+									<el-table-column prop="blackMove" label="黑方"></el-table-column>
+								</el-table>
+							</div>
+						</div>
 					</el-collapse-item>
 				</el-collapse>
 			</el-card>
@@ -262,7 +271,7 @@
 	const app = createApp({
 		data() {
 			const collapseKey = 'gaming-info-xiangqi';
-			const defaultPanels = ['view', 'palette', 'selected', 'globalRules', 'plugins', 'score', 'round'];
+			const defaultPanels = ['view', 'palette', 'selected', 'globalRules', 'plugins', 'score', 'record-area'];
 			let saved;
 			try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
 			return {

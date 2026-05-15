@@ -54,7 +54,7 @@
 	--unit-size: calc(var(--cell-size) * 0.9);
 	grid-template-rows: repeat(10, var(--cell-size));
 	grid-template-columns: repeat(9, var(--cell-size));
-	background-color: antiquewhite;
+	background: var(--board-bg);
 	position: relative;
 	height: fit-content;
 
@@ -175,6 +175,19 @@
 .gaming.area {
 	--right-sidebar-min-width: 380px;
 	--right-sidebar-max-width: 28%;
+
+	/* 回合记录区 */
+	.record.area {
+		& .tip {
+			font-size: 0.8rem; color: #606266;
+
+			&.at-top { margin: 0; color: var(--el-color-warning); }
+			&.at-bottom { color: var(--el-color-success); margin-top: 6px; }
+		}
+		& .controller.list { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px; }
+		& .rounds > .list { margin-top: 6px; }
+		& .error { color: var(--el-color-danger); }
+	}
 
 	/* 主棋盘区 */
 	.main.map {
