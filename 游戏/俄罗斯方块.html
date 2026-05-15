@@ -203,13 +203,13 @@
 			</section>
 		</header>
 		<article class="main map area , flex items-near-x-center items-near-y-start" style="grid-row:2">
-			<div class="board" :style="boardStyle">
+			<section class="board" :style="boardStyle">
 				<div v-for="(cell, index) in displayGrid" :key="index" :class="['cell', cell]"></div>
 				<div class="pause overlay , flex go-y near-center" v-if="isPaused || isGameOver">
 					<div class="overlay-text">{{ overlayText }}</div>
 					<el-button class="start play btn" v-if="!isGameOver" @click="togglePause" icon="CaretRight"></el-button>
 				</div>
-			</div>
+			</section>
 		</article>
 		<aside class="sidebar at-left">
 			<el-card shadow="never">
