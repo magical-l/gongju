@@ -212,7 +212,13 @@
 
 		<section class="board , main map , grid" :style="{ '--board-cols': gameBoardCols, '--board-rows': gameBoardRows }">
 			<template v-for="(row, rowIndex) in board" :key="rowIndex">
-				<div class="cell" :class="cellClass(rowIndex, colIndex)" v-for="(cell, colIndex) in row" :key="colIndex" :ref="cells" @click="handleCellClick(rowIndex, colIndex)">
+				<div class="cell" :class="cellClass(rowIndex, colIndex).cell" v-for="(cell, colIndex) in row" :key="colIndex" :ref="cells" @click="handleCellClick(rowIndex, colIndex)">
+					<div class="unit light" :class="cellClass(rowIndex, colIndex).unit">
+						<svg viewBox="0 0 24 24" stroke-width="1.5">
+							<path d="M9 21h6"/>
+							<path d="M12 3a6 6 0 0 0-6 6c0 2.5 2 4.5 2 6.5V17h8v-1.5c0-2 2-4 2-6.5a6 6 0 0 0-6-6z"/>
+						</svg>
+					</div>
 				</div>
 			</template>
 		</section>
