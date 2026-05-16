@@ -24,38 +24,28 @@
 <link href="../lib/css/花活.css" rel="stylesheet">
 <style>
 	.game {
-		& .gaming.area {
-			--left-sidebar-min-width: 300px;
-
-			& .main.board { justify-self: center; align-self: start; }
-		}
-
 		/* 格子基础样式：布局与文字 */
 		& .cell {
 			font-weight: bold;
 			font-size: calc(0.4 * var(--cell-size));
 			color: #5a6b52;
 
-			&.empty { background: transparent; color: transparent; }
+			&.empty {
+				background: transparent;
+				color: transparent;
+			}
 		}
 
-		/* 主棋盘：装饰 + 交互 */
+		/* 主棋盘 */
 		& .main.board {
 			--board-gap: 6px;
 			--cell-size: 80px;
-			padding: 12px;
-			border-radius: 12px;
 			overflow: hidden;
 			box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 
 			& .cell {
-				cursor: pointer;
-				transition: transform 0.15s ease, box-shadow 0.15s ease;
-
-				&:hover { transform: scale(1.03); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35); }
-				&.empty { cursor: default; &:hover { transform: none; box-shadow: none; } }
+				&.movable { cursor: pointer; }
 				&.hint { outline: 3px solid #e6a23c; outline-offset: -3px; box-shadow: 0 0 0 3px rgba(230, 162, 60, 0.5); }
-				/* 布局时 */
 				&.selected {
 					outline: 3px solid var(--el-color-primary);
 					outline-offset: -3px;
@@ -66,6 +56,7 @@
 
 		/* 小棋盘：缩小版主棋盘 */
 		& .mini.board {
+			border-radius: 4px;
 			padding: 0;
 			--board-gap: 0;
 			--cell-size: 22px;
@@ -74,9 +65,6 @@
 			width: fit-content;
 			height: fit-content;
 		}
-
-		/* 初始局面：禁止交互 */
-		& .init.situation .cell { cursor: default; }
 
 		/* 回合记录区 */
 		& .record.area {
@@ -636,6 +624,7 @@
 					sliding: this.slidingIndex === index,
 					hint: this.hintIndex === index,
 					selected: this.layoutMode && this.layoutSelectedIndex === index,
+					movable: !this.layoutMode && this.adjacentToEmpty(index),
 				};
 			},
 			// 提示：与「本局解法」一致。已开答案用 solutionSteps；未开答案时用与 turnOnAnswer 相同的接轨/回滚逻辑，能接上则提示解法下一步，需先回滚则提示撤销上一步（玩家最后一步）
