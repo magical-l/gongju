@@ -36,7 +36,7 @@
 		}
 	}
 
-	& .board {
+	& .board.map {
 		--board-cols: 9;
 		--board-rows: 10;
 		--cell-size: 60px;
