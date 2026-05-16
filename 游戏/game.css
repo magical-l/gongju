@@ -119,4 +119,24 @@
 			color: rgba(255, 255, 255, 0.85);
 		}
 	}
+
+	/* 结算弹窗 */
+	& .result {
+		background: #f9f9f9;
+		color: #303133;
+		border-radius: 8px;
+		min-width: 420px;
+		border: 1px solid #e4e7ed;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+		& .title { padding: 10px 10px 0 0; }
+		& .body { padding: 0 50px 30px 50px; text-align: center; }
+
+		& .toolbar {
+			margin-top: 30px;
+			display: flex;
+			gap: var(--gap);
+			justify-content: center;
+		}
+	}
 }

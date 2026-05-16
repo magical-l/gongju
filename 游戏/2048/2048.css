@@ -24,8 +24,6 @@
 		font-weight: bold;
 		font-size: clamp(10px, 2.5vw, 24px);
 		border: 1px solid var(--line-color, rgba(0,0,0,0.12));
-		user-select: none;
-		-webkit-user-select: none;
 
 		/* 为徽章提供定位基准 */
 		&:has(.new-badge) { position: relative; }
