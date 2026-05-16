@@ -153,16 +153,14 @@
 			</el-card>
 		</aside>
 
-		<!-- 结算区 -->
-		<el-dialog class="game result" v-model="gameResultVisible" :title="gameResultMessage" width="400px" align-center
-							 @opened="onResultDialogOpened" @closed="onResultOverlayClick">
-			<dl class="game result stats">
-				<dt>最终得分</dt><dd>{{ score }}</dd>
-			</dl>
-			<template #footer>
-				<p class="hint">按 Enter 或空格开始新局</p>
-				<el-button type="primary" @click="onResultRestart">新局</el-button>
-			</template>
+		<!-- 结算弹窗 -->
+		<el-dialog v-model="gameResultVisible" class="result" header-class="title" body-class="body" :show-close="true" align-center>
+			<header class="fail">{{ gameResultMessage }}</header>
+			<div class="stats">得分: {{ score }}</div>
+			<footer class="toolbar">
+				<el-button type="primary" size="large" icon="RefreshRight" @click="onResultRestart">新局</el-button>
+				<el-button type="warning" size="large" @click="closeGameResultModal">关闭</el-button>
+			</footer>
 		</el-dialog>
 	</article>
 </main>
@@ -364,15 +362,12 @@
 						}
 					} catch (_) {}
 				},
-				onResultDialogOpened() {
-					document.body.classList.add('no-scroll');
-				},
-				onResultOverlayClick() {
-					document.body.classList.remove('no-scroll');
-					window.Game2048Blocks.onResultRestart();
-				},
 				onResultRestart() {
+					this.gameResultVisible = false;
 					window.Game2048Blocks.onResultRestart();
+				},
+				closeGameResultModal() {
+					this.gameResultVisible = false;
 				},
 				isRowClearing(cellIndex) {
 					const s = state.lastStateForDisplay;

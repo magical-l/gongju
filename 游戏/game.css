@@ -147,6 +147,13 @@
 			text-shadow: 0 0 10px white;
 		}
 
+		& .fail {
+			font-size: 60px;
+			font-weight: bold;
+			color: #f56c6c;
+			text-shadow: 0 0 10px white;
+		}
+
 		& .stats { font-size: 24px; margin-top: 10px; }
 	}
 

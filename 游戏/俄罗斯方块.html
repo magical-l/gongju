@@ -198,12 +198,28 @@
 		<article class="main map area , flex items-near-x-center items-near-y-start" style="grid-row:2">
 			<section class="board map" :style="boardStyle">
 				<div v-for="(cell, index) in displayGrid" :key="index" :class="['cell', cell]"></div>
-				<div class="overlay" v-if="isPaused || isGameOver">
-					<div class="title">{{ overlayText }}</div>
-					<el-button class="start play btn" v-if="!isGameOver" @click="togglePause" icon="CaretRight"></el-button>
+				<div class="overlay" v-if="isPaused && !isGameOver">
+					<div class="title">准备就绪</div>
+					<el-button class="start play btn" @click="togglePause" icon="CaretRight"></el-button>
 				</div>
 			</section>
 		</article>
+
+		<!-- 结算弹窗 -->
+		<el-dialog v-model="showGameOverModal" class="result" header-class="title" body-class="body" :show-close="true" align-center>
+			<header class="fail">游戏结束</header>
+			<div class="stats">得分: {{ score }}</div>
+			<footer class="toolbar">
+				<el-button type="primary" size="large" icon="RefreshRight" @click="closeGameOverAndNew">新局</el-button>
+				<el-button type="warning" size="large" @click="closeGameOverModal">关闭</el-button>
+			</footer>
+		</el-dialog>
+
+		<!-- 彩纸效果 -->
+		<div class="fullscreen non-interactive top-layer" v-if="showGameOverModal">
+			<div class="confetti-piece" v-for="i in 150" :key="'confetti'+i"></div>
+		</div>
+
 		<aside class="sidebar at-left">
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
@@ -287,6 +303,7 @@
 				player: {tetromino: null, pos: {x: 0, y: 0}},
 				nextTetromino: null,
 				isGameOver: false,
+				showGameOverModal: false,
 				isPaused: true,
 				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
 				_gamingInfoCollapseKey: collapseKey,
@@ -379,15 +396,6 @@
 				}
 				return result;
 			},
-			overlayText() {
-				if (this.isGameOver) {
-					return `游戏结束！得分: ${this.score}`;
-				}
-				if (this.isPaused) {
-					return '准备就绪';
-				}
-				return '';
-			},
 			settingsString() {
 				return JSON.stringify(this.settings);
 			},
@@ -451,6 +459,7 @@
 				this.player.pos.x = Math.floor(this.gameCols / 2) - Math.floor(this.player.tetromino.shape[0].length / 2);
 				if (this.collides(this.grid, this.player)) {
 					this.isGameOver = true;
+					this.showGameOverModal = true;
 					cancelAnimationFrame(this.animationFrameId);
 				}
 			},
@@ -564,8 +573,16 @@
 				this.lastTime = 0;
 				this.updateDropInterval();
 				this.isGameOver = false;
+				this.showGameOverModal = false;
 				this.isPaused = true;
 				this.playerReset();
+			},
+			closeGameOverModal() {
+				this.showGameOverModal = false;
+			},
+			closeGameOverAndNew() {
+				this.showGameOverModal = false;
+				this.startGame();
 			},
 			saveSettings() {
 				this.settings.cols = 10;

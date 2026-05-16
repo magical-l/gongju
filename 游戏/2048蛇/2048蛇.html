@@ -157,24 +157,22 @@
 			</el-card>
 		</aside>
 
-		<!-- 结算区：撒花在 dialog 内，用 .fullscreen 铺满视口 -->
-		<el-dialog class="game result" v-model="gameResultVisible" :title="gameResultMessage" width="400px" align-center
-							 @opened="onResultDialogOpened" @closed="onResultOverlayClick">
-			<div class="fullscreen non-interactive" v-if="gameResultIsWin">
-				<span class="confetti-piece" v-for="i in 150" :key="i"></span>
+		<!-- 结算弹窗 -->
+		<el-dialog v-model="gameResultVisible" class="result" header-class="title" body-class="body" :show-close="true" align-center>
+			<header :class="gameResultIsWin ? 'success' : 'fail'">{{ gameResultMessage }}</header>
+			<div class="stats">
+				目标数字: {{ gameTargetLabel }} | 最大数字: {{ resultMaxTile }} | 得分: {{ score }}
 			</div>
-			<dl class="game result stats">
-				<dt>目标数字</dt><dd>{{ gameTargetLabel }}</dd>
-				<dt>最大数字</dt><dd>{{ resultMaxTile }}</dd>
-				<dt>最终得分</dt><dd>{{ score }}</dd>
-			</dl>
-			<template #footer>
-				<p class="hint">
-					按 Enter 或空格开始新局
-					<el-button type="primary" @click="onResultRestart">新局</el-button>
-				</p>
-			</template>
+			<footer class="toolbar">
+				<el-button type="primary" size="large" icon="RefreshRight" @click="onResultRestart">新局</el-button>
+				<el-button type="warning" size="large" @click="closeGameResultModal">关闭</el-button>
+			</footer>
 		</el-dialog>
+
+		<!-- 彩纸效果（仅胜利时） -->
+		<div class="fullscreen non-interactive top-layer" v-if="gameResultVisible && gameResultIsWin">
+			<div class="confetti-piece" v-for="i in 150" :key="i"></div>
+		</div>
 
 	</article>
 </main>
@@ -322,15 +320,12 @@
 						}
 					} catch (_) {}
 				},
-				onResultDialogOpened() {
-					document.body.classList.add('no-scroll');
-				},
-				onResultOverlayClick() {
-					document.body.classList.remove('no-scroll');
-					window.Game2048Snake.onResultRestart();
-				},
 				onResultRestart() {
+					this.gameResultVisible = false;
 					window.Game2048Snake.onResultRestart();
+				},
+				closeGameResultModal() {
+					this.gameResultVisible = false;
 				},
 			},
 			mounted() {

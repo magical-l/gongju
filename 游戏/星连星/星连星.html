@@ -262,15 +262,24 @@
 		<article class="main map area one-row flex items-near-x-center">
 			<div id="game-container">
 				<canvas id="game-canvas" :width="canvasSize" :height="canvasSize"></canvas>
-				<div id="game-overlay" :class="{ hidden: !gameWin }">
-					<div style="color: #67c23a; font-size: 2.5rem;">🎉 恭喜通关！</div>
-					<div style="font-size: 1.2rem; margin-top: 10px;">
-						本局完成！
-					</div>
-					<el-button type="primary" @click="newGame">新局</el-button>
-				</div>
 			</div>
 		</article>
+
+		<!-- 结算弹窗 -->
+		<el-dialog v-model="showWinModal" class="result" header-class="title" body-class="body" :show-close="true" align-center>
+			<header class="success">恭喜通关！</header>
+			<div class="stats">本局完成！</div>
+			<footer class="toolbar">
+				<el-button type="primary" size="large" icon="RefreshRight" @click="closeWinAndNew">新局</el-button>
+				<el-button type="info" size="large" icon="Download" @click="exportConnections">导出连线记录</el-button>
+				<el-button type="warning" size="large" @click="closeWinModal">关闭</el-button>
+			</footer>
+		</el-dialog>
+
+		<!-- 彩纸效果 -->
+		<div class="fullscreen non-interactive top-layer" v-if="showWinModal">
+			<div class="confetti-piece" v-for="i in 150" :key="'confetti'+i"></div>
+		</div>
 
 		<aside class="sidebar at-left">
 			<el-card shadow="never">
@@ -377,6 +386,7 @@
 				currentPath: null, // {color, startStar, points: [{row, col}]}
 				isDrawing: false,
 				gameWin: false,
+					showWinModal: false,
 				solutionPaths: [], // 本局答案（生成时保存），用于「答案」展示
 				showAnswerOverlay: false,
 				hintColorIndex: null, // 提示时显示的未连接线颜色索引，null 表示不显示
@@ -434,6 +444,7 @@
 			/** 新局：按当前设置重新生成地图 */
 			newGame() {
 				this.gameWin = false;
+				this.showWinModal = false;
 				this.paths = [];
 				this.connectionHistory = [];
 				this.currentPath = null;
@@ -443,6 +454,13 @@
 				this.gridSize = this.settings.gridSize;
 				this.generateLevel();
 				this.initCanvas();
+			},
+			closeWinModal() {
+				this.showWinModal = false;
+			},
+			closeWinAndNew() {
+				this.showWinModal = false;
+				this.newGame();
 			},
 			exportConnections() {
 				if (this.connectionHistory.length === 0) {
@@ -2352,6 +2370,7 @@
 			checkWinCondition() {
 				if (this.checkWin()) {
 					this.gameWin = true;
+					this.showWinModal = true;
 				}
 			},
 			draw() {

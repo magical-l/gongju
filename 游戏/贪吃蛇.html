@@ -130,13 +130,27 @@
 		<article class="main map area , flex items-near-x-center">
 			<section class="board map" :style="boardStyle" @click="togglePause">
 				<div v-for="(cell, index) in cells" :key="index" :class="cellClass(cell)"></div>
-				<div class="overlay" v-if="isPaused || gameOver">
-					<div class="title">{{ overlayTitle }}</div>
-					<p class="hint" v-if="gameOver">分数: {{ score }}</p>
-					<p class="hint">{{ overlayHint }}</p>
+				<div class="overlay" v-if="isPaused && !gameOver">
+					<div class="title">{{ score === 0 ? '准备就绪' : '已暂停' }}</div>
+					<p class="hint">按空格或点击以开始/继续</p>
 				</div>
 			</section>
 		</article>
+
+		<!-- 结算弹窗 -->
+		<el-dialog v-model="showGameOverModal" class="result" header-class="title" body-class="body" :show-close="true" align-center>
+			<header class="fail">游戏结束</header>
+			<div class="stats">分数: {{ score }}</div>
+			<footer class="toolbar">
+				<el-button type="primary" size="large" icon="RefreshRight" @click="closeGameOverAndNew">新局</el-button>
+				<el-button type="warning" size="large" @click="closeGameOverModal">关闭</el-button>
+			</footer>
+		</el-dialog>
+
+		<!-- 彩纸效果 -->
+		<div class="fullscreen non-interactive top-layer" v-if="showGameOverModal">
+			<div class="confetti-piece" v-for="i in 150" :key="'confetti'+i"></div>
+		</div>
 
 		<aside class="sidebar at-left">
 			<el-card shadow="never">
@@ -204,6 +218,7 @@
 				score: 0,
 				highScore: localStorage.getItem('snake-high-score') || 0,
 				gameOver: false,
+				showGameOverModal: false,
 				isPaused: true,
 				gameInterval: null,
 				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
@@ -237,12 +252,6 @@
 					}
 				}
 				return grid;
-			},
-			overlayTitle() {
-				return this.gameOver ? '游戏结束' : (this.score === 0 ? '准备就绪' : '已暂停');
-			},
-			overlayHint() {
-				return this.gameOver ? '按空格或点击以新局' : '按空格或点击以开始/继续';
 			},
 		},
 		watch: {
@@ -321,6 +330,7 @@
 				this.gameGridHeight = this.gridHeight;
 				this.isPaused = true;
 				this.gameOver = false;
+				this.showGameOverModal = false;
 				if (this.gameInterval) {
 					clearInterval(this.gameInterval);
 					this.gameInterval = null;
@@ -339,6 +349,13 @@
 
 				this.generateFood();
 				this.saveGameState();
+			},
+			closeGameOverModal() {
+				this.showGameOverModal = false;
+			},
+			closeGameOverAndNew() {
+				this.showGameOverModal = false;
+				this.initGame();
 			},
 			togglePause() {
 				if (this.gameOver) {
@@ -423,6 +440,7 @@
 			},
 			endGame() {
 				this.gameOver = true;
+				this.showGameOverModal = true;
 				this.isPaused = true;
 				clearInterval(this.gameInterval);
 				this.gameInterval = null;
