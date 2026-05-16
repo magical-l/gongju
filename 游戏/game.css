@@ -34,8 +34,48 @@
 		-webkit-user-select: none;
 	}
 
+	/* 棋盘：有棋盘的游戏内，棋盘的默认样式表。通常是.map的子类。即具有.board的元素也应当具有.map。 */
+	& .board {
+		--board-cols: 4;
+		--board-rows: 4;
+		--cell-size: min(70vmin / var(--board-cols), 70vmin / var(--board-rows));
+		--line-color: #9bad8f;
+
+		display: grid;
+		grid-template-columns: repeat(var(--board-cols), var(--cell-size));
+		grid-template-rows: repeat(var(--board-rows), var(--cell-size));
+		gap: 0;
+		/* 确保被内容撑开而非突破 */
+		width: fit-content;
+		height: fit-content;
+		padding: 12px;
+		background: #b8c9a8;
+		border: 2px solid var(--line-color);
+		border-radius: 8px;
+		user-select: none;
+		-webkit-user-select: none;
+
+		/* 特指出现在棋盘内的格子 */
+		& .cell {
+			background: #d4e0c8;
+			border: 1px solid var(--line-color);
+			border-radius: 0;
+		}
+	}
+
+	/* 格子：棋盘游戏的格子，不限于在棋盘内。 */
+	& .cell {
+		width: var(--cell-size);
+		height: var(--cell-size);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		user-select: none;
+		-webkit-user-select: none;
+	}
+
 	/* 后代有遮罩元素时，为遮罩层提供定位基准 */
-	&:has(.overlay) {
+	& :has(.overlay) {
 		position: relative;
 	}
 
@@ -65,44 +105,5 @@
 			font-size: 0.875rem;
 			color: rgba(255, 255, 255, 0.85);
 		}
-	}
-}
-
-/* 棋盘类游戏 */
-.board.game {
-	/* 棋盘：通常是.map的子类。即具有.board的元素也应当具有.map。 */
-	& .board {
-		--board-cols: 4;
-		--board-rows: 4;
-		--cell-size: min(70vmin / var(--board-cols), 70vmin / var(--board-rows));
-		--line-color: #9bad8f;
-
-		display: grid;
-		grid-template-columns: repeat(var(--board-cols), var(--cell-size));
-		grid-template-rows: repeat(var(--board-rows), var(--cell-size));
-		gap: 0;
-		/* 确保被内容撑开而非突破 */
-		width: fit-content;
-		height: fit-content;
-		padding: 12px;
-		background: #b8c9a8;
-		border: 2px solid var(--line-color);
-		border-radius: 8px;
-
-		/* 特指出现在棋盘内的格子 */
-		& .cell {
-			background: #d4e0c8;
-			border: 1px solid var(--line-color);
-			border-radius: 0;
-		}
-	}
-
-	/* 格子：棋盘游戏的格子，不限于在棋盘内。 */
-	& .cell {
-		width: var(--cell-size);
-		height: var(--cell-size);
-		display: flex;
-		align-items: center;
-		justify-content: center;
 	}
 }

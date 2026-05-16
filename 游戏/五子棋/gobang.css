@@ -7,7 +7,7 @@
 }
 
 /* ======================== 棋盘游戏 ======================== */
-.board.game {
+.game {
 	/* 侧边栏宽度 */
 	& .gaming.area { --left-sidebar-min-width: 280px; }
 
