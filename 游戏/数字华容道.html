@@ -86,32 +86,22 @@
 
 		/* 回合记录区 */
 		& .record.area {
-			& .tip {
-				font-size: 0.8rem; color: #606266;
+			& .tip.at-top { margin: 0; color: var(--el-color-warning); }
+			& .tip.at-bottom { color: var(--el-color-success); margin-top: 6px; }
+			& .rounds > .list {
+				display: grid;
+				grid-template-columns: repeat(auto-fill, 28px);
+				gap: 4px;
 
-				&.at-top { margin: 0; color: var(--el-color-warning); }
-				&.at-bottom { color: var(--el-color-success); margin-top: 6px; }
-			}
-			& .rounds {
-				& > .summary { font-size: 0.8rem; color: #606266; margin: 4px 0 0; }
-				& > .list {
-					display: grid;
-					grid-template-columns: repeat(auto-fill, 28px);
-					gap: 4px;
-					margin-top: 6px;
-					max-width: 100%;
+				& .cell {
+					width: 28px;
+					height: 28px;
+					border: 2px solid transparent;
+					transition: border-color 0.2s;
 
-					& .cell {
-						width: 28px;
-						height: 28px;
-						border: 2px solid transparent;
-						transition: border-color 0.2s;
-
-						&.current { border-color: var(--el-color-primary); }
-					}
+					&.current { border-color: var(--el-color-primary); }
 				}
 			}
-			& .error { color: var(--el-color-danger); }
 		}
 
 		@media (max-width: 500px) {
@@ -254,7 +244,6 @@
 							</div>
 							<p v-if="isWin" class="tip at-bottom">本局已过关</p>
 						</div>
-						<div v-if="solutionError" class="error">{{ solutionError }}</div>
 					</el-collapse-item>
 					<el-collapse-item title="快捷键" name="shortcut">
 						<p>↑ ↓ ← → ：移动与空位相邻的块</p>
