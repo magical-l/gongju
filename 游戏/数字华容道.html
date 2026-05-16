@@ -253,24 +253,24 @@
 					</el-collapse-item>
 				</el-collapse>
 			</el-card>
-			</aside>
+		</aside>
 
-			<!-- 结算弹窗 -->
-			<el-dialog v-model="showWinModal" class="result" header-class="title" :show-close="true" align-center>
-				<header class="success">恭喜过关！</header>
-				<div class="stats">共 {{ moves }} 步</div>
-				<footer class="toolbar">
-					<el-button type="primary" size="large" icon="RefreshRight" @click="closeWinAndNew">新局</el-button>
-					<el-button type="info" size="large" icon="Download" @click="exportRounds">导出回合记录</el-button>
-					<el-button type="warning" size="large" @click="closeWinModal">关闭</el-button>
-				</footer>
-			</el-dialog>
+		<!-- 结算弹窗 -->
+		<el-dialog v-model="showWinModal" class="result" header-class="title" :show-close="true" align-center>
+			<header class="success">恭喜过关！</header>
+			<div class="stats">共 {{ moves }} 步</div>
+			<footer class="toolbar">
+				<el-button type="primary" size="large" icon="RefreshRight" @click="closeWinAndNew">新局</el-button>
+				<el-button type="info" size="large" icon="Download" @click="exportRounds">导出回合记录</el-button>
+				<el-button type="warning" size="large" @click="closeWinModal">关闭</el-button>
+			</footer>
+		</el-dialog>
 
-			<!-- 彩纸效果 -->
-			<div class="fullscreen non-interactive top-layer" v-if="showWinModal">
-				<div class="confetti-piece" v-for="i in 150" :key="'confetti'+i"></div>
-			</div>
-		</article>
+		<!-- 彩纸效果 -->
+		<div class="fullscreen non-interactive top-layer" v-if="showWinModal">
+			<div class="confetti-piece" v-for="i in 150" :key="'confetti'+i"></div>
+		</div>
+	</article>
 </main>
 
 <aside class="sidebar at-right">
