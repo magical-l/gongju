@@ -72,6 +72,7 @@
 		justify-content: center;
 		user-select: none;
 		-webkit-user-select: none;
+		background: #d4e0c8; /* 默认背景 */
 	}
 
 	/* 棋子：继承.unit */
