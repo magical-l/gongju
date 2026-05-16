@@ -255,6 +255,8 @@
 
 		/* 功勋区 */
 		& .merit {
+			width: 100%;
+
 			& .header {
 				display: flex;
 				align-items: center;
@@ -278,9 +280,6 @@
 			}
 
 			& .details {
-				max-height: 150px;
-				overflow-y: auto;
-
 				& .record {
 					display: flex;
 					align-items: center;
