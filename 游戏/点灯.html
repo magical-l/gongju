@@ -252,7 +252,7 @@
 			<header class="success">恭喜你，挑战成功！</header>
 			<div class="stats">您总共使用了 {{ moveCount }} 步。</div>
 			<footer class="toolbar">
-				<el-button type="primary" size="large" icon="RefreshRight" @click="initGame">新局</el-button>
+				<el-button type="primary" size="large" icon="RefreshRight" @click="closeWinAndNew">新局</el-button>
 				<el-button type="info" size="large" icon="Download" @click="exportRounds">导出回合记录</el-button>
 				<el-button type="warning" size="large" @click="closeWinModal">关闭</el-button>
 			</footer>
@@ -448,6 +448,10 @@
 			},
 			closeWinModal() {
 				this.showWinModal = false;
+			},
+			closeWinAndNew() {
+				this.showWinModal = false;
+				this.initGame();
 			},
 			toggleCellState(row, col) {
 				if (this.board[row] && this.board[row][col] !== undefined) {
