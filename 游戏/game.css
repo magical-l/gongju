@@ -1,0 +1,100 @@
+@charset "utf-8";
+
+.board.game {}
+
+/* 格子：可以出现在任意地方，不局限于棋盘 */
+.cell {
+	width: var(--cell-size);
+	height: var(--cell-size);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	>.unit {
+		text-align: center;
+	}
+}
+
+/* ======================== 游戏布局 ======================== */
+.gaming.area {
+	margin: 0;
+	padding: 0;
+
+	/* 获得焦点时不显示选中框 */
+	&:focus {
+		outline: none;
+	}
+}
+
+/* ======================== 地图 ======================== */
+.map {
+	/* 水平居中 */
+	margin: auto;
+	/* 防止内容被选中 */
+	user-select: none;
+	-webkit-user-select: none;
+
+	/* 获得焦点时不显示选中框 */
+	&:focus {
+		outline: none;
+	}
+}
+
+/* ======================== 棋盘 ======================== */
+.board {
+	--board-cols: 4;
+	--board-rows: 4;
+	--cell-size: min(70vmin / var(--board-cols), 70vmin / var(--board-rows));
+	--line-color: #9bad8f;
+	display: grid;
+	grid-template-columns: repeat(var(--board-cols), var(--cell-size));
+	grid-template-rows: repeat(var(--board-rows), var(--cell-size));
+	gap: 0;
+	/* 确保被内容撑开而非突破 */
+	width: fit-content;
+	height: fit-content;
+	padding: 12px;
+	background: #b8c9a8;
+	border: 2px solid var(--line-color);
+	border-radius: 8px;
+
+	/* 后代有遮罩元素时，为遮罩层提供定位基准 */
+	&:has(.overlay) {
+		position: relative;
+	}
+
+	/* 棋盘遮罩 */
+	& .overlay {
+		position: absolute;
+		inset: 0;
+		z-index: 10;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 1rem;
+		background: rgba(0, 0, 0, 0.5);
+		border-radius: inherit;
+		pointer-events: auto;
+
+		>.title {
+			font-size: clamp(1.25rem, 4vw, 2rem);
+			font-weight: 600;
+			color: #fff;
+			text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+		}
+
+		>.hint {
+			margin: 0;
+			font-size: 0.875rem;
+			color: rgba(255, 255, 255, 0.85);
+		}
+	}
+}
+
+/* 棋盘格特化 */
+.board .cell {
+	background: #d4e0c8;
+	border: 1px solid var(--line-color);
+	border-radius: 0;
+}
