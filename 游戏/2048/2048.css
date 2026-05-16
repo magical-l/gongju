@@ -19,24 +19,23 @@
 	min-height: min(320px, 55vmin);
 }
 
-/* 数字方块：共性 */
-.board .cell > .unit[class*="unit-"] {
+/* 数字方块 */
+.unit {
 	width: 100%;
 	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	font-weight: bold;
 	font-size: clamp(10px, 2.5vw, 24px);
 	border: 1px solid var(--line-color, rgba(0,0,0,0.12));
 	user-select: none;
 	-webkit-user-select: none;
-}
 
-/* 数字颜色 */
-.unit {
 	/* 为徽章提供定位基准 */
-	&:has(.new-badge) {
-		position: relative;
-	}
+	&:has(.new-badge) { position: relative; }
 
+	/* 数字颜色 */
 	&.unit-2 { background: #e2ead8; color: #5a6b52; }
 	&.unit-4 { background: #c8d4b8; color: #5a6b52; }
 	&.unit-8 { background: #a8c99e; color: #f5f9f2; }
