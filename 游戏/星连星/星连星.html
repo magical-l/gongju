@@ -22,139 +22,141 @@
 	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/花活.css" rel="stylesheet"> -->
 	<link href="../../lib/css/花活.css" rel="stylesheet">
 <style>
-	.gaming.area {
-		gap: var(--gap);
-		align-items: start;
+	.board.game {
+		& .gaming.area {
+			gap: var(--gap);
+			align-items: start;
 
-		/* 本局信息区 */
-		.gaming.info .game-info .progress { margin-top: 10px; }
+			/* 本局信息区 */
+			& .gaming.info .game-info .progress { margin-top: 10px; }
 
-		/* 连线记录区 */
-		.record.area {
-			& .controller.list { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px; }
-			& .rounds > .list {
-				min-height: 100px;
-				max-height: 330px;
-				overflow-y: auto;
-				background-color: #fff;
-				border: 1px solid #dce1e6;
-				border-radius: 5px;
-				padding: 10px;
+			/* 连线记录区 */
+			& .record.area {
+				& .controller.list { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px; }
+				& .rounds > .list {
+					min-height: 100px;
+					max-height: 330px;
+					overflow-y: auto;
+					background-color: #fff;
+					border: 1px solid #dce1e6;
+					border-radius: 5px;
+					padding: 10px;
 
-				p {
-					margin: 0;
-					padding: 6px 4px;
-					border-bottom: 1px solid #f0f2f5;
-					color: #555;
-					font-size: 0.9em;
+					& p {
+						margin: 0;
+						padding: 6px 4px;
+						border-bottom: 1px solid #f0f2f5;
+						color: #555;
+						font-size: 0.9em;
 
-					&:last-child { border-bottom: none; }
+						&:last-child { border-bottom: none; }
+					}
 				}
 			}
 		}
-	}
 
-	#game-container {
-		position: relative;
-		background-color: #a8b898;
-		border-radius: 10px;
-		padding: 20px;
-		box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
-		display: inline-block;
-	}
+		& #game-container {
+			position: relative;
+			background-color: #a8b898;
+			border-radius: 10px;
+			padding: 20px;
+			box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+			display: inline-block;
+		}
 
-	#game-canvas {
-		display: block;
-		border: 2px solid #7a8a6a;
-		border-radius: 5px;
-		cursor: crosshair;
-		touch-action: none;
-		background: #b8c9a8;
-	}
+		& #game-canvas {
+			display: block;
+			border: 2px solid #7a8a6a;
+			border-radius: 5px;
+			cursor: crosshair;
+			touch-action: none;
+			background: #b8c9a8;
+		}
 
-	#game-canvas.drawing {
-		cursor: crosshair;
-	}
+		& #game-canvas.drawing {
+			cursor: crosshair;
+		}
 
-	#game-canvas:active {
-		cursor: crosshair;
-	}
+		& #game-canvas:active {
+			cursor: crosshair;
+		}
 
-	.game-info {
-		margin-top: 15px;
-		font-size: 1.1rem;
-		color: #4a4a4a;
-	}
+		& .game-info {
+			margin-top: 15px;
+			font-size: 1.1rem;
+			color: #4a4a4a;
+		}
 
-	.game-info .level-info {
-		font-weight: bold;
-		margin-bottom: 10px;
-	}
+		& .game-info .level-info {
+			font-weight: bold;
+			margin-bottom: 10px;
+		}
 
-	.game-info .progress {
-		margin-top: 10px;
-	}
+		& .game-info .progress {
+			margin-top: 10px;
+		}
 
-	.one.setting {
-		margin-bottom: 0;
-	}
+		& .one.setting {
+			margin-bottom: 0;
+		}
 
-	.one.setting.input.number {
-		width: 80px;
-	}
+		& .one.setting.input.number {
+			width: 80px;
+		}
 
-	#game-overlay {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		background: rgba(255, 255, 255, 0.95);
-		border-radius: 10px;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		font-size: 2rem;
-		font-weight: bold;
-		color: #4a4a4a;
-		z-index: 10;
-	}
+		& #game-overlay {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(255, 255, 255, 0.95);
+			border-radius: 10px;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			font-size: 2rem;
+			font-weight: bold;
+			color: #4a4a4a;
+			z-index: 10;
+		}
 
-	#game-overlay.hidden {
-		display: none;
-	}
+		& #game-overlay.hidden {
+			display: none;
+		}
 
-	.color-palette {
-		display: flex;
-		gap: 10px;
-		margin-top: 10px;
-		flex-wrap: wrap;
-	}
+		& .color-palette {
+			display: flex;
+			gap: 10px;
+			margin-top: 10px;
+			flex-wrap: wrap;
+		}
 
-	.color-item {
-		width: 30px;
-		height: 30px;
-		border-radius: 50%;
-		border: 2px solid #ddd;
-		cursor: pointer;
-		transition: transform 0.2s;
-	}
+		& .color-item {
+			width: 30px;
+			height: 30px;
+			border-radius: 50%;
+			border: 2px solid #ddd;
+			cursor: pointer;
+			transition: transform 0.2s;
+		}
 
-	.color-item:hover {
-		transform: scale(1.1);
-	}
+		& .color-item:hover {
+			transform: scale(1.1);
+		}
 
-	.color-item.active {
-		border-color: #333;
-		border-width: 3px;
-		transform: scale(1.15);
-	}
+		& .color-item.active {
+			border-color: #333;
+			border-width: 3px;
+			transform: scale(1.15);
+		}
 
-	@media (max-width: 600px) {
-		#game-canvas {
-			max-width: 100%;
-			height: auto;
+		@media (max-width: 600px) {
+			& #game-canvas {
+				max-width: 100%;
+				height: auto;
+			}
 		}
 	}
 </style>
@@ -186,7 +188,7 @@
 		</div>
 	</nav>
 </header>
-<main>
+<main class="board game">
 	<header>
 		<h2 class="game name">星连星游戏</h2>
 		<div class="page-lv help area" v-cloak>

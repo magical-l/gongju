@@ -10,7 +10,7 @@
 	50% { background: rgba(255, 240, 180, 0.98); color: #333; }
 }
 
-.board .cell {
+.board.game .board .cell {
 	&.clearing {
 		animation: clear-line-flash 0.12s ease-in-out infinite;
 
@@ -37,7 +37,7 @@
 }
 
 /* 下一块预览 */
-.gaming.area .board.next-block {
+.board.game .gaming.area .board.next-block {
 	--board-cols: 4;
 	--board-rows: 4;
 	--cell-size: 30px;

@@ -23,25 +23,27 @@
 	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/花活.css" rel="stylesheet"> -->
 	<link href="../lib/css/花活.css" rel="stylesheet">
 <style>
-	.gaming.area {
-		gap: var(--gap);
-		align-items: start;
-	}
+	.board.game {
+		& .gaming.area {
+			gap: var(--gap);
+			align-items: start;
+		}
 
-	#game-canvas {
-		background: #b8c9a8;
-		border-radius: 10px;
-		box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
-		display: block;
-		cursor: pointer;
-	}
+		& #game-canvas {
+			background: #b8c9a8;
+			border-radius: 10px;
+			box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+			display: block;
+			cursor: pointer;
+		}
 
-	.gaming.info {
-		& section { text-align: center; }
-		& h3 { margin: 15px 0; font-size: 1.2rem; font-weight: bold; color: #4a4a4a; }
-	}
+		& .gaming.info {
+			& section { text-align: center; }
+			& h3 { margin: 15px 0; font-size: 1.2rem; font-weight: bold; color: #4a4a4a; }
+		}
 
-	.one.setting {margin-bottom: 0;}
+		& .one.setting {margin-bottom: 0;}
+	}
 </style>
 </head>
 <body class="grid 反叵字形">
@@ -71,7 +73,7 @@
 		</div>
 	</nav>
 </header>
-<main>
+<main class="board game">
 	<header>
 		<h2 class="game name">贪吃蛇游戏</h2>
 		<div class="page-lv help area" v-cloak>

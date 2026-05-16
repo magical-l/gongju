@@ -23,130 +23,132 @@
 <!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/花活.css" rel="stylesheet"> -->
 <link href="../lib/css/花活.css" rel="stylesheet">
 <style>
-	.gaming.area {
-		--left-sidebar-min-width: 300px;
-		gap: var(--gap);
-		align-items: start;
+	.board.game {
+		& .gaming.area {
+			--left-sidebar-min-width: 300px;
+			gap: var(--gap);
+			align-items: start;
 
-		& .main.board { justify-self: center; align-self: start; }
-	}
+			& .main.board { justify-self: center; align-self: start; }
+		}
 
-	/* 格子基础样式：布局与文字 */
-	.cell {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-weight: bold;
-		font-size: calc(0.4 * var(--cell-size));
-		user-select: none;
-		color: #5a6b52;
-
-		&.empty { background: transparent; color: transparent; }
-	}
-
-	/* 主棋盘：装饰 + 交互 */
-	.main.board {
-		--board-gap: 6px;
-		--cell-size: 80px;
-		padding: 12px;
-		border-radius: 12px;
-		overflow: hidden;
-		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-
+		/* 格子基础样式：布局与文字 */
 		& .cell {
-			cursor: pointer;
-			transition: transform 0.15s ease, box-shadow 0.15s ease;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-weight: bold;
+			font-size: calc(0.4 * var(--cell-size));
+			user-select: none;
+			color: #5a6b52;
 
-			&:hover { transform: scale(1.03); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35); }
-			&.empty { cursor: default; &:hover { transform: none; box-shadow: none; } }
-			&.hint { outline: 3px solid #e6a23c; outline-offset: -3px; box-shadow: 0 0 0 3px rgba(230, 162, 60, 0.5); }
-			/* 布局时 */
-			&.selected {
-				outline: 3px solid var(--el-color-primary);
-				outline-offset: -3px;
-				box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.4);
-			}
+			&.empty { background: transparent; color: transparent; }
 		}
-	}
 
-	/* 小棋盘：缩小版主棋盘 */
-	.mini.board {
-		padding: 0;
-		--board-gap: 0;
-		--cell-size: 22px;
-		grid-template-columns: repeat(var(--board-cols), var(--cell-size));
-		grid-template-rows: repeat(var(--board-rows), var(--cell-size));
-		width: fit-content;
-		height: fit-content;
-	}
+		/* 主棋盘：装饰 + 交互 */
+		& .main.board {
+			--board-gap: 6px;
+			--cell-size: 80px;
+			padding: 12px;
+			border-radius: 12px;
+			overflow: hidden;
+			box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 
-	/* 初始局面：禁止交互 */
-	.init.board.situation .cell { cursor: default; }
+			& .cell {
+				cursor: pointer;
+				transition: transform 0.15s ease, box-shadow 0.15s ease;
 
-	/* 回合记录区 */
-	.record.area {
-		& .tip {
-			font-size: 0.8rem; color: #606266;
-
-			&.at-top { margin: 0; color: var(--el-color-warning); }
-			&.at-bottom { color: var(--el-color-success); margin-top: 6px; }
-		}
-		& .controller.list { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px; }
-		& .rounds {
-			> .summary { font-size: 0.8rem; color: #606266; margin: 4px 0 0; }
-			> .list {
-				display: grid;
-				grid-template-columns: repeat(auto-fill, 28px);
-				gap: 4px;
-				margin-top: 6px;
-				max-width: 100%;
-
-				& .cell {
-					width: 28px;
-					height: 28px;
-					border: 2px solid transparent;
-					transition: border-color 0.2s;
-
-					&.current { border-color: var(--el-color-primary); }
+				&:hover { transform: scale(1.03); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35); }
+				&.empty { cursor: default; &:hover { transform: none; box-shadow: none; } }
+				&.hint { outline: 3px solid #e6a23c; outline-offset: -3px; box-shadow: 0 0 0 3px rgba(230, 162, 60, 0.5); }
+				/* 布局时 */
+				&.selected {
+					outline: 3px solid var(--el-color-primary);
+					outline-offset: -3px;
+					box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.4);
 				}
 			}
 		}
-		& .error { color: var(--el-color-danger); }
-	}
 
-	/* 结算弹窗 */
-	.result {
-		background: #f9f9f9;
-		color: #303133;
-		border-radius: 8px;
-		min-width: 420px;
-		border: 1px solid #e4e7ed;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-
-		& .title { padding: 10px 10px 0 0; }
-		& .el-dialog__body { padding: 0 50px 30px 50px; text-align: center; }
-
-		& .toolbar {
-			margin-top: 30px;
-			display: flex;
-			gap: var(--gap);
-			justify-content: center;
+		/* 小棋盘：缩小版主棋盘 */
+		& .mini.board {
+			padding: 0;
+			--board-gap: 0;
+			--cell-size: 22px;
+			grid-template-columns: repeat(var(--board-cols), var(--cell-size));
+			grid-template-rows: repeat(var(--board-rows), var(--cell-size));
+			width: fit-content;
+			height: fit-content;
 		}
 
-		& .success {
-			font-size: 60px;
-			font-weight: bold;
-			color: #4caf50;
-			text-shadow: 0 0 10px white;
+		/* 初始局面：禁止交互 */
+		& .init.board.situation .cell { cursor: default; }
+
+		/* 回合记录区 */
+		& .record.area {
+			& .tip {
+				font-size: 0.8rem; color: #606266;
+
+				&.at-top { margin: 0; color: var(--el-color-warning); }
+				&.at-bottom { color: var(--el-color-success); margin-top: 6px; }
+			}
+			& .controller.list { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px; }
+			& .rounds {
+				& > .summary { font-size: 0.8rem; color: #606266; margin: 4px 0 0; }
+				& > .list {
+					display: grid;
+					grid-template-columns: repeat(auto-fill, 28px);
+					gap: 4px;
+					margin-top: 6px;
+					max-width: 100%;
+
+					& .cell {
+						width: 28px;
+						height: 28px;
+						border: 2px solid transparent;
+						transition: border-color 0.2s;
+
+						&.current { border-color: var(--el-color-primary); }
+					}
+				}
+			}
+			& .error { color: var(--el-color-danger); }
 		}
 
-		& .stats { font-size: 24px; margin-top: 10px; }
-	}
+		/* 结算弹窗 */
+		& .result {
+			background: #f9f9f9;
+			color: #303133;
+			border-radius: 8px;
+			min-width: 420px;
+			border: 1px solid #e4e7ed;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 
-	@media (max-width: 500px) {
-		.board {
-			padding: 8px;
-			gap: 4px;
+			& .title { padding: 10px 10px 0 0; }
+			& .el-dialog__body { padding: 0 50px 30px 50px; text-align: center; }
+
+			& .toolbar {
+				margin-top: 30px;
+				display: flex;
+				gap: var(--gap);
+				justify-content: center;
+			}
+
+			& .success {
+				font-size: 60px;
+				font-weight: bold;
+				color: #4caf50;
+				text-shadow: 0 0 10px white;
+			}
+
+			& .stats { font-size: 24px; margin-top: 10px; }
+		}
+
+		@media (max-width: 500px) {
+			& .board {
+				padding: 8px;
+				gap: 4px;
+			}
 		}
 	}
 </style>
@@ -178,7 +180,7 @@
 		</div>
 	</nav>
 </header>
-<main>
+<main class="board game">
 	<header>
 		<h2 class="game name">数字华容道</h2>
 		<div class="page-lv help area" v-cloak>

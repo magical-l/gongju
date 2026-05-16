@@ -6,91 +6,95 @@
 	--board-size: 15;
 }
 
-/* 侧边栏宽度 */
-.gaming.area { --left-sidebar-min-width: 280px; }
+/* ======================== 棋盘游戏 ======================== */
+.board.game {
+	/* 侧边栏宽度 */
+	& .gaming.area { --left-sidebar-min-width: 280px; }
 
-/* 本局信息区 */
-.gaming.info .game-info {
-	margin-top: 15px;
-	font-size: 1.1rem;
-	color: #4a4a4a;
-}
+	/* 本局信息区 */
+	& .gaming.info .game-info {
+		margin-top: 15px;
+		font-size: 1.1rem;
+		color: #4a4a4a;
+	}
 
-/* 落子记录区 */
-.record.area {
-	& .controller.list { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px; }
-	& .rounds > .list { margin-top: 6px; }
-}
+	/* 落子记录区 */
+	& .record.area {
+		& .controller.list { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px; }
+		& .rounds > .list { margin-top: 6px; }
+	}
 
-.board {
-	--board-cols: 15;
-	--board-rows: 15;
-	--cell-size: 40px;
-	--board-total-size: calc(var(--cell-size) * var(--board-size));
-	display: grid;
-	grid-template-columns: repeat(var(--board-size), var(--cell-size));
-	grid-template-rows: repeat(var(--board-size), var(--cell-size));
-	border: none;
-	border-right: 1px solid var(--line-color);
-	border-bottom: 1px solid var(--line-color);
-	box-sizing: content-box;
-	height: fit-content;
+	/* ======================== 棋盘 ======================== */
+	& .board {
+		--board-cols: 15;
+		--board-rows: 15;
+		--cell-size: 40px;
+		--board-total-size: calc(var(--cell-size) * var(--board-size));
+		display: grid;
+		grid-template-columns: repeat(var(--board-size), var(--cell-size));
+		grid-template-rows: repeat(var(--board-size), var(--cell-size));
+		border: none;
+		border-right: 1px solid var(--line-color);
+		border-bottom: 1px solid var(--line-color);
+		box-sizing: content-box;
+		height: fit-content;
 
-	.cell {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		border-left: 1px solid var(--line-color);
-		border-top: 1px solid var(--line-color);
+		& .cell {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			border-left: 1px solid var(--line-color);
+			border-top: 1px solid var(--line-color);
 
-		/* 可落子位置预览 */
-		&.targetable:hover::after {
-			content: '';
+			/* 可落子位置预览 */
+			&.targetable:hover::after {
+				content: '';
+				width: 90%;
+				height: 90%;
+				border-radius: 50%;
+				opacity: 0.3;
+				z-index: 5;
+				cursor: pointer;
+			}
+			&.targetable.black:hover::after { background-color: black; }
+			&.targetable.white:hover::after { background-color: white; }
+		}
+
+		& .unit.display {
 			width: 90%;
 			height: 90%;
 			border-radius: 50%;
-			opacity: 0.3;
-			z-index: 5;
 			cursor: pointer;
-		}
-		&.targetable.black:hover::after { background-color: black; }
-		&.targetable.white:hover::after { background-color: white; }
-	}
+			box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
 
-	.unit.display {
-		width: 90%;
-		height: 90%;
-		border-radius: 50%;
-		cursor: pointer;
-		box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+			&.black { background-color: #333; }
+			&.white { background-color: #f0f0f0; }
 
-		&.black { background-color: #333; }
-		&.white { background-color: #f0f0f0; }
+			/* 步数：利用父容器的 flex 居中，同时为红点提供定位基准 */
+			& .order {
+				position: relative;
+				font-size: 0.8em;
+				font-weight: bold;
+				z-index: 10;
+				pointer-events: none;
+			}
 
-		/* 步数：利用父容器的 flex 居中，同时为红点提供定位基准 */
-		& .order {
-			position: relative;
-			font-size: 0.8em;
-			font-weight: bold;
-			z-index: 10;
-			pointer-events: none;
+			/* 黑棋白字，白棋黑字 */
+			&.black .order { color: white; }
+			&.white .order { color: black; }
 		}
 
-		/* 黑棋白字，白棋黑字 */
-		&.black .order { color: white; }
-		&.white .order { color: black; }
-	}
-
-	/* 最后落子红点：相对于数字定位 */
-	.unit.display.last .order::after {
-		content: '';
-		position: absolute;
-		width: 8px;
-		height: 8px;
-		background-color: rgba(255, 0, 0, 0.7);
-		border-radius: 50%;
-		z-index: 15;
-		top: -4px;
-		right: -8px;
+		/* 最后落子红点：相对于数字定位 */
+		& .unit.display.last .order::after {
+			content: '';
+			position: absolute;
+			width: 8px;
+			height: 8px;
+			background-color: rgba(255, 0, 0, 0.7);
+			border-radius: 50%;
+			z-index: 15;
+			top: -4px;
+			right: -8px;
+		}
 	}
 }

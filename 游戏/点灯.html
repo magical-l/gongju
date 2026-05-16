@@ -25,56 +25,57 @@
 	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/花活.css" rel="stylesheet"> -->
 	<link href="../lib/css/花活.css" rel="stylesheet">
 <style>
-	.gaming.area {
-		gap: var(--gap);
-		align-items: start;
-	}
-
-	.board {
-		--cell-size: min(calc((100vh - 250px - var(--board-rows) * 10px) / var(--board-rows)),
-						calc((100vw - 200px - var(--board-cols) * 10px) / var(--board-cols)),
-						80px);
-		display: grid;
-		height: fit-content;
-		box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
-		border-radius: 10px;
-		padding: 10px;
-		gap: var(--gap);
-		grid-template-columns: repeat(var(--board-cols), var(--cell-size));
-		grid-template-rows: repeat(var(--board-rows), var(--cell-size));
-	}
-
-	.cell {
-		width: var(--cell-size);
-		height: var(--cell-size);
-		border-radius: 8px;
-		cursor: pointer;
-		transition: all 0.2s;
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-
-		&:hover { scale: 1.05; }
-
-		&.off { background: #e2ead8; }
-
-		&.on { background: #a8c99e; }
-
-		&.highlighted {
-			outline: 3px solid #3295ff;
-			outline-offset: -3px;
-			scale: 1.05;
-			transition: all 0.3s ease;
+	.board.game {
+		& .gaming.area {
+			gap: var(--gap);
+			align-items: start;
 		}
-	}
 
-	.scoreboard .el-card__header { padding: 8px 12px; }
+		& .board {
+			--cell-size: min(calc((100vh - 250px - var(--board-rows) * 10px) / var(--board-rows)),
+							calc((100vw - 200px - var(--board-cols) * 10px) / var(--board-cols)),
+							80px);
+			display: grid;
+			height: fit-content;
+			box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+			border-radius: 10px;
+			padding: 10px;
+			gap: var(--gap);
+			grid-template-columns: repeat(var(--board-cols), var(--cell-size));
+			grid-template-rows: repeat(var(--board-rows), var(--cell-size));
+		}
 
-	.sidebar .el-empty {
-		min-height: 100px;
-		padding: 30px 0;
-	}
+		& .cell {
+			width: var(--cell-size);
+			height: var(--cell-size);
+			border-radius: 8px;
+			cursor: pointer;
+			transition: all 0.2s;
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 
-	/* 回合记录区 */
-		.record.area {
+			&:hover { scale: 1.05; }
+
+			&.off { background: #e2ead8; }
+
+			&.on { background: #a8c99e; }
+
+			&.highlighted {
+				outline: 3px solid #3295ff;
+				outline-offset: -3px;
+				scale: 1.05;
+				transition: all 0.3s ease;
+			}
+		}
+
+		& .scoreboard .el-card__header { padding: 8px 12px; }
+
+		& .sidebar .el-empty {
+			min-height: 100px;
+			padding: 30px 0;
+		}
+
+		/* 回合记录区 */
+		& .record.area {
 			& .tip {
 				font-size: 0.8rem; color: #606266;
 
@@ -83,8 +84,8 @@
 			}
 			& .controller.list { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px; }
 			& .rounds {
-				> .summary { font-size: 0.8rem; color: #606266; margin: 4px 0 0; }
-				> .list {
+				& > .summary { font-size: 0.8rem; color: #606266; margin: 4px 0 0; }
+				& > .list {
 					min-height: 100px;
 					max-height: 330px;
 					overflow-y: auto;
@@ -93,7 +94,7 @@
 					border-radius: 5px;
 					padding: 10px;
 
-					p {
+					& p {
 						margin: 0;
 						padding: 6px 4px;
 						border-bottom: 1px solid #f0f2f5;
@@ -107,38 +108,39 @@
 			& .error { color: var(--el-color-danger); }
 		}
 
-	/* 结算弹窗 */
-	.result {
-		background: #f9f9f9;
-		color: #303133;
-		border-radius: 8px;
-		min-width: 420px;
-		border: 1px solid #e4e7ed;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+		/* 结算弹窗 */
+		& .result {
+			background: #f9f9f9;
+			color: #303133;
+			border-radius: 8px;
+			min-width: 420px;
+			border: 1px solid #e4e7ed;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 
-		& .title { padding: 10px 10px 0 0; }
-		& .el-dialog__body { padding: 0 50px 30px 50px; text-align: center; }
+			& .title { padding: 10px 10px 0 0; }
+			& .el-dialog__body { padding: 0 50px 30px 50px; text-align: center; }
 
-		& .toolbar {
-			margin-top: 30px;
-			display: flex;
-			gap: var(--gap);
-			justify-content: center;
+			& .toolbar {
+				margin-top: 30px;
+				display: flex;
+				gap: var(--gap);
+				justify-content: center;
+			}
+
+			& .success {
+				font-size: 60px;
+				font-weight: bold;
+				color: #4caf50;
+				text-shadow: 0 0 10px white;
+			}
+
+			& .stats { font-size: 24px; margin-top: 10px; }
 		}
 
-		& .success {
-			font-size: 60px;
-			font-weight: bold;
-			color: #4caf50;
-			text-shadow: 0 0 10px white;
-		}
-
-		& .stats { font-size: 24px; margin-top: 10px; }
-	}
-
-	@media (max-width: 500px) {
-		h1 {
-			font-size: 2rem;
+		@media (max-width: 500px) {
+			& h1 {
+				font-size: 2rem;
+			}
 		}
 	}
 </style>
@@ -170,7 +172,7 @@
 		</div>
 	</nav>
 </header>
-<main>
+<main class="board game">
 	<header>
 		<h2 class="game name">点灯游戏</h2>
 		<div class="page-lv help area" v-cloak>

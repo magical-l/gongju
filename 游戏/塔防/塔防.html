@@ -13,189 +13,191 @@
 <link href="../../resources/biz.css" rel="stylesheet">
 	<link href="../game.css" rel="stylesheet">
 <style>
-	.gaming.area {
-		gap: var(--gap);
-		align-items: start;
-	}
-
-	.game-container {
-		position: relative;
-		background: #b8c9a8;
-		border-radius: 10px;
-		box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-		cursor: pointer;
-		display: grid;
-		grid-template-columns: repeat(15, 1fr);
-		grid-template-rows: repeat(10, 1fr);
-	}
-
-	.cell {
-		box-sizing: border-box;
-		border: 1px solid rgba(0, 0, 0, 0.05);
-
-		&.selected {
-			border: 2px solid #67C23A;
-			background-color: rgba(103, 194, 58, 0.2);
+	.board.game {
+		& .gaming.area {
+			gap: var(--gap);
+			align-items: start;
 		}
 
-		&.path { background-color: #c8d8b8; }
-	}
+		& .game-container {
+			position: relative;
+			background: #b8c9a8;
+			border-radius: 10px;
+			box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+			cursor: pointer;
+			display: grid;
+			grid-template-columns: repeat(15, 1fr);
+			grid-template-rows: repeat(10, 1fr);
+		}
 
-	.gaming.info {
-		& .stat-item {
-			font-size: 1.1rem;
-			margin-bottom: 12px;
+		& .cell {
+			box-sizing: border-box;
+			border: 1px solid rgba(0, 0, 0, 0.05);
+
+			&.selected {
+				border: 2px solid #67C23A;
+				background-color: rgba(103, 194, 58, 0.2);
+			}
+
+			&.path { background-color: #c8d8b8; }
+		}
+
+		& .gaming.info {
+			& .stat-item {
+				font-size: 1.1rem;
+				margin-bottom: 12px;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+
+			& .stat-value { font-weight: bold; color: #409EFF; }
+		}
+
+		& .carrot, & .enemy, & .tower, & .bullet, & .obstacle {
+			position: absolute;
+			transition: left 0.1s linear, top 0.1s linear;
+		}
+
+		& .obstacle {
+			cursor: crosshair;
+			z-index: 2;
+		}
+
+		& .carrot {
+			text-align: center;
+			z-index: 10;
+		}
+
+		& .enemy {
+			z-index: 5;
+			cursor: crosshair;
 			display: flex;
-			justify-content: space-between;
 			align-items: center;
+			justify-content: center;
 		}
 
-		& .stat-value { font-weight: bold; color: #409EFF; }
-	}
+		& .enemy-visual {
+			width: 100%;
+			height: 100%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			transition: transform 0.1s linear;
+		}
 
-	.carrot, .enemy, .tower, .bullet, .obstacle {
-		position: absolute;
-		transition: left 0.1s linear, top 0.1s linear;
-	}
+		& .enemy-image {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			border-radius: 50%;
+		}
 
-	.obstacle {
-		cursor: crosshair;
-		z-index: 2;
-	}
+		& .locked-on {
+			box-shadow: 0 0 0 3px rgba(255, 50, 50, 0.7);
+		}
 
-	.carrot {
-		text-align: center;
-		z-index: 10;
-	}
+		& .health-bar {
+			position: absolute;
+			width: 100%;
+			height: 4px;
+			background: #555;
+			top: 0;
+			left: 0;
+			border-radius: 2px;
+			overflow: hidden;
+			z-index: 10;
+		}
 
-	.enemy {
-		z-index: 5;
-		cursor: crosshair;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
+		& .health-fill {
+			height: 100%;
+			background: #67C23A;
+			width: 100%;
+		}
 
-	.enemy-visual {
-		width: 100%;
-		height: 100%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		transition: transform 0.1s linear;
-	}
+		& .tower {
+			border-radius: 50%;
+			z-index: 4;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			color: white;
+			font-weight: bold;
+			border-width: 2px;
+			border-style: solid;
+		}
 
-	.enemy-image {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		border-radius: 50%;
-	}
+		& .bullet {
+			width: 8px;
+			height: 8px;
+			background: #f1c40f;
+			border-radius: 50%;
+			z-index: 6;
+			box-shadow: 0 0 5px #f1c40f;
+		}
 
-	.locked-on {
-		box-shadow: 0 0 0 3px rgba(255, 50, 50, 0.7);
-	}
+		& .range-indicator {
+			position: absolute;
+			background: rgba(44, 62, 80, 0.15);
+			border: 2px dashed rgba(44, 62, 80, 0.4);
+			border-radius: 50%;
+			z-index: 3;
+			pointer-events: none;
+		}
 
-	.health-bar {
-		position: absolute;
-		width: 100%;
-		height: 4px;
-		background: #555;
-		top: 0;
-		left: 0;
-		border-radius: 2px;
-		overflow: hidden;
-		z-index: 10;
-	}
+		& .placement-popup {
+			position: absolute;
+			display: flex;
+			gap: var(--gap);
+			background: rgba(255, 255, 255, 0.75);
+			border-radius: 8px;
+			padding: 8px;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+			z-index: 20;
+			transform: translate(-50%, 25px);
+			pointer-events: auto;
+		}
 
-	.health-fill {
-		height: 100%;
-		background: #67C23A;
-		width: 100%;
-	}
+		& .popup-tower-type {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			cursor: pointer;
+			flex-shrink: 0;
+		}
 
-	.tower {
-		border-radius: 50%;
-		z-index: 4;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		color: white;
-		font-weight: bold;
-		border-width: 2px;
-		border-style: solid;
-	}
+		& .popup-tower-type.insufficient-funds {
+			filter: grayscale(80%);
+		}
 
-	.bullet {
-		width: 8px;
-		height: 8px;
-		background: #f1c40f;
-		border-radius: 50%;
-		z-index: 6;
-		box-shadow: 0 0 5px #f1c40f;
-	}
+		& .popup-tower-type.insufficient-funds & .popup-tower-cost {
+			color: #F56C6C;
+		}
 
-	.range-indicator {
-		position: absolute;
-		background: rgba(44, 62, 80, 0.15);
-		border: 2px dashed rgba(44, 62, 80, 0.4);
-		border-radius: 50%;
-		z-index: 3; /* Below towers */
-		pointer-events: none; /* So it doesn't interfere with clicks */
-	}
+		& .popup-tower-icon {
+			width: 36px;
+			height: 36px;
+			border-radius: 50%;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			color: white;
+			font-weight: bold;
+			border: 2px solid white;
+			transition: transform 0.2s;
+		}
 
-	.placement-popup {
-		position: absolute;
-		display: flex;
-		gap: var(--gap);
-		background: rgba(255, 255, 255, 0.75);
-		border-radius: 8px;
-		padding: 8px;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-		z-index: 20;
-		transform: translate(-50%, 25px);
-		pointer-events: auto;
-	}
+		& .popup-tower-type:not(.insufficient-funds):hover & .popup-tower-icon {
+			transform: scale(1.1);
+		}
 
-	.popup-tower-type {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		cursor: pointer;
-		flex-shrink: 0; /* Prevent wrapping issue */
-	}
-
-	.popup-tower-type.insufficient-funds {
-		filter: grayscale(80%);
-	}
-
-	.popup-tower-type.insufficient-funds .popup-tower-cost {
-		color: #F56C6C;
-	}
-
-	.popup-tower-icon {
-		width: 36px;
-		height: 36px;
-		border-radius: 50%;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		color: white;
-		font-weight: bold;
-		border: 2px solid white;
-		transition: transform 0.2s;
-	}
-
-	.popup-tower-type:not(.insufficient-funds):hover .popup-tower-icon {
-		transform: scale(1.1);
-	}
-
-	.popup-tower-cost {
-		font-size: 0.8rem;
-		font-weight: bold;
-		margin-top: 4px;
-		color: #67C23A;
-		white-space: nowrap; /* Prevent wrapping */
+		& .popup-tower-cost {
+			font-size: 0.8rem;
+			font-weight: bold;
+			margin-top: 4px;
+			color: #67C23A;
+			white-space: nowrap;
+		}
 	}
 </style>
 </head>
@@ -226,7 +228,7 @@
 		</div>
 	</nav>
 </header>
-<main>
+<main class="board game">
 	<header>
 		<h2 class="game name">塔防</h2>
 	</header>

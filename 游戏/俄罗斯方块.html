@@ -40,42 +40,44 @@
 	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/花活.css" rel="stylesheet"> -->
 	<link href="../lib/css/花活.css" rel="stylesheet">
 <style>
-	.gaming.area { --反叵字形-gap: 2em; }
+	.board.game {
+		& .gaming.area { --反叵字形-gap: 2em; }
 
-	.board {
-		--cell-size: 30px;
-		grid-gap: 0;
+		& .board {
+			--cell-size: 30px;
+			grid-gap: 0;
 
-		&.preview {
-			--board-cols: 4;
-			--board-rows: 4;
-				padding: 0;
-				background: transparent;
-				border-color: transparent;
-				border-radius: 0;
-			width: fit-content;
-			height: fit-content;
+			&.preview {
+				--board-cols: 4;
+				--board-rows: 4;
+					padding: 0;
+					background: transparent;
+					border-color: transparent;
+					border-radius: 0;
+				width: fit-content;
+				height: fit-content;
+			}
+
+			& .cell {
+				border: 1px solid rgba(0, 0, 0, 0.15);
+
+				&.I { background-color: #7dd3c0; }
+				&.O { background-color: #f9e2af; }
+				&.T { background-color: #cba6f7; }
+				&.J { background-color: #89b4fa; }
+				&.L { background-color: #fab387; }
+				&.S { background-color: #a6e3a1; }
+				&.Z { background-color: #f38ba8; }
+				&.ghost { background-color: #495057; opacity: 0.25; }
+			}
 		}
 
-		& .cell {
-			border: 1px solid rgba(0, 0, 0, 0.15);
 
-			&.I { background-color: #7dd3c0; }
-			&.O { background-color: #f9e2af; }
-			&.T { background-color: #cba6f7; }
-			&.J { background-color: #89b4fa; }
-			&.L { background-color: #fab387; }
-			&.S { background-color: #a6e3a1; }
-			&.Z { background-color: #f38ba8; }
-			&.ghost { background-color: #495057; opacity: 0.25; }
-		}
+		& .one.setting.number.input {width: 80px;}
+
+		& .scoreboard section {text-align: center;}
+		& .scoreboard .el-card__header { padding: 8px 12px; }
 	}
-
-
-	.one.setting.number.input {width: 80px;}
-
-	.scoreboard section {text-align: center;}
-	.scoreboard .el-card__header { padding: 8px 12px; }
 </style>
 </head>
 <body class="grid 反叵字形">
@@ -105,7 +107,7 @@
 		</div>
 	</nav>
 </header>
-<main>
+<main class="board game">
 	<header>
 		<h2 class="game name">俄罗斯方块</h2>
 		<div class="page-lv help area" v-cloak>

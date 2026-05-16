@@ -2,8 +2,8 @@
 
 .board.game {}
 
-/* 格子：可以出现在任意地方，不局限于棋盘 */
-.cell {
+/* 格子：棋盘游戏里的格子 */
+.board.game .cell {
 	width: var(--cell-size);
 	height: var(--cell-size);
 	display: flex;
@@ -16,7 +16,7 @@
 }
 
 /* ======================== 游戏布局 ======================== */
-.gaming.area {
+.board.game .gaming.area {
 	margin: 0;
 	padding: 0;
 
@@ -27,7 +27,7 @@
 }
 
 /* ======================== 地图 ======================== */
-.map {
+.board.game .map {
 	/* 水平居中 */
 	margin: auto;
 	/* 防止内容被选中 */
@@ -41,7 +41,7 @@
 }
 
 /* ======================== 棋盘 ======================== */
-.board {
+.board.game .board {
 	--board-cols: 4;
 	--board-rows: 4;
 	--cell-size: min(70vmin / var(--board-cols), 70vmin / var(--board-rows));
@@ -93,7 +93,7 @@
 }
 
 /* 棋盘格特化 */
-.board .cell {
+.board.game .board .cell {
 	background: #d4e0c8;
 	border: 1px solid var(--line-color);
 	border-radius: 0;
