@@ -418,7 +418,15 @@
 		methods: {
 			cellClass(row, col) {
 				const index = row * this.gameBoardCols + col;
-				return [this.board[row][col] ? 'on' : 'off', {highlighted: this.highlightedCells[index]}];
+				const isOn = this.board[row][col];
+				const isHighlighted = this.highlightedCells[index];
+				return {
+					cell: {
+						'has-light': isOn,
+						highlighted: isHighlighted
+					},
+					unit: [isOn ? 'on' : 'off']
+				};
 			},
 			onGamingInfoCollapseChange(val) {
 				const def = this._gamingInfoDefaultPanels || [];
