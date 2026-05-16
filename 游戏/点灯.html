@@ -53,9 +53,6 @@
 			}
 		}
 
-		& .scoreboard .header { padding: 8px 12px; }
-
-		/* 回合记录区 */
 		& .record.area {
 			& .tip {
 				font-size: 0.8rem; color: #606266;
@@ -63,7 +60,6 @@
 				&.at-top { margin: 0; color: var(--el-color-warning); }
 				&.at-bottom { color: var(--el-color-success); margin-top: 6px; }
 			}
-			& .controller.list { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px; }
 			& .rounds {
 				& > .summary { font-size: 0.8rem; color: #606266; margin: 4px 0 0; }
 				& > .list {
@@ -87,18 +83,6 @@
 				}
 			}
 			& .error { color: var(--el-color-danger); }
-		}
-
-		/* 结算弹窗：公共样式见game.css */
-		& .result {
-			& .success {
-				font-size: 60px;
-				font-weight: bold;
-				color: #4caf50;
-				text-shadow: 0 0 10px white;
-			}
-
-			& .stats { font-size: 24px; margin-top: 10px; }
 		}
 
 		@media (max-width: 500px) {
