@@ -41,19 +41,24 @@
 			--board-gap: 6px;
 			--cell-size: 80px;
 			overflow: hidden;
-			box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 
 			& .cell {
+				position: relative;
+
 				&.movable { cursor: pointer; }
-				&.hint { outline: 3px solid #e6a23c; outline-offset: -3px; box-shadow: 0 0 0 3px rgba(230, 162, 60, 0.5); }
+				&.hint {
+					outline: 3px solid #e6a23c;
+					outline-offset: -3px;
+					box-shadow: 0 0 0 3px rgba(230, 162, 60, 0.5);
+				}
 				&.selected {
 					outline: 3px solid var(--el-color-primary);
 					outline-offset: -3px;
 					box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.4);
 				}
+				& .shape.triangle { position: absolute; inset: 0; }
 			}
 		}
-
 		/* 小棋盘：缩小版主棋盘 */
 		& .mini.board {
 			border-radius: 4px;
@@ -193,7 +198,10 @@
 			<div v-for="(val, index) in board" :key="index" class="cell" :class="cellStateClass(index)" @click="onCellClick(index)"
 				:draggable="layoutMode" @dragstart="onLayoutDragStart($event, index)" @dragend="onLayoutDragEnd"
 				@dragover.prevent @drop="onLayoutDrop($event, index)">
-				{{ val || '' }}
+				<div class="unit">
+					{{ val || '' }}
+					<span v-if="getMoveDirection(index)" class="shape triangle" :class="arrowClass(index)"></span>
+				</div>
 			</div>
 		</section>
 
@@ -619,21 +627,49 @@
 			},
 			cellStateClass(index) {
 				const val = this.board[index];
+				const dir = this.getMoveDirection(index);
 				return {
 					empty: val === 0,
 					sliding: this.slidingIndex === index,
 					hint: this.hintIndex === index,
 					selected: this.layoutMode && this.layoutSelectedIndex === index,
-					movable: !this.layoutMode && this.adjacentToEmpty(index),
+					'movable left': dir === 'left',
+					'movable right': dir === 'right',
+					'movable up': dir === 'up',
+					'movable down': dir === 'down',
 				};
 			},
+			getMoveDirection(tileIndex) {
+				if (this.layoutMode) return null;
+				const emptyIdx = this.board.indexOf(0);
+				const w = this.gameGridWidth;
+				const er = Math.floor(emptyIdx / w);
+				const ec = emptyIdx % w;
+				const tr = Math.floor(tileIndex / w);
+				const tc = tileIndex % w;
+				if (er === tr && ec === tc - 1) return 'left';
+				if (er === tr && ec === tc + 1) return 'right';
+				if (ec === tc && er === tr - 1) return 'up';
+				if (ec === tc && er === tr + 1) return 'down';
+				return null;
+			},
+			arrowClass(index) {
+				const dir = this.getMoveDirection(index);
+				if (!dir) return null;
+				return {
+				'at-left to-left': dir === 'left',
+				'at-right to-right': dir === 'right',
+				'at-top to-up': dir === 'up',
+				'at-bottom to-down': dir === 'down',
+				};
+				},
 			// 提示：与「本局解法」一致。已开答案用 solutionSteps；未开答案时用与 turnOnAnswer 相同的接轨/回滚逻辑，能接上则提示解法下一步，需先回滚则提示撤销上一步（玩家最后一步）
 			getNextStepValue() {
-				if (this.solutionSteps.length && this.solutionIndex < this.solutionSteps.length) {
-					return this.solutionSteps[this.solutionIndex];
-				}
-				const w = this.gameGridWidth;
-				const h = this.gameGridHeight;
+			if (this.solutionSteps.length && this.solutionIndex < this.solutionSteps.length) {
+				return this.solutionSteps[this.solutionIndex];
+			}
+			const w = this.gameGridWidth;
+			const h = this.gameGridHeight;
 				const done = this.stepsDone.length;
 				if (this.moves === 0 && this.initialSolution.length > 0) {
 					return this.initialSolution[0];
