@@ -424,6 +424,7 @@
 	// (1+0)%2=1 → 不可解。
 	const CONFIG_KEY_W = 'klotski-width';
 	const CONFIG_KEY_H = 'klotski-height';
+	const KLOTSKI_STATE_KEY = 'klotski-game-state';
 	const MIN_SIZE = 3;
 	const MAX_SIZE = 8;
 
@@ -524,7 +525,12 @@
 			this.gridHeight = h;
 			this.gameGridWidth = w;
 			this.gameGridHeight = h;
-			this.initGame();
+			const savedState = this.loadGameState();
+			if (savedState && !savedState.isWin) {
+				this.restoreGameState(savedState);
+			} else {
+				this.initGame();
+			}
 			window.addEventListener('keydown', this.onKeydown);
 		},
 		beforeUnmount() {
@@ -550,6 +556,53 @@
 				localStorage.setItem(CONFIG_KEY_W, String(this.gridWidth));
 				localStorage.setItem(CONFIG_KEY_H, String(this.gridHeight));
 			},
+			saveGameState() {
+				try {
+					const state = {
+						gameGridWidth: this.gameGridWidth,
+						gameGridHeight: this.gameGridHeight,
+						board: this.board,
+						initialBoard: this.initialBoard,
+						initialBoardKey: this.initialBoardKey,
+						initialSolution: this.initialSolution,
+						stepsDone: this.stepsDone,
+						moves: this.moves,
+						isWin: this.isWin,
+					};
+					localStorage.setItem(KLOTSKI_STATE_KEY, JSON.stringify(state));
+				} catch (_) {}
+			},
+			loadGameState() {
+				try {
+					const saved = localStorage.getItem(KLOTSKI_STATE_KEY);
+					if (!saved) return null;
+					return JSON.parse(saved);
+				} catch (_) { return null; }
+			},
+			clearGameState() {
+				try { localStorage.removeItem(KLOTSKI_STATE_KEY); } catch (_) {}
+			},
+			restoreGameState(state) {
+				this.gameGridWidth = state.gameGridWidth;
+				this.gameGridHeight = state.gameGridHeight;
+				this.gridWidth = state.gameGridWidth;
+				this.gridHeight = state.gameGridHeight;
+				this.board = state.board;
+				this.initialBoard = state.initialBoard;
+				this.initialBoardKey = state.initialBoardKey;
+				this.initialSolution = state.initialSolution;
+				this.stepsDone = state.stepsDone;
+				this.moves = state.moves;
+				this.isWin = state.isWin;
+				this.showWinModal = state.isWin;
+				this.solutionSteps = [];
+				this.lastRemainingSolution = [];
+				this.lastClearedBoardKey = '';
+				this.solutionIndex = 0;
+				this.solutionError = null;
+				this.hintIndex = -1;
+				this.slidingIndex = -1;
+			},
 			initGame() {
 				this.gameGridWidth = this.gridWidth;
 				this.gameGridHeight = this.gridHeight;
@@ -574,6 +627,7 @@
 					clearInterval(this.autoPlayTimer);
 					this.autoPlayTimer = null;
 				}
+				this.saveGameState();
 				this.$nextTick(() => this.updateMovable(this.board.indexOf(0)));
 			},
 			closeWinModal() {
@@ -800,6 +854,7 @@
 							this.isWin = true;
 							this.showWinModal = true;
 						}
+						this.saveGameState();
 					}, 150);
 				});
 			},

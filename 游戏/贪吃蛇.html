@@ -185,6 +185,8 @@
 <script>
 	const {createApp} = Vue;
 
+	const SNAKE_STATE_KEY = 'snake-game-state';
+
 	const app = createApp({
 		data() {
 			const collapseKey = 'gaming-info-snake';
@@ -279,7 +281,47 @@
 				else if (cell.isFood) classes.push('food');
 				return classes;
 			},
-			initGame() {
+			saveGameState() {
+				try {
+					const state = {
+						gameGridWidth: this.gameGridWidth,
+						gameGridHeight: this.gameGridHeight,
+						snake: this.snake,
+						food: this.food,
+						direction: this.direction,
+						nextDirection: this.nextDirection,
+						score: this.score,
+						gameOver: this.gameOver,
+						speedLevel: this.speedLevel,
+					};
+					localStorage.setItem(SNAKE_STATE_KEY, JSON.stringify(state));
+				} catch (_) {}
+			},
+			loadGameState() {
+				try {
+					const saved = localStorage.getItem(SNAKE_STATE_KEY);
+					if (!saved) return null;
+					return JSON.parse(saved);
+				} catch (_) { return null; }
+			},
+			clearGameState() {
+				try { localStorage.removeItem(SNAKE_STATE_KEY); } catch (_) {}
+			},
+			restoreGameState(state) {
+				this.gameGridWidth = state.gameGridWidth;
+				this.gameGridHeight = state.gameGridHeight;
+				this.gridWidth = state.gameGridWidth;
+				this.gridHeight = state.gameGridHeight;
+				this.snake = state.snake;
+				this.food = state.food;
+				this.direction = state.direction;
+				this.nextDirection = state.nextDirection;
+				this.score = state.score;
+				this.gameOver = state.gameOver;
+				this.speedLevel = state.speedLevel;
+				this.isPaused = true;
+			},
+			initGame(clearSaved = true) {
 				this.gameGridWidth = this.gridWidth;
 				this.gameGridHeight = this.gridHeight;
 				this.isPaused = true;
@@ -301,16 +343,18 @@
 				this.nextDirection = 'right';
 
 				this.generateFood();
+				this.saveGameState();
 			},
 			togglePause() {
 				if (this.gameOver) {
-					this.initGame();
+					this.initGame(true);
 					return;
 				}
 				this.isPaused = !this.isPaused;
 				if (this.isPaused) {
 					clearInterval(this.gameInterval);
 					this.gameInterval = null;
+					this.saveGameState();
 				} else {
 					this.startGameLoop();
 				}
@@ -337,6 +381,7 @@
 				} else {
 					this.snake.pop();
 				}
+				this.saveGameState();
 			},
 			moveSnake() {
 				this.direction = this.nextDirection;
@@ -425,7 +470,12 @@
 			},
 		},
 		mounted() {
-			this.initGame();
+			const savedState = this.loadGameState();
+			if (savedState && !savedState.gameOver) {
+				this.restoreGameState(savedState);
+			} else {
+				this.initGame(false);
+			}
 			window.addEventListener('keydown', this.handleKeydown);
 		},
 		beforeUnmount() {
