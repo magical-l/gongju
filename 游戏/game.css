@@ -34,8 +34,8 @@
 		-webkit-user-select: none;
 	}
 
-	/* 棋盘：有棋盘的游戏内，棋盘的默认样式表。通常是.map的子类。即具有.board的元素也应当具有.map。 */
-	& .board {
+	/* 棋盘：有棋盘的游戏内，棋盘的默认样式表。继承.map */
+	& .board.map {
 		--board-cols: 4;
 		--board-rows: 4;
 		--cell-size: min(70vmin / var(--board-cols), 70vmin / var(--board-rows));
@@ -74,8 +74,8 @@
 		-webkit-user-select: none;
 	}
 
-	/* 棋子：通常是.unit的子类 */
-	& .piece {
+	/* 棋子：继承.unit */
+	& .piece.unit {
 		width: var(--unit-size);
 		height: var(--unit-size);
 		aspect-ratio: 1/1;

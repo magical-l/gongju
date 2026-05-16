@@ -51,7 +51,7 @@
 			&.targetable.white:hover::after { background-color: white; }
 		}
 
-		& .unit.display {
+		& .piece {
 			width: 90%;
 			height: 90%;
 			border-radius: 50%;
@@ -76,7 +76,7 @@
 		}
 
 		/* 最后落子红点：相对于数字定位 */
-		& .unit.display.last .order::after {
+		& .piece.last .order::after {
 			content: '';
 			position: absolute;
 			width: 8px;

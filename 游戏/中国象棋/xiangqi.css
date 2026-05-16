@@ -12,16 +12,9 @@
 	--cell-size: 60px;
 	--line-stroke-width: 1px;
 
-	& .unit.display {
-		width: var(--unit-size);
-		height: var(--unit-size);
-		border-radius: 50%;
-		display: flex;
-		justify-content: center;
-		align-items: center;
+	& .piece {
 		font-family: 'NotoSansSymbols2', sans-serif;
 		font-size: calc(var(--unit-size) * 0.78);
-		cursor: pointer;
 		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 		flex: none;
 
@@ -164,7 +157,7 @@
 		}
 
 		/* 棋盘内的棋子定位 */
-		& .unit.display { position: absolute; z-index: 10; }
+		& .piece { position: absolute; z-index: 10; }
 	}
 
 	/* ======================== 游戏局 ======================== */

@@ -197,7 +197,7 @@
 			</section>
 		</header>
 		<article class="main map area , flex items-near-x-center items-near-y-start" style="grid-row:2">
-			<section class="board" :style="boardStyle">
+			<section class="board map" :style="boardStyle">
 				<div v-for="(cell, index) in displayGrid" :key="index" :class="['cell', cell]"></div>
 				<div class="overlay" v-if="isPaused || isGameOver">
 					<div class="title">{{ overlayText }}</div>
@@ -209,7 +209,7 @@
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
 					<el-collapse-item title="下一块" name="next">
-						<div class="board preview">
+						<div class="board map preview">
 							<div class="cell" v-for="(block, index) in nextPieceBlocks" :key="index" :class="block"></div>
 						</div>
 					</el-collapse-item>

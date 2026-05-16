@@ -8,7 +8,7 @@
 		font-family: system-ui, -apple-system, sans-serif;
 
 		/* 2048系特有：尺寸限制 */
-		& .board.main.map {
+		& .board.main {
 			max-height: min(85vh, 900px);
 			min-height: min(320px, 55vmin);
 		}
