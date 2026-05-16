@@ -36,20 +36,62 @@
 		}
 
 		& .cell {
-			cursor: pointer;
-			transition: all 0.2s;
+			/* 格子被照亮时的背景 */
+			&.has-light {
+				background: radial-gradient(circle at center,
+					#fff 0%,
+					#fffacd 50%,
+					#ffe4b5 100%);
+			}
 
-			&:hover { scale: 1.05; }
-
-			&.off { background: #e2ead8; }
-
-			&.on { background: #a8c99e; }
-
+			/* 提示状态保留在格子层 */
 			&.highlighted {
 				outline: 3px solid #3295ff;
 				outline-offset: -3px;
-				scale: 1.05;
-				transition: all 0.3s ease;
+			}
+		}
+
+		& .unit.light {
+			width: 50%;
+			height: 50%;
+			cursor: pointer;
+			transition: all 0.2s;
+			position: relative;
+
+			&:hover { scale: 1.1; }
+
+			/* SVG 灯泡基础样式 */
+			svg {
+				width: 100%;
+				height: 100%;
+				stroke-linecap: round;
+				stroke-linejoin: round;
+			}
+
+			/* 灯灭状态 */
+			&.off svg {
+				fill: none;
+				stroke: #888;
+			}
+
+			/* 灯亮状态 */
+			&.on {
+				svg {
+					fill: #ffd700;
+					stroke: #ffa500;
+				}
+
+				/* 光晕溢出效果 */
+				&::before {
+					content: '';
+					position: absolute;
+					inset: -100%;
+					background: radial-gradient(circle,
+						rgba(255,215,0,0.25) 0%,
+						rgba(255,228,181,0.15) 40%,
+						transparent 70%);
+					z-index: -1;
+				}
 			}
 		}
 
