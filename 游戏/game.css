@@ -6,57 +6,64 @@
 	& .gaming.area {
 		margin: 0;
 		padding: 0;
-	
+
 		/* 获得焦点时不显示选中框 */
 		&:focus {
 			outline: none;
 		}
 	}
 
-	/* 地图：游戏通用的地图 */
+	/* 地图：有地图的游戏内，地图的默认样式表。不局限于玩区，也可以是一局游戏之外的展示信息 */
 	& .map {
 		/* 水平居中 */
 		margin: auto;
 		/* 防止内容被选中 */
 		user-select: none;
 		-webkit-user-select: none;
-	
+
 		/* 获得焦点时不显示选中框 */
 		&:focus {
 			outline: none;
 		}
+	}
 
-		/* 后代有遮罩元素时，为遮罩层提供定位基准 */
-		&:has(.overlay) {
-			position: relative;
+	/* 单位：有单位的游戏内，单位的默认样式表，如棋子、数字方块等。不局限于地图内，也可以是一局游戏之外的展示信息 */
+	& .unit {
+		text-align: center;
+		user-select: none;
+		-webkit-user-select: none;
+	}
+
+	/* 后代有遮罩元素时，为遮罩层提供定位基准 */
+	&:has(.overlay) {
+		position: relative;
+	}
+
+	/* 遮罩本身 */
+	& .overlay {
+		position: absolute;
+		inset: 0;
+		z-index: 10;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 1rem;
+		background: rgba(0, 0, 0, 0.5);
+		border-radius: inherit;
+		pointer-events: auto;
+
+		>.title {
+			font-size: clamp(1.25rem, 4vw, 2rem);
+			font-weight: 600;
+			color: #fff;
+			text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 		}
 
-		/* 棋盘遮罩 */
-		& .overlay {
-			position: absolute;
-			inset: 0;
-			z-index: 10;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			justify-content: center;
-			gap: 1rem;
-			background: rgba(0, 0, 0, 0.5);
-			border-radius: inherit;
-			pointer-events: auto;
-	
-			>.title {
-				font-size: clamp(1.25rem, 4vw, 2rem);
-				font-weight: 600;
-				color: #fff;
-				text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-			}
-	
-			>.hint {
-				margin: 0;
-				font-size: 0.875rem;
-				color: rgba(255, 255, 255, 0.85);
-			}
+		>.hint {
+			margin: 0;
+			font-size: 0.875rem;
+			color: rgba(255, 255, 255, 0.85);
 		}
 	}
 }
@@ -82,7 +89,7 @@
 		border: 2px solid var(--line-color);
 		border-radius: 8px;
 
-		/* 棋盘内的格子 */
+		/* 特指出现在棋盘内的格子 */
 		& .cell {
 			background: #d4e0c8;
 			border: 1px solid var(--line-color);
@@ -97,9 +104,5 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-	
-		>.unit {
-			text-align: center;
-		}
 	}
 }
