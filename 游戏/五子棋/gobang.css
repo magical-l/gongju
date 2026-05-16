@@ -28,19 +28,12 @@
 		--board-rows: 15;
 		--cell-size: 40px;
 		--board-total-size: calc(var(--cell-size) * var(--board-size));
-		display: grid;
-		grid-template-columns: repeat(var(--board-size), var(--cell-size));
-		grid-template-rows: repeat(var(--board-size), var(--cell-size));
 		border: none;
 		border-right: 1px solid var(--line-color);
 		border-bottom: 1px solid var(--line-color);
 		box-sizing: content-box;
-		height: fit-content;
 
 		& .cell {
-			display: flex;
-			justify-content: center;
-			align-items: center;
 			border-left: 1px solid var(--line-color);
 			border-top: 1px solid var(--line-color);
 

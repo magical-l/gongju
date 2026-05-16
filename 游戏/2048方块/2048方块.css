@@ -41,8 +41,6 @@
 	padding: 0;
 	background: transparent;
 	border-radius: 0;
-	width: fit-content;
-	height: fit-content;
 	margin: 0 auto;
 
 	& .cell > .unit { font-size: 12px; }

@@ -35,8 +35,6 @@
 			--cell-size: min(calc((100vh - 250px - var(--board-rows) * 10px) / var(--board-rows)),
 							calc((100vw - 200px - var(--board-cols) * 10px) / var(--board-cols)),
 							80px);
-			display: grid;
-			height: fit-content;
 			box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
 			border-radius: 10px;
 			padding: 10px;
@@ -46,8 +44,6 @@
 		}
 
 		& .cell {
-			width: var(--cell-size);
-			height: var(--cell-size);
 			border-radius: 8px;
 			cursor: pointer;
 			transition: all 0.2s;

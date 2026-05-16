@@ -54,9 +54,6 @@
 		height: fit-content;
 
 		& .cell {
-			display: flex;
-			justify-content: center;
-			align-items: center;
 			border: none;
 
 			/* 为纹理层提供定位基准 */
