@@ -135,7 +135,7 @@
 		& .toolbar {
 			margin-top: 30px;
 			display: flex;
-			gap: var(--gap);
+			gap: 0.5rem;
 			justify-content: center;
 		}
 	}

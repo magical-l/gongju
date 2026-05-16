@@ -95,7 +95,7 @@ main > header {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	gap: var(--gap);
+	gap: 0.5rem;
 	flex-wrap: wrap;
 }
 
@@ -106,7 +106,7 @@ main > header {
 	justify-content: flex-start;
 	min-width: 50px;
 	min-height: 90px;
-	gap: var(--gap);
+	gap: 0.5rem;
 
 	& .sign {
 		font-size: 52px;
@@ -137,5 +137,5 @@ main > header {
 .badges {
 	display: flex;
 	flex-direction: column;
-	gap: var(--gap);
+	gap: 0.5rem;
 }
