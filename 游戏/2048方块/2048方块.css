@@ -1,9 +1,5 @@
 /* 2048方块 网页版 - 通用样式见 ../2048/2048.css */
 
-:root {
-	--page-bg: #E8F0E0;
-}
-
 /* 消行动画 */
 @keyframes clear-line-flash {
 	0%, 100% { background: rgba(255, 255, 255, 0.95); color: #333; }

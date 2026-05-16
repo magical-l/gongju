@@ -1,9 +1,5 @@
 /* 2048蛇 网页版 - 通用样式见 ../2048/2048.css */
 
-:root {
-	--page-bg: #E8F0E0;
-}
-
 /* 本页 .board 需 min-height */
 .game .gaming.area .board { min-height: 200px; }
 

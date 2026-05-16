@@ -5,17 +5,13 @@
 	src: url('../../lib/fonts/NotoSansSymbols2-Regular.ttf') format('truetype');
 }
 
-:root {
+.game {
 	--red-color: #d43d3d;
 	--black-color: #333;
 	--unit-size: 45px;
 	--cell-size: 60px;
 	--line-stroke-width: 1px;
-}
 
-/* ======================== 棋盘游戏 ======================== */
-.game {
-	/* ======================== 棋子 ======================== */
 	& .unit.display {
 		width: var(--unit-size);
 		height: var(--unit-size);
@@ -48,7 +44,6 @@
 		}
 	}
 
-	/* ======================== 棋盘 ======================== */
 	& .board {
 		--board-cols: 9;
 		--board-rows: 10;
