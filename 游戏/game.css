@@ -6,8 +6,8 @@
 	& .gaming.area {
 		margin: 0;
 		padding: 0;
+		gap: 0.5rem;
 
-		/* 获得焦点时不显示选中框 */
 		&:focus {
 			outline: none;
 		}

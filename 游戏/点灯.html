@@ -26,28 +26,18 @@
 	<link href="../lib/css/花活.css" rel="stylesheet">
 <style>
 	.game {
-		& .gaming.area {
-			gap: 0.5rem;
-			align-items: start;
-		}
-
 		& .board.map {
 			--cell-size: min(calc((100vh - 250px - var(--board-rows) * 10px) / var(--board-rows)),
 							calc((100vw - 200px - var(--board-cols) * 10px) / var(--board-cols)),
 							80px);
-			box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
-			border-radius: 10px;
-			padding: 10px;
 			gap: 0.5rem;
 			grid-template-columns: repeat(var(--board-cols), var(--cell-size));
 			grid-template-rows: repeat(var(--board-rows), var(--cell-size));
 		}
 
 		& .cell {
-			border-radius: 8px;
 			cursor: pointer;
 			transition: all 0.2s;
-			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 
 			&:hover { scale: 1.05; }
 
