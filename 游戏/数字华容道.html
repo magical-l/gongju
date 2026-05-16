@@ -45,6 +45,17 @@
 			& .cell {
 				position: relative;
 
+					& .unit {
+					position: absolute;
+					inset: 0;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					font-weight: inherit;
+					font-size: inherit;
+					color: inherit;
+					background: inherit;
+
 				&.movable { cursor: pointer; }
 				&.hint {
 					outline: 3px solid #e6a23c;
@@ -56,7 +67,9 @@
 					outline-offset: -3px;
 					box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.4);
 				}
-				& .shape.triangle { position: absolute; inset: 0; }
+
+					& > .shape.triangle { position: absolute; inset: 0; }
+				}
 			}
 		}
 		/* 小棋盘：缩小版主棋盘 */
@@ -195,10 +208,10 @@
 		</header>
 
 		<section class="board , main map , grid" :style="boardStyle" :class="{ 'non-interactive': isWin && !showWinModal }">
-			<div v-for="(val, index) in board" :key="index" class="cell" :class="cellStateClass(index)" @click="onCellClick(index)"
-				:draggable="layoutMode" @dragstart="onLayoutDragStart($event, index)" @dragend="onLayoutDragEnd"
+			<div v-for="(val, index) in board" :key="index" class="cell" :class="{ empty: board[index] === 0 }"
 				@dragover.prevent @drop="onLayoutDrop($event, index)">
-				<div class="unit">
+				<div class="unit" :class="cellStateClass(index)" @click="onCellClick(index)"
+					:draggable="layoutMode" @dragstart="onLayoutDragStart($event, index)" @dragend="onLayoutDragEnd">
 					{{ val || '' }}
 					<span v-if="getMoveDirection(index)" class="shape triangle" :class="arrowClass(index)"></span>
 				</div>
