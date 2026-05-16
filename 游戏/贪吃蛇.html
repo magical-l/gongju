@@ -8,20 +8,16 @@
 <meta name="keywords" content="贪吃蛇, Snake, 在线游戏, 经典游戏, 怀旧游戏, 休闲游戏">
 <meta name="author" content="工具兽">
 <meta property="og:title" content="贪吃蛇游戏 | 在线经典怀旧游戏">
-<meta property="og:description"
-			content="在线玩经典的贪吃蛇游戏。控制小蛇吃食物，不断变长，挑战你的最高分。提供不同速度选择。">
+<meta property="og:description" content="在线玩经典的贪吃蛇游戏。控制小蛇吃食物，不断变长，挑战你的最高分。提供不同速度选择。">
 <meta property="og:type" content="game">
 
 <link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
 <link href="../resources/el-plus.css" rel="stylesheet">
-	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/common.css" rel="stylesheet"> -->
-	<link href="../lib/css/common.css" rel="stylesheet">
-	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/layout.css" rel="stylesheet"> -->
-	<link href="../lib/css/layout.css" rel="stylesheet">
+<link href="../lib/css/common.css" rel="stylesheet">
+<link href="../lib/css/layout.css" rel="stylesheet">
 <link href="../resources/biz.css?v=250821" rel="stylesheet">
-	<link href="game.css" rel="stylesheet">
-	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/花活.css" rel="stylesheet"> -->
-	<link href="../lib/css/花活.css" rel="stylesheet">
+<link href="game.css" rel="stylesheet">
+<link href="../lib/css/花活.css" rel="stylesheet">
 <style>
 	.game {
 		& .gaming.area {
@@ -29,12 +25,24 @@
 			align-items: start;
 		}
 
-		& #game-canvas {
-			background: #b8c9a8;
-			border-radius: 10px;
-			box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
-			display: block;
+		& .board {
+			--cell-size: 20px;
+			--board-cols: 20;
+			--board-rows: 20;
 			cursor: pointer;
+
+			& .cell.snake {
+				background: #34495e;
+				border-radius: 2px;
+			}
+			& .cell.snake.head {
+				background: #2c3e50;
+				border-radius: 4px;
+			}
+			& .cell.food {
+				background: #e74c3c;
+				border-radius: 2px;
+			}
 		}
 
 		& .gaming.info {
@@ -79,9 +87,9 @@
 		<div class="page-lv help area" v-cloak>
 			<el-button title="游戏介绍" class="page-lv help btn" size="small" circle @click="introVisible = true">?</el-button>
 			<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
-				<p>欢迎来到“贪吃蛇”游戏，这是一款经典的街机游戏。</p>
+				<p>欢迎来到"贪吃蛇"游戏，这是一款经典的街机游戏。</p>
 				<p>使用键盘的<strong>方向键 (↑, ↓, ←, →)</strong> 来控制蛇的移动方向。</p>
-				<p>通过<strong>“开始/暂停”按钮</strong>或按<strong>空格键</strong>来控制游戏的开始、暂停与重新开始。</p>
+				<p>通过<strong>"开始/暂停"按钮</strong>或按<strong>空格键</strong>来控制游戏的开始、暂停与重新开始。</p>
 				<p>游戏的目标是吃掉随机出现的食物（红色方块），每吃掉一个食物，蛇的身体就会变长，并且你的得分也会增加。</p>
 				<p>请注意，蛇不能碰到墙壁或自己的身体，否则游戏就会结束。</p>
 				<p>祝您玩得愉快，挑战更高的分数！</p>
@@ -112,21 +120,27 @@
 					</el-form-item>
 				</div>
 				<div class="one setting group">
-					<el-button type="danger" class="one setting : new-game" @click="initGame" icon="RefreshRight">新局
-					</el-button>
+					<el-button type="danger" class="one setting : new-game" @click="initGame" icon="RefreshRight">新局</el-button>
 				</div>
 			</section>
 			<section class="controller list , flex single-line no-gap items-near-x-start items-near-y-center">
 				<div class="one controller group">
 					<el-button type="primary" class="one controller : pause" @click="togglePause" :icon="isPaused ? 'VideoPlay' : 'VideoPause'">
-						{{ isPaused ? (score === 0 && !gameOver ? '开始' : '继续') : '暂停' }}
+						{{ isPaused ? (gameOver ? '新局' : (score === 0 ? '开始' : '继续')) : '暂停' }}
 					</el-button>
 				</div>
 			</section>
 		</header>
 
 		<article class="main map area , flex items-near-x-center">
-			<canvas id="game-canvas" :width="canvasWidth" :height="canvasHeight" @click="handleCanvasClick"></canvas>
+			<section class="board map" :style="boardStyle" @click="togglePause">
+				<div v-for="(cell, index) in cells" :key="index" :class="cellClass(cell)"></div>
+				<div class="overlay" v-if="isPaused || gameOver">
+					<div class="title">{{ overlayTitle }}</div>
+					<p class="hint" v-if="gameOver">分数: {{ score }}</p>
+					<p class="hint">{{ overlayHint }}</p>
+				</div>
+			</section>
 		</article>
 
 		<aside class="sidebar at-left">
@@ -159,8 +173,7 @@
 			<p class="slogan">赞助一下</p>
 		</section>
 		<section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
-		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
-		</section>
+		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p></section>
 	</article>
 </aside>
 
@@ -187,7 +200,6 @@
 				speedOptions: Array.from({length: 10}, (_, i) => i + 1),
 				gameGridWidth: 20,
 				gameGridHeight: 20,
-				gridSize: 20,
 				snake: [],
 				food: {},
 				direction: 'right',
@@ -197,7 +209,6 @@
 				gameOver: false,
 				isPaused: true,
 				gameInterval: null,
-				ctx: null,
 				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
 				_gamingInfoCollapseKey: collapseKey,
 				_gamingInfoDefaultPanels: defaultPanels,
@@ -207,11 +218,34 @@
 			gameSpeed() {
 				return 250 - this.speedLevel * 20;
 			},
-			canvasWidth() {
-				return this.gameGridWidth * this.gridSize;
+			boardStyle() {
+				return {
+					'--board-cols': this.gameGridWidth,
+					'--board-rows': this.gameGridHeight,
+				};
 			},
-			canvasHeight() {
-				return this.gameGridHeight * this.gridSize;
+			cells() {
+				const grid = [];
+				for (let y = 0; y < this.gameGridHeight; y++) {
+					for (let x = 0; x < this.gameGridWidth; x++) {
+						const isSnakeHead = this.snake.length > 0 && this.snake[0].x === x && this.snake[0].y === y;
+						const isSnakeBody = this.snake.slice(1).some(s => s.x === x && s.y === y);
+						const isFood = this.food.x === x && this.food.y === y;
+						grid.push({
+							x, y,
+							isSnakeHead,
+							isSnakeBody,
+							isFood,
+						});
+					}
+				}
+				return grid;
+			},
+			overlayTitle() {
+				return this.gameOver ? '游戏结束' : (this.score === 0 ? '准备就绪' : '已暂停');
+			},
+			overlayHint() {
+				return this.gameOver ? '按空格或点击以新局' : '按空格或点击以开始/继续';
 			},
 		},
 		watch: {
@@ -238,6 +272,13 @@
 					}
 				} catch (_) {}
 			},
+			cellClass(cell) {
+				const classes = ['cell'];
+				if (cell.isSnakeHead) classes.push('snake', 'head');
+				else if (cell.isSnakeBody) classes.push('snake');
+				else if (cell.isFood) classes.push('food');
+				return classes;
+			},
 			initGame() {
 				this.gameGridWidth = this.gridWidth;
 				this.gameGridHeight = this.gridHeight;
@@ -260,7 +301,6 @@
 				this.nextDirection = 'right';
 
 				this.generateFood();
-				this.draw();
 			},
 			togglePause() {
 				if (this.gameOver) {
@@ -271,7 +311,6 @@
 				if (this.isPaused) {
 					clearInterval(this.gameInterval);
 					this.gameInterval = null;
-					this.draw();
 				} else {
 					this.startGameLoop();
 				}
@@ -298,7 +337,6 @@
 				} else {
 					this.snake.pop();
 				}
-				this.draw();
 			},
 			moveSnake() {
 				this.direction = this.nextDirection;
@@ -343,53 +381,11 @@
 					}
 				}
 			},
-			draw() {
-				this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
-				// Draw snake
-				this.ctx.fillStyle = '#34495e';
-				this.snake.forEach(segment => {
-					this.ctx.fillRect(segment.x * this.gridSize, segment.y * this.gridSize, this.gridSize - 1, this.gridSize - 1);
-				});
-				// Draw food
-				this.ctx.fillStyle = '#e74c3c';
-				this.ctx.fillRect(this.food.x * this.gridSize, this.food.y * this.gridSize, this.gridSize - 1,
-						this.gridSize - 1);
-
-				if (this.gameOver) {
-					this.drawOverlay('游戏结束', `分数: ${this.score}`, '按空格或点击以新局');
-				} else if (this.isPaused) {
-					const message = this.score === 0 ? '准备就绪' : '已暂停';
-					this.drawOverlay(message, '按空格或点击以开始/继续');
-				}
-			},
-			drawOverlay(text, subtext, subtext2) {
-				this.ctx.fillStyle = 'rgba(240, 242, 245, 0.85)';
-				this.ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
-				this.ctx.fillStyle = '#34495e';
-				this.ctx.textAlign = 'center';
-				this.ctx.textBaseline = 'middle';
-
-				this.ctx.font = 'bold 40px Arial';
-				this.ctx.fillText(text, this.canvasWidth / 2, this.canvasHeight / 2 - 40);
-
-				if (subtext) {
-					this.ctx.font = '20px Arial';
-					this.ctx.fillText(subtext, this.canvasWidth / 2, this.canvasHeight / 2 + 10);
-				}
-				if (subtext2) {
-					this.ctx.font = '16px Arial';
-					this.ctx.fillText(subtext2, this.canvasWidth / 2, this.canvasHeight / 2 + 40);
-				}
-			},
 			endGame() {
 				this.gameOver = true;
 				this.isPaused = true;
 				clearInterval(this.gameInterval);
 				this.gameInterval = null;
-				this.draw();
-			},
-			handleCanvasClick() {
-				this.togglePause();
 			},
 			handleKeydown(e) {
 				if (e.key === ' ') {
@@ -429,8 +425,6 @@
 			},
 		},
 		mounted() {
-			const canvas = document.getElementById('game-canvas');
-			this.ctx = canvas.getContext('2d');
 			this.initGame();
 			window.addEventListener('keydown', this.handleKeydown);
 		},
