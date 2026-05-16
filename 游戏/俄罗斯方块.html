@@ -70,12 +70,6 @@
 		}
 	}
 
-	.pause.overlay {
-		position: absolute; top: 0; left: 0;
-		width: 100%; height: 100%;
-		background: rgba(73, 80, 87, 0.7);
-		line-height: 1.5; color: white; font-size: 2em; font-weight: bold;
-	}
 
 	.one.setting.number.input {width: 80px;}
 
@@ -205,8 +199,8 @@
 		<article class="main map area , flex items-near-x-center items-near-y-start" style="grid-row:2">
 			<section class="board" :style="boardStyle">
 				<div v-for="(cell, index) in displayGrid" :key="index" :class="['cell', cell]"></div>
-				<div class="pause overlay , flex go-y near-center" v-if="isPaused || isGameOver">
-					<div class="overlay-text">{{ overlayText }}</div>
+				<div class="overlay" v-if="isPaused || isGameOver">
+					<div class="title">{{ overlayText }}</div>
 					<el-button class="start play btn" v-if="!isGameOver" @click="togglePause" icon="CaretRight"></el-button>
 				</div>
 			</section>
