@@ -76,7 +76,7 @@
 		}
 
 		/* 初始局面：禁止交互 */
-		& .init.board.situation .cell { cursor: default; }
+		& .init.situation .cell { cursor: default; }
 
 		/* 回合记录区 */
 		& .record.area {
@@ -213,9 +213,9 @@
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
 					<el-collapse-item title="本局信息" name="gaming info" class="gaming info">
-						<section class="init map">
+						<section class="init situation">
 							<h3>初始局面</h3>
-							<div class="mini board , init board situation , grid" :style="initialBoardStyle">
+							<div class="mini board map , grid" :style="initialBoardStyle">
 								<span v-for="(val, idx) in initialBoard" :key="idx" class="cell" :class="{ empty: val === 0 }">{{ val || '' }}</span>
 							</div>
 						</section>
