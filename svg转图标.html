@@ -29,7 +29,7 @@
 		margin-bottom: 1rem;
 	}
 
-	.input.area .el-textarea__inner {
+	.input.area textarea {
 		height: 200px;
 		margin-bottom: 20px;
 	}
@@ -89,7 +89,7 @@
 
 	<article v-cloak>
 		<section class="input area">
-			<el-input type="textarea" :rows="8" placeholder="粘贴SVG代码到这里" v-model="input"></el-input>
+			<el-input type="textarea" class="textarea-input" :rows="8" placeholder="粘贴SVG代码到这里" v-model="input"></el-input>
 		</section>
 
 		<section class="result area , grid">

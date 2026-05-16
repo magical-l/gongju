@@ -63,12 +63,7 @@
 			}
 		}
 
-		& .scoreboard .el-card__header { padding: 8px 12px; }
-
-		& .sidebar .el-empty {
-			min-height: 100px;
-			padding: 30px 0;
-		}
+		& .scoreboard .header { padding: 8px 12px; }
 
 		/* 回合记录区 */
 		& .record.area {
@@ -210,7 +205,7 @@
 			<el-card shadow="never">
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
 					<el-collapse-item title="本局信息" name="gaming info" class="gaming info">
-						<el-card header="移动次数" class="scoreboard" body-class="value" shadow="never">
+						<el-card header="移动次数" class="scoreboard" header-class="header" body-class="value" shadow="never">
 							{{ moveCount }}
 						</el-card>
 					</el-collapse-item>

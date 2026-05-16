@@ -158,7 +158,7 @@
 
 		/* 棋盘内的棋子定位 */
 		& .piece { position: absolute; z-index: 10; }
-	}
+	}/* .game .board.map */
 
 	/* ======================== 游戏局 ======================== */
 	& .gaming.area {
