@@ -45,7 +45,7 @@
 			& .cell {
 				position: relative;
 
-					& .unit {
+				& .unit {
 					position: absolute;
 					inset: 0;
 					display: flex;
@@ -56,19 +56,19 @@
 					color: inherit;
 					background: inherit;
 
-				&.movable { cursor: pointer; }
-				&.hint {
-					outline: 3px solid #e6a23c;
-					outline-offset: -3px;
-					box-shadow: 0 0 0 3px rgba(230, 162, 60, 0.5);
-				}
-				&.selected {
-					outline: 3px solid var(--el-color-primary);
-					outline-offset: -3px;
-					box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.4);
-				}
+					&.movable { cursor: pointer; }
+					&.hint {
+						outline: 3px solid #e6a23c;
+						outline-offset: -3px;
+						box-shadow: 0 0 0 3px rgba(230, 162, 60, 0.5);
+					}
+					&.selected {
+						outline: 3px solid var(--el-color-primary);
+						outline-offset: -3px;
+						box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.4);
+					}
 
-					& > .shape.triangle { position: absolute; inset: 0; }
+					> .shape.triangle { position: absolute; inset: 0; }
 				}
 			}
 		}
@@ -86,33 +86,29 @@
 
 		/* 回合记录区 */
 		& .record.area {
-			& > .tip.at-top { margin: 0; color: var(--el-color-warning); }
-			& > .tip.at-bottom { color: var(--el-color-success); margin-top: 6px; }
+			> .tip.at-top { margin: 0; color: #e6a23c; }
+			> .tip.at-bottom { color: #67c23a; margin-top: 6px; }
 			& .round.list {
 				display: grid;
 				grid-template-columns: repeat(auto-fill, 28px);
 				gap: 4px;
 
-				& > .summary {
+				> .summary {
 					grid-column: 1 / -1;
 				}
 
-				& > .one.round {
+				> .one.round {
 					width: 28px;
 					height: 28px;
 
-					& > .unit {
-						display: flex;
-						align-items: center;
-						justify-content: center;
+					> .unit {
 						width: 100%;
 						height: 100%;
 						background: #d4e0c8;
 						border: 1px solid #9bad8f;
 						transition: border-color 0.2s;
-
 					}
-					&.current .unit { border: 2px solid var(--el-color-primary); }
+					&.current .unit { border: 2px solid #409eff; }
 				}
 			}
 		}
