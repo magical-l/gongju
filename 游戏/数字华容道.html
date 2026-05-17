@@ -88,19 +88,31 @@
 		& .record.area {
 			& > .tip.at-top { margin: 0; color: var(--el-color-warning); }
 			& > .tip.at-bottom { color: var(--el-color-success); margin-top: 6px; }
-			& > .round.list {
+			& .round.list {
 				display: grid;
 				grid-template-columns: repeat(auto-fill, 28px);
 				gap: 4px;
 
+				& > .summary {
+					grid-column: 1 / -1;
+				}
+
 				& > .one.round {
 					width: 28px;
 					height: 28px;
-					border: 2px solid transparent;
-					transition: border-color 0.2s;
 
-					&.current { border-color: var(--el-color-primary); }
-					& > .unit { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+					& > .unit {
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						width: 100%;
+						height: 100%;
+						background: #d4e0c8;
+						border: 1px solid #9bad8f;
+						transition: border-color 0.2s;
+
+					}
+					&.current .unit { border: 2px solid var(--el-color-primary); }
 				}
 			}
 		}
@@ -234,13 +246,15 @@
 							<el-button :disabled="!stepsDone.length" icon="Download" size="small" @click="exportRounds">导出
 							</el-button>
 						</div>
-						<el-empty v-if="!stepsDone.length && !solutionSteps.length" description="尚无记录。请开始吧！"></el-empty>
-						<div v-else class="round list">
-							<p class="summary">
-								<template v-if="isWin">已完成，共 {{ moves }} 步。</template>
-								<template v-else-if="solutionSteps.length">已走 {{ moves }}/{{ roundSteps.length }}。</template>
-							</p>
-							<span class="one round" :class="{ current: i === currentStepIndex }" v-for="(val, i) in roundSteps" :key="i"><span class="unit">{{ val }}</span></span>
+						<div class="round list">
+							<el-empty v-if="!stepsDone.length && !solutionSteps.length" description="尚无记录。请开始吧！"></el-empty>
+							<template v-else>
+								<p class="summary , one-row">
+									<template v-if="isWin">已完成，共 {{ moves }} 步。</template>
+									<template v-else-if="solutionSteps.length">已走 {{ moves }}/{{ roundSteps.length }}。</template>
+								</p>
+								<span class="one round" :class="{ current: i === currentStepIndex }" v-for="(val, i) in roundSteps" :key="i"><span class="unit">{{ val }}</span></span>
+							</template>
 							<p v-if="isWin" class="tip at-bottom">本局已过关</p>
 						</div>
 					</el-collapse-item>
