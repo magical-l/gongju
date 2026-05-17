@@ -152,7 +152,7 @@
 		</div>
 
 		<aside class="sidebar at-left">
-			<details :open="panels.info" @toggle="onPanelToggle('info')">
+			<details :open="panels.info" @toggle="onPanelToggle('info', $event)">
 				<summary>本局信息</summary>
 				<div class="content">
 					<el-card header="分数" class="scoreboard" body-class="score" shadow="never">
@@ -161,7 +161,7 @@
 					</el-card>
 				</div>
 			</details>
-			<details :open="panels.shortcuts" @toggle="onPanelToggle('shortcuts')">
+			<details :open="panels.shortcuts" @toggle="onPanelToggle('shortcuts', $event)">
 				<summary>快捷键</summary>
 				<div class="content">
 					<p>↑ ↓ → ← ：控制方向，不能转向当前反方向。</p>
@@ -265,8 +265,10 @@
 			},
 		},
 		methods: {
-			onPanelToggle(name) {
-				// toggle事件在details.open改变后触发，只需保存状态
+			onPanelToggle(name, e) {
+				// 同步浏览器已改变的open状态到panels
+				if (e && e.target) { this.panels[name] = e.target.open; }
+				// 保存状态
 				try {
 					if (JSON.stringify(this.panels) === JSON.stringify(this._defaultPanels)) {
 						localStorage.removeItem(this._panelKey);
