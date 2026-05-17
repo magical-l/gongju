@@ -134,7 +134,7 @@
 				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
 					<el-collapse-item title="本局信息" name="gaming info" class="gaming info">
 						<div class="flex go-y">
-							<el-card header="当前得分" class="scoreboard" body-class="value" shadow="never">
+							<el-card header="当前得分" class="scoreboard" body-class="score" shadow="never">
 								{{ score }}
 							</el-card>
 							<el-descriptions class="info list" :column="1" border :label-width="140">

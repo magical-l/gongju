@@ -14,8 +14,18 @@
 		}
 
 		/* 计分板 */
-		& .scoreboard .header {
-			padding: 8px 12px;
+		& .scoreboard {
+			& .header {
+				padding: 8px 12px;
+			}
+
+			& .score {
+				font-size: clamp(1.75rem, 5vw, 2.5rem);
+				font-weight: 700;
+				text-align: center;
+				line-height: 1.2;
+				color: inherit;
+			}
 		}
 
 		/* 记录区 */
@@ -102,6 +112,26 @@
 			& .stats {
 				font-size: 24px;
 				margin-top: 10px;
+			}
+		}
+	}
+
+	/* 侧边栏：游戏页面的左侧信息栏 */
+	& .sidebar {
+		> .el-card:not(:last-child) { margin-bottom: 0; }
+
+		& .el-collapse {
+			border-top: none;
+			border-bottom: none;
+
+			& .el-collapse-item:last-child .el-collapse-item__header,
+			& .el-collapse-item:last-child .el-collapse-item__wrap { border-bottom: none; }
+
+			& .el-collapse-item__header {
+				font-weight: 600;
+				font-size: 1.2rem;
+
+				&:focus { color: var(--el-collapse-header-text-color); }
 			}
 		}
 	}
