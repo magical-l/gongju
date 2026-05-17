@@ -82,22 +82,25 @@
 			> .tip.at-bottom { color: #67c23a; margin-top: 6px; }
 			& .round.list {
 				display: grid;
-				grid-template-columns: repeat(auto-fill, 28px);
-				gap: 4px;
+				grid-template-columns: repeat(auto-fill, 36px);
+				gap: 6px;
 
 				> .summary {
 					grid-column: 1 / -1;
 				}
 
 				> .one.round {
-					width: 28px;
-					height: 28px;
+					width: 36px;
+					height: 36px;
 
 					> .unit {
 						width: 100%;
 						height: 100%;
 						background: #d4e0c8;
 						border: 1px solid #9bad8f;
+						border-radius: 4px;
+						font-size: 1rem;
+						font-weight: 600;
 						transition: border-color 0.2s;
 					}
 					&.current .unit { border: 2px solid #409eff; }
@@ -108,7 +111,7 @@
 		@media (max-width: 500px) {
 			& .board {
 				padding: 8px;
-				gap: 4px;
+				gap: 6px;
 			}
 		}
 	}
