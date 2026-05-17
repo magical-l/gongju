@@ -217,7 +217,7 @@
 		<el-dialog v-model="isGameOverForRender" class="result" header-class="title" body-class="body" :show-close="true" align-center>
 			<header class="gameover">游戏结束</header>
 			<div class="winner">{{ winnerName }} 胜利</div>
-			<footer class="toolbar">
+			<footer class="op area">
 				<el-button type="primary" size="large" icon="RefreshLeft" @click="restartGame">重来</el-button>
 				<el-button type="info" size="large" @click="returnToSettings" icon="RefreshRight">新局</el-button>
 				<el-button type="info" size="large" @click="downloadNotation">记谱</el-button>

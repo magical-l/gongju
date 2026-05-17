@@ -375,7 +375,7 @@
 		<el-dialog v-model="showGameOverDialog" class="result" header-class="title" body-class="body" :show-close="true" align-center>
 			<header :class="gameWon ? 'success' : 'fail'">{{ gameWon ? '恭喜通关！' : '游戏结束' }}</header>
 			<div class="stats">{{ gameWon ? '你成功保卫了萝卜！' : '萝卜被吃掉了，再试一次吧！' }}</div>
-			<footer class="toolbar">
+			<footer class="op area">
 				<el-button type="primary" size="large" icon="RefreshLeft" @click="restartGame">重来</el-button>
 				<el-button type="warning" size="large" @click="closeGameOverDialog">关闭</el-button>
 			</footer>

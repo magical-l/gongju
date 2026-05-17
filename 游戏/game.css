@@ -60,7 +60,7 @@
 			}
 		}
 
-		/* 结算弹窗 */
+		/* 结算界面 */
 		& .result {
 			background: #f9f9f9;
 			color: #303133;
@@ -78,7 +78,7 @@
 				text-align: center;
 			}
 
-			& .toolbar {
+			& .op.area {
 				margin-top: 30px;
 				display: flex;
 				gap: 0.5rem;
@@ -143,6 +143,7 @@
 			box-shadow: 0 0 8px rgba(64, 158, 255, 0.5), 0 0 0 3px rgba(64, 158, 255, 0.3);/* 阴影 */
 		}
 	}
+
 	/* 棋盘：有棋盘的游戏内，棋盘的默认样式表。继承.map */
 	& .board.map {
 		--board-cols: 4;
