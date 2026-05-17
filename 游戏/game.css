@@ -126,13 +126,13 @@
 					height: 8px;
 					border-right: 2px solid #909399;
 					border-bottom: 2px solid #909399;
-					transform: translateY(-70%) rotate(45deg);
+					transform: translateY(-70%) rotate(-45deg);
 					transition: transform 0.2s;
 				}
 			}
 
 			&[open] summary::after {
-				transform: translateY(-30%) rotate(-135deg);
+				transform: translateY(-30%) rotate(45deg);
 			}
 
 			&[open] summary {
