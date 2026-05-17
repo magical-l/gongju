@@ -97,20 +97,54 @@
 
 	/* 侧边栏：游戏页面的左侧信息栏 */
 	& .sidebar {
-		> .el-card:not(:last-child) { margin-bottom: 0; }
+		& details {
+			border: 1px solid #ebeef5;
+			border-radius: 4px;
+			margin-bottom: 8px;
+			background: #fff;
 
-		& .el-collapse {
-			border-top: none;
-			border-bottom: none;
+			&:last-of-type { margin-bottom: 0; }
 
-			& .el-collapse-item:last-child .el-collapse-item__header,
-			& .el-collapse-item:last-child .el-collapse-item__wrap { border-bottom: none; }
-
-			& .el-collapse-item__header {
+			& summary {
 				font-weight: 600;
-				font-size: 1.2rem;
+				font-size: 1rem;
+				cursor: pointer;
+				padding: 12px 16px;
+				list-style: none;
+				position: relative;
 
-				&:focus { color: var(--el-collapse-header-text-color); }
+				&::-webkit-details-marker { display: none; }
+				&:focus { outline: none; }
+
+				/* 展开/收起箭头 */
+				&::after {
+					content: '';
+					position: absolute;
+					right: 16px;
+					top: 50%;
+					width: 8px;
+					height: 8px;
+					border-right: 2px solid #909399;
+					border-bottom: 2px solid #909399;
+					transform: translateY(-70%) rotate(45deg);
+					transition: transform 0.2s;
+				}
+			}
+
+			&[open] summary::after {
+				transform: translateY(-30%) rotate(-135deg);
+			}
+
+			&[open] summary {
+				border-bottom: 1px solid #ebeef5;
+			}
+
+			& .content {
+				padding: 12px 16px;
+
+				& section { margin-bottom: 8px; &:last-child { margin-bottom: 0; } }
+				& h3 { margin: 0 0 4px; font-size: 0.9rem; color: #606266; }
+				& p { margin: 0; }
 			}
 		}
 	}

@@ -152,24 +152,22 @@
 		</div>
 
 		<aside class="sidebar at-left">
-			<el-card shadow="never">
-				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-					<el-collapse-item title="本局信息" name="gaming info" class="gaming info">
-						<section>
-							<h3>分数</h3>
-							<p>{{ score }}</p>
-						</section>
-						<section>
-							<h3>最高分</h3>
-							<p>{{ highScore }}</p>
-						</section>
-					</el-collapse-item>
-					<el-collapse-item title="快捷键" name="shortcut">
-						<p>↑ ↓ → ← ：控制方向，不能转向当前反方向。</p>
-						<p>空格：暂停/开始</p>
-					</el-collapse-item>
-				</el-collapse>
-			</el-card>
+			<details :open="panels.info" @toggle="onPanelToggle('info')">
+				<summary>本局信息</summary>
+				<div class="content">
+					<el-card header="分数" class="scoreboard" body-class="score" shadow="never">
+						{{ score }}
+						<template #footer>最高分：{{ highScore }}</template>
+					</el-card>
+				</div>
+			</details>
+			<details :open="panels.shortcuts" @toggle="onPanelToggle('shortcuts')">
+				<summary>快捷键</summary>
+				<div class="content">
+					<p>↑ ↓ → ← ：控制方向，不能转向当前反方向。</p>
+					<p>空格：暂停/开始</p>
+				</div>
+			</details>
 		</aside>
 	</article>
 </main>
@@ -197,10 +195,10 @@
 
 	const app = createApp({
 		data() {
-			const collapseKey = 'gaming-info-snake';
-			const defaultPanels = ['gaming info', 'shortcut'];
+			const panelKey = 'snake-panels';
+			const defaultPanels = {info: true, shortcuts: false};
 			let saved;
-			try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
+			try { saved = JSON.parse(localStorage.getItem(panelKey) || 'null'); } catch (_) { saved = null; }
 			return {
 				speedLevel: 5,
 				gridWidth: 20,
@@ -220,9 +218,9 @@
 				showGameOverModal: false,
 				isPaused: true,
 				gameInterval: null,
-				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
-				_gamingInfoCollapseKey: collapseKey,
-				_gamingInfoDefaultPanels: defaultPanels,
+				panels: saved || defaultPanels,
+				_panelKey: panelKey,
+				_defaultPanels: defaultPanels,
 			};
 		},
 		computed: {
@@ -267,13 +265,13 @@
 			},
 		},
 		methods: {
-			onGamingInfoCollapseChange(val) {
-				const def = this._gamingInfoDefaultPanels || [];
-				const open = val || [];
-				const isAllExpanded = def.length === open.length && def.every(p => open.includes(p));
+			onPanelToggle(name) {
+				// toggle事件在details.open改变后触发，只需保存状态
 				try {
-					if (isAllExpanded) { localStorage.removeItem(this._gamingInfoCollapseKey); } else {
-						localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(open));
+					if (JSON.stringify(this.panels) === JSON.stringify(this._defaultPanels)) {
+						localStorage.removeItem(this._panelKey);
+					} else {
+						localStorage.setItem(this._panelKey, JSON.stringify(this.panels));
 					}
 				} catch (_) {}
 			},

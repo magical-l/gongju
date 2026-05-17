@@ -209,7 +209,7 @@
 
 		<section class="board , main map , grid" :style="{ '--board-cols': gameBoardCols, '--board-rows': gameBoardRows }">
 			<template v-for="(row, rowIndex) in board" :key="rowIndex">
-				<div class="cell" :class="cellClass(rowIndex, colIndex).cell" v-for="(cell, colIndex) in row" :key="colIndex" :ref="cells" @click="handleCellClick(rowIndex, colIndex)">
+				<div class="cell" :class="cellClass(rowIndex, colIndex).cell" v-for="(cell, colIndex) in row" :key="colIndex"  @click="handleCellClick(rowIndex, colIndex)">
 					<div class="unit light" :class="cellClass(rowIndex, colIndex).unit">
 						<svg viewBox="0 0 24 24" stroke-width="1.5">
 							<path d="M9 21h6"/>
@@ -221,27 +221,29 @@
 		</section>
 
 		<aside class="sidebar at-left">
-			<el-card shadow="never">
-				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-					<el-collapse-item title="本局信息" name="gaming info" class="gaming info">
-						<el-card header="移动次数" class="scoreboard" header-class="header" body-class="score" shadow="never">
-							{{ moveCount }}
-						</el-card>
-					</el-collapse-item>
-					<el-collapse-item title="回合记录" name="record-area" class="record area">
-						<div class="op area">
-							<el-button :disabled="!rounds.length" icon="Download" size="small" @click="exportRounds">导出
-							</el-button>
-						</div>
-						<div class="round list">
-							<el-empty v-if="!rounds.length" description="尚无记录。请开始吧！"></el-empty>
-							<template v-else>
-								<div class="one round" v-for="(round, roundI) in rounds" :class="{ last: roundI === rounds.length - 1 }">{{roundI+1}}：第{{round.row}}行, 第{{round.col}}列</div>
-							</template>
-						</div>
-					</el-collapse-item>
-				</el-collapse>
-			</el-card>
+			<details :open="panels.info" @toggle="onPanelToggle('info')">
+				<summary>本局信息</summary>
+				<div class="content">
+					<el-card header="移动次数" class="scoreboard" body-class="score" shadow="never">
+						{{ moveCount }}
+					</el-card>
+				</div>
+			</details>
+			<details :open="panels.record" @toggle="onPanelToggle('record')">
+				<summary>回合记录</summary>
+				<div class="content">
+					<div class="op area">
+						<el-button :disabled="!rounds.length" icon="Download" size="small" @click="exportRounds">导出
+						</el-button>
+					</div>
+					<div class="round list">
+						<el-empty v-if="!rounds.length" description="尚无记录。请开始吧！"></el-empty>
+						<template v-else>
+							<div class="one round" v-for="(round, roundI) in rounds" :class="{ last: roundI === rounds.length - 1 }">{{roundI+1}}：第{{round.row}}行, 第{{round.col}}列</div>
+						</template>
+					</div>
+				</div>
+			</details>
 		</aside>
 
 		<!-- 结算弹窗 -->
@@ -361,10 +363,10 @@
 
 	const app = createApp({
 		data() {
-			const collapseKey = 'gaming-info-light';
-			const defaultPanels = ['gaming info', 'record-area'];
+			const panelKey = 'light-panels';
+			const defaultPanels = {info: true, record: false};
 			let saved;
-			try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
+			try { saved = JSON.parse(localStorage.getItem(panelKey) || 'null'); } catch (_) { saved = null; }
 			return {
 				rowOptions: [2, 3, 4, 5, 6, 7, 8, 9],
 				colOptions: [2, 3, 4, 5, 6, 7, 8, 9],
@@ -377,9 +379,9 @@
 				highlightedCells: [],
 				hintCellIndex: null,
 				showWinModal: false,
-				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
-				_gamingInfoCollapseKey: collapseKey,
-				_gamingInfoDefaultPanels: defaultPanels,
+				panels: saved || defaultPanels,
+				_panelKey: panelKey,
+				_defaultPanels: defaultPanels,
 			};
 		},
 		computed: {
@@ -412,6 +414,16 @@
 			},
 		},
 		methods: {
+			onPanelToggle(name) {
+				// toggle事件在details.open改变后触发，只需保存状态
+				try {
+					if (JSON.stringify(this.panels) === JSON.stringify(this._defaultPanels)) {
+						localStorage.removeItem(this._panelKey);
+					} else {
+						localStorage.setItem(this._panelKey, JSON.stringify(this.panels));
+					}
+				} catch (_) {}
+			},
 			cellClass(row, col) {
 				const index = row * this.gameBoardCols + col;
 				const isOn = this.board[row][col];
@@ -423,16 +435,6 @@
 					},
 					unit: [isOn ? 'on' : 'off']
 				};
-			},
-			onGamingInfoCollapseChange(val) {
-				const def = this._gamingInfoDefaultPanels || [];
-				const open = val || [];
-				const isAllExpanded = def.length === open.length && def.every(p => open.includes(p));
-				try {
-					if (isAllExpanded) { localStorage.removeItem(this._gamingInfoCollapseKey); } else {
-						localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(open));
-					}
-				} catch (_) {}
 			},
 			initGame() {
 				this.gameBoardRows = this.boardRows;

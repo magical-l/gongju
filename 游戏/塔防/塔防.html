@@ -342,7 +342,7 @@
 				<div v-for="bullet in bullets" :key="'bullet-'+bullet.id" class="bullet"
 						 :style="{ left: `${bullet.x - 4}px`, top: `${bullet.y - 4}px` }"></div>
 
-				<!-- ‘建造’弹窗 -->
+				<!-- '建造'弹窗 -->
 				<div v-if="placementPopup.visible" class="placement-popup"
 						 :style="{ left: `${placementPopup.x}px`, top: `${placementPopup.y}px` }"
 						 @mouseleave="hideRangePreview">
@@ -358,17 +358,16 @@
 		</article>
 
 		<aside class="sidebar at-left">
-			<el-card shadow="never">
-				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-					<el-collapse-item title="本局信息" name="gaming info" class="gaming info">
-						<div v-if="currentLevel">
-							<div class="stat-item"><span>❤️ 生命:</span> <span class="stat-value">{{ health }}</span></div>
-							<div class="stat-item"><span>💰 金币:</span> <span class="stat-value">{{ coins }}</span></div>
-							<div class="stat-item"><span>🌊 波数:</span> <span class="stat-value">{{ waveDisplay }}</span></div>
-						</div>
-					</el-collapse-item>
-				</el-collapse>
-			</el-card>
+			<details :open="panels.info" @toggle="onPanelToggle('info')">
+				<summary>本局信息</summary>
+				<div class="content">
+					<div v-if="currentLevel">
+						<div class="stat-item"><span>❤️ 生命:</span> <span class="stat-value">{{ health }}</span></div>
+						<div class="stat-item"><span>💰 金币:</span> <span class="stat-value">{{ coins }}</span></div>
+						<div class="stat-item"><span>🌊 波数:</span> <span class="stat-value">{{ waveDisplay }}</span></div>
+					</div>
+				</div>
+			</details>
 		</aside>
 
 		<!-- 结算弹窗 -->
@@ -414,6 +413,10 @@
 	const {createApp, reactive} = Vue;
 	const app = createApp({
 		data() {
+			const panelKey = 'tower-panels';
+			const defaultPanels = {info: true};
+			let saved;
+			try { saved = JSON.parse(localStorage.getItem(panelKey) || 'null'); } catch (_) { saved = null; }
 			return {
 				// Config Data
 				levels: [],
@@ -476,16 +479,9 @@
 				gameLoopId: null,
 				lastFrameTime: 0,
 
-				gamingInfoOpenPanels: (() => {
-					const key = 'gaming-info-tower';
-					const defaultPanels = ['gaming info'];
-					try {
-						const saved = JSON.parse(localStorage.getItem(key) || 'null');
-						return Array.isArray(saved) ? saved : defaultPanels;
-					} catch (_) { return defaultPanels; }
-				})(),
-				_gamingInfoCollapseKey: 'gaming-info-tower',
-				_gamingInfoDefaultPanels: ['gaming info'],
+				panels: saved || defaultPanels,
+				_panelKey: panelKey,
+				_defaultPanels: defaultPanels,
 			};
 		},
 		computed: {
@@ -581,13 +577,13 @@
 			},
 		},
 		methods: {
-			onGamingInfoCollapseChange(val) {
-				const def = this._gamingInfoDefaultPanels || [];
-				const open = val || [];
-				const isAllExpanded = def.length === open.length && def.every(p => open.includes(p));
+			onPanelToggle(name) {
+				// toggle事件在details.open改变后触发，只需保存状态
 				try {
-					if (isAllExpanded) { localStorage.removeItem(this._gamingInfoCollapseKey); } else {
-						localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(open));
+					if (JSON.stringify(this.panels) === JSON.stringify(this._defaultPanels)) {
+						localStorage.removeItem(this._panelKey);
+					} else {
+						localStorage.setItem(this._panelKey, JSON.stringify(this.panels));
 					}
 				} catch (_) {}
 			},

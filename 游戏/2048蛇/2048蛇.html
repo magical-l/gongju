@@ -131,8 +131,9 @@
 		<!-- 信息区 -->
 		<aside class="info area , sidebar at-left">
 			<el-card shadow="never">
-				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-					<el-collapse-item title="本局信息" name="gaming info" class="gaming info">
+				<details :open="panels.info" @toggle="onPanelToggle('info')">
+					<summary>本局信息</summary>
+					<div class="content">
 						<div class="flex go-y">
 							<el-card header="当前得分" class="scoreboard" body-class="score" shadow="never">
 								{{ score }}
@@ -147,13 +148,16 @@
 								</el-descriptions-item>
 							</el-descriptions>
 						</div>
-					</el-collapse-item>
-					<el-collapse-item title="快捷键" class="game shortcut" name="shortcut">
+					</div>
+				</details>
+				<details :open="panels.shortcuts" @toggle="onPanelToggle('shortcuts')">
+					<summary>快捷键</summary>
+					<div class="content">
 						<p>↑ ↓ ← → ：改变蛇的移动方向（蛇会自动定时移动）</p>
 						<p>空格：暂停 / 开始</p>
 						<p>支持键盘、触屏与鼠标滑动</p>
-					</el-collapse-item>
-				</el-collapse>
+					</div>
+				</details>
 			</el-card>
 		</aside>
 
@@ -200,10 +204,10 @@
 <script type="module">
 	(function() {
 		const {createApp, reactive} = Vue;
-		const collapseKey = 'gaming-info-2048snake';
-		const defaultPanels = ['shortcut', 'gaming info'];
+		const panelKey = '2048snake-panels';
+		const defaultPanels = {info: true, shortcuts: false};
 		let saved;
-		try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
+		try { saved = JSON.parse(localStorage.getItem(panelKey) || 'null'); } catch (_) { saved = null; }
 		const boardSizeOptions = window.Game2048SnakeConstants ? window.Game2048SnakeConstants.SIZE_OPTIONS || [6, 7, 8,
 																																																						 10, 12]
 																													 : [6, 7, 8, 10, 12];
@@ -217,9 +221,8 @@
 			gameBoardHeight: 8,
 			gameTargetNumber: 2048,
 			gameTargetLabel: '2048',
-			gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
-			_collapseKey: collapseKey,
-			_defaultPanels: defaultPanels,
+			panels: saved || defaultPanels,
+			_panelKey: panelKey,
 			boardView: {rows: 8, cols: 8, cells: []},
 			lastStateForDisplay: null,
 			paused: true,
@@ -309,16 +312,16 @@
 					state.gameTargetNumber = num;
 					state.gameTargetLabel = num == null ? '无限' : String(num);
 				},
-				onGamingInfoCollapseChange(val) {
-					const def = this._defaultPanels || [];
-					const open = val || [];
-					const isAllExpanded = def.length === open.length && def.every(function(p) { return open.indexOf(p) !== -1; });
-					try {
-						if (isAllExpanded) { localStorage.removeItem(this._collapseKey); } else {
-							localStorage.setItem(this._collapseKey, JSON.stringify(open));
-						}
-					} catch (_) {}
-				},
+					onPanelToggle(name) {
+						// toggle事件在details.open改变后触发，只需保存状态
+						try {
+							if (JSON.stringify(state.panels) === JSON.stringify(defaultPanels)) {
+								localStorage.removeItem(panelKey);
+							} else {
+								localStorage.setItem(panelKey, JSON.stringify(state.panels));
+							}
+						} catch (_) {}
+					},
 				onResultRestart() {
 					this.gameResultVisible = false;
 					window.Game2048Snake.onResultRestart();

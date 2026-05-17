@@ -218,31 +218,36 @@
 		</div>
 
 		<aside class="sidebar at-left">
-			<el-card shadow="never">
-				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-					<el-collapse-item title="下一块" name="next">
-						<div class="board map preview">
-							<div class="cell" v-for="(block, index) in nextPieceBlocks" :key="index" :class="block"></div>
-						</div>
-					</el-collapse-item>
-					<el-collapse-item title="本局信息" name="gaming info" class="gaming info">
-						<el-card header="分数" class="scoreboard" header-class="header" body-class="score" shadow="never">
-							{{ score }}
-						</el-card>
-						<el-descriptions class="info list" :column="1" border :label-width="80">
-							<el-descriptions-item label="行数">{{ lines }}</el-descriptions-item>
-							<el-descriptions-item label="等级">{{ level }}</el-descriptions-item>
-							<el-descriptions-item label="最高记录">{{ highScore }}</el-descriptions-item>
-						</el-descriptions>
-					</el-collapse-item>
-					<el-collapse-item title="快捷键" name="shortcut">
-						<p>← ↓ → ：方向</p>
-						<p>↑ ：变形</p>
-						<p>回车：砖块直接落到底</p>
-						<p>空格：暂停/开始</p>
-					</el-collapse-item>
-				</el-collapse>
-			</el-card>
+			<details :open="panels.next" @toggle="onPanelToggle('next')">
+				<summary>下一块</summary>
+				<div class="content">
+					<div class="board map preview">
+						<div class="cell" v-for="(block, index) in nextPieceBlocks" :key="index" :class="block"></div>
+					</div>
+				</div>
+			</details>
+			<details :open="panels.info" @toggle="onPanelToggle('info')">
+				<summary>本局信息</summary>
+				<div class="content">
+					<el-card header="分数" class="scoreboard" body-class="score" shadow="never">
+						{{ score }}
+						<template #footer>最高记录：{{ highScore }}</template>
+					</el-card>
+					<el-descriptions :column="1" border>
+						<el-descriptions-item label="行数">{{ lines }}</el-descriptions-item>
+						<el-descriptions-item label="等级">{{ level }}</el-descriptions-item>
+					</el-descriptions>
+				</div>
+			</details>
+			<details :open="panels.shortcuts" @toggle="onPanelToggle('shortcuts')">
+				<summary>快捷键</summary>
+				<div class="content">
+					<p>← ↓ → ：方向</p>
+					<p>↑ ：变形</p>
+					<p>回车：砖块直接落到底</p>
+					<p>空格：暂停/开始</p>
+				</div>
+			</details>
 		</aside>
 	</article>
 </main>
@@ -285,10 +290,10 @@
 
 	const app = createApp({
 		data() {
-			const collapseKey = 'gaming-info-tetris';
-			const defaultPanels = ['next', 'gaming info', 'shortcut'];
+			const panelKey = 'tetris-panels';
+			const defaultPanels = {next: true, info: true, shortcuts: false};
 			let saved;
-			try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
+			try { saved = JSON.parse(localStorage.getItem(panelKey) || 'null'); } catch (_) { saved = null; }
 			return {
 				score: 0,
 					highScore: parseInt(localStorage.getItem('tetrisHighScore') || '0', 10),
@@ -302,9 +307,6 @@
 				isGameOver: false,
 				showGameOverModal: false,
 				isPaused: true,
-				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
-				_gamingInfoCollapseKey: collapseKey,
-				_gamingInfoDefaultPanels: defaultPanels,
 				settings: {
 					cols: 10,
 					rows: 20,
@@ -323,6 +325,9 @@
 				dropInterval: 1000,
 				lastTime: 0,
 				animationFrameId: null,
+				panels: saved || defaultPanels,
+				_panelKey: panelKey,
+				_defaultPanels: defaultPanels,
 			};
 		},
 		computed: {
@@ -410,13 +415,13 @@
 			},
 		},
 		methods: {
-			onGamingInfoCollapseChange(val) {
-				const def = this._gamingInfoDefaultPanels || [];
-				const open = val || [];
-				const isAllExpanded = def.length === open.length && def.every(p => open.includes(p));
+			onPanelToggle(name) {
+				// toggle事件在details.open改变后触发，只需保存状态
 				try {
-					if (isAllExpanded) { localStorage.removeItem(this._gamingInfoCollapseKey); } else {
-						localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(open));
+					if (JSON.stringify(this.panels) === JSON.stringify(this._defaultPanels)) {
+						localStorage.removeItem(this._panelKey);
+					} else {
+						localStorage.setItem(this._panelKey, JSON.stringify(this.panels));
 					}
 				} catch (_) {}
 			},

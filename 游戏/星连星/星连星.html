@@ -281,30 +281,32 @@
 		</div>
 
 		<aside class="sidebar at-left">
-			<el-card shadow="never">
-				<el-collapse v-model="gamingInfoOpenPanels" @change="onGamingInfoCollapseChange">
-					<el-collapse-item title="本局信息" name="gaming info" class="gaming info">
-						<div class="game-info">
-							<div class="progress">
-								<el-progress :percentage="completionPercentage" :status="gameWin ? 'success' : ''"></el-progress>
-								<div style="margin-top: 5px; font-size: 0.9rem; color: #909399;">
-									已填充: {{ filledCells }} / {{ totalCells }}
-								</div>
+			<details :open="panels.info" @toggle="onPanelToggle('info')">
+				<summary>本局信息</summary>
+				<div class="content">
+					<div class="game-info">
+						<div class="progress">
+							<el-progress :percentage="completionPercentage" :status="gameWin ? 'success' : ''"></el-progress>
+							<div style="margin-top: 5px; font-size: 0.9rem; color: #909399;">
+								已填充: {{ filledCells }} / {{ totalCells }}
 							</div>
 						</div>
-					</el-collapse-item>
-					<el-collapse-item title="连线记录" name="record-area" class="record area">
-						<div class="op area">
-							<el-button :disabled="!connectionHistory.length" icon="Download" size="small" @click="exportConnections">导出
-							</el-button>
-						</div>
-						<el-empty v-if="!connectionHistory.length" description="尚未连线"></el-empty>
-						<div v-else class="round list">
-							<div class="one round" v-for="(conn, connI) in connectionHistory" :class="{ last: connI === connectionHistory.length - 1 }">{{connI+1}}：颜色{{conn.color}} {{conn.path.map(p => '(' + p.row + ',' + p.col + ')').join(' → ')}}</div>
-						</div>
-					</el-collapse-item>
-				</el-collapse>
-			</el-card>
+					</div>
+				</div>
+			</details>
+			<details :open="panels.record" @toggle="onPanelToggle('record')">
+				<summary>连线记录</summary>
+				<div class="content">
+					<div class="op area">
+						<el-button :disabled="!connectionHistory.length" icon="Download" size="small" @click="exportConnections">导出
+						</el-button>
+					</div>
+					<el-empty v-if="!connectionHistory.length" description="尚未连线"></el-empty>
+					<div v-else class="round list">
+						<div class="one round" v-for="(conn, connI) in connectionHistory" :class="{ last: connI === connectionHistory.length - 1 }">{{connI+1}}：颜色{{conn.color}} {{conn.path.map(p => '(' + p.row + ',' + p.col + ')').join(' → ')}}</div>
+					</div>
+				</div>
+			</details>
 		</aside>
 	</article>
 </main>
@@ -368,10 +370,10 @@
 	const app = createApp({
 		data() {
 			const settings = loadSettings();
-			const collapseKey = 'gaming-info-star';
-			const defaultPanels = ['gaming info', 'record-area'];
+			const panelKey = 'star-panels';
+			const defaultPanels = {info: true, record: true};
 			let saved;
-			try { saved = JSON.parse(localStorage.getItem(collapseKey) || 'null'); } catch (_) { saved = null; }
+			try { saved = JSON.parse(localStorage.getItem(panelKey) || 'null'); } catch (_) { saved = null; }
 			return {
 				canvas: null,
 				ctx: null,
@@ -389,9 +391,8 @@
 				hintColorIndex: null, // 提示时显示的未连接线颜色索引，null 表示不显示
 				settings,
 				connectionHistory: [],
-				gamingInfoOpenPanels: Array.isArray(saved) ? saved : defaultPanels,
-				_gamingInfoCollapseKey: collapseKey,
-				_gamingInfoDefaultPanels: defaultPanels,
+				panels: saved || defaultPanels,
+				_panelKey: panelKey,
 			};
 		},
 		computed: {
@@ -412,13 +413,13 @@
 			},
 		},
 		methods: {
-			onGamingInfoCollapseChange(val) {
-				const def = this._gamingInfoDefaultPanels || [];
-				const open = val || [];
-				const isAllExpanded = def.length === open.length && def.every(p => open.includes(p));
+			onPanelToggle(name) {
+				// toggle事件在details.open改变后触发，只需保存状态
 				try {
-					if (isAllExpanded) { localStorage.removeItem(this._gamingInfoCollapseKey); } else {
-						localStorage.setItem(this._gamingInfoCollapseKey, JSON.stringify(open));
+					if (JSON.stringify(this.panels) === JSON.stringify({info: true, record: true})) {
+						localStorage.removeItem(this._panelKey);
+					} else {
+						localStorage.setItem(this._panelKey, JSON.stringify(this.panels));
 					}
 				} catch (_) {}
 			},
