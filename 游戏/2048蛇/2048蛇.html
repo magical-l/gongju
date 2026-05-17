@@ -158,15 +158,14 @@
 		</aside>
 
 		<!-- 结算弹窗 -->
-		<el-dialog v-model="gameResultVisible" class="result" header-class="title" body-class="body" :show-close="true" align-center>
-			<header :class="gameResultIsWin ? 'success' : 'fail'">{{ gameResultMessage }}</header>
+		<el-dialog v-model="gameResultVisible" class="result" :title="gameResultMessage" :show-close="true" align-center>
 			<div class="stats">
 				目标数字: {{ gameTargetLabel }} | 最大数字: {{ resultMaxTile }} | 得分: {{ score }}
 			</div>
-			<footer class="op area">
+			<template #footer>
 				<el-button type="primary" size="large" icon="RefreshRight" @click="onResultRestart">新局</el-button>
 				<el-button type="warning" size="large" @click="closeGameResultModal">关闭</el-button>
-			</footer>
+			</template>
 		</el-dialog>
 
 		<!-- 彩纸效果（仅胜利时） -->

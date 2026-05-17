@@ -72,46 +72,25 @@
 
 		/* 结算界面 */
 		& .result {
-			background: #f9f9f9;
-			color: #303133;
-			border-radius: 8px;
 			min-width: 420px;
-			border: 1px solid #e4e7ed;
-			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 
-			& .title {
-				padding: 10px 10px 0 0;
-			}
+			&.narrow { width: 300px; }
 
-			& .body {
-				padding: 0 50px 30px 50px;
+			& .outcome {
+				font-size: 60px;
+				font-weight: bold;
 				text-align: center;
-			}
-
-			& .op.area {
-				margin-top: 30px;
-				display: flex;
-				gap: 0.5rem;
-				justify-content: center;
-			}
-
-			& .success {
-				font-size: 60px;
-				font-weight: bold;
-				color: #4caf50;
 				text-shadow: 0 0 10px white;
-			}
 
-			& .fail {
-				font-size: 60px;
-				font-weight: bold;
-				color: #f56c6c;
-				text-shadow: 0 0 10px white;
+				&.win { color: #4caf50; }
+				&.lose { color: #f56c6c; }
+				&.draw { color: #909399; }
 			}
 
 			& .stats {
-				font-size: 24px;
+				font-size: 40px;
 				margin-top: 10px;
+				text-align: center;
 			}
 		}
 	}

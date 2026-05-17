@@ -154,13 +154,12 @@
 		</aside>
 
 		<!-- 结算弹窗 -->
-		<el-dialog v-model="gameResultVisible" class="result" header-class="title" body-class="body" :show-close="true" align-center>
-			<header class="fail">{{ gameResultMessage }}</header>
+		<el-dialog v-model="gameResultVisible" class="result narrow" :title="gameResultMessage" :show-close="true" align-center>
 			<div class="stats">得分: {{ score }}</div>
-			<footer class="op area">
+			<template #footer>
 				<el-button type="primary" size="large" icon="RefreshRight" @click="onResultRestart">新局</el-button>
 				<el-button type="warning" size="large" @click="closeGameResultModal">关闭</el-button>
-			</footer>
+			</template>
 		</el-dialog>
 	</article>
 </main>

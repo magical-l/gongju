@@ -214,15 +214,14 @@
 		</div>
 
 		<!-- 游戏结束结算界面 -->
-		<el-dialog v-model="isGameOverForRender" class="result" header-class="title" body-class="body" :show-close="true" align-center>
-			<header class="gameover">游戏结束</header>
+		<el-dialog v-model="isGameOverForRender" class="result" title="游戏结束" :show-close="true" align-center>
 			<div class="winner">{{ winnerName }} 胜利</div>
-			<footer class="op area">
+			<template #footer>
 				<el-button type="primary" size="large" icon="RefreshLeft" @click="restartGame">重来</el-button>
 				<el-button type="info" size="large" @click="returnToSettings" icon="RefreshRight">新局</el-button>
 				<el-button type="info" size="large" @click="downloadNotation">记谱</el-button>
 				<el-button type="warning" size="large" @click="undoMove" :disabled="!isUndoAvailable">悔棋</el-button>
-			</footer>
+			</template>
 		</el-dialog>
 	</article>
 </main>
@@ -237,7 +236,7 @@
 		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
 		</section>
 	</article>
-</footer>
+</template>
 
 <div class="js container">
 	<script src="../../resources/math.js"></script>

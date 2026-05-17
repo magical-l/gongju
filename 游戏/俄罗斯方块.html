@@ -204,13 +204,12 @@
 		</article>
 
 		<!-- 结算弹窗 -->
-		<el-dialog v-model="showGameOverModal" class="result" header-class="title" body-class="body" :show-close="true" align-center>
-			<header class="fail">游戏结束</header>
+		<el-dialog v-model="showGameOverModal" class="result narrow" title="游戏结束" :show-close="true" align-center>
 			<div class="stats">得分: {{ score }}</div>
-			<footer class="op area">
+			<template #footer>
 				<el-button type="primary" size="large" icon="RefreshRight" @click="closeGameOverAndNew">新局</el-button>
 				<el-button type="warning" size="large" @click="closeGameOverModal">关闭</el-button>
-			</footer>
+			</template>
 		</el-dialog>
 
 		<!-- 彩纸效果 -->

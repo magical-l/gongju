@@ -124,21 +124,3 @@
 			}
 		}
 	}
-
-	/* 2048系结算弹窗 */
-	& .game.result.stats {
-		margin: 0;
-		display: grid;
-		grid-template-columns: auto 1fr;
-		gap: 0.5rem 1rem;
-		align-items: center;
-
-		& > dt { font-weight: 600; }
-		& > dd { margin: 0; text-align: right; }
-	}
-
-	& .game.result .hint {
-		margin: 0.5rem 0;
-		text-align: center;
-	}
-}

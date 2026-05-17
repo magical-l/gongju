@@ -266,14 +266,13 @@
 		</article>
 
 		<!-- 结算弹窗 -->
-		<el-dialog v-model="showWinModal" class="result" header-class="title" body-class="body" :show-close="true" align-center>
-			<header class="success">恭喜通关！</header>
+		<el-dialog v-model="showWinModal" class="result narrow" title="恭喜通关" :show-close="true" align-center>
 			<div class="stats">本局完成！</div>
-			<footer class="op area">
+			<template #footer>
 				<el-button type="primary" size="large" icon="RefreshRight" @click="closeWinAndNew">新局</el-button>
 				<el-button type="info" size="large" icon="Download" @click="exportConnections">导出连线记录</el-button>
 				<el-button type="warning" size="large" @click="closeWinModal">关闭</el-button>
-			</footer>
+			</template>
 		</el-dialog>
 
 		<!-- 彩纸效果 -->

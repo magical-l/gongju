@@ -372,13 +372,12 @@
 		</aside>
 
 		<!-- 结算弹窗 -->
-		<el-dialog v-model="showGameOverDialog" class="result" header-class="title" body-class="body" :show-close="true" align-center>
-			<header :class="gameWon ? 'success' : 'fail'">{{ gameWon ? '恭喜通关！' : '游戏结束' }}</header>
+		<el-dialog v-model="showGameOverDialog" class="result" :title="gameWon ? '恭喜通关' : '游戏结束'" :show-close="true" align-center>
 			<div class="stats">{{ gameWon ? '你成功保卫了萝卜！' : '萝卜被吃掉了，再试一次吧！' }}</div>
-			<footer class="op area">
+			<template #footer>
 				<el-button type="primary" size="large" icon="RefreshLeft" @click="restartGame">重来</el-button>
 				<el-button type="warning" size="large" @click="closeGameOverDialog">关闭</el-button>
-			</footer>
+			</template>
 		</el-dialog>
 
 		<!-- 彩纸效果（仅胜利时） -->
