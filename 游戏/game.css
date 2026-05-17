@@ -176,7 +176,7 @@
 	/* 记录区 */
 	& .record.area {
 		/* 操作区 */
-		& .controller.list {
+		& > .op.area {
 			display: flex;
 			flex-wrap: wrap;
 			gap: 8px;
@@ -184,22 +184,19 @@
 			margin-bottom: 4px;
 		}
 		/* 提示 */
-		& .tip {
+		& > .tip {
 			font-size: 0.8rem;
 			color: #606266;
 		}
-		/* 回合区 */
-		& .rounds {
-			/* 回合的摘要，比如共x回合 */
-			&>.summary {
+		/* 回合列表 */
+		& > .round.list {
+			margin-top: 6px;
+			max-width: 100%;
+
+			& > .summary {
 				font-size: 0.8rem;
 				color: #606266;
 				margin: 4px 0 0;
-			}
-			/* 回合列表 */
-			&>.list {
-				margin-top: 6px;
-				max-width: 100%;
 			}
 		}
 	}

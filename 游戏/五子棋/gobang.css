@@ -18,8 +18,8 @@
 
 	/* 落子记录区 */
 	& .record.area {
-		& .controller.list { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px; }
-		& .rounds > .list { margin-top: 6px; }
+		& > .op.area { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px; }
+		& > .round.list { margin-top: 6px; }
 	}
 
 	/* ======================== 棋盘 ======================== */

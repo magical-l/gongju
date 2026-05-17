@@ -86,20 +86,21 @@
 
 		/* 回合记录区 */
 		& .record.area {
-			& .tip.at-top { margin: 0; color: var(--el-color-warning); }
-			& .tip.at-bottom { color: var(--el-color-success); margin-top: 6px; }
-			& .rounds > .list {
+			& > .tip.at-top { margin: 0; color: var(--el-color-warning); }
+			& > .tip.at-bottom { color: var(--el-color-success); margin-top: 6px; }
+			& > .round.list {
 				display: grid;
 				grid-template-columns: repeat(auto-fill, 28px);
 				gap: 4px;
 
-				& .cell {
+				& > .one.round {
 					width: 28px;
 					height: 28px;
 					border: 2px solid transparent;
 					transition: border-color 0.2s;
 
 					&.current { border-color: var(--el-color-primary); }
+					& > .unit { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
 				}
 			}
 		}
@@ -223,7 +224,7 @@
 						<p v-if="solutionSteps.length" class="tip at-top">
 							共 {{ roundSteps.length }} 步。注：未必最优。
 						</p>
-						<div class="controller list">
+						<div class="op area">
 							<el-button v-if="solutionSteps.length" type="primary" size="small" @click="applyNextStep" :disabled="solutionDone || autoPlayTimer">
 								{{ solutionDone ? '已完成' : '走一步' }}
 							</el-button>
@@ -234,14 +235,12 @@
 							</el-button>
 						</div>
 						<el-empty v-if="!stepsDone.length && !solutionSteps.length" description="尚无记录。请开始吧！"></el-empty>
-						<div v-else class="rounds">
+						<div v-else class="round list">
 							<p class="summary">
 								<template v-if="isWin">已完成，共 {{ moves }} 步。</template>
 								<template v-else-if="solutionSteps.length">已走 {{ moves }}/{{ roundSteps.length }}。</template>
 							</p>
-							<div class="list">
-								<span class="cell" :class="{ current: i === currentStepIndex }" v-for="(val, i) in roundSteps" :key="i">{{ val }}</span>
-							</div>
+							<span class="one round" :class="{ current: i === currentStepIndex }" v-for="(val, i) in roundSteps" :key="i"><span class="unit">{{ val }}</span></span>
 							<p v-if="isWin" class="tip at-bottom">本局已过关</p>
 						</div>
 					</el-collapse-item>

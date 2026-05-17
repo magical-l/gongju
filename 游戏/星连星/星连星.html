@@ -29,7 +29,7 @@
 
 			/* 连线记录区 */
 			& .record.area {
-				& .rounds > .list {
+				& > .round.list {
 					min-height: 100px;
 					max-height: 330px;
 					overflow-y: auto;
@@ -38,14 +38,14 @@
 					border-radius: 5px;
 					padding: 10px;
 
-					& p {
+					& > .one.round {
 						margin: 0;
 						padding: 6px 4px;
 						border-bottom: 1px solid #f0f2f5;
 						color: #555;
 						font-size: 0.9em;
 
-						&:last-child { border-bottom: none; }
+						&.last { border-bottom: none; }
 					}
 				}
 			}
@@ -295,15 +295,13 @@
 						</div>
 					</el-collapse-item>
 					<el-collapse-item title="连线记录" name="record-area" class="record area">
-						<div class="controller list">
+						<div class="op area">
 							<el-button :disabled="!connectionHistory.length" icon="Download" size="small" @click="exportConnections">导出
 							</el-button>
 						</div>
 						<el-empty v-if="!connectionHistory.length" description="尚未连线"></el-empty>
-						<div v-else class="rounds">
-							<div class="list" ref="connectionList">
-								<p v-for="(conn, connI) in connectionHistory">{{connI+1}}：颜色{{conn.color}} {{conn.path.map(p => '(' + p.row + ',' + p.col + ')').join(' → ')}}</p>
-							</div>
+						<div v-else class="round list">
+							<div class="one round" v-for="(conn, connI) in connectionHistory" :class="{ last: connI === connectionHistory.length - 1 }">{{connI+1}}：颜色{{conn.color}} {{conn.path.map(p => '(' + p.row + ',' + p.col + ')').join(' → ')}}</div>
 						</div>
 					</el-collapse-item>
 				</el-collapse>

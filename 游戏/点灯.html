@@ -96,35 +96,32 @@
 		}
 
 		& .record.area {
-			& .tip {
+			& > .tip {
 				font-size: 0.8rem; color: #606266;
 
 				&.at-top { margin: 0; color: var(--el-color-warning); }
 				&.at-bottom { color: var(--el-color-success); margin-top: 6px; }
 			}
-			& .rounds {
+			& > .round.list {
 				& > .summary { font-size: 0.8rem; color: #606266; margin: 4px 0 0; }
-				& > .list {
-					min-height: 100px;
-					max-height: 330px;
-					overflow-y: auto;
-					background-color: #fff;
-					border: 1px solid #dce1e6;
-					border-radius: 5px;
-					padding: 10px;
+				min-height: 100px;
+				max-height: 330px;
+				overflow-y: auto;
+				background-color: #fff;
+				border: 1px solid #dce1e6;
+				border-radius: 5px;
+				padding: 10px;
 
-					& p {
-						margin: 0;
-						padding: 6px 4px;
-						border-bottom: 1px solid #f0f2f5;
-						color: #555;
-						font-size: 0.9em;
+				& > .one.round {
+					margin: 0;
+					padding: 6px 4px;
+					border-bottom: 1px solid #f0f2f5;
+					color: #555;
+					font-size: 0.9em;
 
-						&:last-child { border-bottom: none; }
-					}
+					&.last { border-bottom: none; }
 				}
 			}
-			& .error { color: var(--el-color-danger); }
 		}
 
 		@media (max-width: 500px) {
@@ -232,15 +229,15 @@
 						</el-card>
 					</el-collapse-item>
 					<el-collapse-item title="回合记录" name="record-area" class="record area">
-						<div class="controller list">
+						<div class="op area">
 							<el-button :disabled="!rounds.length" icon="Download" size="small" @click="exportRounds">导出
 							</el-button>
 						</div>
-						<el-empty v-if="!rounds.length" description="尚无记录。请开始吧！"></el-empty>
-						<div v-else class="rounds">
-							<div class="list" ref="roundList">
-								<p v-for="(round, roundI) in rounds">{{roundI+1}}：第{{round.row}}行, 第{{round.col}}列</p>
-							</div>
+						<div class="round list">
+							<el-empty v-if="!rounds.length" description="尚无记录。请开始吧！"></el-empty>
+							<template v-else>
+								<div class="one round" v-for="(round, roundI) in rounds" :class="{ last: roundI === rounds.length - 1 }">{{roundI+1}}：第{{round.row}}行, 第{{round.col}}列</div>
+							</template>
 						</div>
 					</el-collapse-item>
 				</el-collapse>
