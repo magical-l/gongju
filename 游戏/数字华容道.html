@@ -209,7 +209,7 @@
 		</section>
 
 		<aside class="sidebar at-left">
-			<details :open="panels.info" @toggle="onPanelToggle('info', $event)">
+			<details :open="panels.info" @toggle="onPanelToggle('info', $event)" class="gaming info">
 				<summary>本局信息</summary>
 				<div class="content">
 					<section class="init situation">
@@ -220,7 +220,7 @@
 					</section>
 				</div>
 			</details>
-			<details :open="panels.record" @toggle="onPanelToggle('record', $event)">
+			<details :open="panels.record" @toggle="onPanelToggle('record', $event)" class="record area">
 				<summary>回合</summary>
 				<div class="content">
 					<p v-if="solutionSteps.length" class="tip at-top">
@@ -249,7 +249,7 @@
 					</div>
 				</div>
 			</details>
-			<details :open="panels.shortcuts" @toggle="onPanelToggle('shortcuts', $event)">
+			<details :open="panels.shortcuts" @toggle="onPanelToggle('shortcuts', $event)" class="shortcuts">
 				<summary>快捷键</summary>
 				<div class="content">
 					<p>↑ ↓ ← → ：移动与空位相邻的块</p>

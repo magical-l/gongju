@@ -281,7 +281,7 @@
 		</div>
 
 		<aside class="sidebar at-left">
-			<details :open="panels.info" @toggle="onPanelToggle('info', $event)">
+			<details :open="panels.info" @toggle="onPanelToggle('info', $event)" class="gaming info">
 				<summary>本局信息</summary>
 				<div class="content">
 					<div class="game-info">
@@ -294,7 +294,7 @@
 					</div>
 				</div>
 			</details>
-			<details :open="panels.record" @toggle="onPanelToggle('record', $event)">
+			<details :open="panels.record" @toggle="onPanelToggle('record', $event)" class="record area">
 				<summary>连线记录</summary>
 				<div class="content">
 					<div class="op area">

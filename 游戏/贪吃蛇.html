@@ -152,7 +152,7 @@
 		</div>
 
 		<aside class="sidebar at-left">
-			<details :open="panels.info" @toggle="onPanelToggle('info', $event)">
+			<details :open="panels.info" @toggle="onPanelToggle('info', $event)" class="gaming info">
 				<summary>本局信息</summary>
 				<div class="content">
 					<el-card header="分数" class="scoreboard" body-class="score" shadow="never">

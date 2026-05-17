@@ -102,13 +102,13 @@
 		</article>
 
 		<aside class="sidebar at-left">
-			<details :open="panels.info" @toggle="onPanelToggle('info')">
+			<details :open="panels.info" @toggle="onPanelToggle('info')" class="gaming info">
 				<summary>本局信息</summary>
 				<div class="content">
 					<span v-if="isGaming" class="game-info">当前玩家: {{ curPlayer.name }}</span>
 				</div>
 			</details>
-			<details :open="panels.record" @toggle="onPanelToggle('record')">
+			<details :open="panels.record" @toggle="onPanelToggle('record')" class="record area">
 				<summary>落子记录</summary>
 				<div class="content">
 					<div class="op area">
