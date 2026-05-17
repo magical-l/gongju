@@ -29,16 +29,28 @@
 	}
 
 	/* 单位：有单位的游戏内，单位的默认样式表，如棋子、数字方块等。不局限于地图内，也可以是一局游戏之外的展示信息 */
-		/* 单位：有单位的游戏内，单位的默认样式表，如棋子、数字方块等。不局限于地图内，也可以是一局游戏之外的展示信息 */
-		& .unit {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			text-align: center;
-			user-select: none;
-			-webkit-user-select: none;
-		}
+	& .unit {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+		user-select: none;
+		-webkit-user-select: none;
 
+		/* 可操作的单位 */
+		&.movable { cursor: pointer; }
+		/* 有提示状态的单位 */
+		&.hint {
+			outline: 3px solid #e6a23c;/* 橙色轮廓 */
+			outline-offset: -3px;/* 轮廓内缩 */
+		}
+		/* 选中状态的单位 */
+		&.selected {
+			outline: 3px solid #409eff;/* 蓝色轮廓 */
+			outline-offset: -3px;/* 轮廓内缩 */
+			box-shadow: 0 0 8px rgba(64, 158, 255, 0.5), 0 0 0 3px rgba(64, 158, 255, 0.3);/* 阴影 */
+		}
+	}
 	/* 棋盘：有棋盘的游戏内，棋盘的默认样式表。继承.map */
 	& .board.map {
 		--board-cols: 4;

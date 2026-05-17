@@ -30,10 +30,6 @@
 			color: var(--black-color);
 		}
 
-		&.selected {
-			outline: 3px solid #007bff;
-			box-shadow: 0 0 10px #007bff;
-		}
 	}
 
 	& .board.map {

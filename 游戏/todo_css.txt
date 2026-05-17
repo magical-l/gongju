@@ -1,0 +1,3 @@
+- 中国象棋: .cell.movable（可移动到的位置，绿色圆点标记）留在象棋内部
+- 中国象棋: .unit.selected 用 outline: 3px solid #007bff + box-shadow: 0 0 10px #007bff（外发光），覆盖默认的 outline-offset:-3px + 内发光
+- 塔防: .cell.selected 用 border: 2px solid + background-color，完全不同于 unit.selected
