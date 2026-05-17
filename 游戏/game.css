@@ -12,6 +12,91 @@
 		&:focus {
 			outline: none;
 		}
+
+		/* 计分板 */
+		& .scoreboard .header {
+			padding: 8px 12px;
+		}
+
+		/* 记录区 */
+		& .record.area {
+			/* 操作区 */
+			& .op.area {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 8px;
+				align-items: center;
+				margin-bottom: 4px;
+			}
+			/* 提示 */
+			& .tip {
+				font-size: 0.8rem;
+				color: #606266;
+			}
+			/* 回合列表 */
+			& .round.list {
+				margin-top: 6px;
+				max-width: 100%;
+				/* 回合列表的摘要信息 */
+				& .summary {
+					grid-column: 1 / -1;/* 若在grid布局里，摘要独占一行 */
+					font-size: 0.8rem;
+					color: #606266;
+					margin: 4px 0 0;
+				}
+				/* 单个回合 */
+				& .one.round {
+					/* 单个回合内操作的单位 */
+					> .unit {
+					}
+				}
+			}
+		}
+
+		/* 结算弹窗 */
+		& .result {
+			background: #f9f9f9;
+			color: #303133;
+			border-radius: 8px;
+			min-width: 420px;
+			border: 1px solid #e4e7ed;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+			& .title {
+				padding: 10px 10px 0 0;
+			}
+
+			& .body {
+				padding: 0 50px 30px 50px;
+				text-align: center;
+			}
+
+			& .toolbar {
+				margin-top: 30px;
+				display: flex;
+				gap: 0.5rem;
+				justify-content: center;
+			}
+
+			& .success {
+				font-size: 60px;
+				font-weight: bold;
+				color: #4caf50;
+				text-shadow: 0 0 10px white;
+			}
+
+			& .fail {
+				font-size: 60px;
+				font-weight: bold;
+				color: #f56c6c;
+				text-shadow: 0 0 10px white;
+			}
+
+			& .stats {
+				font-size: 24px;
+				margin-top: 10px;
+			}
+		}
 	}
 
 	/* 地图：有地图的游戏内，地图的默认样式表。不局限于玩区，也可以是一局游戏之外的展示信息 */
@@ -133,91 +218,6 @@
 			margin: 0;
 			font-size: 0.875rem;
 			color: rgba(255, 255, 255, 0.85);
-		}
-	}
-
-	/* 结算弹窗 */
-	& .result {
-		background: #f9f9f9;
-		color: #303133;
-		border-radius: 8px;
-		min-width: 420px;
-		border: 1px solid #e4e7ed;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-
-		& .title {
-			padding: 10px 10px 0 0;
-		}
-
-		& .body {
-			padding: 0 50px 30px 50px;
-			text-align: center;
-		}
-
-		& .toolbar {
-			margin-top: 30px;
-			display: flex;
-			gap: 0.5rem;
-			justify-content: center;
-		}
-
-		& .success {
-			font-size: 60px;
-			font-weight: bold;
-			color: #4caf50;
-			text-shadow: 0 0 10px white;
-		}
-
-		& .fail {
-			font-size: 60px;
-			font-weight: bold;
-			color: #f56c6c;
-			text-shadow: 0 0 10px white;
-		}
-
-		& .stats {
-			font-size: 24px;
-			margin-top: 10px;
-		}
-	}
-
-	/* 计分板 */
-	& .scoreboard .header {
-		padding: 8px 12px;
-	}
-
-	/* 记录区 */
-	& .record.area {
-		/* 操作区 */
-		& .op.area {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 8px;
-			align-items: center;
-			margin-bottom: 4px;
-		}
-		/* 提示 */
-		& .tip {
-			font-size: 0.8rem;
-			color: #606266;
-		}
-		/* 回合列表 */
-		& .round.list {
-			margin-top: 6px;
-			max-width: 100%;
-			/* 回合列表的摘要信息 */
-			& .summary {
-				grid-column: 1 / -1;/* 若在grid布局里，摘要独占一行 */
-				font-size: 0.8rem;
-				color: #606266;
-				margin: 4px 0 0;
-			}
-			/* 单个回合 */
-			& .one.round {
-				/* 单个回合内操作的单位 */
-				> .unit {
-				}
-			}
 		}
 	}
 }
