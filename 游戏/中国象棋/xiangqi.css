@@ -181,7 +181,8 @@
 		}
 
 		/* 棋子库 */
-		& .unit.palette {
+		& .unit.type.palette {
+			display: grid;
 			grid-template-columns: repeat(auto-fill, var(--unit-size));
 			gap: 0.5rem;
 			padding: 10px;

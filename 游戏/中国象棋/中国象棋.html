@@ -123,7 +123,7 @@
 						</article>
 					</el-collapse-item>
 					<el-collapse-item title="棋子库" name="palette" v-if="!isGaming">
-						<div class="unit type palette , grid">
+						<div class="unit type palette">
 							<div class="piece unit" :class="getEditorPaletteClass(type)"
 									v-for="(piece, type) in boardEditor.pieceTypes" :key="type"
 									@click="boardEditor.selectedPieceType = (boardEditor.selectedPieceType === type ? null : type)"

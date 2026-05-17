@@ -24,16 +24,18 @@
 <link href="../lib/css/花活.css" rel="stylesheet">
 <style>
 	.game {
-		/* 格子基础样式：布局与文字 */
+		/* 格子：容器 */
 		& .cell {
+			&.empty {
+				background: transparent;
+			}
+		}
+
+		/* 单位：数字方块 */
+		& .unit {
 			font-weight: bold;
 			font-size: calc(0.4 * var(--cell-size));
 			color: #5a6b52;
-
-			&.empty {
-				background: transparent;
-				color: transparent;
-			}
 		}
 
 		/* 主棋盘 */
@@ -195,13 +197,12 @@
 				</div>
 			</section>
 		</header>
-
 		<section class="board , main map , grid" :style="boardStyle" :class="{ 'non-interactive': isWin && !showWinModal }">
-			<div v-for="(val, index) in board" :key="index" class="cell" :class="{ empty: board[index] === 0 }"
+			<div v-for="(val, index) in board" :key="index" class="cell" :class="{ empty: val === 0 }"
 				@dragover.prevent @drop="onLayoutDrop($event, index)">
-				<div class="unit" :class="cellStateClass(index)" @click="onCellClick(index)"
+				<div v-if="val !== 0" class="unit" :class="cellStateClass(index)" @click="onCellClick(index)"
 					:draggable="layoutMode" @dragstart="onLayoutDragStart($event, index)" @dragend="onLayoutDragEnd">
-					{{ val || '' }}
+					{{ val }}
 					<span v-if="getMoveDirection(index)" class="shape triangle" :class="arrowClass(index)"></span>
 				</div>
 			</div>
@@ -214,7 +215,7 @@
 						<section class="init situation">
 							<h3>初始局面</h3>
 							<div class="mini board map , grid" :style="initialBoardStyle">
-								<span v-for="(val, idx) in initialBoard" :key="idx" class="cell" :class="{ empty: val === 0 }">{{ val || '' }}</span>
+								<span v-for="(val, idx) in initialBoard" :key="idx" class="cell" :class="{ empty: val === 0 }"><span v-if="val !== 0" class="unit">{{ val }}</span></span>
 							</div>
 						</section>
 					</el-collapse-item>
