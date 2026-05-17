@@ -114,11 +114,11 @@
 						</div>
 						<div class="round list">
 							<el-empty v-if="!turnHistory.length" description="尚未落子"></el-empty>
-							<el-table v-else :data="turnHistory" row-key="id" stripe style="width: 100%" height="400" size="small" cell-class-name="el-cell">
-								<el-table-column prop="id" label="回合" width="60"></el-table-column>
-								<el-table-column prop="blackMove" label="黑方"></el-table-column>
-								<el-table-column prop="whiteMove" label="白方"></el-table-column>
-							</el-table>
+							<div v-else class="one round" v-for="turn in turnHistory" :key="turn.id">
+								<span class="id">{{ turn.id }}</span>
+								<span class="first black">黑 {{ turn.blackMove }}</span>
+								<span class="second white">白 {{ turn.whiteMove || '—' }}</span>
+							</div>
 						</div>
 					</el-collapse-item>
 				</el-collapse>

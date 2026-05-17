@@ -171,6 +171,20 @@
 			}
 			& > .op.area { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px; }
 			& .rounds > .round.list > .round.list > .round.list { margin-top: 6px; }
+			& .one.round {
+				display: grid;
+				grid-template-columns: 40px 1fr 1fr;
+				align-items: center;
+				padding: 6px 8px;
+				border-bottom: 1px solid #ebeef5;
+				font-size: 0.85rem;
+				&:last-child { border-bottom: none; }
+				&:nth-child(odd) { background: #f5f7fa; }
+				& .id { color: #909399; }
+				& .first, & .second { text-align: center; }
+				& .red { color: #d43d3d; }
+				& .black { color: #333; }
+			}
 		}
 
 		/* 小棋盘 */
