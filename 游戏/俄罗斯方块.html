@@ -1,681 +1,785 @@
 <!DOCTYPE html>
 <html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title itemprop="name">俄罗斯方块 | 工具兽 - 在线玩经典的益智游戏</title>
-<meta name="description"
-			content="一个经典的俄罗斯方块游戏，拥有现代化的功能和可自定义的设置，包括难度曲线、初始等级、游戏区尺寸和幽灵方块显示。支持键盘快捷键操作，提供流畅的游戏体验。"
-			itemprop="description">
-<meta name="keywords" content="俄罗斯方块,Tetris,在线游戏,休闲游戏,益智游戏">
-<meta name="author" content="工具兽">
-<link rel="canonical" href="https://gongju.monster/game/tetris">
-<!-- Open Graph / Facebook -->
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://gongju.monster/game/tetris">
-<meta property="og:title" content="俄罗斯方块 | 工具兽 - 在线玩经典的益智游戏">
-<meta property="og:description"
-			content="一个经典的俄罗斯方块游戏，拥有现代化的功能和可自定义的设置，包括难度曲线、初始等级、游戏区尺寸和幽灵方块显示。支持键盘快捷键操作，提供流畅的游戏体验。">
-<meta property="og:image" content="https://gongju.monster/resources/preview-tetris.jpg">
-<!-- Twitter -->
-<meta property="twitter:card" content="summary_large_image">
-<meta property="twitter:url" content="https://gongju.monster/game/tetris">
-<meta property="twitter:title" content="俄罗斯方块 | 工具兽 - 在线玩经典的益智游戏">
-<meta property="twitter:description"
-			content="一个经典的俄罗斯方块游戏，拥有现代化的功能和可自定义的设置，包括难度曲线、初始等级、游戏区尺寸和幽灵方块显示。支持键盘快捷键操作，提供流畅的游戏体验。">
-<meta property="twitter:image" content="https://gongju.monster/resources/preview-tetris.jpg">
-
-<!-- 预加载关键资源 -->
-<link rel="preload" href="../lib/jquery-3.4.1.min.js" as="script">
-<link rel="preload" href="../resources/util.js" as="script">
-
-<link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
-<link href="../resources/el-plus.css" rel="stylesheet">
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title itemprop="name">俄罗斯方块 | 工具兽 - 在线玩经典的益智游戏</title>
+	<meta name="description" content="一个经典的俄罗斯方块游戏，拥有现代化的功能和可自定义的设置，包括难度曲线、初始等级、游戏区尺寸和幽灵方块显示。支持键盘快捷键操作，提供流畅的游戏体验。" itemprop="description">
+	<meta name="keywords" content="俄罗斯方块,Tetris,在线游戏,休闲游戏,益智游戏">
+	<meta name="author" content="工具兽">
+	<link rel="canonical" href="https://gongju.monster/game/tetris">
+	<!-- Open Graph / Facebook -->
+	<meta property="og:type" content="website">
+	<meta property="og:url" content="https://gongju.monster/game/tetris">
+	<meta property="og:title" content="俄罗斯方块 | 工具兽 - 在线玩经典的益智游戏">
+	<meta property="og:description" content="一个经典的俄罗斯方块游戏，拥有现代化的功能和可自定义的设置，包括难度曲线、初始等级、游戏区尺寸和幽灵方块显示。支持键盘快捷键操作，提供流畅的游戏体验。">
+	<meta property="og:image" content="https://gongju.monster/resources/preview-tetris.jpg">
+	<!-- Twitter -->
+	<meta property="twitter:card" content="summary_large_image">
+	<meta property="twitter:url" content="https://gongju.monster/game/tetris">
+	<meta property="twitter:title" content="俄罗斯方块 | 工具兽 - 在线玩经典的益智游戏">
+	<meta property="twitter:description" content="一个经典的俄罗斯方块游戏，拥有现代化的功能和可自定义的设置，包括难度曲线、初始等级、游戏区尺寸和幽灵方块显示。支持键盘快捷键操作，提供流畅的游戏体验。">
+	<meta property="twitter:image" content="https://gongju.monster/resources/preview-tetris.jpg">
+	<!-- 预加载关键资源 -->
+	<link rel="preload" href="../lib/jquery-3.4.1.min.js" as="script">
+	<link rel="preload" href="../resources/util.js" as="script">
+	<link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
+	<link href="../resources/el-plus.css" rel="stylesheet">
 	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/common.css" rel="stylesheet"> -->
 	<link href="../lib/css/common.css" rel="stylesheet">
 	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/layout.css" rel="stylesheet"> -->
 	<link href="../lib/css/layout.css" rel="stylesheet">
-<link href="../resources/biz.css?v=250821" rel="stylesheet">
+	<link href="../resources/biz.css?v=250821" rel="stylesheet">
 	<link href="game.css" rel="stylesheet">
 	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/花活.css" rel="stylesheet"> -->
 	<link href="../lib/css/花活.css" rel="stylesheet">
-<style>
-	.game {
-		& .gaming.area { --反叵字形-gap: 2em; }
+	<style>
+		.game {
+			& .gaming.area {
+				--反叵字形-gap: 2em;
+			}
 
-		& .board.map {
-			--cell-size: 30px;
+			& .board.map {
+				--cell-size: 30px;
 
-			&.preview {
-				--board-cols: 4;
-				--board-rows: 4;
+				&.preview {
+					--board-cols: 4;
+					--board-rows: 4;
 					padding: 0;
 					background: transparent;
 					border-color: transparent;
 					border-radius: 0;
+				}
+
+				& .cell {
+					border: 1px solid rgba(0, 0, 0, 0.15);
+				}
 			}
 
-			& .cell {
-				border: 1px solid rgba(0, 0, 0, 0.15);
+			& .unit {
+				width: 100%;
+				height: 100%;
 
-				&.I { background-color: #7dd3c0; }
-				&.O { background-color: #f9e2af; }
-				&.T { background-color: #cba6f7; }
-				&.J { background-color: #89b4fa; }
-				&.L { background-color: #fab387; }
-				&.S { background-color: #a6e3a1; }
-				&.Z { background-color: #f38ba8; }
-				&.ghost { background-color: #495057; opacity: 0.25; }
+				&.I {
+					background-color: #7dd3c0;
+				}
+
+				&.O {
+					background-color: #f9e2af;
+				}
+
+				&.T {
+					background-color: #cba6f7;
+				}
+
+				&.J {
+					background-color: #89b4fa;
+				}
+
+				&.L {
+					background-color: #fab387;
+				}
+
+				&.S {
+					background-color: #a6e3a1;
+				}
+
+				&.Z {
+					background-color: #f38ba8;
+				}
+
+				&.ghost {
+					background-color: #495057;
+					opacity: 0.25;
+				}
+			}
+
+			& .one.setting.number.input {
+				width: 80px;
 			}
 		}
 
-
-		& .one.setting.number.input {width: 80px;}
-	}
-</style>
+	</style>
 </head>
 <body class="grid 反叵字形">
-<header>
-	<h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
-	<nav>
-		<div class="nav-row">
-			<a href="../文本转化.html">文本转化</a>
-			<a href="../数字转化.html">数字转化</a>
-			<a href="../符号/符号.html">符号</a>
-			<a href="../格子盘.html">格子盘</a>
-			<a href="../svg转图标.html">SVG转图标</a>
-			<a href="../化学/元素周期表.html">元素周期表</a>
-			<a href="../拼音/拼音.html">拼音</a>
-		</div>
-		<div class="nav-row">
-			<a href="中国象棋/中国象棋.html">中国象棋</a>
-			<a href="五子棋/gobang.html">五子棋</a>
-			<a href="俄罗斯方块.html" class="active">俄罗斯方块</a>
-			<a href="贪吃蛇.html">贪吃蛇</a>
-			<a href="2048/2048.html">2048</a>
-			<a href="2048蛇/2048蛇.html">2048蛇</a>
-			<a href="2048方块/2048方块.html">2048方块</a>
-			<a href="点灯.html">点灯</a>
-			<a href="数字华容道.html">数字华容道</a>
-			<a href="星连星/星连星.html">星连星</a>
-		</div>
-	</nav>
-</header>
-<main class="game">
 	<header>
-		<h2 class="game name">俄罗斯方块</h2>
-		<div class="page-lv help area" v-cloak>
-			<el-button title="游戏介绍" class="page-lv help btn" size="small" circle @click="introVisible = true">?
-			</el-button>
-			<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
-				<article class="description">
-					<h3>游戏目标</h3>
-					<p>
-						《俄罗斯方块》是一款经典的益智游戏。游戏的目标很简单：移动和旋转下落的各种形状的方块（俄罗斯方块），将它们排列成完整的水平行。每当您成功填满一行，该行就会被消除，并且您会获得分数。游戏会随着您消除的行数增加而提升等级，方块下落的速度也会越来越快，挑战您的反应速度和策略规划能力。</p>
-					<h3>操作方式</h3>
-					<p>您可以使用键盘来控制方块的移动和旋转：</p>
-					<ul>
-						<li><strong>← (左箭头)</strong>：向左移动方块</li>
-						<li><strong>→ (右箭头)</strong>：向右移动方块</li>
-						<li><strong>↓ (下箭头)</strong>：加速方块下落（软降）</li>
-						<li><strong>↑ (上箭头)</strong>：旋转方块</li>
-						<li><strong>回车 (Enter)</strong>：将方块瞬间移动到最底部（硬降）</li>
-						<li><strong>空格 (Space)</strong>：暂停或继续游戏</li>
-					</ul>
-					<h3>计分与升级</h3>
-					<ul>
-						<li><strong>计分</strong>：消除的行数越多，获得的分数也越多。一次性消除多行（例如，使用长条方块一次消除4行，即
-							"Tetris"）会获得高额奖励分数。
-						</li>
-						<li><strong>升级</strong>：每当您累计消除10行，游戏等级就会提升一级。等级越高，方块下落的速度越快。</li>
-					</ul>
-					<h3>自定义设置</h3>
-					<p>游戏提供了多种自定义选项，让您可以根据自己的喜好调整游戏体验：</p>
-					<ul>
-						<li><strong>尺寸</strong>：您可以自定义游戏区域的宽度和高度。</li>
-						<li><strong>难度</strong>：提供"柔和"与"经典"两种难度曲线。经典模式遵循传统的速度设定，更具挑战性。</li>
-						<li><strong>起始等级</strong>：您可以选择一个较高的起始等级来直接挑战高速游戏。</li>
-						<li><strong>显示落点</strong>：开启此功能后，游戏区域底部会显示一个"幽灵方块"，提示您当前方块将会下落到的最终位置，帮助您更精确地放置方块。
-						</li>
-					</ul>
-				</article>
-			</el-dialog>
-		</div>
+		<h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
+		<nav>
+			<div class="nav-row">
+				<a href="../文本转化.html">文本转化</a>
+				<a href="../数字转化.html">数字转化</a>
+				<a href="../符号/符号.html">符号</a>
+				<a href="../格子盘.html">格子盘</a>
+				<a href="../svg转图标.html">SVG转图标</a>
+				<a href="../化学/元素周期表.html">元素周期表</a>
+				<a href="../拼音/拼音.html">拼音</a>
+			</div>
+			<div class="nav-row">
+				<a href="中国象棋/中国象棋.html">中国象棋</a>
+				<a href="五子棋/gobang.html">五子棋</a>
+				<a href="俄罗斯方块.html" class="active">俄罗斯方块</a>
+				<a href="贪吃蛇.html">贪吃蛇</a>
+				<a href="2048/2048.html">2048</a>
+				<a href="2048蛇/2048蛇.html">2048蛇</a>
+				<a href="2048方块/2048方块.html">2048方块</a>
+				<a href="点灯.html">点灯</a>
+				<a href="数字华容道.html">数字华容道</a>
+				<a href="星连星/星连星.html">星连星</a>
+			</div>
+		</nav>
 	</header>
-
-	<article class="gaming area , 叵字形 grid" v-cloak>
-		<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
-			<section class="setting list , flex single-line no-gap items-near-x-start items-near-y-center">
-				<div class="one setting group">
-					<el-form-item label="行" class="one setting : rows">
-						<el-select v-model="settings.rows">
-							<el-option v-for="r in rowsOptions" :key="r" :label="r" :value="r"/>
-						</el-select>
-					</el-form-item>
-					<el-form-item label="列" class="one setting : cols">
-						<el-select v-model="settings.cols">
-							<el-option v-for="c in colsOptions" :key="c" :label="c" :value="c"/>
-						</el-select>
-					</el-form-item>
-					<el-button title="恢复默认并新局" class="one setting : restore-default" @click="restoreDefaultSize" icon="RefreshLeft"></el-button>
-				</div>
-				<div class="one setting group">
-					<el-form-item label="难度" class="one setting : difficulty">
-						<el-select v-model="settings.startLevel">
-							<el-option v-for="lv in startLevelOptions" :key="lv" :label="lv" :value="lv"/>
-						</el-select>
-						<el-radio-group v-model="settings.difficulty">
-							<el-radio-button v-for="opt in difficultyOptions" :key="opt.value" :label="opt.value">{{opt.name}}
-							</el-radio-button>
-						</el-radio-group>
-					</el-form-item>
-				</div>
-				<div class="one setting group">
-					<el-button type="danger" class="one setting : new-game" @click="startGame" icon="RefreshRight">新局
-					</el-button>
-				</div>
-			</section>
-			<section class="controller list , flex single-line no-gap items-near-x-start items-near-y-center">
-				<div class="one controller group">
-					<el-button v-if="isPaused" class="one controller : pause" title="开始（快捷键：空格）" @click="togglePause"
-									:disabled="isGameOver" type="primary" icon="VideoPlay">开始
-					</el-button>
-					<el-button v-else class="one controller : pause" title="暂停（快捷键：空格）" @click="togglePause"
-									:disabled="isGameOver" icon="VideoPause">暂停
-					</el-button>
-				</div>
-			</section>
-			<section class="tool list , flex single-line no-gap items-near-x-start items-near-y-center">
-				<div class="one tool group">
-					<el-form-item label="显示落点" class="one tool : show-ghost">
-						<el-switch v-model="settings.showGhost"></el-switch>
-					</el-form-item>
-				</div>
-			</section>
+	<main class="game">
+		<header>
+			<h2 class="game name">俄罗斯方块</h2>
+			<div class="page-lv help area" v-cloak>
+				<el-button title="游戏介绍" class="page-lv help btn" size="small" circle @click="introVisible = true">? </el-button>
+				<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
+					<article class="description">
+						<h3>游戏目标</h3>
+						<p> 《俄罗斯方块》是一款经典的益智游戏。游戏的目标很简单：移动和旋转下落的各种形状的方块（俄罗斯方块），将它们排列成完整的水平行。每当您成功填满一行，该行就会被消除，并且您会获得分数。游戏会随着您消除的行数增加而提升等级，方块下落的速度也会越来越快，挑战您的反应速度和策略规划能力。</p>
+						<h3>操作方式</h3>
+						<p>您可以使用键盘来控制方块的移动和旋转：</p>
+						<ul>
+							<li><strong>← (左箭头)</strong>：向左移动方块</li>
+							<li><strong>→ (右箭头)</strong>：向右移动方块</li>
+							<li><strong>↓ (下箭头)</strong>：加速方块下落（软降）</li>
+							<li><strong>↑ (上箭头)</strong>：旋转方块</li>
+							<li><strong>回车 (Enter)</strong>：将方块瞬间移动到最底部（硬降）</li>
+							<li><strong>空格 (Space)</strong>：暂停或继续游戏</li>
+						</ul>
+						<h3>计分与升级</h3>
+						<ul>
+							<li><strong>计分</strong>：消除的行数越多，获得的分数也越多。一次性消除多行（例如，使用长条方块一次消除4行，即 "Tetris"）会获得高额奖励分数。 </li>
+							<li><strong>升级</strong>：每当您累计消除10行，游戏等级就会提升一级。等级越高，方块下落的速度越快。</li>
+						</ul>
+						<h3>自定义设置</h3>
+						<p>游戏提供了多种自定义选项，让您可以根据自己的喜好调整游戏体验：</p>
+						<ul>
+							<li><strong>尺寸</strong>：您可以自定义游戏区域的宽度和高度。</li>
+							<li><strong>难度</strong>：提供"柔和"与"经典"两种难度曲线。经典模式遵循传统的速度设定，更具挑战性。</li>
+							<li><strong>起始等级</strong>：您可以选择一个较高的起始等级来直接挑战高速游戏。</li>
+							<li><strong>显示落点</strong>：开启此功能后，游戏区域底部会显示一个"幽灵方块"，提示您当前方块将会下落到的最终位置，帮助您更精确地放置方块。 </li>
+						</ul>
+					</article>
+				</el-dialog>
+			</div>
 		</header>
-		<article class="main map area , flex items-near-x-center items-near-y-start" style="grid-row:2">
-			<section class="board map" :style="boardStyle">
-				<div v-for="(cell, index) in displayGrid" :key="index" :class="['cell', cell]"></div>
-				<div class="overlay" v-if="isPaused && !isGameOver">
-					<div class="title">准备就绪</div>
-					<el-button class="start play btn" @click="togglePause" icon="CaretRight"></el-button>
-				</div>
-			</section>
-		</article>
-
-		<!-- 结算弹窗 -->
-		<el-dialog v-model="showGameOverModal" class="result narrow" title="游戏结束" :show-close="true" align-center>
-			<div class="stats">得分: {{ score }}</div>
-			<template #footer>
-				<el-button type="primary" size="large" icon="RefreshRight" @click="closeGameOverAndNew">新局</el-button>
-				<el-button type="warning" size="large" @click="closeGameOverModal">关闭</el-button>
-			</template>
-		</el-dialog>
-
-		<!-- 彩纸效果 -->
-		<div class="fullscreen non-interactive top-layer" v-if="showGameOverModal">
-			<div class="confetti-piece" v-for="i in 150" :key="'confetti'+i"></div>
-		</div>
-
-		<aside class="sidebar at-left">
-			<details data-panel="next" :open="panels.next" @toggle="onPanelToggle">
-				<summary>下一块</summary>
-				<div class="board map preview">
-					<div class="cell" v-for="(block, index) in nextPieceBlocks" :key="index" :class="block"></div>
-				</div>
-			</details>
-			<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
-				<summary>本局信息</summary>
-				<el-card header="分数" class="scoreboard" body-class="score" shadow="never">
-					{{ score }}
-					<template #footer>最高记录：{{ highScore }}</template>
-				</el-card>
-				<el-descriptions :column="1" border>
-					<el-descriptions-item label="行数">{{ lines }}</el-descriptions-item>
-					<el-descriptions-item label="等级">{{ level }}</el-descriptions-item>
-				</el-descriptions>
-			</details>
-			<details class="shortcut list" data-panel="shortcuts" :open="panels.shortcuts" @toggle="onPanelToggle">
-				<summary>快捷键</summary>
+		<article class="gaming area , 叵字形 grid" v-cloak>
+			<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
+				<section class="setting list , flex single-line no-gap items-near-x-start items-near-y-center">
+					<div class="one setting group">
+						<el-form-item label="行" class="one setting : rows">
+							<el-select v-model="settings.rows">
+								<el-option v-for="r in rowsOptions" :key="r" :label="r" :value="r" />
+							</el-select>
+						</el-form-item>
+						<el-form-item label="列" class="one setting : cols">
+							<el-select v-model="settings.cols">
+								<el-option v-for="c in colsOptions" :key="c" :label="c" :value="c" />
+							</el-select>
+						</el-form-item>
+						<el-button title="恢复默认并新局" class="one setting : restore-default" @click="restoreDefaultSize" icon="RefreshLeft"></el-button>
+					</div>
+					<div class="one setting group">
+						<el-form-item label="难度" class="one setting : difficulty">
+							<el-select v-model="settings.startLevel">
+								<el-option v-for="lv in startLevelOptions" :key="lv" :label="lv" :value="lv" />
+							</el-select>
+							<el-radio-group v-model="settings.difficulty">
+								<el-radio-button v-for="opt in difficultyOptions" :key="opt.value" :label="opt.value">{{opt.name}}
+								</el-radio-button>
+							</el-radio-group>
+						</el-form-item>
+					</div>
+					<div class="one setting group">
+						<el-button type="danger" class="one setting : new-game" @click="startGame" icon="RefreshRight">新局 </el-button>
+					</div>
+				</section>
+				<section class="controller list , flex single-line no-gap items-near-x-start items-near-y-center">
+					<div class="one controller group">
+						<el-button v-if="isPaused" class="one controller : pause" title="开始（快捷键：空格）" @click="togglePause" :disabled="isGameOver" type="primary" icon="VideoPlay">开始 </el-button>
+						<el-button v-else class="one controller : pause" title="暂停（快捷键：空格）" @click="togglePause" :disabled="isGameOver" icon="VideoPause">暂停 </el-button>
+					</div>
+				</section>
+				<section class="tool list , flex single-line no-gap items-near-x-start items-near-y-center">
+					<div class="one tool group">
+						<el-form-item label="显示落点" class="one tool : show-ghost">
+							<el-switch v-model="settings.showGhost"></el-switch>
+						</el-form-item>
+					</div>
+				</section>
+			</header>
+			<article class="main map area , flex items-near-x-center items-near-y-start" style="grid-row:2">
+				<section class="board map" :style="boardStyle">
+					<div v-for="(cell, index) in displayGrid" :key="index" class="cell">
+						<div v-if="cell" class="unit" :class="cell"></div>
+					</div>
+					<div class="overlay" v-if="isPaused && !isGameOver">
+						<div class="title">准备就绪</div>
+						<el-button class="start play btn" @click="togglePause" icon="CaretRight"></el-button>
+					</div>
+				</section>
+			</article>
+			<!-- 结算弹窗 -->
+			<el-dialog v-model="showGameOverModal" class="result narrow" title="游戏结束" :show-close="true" align-center>
+				<div class="stats">得分: {{ score }}</div>
+				<template #footer>
+					<el-button type="primary" size="large" icon="RefreshRight" @click="closeGameOverAndNew">新局</el-button>
+					<el-button type="warning" size="large" @click="closeGameOverModal">关闭</el-button>
+				</template>
+			</el-dialog>
+			<!-- 彩纸效果 -->
+			<div class="fullscreen non-interactive top-layer" v-if="showGameOverModal">
+				<div class="confetti-piece" v-for="i in 150" :key="'confetti'+i"></div>
+			</div>
+			<aside class="sidebar at-left">
+				<details data-panel="next" :open="panels.next" @toggle="onPanelToggle">
+					<summary>下一块</summary>
+					<div class="board map preview">
+						<div class="cell" v-for="(block, index) in nextPieceBlocks" :key="index">
+							<div v-if="block" class="unit" :class="block"></div>
+						</div>
+					</div>
+				</details>
+				<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
+					<summary>本局信息</summary>
+					<el-card header="分数" class="scoreboard" body-class="score" shadow="never">
+						{{ score }}
+						<template #footer>最高记录：{{ highScore }}</template>
+					</el-card>
+					<el-descriptions :column="1" border>
+						<el-descriptions-item label="行数">{{ lines }}</el-descriptions-item>
+						<el-descriptions-item label="等级">{{ level }}</el-descriptions-item>
+					</el-descriptions>
+				</details>
+				<details class="shortcut list" data-panel="shortcuts" :open="panels.shortcuts" @toggle="onPanelToggle">
+					<summary>快捷键</summary>
 					<p class="one shortcut"><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd>：方向</p>
 					<p class="one shortcut"><kbd>↑</kbd>：变形</p>
 					<p class="one shortcut"><kbd>回车</kbd>：砖块直接落到底</p>
 					<p class="one shortcut"><kbd>空格</kbd>：暂停/开始</p>
-			</details>
-		</aside>
-	</article>
-</main>
-
-<aside class="sidebar at-right">
-	<article class="website info">
-		<section class="patronage area">
-			<img class="qr-code" src="../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
-			<p class="slogan">赞助一下</p>
-		</section>
-		<section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
-		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
-		</section>
-	</article>
-</aside>
-
-<div class="js container">
-	<script src="../lib/jquery-3.4.1.min.js"></script>
-	<script src="../lib/toastr.min.js"></script>
-	<script src="../resources/util.js"></script>
-	<script src="../lib/vue/3.5.18/vue.global.js"></script>
-	<script src="../lib/element-plus/2.10.7/index.full.js"></script>
-	<script src="../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
-</div>
-<script>
-	const {createApp} = Vue;
-
-	const CLASSIC_SPEEDS = [800, 717, 633, 550, 467, 383, 300, 217, 133, 100, 83, 83, 83, 67, 67, 67, 50, 50, 50, 33, 33,
-													33, 33, 33, 33, 33, 33, 33, 33, 17];
-	const TETROMINOES = {
-		'T': {shape: [[0, 1, 0], [1, 1, 1], [0, 0, 0]], color: 'T'},
-		'O': {shape: [[1, 1], [1, 1]], color: 'O'},
-		'L': {shape: [[0, 0, 1], [1, 1, 1], [0, 0, 0]], color: 'L'},
-		'J': {shape: [[1, 0, 0], [1, 1, 1], [0, 0, 0]], color: 'J'},
-		'I': {shape: [[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]], color: 'I'},
-		'S': {shape: [[0, 1, 1], [1, 1, 0], [0, 0, 0]], color: 'S'},
-		'Z': {shape: [[1, 1, 0], [0, 1, 1], [0, 0, 0]], color: 'Z'},
-	};
-	const TETROMINO_KEYS = 'IOTSZJL';
-
-	const app = createApp({
-		data() {
-			const panelKey = 'tetris-panels';
-			const defaultPanels = {next: true, info: true, shortcuts: false};
-			let saved;
-			try { saved = JSON.parse(localStorage.getItem(panelKey) || 'null'); } catch (_) { saved = null; }
-			return {
-				score: 0,
-					highScore: parseInt(localStorage.getItem('tetrisHighScore') || '0', 10),
-				lines: 0,
-				level: 1,
-				grid: [],
-				gameCols: 10,
-				gameRows: 20,
-				player: {tetromino: null, pos: {x: 0, y: 0}},
-				nextTetromino: null,
-				isGameOver: false,
-				showGameOverModal: false,
-				isPaused: true,
-				settings: {
-					cols: 10,
-					rows: 20,
-					difficulty: 'gentle',
-					startLevel: 1,
-					showGhost: true,
-				},
-				difficultyOptions: [
-					{name: '柔和', value: 'gentle'},
-					{name: '经典', value: 'classic'},
+				</details>
+			</aside>
+		</article>
+	</main>
+	<aside class="sidebar at-right">
+		<article class="website info">
+			<section class="patronage area">
+				<img class="qr-code" src="../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+				<p class="slogan">赞助一下</p>
+			</section>
+			<section class="copyright">
+				<p>&copy; 2025 工具兽版权所有 All rights reserved.</p>
+			</section>
+			<section class="feedback">
+				<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+			</section>
+		</article>
+	</aside>
+	<div class="js container">
+		<script src="../lib/jquery-3.4.1.min.js"></script>
+		<script src="../lib/toastr.min.js"></script>
+		<script src="../resources/util.js"></script>
+		<script src="../lib/vue/3.5.18/vue.global.js"></script>
+		<script src="../lib/element-plus/2.10.7/index.full.js"></script>
+		<script src="../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
+	</div>
+	<script>
+		const {
+			createApp
+		} = Vue;
+		const CLASSIC_SPEEDS = [800, 717, 633, 550, 467, 383, 300, 217, 133, 100, 83, 83, 83, 67, 67, 67, 50, 50, 50, 33, 33,
+			33, 33, 33, 33, 33, 33, 33, 33, 17
+		];
+		const TETROMINOES = {
+			'T': {
+				shape: [
+					[0, 1, 0],
+					[1, 1, 1],
+					[0, 0, 0]
 				],
-				rowsOptions: Array.from({length: 21}, (_, i) => i + 10),
-				colsOptions: Array.from({length: 16}, (_, i) => i + 5),
-				startLevelOptions: Array.from({length: 29}, (_, i) => i + 1),
-				dropCounter: 0,
-				dropInterval: 1000,
-				lastTime: 0,
-				animationFrameId: null,
-				panels: saved || defaultPanels,
-				_panelKey: panelKey,
-				_defaultPanels: {...defaultPanels},
-			};
-		},
-		computed: {
-			boardStyle() {
+				color: 'T'
+			},
+			'O': {
+				shape: [
+					[1, 1],
+					[1, 1]
+				],
+				color: 'O'
+			},
+			'L': {
+				shape: [
+					[0, 0, 1],
+					[1, 1, 1],
+					[0, 0, 0]
+				],
+				color: 'L'
+			},
+			'J': {
+				shape: [
+					[1, 0, 0],
+					[1, 1, 1],
+					[0, 0, 0]
+				],
+				color: 'J'
+			},
+			'I': {
+				shape: [
+					[0, 0, 0, 0],
+					[1, 1, 1, 1],
+					[0, 0, 0, 0],
+					[0, 0, 0, 0]
+				],
+				color: 'I'
+			},
+			'S': {
+				shape: [
+					[0, 1, 1],
+					[1, 1, 0],
+					[0, 0, 0]
+				],
+				color: 'S'
+			},
+			'Z': {
+				shape: [
+					[1, 1, 0],
+					[0, 1, 1],
+					[0, 0, 0]
+				],
+				color: 'Z'
+			},
+		};
+		const TETROMINO_KEYS = 'IOTSZJL';
+		const app = createApp({
+			data() {
+				const panelKey = 'tetris-panels';
+				const defaultPanels = {
+					next: true,
+					info: true,
+					shortcuts: false
+				};
+				let saved;
+				try {
+					saved = JSON.parse(localStorage.getItem(panelKey) || 'null');
+				} catch (_) {
+					saved = null;
+				}
 				return {
-					gridTemplateColumns: `repeat(${this.gameCols}, 30px)`,
-					gridTemplateRows: `repeat(${this.gameRows}, 30px)`,
+					score: 0,
+					highScore: parseInt(localStorage.getItem('tetrisHighScore') || '0', 10),
+					lines: 0,
+					level: 1,
+					grid: [],
+					gameCols: 10,
+					gameRows: 20,
+					player: {
+						tetromino: null,
+						pos: {
+							x: 0,
+							y: 0
+						}
+					},
+					nextTetromino: null,
+					isGameOver: false,
+					showGameOverModal: false,
+					isPaused: true,
+					settings: {
+						cols: 10,
+						rows: 20,
+						difficulty: 'gentle',
+						startLevel: 1,
+						showGhost: true,
+					},
+					difficultyOptions: [{
+						name: '柔和',
+						value: 'gentle'
+					}, {
+						name: '经典',
+						value: 'classic'
+					}, ],
+					rowsOptions: Array.from({
+						length: 21
+					}, (_, i) => i + 10),
+					colsOptions: Array.from({
+						length: 16
+					}, (_, i) => i + 5),
+					startLevelOptions: Array.from({
+						length: 29
+					}, (_, i) => i + 1),
+					dropCounter: 0,
+					dropInterval: 1000,
+					lastTime: 0,
+					animationFrameId: null,
+					panels: saved || defaultPanels,
+					_panelKey: panelKey,
+					_defaultPanels: {
+						...defaultPanels
+					},
 				};
 			},
-			ghostPosition() {
-				if (!this.player.tetromino) {
-					return null;
-				}
-				const ghostPlayer = {tetromino: this.player.tetromino, pos: {x: this.player.pos.x, y: this.player.pos.y}};
-				while (!this.collides(this.grid, ghostPlayer)) {
-					ghostPlayer.pos.y++;
-				}
-				ghostPlayer.pos.y--;
-				return ghostPlayer.pos;
+			computed: {
+				boardStyle() {
+					return {
+						gridTemplateColumns: `repeat(${this.gameCols}, 30px)`,
+						gridTemplateRows: `repeat(${this.gameRows}, 30px)`,
+					};
+				},
+				ghostPosition() {
+					if (!this.player.tetromino) {
+						return null;
+					}
+					const ghostPlayer = {
+						tetromino: this.player.tetromino,
+						pos: {
+							x: this.player.pos.x,
+							y: this.player.pos.y
+						}
+					};
+					while (!this.collides(this.grid, ghostPlayer)) {
+						ghostPlayer.pos.y++;
+					}
+					ghostPlayer.pos.y--;
+					return ghostPlayer.pos;
+				},
+				displayGrid() {
+					const newGrid = this.grid.map(row => [...row]);
+					if (this.settings.showGhost && this.player.tetromino && this.ghostPosition) {
+						this.player.tetromino.shape.forEach((row, y) => {
+							row.forEach((value, x) => {
+								if (value !== 0) {
+									const gridY = y + this.ghostPosition.y;
+									const gridX = x + this.ghostPosition.x;
+									if (gridY >= 0 && newGrid[gridY] && newGrid[gridY][gridX] === 0) {
+										newGrid[gridY][gridX] = 'ghost';
+									}
+								}
+							});
+						});
+					}
+					if (this.player.tetromino) {
+						this.player.tetromino.shape.forEach((row, y) => {
+							row.forEach((value, x) => {
+								if (value !== 0 && y + this.player.pos.y >= 0) {
+									if (newGrid[y + this.player.pos.y]) {
+										newGrid[y + this.player.pos.y][x + this.player.pos.x] = this.player.tetromino.color;
+									}
+								}
+							});
+						});
+					}
+					return newGrid.flat();
+				},
+				nextPieceBlocks() {
+					if (!this.nextTetromino) {
+						return Array(16).fill('');
+					}
+					const {
+						shape,
+						color
+					} = this.nextTetromino;
+					// 创建4x4网格，居中放置方块
+					const result = Array(16).fill('');
+					const rows = shape.length;
+					const cols = shape[0].length;
+					const startRow = Math.floor((4 - rows) / 2);
+					const startCol = Math.floor((4 - cols) / 2);
+					for (let r = 0; r < rows; r++) {
+						for (let c = 0; c < cols; c++) {
+							if (shape[r][c] !== 0) {
+								const idx = (startRow + r) * 4 + (startCol + c);
+								result[idx] = color;
+							}
+						}
+					}
+					return result;
+				},
+				settingsString() {
+					return JSON.stringify(this.settings);
+				},
 			},
-			displayGrid() {
-				const newGrid = this.grid.map(row => [...row]);
-				if (this.settings.showGhost && this.player.tetromino && this.ghostPosition) {
+			watch: {
+				settingsString(newSettingsJSON, oldSettingsJSON) {
+					if (!oldSettingsJSON) { // Prevents running on initial component mount
+						return;
+					}
+					const newSettings = JSON.parse(newSettingsJSON);
+					const oldSettings = JSON.parse(oldSettingsJSON);
+					// Always save the latest settings
+					localStorage.setItem('tetrisSettings', JSON.stringify(newSettings));
+				},
+			},
+			methods: {
+				onPanelToggle(e) {
+					// 从data-panel获取面板名，同步浏览器已改变的open状态到panels
+					const name = e.target.dataset.panel;
+					this.panels[name] = e.target.open;
+					// 保存状态
+					try {
+						if (JSON.stringify(this.panels) === JSON.stringify(this._defaultPanels)) {
+							localStorage.removeItem(this._panelKey);
+						} else {
+							localStorage.setItem(this._panelKey, JSON.stringify(this.panels));
+						}
+					} catch (_) {}
+				},
+				collides(currentGrid, currentPlayer) {
+					const {
+						shape
+					} = currentPlayer.tetromino;
+					const {
+						pos
+					} = currentPlayer;
+					for (let y = 0; y < shape.length; y++) {
+						for (let x = 0; x < shape[y].length; x++) {
+							if (shape[y][x] !== 0) {
+								const newY = y + pos.y;
+								const newX = x + pos.x;
+								if (newX < 0 || newX >= this.gameCols || newY >= this.gameRows //
+									|| newY >= 0 && currentGrid[newY] && currentGrid[newY][newX] !== 0) {
+									return true;
+								}
+							}
+						}
+					}
+					return false;
+				},
+				createEmptyGrid() {
+					return Array.from({
+						length: this.gameRows
+					}, () => Array(this.gameCols).fill(0));
+				},
+				getNewTetromino() {
+					const type = TETROMINO_KEYS[Math.floor(Math.random() * TETROMINO_KEYS.length)];
+					return {
+						...TETROMINOES[type],
+						shape: TETROMINOES[type].shape.map(r => [...r])
+					};
+				},
+				updateDropInterval() {
+					this.dropInterval = this.settings.difficulty === 'classic' ? CLASSIC_SPEEDS[Math.min(this.level - 1, CLASSIC_SPEEDS.length - 1)] : Math.max(150, 1000 - this.level * 75);
+				},
+				playerReset() {
+					this.player.tetromino = this.nextTetromino || this.getNewTetromino();
+					this.nextTetromino = this.getNewTetromino();
+					this.player.pos.y = 0;
+					this.player.pos.x = Math.floor(this.gameCols / 2) - Math.floor(this.player.tetromino.shape[0].length / 2);
+					if (this.collides(this.grid, this.player)) {
+						this.isGameOver = true;
+						this.showGameOverModal = true;
+						cancelAnimationFrame(this.animationFrameId);
+					}
+				},
+				merge() {
 					this.player.tetromino.shape.forEach((row, y) => {
 						row.forEach((value, x) => {
 							if (value !== 0) {
-								const gridY = y + this.ghostPosition.y;
-								const gridX = x + this.ghostPosition.x;
-								if (gridY >= 0 && newGrid[gridY] && newGrid[gridY][gridX] === 0) {
-									newGrid[gridY][gridX] = 'ghost';
-								}
+								this.grid[y + this.player.pos.y][x + this.player.pos.x] = this.player.tetromino.color;
 							}
 						});
 					});
-				}
-				if (this.player.tetromino) {
-					this.player.tetromino.shape.forEach((row, y) => {
-						row.forEach((value, x) => {
-							if (value !== 0 && y + this.player.pos.y >= 0) {
-								if (newGrid[y + this.player.pos.y]) {
-									newGrid[y + this.player.pos.y][x + this.player.pos.x]
-											= this.player.tetromino.color;
-								}
-							}
-						});
-					});
-				}
-				return newGrid.flat();
-			},
-			nextPieceBlocks() {
-				if (!this.nextTetromino) {
-					return Array(16).fill('');
-				}
-				const {shape, color} = this.nextTetromino;
-				// 创建4x4网格，居中放置方块
-				const result = Array(16).fill('');
-				const rows = shape.length;
-				const cols = shape[0].length;
-				const startRow = Math.floor((4 - rows) / 2);
-				const startCol = Math.floor((4 - cols) / 2);
-				for (let r = 0; r < rows; r++) {
-					for (let c = 0; c < cols; c++) {
-						if (shape[r][c] !== 0) {
-							const idx = (startRow + r) * 4 + (startCol + c);
-							result[idx] = color;
+				},
+				rotate() {
+					const matrix = this.player.tetromino.shape;
+					const N = matrix.length;
+					const result = matrix.map((row, i) => row.map((val, j) => matrix[N - 1 - j][i]));
+					const originalShape = this.player.tetromino.shape;
+					this.player.tetromino.shape = result;
+					const posX = this.player.pos.x;
+					let offset = 1;
+					while (this.collides(this.grid, this.player)) {
+						this.player.pos.x += offset;
+						offset = -(offset + (offset > 0 ? 1 : -1));
+						if (Math.abs(offset) > this.player.tetromino.shape[0].length) {
+							this.player.tetromino.shape = originalShape;
+							this.player.pos.x = posX;
+							return;
 						}
 					}
-				}
-				return result;
-			},
-			settingsString() {
-				return JSON.stringify(this.settings);
-			},
-		},
-		watch: {
-			settingsString(newSettingsJSON, oldSettingsJSON) {
-				if (!oldSettingsJSON) { // Prevents running on initial component mount
-					return;
-				}
-				const newSettings = JSON.parse(newSettingsJSON);
-				const oldSettings = JSON.parse(oldSettingsJSON);
-
-				// Always save the latest settings
-				localStorage.setItem('tetrisSettings', JSON.stringify(newSettings));
-			},
-		},
-		methods: {
-			onPanelToggle(e) {
-				// 从data-panel获取面板名，同步浏览器已改变的open状态到panels
-				const name = e.target.dataset.panel;
-				this.panels[name] = e.target.open;
-				// 保存状态
-				try {
-					if (JSON.stringify(this.panels) === JSON.stringify(this._defaultPanels)) {
-						localStorage.removeItem(this._panelKey);
-					} else {
-						localStorage.setItem(this._panelKey, JSON.stringify(this.panels));
-					}
-				} catch (_) {}
-			},
-			collides(currentGrid, currentPlayer) {
-				const {shape} = currentPlayer.tetromino;
-				const {pos} = currentPlayer;
-				for (let y = 0; y < shape.length; y++) {
-					for (let x = 0; x < shape[y].length; x++) {
-						if (shape[y][x] !== 0) {
-							const newY = y + pos.y;
-							const newX = x + pos.x;
-							if (newX < 0 || newX >= this.gameCols || newY >= this.gameRows//
-									|| newY >= 0 && currentGrid[newY] && currentGrid[newY][newX] !== 0) {
-								return true;
-							}
-						}
-					}
-				}
-				return false;
-			},
-			createEmptyGrid() {
-				return Array.from({length: this.gameRows}, () => Array(this.gameCols).fill(0));
-			},
-			getNewTetromino() {
-				const type = TETROMINO_KEYS[Math.floor(Math.random() * TETROMINO_KEYS.length)];
-				return {...TETROMINOES[type], shape: TETROMINOES[type].shape.map(r => [...r])};
-			},
-			updateDropInterval() {
-				this.dropInterval = this.settings.difficulty === 'classic'
-														? CLASSIC_SPEEDS[Math.min(this.level - 1, CLASSIC_SPEEDS.length - 1)]
-														: Math.max(150, 1000 - this.level * 75);
-			},
-			playerReset() {
-				this.player.tetromino = this.nextTetromino || this.getNewTetromino();
-				this.nextTetromino = this.getNewTetromino();
-				this.player.pos.y = 0;
-				this.player.pos.x = Math.floor(this.gameCols / 2) - Math.floor(this.player.tetromino.shape[0].length / 2);
-				if (this.collides(this.grid, this.player)) {
-					this.isGameOver = true;
-					this.showGameOverModal = true;
-					cancelAnimationFrame(this.animationFrameId);
-				}
-			},
-			merge() {
-				this.player.tetromino.shape.forEach((row, y) => {
-					row.forEach((value, x) => {
-						if (value !== 0) {
-							this.grid[y + this.player.pos.y][x + this.player.pos.x] = this.player.tetromino.color;
-						}
-					});
-				});
-			},
-			rotate() {
-				const matrix = this.player.tetromino.shape;
-				const N = matrix.length;
-				const result = matrix.map((row, i) => row.map((val, j) => matrix[N - 1 - j][i]));
-				const originalShape = this.player.tetromino.shape;
-				this.player.tetromino.shape = result;
-				const posX = this.player.pos.x;
-				let offset = 1;
-				while (this.collides(this.grid, this.player)) {
+				},
+				move(offset) {
 					this.player.pos.x += offset;
-					offset = -(offset + (offset > 0 ? 1 : -1));
-					if (Math.abs(offset) > this.player.tetromino.shape[0].length) {
-						this.player.tetromino.shape = originalShape;
-						this.player.pos.x = posX;
-						return;
+					if (this.collides(this.grid, this.player)) {
+						this.player.pos.x -= offset;
 					}
-				}
-			},
-			move(offset) {
-				this.player.pos.x += offset;
-				if (this.collides(this.grid, this.player)) {
-					this.player.pos.x -= offset;
-				}
-			},
-			sweep() {
-				let clearedLines = 0;
-				for (let y = this.grid.length - 1; y > 0; --y) {
-					if (this.grid[y].every(cell => cell !== 0)) {
-						this.grid.splice(y, 1);
-						this.grid.unshift(Array(this.gameCols).fill(0));
-						clearedLines++;
-						y++;
+				},
+				sweep() {
+					let clearedLines = 0;
+					for (let y = this.grid.length - 1; y > 0; --y) {
+						if (this.grid[y].every(cell => cell !== 0)) {
+							this.grid.splice(y, 1);
+							this.grid.unshift(Array(this.gameCols).fill(0));
+							clearedLines++;
+							y++;
+						}
 					}
-				}
-				if (clearedLines > 0) {
-					this.lines += clearedLines;
-					this.score += clearedLines * 10 * clearedLines * this.level;
-					if (this.score > this.highScore) {
-						this.highScore = this.score;
-						localStorage.setItem('tetrisHighScore', this.highScore);
+					if (clearedLines > 0) {
+						this.lines += clearedLines;
+						this.score += clearedLines * 10 * clearedLines * this.level;
+						if (this.score > this.highScore) {
+							this.highScore = this.score;
+							localStorage.setItem('tetrisHighScore', this.highScore);
+						}
+						const newLevel = Math.floor(this.lines / 10) + this.settings.startLevel;
+						if (newLevel > this.level) {
+							this.level = newLevel;
+							this.updateDropInterval();
+						}
 					}
-					const newLevel = Math.floor(this.lines / 10) + this.settings.startLevel;
-					if (newLevel > this.level) {
-						this.level = newLevel;
-						this.updateDropInterval();
+				},
+				drop() {
+					this.player.pos.y++;
+					if (this.collides(this.grid, this.player)) {
+						this.player.pos.y--;
+						this.merge();
+						this.sweep();
+						this.playerReset();
 					}
-				}
-			},
-			drop() {
-				this.player.pos.y++;
-				if (this.collides(this.grid, this.player)) {
-					this.player.pos.y--;
+					this.dropCounter = 0;
+				},
+				hardDrop() {
+					this.player.pos.y = this.ghostPosition.y;
 					this.merge();
 					this.sweep();
 					this.playerReset();
-				}
-				this.dropCounter = 0;
+					this.dropCounter = 0;
+				},
+				update(time = 0) {
+					if (this.isPaused || this.isGameOver) {
+						return;
+					}
+					const deltaTime = time - this.lastTime;
+					this.lastTime = time;
+					this.dropCounter += deltaTime;
+					if (this.dropCounter > this.dropInterval) {
+						this.drop();
+					}
+					this.animationFrameId = requestAnimationFrame(this.update);
+				},
+				togglePause() {
+					if (this.isGameOver) {
+						return;
+					}
+					this.isPaused = !this.isPaused;
+					if (!this.isPaused) {
+						this.lastTime = performance.now();
+						this.update();
+					}
+				},
+				startGame() {
+					if (this.animationFrameId) {
+						cancelAnimationFrame(this.animationFrameId);
+					}
+					this.gameCols = this.settings.cols;
+					this.gameRows = this.settings.rows;
+					this.grid = this.createEmptyGrid();
+					this.score = 0;
+					this.lines = 0;
+					this.level = this.settings.startLevel;
+					this.dropCounter = 0;
+					this.lastTime = 0;
+					this.updateDropInterval();
+					this.isGameOver = false;
+					this.showGameOverModal = false;
+					this.isPaused = true;
+					this.playerReset();
+				},
+				closeGameOverModal() {
+					this.showGameOverModal = false;
+				},
+				closeGameOverAndNew() {
+					this.showGameOverModal = false;
+					this.startGame();
+				},
+				saveSettings() {
+					this.settings.cols = 10;
+					this.settings.rows = 20;
+				},
+				handleKeydown(event) {
+					if (event.key === ' ') {
+						event.preventDefault();
+						this.togglePause();
+						return;
+					}
+					if (this.isPaused || this.isGameOver) {
+						return;
+					}
+					if (['Enter', 'ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp'].includes(event.key)) {
+						event.preventDefault();
+					}
+					switch (event.key) {
+						case 'Enter':
+							this.hardDrop();
+							break;
+						case 'ArrowLeft':
+							this.move(-1);
+							break;
+						case 'ArrowRight':
+							this.move(1);
+							break;
+						case 'ArrowDown':
+							this.drop();
+							break;
+						case 'ArrowUp':
+							this.rotate();
+							break;
+					}
+				},
+				loadSettings() {
+					const savedSettings = localStorage.getItem('tetrisSettings');
+					if (savedSettings) {
+						const parsedSettings = JSON.parse(savedSettings);
+						if (typeof parsedSettings.difficulty === 'object' && parsedSettings.difficulty !== null) {
+							parsedSettings.difficulty = parsedSettings.difficulty.value;
+						}
+						Object.assign(this.settings, parsedSettings);
+					}
+				},
 			},
-			hardDrop() {
-				this.player.pos.y = this.ghostPosition.y;
-				this.merge();
-				this.sweep();
-				this.playerReset();
-				this.dropCounter = 0;
+			mounted() {
+				this.loadSettings();
+				this.startGame();
+				window.addEventListener('keydown', this.handleKeydown);
 			},
-			update(time = 0) {
-				if (this.isPaused || this.isGameOver) {
-					return;
-				}
-				const deltaTime = time - this.lastTime;
-				this.lastTime = time;
-				this.dropCounter += deltaTime;
-				if (this.dropCounter > this.dropInterval) {
-					this.drop();
-				}
-				this.animationFrameId = requestAnimationFrame(this.update);
-			},
-			togglePause() {
-				if (this.isGameOver) {
-					return;
-				}
-				this.isPaused = !this.isPaused;
-				if (!this.isPaused) {
-					this.lastTime = performance.now();
-					this.update();
-				}
-			},
-			startGame() {
+			beforeUnmount() {
+				window.removeEventListener('keydown', this.handleKeydown);
 				if (this.animationFrameId) {
 					cancelAnimationFrame(this.animationFrameId);
 				}
-				this.gameCols = this.settings.cols;
-				this.gameRows = this.settings.rows;
-				this.grid = this.createEmptyGrid();
-				this.score = 0;
-				this.lines = 0;
-				this.level = this.settings.startLevel;
-				this.dropCounter = 0;
-				this.lastTime = 0;
-				this.updateDropInterval();
-				this.isGameOver = false;
-				this.showGameOverModal = false;
-				this.isPaused = true;
-				this.playerReset();
 			},
-			closeGameOverModal() {
-				this.showGameOverModal = false;
+		});
+		app.use(ElementPlus);
+		for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+			app.component(key, component);
+		}
+		app.mount('main>article');
+		const help = createApp({
+			data() {
+				return {
+					introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname),
+				};
 			},
-			closeGameOverAndNew() {
-				this.showGameOverModal = false;
-				this.startGame();
-			},
-			saveSettings() {
-				this.settings.cols = 10;
-				this.settings.rows = 20;
-			},
-			handleKeydown(event) {
-				if (event.key === ' ') {
-					event.preventDefault();
-					this.togglePause();
-					return;
-				}
-				if (this.isPaused || this.isGameOver) {
-					return;
-				}
-				if (['Enter', 'ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp'].includes(event.key)) {
-					event.preventDefault();
-				}
-				switch (event.key) {
-					case 'Enter':
-						this.hardDrop();
-						break;
-					case 'ArrowLeft':
-						this.move(-1);
-						break;
-					case 'ArrowRight':
-						this.move(1);
-						break;
-					case 'ArrowDown':
-						this.drop();
-						break;
-					case 'ArrowUp':
-						this.rotate();
-						break;
-				}
-			},
-			loadSettings() {
-				const savedSettings = localStorage.getItem('tetrisSettings');
-				if (savedSettings) {
-					const parsedSettings = JSON.parse(savedSettings);
-					if (typeof parsedSettings.difficulty === 'object' && parsedSettings.difficulty !== null) {
-						parsedSettings.difficulty = parsedSettings.difficulty.value;
+			watch: {
+				introVisible(newValue) {
+					const storageKey = 'intro-hidden-' + window.location.pathname;
+					if (!newValue) {
+						localStorage.setItem(storageKey, 'true');
+					} else {
+						localStorage.removeItem(storageKey);
 					}
-					Object.assign(this.settings, parsedSettings);
-				}
+				},
 			},
-		},
-		mounted() {
-			this.loadSettings();
-			this.startGame();
-			window.addEventListener('keydown', this.handleKeydown);
-		},
-		beforeUnmount() {
-			window.removeEventListener('keydown', this.handleKeydown);
-			if (this.animationFrameId) {
-				cancelAnimationFrame(this.animationFrameId);
-			}
-		},
-	});
+		}).use(ElementPlus).mount('.help.area');
 
-	app.use(ElementPlus);
-	for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-		app.component(key, component);
-	}
-	app.mount('main>article');
+	</script>
+	<div class="ad-container">
+		<!-- 谷歌广告联盟 -->
+		<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789" crossorigin="anonymous"></script>
+		<!-- 展示广告1 -->
+		<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true" data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
+		<script>
+			(adsbygoogle = window.adsbygoogle || []).push({});
 
-	const help = createApp({
-		data() {
-			return {
-				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname),
-			};
-		},
-		watch: {
-			introVisible(newValue) {
-				const storageKey = 'intro-hidden-' + window.location.pathname;
-				if (!newValue) {
-					localStorage.setItem(storageKey, 'true');
-				} else {
-					localStorage.removeItem(storageKey);
-				}
-			},
-		},
-	})
-	.use(ElementPlus)
-	.mount('.help.area');
-</script>
-
-<div class="ad-container">
-	<!-- 谷歌广告联盟 -->
-	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"
-					crossorigin="anonymous"></script>
-	<!-- 展示广告1 -->
-	<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true"
-			data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
-	<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-</div>
+		</script>
+	</div>
 </body>
 </html>

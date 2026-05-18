@@ -1,532 +1,565 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>贪吃蛇游戏 | 在线经典怀旧游戏</title>
-<meta name="description" content="在线玩经典的贪吃蛇游戏。控制小蛇吃食物，不断变长，挑战你的最高分。提供不同速度选择。">
-<meta name="keywords" content="贪吃蛇, Snake, 在线游戏, 经典游戏, 怀旧游戏, 休闲游戏">
-<meta name="author" content="工具兽">
-<meta property="og:title" content="贪吃蛇游戏 | 在线经典怀旧游戏">
-<meta property="og:description" content="在线玩经典的贪吃蛇游戏。控制小蛇吃食物，不断变长，挑战你的最高分。提供不同速度选择。">
-<meta property="og:type" content="game">
-
-<link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
-<link href="../resources/el-plus.css" rel="stylesheet">
-<link href="../lib/css/common.css" rel="stylesheet">
-<link href="../lib/css/layout.css" rel="stylesheet">
-<link href="../resources/biz.css?v=250821" rel="stylesheet">
-<link href="game.css" rel="stylesheet">
-<link href="../lib/css/花活.css" rel="stylesheet">
-<style>
-	.game {
-		& .board {
-			--cell-size: 20px;
-			--board-cols: 20;
-			--board-rows: 20;
-			cursor: pointer;
-
-			& .cell.snake {
-				background: #34495e;
-				border-radius: 2px;
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>贪吃蛇游戏 | 在线经典怀旧游戏</title>
+	<meta name="description" content="在线玩经典的贪吃蛇游戏。控制小蛇吃食物，不断变长，挑战你的最高分。提供不同速度选择。">
+	<meta name="keywords" content="贪吃蛇, Snake, 在线游戏, 经典游戏, 怀旧游戏, 休闲游戏">
+	<meta name="author" content="工具兽">
+	<meta property="og:title" content="贪吃蛇游戏 | 在线经典怀旧游戏">
+	<meta property="og:description" content="在线玩经典的贪吃蛇游戏。控制小蛇吃食物，不断变长，挑战你的最高分。提供不同速度选择。">
+	<meta property="og:type" content="game">
+	<link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
+	<link href="../resources/el-plus.css" rel="stylesheet">
+	<link href="../lib/css/common.css" rel="stylesheet">
+	<link href="../lib/css/layout.css" rel="stylesheet">
+	<link href="../resources/biz.css?v=250821" rel="stylesheet">
+	<link href="game.css" rel="stylesheet">
+	<link href="../lib/css/花活.css" rel="stylesheet">
+	<style>
+		.game {
+			& .board {
+				--cell-size: 20px;
+				--board-cols: 20;
+				--board-rows: 20;
+				cursor: pointer;
 			}
-			& .cell.snake.head {
-				background: #2c3e50;
-				border-radius: 4px;
+
+			& .unit {
+				width: 100%;
+				height: 100%;
+
+				&.snake {
+					background: #34495e;
+					border-radius: 2px;
+
+					&.head {
+						background: #2c3e50;
+						border-radius: 4px;
+					}
+				}
+
+				&.food {
+					background: #e74c3c;
+					border-radius: 2px;
+				}
 			}
-			& .cell.food {
-				background: #e74c3c;
-				border-radius: 2px;
+
+			& .gaming.info {
+				& section {
+					text-align: center;
+				}
+
+				& h3 {
+					margin: 15px 0;
+					font-size: 1.2rem;
+					font-weight: bold;
+					color: #4a4a4a;
+				}
+			}
+
+			& .one.setting {
+				margin-bottom: 0;
 			}
 		}
 
-		& .gaming.info {
-			& section { text-align: center; }
-			& h3 { margin: 15px 0; font-size: 1.2rem; font-weight: bold; color: #4a4a4a; }
-		}
-
-		& .one.setting {margin-bottom: 0;}
-	}
-</style>
+	</style>
 </head>
 <body class="grid 反叵字形">
-<header>
-	<h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
-	<nav>
-		<div class="nav-row">
-			<a href="../文本转化.html">文本转化</a>
-			<a href="../数字转化.html">数字转化</a>
-			<a href="../符号/符号.html">符号</a>
-			<a href="../格子盘.html">格子盘</a>
-			<a href="../svg转图标.html">SVG转图标</a>
-			<a href="../化学/元素周期表.html">元素周期表</a>
-			<a href="../拼音/拼音.html">拼音</a>
-		</div>
-		<div class="nav-row">
-			<a href="中国象棋/中国象棋.html">中国象棋</a>
-			<a href="五子棋/gobang.html">五子棋</a>
-			<a href="俄罗斯方块.html">俄罗斯方块</a>
-			<a href="贪吃蛇.html" class="active">贪吃蛇</a>
-			<a href="2048/2048.html">2048</a>
-			<a href="2048蛇/2048蛇.html">2048蛇</a>
-			<a href="2048方块/2048方块.html">2048方块</a>
-			<a href="点灯.html">点灯</a>
-			<a href="数字华容道.html">数字华容道</a>
-			<a href="星连星/星连星.html">星连星</a>
-		</div>
-	</nav>
-</header>
-<main class="game">
 	<header>
-		<h2 class="game name">贪吃蛇游戏</h2>
-		<div class="page-lv help area" v-cloak>
-			<el-button title="游戏介绍" class="page-lv help btn" size="small" circle @click="introVisible = true">?</el-button>
-			<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
-				<p>欢迎来到"贪吃蛇"游戏，这是一款经典的街机游戏。</p>
-				<p>使用键盘的<strong>方向键 (↑, ↓, ←, →)</strong> 来控制蛇的移动方向。</p>
-				<p>通过<strong>"开始/暂停"按钮</strong>或按<strong>空格键</strong>来控制游戏的开始、暂停与重新开始。</p>
-				<p>游戏的目标是吃掉随机出现的食物（红色方块），每吃掉一个食物，蛇的身体就会变长，并且你的得分也会增加。</p>
-				<p>请注意，蛇不能碰到墙壁或自己的身体，否则游戏就会结束。</p>
-				<p>祝您玩得愉快，挑战更高的分数！</p>
-			</el-dialog>
-		</div>
+		<h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
+		<nav>
+			<div class="nav-row">
+				<a href="../文本转化.html">文本转化</a>
+				<a href="../数字转化.html">数字转化</a>
+				<a href="../符号/符号.html">符号</a>
+				<a href="../格子盘.html">格子盘</a>
+				<a href="../svg转图标.html">SVG转图标</a>
+				<a href="../化学/元素周期表.html">元素周期表</a>
+				<a href="../拼音/拼音.html">拼音</a>
+			</div>
+			<div class="nav-row">
+				<a href="中国象棋/中国象棋.html">中国象棋</a>
+				<a href="五子棋/gobang.html">五子棋</a>
+				<a href="俄罗斯方块.html">俄罗斯方块</a>
+				<a href="贪吃蛇.html" class="active">贪吃蛇</a>
+				<a href="2048/2048.html">2048</a>
+				<a href="2048蛇/2048蛇.html">2048蛇</a>
+				<a href="2048方块/2048方块.html">2048方块</a>
+				<a href="点灯.html">点灯</a>
+				<a href="数字华容道.html">数字华容道</a>
+				<a href="星连星/星连星.html">星连星</a>
+			</div>
+		</nav>
 	</header>
-
-	<article class="gaming area , 叵字形 grid" v-cloak>
-		<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
-			<section class="setting list , flex single-line no-gap items-near-x-start items-near-y-center">
-				<div class="one setting group">
-					<el-form-item label="行" class="one setting : height">
-						<el-select v-model="gridHeight">
-							<el-option v-for="h in gridHeightOptions" :key="h" :label="h" :value="h"/>
-						</el-select>
-					</el-form-item>
-					<el-form-item label="列" class="one setting : width">
-						<el-select v-model="gridWidth">
-							<el-option v-for="w in gridWidthOptions" :key="w" :label="w" :value="w"/>
-						</el-select>
-					</el-form-item>
-				</div>
-				<div class="one setting group">
-					<el-form-item label="速度" class="one setting : speed">
-						<el-select v-model="speedLevel">
-							<el-option v-for="s in speedOptions" :key="s" :label="s" :value="s"/>
-						</el-select>
-					</el-form-item>
-				</div>
-				<div class="one setting group">
-					<el-button type="danger" class="one setting : new-game" @click="initGame" icon="RefreshRight">新局</el-button>
-				</div>
-			</section>
-			<section class="controller list , flex single-line no-gap items-near-x-start items-near-y-center">
-				<div class="one controller group">
-					<el-button type="primary" class="one controller : pause" @click="togglePause" :icon="isPaused ? 'VideoPlay' : 'VideoPause'">
-						{{ isPaused ? (gameOver ? '新局' : (score === 0 ? '开始' : '继续')) : '暂停' }}
-					</el-button>
-				</div>
-			</section>
+	<main class="game">
+		<header>
+			<h2 class="game name">贪吃蛇游戏</h2>
+			<div class="page-lv help area" v-cloak>
+				<el-button title="游戏介绍" class="page-lv help btn" size="small" circle @click="introVisible = true">?</el-button>
+				<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
+					<p>欢迎来到"贪吃蛇"游戏，这是一款经典的街机游戏。</p>
+					<p>使用键盘的<strong>方向键 (↑, ↓, ←, →)</strong> 来控制蛇的移动方向。</p>
+					<p>通过<strong>"开始/暂停"按钮</strong>或按<strong>空格键</strong>来控制游戏的开始、暂停与重新开始。</p>
+					<p>游戏的目标是吃掉随机出现的食物（红色方块），每吃掉一个食物，蛇的身体就会变长，并且你的得分也会增加。</p>
+					<p>请注意，蛇不能碰到墙壁或自己的身体，否则游戏就会结束。</p>
+					<p>祝您玩得愉快，挑战更高的分数！</p>
+				</el-dialog>
+			</div>
 		</header>
-
-		<article class="main map area , flex items-near-x-center">
-			<section class="board map" :style="boardStyle" @click="togglePause">
-				<div v-for="(cell, index) in cells" :key="index" :class="cellClass(cell)"></div>
-				<div class="overlay" v-if="isPaused && !gameOver">
-					<div class="title">{{ score === 0 ? '准备就绪' : '已暂停' }}</div>
-					<p class="hint">按空格或点击以开始/继续</p>
-				</div>
-			</section>
-		</article>
-
-		<!-- 结算弹窗 -->
-		<el-dialog v-model="showGameOverModal" class="result narrow" title="游戏结束" :show-close="true" align-center>
-			<div class="stats">分数: {{ score }}</div>
-			<template #footer>
-				<el-button type="primary" size="large" icon="RefreshRight" @click="closeGameOverAndNew">新局</el-button>
-				<el-button type="warning" size="large" @click="closeGameOverModal">关闭</el-button>
-			</template>
-		</el-dialog>
-
-		<!-- 彩纸效果 -->
-		<div class="fullscreen non-interactive top-layer" v-if="showGameOverModal">
-			<div class="confetti-piece" v-for="i in 150" :key="'confetti'+i"></div>
-		</div>
-
-		<aside class="sidebar at-left">
-			<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
-				<summary>本局信息</summary>
-									<el-card header="分数" class="scoreboard" body-class="score" shadow="never">
+		<article class="gaming area , 叵字形 grid" v-cloak>
+			<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
+				<section class="setting list , flex single-line no-gap items-near-x-start items-near-y-center">
+					<div class="one setting group">
+						<el-form-item label="行" class="one setting : height">
+							<el-select v-model="gridHeight">
+								<el-option v-for="h in gridHeightOptions" :key="h" :label="h" :value="h" />
+							</el-select>
+						</el-form-item>
+						<el-form-item label="列" class="one setting : width">
+							<el-select v-model="gridWidth">
+								<el-option v-for="w in gridWidthOptions" :key="w" :label="w" :value="w" />
+							</el-select>
+						</el-form-item>
+					</div>
+					<div class="one setting group">
+						<el-form-item label="速度" class="one setting : speed">
+							<el-select v-model="speedLevel">
+								<el-option v-for="s in speedOptions" :key="s" :label="s" :value="s" />
+							</el-select>
+						</el-form-item>
+					</div>
+					<div class="one setting group">
+						<el-button type="danger" class="one setting : new-game" @click="initGame" icon="RefreshRight">新局</el-button>
+					</div>
+				</section>
+				<section class="controller list , flex single-line no-gap items-near-x-start items-near-y-center">
+					<div class="one controller group">
+						<el-button type="primary" class="one controller : pause" @click="togglePause" :icon="isPaused ? 'VideoPlay' : 'VideoPause'">
+							{{ isPaused ? (gameOver ? '新局' : (score === 0 ? '开始' : '继续')) : '暂停' }}
+						</el-button>
+					</div>
+				</section>
+			</header>
+			<article class="main map area , flex items-near-x-center">
+				<section class="board map" :style="boardStyle" @click="togglePause">
+					<div v-for="(cell, index) in cells" :key="index" class="cell">
+						<div v-if="cell.unit" class="unit" :class="cell.unit"></div>
+					</div>
+					<div class="overlay" v-if="isPaused && !gameOver">
+						<div class="title">{{ score === 0 ? '准备就绪' : '已暂停' }}</div>
+						<p class="hint">按空格或点击以开始/继续</p>
+					</div>
+				</section>
+			</article>
+			<!-- 结算弹窗 -->
+			<el-dialog v-model="showGameOverModal" class="result narrow" title="游戏结束" :show-close="true" align-center>
+				<div class="stats">分数: {{ score }}</div>
+				<template #footer>
+					<el-button type="primary" size="large" icon="RefreshRight" @click="closeGameOverAndNew">新局</el-button>
+					<el-button type="warning" size="large" @click="closeGameOverModal">关闭</el-button>
+				</template>
+			</el-dialog>
+			<!-- 彩纸效果 -->
+			<div class="fullscreen non-interactive top-layer" v-if="showGameOverModal">
+				<div class="confetti-piece" v-for="i in 150" :key="'confetti'+i"></div>
+			</div>
+			<aside class="sidebar at-left">
+				<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
+					<summary>本局信息</summary>
+					<el-card header="分数" class="scoreboard" body-class="score" shadow="never">
 						{{ score }}
 						<template #footer>最高分：{{ highScore }}</template>
 					</el-card>
-			</details>
-			<details class="shortcut list" data-panel="shortcuts" :open="panels.shortcuts" @toggle="onPanelToggle">
-				<summary>快捷键</summary>
+				</details>
+				<details class="shortcut list" data-panel="shortcuts" :open="panels.shortcuts" @toggle="onPanelToggle">
+					<summary>快捷键</summary>
 					<p class="one shortcut"><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd><kbd>←</kbd>：控制方向，不能转向当前反方向</p>
 					<p class="one shortcut"><kbd>空格</kbd>：暂停/开始</p>
-			</details>
-		</aside>
-	</article>
-</main>
-
-<aside class="sidebar at-right">
-	<article class="website info">
-		<section class="patronage area">
-			<img title="赞助一下" class="qr-code" alt="支付宝收款码" src="../resources/支付宝收款码.jpg">
-			<p class="slogan">赞助一下</p>
-		</section>
-		<section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
-		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p></section>
-	</article>
-</aside>
-
-<div class="js container">
-	<script src="../lib/vue/3.5.18/vue.global.js"></script>
-	<script src="../lib/element-plus/2.10.7/index.full.js"></script>
-	<script src="../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
-</div>
-<script>
-	const {createApp} = Vue;
-
-	const SNAKE_STATE_KEY = 'snake-game-state';
-
-	const app = createApp({
-		data() {
-			const panelKey = 'snake-panels';
-			const defaultPanels = {info: true, shortcuts: false};
-			let saved;
-			try { saved = JSON.parse(localStorage.getItem(panelKey) || 'null'); } catch (_) { saved = null; }
-			return {
-				speedLevel: 5,
-				gridWidth: 20,
-				gridHeight: 20,
-				gridHeightOptions: Array.from({length: 41}, (_, i) => i + 10),
-				gridWidthOptions: Array.from({length: 41}, (_, i) => i + 10),
-				speedOptions: Array.from({length: 10}, (_, i) => i + 1),
-				gameGridWidth: 20,
-				gameGridHeight: 20,
-				snake: [],
-				food: {},
-				direction: 'right',
-				nextDirection: 'right',
-				score: 0,
-				highScore: localStorage.getItem('snake-high-score') || 0,
-				gameOver: false,
-				showGameOverModal: false,
-				isPaused: true,
-				gameInterval: null,
-				panels: saved || defaultPanels,
-				_panelKey: panelKey,
-				_defaultPanels: {...defaultPanels},
-			};
-		},
-		computed: {
-			gameSpeed() {
-				return 250 - this.speedLevel * 20;
-			},
-			boardStyle() {
+				</details>
+			</aside>
+		</article>
+	</main>
+	<aside class="sidebar at-right">
+		<article class="website info">
+			<section class="patronage area">
+				<img title="赞助一下" class="qr-code" alt="支付宝收款码" src="../resources/支付宝收款码.jpg">
+				<p class="slogan">赞助一下</p>
+			</section>
+			<section class="copyright">
+				<p>&copy; 2025 工具兽版权所有 All rights reserved.</p>
+			</section>
+			<section class="feedback">
+				<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+			</section>
+		</article>
+	</aside>
+	<div class="js container">
+		<script src="../lib/vue/3.5.18/vue.global.js"></script>
+		<script src="../lib/element-plus/2.10.7/index.full.js"></script>
+		<script src="../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
+	</div>
+	<script>
+		const {
+			createApp
+		} = Vue;
+		const SNAKE_STATE_KEY = 'snake-game-state';
+		const app = createApp({
+			data() {
+				const panelKey = 'snake-panels';
+				const defaultPanels = {
+					info: true,
+					shortcuts: false
+				};
+				let saved;
+				try {
+					saved = JSON.parse(localStorage.getItem(panelKey) || 'null');
+				} catch (_) {
+					saved = null;
+				}
 				return {
-					'--board-cols': this.gameGridWidth,
-					'--board-rows': this.gameGridHeight,
+					speedLevel: 5,
+					gridWidth: 20,
+					gridHeight: 20,
+					gridHeightOptions: Array.from({
+						length: 41
+					}, (_, i) => i + 10),
+					gridWidthOptions: Array.from({
+						length: 41
+					}, (_, i) => i + 10),
+					speedOptions: Array.from({
+						length: 10
+					}, (_, i) => i + 1),
+					gameGridWidth: 20,
+					gameGridHeight: 20,
+					snake: [],
+					food: {},
+					direction: 'right',
+					nextDirection: 'right',
+					score: 0,
+					highScore: localStorage.getItem('snake-high-score') || 0,
+					gameOver: false,
+					showGameOverModal: false,
+					isPaused: true,
+					gameInterval: null,
+					panels: saved || defaultPanels,
+					_panelKey: panelKey,
+					_defaultPanels: {
+						...defaultPanels
+					},
 				};
 			},
-			cells() {
-				const grid = [];
-				for (let y = 0; y < this.gameGridHeight; y++) {
-					for (let x = 0; x < this.gameGridWidth; x++) {
-						const isSnakeHead = this.snake.length > 0 && this.snake[0].x === x && this.snake[0].y === y;
-						const isSnakeBody = this.snake.slice(1).some(s => s.x === x && s.y === y);
-						const isFood = this.food.x === x && this.food.y === y;
-						grid.push({
-							x, y,
-							isSnakeHead,
-							isSnakeBody,
-							isFood,
-						});
-					}
-				}
-				return grid;
-			},
-		},
-		watch: {
-			gameSpeed() {
-				if (!this.isPaused && !this.gameOver) {
-					this.startGameLoop();
-				}
-			},
-			score(newScore) {
-				if (newScore > this.highScore) {
-					this.highScore = newScore;
-					localStorage.setItem('snake-high-score', newScore);
-				}
-			},
-		},
-		methods: {
-			onPanelToggle(e) {
-				// 同步浏览器已改变的open状态到panels
-				const name = e.target.dataset.panel;
-				this.panels[name] = e.target.open;
-				// 保存状态
-				try {
-					if (JSON.stringify(this.panels) === JSON.stringify(this._defaultPanels)) {
-						localStorage.removeItem(this._panelKey);
-					} else {
-						localStorage.setItem(this._panelKey, JSON.stringify(this.panels));
-					}
-				} catch (_) {}
-			},
-			cellClass(cell) {
-				const classes = ['cell'];
-				if (cell.isSnakeHead) classes.push('snake', 'head');
-				else if (cell.isSnakeBody) classes.push('snake');
-				else if (cell.isFood) classes.push('food');
-				return classes;
-			},
-			saveGameState() {
-				try {
-					const state = {
-						gameGridWidth: this.gameGridWidth,
-						gameGridHeight: this.gameGridHeight,
-						snake: this.snake,
-						food: this.food,
-						direction: this.direction,
-						nextDirection: this.nextDirection,
-						score: this.score,
-						gameOver: this.gameOver,
-						speedLevel: this.speedLevel,
+			computed: {
+				gameSpeed() {
+					return 250 - this.speedLevel * 20;
+				},
+				boardStyle() {
+					return {
+						'--board-cols': this.gameGridWidth,
+						'--board-rows': this.gameGridHeight,
 					};
-					localStorage.setItem(SNAKE_STATE_KEY, JSON.stringify(state));
-				} catch (_) {}
-			},
-			loadGameState() {
-				try {
-					const saved = localStorage.getItem(SNAKE_STATE_KEY);
-					if (!saved) return null;
-					return JSON.parse(saved);
-				} catch (_) { return null; }
-			},
-			clearGameState() {
-				try { localStorage.removeItem(SNAKE_STATE_KEY); } catch (_) {}
-			},
-			restoreGameState(state) {
-				this.gameGridWidth = state.gameGridWidth;
-				this.gameGridHeight = state.gameGridHeight;
-				this.gridWidth = state.gameGridWidth;
-				this.gridHeight = state.gameGridHeight;
-				this.snake = state.snake;
-				this.food = state.food;
-				this.direction = state.direction;
-				this.nextDirection = state.nextDirection;
-				this.score = state.score;
-				this.gameOver = state.gameOver;
-				this.speedLevel = state.speedLevel;
-				this.isPaused = true;
-			},
-			initGame(clearSaved = true) {
-				this.gameGridWidth = this.gridWidth;
-				this.gameGridHeight = this.gridHeight;
-				this.isPaused = true;
-				this.gameOver = false;
-				this.showGameOverModal = false;
-				if (this.gameInterval) {
-					clearInterval(this.gameInterval);
-					this.gameInterval = null;
-				}
-
-				const startPosition = {x: Math.floor(this.gameGridWidth / 4), y: Math.floor(this.gameGridHeight / 2)};
-				this.snake = [
-					{...startPosition},
-					{x: startPosition.x - 1, y: startPosition.y},
-					{x: startPosition.x - 2, y: startPosition.y},
-				];
-
-				this.score = 0;
-				this.direction = 'right';
-				this.nextDirection = 'right';
-
-				this.generateFood();
-				this.saveGameState();
-			},
-			closeGameOverModal() {
-				this.showGameOverModal = false;
-			},
-			closeGameOverAndNew() {
-				this.showGameOverModal = false;
-				this.initGame();
-			},
-			togglePause() {
-				if (this.gameOver) {
-					this.initGame(true);
-					return;
-				}
-				this.isPaused = !this.isPaused;
-				if (this.isPaused) {
-					clearInterval(this.gameInterval);
-					this.gameInterval = null;
-					this.saveGameState();
-				} else {
-					this.startGameLoop();
-				}
-			},
-			startGameLoop() {
-				if (this.gameInterval) {
-					clearInterval(this.gameInterval);
-				}
-				this.gameInterval = setInterval(this.gameLoop, this.gameSpeed);
-			},
-			gameLoop() {
-				if (this.isPaused || this.gameOver) {
-					return;
-				}
-
-				this.moveSnake();
-				if (this.checkCollision()) {
-					this.endGame();
-					return;
-				}
-				if (this.snake[0].x === this.food.x && this.snake[0].y === this.food.y) {
-					this.score++;
-					this.generateFood();
-				} else {
-					this.snake.pop();
-				}
-				this.saveGameState();
-			},
-			moveSnake() {
-				this.direction = this.nextDirection;
-				const head = {x: this.snake[0].x, y: this.snake[0].y};
-				switch (this.direction) {
-					case 'up':
-						head.y--;
-						break;
-					case 'down':
-						head.y++;
-						break;
-					case 'left':
-						head.x--;
-						break;
-					case 'right':
-						head.x++;
-						break;
-				}
-				this.snake.unshift(head);
-			},
-			checkCollision() {
-				const head = this.snake[0];
-				if (head.x < 0 || head.x >= this.gameGridWidth || head.y < 0 || head.y >= this.gameGridHeight) {
-					return true;
-				}
-				for (let i = 1; i < this.snake.length; i++) {
-					if (head.x === this.snake[i].x && head.y === this.snake[i].y) {
-						return true;
+				},
+				cells() {
+					const grid = [];
+					for (let y = 0; y < this.gameGridHeight; y++) {
+						for (let x = 0; x < this.gameGridWidth; x++) {
+							const isSnakeHead = this.snake.length > 0 && this.snake[0].x === x && this.snake[0].y === y;
+							const isSnakeBody = this.snake.slice(1).some(s => s.x === x && s.y === y);
+							const isFood = this.food.x === x && this.food.y === y;
+							let unit = null;
+							if (isSnakeHead) unit = ['snake', 'head'];
+							else if (isSnakeBody) unit = ['snake'];
+							else if (isFood) unit = ['food'];
+							grid.push({
+								x,
+								y,
+								unit
+							});
+						}
 					}
-				}
-				return false;
+					return grid;
+				},
 			},
-			generateFood() {
-				this.food = {
-					x: Math.floor(Math.random() * this.gameGridWidth),
-					y: Math.floor(Math.random() * this.gameGridHeight),
-				};
-				for (let i = 0; i < this.snake.length; i++) {
-					if (this.snake[i].x === this.food.x && this.snake[i].y === this.food.y) {
-						this.generateFood();
+			watch: {
+				gameSpeed() {
+					if (!this.isPaused && !this.gameOver) {
+						this.startGameLoop();
+					}
+				},
+				score(newScore) {
+					if (newScore > this.highScore) {
+						this.highScore = newScore;
+						localStorage.setItem('snake-high-score', newScore);
+					}
+				},
+			},
+			methods: {
+				onPanelToggle(e) {
+					// 同步浏览器已改变的open状态到panels
+					const name = e.target.dataset.panel;
+					this.panels[name] = e.target.open;
+					// 保存状态
+					try {
+						if (JSON.stringify(this.panels) === JSON.stringify(this._defaultPanels)) {
+							localStorage.removeItem(this._panelKey);
+						} else {
+							localStorage.setItem(this._panelKey, JSON.stringify(this.panels));
+						}
+					} catch (_) {}
+				},
+				saveGameState() {
+					try {
+						const state = {
+							gameGridWidth: this.gameGridWidth,
+							gameGridHeight: this.gameGridHeight,
+							snake: this.snake,
+							food: this.food,
+							direction: this.direction,
+							nextDirection: this.nextDirection,
+							score: this.score,
+							gameOver: this.gameOver,
+							speedLevel: this.speedLevel,
+						};
+						localStorage.setItem(SNAKE_STATE_KEY, JSON.stringify(state));
+					} catch (_) {}
+				},
+				loadGameState() {
+					try {
+						const saved = localStorage.getItem(SNAKE_STATE_KEY);
+						if (!saved) return null;
+						return JSON.parse(saved);
+					} catch (_) {
+						return null;
+					}
+				},
+				clearGameState() {
+					try {
+						localStorage.removeItem(SNAKE_STATE_KEY);
+					} catch (_) {}
+				},
+				restoreGameState(state) {
+					this.gameGridWidth = state.gameGridWidth;
+					this.gameGridHeight = state.gameGridHeight;
+					this.gridWidth = state.gameGridWidth;
+					this.gridHeight = state.gameGridHeight;
+					this.snake = state.snake;
+					this.food = state.food;
+					this.direction = state.direction;
+					this.nextDirection = state.nextDirection;
+					this.score = state.score;
+					this.gameOver = state.gameOver;
+					this.speedLevel = state.speedLevel;
+					this.isPaused = true;
+				},
+				initGame(clearSaved = true) {
+					this.gameGridWidth = this.gridWidth;
+					this.gameGridHeight = this.gridHeight;
+					this.isPaused = true;
+					this.gameOver = false;
+					this.showGameOverModal = false;
+					if (this.gameInterval) {
+						clearInterval(this.gameInterval);
+						this.gameInterval = null;
+					}
+					const startPosition = {
+						x: Math.floor(this.gameGridWidth / 4),
+						y: Math.floor(this.gameGridHeight / 2)
+					};
+					this.snake = [{
+						...startPosition
+					}, {
+						x: startPosition.x - 1,
+						y: startPosition.y
+					}, {
+						x: startPosition.x - 2,
+						y: startPosition.y
+					}, ];
+					this.score = 0;
+					this.direction = 'right';
+					this.nextDirection = 'right';
+					this.generateFood();
+					this.saveGameState();
+				},
+				closeGameOverModal() {
+					this.showGameOverModal = false;
+				},
+				closeGameOverAndNew() {
+					this.showGameOverModal = false;
+					this.initGame();
+				},
+				togglePause() {
+					if (this.gameOver) {
+						this.initGame(true);
 						return;
 					}
-				}
+					this.isPaused = !this.isPaused;
+					if (this.isPaused) {
+						clearInterval(this.gameInterval);
+						this.gameInterval = null;
+						this.saveGameState();
+					} else {
+						this.startGameLoop();
+					}
+				},
+				startGameLoop() {
+					if (this.gameInterval) {
+						clearInterval(this.gameInterval);
+					}
+					this.gameInterval = setInterval(this.gameLoop, this.gameSpeed);
+				},
+				gameLoop() {
+					if (this.isPaused || this.gameOver) {
+						return;
+					}
+					this.moveSnake();
+					if (this.checkCollision()) {
+						this.endGame();
+						return;
+					}
+					if (this.snake[0].x === this.food.x && this.snake[0].y === this.food.y) {
+						this.score++;
+						this.generateFood();
+					} else {
+						this.snake.pop();
+					}
+					this.saveGameState();
+				},
+				moveSnake() {
+					this.direction = this.nextDirection;
+					const head = {
+						x: this.snake[0].x,
+						y: this.snake[0].y
+					};
+					switch (this.direction) {
+						case 'up':
+							head.y--;
+							break;
+						case 'down':
+							head.y++;
+							break;
+						case 'left':
+							head.x--;
+							break;
+						case 'right':
+							head.x++;
+							break;
+					}
+					this.snake.unshift(head);
+				},
+				checkCollision() {
+					const head = this.snake[0];
+					if (head.x < 0 || head.x >= this.gameGridWidth || head.y < 0 || head.y >= this.gameGridHeight) {
+						return true;
+					}
+					for (let i = 1; i < this.snake.length; i++) {
+						if (head.x === this.snake[i].x && head.y === this.snake[i].y) {
+							return true;
+						}
+					}
+					return false;
+				},
+				generateFood() {
+					this.food = {
+						x: Math.floor(Math.random() * this.gameGridWidth),
+						y: Math.floor(Math.random() * this.gameGridHeight),
+					};
+					for (let i = 0; i < this.snake.length; i++) {
+						if (this.snake[i].x === this.food.x && this.snake[i].y === this.food.y) {
+							this.generateFood();
+							return;
+						}
+					}
+				},
+				endGame() {
+					this.gameOver = true;
+					this.showGameOverModal = true;
+					this.isPaused = true;
+					clearInterval(this.gameInterval);
+					this.gameInterval = null;
+				},
+				handleKeydown(e) {
+					if (e.key === ' ') {
+						e.preventDefault();
+						this.togglePause();
+						return;
+					}
+					if (this.isPaused || this.gameOver) {
+						return;
+					}
+					if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+						e.preventDefault();
+					}
+					switch (e.key) {
+						case 'ArrowLeft':
+							if (this.direction !== 'right') {
+								this.nextDirection = 'left';
+							}
+							break;
+						case 'ArrowUp':
+							if (this.direction !== 'down') {
+								this.nextDirection = 'up';
+							}
+							break;
+						case 'ArrowRight':
+							if (this.direction !== 'left') {
+								this.nextDirection = 'right';
+							}
+							break;
+						case 'ArrowDown':
+							if (this.direction !== 'up') {
+								this.nextDirection = 'down';
+							}
+							break;
+					}
+				},
 			},
-			endGame() {
-				this.gameOver = true;
-				this.showGameOverModal = true;
-				this.isPaused = true;
-				clearInterval(this.gameInterval);
-				this.gameInterval = null;
-			},
-			handleKeydown(e) {
-				if (e.key === ' ') {
-					e.preventDefault();
-					this.togglePause();
-					return;
-				}
-				if (this.isPaused || this.gameOver) {
-					return;
-				}
-
-				if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-					e.preventDefault();
-				}
-				switch (e.key) {
-					case 'ArrowLeft':
-						if (this.direction !== 'right') {
-							this.nextDirection = 'left';
-						}
-						break;
-					case 'ArrowUp':
-						if (this.direction !== 'down') {
-							this.nextDirection = 'up';
-						}
-						break;
-					case 'ArrowRight':
-						if (this.direction !== 'left') {
-							this.nextDirection = 'right';
-						}
-						break;
-					case 'ArrowDown':
-						if (this.direction !== 'up') {
-							this.nextDirection = 'down';
-						}
-						break;
-				}
-			},
-		},
-		mounted() {
-			const savedState = this.loadGameState();
-			if (savedState && !savedState.gameOver) {
-				this.restoreGameState(savedState);
-			} else {
-				this.initGame(false);
-			}
-			window.addEventListener('keydown', this.handleKeydown);
-		},
-		beforeUnmount() {
-			window.removeEventListener('keydown', this.handleKeydown);
-			clearInterval(this.gameInterval);
-		},
-	})
-	.use(ElementPlus);
-	for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-		app.component(key, component);
-	}
-	app.mount('main>article');
-
-	const help = createApp({
-		data() {
-			return {
-				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname),
-			};
-		},
-		watch: {
-			introVisible(newValue) {
-				const storageKey = 'intro-hidden-' + window.location.pathname;
-				if (!newValue) {
-					localStorage.setItem(storageKey, 'true');
+			mounted() {
+				const savedState = this.loadGameState();
+				if (savedState && !savedState.gameOver) {
+					this.restoreGameState(savedState);
 				} else {
-					localStorage.removeItem(storageKey);
+					this.initGame(false);
 				}
+				window.addEventListener('keydown', this.handleKeydown);
 			},
-		},
-	})
-	.use(ElementPlus)
-	.mount('.help.area');
-</script>
+			beforeUnmount() {
+				window.removeEventListener('keydown', this.handleKeydown);
+				clearInterval(this.gameInterval);
+			},
+		}).use(ElementPlus);
+		for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+			app.component(key, component);
+		}
+		app.mount('main>article');
+		const help = createApp({
+			data() {
+				return {
+					introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname),
+				};
+			},
+			watch: {
+				introVisible(newValue) {
+					const storageKey = 'intro-hidden-' + window.location.pathname;
+					if (!newValue) {
+						localStorage.setItem(storageKey, 'true');
+					} else {
+						localStorage.removeItem(storageKey);
+					}
+				},
+			},
+		}).use(ElementPlus).mount('.help.area');
 
-<div class="ad-container">
-	<!-- 谷歌广告联盟 -->
-	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"
-					crossorigin="anonymous"></script>
-	<!-- 展示广告1 -->
-	<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true"
-			 data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
-	<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-</div>
+	</script>
+	<div class="ad-container">
+		<!-- 谷歌广告联盟 -->
+		<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789" crossorigin="anonymous"></script>
+		<!-- 展示广告1 -->
+		<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true" data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
+		<script>
+			(adsbygoogle = window.adsbygoogle || []).push({});
+
+		</script>
+	</div>
 </body>
 </html>
