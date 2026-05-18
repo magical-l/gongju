@@ -102,6 +102,7 @@
 			border-radius: 4px;
 			margin-bottom: 8px;
 			background: #fff;
+			padding: 12px 16px;
 
 			&:last-of-type { margin-bottom: 0; }
 
@@ -109,7 +110,6 @@
 				font-weight: 600;
 				font-size: 1rem;
 				cursor: pointer;
-				padding: 12px 16px;
 				list-style: none;
 				position: relative;
 
@@ -120,7 +120,7 @@
 				&::after {
 					content: '';
 					position: absolute;
-					right: 16px;
+					right: 0;
 					top: 50%;
 					width: 8px;
 					height: 8px;
@@ -137,11 +137,10 @@
 
 			&[open] summary {
 				border-bottom: 1px solid #ebeef5;
+				margin-bottom: 12px;
 			}
 
 			& .content {
-				padding: 12px 16px;
-
 				& section { margin-bottom: 8px; &:last-child { margin-bottom: 0; } }
 				& h3 { margin: 0 0 4px; font-size: 0.9rem; color: #606266; }
 				& p { margin: 0; }
@@ -150,11 +149,6 @@
 
 		/* 快捷键列表 */
 		& .shortcut.list {
-			display: flex;
-			flex-direction: column;
-			gap: 8px;
-			padding: 12px 16px;
-
 			& .one.shortcut {
 				display: flex;
 				align-items: baseline;
