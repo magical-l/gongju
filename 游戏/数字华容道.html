@@ -449,7 +449,7 @@
 				sizeOptions: Array.from({length: MAX_SIZE - MIN_SIZE + 1}, (_, i) => MIN_SIZE + i),
 				panels: saved || defaultPanels,
 				_panelKey: panelKey,
-				_defaultPanels: defaultPanels,
+				_defaultPanels: {...defaultPanels},
 				layoutMode: false,
 				layoutSelectedIndex: -1,
 				layoutDragSourceIndex: -1,

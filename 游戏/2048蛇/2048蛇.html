@@ -219,6 +219,7 @@
 			gameTargetLabel: '2048',
 			panels: saved || defaultPanels,
 			_panelKey: panelKey,
+			_defaultPanels: {...defaultPanels},
 			boardView: {rows: 8, cols: 8, cells: []},
 			lastStateForDisplay: null,
 			paused: true,
@@ -313,10 +314,10 @@
 					if (e && e.target) { state.panels[name] = e.target.open; }
 					// 保存状态
 					try {
-						if (JSON.stringify(state.panels) === JSON.stringify(defaultPanels)) {
-							localStorage.removeItem(panelKey);
+						if (JSON.stringify(state.panels) === JSON.stringify(state._defaultPanels)) {
+							localStorage.removeItem(state._panelKey);
 						} else {
-							localStorage.setItem(panelKey, JSON.stringify(state.panels));
+							localStorage.setItem(state._panelKey, JSON.stringify(state.panels));
 						}
 					} catch (_) {}
 				},
