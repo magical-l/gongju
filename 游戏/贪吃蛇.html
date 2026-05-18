@@ -154,12 +154,10 @@
 		<aside class="sidebar at-left">
 			<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 				<summary>本局信息</summary>
-				<div class="content">
-					<el-card header="分数" class="scoreboard" body-class="score" shadow="never">
+									<el-card header="分数" class="scoreboard" body-class="score" shadow="never">
 						{{ score }}
 						<template #footer>最高分：{{ highScore }}</template>
 					</el-card>
-				</div>
 			</details>
 			<details class="shortcut list" data-panel="shortcuts" :open="panels.shortcuts" @toggle="onPanelToggle">
 				<summary>快捷键</summary>

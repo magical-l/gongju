@@ -104,24 +104,20 @@
 		<aside class="sidebar at-left">
 			<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 				<summary>本局信息</summary>
-				<div class="content">
-					<span v-if="isGaming" class="game-info">当前玩家: {{ curPlayer.name }}</span>
-				</div>
+				<span v-if="isGaming" class="game-info">当前玩家: {{ curPlayer.name }}</span>
 			</details>
 			<details class="record area" data-panel="record" :open="panels.record" @toggle="onPanelToggle">
 				<summary>落子记录</summary>
-				<div class="content">
-					<div class="op area">
-						<el-button :disabled="!turnHistory.length" icon="Download" size="small" @click="exportMoves">导出
-						</el-button>
-					</div>
-					<div class="round list">
-						<el-empty v-if="!turnHistory.length" description="尚未落子"></el-empty>
-						<div v-else class="one round" v-for="turn in turnHistory" :key="turn.id">
-							<span class="id">{{ turn.id }}</span>
-							<span class="first black">黑 {{ turn.blackMove }}</span>
-							<span class="second white">白 {{ turn.whiteMove || '—' }}</span>
-						</div>
+				<div class="op area">
+					<el-button :disabled="!turnHistory.length" icon="Download" size="small" @click="exportMoves">导出
+					</el-button>
+				</div>
+				<div class="round list">
+					<el-empty v-if="!turnHistory.length" description="尚未落子"></el-empty>
+					<div v-else class="one round" v-for="turn in turnHistory" :key="turn.id">
+						<span class="id">{{ turn.id }}</span>
+						<span class="first black">黑 {{ turn.blackMove }}</span>
+						<span class="second white">白 {{ turn.whiteMove || '—' }}</span>
 					</div>
 				</div>
 			</details>

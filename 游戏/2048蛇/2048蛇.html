@@ -132,21 +132,19 @@
 		<aside class="info area , sidebar at-left">
 			<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 				<summary>本局信息</summary>
-				<div class="content">
-					<div class="flex go-y">
-						<el-card header="当前得分" class="scoreboard" body-class="score" shadow="never">
-							{{ score }}
-						</el-card>
-						<el-descriptions class="info list" :column="1" border :label-width="140">
-							<el-descriptions-item label="行">{{ gameBoardHeight }}</el-descriptions-item>
-							<el-descriptions-item label="列">{{ gameBoardWidth }}</el-descriptions-item>
-							<el-descriptions-item label="目标≥">{{ gameTargetLabel }}</el-descriptions-item>
-							<el-descriptions-item
-									:label="gameBoardWidth && gameBoardHeight ? `最高记录 (${gameBoardWidth}×${gameBoardHeight})` : '最高记录'">
-								{{ highScore }}
-							</el-descriptions-item>
-						</el-descriptions>
-					</div>
+				<div class="flex go-y">
+					<el-card header="当前得分" class="scoreboard" body-class="score" shadow="never">
+						{{ score }}
+					</el-card>
+					<el-descriptions class="info list" :column="1" border :label-width="140">
+						<el-descriptions-item label="行">{{ gameBoardHeight }}</el-descriptions-item>
+						<el-descriptions-item label="列">{{ gameBoardWidth }}</el-descriptions-item>
+						<el-descriptions-item label="目标≥">{{ gameTargetLabel }}</el-descriptions-item>
+						<el-descriptions-item
+								:label="gameBoardWidth && gameBoardHeight ? `最高记录 (${gameBoardWidth}×${gameBoardHeight})` : '最高记录'">
+							{{ highScore }}
+						</el-descriptions-item>
+					</el-descriptions>
 				</div>
 			</details>
 			<details class="shortcut list" data-panel="shortcuts" :open="panels.shortcuts" @toggle="onPanelToggle">
@@ -205,8 +203,8 @@
 		let saved;
 		try { saved = JSON.parse(localStorage.getItem(panelKey) || 'null'); } catch (_) { saved = null; }
 		const boardSizeOptions = window.Game2048SnakeConstants ? window.Game2048SnakeConstants.SIZE_OPTIONS || [6, 7, 8,
-																																																						 10, 12]
-																													 : [6, 7, 8, 10, 12];
+																																																	 10, 12]
+												 : [6, 7, 8, 10, 12];
 		const state = reactive({
 			score: 0,
 			highScore: 0,
@@ -246,7 +244,7 @@
 					const total = rows * cols;
 					const s = state.lastStateForDisplay;
 					const getDisplay = v => window.Game2048Snake && window.Game2048Snake.getTileDisplayContent(s, v)
-																	|| {type: 'number', value: v};
+												|| {type: 'number', value: v};
 					if (cells.length === 0) {
 						return Array.from({length: total},
 								(_, i) => ({index: i, value: 0, unit: null, isHead: false, showBadge: false}));
@@ -353,7 +351,7 @@
 							return;
 						}
 						bridge.updateScores(gameState.score, gameState.highScore, gameState.boardWidth, gameState.boardHeight);
-						bridge.setBoardView(gameState.board, gameState.boardHeight, gameState.boardWidth, gameState);
+						bridge.setBoardView(gameState.board, gameState.gameBoardHeight, gameState.gameBoardWidth, gameState);
 						const vis = !!(gameState.overlayVisible && gameState.overlayMessage);
 						bridge.setGameResult(vis, gameState.overlayMessage || '',
 								gameState.gameOver ? '最终得分：' + gameState.score : '', !!gameState.gameWin);

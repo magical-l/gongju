@@ -283,28 +283,24 @@
 		<aside class="sidebar at-left">
 			<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 				<summary>本局信息</summary>
-				<div class="content">
-					<div class="game-info">
-						<div class="progress">
-							<el-progress :percentage="completionPercentage" :status="gameWin ? 'success' : ''"></el-progress>
-							<div style="margin-top: 5px; font-size: 0.9rem; color: #909399;">
-								已填充: {{ filledCells }} / {{ totalCells }}
-							</div>
+				<div class="game-info">
+					<div class="progress">
+						<el-progress :percentage="completionPercentage" :status="gameWin ? 'success' : ''"></el-progress>
+						<div style="margin-top: 5px; font-size: 0.9rem; color: #909399;">
+							已填充: {{ filledCells }} / {{ totalCells }}
 						</div>
 					</div>
 				</div>
 			</details>
 			<details class="record area" data-panel="record" :open="panels.record" @toggle="onPanelToggle">
 				<summary>连线记录</summary>
-				<div class="content">
-					<div class="op area">
-						<el-button :disabled="!connectionHistory.length" icon="Download" size="small" @click="exportConnections">导出
-						</el-button>
-					</div>
-					<el-empty v-if="!connectionHistory.length" description="尚未连线"></el-empty>
-					<div v-else class="round list">
-						<div class="one round" v-for="(conn, connI) in connectionHistory" :class="{ last: connI === connectionHistory.length - 1 }">{{connI+1}}：颜色{{conn.color}} {{conn.path.map(p => '(' + p.row + ',' + p.col + ')').join(' → ')}}</div>
-					</div>
+				<div class="op area">
+					<el-button :disabled="!connectionHistory.length" icon="Download" size="small" @click="exportConnections">导出
+					</el-button>
+				</div>
+				<el-empty v-if="!connectionHistory.length" description="尚未连线"></el-empty>
+				<div v-else class="round list">
+					<div class="one round" v-for="(conn, connI) in connectionHistory" :class="{ last: connI === connectionHistory.length - 1 }">{{connI+1}}：颜色{{conn.color}} {{conn.path.map(p => '(' + p.row + ',' + p.col + ')').join(' → ')}}</div>
 				</div>
 			</details>
 		</aside>

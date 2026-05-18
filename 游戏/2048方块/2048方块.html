@@ -57,7 +57,7 @@
 			<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
 				<p>2048方块：方块从顶部落下，用<strong>方向键</strong><strong>左右移动、旋转、下落</strong>。相同数字接触会<strong>合并翻倍</strong>，满行<strong>消除</strong>得分。堆满无法生成新块即结束。
 				</p>
-				<p><strong>操作</strong>：↑ 旋转，↓ 下落一格，← → 左右移动，长滑向下一步到底。空格暂停。新局与设置在工具栏。</p>
+				<p><strong>操作</strong>：↑ 旋转，↓ 下落一格，← → 左右移动，长滑向一步到底。空格暂停。新局与设置在工具栏。</p>
 			</el-dialog>
 		</div>
 	</header>
@@ -127,7 +127,6 @@
 			</details>
 			<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 				<summary>本局信息</summary>
-				<div class="content">
 				<div class="flex go-y">
 					<el-card header="当前得分" class="scoreboard" body-class="score" shadow="never">
 						{{ score }}
@@ -141,6 +140,7 @@
 								:label="gameBoardWidth && gameBoardHeight ? '最高记录 (' + gameBoardWidth + '×' + gameBoardHeight + ')' : '最高记录'">
 							{{ highScore }}
 						</el-descriptions-item>
+					</el-descriptions>
 				</div>
 			</details>
 			<details class="shortcut list" data-panel="shortcuts" :open="panels.shortcuts" @toggle="onPanelToggle">

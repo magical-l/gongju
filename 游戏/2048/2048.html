@@ -154,8 +154,7 @@
 		<aside class="info area , sidebar at-left">
 			<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 				<summary>本局信息</summary>
-				<div class="content">
-					<div class="flex go-y">
+									<div class="flex go-y">
 						<el-card header="当前得分" class="scoreboard" body-class="score" shadow="never">
 							{{ score }}
 						</el-card>
@@ -166,7 +165,6 @@
 							<el-descriptions-item :label="gameBoardWidth && gameBoardHeight ? `最高记录 (${gameBoardWidth}×${gameBoardHeight})` : '最高记录'">{{ highScore }}</el-descriptions-item>
 						</el-descriptions>
 					</div>
-				</div>
 			</details>
 			<details class="shortcut list" data-panel="shortcuts" :open="panels.shortcuts" @toggle="onPanelToggle">
 				<summary>快捷键</summary>

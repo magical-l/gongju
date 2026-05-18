@@ -140,11 +140,9 @@
 				margin-bottom: 12px;
 			}
 
-			& .content {
-				& section { margin-bottom: 8px; &:last-child { margin-bottom: 0; } }
-				& h3 { margin: 0 0 4px; font-size: 0.9rem; color: #606266; }
-				& p { margin: 0; }
-			}
+			& > section { margin-bottom: 8px; &:last-child { margin-bottom: 0; } }
+			& > h3 { margin: 0 0 4px; font-size: 0.9rem; color: #606266; }
+			& > p { margin: 0; }
 		}
 
 		/* 快捷键列表 */

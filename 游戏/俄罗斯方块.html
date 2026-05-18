@@ -133,9 +133,9 @@
 					<p>游戏提供了多种自定义选项，让您可以根据自己的喜好调整游戏体验：</p>
 					<ul>
 						<li><strong>尺寸</strong>：您可以自定义游戏区域的宽度和高度。</li>
-						<li><strong>难度</strong>：提供“柔和”与“经典”两种难度曲线。经典模式遵循传统的速度设定，更具挑战性。</li>
+						<li><strong>难度</strong>：提供"柔和"与"经典"两种难度曲线。经典模式遵循传统的速度设定，更具挑战性。</li>
 						<li><strong>起始等级</strong>：您可以选择一个较高的起始等级来直接挑战高速游戏。</li>
-						<li><strong>显示落点</strong>：开启此功能后，游戏区域底部会显示一个“幽灵方块”，提示您当前方块将会下落到的最终位置，帮助您更精确地放置方块。
+						<li><strong>显示落点</strong>：开启此功能后，游戏区域底部会显示一个"幽灵方块"，提示您当前方块将会下落到的最终位置，帮助您更精确地放置方块。
 						</li>
 					</ul>
 				</article>
@@ -220,24 +220,20 @@
 		<aside class="sidebar at-left">
 			<details data-panel="next" :open="panels.next" @toggle="onPanelToggle">
 				<summary>下一块</summary>
-				<div class="content">
-					<div class="board map preview">
-						<div class="cell" v-for="(block, index) in nextPieceBlocks" :key="index" :class="block"></div>
-					</div>
+				<div class="board map preview">
+					<div class="cell" v-for="(block, index) in nextPieceBlocks" :key="index" :class="block"></div>
 				</div>
 			</details>
 			<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 				<summary>本局信息</summary>
-				<div class="content">
-					<el-card header="分数" class="scoreboard" body-class="score" shadow="never">
-						{{ score }}
-						<template #footer>最高记录：{{ highScore }}</template>
-					</el-card>
-					<el-descriptions :column="1" border>
-						<el-descriptions-item label="行数">{{ lines }}</el-descriptions-item>
-						<el-descriptions-item label="等级">{{ level }}</el-descriptions-item>
-					</el-descriptions>
-				</div>
+				<el-card header="分数" class="scoreboard" body-class="score" shadow="never">
+					{{ score }}
+					<template #footer>最高记录：{{ highScore }}</template>
+				</el-card>
+				<el-descriptions :column="1" border>
+					<el-descriptions-item label="行数">{{ lines }}</el-descriptions-item>
+					<el-descriptions-item label="等级">{{ level }}</el-descriptions-item>
+				</el-descriptions>
 			</details>
 			<details class="shortcut list" data-panel="shortcuts" :open="panels.shortcuts" @toggle="onPanelToggle">
 				<summary>快捷键</summary>
