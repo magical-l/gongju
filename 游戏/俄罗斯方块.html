@@ -209,6 +209,7 @@
 					</div>
 				</section>
 			</header>
+
 			<article class="main map area , flex items-near-x-center items-near-y-start" style="grid-row:2">
 				<section class="board map" :style="boardStyle">
 					<div v-for="(cell, index) in displayGrid" :key="index" class="cell">
@@ -220,18 +221,7 @@
 					</div>
 				</section>
 			</article>
-			<!-- 结算弹窗 -->
-			<el-dialog v-model="showGameOverModal" class="result narrow" title="游戏结束" :show-close="true" align-center>
-				<div class="stats">得分: {{ score }}</div>
-				<template #footer>
-					<el-button type="primary" size="large" icon="RefreshRight" @click="closeGameOverAndNew">新局</el-button>
-					<el-button type="warning" size="large" @click="closeGameOverModal">关闭</el-button>
-				</template>
-			</el-dialog>
-			<!-- 彩纸效果 -->
-			<div class="fullscreen non-interactive top-layer" v-if="showGameOverModal">
-				<div class="confetti-piece" v-for="i in 150" :key="'confetti'+i"></div>
-			</div>
+
 			<aside class="sidebar at-left">
 				<details data-panel="next" :open="panels.next" @toggle="onPanelToggle">
 					<summary>下一块</summary>
@@ -260,6 +250,18 @@
 					<p class="one shortcut"><kbd>空格</kbd>：暂停/开始</p>
 				</details>
 			</aside>
+			<!-- 结算弹窗 -->
+			<el-dialog v-model="showGameOverModal" class="result narrow" title="游戏结束" :show-close="true" align-center>
+				<div class="stats">得分: {{ score }}</div>
+				<template #footer>
+					<el-button type="primary" size="large" icon="RefreshRight" @click="closeGameOverAndNew">新局</el-button>
+					<el-button type="warning" size="large" @click="closeGameOverModal">关闭</el-button>
+				</template>
+			</el-dialog>
+			<!-- 彩纸效果 -->
+			<div class="fullscreen non-interactive top-layer" v-if="showGameOverModal">
+				<div class="confetti-piece" v-for="i in 150" :key="'confetti'+i"></div>
+			</div>
 		</article>
 	</main>
 	<aside class="sidebar at-right">

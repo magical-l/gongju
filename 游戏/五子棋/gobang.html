@@ -80,6 +80,7 @@
 					</div>
 				</section>
 			</header>
+
 			<article class="main map area , one-row flex items-near-x-center">
 				<section class="board map" v-if="cells.length">
 					<div v-for="cell in cells" :key="cell.position" class="cell" :class="cell.classes" @click="handleCellClick(cell)">
@@ -89,6 +90,7 @@
 					</div>
 				</section>
 			</article>
+
 			<aside class="sidebar at-left">
 				<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 					<summary>本局信息</summary>

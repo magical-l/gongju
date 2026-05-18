@@ -85,6 +85,7 @@
 					</div>
 				</section>
 			</header>
+
 			<section class="board , main map , grid no-gap" :class="{ 'reversed view': showReversedView, editor: !isGaming }">
 				<div class="cell" :class="cell.classes" v-for="cell in mainCells" :key="cell.position" @click="handleCellClick(cell)" @dragover.prevent="" @drop="handleCellDrop(cell)">
 					<div class="piece unit" v-for="unit in cell.units" :key="unit.id" :class="unit.classes" :draggable="unit.canDrag" @dragstart="dragStartPiece(unit, 'board')" @dragend="clearDraggedPiece">
@@ -94,6 +95,7 @@
 					<div class="texture"></div>
 				</div>
 			</section>
+
 			<aside class="sidebar at-right">
 				<details data-panel="reversedView" :open="panels.reversedView" @toggle="onPanelToggle">
 					<summary>对面视角</summary>

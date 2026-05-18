@@ -100,7 +100,6 @@
 			</section>
 		</header>
 
-
 		<!-- 主地图区 -->
 		<section class="board , main map , no-shrink" ref="board" tabindex="0" :style="boardStyle">
 			<div class="cell" :class="cellLineClearClass(cell.index)" :data-index="cell.index" v-for="(cell, index) in boardCells" :key="index">
@@ -150,7 +149,6 @@
 				<p class="one shortcut">支持键盘与触屏滑动</p>
 			</details>
 		</aside>
-
 		<!-- 结算弹窗 -->
 		<el-dialog v-model="gameResultVisible" class="result narrow" :title="gameResultMessage" :show-close="true" align-center>
 			<div class="stats">得分: {{ score }}</div>

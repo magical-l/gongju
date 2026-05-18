@@ -248,11 +248,9 @@
 			<section class="tool list , flex single-line no-gap items-near-x-start items-near-y-center">
 				<div class="one tool group">
 					<el-button-group>
-						<el-button class="one tool : hint" @click="showHint" :type="hintColorIndex !== null ? 'primary' : 'default'"
-										 icon="MagicStick">提示
+						<el-button class="one tool : hint" @click="showHint" :type="hintColorIndex !== null ? 'primary' : 'default'" icon="MagicStick">提示
 						</el-button>
-						<el-button class="one tool : answer" @click="showAnswer" :type="showAnswerOverlay ? 'primary' : 'default'"
-										 icon="Key">答案
+						<el-button class="one tool : answer" @click="showAnswer" :type="showAnswerOverlay ? 'primary' : 'default'" icon="Key">答案
 						</el-button>
 					</el-button-group>
 				</div>
@@ -264,21 +262,6 @@
 				<canvas id="game-canvas" :width="canvasSize" :height="canvasSize"></canvas>
 			</div>
 		</article>
-
-		<!-- 结算弹窗 -->
-		<el-dialog v-model="showWinModal" class="result narrow" title="恭喜通关" :show-close="true" align-center>
-			<div class="stats">本局完成！</div>
-			<template #footer>
-				<el-button type="primary" size="large" icon="RefreshRight" @click="closeWinAndNew">新局</el-button>
-				<el-button type="info" size="large" icon="Download" @click="exportConnections">导出连线记录</el-button>
-				<el-button type="warning" size="large" @click="closeWinModal">关闭</el-button>
-			</template>
-		</el-dialog>
-
-		<!-- 彩纸效果 -->
-		<div class="fullscreen non-interactive top-layer" v-if="showWinModal">
-			<div class="confetti-piece" v-for="i in 150" :key="'confetti'+i"></div>
-		</div>
 
 		<aside class="sidebar at-left">
 			<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
@@ -304,6 +287,19 @@
 				</div>
 			</details>
 		</aside>
+		<!-- 结算弹窗 -->
+		<el-dialog v-model="showWinModal" class="result narrow" title="恭喜通关" :show-close="true" align-center>
+			<div class="stats">本局完成！</div>
+			<template #footer>
+				<el-button type="primary" size="large" icon="RefreshRight" @click="closeWinAndNew">新局</el-button>
+				<el-button type="info" size="large" icon="Download" @click="exportConnections">导出连线记录</el-button>
+				<el-button type="warning" size="large" @click="closeWinModal">关闭</el-button>
+			</template>
+		</el-dialog>
+		<!-- 彩纸效果 -->
+		<div class="fullscreen non-interactive top-layer" v-if="showWinModal">
+			<div class="confetti-piece" v-for="i in 150" :key="'confetti'+i"></div>
+		</div>
 	</article>
 </main>
 

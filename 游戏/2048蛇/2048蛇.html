@@ -81,13 +81,10 @@
 				</div>
 				<div class="one setting group">
 					<el-form-item class="one setting : target">
-						<el-input-number :model-value="targetNumber" @update:model-value="onTargetNumberChange" :controls="false"
-														 placeholder="留空=无限" title="留空=无限" :min="8" style="width: 10em">
+						<el-input-number :model-value="targetNumber" @update:model-value="onTargetNumberChange" :controls="false" placeholder="留空=无限" title="留空=无限" :min="8" style="width: 10em">
 							<template #prefix>目标≥</template>
 							<template #suffix>
-								<el-button v-if="targetNumber != null && targetNumber !== ''" link type="primary" size="small"
-													 icon="CircleClose" circle
-													 title="清空为无限" @click.stop="onTargetNumberChange(null)"></el-button>
+								<el-button v-if="targetNumber != null && targetNumber !== ''" link type="primary" size="small" icon="CircleClose" circle title="清空为无限" @click.stop="onTargetNumberChange(null)"></el-button>
 							</template>
 						</el-input-number>
 					</el-form-item>
@@ -102,7 +99,7 @@
 				<div class="one controller group">
 					<el-form-item class="one controller : pause">
 						<el-button :type="paused ? 'success' : 'warning'" :icon="paused ? 'VideoPlay' : 'VideoPause'"
-											 @click="onTogglePause">{{ paused ? '开始' : '暂停' }}
+						@click="onTogglePause">{{ paused ? '开始' : '暂停' }}
 						</el-button>
 					</el-form-item>
 				</div>
@@ -111,12 +108,11 @@
 			</section>
 		</header>
 
-
 		<!-- 主地图区 -->
 		<section class="board , main map , no-shrink" ref="board" tabindex="0" :style="boardStyle">
 			<div class="cell" :data-index="cell.index" v-for="(cell, index) in boardCells" :key="index">
 				<div v-if="cell.unit" class="unit" :class="['unit-' + cell.unit.val, { 'snake-head': cell.isHead }]"
-						 :data-index="cell.index">
+						:data-index="cell.index">
 					{{ cell.unit.text }}
 					<span v-if="cell.showBadge" class="new-badge">!</span>
 				</div>
@@ -149,12 +145,11 @@
 			</details>
 			<details class="shortcut list" data-panel="shortcuts" :open="panels.shortcuts" @toggle="onPanelToggle">
 				<summary>快捷键</summary>
-					<p class="one shortcut"><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd>：改变蛇的移动方向（蛇会自动定时移动）</p>
-					<p class="one shortcut"><kbd>空格</kbd>：暂停 / 开始</p>
-					<p class="one shortcut">支持键盘、触屏与鼠标滑动</p>
+				<p class="one shortcut"><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd>：改变蛇的移动方向（蛇会自动定时移动）</p>
+				<p class="one shortcut"><kbd>空格</kbd>：暂停 / 开始</p>
+				<p class="one shortcut">支持键盘、触屏与鼠标滑动</p>
 			</details>
 		</aside>
-
 		<!-- 结算弹窗 -->
 		<el-dialog v-model="gameResultVisible" class="result" :title="gameResultMessage" :show-close="true" align-center>
 			<div class="stats">
@@ -165,12 +160,10 @@
 				<el-button type="warning" size="large" @click="closeGameResultModal">关闭</el-button>
 			</template>
 		</el-dialog>
-
 		<!-- 彩纸效果（仅胜利时） -->
 		<div class="fullscreen non-interactive top-layer" v-if="gameResultVisible && gameResultIsWin">
 			<div class="confetti-piece" v-for="i in 150" :key="i"></div>
 		</div>
-
 	</article>
 </main>
 
