@@ -103,8 +103,8 @@
 						<el-empty v-if="!turnHistory.length" description="尚未落子"></el-empty>
 						<div v-else class="one round" v-for="turn in turnHistory" :key="turn.id">
 							<span class="id">{{ turn.id }}</span>
-							<span class="first black">黑 {{ turn.blackMove }}</span>
-							<span class="second white">白 {{ turn.whiteMove || '—' }}</span>
+							<span class="black player action">黑 {{ turn.blackMove }}</span>
+							<span class="white player action">白 {{ turn.whiteMove || '—' }}</span>
 						</div>
 					</div>
 				</details>

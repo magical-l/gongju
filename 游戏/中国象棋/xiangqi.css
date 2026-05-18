@@ -181,9 +181,8 @@
 				&:last-child { border-bottom: none; }
 				&:nth-child(odd) { background: #f5f7fa; }
 				& .id { color: #909399; }
-				& .first, & .second { text-align: center; }
-				& .red { color: #d43d3d; }
-				& .black { color: #333; }
+				& .red { color: #d43d3d; text-align: center; }
+				& .black { color: #333; text-align: center; }
 			}
 		}
 

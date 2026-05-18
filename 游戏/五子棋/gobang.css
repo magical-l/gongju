@@ -30,9 +30,8 @@
 			&:last-child { border-bottom: none; }
 			&:nth-child(odd) { background: #f5f7fa; }
 			& .id { color: #909399; }
-			& .first, & .second { text-align: center; }
-			& .black { color: #333; }
-			& .white { color: #666; }
+			& .black { color: #333; text-align: center; }
+			& .white { color: #666; text-align: center; }
 		}
 	}
 
