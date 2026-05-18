@@ -85,9 +85,9 @@
 					</div>
 				</section>
 			</header>
-			<section class="board , main map , grid no-gap" :class="{ 'reversed view': showReversedView, editor: !isGaming }">
+			<section class="main board map , grid no-gap" :class="{ 'reversed view': showReversedView, editor: !isGaming }">
 				<div class="cell" :class="cell.classes" v-for="cell in mainCells" :key="cell.position" @click="handleCellClick(cell)" @dragover.prevent @drop="handleCellDrop(cell)">
-					<div class="piece unit" v-for="unit in cell.units" :key="unit.id" :class="unit.classes" :draggable="unit.canDrag" @dragstart="dragStartPiece(unit, 'board')" @dragend="clearDraggedPiece">
+					<div class="piece unit" :class="unit.classes" v-for="unit in cell.units" :key="unit.id" :draggable="unit.canDrag" @dragstart="dragStartPiece(unit, 'board')" @dragend="clearDraggedPiece">
 						{{ unit.display }}
 						<div v-if="unit.canDrag" class="remove unit btn" @click.stop="removeEditorPiece(unit)">×</div>
 					</div>
@@ -97,7 +97,7 @@
 			<aside class="sidebar at-right">
 				<details data-panel="reversedView" :open="panels.reversedView" @toggle="onPanelToggle">
 					<summary>对面视角</summary>
-					<article class="mini map , board , grid no-gap" :class="{ 'reversed view': !showReversedView, editor: !isGaming}">
+					<article class="mini board map , grid no-gap" :class="{ 'reversed view': !showReversedView, editor: !isGaming}">
 						<div class="cell" :class="cell.classes" v-for="cell in miniCells" :key="'mini-'+cell.position" @click="handleCellClick(cell)">
 							<div class="piece unit" :class="unit.classes" v-for="unit in cell.units" :key="unit.id">
 								{{ unit.display }}
@@ -109,14 +109,14 @@
 				<details v-if="!isGaming" data-panel="palette" :open="panels.palette" @toggle="onPanelToggle">
 					<summary>棋子库</summary>
 					<div class="unit type palette">
-						<div class="piece unit" :class="getEditorPaletteClass(type)" v-for="(piece, type) in boardEditor.pieceTypes" :key="type" @click="boardEditor.selectedPieceType = (boardEditor.selectedPieceType === type ? null : type)" draggable="true" @dragstart="dragStartPiece({name: type}, 'palette')" @dragend="clearDraggedPiece">
+						<div class="piece unit" :class="getEditorPaletteClass(type)" v-for="(piece, type) in boardEditor.pieceTypes" :key="type" draggable="true" @click="boardEditor.selectedPieceType = (boardEditor.selectedPieceType === type ? null : type)" @dragstart="dragStartPiece({name: type}, 'palette')" @dragend="clearDraggedPiece">
 							{{ piece.显示 }}
 						</div>
 					</div>
 				</details>
 				<details data-panel="selected" :open="panels.selected" @toggle="onPanelToggle">
 					<summary>当前选中</summary>
-					<div v-if="isGaming && selectedUnit" class="selected unit area">
+					<div class="selected unit area" v-if="isGaming && selectedUnit">
 						<div class="preview">
 							<div class="piece unit" :class="getUnitClasses(selectedUnit)">{{ selectedUnit.display }}</div>
 						</div>
@@ -155,42 +155,44 @@
 						<span v-else>从上方棋子库中选择一个棋子进行编辑</span>
 					</div>
 				</details>
-				<details v-if="!isGaming" data-panel="globalRules" :open="panels.globalRules" @toggle="onPanelToggle">
-					<summary>全局规则</summary>
-					<el-checkbox-group v-model="gameSettings.rules">
-						<el-checkbox v-for="rule in allAvailableRules" :key="rule" :label="rule">
-						</el-checkbox></el-checkbox-group>
-				</details>
-				<details v-if="!isGaming" data-panel="plugins" :open="panels.plugins" @toggle="onPanelToggle">
-					<summary>插件</summary>
-					<el-checkbox-group v-model="gameSettings.plugins">
-						<el-checkbox v-for="plugin in allAvailablePlugins" :key="plugin" :label="plugin">
-						</el-checkbox></el-checkbox-group>
-				</details>
-				<details v-if="isGaming" class="gaming info" data-panel="gamingInfo" :open="panels.gamingInfo" @toggle="onPanelToggle">
-					<summary>本局信息</summary>
-					<div class="game-info">
-						<div>先手：{{ gameFirstLabel }}</div>
-						<div>当前：{{ curPlayerLabel || '—' }}</div>
-						<div>回合： <template v-if="currentRound === 0">尚未走棋</template>
+				<template v-if="!isGaming">
+					<details class="global-rule list" data-panel="globalRules" :open="panels.globalRules" @toggle="onPanelToggle">
+						<summary>全局规则</summary>
+						<el-checkbox-group v-model="gameSettings.rules">
+							<el-checkbox v-for="rule in allAvailableRules" :key="rule" :label="rule">
+							</el-checkbox>
+						</el-checkbox-group>
+					</details>
+					<details class="plugin list" data-panel="plugins" :open="panels.plugins" @toggle="onPanelToggle">
+						<summary>插件</summary>
+						<el-checkbox-group v-model="gameSettings.plugins">
+							<el-checkbox v-for="plugin in allAvailablePlugins" :key="plugin" :label="plugin">
+							</el-checkbox>
+						</el-checkbox-group>
+					</details>
+					<details class="gaming info list" data-panel="gamingInfo" :open="panels.gamingInfo" @toggle="onPanelToggle">
+						<summary>本局信息</summary>
+						<div class="one info">先手：{{ gameFirstLabel }}</div>
+						<div class="one info">当前：{{ curPlayerLabel || '—' }}</div>
+						<div class="one info">回合： <template v-if="currentRound === 0">尚未走棋</template>
 							<template v-else>第 {{ currentRound }} 回合</template>
 						</div>
-					</div>
-				</details>
-				<details v-if="isGaming" class="record area" data-panel="recordArea" :open="panels.recordArea" @toggle="onPanelToggle">
-					<summary>回合</summary>
-					<div class="op area">
-						<el-button :disabled="!turnHistory.length" icon="Download" size="small" @click="downloadNotation">导出 </el-button>
-					</div>
-					<div class="round list">
-						<el-empty v-if="!turnHistory.length" description="尚未走棋"></el-empty>
-						<div v-else class="one round" v-for="turn in turnHistory" :key="turn.id">
-							<span class="id">{{ turn.id }}</span>
-							<span class="red player action">红 {{ turn.redMove }}</span>
-							<span class="black player action">黑 {{ turn.blackMove || '—' }}</span>
+					</details>
+					<details class="record area" data-panel="recordArea" :open="panels.recordArea" @toggle="onPanelToggle">
+						<summary>回合</summary>
+						<header class="op area">
+							<el-button :disabled="!turnHistory.length" icon="Download" size="small" @click="downloadNotation">导出 </el-button>
+						</header>
+						<div class="round list">
+							<el-empty v-if="!turnHistory.length" description="尚未走棋"></el-empty>
+							<div class="one round" v-for="turn in turnHistory" :key="turn.id">
+								<span class="id">{{ turn.id }}</span>
+								<span class="red player action">红 {{ turn.redMove }}</span>
+								<span class="black player action">黑 {{ turn.blackMove || '—' }}</span>
+							</div>
 						</div>
-					</div>
-				</details>
+					</details>
+				</template>
 			</aside>
 			<!-- 将军提示 -->
 			<div v-if="showCheck" class="gaming check overlay">

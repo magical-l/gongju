@@ -169,7 +169,6 @@
 				&.at-bottom { color: var(--el-color-success); margin-top: 6px; }
 			}
 			& > .op.area { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px; }
-			& .rounds > .round.list > .round.list > .round.list { margin-top: 6px; }
 			& .one.round {
 				display: grid;
 				grid-template-columns: 40px 1fr 1fr;
@@ -317,10 +316,6 @@
 			}
 		}
 	}/* .gaming.area */
-
-	/* ------ 兜底 ------ */
-	/* input 元素默认有自己的 font-family，需显式继承 */
-	& input { font-family: inherit; }
 }
 
 /* ====== 动画关键帧：不能嵌套定义 ====== */
