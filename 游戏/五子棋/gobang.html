@@ -109,10 +109,8 @@
 					</div>
 				</details>
 			</aside>
-			<el-dialog title="游戏结束" v-model="isGameOver" width="300px" align-center>
-				<div style="text-align: center; font-size: 24px;">
-					<span>{{ winner }} 获胜!</span>
-				</div>
+			<el-dialog title="游戏结束" v-model="isGameOver" align-center class="result narrow">
+				<div class="outcome">{{ winner }} 获胜!</div>
 				<template #footer>
 					<el-button type="primary" @click="restartGame">再来一局</el-button>
 				</template>
