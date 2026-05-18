@@ -109,7 +109,7 @@
 		</section>
 
 		<aside class="sidebar at-right">
-			<details data-panel="reversed-view" :open="panels['reversed-view']" @toggle="onPanelToggle">
+			<details data-panel="reversedView" :open="panels.reversedView" @toggle="onPanelToggle">
 				<summary>对面视角</summary>
 				<article class="mini map , board , grid no-gap" :class="{ 'reversed view': !showReversedView, editor: !isGaming}">
 					<div class="cell" :class="cell.classes" v-for="cell in miniCells" :key="'mini-'+cell.position"
@@ -121,7 +121,7 @@
 					</div>
 				</article>
 			</details>
-			<details v-if="!isGaming" data-panel="palette" :open="panels['palette']" @toggle="onPanelToggle">
+			<details v-if="!isGaming" data-panel="palette" :open="panels.palette" @toggle="onPanelToggle">
 				<summary>棋子库</summary>
 				<div class="unit type palette">
 					<div class="piece unit" :class="getEditorPaletteClass(type)"
@@ -132,7 +132,7 @@
 					</div>
 				</div>
 			</details>
-			<details data-panel="selected" :open="panels['selected']" @toggle="onPanelToggle">
+			<details data-panel="selected" :open="panels.selected" @toggle="onPanelToggle">
 				<summary>当前选中</summary>
 				<div v-if="isGaming && selectedUnit" class="selected unit area">
 					<div class="preview">
@@ -171,19 +171,19 @@
 					<span v-else>从上方棋子库中选择一个棋子进行编辑</span>
 				</div>
 			</details>
-			<details v-if="!isGaming" data-panel="globalRules" :open="panels['globalRules']" @toggle="onPanelToggle">
+			<details v-if="!isGaming" data-panel="globalRules" :open="panels.globalRules" @toggle="onPanelToggle">
 				<summary>全局规则</summary>
 				<el-checkbox-group v-model="gameSettings.rules">
 					<el-checkbox v-for="rule in allAvailableRules" :key="rule" :label="rule"/>
 				</el-checkbox-group>
 			</details>
-			<details v-if="!isGaming" data-panel="plugins" :open="panels['plugins']" @toggle="onPanelToggle">
+			<details v-if="!isGaming" data-panel="plugins" :open="panels.plugins" @toggle="onPanelToggle">
 				<summary>插件</summary>
 				<el-checkbox-group v-model="gameSettings.plugins">
 					<el-checkbox v-for="plugin in allAvailablePlugins" :key="plugin" :label="plugin"/>
 				</el-checkbox-group>
 			</details>
-			<details v-if="isGaming" class="gaming info" data-panel="gaming info" :open="panels['gaming info']" @toggle="onPanelToggle">
+			<details v-if="isGaming" class="gaming info" data-panel="gamingInfo" :open="panels.gamingInfo" @toggle="onPanelToggle">
 				<summary>本局信息</summary>
 				<div class="game-info">
 					<div>先手：{{ gameFirstLabel }}</div>
@@ -194,7 +194,7 @@
 					</div>
 				</div>
 			</details>
-			<details v-if="isGaming" class="record area" data-panel="record-area" :open="panels['record-area']" @toggle="onPanelToggle">
+			<details v-if="isGaming" class="record area" data-panel="recordArea" :open="panels.recordArea" @toggle="onPanelToggle">
 				<summary>回合</summary>
 				<div class="op area">
 					<el-button :disabled="!turnHistory.length" icon="Download" size="small" @click="downloadNotation">导出
@@ -272,7 +272,7 @@
 	const app = createApp({
 		data() {
 			const panelKey = 'xiangqi-panels';
-			const defaultPanels = {'reversed-view': true, 'palette': true, 'selected': true, 'globalRules': true, 'plugins': true, 'gaming info': true, 'record-area': true};
+			const defaultPanels = {reversedView: true, palette: true, selected: true, globalRules: true, plugins: true, gamingInfo: true, recordArea: true};
 			let saved;
 			try { saved = JSON.parse(localStorage.getItem(panelKey) || 'null'); } catch (_) { saved = null; }
 			return {
