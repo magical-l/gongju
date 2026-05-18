@@ -99,10 +99,10 @@
 					<summary>对面视角</summary>
 					<article class="mini map , board , grid no-gap" :class="{ 'reversed view': !showReversedView, editor: !isGaming}">
 						<div class="cell" :class="cell.classes" v-for="cell in miniCells" :key="'mini-'+cell.position" @click="handleCellClick(cell)">
-							<div class="texture"></div>
 							<div class="piece unit" :class="unit.classes" v-for="unit in cell.units" :key="unit.id">
 								{{ unit.display }}
 							</div>
+							<div class="texture"></div>
 						</div>
 					</article>
 				</details>
@@ -116,7 +116,7 @@
 				</details>
 				<details data-panel="selected" :open="panels.selected" @toggle="onPanelToggle">
 					<summary>当前选中</summary>
-					<div v-if="isGaming &amp;&amp; selectedUnit" class="selected unit area">
+					<div v-if="isGaming && selectedUnit" class="selected unit area">
 						<div class="preview">
 							<div class="piece unit" :class="getUnitClasses(selectedUnit)">{{ selectedUnit.display }}</div>
 						</div>
@@ -127,7 +127,7 @@
 						</div>
 						<div class="merit" style="margin-top: 15px;">
 							<header>杀敌数 <span class="count">{{ selectedUnit.killCount }}</span></header>
-							<div class="details" v-if="selectedUnit.kills &amp;&amp; selectedUnit.kills.length > 0">
+							<div class="details" v-if="selectedUnit.kills && selectedUnit.kills.length > 0">
 								<div class="record" v-for="(kill, ki) in selectedUnit.kills" :key="ki">
 									<span class="record-piece"><span class="piece unit" :class="kill.unit.owner.team.flag">{{ kill.unit.display }}</span></span>
 									<span class="meta">第{{ kill.round }}回合</span>
@@ -136,7 +136,7 @@
 							<div v-else class="empty">暂无杀敌记录</div>
 						</div>
 					</div>
-					<div v-else-if="!isGaming &amp;&amp; boardEditor.selectedPieceType">
+					<div v-else-if="!isGaming && boardEditor.selectedPieceType">
 						<el-form label-width="60px">
 							<el-form-item label="显示">
 								<el-input v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].显示" autofocus :input-style="{ fontFamily: 'NotoSansSymbols2, sans-serif', fontSize: '28px', textAlign: 'center' }" style="width: 60px">
