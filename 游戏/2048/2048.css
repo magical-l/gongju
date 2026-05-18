@@ -12,6 +12,11 @@
 			max-height: min(85vh, 900px);
 			min-height: min(320px, 55vmin);
 		}
+
+		/* 棋盘作为滑动动画层定位基准 */
+		& .board.main.map {
+			position: relative;
+		}
 	}
 
 	/* 数字方块 */
