@@ -218,15 +218,6 @@ main {
 	gap: 0.75rem;
 }
 
-/* ======================== primevue ======================== */
-.chooser.p-selectbutton button {
-	padding: 0.1rem 0.3rem;
-	font-size: 0.8rem;
-	min-width: 2rem;
-
-	& .p-togglebutton-label { font-weight: normal; }
-}
-
 /* 按钮工具类 */
 .btn.circle {
 	padding: 0;

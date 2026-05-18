@@ -1,27 +1,62 @@
+/**
+ * CChooser 智能选择器组件 - Element Plus 实现
+ * 功能：响应式切换（按钮组↔下拉框）、单选/多选自适应、数量验证
+ * 用法：<c-chooser v-model="selected" :options="opts" at-least="1" at-most="3" />
+ */
 const CChooser = {
 	name: 'CChooser',
 	template: `
 		<div class="c-chooser-container" ref="chooserContainer">
-			<component :is="componentType"
-								 v-model="internalValue" :options="processedOptions" data-key="value"
-								 option-label="label" option-value="value"
-								 :size="size" :variant="variant" :disabled="disabled" :option-disabled="'disabled'"
-								 :invalid="isSelectionInvalid"
-
-								 :multiple="isMultipleMode"
-								 filter display="chip" show-clear
-								 :max-selected-labels="3" :selected-items-label="selectedItemsLabel"
-								 :placeholder="placeholder"
-
-								 :allow-empty="true">
-			</component>
+			<!-- 按钮组模式：单选 -->
+			<el-radio-group v-if="isButtonMode && !isMultipleMode"
+				v-model="internalValue"
+				:size="size"
+				:disabled="disabled">
+				<el-radio-button v-for="opt in processedOptions"
+					:key="opt.value"
+					:value="opt.value"
+					:disabled="opt.disabled">
+					{{ opt.label }}
+				</el-radio-button>
+			</el-radio-group>
+			<!-- 按钮组模式：多选 -->
+			<el-checkbox-group v-if="isButtonMode && isMultipleMode"
+				v-model="internalValue"
+				:size="size"
+				:disabled="disabled">
+				<el-checkbox-button v-for="opt in processedOptions"
+					:key="opt.value"
+					:value="opt.value"
+					:disabled="opt.disabled">
+					{{ opt.label }}
+				</el-checkbox-button>
+			</el-checkbox-group>
+			<!-- 下拉框模式 -->
+			<el-select v-if="isDropdownMode"
+				v-model="internalValue"
+				:multiple="isMultipleMode"
+				:clearable="true"
+				:filterable="true"
+				:collapse-tags="isMultipleMode"
+				:collapse-tags-tooltip="isMultipleMode"
+				:max-collapse-tags="3"
+				:placeholder="placeholder"
+				:size="size"
+				:disabled="disabled"
+				:style="{width: '100%'}">
+				<el-option v-for="opt in processedOptions"
+					:key="opt.value"
+					:value="opt.value"
+					:label="opt.label"
+					:disabled="opt.disabled">
+				</el-option>
+			</el-select>
+			<!-- 验证提示 -->
+			<div v-if="showValidationError" class="validation-error">
+				{{ validationMessage }}
+			</div>
 		</div>
 	`,
-	components: {
-		SelectButton: PrimeVue.SelectButton,
-		MultiSelect: PrimeVue.MultiSelect,
-		Dropdown: PrimeVue.Select
-	},
 	props: {
 		modelValue: [String, Number, Array, Object],
 		options: {type: Array, required: true, default: () => []},
@@ -30,27 +65,28 @@ const CChooser = {
 		atLeast: {type: Number, default: 0},
 		atMost: {type: Number, default: null},
 		placeholder: {type: String, default: '请选择'},
-		selectedItemsLabel: {type: String, default: '已选 {0} 项'},
-		size: {type: String, default: null},
-		variant: {type: String, default: 'outlined'},
-		invalid: {type: Boolean, default: false},
+		size: {type: String, default: 'default'},
 		disabled: {type: Boolean, default: false},
 		optionDisabled: {type: [String, Function], default: null}
 	},
-	emits: ['update:modelValue'],
+	emits: ['update:modelValue', 'validate'],
 	data() {
 		return {
-			componentType: 'SelectButton',// 默认使用按钮组，后续会通过宽度检查来动态修改
+			componentType: 'button', // 'button' | 'dropdown'
 			resizeObserver: null,
-			touched: false // 标记用户是否与组件交互过
+			touched: false
 		};
 	},
 	computed: {
 		isMultipleMode() {
-			// 如果 atMost 不等于 1 (比如是 null, 0, 或 > 1), 就允许多选
 			return this.atMost !== 1;
 		},
-		// 统一处理选项，始终返回 {label, value, disabled} 格式的数组
+		isButtonMode() {
+			return this.componentType === 'button';
+		},
+		isDropdownMode() {
+			return this.componentType === 'dropdown';
+		},
 		processedOptions() {
 			return this.options.map(option => {
 				const originalOption = option;
@@ -58,12 +94,10 @@ const CChooser = {
 				if (this.optionDisabled) {
 					if (typeof this.optionDisabled === 'function') {
 						isDisabled = this.optionDisabled(originalOption);
-					} else if (typeof this.optionDisabled === 'string' && typeof originalOption === 'object' && originalOption
-										 !== null) {
+					} else if (typeof this.optionDisabled === 'string' && typeof originalOption === 'object' && originalOption !== null) {
 						isDisabled = !!originalOption[this.optionDisabled];
 					}
 				}
-
 				if (typeof originalOption === 'object' && originalOption !== null && !Array.isArray(originalOption)) {
 					const label = this.labelField ? originalOption[this.labelField] : this.getObjectLabel(originalOption);
 					const value = this.valueField ? originalOption[this.valueField] : originalOption;
@@ -72,82 +106,84 @@ const CChooser = {
 				return {label: String(originalOption), value: originalOption, disabled: isDisabled};
 			});
 		},
-		// 简化的双向绑定处理
 		internalValue: {
 			get() {
-				// 如果是多选模式，确保 internalValue 始终是数组
 				if (this.isMultipleMode) {
 					return Array.isArray(this.modelValue) ? this.modelValue : [];
 				}
 				return this.modelValue;
 			},
 			set(newValue) {
-				// 在多选模式下，确保值始终是数组 (SelectButton 清空时可能返回 null)
 				const proposedValue = this.isMultipleMode ? newValue ?? [] : newValue;
-				this.touched = true; // 用户已交互
+				this.touched = true;
 				this.$emit('update:modelValue', proposedValue);
+				this.$emit('validate', this.validateSelection(proposedValue));
 			}
 		},
-		isSelectionInvalid() {
-			if (this.invalid) {
-				return true;
+		showValidationError() {
+			return this.touched && !this.isValidSelection;
+		},
+		isValidSelection() {
+			return this.validateSelection(this.internalValue).valid;
+		},
+		validationMessage() {
+			const count = this.getSelectionCount();
+			if (count < this.atLeast) {
+				return `至少需要选择 ${this.atLeast} 项`;
 			}
-			if (!this.touched) {
-				return false; // 未交互时不显示错误
+			if (this.atMost !== null && count > this.atMost) {
+				return `最多可选择 ${this.atMost} 项`;
 			}
-			const value = this.internalValue;
-			const count = Array.isArray(value) ? value.length : (value === null || value === undefined ? 0 : 1);
-			return count < this.atLeast || this.atMost !== null && count > this.atMost;
-
+			return '';
 		}
 	},
 	methods: {
-		// 检查容器宽度并决定使用哪个组件
+		getSelectionCount() {
+			const value = this.internalValue;
+			return Array.isArray(value) ? value.length : (value === null || value === undefined ? 0 : 1);
+		},
+		validateSelection(value) {
+			const count = Array.isArray(value) ? value.length : (value === null || value === undefined ? 0 : 1);
+			const valid = count >= this.atLeast && (this.atMost === null || count <= this.atMost);
+			return {valid, count, atLeast: this.atLeast, atMost: this.atMost};
+		},
 		checkWidth() {
-			this.componentType = 'SelectButton';//先假定是按钮组
+			this.componentType = 'button';
 			this.$nextTick(() => {
 				const container = this.$refs.chooserContainer;
 				if (!container) {
 					return;
 				}
-				// 比较实际内容宽度和可见宽度
+				// 检测是否溢出
 				const needsDropdown = container.scrollWidth > container.clientWidth;
 				if (needsDropdown) {
-					this.componentType = this.isMultipleMode ? 'MultiSelect' : 'Dropdown';
-				}//else this.componentType = 'SelectButton';//不能在这里分支，否则会在 变成按钮组→宽度够→变成下拉框→宽度不够→变成按钮组 之间死循环
+					this.componentType = 'dropdown';
+				}
 			});
 		},
-		// 从对象中智能获取用于显示的标签
 		getObjectLabel(option) {
-			const commonLabelKeys = ['label', 'name', 'title', 'text', 'key', 'txt',
-															 'lable'//防呆：兼容使用者写的常见错别字
-			];
+			const commonLabelKeys = ['label', 'name', 'title', 'text', 'key', 'txt', 'lable'];
 			for (const key of commonLabelKeys) {
 				if (option[key] !== undefined) {
 					return option[key];
 				}
 			}
-			// 如果找不到常见标签，则返回对象的JSON字符串形式
 			return JSON.stringify(option);
 		}
 	},
 	mounted() {
-		// 组件挂载后，初始化 ResizeObserver 来监听容器尺寸变化
 		this.resizeObserver = new ResizeObserver(() => {
 			this.checkWidth();
 		});
 		this.resizeObserver.observe(this.$refs.chooserContainer);
-		// 初始加载时也检查一次
 		this.checkWidth();
 	},
 	beforeUnmount() {
-		// 组件卸载前，停止监听并清理，防止内存泄漏
 		if (this.resizeObserver) {
 			this.resizeObserver.disconnect();
 		}
 	},
 	watch: {
-		// 当选项变化时，也需要重新检查宽度
 		options: {
 			handler() {
 				this.checkWidth();
@@ -157,17 +193,32 @@ const CChooser = {
 	}
 };
 
+// 组件样式
 const cChooserStyles = `
-	.c-chooser-container {
-		display: inline-block;
-		min-width: 200px;
-		width: 100%; /* 让容器撑满父级，以便正确测量可用宽度 */
-	}
+.c-chooser-container {
+	display: inline-block;
+	min-width: 200px;
+	width: 100%;
+	position: relative;
+}
+
+.c-chooser-container .el-radio-group,
+.c-chooser-container .el-checkbox-group {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.c-chooser-container .validation-error {
+	color: var(--el-color-danger, #f56c6c);
+	font-size: 12px;
+	margin-top: 4px;
+	line-height: 1;
+}
 `;
 
 const CChooserPlugin = {
 	install(app) {
-		// 将样式注入到页面
 		if (typeof document !== 'undefined') {
 			const styleId = 'c-chooser-styles';
 			if (!document.getElementById(styleId)) {
@@ -177,13 +228,10 @@ const CChooserPlugin = {
 				document.head.appendChild(style);
 			}
 		}
-
-		// 注册全局组件
 		app.component('c-chooser', CChooser);
 	}
 };
 
-// 自动注册到全局（如果通过script标签引入）
 if (typeof window !== 'undefined') {
 	window.CChooser = CChooser;
 	window.CChooserPlugin = CChooserPlugin;
