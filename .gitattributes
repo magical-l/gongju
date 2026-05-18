@@ -1,0 +1,5 @@
+* text=auto eol=lf
+lib/** -text
+vendor/** -text
+*.min.js -text
+*.min.css -text
