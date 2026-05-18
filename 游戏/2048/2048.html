@@ -168,12 +168,10 @@
 					</div>
 				</div>
 			</details>
-			<details :open="panels.shortcuts" @toggle="onPanelToggle('shortcuts')" class="shortcuts">
+			<details :open="panels.shortcuts" @toggle="onPanelToggle('shortcuts')" class="shortcut list">
 				<summary>快捷键</summary>
-				<div class="content">
-					<p>↑ ↓ ← → ：滑动方块</p>
-					<p>支持键盘、触屏与鼠标滑动</p>
-				</div>
+					<p class="one shortcut"><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd>：滑动方块</p>
+					<p class="one shortcut">支持键盘、触屏与鼠标滑动</p>
 			</details>
 		</aside>
 

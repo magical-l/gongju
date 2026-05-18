@@ -130,35 +130,31 @@
 
 		<!-- 信息区 -->
 		<aside class="info area , sidebar at-left">
-			<el-card shadow="never">
-				<details :open="panels.info" @toggle="onPanelToggle('info', $event)" class="gaming info">
-					<summary>本局信息</summary>
-					<div class="content">
-						<div class="flex go-y">
-							<el-card header="当前得分" class="scoreboard" body-class="score" shadow="never">
-								{{ score }}
-							</el-card>
-							<el-descriptions class="info list" :column="1" border :label-width="140">
-								<el-descriptions-item label="行">{{ gameBoardHeight }}</el-descriptions-item>
-								<el-descriptions-item label="列">{{ gameBoardWidth }}</el-descriptions-item>
-								<el-descriptions-item label="目标≥">{{ gameTargetLabel }}</el-descriptions-item>
-								<el-descriptions-item
-										:label="gameBoardWidth && gameBoardHeight ? `最高记录 (${gameBoardWidth}×${gameBoardHeight})` : '最高记录'">
-									{{ highScore }}
-								</el-descriptions-item>
-							</el-descriptions>
-						</div>
+			<details :open="panels.info" @toggle="onPanelToggle('info', $event)" class="gaming info">
+				<summary>本局信息</summary>
+				<div class="content">
+					<div class="flex go-y">
+						<el-card header="当前得分" class="scoreboard" body-class="score" shadow="never">
+							{{ score }}
+						</el-card>
+						<el-descriptions class="info list" :column="1" border :label-width="140">
+							<el-descriptions-item label="行">{{ gameBoardHeight }}</el-descriptions-item>
+							<el-descriptions-item label="列">{{ gameBoardWidth }}</el-descriptions-item>
+							<el-descriptions-item label="目标≥">{{ gameTargetLabel }}</el-descriptions-item>
+							<el-descriptions-item
+									:label="gameBoardWidth && gameBoardHeight ? `最高记录 (${gameBoardWidth}×${gameBoardHeight})` : '最高记录'">
+								{{ highScore }}
+							</el-descriptions-item>
+						</el-descriptions>
 					</div>
-				</details>
-				<details :open="panels.shortcuts" @toggle="onPanelToggle('shortcuts', $event)" class="shortcuts">
-					<summary>快捷键</summary>
-					<div class="content">
-						<p>↑ ↓ ← → ：改变蛇的移动方向（蛇会自动定时移动）</p>
-						<p>空格：暂停 / 开始</p>
-						<p>支持键盘、触屏与鼠标滑动</p>
-					</div>
-				</details>
-			</el-card>
+				</div>
+			</details>
+			<details :open="panels.shortcuts" @toggle="onPanelToggle('shortcuts', $event)" class="shortcut list">
+				<summary>快捷键</summary>
+					<p class="one shortcut"><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd>：改变蛇的移动方向（蛇会自动定时移动）</p>
+					<p class="one shortcut"><kbd>空格</kbd>：暂停 / 开始</p>
+					<p class="one shortcut">支持键盘、触屏与鼠标滑动</p>
+			</details>
 		</aside>
 
 		<!-- 结算弹窗 -->

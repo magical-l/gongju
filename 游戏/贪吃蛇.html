@@ -161,12 +161,10 @@
 					</el-card>
 				</div>
 			</details>
-			<details :open="panels.shortcuts" @toggle="onPanelToggle('shortcuts', $event)">
+			<details :open="panels.shortcuts" @toggle="onPanelToggle('shortcuts', $event)" class="shortcut list">
 				<summary>快捷键</summary>
-				<div class="content">
-					<p>↑ ↓ → ← ：控制方向，不能转向当前反方向。</p>
-					<p>空格：暂停/开始</p>
-				</div>
+					<p class="one shortcut"><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd><kbd>←</kbd>：控制方向，不能转向当前反方向</p>
+					<p class="one shortcut"><kbd>空格</kbd>：暂停/开始</p>
 			</details>
 		</aside>
 	</article>

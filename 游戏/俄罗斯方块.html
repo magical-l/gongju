@@ -239,14 +239,12 @@
 					</el-descriptions>
 				</div>
 			</details>
-			<details :open="panels.shortcuts" @toggle="onPanelToggle('shortcuts', $event)">
+			<details :open="panels.shortcuts" @toggle="onPanelToggle('shortcuts', $event)" class="shortcut list">
 				<summary>快捷键</summary>
-				<div class="content">
-					<p>← ↓ → ：方向</p>
-					<p>↑ ：变形</p>
-					<p>回车：砖块直接落到底</p>
-					<p>空格：暂停/开始</p>
-				</div>
+					<p class="one shortcut"><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd>：方向</p>
+					<p class="one shortcut"><kbd>↑</kbd>：变形</p>
+					<p class="one shortcut"><kbd>回车</kbd>：砖块直接落到底</p>
+					<p class="one shortcut"><kbd>空格</kbd>：暂停/开始</p>
 			</details>
 		</aside>
 	</article>

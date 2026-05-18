@@ -13,6 +13,63 @@
 			outline: none;
 		}
 
+		/* 计分板 */
+		& .scoreboard {
+			& .header {
+				padding: 8px 12px;
+			}
+
+			& .score {
+				font-size: clamp(1.75rem, 5vw, 2.5rem);
+				font-weight: 700;
+				text-align: center;
+				line-height: 1.2;
+				color: inherit;
+			}
+		}
+
+		/* 记录区 */
+		& .record.area {
+			/* 操作区 */
+			& .op.area {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 8px;
+				align-items: center;
+				margin-bottom: 4px;
+			}
+			/* 提示 */
+			& .tip {
+				font-size: 0.8rem;
+				color: #606266;
+			}
+			/* 回合列表 */
+			& .round.list {
+				margin-top: 6px;
+				max-width: 100%;
+				max-height: 400px;
+				overflow-y: auto;
+				border: 1px solid #e4e7ed;
+				border-radius: 4px;
+				display: flex;
+				flex-direction: column;
+				/* 回合列表的摘要信息 */
+				& .summary {
+					font-size: 0.8rem;
+					color: #606266;
+					margin: 4px 0 0;
+				}
+				/* 单个回合 */
+				& .one.round {
+					padding: 6px 8px;
+					border-bottom: 1px solid #ebeef5;
+					font-size: 0.85rem;
+					&:last-child { border-bottom: none; }
+					&:nth-child(odd) { background: #f5f7fa; }
+				}
+			}
+		}
+
 		/* 结算界面 */
 		& .result {
 			min-width: 420px;
@@ -34,6 +91,92 @@
 				font-size: 40px;
 				margin-top: 10px;
 				text-align: center;
+			}
+		}
+	}
+
+	/* 侧边栏：游戏页面的左侧信息栏 */
+	& .sidebar {
+		& details {
+			border: 1px solid #ebeef5;
+			border-radius: 4px;
+			margin-bottom: 8px;
+			background: #fff;
+
+			&:last-of-type { margin-bottom: 0; }
+
+			& summary {
+				font-weight: 600;
+				font-size: 1rem;
+				cursor: pointer;
+				padding: 12px 16px;
+				list-style: none;
+				position: relative;
+
+				&::-webkit-details-marker { display: none; }
+				&:focus { outline: none; }
+
+				/* 展开/收起箭头 */
+				&::after {
+					content: '';
+					position: absolute;
+					right: 16px;
+					top: 50%;
+					width: 8px;
+					height: 8px;
+					border-right: 2px solid #909399;
+					border-bottom: 2px solid #909399;
+					transform: translateY(-70%) rotate(-45deg);
+					transition: transform 0.2s;
+				}
+			}
+
+			&[open] summary::after {
+				transform: translateY(-30%) rotate(45deg);
+			}
+
+			&[open] summary {
+				border-bottom: 1px solid #ebeef5;
+			}
+
+			& .content {
+				padding: 12px 16px;
+
+				& section { margin-bottom: 8px; &:last-child { margin-bottom: 0; } }
+				& h3 { margin: 0 0 4px; font-size: 0.9rem; color: #606266; }
+				& p { margin: 0; }
+			}
+		}
+
+		/* 快捷键列表 */
+		& .shortcut.list {
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+			padding: 12px 16px;
+
+			& .one.shortcut {
+				display: flex;
+				align-items: baseline;
+				gap: 4px;
+				font-size: 0.85rem;
+
+				& kbd {
+					display: inline-flex;
+					align-items: center;
+					justify-content: center;
+					min-width: 24px;
+					height: 24px;
+					padding: 2px 6px;
+					font-family: inherit;
+					font-size: 0.75rem;
+					font-weight: 600;
+					background: #f5f7fa;
+					border: 1px solid #dcdfe6;
+					border-radius: 4px;
+					box-shadow: 0 1px 0 #dcdfe6;
+					color: #606266;
+				}
 			}
 		}
 	}
@@ -128,124 +271,12 @@
 		align-items: center;
 	}
 
-	/* 记分牌：不限于在玩区内，比如在局外展示最高记录之类。 */
-	& .scoreboard {
-		& .header {
-			padding: 8px 12px;
-		}
-
-		& .score {
-			font-size: clamp(1.75rem, 5vw, 2.5rem);
-			font-weight: 700;
-			text-align: center;
-			line-height: 1.2;
-			color: inherit;
-		}
-	}
-
-	/* 记录区：不限于在玩区内，比如在局外展示棋谱之类。 */
-	& .record.area {
-		/* 操作区 */
-		& .op.area {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 8px;
-			align-items: center;
-			margin-bottom: 4px;
-		}
-		/* 提示 */
-		& .tip {
-			font-size: 0.8rem;
-			color: #606266;
-		}
-		/* 回合列表：适用于回合制游戏。 */
-		& .round.list {
-			margin-top: 6px;
-			max-width: 100%;
-			max-height: 400px;
-			overflow-y: auto;
-			border: 1px solid #e4e7ed;
-			border-radius: 4px;
-			display: flex;
-			flex-direction: column;
-			/* 回合列表的摘要信息 */
-			& .summary {
-				font-size: 0.8rem;
-				color: #606266;
-				margin: 4px 0 0;
-			}
-			/* 单个回合 */
-			& .one.round {
-				padding: 6px 8px;
-				border-bottom: 1px solid #ebeef5;
-				font-size: 0.85rem;
-				&:last-child { border-bottom: none; }
-				&:nth-child(odd) { background: #f5f7fa; }
-			}
-		}
-	}
-
-	/* ============ 工具们 ============ */
-	/* 通用侧边栏 */
-	& .sidebar {
-		& details {
-			border: 1px solid #ebeef5;
-			border-radius: 4px;
-			margin-bottom: 8px;
-			background: #fff;
-
-			&:last-of-type { margin-bottom: 0; }
-
-			& summary {
-				font-weight: 600;
-				font-size: 1rem;
-				cursor: pointer;
-				padding: 12px 16px;
-				list-style: none;
-				position: relative;
-
-				&::-webkit-details-marker { display: none; }
-				&:focus { outline: none; }
-
-				/* 展开/收起箭头 */
-				&::after {
-					content: '';
-					position: absolute;
-					right: 16px;
-					top: 50%;
-					width: 8px;
-					height: 8px;
-					border-right: 2px solid #909399;
-					border-bottom: 2px solid #909399;
-					transform: translateY(-70%) rotate(-45deg);
-					transition: transform 0.2s;
-				}
-			}
-
-			&[open] summary::after {
-				transform: translateY(-30%) rotate(45deg);
-			}
-
-			&[open] summary {
-				border-bottom: 1px solid #ebeef5;
-			}
-
-			& .content {
-				padding: 12px 16px;
-
-				& section { margin-bottom: 8px; &:last-child { margin-bottom: 0; } }
-				& h3 { margin: 0 0 4px; font-size: 0.9rem; color: #606266; }
-				& p { margin: 0; }
-			}
-		}
-	}
-
 	/* 后代有遮罩元素时，为遮罩层提供定位基准 */
 	& :has(.overlay) {
 		position: relative;
 	}
 
-	/* 通用遮罩 */
+	/* 遮罩本身 */
 	& .overlay {
 		position: absolute;
 		inset: 0;

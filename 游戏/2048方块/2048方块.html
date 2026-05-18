@@ -93,7 +93,7 @@
 				<div class="one controller group">
 					<el-form-item class="one controller : pause">
 						<el-button :type="paused ? 'success' : 'warning'" :icon="paused ? 'VideoPlay' : 'VideoPause'"
-											 @click="onTogglePause">{{ paused ? '开始' : '暂停' }}
+						@click="onTogglePause">{{ paused ? '开始' : '暂停' }}
 						</el-button>
 					</el-form-item>
 				</div>
@@ -103,8 +103,7 @@
 
 		<!-- 主地图区 -->
 		<section class="board , main map , no-shrink" ref="board" tabindex="0" :style="boardStyle">
-			<div class="cell" :class="cellLineClearClass(cell.index)" :data-index="cell.index"
-					 v-for="(cell, index) in boardCells" :key="index">
+			<div class="cell" :class="cellLineClearClass(cell.index)" :data-index="cell.index" v-for="(cell, index) in boardCells" :key="index">
 				<div v-if="cell.unit" class="unit" :class="'unit-' + cell.unit.val" :data-index="cell.index">
 					{{ cell.unit.text }}
 				</div>
@@ -118,43 +117,38 @@
 
 		<!-- 信息区 -->
 		<aside class="info area , sidebar at-left">
-			<el-card shadow="never">
-				
-					<details :open="panels.nextBlock" @toggle="onPanelToggle('nextBlock', $event)">
-						<summary>下一块</summary>
-						<div class="board map next-block" :style="nextBlockBoardStyle">
-							<div class="cell" v-for="(c, idx) in nextPreviewCells" :key="idx">
-								<div v-if="c" class="unit" :class="'unit-' + c">{{ c }}</div>
-							</div>
-						</div>
-					</details>
-					<details :open="panels.info" @toggle="onPanelToggle('info', $event)" class="gaming info">
-						<summary>本局信息</summary>
-						<div class="content">
-						<div class="flex go-y">
-							<el-card header="当前得分" class="scoreboard" body-class="score" shadow="never">
-								{{ score }}
-							</el-card>
-							<el-descriptions class="info list" :column="1" border :label-width="140">
-								<el-descriptions-item label="行">{{ gameBoardHeight }}</el-descriptions-item>
-								<el-descriptions-item label="列">{{ gameBoardWidth }}</el-descriptions-item>
-								<el-descriptions-item label="初始等级">{{ initialLevel }}</el-descriptions-item>
-								<el-descriptions-item label="当前等级">{{ displayCurrentLevel }}</el-descriptions-item>
-								<el-descriptions-item
-										:label="gameBoardWidth && gameBoardHeight ? '最高记录 (' + gameBoardWidth + '×' + gameBoardHeight + ')' : '最高记录'">
-									{{ highScore }}
-								</el-descriptions-item>
-						</div>
-					</details>
-					<details :open="panels.shortcuts" @toggle="onPanelToggle('shortcuts', $event)" class="shortcuts">
-						<summary>快捷键</summary>
-						<div class="content">
-						<p>↑ 旋转，↓ 下落一格，← → 左右移动，长滑向下一步到底</p>
-						<p>空格：暂停 / 开始</p>
-						<p>支持键盘与触屏滑动</p>
-						</div>
-					</details>
-			</el-card>
+			<details :open="panels.nextBlock" @toggle="onPanelToggle('nextBlock', $event)">
+				<summary>下一块</summary>
+				<div class="board map next-block" :style="nextBlockBoardStyle">
+					<div class="cell" v-for="(c, idx) in nextPreviewCells" :key="idx">
+						<div v-if="c" class="unit" :class="'unit-' + c">{{ c }}</div>
+					</div>
+				</div>
+			</details>
+			<details :open="panels.info" @toggle="onPanelToggle('info', $event)" class="gaming info">
+				<summary>本局信息</summary>
+				<div class="content">
+				<div class="flex go-y">
+					<el-card header="当前得分" class="scoreboard" body-class="score" shadow="never">
+						{{ score }}
+					</el-card>
+					<el-descriptions class="info list" :column="1" border :label-width="140">
+						<el-descriptions-item label="行">{{ gameBoardHeight }}</el-descriptions-item>
+						<el-descriptions-item label="列">{{ gameBoardWidth }}</el-descriptions-item>
+						<el-descriptions-item label="初始等级">{{ initialLevel }}</el-descriptions-item>
+						<el-descriptions-item label="当前等级">{{ displayCurrentLevel }}</el-descriptions-item>
+						<el-descriptions-item
+								:label="gameBoardWidth && gameBoardHeight ? '最高记录 (' + gameBoardWidth + '×' + gameBoardHeight + ')' : '最高记录'">
+							{{ highScore }}
+						</el-descriptions-item>
+				</div>
+			</details>
+			<details :open="panels.shortcuts" @toggle="onPanelToggle('shortcuts', $event)" class="shortcut list">
+				<summary>快捷键</summary>
+				<p class="one shortcut"><kbd>↑</kbd>旋转，<kbd>↓</kbd>下落一格，<kbd>←</kbd><kbd>→</kbd>左右移动，长滑向一步到底</p>
+				<p class="one shortcut"><kbd>空格</kbd>：暂停 / 开始</p>
+				<p class="one shortcut">支持键盘与触屏滑动</p>
+			</details>
 		</aside>
 
 		<!-- 结算弹窗 -->
