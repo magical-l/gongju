@@ -1,5 +1,6 @@
 @charset "UTF-8";
 
+/* unicode里的象棋棋子需要用特殊字体才能显示 */
 @font-face {
 	font-family: 'NotoSansSymbols2';
 	src: url('../../lib/fonts/NotoSansSymbols2-Regular.ttf') format('truetype');
@@ -11,9 +12,9 @@
 	--unit-size: 45px;
 	--cell-size: 60px;
 	--line-stroke-width: 1px;
+	font-family: "NotoSansSymbols2", sans-serif;
 
 	& .piece {
-		font-family: 'NotoSansSymbols2', sans-serif;
 		font-size: calc(var(--unit-size) * 0.78);
 		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 		flex: none;
@@ -23,13 +24,11 @@
 			border: 0.5px solid var(--red-color);
 			color: var(--red-color);
 		}
-
 		&.black {
 			background-color: #f0f0f0;
 			border: 0.5px solid #888;
 			color: var(--black-color);
 		}
-
 	}
 
 	& .board.map {
@@ -246,6 +245,7 @@
 			}
 		}
 
+
 		/* 功勋区 */
 		& .merit {
 			width: 100%;
@@ -317,8 +317,13 @@
 			}
 		}
 	}/* .gaming.area */
+
+	/* ------ 兜底 ------ */
+	/* input 元素默认有自己的 font-family，需显式继承 */
+	& input { font-family: inherit; }
 }
 
+/* ====== 动画关键帧：不能嵌套定义 ====== */
 @keyframes check-animation {
 	0% { transform: scale(1); opacity: 1; }
 	50% { transform: scale(1.5); opacity: 0.7; }

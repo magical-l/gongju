@@ -139,12 +139,14 @@
 					<div v-else-if="!isGaming && boardEditor.selectedPieceType">
 						<el-form label-width="60px">
 							<el-form-item label="显示">
-								<el-input v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].显示" autofocus :input-style="{ fontFamily: 'NotoSansSymbols2, sans-serif', fontSize: '28px', textAlign: 'center' }" style="width: 60px">
-								</el-input></el-form-item>
+								<el-input v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].显示" autofocus style="width: 60px">
+								</el-input>
+							</el-form-item>
 							<el-form-item label="技能">
 								<el-checkbox-group v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].技能">
 									<el-checkbox v-for="skill in allAvailableSkills" :key="skill" :label="skill">
-									</el-checkbox></el-checkbox-group>
+									</el-checkbox>
+								</el-checkbox-group>
 							</el-form-item>
 						</el-form>
 					</div>
