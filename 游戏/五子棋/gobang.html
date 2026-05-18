@@ -1,301 +1,319 @@
 <!DOCTYPE html>
 <html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title itemprop="name">五子棋 | 工具兽 - 在线玩经典的棋类游戏</title>
-
-<meta name="description"
-			content="在线玩经典的五子棋游戏。工具兽提供免费、无需下载的五子棋体验，支持双人对弈。立即开始你的五子棋之旅！">
-<meta name="keywords" content="五子棋, 在线五子棋, 免费五子棋, 玩五子棋, 五子棋游戏, 棋类游戏, 工具兽">
-
-<meta property="og:title" content="五子棋 | 工具兽 - 在线玩经典的棋类游戏">
-<meta property="og:description"
-			content="在线玩经典的五子棋游戏。工具兽提供免费、无需下载的五子棋体验，支持双人对弈。立即开始你的五子棋之旅！">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://gongju.ren/游戏/五子棋/gobang.html">
-<meta property="og:image" content="https://gongju.ren/resources/gobang-share.jpg">
-
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="五子棋 | 工具兽 - 在线玩经典的棋类游戏">
-<meta name="twitter:description"
-			content="在线玩经典的五子棋游戏。工具兽提供免费、无需下载的五子棋体验，支持双人对弈。立即开始你的五子棋之旅！">
-<meta name="twitter:image" content="https://gongju.ren/resources/gobang-share.jpg">
-
-<link href="../../lib/element-plus/2.10.7/index.css" rel="stylesheet">
-<link href="../../resources/el-plus.css" rel="stylesheet">
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title itemprop="name">五子棋 | 工具兽 - 在线玩经典的棋类游戏</title>
+	<meta name="description" content="在线玩经典的五子棋游戏。工具兽提供免费、无需下载的五子棋体验，支持双人对弈。立即开始你的五子棋之旅！">
+	<meta name="keywords" content="五子棋, 在线五子棋, 免费五子棋, 玩五子棋, 五子棋游戏, 棋类游戏, 工具兽">
+	<meta property="og:title" content="五子棋 | 工具兽 - 在线玩经典的棋类游戏">
+	<meta property="og:description" content="在线玩经典的五子棋游戏。工具兽提供免费、无需下载的五子棋体验，支持双人对弈。立即开始你的五子棋之旅！">
+	<meta property="og:type" content="website">
+	<meta property="og:url" content="https://gongju.ren/游戏/五子棋/gobang.html">
+	<meta property="og:image" content="https://gongju.ren/resources/gobang-share.jpg">
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:title" content="五子棋 | 工具兽 - 在线玩经典的棋类游戏">
+	<meta name="twitter:description" content="在线玩经典的五子棋游戏。工具兽提供免费、无需下载的五子棋体验，支持双人对弈。立即开始你的五子棋之旅！">
+	<meta name="twitter:image" content="https://gongju.ren/resources/gobang-share.jpg">
+	<link href="../../lib/element-plus/2.10.7/index.css" rel="stylesheet">
+	<link href="../../resources/el-plus.css" rel="stylesheet">
 	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/common.css" rel="stylesheet"> -->
 	<link href="../../lib/css/common.css" rel="stylesheet">
 	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/layout.css" rel="stylesheet"> -->
 	<link href="../../lib/css/layout.css" rel="stylesheet">
-<link href="../../resources/biz.css?v=250821" rel="stylesheet">
+	<link href="../../resources/biz.css?v=250821" rel="stylesheet">
 	<link href="../game.css" rel="stylesheet">
 	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/花活.css" rel="stylesheet"> -->
 	<link href="../../lib/css/花活.css" rel="stylesheet">
-<link href="gobang.css" rel="stylesheet">
+	<link href="gobang.css" rel="stylesheet">
 </head>
 <body class="grid 反叵字形">
-<header>
-	<h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
-	<nav>
-		<div class="nav-row">
-			<a href="../../文本转化.html">文本转化</a>
-			<a href="../../数字转化.html">数字转化</a>
-			<a href="../../符号/符号.html">符号</a>
-			<a href="../../格子盘.html">格子盘</a>
-			<a href="../../svg转图标.html">SVG转图标</a>
-			<a href="../../化学/元素周期表.html">元素周期表</a>
-			<a href="../../拼音/拼音.html">拼音</a>
-		</div>
-		<div class="nav-row">
-			<a href="../中国象棋/中国象棋.html">中国象棋</a>
-			<a href="gobang.html" class="active">五子棋</a>
-			<a href="../俄罗斯方块.html">俄罗斯方块</a>
-			<a href="../贪吃蛇.html">贪吃蛇</a>
-			<a href="../2048/2048.html">2048</a>
-			<a href="../2048蛇/2048蛇.html">2048蛇</a>
-			<a href="../2048方块/2048方块.html">2048方块</a>
-			<a href="../点灯.html">点灯</a>
-			<a href="../数字华容道.html">数字华容道</a>
-			<a href="../星连星/星连星.html">星连星</a>
-		</div>
-	</nav>
-</header>
-<main class="game">
 	<header>
-		<h2 class="game name">五子棋</h2>
-		<div class="page-lv help area" v-cloak>
-			<el-button title="游戏介绍" class="page-lv help btn" size="small" circle @click="introVisible = true">?
-			</el-button>
-			<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
-				<article class="description">
-					<h3>游戏目标</h3>
-					<p>五子棋是一种两人对弈的纯策略棋类游戏，目标是先在棋盘上形成连续的五子（横、竖、斜皆可）。</p>
-					<h3>操作方式</h3>
-					<p>玩家轮流在棋盘的交叉点上放置自己的棋子。黑子先行，然后白子。当一方的棋子在横向、纵向或斜向形成连续的五子时，该方获胜。</p>
-					<h3>胜负判定</h3>
-					<p>先形成五子连线者获胜。如果棋盘被填满而没有一方形成五子连线，则为平局。</p>
-				</article>
-			</el-dialog>
-		</div>
+		<h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
+		<nav>
+			<div class="nav-row">
+				<a href="../../文本转化.html">文本转化</a>
+				<a href="../../数字转化.html">数字转化</a>
+				<a href="../../符号/符号.html">符号</a>
+				<a href="../../格子盘.html">格子盘</a>
+				<a href="../../svg转图标.html">SVG转图标</a>
+				<a href="../../化学/元素周期表.html">元素周期表</a>
+				<a href="../../拼音/拼音.html">拼音</a>
+			</div>
+			<div class="nav-row">
+				<a href="../中国象棋/中国象棋.html">中国象棋</a>
+				<a href="gobang.html" class="active">五子棋</a>
+				<a href="../俄罗斯方块.html">俄罗斯方块</a>
+				<a href="../贪吃蛇.html">贪吃蛇</a>
+				<a href="../2048/2048.html">2048</a>
+				<a href="../2048蛇/2048蛇.html">2048蛇</a>
+				<a href="../2048方块/2048方块.html">2048方块</a>
+				<a href="../点灯.html">点灯</a>
+				<a href="../数字华容道.html">数字华容道</a>
+				<a href="../星连星/星连星.html">星连星</a>
+			</div>
+		</nav>
 	</header>
-	<article class="gaming area , 叵字形 grid" v-cloak>
-		<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
-			<section class="controller list , flex single-line no-gap items-near-x-start items-near-y-center">
-				<div class="one controller group">
-					<el-button v-if="!isGaming" type="primary" icon="VideoPlay" class="one controller : start" @click="startGame">开始</el-button>
-					<el-button v-else type="danger" icon="RefreshRight" class="one controller : new-game" @click="restartGame">新局</el-button>
-				</div>
-			</section>
+	<main class="game">
+		<header>
+			<h2 class="game name">五子棋</h2>
+			<div class="page-lv help area" v-cloak>
+				<el-button title="游戏介绍" class="page-lv help btn" size="small" circle @click="introVisible = true">? </el-button>
+				<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
+					<article class="description">
+						<h3>游戏目标</h3>
+						<p>五子棋是一种两人对弈的纯策略棋类游戏，目标是先在棋盘上形成连续的五子（横、竖、斜皆可）。</p>
+						<h3>操作方式</h3>
+						<p>玩家轮流在棋盘的交叉点上放置自己的棋子。黑子先行，然后白子。当一方的棋子在横向、纵向或斜向形成连续的五子时，该方获胜。</p>
+						<h3>胜负判定</h3>
+						<p>先形成五子连线者获胜。如果棋盘被填满而没有一方形成五子连线，则为平局。</p>
+					</article>
+				</el-dialog>
+			</div>
 		</header>
-
-		<article class="main map area , one-row flex items-near-x-center">
-			<section class="board map" v-if="cells.length">
-				<div v-for="cell in cells" :key="cell.position"
-							class="cell" :class="cell.classes"
-							@click="handleCellClick(cell)">
-					<div v-if="cell.unit" class="piece unit" :class="cell.unit.classes">
-						<span class="order">{{ cell.unit.moveNumber }}</span>
+		<article class="gaming area , 叵字形 grid" v-cloak>
+			<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
+				<section class="controller list , flex single-line no-gap items-near-x-start items-near-y-center">
+					<div class="one controller group">
+						<el-button v-if="!isGaming" type="primary" icon="VideoPlay" class="one controller : start" @click="startGame">开始</el-button>
+						<el-button v-else type="danger" icon="RefreshRight" class="one controller : new-game" @click="restartGame">新局</el-button>
 					</div>
+				</section>
+			</header>
+			<article class="main map area , one-row flex items-near-x-center">
+				<section class="board map" v-if="cells.length">
+					<div v-for="cell in cells" :key="cell.position" class="cell" :class="cell.classes" @click="handleCellClick(cell)">
+						<div v-if="cell.unit" class="piece unit" :class="cell.unit.classes">
+							<span class="order">{{ cell.unit.moveNumber }}</span>
+						</div>
+					</div>
+				</section>
+			</article>
+			<aside class="sidebar at-left">
+				<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
+					<summary>本局信息</summary>
+					<span v-if="isGaming" class="game-info">当前玩家: {{ curPlayer.name }}</span>
+				</details>
+				<details class="record area" data-panel="record" :open="panels.record" @toggle="onPanelToggle">
+					<summary>落子记录</summary>
+					<div class="op area">
+						<el-button :disabled="!turnHistory.length" icon="Download" size="small" @click="exportMoves">导出 </el-button>
+					</div>
+					<div class="round list">
+						<el-empty v-if="!turnHistory.length" description="尚未落子"></el-empty>
+						<div v-else class="one round" v-for="turn in turnHistory" :key="turn.id">
+							<span class="id">{{ turn.id }}</span>
+							<span class="first black">黑 {{ turn.blackMove }}</span>
+							<span class="second white">白 {{ turn.whiteMove || '—' }}</span>
+						</div>
+					</div>
+				</details>
+			</aside>
+			<el-dialog title="游戏结束" v-model="isGameOver" width="300px" align-center>
+				<div style="text-align: center; font-size: 24px;">
+					<span>{{ winner }} 获胜!</span>
 				</div>
+				<template #footer>
+					<el-button type="primary" @click="restartGame">再来一局</el-button>
+				</template>
+			</el-dialog>
+		</article>
+	</main>
+	<aside class="sidebar at-right">
+		<article class="website info">
+			<section class="patronage area">
+				<img title="赞助一下" class="qr-code" alt="支付宝收款码" src="../../resources/支付宝收款码.jpg">
+				<p class="slogan">赞助一下</p>
+			</section>
+			<section class="copyright">
+				<p>&copy; 2025 工具兽版权所有 All rights reserved.</p>
+			</section>
+			<section class="feedback">
+				<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
 			</section>
 		</article>
-
-		<aside class="sidebar at-left">
-			<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
-				<summary>本局信息</summary>
-				<span v-if="isGaming" class="game-info">当前玩家: {{ curPlayer.name }}</span>
-			</details>
-			<details class="record area" data-panel="record" :open="panels.record" @toggle="onPanelToggle">
-				<summary>落子记录</summary>
-				<div class="op area">
-					<el-button :disabled="!turnHistory.length" icon="Download" size="small" @click="exportMoves">导出
-					</el-button>
-				</div>
-				<div class="round list">
-					<el-empty v-if="!turnHistory.length" description="尚未落子"></el-empty>
-					<div v-else class="one round" v-for="turn in turnHistory" :key="turn.id">
-						<span class="id">{{ turn.id }}</span>
-						<span class="first black">黑 {{ turn.blackMove }}</span>
-						<span class="second white">白 {{ turn.whiteMove || '—' }}</span>
-					</div>
-				</div>
-			</details>
-		</aside>
-
-		<el-dialog title="游戏结束" v-model="isGameOver" width="300px" align-center>
-			<div style="text-align: center; font-size: 24px;">
-				<span>{{ winner }} 获胜!</span>
-			</div>
-			<template #footer>
-				<el-button type="primary" @click="restartGame">再来一局</el-button>
-			</template>
-		</el-dialog>
-	</article>
-</main>
-
-<aside class="sidebar at-right">
-	<article class="website info">
-		<section class="patronage area">
-			<img title="赞助一下" class="qr-code" alt="支付宝收款码" src="../../resources/支付宝收款码.jpg">
-			<p class="slogan">赞助一下</p>
-		</section>
-		<section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
-		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p></section>
-	</article>
-</aside>
-
-<div class="js container">
-	<script src="../../resources/math.js"></script>
-	<script src="../../lib/jquery-3.4.1.min.js"></script>
-	<script src="../../lib/toastr.min.js"></script>
-	<script src="../../lib/vue/3.5.18/vue.global.js"></script>
-	<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
-	<script src="../../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
-</div>
-<script type="module">
-	import {Gobang} from './gobang.esm.js';
-
-	const {createApp} = Vue;
-
-	const app = createApp({
-		data() {
-			const panelKey = 'gobang-panels';
-			const defaultPanels = {info: true, record: true};
-			let saved;
-			try { saved = JSON.parse(localStorage.getItem(panelKey) || 'null'); } catch (_) { saved = null; }
-			return {
-				gaming: null,
-				lastMove: null,
-				curPlayer: null,
-				isGameOver: false,
-				winner: '',
-				turnHistory: [],
-				panels: saved || defaultPanels,
-				_panelKey: panelKey,
-				_defaultPanels: {...defaultPanels},
-			};
-		},
-		computed: {
-			isGaming() { return !!this.gaming; },
-			cells() {
-				if (!this.gaming?.battlefield?.positions) return [];
-				const positions = this.gaming.battlefield.positions;
-				const canPlay = this.isGaming && !this.isGameOver;
-				return positions.flat().map(pos => {
-					const units = this.gaming.battlefield.getUnitsAt(pos);
-					const unit = units[0];
-					const isLast = this.lastMove && this.lastMove.position.isEqualTo(pos);
-					const isTargetable = canPlay && !unit;
-					const color = this.curPlayer?.team.id === '黑方' ? 'black' : 'white';
-					return {
-						position: pos,
-						unit: unit ? { ...unit, moveNumber: unit.moveNumber, classes: [unit.owner.team.id === '黑方' ? 'black' : 'white', { last: isLast }] } : null,
-						classes: isTargetable ? [color, 'targetable'] : [],
-					};
-				});
-			},
-		},
-		methods: {
-			onPanelToggle(e) {
-				// 从data-panel获取面板名，toggle事件在details.open改变后触发，只需保存状态
-				const name = e.target.dataset.panel;
+	</aside>
+	<div class="js container">
+		<script src="../../resources/math.js"></script>
+		<script src="../../lib/jquery-3.4.1.min.js"></script>
+		<script src="../../lib/toastr.min.js"></script>
+		<script src="../../lib/vue/3.5.18/vue.global.js"></script>
+		<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
+		<script src="../../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
+	</div>
+	<script type="module">
+		import {
+			Gobang
+		} from './gobang.esm.js';
+		const {
+			createApp
+		} = Vue;
+		const app = createApp({
+			data() {
+				const panelKey = 'gobang-panels';
+				const defaultPanels = {
+					info: true,
+					record: true
+				};
+				let saved;
 				try {
-					if (JSON.stringify(this.panels) === JSON.stringify(this._defaultPanels)) {
-						localStorage.removeItem(this._panelKey);
-					} else {
-						localStorage.setItem(this._panelKey, JSON.stringify(this.panels));
-					}
-				} catch (_) {}
+					saved = JSON.parse(localStorage.getItem(panelKey) || 'null');
+				} catch (_) {
+					saved = null;
+				}
+				return {
+					gaming: null,
+					lastMove: null,
+					curPlayer: null,
+					isGameOver: false,
+					winner: '',
+					turnHistory: [],
+					panels: saved || defaultPanels,
+					_panelKey: panelKey,
+					_defaultPanels: {
+						...defaultPanels
+					},
+				};
 			},
-			startGame() {
-				const game = new Gobang();
-				this.gaming = game.newGaming();
-				this.isGameOver = false;
-				this.winner = '';
-				this.lastMove = null;
-				this.turnHistory = [];
-				this.curPlayer = this.gaming.situation.curPlayer;
-
-				this.gaming.bulletin.watch('playerTurn start', ({player}) => this.curPlayer = player);
-				this.gaming.bulletin.watch('buildUnit end', ({unit}) => {
-					this.lastMove = {unit, position: unit.position};
-					const posStr = `(${unit.position.colNum}, ${unit.position.rowNum})`;
-					const isBlack = unit.owner.team.id === '黑方';
-					if (isBlack) {
-						// 黑方落子，创建新回合
-						this.turnHistory.push({
-							id: this.turnHistory.length + 1,
-							blackMove: posStr,
-							whiteMove: null,
-						});
-					} else {
-						// 白方落子，补充当前回合
-						const lastTurn = this.turnHistory[this.turnHistory.length - 1];
-						if (lastTurn) {
-							lastTurn.whiteMove = posStr;
+			computed: {
+				isGaming() {
+					return !!this.gaming;
+				},
+				cells() {
+					if (!this.gaming?.battlefield?.positions) return [];
+					const positions = this.gaming.battlefield.positions;
+					const canPlay = this.isGaming && !this.isGameOver;
+					return positions.flat().map(pos => {
+						const units = this.gaming.battlefield.getUnitsAt(pos);
+						const unit = units[0];
+						const isLast = this.lastMove && this.lastMove.position.isEqualTo(pos);
+						const isTargetable = canPlay && !unit;
+						const color = this.curPlayer?.team.id === '黑方' ? 'black' : 'white';
+						return {
+							position: pos,
+							unit: unit ? {
+								...unit,
+								moveNumber: unit.moveNumber,
+								classes: [unit.owner.team.id === '黑方' ? 'black' : 'white', {
+									last: isLast
+								}]
+							} : null,
+							classes: isTargetable ? [color, 'targetable'] : [],
+						};
+					});
+				},
+			},
+			methods: {
+				onPanelToggle(e) {
+					// 从data-panel获取面板名，toggle事件在details.open改变后触发，只需保存状态
+					const name = e.target.dataset.panel;
+					try {
+						if (JSON.stringify(this.panels) === JSON.stringify(this._defaultPanels)) {
+							localStorage.removeItem(this._panelKey);
+						} else {
+							localStorage.setItem(this._panelKey, JSON.stringify(this.panels));
 						}
+					} catch (_) {}
+				},
+				startGame() {
+					const game = new Gobang();
+					this.gaming = game.newGaming();
+					this.isGameOver = false;
+					this.winner = '';
+					this.lastMove = null;
+					this.turnHistory = [];
+					this.curPlayer = this.gaming.situation.curPlayer;
+					this.gaming.bulletin.watch('playerTurn start', ({
+						player
+					}) => this.curPlayer = player);
+					this.gaming.bulletin.watch('buildUnit end', ({
+						unit
+					}) => {
+						this.lastMove = {
+							unit,
+							position: unit.position
+						};
+						const posStr = `(${unit.position.colNum}, ${unit.position.rowNum})`;
+						const isBlack = unit.owner.team.id === '黑方';
+						if (isBlack) {
+							// 黑方落子，创建新回合
+							this.turnHistory.push({
+								id: this.turnHistory.length + 1,
+								blackMove: posStr,
+								whiteMove: null,
+							});
+						} else {
+							// 白方落子，补充当前回合
+							const lastTurn = this.turnHistory[this.turnHistory.length - 1];
+							if (lastTurn) {
+								lastTurn.whiteMove = posStr;
+							}
+						}
+					});
+					this.gaming.bulletin.watch('game over', ({
+						winner
+					}) => {
+						this.isGameOver = true;
+						this.winner = winner.name;
+					});
+				},
+				restartGame() {
+					this.startGame();
+				},
+				exportMoves() {
+					if (this.turnHistory.length === 0) {
+						this.$message.info('没有落子记录可导出');
+						return;
 					}
-				});
-				this.gaming.bulletin.watch('game over', ({winner}) => {
-					this.isGameOver = true;
-					this.winner = winner.name;
-				});
+					const content = this.turnHistory.map(turn => {
+						const blackMove = turn.blackMove ? turn.blackMove.padEnd(8) : ' '.repeat(8);
+						const whiteMove = turn.whiteMove || '';
+						return `${turn.id.toString().padStart(2)}. ${blackMove}${whiteMove}`;
+					}).join('\n');
+					const blob = new Blob([content], {
+						type: 'text/plain;charset=utf-8'
+					});
+					const a = document.createElement('a');
+					a.href = URL.createObjectURL(blob);
+					a.download = '五子棋-落子记录.txt';
+					document.body.appendChild(a);
+					a.click();
+					document.body.removeChild(a);
+					URL.revokeObjectURL(a.href);
+				},
+				handleCellClick(cell) {
+					if (this.isGaming && !this.isGameOver) {
+						this.gaming.bulletin.notice('ui input', cell.position);
+					}
+				},
 			},
-			restartGame() { this.startGame(); },
-			exportMoves() {
-				if (this.turnHistory.length === 0) {
-					this.$message.info('没有落子记录可导出');
-					return;
-				}
-				const content = this.turnHistory.map(turn => {
-					const blackMove = turn.blackMove ? turn.blackMove.padEnd(8) : ' '.repeat(8);
-					const whiteMove = turn.whiteMove || '';
-					return `${turn.id.toString().padStart(2)}. ${blackMove}${whiteMove}`;
-				}).join('\n');
-				const blob = new Blob([content], {type: 'text/plain;charset=utf-8'});
-				const a = document.createElement('a');
-				a.href = URL.createObjectURL(blob);
-				a.download = '五子棋-落子记录.txt';
-				document.body.appendChild(a);
-				a.click();
-				document.body.removeChild(a);
-				URL.revokeObjectURL(a.href);
+			mounted() {
+				this.startGame();
 			},
-			handleCellClick(cell) {
-				if (this.isGaming && !this.isGameOver) {
-					this.gaming.bulletin.notice('ui input', cell.position);
-				}
+		});
+		app.use(ElementPlus);
+		for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+			app.component(key, component);
+		}
+		window.app = app.mount('main>article');
+		const help = createApp({
+			data() {
+				return {
+					introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname),
+				};
 			},
-		},
-		mounted() { this.startGame(); },
-	});
+			watch: {
+				introVisible(newValue) {
+					const storageKey = 'intro-hidden-' + window.location.pathname;
+					if (!newValue) {
+						localStorage.setItem(storageKey, 'true');
+					} else {
+						localStorage.removeItem(storageKey);
+					}
+				},
+			},
+		}).use(ElementPlus).mount('.help.area');
 
-	app.use(ElementPlus);
-	for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-		app.component(key, component);
-	}
-	window.app = app.mount('main>article');
-
-	const help = createApp({
-		data() {
-			return {
-				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname),
-			};
-		},
-		watch: {
-			introVisible(newValue) {
-				const storageKey = 'intro-hidden-' + window.location.pathname;
-				if (!newValue) {
-					localStorage.setItem(storageKey, 'true');
-				} else {
-					localStorage.removeItem(storageKey);
-				}
-			},
-		},
-	})
-	.use(ElementPlus)
-	.mount('.help.area');
-</script>
+	</script>
 </body>
 </html>
