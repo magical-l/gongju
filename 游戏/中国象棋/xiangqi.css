@@ -316,12 +316,6 @@
 				animation: check-animation 1s ease-out;
 			}
 		}
-
-		/* 结算界面：公共样式见game.css */
-		& .result {
-
-			& .winner { font-size: 40px; margin-top: 10px; } .winner { font-size: 40px; margin-top: 10px; text-align: center; }
-		}
 	}/* .gaming.area */
 }
 

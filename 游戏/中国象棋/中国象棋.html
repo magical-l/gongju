@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" itemscope="" itemtype="http://schema.org/WebPage">
+<html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,7 +47,7 @@
 		<header>
 			<h2 class="game name">中国象棋</h2>
 		</header>
-		<article class="gaming area , 反叵字形 grid" v-cloak="">
+		<article class="gaming area , 反叵字形 grid" v-cloak>
 			<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
 				<section class="setting list , flex single-line no-gap items-near-x-start items-near-y-center">
 					<div v-if="isGaming" class="one setting group">
@@ -55,15 +55,15 @@
 					</div>
 					<template v-if="!isGaming">
 						<div class="one setting group">
-							<el-button @click="resetBoard" type="info" inline="" plain="" class="one setting : default-board">默认棋盘 </el-button>
+							<el-button @click="resetBoard" type="info" inline plain class="one setting : default-board">默认棋盘 </el-button>
 						</div>
 						<div class="one setting group">
-							<el-button @click="clearBoard" type="danger" inline="" plain="" class="one setting : clear-board">清空棋盘 </el-button>
+							<el-button @click="clearBoard" type="danger" inline plain class="one setting : clear-board">清空棋盘 </el-button>
 						</div>
 						<div class="one setting group">
 							<el-radio-group v-model="gameSettings.firstPlayer" class="one setting : first-player">
-								<el-radio value="red" border="">红先</el-radio>
-								<el-radio value="black" border="">黑先</el-radio>
+								<el-radio value="red" border>红先</el-radio>
+								<el-radio value="black" border>黑先</el-radio>
 							</el-radio-group>
 						</div>
 						<div class="one setting group">
@@ -71,7 +71,7 @@
 						</div>
 					</template>
 				</section>
-				<section class="controller list , flex multi-line no-gap items-near-x-start items-near-y-center">
+				<section class="controller list , flex single-line no-gap items-near-x-start items-near-y-center">
 					<div v-if="isGaming" class="one controller group">
 						<el-button type="danger" icon="RefreshLeft" class="one controller : restart" @click="restartGame">重来 </el-button>
 					</div>
@@ -81,13 +81,12 @@
 						<el-button type="warning" @click="undoMove" :disabled="!isUndoAvailable" class="one tool : undo">悔棋 </el-button>
 					</div>
 					<div class="one tool group">
-						<el-button type="info" plain="" class="one tool : reverse view btn" @click="showReversedView = !showReversedView">交换视角</el-button>
+						<el-button type="info" plain class="one tool : reverse view btn" @click="showReversedView = !showReversedView">交换视角</el-button>
 					</div>
 				</section>
 			</header>
-
 			<section class="board , main map , grid no-gap" :class="{ 'reversed view': showReversedView, editor: !isGaming }">
-				<div class="cell" :class="cell.classes" v-for="cell in mainCells" :key="cell.position" @click="handleCellClick(cell)" @dragover.prevent="" @drop="handleCellDrop(cell)">
+				<div class="cell" :class="cell.classes" v-for="cell in mainCells" :key="cell.position" @click="handleCellClick(cell)" @dragover.prevent @drop="handleCellDrop(cell)">
 					<div class="piece unit" v-for="unit in cell.units" :key="unit.id" :class="unit.classes" :draggable="unit.canDrag" @dragstart="dragStartPiece(unit, 'board')" @dragend="clearDraggedPiece">
 						{{ unit.display }}
 						<div v-if="unit.canDrag" class="remove unit btn" @click.stop="removeEditorPiece(unit)">×</div>
@@ -95,7 +94,6 @@
 					<div class="texture"></div>
 				</div>
 			</section>
-
 			<aside class="sidebar at-right">
 				<details data-panel="reversedView" :open="panels.reversedView" @toggle="onPanelToggle">
 					<summary>对面视角</summary>
@@ -135,13 +133,13 @@
 									<span class="meta">第{{ kill.round }}回合</span>
 								</div>
 							</div>
-							<div v-else="" class="empty">暂无杀敌记录</div>
+							<div v-else class="empty">暂无杀敌记录</div>
 						</div>
 					</div>
 					<div v-else-if="!isGaming &amp;&amp; boardEditor.selectedPieceType">
 						<el-form label-width="60px">
 							<el-form-item label="显示">
-								<el-input v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].显示" autofocus="" :input-style="{ fontFamily: 'NotoSansSymbols2, sans-serif', fontSize: '28px', textAlign: 'center' }" style="width: 60px">
+								<el-input v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].显示" autofocus :input-style="{ fontFamily: 'NotoSansSymbols2, sans-serif', fontSize: '28px', textAlign: 'center' }" style="width: 60px">
 								</el-input></el-form-item>
 							<el-form-item label="技能">
 								<el-checkbox-group v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].技能">
@@ -150,9 +148,9 @@
 							</el-form-item>
 						</el-form>
 					</div>
-					<div v-else="">
+					<div v-else>
 						<span v-if="isGaming">未选中棋子</span>
-						<span v-else="">从上方棋子库中选择一个棋子进行编辑</span>
+						<span v-else>从上方棋子库中选择一个棋子进行编辑</span>
 					</div>
 				</details>
 				<details v-if="!isGaming" data-panel="globalRules" :open="panels.globalRules" @toggle="onPanelToggle">
@@ -173,7 +171,7 @@
 						<div>先手：{{ gameFirstLabel }}</div>
 						<div>当前：{{ curPlayerLabel || '—' }}</div>
 						<div>回合： <template v-if="currentRound === 0">尚未走棋</template>
-							<template v-else="">第 {{ currentRound }} 回合</template>
+							<template v-else>第 {{ currentRound }} 回合</template>
 						</div>
 					</div>
 				</details>
@@ -184,7 +182,7 @@
 					</div>
 					<div class="round list">
 						<el-empty v-if="!turnHistory.length" description="尚未走棋"></el-empty>
-						<div v-else="" class="one round" v-for="turn in turnHistory" :key="turn.id">
+						<div v-else class="one round" v-for="turn in turnHistory" :key="turn.id">
 							<span class="id">{{ turn.id }}</span>
 							<span class="red player action">红 {{ turn.redMove }}</span>
 							<span class="black player action">黑 {{ turn.blackMove || '—' }}</span>
@@ -197,9 +195,9 @@
 				<div class="check text">将</div>
 			</div>
 			<!-- 游戏结束结算界面 -->
-			<el-dialog v-model="isGameOverForRender" class="result" title="游戏结束" :show-close="true" align-center="">
-				<div class="winner">{{ winnerName }} 胜利</div>
-				<template #footer="">
+			<el-dialog v-model="isGameOverForRender" class="result" title="游戏结束" :show-close="true" align-center>
+				<div class="outcome win">{{ winnerName }} 胜利</div>
+				<template #footer>
 					<el-button type="primary" size="large" icon="RefreshLeft" @click="restartGame">重来</el-button>
 					<el-button type="info" size="large" @click="returnToSettings" icon="RefreshRight">新局</el-button>
 					<el-button type="info" size="large" @click="downloadNotation">记谱</el-button>
