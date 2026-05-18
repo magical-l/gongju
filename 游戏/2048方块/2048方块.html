@@ -117,7 +117,7 @@
 
 		<!-- 信息区 -->
 		<aside class="info area , sidebar at-left">
-			<details :open="panels.nextBlock" @toggle="onPanelToggle('nextBlock', $event)">
+			<details data-panel="nextBlock" :open="panels.nextBlock" @toggle="onPanelToggle">
 				<summary>下一块</summary>
 				<div class="board map next-block" :style="nextBlockBoardStyle">
 					<div class="cell" v-for="(c, idx) in nextPreviewCells" :key="idx">
@@ -125,7 +125,7 @@
 					</div>
 				</div>
 			</details>
-			<details :open="panels.info" @toggle="onPanelToggle('info', $event)" class="gaming info">
+			<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 				<summary>本局信息</summary>
 				<div class="content">
 				<div class="flex go-y">
@@ -143,7 +143,7 @@
 						</el-descriptions-item>
 				</div>
 			</details>
-			<details :open="panels.shortcuts" @toggle="onPanelToggle('shortcuts', $event)" class="shortcut list">
+			<details class="shortcut list" data-panel="shortcuts" :open="panels.shortcuts" @toggle="onPanelToggle">
 				<summary>快捷键</summary>
 				<p class="one shortcut"><kbd>↑</kbd>旋转，<kbd>↓</kbd>下落一格，<kbd>←</kbd><kbd>→</kbd>左右移动，长滑向一步到底</p>
 				<p class="one shortcut"><kbd>空格</kbd>：暂停 / 开始</p>
@@ -347,9 +347,10 @@
 						window.Game2048Blocks.handleAction(action);
 					}
 				},
-				onPanelToggle(name, e) {
+				onPanelToggle(e) {
 					// 同步浏览器已改变的open状态到panels
-					if (e && e.target) { state.panels[name] = e.target.open; }
+					const name = e && e.target && e.target.dataset.panel;
+					if (name) { state.panels[name] = e.target.open; }
 					// 保存状态
 					try {
 						if (JSON.stringify(state.panels) === JSON.stringify(state._defaultPanels)) {

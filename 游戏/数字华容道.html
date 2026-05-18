@@ -214,7 +214,7 @@
 		</section>
 
 		<aside class="sidebar at-left">
-			<details :open="panels.info" @toggle="onPanelToggle('info', $event)" class="gaming info">
+			<details data-panel="info" class="gaming info" :open="panels.info" @toggle="onPanelToggle">
 				<summary>本局信息</summary>
 				<div class="content">
 					<section class="init situation">
@@ -225,7 +225,7 @@
 					</section>
 				</div>
 			</details>
-			<details :open="panels.record" @toggle="onPanelToggle('record', $event)" class="record area">
+			<details data-panel="record" class="record area" :open="panels.record" @toggle="onPanelToggle">
 				<summary>回合</summary>
 				<div class="content">
 					<p v-if="solutionSteps.length" class="tip at-top">
@@ -254,12 +254,10 @@
 					</div>
 				</div>
 			</details>
-			<details :open="panels.shortcuts" @toggle="onPanelToggle('shortcuts', $event)" class="shortcut list">
+			<details data-panel="shortcuts" class="shortcut list" :open="panels.shortcuts" @toggle="onPanelToggle">
 				<summary>快捷键</summary>
-				
-					<p class="one shortcut"><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd>：移动与空位相邻的块</p>
-					<p class="one shortcut">点击与空位相邻的块也可移动</p>
-				
+				<p class="one shortcut"><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd>：移动与空位相邻的块</p>
+				<p class="one shortcut">点击与空位相邻的块也可移动</p>
 			</details>
 		</aside>
 
@@ -534,9 +532,9 @@
 			}
 		},
 		methods: {
-			onPanelToggle(name, e) {
-				// 同步浏览器已改变的open状态到panels
-				if (e && e.target) { this.panels[name] = e.target.open; }
+			onPanelToggle(e) {
+				const name = e.target.dataset.panel;
+				if (name) { this.panels[name] = e.target.open; }
 				// 保存状态
 				try {
 					if (JSON.stringify(this.panels) === JSON.stringify(this._defaultPanels)) {

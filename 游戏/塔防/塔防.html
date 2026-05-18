@@ -358,7 +358,7 @@
 		</article>
 
 		<aside class="sidebar at-left">
-			<details :open="panels.info" @toggle="onPanelToggle('info')" class="gaming info">
+			<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 				<summary>本局信息</summary>
 				<div class="content">
 					<div v-if="currentLevel">
@@ -577,7 +577,9 @@
 			},
 		},
 		methods: {
-			onPanelToggle(name) {
+			onPanelToggle(e) {
+					// 从e.target.dataset.panel获取面板名
+					const name = e.target.dataset.panel;
 				// toggle事件在details.open改变后触发，只需保存状态
 				try {
 					if (JSON.stringify(this.panels) === JSON.stringify(this._defaultPanels)) {

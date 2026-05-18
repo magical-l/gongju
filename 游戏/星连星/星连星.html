@@ -281,7 +281,7 @@
 		</div>
 
 		<aside class="sidebar at-left">
-			<details :open="panels.info" @toggle="onPanelToggle('info', $event)" class="gaming info">
+			<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 				<summary>本局信息</summary>
 				<div class="content">
 					<div class="game-info">
@@ -294,7 +294,7 @@
 					</div>
 				</div>
 			</details>
-			<details :open="panels.record" @toggle="onPanelToggle('record', $event)" class="record area">
+			<details class="record area" data-panel="record" :open="panels.record" @toggle="onPanelToggle">
 				<summary>连线记录</summary>
 				<div class="content">
 					<div class="op area">
@@ -414,9 +414,13 @@
 			},
 		},
 		methods: {
-			onPanelToggle(name, e) {
+			onPanelToggle(e) {
 				// 同步浏览器已改变的open状态到panels
-				if (e && e.target) { this.panels[name] = e.target.open; }
+				if (e && e.target) {
+						// 从e.target.dataset.panel获取面板名
+						const name = e.target.dataset.panel;
+						this.panels[name] = e.target.open;
+					}
 				// 保存状态
 				try {
 					if (JSON.stringify(this.panels) === JSON.stringify(this._defaultPanels)) {

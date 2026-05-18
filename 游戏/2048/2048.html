@@ -152,7 +152,7 @@
 
 		<!-- 信息区 -->
 		<aside class="info area , sidebar at-left">
-			<details :open="panels.info" @toggle="onPanelToggle('info')" class="gaming info">
+			<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 				<summary>本局信息</summary>
 				<div class="content">
 					<div class="flex go-y">
@@ -168,7 +168,7 @@
 					</div>
 				</div>
 			</details>
-			<details :open="panels.shortcuts" @toggle="onPanelToggle('shortcuts')" class="shortcut list">
+			<details class="shortcut list" data-panel="shortcuts" :open="panels.shortcuts" @toggle="onPanelToggle">
 				<summary>快捷键</summary>
 					<p class="one shortcut"><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd>：滑动方块</p>
 					<p class="one shortcut">支持键盘、触屏与鼠标滑动</p>
@@ -522,8 +522,10 @@
 				closeCustomTilesDialog() {
 					state.customTilesDialogVisible = false;
 				},
-				onPanelToggle(name) {
+				onPanelToggle(e) {
 						// toggle事件在details.open改变后触发，只需保存状态
+						const name = e.target.dataset.panel;
+						this.panels[name] = e.target.open;
 						try {
 							const def = {info: true, shortcuts: false};
 							if (JSON.stringify(state.panels) === JSON.stringify(def)) {

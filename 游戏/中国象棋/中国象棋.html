@@ -109,7 +109,7 @@
 		</section>
 
 		<aside class="sidebar at-right">
-			<details :open="panels['reversed-view']" @toggle="onPanelToggle('reversed-view')">
+			<details data-panel="reversed-view" :open="panels['reversed-view']" @toggle="onPanelToggle">
 				<summary>对面视角</summary>
 				<div class="content">
 					<article class="mini map , board , grid no-gap" :class="{ 'reversed view': !showReversedView, editor: !isGaming}">
@@ -123,7 +123,7 @@
 					</article>
 				</div>
 			</details>
-			<details v-if="!isGaming" :open="panels['palette']" @toggle="onPanelToggle('palette')">
+			<details v-if="!isGaming" data-panel="palette" :open="panels['palette']" @toggle="onPanelToggle">
 				<summary>棋子库</summary>
 				<div class="content">
 					<div class="unit type palette">
@@ -136,7 +136,7 @@
 					</div>
 				</div>
 			</details>
-			<details :open="panels['selected']" @toggle="onPanelToggle('selected')">
+			<details data-panel="selected" :open="panels['selected']" @toggle="onPanelToggle">
 				<summary>当前选中</summary>
 				<div class="content">
 					<div v-if="isGaming && selectedUnit" class="selected unit area">
@@ -177,7 +177,7 @@
 					</div>
 				</div>
 			</details>
-			<details v-if="!isGaming" :open="panels['globalRules']" @toggle="onPanelToggle('globalRules')">
+			<details v-if="!isGaming" data-panel="globalRules" :open="panels['globalRules']" @toggle="onPanelToggle">
 				<summary>全局规则</summary>
 				<div class="content">
 					<el-checkbox-group v-model="gameSettings.rules">
@@ -185,7 +185,7 @@
 					</el-checkbox-group>
 				</div>
 			</details>
-			<details v-if="!isGaming" :open="panels['plugins']" @toggle="onPanelToggle('plugins')">
+			<details v-if="!isGaming" data-panel="plugins" :open="panels['plugins']" @toggle="onPanelToggle">
 				<summary>插件</summary>
 				<div class="content">
 					<el-checkbox-group v-model="gameSettings.plugins">
@@ -193,7 +193,7 @@
 					</el-checkbox-group>
 				</div>
 			</details>
-			<details v-if="isGaming" :open="panels['gaming info']" @toggle="onPanelToggle('gaming info')" class="gaming info">
+			<details v-if="isGaming" class="gaming info" data-panel="gaming info" :open="panels['gaming info']" @toggle="onPanelToggle">
 				<summary>本局信息</summary>
 				<div class="content">
 					<div class="game-info">
@@ -206,7 +206,7 @@
 					</div>
 				</div>
 			</details>
-			<details v-if="isGaming" :open="panels['record-area']" @toggle="onPanelToggle('record-area')" class="record area">
+			<details v-if="isGaming" class="record area" data-panel="record-area" :open="panels['record-area']" @toggle="onPanelToggle">
 				<summary>回合</summary>
 				<div class="content">
 					<div class="op area">
@@ -493,8 +493,10 @@
 			this.resetBoard();
 		},
 		methods: {
-			onPanelToggle(name) {
-				// toggle事件在details.open改变后触发，只需保存状态
+			onPanelToggle(e) {
+				// 从e.target.dataset.panel获取面板名，toggle事件在details.open改变后触发，只需保存状态
+					const name = e.target.dataset.panel;
+					this.panels[name] = e.target.open;
 				try {
 					if (JSON.stringify(this.panels) === JSON.stringify(this._defaultPanels)) {
 						localStorage.removeItem(this._panelKey);

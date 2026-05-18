@@ -130,7 +130,7 @@
 
 		<!-- 信息区 -->
 		<aside class="info area , sidebar at-left">
-			<details :open="panels.info" @toggle="onPanelToggle('info', $event)" class="gaming info">
+			<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 				<summary>本局信息</summary>
 				<div class="content">
 					<div class="flex go-y">
@@ -149,7 +149,7 @@
 					</div>
 				</div>
 			</details>
-			<details :open="panels.shortcuts" @toggle="onPanelToggle('shortcuts', $event)" class="shortcut list">
+			<details class="shortcut list" data-panel="shortcuts" :open="panels.shortcuts" @toggle="onPanelToggle">
 				<summary>快捷键</summary>
 					<p class="one shortcut"><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd>：改变蛇的移动方向（蛇会自动定时移动）</p>
 					<p class="one shortcut"><kbd>空格</kbd>：暂停 / 开始</p>
@@ -309,9 +309,10 @@
 					state.gameTargetNumber = num;
 					state.gameTargetLabel = num == null ? '无限' : String(num);
 				},
-				onPanelToggle(name, e) {
-					// 同步浏览器已改变的open状态到panels
-					if (e && e.target) { state.panels[name] = e.target.open; }
+				onPanelToggle(e) {
+					// 从e.target.dataset.panel获取面板名，同步浏览器已改变的open状态到panels
+					const name = e.target.dataset.panel;
+						state.panels[name] = e.target.open;
 					// 保存状态
 					try {
 						if (JSON.stringify(state.panels) === JSON.stringify(state._defaultPanels)) {
