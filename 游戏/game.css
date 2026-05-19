@@ -1,19 +1,20 @@
 @charset "utf-8";
 
 @layer game {
-	/* 游戏：游戏页面必须声明一个带有.game类的根元素 */
+	/* ====== 游戏：游戏页面必须声明一个带有.game类的根元素 ====== */
 	.game {
 		--lv-1-color: #303133;
 		--lv-2-color: #606266;
 		--lv-3-color: #909399;
 
-		/* 玩区 */
+		/* ====== 玩区 ====== */
 		& .gaming.area {
+			/* ------ ------ */
 			margin: 0;
 			padding: 0;
 			gap: 0.5rem;
 
-			/* 本局信息区 */
+			/* ====== 本局信息区 ====== */
 			& .gaming.info {
 				& .group {
 					list-style: none;
@@ -27,9 +28,9 @@
 				}
 			}
 
-			/* 计分板 */
+			/* ====== 计分板 ====== */
 			& .scoreboard {
-				& .header {
+				& header, .header {
 					padding: 8px 12px;
 				}
 
@@ -42,24 +43,24 @@
 				}
 			}
 
-			/* 记录区 */
+			/* ====== 记录区 ====== */
 			& .record.area {
-				/* 操作区 */
+				/* ====== 操作区 ====== */
 				& .op.area {
 					margin-bottom: 4px;
 				}
-				/* 提示 */
+				/* ====== 提示 ====== */
 				& .tip {
 					font-size: 0.8rem;
 					color: var(--lv-2-color);
 
-					/* 位置变体 */
+					/* ====== 位置变体 ====== */
 					&.at-top { margin: 0; color: var(--el-color-warning); }
 					&.at-bottom { margin-top: 6px; color: var(--el-color-success); }
 				}
 			}
 
-			/* 结算界面 */
+			/* ====== 结算界面 ====== */
 			& .result {
 				min-width: 420px;
 
@@ -90,7 +91,7 @@
 			}
 		}/* .game .gaming.area */
 
-		/* 回合列表：在有回合的游戏内，回合列表记录的默认样式表。不局限于玩区。建议用ol */
+		/* ====== 回合列表：在有回合的游戏内，回合列表记录的默认样式表。不局限于玩区。建议用ol ====== */
 		& .round.list {
 			& .summary {
 				font-size: 0.8rem;
@@ -99,7 +100,7 @@
 			}
 		}
 
-		/* 单个回合：在有回合的游戏内，单个回合记录的默认样式表。不局限于回合列表内。建议用li */
+		/* ====== 单个回合：在有回合的游戏内，单个回合记录的默认样式表。不局限于回合列表内。建议用li ====== */
 		& .one.round {
 			padding: 6px 8px;
 			&:last-child { border-bottom: none; }
@@ -114,7 +115,7 @@
 			}
 		}
 
-		/* 地图：有地图的游戏内，地图的默认样式表。不局限于玩区，也可以是一局游戏之外的展示信息 */
+		/* ====== 地图：有地图的游戏内，地图的默认样式表。不局限于玩区，也可以是一局游戏之外的展示信息 ====== */
 		& .map {
 			--unit-base-layer: 100;
 			/* 水平居中，宽度自适应内容 */
@@ -133,7 +134,7 @@
 			}
 		}
 
-		/* 单位：有单位的游戏内，单位的默认样式表，如棋子、数字方块等。不局限于地图内，也可以是一局游戏之外的展示信息 */
+		/* ====== 单位：有单位的游戏内，单位的默认样式表，如棋子、数字方块等。不局限于地图内，也可以是一局游戏之外的展示信息 ====== */
 		& .unit {
 			position: relative;
 			z-index: var(--unit-base-layer);/* 给背景、纹理留层叠空间 */
@@ -145,21 +146,21 @@
 			user-select: none;
 			-webkit-user-select: none;
 
-			/* 可操作的单位 */
+			/* ====== 可操作的单位 ====== */
 			&.movable { cursor: pointer; }
-			/* 有提示状态的单位 */
+			/* ====== 有提示状态的单位 ====== */
 			&.hint {
 				outline: 3px solid #e6a23c;
 				outline-offset: -3px;
 			}
-			/* 选中状态的单位 */
+			/* ====== 选中状态的单位 ====== */
 			&.selected {
 				outline: 3px solid #409eff;
 				outline-offset: -3px;
 				box-shadow: 0 0 8px rgba(64, 158, 255, 0.5), 0 0 0 3px rgba(64, 158, 255, 0.3);
 			}
 
-			/* 上一个行动的单位的标记 */
+			/* ====== 上一个行动的单位的标记 ====== */
 			&.last.action::after {
 				content: '';
 				position: absolute;
@@ -173,7 +174,7 @@
 			}
 		}/* .game .unit */
 
-		/* 棋盘：有棋盘的游戏内，棋盘的默认样式表。继承.map */
+		/* ====== 棋盘：有棋盘的游戏内，棋盘的默认样式表。继承.map ====== */
 		& .board.map {
 			--board-cols: 4;
 			--board-rows: 4;
@@ -194,13 +195,13 @@
 			user-select: none;
 			-webkit-user-select: none;
 
-			/* 特指出现在棋盘内的格子 */
+			/* ====== 特指出现在棋盘内的格子 ====== */
 			& .cell {
 				background: #d4e0c8;
 				border: 1px solid var(--line-color);
 				border-radius: 0;
 
-				/* 状态标记基础样式 */
+				/* ====== 格子内的状态标记 ====== */
 				& .target.mark {
 					position: absolute;
 					width: 100%;
@@ -208,7 +209,7 @@
 					z-index: calc(var(--unit-base-layer) + 20);
 					pointer-events: none;
 					
-					/* 可移动位置 */
+					/* ====== 可移动目标 ====== */
 					&.movable::after {
 						content: "";
 						position: absolute;
@@ -220,7 +221,7 @@
 						border-radius: 50%;
 					}
 
-					/* 禁止位置 */
+					/* ====== 禁止目标 ====== */
 					&.blocked {
 						&::before, &::after {
 							content: "";
@@ -247,7 +248,7 @@
 						}
 					}
 
-					/* 可攻击位置 */
+					/* ====== 可攻击单位 ====== */
 					&.attackable {
 						&::before, &::after {
 							content: "";
@@ -267,7 +268,7 @@
 			}/* .board.map .cell */
 		}/* .board.map */
 
-		/* 格子：棋盘游戏的格子，不限于在棋盘内。 */
+		/* ====== 格子：棋盘游戏的格子，不限于在棋盘内。 ====== */
 		& .cell {
 			position: relative;
 			width: var(--cell-size);
@@ -281,7 +282,7 @@
 			background: #d4e0c8;
 		}
 
-		/* 棋子：继承.unit */
+		/* ====== 棋子：继承.unit ====== */
 		& .piece.unit {
 			width: var(--unit-size);
 			height: var(--unit-size);
@@ -296,15 +297,14 @@
 
 			/* 棋子基础样式 */
 			--piece-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-
 			box-shadow: var(--piece-shadow);
 		}
 
-		/* 玩家名 */
+		/* ====== 玩家名 ====== */
 		& .player.name { font-weight: 500; }
 
-		/* ====== 通用语义 ====== */
-		/* 操作区：放按钮之类的地方 */
+		/* ============ 通用语义 ============ */
+		/* ====== 操作区：放按钮之类的地方 ====== */
 		& .op.area {
 			display: flex;
 			flex-wrap: wrap;
@@ -312,7 +312,7 @@
 			align-items: center;
 		}
 
-		/* 快捷键列表 */
+		/* ====== 快捷键列表 ====== */
 		& .shortcut.list {
 			& .one.shortcut {
 				display: flex;
@@ -339,7 +339,7 @@
 			}
 		}
 
-		/* 信息层级 */
+		/* ====== 信息层级 ====== */
 		& .lv-1.info {
 			font-size: 1rem;
 			color: var(--lv-1-color);
@@ -349,8 +349,8 @@
 			color: var(--lv-2-color);
 		}
 
-		/* ====== 非语义 ====== */
-		/* 收折卡片的通用/基础样式 */
+		/* ============ 非语义 ============ */
+		/* ====== 收折卡片的通用/基础样式 ====== */
 		& details {
 			border: 1px solid #ebeef5;
 			border-radius: 4px;
@@ -399,6 +399,7 @@
 			& > p { margin: 0; }
 		}/* details */
 
+		/* ====== 遮罩 ====== */
 		/* 后代有遮罩元素时，为遮罩层提供定位基准 */
 		& :has(.overlay) {
 			position: relative;
@@ -434,7 +435,7 @@
 
 		--callout-base-z:1000;
 		--callout-duaration:1s;
-		/* 强提示闪现：暴击、将军、阵亡等 */
+		/* ====== 强提示闪现：常用于暴击、将军、阵亡等 ====== */
 		& .callout {
 			position: fixed;
 			inset: 0;
@@ -451,7 +452,7 @@
 		& input { font-family: inherit; }
 	}/* .game */
 	
-	/* ====== 动画关键帧：不能嵌套定义 ====== */
+	/* ============ 动画关键帧：不能嵌套定义 ============ */
 	@keyframes become-bigger-and-transparent {
 		0% { scale:1; opacity: 1; }
 		50% { scale:1.5; opacity: 0.7; }

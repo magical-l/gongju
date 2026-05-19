@@ -210,3 +210,9 @@ template, .template, .hidden, [v-cloak], .js.container {display: none !important
 	align-items: center;
 	justify-content: center;
 }
+
+/* ============ 杂项 ============ */
+/* 有必填项未填的表单加红框 */
+form:has(input:invalid:not(:placeholder-shown)) {
+	border: 2px solid #f56c6c;
+}

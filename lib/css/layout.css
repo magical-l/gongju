@@ -296,10 +296,8 @@
 
 /* ------ .items-near-center：保证子元素居中 ------ */
 .items-near-center {
-	justify-content: center;
-	align-items: center;
-	align-content: center;
-	justify-items: center;
+	place-items: center;
+	place-content: center;
 	text-align: center;
 }
 
@@ -347,8 +345,7 @@
 }
 /* ------ .items-stretch：在xy两个方向都尽量拉伸，占满容器。注：多行flex布局下，最后一行/列若“不满”，在排列方向上无法拉伸占满 ------ */
 .items-stretch {
-	justify-items: stretch;
-	align-items: stretch;
+	place-items: stretch;
 	/* 直接子元素配合拉伸 */
 	> * { flex: 1; }
 }
@@ -431,7 +428,7 @@
 /* ------ .items-space-between/.items-mutex/.items-social-phobia：在xy双向上项目尽量互相远离，仿佛互斥/社恐。 ------ */
 .items-space-between,
 .items-mutex,
-.items-social-phobia { justify-content: space-between; align-content: space-between; }
+.items-social-phobia { place-content: space-between; }
 
 /* ============ 空隙环绕：.items-space-around、.items-x/y-space-around ============ */
 /* ------ .items-x-space-around/.items-x-unfamiliar：保证在横向上，剩余空隙均分贴在每个项目的两侧，仿佛项目间不熟（grid、flex都适用，适配任何书写模式）。 ------ */
@@ -480,7 +477,7 @@
 
 /* ------ .items-space-around/.items-unfamiliar：保证在xy双向上，剩余空隙均分贴在每个项目的两侧，仿佛项目间不熟（grid、flex都适用，适配任何书写模式）。 ------ */
 .items-space-around,
-.items-unfamiliar { justify-content: space-around; align-content: space-around; flex-wrap: wrap; }
+.items-unfamiliar { place-content: space-around; flex-wrap: wrap; }
 
 /* ============ 空隙均分：.items-space-evenly、.items-x/y-space-evenly ============ */
 /* ------ .items-x-space-evenly/.items-x-friendly：保证在横向上，剩余空隙均分在项目之间（含外侧），仿佛项目间比较友好（grid、flex都适用，适配任何书写模式）。 ------ */
@@ -527,7 +524,7 @@
 
 /* ------ .items-space-evenly/.items-friendly：保证在xy双向上，剩余空隙均分在项目之间（含外侧），仿佛项目间比较友好（grid、flex都适用，适配任何书写模式）。 ------ */
 .items-space-evenly,
-.items-friendly { justify-content: space-evenly; align-content: space-evenly; flex-wrap: wrap; }
+.items-friendly { place-content: space-evenly; flex-wrap: wrap; }
 
 /* ============================== Grid/Flex 预设布局 ============================== */
 /* 为防没有使用.grid/.flex之类，所以不显式结合.grid/.flex，直接设置。若非display:grid/flex也没事，会被浏览器忽略。下同 */
