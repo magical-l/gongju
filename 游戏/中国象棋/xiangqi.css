@@ -46,47 +46,59 @@
 		& .cell {
 			border: none;
 
-			/* 普通位置纹理 */
+			/* 纹理变量默认值 */
+			--bg-texture: url('棋盘纹理-十字.svg');
+			--bg-texture-rotate: 0deg;
+			--bg-before: none;
+			--bg-after: none;
+			--bg-after-rotate: 0deg;
+
 			& .texture {
 				position: absolute;
 				width: 100%;
 				height: 100%;
 				z-index: 1;
-				background-image: url('棋盘纹理-十字.svg');
-				stroke-width: var(--line-stroke-width);
+				background-image: var(--bg-texture);
 				background-size: 100% 100%;
 				background-repeat: no-repeat;
+				stroke-width: var(--line-stroke-width);
+				rotate: var(--bg-texture-rotate);
 
-				/* 伪元素基础样式：绝对定位、填满父容器 */
 				&::before, &::after {
 					position: absolute;
 					width: 100%;
 					height: 100%;
 					display: block;
 				}
+				&::before { content: var(--bg-before); }
+				&::after { content: var(--bg-after); rotate: var(--bg-after-rotate); }
 			}
+
 			/* 边框线 */
-			&.row-1, &.row-6 { .texture { background-image: url('棋盘纹理-顶边.svg'); } }
-			&.row-10, &.row-5 { .texture { background-image: url('棋盘纹理-底边.svg'); } }
-			&.col-1 { .texture { background-image: url('棋盘纹理-左边.svg'); } }
-			&.col-9 { .texture { background-image: url('棋盘纹理-右边.svg'); } }
+			&.row-1, &.row-6 { --bg-texture: url('棋盘纹理-顶边.svg'); }
+			&.row-10, &.row-5 { --bg-texture: url('棋盘纹理-底边.svg'); }
+			&.col-1 { --bg-texture: url('棋盘纹理-左边.svg'); }
+			&.col-9 { --bg-texture: url('棋盘纹理-右边.svg'); }
+
 			/* 角 */
-			&.row-1.col-1 { .texture { background-image: url('棋盘纹理-角.svg'); } }
-			&.row-1.col-9 { .texture { background-image: url('棋盘纹理-角.svg'); rotate: 90deg; } }
-			&.row-10.col-1 { .texture { background-image: url('棋盘纹理-角.svg'); rotate: -90deg; } }
-			&.row-10.col-9 { .texture { background-image: url('棋盘纹理-角.svg'); rotate: 180deg; } }
+			&.row-1.col-1 { --bg-texture: url('棋盘纹理-角.svg'); }
+			&.row-1.col-9 { --bg-texture: url('棋盘纹理-角.svg'); --bg-texture-rotate: 90deg; }
+			&.row-10.col-1 { --bg-texture: url('棋盘纹理-角.svg'); --bg-texture-rotate: -90deg; }
+			&.row-10.col-9 { --bg-texture: url('棋盘纹理-角.svg'); --bg-texture-rotate: 180deg; }
+
 			/* 九宫格斜线（黑方九宫：row 1,8; 红方九宫：row 3,10） */
-			&.row-1.col-4, &.row-8.col-4 { .texture::after { content: url('棋盘纹理-半斜线.svg'); rotate: 180deg; } }
-			&.row-1.col-6, &.row-8.col-6 { .texture::after { content: url('棋盘纹理-半斜线.svg'); rotate: -90deg; } }
-			&.row-3.col-4, &.row-10.col-4 { .texture::after { content: url('棋盘纹理-半斜线.svg'); rotate: 90deg; } }
-			&.row-3.col-6, &.row-10.col-6 { .texture::after { content: url('棋盘纹理-半斜线.svg'); } }
+			&.row-1.col-4, &.row-8.col-4 { --bg-after: url('棋盘纹理-半斜线.svg'); --bg-after-rotate: 180deg; }
+			&.row-1.col-6, &.row-8.col-6 { --bg-after: url('棋盘纹理-半斜线.svg'); --bg-after-rotate: -90deg; }
+			&.row-3.col-4, &.row-10.col-4 { --bg-after: url('棋盘纹理-半斜线.svg'); --bg-after-rotate: 90deg; }
+			&.row-3.col-6, &.row-10.col-6 { --bg-after: url('棋盘纹理-半斜线.svg'); }
+
 			/* 窝心 */
-			&.row-2.col-5, &.row-9.col-5 { .texture::after { content: url('棋盘纹理-交叉.svg'); } }
+			&.row-2.col-5, &.row-9.col-5 { --bg-after: url('棋盘纹理-交叉.svg'); }
+
 			/* 炮位、兵卒位 */
-			&.炮位 { .texture::before { content: url('棋盘纹理-左花.svg'); } .texture::after { content: url('棋盘纹理-右花.svg'); } }
-			&.兵卒位 { .texture::before { content: url('棋盘纹理-左花.svg'); } .texture::after { content: url('棋盘纹理-右花.svg'); } }
-			&.兵卒位.col-1 { .texture::before { content: none; } }
-			&.兵卒位.col-9 { .texture::after { content: none; } }
+			&.炮位, &.兵卒位 { --bg-before: url('棋盘纹理-左花.svg'); --bg-after: url('棋盘纹理-右花.svg'); }
+			&.兵卒位.col-1 { --bg-before: none; }
+			&.兵卒位.col-9 { --bg-after: none; }
 		}
 	}/* .game .board.map */
 
