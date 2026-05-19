@@ -19,7 +19,7 @@
 	& .black { color: var(--black-color); }
 
 	/* 走法描述 */
-	& .action.description { color: var(--secondary-info-color); }
+	& .action.description { color: var(--lv-2-color); }
 
 	& .piece {
 		font-size: calc(var(--unit-size) * 0.78);
@@ -42,9 +42,6 @@
 		--board-rows: 10;
 		--cell-size: 60px;
 		--unit-size: calc(var(--cell-size) * 0.9);
-		grid-template-rows: repeat(10, var(--cell-size));
-		grid-template-columns: repeat(9, var(--cell-size));
-		height: fit-content;
 
 		& .cell {
 			border: none;
@@ -106,21 +103,10 @@
 		--right-sidebar-min-width: 380px;
 		--right-sidebar-max-width: 28%;
 
-		/* 回合记录区 */
-		& .record.area {
-			& .tip {
-				font-size: 0.8rem; color: var(--secondary-info-color);
-
-				&.at-top { margin: 0; color: var(--el-color-warning); }
-				&.at-bottom { color: var(--el-color-success); margin-top: 6px; }
-			}
-		}
-
 		/* 小棋盘 */
 		& .mini.map {
 			--cell-size: 34px;
 			--unit-size: calc(var(--cell-size) * 0.9);
-			width: fit-content;
 		}
 
 		/* 棋子库 */
@@ -213,13 +199,13 @@
 
 					& .meta {
 						font-size: 12px;
-						color: #909399;
+						color: var(--lv-3-color);
 					}
 				}
 			}
 
 			& .empty {
-				color: #909399;
+				color: var(--lv-3-color);
 				font-style: italic;
 				padding: 10px 0;
 				text-align: center;

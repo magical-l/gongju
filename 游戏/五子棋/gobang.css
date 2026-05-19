@@ -29,7 +29,7 @@
 
 	/* 位置描述基础样式 */
 	& .position {
-		color: var(--secondary-info-color);
+		color: var(--lv-2-color);
 	}
 
 	/* 侧边栏宽度 */

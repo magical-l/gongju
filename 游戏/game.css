@@ -3,8 +3,9 @@
 @layer game {
 	/* 游戏：游戏页面必须声明一个带有.game类的根元素 */
 	.game {
-		--primary-info-color: #303133;
-		--secondary-info-color: #606266;
+		--lv-1-color: #303133;
+		--lv-2-color: #606266;
+		--lv-3-color: #909399;
 
 		/* 玩区 */
 		& .gaming.area {
@@ -50,7 +51,11 @@
 				/* 提示 */
 				& .tip {
 					font-size: 0.8rem;
-					color: #606266;
+					color: var(--lv-2-color);
+
+					/* 位置变体 */
+					&.at-top { margin: 0; color: var(--el-color-warning); }
+					&.at-bottom { margin-top: 6px; color: var(--el-color-success); }
 				}
 			}
 
@@ -68,7 +73,7 @@
 
 					&.win { color: #4caf50; }
 					&.lose { color: #f56c6c; }
-					&.draw { color: #909399; }
+					&.draw { color: var(--lv-3-color); }
 				}
 
 				& .stats {
@@ -89,7 +94,7 @@
 		& .round.list {
 			& .summary {
 				font-size: 0.8rem;
-				color: #606266;
+				color: var(--lv-2-color);
 				margin: 4px 0 0;
 			}
 		}
@@ -111,8 +116,9 @@
 
 		/* 地图：有地图的游戏内，地图的默认样式表。不局限于玩区，也可以是一局游戏之外的展示信息 */
 		& .map {
-			/* 水平居中 */
+			/* 水平居中，宽度自适应内容 */
 			margin: 0 auto;
+			width: fit-content;
 			/* 防止内容被选中 */
 			user-select: none;
 			-webkit-user-select: none;
@@ -138,14 +144,14 @@
 			&.movable { cursor: pointer; }
 			/* 有提示状态的单位 */
 			&.hint {
-				outline: 3px solid #e6a23c;/* 橙色轮廓 */
-				outline-offset: -3px;/* 轮廓内缩 */
+				outline: 3px solid #e6a23c;
+				outline-offset: -3px;
 			}
 			/* 选中状态的单位 */
 			&.selected {
-				outline: 3px solid #409eff;/* 蓝色轮廓 */
-				outline-offset: -3px;/* 轮廓内缩 */
-				box-shadow: 0 0 8px rgba(64, 158, 255, 0.5), 0 0 0 3px rgba(64, 158, 255, 0.3);/* 阴影 */
+				outline: 3px solid #409eff;
+				outline-offset: -3px;
+				box-shadow: 0 0 8px rgba(64, 158, 255, 0.5), 0 0 0 3px rgba(64, 158, 255, 0.3);
 			}
 
 			/* 上一个行动的单位的标记 */
@@ -259,7 +265,7 @@
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			background: #d4e0c8; /* 默认背景 */
+			background: #d4e0c8;
 		}
 
 		/* 棋子：继承.unit */
@@ -315,19 +321,19 @@
 					border: 1px solid #dcdfe6;
 					border-radius: 4px;
 					box-shadow: 0 1px 0 #dcdfe6;
-					color: #606266;
+					color: var(--lv-2-color);
 				}
 			}
 		}
 
 		/* 信息层级 */
-		& .primary.info {
+		& .lv-1.info {
 			font-size: 1rem;
-			color: #303133; /* 主要信息，深色 */
+			color: var(--lv-1-color);
 		}
-		& .secondary.info {
+		& .lv-2.info {
 			font-size: 0.8rem;
-			color: #606266; /* 次要信息，中灰 */
+			color: var(--lv-2-color);
 		}
 
 		/* ====== 非语义 ====== */
@@ -359,8 +365,8 @@
 					top: 50%;
 					width: 8px;
 					height: 8px;
-					border-right: 2px solid #909399;
-					border-bottom: 2px solid #909399;
+					border-right: 2px solid var(--lv-3-color);
+					border-bottom: 2px solid var(--lv-3-color);
 					transform: translateY(-70%) rotate(-45deg);
 					transition: transform 0.2s;
 				}
@@ -376,7 +382,7 @@
 			}
 
 			& > section { margin-bottom: 8px; &:last-child { margin-bottom: 0; } }
-			& > h3 { margin: 0 0 4px; font-size: 0.9rem; color: #606266; }
+			& > h3 { margin: 0 0 4px; font-size: 0.9rem; color: var(--lv-2-color); }
 			& > p { margin: 0; }
 		}/* details */
 
