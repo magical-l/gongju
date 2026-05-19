@@ -175,16 +175,6 @@
 				&.at-top { margin: 0; color: var(--el-color-warning); }
 				&.at-bottom { color: var(--el-color-success); margin-top: 6px; }
 			}
-			& .one.round {
-				grid-template-columns: 40px 1fr 1fr;
-
-				& .id { color: #909399; }
-				& .player.action {
-					display: flex;
-					align-items: center;
-					gap: 6px;
-				}
-			}
 		}
 
 		/* 小棋盘 */

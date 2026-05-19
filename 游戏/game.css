@@ -54,21 +54,6 @@
 					font-size: 0.8rem;
 					color: #606266;
 				}
-				/* 回合列表 */
-				& .round.list {
-					margin-top: 6px;
-					max-width: 100%;
-					border: 1px solid #e4e7ed;
-					border-radius: 4px;
-					display: flex;
-					flex-direction: column;
-					/* 回合列表的摘要信息 */
-					& .summary {
-						font-size: 0.8rem;
-						color: #606266;
-						margin: 4px 0 0;
-					}
-				}
 			}
 
 			/* 结算界面 */
@@ -93,6 +78,30 @@
 					margin-top: 10px;
 					text-align: center;
 				}
+			}
+		}
+
+		/* 回合列表：ol 元素，显示原生序号 */
+		& .round.list {
+			& .summary {
+				font-size: 0.8rem;
+				color: #606266;
+				margin: 4px 0 0;
+			}
+		}
+
+		/* 单个回合：li 元素 */
+		& .one.round {
+			padding: 6px 8px;
+			&:last-child { border-bottom: none; }
+			&:nth-child(odd) { background: #f5f7fa; }
+			& > .grid {
+				grid-template-columns: 1fr 1fr;
+			}
+			& .player.action {
+				display: flex;
+				align-items: center;
+				gap: 6px;
 			}
 		}
 
@@ -189,24 +198,6 @@
 		/* 玩家名 */
 		& .player.name { font-weight: 500; }
 
-		/* 回合列表：有回合的游戏内，回合列表记录的默认样式表。建议dom用ol */
-		& .round.list {
-			list-style: none;
-			padding: 0;
-			margin: 0;
-			max-height: 400px;
-			overflow-y: auto;
-
-			/* 单个回合 */
-			& .one.round {
-				padding: 6px 8px;
-				border-bottom: 1px solid #ebeef5;
-				font-size: 0.85rem;
-				&:last-child { border-bottom: none; }
-				&:nth-child(odd) { background: #f5f7fa; }
-			}
-		}
-
 		/* ====== 通用语义 ====== */
 		/* 操作区：放按钮之类的地方 */
 		& .op.area {
@@ -246,54 +237,56 @@
 		/* ====== 非语义 ====== */
 		/* 侧边栏：游戏页面的左侧信息栏 */
 		& .sidebar {
-			& details {
-				border: 1px solid #ebeef5;
-				border-radius: 4px;
-				margin-bottom: 8px;
-				background: #fff;
-				padding: 12px 16px;
-
-				&:last-of-type { margin-bottom: 0; }
-
-				& summary {
-					font-weight: 600;
-					font-size: 1rem;
-					cursor: pointer;
-					list-style: none;
-					position: relative;
-
-					&::-webkit-details-marker { display: none; }
-					&:focus { outline: none; }
-
-					/* 展开/收起箭头 */
-					&::after {
-						content: '';
-						position: absolute;
-						right: 0;
-						top: 50%;
-						width: 8px;
-						height: 8px;
-						border-right: 2px solid #909399;
-						border-bottom: 2px solid #909399;
-						transform: translateY(-70%) rotate(-45deg);
-						transition: transform 0.2s;
-					}
-				}
-
-				&[open] summary::after {
-					transform: translateY(-30%) rotate(45deg);
-				}
-
-				&[open] summary {
-					border-bottom: 1px solid #ebeef5;
-					margin-bottom: 12px;
-				}
-
-				& > section { margin-bottom: 8px; &:last-child { margin-bottom: 0; } }
-				& > h3 { margin: 0 0 4px; font-size: 0.9rem; color: #606266; }
-				& > p { margin: 0; }
-			}
 		}
+
+		/* 收折卡片的通用/基础样式 */
+		& details {
+			border: 1px solid #ebeef5;
+			border-radius: 4px;
+			margin-bottom: 8px;
+			background: #fff;
+			padding: 12px 16px;
+
+			&:last-of-type { margin-bottom: 0; }
+
+			& summary {
+				font-weight: 600;
+				font-size: 1rem;
+				cursor: pointer;
+				list-style: none;
+				position: relative;
+
+				&::-webkit-details-marker { display: none; }
+				&:focus { outline: none; }
+
+				/* 展开/收起箭头 */
+				&::after {
+					content: '';
+					position: absolute;
+					right: 0;
+					top: 50%;
+					width: 8px;
+					height: 8px;
+					border-right: 2px solid #909399;
+					border-bottom: 2px solid #909399;
+					transform: translateY(-70%) rotate(-45deg);
+					transition: transform 0.2s;
+				}
+			}/* summary */
+
+			&[open] summary::after {
+				transform: translateY(-30%) rotate(45deg);
+			}
+
+			&[open] summary {
+				border-bottom: 1px solid #ebeef5;
+				margin-bottom: 12px;
+			}
+
+			& > section { margin-bottom: 8px; &:last-child { margin-bottom: 0; } }
+			& > h3 { margin: 0 0 4px; font-size: 0.9rem; color: #606266; }
+			& > p { margin: 0; }
+		}/* details */
 
 		/* 后代有遮罩元素时，为遮罩层提供定位基准 */
 		& :has(.overlay) {
@@ -331,5 +324,5 @@
 		/* ------ 不得不做的杂项 ------ */
 		/* input 元素默认有自己的 font-family，需显式继承，才能使用到.game等处定义的字体 */
 		& input { font-family: inherit; }
-	}
+	}/* .game */
 }

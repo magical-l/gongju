@@ -191,14 +191,15 @@
 						<ol class="round list">
 							<el-empty v-if="!turnHistory.length" description="尚未走棋"></el-empty>
 							<li class="one round" v-for="turn in turnHistory" :key="turn.id">
-								<span class="id">{{ turn.id }}</span>
-								<span class="player action">
-									<span class="red player name">红方</span>
-									<span class="action description">{{ turn.redMove }}</span>
-								</span>
-								<span class="player action">
-									<span class="black player name">黑方</span>
-									<span class="action description">{{ turn.blackMove || '—' }}</span>
+								<span class="grid">
+									<span class="player action">
+										<span class="red player name">红方</span>
+										<span class="action description">{{ turn.redMove }}</span>
+									</span>
+									<span class="player action">
+										<span class="black player name">黑方</span>
+										<span class="action description">{{ turn.blackMove || '—' }}</span>
+									</span>
 								</span>
 							</li>
 						</ol>

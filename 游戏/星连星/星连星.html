@@ -33,20 +33,6 @@
 					min-height: 100px;
 					max-height: 330px;
 					overflow-y: auto;
-					background-color: #fff;
-					border: 1px solid #dce1e6;
-					border-radius: 5px;
-					padding: 10px;
-
-					& > .one.round {
-						margin: 0;
-						padding: 6px 4px;
-						border-bottom: 1px solid #f0f2f5;
-						color: #555;
-						font-size: 0.9em;
-
-						&.last { border-bottom: none; }
-					}
 				}
 			}
 		}
@@ -282,9 +268,9 @@
 					</el-button>
 				</div>
 				<el-empty v-if="!connectionHistory.length" description="尚未连线"></el-empty>
-				<div v-else class="round list">
-					<div class="one round" v-for="(conn, connI) in connectionHistory" :class="{ last: connI === connectionHistory.length - 1 }">{{connI+1}}：颜色{{conn.color}} {{conn.path.map(p => '(' + p.row + ',' + p.col + ')').join(' → ')}}</div>
-				</div>
+				<ol v-else class="round list">
+					<li class="one round" v-for="(conn, connI) in connectionHistory" :class="{ last: connI === connectionHistory.length - 1 }">颜色{{conn.color}} {{conn.path.map(p => '(' + p.row + ',' + p.col + ')').join(' → ')}}</li>
+				</ol>
 			</details>
 		</aside>
 		<!-- 结算弹窗 -->
@@ -309,7 +295,7 @@
 			<img title="赞助一下" class="qr-code" alt="支付宝收款码" src="../../resources/支付宝收款码.jpg">
 			<p class="slogan">赞助一下</p>
 		</section>
-		<section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
+		<section class="copyright"><p>© 2025 工具兽版权所有 All rights reserved.</p></section>
 		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
 		</section>
 	</article>

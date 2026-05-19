@@ -110,14 +110,15 @@
 					<ol class="round list">
 						<el-empty v-if="!turnHistory.length" description="尚未落子"></el-empty>
 						<li v-else class="one round" v-for="turn in turnHistory" :key="turn.id">
-							<span class="id">{{ turn.id }}</span>
-							<span class="player action">
-								<span class="black piece"></span>
-								<span class="position">{{ turn.blackMove }}</span>
-							</span>
-							<span class="player action">
-								<span class="white piece"></span>
-								<span class="position">{{ turn.whiteMove || '—' }}</span>
+							<span class="grid">
+								<span class="player action">
+									<span class="black piece"></span>
+									<span class="position">{{ turn.blackMove }}</span>
+								</span>
+								<span class="player action">
+									<span class="white piece"></span>
+									<span class="position">{{ turn.whiteMove || '—' }}</span>
+								</span>
 							</span>
 						</li>
 					</ol>

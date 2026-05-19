@@ -39,23 +39,7 @@
 
 	/* 落子记录区 */
 	& .record.area {
-		& .one.round {
-			grid-template-columns: 40px 1fr 1fr;
-
-			& .id {
-				color: #909399;
-			}
-
-			& .player.action {
-				display: flex;
-				align-items: center;
-				gap: 6px;
-			}
-
-			& .piece {
-				--piece-size: 14px;
-			}
-		}
+		--piece-size: 14px;
 	}
 
 	/* ======================== 棋盘 ======================== */
