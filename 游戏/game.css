@@ -3,15 +3,24 @@
 @layer game {
 	/* 游戏：游戏页面必须声明一个带有.game类的根元素 */
 	.game {
-
 		/* 玩区 */
 		& .gaming.area {
 			margin: 0;
 			padding: 0;
 			gap: 0.5rem;
 
-			&:focus {
-				outline: none;
+			/* 本局信息区 */
+			& .gaming.info {
+				& .group {
+					list-style: none;
+					padding: 0;
+					margin: 0 0 8px 0;
+				}
+				& .one.info {
+					padding: 4px 0;
+					font-size: 0.9rem;
+					color: #4a4a4a;
+				}
 			}
 
 			/* 计分板 */
@@ -26,20 +35,6 @@
 					text-align: center;
 					line-height: 1.2;
 					color: inherit;
-				}
-			}
-
-			/* 本局信息区 */
-			& .gaming.info {
-				& .group {
-					list-style: none;
-					padding: 0;
-					margin: 0 0 8px 0;
-				}
-				& .one.info {
-					padding: 4px 0;
-					font-size: 0.9rem;
-					color: #4a4a4a;
 				}
 			}
 
@@ -79,9 +74,15 @@
 					text-align: center;
 				}
 			}
-		}
 
-		/* 回合列表：ol 元素，显示原生序号 */
+			/* ------ 不得不做的杂项 ------ */
+			/* 获得焦点时不显示选中框 */
+			&:focus {
+				outline: none;
+			}
+		}/* .gaming.area */
+
+		/* 回合列表：在有回合的游戏内，回合列表记录的默认样式表。不局限于玩区。建议用ol */
 		& .round.list {
 			& .summary {
 				font-size: 0.8rem;
@@ -90,7 +91,7 @@
 			}
 		}
 
-		/* 单个回合：li 元素 */
+		/* 单个回合：在有回合的游戏内，单个回合记录的默认样式表。不局限于回合列表内。建议用li */
 		& .one.round {
 			padding: 6px 8px;
 			&:last-child { border-bottom: none; }
@@ -113,6 +114,7 @@
 			user-select: none;
 			-webkit-user-select: none;
 
+			/* ------ 不得不做的杂项 ------ */
 			/* 获得焦点时不显示选中框 */
 			&:focus {
 				outline: none;
@@ -235,10 +237,6 @@
 		}
 
 		/* ====== 非语义 ====== */
-		/* 侧边栏：游戏页面的左侧信息栏 */
-		& .sidebar {
-		}
-
 		/* 收折卡片的通用/基础样式 */
 		& details {
 			border: 1px solid #ebeef5;
