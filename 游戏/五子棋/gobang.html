@@ -208,7 +208,8 @@
 								...unit,
 								moveNumber: unit.moveNumber,
 								classes: [unit.owner.team.id === '黑方' ? 'black' : 'white', {
-									last: isLast
+									last: isLast,
+									action: isLast
 								}]
 							} : null,
 							classes: isTargetable ? [color, 'targetable'] : [],

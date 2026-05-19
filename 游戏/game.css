@@ -3,6 +3,9 @@
 @layer game {
 	/* 游戏：游戏页面必须声明一个带有.game类的根元素 */
 	.game {
+		--primary-info-color: #303133;
+		--secondary-info-color: #606266;
+
 		/* 玩区 */
 		& .gaming.area {
 			margin: 0;
@@ -123,6 +126,7 @@
 
 		/* 单位：有单位的游戏内，单位的默认样式表，如棋子、数字方块等。不局限于地图内，也可以是一局游戏之外的展示信息 */
 		& .unit {
+			position: relative;
 			display: flex;
 			align-items: center;
 			justify-content: center;
@@ -142,6 +146,19 @@
 				outline: 3px solid #409eff;/* 蓝色轮廓 */
 				outline-offset: -3px;/* 轮廓内缩 */
 				box-shadow: 0 0 8px rgba(64, 158, 255, 0.5), 0 0 0 3px rgba(64, 158, 255, 0.3);/* 阴影 */
+			}
+
+			/* 上一个行动的单位的标记 */
+			&.last.action::after {
+				content: '';
+				position: absolute;
+				width: 8px;
+				height: 8px;
+				background-color: rgba(255, 0, 0, 0.7);
+				border-radius: 50%;
+				z-index: 15;
+				top: 0;
+				right: 0;
 			}
 		}
 
@@ -171,6 +188,67 @@
 				background: #d4e0c8;
 				border: 1px solid var(--line-color);
 				border-radius: 0;
+
+				/* 可移动位置 */
+				&.movable::after {
+					content: '';
+					position: absolute;
+					z-index: 20;
+					width: 40%;
+					height: 40%;
+					top: 30%;
+					left: 30%;
+					background-color: rgba(40, 167, 69, 0.5);
+					border-radius: 50%;
+					pointer-events: none;
+				}
+
+				/* 禁止位置 */
+				&.blocked {
+					&::before, &::after {
+						content: '';
+						position: absolute;
+						z-index: 20;
+						pointer-events: none;
+						box-sizing: border-box;
+					}
+					&::before {
+						width: 70%;
+						height: 15%;
+						top: 42.5%;
+						left: 15%;
+						background-color: rgba(220, 53, 69, 0.9);
+						transform: rotate(45deg);
+						border-radius: 2px;
+					}
+					&::after {
+						width: 60%;
+						height: 60%;
+						top: 20%;
+						left: 20%;
+						border-radius: 50%;
+						border: 4px solid rgba(220, 53, 69, 0.9);
+						background-color: rgba(255, 255, 255, 0.3);
+					}
+				}
+
+				/* 可攻击位置 */
+				&.attackable {
+					&::before, &::after {
+						content: '';
+						position: absolute;
+						z-index: 20;
+						width: 60%;
+						height: 15%;
+						top: 42.5%;
+						left: 20%;
+						background-color: rgba(255, 0, 0, 0.7);
+						border-radius: 2px;
+						pointer-events: none;
+					}
+					&::before { transform: rotate(45deg); }
+					&::after { transform: rotate(-45deg); }
+				}
 			}
 		}
 
@@ -189,12 +267,18 @@
 			width: var(--unit-size);
 			height: var(--unit-size);
 			aspect-ratio: 1/1;
+			flex: none;
 			border-radius: 50%;
 			cursor: pointer;
 
 			display: flex;
 			justify-content: center;
 			align-items: center;
+
+			/* 棋子基础样式 */
+			--piece-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+
+			box-shadow: var(--piece-shadow);
 		}
 
 		/* 玩家名 */
@@ -234,6 +318,16 @@
 					color: #606266;
 				}
 			}
+		}
+
+		/* 信息层级 */
+		& .primary.info {
+			font-size: 1rem;
+			color: #303133; /* 主要信息，深色 */
+		}
+		& .secondary.info {
+			font-size: 0.8rem;
+			color: #606266; /* 次要信息，中灰 */
 		}
 
 		/* ====== 非语义 ====== */

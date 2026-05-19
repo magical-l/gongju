@@ -6,18 +6,6 @@
 	--cell-size: 40px;
 	--board-size: 15;
 
-	/* 队色：棋子背景色和文字色，白棋加边框增加对比度 */
-	& .black.piece {
-		background-color: #333;
-		color: white;
-	}
-
-	& .white.piece {
-		background-color: #f0f0f0;
-		color: black;
-		border: 1px solid #ccc;/* 边框为了在浅色背景能看清 */
-	}
-
 	/* 棋子基础 */
 	& .piece {
 		width: var(--piece-size, 20px);
@@ -27,9 +15,21 @@
 		display: inline-flex;
 	}
 
+	/* 队色：棋子背景色 */
+	& .black.piece {
+		background-color: #333;
+		color: white;
+	}
+
+	& .white.piece {
+		background-color: #f0f0f0;
+		color: black;
+		border: 1px solid #ccc;
+	}
+
 	/* 位置描述基础样式 */
 	& .position {
-		color: #606266;
+		color: var(--secondary-info-color);
 	}
 
 	/* 侧边栏宽度 */
@@ -92,19 +92,6 @@
 				z-index: 10;
 				pointer-events: none;
 			}
-		}
-
-		/* 最后落子红点：相对于数字定位 */
-		& .piece.last .order::after {
-			content: '';
-			position: absolute;
-			width: 8px;
-			height: 8px;
-			background-color: rgba(255, 0, 0, 0.7);
-			border-radius: 50%;
-			z-index: 15;
-			top: -4px;
-			right: -8px;
 		}
 	}
 }
