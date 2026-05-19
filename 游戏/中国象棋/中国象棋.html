@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
-<head>
+<!DOCTYPE html><html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage"><head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title itemprop="name">中国象棋 | 工具兽 - 在线玩经典的棋类游戏</title>
@@ -55,15 +53,15 @@
 					</div>
 					<template v-if="!isGaming">
 						<div class="one setting group">
-							<el-button class="one setting : default-board" type="info" inline plain @click="resetBoard">默认棋盘 </el-button>
+							<el-button class="one setting : default-board" type="info" inline="" plain="" @click="resetBoard">默认棋盘 </el-button>
 						</div>
 						<div class="one setting group">
-							<el-button class="one setting : clear-board" type="danger" inline plain @click="clearBoard">清空棋盘 </el-button>
+							<el-button class="one setting : clear-board" type="danger" inline="" plain="" @click="clearBoard">清空棋盘 </el-button>
 						</div>
 						<div class="one setting group">
 							<el-radio-group class="one setting : first-player" v-model="gameSettings.firstPlayer">
-								<el-radio value="red" border>红先</el-radio>
-								<el-radio value="black" border>黑先</el-radio>
+								<el-radio value="red" border="">红先</el-radio>
+								<el-radio value="black" border="">黑先</el-radio>
 							</el-radio-group>
 						</div>
 						<div class="one setting group">
@@ -81,17 +79,17 @@
 						<el-button class="one tool : undo" type="warning" :disabled="!isUndoAvailable" @click="undoMove">悔棋 </el-button>
 					</div>
 					<div class="one tool group">
-						<el-button class="one tool : reverse view btn" type="info" plain @click="showReversedView = !showReversedView">交换视角</el-button>
+						<el-button class="one tool : reverse view btn" type="info" plain="" @click="showReversedView = !showReversedView">交换视角</el-button>
 					</div>
 				</section>
 			</header>
 			<section class="main board map , grid no-gap" :class="{ 'reversed view': showReversedView, editor: !isGaming }">
 				<div class="cell" v-for="cell in mainCells" :key="cell.position" :class="cell.classes" @click="handleCellClick(cell)" @dragover.prevent="" @drop="handleCellDrop(cell)">
+					<span v-if="cell.marker" class="target mark" :class="cell.marker"></span>
 					<div class="piece unit" v-for="unit in cell.units" :key="unit.id" :class="unit.classes" :draggable="unit.canDrag" @dragstart="dragStartPiece(unit, 'board')" @dragend="clearDraggedPiece">
 						{{ unit.display }}
 						<div class="remove unit btn" v-if="unit.canDrag" @click.stop="removeEditorPiece(unit)">×</div>
 					</div>
-					<div class="texture"></div>
 				</div>
 			</section>
 			<aside class="sidebar at-right">
@@ -99,10 +97,10 @@
 					<summary>对面视角</summary>
 					<article class="mini board map , grid no-gap" :class="{ 'reversed view': !showReversedView, editor: !isGaming}">
 						<div class="cell" v-for="cell in miniCells" :key="'mini-'+cell.position" :class="cell.classes" @click="handleCellClick(cell)">
-							<div class="piece unit" v-for="unit in cell.units" :key="unit.id" :class="unit.classes">
+							<span class="target mark" :class="cell.marker" v-if="cell.marker"></span>
+							<div class="piece unit" :class="unit.classes" v-for="unit in cell.units" :key="unit.id">
 								{{ unit.display }}
 							</div>
-							<div class="texture"></div>
 						</div>
 					</article>
 				</details>
@@ -209,7 +207,7 @@
 			<!-- 将军提示 -->
 			<div class="check callout" v-if="showCheck">将</div>
 			<!-- 游戏结束结算界面 -->
-			<el-dialog class="result" title="游戏结束" v-model="isGameOverForRender" align-center :show-close="true">
+			<el-dialog class="result" title="游戏结束" v-model="isGameOverForRender" align-center="" :show-close="true">
 				<div class="outcome win">{{ winnerName }} 胜利</div>
 				<template #footer="">
 					<el-button type="primary" icon="RefreshLeft" size="large" @click="restartGame">重来</el-button>
@@ -375,13 +373,15 @@
 					const rows = isReversed ? this.reversedPositions : this.positions;
 					if (!rows?.length) return [];
 					const cells = rows.flatMap((row, visualR) => row.map((position, visualC) => {
-						const units = this.getUnitsAt(position);
-						return {
-							position,
-							classes: this.getCellClasses(position, visualR, visualC, isReversed),
-							units,
-						};
-					}));
+							const units = this.getUnitsAt(position);
+							const cellResult = this.getCellClasses(position, visualR, visualC, isReversed);
+							return {
+								position,
+								classes: cellResult.classes,
+								units,
+								marker: cellResult.marker,
+							};
+						}));
 					return cells;
 				},
 				miniCells() {
@@ -389,11 +389,15 @@
 					const isReversed = !this.showReversedView;
 					const rows = isReversed ? this.reversedPositions : this.positions;
 					if (!rows?.length) return [];
-					return rows.flatMap((row, visualR) => row.map((position, visualC) => ({
-						position,
-						classes: this.getCellClasses(position, visualR, visualC, isReversed),
-						units: this.getUnitsAt(position),
-					})));
+					return rows.flatMap((row, visualR) => row.map((position, visualC) => {
+							const cellResult = this.getCellClasses(position, visualR, visualC, isReversed);
+							return {
+								position,
+								classes: cellResult.classes,
+								units: this.getUnitsAt(position),
+								marker: cellResult.marker,
+							};
+						}));
 				},
 				boardForRender() {
 					if (this.isGaming) {
@@ -750,7 +754,7 @@
 						position = this.boardEditor.editorPositions[r]?.[c];
 					}
 					if (!position) {
-						return [];
+						return {classes: [], marker: null};
 					}
 					// 如果传入了 visualR/C (用于对面棋盘)，则所有视觉样式都根据它来计算
 					// 否则，使用棋盘本身的逻辑位置
@@ -776,13 +780,11 @@
 							rt.push('士角');
 						}
 					}
+					let markers = null;
 					if (this.isGaming) {
-						const markers = this.targetMarkers[position.toString()];
-						if (markers) {
-							rt.push(markers);
-						}
+						markers = this.targetMarkers[position.toString()];
 					}
-					return rt;
+					return {classes: rt, marker: markers};
 				},
 				getEditorPieceClasses(unit) {
 					const piece = this.boardEditor.pieceTypes[unit.name];
@@ -841,5 +843,6 @@
 		window.app = app.mount('main>article');
 
 	</script>
-</body>
-</html>
+
+
+</body></html>

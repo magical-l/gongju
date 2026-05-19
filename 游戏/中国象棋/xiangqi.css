@@ -45,33 +45,38 @@
 
 		& .cell {
 			border: none;
+			position: relative;
 
 			/* 纹理变量默认值 */
 			--bg-texture: url('棋盘纹理-十字.svg');
-			--bg-texture-rotate: 0deg;
+			--bg-before-rotate: 0deg;
 			--bg-before: none;
 			--bg-after: none;
 			--bg-after-rotate: 0deg;
 
-			& .texture {
+			/* 主纹理 */
+			background-image: var(--bg-texture);
+			background-size: 100% 100%;
+			background-repeat: no-repeat;
+
+			/* 角纹理或左花（炮位、兵卒位） */
+			&::before {
+				content: var(--bg-before);
 				position: absolute;
 				width: 100%;
 				height: 100%;
-				z-index: 1;
-				background-image: var(--bg-texture);
-				background-size: 100% 100%;
-				background-repeat: no-repeat;
-				stroke-width: var(--line-stroke-width);
-				rotate: var(--bg-texture-rotate);
+				display: block;
+				rotate: var(--bg-before-rotate);
+			}
 
-				&::before, &::after {
-					position: absolute;
-					width: 100%;
-					height: 100%;
-					display: block;
-				}
-				&::before { content: var(--bg-before); }
-				&::after { content: var(--bg-after); rotate: var(--bg-after-rotate); }
+			/* 斜线、交叉、右花等 */
+			&::after {
+				content: var(--bg-after);
+				position: absolute;
+				width: 100%;
+				height: 100%;
+				display: block;
+				rotate: var(--bg-after-rotate);
 			}
 
 			/* 边框线 */
@@ -81,10 +86,10 @@
 			&.col-9 { --bg-texture: url('棋盘纹理-右边.svg'); }
 
 			/* 角 */
-			&.row-1.col-1 { --bg-texture: url('棋盘纹理-角.svg'); }
-			&.row-1.col-9 { --bg-texture: url('棋盘纹理-角.svg'); --bg-texture-rotate: 90deg; }
-			&.row-10.col-1 { --bg-texture: url('棋盘纹理-角.svg'); --bg-texture-rotate: -90deg; }
-			&.row-10.col-9 { --bg-texture: url('棋盘纹理-角.svg'); --bg-texture-rotate: 180deg; }
+			&.row-1.col-1 { --bg-before: url('棋盘纹理-角.svg'); --bg-texture: none;}
+			&.row-1.col-9 { --bg-before: url('棋盘纹理-角.svg'); --bg-before-rotate: 90deg; --bg-texture: none;}
+			&.row-10.col-1 { --bg-before: url('棋盘纹理-角.svg'); --bg-before-rotate: -90deg; --bg-texture: none;}
+			&.row-10.col-9 { --bg-before: url('棋盘纹理-角.svg'); --bg-before-rotate: 180deg; --bg-texture: none;}
 
 			/* 九宫格斜线（黑方九宫：row 1,8; 红方九宫：row 3,10） */
 			&.row-1.col-4, &.row-8.col-4 { --bg-after: url('棋盘纹理-半斜线.svg'); --bg-after-rotate: 180deg; }
