@@ -319,6 +319,17 @@
 			}
 		}
 
+		/* 强提示闪现：暴击、将军、阵亡等 */
+		& .callout {
+			position: fixed;
+			inset: 0;
+			z-index: 1000;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			pointer-events: none;
+		}
+
 		/* ------ 不得不做的杂项 ------ */
 		/* input 元素默认有自己的 font-family，需显式继承，才能使用到.game等处定义的字体 */
 		& input { font-family: inherit; }

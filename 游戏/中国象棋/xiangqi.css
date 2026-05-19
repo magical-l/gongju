@@ -288,21 +288,12 @@
 		}
 
 		/* 将军提示 */
-		& .gaming.check.overlay {
-			position: fixed;
-			inset: 0;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			pointer-events: none;
-
-			& .check.text {
-				font-size: 120px;
-				font-weight: bold;
-				color: #ffc107;
-				text-shadow: 0 0 15px red, 0 0 25px red;
-				animation: check-animation 1s ease-out;
-			}
+		& .check {
+			font-size: 120px;
+			font-weight: bold;
+			color: #ffc107;
+			text-shadow: 0 0 15px red, 0 0 25px red;
+			animation: check-animation 1s ease-out;
 		}
 	}/* .gaming.area */
 }

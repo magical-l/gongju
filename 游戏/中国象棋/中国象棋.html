@@ -207,8 +207,8 @@
 				</template>
 			</aside>
 			<!-- 将军提示 -->
-			<div class="gaming check overlay" v-if="showCheck">
-				<div class="check text">将</div>
+			<div class="callout" v-if="showCheck">
+				<div class="check">将</div>
 			</div>
 			<!-- 游戏结束结算界面 -->
 			<el-dialog class="result" title="游戏结束" v-model="isGameOverForRender" align-center :show-close="true">
