@@ -7,9 +7,81 @@
 		--lv-2-color: #606266;
 		--lv-3-color: #909399;
 
-		/* ====== 玩区 ====== */
+		/* ====== 玩家 ====== */
+		& .player {
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+
+			/* ====== 头像 ====== */
+			& .logo {
+				--player-logo-size: 32px;
+				width: var(--player-logo-size);
+				height: var(--player-logo-size);
+				border-radius: 50%;
+				object-fit: cover;
+				flex: none;
+			}
+			/* ====== 玩家名 ====== */
+			& .name {
+				color: var(--lv-1-color);
+				font-weight: 500;
+			}
+			/* ====== 当前玩家 ====== */
+			&.cur {
+				/* 当前行动玩家，具体样式由游戏定义 */
+			}
+			/* ====== 玩家所属队伍 ====== */
+			& .team {
+				--team-logo-size: 16px;
+				--team-flag-width: 12px;
+				--team-flag-height: 8px;
+			}
+		}
+
+		/* ====== 队伍 ====== */
+		& .team {
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+
+			/* ====== 队标 ====== */
+			& .logo {
+				--team-logo-size: 24px;
+				width: var(--team-logo-size);
+				height: var(--team-logo-size);
+				border-radius: 4px;
+				object-fit: contain;
+				flex: none;
+			}
+			/* ====== 队名 ====== */
+			& .name {
+				color: var(--lv-2-color);
+				font-weight: 400;
+			}
+			/* ====== 旗帜 ====== */
+			& .flag {
+				--team-flag-width: 20px;
+				--team-flag-height: 12px;
+				width: var(--team-flag-width);
+				height: var(--team-flag-height);
+				border-radius: 2px;
+				flex: none;
+				background-color: var(--team-flag-color);
+			}
+			/* ====== 成员列表 ====== */
+			& .member.list {
+				display: flex;
+				gap: 0.25rem;
+				flex-wrap: wrap;
+				/* ====== 单个成员 ====== */
+				& .one.member {
+				}
+			}
+		}
+
+		/* ====== 场地 ====== */
 		& .gaming.area {
-			/* ------ ------ */
 			margin: 0;
 			padding: 0;
 			gap: 0.5rem;
@@ -91,7 +163,7 @@
 			}
 		}/* .game .gaming.area */
 
-		/* ====== 回合列表：在有回合的游戏内，回合列表记录的默认样式表。不局限于玩区。建议用ol ====== */
+		/* ====== 回合列表：在有回合的游戏内，回合列表记录的默认样式表。不局限于场地。建议用ol ====== */
 		& .round.list {
 			& .summary {
 				font-size: 0.8rem;
@@ -115,7 +187,7 @@
 			}
 		}
 
-		/* ====== 地图：有地图的游戏内，地图的默认样式表。不局限于玩区，也可以是一局游戏之外的展示信息 ====== */
+		/* ====== 地图：有地图的游戏内，地图的默认样式表。不局限于场地，也可以是一局游戏之外的展示信息 ====== */
 		& .map {
 			--unit-base-layer: 100;
 			/* 水平居中，宽度自适应内容 */
@@ -208,7 +280,7 @@
 					height: 100%;
 					z-index: calc(var(--unit-base-layer) + 20);
 					pointer-events: none;
-					
+
 					/* ====== 可移动目标 ====== */
 					&.movable::after {
 						content: "";
@@ -299,9 +371,6 @@
 			--piece-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 			box-shadow: var(--piece-shadow);
 		}
-
-		/* ====== 玩家名 ====== */
-		& .player.name { font-weight: 500; }
 
 		/* ============ 通用语义 ============ */
 		/* ====== 操作区：放按钮之类的地方 ====== */
@@ -451,7 +520,7 @@
 		/* input 元素默认有自己的 font-family，需显式继承，才能使用到.game等处定义的字体 */
 		& input { font-family: inherit; }
 	}/* .game */
-	
+
 	/* ============ 动画关键帧：不能嵌套定义 ============ */
 	@keyframes become-bigger-and-transparent {
 		0% { scale:1; opacity: 1; }
