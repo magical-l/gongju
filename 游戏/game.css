@@ -123,6 +123,8 @@
 			/* 防止内容被选中 */
 			user-select: none;
 			-webkit-user-select: none;
+			/* 浏览器优化 */
+			contain: content;
 
 			/* ------ 不得不做的杂项 ------ */
 			/* 获得焦点时不显示选中框 */
@@ -136,6 +138,7 @@
 			position: relative;
 			z-index: var(--unit-base-layer);/* 给背景、纹理留层叠空间 */
 			display: flex;
+			contain: layout;
 			align-items: center;
 			justify-content: center;
 			text-align: center;
@@ -272,6 +275,7 @@
 			aspect-ratio: 1/1;
 			flex: none;
 			display: flex;
+			contain: layout;
 			align-items: center;
 			justify-content: center;
 			background: #d4e0c8;
