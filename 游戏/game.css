@@ -424,19 +424,29 @@
 			}
 		}
 
+		--callout-base-z:1000;
+		--callout-duaration:1s;
 		/* 强提示闪现：暴击、将军、阵亡等 */
 		& .callout {
 			position: fixed;
 			inset: 0;
-			z-index: 1000;
+			z-index: var(--callout-base-z);
 			display: flex;
 			justify-content: center;
 			align-items: center;
 			pointer-events: none;
+			animation: become-bigger-and-transparent var(--callout-duaration) ease-out;
 		}
 
 		/* ------ 不得不做的杂项 ------ */
 		/* input 元素默认有自己的 font-family，需显式继承，才能使用到.game等处定义的字体 */
 		& input { font-family: inherit; }
 	}/* .game */
+	
+	/* ====== 动画关键帧：不能嵌套定义 ====== */
+	@keyframes become-bigger-and-transparent {
+		0% { scale:1; opacity: 1; }
+		50% { scale:1.5; opacity: 0.7; }
+		100% { scale:2; opacity: 0; }
+	}
 }
