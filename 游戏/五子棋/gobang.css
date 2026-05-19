@@ -37,46 +37,10 @@
 		--left-sidebar-min-width: 280px;
 	}
 
-	/* 本局信息区 */
-	& .gaming.info {
-		& .group {
-			list-style: none;
-			padding: 0;
-			margin: 0 0 8px 0;
-		}
-
-		& .one.info {
-			padding: 4px 0;
-			font-size: 0.9rem;
-			color: #4a4a4a;
-		}
-	}
-
 	/* 落子记录区 */
 	& .record.area {
-		&>.op.area {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 8px;
-			align-items: center;
-			margin-bottom: 4px;
-		}
-
 		& .one.round {
-			display: grid;
 			grid-template-columns: 40px 1fr 1fr;
-			align-items: center;
-			padding: 6px 8px;
-			border-bottom: 1px solid #ebeef5;
-			font-size: 0.85rem;
-
-			&:last-child {
-				border-bottom: none;
-			}
-
-			&:nth-child(odd) {
-				background: #f5f7fa;
-			}
 
 			& .id {
 				color: #909399;
