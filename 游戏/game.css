@@ -116,6 +116,7 @@
 
 		/* 地图：有地图的游戏内，地图的默认样式表。不局限于玩区，也可以是一局游戏之外的展示信息 */
 		& .map {
+			--unit-base-layer: 100;
 			/* 水平居中，宽度自适应内容 */
 			margin: 0 auto;
 			width: fit-content;
@@ -133,6 +134,7 @@
 		/* 单位：有单位的游戏内，单位的默认样式表，如棋子、数字方块等。不局限于地图内，也可以是一局游戏之外的展示信息 */
 		& .unit {
 			position: relative;
+			z-index: var(--unit-base-layer);/* 给背景、纹理留层叠空间 */
 			display: flex;
 			align-items: center;
 			justify-content: center;
@@ -162,7 +164,7 @@
 				height: 8px;
 				background-color: rgba(255, 0, 0, 0.7);
 				border-radius: 50%;
-				z-index: 15;
+				z-index: calc(var(--unit-base-layer) + 15);
 				top: 0;
 				right: 0;
 			}
@@ -243,7 +245,7 @@
 					&::before, &::after {
 						content: '';
 						position: absolute;
-						z-index: 20;
+						z-index: calc(var(--unit-base-layer) + 20);
 						width: 60%;
 						height: 15%;
 						top: 42.5%;
@@ -260,8 +262,11 @@
 
 		/* 格子：棋盘游戏的格子，不限于在棋盘内。 */
 		& .cell {
+			position: relative;
 			width: var(--cell-size);
 			height: var(--cell-size);
+			aspect-ratio: 1/1;
+			flex: none;
 			display: flex;
 			align-items: center;
 			justify-content: center;

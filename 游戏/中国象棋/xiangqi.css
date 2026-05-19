@@ -46,11 +46,6 @@
 		& .cell {
 			border: none;
 
-			/* 为纹理层提供定位基准 */
-			&:has(.texture) {
-				position: relative;
-			}
-
 			/* 普通位置纹理 */
 			& .texture {
 				position: absolute;
@@ -93,9 +88,6 @@
 			&.兵卒位.col-1 { .texture::before { content: none; } }
 			&.兵卒位.col-9 { .texture::after { content: none; } }
 		}
-
-		/* 棋盘内的棋子定位 */
-		& .piece { position: absolute; z-index: 10; }
 	}/* .game .board.map */
 
 	/* ======================== 游戏局 ======================== */
