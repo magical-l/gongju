@@ -14,6 +14,16 @@
 	--line-stroke-width: 1px;
 	font-family: "NotoSansSymbols2", sans-serif;
 
+	/* 队色 */
+	& .red { color: var(--red-color); }
+	& .black { color: var(--black-color); }
+
+	/* 玩家名基础样式 */
+	& .player.name { font-weight: 500; }
+
+	/* 走法描述 */
+	& .action.description { color: #606266; }
+
 	& .piece {
 		font-size: calc(var(--unit-size) * 0.78);
 		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
@@ -160,6 +170,20 @@
 		--right-sidebar-min-width: 380px;
 		--right-sidebar-max-width: 28%;
 
+		/* 本局信息区 */
+		& .gaming.info {
+			& .group {
+				list-style: none;
+				padding: 0;
+				margin: 0 0 8px 0;
+			}
+			& .one.info {
+				padding: 4px 0;
+				font-size: 0.9rem;
+				color: #4a4a4a;
+			}
+		}
+
 		/* 回合记录区 */
 		& .record.area {
 			& .tip {
@@ -169,6 +193,11 @@
 				&.at-bottom { color: var(--el-color-success); margin-top: 6px; }
 			}
 			& > .op.area { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px; }
+			& .round.list {
+				list-style: none;
+				padding: 0;
+				margin: 0;
+			}
 			& .one.round {
 				display: grid;
 				grid-template-columns: 40px 1fr 1fr;
@@ -179,8 +208,11 @@
 				&:last-child { border-bottom: none; }
 				&:nth-child(odd) { background: #f5f7fa; }
 				& .id { color: #909399; }
-				& .red { color: #d43d3d; text-align: center; }
-				& .black { color: #333; text-align: center; }
+				& .player.action {
+					display: flex;
+					align-items: center;
+					gap: 6px;
+				}
 			}
 		}
 

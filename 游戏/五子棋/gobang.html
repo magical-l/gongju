@@ -107,9 +107,9 @@
 					<div class="op area">
 						<el-button :disabled="!turnHistory.length" icon="Download" size="small" @click="exportMoves">导出 </el-button>
 					</div>
-					<div class="round list">
+					<ol class="round list">
 						<el-empty v-if="!turnHistory.length" description="尚未落子"></el-empty>
-						<div v-else class="one round" v-for="turn in turnHistory" :key="turn.id">
+						<li v-else class="one round" v-for="turn in turnHistory" :key="turn.id">
 							<span class="id">{{ turn.id }}</span>
 							<span class="player action">
 								<span class="black piece"></span>
@@ -119,8 +119,8 @@
 								<span class="white piece"></span>
 								<span class="position">{{ turn.whiteMove || '—' }}</span>
 							</span>
-						</div>
-					</div>
+						</li>
+					</ol>
 				</details>
 			</aside>
 			<el-dialog title="游戏结束" v-model="isGameOver" align-center="" class="result narrow">
