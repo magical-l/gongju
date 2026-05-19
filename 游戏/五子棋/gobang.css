@@ -6,19 +6,62 @@
 	--cell-size: 40px;
 	--board-size: 15;
 
+	/* 队色：棋子背景色和文字色，白棋加边框增加对比度 */
+	& .black.piece {
+		background-color: #333;
+		color: white;
+	}
+
+	& .white.piece {
+		background-color: #f0f0f0;
+		color: black;
+		border: 1px solid #ccc;/* 边框为了在浅色背景能看清 */
+	}
+
+	/* 棋子基础 */
+	& .piece {
+		width: var(--piece-size, 20px);
+		height: var(--piece-size, 20px);
+		border-radius: 50%;
+		flex-shrink: 0;
+		display: inline-flex;
+	}
+
+	/* 位置描述基础样式 */
+	& .position {
+		color: #606266;
+	}
+
 	/* 侧边栏宽度 */
-	& .gaming.area { --left-sidebar-min-width: 280px; }
+	& .gaming.area {
+		--left-sidebar-min-width: 280px;
+	}
 
 	/* 本局信息区 */
-	& .gaming.info .game-info {
-		margin-top: 15px;
-		font-size: 1.1rem;
-		color: #4a4a4a;
+	& .gaming.info {
+		& .group {
+			list-style: none;
+			padding: 0;
+			margin: 0 0 8px 0;
+		}
+
+		& .one.info {
+			padding: 4px 0;
+			font-size: 0.9rem;
+			color: #4a4a4a;
+		}
 	}
 
 	/* 落子记录区 */
 	& .record.area {
-		& > .op.area { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px; }
+		&>.op.area {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+			align-items: center;
+			margin-bottom: 4px;
+		}
+
 		& .one.round {
 			display: grid;
 			grid-template-columns: 40px 1fr 1fr;
@@ -26,11 +69,28 @@
 			padding: 6px 8px;
 			border-bottom: 1px solid #ebeef5;
 			font-size: 0.85rem;
-			&:last-child { border-bottom: none; }
-			&:nth-child(odd) { background: #f5f7fa; }
-			& .id { color: #909399; }
-			& .black { color: #333; text-align: center; }
-			& .white { color: #666; text-align: center; }
+
+			&:last-child {
+				border-bottom: none;
+			}
+
+			&:nth-child(odd) {
+				background: #f5f7fa;
+			}
+
+			& .id {
+				color: #909399;
+			}
+
+			& .player.action {
+				display: flex;
+				align-items: center;
+				gap: 6px;
+			}
+
+			& .piece {
+				--piece-size: 14px;
+			}
 		}
 	}
 
@@ -59,19 +119,22 @@
 				z-index: 5;
 				cursor: pointer;
 			}
-			&.targetable.black:hover::after { background-color: black; }
-			&.targetable.white:hover::after { background-color: white; }
+
+			&.targetable.black:hover::after {
+				background-color: black;
+			}
+
+			&.targetable.white:hover::after {
+				background-color: white;
+			}
 		}
 
+		/* 棋盘内的棋子：覆盖尺寸并添加交互样式 */
 		& .piece {
 			width: 90%;
 			height: 90%;
-			border-radius: 50%;
 			cursor: pointer;
 			box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
-
-			&.black { background-color: #333; }
-			&.white { background-color: #f0f0f0; }
 
 			/* 步数：利用父容器的 flex 居中，同时为红点提供定位基准 */
 			& .order {
@@ -81,10 +144,6 @@
 				z-index: 10;
 				pointer-events: none;
 			}
-
-			/* 黑棋白字，白棋黑字 */
-			&.black .order { color: white; }
-			&.white .order { color: black; }
 		}
 
 		/* 最后落子红点：相对于数字定位 */

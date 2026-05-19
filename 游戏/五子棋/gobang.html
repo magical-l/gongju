@@ -80,7 +80,6 @@
 					</div>
 				</section>
 			</header>
-
 			<article class="main map area , one-row flex items-near-x-center">
 				<section class="board map" v-if="cells.length">
 					<div v-for="cell in cells" :key="cell.position" class="cell" :class="cell.classes" @click="handleCellClick(cell)">
@@ -90,11 +89,18 @@
 					</div>
 				</section>
 			</article>
-
 			<aside class="sidebar at-left">
 				<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 					<summary>本局信息</summary>
-					<span v-if="isGaming" class="game-info">当前玩家: {{ curPlayer.name }}</span>
+					<ul class="group" v-if="isGaming">
+						<li class="one info">先手：<span class="black piece"></span></li>
+					</ul>
+					<ul class="group" v-if="isGaming">
+						<li class="one info">当前：{{ curPlayer.name || '—' }}</li>
+						<li class="one info">回合： <span v-if="currentRound === 0">尚未走棋</span>
+							<span v-else>第 {{ turnHistory.length }} 回合</span>
+						</li>
+					</ul>
 				</details>
 				<details class="record area" data-panel="record" :open="panels.record" @toggle="onPanelToggle">
 					<summary>落子记录</summary>
@@ -105,15 +111,21 @@
 						<el-empty v-if="!turnHistory.length" description="尚未落子"></el-empty>
 						<div v-else class="one round" v-for="turn in turnHistory" :key="turn.id">
 							<span class="id">{{ turn.id }}</span>
-							<span class="black player action">黑 {{ turn.blackMove }}</span>
-							<span class="white player action">白 {{ turn.whiteMove || '—' }}</span>
+							<span class="player action">
+								<span class="black piece"></span>
+								<span class="position">{{ turn.blackMove }}</span>
+							</span>
+							<span class="player action">
+								<span class="white piece"></span>
+								<span class="position">{{ turn.whiteMove || '—' }}</span>
+							</span>
 						</div>
 					</div>
 				</details>
 			</aside>
-			<el-dialog title="游戏结束" v-model="isGameOver" align-center class="result narrow">
+			<el-dialog title="游戏结束" v-model="isGameOver" align-center="" class="result narrow">
 				<div class="outcome win">{{ winner }} 获胜!</div>
-				<template #footer>
+				<template #footer="">
 					<el-button type="primary" @click="restartGame">再来一局</el-button>
 				</template>
 			</el-dialog>
@@ -126,7 +138,7 @@
 				<p class="slogan">赞助一下</p>
 			</section>
 			<section class="copyright">
-				<p>&copy; 2025 工具兽版权所有 All rights reserved.</p>
+				<p>© 2025 工具兽版权所有 All rights reserved.</p>
 			</section>
 			<section class="feedback">
 				<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
