@@ -1,112 +1,115 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>点灯/熄灯游戏 - Lights Out | 在线益智点灯/熄灯游戏</title>
-<meta name="description"
-			content="在线玩经典的点灯/熄灯（Lights On/Out）益智游戏。挑战不同大小的棋盘，通过点击格子和相邻格子来点亮/熄灭所有灯光。提供提示和答案功能。">
-<meta name="keywords"
-			content="点灯游戏, 熄灯游戏, Lights On, Lights Out, 益智游戏, 在线游戏, 逻辑游戏, 休闲游戏, 棋盘游戏">
-<meta name="author" content="工具兽">
-<meta property="og:title" content="点灯/熄灯游戏 - Lights On/Out | 在线益智点灯/熄灯游戏">
-<meta property="og:description"
-			content="在线玩经典的点灯/熄灯（Lights On/Out）益智游戏。挑战不同大小的棋盘，通过点击格子和相邻格子来点亮/熄灭所有灯光。提供提示和答案功能。">
-<meta property="og:type" content="game">
-
-<link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
-<link href="../resources/el-plus.css" rel="stylesheet">
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>点灯/熄灯游戏 - Lights Out | 在线益智点灯/熄灯游戏</title>
+	<meta name="description" content="在线玩经典的点灯/熄灯（Lights On/Out）益智游戏。挑战不同大小的棋盘，通过点击格子和相邻格子来点亮/熄灭所有灯光。提供提示和答案功能。">
+	<meta name="keywords" content="点灯游戏, 熄灯游戏, Lights On, Lights Out, 益智游戏, 在线游戏, 逻辑游戏, 休闲游戏, 棋盘游戏">
+	<meta name="author" content="工具兽">
+	<meta property="og:title" content="点灯/熄灯游戏 - Lights On/Out | 在线益智点灯/熄灯游戏">
+	<meta property="og:description" content="在线玩经典的点灯/熄灯（Lights On/Out）益智游戏。挑战不同大小的棋盘，通过点击格子和相邻格子来点亮/熄灭所有灯光。提供提示和答案功能。">
+	<meta property="og:type" content="game">
+	<link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
+	<link href="../resources/el-plus.css" rel="stylesheet">
 	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/common.css" rel="stylesheet"> -->
 	<link href="../lib/css/common.css" rel="stylesheet">
 	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/layout.css" rel="stylesheet"> -->
 	<link href="../lib/css/layout.css" rel="stylesheet">
-<link href="../resources/biz.css?v=250821" rel="stylesheet">
+	<link href="../resources/biz.css?v=250821" rel="stylesheet">
 	<link href="game.css" rel="stylesheet">
 	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/花活.css" rel="stylesheet"> -->
 	<link href="../lib/css/花活.css" rel="stylesheet">
-<style>
-	.game {
-		& .board.map {
-			--cell-size: min(calc((100vh - 250px - var(--board-rows) * 10px) / var(--board-rows)),
-							calc((100vw - 200px - var(--board-cols) * 10px) / var(--board-cols)),
-							80px);
-			gap: 0;
-			grid-template-columns: repeat(var(--board-cols), var(--cell-size));
-			grid-template-rows: repeat(var(--board-rows), var(--cell-size));
-		}
-
-		& .cell {
-			/* 格子被照亮时的背景 */
-			&.has-light {
-				background: radial-gradient(circle at center,
-					#fff 0%,
-					#fffacd 50%,
-					#ffe4b5 100%);
+	<style>
+		.game {
+			& .board.map {
+				--cell-size: min(calc((100vh - 250px - var(--board-rows) * 10px) / var(--board-rows)),
+						calc((100vw - 200px - var(--board-cols) * 10px) / var(--board-cols)),
+						80px);
+				gap: 0;
+				grid-template-columns: repeat(var(--board-cols), var(--cell-size));
+				grid-template-rows: repeat(var(--board-rows), var(--cell-size));
 			}
 
-			/* 提示状态保留在格子层 */
-			&.highlighted {
-				outline: 3px solid #3295ff;
-				outline-offset: -3px;
-			}
-		}
+			& .cell {
+				/* 格子被照亮时的背景 */
+				&.has-light {
+					background: radial-gradient(circle at center,
+							#fff 0%,
+							#fffacd 50%,
+							#ffe4b5 100%);
+				}
 
-		& .unit.light {
-			width: 50%;
-			height: 50%;
-			cursor: pointer;
-			transition: all 0.2s;
-			position: relative;
-
-			&:hover { scale: 1.1; }
-
-			/* SVG 灯泡基础样式 */
-			svg {
-				width: 100%;
-				height: 100%;
-				stroke-linecap: round;
-				stroke-linejoin: round;
+				/* 提示状态保留在格子层 */
+				&.highlighted {
+					outline: 3px solid #3295ff;
+					outline-offset: -3px;
+				}
 			}
 
-			/* 灯灭状态 */
-			&.off svg {
-				fill: none;
-				stroke: #888;
-			}
+			& .light.unit {
+				width: 50%;
+				height: 50%;
+				cursor: pointer;
+				transition: all 0.2s;
+				position: relative;
 
-			/* 灯亮状态 */
-			&.on {
+				&:hover {
+					scale: 1.1;
+				}
+
+				/* SVG 灯泡基础样式 */
 				& svg {
+					width: 100%;
+					height: 100%;
+					stroke-linecap: round;
+					stroke-linejoin: round;
+				}
+
+				/* 灯灭状态 */
+				&.off svg {
+					fill: none;
+					stroke: #888;
+				}
+				/* 灯亮状态 */
+				&.on svg {
 					fill: #ffd700;
 					stroke: #ffa500;
 				}
-
 				/* 光晕溢出效果 */
-				&::before {
+				&.on::before {
 					content: '';
 					position: absolute;
 					inset: -100%;
 					background: radial-gradient(circle,
-						rgba(255,215,0,0.25) 0%,
-						rgba(255,228,181,0.15) 40%,
-						transparent 70%);
+							rgba(255, 215, 0, 0.25) 0%,
+							rgba(255, 228, 181, 0.15) 40%,
+							transparent 70%);
 					z-index: 0;
 				}
 			}
-		}
 
-		& .record.area {
-			& > .tip {
-				font-size: 0.8rem; color: #606266;
+			& .record.area {
+				&>.tip {
+					font-size: 0.8rem;
+					color: #606266;
 
-				&.at-top { margin: 0; color: var(--el-color-warning); }
-				&.at-bottom { color: var(--el-color-success); margin-top: 6px; }
-			}
-			& > .round.list {
-				min-height: 100px;
-				max-height: 330px;
-				overflow-y: auto;
-			}
+					&.at-top {
+						margin: 0;
+						color: var(--el-color-warning);
+					}
+
+					&.at-bottom {
+						color: var(--el-color-success);
+						margin-top: 6px;
+					}
+				}
+
+				&>.round.list {
+					min-height: 100px;
+					max-height: 330px;
+					overflow-y: auto;
+				}
 			}
 		}
 
@@ -115,475 +118,467 @@
 				font-size: 2rem;
 			}
 		}
-	}
-</style>
+
+	</style>
 </head>
 <body class="grid 反叵字形">
-<header>
-	<h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
-	<nav>
-		<div class="nav-row">
-			<a href="../文本转化.html">文本转化</a>
-			<a href="../数字转化.html">数字转化</a>
-			<a href="../符号/符号.html">符号</a>
-			<a href="../格子盘.html">格子盘</a>
-			<a href="../svg转图标.html">SVG转图标</a>
-			<a href="../化学/元素周期表.html">元素周期表</a>
-			<a href="../拼音/拼音.html">拼音</a>
-		</div>
-		<div class="nav-row">
-			<a href="中国象棋/中国象棋.html">中国象棋</a>
-			<a href="五子棋/gobang.html">五子棋</a>
-			<a href="俄罗斯方块.html">俄罗斯方块</a>
-			<a href="贪吃蛇.html">贪吃蛇</a>
-			<a href="2048/2048.html">2048</a>
-			<a href="2048蛇/2048蛇.html">2048蛇</a>
-			<a href="2048方块/2048方块.html">2048方块</a>
-			<a href="点灯.html" class="active">点灯</a>
-			<a href="数字华容道.html">数字华容道</a>
-			<a href="星连星/星连星.html">星连星</a>
-		</div>
-	</nav>
-</header>
-<main class="game">
 	<header>
-		<h2 class="game name">点灯游戏</h2>
-		<div class="page-lv help area" v-cloak>
-			<el-button title="游戏介绍" class="page-lv help btn" size="small" circle @click="introVisible = true">?
-			</el-button>
-			<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
-				<p>欢迎来到"熄灯游戏"（Lights Out），这是一款经典的益智游戏，由 Tiger Electronics 在 1995 年推出。</p>
-				<p>游戏的目标非常简单：通过点击格子，将棋盘上所有的灯光都点亮/熄灭（变成蓝色）。</p>
-				<p>游戏的规则是：点击任意一个格子，该格子以及其上下左右相邻的格子都会切换状态（亮变灭，灭变亮）。您需要巧妙地选择点击的顺序和位置，才能最终让所有灯光都点亮/熄灭。
-				</p>
-				<p>您可以选择不同大小的棋盘（例如 3x3、5x5、7x7 等）来挑战自己。游戏还提供了"提示"和"答案"功能，帮助您在遇到困难时找到解决方案。祝您玩得愉快！
-				</p>
-			</el-dialog>
-		</div>
+		<h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
+		<nav>
+			<div class="nav-row">
+				<a href="../文本转化.html">文本转化</a>
+				<a href="../数字转化.html">数字转化</a>
+				<a href="../符号/符号.html">符号</a>
+				<a href="../格子盘.html">格子盘</a>
+				<a href="../svg转图标.html">SVG转图标</a>
+				<a href="../化学/元素周期表.html">元素周期表</a>
+				<a href="../拼音/拼音.html">拼音</a>
+			</div>
+			<div class="nav-row">
+				<a href="中国象棋/中国象棋.html">中国象棋</a>
+				<a href="五子棋/gobang.html">五子棋</a>
+				<a href="俄罗斯方块.html">俄罗斯方块</a>
+				<a href="贪吃蛇.html">贪吃蛇</a>
+				<a href="2048/2048.html">2048</a>
+				<a href="2048蛇/2048蛇.html">2048蛇</a>
+				<a href="2048方块/2048方块.html">2048方块</a>
+				<a href="点灯.html" class="active">点灯</a>
+				<a href="数字华容道.html">数字华容道</a>
+				<a href="星连星/星连星.html">星连星</a>
+			</div>
+		</nav>
 	</header>
-
-	<article class="gaming area , 叵字形 grid" v-cloak>
-		<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
-			<section class="setting list , flex single-line no-gap items-near-x-start items-near-y-center">
-				<div class="one setting group">
-					<el-form-item label="行" class="one setting : rows">
-						<el-select v-model="boardRows">
-							<el-option v-for="r in rowOptions" :key="r" :label="r" :value="r"/>
-						</el-select>
-					</el-form-item>
-					<el-form-item label="列" class="one setting : cols">
-						<el-select v-model="boardCols">
-							<el-option v-for="c in colOptions" :key="c" :label="c" :value="c"/>
-						</el-select>
-					</el-form-item>
-				</div>
-				<div class="one setting group">
-					<el-button class="one setting : new-game" :type="moveCount > 0 ? 'danger' : 'primary'" icon="RefreshRight" @click="initGame">新局
-					</el-button>
-				</div>
-			</section>
-			<section class="tool list , flex single-line no-gap items-near-x-start items-near-y-center">
-				<div class="one tool group">
-					<el-button-group>
-						<el-button class="one tool : hint" :type="hintCellIndex !== null ? 'primary' : 'default'" icon="MagicStick" @click="showRandomHint">提示
-						</el-button>
-						<el-button class="one tool : answer" icon="Key" @click="showAnswer">答案</el-button>
-					</el-button-group>
-				</div>
-			</section>
+	<main class="game">
+		<header>
+			<h2 class="game name">点灯游戏</h2>
+			<div class="page-lv help area" v-cloak>
+				<el-button title="游戏介绍" class="page-lv help btn" size="small" circle @click="introVisible = true">?
+				</el-button>
+				<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
+					<p>欢迎来到"熄灯游戏"（Lights Out），这是一款经典的益智游戏，由 Tiger Electronics 在 1995 年推出。</p>
+					<p>游戏的目标非常简单：通过点击格子，将棋盘上所有的灯光都点亮/熄灭（变成蓝色）。</p>
+					<p>游戏的规则是：点击任意一个格子，该格子以及其上下左右相邻的格子都会切换状态（亮变灭，灭变亮）。您需要巧妙地选择点击的顺序和位置，才能最终让所有灯光都点亮/熄灭。
+					</p>
+					<p>您可以选择不同大小的棋盘（例如 3x3、5x5、7x7 等）来挑战自己。游戏还提供了"提示"和"答案"功能，帮助您在遇到困难时找到解决方案。祝您玩得愉快！
+					</p>
+				</el-dialog>
+			</div>
 		</header>
-
-		<section class="board , main map , grid" :style="{ '--board-cols': gameBoardCols, '--board-rows': gameBoardRows }">
-			<template v-for="(row, rowIndex) in board" :key="rowIndex">
-				<div class="cell" :class="cellClass(rowIndex, colIndex).cell" v-for="(cell, colIndex) in row" :key="colIndex"  @click="handleCellClick(rowIndex, colIndex)">
-					<div class="unit light" :class="cellClass(rowIndex, colIndex).unit">
-						<svg viewBox="0 0 24 24" stroke-width="1.5">
-							<path d="M9 21h6"/>
-							<path d="M12 3a6 6 0 0 0-6 6c0 2.5 2 4.5 2 6.5V17h8v-1.5c0-2 2-4 2-6.5a6 6 0 0 0-6-6z"/>
-						</svg>
+		<article class="gaming area , 叵字形 grid" v-cloak>
+			<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
+				<section class="setting list , flex single-line no-gap items-near-x-start items-near-y-center">
+					<div class="one setting group">
+						<el-form-item label="行" class="one setting : rows">
+							<el-select v-model="boardRows">
+								<el-option v-for="r in rowOptions" :key="r" :label="r" :value="r">
+								</el-option></el-select>
+						</el-form-item>
+						<el-form-item label="列" class="one setting : cols">
+							<el-select v-model="boardCols">
+								<el-option v-for="c in colOptions" :key="c" :label="c" :value="c">
+								</el-option></el-select>
+						</el-form-item>
 					</div>
-				</div>
-			</template>
-		</section>
+					<div class="one setting group">
+						<el-button class="one setting : new-game" :type="moveCount > 0 ? 'danger' : 'primary'" icon="RefreshRight" @click="initGame">新局
+						</el-button>
+					</div>
+				</section>
+				<section class="tool list , flex single-line no-gap items-near-x-start items-near-y-center">
+					<div class="one tool group">
+						<el-button-group>
+							<el-button class="one tool : hint" :type="hintCellIndex !== null ? 'primary' : 'default'" icon="MagicStick" @click="showRandomHint">提示
+							</el-button>
+							<el-button class="one tool : answer" icon="Key" @click="showAnswer">答案</el-button>
+						</el-button-group>
+					</div>
+				</section>
+			</header>
+			<section class="board , main map , grid" :style="{ '--board-cols': gameBoardCols, '--board-rows': gameBoardRows }">
+				<template v-for="(row, rowIndex) in board" :key="rowIndex">
+					<div class="cell" :class="cellClass(rowIndex, colIndex).cell" v-for="(cell, colIndex) in row" :key="colIndex" @click="handleCellClick(rowIndex, colIndex)">
+						<div class="unit light" :class="cellClass(rowIndex, colIndex).unit">
+							<svg viewBox="0 0 24 24" stroke-width="1.5">
+								<path d="M9 21h6"></path>
+								<path d="M12 3a6 6 0 0 0-6 6c0 2.5 2 4.5 2 6.5V17h8v-1.5c0-2 2-4 2-6.5a6 6 0 0 0-6-6z"></path>
+							</svg>
+						</div>
+					</div>
+				</template>
+			</section>
+			<aside class="sidebar at-left">
+				<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
+					<summary>本局信息</summary>
+					<el-card header="移动次数" class="scoreboard" body-class="score" shadow="never">
+						{{ moveCount }}
+					</el-card>
+				</details>
+				<details class="record area" data-panel="record" :open="panels.record" @toggle="onPanelToggle">
+					<summary>回合记录</summary>
+					<div class="op area">
+						<el-button size="small" icon="Download" :disabled="!rounds.length" @click="exportRounds">导出
+						</el-button>
+					</div>
+					<ol class="round list">
+						<el-empty v-if="!rounds.length" description="尚无记录。请开始吧！"></el-empty>
+						<template v-else>
+							<li class="one round" v-for="(round, roundI) in rounds" :class="{ last: roundI === rounds.length - 1 }">第{{round.row}}行, 第{{round.col}}列</li>
+						</template>
+					</ol>
+				</details>
+			</aside>
+			<!-- 结算弹窗 -->
+			<el-dialog title="恭喜过关" class="result narrow" v-model="showWinModal" :show-close="true" align-center>
+				<div class="stats">您总共使用了 {{ moveCount }} 步。</div>
+				<template #footer>
+					<el-button type="primary" size="large" icon="RefreshRight" @click="closeWinAndNew">新局</el-button>
+					<el-button type="info" size="large" icon="Download" @click="exportRounds">导出回合记录</el-button>
+					<el-button type="warning" size="large" @click="closeWinModal">关闭</el-button>
+				</template>
+			</el-dialog>
+			<!-- 彩纸效果 -->
+			<div class="fullscreen non-interactive top-layer" v-if="showWinModal">
+				<div class="confetti-piece" v-for="i in 150" :key="'confetti'+i"></div>
+			</div>
+		</article>
+	</main>
+	<aside class="sidebar at-right">
+		<article class="website info">
+			<section class="patronage area">
+				<img title="赞助一下" class="qr-code" alt="支付宝收款码" src="../resources/支付宝收款码.jpg">
+				<p class="slogan">赞助一下</p>
+			</section>
+			<section class="copyright">
+				<p>© 2025 工具兽版权所有 All rights reserved.</p>
+			</section>
+			<section class="feedback">
+				<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+			</section>
+		</article>
+	</aside>
+	<div class="js container">
+		<script src="../lib/vue/3.5.18/vue.global.js"></script>
+		<script src="../lib/element-plus/2.10.7/index.full.js"></script>
+		<script src="../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
+	</div>
+	<script>
+		const {
+			createApp
+		} = Vue;
 
-		<aside class="sidebar at-left">
-			<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
-				<summary>本局信息</summary>
-				<el-card header="移动次数" class="scoreboard" body-class="score" shadow="never">
-					{{ moveCount }}
-				</el-card>
-			</details>
-			<details class="record area" data-panel="record" :open="panels.record" @toggle="onPanelToggle">
-				<summary>回合记录</summary>
-				<div class="op area">
-					<el-button :disabled="!rounds.length" icon="Download" size="small" @click="exportRounds">导出
-					</el-button>
-				</div>
-				<ol class="round list">
-					<el-empty v-if="!rounds.length" description="尚无记录。请开始吧！"></el-empty>
-					<template v-else>
-						<li class="one round" v-for="(round, roundI) in rounds" :class="{ last: roundI === rounds.length - 1 }">第{{round.row}}行, 第{{round.col}}列</li>
-					</template>
-				</ol>
-			</details>
-		</aside>
-		<!-- 结算弹窗 -->
-		<el-dialog v-model="showWinModal" class="result narrow" title="恭喜过关" :show-close="true" align-center>
-			<div class="stats">您总共使用了 {{ moveCount }} 步。</div>
-			<template #footer>
-				<el-button type="primary" size="large" icon="RefreshRight" @click="closeWinAndNew">新局</el-button>
-				<el-button type="info" size="large" icon="Download" @click="exportRounds">导出回合记录</el-button>
-				<el-button type="warning" size="large" @click="closeWinModal">关闭</el-button>
-			</template>
-		</el-dialog>
-		<!-- 彩纸效果 -->
-		<div class="fullscreen non-interactive top-layer" v-if="showWinModal">
-			<div class="confetti-piece" v-for="i in 150" :key="'confetti'+i"></div>
-		</div>
-	</article>
-</main>
-
-<aside class="sidebar at-right">
-	<article class="website info">
-		<section class="patronage area">
-			<img title="赞助一下" class="qr-code" alt="支付宝收款码" src="../resources/支付宝收款码.jpg">
-			<p class="slogan">赞助一下</p>
-		</section>
-		<section class="copyright"><p>© 2025 工具兽版权所有 All rights reserved.</p></section>
-		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
-		</section>
-	</article>
-</aside>
-
-<div class="js container">
-	<script src="../lib/vue/3.5.18/vue.global.js"></script>
-	<script src="../lib/element-plus/2.10.7/index.full.js"></script>
-	<script src="../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
-</div>
-<script>
-	const {createApp} = Vue;
-
-	function solveLightsOut(board) {
-		const rows = board.length;
-		if (rows === 0) {
-			return null;
-		}
-		const cols = board[0].length;
-		const n = rows * cols;
-
-		const A = Array(n).fill(0).map(() => Array(n).fill(0));
-		for (let r = 0; r < rows; r++) {
-			for (let c = 0; c < cols; c++) {
-				const idx = r * cols + c;
-				A[idx][idx] = 1;
-				if (r > 0) {
-					A[idx - cols][idx] = 1;
-				}
-				if (r < rows - 1) {
-					A[idx + cols][idx] = 1;
-				}
-				if (c > 0) {
-					A[idx - 1][idx] = 1;
-				}
-				if (c < cols - 1) {
-					A[idx + 1][idx] = 1;
-				}
-			}
-		}
-
-		const b = board.flat().map(light => light ? 0 : 1);
-
-		const M = A.map((row, i) => [...row, b[i]]);
-		let rank = 0;
-		const pivots = [];
-
-		for (let j = 0; j < n && rank < n; j++) {
-			let pivotRow = rank;
-			while (pivotRow < n && M[pivotRow][j] === 0) {
-				pivotRow++;
-			}
-
-			if (pivotRow < n) {
-				[M[rank], M[pivotRow]] = [M[pivotRow], M[rank]];
-				const pivot = M[rank];
-				for (let i = 0; i < n; i++) {
-					if (i !== rank && M[i][j] === 1) {
-						for (let k = j; k <= n; k++) {
-							M[i][k] ^= pivot[k];
-						}
-					}
-				}
-				pivots[j] = rank;
-				rank++;
-			}
-		}
-
-		for (let i = rank; i < n; i++) {
-			if (M[i][n] === 1) {
+		function solveLightsOut(board) {
+			const rows = board.length;
+			if (rows === 0) {
 				return null;
 			}
-		}
-
-		const solution = Array(n).fill(0);
-		for (let j = n - 1; j >= 0; j--) {
-			if (pivots[j] !== undefined) {
-				const pivotRow = pivots[j];
-				let val = M[pivotRow][n];
-				for (let k = j + 1; k < n; k++) {
-					val ^= M[pivotRow][k] * solution[k];
-				}
-				solution[j] = val;
-			} else {
-				solution[j] = 0;
-			}
-		}
-
-		return solution;
-	}
-
-	const app = createApp({
-		data() {
-			const panelKey = 'light-panels';
-			const defaultPanels = {info: true, record: false};
-			let saved;
-			try { saved = JSON.parse(localStorage.getItem(panelKey) || 'null'); } catch (_) { saved = null; }
-			return {
-				rowOptions: [2, 3, 4, 5, 6, 7, 8, 9],
-				colOptions: [2, 3, 4, 5, 6, 7, 8, 9],
-				boardRows: 2,
-				boardCols: 2,
-				gameBoardRows: 2,
-				gameBoardCols: 2,
-				board: [],
-				rounds: [],
-				highlightedCells: [],
-				hintCellIndex: null,
-				showWinModal: false,
-				panels: saved || defaultPanels,
-				_panelKey: panelKey,
-				_defaultPanels: {...defaultPanels},
-			};
-		},
-		computed: {
-			isWin() {
-				if (!this.board || this.board.length === 0) {
-					return false;
-				}
-				return this.board.flat().every(cell => cell === true);
-			},
-			moveCount() {
-				return this.rounds.length;
-			},
-		},
-		watch: {
-			isWin(isWin) {
-				if (isWin) {
-					this.showWinModal = true;
-				}
-			},
-			rounds: {
-				handler() {
-					this.$nextTick(() => {
-						const el = this.$refs.roundList;
-						if (el) {
-							el.scrollTop = el.scrollHeight;
-						}
-					});
-				},
-				deep: true,
-			},
-		},
-		methods: {
-			onPanelToggle(e) {
-				// 同步浏览器已改变的open状态到panels
-				const name = e && e.target && e.target.dataset.panel;
-				if (name) { this.panels[name] = e.target.open; }
-				// 保存状态
-				try {
-					if (JSON.stringify(this.panels) === JSON.stringify(this._defaultPanels)) {
-						localStorage.removeItem(this._panelKey);
-					} else {
-						localStorage.setItem(this._panelKey, JSON.stringify(this.panels));
+			const cols = board[0].length;
+			const n = rows * cols;
+			const A = Array(n).fill(0).map(() => Array(n).fill(0));
+			for (let r = 0; r < rows; r++) {
+				for (let c = 0; c < cols; c++) {
+					const idx = r * cols + c;
+					A[idx][idx] = 1;
+					if (r > 0) {
+						A[idx - cols][idx] = 1;
 					}
-				} catch (_) {}
-			},
-			cellClass(row, col) {
-				const index = row * this.gameBoardCols + col;
-				const isOn = this.board[row][col];
-				const isHighlighted = this.highlightedCells[index];
+					if (r < rows - 1) {
+						A[idx + cols][idx] = 1;
+					}
+					if (c > 0) {
+						A[idx - 1][idx] = 1;
+					}
+					if (c < cols - 1) {
+						A[idx + 1][idx] = 1;
+					}
+				}
+			}
+			const b = board.flat().map(light => light ? 0 : 1);
+			const M = A.map((row, i) => [...row, b[i]]);
+			let rank = 0;
+			const pivots = [];
+			for (let j = 0; j < n && rank < n; j++) {
+				let pivotRow = rank;
+				while (pivotRow < n && M[pivotRow][j] === 0) {
+					pivotRow++;
+				}
+				if (pivotRow < n) {
+					[M[rank], M[pivotRow]] = [M[pivotRow], M[rank]];
+					const pivot = M[rank];
+					for (let i = 0; i < n; i++) {
+						if (i !== rank && M[i][j] === 1) {
+							for (let k = j; k <= n; k++) {
+								M[i][k] ^= pivot[k];
+							}
+						}
+					}
+					pivots[j] = rank;
+					rank++;
+				}
+			}
+			for (let i = rank; i < n; i++) {
+				if (M[i][n] === 1) {
+					return null;
+				}
+			}
+			const solution = Array(n).fill(0);
+			for (let j = n - 1; j >= 0; j--) {
+				if (pivots[j] !== undefined) {
+					const pivotRow = pivots[j];
+					let val = M[pivotRow][n];
+					for (let k = j + 1; k < n; k++) {
+						val ^= M[pivotRow][k] * solution[k];
+					}
+					solution[j] = val;
+				} else {
+					solution[j] = 0;
+				}
+			}
+			return solution;
+		}
+		const app = createApp({
+			data() {
+				const panelKey = 'light-panels';
+				const defaultPanels = {
+					info: true,
+					record: false
+				};
+				let saved;
+				try {
+					saved = JSON.parse(localStorage.getItem(panelKey) || 'null');
+				} catch (_) {
+					saved = null;
+				}
 				return {
-					cell: {
-						'has-light': isOn,
-						highlighted: isHighlighted
+					rowOptions: [2, 3, 4, 5, 6, 7, 8, 9],
+					colOptions: [2, 3, 4, 5, 6, 7, 8, 9],
+					boardRows: 2,
+					boardCols: 2,
+					gameBoardRows: 2,
+					gameBoardCols: 2,
+					board: [],
+					rounds: [],
+					highlightedCells: [],
+					hintCellIndex: null,
+					showWinModal: false,
+					panels: saved || defaultPanels,
+					_panelKey: panelKey,
+					_defaultPanels: {
+						...defaultPanels
 					},
-					unit: [isOn ? 'on' : 'off']
 				};
 			},
-			initGame() {
-				this.gameBoardRows = this.boardRows;
-				this.gameBoardCols = this.boardCols;
-				this.rounds = [];
-				this.board = Array(this.gameBoardRows).fill(0).map(() => Array(this.gameBoardCols).fill(false));
-				this.highlightedCells = Array(this.gameBoardRows * this.gameBoardCols).fill(false);
-				this.hintCellIndex = null;
+			computed: {
+				isWin() {
+					if (!this.board || this.board.length === 0) {
+						return false;
+					}
+					return this.board.flat().every(cell => cell === true);
+				},
+				moveCount() {
+					return this.rounds.length;
+				},
 			},
-			closeWinModal() {
-				this.showWinModal = false;
+			watch: {
+				isWin(isWin) {
+					if (isWin) {
+						this.showWinModal = true;
+					}
+				},
+				rounds: {
+					handler() {
+						this.$nextTick(() => {
+							const el = this.$refs.roundList;
+							if (el) {
+								el.scrollTop = el.scrollHeight;
+							}
+						});
+					},
+					deep: true,
+				},
 			},
-			closeWinAndNew() {
-				this.showWinModal = false;
-				this.initGame();
-			},
-			toggleCellState(row, col) {
-				if (this.board[row] && this.board[row][col] !== undefined) {
-					this.board[row][col] = !this.board[row][col];
-				}
-			},
-			handleCellClick(row, col) {
-				if (this.isWin) {
-					return;
-				}
-				this.toggleCellState(row, col);
-				if (row > 0) {
-					this.toggleCellState(row - 1, col);
-				}
-				if (row < this.gameBoardRows - 1) {
-					this.toggleCellState(row + 1, col);
-				}
-				if (col > 0) {
-					this.toggleCellState(row, col - 1);
-				}
-				if (col < this.gameBoardCols - 1) {
-					this.toggleCellState(row, col + 1);
-				}
-				this.rounds.push({row: row + 1, col: col + 1});
-			},
-			showRandomHint() {
-				if (this.isWin) {
-					this.$message.success('已经赢了，无需提示！');
-					return;
-				}
-				if (this.hintCellIndex !== null) {
+			methods: {
+				onPanelToggle(e) {
+					// 同步浏览器已改变的open状态到panels
+					const name = e && e.target && e.target.dataset.panel;
+					if (name) {
+						this.panels[name] = e.target.open;
+					}
+					// 保存状态
+					try {
+						if (JSON.stringify(this.panels) === JSON.stringify(this._defaultPanels)) {
+							localStorage.removeItem(this._panelKey);
+						} else {
+							localStorage.setItem(this._panelKey, JSON.stringify(this.panels));
+						}
+					} catch (_) {}
+				},
+				cellClass(row, col) {
+					const index = row * this.gameBoardCols + col;
+					const isOn = this.board[row][col];
+					const isHighlighted = this.highlightedCells[index];
+					return {
+						cell: {
+							'has-light': isOn,
+							highlighted: isHighlighted
+						},
+						unit: [isOn ? 'on' : 'off']
+					};
+				},
+				initGame() {
+					this.gameBoardRows = this.boardRows;
+					this.gameBoardCols = this.boardCols;
+					this.rounds = [];
+					this.board = Array(this.gameBoardRows).fill(0).map(() => Array(this.gameBoardCols).fill(false));
 					this.highlightedCells = Array(this.gameBoardRows * this.gameBoardCols).fill(false);
 					this.hintCellIndex = null;
-					return;
-				}
-
-				const solution = solveLightsOut(this.board);
-
-				if (!solution) {
-					this.$message.error('当前局面无解！请新局或重来。');
-					this.highlightedCells = Array(this.gameBoardRows * this.gameBoardCols).fill(false);
-					return;
-				}
-
-				const solutionPresses = [];
-				solution.forEach((press, index) => {
-					if (press === 1) {
-						solutionPresses.push(index);
+				},
+				closeWinModal() {
+					this.showWinModal = false;
+				},
+				closeWinAndNew() {
+					this.showWinModal = false;
+					this.initGame();
+				},
+				toggleCellState(row, col) {
+					if (this.board[row] && this.board[row][col] !== undefined) {
+						this.board[row][col] = !this.board[row][col];
 					}
-				});
-
-				if (solutionPresses.length === 0) {
-					this.$message.info('看起来已经完成了。');
-					this.highlightedCells = Array(this.gameBoardRows * this.gameBoardCols).fill(false);
-					return;
-				}
-
-				const randomIndex = Math.floor(Math.random() * solutionPresses.length);
-				const hintIndex = solutionPresses[randomIndex];
-
-				const newHighlights = Array(this.gameBoardRows * this.gameBoardCols).fill(false);
-				newHighlights[hintIndex] = true;
-				this.highlightedCells = newHighlights;
-				this.hintCellIndex = hintIndex;
+				},
+				handleCellClick(row, col) {
+					if (this.isWin) {
+						return;
+					}
+					this.toggleCellState(row, col);
+					if (row > 0) {
+						this.toggleCellState(row - 1, col);
+					}
+					if (row < this.gameBoardRows - 1) {
+						this.toggleCellState(row + 1, col);
+					}
+					if (col > 0) {
+						this.toggleCellState(row, col - 1);
+					}
+					if (col < this.gameBoardCols - 1) {
+						this.toggleCellState(row, col + 1);
+					}
+					this.rounds.push({
+						row: row + 1,
+						col: col + 1
+					});
+				},
+				showRandomHint() {
+					if (this.isWin) {
+						this.$message.success('已经赢了，无需提示！');
+						return;
+					}
+					if (this.hintCellIndex !== null) {
+						this.highlightedCells = Array(this.gameBoardRows * this.gameBoardCols).fill(false);
+						this.hintCellIndex = null;
+						return;
+					}
+					const solution = solveLightsOut(this.board);
+					if (!solution) {
+						this.$message.error('当前局面无解！请新局或重来。');
+						this.highlightedCells = Array(this.gameBoardRows * this.gameBoardCols).fill(false);
+						return;
+					}
+					const solutionPresses = [];
+					solution.forEach((press, index) => {
+						if (press === 1) {
+							solutionPresses.push(index);
+						}
+					});
+					if (solutionPresses.length === 0) {
+						this.$message.info('看起来已经完成了。');
+						this.highlightedCells = Array(this.gameBoardRows * this.gameBoardCols).fill(false);
+						return;
+					}
+					const randomIndex = Math.floor(Math.random() * solutionPresses.length);
+					const hintIndex = solutionPresses[randomIndex];
+					const newHighlights = Array(this.gameBoardRows * this.gameBoardCols).fill(false);
+					newHighlights[hintIndex] = true;
+					this.highlightedCells = newHighlights;
+					this.hintCellIndex = hintIndex;
+				},
+				exportRounds() {
+					if (this.rounds.length === 0) {
+						this.$message.info('没有回合记录可导出');
+						return;
+					}
+					const content = this.rounds.map((round, index) => `${index + 1}：第${round.row}行, 第${round.col}列`).join('\n');
+					const blob = new Blob([content], {
+						type: 'text/plain;charset=utf-8'
+					});
+					const a = document.createElement('a');
+					a.href = URL.createObjectURL(blob);
+					a.download = `点灯游戏-回合记录（${this.gameBoardRows}x${this.gameBoardCols}）.txt`;
+					document.body.appendChild(a);
+					a.click();
+					document.body.removeChild(a);
+					URL.revokeObjectURL(a.href);
+				},
+				showAnswer() {
+					if (this.isWin) {
+						this.$message.success('已经赢了，无需提示！');
+						return;
+					}
+					this.hintCellIndex = null;
+					const solution = solveLightsOut(this.board);
+					if (!solution) {
+						this.$message.error('当前局面无解！请新局或重来。');
+						this.highlightedCells = Array(this.gameBoardRows * this.gameBoardCols).fill(false);
+						return;
+					}
+					const presses = solution.reduce((acc, val) => acc + val, 0);
+					if (presses === 0) {
+						this.$message.info('看起来已经完成了。');
+						this.highlightedCells = Array(this.gameBoardRows * this.gameBoardCols).fill(false);
+						return;
+					}
+					this.$message.info(`建议按 ${presses} 个格子。`);
+					const newHighlights = [];
+					solution.forEach((press, index) => {
+						newHighlights[index] = press === 1;
+					});
+					this.highlightedCells = newHighlights;
+				},
 			},
-			exportRounds() {
-				if (this.rounds.length === 0) {
-					this.$message.info('没有回合记录可导出');
-					return;
-				}
-				const content = this.rounds.map((round, index) => `${index + 1}：第${round.row}行, 第${round.col}列`)
-												.join('\n');
-
-				const blob = new Blob([content], {type: 'text/plain;charset=utf-8'});
-				const a = document.createElement('a');
-				a.href = URL.createObjectURL(blob);
-				a.download = `点灯游戏-回合记录（${this.gameBoardRows}x${this.gameBoardCols}）.txt`;
-				document.body.appendChild(a);
-				a.click();
-				document.body.removeChild(a);
-				URL.revokeObjectURL(a.href);
+			mounted() {
+				this.initGame();
 			},
-			showAnswer() {
-				if (this.isWin) {
-					this.$message.success('已经赢了，无需提示！');
-					return;
-				}
-				this.hintCellIndex = null;
-				const solution = solveLightsOut(this.board);
-
-				if (!solution) {
-					this.$message.error('当前局面无解！请新局或重来。');
-					this.highlightedCells = Array(this.gameBoardRows * this.gameBoardCols).fill(false);
-					return;
-				}
-
-				const presses = solution.reduce((acc, val) => acc + val, 0);
-				if (presses === 0) {
-					this.$message.info('看起来已经完成了。');
-					this.highlightedCells = Array(this.gameBoardRows * this.gameBoardCols).fill(false);
-					return;
-				}
-
-				this.$message.info(`建议按 ${presses} 个格子。`);
-
-				const newHighlights = [];
-				solution.forEach((press, index) => {
-					newHighlights[index] = press === 1;
-				});
-				this.highlightedCells = newHighlights;
+		}).use(ElementPlus);
+		for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+			app.component(key, component);
+		}
+		app.mount('main>article');
+		const help = createApp({
+			data() {
+				return {
+					introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname),
+				};
 			},
-		},
-		mounted() {
-			this.initGame();
-		},
-	})
-	.use(ElementPlus);
-	for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-		app.component(key, component);
-	}
-	app.mount('main>article');
-
-	const help = createApp({
-		data() {
-			return {
-				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname),
-			};
-		},
-		watch: {
-			introVisible(newValue) {
-				const storageKey = 'intro-hidden-' + window.location.pathname;
-				if (!newValue) {
-					localStorage.setItem(storageKey, 'true');
-				} else {
-					localStorage.removeItem(storageKey);
-				}
+			watch: {
+				introVisible(newValue) {
+					const storageKey = 'intro-hidden-' + window.location.pathname;
+					if (!newValue) {
+						localStorage.setItem(storageKey, 'true');
+					} else {
+						localStorage.removeItem(storageKey);
+					}
+				},
 			},
-		},
-	})
-	.use(ElementPlus)
-	.mount('.help.area');
-</script>
+		}).use(ElementPlus).mount('.help.area');
 
-<div class="ad-container">
-	<!-- 谷歌广告联盟 -->
-	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"
-			crossorigin="anonymous"></script>
-	<!-- 展示广告1 -->
-	<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true"
-		data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
-	<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-</div>
+	</script>
+	<div class="ad-container">
+		<!-- 谷歌广告联盟 -->
+		<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789" crossorigin="anonymous"></script>
+		<!-- 展示广告1 -->
+		<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true" data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
+		<script>
+			(adsbygoogle = window.adsbygoogle || []).push({});
+
+		</script>
+	</div>
 </body>
 </html>
