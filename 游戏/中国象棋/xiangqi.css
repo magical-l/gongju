@@ -12,10 +12,6 @@
 	--line-stroke-width: 1px;
 	font-family: "NotoSansSymbols2", sans-serif;
 
-	/* 队色 */
-	& .red { color: var(--red-color); }
-	& .black { color: var(--black-color); }
-
 	/* 走法描述 */
 	& .action.description { color: var(--lv-2-color); }
 

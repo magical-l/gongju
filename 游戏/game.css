@@ -406,10 +406,8 @@
 			box-shadow: var(--piece-shadow);
 		}
 
-		/* ============ 通用语义 ============ */
-		& :not(ol,ul).list {
-			display: flex;
-		}
+		/* ============ 通用业务语义 ============ */
+		
 		/* ====== 操作区：放按钮之类的地方 ====== */
 		& .op.area {
 			display: flex;
@@ -454,56 +452,6 @@
 			font-size: 0.8rem;
 			color: var(--lv-2-color);
 		}
-
-		/* ============ 非语义 ============ */
-		/* ====== 收折卡片的通用/基础样式 ====== */
-		& details {
-			border: 1px solid #ebeef5;
-			border-radius: 4px;
-			margin-bottom: 8px;
-			background: #fff;
-			padding: 12px 16px;
-
-			&:last-of-type { margin-bottom: 0; }
-
-			& summary {
-				font-weight: 600;
-				font-size: 1rem;
-				cursor: pointer;
-				list-style: none;
-				position: relative;
-
-				&::-webkit-details-marker { display: none; }
-				&:focus { outline: none; }
-
-				/* 展开/收起箭头 */
-				&::after {
-					content: '';
-					position: absolute;
-					right: 0;
-					top: 50%;
-					width: 8px;
-					height: 8px;
-					border-right: 2px solid var(--lv-3-color);
-					border-bottom: 2px solid var(--lv-3-color);
-					transform: translateY(-70%) rotate(-45deg);
-					transition: transform 0.2s;
-				}
-			}/* .game details summary */
-
-			&[open] summary::after {
-				transform: translateY(-30%) rotate(45deg);
-			}
-
-			&[open] summary {
-				border-bottom: 1px solid #ebeef5;
-				margin-bottom: 12px;
-			}
-
-			& > section { margin-bottom: 8px; &:last-child { margin-bottom: 0; } }
-			& > h3 { margin: 0 0 4px; font-size: 0.9rem; color: var(--lv-2-color); }
-			& > p { margin: 0; }
-		}/* .game  details */
 
 		/* ====== 遮罩 ====== */
 		/* 后代有遮罩元素时，为遮罩层提供定位基准 */
@@ -552,6 +500,82 @@
 			pointer-events: none;
 			animation: become-bigger-and-transparent var(--callout-duaration) ease-out;
 		}
+
+		/* ====== 列表：任意列表的通用样式 ====== */
+		/* 本身用ol/ul的，随它去 */
+		& :not(ol,ul).list {
+			display: flex;
+		}
+
+		/* ============ 非语义通用 ============ */
+		/* ====== 颜色 ====== */
+		& .red { --color: var(--red-color); }
+		& .black { --color: var(--black-color); }
+		& .white { --color: var(--white-color); }
+		& .blue { --color: var(--blue-color); }
+		& .green { --color: var(--green-color); }
+		& .orange { --color: var(--orange-color); }
+		& .yellow { --color: var(--yellow-color); }
+		& .gold { --color: var(--gold-color); }
+
+		/* 简单使用搭配。例：
+			<div class="red text-color">红色文字</div>
+			<div class="black bg-color">黑色背景</div>
+			<div class="red piece">红棋子</div>
+			一个元素若同时有两个颜色类，--color会以最后一个为准。若要多个颜色，必须分为两层元素。
+			<div class="black bg-color"><div class="red piece">黑色背景红棋子</div></div>
+		*/
+		& .bg-color { background-color: var(--color); }
+		& .text-color { color: var(--color); }
+
+		/* ====== 收折卡片的通用/基础样式 ====== */
+		& details {
+			border: 1px solid #ebeef5;
+			border-radius: 4px;
+			margin-bottom: 8px;
+			background: #fff;
+			padding: 12px 16px;
+
+			&:last-of-type { margin-bottom: 0; }
+
+			& summary {
+				font-weight: 600;
+				font-size: 1rem;
+				cursor: pointer;
+				list-style: none;
+				position: relative;
+
+				&::-webkit-details-marker { display: none; }
+				&:focus { outline: none; }
+
+				/* 展开/收起箭头 */
+				&::after {
+					content: '';
+					position: absolute;
+					right: 0;
+					top: 50%;
+					width: 8px;
+					height: 8px;
+					border-right: 2px solid var(--lv-3-color);
+					border-bottom: 2px solid var(--lv-3-color);
+					transform: translateY(-70%) rotate(-45deg);
+					transition: transform 0.2s;
+				}
+			}/* .game details summary */
+
+			&[open] summary::after {
+				transform: translateY(-30%) rotate(45deg);
+			}
+
+			&[open] summary {
+				border-bottom: 1px solid #ebeef5;
+				margin-bottom: 12px;
+			}
+
+			& > section { margin-bottom: 8px; &:last-child { margin-bottom: 0; } }
+			& > h3 { margin: 0 0 4px; font-size: 0.9rem; color: var(--lv-2-color); }
+			& > p { margin: 0; }
+		}/* .game  details */
 
 		/* ------ 不得不做的杂项 ------ */
 		/* input 元素默认有自己的 font-family，需显式继承，才能使用到.game等处定义的字体 */

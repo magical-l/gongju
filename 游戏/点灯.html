@@ -205,7 +205,7 @@
 				</details>
 			</aside>
 			<!-- 结算弹窗 -->
-			<el-dialog title="恭喜过关" class="result narrow" v-model="showWinModal" :show-close="true" align-center>
+			<el-dialog title="恭喜过关" class="result narrow" v-model="showWinModal" align-center>
 				<p class="stats">您总共使用了 {{ actionCount }} 步。</p>
 				<template #footer>
 					<el-button type="primary" size="large" icon="RefreshRight" @click="closeWinAndNew">新局</el-button>
