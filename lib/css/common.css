@@ -212,6 +212,11 @@ template, .template, .hidden, [v-cloak], .js.container {display: none !important
 }
 
 /* ============ 杂项 ============ */
+svg {
+	/* svg线段端点改为圆头，更柔和 */
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
 /* 有必填项未填的表单加红框 */
 form:has(input:invalid:not(:placeholder-shown)) {
 	border: 2px solid #f56c6c;

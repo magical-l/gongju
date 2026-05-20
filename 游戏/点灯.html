@@ -23,12 +23,8 @@
 	<style>
 		.game {
 			& .board.map {
-				--cell-size: min(calc((100vh - 250px - var(--board-rows) * 10px) / var(--board-rows)),
-						calc((100vw - 200px - var(--board-cols) * 10px) / var(--board-cols)),
-						80px);
-				gap: 0;
-				grid-template-columns: repeat(var(--board-cols), var(--cell-size));
-				grid-template-rows: repeat(var(--board-rows), var(--cell-size));
+				--board-fixed-height: 250px;
+				--board-fixed-width: 200px;
 			}
 
 			& .cell {
@@ -58,24 +54,18 @@
 					scale: 1.1;
 				}
 
-				/* SVG 灯泡基础样式 */
-				& svg {
-					width: 100%;
-					height: 100%;
-					stroke-linecap: round;
-					stroke-linejoin: round;
-				}
-
 				/* 灯灭状态 */
 				&.off svg {
 					fill: none;
 					stroke: #888;
 				}
+
 				/* 灯亮状态 */
 				&.on svg {
-					fill: #ffd700;
+					fill: var(--gold-color);
 					stroke: #ffa500;
 				}
+
 				/* 光晕溢出效果 */
 				&.on::before {
 					content: '';
@@ -90,22 +80,17 @@
 			}
 
 			& .record.area {
-				&>.tip {
-					font-size: 0.8rem;
-					color: var(--lv-2-color);
-
+				& .tip {
 					&.at-top {
-						margin: 0;
-						color: var(--el-color-warning);
+						color: var(--orange-color);
 					}
 
 					&.at-bottom {
-						color: var(--el-color-success);
-						margin-top: 6px;
+						color: var(--green-color);
 					}
 				}
 
-				&>.round.list {
+				& .round.list {
 					min-height: 100px;
 					max-height: 330px;
 					overflow-y: auto;
@@ -200,7 +185,7 @@
 						<div class="unit light" :class="cellClass(rowIndex, colIndex).unit">
 							<svg viewBox="0 0 24 24" stroke-width="1.5">
 								<path d="M9 21h6"></path>
-								<path d="M12 3a6 6 0 0 0-6 6c0 2.5 2 4.5 2 6.5V17h8v-1.5c0-2 2-4 2-6.5a6 6 0 0 0-6-6z"></path>
+								<path d="M12 3a6 6 0 0 0-6 6c0 2.5 2 4.5 2 6.5V17h8v-1.5c0 2 2-4 2-6.5a6 6 0 0 0-6-6z"></path>
 							</svg>
 						</div>
 					</div>
@@ -229,7 +214,7 @@
 			</aside>
 			<!-- 结算弹窗 -->
 			<el-dialog title="恭喜过关" class="result narrow" v-model="showWinModal" :show-close="true" align-center>
-				<div class="stats">您总共使用了 {{ moveCount }} 步。</div>
+				<p class="stats">您总共使用了 {{ moveCount }} 步。</p>
 				<template #footer>
 					<el-button type="primary" size="large" icon="RefreshRight" @click="closeWinAndNew">新局</el-button>
 					<el-button type="info" size="large" icon="Download" @click="exportRounds">导出回合记录</el-button>
