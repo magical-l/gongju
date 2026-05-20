@@ -145,9 +145,12 @@
 			</details>
 			<details class="shortcut list" data-panel="shortcuts" :open="panels.shortcuts" @toggle="onPanelToggle">
 				<summary>快捷键</summary>
-				<p class="one shortcut"><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd>：改变蛇的移动方向（蛇会自动定时移动）</p>
-				<p class="one shortcut"><kbd>空格</kbd>：暂停 / 开始</p>
-				<p class="one shortcut">支持键盘、触屏与鼠标滑动</p>
+				<p class="one shortcut flex"><kbd>↑</kbd><span>向上</span></p>
+				<p class="one shortcut flex"><kbd>↓</kbd><span>向下</span></p>
+				<p class="one shortcut flex"><kbd>←</kbd><span>向左</span></p>
+				<p class="one shortcut flex"><kbd>→</kbd><span>向右</span></p>
+				<p class="one shortcut flex"><kbd>空格</kbd><span>暂停/开始</span></p>
+				<p class="tip">支持键盘、触屏与鼠标滑动</p>
 			</details>
 		</aside>
 		<!-- 结算弹窗 -->

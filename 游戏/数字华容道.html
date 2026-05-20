@@ -24,6 +24,7 @@
 <link href="../lib/css/花活.css" rel="stylesheet">
 <style>
 	.game {
+		--left-sidebar-min-width: 280px;
 		/* 单位：数字方块 */
 		& .unit {
 			font-weight: bold;
@@ -224,8 +225,11 @@
 			</details>
 			<details data-panel="shortcuts" class="shortcut list" :open="panels.shortcuts" @toggle="onPanelToggle">
 				<summary>快捷键</summary>
-				<p class="one shortcut"><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd>：移动与空位相邻的块</p>
-				<p class="one shortcut">点击与空位相邻的块也可移动</p>
+				<p class="one shortcut flex"><kbd>↑</kbd><span>空位下方数字上移</span></p>
+				<p class="one shortcut flex"><kbd>↓</kbd><span>空位上方数字下移</span></p>
+				<p class="one shortcut flex"><kbd>←</kbd><span>空位右侧数字左移</span></p>
+				<p class="one shortcut flex"><kbd>→</kbd><span>空位左侧数字右移</span></p>
+				<p class="one shortcut">* 点击与空位相邻的块也可移动</p>
 			</details>
 		</aside>
 		<!-- 结算弹窗 -->

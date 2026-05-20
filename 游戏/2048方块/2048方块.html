@@ -144,9 +144,12 @@
 			</details>
 			<details class="shortcut list" data-panel="shortcuts" :open="panels.shortcuts" @toggle="onPanelToggle">
 				<summary>快捷键</summary>
-				<p class="one shortcut"><kbd>↑</kbd>旋转，<kbd>↓</kbd>下落一格，<kbd>←</kbd><kbd>→</kbd>左右移动，长滑向一步到底</p>
-				<p class="one shortcut"><kbd>空格</kbd>：暂停 / 开始</p>
-				<p class="one shortcut">支持键盘与触屏滑动</p>
+				<p class="one shortcut flex"><kbd>↑</kbd><span>旋转</span></p>
+				<p class="one shortcut flex"><kbd>↓</kbd><span>下落一格</span></p>
+				<p class="one shortcut flex"><kbd>←</kbd><span>向左</span></p>
+				<p class="one shortcut flex"><kbd>→</kbd><span>向右</span></p>
+				<p class="one shortcut flex"><kbd>空格</kbd><span>暂停/开始</span></p>
+				<p class="tip">支持键盘与触屏滑动</p>
 			</details>
 		</aside>
 		<!-- 结算弹窗 -->
