@@ -435,7 +435,8 @@
 					height: 8px;
 					border-right: 2px solid var(--lv-3-color);
 					border-bottom: 2px solid var(--lv-3-color);
-					transform: translateY(-70%) rotate(-45deg);
+					transform: translateY(-50%) rotate(-45deg);
+					transform-origin: center center;
 					transition: transform 0.2s;
 				}
 
@@ -444,11 +445,10 @@
 			}/* .game details summary */
 
 			&[open] summary::after {
-				transform: translateY(-30%) rotate(45deg);
+				transform: translateY(-50%) rotate(45deg);
 			}
 
 			&[open] summary {
-				border-bottom: 1px solid #ebeef5;
 				margin-bottom: 12px;
 			}
 
