@@ -6,16 +6,9 @@
 	--cell-size: 40px;
 	--board-size: 15;
 
-	/* 棋子基础 */
-	& .piece {
-		width: var(--piece-size, 20px);
-		height: var(--piece-size, 20px);
-		border-radius: 50%;
-		flex-shrink: 0;
-		display: inline-flex;
-	}
+	--left-sidebar-min-width: 280px;
 
-	/* 队色：棋子背景色 */
+	/* 队色：棋子背景色与文字色 */
 	& .black.piece {
 		background-color: #333;
 		color: white;
@@ -27,19 +20,11 @@
 		border: 1px solid #ccc;
 	}
 
-	/* 位置描述基础样式 */
-	& .position {
-		color: var(--lv-2-color);
-	}
-
-	/* 侧边栏宽度 */
-	& .gaming.area {
-		--left-sidebar-min-width: 280px;
-	}
+	& .gaming.info .first.player { --unit-size: 14px; }
 
 	/* 落子记录区 */
 	& .record.area {
-		--piece-size: 14px;
+		--unit-size: 14px;
 	}
 
 	/* ======================== 棋盘 ======================== */
@@ -56,35 +41,32 @@
 		& .cell {
 			border-left: 1px solid var(--line-color);
 			border-top: 1px solid var(--line-color);
+			cursor: default;
 
-			/* 可落子位置预览 */
-			&.targetable:hover::after {
-				content: '';
-				width: 90%;
-				height: 90%;
-				border-radius: 50%;
-				opacity: 0.3;
-				z-index: 5;
+			/* 可落子位置预览棋子 */
+			&.targetable .piece {
+				opacity: 0;
+				pointer-events: none;
+				box-shadow: none;
+			}
+			&.targetable:hover {
+				pointer-events: auto;
 				cursor: pointer;
-			}
-
-			&.targetable.black:hover::after {
-				background-color: black;
-			}
-
-			&.targetable.white:hover::after {
-				background-color: white;
-			}
+				& .piece {
+					opacity: 0.5;
+					
+				}	
+			} 
 		}
 
-		/* 棋盘内的棋子：覆盖尺寸并添加交互样式 */
+		/* 棋盘内的棋子：覆盖尺寸 */
 		& .piece {
 			width: 90%;
 			height: 90%;
-			cursor: pointer;
 			box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+			cursor: default;
 
-			/* 步数：利用父容器的 flex 居中，同时为红点提供定位基准 */
+			/* 步数 */
 			& .order {
 				position: relative;
 				font-size: 0.8em;

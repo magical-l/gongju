@@ -86,18 +86,20 @@
 						<div v-if="cell.unit" class="piece unit" :class="cell.unit.classes">
 							<span class="order">{{ cell.unit.moveNumber }}</span>
 						</div>
-					</div>
-				</section>
-			</article>
-			<aside class="sidebar at-left">
+						<div v-if="cell.previewPiece" class="piece unit" :class="cell.previewPiece"></div>
+						</div>
+					</section>
+				</article>
+				<aside class="sidebar at-left">
 				<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 					<summary>本局信息</summary>
 					<ul class="group" v-if="isGaming">
-						<li class="one info">先手：<span class="black piece"></span></li>
+						<li class="one info : first player">先手：<span class="black piece unit"></span></li>
 					</ul>
 					<ul class="group" v-if="isGaming">
-						<li class="one info">当前：{{ curPlayer.name || '—' }}</li>
-						<li class="one info">回合： <span v-if="currentRound === 0">尚未走棋</span>
+						<li class="one info">当前： {{ curPlayer.name || '—' }}</li>
+						<li class="one info">回合：
+							<span v-if="currentRound === 0">尚未走棋</span>
 							<span v-else>第 {{ turnHistory.length }} 回合</span>
 						</li>
 					</ul>
@@ -112,19 +114,19 @@
 						<li v-else class="one round" v-for="turn in turnHistory" :key="turn.id">
 							<span class="grid">
 								<span class="player action">
-									<span class="black piece"></span>
-									<span class="position">{{ turn.blackMove }}</span>
+									<span class="black piece unit"></span>
+									<span class="position description">{{ turn.blackMove }}</span>
 								</span>
 								<span class="player action">
-									<span class="white piece"></span>
-									<span class="position">{{ turn.whiteMove || '—' }}</span>
+									<span class="white piece unit"></span>
+									<span class="position description">{{ turn.whiteMove || '—' }}</span>
 								</span>
 							</span>
 						</li>
 					</ol>
 				</details>
 			</aside>
-			<el-dialog title="游戏结束" v-model="isGameOver" align-center="" class="result narrow">
+			<el-dialog title="游戏结束" v-model="isGameOver" align-center class="result narrow">
 				<div class="outcome win">{{ winner }} 获胜!</div>
 				<template #footer="">
 					<el-button type="primary" @click="restartGame">再来一局</el-button>
@@ -213,8 +215,9 @@
 								}]
 							} : null,
 							classes: isTargetable ? [color, 'targetable'] : [],
-						};
-					});
+							previewPiece: isTargetable ? [color] : null
+							};
+						});
 				},
 			},
 			methods: {
