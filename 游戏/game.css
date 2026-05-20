@@ -313,6 +313,10 @@
 				border: 1px solid var(--line-color);
 				border-radius: 0;
 
+				/* ====== 空格子 ====== */
+				&.empty {
+					background: transparent;
+				}
 				/* ====== 格子内的状态标记 ====== */
 				& .target.mark {
 					position: absolute;
