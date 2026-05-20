@@ -552,8 +552,6 @@
 				/* ------ 背景 ------ */
 				background: #d4e0c8;
 
-				/* ====== 空格子 ====== */
-				&.empty {background: transparent;}/* 透明：透出棋盘底色 */
 				/* ====== 格子内的状态标记 ====== */
 				& .target.mark {
 					position: absolute;
