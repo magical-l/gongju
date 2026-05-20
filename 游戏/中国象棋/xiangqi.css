@@ -7,8 +7,6 @@
 }
 
 .game {
-	--red-color: #d43d3d;
-	--black-color: #333;
 	--unit-size: 45px;
 	--cell-size: 60px;
 	--line-stroke-width: 1px;

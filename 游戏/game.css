@@ -7,6 +7,14 @@
 		--lv-2-color: #606266;
 		--lv-3-color: #909399;
 
+		/* 颜色名→RGB映射 */
+		--red-color: #d43d3d;
+		--black-color: #333;
+		--white-color: #f0f0f0;
+		--blue-color: #409eff;
+		--green-color: #67c23a;
+		--yellow-color: #e6a23c;
+
 		/* ====== 玩家 ====== */
 		& .player {
 			--player-logo-size: 32px;
