@@ -216,7 +216,7 @@
 						<template v-else-if="solutionSteps.length">已走 {{ moves }}/{{ roundSteps.length }}。</template>
 					</p>
 					<span class="one round" :class="{ current: i === currentStepIndex }" v-for="(val, i) in roundSteps" :key="i">
-						<span class="unit">{{ val }}</span>
+						<div class="unit"><span class="name">{{ val }}</span></div>
 					</span>
 				</div>
 				<p v-if="isWin" class="tip at-bottom">本局已过关</p>
