@@ -31,7 +31,7 @@
 			align-items: center;
 			gap: 0.5rem;
 
-			/* ====== 头像 ====== */
+			/* ====== 头像：使用.logo，跟其他地方一致 ====== */
 			& .logo {
 				width: var(--player-logo-size);
 				height: var(--player-logo-size);
@@ -44,11 +44,7 @@
 				color: var(--lv-1-color);
 				font-weight: 500;
 			}
-			/* ====== 当前玩家 ====== */
-			&.cur {
-				/* 当前行动玩家，具体样式由游戏定义 */
-			}
-			/* ====== 玩家所属队伍 ====== */
+			/* ====== 玩家所属队伍：在玩家信息区内展示队伍信息的基础样式 ====== */
 			& .team {
 				--team-logo-size: 16px;
 				--team-flag-width: 12px;
@@ -406,7 +402,7 @@
 			box-shadow: var(--piece-shadow);
 		}
 
-		/* ============ 通用业务语义 ============ */
+		/* ======================== 通用业务语义 ======================== */
 		
 		/* ====== 操作区：放按钮之类的地方 ====== */
 		& .op.area {
@@ -501,13 +497,19 @@
 			animation: become-bigger-and-transparent var(--callout-duaration) ease-out;
 		}
 
+		/* ====== 当前：适用于任意当前被激活/选中/……的事物 ====== */
+		.cur {
+			/* 目前默认只给一个简单的放大 */
+			scale: 1.1;
+		}
+
 		/* ====== 列表：任意列表的通用样式 ====== */
 		/* 本身用ol/ul的，随它去 */
 		& :not(ol,ul).list {
 			display: flex;
 		}
 
-		/* ============ 非语义通用 ============ */
+		/* ======================== 非业务通用 ======================== */
 		/* ====== 颜色 ====== */
 		& .red { --color: var(--red-color); }
 		& .black { --color: var(--black-color); }
@@ -575,7 +577,7 @@
 			& > section { margin-bottom: 8px; &:last-child { margin-bottom: 0; } }
 			& > h3 { margin: 0 0 4px; font-size: 0.9rem; color: var(--lv-2-color); }
 			& > p { margin: 0; }
-		}/* .game  details */
+		}/* .game details */
 
 		/* ------ 不得不做的杂项 ------ */
 		/* input 元素默认有自己的 font-family，需显式继承，才能使用到.game等处定义的字体 */

@@ -205,7 +205,7 @@
 				</template>
 			</aside>
 			<!-- 将军提示 -->
-			<div class="check callout" v-if="showCheck">将</div>
+			<div class="check callout , red text-color" v-if="showCheck">将</div>
 			<!-- 游戏结束结算界面 -->
 			<el-dialog class="result" title="游戏结束" v-model="isGameOverForRender" align-center="" :show-close="true">
 				<div class="outcome win">{{ winnerName }} 胜利</div>

@@ -39,7 +39,6 @@
 
 		& .cell {
 			border: none;
-			position: relative;
 
 			/* 纹理变量默认值 */
 			--bg-texture: url('棋盘纹理-十字.svg');
@@ -165,7 +164,6 @@
 			}
 		}
 
-
 		/* 功勋区 */
 		& .merit {
 			width: 100%;
@@ -219,7 +217,6 @@
 		& .check {
 			font-size: 120px;
 			font-weight: bold;
-			color: #ffc107;
 			text-shadow: 0 0 15px red, 0 0 25px red;
 		}
 	}/* .gaming.area */
