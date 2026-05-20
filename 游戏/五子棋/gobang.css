@@ -51,11 +51,5 @@
 				& .piece { opacity: 0.5; }
 			}
 		}
-
-		/* 棋盘内的棋子 */
-		& .piece {
-			box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
-			cursor: default;
-		}
 	}
 }

@@ -83,7 +83,7 @@
 			<article class="main map area , one-row flex items-near-x-center">
 				<section class="board map" v-if="cells.length">
 					<div v-for="cell in cells" :key="cell.position" class="cell" :class="cell.classes" @click="handleCellClick(cell)">
-						<div v-if="cell.unit" class="piece unit" :class="cell.unit.classes">
+						<div v-if="cell.unit" class="piece unit non-interactive" :class="cell.unit.classes">
 							<span class="name">{{ cell.unit.moveNumber }}</span>
 						</div>
 						<div v-if="cell.previewPiece" class="piece unit" :class="cell.previewPiece"></div>

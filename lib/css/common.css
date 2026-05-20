@@ -103,7 +103,10 @@ template, .template, .hidden, [v-cloak], .js.container {display: none !important
 }
 
 /* 不可交互（视觉可见，但不响应鼠标事件，让点击穿透到下层） */
-.non-interactive { pointer-events: none; }
+.non-interactive {
+	pointer-events: none;
+	cursor: default;
+}
 
 /* 最高层级（盖在所有元素之上） */
 .top-layer { z-index: 9999; }

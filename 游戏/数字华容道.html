@@ -24,12 +24,6 @@
 <link href="../lib/css/花活.css" rel="stylesheet">
 <style>
 	.game {
-		/* 格子：容器 */
-		& .cell {
-			width: 100%;
-			height: 100%;
-		}
-
 		/* 单位：数字方块 */
 		& .unit {
 			font-weight: bold;
@@ -40,17 +34,9 @@
 		/* 主棋盘 */
 		& .main.board {
 			--board-gap: 6px;
-			--cell-size: 80px;
 			overflow: hidden;
 
-			& .cell {
-				& .unit {
-					position: absolute;
-					inset: 0;
-
-					> .shape.triangle { position: absolute; inset: 0; }
-				}
-			}
+			& .cell .unit > .shape.triangle { position: absolute; inset: 0; }
 		}
 		/* 小棋盘：缩小版主棋盘 */
 		& .mini.board {
