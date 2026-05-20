@@ -698,6 +698,11 @@
 					this.settings.cols = 10;
 					this.settings.rows = 20;
 				},
+				restoreDefaultSize() {
+					this.settings.cols = 10;
+					this.settings.rows = 20;
+					this.startGame();
+				},
 				handleKeydown(event) {
 					if (event.key === ' ') {
 						event.preventDefault();
