@@ -186,8 +186,8 @@
 						<header class="op area">
 							<el-button icon="Download" size="small" :disabled="!turnHistory.length" @click="downloadNotation">导出 </el-button>
 						</header>
-						<ol class="round list">
-							<el-empty v-if="!turnHistory.length" description="尚未走棋"></el-empty>
+						<el-empty v-if="!turnHistory.length" description="尚未走棋"></el-empty>
+						<ol v-else class="round list">
 							<li class="one round" v-for="turn in turnHistory" :key="turn.id">
 								<span class="grid">
 									<span class="player action">

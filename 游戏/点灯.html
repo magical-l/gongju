@@ -204,11 +204,9 @@
 						<el-button size="small" icon="Download" :disabled="!rounds.length" @click="exportRounds">导出
 						</el-button>
 					</div>
-					<ol class="round list">
-						<el-empty v-if="!rounds.length" description="尚无记录。请开始吧！"></el-empty>
-						<template v-else>
-							<li class="one round" v-for="(round, roundI) in rounds" :class="{ last: roundI === rounds.length - 1 }">第{{round.row}}行, 第{{round.col}}列</li>
-						</template>
+					<el-empty v-if="!rounds.length" description="尚无记录。请开始吧！"></el-empty>
+					<ol v-else class="round list">
+						<li class="one round" v-for="(round, roundI) in rounds" :class="{ last: roundI === rounds.length - 1 }">第{{round.row}}行, 第{{round.col}}列</li>
 					</ol>
 				</details>
 			</aside>
