@@ -9,13 +9,13 @@
 
 		/* ====== 玩家 ====== */
 		& .player {
+			--player-logo-size: 32px;
 			display: flex;
 			align-items: center;
 			gap: 0.5rem;
 
 			/* ====== 头像 ====== */
 			& .logo {
-				--player-logo-size: 32px;
 				width: var(--player-logo-size);
 				height: var(--player-logo-size);
 				border-radius: 50%;
@@ -41,13 +41,16 @@
 
 		/* ====== 队伍 ====== */
 		& .team {
+			--team-logo-size: 24px;
+			--team-flag-width: 20px;
+			--team-flag-height: 12px;
+			--team-flag-color: transparent;
 			display: flex;
 			align-items: center;
 			gap: 0.5rem;
 
 			/* ====== 队标 ====== */
 			& .logo {
-				--team-logo-size: 24px;
 				width: var(--team-logo-size);
 				height: var(--team-logo-size);
 				border-radius: 4px;
@@ -61,8 +64,6 @@
 			}
 			/* ====== 旗帜 ====== */
 			& .flag {
-				--team-flag-width: 20px;
-				--team-flag-height: 12px;
 				width: var(--team-flag-width);
 				height: var(--team-flag-height);
 				border-radius: 2px;
@@ -126,9 +127,9 @@
 					font-size: 0.8rem;
 					color: var(--lv-2-color);
 
-					/* ====== 位置变体 ====== */
-					&.at-top { margin: 0; color: var(--el-color-warning); }
-					&.at-bottom { margin-top: 6px; color: var(--el-color-success); }
+					/* 位置变体 */
+					&.at-top { margin: 0; color: #e6a23c; }
+					&.at-bottom { margin-top: 6px; color: #67c23a; }
 				}
 			}
 
@@ -336,9 +337,9 @@
 						&::before { transform: rotate(45deg); }
 						&::after { transform: rotate(-45deg); }
 					}
-				}/* .board.map .cell .target.mark */
-			}/* .board.map .cell */
-		}/* .board.map */
+				}/* .game .board.map .cell .target.mark */
+			}/* .game .board.map .cell */
+		}/* .game .board.map */
 
 		/* ====== 格子：棋盘游戏的格子，不限于在棋盘内。 ====== */
 		& .cell {
@@ -452,7 +453,7 @@
 					transform: translateY(-70%) rotate(-45deg);
 					transition: transform 0.2s;
 				}
-			}/* summary */
+			}/* .game details summary */
 
 			&[open] summary::after {
 				transform: translateY(-30%) rotate(45deg);
@@ -466,7 +467,7 @@
 			& > section { margin-bottom: 8px; &:last-child { margin-bottom: 0; } }
 			& > h3 { margin: 0 0 4px; font-size: 0.9rem; color: var(--lv-2-color); }
 			& > p { margin: 0; }
-		}/* details */
+		}/* .game  details */
 
 		/* ====== 遮罩 ====== */
 		/* 后代有遮罩元素时，为遮罩层提供定位基准 */
@@ -502,9 +503,9 @@
 			}
 		}
 
+		/* ====== 强提示闪现：常用于暴击、将军、阵亡等 ====== */
 		--callout-base-z:1000;
 		--callout-duaration:1s;
-		/* ====== 强提示闪现：常用于暴击、将军、阵亡等 ====== */
 		& .callout {
 			position: fixed;
 			inset: 0;
@@ -521,7 +522,7 @@
 		& input { font-family: inherit; }
 	}/* .game */
 
-	/* ============ 动画关键帧：不能嵌套定义 ============ */
+	/* ============ 动画关键帧。@keyframes不能嵌套在内层 ============ */
 	@keyframes become-bigger-and-transparent {
 		0% { scale:1; opacity: 1; }
 		50% { scale:1.5; opacity: 0.7; }
