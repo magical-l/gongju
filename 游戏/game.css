@@ -214,10 +214,10 @@
 			/* 水平居中，宽度自适应内容 */
 			margin: 0 auto;
 			width: fit-content;
-			/* 防止内容被选中 */
+			/* ------ 防止内容被选中 ------ */
 			user-select: none;
 			-webkit-user-select: none;
-			/* 浏览器优化 */
+			/* ------ 浏览器优化 ------ */
 			contain: content;
 
 			/* ------ 不得不做的杂项 ------ */
@@ -229,19 +229,17 @@
 
 		/* ====== 单位：有单位的游戏内，单位的默认样式表，如棋子、数字方块等。不局限于地图内，也可以是一局游戏之外的展示信息 ====== */
 		& .unit {
+			/* ------ 位置 ------ */
+			/* 默认可偏移，可作为子元素定位依据 */
 			position: relative;
-			z-index: var(--unit-base-layer);/* 给背景、纹理留层叠空间 */
-			display: flex;
-			contain: layout;
-			align-items: center;
-			justify-content: center;
-			text-align: center;
+			z-index: var(--unit-base-layer);/* 给背景、纹理等留层叠空间 */
+			/* ------ 防止内容被选中 ------ */
 			user-select: none;
 			-webkit-user-select: none;
+			/* ------ 浏览器优化 ------ */
+			contain: layout;
 
-			/* ====== 可操作的单位 ====== */
-			&.movable { cursor: pointer; }
-			/* ====== 有提示状态的单位 ====== */
+			/* ====== 单位的提示状态 ====== */
 			&.hint {
 				outline: 3px solid var(--hint-color);
 				outline-offset: -3px;
@@ -281,140 +279,6 @@
 				height: 100%;
 			}
 		}/* .game .unit */
-
-		/* ====== 棋盘：有棋盘的游戏内，棋盘的默认样式表。继承.map ====== */
-		& .board.map {
-			--board-cols: 4;
-			--board-rows: 4;
-			--board-fixed-height: 0px; /* 固定区域高度，由各游戏自定义 */
-			--board-fixed-width: 0px; /* 固定区域宽度，由各游戏自定义 */
-			--cell-size: min(calc((100vh - var(--board-fixed-height) - var(--board-rows) * 10px) / var(--board-rows)),
-					calc((100vw - var(--board-fixed-width) - var(--board-cols) * 10px) / var(--board-cols)),
-					80px);
-			--line-color: #9bad8f;
-
-			display: grid;
-			grid-template-columns: repeat(var(--board-cols), var(--cell-size));
-			grid-template-rows: repeat(var(--board-rows), var(--cell-size));
-			gap: 0;
-			/* 确保被内容撑开而非突破 */
-			width: fit-content;
-			height: fit-content;
-			padding: 12px;
-			background: #b8c9a8;
-			border: 2px solid var(--line-color);
-			border-radius: 8px;
-			user-select: none;
-			-webkit-user-select: none;
-
-			/* ====== 特指出现在棋盘内的格子 ====== */
-			& .cell {
-				background: #d4e0c8;
-				border: 1px solid var(--line-color);
-				border-radius: 0;
-
-				/* ====== 空格子 ====== */
-				&.empty {
-					background: transparent;
-				}
-				/* ====== 格子内的状态标记 ====== */
-				& .target.mark {
-					position: absolute;
-					width: 100%;
-					height: 100%;
-					z-index: calc(var(--unit-base-layer) + 20);
-					pointer-events: none;
-
-					/* ====== 可移动目标 ====== */
-					&.movable::after {
-						content: "";
-						position: absolute;
-						width: 40%;
-						height: 40%;
-						top: 30%;
-						left: 30%;
-						background-color: rgba(40, 167, 69, 0.5);
-						border-radius: 50%;
-					}
-
-					/* ====== 禁止目标 ====== */
-					&.blocked {
-						&::before, &::after {
-							content: "";
-							position: absolute;
-							box-sizing: border-box;
-						}
-						&::before {
-							width: 70%;
-							height: 15%;
-							top: 42.5%;
-							left: 15%;
-							background-color: var(--blocked-color);
-							transform: rotate(45deg);
-							border-radius: 2px;
-						}
-						&::after {
-							width: 60%;
-							height: 60%;
-							top: 20%;
-							left: 20%;
-							border-radius: 50%;
-							border: 4px solid var(--blocked-color);
-							background-color: rgba(255, 255, 255, 0.3);
-						}
-					}
-
-					/* ====== 可攻击单位 ====== */
-					&.attackable {
-						&::before, &::after {
-							content: "";
-							position: absolute;
-							z-index: calc(var(--unit-base-layer) + 20);
-							width: 60%;
-							height: 15%;
-							top: 42.5%;
-							left: 20%;
-							background-color: var(--attackable-color);
-							border-radius: 2px;
-						}
-						&::before { transform: rotate(45deg); }
-						&::after { transform: rotate(-45deg); }
-					}
-				}/* .game .board.map .cell .target.mark */
-			}/* .game .board.map .cell */
-		}/* .game .board.map */
-
-		/* ====== 格子：棋盘游戏的格子，不限于在棋盘内。 ====== */
-		& .cell {
-			position: relative;
-			width: var(--cell-size);
-			height: var(--cell-size);
-			aspect-ratio: 1/1;
-			flex: none;
-			display: flex;
-			contain: layout;
-			align-items: center;
-			justify-content: center;
-			background: #d4e0c8;
-		}
-
-		/* ====== 棋子：继承.unit ====== */
-		& .piece.unit {
-			width: var(--unit-size);
-			height: var(--unit-size);
-			aspect-ratio: 1/1;
-			flex: none;
-			border-radius: 50%;
-			cursor: pointer;
-
-			display: inline-flex;
-			justify-content: center;
-			align-items: center;
-
-			/* 棋子基础样式 */
-			--piece-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-			box-shadow: var(--piece-shadow);
-		}
 
 		/* ======================== 通用业务语义 ======================== */
 
@@ -602,6 +466,178 @@
 		/* input 元素默认有自己的 font-family，需显式继承，才能使用到.game等处定义的字体 */
 		& input { font-family: inherit; }
 	}/* .game */
+
+	/* ====== 棋盘类游戏特需 ====== */
+	.board.game {
+		/* ====== 格子：棋盘格子，不限于在棋盘内。 ====== */
+		& .cell {
+			/* ------ 位置 ------ */
+			position: relative;/* 默认可偏移，因此可作为子元素的定位依据 */
+			/* ------ 默认形状（方形） ------ */
+			width: var(--cell-size);
+			height: var(--cell-size);
+			aspect-ratio: 1/1;
+			/* 默认不能压缩。 */
+			flex: none;
+			/* 默认背景色，非必需 */
+			background: #d4e0c8;
+			/* ------ 子元素（单位）默认在中间 ------ */
+			display: flex;
+			place-items: center;
+			justify-content: center;
+			/* ------ 浏览器优化 ------ */
+			contain: layout;
+			/* ====== 棋盘类游戏的格子里的单位 ====== */
+			> .unit {
+				/* 默认占满格子空间。 */
+				width: 100%;
+				height: 100%;
+				/* 默认不能压缩。 */
+				flex: none;
+				/* 子元素（不管是啥）默认在中间 */
+				display: flex;
+				place-items: center;
+				justify-content: center;
+				text-align: center;
+			}
+		}
+
+		/* ====== 棋盘。继承.map ====== */
+		& .board.map {
+			--board-cols: 4;
+			--board-rows: 4;
+			--board-fixed-height: 0px; /* 固定区域高度，由各游戏自定义 */
+			--board-fixed-width: 0px; /* 固定区域宽度，由各游戏自定义 */
+			--cell-size: min(calc((100vh - var(--board-fixed-height) - var(--board-rows) * 10px) / var(--board-rows)),
+					calc((100vw - var(--board-fixed-width) - var(--board-cols) * 10px) / var(--board-cols)),
+					80px);
+			--line-color: #9bad8f;
+
+			display: grid;
+			grid-template-columns: repeat(var(--board-cols), var(--cell-size));
+			grid-template-rows: repeat(var(--board-rows), var(--cell-size));
+			gap: 0;
+			/* 确保被内容撑开而非突破 */
+			width: fit-content;
+			height: fit-content;
+			padding: 12px;
+			background: #b8c9a8;
+			border: 2px solid var(--line-color);
+			border-radius: 8px;
+			user-select: none;
+			-webkit-user-select: none;
+
+			/* ====== 特指出现在棋盘内的格子 ====== */
+			& .cell {
+				background: #d4e0c8;
+				border: 1px solid var(--line-color);
+				border-radius: 0;
+
+				/* ====== 空格子 ====== */
+				&.empty {
+					background: transparent;
+				}
+				/* ====== 格子内的状态标记 ====== */
+				& .target.mark {
+					position: absolute;
+					width: 100%;
+					height: 100%;
+					z-index: calc(var(--unit-base-layer) + 20);
+					pointer-events: none;
+
+					/* ====== 可移动目标 ====== */
+					&.movable::after {
+						content: "";
+						position: absolute;
+						width: 40%;
+						height: 40%;
+						top: 30%;
+						left: 30%;
+						background-color: rgba(40, 167, 69, 0.5);
+						border-radius: 50%;
+					}
+
+					/* ====== 禁止目标 ====== */
+					&.blocked {
+						&::before, &::after {
+							content: "";
+							position: absolute;
+							box-sizing: border-box;
+						}
+						&::before {
+							width: 70%;
+							height: 15%;
+							top: 42.5%;
+							left: 15%;
+							background-color: var(--blocked-color);
+							transform: rotate(45deg);
+							border-radius: 2px;
+						}
+						&::after {
+							width: 60%;
+							height: 60%;
+							top: 20%;
+							left: 20%;
+							border-radius: 50%;
+							border: 4px solid var(--blocked-color);
+							background-color: rgba(255, 255, 255, 0.3);
+						}
+					}
+
+					/* ====== 可攻击单位 ====== */
+					&.attackable {
+						&::before, &::after {
+							content: "";
+							position: absolute;
+							z-index: calc(var(--unit-base-layer) + 20);
+							width: 60%;
+							height: 15%;
+							top: 42.5%;
+							left: 20%;
+							background-color: var(--attackable-color);
+							border-radius: 2px;
+						}
+						&::before { transform: rotate(45deg); }
+						&::after { transform: rotate(-45deg); }
+					}
+				}/* .game .board.map .cell .target.mark */
+				/* ====== 棋盘内格子内的单位 ====== */
+				& .unit {
+					/* ====== 可移动的单位 ====== */
+					&.movable { cursor: pointer; }
+				}
+			}/* .board.game .board.map .cell */
+		}/* .board.game .board.map */
+
+		/* ====== 棋子：继承.unit ====== */
+		& .piece.unit {
+			width: var(--unit-size);
+			height: var(--unit-size);
+			aspect-ratio: 1/1;
+			flex: none;
+			border-radius: 50%;
+			cursor: pointer;
+
+			display: inline-flex;
+			justify-content: center;
+			align-items: center;
+
+			/* 棋子基础样式 */
+			--piece-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+			box-shadow: var(--piece-shadow);
+		}
+
+		/* ====== 单位可移动的棋盘类游戏 ====== */
+		&.unit.movable {
+			& .cell {
+				> .unit {
+					/* 棋盘类游戏的格子里的单位覆盖满整个格子 */
+					position: absolute;
+					inset: 0;
+				}
+			}
+		}/* .unit.movable.board.game */
+	}/* .board.game */
 
 	/* ============ 动画关键帧。@keyframes不能嵌套在内层 ============ */
 	@keyframes become-bigger-and-transparent {
