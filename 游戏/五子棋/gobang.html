@@ -99,8 +99,8 @@
 					<ul class="group" v-if="isGaming">
 						<li class="one info">当前： {{ curPlayer.name || '—' }}</li>
 						<li class="one info">回合：
-							<span v-if="currentRound === 0">尚未走棋</span>
-							<span v-else>第 {{ turnHistory.length }} 回合</span>
+							<span v-if="turnHistory.length">第 {{ turnHistory.length }} 回合</span>
+							<span v-else>尚未走棋</span>
 						</li>
 					</ul>
 				</details>
