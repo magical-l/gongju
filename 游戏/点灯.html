@@ -159,7 +159,7 @@
 						</el-form-item>
 					</div>
 					<div class="one setting group">
-						<el-button class="one setting : new-game" :type="moveCount > 0 ? 'danger' : 'primary'" icon="RefreshRight" @click="initGame">新局
+						<el-button class="one setting : new-game" :type="actionCount > 0 ? 'danger' : 'primary'" icon="RefreshRight" @click="initGame">新局
 						</el-button>
 					</div>
 				</section>
@@ -173,7 +173,7 @@
 					</div>
 				</section>
 			</header>
-			<section class="board , main map , grid" :style="{ '--board-cols': gameBoardCols, '--board-rows': gameBoardRows }">
+			<section class="main board map , grid" :style="{ '--board-cols': gameBoardCols, '--board-rows': gameBoardRows }">
 				<template v-for="(row, rowIndex) in board" :key="rowIndex">
 					<div class="cell" :class="cellClass(rowIndex, colIndex).cell" v-for="(cell, colIndex) in row" :key="colIndex" @click="handleCellClick(rowIndex, colIndex)">
 						<div class="unit light" :class="cellClass(rowIndex, colIndex).unit">
@@ -188,12 +188,12 @@
 			<aside class="sidebar at-left">
 				<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 					<summary>本局信息</summary>
-					<el-card header="移动次数" class="scoreboard" body-class="score" shadow="never">
-						{{ moveCount }}
+					<el-card header="步数" class="scoreboard" body-class="score" shadow="never">
+						{{ actionCount }}
 					</el-card>
 				</details>
 				<details class="record area" data-panel="record" :open="panels.record" @toggle="onPanelToggle">
-					<summary>回合记录</summary>
+					<summary>单步记录</summary>
 					<div class="op area">
 						<el-button size="small" icon="Download" :disabled="!rounds.length" @click="exportRounds">导出
 						</el-button>
@@ -206,7 +206,7 @@
 			</aside>
 			<!-- 结算弹窗 -->
 			<el-dialog title="恭喜过关" class="result narrow" v-model="showWinModal" :show-close="true" align-center>
-				<p class="stats">您总共使用了 {{ moveCount }} 步。</p>
+				<p class="stats">您总共使用了 {{ actionCount }} 步。</p>
 				<template #footer>
 					<el-button type="primary" size="large" icon="RefreshRight" @click="closeWinAndNew">新局</el-button>
 					<el-button type="info" size="large" icon="Download" @click="exportRounds">导出回合记录</el-button>
@@ -351,7 +351,7 @@
 					}
 					return this.board.flat().every(cell => cell === true);
 				},
-				moveCount() {
+				actionCount() {
 					return this.rounds.length;
 				},
 			},
