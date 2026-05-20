@@ -530,7 +530,7 @@
 /* 为防没有使用.grid/.flex之类，所以不显式结合.grid/.flex，直接设置。若非display:grid/flex也没事，会被浏览器忽略。下同 */
 /* ------ “工字形”布局，上部导航栏，底部页脚，中间左右两栏均分。 ------ */
 .工字形 {
-	grid-template-columns: 50% 50%;
+	grid-template-columns: 1fr 1fr;
 	grid-template-rows: auto 1fr auto;
 	grid-template-areas:
 		'header header'
@@ -587,8 +587,8 @@
 		'footer footer';
 }
 
-/* ------ "目字形"布局，上部导航栏，底部页脚 ------ */
-.目字形 {
+/* ------ "目字形/三字形"布局，上部导航栏，底部页脚 ------ */
+.目字形, .三字形 {
 	grid-template-rows:
 		auto /* Header 高度自适应内容 */
 		minmax(var(--layout-main-row-min), auto) /* 主内容区：有最小高度，再填充剩余 */

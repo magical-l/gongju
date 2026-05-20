@@ -189,7 +189,7 @@
 						<el-empty v-if="!turnHistory.length" description="尚未走棋"></el-empty>
 						<ol v-else class="round list">
 							<li class="one round" v-for="turn in turnHistory" :key="turn.id">
-								<span class="grid">
+								<span class="朋字形 grid">
 									<span class="player action">
 										<span class="red player name">红方</span>
 										<span class="action description">{{ turn.redMove }}</span>
