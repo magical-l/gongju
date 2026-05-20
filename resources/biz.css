@@ -137,9 +137,9 @@ main {
 		flex: 1 1 auto;
 		min-width: min-content;
 		padding: 6px 10px;
-		box-sizing: border-box;
 		border-radius: 0;
 		background: #F5F5F5;
+		flex-direction: row;
 
 		& + .list { border-left: 1px solid rgba(0, 0, 0, 0.22); }
 

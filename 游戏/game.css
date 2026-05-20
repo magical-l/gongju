@@ -93,7 +93,6 @@
 			}
 			/* ====== 成员列表 ====== */
 			& .member.list {
-				display: flex;
 				gap: 0.25rem;
 				flex-wrap: wrap;
 				/* ====== 单个成员 ====== */
@@ -381,12 +380,6 @@
 			scale: 1.1;
 		}
 
-		/* ====== 列表：任意列表的通用样式 ====== */
-		/* 本身用ol/ul的，随它去 */
-		& :not(ol, ul).list {
-			display: flex;
-		}
-
 		/* ====== 描述 ====== */
 		& .description {
 			color: var(--lv-2-color);
@@ -424,7 +417,6 @@
 			&:last-of-type { margin-bottom: 0; }
 
 			& summary {
-				/* width: 100%; */
 				font-weight: 600;
 				font-size: 1rem;
 				cursor: pointer;

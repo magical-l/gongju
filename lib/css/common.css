@@ -77,6 +77,21 @@ i.icon {
 	font-style: unset; /* <i>标签本来是做斜体的，但现在通常被用来做图标，因此要去掉本身的斜体。 */
 }
 
+svg {
+	/* svg线段端点改为圆头，更柔和 */
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+/* 有必填项未填的表单加红框 */
+form:has(input:invalid:not(:placeholder-shown)) {
+	border: 2px solid #f56c6c;
+}
+
+:where(:not(ol, ul)).list {/* 本身用ol/ul的，随它去 */
+	display: flex;
+	flex-direction: column;
+}
+
 /* ======================== 一些工具类 ======================== */
 
 /* ------ 通用全屏 ------ */
@@ -215,12 +230,3 @@ template, .template, .hidden, [v-cloak], .js.container {display: none !important
 }
 
 /* ============ 杂项 ============ */
-svg {
-	/* svg线段端点改为圆头，更柔和 */
-	stroke-linecap: round;
-	stroke-linejoin: round;
-}
-/* 有必填项未填的表单加红框 */
-form:has(input:invalid:not(:placeholder-shown)) {
-	border: 2px solid #f56c6c;
-}
