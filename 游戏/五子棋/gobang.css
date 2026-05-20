@@ -32,15 +32,10 @@
 		--board-cols: 15;
 		--board-rows: 15;
 		--cell-size: 40px;
+		--unit-size: calc(var(--cell-size) * 0.9);
 		--board-total-size: calc(var(--cell-size) * var(--board-size));
-		border: none;
-		border-right: 1px solid var(--line-color);
-		border-bottom: 1px solid var(--line-color);
-		box-sizing: content-box;
 
 		& .cell {
-			border-left: 1px solid var(--line-color);
-			border-top: 1px solid var(--line-color);
 			cursor: default;
 
 			/* 可落子位置预览棋子 */
@@ -52,28 +47,15 @@
 			&.targetable:hover {
 				pointer-events: auto;
 				cursor: pointer;
-				& .piece {
-					opacity: 0.5;
-					
-				}	
-			} 
+				/* 显示用来提示的虚拟棋子 */
+				& .piece { opacity: 0.5; }
+			}
 		}
 
-		/* 棋盘内的棋子：覆盖尺寸 */
+		/* 棋盘内的棋子 */
 		& .piece {
-			width: 90%;
-			height: 90%;
 			box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
 			cursor: default;
-
-			/* 步数 */
-			& .order {
-				position: relative;
-				font-size: 0.8em;
-				font-weight: bold;
-				z-index: 10;
-				pointer-events: none;
-			}
 		}
 	}
 }

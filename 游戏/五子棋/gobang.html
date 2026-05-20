@@ -84,13 +84,13 @@
 				<section class="board map" v-if="cells.length">
 					<div v-for="cell in cells" :key="cell.position" class="cell" :class="cell.classes" @click="handleCellClick(cell)">
 						<div v-if="cell.unit" class="piece unit" :class="cell.unit.classes">
-							<span class="order">{{ cell.unit.moveNumber }}</span>
+							<span class="name">{{ cell.unit.moveNumber }}</span>
 						</div>
 						<div v-if="cell.previewPiece" class="piece unit" :class="cell.previewPiece"></div>
-						</div>
-					</section>
-				</article>
-				<aside class="sidebar at-left">
+					</div>
+				</section>
+			</article>
+			<aside class="sidebar at-left">
 				<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 					<summary>本局信息</summary>
 					<ul class="group" v-if="isGaming">
@@ -106,13 +106,13 @@
 				</details>
 				<details class="record area" data-panel="record" :open="panels.record" @toggle="onPanelToggle">
 					<summary>落子记录</summary>
-					<div class="op area">
+					<header class="op area">
 						<el-button :disabled="!turnHistory.length" icon="Download" size="small" @click="exportMoves">导出 </el-button>
-					</div>
+					</header>
 					<ol class="round list">
 						<el-empty v-if="!turnHistory.length" description="尚未落子"></el-empty>
 						<li v-else class="one round" v-for="turn in turnHistory" :key="turn.id">
-							<span class="grid">
+							<span class="朋字形 grid">
 								<span class="player action">
 									<span class="black piece unit"></span>
 									<span class="position description">{{ turn.blackMove }}</span>
@@ -128,7 +128,7 @@
 			</aside>
 			<el-dialog title="游戏结束" v-model="isGameOver" align-center class="result narrow">
 				<div class="outcome win">{{ winner }} 获胜!</div>
-				<template #footer="">
+				<template #footer>
 					<el-button type="primary" @click="restartGame">再来一局</el-button>
 				</template>
 			</el-dialog>

@@ -239,12 +239,6 @@
 			user-select: none;
 			-webkit-user-select: none;
 
-			/* ====== 单位内的SVG图标 ====== */
-			& svg {
-				width: 100%;
-				height: 100%;
-			}
-
 			/* ====== 可操作的单位 ====== */
 			&.movable { cursor: pointer; }
 			/* ====== 有提示状态的单位 ====== */
@@ -270,6 +264,21 @@
 				z-index: calc(var(--unit-base-layer) + 15);
 				top: 0;
 				right: 0;
+			}
+
+			/* ====== 单位名字 ====== */
+			& .name {
+				position: relative;
+				font-size: 0.8em;
+				font-weight: bold;
+				z-index: calc(var(--unit-base-layer) + 10);
+				pointer-events: none;
+			}
+
+			/* ====== 单位的SVG：如果用svg做单位的显示图像 ====== */
+			& svg {
+				width: 100%;
+				height: 100%;
 			}
 		}/* .game .unit */
 
@@ -404,7 +413,7 @@
 		}
 
 		/* ======================== 通用业务语义 ======================== */
-		
+
 		/* ====== 操作区：放按钮之类的地方 ====== */
 		& .op.area {
 			display: flex;
