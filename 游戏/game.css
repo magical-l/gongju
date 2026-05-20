@@ -35,6 +35,7 @@
 			& .logo {
 				width: var(--player-logo-size);
 				height: var(--player-logo-size);
+				aspect-ratio: 1/1;/* 避免宽高变量未定义的兜底 */
 				border-radius: 50%;
 				object-fit: cover;
 				flex: none;
@@ -64,11 +65,17 @@
 
 			/* ====== 队标 ====== */
 			& .logo {
+				/* ------------ 外观 ------------ */
+				/* ------ 尺寸：默认为方形 ------ */
 				width: var(--team-logo-size);
 				height: var(--team-logo-size);
+				aspect-ratio: 1/1;/* 避免宽高变量未定义的兜底 */
+				/* ------ 圆角：非必需 ------ */
 				border-radius: 4px;
-				object-fit: contain;
-				flex: none;
+				/* ------ 替换元素的缩放 ------ */
+				object-fit: contain;/* 完全可见 */
+				/* ------ 盒模型 ------ */
+				flex: none;/* 默认不能压缩。 */
 			}
 			/* ====== 队名 ====== */
 			& .name {
@@ -80,8 +87,9 @@
 				width: var(--team-flag-width);
 				height: var(--team-flag-height);
 				border-radius: 2px;
-				flex: none;
 				background-color: var(--team-flag-color);
+				/* ------ 盒模型 ------ */
+				flex: none;/* 默认不能压缩。 */
 			}
 			/* ====== 成员列表 ====== */
 			& .member.list {
@@ -172,10 +180,7 @@
 			}
 
 			/* ------ 不得不做的杂项 ------ */
-			/* 获得焦点时不显示选中框 */
-			&:focus {
-				outline: none;
-			}
+			&:focus { outline: none; }/* 获得焦点时不显示选中框 */
 		}/* .game .gaming.area */
 
 		/* ====== 回合列表：在有回合的游戏内，回合列表记录的默认样式表。不局限于场地。建议用ol ====== */
@@ -211,32 +216,27 @@
 		/* ====== 地图：有地图的游戏内，地图的默认样式表。不局限于场地，也可以是一局游戏之外的展示信息 ====== */
 		& .map {
 			--unit-base-layer: 100;
-			/* 水平居中，宽度自适应内容 */
-			margin: 0 auto;
-			width: fit-content;
-			/* ------ 防止内容被选中 ------ */
+			margin: 0 auto;/* 水平居中 */
+			width: fit-content;/* 宽度由内容撑开 */
+			/* ------------ 交互 ------------ */
+			/* ------ 防止选中文字内容 ------ */
 			user-select: none;
 			-webkit-user-select: none;
-			/* ------ 浏览器优化 ------ */
+			/* ------------ 浏览器 ------------ */
 			contain: content;
-
-			/* ------ 不得不做的杂项 ------ */
-			/* 获得焦点时不显示选中框 */
-			&:focus {
-				outline: none;
-			}
+			&:focus { outline: none; }/* 获得焦点时不显示选中框 */
 		}
 
 		/* ====== 单位：有单位的游戏内，单位的默认样式表，如棋子、数字方块等。不局限于地图内，也可以是一局游戏之外的展示信息 ====== */
 		& .unit {
-			/* ------ 位置 ------ */
-			/* 默认可偏移，可作为子元素定位依据 */
-			position: relative;
+			/* ------------ 定位 ------------ */
+			position: relative;/* 默认可偏移，可作为子元素定位依据 */
 			z-index: var(--unit-base-layer);/* 给背景、纹理等留层叠空间 */
-			/* ------ 防止内容被选中 ------ */
+			/* ------------ 交互 ------------ */
+			/* ------ 防止选中文字内容 ------ */
 			user-select: none;
 			-webkit-user-select: none;
-			/* ------ 浏览器优化 ------ */
+			/* ------ 浏览器 ------ */
 			contain: layout;
 
 			/* ====== 单位的提示状态 ====== */
@@ -362,8 +362,8 @@
 		}
 
 		/* ====== 强提示闪现：常用于暴击、将军、阵亡等 ====== */
-		--callout-base-z:1000;
-		--callout-duaration:1s;
+		--callout-base-z: 1000;
+		--callout-duaration: 1s;
 		& .callout {
 			position: fixed;
 			inset: 0;
@@ -431,7 +431,6 @@
 				position: relative;
 
 				&::-webkit-details-marker { display: none; }
-				&:focus { outline: none; }
 
 				/* 展开/收起箭头 */
 				&::after {
@@ -446,6 +445,9 @@
 					transform: translateY(-70%) rotate(-45deg);
 					transition: transform 0.2s;
 				}
+
+				/* ------ 不得不做的杂项 ------ */
+				&:focus { outline: none; }/* 获得焦点时不显示选中框 */
 			}/* .game details summary */
 
 			&[open] summary::after {
@@ -463,38 +465,42 @@
 		}/* .game details */
 
 		/* ------ 不得不做的杂项 ------ */
-		/* input 元素默认有自己的 font-family，需显式继承，才能使用到.game等处定义的字体 */
-		& input { font-family: inherit; }
+		& input { font-family: inherit; }/* input默认有自己的 font-family，需显式继承才能使用到.game等处定义的字体 */
 	}/* .game */
 
 	/* ====== 棋盘类游戏特需 ====== */
 	.board.game {
 		/* ====== 格子：棋盘格子，不限于在棋盘内。 ====== */
 		& .cell {
-			/* ------ 位置 ------ */
+			/* ------------ 定位 ------------ */
 			position: relative;/* 默认可偏移，因此可作为子元素的定位依据 */
-			/* ------ 默认形状（方形） ------ */
+			/* ------------ 外观 ------------ */
+			/* ------ 尺寸：默认为方形 ------ */
 			width: var(--cell-size);
 			height: var(--cell-size);
-			aspect-ratio: 1/1;
-			/* 默认不能压缩。 */
-			flex: none;
-			/* 默认背景色，非必需 */
-			background: #d4e0c8;
-			/* ------ 子元素（单位）默认在中间 ------ */
+			aspect-ratio: 1/1;/* 避免宽高变量未定义的兜底 */
+			/* ------ 盒模型 ------ */
+			flex: none;/* 默认不能压缩。 */
+			/* ------ 背景 ------ */
+			background: #d4e0c8;/* 默认背景色，非必需 */
+			/* ------------ 布局 ------------ */
+			/* ------ 子元素（单位）：默认在中间 ------ */
 			display: flex;
 			place-items: center;
 			justify-content: center;
-			/* ------ 浏览器优化 ------ */
+			/* ------ 浏览器 ------ */
 			contain: layout;
+
 			/* ====== 棋盘类游戏的格子里的单位 ====== */
 			> .unit {
-				/* 默认占满格子空间。 */
+				/* ------------ 外观 ------------ */
+				/* ------ 尺寸：默认占满格子空间。 ------ */
 				width: 100%;
 				height: 100%;
-				/* 默认不能压缩。 */
-				flex: none;
-				/* 子元素（不管是啥）默认在中间 */
+				/* ------ 盒模型 ------ */
+				flex: none;/* 默认不能压缩。 */
+				/* ------------ 布局 ------------ */
+				/* 子元素（不管是啥）：默认在中间 */
 				display: flex;
 				place-items: center;
 				justify-content: center;
@@ -512,31 +518,37 @@
 					calc((100vw - var(--board-fixed-width) - var(--board-cols) * 10px) / var(--board-cols)),
 					80px);
 			--line-color: #9bad8f;
-
+			/* ------------ 外观 ------------ */
+			/* ------ 尺寸 ------ */
+			width: fit-content;/* 确保被内容撑开不撑破 */
+			height: fit-content;/* 确保被内容撑开不撑破 */
+			/* ------ 盒模型：非必需 ------ */
+			border: 2px solid var(--line-color);
+			border-radius: 8px;
+			padding: 12px;
+			/* ------ 背景 ------ */
+			background: #b8c9a8;
+			/* ------------ 布局 ------------ */
 			display: grid;
 			grid-template-columns: repeat(var(--board-cols), var(--cell-size));
 			grid-template-rows: repeat(var(--board-rows), var(--cell-size));
 			gap: 0;
-			/* 确保被内容撑开而非突破 */
-			width: fit-content;
-			height: fit-content;
-			padding: 12px;
-			background: #b8c9a8;
-			border: 2px solid var(--line-color);
-			border-radius: 8px;
+			/* ------------ 交互 ------------ */
+			/* ------ 防止选中文字内容 ------ */
 			user-select: none;
 			-webkit-user-select: none;
 
 			/* ====== 特指出现在棋盘内的格子 ====== */
 			& .cell {
-				background: #d4e0c8;
+				/* ------------ 外观 ------------ */
 				border: 1px solid var(--line-color);
+				/* ------ 圆角：实现方形 ------ */
 				border-radius: 0;
+				/* ------ 背景 ------ */
+				background: #d4e0c8;
 
 				/* ====== 空格子 ====== */
-				&.empty {
-					background: transparent;
-				}
+				&.empty {background: transparent;}/* 透明：透出棋盘底色 */
 				/* ====== 格子内的状态标记 ====== */
 				& .target.mark {
 					position: absolute;
@@ -545,7 +557,7 @@
 					z-index: calc(var(--unit-base-layer) + 20);
 					pointer-events: none;
 
-					/* ====== 可移动目标 ====== */
+					/* ====== 可作为移动目标的格子 ====== */
 					&.movable::after {
 						content: "";
 						position: absolute;
@@ -553,8 +565,8 @@
 						height: 40%;
 						top: 30%;
 						left: 30%;
+						border-radius: 50%;/* 默认为圆形 */
 						background-color: rgba(40, 167, 69, 0.5);
-						border-radius: 50%;
 					}
 
 					/* ====== 禁止目标 ====== */
@@ -601,6 +613,7 @@
 						&::after { transform: rotate(-45deg); }
 					}
 				}/* .game .board.map .cell .target.mark */
+
 				/* ====== 棋盘内格子内的单位 ====== */
 				& .unit {
 					/* ====== 可移动的单位 ====== */
@@ -611,29 +624,34 @@
 
 		/* ====== 棋子：继承.unit ====== */
 		& .piece.unit {
+			/* ------------ 外观：默认为圆形，有阴影 ------------ */
+			/* ------ 尺寸 ------ */
 			width: var(--unit-size);
 			height: var(--unit-size);
-			aspect-ratio: 1/1;
-			flex: none;
+			aspect-ratio: 1/1;/* 避免宽高变量未定义的兜底 */
+			/* ------ 圆角：实现圆形 ------ */
 			border-radius: 50%;
-			cursor: pointer;
-
+			/* ------ 阴影：非必需 ------ */
+			--piece-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+			box-shadow: var(--piece-shadow);
+			/* ------ 盒模型 ------ */
+			flex: none;/* 默认不能压缩。 */
+			/* ------------ 布局 ------------ */
 			display: inline-flex;
 			justify-content: center;
 			align-items: center;
-
-			/* 棋子基础样式 */
-			--piece-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-			box-shadow: var(--piece-shadow);
+			/* ------------ 交互 ------------ */
+			cursor: pointer;/* 手型光标 */
 		}
 
 		/* ====== 单位可移动的棋盘类游戏 ====== */
 		&.unit.movable {
 			& .cell {
+				/* ====== 棋盘类游戏的格子里的单位 ====== */
 				> .unit {
-					/* 棋盘类游戏的格子里的单位覆盖满整个格子 */
-					position: absolute;
-					inset: 0;
+					/* ------------ 定位 ------------ */
+					position: absolute;/* 绝对定位以便移动 */
+					inset: 0;/* 默认覆盖满整个格子 */
 				}
 			}
 		}/* .unit.movable.board.game */
