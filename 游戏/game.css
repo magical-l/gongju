@@ -140,13 +140,14 @@
 					margin-bottom: 4px;
 				}
 				/* ====== 提示 ====== */
+				--tip-color: var(--lv-2-color);
 				& .tip {
 					font-size: 0.8rem;
-					color: var(--lv-2-color);
+					color: var(--tip-color);
 
 					/* 位置变体 */
-					&.at-top { margin: 0; color: #e6a23c; }
-					&.at-bottom { margin-top: 6px; color: #67c23a; }
+					&.at-top { margin: 0; }
+					&.at-bottom { margin-top: 6px; }
 				}
 			}
 
@@ -183,6 +184,10 @@
 
 		/* ====== 回合列表：在有回合的游戏内，回合列表记录的默认样式表。不局限于场地。建议用ol ====== */
 		& .round.list {
+			min-height: 100px;
+			max-height: 330px;
+			overflow-y: auto;
+
 			& .summary {
 				font-size: 0.8rem;
 				color: var(--lv-2-color);
@@ -198,6 +203,7 @@
 			& > .grid {
 				grid-template-columns: 1fr 1fr;
 			}
+			/* ====== 回合内对玩家行动的描述 ====== */
 			& .player.action {
 				display: flex;
 				align-items: center;

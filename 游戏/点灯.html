@@ -38,7 +38,7 @@
 
 				/* 提示状态保留在格子层 */
 				&.highlighted {
-					outline: 3px solid #3295ff;
+					outline: 3px solid var(--hint-color);
 					outline-offset: -3px;
 				}
 			}
@@ -82,18 +82,12 @@
 			& .record.area {
 				& .tip {
 					&.at-top {
-						color: var(--orange-color);
+						--tip-color: var(--orange-color);
 					}
 
 					&.at-bottom {
-						color: var(--green-color);
+						--tip-color: var(--green-color);
 					}
-				}
-
-				& .round.list {
-					min-height: 100px;
-					max-height: 330px;
-					overflow-y: auto;
 				}
 			}
 		}
@@ -557,7 +551,7 @@
 		<!-- 谷歌广告联盟 -->
 		<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789" crossorigin="anonymous"></script>
 		<!-- 展示广告1 -->
-		<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true" data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
+		<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true" data-ad-slot="7434043904" data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
 		<script>
 			(adsbygoogle = window.adsbygoogle || []).push({});
 
