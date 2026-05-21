@@ -225,7 +225,6 @@
 			user-select: none;
 			-webkit-user-select: none;
 			/* ------------ 浏览器 ------------ */
-			contain: content;
 			&:focus { outline: none; }/* 获得焦点时不显示选中框 */
 		}
 
@@ -238,8 +237,6 @@
 			/* ------ 防止选中文字内容 ------ */
 			user-select: none;
 			-webkit-user-select: none;
-			/* ------------ 浏览器 ------------ */
-			contain: layout;
 
 			/* ====== 单位的提示状态 ====== */
 			&.hint {
