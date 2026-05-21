@@ -23,29 +23,6 @@
 	<link href="../../lib/css/花活.css" rel="stylesheet">
 <style>
 	.game {
-		& .gaming.area {
-			/* 本局信息区 */
-			& .gaming.info .game-info .progress { margin-top: 10px; }
-
-			/* 连线记录区 */
-			& .record.area {
-				& > .round.list {
-					min-height: 100px;
-					max-height: 330px;
-					overflow-y: auto;
-				}
-			}
-		}
-
-		& #game-container {
-			position: relative;
-			background-color: #a8b898;
-			border-radius: 10px;
-			padding: 20px;
-			box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
-			display: inline-block;
-		}
-
 		& #game-canvas {
 			display: block;
 			border: 2px solid #7a8a6a;
@@ -61,77 +38,6 @@
 
 		& #game-canvas:active {
 			cursor: crosshair;
-		}
-
-		& .game-info {
-			margin-top: 15px;
-			font-size: 1.1rem;
-			color: #4a4a4a;
-		}
-
-		& .game-info .level-info {
-			font-weight: bold;
-			margin-bottom: 10px;
-		}
-
-		& .game-info .progress {
-			margin-top: 10px;
-		}
-
-		& .one.setting {
-			margin-bottom: 0;
-		}
-
-		& .one.setting.input.number {
-			width: 80px;
-		}
-
-		& #game-overlay {
-			position: absolute;
-			top: 0;
-			left: 0;
-			width: 100%;
-			height: 100%;
-			background: rgba(255, 255, 255, 0.95);
-			border-radius: 10px;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			justify-content: center;
-			font-size: 2rem;
-			font-weight: bold;
-			color: #4a4a4a;
-			z-index: 10;
-		}
-
-		& #game-overlay.hidden {
-			display: none;
-		}
-
-		& .color-palette {
-			display: flex;
-			gap: 10px;
-			margin-top: 10px;
-			flex-wrap: wrap;
-		}
-
-		& .color-item {
-			width: 30px;
-			height: 30px;
-			border-radius: 50%;
-			border: 2px solid #ddd;
-			cursor: pointer;
-			transition: transform 0.2s;
-		}
-
-		& .color-item:hover {
-			transform: scale(1.1);
-		}
-
-		& .color-item.active {
-			border-color: #333;
-			border-width: 3px;
-			transform: scale(1.15);
 		}
 
 		@media (max-width: 600px) {
@@ -243,30 +149,26 @@
 			</section>
 		</header>
 
-		<article class="main map area one-row flex items-near-x-center">
-			<div id="game-container">
-				<canvas id="game-canvas" :width="canvasSize" :height="canvasSize"></canvas>
-			</div>
+		<article class="main board map , flex items-near-x-center">
+			<canvas id="game-canvas" :width="canvasSize" :height="canvasSize"></canvas>
 		</article>
 
 		<aside class="sidebar at-left">
 			<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 				<summary>本局信息</summary>
-				<div class="game-info">
-					<div class="progress">
-						<el-progress :percentage="completionPercentage" :status="gameWin ? 'success' : ''"></el-progress>
-						<div style="margin-top: 5px; font-size: 0.9rem; color: var(--lv-3-color);">
-							已填充: {{ filledCells }} / {{ totalCells }}
-						</div>
+				<div class="gaming info">
+					<el-progress :percentage="completionPercentage" :status="gameWin ? 'success' : ''"></el-progress>
+					<div style="margin-top: 5px; font-size: 0.9rem; color: var(--lv-3-color);">
+						已填充: {{ filledCells }} / {{ totalCells }}
 					</div>
 				</div>
 			</details>
 			<details class="record area" data-panel="record" :open="panels.record" @toggle="onPanelToggle">
 				<summary>连线记录</summary>
-				<div class="op area">
+				<header class="op area">
 					<el-button :disabled="!connectionHistory.length" icon="Download" size="small" @click="exportConnections">导出
 					</el-button>
-				</div>
+				</header>
 				<el-empty v-if="!connectionHistory.length" description="尚未连线"></el-empty>
 				<ol v-else class="round list">
 					<li class="one round" v-for="(conn, connI) in connectionHistory" :class="{ last: connI === connectionHistory.length - 1 }">颜色{{conn.color}} {{conn.path.map(p => '(' + p.row + ',' + p.col + ')').join(' → ')}}</li>
@@ -274,7 +176,7 @@
 			</details>
 		</aside>
 		<!-- 结算弹窗 -->
-		<el-dialog v-model="showWinModal" class="result narrow" title="恭喜通关" :show-close="true" align-center>
+		<el-dialog v-model="showWinModal" class="result narrow" title="恭喜通关" align-center>
 			<div class="stats">本局完成！</div>
 			<template #footer>
 				<el-button type="primary" size="large" icon="RefreshRight" @click="closeWinAndNew">新局</el-button>
