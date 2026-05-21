@@ -272,6 +272,41 @@
 				pointer-events: none;
 			}
 
+			/* ====== 标记/徽章 ====== */
+			& .badge {
+				/* ------------ 定位 ------------ */
+				position: absolute;
+				top: 2px;
+				right: 2px;
+				z-index: calc(var(--unit-base-layer) + 12);/* 需比.name高 */
+				/* ------------ 外观：圆形 ------------ */
+				height: 14px;
+				min-width: 14px;
+				/* ------ 圆角：实现圆形 ------ */
+				border-radius: 50%;
+
+				padding: 0 3px;
+				/* ------------ 布局 ------------ */
+				display: flex;
+				place-items: center;
+				justify-content: center;
+				/* ------------ 内容 ------------ */
+				font-size: 10px;
+				font-weight: bold;
+				line-height: 1;
+				/* ------------ 交互 ------------ */
+				pointer-events: none;/* 默认不触发事件 */
+				/* ====== “新”标记：红底白字 ====== */
+				--badge-content: '!';
+				&.new {
+					background: #C00;
+					color: #FFF;
+					&::after {
+						content: var(--badge-content);
+					}	
+				}
+			}
+
 			/* ====== 单位的SVG：如果用svg做单位的显示图像 ====== */
 			& svg {
 				width: 100%;
@@ -540,9 +575,7 @@
 			& .cell {
 				/* ------------ 外观 ------------ */
 				border: 1px solid var(--line-color);
-				/* ------ 圆角：实现方形 ------ */
-				border-radius: 0;
-				/* ------ 背景 ------ */
+				border-radius: 0;/* 默认无圆角 */
 				background: #d4e0c8;
 
 				/* ====== 格子内的状态标记 ====== */
@@ -625,7 +658,7 @@
 			width: var(--unit-size);
 			height: var(--unit-size);
 			aspect-ratio: 1/1;/* 避免宽高变量未定义的兜底 */
-			/* ------ 圆角：实现圆形 ------ */
+			/* ------ 圆角：4个圆角默认1/4圆，配合相同的宽高得到圆形 ------ */
 			border-radius: 50%;
 			/* ------ 阴影：非必需 ------ */
 			--piece-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);

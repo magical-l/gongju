@@ -136,7 +136,7 @@
 				<div v-if="cell.unit" class="unit" :class="'unit-' + cell.unit.val" :data-index="cell.index">
 					<img v-if="cell.unit.image" :src="cell.unit.image" :alt="cell.unit.text" loading="lazy">
 					<template v-else>{{ cell.unit.text }}</template>
-					<span v-if="showNewTileMarker && cell.unit.isNew" class="new-badge">!</span>
+					<span v-if="showNewTileMarker && cell.unit.isNew" class="new badge"></span>
 				</div>
 			</div>
 			<!-- 滑动动画层：与 .board 同级的浮层，用于播放方块滑动动画 -->
