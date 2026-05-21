@@ -193,10 +193,10 @@
 				</details>
 				<details class="record area" data-panel="record" :open="panels.record" @toggle="onPanelToggle">
 					<summary>单步记录</summary>
-					<div class="op area">
+					<header class="op area">
 						<el-button size="small" icon="Download" :disabled="!rounds.length" @click="exportRounds">导出
 						</el-button>
-					</div>
+					</header>
 					<el-empty v-if="!rounds.length" description="尚无记录。请开始吧！"></el-empty>
 					<ol v-else class="round list">
 						<li class="one round" v-for="(round, roundI) in rounds" :class="{ last: roundI === rounds.length - 1 }">第{{round.row}}行, 第{{round.col}}列</li>

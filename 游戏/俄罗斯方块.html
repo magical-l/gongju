@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
-<head>
+<!DOCTYPE html><html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage"><head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title itemprop="name">俄罗斯方块 | 工具兽 - 在线玩经典的益智游戏</title>
@@ -170,21 +168,21 @@
 					<div class="one setting group">
 						<el-form-item label="行" class="one setting : rows">
 							<el-select v-model="settings.rows">
-								<el-option v-for="r in rowsOptions" :key="r" :label="r" :value="r" />
-							</el-select>
+								<el-option v-for="r in rowsOptions" :key="r" :label="r" :value="r">
+							</el-option></el-select>
 						</el-form-item>
 						<el-form-item label="列" class="one setting : cols">
 							<el-select v-model="settings.cols">
-								<el-option v-for="c in colsOptions" :key="c" :label="c" :value="c" />
-							</el-select>
+								<el-option v-for="c in colsOptions" :key="c" :label="c" :value="c">
+							</el-option></el-select>
 						</el-form-item>
 						<el-button title="恢复默认并新局" class="one setting : restore-default" @click="restoreDefaultSize" icon="RefreshLeft"></el-button>
 					</div>
 					<div class="one setting group">
 						<el-form-item label="难度" class="one setting : difficulty">
 							<el-select v-model="settings.startLevel">
-								<el-option v-for="lv in startLevelOptions" :key="lv" :label="lv" :value="lv" />
-							</el-select>
+								<el-option v-for="lv in startLevelOptions" :key="lv" :label="lv" :value="lv">
+							</el-option></el-select>
 							<el-radio-group v-model="settings.difficulty">
 								<el-radio-button v-for="opt in difficultyOptions" :key="opt.value" :label="opt.value">{{opt.name}}
 								</el-radio-button>
@@ -210,8 +208,7 @@
 				</section>
 			</header>
 
-			<article class="main map area , flex items-near-x-center items-near-y-start" style="grid-row:2">
-				<section class="board map" :style="boardStyle">
+			<section class="board map" :style="boardStyle" style="grid-row:2">
 					<div v-for="(cell, index) in displayGrid" :key="index" class="cell">
 						<div v-if="cell" class="unit" :class="cell"></div>
 					</div>
@@ -220,7 +217,6 @@
 						<el-button class="start play btn" @click="togglePause" icon="CaretRight"></el-button>
 					</div>
 				</section>
-			</article>
 
 			<aside class="sidebar at-left">
 				<details data-panel="next" :open="panels.next" @toggle="onPanelToggle">
@@ -235,9 +231,9 @@
 					<summary>本局信息</summary>
 					<el-card header="分数" class="scoreboard" body-class="score" shadow="never">
 						{{ score }}
-						<template #footer>最高记录：{{ highScore }}</template>
+						<template #footer="">最高记录：{{ highScore }}</template>
 					</el-card>
-					<el-descriptions :column="1" border>
+					<el-descriptions :column="1" border="">
 						<el-descriptions-item label="行数">{{ lines }}</el-descriptions-item>
 						<el-descriptions-item label="等级">{{ level }}</el-descriptions-item>
 					</el-descriptions>
@@ -253,9 +249,9 @@
 				</details>
 			</aside>
 			<!-- 结算弹窗 -->
-			<el-dialog v-model="showGameOverModal" class="result narrow" title="游戏结束" :show-close="true" align-center>
+			<el-dialog v-model="showGameOverModal" class="result narrow" title="游戏结束" :show-close="true" align-center="">
 				<div class="stats">得分: {{ score }}</div>
-				<template #footer>
+				<template #footer="">
 					<el-button type="primary" size="large" icon="RefreshRight" @click="closeGameOverAndNew">新局</el-button>
 					<el-button type="warning" size="large" @click="closeGameOverModal">关闭</el-button>
 				</template>
@@ -273,7 +269,7 @@
 				<p class="slogan">赞助一下</p>
 			</section>
 			<section class="copyright">
-				<p>&copy; 2025 工具兽版权所有 All rights reserved.</p>
+				<p>© 2025 工具兽版权所有 All rights reserved.</p>
 			</section>
 			<section class="feedback">
 				<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
@@ -790,5 +786,5 @@
 
 		</script>
 	</div>
-</body>
-</html>
+
+</body></html>

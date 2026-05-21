@@ -23,20 +23,39 @@
 				--cell-size: 20px;
 				--board-cols: 20;
 				--board-rows: 20;
-				cursor: pointer;
+
+				&.paused {
+					cursor: pointer;
+				}
 			}
 
 			& .unit {
-				width: 100%;
-				height: 100%;
-
 				&.snake {
 					background: #34495e;
 					border-radius: 2px;
 
 					&.head {
 						background: #2c3e50;
-						border-radius: 4px;
+						border-radius: 25%;
+
+						&::before,
+						&::after {
+							content: "";
+							position: absolute;
+							width: 3px;
+							height: 3px;
+							background: #fff;
+							border-radius: 50%;
+							top: 25%;
+						}
+
+						&::before {
+							left: 15%;
+						}
+
+						&::after {
+							right: 15%;
+						}
 					}
 				}
 
@@ -44,23 +63,6 @@
 					background: #e74c3c;
 					border-radius: 2px;
 				}
-			}
-
-			& .gaming.info {
-				& section {
-					text-align: center;
-				}
-
-				& h3 {
-					margin: 15px 0;
-					font-size: 1.2rem;
-					font-weight: bold;
-					color: #4a4a4a;
-				}
-			}
-
-			& .one.setting {
-				margin-bottom: 0;
 			}
 		}
 
@@ -114,20 +116,20 @@
 					<div class="one setting group">
 						<el-form-item label="行" class="one setting : height">
 							<el-select v-model="gridHeight">
-								<el-option v-for="h in gridHeightOptions" :key="h" :label="h" :value="h" />
-							</el-select>
+								<el-option v-for="h in gridHeightOptions" :key="h" :label="h" :value="h">
+								</el-option></el-select>
 						</el-form-item>
 						<el-form-item label="列" class="one setting : width">
 							<el-select v-model="gridWidth">
-								<el-option v-for="w in gridWidthOptions" :key="w" :label="w" :value="w" />
-							</el-select>
+								<el-option v-for="w in gridWidthOptions" :key="w" :label="w" :value="w">
+								</el-option></el-select>
 						</el-form-item>
 					</div>
 					<div class="one setting group">
 						<el-form-item label="速度" class="one setting : speed">
 							<el-select v-model="speedLevel">
-								<el-option v-for="s in speedOptions" :key="s" :label="s" :value="s" />
-							</el-select>
+								<el-option v-for="s in speedOptions" :key="s" :label="s" :value="s">
+								</el-option></el-select>
 						</el-form-item>
 					</div>
 					<div class="one setting group">
@@ -143,17 +145,15 @@
 				</section>
 			</header>
 
-			<article class="main map area , flex items-near-x-center">
-				<section class="board map" :style="boardStyle" @click="togglePause">
-					<div v-for="(cell, index) in cells" :key="index" class="cell">
-						<div v-if="cell.unit" class="unit" :class="cell.unit"></div>
-					</div>
-					<div class="overlay" v-if="isPaused && !gameOver">
-						<div class="title">{{ score === 0 ? '准备就绪' : '已暂停' }}</div>
-						<p class="hint">按空格或点击以开始/继续</p>
-					</div>
-				</section>
-			</article>
+			<section class="board map" :class="{ paused: isPaused && !gameOver }" :style="boardStyle" @click="togglePause">
+				<div v-for="(cell, index) in cells" :key="index" class="cell">
+					<div v-if="cell.unit" class="unit" :class="cell.unit"></div>
+				</div>
+				<div class="overlay" v-if="isPaused &amp;&amp; !gameOver">
+					<div class="title">{{ score === 0 ? '准备就绪' : '已暂停' }}</div>
+					<p class="hint">按空格或点击以开始/继续</p>
+				</div>
+			</section>
 
 			<aside class="sidebar at-left">
 				<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
@@ -165,11 +165,11 @@
 				</details>
 				<details class="shortcut list" data-panel="shortcuts" :open="panels.shortcuts" @toggle="onPanelToggle">
 					<summary>快捷键</summary>
-					<p class="one shortcut flex"><kbd>↑</kbd><span>向上</span></p>
-					<p class="one shortcut flex"><kbd>↓</kbd><span>向下</span></p>
-					<p class="one shortcut flex"><kbd>←</kbd><span>向左</span></p>
-					<p class="one shortcut flex"><kbd>→</kbd><span>向右</span></p>
-					<p class="one shortcut flex"><kbd>空格</kbd><span>暂停/开始</span></p>
+					<p class="one shortcut , flex"><kbd>↑</kbd><span>向上</span></p>
+					<p class="one shortcut , flex"><kbd>↓</kbd><span>向下</span></p>
+					<p class="one shortcut , flex"><kbd>←</kbd><span>向左</span></p>
+					<p class="one shortcut , flex"><kbd>→</kbd><span>向右</span></p>
+					<p class="one shortcut , flex"><kbd>空格</kbd><span>暂停/开始</span></p>
 					<p class="tip">不能转向当前反方向</p>
 				</details>
 			</aside>
@@ -194,7 +194,7 @@
 				<p class="slogan">赞助一下</p>
 			</section>
 			<section class="copyright">
-				<p>&copy; 2025 工具兽版权所有 All rights reserved.</p>
+				<p>© 2025 工具兽版权所有 All rights reserved.</p>
 			</section>
 			<section class="feedback">
 				<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
@@ -418,11 +418,24 @@
 					if (this.isPaused || this.gameOver) {
 						return;
 					}
-					this.moveSnake();
-					if (this.checkCollision()) {
+					// 先计算新位置
+					this.direction = this.nextDirection;
+					const newHead = { x: this.snake[0].x, y: this.snake[0].y };
+					switch (this.direction) {
+						case 'up': newHead.y--; break;
+						case 'down': newHead.y++; break;
+						case 'left': newHead.x--; break;
+						case 'right': newHead.x++; break;
+					}
+					// 先检测碰撞（撞墙或撞自己）
+					if (newHead.x < 0 || newHead.x >= this.gameGridWidth ||
+						newHead.y < 0 || newHead.y >= this.gameGridHeight ||
+						this.snake.some(s => s.x === newHead.x && s.y === newHead.y)) {
 						this.endGame();
 						return;
 					}
+					// 确认不会撞才移动
+					this.snake.unshift(newHead);
 					if (this.snake[0].x === this.food.x && this.snake[0].y === this.food.y) {
 						this.score++;
 						this.generateFood();
