@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage"><head>
+<!DOCTYPE html>
+<html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
+<head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title itemprop="name">俄罗斯方块 | 工具兽 - 在线玩经典的益智游戏</title>
@@ -21,7 +23,9 @@
 	<!-- 预加载关键资源 -->
 	<link rel="preload" href="../lib/jquery-3.4.1.min.js" as="script">
 	<link rel="preload" href="../resources/util.js" as="script">
-	<style>@import url("../lib/element-plus/2.10.7/index.css") layer(el-plus);</style>
+	<style>
+		@import url("../lib/element-plus/2.10.7/index.css") layer(el-plus);
+	</style>
 	<link href="../resources/el-plus.css" rel="stylesheet">
 	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/common.css" rel="stylesheet"> -->
 	<link href="../lib/css/common.css" rel="stylesheet">
@@ -48,16 +52,9 @@
 					border-color: transparent;
 					border-radius: 0;
 				}
-
-				& .cell {
-					border: 1px solid rgba(0, 0, 0, 0.15);
-				}
 			}
 
 			& .unit {
-				width: 100%;
-				height: 100%;
-
 				&.I {
 					background-color: #7dd3c0;
 				}
@@ -91,12 +88,7 @@
 					opacity: 0.25;
 				}
 			}
-
-			& .one.setting.number.input {
-				width: 80px;
-			}
 		}
-
 	</style>
 </head>
 <body class="grid 反叵字形">
@@ -169,12 +161,14 @@
 						<el-form-item label="行" class="one setting : rows">
 							<el-select v-model="settings.rows">
 								<el-option v-for="r in rowsOptions" :key="r" :label="r" :value="r">
-							</el-option></el-select>
+								</el-option>
+							</el-select>
 						</el-form-item>
 						<el-form-item label="列" class="one setting : cols">
 							<el-select v-model="settings.cols">
 								<el-option v-for="c in colsOptions" :key="c" :label="c" :value="c">
-							</el-option></el-select>
+								</el-option>
+							</el-select>
 						</el-form-item>
 						<el-button title="恢复默认并新局" class="one setting : restore-default" @click="restoreDefaultSize" icon="RefreshLeft"></el-button>
 					</div>
@@ -182,7 +176,8 @@
 						<el-form-item label="难度" class="one setting : difficulty">
 							<el-select v-model="settings.startLevel">
 								<el-option v-for="lv in startLevelOptions" :key="lv" :label="lv" :value="lv">
-							</el-option></el-select>
+								</el-option>
+							</el-select>
 							<el-radio-group v-model="settings.difficulty">
 								<el-radio-button v-for="opt in difficultyOptions" :key="opt.value" :label="opt.value">{{opt.name}}
 								</el-radio-button>
@@ -207,17 +202,15 @@
 					</div>
 				</section>
 			</header>
-
-			<section class="board map" :style="boardStyle" style="grid-row:2">
-					<div v-for="(cell, index) in displayGrid" :key="index" class="cell">
-						<div v-if="cell" class="unit" :class="cell"></div>
-					</div>
-					<div class="overlay" v-if="isPaused && !isGameOver">
-						<div class="title">准备就绪</div>
-						<el-button class="start play btn" @click="togglePause" icon="CaretRight"></el-button>
-					</div>
-				</section>
-
+			<section class="board map" :style="boardStyle" style="grid-row:2" @click="togglePause">
+				<div v-for="(cell, index) in displayGrid" :key="index" class="cell">
+					<div v-if="cell" class="unit" :class="cell"></div>
+				</div>
+				<div class="overlay" v-if="isPaused && !isGameOver">
+					<div class="title">{{ score === 0 ? '准备就绪' : '已暂停' }}</div>
+					<p class="hint">按空格或点击以开始/继续</p>
+				</div>
+			</section>
 			<aside class="sidebar at-left">
 				<details data-panel="next" :open="panels.next" @toggle="onPanelToggle">
 					<summary>下一块</summary>
@@ -240,12 +233,12 @@
 				</details>
 				<details class="shortcut list" data-panel="shortcuts" :open="panels.shortcuts" @toggle="onPanelToggle">
 					<summary>快捷键</summary>
-					<p class="one shortcut flex"><kbd>←</kbd><span>向左</span></p>
-					<p class="one shortcut flex"><kbd>↓</kbd><span>向下</span></p>
-					<p class="one shortcut flex"><kbd>→</kbd><span>向右</span></p>
-					<p class="one shortcut flex"><kbd>↑</kbd><span>变形</span></p>
-					<p class="one shortcut flex"><kbd>回车</kbd><span>直接落底</span></p>
-					<p class="one shortcut flex"><kbd>空格</kbd><span>暂停/开始</span></p>
+					<p class="one shortcut , flex"><kbd>←</kbd><span>向左</span></p>
+					<p class="one shortcut , flex"><kbd>↓</kbd><span>向下</span></p>
+					<p class="one shortcut , flex"><kbd>→</kbd><span>向右</span></p>
+					<p class="one shortcut , flex"><kbd>↑</kbd><span>变形</span></p>
+					<p class="one shortcut , flex"><kbd>回车</kbd><span>直接落底</span></p>
+					<p class="one shortcut , flex"><kbd>空格</kbd><span>暂停/开始</span></p>
 				</details>
 			</aside>
 			<!-- 结算弹窗 -->
@@ -786,5 +779,5 @@
 
 		</script>
 	</div>
-
-</body></html>
+</body>
+</html>
