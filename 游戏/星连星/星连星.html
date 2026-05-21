@@ -12,7 +12,6 @@
 	<meta property="og:type" content="game">
 	<style>
 		@import url("../../lib/element-plus/2.10.7/index.css") layer(el-plus);
-
 	</style>
 	<link href="../../resources/el-plus.css" rel="stylesheet">
 	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/common.css" rel="stylesheet"> -->
@@ -55,48 +54,39 @@
 						/* 中心圆点用背景渐变画 */
 						background: radial-gradient(circle at center, var(--path-color) calc(var(--line-width) * 0.7), transparent calc(var(--line-width) * 0.7));
 
-						/* 方向线段 */
+						/* 方向线段：before=水平，after=垂直 */
 						&::before, &::after {
 							content: "";
 							position: absolute;
 							background: var(--path-color);
-							left: 50%;
-							top: 50%;
-							transform: translate(-50%, -50%);
 						}
 
-						/* 直连：一条线贯穿 */
-						&.top.bottom::before {
-							width: var(--line-width);
-							height: 100%;
-						}
-
-						&.left.right::before {
-							width: 100%;
+						/* 水平线段 (::before) */
+						&:is(.left, .right)::before {
 							height: var(--line-width);
+							top: 50%;
+							width: 50%; 
+							transform: translateY(-50%);
 						}
+						&.left::before { left: 0; }
+						&.right::before { left: 50%; }
 
-						/* 转弯或端点 */
-						&:not(.top.bottom):not(.left.right) {
-							/* 端点：只有一个方向 */
-							&.top::before { width: var(--line-width); height: 50%; top: 0; left: 50%; transform: translateX(-50%); }
-							&.bottom::before { width: var(--line-width); height: 50%; top: 50%; left: 50%; transform: translateX(-50%); }
-							&.left::before { width: 50%; height: var(--line-width); left: 0; top: 50%; transform: translateY(-50%); }
-							&.right::before { width: 50%; height: var(--line-width); left: 50%; top: 50%; transform: translateY(-50%); }
-
-							/* 转弯：两个不同轴方向 */
-							&.top.left::before { width: var(--line-width); height: 50%; top: 0; left: 50%; transform: translateX(-50%); }
-							&.top.left::after { width: 50%; height: var(--line-width); left: 0; top: 50%; transform: translateY(-50%); }
-							&.top.right::before { width: var(--line-width); height: 50%; top: 0; left: 50%; transform: translateX(-50%); }
-							&.top.right::after { width: 50%; height: var(--line-width); left: 50%; top: 50%; transform: translateY(-50%); }
-							&.bottom.left::before { width: var(--line-width); height: 50%; top: 50%; left: 50%; transform: translateX(-50%); }
-							&.bottom.left::after { width: 50%; height: var(--line-width); left: 0; top: 50%; transform: translateY(-50%); }
-							&.bottom.right::before { width: var(--line-width); height: 50%; top: 50%; left: 50%; transform: translateX(-50%); }
-							&.bottom.right::after { width: 50%; height: var(--line-width); left: 50%; top: 50%; transform: translateY(-50%); }
+						/* 垂直线段 (::after) */
+						&:is(.top, .bottom)::after {
+							width: var(--line-width);
+							height: 50%;
+							left: 50%;
+							transform: translateX(-50%);
 						}
+						&.top::after { top: 0; }
+						&.bottom::after { top: 50%; }
+
+						/* 直连贯穿 */
+						&.left.right::before { width: 100%; left:0; }
+						&.left.right::after { display: none; }
+						&.top.bottom::after { height: 100%; top:0; }
+						&.top.bottom::before { display: none; }
 					}
-
-
 				}
 			}
 		}
@@ -110,7 +100,6 @@
 				opacity: 1;
 			}
 		}
-
 	</style>
 </head>
 <body class="grid 反叵字形">
