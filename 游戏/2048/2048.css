@@ -6,6 +6,10 @@
 	& .game-2048 {
 		color: #5a6b52;
 		font-family: system-ui, -apple-system, sans-serif;
+
+		& .board.map .cell {
+			contain: none;/* 允许滑动时动画超出边界 */
+		}
 	}
 
 	/* 数字方块 */
@@ -26,19 +30,6 @@
 		&.unit-512 { background: #7aa862; color: #f5f9f2; }
 		&.unit-1024 { background: #6a9f56; color: #f5f9f2; }
 		&.unit-2048 { background: #5a8f4a; color: #f5f9f2; }
-	}
-
-	/* 滑动动画层 */
-	& .gaming.area .slide-layer {
-		position: absolute;
-		inset: 0;
-		pointer-events: none;
-		border-radius: 8px;
-		padding: 12px;
-
-		& .cell {
-			position: absolute;
-		}
 	}
 
 	/* 自定义数字显示 */

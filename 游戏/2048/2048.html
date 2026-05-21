@@ -1,159 +1,144 @@
 <!DOCTYPE html>
 <html lang="zh-CN" itemscope itemtype="https://schema.org/WebPage">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title itemprop="name">2048 | 工具兽 - 在线数字合并益智游戏</title>
-<meta name="description" content="在线 2048 游戏，支持 4×4 至 8×8 棋盘、多种目标分数与停步动画，可撤销与本地存档。"
-			itemprop="description">
-<meta name="keywords" content="2048,数字合并,益智游戏,在线游戏">
-<meta name="author" content="工具兽">
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title itemprop="name">2048 | 工具兽 - 在线数字合并益智游戏</title>
+	<meta name="description" content="在线 2048 游戏，支持 4×4 至 8×8 棋盘、多种目标分数与停步动画，可撤销与本地存档。" itemprop="description">
+	<meta name="keywords" content="2048,数字合并,益智游戏,在线游戏">
+	<meta name="author" content="工具兽">
+	<style>
+		@import url("../../lib/element-plus/2.10.7/index.css") layer(el-plus);
 
-<style>@import url("../../lib/element-plus/2.10.7/index.css") layer(el-plus);</style>
-<link href="../../resources/el-plus.css" rel="stylesheet">
+	</style>
+	<link href="../../resources/el-plus.css" rel="stylesheet">
 	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/common.css" rel="stylesheet"> -->
 	<link href="../../lib/css/common.css" rel="stylesheet">
 	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/layout.css" rel="stylesheet"> -->
 	<link href="../../lib/css/layout.css" rel="stylesheet">
-<link href="../../resources/biz.css" rel="stylesheet">
+	<link href="../../resources/biz.css" rel="stylesheet">
 	<link href="../game.css" rel="stylesheet">
 	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/花活.css" rel="stylesheet"> -->
 	<link href="../../lib/css/花活.css" rel="stylesheet">
-<link href="2048.css" rel="stylesheet">
+	<link href="2048.css" rel="stylesheet">
 </head>
 <body class="grid 反叵字形">
-<header>
-	<h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
-	<nav>
-		<div class="nav-row">
-			<a href="../../文本转化.html">文本转化</a>
-			<a href="../../数字转化.html">数字转化</a>
-			<a href="../../符号/符号.html">符号</a>
-			<a href="../../格子盘.html">格子盘</a>
-			<a href="../../svg转图标.html">SVG转图标</a>
-			<a href="../../化学/元素周期表.html">元素周期表</a>
-			<a href="../../拼音/拼音.html">拼音</a>
-		</div>
-		<div class="nav-row">
-			<a href="../中国象棋/中国象棋.html">中国象棋</a>
-			<a href="../五子棋/gobang.html">五子棋</a>
-			<a href="../俄罗斯方块.html">俄罗斯方块</a>
-			<a href="../贪吃蛇.html">贪吃蛇</a>
-			<a href="2048.html" class="active">2048</a>
-			<a href="../2048蛇/2048蛇.html">2048蛇</a>
-			<a href="../2048方块/2048方块.html">2048方块</a>
-			<a href="../点灯.html">点灯</a>
-			<a href="../数字华容道.html">数字华容道</a>
-			<a href="../星连星/星连星.html">星连星</a>
-		</div>
-	</nav>
-</header>
-<main class="unit movable board game">
 	<header>
-		<h2 class="game name">2048</h2>
-		<div class="page-lv help area" v-cloak>
-			<el-button title="游戏介绍" class="page-lv help btn" size="small" circle @click="introVisible=true">?</el-button>
-			<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
-				<p>2048：滑动合并相同数字，达到目标数字即胜利。可自定义棋盘大小、目标分数与停步动画。</p>
-				<p><strong>操作</strong>：方向键、触屏或鼠标滑动。新局、撤销、设置在工具栏。</p>
-			</el-dialog>
-		</div>
-	</header>
-	<article class="gaming area , game-2048 , 叵字形 grid" tabindex="0" v-cloak>
-		<header class="toolbar , multi-line flex , items-near-x-center items-stretch no-gap">
-			<section class="setting list , single-line flex , items-near-x-start items-near-y-center no-gap">
-				<div class="one setting group">
-					<el-form-item class="one setting : height">
-						<el-select v-model.number="boardHeight">
-							<template #prefix>行</template>
-							<el-option v-for="h in boardSizeOptions" :key="h" :label="String(h)" :value="h"/>
-						</el-select>
-					</el-form-item>
-					<el-form-item class="one setting : width">
-						<el-select v-model.number="boardWidth">
-							<template #prefix>列</template>
-							<el-option v-for="w in boardSizeOptions" :key="w" :label="String(w)" :value="w"/>
-						</el-select>
-					</el-form-item>
-				</div>
-				<div class="one setting group">
-					<el-form-item class="one setting : target">
-						<el-input-number :model-value="targetNumber" @update:model-value="onTargetNumberChange" :controls="false"
-														placeholder="留空=无限" title="留空=无限" :min="8" style="width: 10em">
-							<template #prefix>目标≥</template>
-							<template #suffix>
-								<el-button v-if="targetNumber != null && targetNumber !== ''" link type="primary" size="small"
-													icon="CircleClose" circle
-													title="清空为无限" @click.stop="onTargetNumberChange(null)"></el-button>
-							</template>
-						</el-input-number>
-					</el-form-item>
-				</div>
-				<div class="one setting group">
-					<el-form-item class="one setting : restart">
-						<el-button type="danger" icon="RefreshRight" @click="onRestart">新局</el-button>
-					</el-form-item>
-				</div>
-			</section>
-			<section class="controller list , single-line flex , items-near-x-start items-near-y-center no-gap">
-				<div class="one controller group">
-					<el-form-item class="one controller : undo">
-						<el-button @click="onUndo">撤销</el-button>
-					</el-form-item>
-				</div>
-			</section>
-			<section class="tool list , single-line flex , items-near-x-start items-near-y-center no-gap">
-				<div class="one tool group" v-for="item in quickSettingsList" :key="item.key">
-					<el-form-item :class="'one tool : ' + item.key">
-						<el-button v-if="item.type === 'toggle'" class="按压式" :class="{ pressed: getQuickValue(item.key) }"
-											@click="setQuickValue(item.key, !getQuickValue(item.key))">
-							<el-icon v-if="item.key === 'showNewTileMarker'">
-								<svg class="y-middle" viewBox="0 0 24 24" width="1em" height="1em" title="角标式标记">
-									<rect x="2" y="2" width="20" height="20" rx="5" fill="currentColor" opacity="0.85"/>
-									<circle cx="18" cy="6" r="3.5" fill="var(--el-color-danger, #f56c6c)"/>
-								</svg>
-							</el-icon>
-							<span>{{ item.label }}</span>
-						</el-button>
-						<el-select v-else-if="item.type === 'select'" :model-value="getQuickValue(item.key)"
-											@update:model-value="(v) => setQuickValue(item.key, v)">
-							<template #prefix>{{ item.label }}</template>
-							<el-option v-for="opt in item.options" :key="opt.value" :label="opt.label" :value="opt.value"></el-option>
-						</el-select>
-					</el-form-item>
-				</div>
-				<div class="one tool group">
-					<el-form-item class="one tool : custom-tiles">
-						<el-button icon="PictureFilled" @click="openCustomTilesDialog">数字显示</el-button>
-					</el-form-item>
-				</div>
-			</section>
-		</header>
-
-		<!-- 主地图区 -->
-		<section class="board , main map , no-shrink" ref="board" :style="boardWrapStyle">
-			<div class="cell" :data-index="cell.index" v-for="(cell, index) in boardCells" :key="index">
-				<div v-if="cell.unit" class="unit" :class="'unit-' + cell.unit.val" :data-index="cell.index">
-					<img v-if="cell.unit.image" :src="cell.unit.image" :alt="cell.unit.text" loading="lazy">
-					<template v-else>{{ cell.unit.text }}</template>
-					<span v-if="showNewTileMarker && cell.unit.isNew" class="new badge"></span>
-				</div>
+		<h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
+		<nav>
+			<div class="nav-row">
+				<a href="../../文本转化.html">文本转化</a>
+				<a href="../../数字转化.html">数字转化</a>
+				<a href="../../符号/符号.html">符号</a>
+				<a href="../../格子盘.html">格子盘</a>
+				<a href="../../svg转图标.html">SVG转图标</a>
+				<a href="../../化学/元素周期表.html">元素周期表</a>
+				<a href="../../拼音/拼音.html">拼音</a>
 			</div>
-			<!-- 滑动动画层：与 .board 同级的浮层，用于播放方块滑动动画 -->
-			<div class="slide-layer">
-				<div class="cell" :style="floatingUnitStyle(unit)" v-for="(unit, idx) in slideAnimationTiles" :key="idx">
-					<div class="unit" :class="'unit-' + unit.value">
-						<img v-if="unit.displayImage" :src="unit.displayImage" :alt="unit.displayText" loading="lazy">
-						<template v-else>{{ unit.displayText }}</template>
+			<div class="nav-row">
+				<a href="../中国象棋/中国象棋.html">中国象棋</a>
+				<a href="../五子棋/gobang.html">五子棋</a>
+				<a href="../俄罗斯方块.html">俄罗斯方块</a>
+				<a href="../贪吃蛇.html">贪吃蛇</a>
+				<a href="2048.html" class="active">2048</a>
+				<a href="../2048蛇/2048蛇.html">2048蛇</a>
+				<a href="../2048方块/2048方块.html">2048方块</a>
+				<a href="../点灯.html">点灯</a>
+				<a href="../数字华容道.html">数字华容道</a>
+				<a href="../星连星/星连星.html">星连星</a>
+			</div>
+		</nav>
+	</header>
+	<main class="unit movable board game">
+		<header>
+			<h2 class="game name">2048</h2>
+			<div class="page-lv help area" v-cloak>
+				<el-button title="游戏介绍" class="page-lv help btn" size="small" circle @click="introVisible=true">?</el-button>
+				<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
+					<p>2048：滑动合并相同数字，达到目标数字即胜利。可自定义棋盘大小、目标分数与停步动画。</p>
+					<p><strong>操作</strong>：方向键、触屏或鼠标滑动。新局、撤销、设置在工具栏。</p>
+				</el-dialog>
+			</div>
+		</header>
+		<article class="gaming area , game-2048 , 叵字形 grid" tabindex="0" v-cloak>
+			<header class="toolbar , multi-line flex , items-near-x-center items-stretch no-gap">
+				<section class="setting list , single-line flex , items-near-x-start items-near-y-center no-gap">
+					<div class="one setting group">
+						<el-form-item class="one setting : height">
+							<el-select v-model.number="boardHeight">
+								<template #prefix>行</template>
+								<el-option v-for="h in boardSizeOptions" :key="h" :label="String(h)" :value="h">
+								</el-option></el-select>
+						</el-form-item>
+						<el-form-item class="one setting : width">
+							<el-select v-model.number="boardWidth">
+								<template #prefix>列</template>
+								<el-option v-for="w in boardSizeOptions" :key="w" :label="String(w)" :value="w">
+								</el-option></el-select>
+						</el-form-item>
+					</div>
+					<div class="one setting group">
+						<el-form-item class="one setting : target">
+							<el-input-number :model-value="targetNumber" @update:model-value="onTargetNumberChange" :controls="false" placeholder="留空=无限" title="留空=无限" :min="8" style="width: 10em">
+								<template #prefix>目标≥</template>
+								<template #suffix>
+									<el-button v-if="targetNumber != null && targetNumber !== ''" link type="primary" size="small" icon="CircleClose" circle title="清空为无限" @click.stop="onTargetNumberChange(null)"></el-button>
+								</template>
+							</el-input-number>
+						</el-form-item>
+					</div>
+					<div class="one setting group">
+						<el-form-item class="one setting : restart">
+							<el-button type="danger" icon="RefreshRight" @click="onRestart">新局</el-button>
+						</el-form-item>
+					</div>
+				</section>
+				<section class="controller list , single-line flex , items-near-x-start items-near-y-center no-gap">
+					<div class="one controller group">
+						<el-form-item class="one controller : undo">
+							<el-button @click="onUndo">撤销</el-button>
+						</el-form-item>
+					</div>
+				</section>
+				<section class="tool list , single-line flex , items-near-x-start items-near-y-center no-gap">
+					<div class="one tool group" v-for="item in quickSettingsList" :key="item.key">
+						<el-form-item :class="'one tool : ' + item.key">
+							<el-button v-if="item.type === 'toggle'" class="按压式" :class="{ pressed: getQuickValue(item.key) }" @click="setQuickValue(item.key, !getQuickValue(item.key))">
+								<el-icon v-if="item.key === 'showNewTileMarker'">
+									<svg class="y-middle" viewBox="0 0 24 24" width="1em" height="1em" title="角标式标记">
+										<rect x="2" y="2" width="20" height="20" rx="5" fill="currentColor" opacity="0.85"></rect>
+										<circle cx="18" cy="6" r="3.5" fill="var(--el-color-danger, #f56c6c)"></circle>
+									</svg>
+								</el-icon>
+								<span>{{ item.label }}</span>
+							</el-button>
+							<el-select v-else-if="item.type === 'select'" :model-value="getQuickValue(item.key)" @update:model-value="(v) => setQuickValue(item.key, v)">
+								<template #prefix>{{ item.label }}</template>
+								<el-option v-for="opt in item.options" :key="opt.value" :label="opt.label" :value="opt.value"></el-option>
+							</el-select>
+						</el-form-item>
+					</div>
+					<div class="one tool group">
+						<el-form-item class="one tool : custom-tiles">
+							<el-button icon="PictureFilled" @click="openCustomTilesDialog">数字显示</el-button>
+						</el-form-item>
+					</div>
+				</section>
+			</header>
+			<!-- 主地图区 -->
+			<section class="main board map , no-shrink" ref="board" :style="boardWrapStyle">
+				<div class="cell" :data-index="cell.index" v-for="(cell, index) in boardCells" :key="index">
+					<div v-if="cell.unit" class="unit" :class="'unit-' + cell.unit.val" :data-index="cell.index" :style="cellUnitStyle(cell)">
+						<img v-if="cell.unit.image" :src="cell.unit.image" :alt="cell.unit.text" loading="lazy">
+						<template v-else>{{ cell.unit.text }}</template>
+						<span v-if="showNewTileMarker && cell.unit.isNew" class="new badge"></span>
 					</div>
 				</div>
-			</div>
-		</section>
-
-		<!-- 信息区 -->
-		<aside class="info area , sidebar at-left">
-			<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
-				<summary>本局信息</summary>
+			</section>
+			<!-- 信息区 -->
+			<aside class="info area , sidebar at-left">
+				<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
+					<summary>本局信息</summary>
 					<div class="flex go-y">
 						<el-card header="当前得分" class="scoreboard" body-class="score" shadow="never">
 							{{ score }}
@@ -162,371 +147,414 @@
 							<el-descriptions-item label="行">{{ gameBoardHeight }}</el-descriptions-item>
 							<el-descriptions-item label="列">{{ gameBoardWidth }}</el-descriptions-item>
 							<el-descriptions-item label="目标≥">{{ gameTargetLabel }}</el-descriptions-item>
-							<el-descriptions-item :label="gameBoardWidth && gameBoardHeight ? `最高记录 (${gameBoardWidth}×${gameBoardHeight})` : '最高记录'">{{ highScore }}</el-descriptions-item>
+							<el-descriptions-item :label="gameBoardWidth &amp;&amp; gameBoardHeight ? `最高记录 (${gameBoardWidth}×${gameBoardHeight})` : '最高记录'">{{ highScore }}</el-descriptions-item>
 						</el-descriptions>
 					</div>
-			</details>
-			<details class="shortcut list" data-panel="shortcuts" :open="panels.shortcuts" @toggle="onPanelToggle">
-				<summary>快捷键</summary>
-				<p class="one shortcut flex"><kbd>↑</kbd><span>向上滑动</span></p>
-				<p class="one shortcut flex"><kbd>↓</kbd><span>向下滑动</span></p>
-				<p class="one shortcut flex"><kbd>←</kbd><span>向左滑动</span></p>
-				<p class="one shortcut flex"><kbd>→</kbd><span>向右滑动</span></p>
-				<p class="tip">支持键盘、触屏与鼠标滑动</p>
-			</details>
-		</aside>
-
-		<!-- 结算弹窗 -->
-		<el-dialog v-model="gameResultVisible" class="result" :title="gameResultMessage" :show-close="true" align-center>
-			<div class="stats">
-				目标: {{ gameTargetLabel }} | 步数: {{ resultMoveCount }} | 得分: {{ score }} | 最大: {{ resultMaxTile }}
+				</details>
+				<details class="shortcut list" data-panel="shortcuts" :open="panels.shortcuts" @toggle="onPanelToggle">
+					<summary>快捷键</summary>
+					<p class="one shortcut flex"><kbd>↑</kbd><span>向上滑动</span></p>
+					<p class="one shortcut flex"><kbd>↓</kbd><span>向下滑动</span></p>
+					<p class="one shortcut flex"><kbd>←</kbd><span>向左滑动</span></p>
+					<p class="one shortcut flex"><kbd>→</kbd><span>向右滑动</span></p>
+					<p class="tip">支持键盘、触屏与鼠标滑动</p>
+				</details>
+			</aside>
+			<!-- 结算弹窗 -->
+			<el-dialog v-model="gameResultVisible" class="result" :title="gameResultMessage" :show-close="true" align-center>
+				<div class="stats">
+					目标: {{ gameTargetLabel }} | 步数: {{ resultMoveCount }} | 得分: {{ score }} | 最大: {{ resultMaxTile }}
+				</div>
+				<template #footer>
+					<el-button type="primary" size="large" icon="RefreshRight" @click="onResultRestart">新局</el-button>
+					<el-button type="warning" size="large" @click="closeGameResultModal">关闭</el-button>
+				</template>
+			</el-dialog>
+			<!-- 彩纸效果（仅胜利时） -->
+			<div class="fullscreen non-interactive top-layer" v-if="gameResultVisible && gameResultIsWin">
+				<div class="confetti-piece" v-for="i in 150" :key="i"></div>
 			</div>
-			<template #footer>
-				<el-button type="primary" size="large" icon="RefreshRight" @click="onResultRestart">新局</el-button>
-				<el-button type="warning" size="large" @click="closeGameResultModal">关闭</el-button>
-			</template>
-		</el-dialog>
 
-		<!-- 彩纸效果（仅胜利时） -->
-		<div class="fullscreen non-interactive top-layer" v-if="gameResultVisible && gameResultIsWin">
-			<div class="confetti-piece" v-for="i in 150" :key="i"></div>
-		</div>
-
-		<el-dialog title="自定义数字显示" class="customize unit display area" v-model="customTilesDialogVisible" width="90%"
-							align-center @opened="onCustomTilesDialogOpened">
-			<p class="hint">
-				可为每个数字设置自定义显示文字、图片 URL 或本地选图（图片优先）；留空则显示原数字。修改后失焦或选图即生效。
-				<el-button type="danger" size="small" @click="clearAllCustom">清除全部</el-button>
-			</p>
-			<input ref="unitFileInput" type="file" accept="image/*" class="hidden" @change="onUnitFileChange">
-			<div class="unit list">
-				<el-card :header="`数字 ${pu.key}`" class="one unit area" v-for="pu in previewUnits" :key="pu.key" shadow="never">
-					<div class="flex items-stretch">
-						<div class="cell">
-							<div class="unit preview" :class="['unit-' + pu.key, { 'preview-error': previewImageErrors[pu.key] }]">
-								<img v-if="pu.image" :src="pu.image" :alt="pu.text" loading="lazy" @error="previewImageErrors[pu.key]=true">
-								<template v-else>{{ pu.text }}</template>
-							</div>
-							<el-button v-if="customLabels[pu.key] || customImages[pu.key]" class="sm circle btn , overlay top right" circle size="small" @click="clearCustomTile(pu.key)">
-								×
-							</el-button>
-						</div>
-						<div class="preview input area , flexible , flex go-y">
-							<el-input placeholder="自定义文字" class="flexible" :model-value="customLabels[pu.key] || ''"
-												@update:model-value="onCustomLabelInput(pu.key, $event)" @blur="applyCustomTiles"
-												maxlength="10"></el-input>
-							<div class="flex items-near-y-center"><span>或</span>
-								<el-input class="flexible" :model-value="customImageDisplayValue(pu.key)"
-													@update:model-value="onCustomImageInput(pu.key, $event)" @blur="applyCustomTiles"
-													:placeholder="customImagePlaceholder(pu.key)"></el-input>
-							</div>
-							<div class="flex items-near-y-center"><span>或</span>
-								<el-button class="file-picker entry btn , flexible" @click="openTileFilePicker(pu.key)">
-									选择本地图片
+			<el-dialog title="自定义数字显示" class="customize unit display area" v-model="customTilesDialogVisible" width="90%" align-center @opened="onCustomTilesDialogOpened">
+				<p class="hint">
+					可为每个数字设置自定义显示文字、图片 URL 或本地选图（图片优先）；留空则显示原数字。修改后失焦或选图即生效。
+					<el-button type="danger" size="small" @click="clearAllCustom">清除全部</el-button>
+				</p>
+				<input ref="unitFileInput" type="file" accept="image/*" class="hidden" @change="onUnitFileChange">
+				<div class="unit list">
+					<el-card :header="`数字 ${pu.key}`" class="one unit area" v-for="pu in previewUnits" :key="pu.key" shadow="never">
+						<div class="flex items-stretch">
+							<div class="cell">
+								<div class="unit preview" :class="['unit-' + pu.key, { 'preview-error': previewImageErrors[pu.key] }]">
+									<img v-if="pu.image" :src="pu.image" :alt="pu.text" loading="lazy" @error="previewImageErrors[pu.key]=true">
+									<template v-else>{{ pu.text }}</template>
+								</div>
+								<el-button v-if="customLabels[pu.key] || customImages[pu.key]" class="sm circle btn , overlay top right" circle size="small" @click="clearCustomTile(pu.key)">
+									×
 								</el-button>
 							</div>
+							<div class="preview input area , flexible , flex go-y">
+								<el-input placeholder="自定义文字" class="flexible" :model-value="customLabels[pu.key] || ''" @update:model-value="onCustomLabelInput(pu.key, $event)" @blur="applyCustomTiles" maxlength="10"></el-input>
+								<div class="flex items-near-y-center"><span>或</span>
+									<el-input class="flexible" :model-value="customImageDisplayValue(pu.key)" @update:model-value="onCustomImageInput(pu.key, $event)" @blur="applyCustomTiles" :placeholder="customImagePlaceholder(pu.key)"></el-input>
+								</div>
+								<div class="flex items-near-y-center"><span>或</span>
+									<el-button class="file-picker entry btn , flexible" @click="openTileFilePicker(pu.key)">
+										选择本地图片
+									</el-button>
+								</div>
+							</div>
 						</div>
-					</div>
-				</el-card>
-				<el-card header="更大的数字" class="one unit area" body-class="flex" shadow="never">
-					<div class="flexible , flex near-center">
-						<el-button :title="canAddNextCustomTile ? '添加下一个数字' : '已达上限'" circle class="lg circle btn"
-											:disabled="!canAddNextCustomTile" @click="addNextCustomTile">+
-						</el-button>
-					</div>
-				</el-card>
-			</div>
-		</el-dialog>
-	</article>
-</main>
-
-<aside class="sidebar at-right">
-	<article class="website info">
-		<section class="patronage area">
-			<img class="qr-code" src="../../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
-			<p class="slogan">赞助一下</p>
-		</section>
-		<section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
-		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
-		</section>
-	</article>
-</aside>
-
-<div class="js container">
-	<script src="../../lib/vue/3.5.18/vue.global.js"></script>
-	<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
-	<script src="../../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
-	<script src="../../resources/game-keys-area.js"></script>
-	<script src="constants.js"></script>
-	<script src="logic.js"></script>
-	<script src="../../resources/debug-utils.js"></script>
-</div>
-<script type="module">
-	import Game2048 from './2048-dom.js';
-
-	window.Game2048 = Game2048;
-	(function() {
-		const {createApp, reactive, ref} = Vue;
-		const boardSizeOptions = [4, 5, 6, 7, 8];
-		const state = reactive({
-			panels: {info: true, shortcuts: false},
-			_panelKey: '2048-panels',
-			score: 0,
-			highScore: 0,
-			boardWidth: 4,
-			boardHeight: 4,
-			targetNumber: 2048,
-			gameBoardWidth: 4,
-			gameBoardHeight: 4,
-			gameTargetNumber: 2048,
-			gameTargetLabel: '2048',
-			showNewTileMarker: true,
-			customTilesDialogVisible: false,
-			customLabels: {},
-			customImages: {},
-			customTileKeys: [],
-			pendingFileKey: null,
-			boardView: {rows: 4, cols: 4, cells: []},
-			lastStateForDisplay: null,
-			gameResultVisible: false,
-			gameResultMessage: '',
-			gameResultSub: '',
-			gameResultIsWin: false,
-			slideAnimationTiles: [],
-			previewImageErrors: {},
-		});
-		const newTileIndexRef = ref(-1);
-		const SLIDE_MS_PER_CELL = 120;
-		const mainApp = createApp({
-			data: () => state,
-			computed: {
-				quickSettingsList() {
-					return window.Game2048Constants.getQuickSettingsList('web') || [];
+					</el-card>
+					<el-card header="更大的数字" class="one unit area" body-class="flex" shadow="never">
+						<div class="flexible , flex near-center">
+							<el-button :title="canAddNextCustomTile ? '添加下一个数字' : '已达上限'" circle class="lg circle btn" :disabled="!canAddNextCustomTile" @click="addNextCustomTile">+
+							</el-button>
+						</div>
+					</el-card>
+				</div>
+			</el-dialog>
+		</article>
+	</main>
+	<aside class="sidebar at-right">
+		<article class="website info">
+			<section class="patronage area">
+				<img class="qr-code" src="../../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
+				<p class="slogan">赞助一下</p>
+			</section>
+			<section class="copyright">
+				<p>© 2025 工具兽版权所有 All rights reserved.</p>
+			</section>
+			<section class="feedback">
+				<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+			</section>
+		</article>
+	</aside>
+	<div class="js container">
+		<script src="../../lib/vue/3.5.18/vue.global.js"></script>
+		<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
+		<script src="../../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
+		<script src="../../resources/game-keys-area.js"></script>
+		<script src="constants.js"></script>
+		<script src="logic.js"></script>
+		<script src="../../resources/debug-utils.js"></script>
+	</div>
+	<script type="module">
+		import Game2048 from './2048-dom.js';
+		window.Game2048 = Game2048;
+		(function() {
+			const {
+				createApp,
+				reactive,
+				ref
+			} = Vue;
+			const boardSizeOptions = [4, 5, 6, 7, 8];
+			const state = reactive({
+				panels: {
+					info: true,
+					shortcuts: false
 				},
-				boardSizeOptions: () => boardSizeOptions,
-				boardWrapStyle() {
-					const c = state.boardView.cols || 4;
-					const r = state.boardView.rows || 4;
-					return {'--board-cols': c, '--board-rows': r};
+				_panelKey: '2048-panels',
+				score: 0,
+				highScore: 0,
+				boardWidth: 4,
+				boardHeight: 4,
+				targetNumber: 2048,
+				gameBoardWidth: 4,
+				gameBoardHeight: 4,
+				gameTargetNumber: 2048,
+				gameTargetLabel: '2048',
+				showNewTileMarker: true,
+				customTilesDialogVisible: false,
+				customLabels: {},
+				customImages: {},
+				customTileKeys: [],
+				pendingFileKey: null,
+				boardView: {
+					rows: 4,
+					cols: 4,
+					cells: []
 				},
-				canAddNextCustomTile() {
-					const keys = state.customTileKeys;
-					if (!keys || !keys.length) {
-						return true;
-					}
-					const maxKey = parseInt(keys[keys.length - 1], 10);
-					return maxKey * 2 <= 1048576;
-				},
-				boardCells() {
-					const cells = state.boardView.cells || [];
-					const newIdx = newTileIndexRef.value;
-					const s = state.lastStateForDisplay;
-					const getDisplay = v => window.Game2048.getTileDisplayContent(s, v);
-					return cells.map(function(c) {
-						if (!c.value) {
-							return {index: c.index, value: 0, unit: null};
+				lastStateForDisplay: null,
+				gameResultVisible: false,
+				gameResultMessage: '',
+				gameResultSub: '',
+				gameResultIsWin: false,
+				slideAnimationState: {},
+				previewImageErrors: {},
+			});
+			const newTileIndexRef = ref(-1);
+			const SLIDE_MS_PER_CELL = 120;
+			const mainApp = createApp({
+				data: () => state,
+				computed: {
+					quickSettingsList() {
+						return window.Game2048Constants.getQuickSettingsList('web') || [];
+					},
+					boardSizeOptions: () => boardSizeOptions,
+					boardWrapStyle() {
+						const c = state.boardView.cols || 4;
+						const r = state.boardView.rows || 4;
+						return {
+							'--board-cols': c,
+							'--board-rows': r
+						};
+					},
+					canAddNextCustomTile() {
+						const keys = state.customTileKeys;
+						if (!keys || !keys.length) {
+							return true;
 						}
-						const content = getDisplay(c.value) || {type: 'number', value: c.value};
-						let text = String(c.value);
-						let image = undefined;
-						if (content) {
-							if (content.type === 'image') {
-								image = content.src;
-								text = String(c.value);
-							} else if (content.type === 'text') {
-								text = content.text;
-							} else {
-								text = String(content.value != null ? content.value : c.value);
+						const maxKey = parseInt(keys[keys.length - 1], 10);
+						return maxKey * 2 <= 1048576;
+					},
+					boardCells() {
+						const cells = state.boardView.cells || [];
+						const newIdx = newTileIndexRef.value;
+						const s = state.lastStateForDisplay;
+						const getDisplay = v => window.Game2048.getTileDisplayContent(s, v);
+						return cells.map(function(c) {
+							if (!c.value) {
+								return {
+									index: c.index,
+									value: 0,
+									unit: null
+								};
 							}
-						}
-						const unit = {val: c.value, isNew: c.index === newIdx, text: text, image: image};
-						return {index: c.index, value: c.value, unit: unit};
-					});
-				},
-				previewUnits() {
-					const keys = state.customTileKeys || [];
-					const s = {customLabels: state.customLabels, customImages: state.customImages};
-					const getDisplay = v => window.Game2048.getTileDisplayContent(s, v);
-					return keys.map(function(key) {
-						const num = Number(key);
-						const content = getDisplay(num) || {type: 'number', value: num};
-						let text = String(num);
-						let image = undefined;
-						if (content) {
-							if (content.type === 'image') {
-								image = content.src;
-								text = String(num);
-							} else if (content.type === 'text') {
-								text = content.text;
-							} else {
-								text = String(content.value != null ? content.value : num);
+							const content = getDisplay(c.value) || {
+								type: 'number',
+								value: c.value
+							};
+							let text = String(c.value);
+							let image = undefined;
+							if (content) {
+								if (content.type === 'image') {
+									image = content.src;
+									text = String(c.value);
+								} else if (content.type === 'text') {
+									text = content.text;
+								} else {
+									text = String(content.value != null ? content.value : c.value);
+								}
 							}
+							const unit = {
+								val: c.value,
+								isNew: c.index === newIdx,
+								text: text,
+								image: image
+							};
+							return {
+								index: c.index,
+								value: c.value,
+								unit: unit
+							};
+						});
+					},
+					previewUnits() {
+						const keys = state.customTileKeys || [];
+						const s = {
+							customLabels: state.customLabels,
+							customImages: state.customImages
+						};
+						const getDisplay = v => window.Game2048.getTileDisplayContent(s, v);
+						return keys.map(function(key) {
+							const num = Number(key);
+							const content = getDisplay(num) || {
+								type: 'number',
+								value: num
+							};
+							let text = String(num);
+							let image = undefined;
+							if (content) {
+								if (content.type === 'image') {
+									image = content.src;
+									text = String(num);
+								} else if (content.type === 'text') {
+									text = content.text;
+								} else {
+									text = String(content.value != null ? content.value : num);
+								}
+							}
+							return {
+								key: key,
+								val: num,
+								text: text,
+								image: image
+							};
+						});
+					},
+					resultMoveCount() {
+						const s = state.lastStateForDisplay;
+						return s && s.moveHistory && s.moveHistory.length || 0;
+					},
+					resultMaxTile() {
+						const cells = state.boardView.cells || [];
+						if (!cells.length) {
+							return 0;
 						}
-						return {key: key, val: num, text: text, image: image};
-					});
+						return Math.max(0, ...cells.map(function(c) {
+							return c.value || 0;
+						}));
+					},
 				},
-				resultMoveCount() {
-					const s = state.lastStateForDisplay;
-					return s && s.moveHistory && s.moveHistory.length || 0;
-				},
-				resultMaxTile() {
-					const cells = state.boardView.cells || [];
-					if (!cells.length) {
-						return 0;
-					}
-					return Math.max(0, ...cells.map(function(c) { return c.value || 0; }));
-				},
-			},
-			methods: {
-				onTargetNumberChange(v) {
-					state.targetNumber = v === undefined || v === null || v === '' ? null : Number(v) || 2048;
-				},
-				onRestart() {
-					const num = state.targetNumber;
-					window.Game2048.applyBoardSettings(
-							{boardHeight: state.boardHeight, boardWidth: state.boardWidth, targetNumber: num});
-					state.gameBoardWidth = state.boardWidth;
-					state.gameBoardHeight = state.boardHeight;
-					state.gameTargetNumber = num;
-					state.gameTargetLabel = num == null ? '无限' : String(num);
-				},
-				getQuickValue(key) { return state[key]; },
-				setQuickValue(key, v) {
-					state[key] = v;
-					this.onQuickSettingChange();
-				},
-				onQuickSettingChange() {
-					window.Game2048.applyQuickSettings(state.showNewTileMarker);
-				},
-				openCustomTilesDialog() {
-					state.customTilesDialogVisible = true;
-				},
-				onCustomTilesDialogOpened() {
-					state.previewImageErrors = {};
-					window.Game2048.openCustomTiles();
-					const d = window.Game2048.getPendingCustomTilesForVue();
-					if (d) {
-						state.customLabels = Object.assign({}, d.customLabels || {});
-						state.customImages = Object.assign({}, d.customImages || {});
-						state.customTileKeys = d.tileKeys && d.tileKeys.slice() || [];
-					}
-				},
-				customImagePlaceholder(key) {
-					const img = state.customImages[key];
-					return img && img.slice(0, 5) === 'data:' ? '已选本地图' : '图片 URL';
-				},
-				customImageDisplayValue(key) {
-					const img = state.customImages[key];
-					if (!img) {
-						return '';
-					}
-					return img.slice(0, 5) === 'data:' ? '' : img;
-				},
-				syncCustomTilesToDom() {
-					window.Game2048.setPendingCustomTiles(state.customLabels, state.customImages);
-				},
-				applyCustomTiles() {
-					this.syncCustomTilesToDom();
-					window.Game2048.applyCustomTiles();
-				},
-				onCustomLabelInput(key, val) {
-					const trimmed = String(val).trim().slice(0, 10);
-					if (trimmed) {
-						state.customLabels[key] = trimmed;
-					} else {
-						delete state.customLabels[key];
-					}
-					if (state.customImages) {
-						delete state.customImages[key];
-					}
-					this.syncCustomTilesToDom();
-				},
-				onCustomImageInput(key, val) {
-					const v = String(val).trim();
-					if (v) {
-						state.customImages[key] = v;
+				methods: {
+					onTargetNumberChange(v) {
+						state.targetNumber = v === undefined || v === null || v === '' ? null : Number(v) || 2048;
+					},
+					onRestart() {
+						const num = state.targetNumber;
+						window.Game2048.applyBoardSettings({
+							boardHeight: state.boardHeight,
+							boardWidth: state.boardWidth,
+							targetNumber: num
+						});
+						state.gameBoardWidth = state.boardWidth;
+						state.gameBoardHeight = state.boardHeight;
+						state.gameTargetNumber = num;
+						state.gameTargetLabel = num == null ? '无限' : String(num);
+					},
+					getQuickValue(key) {
+						return state[key];
+					},
+					setQuickValue(key, v) {
+						state[key] = v;
+						this.onQuickSettingChange();
+					},
+					onQuickSettingChange() {
+						window.Game2048.applyQuickSettings(state.showNewTileMarker);
+					},
+					openCustomTilesDialog() {
+						state.customTilesDialogVisible = true;
+					},
+					onCustomTilesDialogOpened() {
+						state.previewImageErrors = {};
+						window.Game2048.openCustomTiles();
+						const d = window.Game2048.getPendingCustomTilesForVue();
+						if (d) {
+							state.customLabels = Object.assign({}, d.customLabels || {});
+							state.customImages = Object.assign({}, d.customImages || {});
+							state.customTileKeys = d.tileKeys && d.tileKeys.slice() || [];
+						}
+					},
+					customImagePlaceholder(key) {
+						const img = state.customImages[key];
+						return img && img.slice(0, 5) === 'data:' ? '已选本地图' : '图片 URL';
+					},
+					customImageDisplayValue(key) {
+						const img = state.customImages[key];
+						if (!img) {
+							return '';
+						}
+						return img.slice(0, 5) === 'data:' ? '' : img;
+					},
+					syncCustomTilesToDom() {
+						window.Game2048.setPendingCustomTiles(state.customLabels, state.customImages);
+					},
+					applyCustomTiles() {
+						this.syncCustomTilesToDom();
+						window.Game2048.applyCustomTiles();
+					},
+					onCustomLabelInput(key, val) {
+						const trimmed = String(val).trim().slice(0, 10);
+						if (trimmed) {
+							state.customLabels[key] = trimmed;
+						} else {
+							delete state.customLabels[key];
+						}
+						if (state.customImages) {
+							delete state.customImages[key];
+						}
+						this.syncCustomTilesToDom();
+					},
+					onCustomImageInput(key, val) {
+						const v = String(val).trim();
+						if (v) {
+							state.customImages[key] = v;
+							if (state.customLabels) {
+								delete state.customLabels[key];
+							}
+						} else if (state.customImages) {
+							delete state.customImages[key];
+						}
+						delete state.previewImageErrors[key];
+						this.syncCustomTilesToDom();
+					},
+					clearCustomTile(key) {
 						if (state.customLabels) {
 							delete state.customLabels[key];
 						}
-					} else if (state.customImages) {
-						delete state.customImages[key];
-					}
-					delete state.previewImageErrors[key];
-					this.syncCustomTilesToDom();
-				},
-				clearCustomTile(key) {
-					if (state.customLabels) {
-						delete state.customLabels[key];
-					}
-					if (state.customImages) {
-						delete state.customImages[key];
-					}
-					this.syncCustomTilesToDom();
-					this.applyCustomTiles();
-				},
-				openTileFilePicker(key) {
-					state.pendingFileKey = key;
-					this.$nextTick(function() {
-						const input = this.$refs.unitFileInput;
-						if (input && input.click) {
-							input.click();
+						if (state.customImages) {
+							delete state.customImages[key];
 						}
-					}.bind(this));
-				},
-				onUnitFileChange(e) {
-					const key = state.pendingFileKey;
-					state.pendingFileKey = null;
-					const input = e && e.target;
-					const file = input && input.files && input.files[0];
-					if (input) {
-						input.value = '';
-					}
-					if (!key || !file || !file.type.match(/^image\//)) {
-						return;
-					}
-					const reader = new FileReader();
-					const self = this;
-					reader.onload = function(ev) {
-						if (!ev || !ev.target || !ev.target.result) {
+						this.syncCustomTilesToDom();
+						this.applyCustomTiles();
+					},
+					openTileFilePicker(key) {
+						state.pendingFileKey = key;
+						this.$nextTick(function() {
+							const input = this.$refs.unitFileInput;
+							if (input && input.click) {
+								input.click();
+							}
+						}.bind(this));
+					},
+					onUnitFileChange(e) {
+						const key = state.pendingFileKey;
+						state.pendingFileKey = null;
+						const input = e && e.target;
+						const file = input && input.files && input.files[0];
+						if (input) {
+							input.value = '';
+						}
+						if (!key || !file || !file.type.match(/^image\//)) {
 							return;
 						}
-						state.customImages[key] = ev.target.result;
-						if (state.customLabels) {
-							delete state.customLabels[key];
+						const reader = new FileReader();
+						const self = this;
+						reader.onload = function(ev) {
+							if (!ev || !ev.target || !ev.target.result) {
+								return;
+							}
+							state.customImages[key] = ev.target.result;
+							if (state.customLabels) {
+								delete state.customLabels[key];
+							}
+							self.syncCustomTilesToDom();
+							self.applyCustomTiles();
+						};
+						reader.readAsDataURL(file);
+					},
+					addNextCustomTile() {
+						if (!this.canAddNextCustomTile) {
+							return;
 						}
-						self.syncCustomTilesToDom();
-						self.applyCustomTiles();
-					};
-					reader.readAsDataURL(file);
-				},
-				addNextCustomTile() {
-					if (!this.canAddNextCustomTile) {
-						return;
-					}
-					const keys = state.customTileKeys;
-					const maxKey = keys && keys.length ? parseInt(keys[keys.length - 1], 10) : 2;
-					const nextKey = String(maxKey * 2);
-					state.customLabels[nextKey] = '';
-					state.customTileKeys = (keys || []).slice();
-					state.customTileKeys.push(nextKey);
-					this.syncCustomTilesToDom();
-				},
-				clearAllCustom() {
-					state.customLabels = {};
-					state.customImages = {};
-					state.previewImageErrors = {};
-					this.syncCustomTilesToDom();
-					window.Game2048.applyCustomTiles();
-				},
-				closeCustomTilesDialog() {
-					state.customTilesDialogVisible = false;
-				},
-				onPanelToggle(e) {
+						const keys = state.customTileKeys;
+						const maxKey = keys && keys.length ? parseInt(keys[keys.length - 1], 10) : 2;
+						const nextKey = String(maxKey * 2);
+						state.customLabels[nextKey] = '';
+						state.customTileKeys = (keys || []).slice();
+						state.customTileKeys.push(nextKey);
+						this.syncCustomTilesToDom();
+					},
+					clearAllCustom() {
+						state.customLabels = {};
+						state.customImages = {};
+						state.previewImageErrors = {};
+						this.syncCustomTilesToDom();
+						window.Game2048.applyCustomTiles();
+					},
+					closeCustomTilesDialog() {
+						state.customTilesDialogVisible = false;
+					},
+					onPanelToggle(e) {
 						// toggle事件在details.open改变后触发，只需保存状态
 						const name = e.target.dataset.panel;
 						this.panels[name] = e.target.open;
 						try {
-							const def = {info: true, shortcuts: false};
+							const def = {
+								info: true,
+								shortcuts: false
+							};
 							if (JSON.stringify(state.panels) === JSON.stringify(def)) {
 								localStorage.removeItem(state._panelKey);
 							} else {
@@ -534,247 +562,244 @@
 							}
 						} catch (_) {}
 					},
-					floatingUnitStyle(unit) {
-					if (!unit) {
-						return {};
-					}
-					const d = (unit.duration || 0) + 'ms';
-					return {
-						left: (unit.currentLeft != null ? unit.currentLeft : unit.fromLeft) + 'px',
-						top: (unit.currentTop != null ? unit.currentTop : unit.fromTop) + 'px',
-						width: (unit.width || 0) + 'px',
-						height: (unit.height || 0) + 'px',
-						transition: 'left ' + d + ' ease-out, top ' + d + ' ease-out',
-					};
+					cellUnitStyle(cell) {
+						if (!cell || !cell.unit) {
+							return {};
+						}
+						const anim = state.slideAnimationState[cell.index];
+						if (!anim) {
+							return {};
+						}
+						return {
+							transform: 'translate(' + anim.translateX + 'px, ' + anim.translateY + 'px)',
+							transition: 'transform ' + anim.duration + 'ms ease-out',
+						};
+					},
+					onResultRestart() {
+						this.gameResultVisible = false;
+						window.Game2048.onResultRestart();
+					},
+					closeGameResultModal() {
+						this.gameResultVisible = false;
+					},
+					onUndo() {
+						window.Game2048.undo();
+					},
 				},
-				onResultRestart() {
-					this.gameResultVisible = false;
-					window.Game2048.onResultRestart();
-				},
-				closeGameResultModal() {
-					this.gameResultVisible = false;
-				},
-				onUndo() {
-					window.Game2048.undo();
-				},
-			},
-			mounted() {
-				const self = this;
-				const api = window.Game2048;
-				const bridge = {
-					setGameResult(visible, message, sub, isWin) {
-						state.gameResultVisible = !!visible;
-						state.gameResultMessage = message != null ? String(message) : '';
-						state.gameResultSub = sub != null ? String(sub) : '';
-						state.gameResultIsWin = !!isWin;
-					},
-					setBoardView(board, rows, cols, gameState) {
-						state.boardView.rows = rows;
-						state.boardView.cols = cols;
-						state.boardView.cells = (board || []).map(function(v, i) { return {index: i, value: v || 0}; });
-						state.lastStateForDisplay = gameState;
-					},
-					setNewTileIndex(index) {
-						newTileIndexRef.value = index == null || index < 0 ? -1 : Number(index);
-					},
-					clearNewTileIndex() { newTileIndexRef.value = -1; },
-					clearSlideAnimation() { state.slideAnimationTiles = []; },
-					commitState(gameState) {
-						if (!gameState) {
-							return;
-						}
-						bridge.updateScores(gameState.score, gameState.highScore, gameState.boardWidth, gameState.boardHeight);
-						bridge.setBoardView(gameState.board, gameState.boardHeight, gameState.boardWidth, gameState);
-						const vis = !!(gameState.overlayVisible && gameState.overlayMessage);
-						bridge.setGameResult(vis, gameState.overlayMessage || '',
-								gameState.gameOver ? '最终得分：' + gameState.score : '', !!gameState.gameWin);
-						self.$nextTick(function() {
-							const board = self.$refs.board;
-							const first = board && board.querySelector && board.querySelector('.cell');
-							if (first && first.offsetWidth) {
-								document.documentElement.style.setProperty('--cell-size',
-										first.offsetWidth + 'px');
-							}
-						});
-					},
-					getCellPositions() {
-						if (!self.$refs.board) {
-							return [];
-						}
-
-						const board = self.$refs.board;
-						const boardRect = board.getBoundingClientRect();
-						const cells = board.querySelectorAll('.cell');
-						const out = [];
-						for (let i = 0; i < cells.length; i++) {
-							const r = cells[i].getBoundingClientRect();
-							out.push({left: r.left - boardRect.left, top: r.top - boardRect.top, width: r.width, height: r.height});
-						}
-						return out;
-					},
-					runSlideAnimation(slides, finalState, stateBeforeMove, newTileIndex, onEnd) {
-						if (!slides || !slides.length) {
-							bridge.commitState(finalState);
-							bridge.setNewTileIndex(newTileIndex);
-							onEnd && onEnd();
-							return;
-						}
-						const displayBoard = stateBeforeMove.board.slice();
-						for (let s = 0; s < slides.length; s++) {
-							const path = slides[s].path;
-							if (path && path.length >= 2) {
-								displayBoard[path[0]] = 0;
-							}
-						}
-						bridge.setBoardView(displayBoard, stateBeforeMove.boardHeight, stateBeforeMove.boardWidth, stateBeforeMove);
-						self.$nextTick(function() {
-							const positions = bridge.getCellPositions();
-							const tiles = [];
-							let maxDuration = 0;
-							for (let i = 0; i < slides.length; i++) {
-								const slide = slides[i];
-								const path = slide.path;
-								if (!path || path.length < 2) {
-									continue;
-								}
-								const fromIdx = path[0];
-								const toIdx = path[path.length - 1];
-								const duration = (path.length - 1) * SLIDE_MS_PER_CELL;
-								if (duration > maxDuration) {
-									maxDuration = duration;
-								}
-								const fromPos = positions[fromIdx];
-								const toPos = positions[toIdx];
-								if (!fromPos || !toPos) {
-									continue;
-								}
-								const content = api.getTileDisplayContent(finalState, slide.value) || {
-									type: 'number',
-									value: slide.value,
+				mounted() {
+					const self = this;
+					const api = window.Game2048;
+					const bridge = {
+						setGameResult(visible, message, sub, isWin) {
+							state.gameResultVisible = !!visible;
+							state.gameResultMessage = message != null ? String(message) : '';
+							state.gameResultSub = sub != null ? String(sub) : '';
+							state.gameResultIsWin = !!isWin;
+						},
+						setBoardView(board, rows, cols, gameState) {
+							state.boardView.rows = rows;
+							state.boardView.cols = cols;
+							state.boardView.cells = (board || []).map(function(v, i) {
+								return {
+									index: i,
+									value: v || 0
 								};
-								let displayText = String(slide.value);
-								let displayImage = undefined;
-								if (content) {
-									if (content.type === 'image') {
-										displayImage = content.src;
-										displayText = String(slide.value);
-									} else if (content.type === 'text') {
-										displayText = content.text;
-									} else {
-										displayText = String(content.value != null ? content.value : slide.value);
-									}
+							});
+							state.lastStateForDisplay = gameState;
+						},
+						setNewTileIndex(index) {
+							newTileIndexRef.value = index == null || index < 0 ? -1 : Number(index);
+						},
+						clearNewTileIndex() {
+							newTileIndexRef.value = -1;
+						},
+						clearSlideAnimation() {
+							state.slideAnimationState = {};
+						},
+						commitState(gameState) {
+							if (!gameState) {
+								return;
+							}
+							bridge.updateScores(gameState.score, gameState.highScore, gameState.boardWidth, gameState.boardHeight);
+							bridge.setBoardView(gameState.board, gameState.boardHeight, gameState.boardWidth, gameState);
+							const vis = !!(gameState.overlayVisible && gameState.overlayMessage);
+							bridge.setGameResult(vis, gameState.overlayMessage || '', gameState.gameOver ? '最终得分：' + gameState.score : '', !!gameState.gameWin);
+							self.$nextTick(function() {
+								const board = self.$refs.board;
+								const first = board && board.querySelector && board.querySelector('.cell');
+								if (first && first.offsetWidth) {
+									document.documentElement.style.setProperty('--cell-size', first.offsetWidth + 'px');
 								}
-								tiles.push({
-									fromLeft: fromPos.left,
-									fromTop: fromPos.top,
-									toLeft: toPos.left,
-									toTop: toPos.top,
-									width: fromPos.width,
-									height: fromPos.height,
-									duration: duration,
-									value: slide.value,
-									displayText: displayText,
-									displayImage: displayImage,
-									currentLeft: fromPos.left,
-									currentTop: fromPos.top,
+							});
+						},
+						getCellPositions() {
+							if (!self.$refs.board) {
+								return [];
+							}
+							const board = self.$refs.board;
+							const boardRect = board.getBoundingClientRect();
+							const cells = board.querySelectorAll('.cell');
+							const out = [];
+							for (let i = 0; i < cells.length; i++) {
+								const r = cells[i].getBoundingClientRect();
+								out.push({
+									left: r.left - boardRect.left,
+									top: r.top - boardRect.top,
+									width: r.width,
+									height: r.height
 								});
 							}
-							state.slideAnimationTiles = tiles;
-							self.$nextTick(function() {
-								requestAnimationFrame(function() {
-									for (let j = 0; j < state.slideAnimationTiles.length; j++) {
-										const t = state.slideAnimationTiles[j];
-										t.currentLeft = t.toLeft;
-										t.currentTop = t.toTop;
-									}
-								});
-							});
-							setTimeout(function() {
-								state.slideAnimationTiles = [];
-								bridge.setNewTileIndex(newTileIndex);
+							return out;
+						},
+						runSlideAnimation(slides, finalState, stateBeforeMove, newTileIndex, onEnd) {
+							if (!slides || !slides.length) {
 								bridge.commitState(finalState);
+								bridge.setNewTileIndex(newTileIndex);
 								onEnd && onEnd();
-							}, maxDuration + 50);
-						});
-					},
-					updateScores(score, highScore, boardWidth, boardHeight) {
-						state.score = score;
-						state.highScore = highScore;
-						if (boardWidth != null) {
-							state.gameBoardWidth = boardWidth;
-						}
-						if (boardHeight != null) {
-							state.gameBoardHeight = boardHeight;
-						}
-					},
-					setQuickSettings(obj) {
-						if (obj && obj.showNewTileMarker !== undefined) {
-							state.showNewTileMarker = obj.showNewTileMarker;
-						}
-					},
-					syncToolbarSettings() {
-						const s = api.getBoardSettings();
-						if (s) {
-							state.boardHeight = s.boardHeight;
-							state.boardWidth = s.boardWidth;
-							state.gameBoardHeight = s.boardHeight;
-							state.gameBoardWidth = s.boardWidth;
-							state.gameTargetNumber = s.targetNumber;
-							state.gameTargetLabel = state.gameTargetNumber == null ? '无限' : String(state.gameTargetNumber);
-							state.targetNumber = s.targetNumber;
-						}
-					},
-				};
-				try {
+								return;
+							}
+							// 不清空起点格子，保持原状态显示
+							bridge.setBoardView(stateBeforeMove.board, stateBeforeMove.boardHeight, stateBeforeMove.boardWidth, stateBeforeMove);
+							self.$nextTick(function() {
+								const positions = bridge.getCellPositions();
+								const animStateInitial = {};
+								const animStateFinal = {};
+								let maxDuration = 0;
+								for (let i = 0; i < slides.length; i++) {
+									const slide = slides[i];
+									const path = slide.path;
+									if (!path || path.length < 2) {
+										continue;
+									}
+									const fromIdx = path[0];
+									const toIdx = path[path.length - 1];
+									const duration = (path.length - 1) * SLIDE_MS_PER_CELL;
+									if (duration > maxDuration) {
+										maxDuration = duration;
+									}
+									const fromPos = positions[fromIdx];
+									const toPos = positions[toIdx];
+									if (!fromPos || !toPos) {
+										continue;
+									}
+									// 初始状态：translateX/Y = 0
+									animStateInitial[fromIdx] = {
+										translateX: 0,
+										translateY: 0,
+										duration: duration,
+									};
+									// 最终状态：终点位置 - 起点位置
+									animStateFinal[fromIdx] = {
+										translateX: toPos.left - fromPos.left,
+										translateY: toPos.top - fromPos.top,
+										duration: duration,
+									};
+								}
+								// 设置初始状态，Vue 渲染后 .unit 的 transform 是 translate(0, 0)
+								state.slideAnimationState = animStateInitial;
+								// requestAnimationFrame 后改成最终值，触发 transition 动画
+								requestAnimationFrame(function() {
+									state.slideAnimationState = animStateFinal;
+								});
+								setTimeout(function() {
+									state.slideAnimationState = {};
+									bridge.setNewTileIndex(newTileIndex);
+									bridge.commitState(finalState);
+									onEnd && onEnd();
+								}, maxDuration + 50);
+							});
+						},
+						updateScores(score, highScore, boardWidth, boardHeight) {
+							state.score = score;
+							state.highScore = highScore;
+							if (boardWidth != null) {
+								state.gameBoardWidth = boardWidth;
+							}
+							if (boardHeight != null) {
+								state.gameBoardHeight = boardHeight;
+							}
+						},
+						setQuickSettings(obj) {
+							if (obj && obj.showNewTileMarker !== undefined) {
+								state.showNewTileMarker = obj.showNewTileMarker;
+							}
+						},
+						syncToolbarSettings() {
+							const s = api.getBoardSettings();
+							if (s) {
+								state.boardHeight = s.boardHeight;
+								state.boardWidth = s.boardWidth;
+								state.gameBoardHeight = s.boardHeight;
+								state.gameBoardWidth = s.boardWidth;
+								state.gameTargetNumber = s.targetNumber;
+								state.gameTargetLabel = state.gameTargetNumber == null ? '无限' : String(state.gameTargetNumber);
+								state.targetNumber = s.targetNumber;
+							}
+						},
+					};
+					try {
 						const saved = JSON.parse(localStorage.getItem(state._panelKey) || 'null');
 						if (saved) state.panels = saved;
 					} catch (_) {}
 					api.init(bridge);
-				this.$nextTick(() => {
-					const board = this.$refs.board;
-					if (!board) {
-						return;
-					}
-					let touchStartX = 0, touchStartY = 0;
-					board.addEventListener('touchstart', e => {
-						const t = e.touches[0];
-						if (t) {
-							touchStartX = t.clientX;
-							touchStartY = t.clientY;
-						}
-					}, {passive: true});
-					board.addEventListener('touchend', e => {
-						const t = e.changedTouches[0];
-						if (!t) {
+					this.$nextTick(() => {
+						const board = this.$refs.board;
+						if (!board) {
 							return;
 						}
-						api.onGesture(t.clientX - touchStartX, t.clientY - touchStartY);
-					}, {passive: true});
-					let mouseDownX = 0, mouseDownY = 0;
-					board.addEventListener('mousedown', e => {
-						mouseDownX = e.clientX;
-						mouseDownY = e.clientY;
+						let touchStartX = 0,
+							touchStartY = 0;
+						board.addEventListener('touchstart', e => {
+							const t = e.touches[0];
+							if (t) {
+								touchStartX = t.clientX;
+								touchStartY = t.clientY;
+							}
+						}, {
+							passive: true
+						});
+						board.addEventListener('touchend', e => {
+							const t = e.changedTouches[0];
+							if (!t) {
+								return;
+							}
+							api.onGesture(t.clientX - touchStartX, t.clientY - touchStartY);
+						}, {
+							passive: true
+						});
+						let mouseDownX = 0,
+							mouseDownY = 0;
+						board.addEventListener('mousedown', e => {
+							mouseDownX = e.clientX;
+							mouseDownY = e.clientY;
+						});
+						board.addEventListener('mouseup', e => {
+							api.onGesture(e.clientX - mouseDownX, e.clientY - mouseDownY);
+						});
 					});
-					board.addEventListener('mouseup', e => {
-						api.onGesture(e.clientX - mouseDownX, e.clientY - mouseDownY);
-					});
-				});
-			},
-		});
-		mainApp.use(ElementPlus);
-		if (typeof ElementPlusIconsVue !== 'undefined') {
-			for (const k in ElementPlusIconsVue) { mainApp.component(k, ElementPlusIconsVue[k]); }
-		}
-		mainApp.mount('article.gaming.area');
-		const helpApp = createApp({
-			data: () => ({introVisible: false}),
-		});
-		helpApp.use(ElementPlus);
-		if (typeof ElementPlusIconsVue !== 'undefined') {
-			for (const k in ElementPlusIconsVue) { helpApp.component(k, ElementPlusIconsVue[k]); }
-		}
-		helpApp.mount('.help.area');
-	}());
-</script>
+				},
+			});
+			mainApp.use(ElementPlus);
+			if (typeof ElementPlusIconsVue !== 'undefined') {
+				for (const k in ElementPlusIconsVue) {
+					mainApp.component(k, ElementPlusIconsVue[k]);
+				}
+			}
+			mainApp.mount('article.gaming.area');
+			const helpApp = createApp({
+				data: () => ({
+					introVisible: false
+				}),
+			});
+			helpApp.use(ElementPlus);
+			if (typeof ElementPlusIconsVue !== 'undefined') {
+				for (const k in ElementPlusIconsVue) {
+					helpApp.component(k, ElementPlusIconsVue[k]);
+				}
+			}
+			helpApp.mount('.help.area');
+		}());
+
+	</script>
 </body>
 </html>
