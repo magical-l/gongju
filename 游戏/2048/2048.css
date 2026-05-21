@@ -6,10 +6,6 @@
 	& .game-2048 {
 		color: #5a6b52;
 		font-family: system-ui, -apple-system, sans-serif;
-
-		& .board.map .cell {
-			contain: none;/* 允许滑动时动画超出边界 */
-		}
 	}
 
 	/* 数字方块 */
