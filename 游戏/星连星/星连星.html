@@ -222,7 +222,7 @@
 				</section>
 			</header>
 
-			<article class="main board map" :style="{ '--board-cols': gridSize, '--board-rows': gridSize }" @mouseup="onCellMouseUp" @mouseleave="onCellMouseUp" @touchend="onCellTouchEnd" @touchcancel="onCellTouchEnd">
+			<article class="main board map" :style="{ '--board-cols': gridSize, '--board-rows': gridSize }" @mouseup="mouseUp" @mouseleave="mouseUp" @touchend="touchEnd" @touchcancel="touchEnd">
 				<div class="cell"
 					v-for="cell in gridCells" :key="'cell-'+cell.row+'-'+cell.col" :data-row="cell.row" :data-col="cell.col"
 					@mousedown="mouseDown(cell)" @mouseenter="mouseEnter(cell)" @touchstart="touchStart($event, cell)">
@@ -406,7 +406,8 @@
 					} catch (_) {}
 				},
 				/** 获取格子上已完成路径的颜色索引，null表示无 */
-				getCellPathColor(row, col) {
+				getCellPathColor(cell) {
+					const row = cell.row, col = cell.col;
 					for (const path of this.paths) {
 						if (path.points.some(p => p.row === row && p.col === col)) {
 							return path.color;
@@ -415,7 +416,8 @@
 					return null;
 				},
 				/** 获取格子上答案路径的颜色索引 */
-				getSolutionPathColor(row, col) {
+				getSolutionPathColor(cell) {
+					const row = cell.row, col = cell.col;
 					for (const path of this.solutionPaths) {
 						if (path.points.some(p => p.row === row && p.col === col)) {
 							return path.color;
@@ -424,12 +426,14 @@
 					return null;
 				},
 				/** 检查格子是否在当前正在画的路径中 */
-				isInCurrentPath(row, col) {
+				isInCurrentPath(cell) {
+					const row = cell.row, col = cell.col;
 					if (!this.currentPath) return false;
 					return this.currentPath.points.some(p => p.row === row && p.col === col);
 				},
 				/** 获取格子在路径中的方向，返回如 ["top", "bottom"] */
-				getPathDirections(row, col) {
+				getPathDirections(cell) {
+					const row = cell.row, col = cell.col;
 					const pathInfo = this.getPathByCell(row, col);
 					if (!pathInfo) return [];
 					const {
@@ -455,7 +459,8 @@
 					return dirs;
 				},
 				/** 获取格子在当前正在画的路径中的方向 */
-				getCurrentPathDirections(row, col) {
+				getCurrentPathDirections(cell) {
+					const row = cell.row, col = cell.col;
 					if (!this.currentPath) return [];
 					const idx = this.currentPath.points.findIndex(p => p.row === row && p.col === col);
 					if (idx < 0) return [];
@@ -477,7 +482,8 @@
 					return dirs;
 				},
 				/** 获取格子在答案路径中的方向 */
-				getSolutionDirections(row, col) {
+				getSolutionDirections(cell) {
+					const row = cell.row, col = cell.col;
 					for (const path of this.solutionPaths) {
 						const idx = path.points.findIndex(p => p.row === row && p.col === col);
 						if (idx >= 0) {
@@ -504,39 +510,39 @@
 					/** 获取非星星格子的class */
 					unitClass(cell) {
 						// 已完成的路径
-						const pathColor = this.getCellPathColor(cell.row, cell.col);
-						if (pathColor !== null) return ['unit', 'path', ...this.getPathDirections(cell.row, cell.col)];
+						const pathColor = this.getCellPathColor(cell);
+						if (pathColor !== null) return ['unit', 'path', ...this.getPathDirections(cell)];
 						
 						// 正在画的路径
-						if (this.currentPath && this.isInCurrentPath(cell.row, cell.col)) {
-							return ['unit', 'path', 'drawing', ...this.getCurrentPathDirections(cell.row, cell.col)];
+						if (this.currentPath && this.isInCurrentPath(cell)) {
+							return ['unit', 'path', 'drawing', ...this.getCurrentPathDirections(cell)];
 						}
 						
 						// 提示
-						if (this.shouldShowHint(cell)) return ['unit', 'hint', ...this.getSolutionDirections(cell.row, cell.col)];
+						if (this.shouldShowHint(cell)) return ['unit', 'hint', ...this.getSolutionDirections(cell)];
 						
 						return []; // 空格子
 					},
 					/** 获取非星星格子的style */
 					unitStyle(cell) {
 						// 已完成的路径
-						const pathColor = this.getCellPathColor(cell.row, cell.col);
+						const pathColor = this.getCellPathColor(cell);
 						if (pathColor !== null) return { '--path-color': COLORS[pathColor] };
 						
 						// 正在画的路径
-						if (this.currentPath && this.isInCurrentPath(cell.row, cell.col)) {
+						if (this.currentPath && this.isInCurrentPath(cell)) {
 							return { '--path-color': COLORS[this.currentPath.color] };
 						}
 						
 						// 提示
-						if (this.shouldShowHint(cell)) return { '--path-color': COLORS[this.getSolutionPathColor(cell.row, cell.col)] };
+						if (this.shouldShowHint(cell)) return { '--path-color': COLORS[this.getSolutionPathColor(cell)] };
 						
 						return {};
 					},
 					/** 判断格子是否应该显示提示 */
 					shouldShowHint(cell) {
-						if (this.starAt(cell) || this.getCellPathColor(cell.row, cell.col) !== null) return false;
-						const solutionColor = this.getSolutionPathColor(cell.row, cell.col);
+						if (this.starAt(cell) || this.getCellPathColor(cell) !== null) return false;
+						const solutionColor = this.getSolutionPathColor(cell);
 						if (solutionColor === null) return false;
 						// 答案全覆盖
 						if (this.showAnswerOverlay) return true;
@@ -545,7 +551,7 @@
 					},
 					/** 鼠标按下格子 */
 				mouseDown(cell) {
-					this.handleCellPress(cell.row, cell.col);
+					this.handleCellPress(cell);
 				},
 				/** 鼠标进入格子 */
 				mouseEnter(cell) {
@@ -585,20 +591,21 @@
 					this.currentPath.points.push(newPoint);
 				},
 				/** 鼠标松开 */
-				onCellMouseUp() {
+				mouseUp() {
 					this.handleCellRelease();
 				},
 				/** 触摸开始 */
 				touchStart(e, cell) {
 					e.preventDefault();
-					this.handleCellPress(cell.row, cell.col);
+					this.handleCellPress(cell);
 				},
 				/** 触摸结束 */
-				onCellTouchEnd() {
+				touchEnd() {
 					this.handleCellRelease();
 				},
 				/** 处理格子按下 */
-				handleCellPress(row, col) {
+				handleCellPress(cell) {
+					const row = cell.row, col = cell.col;
 					const star = this.starAt(row, col);
 					if (star) {
 						const onPath = this.getPathByCell(row, col);
