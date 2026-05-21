@@ -49,7 +49,7 @@
 						z-index: 2;
 					}
 
-					&:is(.path, .hint) {
+					&:is(.path, .hint, .drawing) {
 						opacity: 0.9;
 						inset: 0;
 						/* 中心圆点用背景渐变画 */
@@ -221,20 +221,16 @@
 					</div>
 				</section>
 			</header>
+
 			<article class="main board map" :style="{ '--board-cols': gridSize, '--board-rows': gridSize }" @mouseup="onCellMouseUp" @mouseleave="onCellMouseUp" @touchend="onCellTouchEnd" @touchcancel="onCellTouchEnd">
-				<div v-for="cell in gridCells" :key="'cell-'+cell.row+'-'+cell.col" class="cell" :data-row="cell.row" :data-col="cell.col" @mousedown="onCellMouseDown(cell.row, cell.col)" @mouseenter="onCellMouseEnter(cell.row, cell.col)" @touchstart="onCellTouchStart($event, cell.row, cell.col)">
-					<!-- 星星 -->
-					<div v-if="getStarAt(cell.row, cell.col)" class="unit star" :style="{ backgroundColor: COLORS[getStarAt(cell.row, cell.col).color] }">★</div>
-					<!-- 已完成的连线 -->
-					<div v-else-if="getCellPathColor(cell.row, cell.col) !== null" :class="['unit path', ...getPathDirections(cell.row, cell.col)]" :style="{ '--path-color': COLORS[getCellPathColor(cell.row, cell.col)] }"></div>
-					<!-- 正在画的连线 -->
-					<div v-if="currentPath && isInCurrentPath(cell.row, cell.col) && !getStarAt(cell.row, cell.col)" :class="['unit path drawing', ...getCurrentPathDirections(cell.row, cell.col)]" :style="{ '--path-color': COLORS[currentPath.color] }"></div>
-					<!-- 答案提示 -->
-					<div v-if="showAnswerOverlay && getSolutionPathColor(cell.row, cell.col) !== null && getCellPathColor(cell.row, cell.col) === null && !getStarAt(cell.row, cell.col)" :class="['unit hint', ...getSolutionDirections(cell.row, cell.col)]" :style="{ '--path-color': COLORS[getSolutionPathColor(cell.row, cell.col)] }"></div>
-					<!-- 单条提示 -->
-					<div v-if="hintColorIndex !== null && !showAnswerOverlay && getSolutionPathColor(cell.row, cell.col) === hintColorIndex && getCellPathColor(cell.row, cell.col) === null && !getStarAt(cell.row, cell.col)" :class="['unit hint', ...getSolutionDirections(cell.row, cell.col)]" :style="{ '--path-color': COLORS[hintColorIndex] }"></div>
+				<div class="cell"
+					v-for="cell in gridCells" :key="'cell-'+cell.row+'-'+cell.col" :data-row="cell.row" :data-col="cell.col"
+					@mousedown="mouseDown(cell)" @mouseenter="mouseEnter(cell)" @touchstart="touchStart($event, cell)">
+					<div v-if="starAt(cell)" class="unit star" :style="{ backgroundColor: COLORS[starAt(cell).color] }">★</div>
+					<div :class="unitClass(cell)" :style="unitStyle(cell)" v-else></div>
 				</div>
 			</article>
+
 			<aside class="sidebar at-left">
 				<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 					<summary>本局信息</summary>
@@ -247,9 +243,9 @@
 				</details>
 			</aside>
 			<!-- 结算弹窗 -->
-			<el-dialog v-model="showWinModal" class="result narrow" title="恭喜通关" align-center>
+			<el-dialog v-model="showWinModal" class="result narrow" title="恭喜通关" align-center="">
 				<div class="stats">本局完成！</div>
-				<template #footer>
+				<template #footer="">
 					<el-button type="primary" size="large" icon="RefreshRight" @click="closeWinAndNew">新局</el-button>
 					<el-button type="info" size="large" icon="Download" @click="exportConnections">导出连线记录</el-button>
 					<el-button type="warning" size="large" @click="closeWinModal">关闭</el-button>
@@ -505,12 +501,55 @@
 					}
 					return [];
 				},
-				/** 鼠标按下格子 */
-				onCellMouseDown(row, col) {
-					this.handleCellPress(row, col);
+					/** 获取非星星格子的class */
+					unitClass(cell) {
+						// 已完成的路径
+						const pathColor = this.getCellPathColor(cell.row, cell.col);
+						if (pathColor !== null) return ['unit', 'path', ...this.getPathDirections(cell.row, cell.col)];
+						
+						// 正在画的路径
+						if (this.currentPath && this.isInCurrentPath(cell.row, cell.col)) {
+							return ['unit', 'path', 'drawing', ...this.getCurrentPathDirections(cell.row, cell.col)];
+						}
+						
+						// 提示
+						if (this.shouldShowHint(cell)) return ['unit', 'hint', ...this.getSolutionDirections(cell.row, cell.col)];
+						
+						return []; // 空格子
+					},
+					/** 获取非星星格子的style */
+					unitStyle(cell) {
+						// 已完成的路径
+						const pathColor = this.getCellPathColor(cell.row, cell.col);
+						if (pathColor !== null) return { '--path-color': COLORS[pathColor] };
+						
+						// 正在画的路径
+						if (this.currentPath && this.isInCurrentPath(cell.row, cell.col)) {
+							return { '--path-color': COLORS[this.currentPath.color] };
+						}
+						
+						// 提示
+						if (this.shouldShowHint(cell)) return { '--path-color': COLORS[this.getSolutionPathColor(cell.row, cell.col)] };
+						
+						return {};
+					},
+					/** 判断格子是否应该显示提示 */
+					shouldShowHint(cell) {
+						if (this.starAt(cell) || this.getCellPathColor(cell.row, cell.col) !== null) return false;
+						const solutionColor = this.getSolutionPathColor(cell.row, cell.col);
+						if (solutionColor === null) return false;
+						// 答案全覆盖
+						if (this.showAnswerOverlay) return true;
+						// 单条提示
+						return this.hintColorIndex !== null && solutionColor === this.hintColorIndex;
+					},
+					/** 鼠标按下格子 */
+				mouseDown(cell) {
+					this.handleCellPress(cell.row, cell.col);
 				},
 				/** 鼠标进入格子 */
-				onCellMouseEnter(row, col) {
+				mouseEnter(cell) {
+					const row=cell.row, col=cell.col;
 					if (!this.isDrawing || !this.currentPath) return;
 					const lastPoint = this.currentPath.points[this.currentPath.points.length - 1];
 					const newPoint = {
@@ -535,7 +574,7 @@
 						return;
 					}
 					// 不能经过其他颜色的星星格
-					const starHere = this.getStarAt(row, col);
+					const starHere = this.starAt(cell);
 					if (starHere && starHere.color !== this.currentPath.color) return;
 					// 同色星不能"穿过"
 					if (starHere && starHere.color === this.currentPath.color) {
@@ -550,9 +589,9 @@
 					this.handleCellRelease();
 				},
 				/** 触摸开始 */
-				onCellTouchStart(e, row, col) {
+				touchStart(e, cell) {
 					e.preventDefault();
-					this.handleCellPress(row, col);
+					this.handleCellPress(cell.row, cell.col);
 				},
 				/** 触摸结束 */
 				onCellTouchEnd() {
@@ -560,7 +599,7 @@
 				},
 				/** 处理格子按下 */
 				handleCellPress(row, col) {
-					const star = this.getStarAt(row, col);
+					const star = this.starAt(row, col);
 					if (star) {
 						const onPath = this.getPathByCell(row, col);
 						if (onPath) {
@@ -581,7 +620,7 @@
 							}
 							const truncated = path.points.slice(0, idx + 1);
 							const startCell = truncated[0];
-							const startStar = this.getStarAt(startCell.row, startCell.col);
+							const startStar = this.starAt(startCell);
 							if (startStar) {
 								this.paths.splice(onPath.index, 1);
 								this.isDrawing = true;
@@ -611,7 +650,7 @@
 						const idx = onPath.cellIndex;
 						const truncated = path.points.slice(0, idx + 1);
 						const startCell = truncated[0];
-						const startStar = this.getStarAt(startCell.row, startCell.col);
+						const startStar = this.starAt(startCell);
 						if (startStar) {
 							this.paths.splice(onPath.index, 1);
 							this.isDrawing = true;
@@ -2597,12 +2636,14 @@
 					}
 					return path;
 				},
-				getStarAt(row, col) {
-					return this.stars.find(s => s.row === row && s.col === col);
+				starAt(cellOrRow, col) {
+					const row = typeof cellOrRow === "object" ? cellOrRow.row : cellOrRow;
+					const c = typeof cellOrRow === "object" ? cellOrRow.col : col;
+					return this.stars.find(s => s.row === row && s.col === c);
 				},
 				/** (row,col) 是否为同色的“另一颗星”（非起点星） */
 				isOtherStar(row, col, currentPath) {
-					const star = this.getStarAt(row, col);
+					const star = this.starAt(row, col);
 					if (!star || star.color !== currentPath.color) {
 						return false;
 					}
@@ -2640,8 +2681,8 @@
 					}
 					const first = path.points[0];
 					const last = path.points[path.points.length - 1];
-					const starFirst = this.getStarAt(first.row, first.col);
-					const starLast = this.getStarAt(last.row, last.col);
+					const starFirst = this.starAt(first);
+					const starLast = this.starAt(last);
 					return starFirst && starLast && starFirst.color === path.color && starLast.color === path.color && (starFirst.row !== starLast.row || starFirst.col !== starLast.col);
 				},
 				canConnect(startStar, endStar) {
