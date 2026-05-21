@@ -1,6 +1,5 @@
 /* 2048蛇特需样式 */
 .game .board {
-	min-height: 200px;
 	/* 蛇头样式 */
 	& .cell > .unit.snake-head {
 		box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.4);

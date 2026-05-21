@@ -6,11 +6,6 @@
 	& .game-2048 {
 		color: #5a6b52;
 		font-family: system-ui, -apple-system, sans-serif;
-
-		/* 棋盘作为滑动动画层定位基准 */
-		& .board.main.map {
-			position: relative;
-		}
 	}
 
 	/* 数字方块 */
@@ -31,14 +26,6 @@
 		&.unit-512 { background: #7aa862; color: #f5f9f2; }
 		&.unit-1024 { background: #6a9f56; color: #f5f9f2; }
 		&.unit-2048 { background: #5a8f4a; color: #f5f9f2; }
-
-		& img {
-			width: 100%;
-			height: 100%;
-			object-fit: contain;
-			display: block;
-		}
-
 	}
 
 	/* 滑动动画层 */
