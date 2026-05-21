@@ -12,6 +12,7 @@
 	<meta property="og:type" content="game">
 	<style>
 		@import url("../../lib/element-plus/2.10.7/index.css") layer(el-plus);
+
 	</style>
 	<link href="../../resources/el-plus.css" rel="stylesheet">
 	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/common.css" rel="stylesheet"> -->
@@ -24,8 +25,8 @@
 	<link href="../../lib/css/花活.css" rel="stylesheet">
 	<style>
 		.game {
+			--left-sidebar-min-width: 280px;
 			& .board.map {
-				cursor: crosshair;
 				touch-action: none;
 
 				& .cell {
@@ -65,9 +66,10 @@
 						&:is(.left, .right)::before {
 							height: var(--line-width);
 							top: 50%;
-							width: 50%; 
+							width: 50%;
 							transform: translateY(-50%);
 						}
+
 						&.left::before { left: 0; }
 						&.right::before { left: 50%; }
 
@@ -78,16 +80,35 @@
 							left: 50%;
 							transform: translateX(-50%);
 						}
+
 						&.top::after { top: 0; }
 						&.bottom::after { top: 50%; }
 
 						/* 直连贯穿 */
-						&.left.right::before { width: 100%; left:0; }
-						&.left.right::after { display: none; }
-						&.top.bottom::after { height: 100%; top:0; }
-						&.top.bottom::before { display: none; }
+						&.left.right::before {
+							width: 100%;
+							left: 0;
+						}
+
+						&.left.right::after {
+							display: none;
+						}
+
+						&.top.bottom::after {
+							height: 100%;
+							top: 0;
+						}
+
+						&.top.bottom::before {
+							display: none;
+						}
 					}
 				}
+			}
+
+			.hint {
+				outline:none;
+				opacity: 0.75;
 			}
 		}
 
@@ -209,9 +230,9 @@
 					<!-- 正在画的连线 -->
 					<div v-if="currentPath && isInCurrentPath(cell.row, cell.col) && !getStarAt(cell.row, cell.col)" :class="['unit path drawing', ...getCurrentPathDirections(cell.row, cell.col)]" :style="{ '--path-color': COLORS[currentPath.color] }"></div>
 					<!-- 答案提示 -->
-					<div v-if="showAnswerOverlay && getSolutionPathColor(cell.row, cell.col) !== null && getCellPathColor(cell.row, cell.col) === null && !getStarAt(cell.row, cell.col)" :class="['unit hint', ...getSolutionDirections(cell.row, cell.col)]" :style="{ '--path-color': COLORS[getSolutionPathColor(cell.row, cell.col)], opacity: 0.6 }"></div>
+					<div v-if="showAnswerOverlay && getSolutionPathColor(cell.row, cell.col) !== null && getCellPathColor(cell.row, cell.col) === null && !getStarAt(cell.row, cell.col)" :class="['unit hint', ...getSolutionDirections(cell.row, cell.col)]" :style="{ '--path-color': COLORS[getSolutionPathColor(cell.row, cell.col)] }"></div>
 					<!-- 单条提示 -->
-					<div v-if="hintColorIndex !== null && !showAnswerOverlay && getSolutionPathColor(cell.row, cell.col) === hintColorIndex && getCellPathColor(cell.row, cell.col) === null && !getStarAt(cell.row, cell.col)" :class="['unit hint', ...getSolutionDirections(cell.row, cell.col)]" :style="{ '--path-color': COLORS[hintColorIndex], opacity: 0.75 }"></div>
+					<div v-if="hintColorIndex !== null && !showAnswerOverlay && getSolutionPathColor(cell.row, cell.col) === hintColorIndex && getCellPathColor(cell.row, cell.col) === null && !getStarAt(cell.row, cell.col)" :class="['unit hint', ...getSolutionDirections(cell.row, cell.col)]" :style="{ '--path-color': COLORS[hintColorIndex] }"></div>
 				</div>
 			</article>
 			<aside class="sidebar at-left">
@@ -223,17 +244,6 @@
 							已填充: {{ filledCells }} / {{ totalCells }}
 						</div>
 					</div>
-				</details>
-				<details class="record area" data-panel="record" :open="panels.record" @toggle="onPanelToggle">
-					<summary>连线记录</summary>
-					<header class="op area">
-						<el-button :disabled="!connectionHistory.length" icon="Download" size="small" @click="exportConnections">导出
-						</el-button>
-					</header>
-					<el-empty v-if="!connectionHistory.length" description="尚未连线"></el-empty>
-					<ol v-else class="round list">
-						<li class="one round" v-for="(conn, connI) in connectionHistory" :class="{ last: connI === connectionHistory.length - 1 }">颜色{{conn.color}} {{conn.path.map(p =&gt; '(' + p.row + ',' + p.col + ')').join(' → ')}}</li>
-					</ol>
 				</details>
 			</aside>
 			<!-- 结算弹窗 -->
@@ -629,6 +639,8 @@
 					}
 					// 提交前截断其他路径
 					this.truncateOtherPathsByPath(this.currentPath);
+					// 清理历史中同色的旧记录
+					this.connectionHistory = this.connectionHistory.filter(c => c.color !== this.currentPath.color);
 					// 替换同色路径
 					this.paths = this.paths.filter(p => p.color !== this.currentPath.color);
 					if (!this.checkPathCollision(this.currentPath)) {
@@ -653,6 +665,7 @@
 				restartCurrentGame() {
 					this.gameWin = false;
 					this.paths = [];
+					this.connectionHistory = [];
 					this.currentPath = null;
 					this.isDrawing = false;
 					this.showAnswerOverlay = false;
@@ -683,9 +696,10 @@
 						this.$message.info('没有连线记录可导出');
 						return;
 					}
+					const colorNames = ['红', '青', '蓝', '橙', '绿', '黄', '紫', '浅蓝'];
 					const content = this.connectionHistory.map((conn, i) => {
 						const pathStr = conn.path.map(p => `(${p.row},${p.col})`).join(' → ');
-						return `${i + 1}：颜色${conn.color} ${pathStr}`;
+						return `${i + 1}. ${colorNames[conn.color]}色 ${conn.path.length}格：${pathStr}`;
 					}).join('\n');
 					const blob = new Blob([content], {
 						type: 'text/plain;charset=utf-8'
@@ -2671,8 +2685,15 @@
 						const newPoints = path.points.slice(0, idx);
 						if (newPoints.length >= 2) {
 							path.points = newPoints;
+							// 同步更新历史记录
+							const histIdx = this.connectionHistory.findIndex(c => c.color === path.color);
+							if (histIdx >= 0) {
+								this.connectionHistory[histIdx].path = [...newPoints];
+							}
 						} else {
 							this.paths.splice(i, 1);
+							// 同步删除历史记录
+							this.connectionHistory = this.connectionHistory.filter(c => c.color !== path.color);
 						}
 					}
 				},
