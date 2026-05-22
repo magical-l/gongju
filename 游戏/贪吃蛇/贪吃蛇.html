@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>贪吃蛇游戏 | 在线经典怀旧游戏</title>
+	<meta name="description" content="在线玩经典的贪吃蛇游戏。控制小蛇吃食物，不断变长，挑战你的最高分。提供不同速度选择。">
+	<meta name="keywords" content="贪吃蛇, Snake, 在线游戏, 经典游戏, 怀旧游戏, 休闲游戏">
+	<meta name="author" content="工具兽">
+	<meta property="og:title" content="贪吃蛇游戏 | 在线经典怀旧游戏">
+	<meta property="og:description" content="在线玩经典的贪吃蛇游戏。控制小蛇吃食物，不断变长，挑战你的最高分。提供不同速度选择。">
+	<meta property="og:type" content="game">
+	<style>@import url("../../lib/element-plus/2.10.7/index.css") layer(el-plus);</style>
+	<link href="../../resources/el-plus.css" rel="stylesheet">
+	<link href="../../lib/css/common.css" rel="stylesheet">
+	<link href="../../lib/css/layout.css" rel="stylesheet">
+	<link href="../../resources/biz.css?v=250821" rel="stylesheet">
+	<link href="../game.css" rel="stylesheet">
+	<link href="../../lib/css/花活.css" rel="stylesheet">
+	<link href="贪吃蛇.css" rel="stylesheet">
+</head>
+<body class="grid 反叵字形">
+	<header>
+		<h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
+		<nav>
+			<div class="nav-row">
+				<a href="../../文本转化.html">文本转化</a>
+				<a href="../../数字转化.html">数字转化</a>
+				<a href="../../符号/符号.html">符号</a>
+				<a href="../../格子盘.html">格子盘</a>
+				<a href="../../svg转图标.html">SVG转图标</a>
+				<a href="../../化学/元素周期表.html">元素周期表</a>
+				<a href="../../拼音/拼音.html">拼音</a>
+			</div>
+			<div class="nav-row">
+				<a href="../中国象棋/中国象棋.html">中国象棋</a>
+				<a href="../五子棋/gobang.html">五子棋</a>
+				<a href="../俄罗斯方块.html">俄罗斯方块</a>
+				<a href="贪吃蛇.html" class="active">贪吃蛇</a>
+				<a href="../2048/2048.html">2048</a>
+				<a href="../2048蛇/2048蛇.html">2048蛇</a>
+				<a href="../2048方块/2048方块.html">2048方块</a>
+				<a href="../点灯.html">点灯</a>
+				<a href="../数字华容道.html">数字华容道</a>
+				<a href="../星连星/星连星.html">星连星</a>
+			</div>
+		</nav>
+	</header>
+	<main class="unit movable board game">
+		<header>
+			<h2 class="game name">贪吃蛇游戏</h2>
+			<div class="page-lv help area" v-cloak>
+				<el-button title="游戏介绍" class="page-lv help btn" size="small" circle @click="introVisible = true">?</el-button>
+				<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
+					<p>欢迎来到"贪吃蛇"游戏，这是一款经典的街机游戏。</p>
+					<p>使用键盘的<strong>方向键 (↑, ↓, ←, →)</strong> 来控制蛇的移动方向。</p>
+					<p>通过<strong>"开始/暂停"按钮</strong>或按<strong>空格键</strong>来控制游戏的开始、暂停与重新开始。</p>
+					<p>游戏的目标是吃掉随机出现的食物（红色方块），每吃掉一个食物，蛇的身体就会变长，并且你的得分也会增加。</p>
+					<p>请注意，蛇不能碰到墙壁或自己的身体，否则游戏就会结束。</p>
+					<p>祝您玩得愉快，挑战更高的分数！</p>
+				</el-dialog>
+			</div>
+		</header>
+		<article class="gaming area , 叵字形 grid" v-cloak>
+			<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
+				<section class="setting list , flex single-line no-gap items-near-x-start items-near-y-center">
+					<div class="one setting group">
+						<el-form-item label="行" class="one setting : height">
+							<el-select v-model="gridHeight">
+								<el-option v-for="h in gridHeightOptions" :key="h" :label="h" :value="h">
+								</el-option></el-select>
+						</el-form-item>
+						<el-form-item label="列" class="one setting : width">
+							<el-select v-model="gridWidth">
+								<el-option v-for="w in gridWidthOptions" :key="w" :label="w" :value="w">
+								</el-option></el-select>
+						</el-form-item>
+					</div>
+					<div class="one setting group">
+						<el-form-item label="速度" class="one setting : speed">
+							<el-select v-model="speedLevel">
+								<el-option v-for="s in speedOptions" :key="s" :label="s" :value="s">
+								</el-option></el-select>
+						</el-form-item>
+					</div>
+					<div class="one setting group">
+						<el-button type="danger" class="one setting : new-game" @click="initGame" icon="RefreshRight">新局</el-button>
+					</div>
+				</section>
+				<section class="controller list , flex single-line no-gap items-near-x-start items-near-y-center">
+					<div class="one controller group">
+						<el-button type="primary" class="one controller : pause" @click="togglePause" :icon="isPaused ? 'VideoPlay' : 'VideoPause'">
+							{{ isPaused ? (gameOver ? '新局' : (score === 0 ? '开始' : '继续')) : '暂停' }}
+						</el-button>
+					</div>
+				</section>
+			</header>
+
+			<section class="board map" :class="{ paused: isPaused && !gameOver }" :style="boardStyle" @click="togglePause">
+				<div v-for="(cell, index) in cells" :key="index" class="cell">
+					<div v-if="cell.unit" class="unit" :class="cell.unit"></div>
+				</div>
+				<div class="overlay" v-if="isPaused &amp;&amp; !gameOver">
+					<div class="title">{{ score === 0 ? '准备就绪' : '已暂停' }}</div>
+					<p class="hint">按空格或点击以开始/继续</p>
+				</div>
+			</section>
+
+			<aside class="sidebar at-left">
+				<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
+					<summary>本局信息</summary>
+					<el-card header="分数" class="scoreboard" body-class="score" shadow="never">
+						{{ score }}
+						<template #footer>最高分：{{ highScore }}</template>
+					</el-card>
+				</details>
+				<details class="shortcut list" data-panel="shortcuts" :open="panels.shortcuts" @toggle="onPanelToggle">
+					<summary>快捷键</summary>
+					<p class="one shortcut , flex"><kbd>↑</kbd><span>向上</span></p>
+					<p class="one shortcut , flex"><kbd>↓</kbd><span>向下</span></p>
+					<p class="one shortcut , flex"><kbd>←</kbd><span>向左</span></p>
+					<p class="one shortcut , flex"><kbd>→</kbd><span>向右</span></p>
+					<p class="one shortcut , flex"><kbd>空格</kbd><span>暂停/开始</span></p>
+					<p class="tip">不能转向当前反方向</p>
+				</details>
+			</aside>
+			<!-- 结算弹窗 -->
+			<el-dialog v-model="showGameOverModal" class="result narrow" title="游戏结束" :show-close="true" align-center>
+				<div class="stats">分数: {{ score }}</div>
+				<template #footer>
+					<el-button type="primary" size="large" icon="RefreshRight" @click="closeGameOverAndNew">新局</el-button>
+					<el-button type="warning" size="large" @click="closeGameOverModal">关闭</el-button>
+				</template>
+			</el-dialog>
+			<!-- 彩纸效果 -->
+			<div class="fullscreen non-interactive top-layer" v-if="showGameOverModal">
+				<div class="confetti-piece" v-for="i in 150" :key="'confetti'+i"></div>
+			</div>
+		</article>
+	</main>
+	<aside class="sidebar at-right">
+		<article class="website info">
+			<section class="patronage area">
+				<img title="赞助一下" class="qr-code" alt="支付宝收款码" src="../../resources/支付宝收款码.jpg">
+				<p class="slogan">赞助一下</p>
+			</section>
+			<section class="copyright">
+				<p>© 2025 工具兽版权所有 All rights reserved.</p>
+			</section>
+			<section class="feedback">
+				<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+			</section>
+		</article>
+	</aside>
+	<div class="js container">
+		<script src="../../lib/vue/3.5.18/vue.global.js"></script>
+		<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
+		<script src="../../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
+		<script src="贪吃蛇.js"></script>
+	</div>
+	<script>
+		const app = SnakeGame.createApp(Vue, ElementPlus, ElementPlusIconsVue);
+		app.mount('main>article');
+		const help = SnakeGame.createHelpApp(Vue, ElementPlus, ElementPlusIconsVue);
+		help.mount('.help.area');
+	</script>
+	<div class="ad-container">
+		<!-- 谷歌广告联盟 -->
+		<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789" crossorigin="anonymous"></script>
+		<!-- 展示广告1 -->
+		<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true" data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
+		<script>
+			(adsbygoogle = window.adsbygoogle || []).push({});
+
+		</script>
+	</div>
+</body>
+</html>
