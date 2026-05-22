@@ -35,7 +35,7 @@
 
 		/* 主棋盘 */
 		& .main.board {
-			--board-gap: 6px;
+			/* 只覆盖固定预留值，继承game.css的响应式公式 */
 			overflow: hidden;
 
 			& .cell .unit > .shape.triangle { position: absolute; inset: 0; }
@@ -426,17 +426,9 @@
 		},
 		computed: {
 			boardStyle() {
-				const w = this.gameGridWidth, h = this.gameGridHeight;
-				const gap = 6, padding = 12, maxSidePx = 420;
-				const innerMax = maxSidePx - padding * 2;
-				const cellSizePx = Math.min(
-					(innerMax - (w - 1) * gap) / w,
-					(innerMax - (h - 1) * gap) / h
-				);
 				return {
-					'--board-cols': w,
-					'--board-rows': h,
-					'--cell-size': `${cellSizePx}px`,
+					'--board-cols': this.gameGridWidth,
+					'--board-rows': this.gameGridHeight,
 				};
 			},
 			emptyIndex() {

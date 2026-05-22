@@ -7,8 +7,6 @@
 }
 
 .game {
-	--unit-size: 45px;
-	--cell-size: 60px;
 	--line-stroke-width: 1px;
 	font-family: "NotoSansSymbols2", sans-serif;
 
@@ -33,7 +31,7 @@
 	& .board.map {
 		--board-cols: 9;
 		--board-rows: 10;
-		--cell-size: 60px;
+		--board-fixed-width: 400px; /* 右侧sidebar比默认280px宽 */
 		--unit-size: calc(var(--cell-size) * 0.9);
 
 		& .cell {
@@ -112,6 +110,8 @@
 
 		/* 棋子库 */
 		& .unit.type.palette {
+			--cell-size: 45px;
+			--unit-size: calc(var(--cell-size) * 0.9);
 			display: grid;
 			grid-template-columns: repeat(auto-fill, var(--unit-size));
 			gap: 0.5rem;

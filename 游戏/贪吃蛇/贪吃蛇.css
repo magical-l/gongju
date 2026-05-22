@@ -1,7 +1,7 @@
 /* 贪吃蛇样式 - 蛇身、蛇头、食物 */
 
 .game {
-	& .board {
+	& .board.map {
 		--board-cols: 20;
 		--board-rows: 20;
 	}

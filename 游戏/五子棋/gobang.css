@@ -3,7 +3,6 @@
 /* ======================== 棋盘游戏 ======================== */
 .game {
 	--line-color: #333;
-	--cell-size: 40px;
 	--board-size: 15;
 
 	--left-sidebar-min-width: 280px;
@@ -31,9 +30,7 @@
 	& .board.map {
 		--board-cols: 15;
 		--board-rows: 15;
-		--cell-size: 40px;
-		--unit-size: calc(var(--cell-size) * 0.9);
-		--board-total-size: calc(var(--cell-size) * var(--board-size));
+		--board-fixed-width: 300px; /* 左侧sidebar比默认280px宽 */
 
 		& .cell {
 			cursor: default;

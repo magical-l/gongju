@@ -42,7 +42,9 @@
 			}
 
 			& .board.map {
-				--cell-size: 30px;
+				--board-cols: 10;
+				--board-rows: 20;
+				--cell-size-max: 30px; /* 俄罗斯方块格子需要更小 */
 
 				&.preview {
 					--board-cols: 4;
@@ -413,8 +415,8 @@
 			computed: {
 				boardStyle() {
 					return {
-						gridTemplateColumns: `repeat(${this.gameCols}, 30px)`,
-						gridTemplateRows: `repeat(${this.gameRows}, 30px)`,
+						'--board-cols': this.gameCols,
+						'--board-rows': this.gameRows,
 					};
 				},
 				ghostPosition() {

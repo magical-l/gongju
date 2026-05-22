@@ -17,6 +17,10 @@
 		--yellow-color: #ffeb3b;
 		--gold-color: #ffd700;
 
+			/* 棋盘尺寸约束 */
+			--cell-size-min: 20px;
+			--cell-size-max: 80px;
+
 		/* 语义颜色（引用基础颜色，各游戏可覆盖） */
 		--hint-color: var(--orange-color);
 		--selected-color: var(--blue-color);
@@ -556,11 +560,13 @@
 		& .board.map {
 			--board-cols: 4;
 			--board-rows: 4;
-			--board-fixed-height: 0px; /* 固定区域高度，由各游戏自定义 */
-			--board-fixed-width: 0px; /* 固定区域宽度，由各游戏自定义 */
-			--cell-size: min(calc((100vh - var(--board-fixed-height) - var(--board-rows) * 10px) / var(--board-rows)),
-					calc((100vw - var(--board-fixed-width) - var(--board-cols) * 10px) / var(--board-cols)),
-					80px);
+			--board-fixed-height: 200px; /* 预留网站header+游戏toolbar空间 */
+			--board-fixed-width: 280px;  /* 预留sidebar空间 */
+			--board-padding: 10px;       /* 棋盘边框+padding开销：border(4px)+padding(6px) */
+			--cell-size: max(var(--cell-size-min), min(
+				calc((100vh - var(--board-fixed-height) - var(--board-padding)) / var(--board-rows)),
+				calc((100vw - var(--board-fixed-width) - var(--board-padding)) / var(--board-cols)),
+				var(--cell-size-max)));
 			--line-color: #9bad8f;
 			/* ------------ 外观 ------------ */
 			/* ------ 尺寸 ------ */
@@ -569,7 +575,7 @@
 			/* ------ 盒模型：非必需 ------ */
 			border: 2px solid var(--line-color);
 			border-radius: 8px;
-			padding: 12px;
+			padding: 6px;
 			/* ------ 背景 ------ */
 			background: #b8c9a8;
 			/* ------------ 布局 ------------ */
