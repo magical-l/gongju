@@ -109,9 +109,9 @@
 		<!-- 主地图区 -->
 		<section class="main board map , no-shrink" ref="board" tabindex="0" :style="boardStyle" :class="{ paused: paused }">
 			<div class="cell" :data-index="cell.index" v-for="(cell, index) in boardCells" :key="index">
-				<div v-if="cell.unit" class="unit" :class="['unit-' + cell.unit.val, { 'snake-head': cell.isHead }]" :data-index="cell.index">
+				<div v-if="cell.unit" class="unit" :class="['unit-' + cell.unit.val, { 'snake head': cell.isHead }]" :data-index="cell.index">
 					{{ cell.unit.text }}
-					<span v-if="cell.showBadge" class="new-badge">!</span>
+					<span v-if="cell.showBadge" class="new badge"></span>
 				</div>
 			</div>
 			<div class="overlay" v-show="paused">

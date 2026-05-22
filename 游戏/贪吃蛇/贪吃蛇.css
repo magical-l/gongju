@@ -18,15 +18,15 @@
 			&::before, &::after {
 				content: "";
 				position: absolute;
-				width: 15%;
-				height: 15%;
+				width: 30%;
+				height: 30%;
 				background: #fff;
 				border-radius: 50%;
-				top: 25%;
+				top: 5%;
 			}
 
-			&::before { left: 15%; }
-			&::after { right: 15%; }
+			&::before { left: -5%; }
+			&::after { right: -5%; }
 		}
 	}
 
