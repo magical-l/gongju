@@ -292,22 +292,22 @@
 			& .badge {
 				/* ------------ 定位 ------------ */
 				position: absolute;
-				top: 2px;
-				right: 2px;
+				top: calc(var(--unit-size) * 0.03);
+				right: calc(var(--unit-size) * 0.03);
 				z-index: calc(var(--unit-base-layer) + 12);/* 需比.name高 */
 				/* ------------ 外观：圆形 ------------ */
-				height: 14px;
-				min-width: 14px;
+				height: calc(var(--unit-size) * 0.2);
+				min-width: calc(var(--unit-size) * 0.2);
 				/* ------ 圆角：实现圆形 ------ */
 				border-radius: 50%;
 
-				padding: 0 3px;
+				padding: 0 calc(var(--unit-size) * 0.04);
 				/* ------------ 布局 ------------ */
 				display: flex;
 				place-items: center;
 				justify-content: center;
 				/* ------------ 内容 ------------ */
-				font-size: 10px;
+				font-size: calc(var(--unit-size) * 0.14);
 				font-weight: bold;
 				line-height: 1;
 				/* ------------ 交互 ------------ */
@@ -578,7 +578,8 @@
 				calc((100vh - var(--board-fixed-height) - var(--board-padding)) / var(--board-rows)),
 				calc((100vw - var(--board-fixed-width) - var(--board-padding)) / var(--board-cols)),
 				var(--cell-size-max)));
-			--line-color: #9bad8f;
+				--line-color: #9bad8f;
+				--unit-size: var(--cell-size);
 			/* ------------ 外观 ------------ */
 			/* ------ 尺寸 ------ */
 			width: fit-content;/* 确保被内容撑开不撑破 */
