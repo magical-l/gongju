@@ -16,10 +16,21 @@
 		--orange-color: #e6a23c;
 		--yellow-color: #ffeb3b;
 		--gold-color: #ffd700;
+		/* 直接复制需要的颜色到game.css */
+		--lime-0: #f4fce3;
+		--lime-1: #e9fac8;
+		--lime-2: #d8f5a2;
+		--lime-3: #c0eb75;
+		--lime-4: #a9e34b;
+		--lime-5: #94d82d;
+		--lime-6: #82c91e;
+		--lime-7: #74b816;
+		--lime-8: #66a80f;
+		--lime-9: #5c940d;
 
-			/* 棋盘尺寸约束 */
-			--cell-size-min: 20px;
-			--cell-size-max: 80px;
+		/* 棋盘尺寸约束 */
+		--cell-size-min: 20px;
+		--cell-size-max: 80px;
 
 		/* 语义颜色（引用基础颜色，各游戏可覆盖） */
 		--hint-color: var(--orange-color);
@@ -301,14 +312,14 @@
 				line-height: 1;
 				/* ------------ 交互 ------------ */
 				pointer-events: none;/* 默认不触发事件 */
-				/* ====== “新”标记：红底白字 ====== */
+				/* ====== "新"标记：红底白字 ====== */
 				--badge-content: '!';
 				&.new {
 					background: #C00;
 					color: #FFF;
 					&::after {
 						content: var(--badge-content);
-					}	
+					}
 				}
 			}
 
@@ -317,7 +328,7 @@
 				width: 100%;
 				height: 100%;
 			}
-			
+
 			& img {
 				width: 100%;
 				height: 100%;

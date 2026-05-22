@@ -18,17 +18,17 @@
 		border: 1px solid var(--line-color, rgba(0,0,0,0.12));
 
 		/* 数字颜色 */
-		&.unit-2 { background: #e2ead8; color: #5a6b52; }
-		&.unit-4 { background: #c8d4b8; color: #5a6b52; }
-		&.unit-8 { background: #a8c99e; color: #f5f9f2; }
-		&.unit-16 { background: #8fbc85; color: #f5f9f2; }
-		&.unit-32 { background: #7cb37a; color: #f5f9f2; }
-		&.unit-64 { background: #6ba36b; color: #f5f9f2; }
-		&.unit-128 { background: #9cb87c; color: #f5f9f2; }
-		&.unit-256 { background: #8ab06e; color: #f5f9f2; }
-		&.unit-512 { background: #7aa862; color: #f5f9f2; }
-		&.unit-1024 { background: #6a9f56; color: #f5f9f2; }
-		&.unit-2048 { background: #5a8f4a; color: #f5f9f2; }
+		&.unit-2 { background: var(--lime-1); color: #5a6b52; }
+		&.unit-4 { background: var(--lime-2); color: #5a6b52; }
+		&.unit-8 { background: var(--lime-3); color: #f5f9f2; }
+		&.unit-16 { background: var(--lime-4); color: #f5f9f2; }
+		&.unit-32 { background: var(--lime-5); color: #f5f9f2; }
+		&.unit-64 { background: var(--lime-6); color: #f5f9f2; }
+		&.unit-128 { background: var(--lime-7); color: #f5f9f2; }
+		&.unit-256 { background: var(--lime-8); color: #f5f9f2; }
+		&.unit-512 { background: var(--lime-9); color: #f5f9f2; }
+		&.unit-1024 { background: var(--lime-9); color: #f5f9f2; }
+		&.unit-2048 { background: var(--lime-9); color: #f5f9f2; }
 	}
 
 	/* 自定义数字显示 */
