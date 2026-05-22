@@ -11,7 +11,9 @@
 	font-family: "NotoSansSymbols2", sans-serif;
 
 	/* 走法描述 */
-	& .action.description { color: var(--lv-2-color); }
+	& .action.description {
+		color: var(--lv-2-color);
+	}
 
 	& .piece {
 		font-size: calc(var(--unit-size) * 0.78);
@@ -21,6 +23,7 @@
 			border: 0.5px solid var(--red-color);
 			color: var(--red-color);
 		}
+
 		&.black {
 			background-color: #f0f0f0;
 			border: 0.5px solid #888;
@@ -31,19 +34,18 @@
 	& .board.map {
 		--board-cols: 9;
 		--board-rows: 10;
-		--board-fixed-width: 400px; /* 右侧sidebar比默认280px宽 */
+		--board-fixed-width: 400px;
+		/* 右侧sidebar比默认280px宽 */
 		--unit-size: calc(var(--cell-size) * 0.9);
 
 		& .cell {
 			border: none;
-
 			/* 纹理变量默认值 */
 			--bg-texture: url('棋盘纹理-十字.svg');
 			--bg-before-rotate: 0deg;
 			--bg-before: none;
 			--bg-after: none;
 			--bg-after-rotate: 0deg;
-
 			/* 主纹理 */
 			background-image: var(--bg-texture);
 			background-size: 100% 100%;
@@ -70,33 +72,96 @@
 			}
 
 			/* 边框线 */
-			&.row-1, &.row-6 { --bg-texture: url('棋盘纹理-顶边.svg'); }
-			&.row-10, &.row-5 { --bg-texture: url('棋盘纹理-底边.svg'); }
-			&.col-1 { --bg-texture: url('棋盘纹理-左边.svg'); }
-			&.col-9 { --bg-texture: url('棋盘纹理-右边.svg'); }
+			&.row-1,
+			&.row-6 {
+				--bg-texture: url('棋盘纹理-顶边.svg');
+			}
+
+			&.row-10,
+			&.row-5 {
+				--bg-texture: url('棋盘纹理-底边.svg');
+			}
+
+			&.col-1 {
+				--bg-texture: url('棋盘纹理-左边.svg');
+			}
+
+			&.col-9 {
+				--bg-texture: url('棋盘纹理-右边.svg');
+			}
 
 			/* 角 */
-			&.row-1.col-1 { --bg-before: url('棋盘纹理-角.svg'); --bg-texture: none;}
-			&.row-1.col-9 { --bg-before: url('棋盘纹理-角.svg'); --bg-before-rotate: 90deg; --bg-texture: none;}
-			&.row-10.col-1 { --bg-before: url('棋盘纹理-角.svg'); --bg-before-rotate: -90deg; --bg-texture: none;}
-			&.row-10.col-9 { --bg-before: url('棋盘纹理-角.svg'); --bg-before-rotate: 180deg; --bg-texture: none;}
+			&.row-1.col-1 {
+				--bg-before: url('棋盘纹理-角.svg');
+				--bg-texture: none;
+			}
+
+			&.row-1.col-9 {
+				--bg-before: url('棋盘纹理-角.svg');
+				--bg-before-rotate: 90deg;
+				--bg-texture: none;
+			}
+
+			&.row-10.col-1 {
+				--bg-before: url('棋盘纹理-角.svg');
+				--bg-before-rotate: -90deg;
+				--bg-texture: none;
+			}
+
+			&.row-10.col-9 {
+				--bg-before: url('棋盘纹理-角.svg');
+				--bg-before-rotate: 180deg;
+				--bg-texture: none;
+			}
 
 			/* 九宫格斜线（黑方九宫：row 1,8; 红方九宫：row 3,10） */
-			&.row-1.col-4, &.row-8.col-4 { --bg-after: url('棋盘纹理-半斜线.svg'); --bg-after-rotate: 180deg; }
-			&.row-1.col-6, &.row-8.col-6 { --bg-after: url('棋盘纹理-半斜线.svg'); --bg-after-rotate: -90deg; }
-			&.row-3.col-4, &.row-10.col-4 { --bg-after: url('棋盘纹理-半斜线.svg'); --bg-after-rotate: 90deg; }
-			&.row-3.col-6, &.row-10.col-6 { --bg-after: url('棋盘纹理-半斜线.svg'); }
+			&.row-1.col-4,
+			&.row-8.col-4 {
+				--bg-after: url('棋盘纹理-半斜线.svg');
+				--bg-after-rotate: 180deg;
+			}
+
+			&.row-1.col-6,
+			&.row-8.col-6 {
+				--bg-after: url('棋盘纹理-半斜线.svg');
+				--bg-after-rotate: -90deg;
+			}
+
+			&.row-3.col-4,
+			&.row-10.col-4 {
+				--bg-after: url('棋盘纹理-半斜线.svg');
+				--bg-after-rotate: 90deg;
+			}
+
+			&.row-3.col-6,
+			&.row-10.col-6 {
+				--bg-after: url('棋盘纹理-半斜线.svg');
+			}
 
 			/* 窝心 */
-			&.row-2.col-5, &.row-9.col-5 { --bg-after: url('棋盘纹理-交叉.svg'); }
+			&.row-2.col-5,
+			&.row-9.col-5 {
+				--bg-after: url('棋盘纹理-交叉.svg');
+			}
 
 			/* 炮位、兵卒位 */
-			&.炮位, &.兵卒位 { --bg-before: url('棋盘纹理-左花.svg'); --bg-after: url('棋盘纹理-右花.svg'); }
-			&.兵卒位.col-1 { --bg-before: none; }
-			&.兵卒位.col-9 { --bg-after: none; }
-		}
-	}/* .game .board.map */
+			&.炮位,
+			&.兵卒位 {
+				--bg-before: url('棋盘纹理-左花.svg');
+				--bg-after: url('棋盘纹理-右花.svg');
+			}
 
+			&.兵卒位.col-1 {
+				--bg-before: none;
+			}
+
+			&.兵卒位.col-9 {
+				--bg-after: none;
+			}
+		}
+	}
+
+	/* .game .board.map */
 	/* ======================== 游戏局 ======================== */
 	& .gaming.area {
 		--right-sidebar-min-width: 380px;
@@ -140,75 +205,124 @@
 		}
 
 		/* 当前选中 */
-		& .selected.unit.area {
+		& .cur.unit.profile {
 			display: flex;
 			flex-direction: column;
 			align-items: flex-start;
+			gap: 10px;
 
-			& .preview {
+			&>.piece.unit {
 				--unit-size: 50px;
+				width: var(--unit-size);
+				height: var(--unit-size);
+				border-radius: 50%;
+				box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 				display: inline-flex;
-				flex: 0 0 50px;
-				width: 50px;
-				min-width: 50px;
-				max-width: 50px;
-				height: 50px;
-				min-height: 50px;
-				max-height: 50px;
-				align-items: center;
 				justify-content: center;
-				margin-bottom: 10px;
-				box-sizing: border-box;
+				align-items: center;
 				align-self: center;
 			}
-		}
 
-		/* 功勋区 */
-		& .merit {
-			width: 100%;
-
-			& .header {
-				display: flex;
-				align-items: center;
-				gap: 0.5rem;
-				margin-bottom: 10px;
-				border-bottom: 1px solid #eee;
-				padding-bottom: 8px;
+			/* 额外信息：logo/id/name 暂时隐藏，棋子已展示 */
+			&>.logo,
+			&>.id,
+			&>.name {
+				display: none;
 			}
 
-			& .count {
-				display: inline-block;
-				min-width: 24px;
-				height: 24px;
-				line-height: 24px;
-				text-align: center;
-				background-color: #f56c6c;
-				color: white;
-				border-radius: 50%;
-				font-weight: bold;
-				font-size: 16px;
-			}
+			/* 技能列表 */
+			& .skill.list {
+				padding: 0;
+				width: 100%;
 
-			& .details {
-				& .record {
+				& .one.skill {
 					display: flex;
-					align-items: center;
+					align-items: flex-start;
 					gap: 8px;
-					padding: 5px 0;
+					padding: 5px 8px;
 					border-bottom: 1px dashed #eee;
 
-					& .meta {
+					& .logo {
+						width: 24px;
+						height: 24px;
+						flex: none;
+					}
+
+					& .name {
+						font-weight: 600;
+						flex: none;
+						min-width: 60px;
+					}
+
+					& .intro {
 						font-size: 12px;
 						color: var(--lv-3-color);
+						background: none;
+						padding: 0;
+						margin: 0;
+						border-radius: 0;
+						text-align: start;
 					}
 				}
 			}
 
-			& .empty {
-				color: var(--lv-3-color);
-				font-style: italic;
-				padding: 10px 0;
-				text-align: center;
+			/* 功劳列表 */
+			& .merit.list {
+				padding: 0;
+				width: 100%;
+				counter-reset: merit-counter;
+
+				& .one.merit {
+					display: flex;
+					align-items: center;
+					gap: 8px;
+					padding: 5px 8px;
+					border-bottom: 1px dashed #eee;
+
+					& .killed.piece.unit {
+						--unit-size: 24px;
+						width: var(--unit-size);
+						height: var(--unit-size);
+						border-radius: 50%;
+						display: inline-flex;
+						flex-direction: column;
+						justify-content: center;
+						align-items: center;
+						font-size: calc(var(--unit-size) * 0.78);
+						position: relative;
+
+						/* 只显示logo内的文字，其他隐藏 */
+						& .logo {
+							display: flex;
+							justify-content: center;
+							align-items: center;
+							width: 100%;
+							height: 100%;
+
+							& img {
+								display: none;
+								/* 无图片 */
+							}
+						}
+
+						& .id,
+						& .name {
+							display: none;
+						}
+					}
+
+					& .round.num {
+						font-size: 12px;
+						color: var(--lv-3-color);
+					}
+				}
+
+				& .empty {
+					color: var(--lv-3-color);
+					font-style: italic;
+					padding: 10px 0;
+					text-align: center;
+				}
 			}
 		}
 
@@ -218,5 +332,7 @@
 			font-weight: bold;
 			text-shadow: 0 0 15px red, 0 0 25px red;
 		}
-	}/* .gaming.area */
+	}
+
+	/* .gaming.area */
 }

@@ -114,25 +114,43 @@
 				</details>
 				<details data-panel="selected" :open="panels.selected" @toggle="onPanelToggle">
 					<summary>当前选中</summary>
-					<div class="selected unit area" v-if="isGaming && selectedUnit">
-						<div class="preview">
-							<div class="piece unit" :class="getUnitClasses(selectedUnit)">{{ selectedUnit.display }}</div>
+					<div class="cur unit profile" v-if="isGaming && selectedUnit">
+						<div class="piece unit" :class="getUnitClasses(selectedUnit)">{{ selectedUnit.display }}</div>
+						<div class="logo">
+							<img v-if="selectedUnit.img" :src="selectedUnit.img">
+							<div v-if="selectedUnit.display">{{ selectedUnit.display }}</div>
 						</div>
-						<strong>技能:</strong>
-						<div style="margin-top: 5px;">
-							<el-tag v-if="selectedUnit.skills" v-for="skill in selectedUnit.skills" :key="skill.name" type="info" style="margin: 2px;">{{ skill.name }}
-							</el-tag>
-						</div>
-						<div class="merit" style="margin-top: 15px;">
-							<header>杀敌数 <span class="count">{{ selectedUnit.killCount }}</span></header>
-							<div class="details" v-if="selectedUnit.kills && selectedUnit.kills.length > 0">
-								<div class="record" v-for="(kill, ki) in selectedUnit.kills" :key="ki">
-									<span class="record-piece"><span class="piece unit" :class="kill.unit.owner.team.flag">{{ kill.unit.display }}</span></span>
-									<span class="meta">第{{ kill.round }}回合</span>
+						<div class="id">{{ selectedUnit.id }}</div>
+						<div class="name">{{ selectedUnit.name }}</div>
+
+						<ul class="skill list">
+							<header>技能</header>
+							<li class="one skill" v-for="skill in selectedUnit.skills" :key="skill.name" type="info">
+								<div class="logo">
+									<img :alt="skill.name" v-if="skill.logo" :src="skill.logo">
 								</div>
-							</div>
-							<div class="empty" v-else>暂无杀敌记录</div>
-						</div>
+								<div class="name">{{ skill.name }}</div>
+								<div class="intro">{{ skill.intro }}</div>
+							</li>
+						</ul>
+
+						<ol class="merit list">
+							<header>功劳</header>
+							<template v-if="selectedUnit.kills?.length">
+								<li class="one merit" v-for="(kill, ki) in selectedUnit.kills" :key="ki">
+									<div class="killed piece unit" :class="kill.unit.owner.team.flag">
+										<div class="logo">
+											<img v-if="kill.unit.img" :src="kill.unit.img">
+											<div v-if="kill.unit.display">{{ kill.unit.display }}</div>
+										</div>
+										<div class="id">{{ kill.unit.id }}</div>
+										<div class="name">{{ kill.unit.name }}</div>
+									</div>
+									<span class="round num">第{{ kill.round }}回合</span>
+								</li>
+							</template>
+							<div class="empty" v-else>暂无功劳</div>
+						</ol>
 					</div>
 					<div v-else-if="!isGaming && boardEditor.selectedPieceType">
 						<el-form label-width="60px">
