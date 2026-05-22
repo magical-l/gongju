@@ -1,11 +1,8 @@
-<!DOCTYPE html>
-<html lang="zh-CN" itemscope itemtype="https://schema.org/WebPage">
-<head>
+<!DOCTYPE html><html lang="zh-CN" itemscope itemtype="https://schema.org/WebPage"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title itemprop="name">2048方块 | 工具兽 - 俄罗斯方块式数字合并</title>
-<meta name="description" content="2048方块：方块从顶部落下，左右移动、旋转、下落；相同数字接触合并，满行消除。"
-			itemprop="description">
+<meta name="description" content="2048方块：方块从顶部落下，左右移动、旋转、下落；相同数字接触合并，满行消除。" itemprop="description">
 <meta name="keywords" content="2048方块,俄罗斯方块,数字合并,益智游戏,在线游戏">
 <meta name="author" content="工具兽">
 
@@ -67,20 +64,20 @@
 				<div class="one setting group">
 					<el-form-item class="one setting : height" label="行数">
 						<el-select v-model.number="boardHeight" @change="onBoardSizeChange">
-							<el-option v-for="h in boardSizeOptions.rows" :key="h" :label="String(h)" :value="h"/>
-						</el-select>
+							<el-option v-for="h in boardSizeOptions.rows" :key="h" :label="String(h)" :value="h">
+						</el-option></el-select>
 					</el-form-item>
 					<el-form-item class="one setting : width" label="列数">
 						<el-select v-model.number="boardWidth" @change="onBoardSizeChange">
-							<el-option v-for="w in boardSizeOptions.cols" :key="w" :label="String(w)" :value="w"/>
-						</el-select>
+							<el-option v-for="w in boardSizeOptions.cols" :key="w" :label="String(w)" :value="w">
+						</el-option></el-select>
 					</el-form-item>
 				</div>
 				<div class="one setting group">
 					<el-form-item class="one setting : speed" label="初始等级">
 						<el-select v-model.number="initialLevel" @change="onInitialLevelChange">
-							<el-option v-for="opt in initialLevelOptions" :key="opt.value" :label="opt.label" :value="opt.value"/>
-						</el-select>
+							<el-option v-for="opt in initialLevelOptions" :key="opt.value" :label="opt.label" :value="opt.value">
+						</el-option></el-select>
 					</el-form-item>
 				</div>
 				<div class="one setting group">
@@ -92,8 +89,7 @@
 			<section class="controller list , single-line flex , items-near-x-start items-near-y-center no-gap">
 				<div class="one controller group">
 					<el-form-item class="one controller : pause">
-						<el-button :type="paused ? 'success' : 'warning'" :icon="paused ? 'VideoPlay' : 'VideoPause'"
-						@click="onTogglePause">{{ paused ? '开始' : '暂停' }}
+						<el-button :type="paused ? 'success' : 'warning'" :icon="paused ? 'VideoPlay' : 'VideoPause'" @click="onTogglePause">{{ paused ? '开始' : '暂停' }}
 						</el-button>
 					</el-form-item>
 				</div>
@@ -101,7 +97,7 @@
 		</header>
 
 		<!-- 主地图区 -->
-		<section class="board , main map , no-shrink" ref="board" tabindex="0" :style="boardStyle">
+		<section class="board , main map , no-shrink" :class="{ paused: paused }" :style="boardStyle" tabindex="0" ref="board">
 			<div class="cell" :class="cellLineClearClass(cell.index)" :data-index="cell.index" v-for="(cell, index) in boardCells" :key="index">
 				<div v-if="cell.unit" class="unit" :class="'unit-' + cell.unit.val" :data-index="cell.index">
 					{{ cell.unit.text }}
@@ -130,13 +126,12 @@
 					<el-card header="当前得分" class="scoreboard" body-class="score" shadow="never">
 						{{ score }}
 					</el-card>
-					<el-descriptions class="info list" :column="1" border :label-width="140">
+					<el-descriptions class="info list" :column="1" border="" :label-width="140">
 						<el-descriptions-item label="行">{{ gameBoardHeight }}</el-descriptions-item>
 						<el-descriptions-item label="列">{{ gameBoardWidth }}</el-descriptions-item>
 						<el-descriptions-item label="初始等级">{{ initialLevel }}</el-descriptions-item>
 						<el-descriptions-item label="当前等级">{{ displayCurrentLevel }}</el-descriptions-item>
-						<el-descriptions-item
-								:label="gameBoardWidth && gameBoardHeight ? '最高记录 (' + gameBoardWidth + '×' + gameBoardHeight + ')' : '最高记录'">
+						<el-descriptions-item :label="gameBoardWidth &amp;&amp; gameBoardHeight ? '最高记录 (' + gameBoardWidth + '×' + gameBoardHeight + ')' : '最高记录'">
 							{{ highScore }}
 						</el-descriptions-item>
 					</el-descriptions>
@@ -153,9 +148,9 @@
 			</details>
 		</aside>
 		<!-- 结算弹窗 -->
-		<el-dialog v-model="gameResultVisible" class="result narrow" :title="gameResultMessage" :show-close="true" align-center>
+		<el-dialog v-model="gameResultVisible" class="result narrow" :title="gameResultMessage" :show-close="true" align-center="">
 			<div class="stats">得分: {{ score }}</div>
-			<template #footer>
+			<template #footer="">
 				<el-button type="primary" size="large" icon="RefreshRight" @click="onResultRestart">新局</el-button>
 				<el-button type="warning" size="large" @click="closeGameResultModal">关闭</el-button>
 			</template>
@@ -169,7 +164,7 @@
 			<img class="qr-code" src="../../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">
 			<p class="slogan">赞助一下</p>
 		</section>
-		<section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
+		<section class="copyright"><p>© 2025 工具兽版权所有 All rights reserved.</p></section>
 		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
 		</section>
 	</article>
@@ -486,5 +481,5 @@
 		helpApp.mount('.help.area');
 	})();
 </script>
-</body>
-</html>
+
+</body></html>

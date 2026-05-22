@@ -1,17 +1,6 @@
 /* 2048蛇样式 - 覆盖贪吃蛇的棋盘尺寸，添加蛇头样式 */
 
 .game {
-	/* 覆盖贪吃蛇的固定cell-size，恢复动态计算
-	 * --board-cols 和 --board-rows 由 HTML style 设置，优先级高于 CSS
-	 */
-	& .board {
-		--cell-size: min(
-			calc((100vh - var(--board-fixed-height, 0px) - var(--board-rows) * 10px) / var(--board-rows)),
-			calc((100vw - var(--board-fixed-width, 0px) - var(--board-cols) * 10px) / var(--board-cols)),
-			80px
-		);
-	}
-
 	/* 蛇头样式：数字方块 + 眼睛 */
 	& .board .cell > .unit.snake-head {
 		position: relative;
