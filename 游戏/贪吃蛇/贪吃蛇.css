@@ -20,7 +20,7 @@
 				position: absolute;
 				width: 30%;
 				height: 30%;
-				background: #fff;
+				background: radial-gradient(circle at 50% 50%, #222 35%, #fff 35%);
 				border-radius: 50%;
 				top: 5%;
 			}
