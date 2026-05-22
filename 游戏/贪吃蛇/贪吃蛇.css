@@ -5,10 +5,6 @@
 		--cell-size: 20px;
 		--board-cols: 20;
 		--board-rows: 20;
-
-		&.paused {
-			cursor: pointer;
-		}
 	}
 
 	& .unit {
