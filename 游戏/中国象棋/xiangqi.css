@@ -240,7 +240,6 @@
 					align-items: flex-start;
 					gap: 8px;
 					padding: 5px 8px;
-					border-bottom: 1px dashed #eee;
 
 					& .logo {
 						width: 24px;
@@ -276,8 +275,7 @@
 					display: flex;
 					align-items: center;
 					gap: 8px;
-					padding: 5px 8px;
-					border-bottom: 1px dashed #eee;
+					padding: 5px 16px;
 
 					& .killed.piece.unit {
 						--unit-size: 24px;
