@@ -94,12 +94,6 @@ form:has(input:invalid:not(:placeholder-shown)) {
 
 /* ======================== 一些工具类 ======================== */
 
-/* ------ 通用全屏 ------ */
-.fullscreen {
-	position: fixed;
-	inset: 0;
-}
-
 /* ================== 可见性 ================== */
 template, .template, .hidden, [v-cloak], .js.container {display: none !important;}
 
@@ -168,7 +162,10 @@ template, .template, .hidden, [v-cloak], .js.container {display: none !important
 .scrollable {overflow: auto; min-height: 0; min-width: 0;}
 
 /* 铺满视口（position: fixed），用于弹层内全屏遮罩、撒花等 */
-.fullscreen {position: fixed; inset: 0;}
+.fullscreen {
+	position: fixed;
+	inset: 0;
+}
 
 /* 禁止该元素内部滚动（overflow: hidden）；加在 body 上可避免整页出现滚动条 */
 .no-scroll {overflow: hidden;}

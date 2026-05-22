@@ -20,8 +20,10 @@
 	<link href="../game.css" rel="stylesheet">
 	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/花活.css" rel="stylesheet"> -->
 	<link href="../../lib/css/花活.css" rel="stylesheet">
-<link href="../2048/2048.css" rel="stylesheet">
-	<link href="../贪吃蛇/贪吃蛇.css" rel="stylesheet">
+	<style>
+		@import url(../2048/2048.css) layer(_2048);
+		@import url(../贪吃蛇/贪吃蛇.css) layer(贪吃蛇);
+	</style>
 	<link href="2048蛇.css" rel="stylesheet">
 </head>
 <body class="grid 反叵字形">
@@ -110,7 +112,7 @@
 		</header>
 
 		<!-- 主地图区 -->
-		<section class="board , main map , no-shrink" ref="board" tabindex="0" :style="boardStyle">
+		<section class="main board map , no-shrink" ref="board" tabindex="0" :style="boardStyle">
 			<div class="cell" :data-index="cell.index" v-for="(cell, index) in boardCells" :key="index">
 				<div v-if="cell.unit" class="unit" :class="['unit-' + cell.unit.val, { 'snake-head': cell.isHead }]"
 						:data-index="cell.index">
@@ -188,6 +190,7 @@
 	<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
 	<script src="../../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
 	<script src="../../resources/game-keys-area.js"></script>
+	<script src="../2048/constants.js"></script>
 	<script src="constants.js"></script>
 	<script src="logic.js"></script>
 	<script src="2048蛇-dom.js"></script>
