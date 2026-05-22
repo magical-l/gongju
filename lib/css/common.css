@@ -29,6 +29,7 @@ html {
 }
 
 :root {
+	--top-z: 9999;
 	--dangerous-color: #D32F2F;
 	--correct-color: #4CAF50;
 	--incorrect-color: #F05C6A;
@@ -87,11 +88,6 @@ form:has(input:invalid:not(:placeholder-shown)) {
 	border: 2px solid #f56c6c;
 }
 
-:where(:not(ol, ul)).list {/* 本身用ol/ul的，随它去 */
-	display: flex;
-	flex-direction: column;
-}
-
 /* ======================== 一些工具类 ======================== */
 
 /* ================== 可见性 ================== */
@@ -118,7 +114,7 @@ template, .template, .hidden, [v-cloak], .js.container {display: none !important
 }
 
 /* 最高层级（盖在所有元素之上） */
-.top-layer { z-index: 9999; }
+.top-layer { z-index: var(--top-z); }
 
 /* ================== 定位 ================== */
 
@@ -224,6 +220,20 @@ template, .template, .hidden, [v-cloak], .js.container {display: none !important
 	display: flex;
 	align-items: center;
 	justify-content: center;
+}
+
+/* ============ 列表容器 ============ */
+:where(:not(ol, ul)).list {/* 本身用ol/ul的，随它去 */
+	display: flex;
+	flex-direction: column;
+	list-style: none;
+	padding: 0.5rem;
+	margin: 0;
+
+	> header {
+		font-weight: 600;
+		margin-bottom: 0.5rem;
+	}
 }
 
 /* ============ 杂项 ============ */
