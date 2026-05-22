@@ -117,11 +117,7 @@
 					<div class="cur unit profile" v-if="isGaming && selectedUnit">
 						<div class="piece unit" :class="getUnitClasses(selectedUnit)">{{ selectedUnit.display }}</div>
 						<div class="logo">
-							<img v-if="selectedUnit.img" :src="selectedUnit.img">
-							<div v-if="selectedUnit.display">{{ selectedUnit.display }}</div>
 						</div>
-						<div class="id">{{ selectedUnit.id }}</div>
-						<div class="name">{{ selectedUnit.name }}</div>
 
 						<ul class="skill list">
 							<header>技能</header>
@@ -143,8 +139,6 @@
 											<img v-if="kill.unit.img" :src="kill.unit.img">
 											<div v-if="kill.unit.display">{{ kill.unit.display }}</div>
 										</div>
-										<div class="id">{{ kill.unit.id }}</div>
-										<div class="name">{{ kill.unit.name }}</div>
 									</div>
 									<span class="round num">第{{ kill.round }}回合</span>
 								</li>

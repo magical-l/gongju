@@ -159,9 +159,7 @@
 				--bg-after: none;
 			}
 		}
-	}
-
-	/* .game .board.map */
+	}/* .game .board.map */
 	/* ======================== 游戏局 ======================== */
 	& .gaming.area {
 		--right-sidebar-min-width: 380px;
@@ -223,13 +221,6 @@
 				align-self: center;
 			}
 
-			/* 额外信息：logo/id/name 暂时隐藏，棋子已展示 */
-			&>.logo,
-			&>.id,
-			&>.name {
-				display: none;
-			}
-
 			/* 技能列表 */
 			& .skill.list {
 				padding: 0;
@@ -241,21 +232,7 @@
 					gap: 8px;
 					padding: 5px 8px;
 
-					& .logo {
-						width: 24px;
-						height: 24px;
-						flex: none;
-					}
-
-					& .name {
-						font-weight: 600;
-						flex: none;
-						min-width: 60px;
-					}
-
 					& .intro {
-						font-size: 12px;
-						color: var(--lv-3-color);
 						background: none;
 						padding: 0;
 						margin: 0;
@@ -279,39 +256,6 @@
 
 					& .killed.piece.unit {
 						--unit-size: 24px;
-						width: var(--unit-size);
-						height: var(--unit-size);
-						border-radius: 50%;
-						display: inline-flex;
-						flex-direction: column;
-						justify-content: center;
-						align-items: center;
-						font-size: calc(var(--unit-size) * 0.78);
-						position: relative;
-
-						/* 只显示logo内的文字，其他隐藏 */
-						& .logo {
-							display: flex;
-							justify-content: center;
-							align-items: center;
-							width: 100%;
-							height: 100%;
-
-							& img {
-								display: none;
-								/* 无图片 */
-							}
-						}
-
-						& .id,
-						& .name {
-							display: none;
-						}
-					}
-
-					& .round.num {
-						font-size: 12px;
-						color: var(--lv-3-color);
 					}
 				}
 
@@ -330,7 +274,5 @@
 			font-weight: bold;
 			text-shadow: 0 0 15px red, 0 0 25px red;
 		}
-	}
-
-	/* .gaming.area */
+	}/* .gaming.area */
 }

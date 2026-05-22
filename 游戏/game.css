@@ -46,19 +46,15 @@
 			align-items: center;
 			gap: 0.5rem;
 
-			/* ====== 头像：使用.logo，跟其他地方一致 ====== */
+			/* ====== 头像：默认为圆形 ====== */
 			& .logo {
 				width: var(--player-logo-size);
 				height: var(--player-logo-size);
-				aspect-ratio: 1/1;/* 避免宽高变量未定义的兜底 */
+				aspect-ratio: 1/1;
 				border-radius: 50%;
-				object-fit: cover;
-				flex: none;
 			}
-			/* ====== 玩家名 ====== */
-			& .name {
-				color: var(--lv-1-color);
-				font-weight: 500;
+			& img.logo, & .logo img {
+				object-fit: cover;/* 图片填满容器，可能被裁剪 */
 			}
 			/* ====== 玩家所属队伍：在玩家信息区内展示队伍信息的基础样式 ====== */
 			& .team {
@@ -78,19 +74,12 @@
 			align-items: center;
 			gap: 0.5rem;
 
-			/* ====== 队标 ====== */
+			/* ====== 队标：默认为方形 ====== */
 			& .logo {
-				/* ------------ 外观 ------------ */
-				/* ------ 尺寸：默认为方形 ------ */
 				width: var(--team-logo-size);
 				height: var(--team-logo-size);
-				aspect-ratio: 1/1;/* 避免宽高变量未定义的兜底 */
-				/* ------ 圆角：非必需 ------ */
+				aspect-ratio: 1/1;
 				border-radius: 4px;
-				/* ------ 替换元素的缩放 ------ */
-				object-fit: contain;/* 完全可见 */
-				/* ------ 盒模型 ------ */
-				flex: none;/* 默认不能压缩。 */
 			}
 			/* ====== 队名 ====== */
 			& .name {
@@ -343,21 +332,6 @@
 			}
 		}/* .game .unit */
 
-		/* ======================== 通用业务语义 ======================== */
-
-		/* ====== 暂停 ====== */
-		&.paused {
-			cursor: pointer;/* 默认：被暂停的可以通过点击取消暂停，所以设置光标为手型 */
-		}
-
-		/* ====== 操作区：放按钮之类的地方 ====== */
-		& .op.area {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 8px;
-			align-items: center;
-		}
-
 		/* ====== 快捷键列表 ====== */
 		& .shortcut.list {
 			& .one.shortcut {
@@ -383,6 +357,46 @@
 					color: var(--lv-2-color);
 				}
 			}
+		}
+
+		/* ======================== 通用业务语义 ======================== */
+		/* ====== 通用的”名字” ====== */
+		& .name {
+			color: var(--lv-1-color);
+			font-weight: 500;
+			/* 确保内容完整显示 */
+			min-width: fit-content;
+			flex: none;
+		}
+
+		/* ====== 通用的”标志” ====== */
+		& .logo {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			flex: none;
+		}
+		& img.logo, & .logo img {/* 兼容“img直接作为.logo”和“.logo包裹img”两种情况。 */
+			object-fit: contain;/* 图片完整显示，可能有留白 */
+		}
+
+		/* ====== 通用的“简介/介绍” ====== */
+		& .intro {
+			font-size: 0.75rem;
+			color: var(--lv-3-color);
+		}
+
+		/* ====== 暂停 ====== */
+		&.paused {
+			cursor: pointer;/* 默认：被暂停的可以通过点击取消暂停，所以设置光标为手型 */
+		}
+
+		/* ====== 通用的“操作区”：放按钮之类的地方 ====== */
+		& .op.area {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+			align-items: center;
 		}
 
 		/* ====== 信息层级 ====== */
