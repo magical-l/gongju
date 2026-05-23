@@ -135,8 +135,7 @@
 			/* ====== 计分板 ====== */
 			& .scoreboard {
 
-				& header,
-				.header {
+				& header, & .header {
 					padding: 8px 12px;
 				}
 
@@ -417,8 +416,9 @@
 
 		/* ======================== 通用业务语义 ======================== */
 		/* ====== 通用的"名字" ====== */
+		--name-color: var(--lv-1-color);
 		& .name {
-			color: var(--lv-1-color);
+			color: var(--name-color);
 			font-weight: 500;
 			/* 确保内容完整显示 */
 			min-width: fit-content;
@@ -441,9 +441,10 @@
 		}
 
 		/* ====== 通用的"简介/介绍" ====== */
+		--intro-color: var(--lv-3-color);
 		& .intro {
 			font-size: 0.75rem;
-			color: var(--lv-3-color);
+			color: var(--intro-color);
 		}
 
 		/* ====== 通用的"档案" ======
