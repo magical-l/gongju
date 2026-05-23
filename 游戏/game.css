@@ -447,25 +447,27 @@
 		}
 
 		/* ====== 通用的"档案" ======
-			.profile
-				.summary
-					.id
-					.logo
-					.name
-					.intro
-				其他子元素
+			结构：
+				.profile
+					.summary（可选包装）
+						.id
+						.logo
+						.name
+						.intro
+					其他子元素
 			例：
-			.unit.profile
-				.summary
-					.id
-					.logo
-					.name
-					.intro
-				.skill.list
-				.friend.list
+				.unit.profile
+					.summary
+						.id
+						.logo
+						.name
+						.intro
+					.skill.list
+					.friend.list
 			变体：横向（.go-x）、纵向（.go-y）
 		*/
 		& .profile {
+			position: relative;
 			display: flex;
 
 			>.summary {
@@ -477,42 +479,9 @@
 				padding: 1rem;
 				border-radius: 8px;
 				background-color: rgba(255, 255, 255, 0.6);
-
-				>.id {
-					position: absolute;
-					top: 0.25rem;
-					right: 0.5rem;
-					font-size: 0.7rem;
-					color: var(--lv-3-color);
-					background-color: rgba(0, 0, 0, 0.1);
-					padding: 0.1rem 0.3rem;
-					border-radius: 4px;
-				}
-
-				>.logo {
-					width: 64px;
-					height: 64px;
-					border-radius: 8px;
-					object-fit: cover;
-				}
-
-				>.name {
-					font-size: 1.1rem;
-					font-weight: 600;
-					color: var(--lv-1-color);
-					text-align: center;
-				}
-
-				>.intro {
-					font-size: 0.85rem;
-					color: var(--lv-3-color);
-					text-align: center;
-					line-height: 1.5;
-				}
 			}
 
 			&.go-x {
-				flex-direction: row;
 				align-items: flex-start;
 				gap: 1rem;
 
@@ -523,12 +492,46 @@
 			}
 
 			&.go-y {
-				flex-direction: column;
 				gap: 0.75rem;
 
 				>.summary {
 					width: 100%;
 				}
+			}
+
+			>.id, >.summary>.id {
+				position: absolute;
+				top: 0.25rem;
+				right: 0.5rem;
+				font-size: 0.7rem;
+				color: var(--lv-3-color);
+				background-color: rgba(0, 0, 0, 0.1);
+				padding: 0.1rem 0.3rem;
+				border-radius: 4px;
+			}
+
+			>.logo, >.summary>.logo {
+				width: 64px;
+				height: 64px;
+				border-radius: 8px;
+				object-fit: cover;
+			}
+
+			>.name, >.summary>.name {
+				color: var(--lv-1-color);
+				text-align: center;
+			}
+
+			>.intro, >.summary>.intro {
+				font-size: 0.85rem;
+				color: var(--lv-3-color);
+				text-align: center;
+				line-height: 1.5;
+			}
+
+			/* 档案四要素，若为空则隐藏 */
+			& :is(.logo:not(img), .id, .name, .intro):empty {
+				display: none;
 			}
 		}
 

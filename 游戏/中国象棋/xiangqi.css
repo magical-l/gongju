@@ -204,16 +204,8 @@
 
 		/* 当前选中 */
 		& .cur.unit.profile {
-			display: flex;
-			flex-direction: column;
-			align-items: flex-start;
-			gap: 10px;
-
-			& .logo {
-				& .piece.unit {
-					--unit-size: 50px;
-					align-self: center;
-				}
+			& .summary {
+				--unit-size: 50px;
 			}
 
 			/* 技能列表 */
@@ -239,6 +231,7 @@
 
 			/* 功劳列表 */
 			& .merit.list {
+				--unit-size: 24px;
 				padding: 0;
 				width: 100%;
 				counter-reset: merit-counter;
@@ -248,10 +241,6 @@
 					align-items: center;
 					gap: 8px;
 					padding: 5px 16px;
-
-					& .killed.piece.unit {
-						--unit-size: 24px;
-					}
 				}
 
 				& .empty {

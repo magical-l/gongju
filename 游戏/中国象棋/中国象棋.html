@@ -114,14 +114,16 @@
 				</details>
 				<details data-panel="selected" :open="panels.selected" @toggle="onPanelToggle">
 					<summary>当前选中</summary>
-					<div class="cur unit profile" v-if="isGaming && selectedUnit">
-						<div class="logo">
-							<div class="piece unit" :class="getUnitClasses(selectedUnit)">{{ selectedUnit.display }}</div>
+					<div class="cur unit profile , go-y" v-if="isGaming && selectedUnit">
+						<div class="summary">
+							<div class="logo">
+								<div class="piece unit" :class="getUnitClasses(selectedUnit)">{{ selectedUnit.display }}</div>
+							</div>
 						</div>
 
 						<ul class="skill list">
 							<header>技能</header>
-							<li class="one skill" v-for="skill in selectedUnit.skills" :key="skill.name" type="info">
+							<li class="one skill profile" v-for="skill in selectedUnit.skills" :key="skill.name" type="info">
 								<div class="logo">
 									<img :alt="skill.name" v-if="skill.logo" :src="skill.logo">
 								</div>
@@ -134,7 +136,7 @@
 							<header>功劳</header>
 							<template v-if="selectedUnit.kills?.length">
 								<li class="one merit" v-for="(kill, ki) in selectedUnit.kills" :key="ki">
-									<div class="killed piece unit" :class="kill.unit.owner.team.flag">
+									<div class="killed piece unit profile" :class="kill.unit.owner.team.flag">
 										<div class="logo">
 											<img v-if="kill.unit.img" :src="kill.unit.img">
 											<div v-if="kill.unit.display">{{ kill.unit.display }}</div>
