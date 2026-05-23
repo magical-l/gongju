@@ -115,8 +115,8 @@
 				<details data-panel="selected" :open="panels.selected" @toggle="onPanelToggle">
 					<summary>当前选中</summary>
 					<div class="cur unit profile" v-if="isGaming && selectedUnit">
-						<div class="piece unit" :class="getUnitClasses(selectedUnit)">{{ selectedUnit.display }}</div>
 						<div class="logo">
+							<div class="piece unit" :class="getUnitClasses(selectedUnit)">{{ selectedUnit.display }}</div>
 						</div>
 
 						<ul class="skill list">

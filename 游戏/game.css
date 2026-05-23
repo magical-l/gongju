@@ -1,12 +1,12 @@
 @charset "utf-8";
 
 @layer game {
+
 	/* ====== 游戏：游戏页面必须声明一个带有.game类的根元素 ====== */
 	.game {
 		--lv-1-color: #303133;
 		--lv-2-color: #606266;
 		--lv-3-color: #909399;
-
 		/* 颜色名→RGB映射 */
 		--red-color: #d43d3d;
 		--black-color: #333;
@@ -27,11 +27,9 @@
 		--lime-7: #74b816;
 		--lime-8: #66a80f;
 		--lime-9: #5c940d;
-
 		/* 棋盘尺寸约束 */
 		--cell-size-min: 20px;
 		--cell-size-max: 80px;
-
 		/* 语义颜色（引用基础颜色，各游戏可覆盖） */
 		--hint-color: var(--orange-color);
 		--selected-color: var(--blue-color);
@@ -53,9 +51,13 @@
 				aspect-ratio: 1/1;
 				border-radius: 50%;
 			}
-			& img.logo, & .logo img {
-				object-fit: cover;/* 图片填满容器，可能被裁剪 */
+
+			& img.logo,
+			& .logo img {
+				object-fit: cover;
+				/* 图片填满容器，可能被裁剪 */
 			}
+
 			/* ====== 玩家所属队伍：在玩家信息区内展示队伍信息的基础样式 ====== */
 			& .team {
 				--team-logo-size: 16px;
@@ -81,11 +83,13 @@
 				aspect-ratio: 1/1;
 				border-radius: 4px;
 			}
+
 			/* ====== 队名 ====== */
 			& .name {
 				color: var(--lv-2-color);
 				font-weight: 400;
 			}
+
 			/* ====== 旗帜 ====== */
 			& .flag {
 				width: var(--team-flag-width);
@@ -93,15 +97,17 @@
 				border-radius: 2px;
 				background-color: var(--team-flag-color);
 				/* ------ 盒模型 ------ */
-				flex: none;/* 默认不能压缩。 */
+				flex: none;
+				/* 默认不能压缩。 */
 			}
+
 			/* ====== 成员列表 ====== */
 			& .member.list {
 				gap: 0.25rem;
 				flex-wrap: wrap;
+
 				/* ====== 单个成员 ====== */
-				& .one.member {
-				}
+				& .one.member {}
 			}
 		}
 
@@ -118,6 +124,7 @@
 					padding: 0;
 					margin: 0 0 8px 0;
 				}
+
 				& .one.info {
 					padding: 4px 0;
 					font-size: 0.9rem;
@@ -127,7 +134,9 @@
 
 			/* ====== 计分板 ====== */
 			& .scoreboard {
-				& header, .header {
+
+				& header,
+				.header {
 					padding: 8px 12px;
 				}
 
@@ -142,19 +151,27 @@
 
 			/* ====== 记录区 ====== */
 			& .record.area {
+
 				/* ====== 操作区 ====== */
 				& .op.area {
 					margin-bottom: 4px;
 				}
+
 				/* ====== 提示 ====== */
 				--tip-color: var(--lv-2-color);
+
 				& .tip {
 					font-size: 0.8rem;
 					color: var(--tip-color);
 
 					/* 位置变体 */
-					&.at-top { margin: 0; }
-					&.at-bottom { margin-top: 6px; }
+					&.at-top {
+						margin: 0;
+					}
+
+					&.at-bottom {
+						margin-top: 6px;
+					}
 				}
 			}
 
@@ -162,7 +179,9 @@
 			& .result {
 				min-width: 420px;
 
-				&.narrow { width: 300px; }
+				&.narrow {
+					width: 300px;
+				}
 
 				& .outcome {
 					font-size: 60px;
@@ -170,9 +189,17 @@
 					text-align: center;
 					text-shadow: 0 0 10px white;
 
-					&.win { color: #4caf50; }
-					&.lose { color: #f56c6c; }
-					&.draw { color: var(--lv-3-color); }
+					&.win {
+						color: #4caf50;
+					}
+
+					&.lose {
+						color: #f56c6c;
+					}
+
+					&.draw {
+						color: var(--lv-3-color);
+					}
 				}
 
 				& .stats {
@@ -183,9 +210,14 @@
 			}
 
 			/* ------ 不得不做的杂项 ------ */
-			&:focus { outline: none; }/* 获得焦点时不显示选中框 */
-		}/* .game .gaming.area */
+			&:focus {
+				outline: none;
+			}
 
+			/* 获得焦点时不显示选中框 */
+		}
+
+		/* .game .gaming.area */
 		/* ====== 回合列表：在有回合的游戏内，回合列表记录的默认样式表。不局限于场地。建议用ol ====== */
 		& .round.list {
 			min-height: 100px;
@@ -203,11 +235,19 @@
 		/* ====== 单个回合：在有回合的游戏内，单个回合记录的默认样式表。不局限于回合列表内。建议用li ====== */
 		& .one.round {
 			padding: 6px 8px;
-			&:last-child { border-bottom: none; }
-			&:nth-child(odd) { background: #f5f7fa; }
-			& > .grid {
+
+			&:last-child {
+				border-bottom: none;
+			}
+
+			&:nth-child(odd) {
+				background: #f5f7fa;
+			}
+
+			&>.grid {
 				grid-template-columns: 1fr 1fr;
 			}
+
 			/* ====== 回合内对玩家行动的描述 ====== */
 			& .player.action {
 				display: flex;
@@ -226,24 +266,35 @@
 		& .map {
 			--unit-base-layer: 100;
 			/* ------------ 定位 ------------ */
-			position: relative;/* 默认可偏移，可作为子元素定位依据 */
+			position: relative;
+			/* 默认可偏移，可作为子元素定位依据 */
 			/* ------------ 外观 ------------ */
-			margin: 0 auto;/* 水平居中 */
-			width: fit-content;/* 宽度由内容撑开 */
+			margin: 0 auto;
+			/* 水平居中 */
+			width: fit-content;
+			/* 宽度由内容撑开 */
 			/* ------------ 交互 ------------ */
 			/* ------ 防止选中文字内容 ------ */
 			user-select: none;
 			-webkit-user-select: none;
 			/* ------------ 浏览器 ------------ */
-			contain: content; /* 声明内部变化不影响外部元素，外部变化也不影响内部元素。可以提升浏览器性能 */
-			&:focus { outline: none; }/* 获得焦点时不显示选中框 */
+			contain: content;
+
+			/* 声明内部变化不影响外部元素，外部变化也不影响内部元素。可以提升浏览器性能 */
+			&:focus {
+				outline: none;
+			}
+
+			/* 获得焦点时不显示选中框 */
 		}
 
 		/* ====== 单位：有单位的游戏内，单位的默认样式表，如棋子、数字方块等。不局限于地图内，也可以是一局游戏之外的展示信息 ====== */
 		& .unit {
 			/* ------------ 定位 ------------ */
-			position: relative;/* 默认可偏移，可作为子元素定位依据 */
-			z-index: var(--unit-base-layer);/* 给背景、纹理等留层叠空间 */
+			position: relative;
+			/* 默认可偏移，可作为子元素定位依据 */
+			z-index: var(--unit-base-layer);
+			/* 给背景、纹理等留层叠空间 */
 			/* ------------ 交互 ------------ */
 			/* ------ 防止选中文字内容 ------ */
 			user-select: none;
@@ -254,6 +305,7 @@
 				outline: 3px solid var(--hint-color);
 				outline-offset: -3px;
 			}
+
 			/* ====== 选中状态的单位 ====== */
 			&.selected {
 				outline: 3px solid var(--selected-color);
@@ -289,13 +341,13 @@
 				position: absolute;
 				top: calc(var(--unit-size) * 0.03);
 				right: calc(var(--unit-size) * 0.03);
-				z-index: calc(var(--unit-base-layer) + 12);/* 需比.name高 */
+				z-index: calc(var(--unit-base-layer) + 12);
+				/* 需比.name高 */
 				/* ------------ 外观：圆形 ------------ */
 				height: calc(var(--unit-size) * 0.2);
 				min-width: calc(var(--unit-size) * 0.2);
 				/* ------ 圆角：实现圆形 ------ */
 				border-radius: 50%;
-
 				padding: 0 calc(var(--unit-size) * 0.04);
 				/* ------------ 布局 ------------ */
 				display: flex;
@@ -306,12 +358,15 @@
 				font-weight: bold;
 				line-height: 1;
 				/* ------------ 交互 ------------ */
-				pointer-events: none;/* 默认不触发事件 */
+				pointer-events: none;
+				/* 默认不触发事件 */
 				/* ====== "新"标记：红底白字 ====== */
 				--badge-content: '!';
+
 				&.new {
 					background: #C00;
 					color: #FFF;
+
 					&::after {
 						content: var(--badge-content);
 					}
@@ -330,8 +385,9 @@
 				object-fit: contain;
 				display: block;
 			}
-		}/* .game .unit */
+		}
 
+		/* .game .unit */
 		/* ====== 快捷键列表 ====== */
 		& .shortcut.list {
 			& .one.shortcut {
@@ -360,7 +416,7 @@
 		}
 
 		/* ======================== 通用业务语义 ======================== */
-		/* ====== 通用的”名字” ====== */
+		/* ====== 通用的"名字" ====== */
 		& .name {
 			color: var(--lv-1-color);
 			font-weight: 500;
@@ -369,29 +425,120 @@
 			flex: none;
 		}
 
-		/* ====== 通用的”标志” ====== */
+		/* ====== 通用的"标志" ====== */
 		& .logo {
 			display: flex;
 			justify-content: center;
 			align-items: center;
 			flex: none;
 		}
-		& img.logo, & .logo img {/* 兼容“img直接作为.logo”和“.logo包裹img”两种情况。 */
-			object-fit: contain;/* 图片完整显示，可能有留白 */
+
+		& img.logo,
+		& .logo img {
+			/* 兼容"img直接作为.logo"和".logo包裹img"两种情况。 */
+			object-fit: contain;
+			/* 图片完整显示，可能有留白 */
 		}
 
-		/* ====== 通用的“简介/介绍” ====== */
+		/* ====== 通用的"简介/介绍" ====== */
 		& .intro {
 			font-size: 0.75rem;
 			color: var(--lv-3-color);
 		}
 
-		/* ====== 暂停 ====== */
-		&.paused {
-			cursor: pointer;/* 默认：被暂停的可以通过点击取消暂停，所以设置光标为手型 */
+		/* ====== 通用的"档案" ======
+			.profile
+				.summary
+					.id
+					.logo
+					.name
+					.intro
+				其他子元素
+			例：
+			.unit.profile
+				.summary
+					.id
+					.logo
+					.name
+					.intro
+				.skill.list
+				.friend.list
+			变体：横向（.go-x）、纵向（.go-y）
+		*/
+		& .profile {
+			display: flex;
+
+			>.summary {
+				position: relative;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 0.5rem;
+				padding: 1rem;
+				border-radius: 8px;
+				background-color: rgba(255, 255, 255, 0.6);
+
+				>.id {
+					position: absolute;
+					top: 0.25rem;
+					right: 0.5rem;
+					font-size: 0.7rem;
+					color: var(--lv-3-color);
+					background-color: rgba(0, 0, 0, 0.1);
+					padding: 0.1rem 0.3rem;
+					border-radius: 4px;
+				}
+
+				>.logo {
+					width: 64px;
+					height: 64px;
+					border-radius: 8px;
+					object-fit: cover;
+				}
+
+				>.name {
+					font-size: 1.1rem;
+					font-weight: 600;
+					color: var(--lv-1-color);
+					text-align: center;
+				}
+
+				>.intro {
+					font-size: 0.85rem;
+					color: var(--lv-3-color);
+					text-align: center;
+					line-height: 1.5;
+				}
+			}
+
+			&.go-x {
+				flex-direction: row;
+				align-items: flex-start;
+				gap: 1rem;
+
+				>.summary {
+					flex: none;
+					width: 180px;
+				}
+			}
+
+			&.go-y {
+				flex-direction: column;
+				gap: 0.75rem;
+
+				>.summary {
+					width: 100%;
+				}
+			}
 		}
 
-		/* ====== 通用的“操作区”：放按钮之类的地方 ====== */
+		/* ====== 暂停 ====== */
+		& .paused {
+			cursor: pointer;
+			/* 默认：被暂停的可以通过点击取消暂停，所以设置光标为手型 */
+		}
+
+		/* ====== 通用的"操作区"：放按钮之类的地方 ====== */
 		& .op.area {
 			display: flex;
 			flex-wrap: wrap;
@@ -404,6 +551,7 @@
 			font-size: 1rem;
 			color: var(--lv-1-color);
 		}
+
 		& .lv-2.info {
 			font-size: 0.8rem;
 			color: var(--lv-2-color);
@@ -446,6 +594,7 @@
 		/* ====== 强提示闪现：常用于暴击、将军、阵亡等 ====== */
 		--callout-base-z: 1000;
 		--callout-duaration: 1s;
+
 		& .callout {
 			position: fixed;
 			inset: 0;
@@ -470,14 +619,37 @@
 
 		/* ======================== 非业务通用 ======================== */
 		/* ====== 颜色 ====== */
-		& .red { --color: var(--red-color); }
-		& .black { --color: var(--black-color); }
-		& .white { --color: var(--white-color); }
-		& .blue { --color: var(--blue-color); }
-		& .green { --color: var(--green-color); }
-		& .orange { --color: var(--orange-color); }
-		& .yellow { --color: var(--yellow-color); }
-		& .gold { --color: var(--gold-color); }
+		& .red {
+			--color: var(--red-color);
+		}
+
+		& .black {
+			--color: var(--black-color);
+		}
+
+		& .white {
+			--color: var(--white-color);
+		}
+
+		& .blue {
+			--color: var(--blue-color);
+		}
+
+		& .green {
+			--color: var(--green-color);
+		}
+
+		& .orange {
+			--color: var(--orange-color);
+		}
+
+		& .yellow {
+			--color: var(--yellow-color);
+		}
+
+		& .gold {
+			--color: var(--gold-color);
+		}
 
 		/* 简单使用搭配。例：
 			<div class="red text-color">红色文字</div>
@@ -486,8 +658,13 @@
 			一个元素若同时有两个颜色类，--color会以最后一个为准。若要多个颜色，必须分为两层元素。
 			<div class="black bg-color"><div class="red piece">黑色背景红棋子</div></div>
 		*/
-		& .bg-color { background-color: var(--color); }
-		& .text-color { color: var(--color); }
+		& .bg-color {
+			background-color: var(--color);
+		}
+
+		& .text-color {
+			color: var(--color);
+		}
 
 		/* ====== 收折卡片的通用/基础样式 ====== */
 		& details {
@@ -497,7 +674,9 @@
 			background: #fff;
 			padding: 12px 16px;
 
-			&:last-of-type { margin-bottom: 0; }
+			&:last-of-type {
+				margin-bottom: 0;
+			}
 
 			& summary {
 				font-weight: 600;
@@ -506,7 +685,9 @@
 				list-style: none;
 				position: relative;
 
-				&::-webkit-details-marker { display: none; }
+				&::-webkit-details-marker {
+					display: none;
+				}
 
 				/* 展开/收起箭头 */
 				&::after {
@@ -524,9 +705,14 @@
 				}
 
 				/* ------ 不得不做的杂项 ------ */
-				&:focus { outline: none; }/* 获得焦点时不显示选中框 */
-			}/* .game details summary */
+				&:focus {
+					outline: none;
+				}
 
+				/* 获得焦点时不显示选中框 */
+			}
+
+			/* .game details summary */
 			&[open] summary::after {
 				transform: translateY(-50%) rotate(45deg);
 			}
@@ -535,22 +721,44 @@
 				margin-bottom: 12px;
 			}
 
-			& > section { margin-bottom: 8px; &:last-child { margin-bottom: 0; } }
-			& > h3 { margin: 0 0 4px; font-size: 0.9rem; color: var(--lv-2-color); }
-			& > p { margin: 0; }
-		}/* .game details */
+			&>section {
+				margin-bottom: 8px;
 
+				&:last-child {
+					margin-bottom: 0;
+				}
+			}
+
+			&>h3 {
+				margin: 0 0 4px;
+				font-size: 0.9rem;
+				color: var(--lv-2-color);
+			}
+
+			&>p {
+				margin: 0;
+			}
+		}
+
+		/* .game details */
 		/* ------ 不得不做的杂项 ------ */
-		& input { font-family: inherit; }/* input默认有自己的 font-family，需显式继承才能使用到.game等处定义的字体 */
-	}/* .game */
+		& input {
+			font-family: inherit;
+		}
 
+		/* input默认有自己的 font-family，需显式继承才能使用到.game等处定义的字体 */
+	}
+
+	/* .game */
 	/* ====== 棋盘类游戏特需 ====== */
 	.board.game {
+
 		/* ====== 棋盘类游戏的单位 ====== */
 		& .unit {
 			/* ------------ 外观 ------------ */
 			/* ------ 盒模型 ------ */
-			flex: none;/* 默认不能压缩。 */
+			flex: none;
+			/* 默认不能压缩。 */
 			/* ------------ 布局 ------------ */
 			/* 子元素（不管是啥）：默认在中间 */
 			display: flex;
@@ -562,16 +770,20 @@
 		/* ====== 格子：棋盘格子，不限于在棋盘内。 ====== */
 		& .cell {
 			/* ------------ 定位 ------------ */
-			position: relative;/* 默认可偏移，因此可作为子元素的定位依据 */
+			position: relative;
+			/* 默认可偏移，因此可作为子元素的定位依据 */
 			/* ------------ 外观 ------------ */
 			/* ------ 尺寸：默认为方形 ------ */
 			width: var(--cell-size);
 			height: var(--cell-size);
-			aspect-ratio: 1/1;/* 避免宽高变量未定义的兜底 */
+			aspect-ratio: 1/1;
+			/* 避免宽高变量未定义的兜底 */
 			/* ------ 盒模型 ------ */
-			flex: none;/* 默认不能压缩。 */
+			flex: none;
+			/* 默认不能压缩。 */
 			/* ------ 背景 ------ */
-			background: #d4e0c8;/* 默认背景色，非必需 */
+			background: #d4e0c8;
+			/* 默认背景色，非必需 */
 			/* ------------ 布局 ------------ */
 			/* ------ 子元素（单位）：默认在中间 ------ */
 			display: flex;
@@ -579,7 +791,7 @@
 			justify-content: center;
 
 			/* ====== 棋盘类游戏的格子里的单位 ====== */
-			> .unit {
+			>.unit {
 				/* ------------ 外观 ------------ */
 				/* ------ 尺寸：默认占满格子空间。 ------ */
 				width: 100%;
@@ -591,19 +803,23 @@
 		& .board.map {
 			--board-cols: 4;
 			--board-rows: 4;
-			--board-fixed-height: 200px; /* 预留网站header+游戏toolbar空间 */
-			--board-fixed-width: 280px;  /* 预留sidebar空间 */
-			--board-padding: 10px;       /* 棋盘边框+padding开销：border(4px)+padding(6px) */
-			--cell-size: max(var(--cell-size-min), min(
-				calc((100vh - var(--board-fixed-height) - var(--board-padding)) / var(--board-rows)),
-				calc((100vw - var(--board-fixed-width) - var(--board-padding)) / var(--board-cols)),
-				var(--cell-size-max)));
-				--line-color: #9bad8f;
-				--unit-size: var(--cell-size);
+			--board-fixed-height: 200px;
+			/* 预留网站header+游戏toolbar空间 */
+			--board-fixed-width: 280px;
+			/* 预留sidebar空间 */
+			--board-padding: 10px;
+			/* 棋盘边框+padding开销：border(4px)+padding(6px) */
+			--cell-size: max(var(--cell-size-min), min(calc((100vh - var(--board-fixed-height) - var(--board-padding)) / var(--board-rows)),
+						calc((100vw - var(--board-fixed-width) - var(--board-padding)) / var(--board-cols)),
+						var(--cell-size-max)));
+			--line-color: #9bad8f;
+			--unit-size: var(--cell-size);
 			/* ------------ 外观 ------------ */
 			/* ------ 尺寸 ------ */
-			width: fit-content;/* 确保被内容撑开不撑破 */
-			height: fit-content;/* 确保被内容撑开不撑破 */
+			width: fit-content;
+			/* 确保被内容撑开不撑破 */
+			height: fit-content;
+			/* 确保被内容撑开不撑破 */
 			/* ------ 盒模型：非必需 ------ */
 			border: 2px solid var(--line-color);
 			border-radius: 8px;
@@ -624,7 +840,8 @@
 			& .cell {
 				/* ------------ 外观 ------------ */
 				border: 1px solid var(--line-color);
-				border-radius: 0;/* 默认无圆角 */
+				border-radius: 0;
+				/* 默认无圆角 */
 				background: #d4e0c8;
 
 				/* ====== 格子内的状态标记 ====== */
@@ -643,17 +860,21 @@
 						height: 40%;
 						top: 30%;
 						left: 30%;
-						border-radius: 50%;/* 默认为圆形 */
+						border-radius: 50%;
+						/* 默认为圆形 */
 						background-color: rgba(40, 167, 69, 0.5);
 					}
 
 					/* ====== 禁止目标 ====== */
 					&.blocked {
-						&::before, &::after {
+
+						&::before,
+						&::after {
 							content: "";
 							position: absolute;
 							box-sizing: border-box;
 						}
+
 						&::before {
 							width: 70%;
 							height: 15%;
@@ -663,6 +884,7 @@
 							transform: rotate(45deg);
 							border-radius: 2px;
 						}
+
 						&::after {
 							width: 60%;
 							height: 60%;
@@ -676,7 +898,9 @@
 
 					/* ====== 可攻击单位 ====== */
 					&.attackable {
-						&::before, &::after {
+
+						&::before,
+						&::after {
 							content: "";
 							position: absolute;
 							z-index: calc(var(--unit-base-layer) + 20);
@@ -687,58 +911,91 @@
 							background-color: var(--attackable-color);
 							border-radius: 2px;
 						}
-						&::before { transform: rotate(45deg); }
-						&::after { transform: rotate(-45deg); }
-					}
-				}/* .game .board.map .cell .target.mark */
 
+						&::before {
+							transform: rotate(45deg);
+						}
+
+						&::after {
+							transform: rotate(-45deg);
+						}
+					}
+				}
+
+				/* .game .board.map .cell .target.mark */
 				/* ====== 棋盘内格子内的单位 ====== */
 				& .unit {
-					/* ====== 可移动的单位 ====== */
-					&.movable { cursor: pointer; }
-				}
-			}/* .board.game .board.map .cell */
-		}/* .board.game .board.map */
 
+					/* ====== 可移动的单位 ====== */
+					&.movable {
+						cursor: pointer;
+					}
+				}
+			}
+
+			/* .board.game .board.map .cell */
+		}
+
+		/* .board.game .board.map */
 		/* ====== 棋子：继承.unit ====== */
 		& .piece.unit {
 			/* ------------ 外观：默认为圆形，有阴影 ------------ */
 			/* ------ 尺寸 ------ */
 			width: var(--unit-size);
 			height: var(--unit-size);
-			aspect-ratio: 1/1;/* 避免宽高变量未定义的兜底 */
+			aspect-ratio: 1/1;
+			/* 避免宽高变量未定义的兜底 */
 			/* ------ 圆角：4个圆角默认1/4圆，配合相同的宽高得到圆形 ------ */
 			border-radius: 50%;
 			/* ------ 阴影：非必需 ------ */
 			--piece-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 			box-shadow: var(--piece-shadow);
 			/* ------ 盒模型 ------ */
-			flex: none;/* 默认不能压缩。 */
+			flex: none;
+			/* 默认不能压缩。 */
 			/* ------------ 布局 ------------ */
 			display: inline-flex;
 			justify-content: center;
 			align-items: center;
 			/* ------------ 交互 ------------ */
-			cursor: pointer;/* 手型光标 */
+			cursor: pointer;
+			/* 手型光标 */
 		}
 
 		/* ====== 单位可移动的棋盘类游戏 ====== */
 		&.unit.movable {
 			& .cell {
+
 				/* ====== 棋盘类游戏的格子里的单位 ====== */
-				> .unit {
+				>.unit {
 					/* ------------ 定位 ------------ */
-					position: absolute;/* 绝对定位以便移动 */
-					inset: 0;/* 默认覆盖满整个格子 */
+					position: absolute;
+					/* 绝对定位以便移动 */
+					inset: 0;
+					/* 默认覆盖满整个格子 */
 				}
 			}
-		}/* .unit.movable.board.game */
-	}/* .board.game */
+		}
 
+		/* .unit.movable.board.game */
+	}
+
+	/* .board.game */
 	/* ============ 动画关键帧。@keyframes不能嵌套在内层 ============ */
 	@keyframes become-bigger-and-transparent {
-		0% { scale:1; opacity: 1; }
-		50% { scale:1.5; opacity: 0.7; }
-		100% { scale:2; opacity: 0; }
+		0% {
+			scale: 1;
+			opacity: 1;
+		}
+
+		50% {
+			scale: 1.5;
+			opacity: 0.7;
+		}
+
+		100% {
+			scale: 2;
+			opacity: 0;
+		}
 	}
 }
