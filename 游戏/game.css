@@ -554,7 +554,7 @@
 
 	/* ====== 强提示闪现：常用于暴击、将军、阵亡等 ====== */
 	--callout-z: 1000;
-	--callout-duaration: 1s;
+	--callout-duration: 1s;
 
 	& .callout {
 		position: fixed;
@@ -564,7 +564,7 @@
 		justify-content: center;
 		align-items: center;
 		pointer-events: none;
-		animation: become-bigger-and-transparent var(--callout-duaration) ease-out;
+		animation: become-bigger-and-transparent var(--callout-duration) ease-out;
 	}
 
 	/* ====== 描述 ====== */
@@ -577,7 +577,13 @@
 	}
 
 	/* ====== 形状修饰类 ====== */
-	& .circle { border-radius: 50%; }
+	--circle-size: 80px;
+	& .circle {
+		width: var(--circle-size);
+		height: var(--circle-size);
+		aspect-ratio: 1/1;/* 避免宽高变量未定义的兜底 */
+		border-radius: 50%;
+	}
 	& .rounded { border-radius: 8px; }
 
 	/* ======================== 非业务通用 ======================== */
