@@ -38,7 +38,7 @@
 			&.list {
 				padding: 0;
 				margin: 0 0 8px 0;
-	
+
 			}
 			&.one {
 				padding: 4px 0;
@@ -206,14 +206,6 @@
 			outline-offset: -3px;
 		}
 
-		/* ====== 选中状态的单位 ====== */
-		--selected-color: var(--blue-color);
-		&.selected {
-			outline: 3px solid var(--selected-color);
-			outline-offset: -3px;
-			box-shadow: 0 0 8px color-mix(in srgb, var(--selected-color) 50%, transparent), 0 0 0 3px color-mix(in srgb, var(--selected-color) 30%, transparent);
-		}
-
 		/* ====== 上一个行动的单位的标记 ====== */
 		--last-action-color: rgba(255, 0, 0, 0.7);
 		--last-action-z: 15;
@@ -283,6 +275,15 @@
 		}
 	} /* .game .unit */
 
+	/* ====== 当前状态 ====== */
+	--cur-color: var(--blue-color);
+	.cur {
+		outline: 3px solid var(--cur-color);
+		outline-offset: -3px;
+		box-shadow: 0 0 8px color-mix(in srgb, var(--cur-color) 50%, transparent), 0 0 0 3px color-mix(in srgb, var(--cur-color) 30%, transparent);
+		scale: 1.1;
+	}
+
 	/* ====== 快捷键列表 ====== */
 	& .shortcut.list {
 		& .one.shortcut {
@@ -350,7 +351,7 @@
 		justify-content: center;/* 改为flex布局时也确保居中 */
 		text-align: center; /* 确保在仅有文字子元素时文本水平居中 */
 
-		/* 兼容：“.logo本身是<img>”和“.logo子元素是<img>” */
+		/* 兼容：".logo本身是<img>"和".logo子元素是<img>" */
 		&:is(img), > img {
 			object-fit: contain;/* 图片完整显示，可能有留白 */
 		}
@@ -566,12 +567,6 @@
 		animation: become-bigger-and-transparent var(--callout-duaration) ease-out;
 	}
 
-	/* ====== 当前：适用于任意当前被激活/选中/……的事物 ====== */
-	.cur {
-		/* 目前默认只给一个简单的放大 */
-		scale: 1.1;
-	}
-
 	/* ====== 描述 ====== */
 	& .description {
 		color: var(--lv-2-color);
@@ -629,7 +624,7 @@
 				display: none;
 			}
 
-			/* “展开/收起”箭头 */
+			/* "展开/收起"箭头 */
 			&::after {
 				content: '';
 				position: absolute;
@@ -796,7 +791,7 @@
 						left: 20%;
 						border-radius: 50%;
 						border: 4px solid var(--blocked-color);
-						background-color: rgba(255, 255,  0.3);
+						background-color: rgba(255, 0,  0.3);
 					}
 				}
 

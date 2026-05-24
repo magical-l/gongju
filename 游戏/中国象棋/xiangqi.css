@@ -204,6 +204,9 @@
 
 		/* 当前选中 */
 		& .cur.unit.profile {
+			outline: none;
+			box-shadow: none;
+
 			& .summary {
 				--unit-size: 50px;
 				--logo-width: 50px;
