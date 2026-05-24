@@ -11,6 +11,10 @@
 		font-family: system-ui, -apple-system, sans-serif;
 	}
 
+	& .main.board {
+		touch-action: none;/* 禁用浏览器默认触摸行为（滚动、缩放、双击缩放等），让触摸事件完全由JS处理。 */
+	}
+
 	/* 数字方块 */
 	& .unit {
 		font-weight: bold;

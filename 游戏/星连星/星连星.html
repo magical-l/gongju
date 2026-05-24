@@ -24,89 +24,82 @@
 	<style>
 		.game {
 			--left-sidebar-min-width: 280px;
-			& .board.map {
-				touch-action: none;
+		}
 
-				& .cell {
-					cursor: crosshair;
-				}
+		.board.map {
+			touch-action: none;/* 禁用浏览器默认触摸行为（滚动、缩放、双击缩放等），让触摸事件完全由JS处理。 */
 
-				& .unit {
-					position: relative;
-					width: 100%;
-					height: 100%;
-					--line-width: 40%;
+			& .cell {
+				cursor: crosshair;
+			}
+		}
 
-					&.star {
-						font-size: 1.5em;
-						display: flex;
-						align-items: center;
-						justify-content: center;
-						color: #fff;
-						text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-						z-index: 2;
-					}
+		.unit {
+			--line-width: 40%;
 
-					&:is(.path, .hint, .drawing) {
-						opacity: 0.9;
-						inset: 0;
-						/* 中心圆点用背景渐变画 */
-						background: radial-gradient(circle at center, var(--path-color) calc(var(--line-width) * 0.7), transparent calc(var(--line-width) * 0.7));
-
-						/* 方向线段：before=水平，after=垂直 */
-						&::before, &::after {
-							content: "";
-							position: absolute;
-							background: var(--path-color);
-						}
-
-						/* 水平线段 (::before) */
-						&:is(.left, .right)::before {
-							height: var(--line-width);
-							top: 50%;
-							width: 50%;
-							transform: translateY(-50%);
-						}
-
-						&.left::before { left: 0; }
-						&.right::before { left: 50%; }
-
-						/* 垂直线段 (::after) */
-						&:is(.top, .bottom)::after {
-							width: var(--line-width);
-							height: 50%;
-							left: 50%;
-							transform: translateX(-50%);
-						}
-
-						&.top::after { top: 0; }
-						&.bottom::after { top: 50%; }
-
-						/* 直连贯穿 */
-						&.left.right::before {
-							width: 100%;
-							left: 0;
-						}
-
-						&.left.right::after {
-							display: none;
-						}
-
-						&.top.bottom::after {
-							height: 100%;
-							top: 0;
-						}
-
-						&.top.bottom::before {
-							display: none;
-						}
-					}
-				}
+			&.star {
+				font-size: 1.5em;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				color: #fff;
+				text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+				z-index: 2;
 			}
 
-			.hint {
-				outline:none;
-				opacity: 0.75;
+			&:is(.path, .hint, .drawing) {
+				opacity: 0.9;
+				inset: 0;
+				/* 中心圆点用背景渐变画 */
+				background: radial-gradient(circle at center, var(--path-color) calc(var(--line-width) * 0.7), transparent calc(var(--line-width) * 0.7));
+
+				/* 方向线段：before=水平，after=垂直 */
+				&::before, &::after {
+					content: "";
+					position: absolute;
+					background: var(--path-color);
+				}
+
+				/* 水平线段 (::before) */
+				&:is(.left, .right)::before {
+					height: var(--line-width);
+					top: 50%;
+					width: 50%;
+					transform: translateY(-50%);
+				}
+
+				&.left::before { left: 0; }
+				&.right::before { left: 50%; }
+
+				/* 垂直线段 (::after) */
+				&:is(.top, .bottom)::after {
+					width: var(--line-width);
+					height: 50%;
+					left: 50%;
+					transform: translateX(-50%);
+				}
+
+				&.top::after { top: 0; }
+				&.bottom::after { top: 50%; }
+
+				/* 直连贯穿 */
+				&.left.right::before {
+					width: 100%;
+					left: 0;
+				}
+
+				&.left.right::after {
+					display: none;
+				}
+
+				&.top.bottom::after {
+					height: 100%;
+					top: 0;
+				}
+
+				&.top.bottom::before {
+					display: none;
+				}
 			}
 		}
 

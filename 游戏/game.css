@@ -480,7 +480,7 @@
 	}
 
 	/* ====== 提示 ====== */
-	& .hint {
+	& .hint:not(button, .btn) {
 		outline: 3px solid var(--hint-color, var(--orange-color));
 		outline-offset: -3px;
 	}
