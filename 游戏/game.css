@@ -44,18 +44,10 @@
 			align-items: center;
 			gap: 0.5rem;
 
-			/* ====== 头像：默认为圆形 ====== */
+			/* ====== 头像 ====== */
 			& .logo {
-				width: var(--player-logo-size);
-				height: var(--player-logo-size);
-				aspect-ratio: 1/1;
-				border-radius: 50%;
-			}
-
-			& img.logo,
-			& .logo img {
-				object-fit: cover;
-				/* 图片填满容器，可能被裁剪 */
+				--logo-width: var(--player-logo-size);
+				--logo-height: var(--player-logo-size);
 			}
 
 			/* ====== 玩家所属队伍：在玩家信息区内展示队伍信息的基础样式 ====== */
@@ -76,11 +68,10 @@
 			align-items: center;
 			gap: 0.5rem;
 
-			/* ====== 队标：默认为方形 ====== */
+			/* ====== 队标 ====== */
 			& .logo {
-				width: var(--team-logo-size);
-				height: var(--team-logo-size);
-				aspect-ratio: 1/1;
+				--logo-width: var(--team-logo-size);
+				--logo-height: var(--team-logo-size);
 				border-radius: 4px;
 			}
 
@@ -426,19 +417,30 @@
 		}
 
 		/* ====== 通用的"标志" ====== */
+		--logo-width: 100%;
+		--logo-height: 100%;
 		& .logo {
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			flex: none;
+			/* ------ 外观 ------ */
+			width: var(--logo-width);
+			height: var(--logo-height);
+			aspect-ratio: 1/1;/* 默认宽高相等（1:1） */
+			flex: none;/* 被放在flex布局中时阻止伸缩。 */
+			/* ------ 布局 ------ */
+			/* 通常为单个子元素，所以默认用grid+center */
+			display: grid;
+			place-items: center;
+			justify-content: center;/* 改为flex布局时也确保居中 */
+			text-align: center; /* 确保在仅有文字子元素时文本水平居中 */
+
+			/* 兼容：“.logo本身是<img>”和“.logo子元素是<img>” */
+			&:is(img), > img {
+				object-fit: contain;/* 图片完整显示，可能有留白 */
+			}
 		}
 
-		& img.logo,
-		& .logo img {
-			/* 兼容"img直接作为.logo"和".logo包裹img"两种情况。 */
-			object-fit: contain;
-			/* 图片完整显示，可能有留白 */
-		}
+		/* ====== 形状修饰类 ====== */
+		& .circle { border-radius: 50%; }
+		& .rounded { border-radius: 8px; }
 
 		/* ====== 通用的"简介/介绍" ====== */
 		--intro-color: var(--lv-3-color);
@@ -463,8 +465,8 @@
 						.logo
 						.name
 						.intro
-					.skill.list
-					.friend.list
+						.skill.list
+						.friend.list
 			变体：横向（.go-x）、纵向（.go-y）
 		*/
 		& .profile {
@@ -512,10 +514,9 @@
 			}
 
 			>.logo, >.summary>.logo {
-				width: 64px;
-				height: 64px;
+				--logo-width: 64px;
+				--logo-height: 64px;
 				border-radius: 8px;
-				object-fit: cover;
 			}
 
 			>.name, >.summary>.name {
@@ -896,7 +897,7 @@
 							left: 20%;
 							border-radius: 50%;
 							border: 4px solid var(--blocked-color);
-							background-color: rgba(255, 255, 255, 0.3);
+							background-color: rgba(255, 255,  0.3);
 						}
 					}
 
