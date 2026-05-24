@@ -97,15 +97,15 @@
 				font-weight: bold;
 				text-align: center;
 				text-shadow: 0 0 10px white;
-
+				/* 胜利/赢家 */
 				&.win {
 					color: #4caf50;
 				}
-
+				/* 失败/输家 */
 				&.lose {
 					color: #f56c6c;
 				}
-
+				/* 平局 */
 				&.draw {
 					color: var(--lv-3-color);
 				}
@@ -122,49 +122,52 @@
 		&:focus {
 			outline: none;/* 获得焦点时不显示选中框 */
 		}
-	} /* .game .gaming.area */
+	}/* .game .gaming.area */
 
-	/* ====== 回合列表：在有回合的游戏内，回合列表记录的默认样式表。不局限于场地。建议用ol ====== */
-	& .round.list {
-		min-height: 100px;
-		max-height: 330px;
-		overflow-y: auto;
-		padding-inline-start: 20px;
+	/* ============ 跟回合有关的，适合于有回合的游戏 ============*/
+	& .round {
+		/* ====== 回合列表：回合列表记录的默认样式表。不局限于场地。建议用ol ====== */
+		&.list {
+			min-height: 100px;
+			max-height: 330px;
+			overflow-y: auto;
+			padding-inline-start: 20px;
 
-		& .summary {
-			font-size: 0.8rem;
-			color: var(--lv-2-color);
-			margin: 4px 0 0;
-		}
-	}
-
-	/* ====== 单个回合：在有回合的游戏内，单个回合记录的默认样式表。不局限于回合列表内。建议用li ====== */
-	& .one.round {
-		padding: 6px 8px;
-
-		&:last-child {
-			border-bottom: none;
+			& .summary {
+				font-size: 0.8rem;
+				color: var(--lv-2-color);
+				margin: 4px 0 0;
+			}
 		}
 
-		&:nth-child(odd) {
-			background: #f5f7fa;
+		/* ====== 单个回合：单个回合记录的默认样式表。不局限于回合列表内。建议用li ====== */
+		&.one {
+			padding: 6px 8px;
+
+			&:last-child {
+				border-bottom: none;
+			}
+
+			&:nth-child(odd) {
+				background: #f5f7fa;
+			}
+
+			> .grid {
+				grid-template-columns: 1fr 1fr;
+			}
+
+			/* ====== 回合内对玩家行动的描述 ====== */
+			& .player.action {
+				align-items: center;
+				gap: 6px;
+			}
 		}
 
-		> .grid {
-			grid-template-columns: 1fr 1fr;
+		/* ====== 回合序号 ====== */
+		&.num {
+			font-size: var(--intro-font-size);
+			color: var(--lv-3-color);
 		}
-
-		/* ====== 回合内对玩家行动的描述 ====== */
-		& .player.action {
-			align-items: center;
-			gap: 6px;
-		}
-	}
-
-	/* ====== 回合序号 ====== */
-	& .round.num {
-		font-size: var(--intro-font-size);
-		color: var(--lv-3-color);
 	}
 
 	/* ====== 地图：有地图的游戏内，地图的默认样式表。不局限于场地，也可以是一局游戏之外的展示信息 ====== */
@@ -394,7 +397,7 @@
 		position: relative;/* 默认可偏移，可作为子元素定位依据 */
 		display: flex;
 
-		>.summary {
+		> .summary {
 			position: relative;/* 默认可偏移，可作为子元素定位依据 */
 			display: flex;
 			flex-direction: column;
@@ -446,68 +449,68 @@
 		& :is(.logo:not(img), .id, .name, .intro):empty {
 			display: none;
 		}
-	}
 
 		/* ====== 玩家 ====== */
-	& .player.profile {
-		align-items: center;
-		gap: 0.5rem;
-
-		/* ====== 头像 ====== */
-		--player-logo-size: 32px;
-		& .logo {
-			--logo-width: var(--player-logo-size);
-			--logo-height: var(--player-logo-size);
-		}
-
-		/* ====== 玩家所属队伍：在玩家信息区内展示队伍信息的基础样式 ====== */
-		& .team {
-			--team-logo-size: 16px;
-			--team-flag-width: 12px;
-			--team-flag-height: 8px;
-		}
-	}
-
-	/* ====== 队伍 ====== */
-	& .team.profile {
-		align-items: center;
-		gap: 0.5rem;
-
-		/* ====== 队标 ====== */
-		--team-logo-size: 24px;
-		& .logo {
-			--logo-width: var(--team-logo-size);
-			--logo-height: var(--team-logo-size);
-			border-radius: 4px;
-		}
-
-		/* ====== 队名 ====== */
-		& .name {
-			--name-color: var(--lv-2-color);
-		}
-
-		/* ====== 旗帜 ====== */
-		--team-flag-width: 20px;
-		--team-flag-height: 12px;
-		--team-flag-color: transparent;
-		& .flag {
-			width: var(--team-flag-width);
-			height: var(--team-flag-height);
-			border-radius: 2px;
-			background-color: var(--team-flag-color);
-			/* ------ 盒模型 ------ */
-			flex: none;/* 被放在flex布局中时阻止伸缩。 */
-		}
-
-		/* ====== 成员列表 ====== */
-		& .member.list {
-			gap: 0.25rem;
-			flex-wrap: wrap;
-
-			/* ====== 单个成员 ====== */
-			& .one.member {}
-		}
-	}
+		&.player {
+			align-items: center;
+			gap: 0.5rem;
+	
+			/* ====== 头像 ====== */
+			--player-logo-size: 32px;
+			& .logo {
+				--logo-width: var(--player-logo-size);
+				--logo-height: var(--player-logo-size);
+			}
+	
+			/* ====== 玩家所属队伍：在玩家信息区内展示队伍信息的基础样式 ====== */
+			& .team {
+				--team-logo-size: 16px;
+				--team-flag-width: 12px;
+				--team-flag-height: 8px;
+			}
+		}/* .game .player.profile */
+	
+		/* ====== 队伍 ====== */
+		&.team {
+			align-items: center;
+			gap: 0.5rem;
+	
+			/* ====== 队标 ====== */
+			--team-logo-size: 24px;
+			& .logo {
+				--logo-width: var(--team-logo-size);
+				--logo-height: var(--team-logo-size);
+				border-radius: 4px;
+			}
+	
+			/* ====== 队名 ====== */
+			& .name {
+				--name-color: var(--lv-2-color);
+			}
+	
+			/* ====== 旗帜 ====== */
+			--team-flag-width: 20px;
+			--team-flag-height: 12px;
+			--team-flag-color: transparent;
+			& .flag {
+				width: var(--team-flag-width);
+				height: var(--team-flag-height);
+				border-radius: 2px;
+				background-color: var(--team-flag-color);
+				/* ------ 盒模型 ------ */
+				flex: none;/* 被放在flex布局中时阻止伸缩。 */
+			}
+	
+			/* ====== 成员列表 ====== */
+			& .member.list {
+				gap: 0.25rem;
+				flex-wrap: wrap;
+	
+				/* ====== 单个成员 ====== */
+				& .one.member {}
+			}
+		}/* .game .team.profile */
+	}/* .game .profile */
 
 	/* ====== 暂停 ====== */
 	& .paused {
@@ -520,17 +523,6 @@
 		flex-wrap: wrap;
 		gap: 8px;
 		align-items: center;
-	}
-
-	/* ====== 信息层级 ====== */
-	& .lv-1.info {
-		font-size: 1rem;
-		color: var(--lv-1-color);
-	}
-
-	& .lv-2.info {
-		font-size: 0.8rem;
-		color: var(--lv-2-color);
 	}
 
 	/* ====== 遮罩 ====== */
@@ -599,37 +591,14 @@
 
 	/* ======================== 非业务通用 ======================== */
 	/* ====== 颜色 ====== */
-	& .red {
-		--color: var(--red-color);
-	}
-
-	& .black {
-		--color: var(--black-color);
-	}
-
-	& .white {
-		--color: var(--white-color);
-	}
-
-	& .blue {
-		--color: var(--blue-color);
-	}
-
-	& .green {
-		--color: var(--green-color);
-	}
-
-	& .orange {
-		--color: var(--orange-color);
-	}
-
-	& .yellow {
-		--color: var(--yellow-color);
-	}
-
-	& .gold {
-		--color: var(--gold-color);
-	}
+	& .red { --color: var(--red-color); }
+	& .black { --color: var(--black-color); }
+	& .white { --color: var(--white-color); }
+	& .blue { --color: var(--blue-color); }
+	& .green { --color: var(--green-color); }
+	& .orange { --color: var(--orange-color); }
+	& .yellow { --color: var(--yellow-color); }
+	& .gold { --color: var(--gold-color); }
 
 	/* 简单使用搭配。例：
 		<div class="red text-color">红色文字</div>
@@ -638,13 +607,8 @@
 		一个元素若同时有两个颜色类，--color会以最后一个为准。若要多个颜色，必须分为两层元素。
 		<div class="black bg-color"><div class="red piece">黑色背景红棋子</div></div>
 	*/
-	& .bg-color {
-		background-color: var(--color);
-	}
-
-	& .text-color {
-		color: var(--color);
-	}
+	& .bg-color { background-color: var(--color); }
+	& .text-color { color: var(--color); }
 
 	/* ====== 收折卡片的通用/基础样式 ====== */
 	& details {
@@ -658,7 +622,7 @@
 			margin-bottom: 0;
 		}
 
-		& summary {
+		> summary {
 			font-weight: 600;
 			font-size: 1rem;
 			cursor: pointer;
@@ -688,32 +652,14 @@
 			&:focus {
 				outline: none;/* 获得焦点时不显示选中框 */
 			}
-		} /* .game details summary */
+		} /* .game details > summary */
 
-		&[open] summary::after {
+		&[open] > summary::after {
 			transform: translateY(-50%) rotate(45deg);
 		}
 
-		&[open] summary {
+		&[open] > summary {
 			margin-bottom: 12px;
-		}
-
-		> section {
-			margin-bottom: 8px;
-
-			&:last-child {
-				margin-bottom: 0;
-			}
-		}
-
-		> h3 {
-			margin: 0 0 4px;
-			font-size: 0.9rem;
-			color: var(--lv-2-color);
-		}
-
-		> p {
-			margin: 0;
 		}
 	}/* .game details */
 
