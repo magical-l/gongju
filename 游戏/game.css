@@ -64,7 +64,6 @@
 		
 		/* ====== 队名 ====== */
 		& .name {
-			font-weight: 400;
 			--name-color: var(--lv-2-color);
 		}
 		
@@ -137,7 +136,6 @@
 
 			/* ====== 提示 ====== */
 			--tip-color: var(--lv-2-color);
-
 			& .tip {
 				font-size: 0.8rem;
 				color: var(--tip-color);
@@ -235,7 +233,6 @@
 
 	/* ====== 地图：有地图的游戏内，地图的默认样式表。不局限于场地，也可以是一局游戏之外的展示信息 ====== */
 	& .map {
-		--unit-base-layer: 100;
 		/* ------------ 定位 ------------ */
 		position: relative;/* 默认可偏移，可作为子元素定位依据 */
 		/* 默认可偏移，可作为子元素定位依据 */
@@ -258,6 +255,7 @@
 	}
 
 	/* ====== 单位：有单位的游戏内，单位的默认样式表，如棋子、数字方块等。不局限于地图内，也可以是一局游戏之外的展示信息 ====== */
+	--unit-base-layer: 100;
 	& .unit {
 		/* ------------ 定位 ------------ */
 		position: relative;/* 默认可偏移，可作为子元素定位依据 */
@@ -296,14 +294,11 @@
 			right: 0;
 		}
 
-		/* ====== 单位名字 ====== */
+		/* ====== 单位名字 ======
 		& .name {
-			position: relative;/* 默认可偏移，可作为子元素定位依据 */
-			font-size: 0.8em;
-			font-weight: bold;
-			z-index: calc(var(--unit-base-layer) + 10);
-			pointer-events: none;
+			无属性覆盖
 		}
+		*/
 
 		/* ====== 标记/徽章 ====== */
 		& .badge {
@@ -386,13 +381,16 @@
 	/* ====== 通用的"名字" ====== */
 	--name-color: var(--lv-1-color);
 	& .name {
+		/* ------------ 定位 ------------ */
+		position: relative;/* 默认可偏移，可作为子元素定位依据 */
+		z-index: calc(var(--unit-base-layer) + 10);
 		/* ------------ 外观 ------------ */
 		min-width: fit-content;/* 确保内容完整显示 */
 		flex: none;/* 被放在flex布局中时阻止伸缩。 */
 		/* ------------ 布局 ------------ */
 		text-align: center; /* 名字是核心标识，默认居中 */
 		/* ------------ 文字 ------------ */
-		font-weight: 500;
+		font-weight: bold;
 		color: var(--name-color);
 	}
 
