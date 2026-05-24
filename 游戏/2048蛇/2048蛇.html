@@ -126,14 +126,14 @@
 			<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 				<summary>本局信息</summary>
 				<div class="flex go-y">
-					<el-card header="当前得分" class="scoreboard" body-class="score" shadow="never">
+					<el-card header="当前得分" class="one gaming info : scoreboard" body-class="score" shadow="never">
 						{{ score }}
 					</el-card>
 					<el-descriptions class="info list" :column="1" border="" :label-width="140">
-						<el-descriptions-item label="行">{{ gameBoardHeight }}</el-descriptions-item>
-						<el-descriptions-item label="列">{{ gameBoardWidth }}</el-descriptions-item>
-						<el-descriptions-item label="目标≥">{{ gameTargetLabel }}</el-descriptions-item>
-						<el-descriptions-item :label="gameBoardWidth &amp;&amp; gameBoardHeight ? `最高记录 (${gameBoardWidth}×${gameBoardHeight})` : '最高记录'">
+						<el-descriptions-item label="行" class="one gaming info">{{ gameBoardHeight }}</el-descriptions-item>
+						<el-descriptions-item label="列" class="one gaming info">{{ gameBoardWidth }}</el-descriptions-item>
+						<el-descriptions-item label="目标≥" class="one gaming info">{{ gameTargetLabel }}</el-descriptions-item>
+						<el-descriptions-item :label="gameBoardWidth &amp;&amp; gameBoardHeight ? `最高记录 (${gameBoardWidth}×${gameBoardHeight})` : '最高记录'" class="one gaming info">
 							{{ highScore }}
 						</el-descriptions-item>
 					</el-descriptions>

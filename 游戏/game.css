@@ -33,16 +33,14 @@
 		padding: 0;
 		gap: 0.5rem;
 
-		/* ====== 本局信息面板：纯容器 ====== */
-		& .gaming.info {}
-
-		/* ====== 信息列表样式：用在ul上 ====== */
-		& .info.list {
-			list-style: none;
-			padding: 0;
-			margin: 0 0 8px 0;
-
-			& .one.info {
+		/* ====== 游戏信息 ====== */
+		.gaming.info {
+			&.list {
+				padding: 0;
+				margin: 0 0 8px 0;
+	
+			}
+			&.one {
 				padding: 4px 0;
 				font-size: 0.9rem;
 				color: #4a4a4a;
@@ -51,7 +49,6 @@
 
 		/* ====== 计分板 ====== */
 		& .scoreboard {
-
 			& header, & .header {
 				padding: 8px 12px;
 			}
@@ -175,12 +172,9 @@
 	& .map {
 		/* ------------ 定位 ------------ */
 		position: relative;/* 默认可偏移，可作为子元素定位依据 */
-		/* 默认可偏移，可作为子元素定位依据 */
 		/* ------------ 外观 ------------ */
-		margin: 0 auto;
-		/* 水平居中 */
-		width: fit-content;
-		/* 宽度由内容撑开 */
+		margin: 0 auto;/* 水平居中 */
+		width: fit-content;/* 宽度由内容撑开 */
 		/* ------------ 交互 ------------ */
 		/* ------ 防止选中文字内容 ------ */
 		user-select: none;
@@ -506,9 +500,6 @@
 			& .member.list {
 				gap: 0.25rem;
 				flex-wrap: wrap;
-
-				/* ====== 单个成员 ====== */
-				& .one.member {}
 			}
 		}/* .game .team.profile */
 	}/* .game .profile */
@@ -584,6 +575,10 @@
 	/* ====== 描述 ====== */
 	& .description {
 		color: var(--lv-2-color);
+	}
+
+	& .list {
+		list-style: none;
 	}
 
 	/* ====== 形状修饰类 ====== */

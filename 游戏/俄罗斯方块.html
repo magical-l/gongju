@@ -224,13 +224,13 @@
 				</details>
 				<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 					<summary>本局信息</summary>
-					<el-card header="分数" class="scoreboard" body-class="score" shadow="never">
+					<el-card header="分数" class="one gaming info : scoreboard" body-class="score" shadow="never">
 						{{ score }}
-						<template #footer="">最高记录：{{ highScore }}</template>
+						<template #footerstarAt>最高记录：{{ highScore }}</template>
 					</el-card>
-					<el-descriptions :column="1" border="">
-						<el-descriptions-item label="行数">{{ lines }}</el-descriptions-item>
-						<el-descriptions-item label="等级">{{ level }}</el-descriptions-item>
+					<el-descriptions class="info list" :column="1" borderstarAt>
+						<el-descriptions-item label="行数" class="one gaming info">{{ lines }}</el-descriptions-item>
+						<el-descriptions-item label="等级" class="one gaming info">{{ level }}</el-descriptions-item>
 					</el-descriptions>
 				</details>
 				<details class="shortcut list" data-panel="shortcuts" :open="panels.shortcuts" @toggle="onPanelToggle">
@@ -244,9 +244,9 @@
 				</details>
 			</aside>
 			<!-- 结算弹窗 -->
-			<el-dialog v-model="showGameOverModal" class="result narrow" title="游戏结束" :show-close="true" align-center="">
+			<el-dialog v-model="showGameOverModal" class="result narrow" title="游戏结束" :show-close="true" align-centerstarAt>
 				<div class="stats">得分: {{ score }}</div>
-				<template #footer="">
+				<template #footerstarAt>
 					<el-button type="primary" size="large" icon="RefreshRight" @click="closeGameOverAndNew">新局</el-button>
 					<el-button type="warning" size="large" @click="closeGameOverModal">关闭</el-button>
 				</template>

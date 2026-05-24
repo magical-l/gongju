@@ -92,11 +92,11 @@
 				<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 					<summary>本局信息</summary>
 					<ul class="info list" v-if="isGaming">
-						<li class="one info : first player">先手：<span class="black piece unit"></span></li>
+						<li class="one gaming info : first player">先手：<span class="black piece unit"></span></li>
 					</ul>
 					<ul class="info list" v-if="isGaming">
-						<li class="one info">当前： {{ curPlayer.name || '—' }}</li>
-						<li class="one info">回合：
+						<li class="one gaming info">当前： {{ curPlayer.name || '—' }}</li>
+						<li class="one gaming info">回合：
 							<span v-if="turnHistory.length">第 {{ turnHistory.length }} 回合</span>
 							<span v-else>尚未走棋</span>
 						</li>

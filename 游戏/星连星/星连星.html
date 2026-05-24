@@ -230,7 +230,7 @@
 			<aside class="sidebar at-left">
 				<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 					<summary>本局信息</summary>
-					<div class="info progress">
+					<div class="one gaming info : progress">
 						<el-progress :percentage="completionPercentage" :status="gameWin ? 'success' : ''"></el-progress>
 						<div style="margin-top: 5px; font-size: 0.9rem; color: var(--lv-3-color);">
 							已填充: {{ filledCells }} / {{ totalCells }}
