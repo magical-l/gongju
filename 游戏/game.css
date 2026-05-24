@@ -70,10 +70,9 @@
 			}
 
 			/* ====== 提示 ====== */
-			--tip-color: var(--lv-2-color);
 			& .tip {
 				font-size: 0.8rem;
-				color: var(--tip-color);
+				color: var(--tip-color, var(--lv-2-color));
 
 				/* ------ 变体：不同位置 ------ */
 				&.at-top { margin: 0; }
@@ -163,7 +162,7 @@
 
 		/* ====== 回合序号 ====== */
 		&.num {
-			font-size: var(--intro-font-size);
+			font-size: var(--intro-font-size, 0.75em);
 			color: var(--lv-3-color);
 		}
 	}
@@ -189,34 +188,30 @@
 	}
 
 	/* ====== 单位：有单位的游戏内，单位的默认样式表，如棋子、数字方块等。不局限于地图内，也可以是一局游戏之外的展示信息 ====== */
-	--unit-z: 100;
 	& .unit {
 		/* ------------ 定位 ------------ */
 		position: relative;/* 默认可偏移，可作为子元素定位依据 */
-		z-index: var(--unit-z);/* 给背景、纹理等留层叠空间 */
+		z-index: var(--unit-z, 100);/* 给背景、纹理等留层叠空间 */
 		/* ------------ 交互 ------------ */
 		/* ------ 防止选中文字内容 ------ */
 		user-select: none;
 		-webkit-user-select: none;
 
 		/* ====== 单位的提示状态 ====== */
-		--hint-color: var(--orange-color);
 		&.hint {
-			outline: 3px solid var(--hint-color);
+			outline: 3px solid var(--hint-color, var(--orange-color));
 			outline-offset: -3px;
 		}
 
 		/* ====== 上一个行动的单位的标记 ====== */
-		--last-action-color: rgba(255, 0, 0, 0.7);
-		--last-action-z: 15;
 		&.last.action::after {
 			content: '';
 			position: absolute;
 			width: 8px;
 			height: 8px;
-			background-color: var(--last-action-color);
+			background-color: var(--last-action-color, rgba(255, 0, 0, 0.7));
 			border-radius: 50%;
-			z-index: var(--last-action-z);
+			z-index: var(--last-action-z, 15);
 			top: 0;
 			right: 0;
 		}
@@ -225,13 +220,12 @@
 			z-index: 10;
 		}
 		/* ====== 标记/徽章 ====== */
-		--badge-z: 22;
 		& .badge {
 			/* ------------ 定位 ------------ */
 			position: absolute;
 			top: calc(var(--unit-size) * 0.03);
 			right: calc(var(--unit-size) * 0.03);
-			z-index: var(--badge-z);
+			z-index: var(--badge-z, 22);
 			/* ------------ 外观：圆形 ------------ */
 			height: calc(var(--unit-size) * 0.2);
 			min-width: calc(var(--unit-size) * 0.2);
@@ -250,13 +244,12 @@
 			pointer-events: none;/* 默认不触发事件 */
 
 			/* ====== "新"标记：红底白字 ====== */
-			--badge-content: '!';
 			&.new {
 				background: #C00;
 				color: #FFF;
 
 				&::after {
-					content: var(--badge-content);
+					content: var(--badge-content, '!');
 				}
 			}
 		}
@@ -276,11 +269,10 @@
 	} /* .game .unit */
 
 	/* ====== 当前状态 ====== */
-	--cur-color: var(--blue-color);
 	.cur {
-		outline: 3px solid var(--cur-color);
+		outline: 3px solid var(--cur-color, var(--blue-color));
 		outline-offset: -3px;
-		box-shadow: 0 0 8px color-mix(in srgb, var(--cur-color) 50%, transparent), 0 0 0 3px color-mix(in srgb, var(--cur-color) 30%, transparent);
+		box-shadow: 0 0 8px color-mix(in srgb, var(--cur-color, var(--blue-color)) 50%, transparent), 0 0 0 3px color-mix(in srgb, var(--cur-color, var(--blue-color)) 30%, transparent);
 		scale: 1.1;
 	}
 
@@ -300,7 +292,7 @@
 				height: 24px;
 				padding: 2px 6px;
 				font-family: inherit;
-				font-size: var(--intro-font-size);
+				font-size: var(--intro-font-size, 0.75em);
 				font-weight: 600;
 				background: #f5f7fa;
 				border: 1px solid #dcdfe6;
@@ -313,15 +305,12 @@
 
 	/* ======================== 通用业务语义 ======================== */
 	/* ====== 通用的"id" ====== */
-	--id-font-size: 0.7em;
-	--id-color: var(--lv-3-color);
 	& .id {
-		font-size: var(--id-font-size);
-		color: var(--id-color);
+		font-size: var(--id-font-size, 0.7em);
+		color: var(--id-color, var(--lv-3-color));
 	}
 
 	/* ====== 通用的"名字" ====== */
-	--name-color: var(--lv-1-color);
 	& .name {
 		/* ------------ 定位 ------------ */
 		position: relative;/* 默认可偏移，可作为子元素定位依据 */
@@ -332,7 +321,7 @@
 		text-align: center;/* 名字是核心标识，默认居中 */
 		/* ------------ 文字 ------------ */
 		font-weight: bold;
-		color: var(--name-color);
+		color: var(--name-color, var(--lv-1-color));
 	}
 
 	/* ====== 通用的"标志" ====== */
@@ -358,14 +347,12 @@
 	}
 
 	/* ====== 通用的"简介/介绍" ====== */
-	--intro-font-size: 0.75em;
-	--intro-color: var(--lv-3-color);
 	& .intro {
 		/* ------------ 布局 ------------ */
 		text-align: left;/* 辅助信息，默认靠左 */
 		/* ------------ 文字 ------------ */
-		font-size: var(--intro-font-size);
-		color: var(--intro-color);
+		font-size: var(--intro-font-size, 0.75em);
+		color: var(--intro-color, var(--lv-3-color));
 		line-height: 1.5;/* 默认1.5倍行间距，避免多行难看 */
 	}
 
@@ -525,11 +512,10 @@
 	}
 
 	/* 遮罩本身 */
-	--overlay-z: 1000;
 	& .overlay {
 		position: absolute;
 		inset: 0;
-		z-index: var(--overlay-z);
+		z-index: var(--overlay-z, 1000);
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -553,18 +539,15 @@
 	}
 
 	/* ====== 强提示闪现：常用于暴击、将军、阵亡等 ====== */
-	--callout-z: 1000;
-	--callout-duration: 1s;
-
 	& .callout {
 		position: fixed;
 		inset: 0;
-		z-index: var(--callout-z);
+		z-index: var(--callout-z, 1000);
 		display: flex;
 		justify-content: center;
 		align-items: center;
 		pointer-events: none;
-		animation: become-bigger-and-transparent var(--callout-duration) ease-out;
+		animation: become-bigger-and-transparent var(--callout-duration, 1s) ease-out;
 	}
 
 	/* ====== 描述 ====== */
@@ -577,10 +560,9 @@
 	}
 
 	/* ====== 形状修饰类 ====== */
-	--circle-size: 80px;
 	& .circle {
-		width: var(--circle-size);
-		height: var(--circle-size);
+		width: var(--circle-size, 80px);
+		height: var(--circle-size, 80px);
 		aspect-ratio: 1/1;/* 避免宽高变量未定义的兜底 */
 		border-radius: 50%;
 	}
@@ -753,12 +735,11 @@
 			background: #d4e0c8;
 
 			/* ====== 格子内的状态标记 ====== */
-			--mark-z: 20;
 			& .target.mark {
 				position: absolute;
 				width: 100%;
 				height: 100%;
-				z-index: var(--mark-z);
+				z-index: var(--mark-z, 20);
 				pointer-events: none;
 
 				/* ====== 可作为移动目标的格子 ====== */
@@ -774,7 +755,6 @@
 				}
 
 				/* ====== 禁止目标 ====== */
-				--blocked-color: rgba(220, 53, 69, 0.9);
 				&.blocked {
 					&::before, &::after {
 						content: "";
@@ -786,7 +766,7 @@
 						height: 15%;
 						top: 42.5%;
 						left: 15%;
-						background-color: var(--blocked-color);
+						background-color: var(--blocked-color, rgba(220, 53, 69, 0.9));
 						transform: rotate(45deg);
 						border-radius: 2px;
 					}
@@ -796,23 +776,22 @@
 						top: 20%;
 						left: 20%;
 						border-radius: 50%;
-						border: 4px solid var(--blocked-color);
+						border: 4px solid var(--blocked-color, rgba(220, 53, 69, 0.9));
 						background-color: rgba(255, 0,  0.3);
 					}
 				}
 
 				/* ====== 可攻击单位 ====== */
-				--attackable-color: rgba(255, 0, 0, 0.7);
 				&.attackable {
 					&::before, &::after {
 						content: "";
 						position: absolute;
-						z-index: var(--mark-z);
+						z-index: var(--mark-z, 20);
 						width: 60%;
 						height: 15%;
 						top: 42.5%;
 						left: 20%;
-						background-color: var(--attackable-color);
+						background-color: var(--attackable-color, rgba(255, 0, 0, 0.7));
 						border-radius: 2px;
 					}
 
@@ -841,8 +820,7 @@
 		/* ------ 圆角：4个圆角默认1/4圆，配合相同的宽高得到圆形 ------ */
 		border-radius: 50%;
 		/* ------ 阴影：非必需 ------ */
-		--piece-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-		box-shadow: var(--piece-shadow);
+		box-shadow: var(--piece-shadow, 0 1px 3px rgba(0, 0, 0, 0.3));
 		/* ------ 盒模型 ------ */
 		flex: none;/* 被放在flex布局中时阻止伸缩。 */
 		/* ------------ 布局 ------------ */
