@@ -27,69 +27,6 @@
 	--lime-8: #66a80f;
 	--lime-9: #5c940d;
 
-	/* ====== 玩家 ====== */
-	& .player {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-
-		/* ====== 头像 ====== */
-		--player-logo-size: 32px;
-		& .logo {
-			--logo-width: var(--player-logo-size);
-			--logo-height: var(--player-logo-size);
-		}
-
-		/* ====== 玩家所属队伍：在玩家信息区内展示队伍信息的基础样式 ====== */
-		& .team {
-			--team-logo-size: 16px;
-			--team-flag-width: 12px;
-			--team-flag-height: 8px;
-		}
-	}
-
-	/* ====== 队伍 ====== */
-	& .team {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-
-		/* ====== 队标 ====== */
-		--team-logo-size: 24px;
-		& .logo {
-			--logo-width: var(--team-logo-size);
-			--logo-height: var(--team-logo-size);
-			border-radius: 4px;
-		}
-
-		/* ====== 队名 ====== */
-		& .name {
-			--name-color: var(--lv-2-color);
-		}
-
-		/* ====== 旗帜 ====== */
-		--team-flag-width: 20px;
-		--team-flag-height: 12px;
-		--team-flag-color: transparent;
-		& .flag {
-			width: var(--team-flag-width);
-			height: var(--team-flag-height);
-			border-radius: 2px;
-			background-color: var(--team-flag-color);
-			/* ------ 盒模型 ------ */
-			flex: none;/* 被放在flex布局中时阻止伸缩。 */
-		}
-
-		/* ====== 成员列表 ====== */
-		& .member.list {
-			gap: 0.25rem;
-			flex-wrap: wrap;
-
-			/* ====== 单个成员 ====== */
-			& .one.member {}
-		}
-	}
-
 	/* ====== 场地 ====== */
 	& .gaming.area {
 		margin: 0;
@@ -219,7 +156,6 @@
 
 		/* ====== 回合内对玩家行动的描述 ====== */
 		& .player.action {
-			display: flex;
 			align-items: center;
 			gap: 6px;
 		}
@@ -422,10 +358,6 @@
 		}
 	}
 
-	/* ====== 形状修饰类 ====== */
-	& .circle { border-radius: 50%; }
-	& .rounded { border-radius: 8px; }
-
 	/* ====== 通用的"简介/介绍" ====== */
 	--intro-font-size: 0.75em;
 	--intro-color: var(--lv-3-color);
@@ -516,6 +448,67 @@
 		}
 	}
 
+		/* ====== 玩家 ====== */
+	& .player.profile {
+		align-items: center;
+		gap: 0.5rem;
+
+		/* ====== 头像 ====== */
+		--player-logo-size: 32px;
+		& .logo {
+			--logo-width: var(--player-logo-size);
+			--logo-height: var(--player-logo-size);
+		}
+
+		/* ====== 玩家所属队伍：在玩家信息区内展示队伍信息的基础样式 ====== */
+		& .team {
+			--team-logo-size: 16px;
+			--team-flag-width: 12px;
+			--team-flag-height: 8px;
+		}
+	}
+
+	/* ====== 队伍 ====== */
+	& .team.profile {
+		align-items: center;
+		gap: 0.5rem;
+
+		/* ====== 队标 ====== */
+		--team-logo-size: 24px;
+		& .logo {
+			--logo-width: var(--team-logo-size);
+			--logo-height: var(--team-logo-size);
+			border-radius: 4px;
+		}
+
+		/* ====== 队名 ====== */
+		& .name {
+			--name-color: var(--lv-2-color);
+		}
+
+		/* ====== 旗帜 ====== */
+		--team-flag-width: 20px;
+		--team-flag-height: 12px;
+		--team-flag-color: transparent;
+		& .flag {
+			width: var(--team-flag-width);
+			height: var(--team-flag-height);
+			border-radius: 2px;
+			background-color: var(--team-flag-color);
+			/* ------ 盒模型 ------ */
+			flex: none;/* 被放在flex布局中时阻止伸缩。 */
+		}
+
+		/* ====== 成员列表 ====== */
+		& .member.list {
+			gap: 0.25rem;
+			flex-wrap: wrap;
+
+			/* ====== 单个成员 ====== */
+			& .one.member {}
+		}
+	}
+
 	/* ====== 暂停 ====== */
 	& .paused {
 		cursor: pointer; /* 默认：被暂停的可以通过点击取消暂停，所以设置光标为手型 */
@@ -599,6 +592,10 @@
 	& .description {
 		color: var(--lv-2-color);
 	}
+
+	/* ====== 形状修饰类 ====== */
+	& .circle { border-radius: 50%; }
+	& .rounded { border-radius: 8px; }
 
 	/* ======================== 非业务通用 ======================== */
 	/* ====== 颜色 ====== */
