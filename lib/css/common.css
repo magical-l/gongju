@@ -236,9 +236,10 @@ template, .template, .hidden, [v-cloak], .js.container {display: none !important
 		margin-bottom: 0.5rem;
 	}
 
-	.one:nth-child(odd) {
-		background: #f5f7fa;
-	}
+}
+
+li.one:nth-child(odd) {
+	background: #f5f7fa;
 }
 
 /* ============ 杂项 ============ */

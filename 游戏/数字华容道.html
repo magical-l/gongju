@@ -212,15 +212,15 @@
 					</el-button>
 				</div>
 				<el-empty v-if="!stepsDone.length && !solutionSteps.length" description="尚无记录。请开始吧！"></el-empty>
-				<div v-else class="round list">
+				<ol v-else class="round list">
 					<p class="summary , one-row">
 						<template v-if="isWin">已完成，共 {{ moves }} 步。</template>
 						<template v-else-if="solutionSteps.length">已走 {{ moves }}/{{ roundSteps.length }}。</template>
 					</p>
-					<span class="one round" :class="{ current: i === currentStepIndex }" v-for="(val, i) in roundSteps" :key="i">
+					<li class="one round" :class="{ current: i === currentStepIndex }" v-for="(val, i) in roundSteps" :key="i">
 						<div class="unit"><span class="name">{{ val }}</span></div>
-					</span>
-				</div>
+					</li>
+				</ol>
 				<p v-if="isWin" class="tip at-bottom">本局已过关</p>
 			</details>
 			<details data-panel="shortcuts" class="shortcut list" :open="panels.shortcuts" @toggle="onPanelToggle">
