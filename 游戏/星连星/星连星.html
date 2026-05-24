@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
+<!DOCTYPE html><html lang="zh-CN"><head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>星连星游戏 | 在线益智连线游戏</title>
@@ -223,9 +221,7 @@
 			</header>
 
 			<article class="main board map" :style="{ '--board-cols': gridSize, '--board-rows': gridSize }" @mouseup="mouseUp" @mouseleave="mouseUp" @touchend="touchEnd" @touchcancel="touchEnd">
-				<div class="cell"
-					v-for="cell in gridCells" :key="'cell-'+cell.row+'-'+cell.col" :data-row="cell.row" :data-col="cell.col"
-					@mousedown="mouseDown(cell)" @mouseenter="mouseEnter(cell)" @touchstart="touchStart($event, cell)">
+				<div class="cell" v-for="cell in gridCells" :key="'cell-'+cell.row+'-'+cell.col" :data-row="cell.row" :data-col="cell.col" @mousedown="mouseDown(cell)" @mouseenter="mouseEnter(cell)" @touchstart="touchStart($event, cell)">
 					<div v-if="starAt(cell)" class="unit star" :style="{ backgroundColor: COLORS[starAt(cell).color] }">★</div>
 					<div :class="unitClass(cell)" :style="unitStyle(cell)" v-else></div>
 				</div>
@@ -234,7 +230,7 @@
 			<aside class="sidebar at-left">
 				<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 					<summary>本局信息</summary>
-					<div class="gaming info">
+					<div class="info progress">
 						<el-progress :percentage="completionPercentage" :status="gameWin ? 'success' : ''"></el-progress>
 						<div style="margin-top: 5px; font-size: 0.9rem; color: var(--lv-3-color);">
 							已填充: {{ filledCells }} / {{ totalCells }}
@@ -2886,5 +2882,6 @@
 
 		</script>
 	</div>
-</body>
-</html>
+
+
+</body></html>

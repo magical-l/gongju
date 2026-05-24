@@ -1,4 +1,4 @@
-﻿@charset "utf-8";
+@charset "utf-8";
 
 @layer game {
 /* ====== 游戏：游戏页面必须声明一个带有.game类的根元素 ====== */
@@ -33,13 +33,14 @@
 		padding: 0;
 		gap: 0.5rem;
 
-		/* ====== 本局信息区 ====== */
-		& .gaming.info {
-			& .group {
-				list-style: none;
-				padding: 0;
-				margin: 0 0 8px 0;
-			}
+		/* ====== 本局信息面板：纯容器 ====== */
+		& .gaming.info {}
+
+		/* ====== 信息列表样式：用在ul上 ====== */
+		& .info.list {
+			list-style: none;
+			padding: 0;
+			margin: 0 0 8px 0;
 
 			& .one.info {
 				padding: 4px 0;
@@ -454,14 +455,14 @@
 		&.player {
 			align-items: center;
 			gap: 0.5rem;
-	
+
 			/* ====== 头像 ====== */
 			--player-logo-size: 32px;
 			& .logo {
 				--logo-width: var(--player-logo-size);
 				--logo-height: var(--player-logo-size);
 			}
-	
+
 			/* ====== 玩家所属队伍：在玩家信息区内展示队伍信息的基础样式 ====== */
 			& .team {
 				--team-logo-size: 16px;
@@ -469,12 +470,12 @@
 				--team-flag-height: 8px;
 			}
 		}/* .game .player.profile */
-	
+
 		/* ====== 队伍 ====== */
 		&.team {
 			align-items: center;
 			gap: 0.5rem;
-	
+
 			/* ====== 队标 ====== */
 			--team-logo-size: 24px;
 			& .logo {
@@ -482,12 +483,12 @@
 				--logo-height: var(--team-logo-size);
 				border-radius: 4px;
 			}
-	
+
 			/* ====== 队名 ====== */
 			& .name {
 				--name-color: var(--lv-2-color);
 			}
-	
+
 			/* ====== 旗帜 ====== */
 			--team-flag-width: 20px;
 			--team-flag-height: 12px;
@@ -500,12 +501,12 @@
 				/* ------ 盒模型 ------ */
 				flex: none;/* 被放在flex布局中时阻止伸缩。 */
 			}
-	
+
 			/* ====== 成员列表 ====== */
 			& .member.list {
 				gap: 0.25rem;
 				flex-wrap: wrap;
-	
+
 				/* ====== 单个成员 ====== */
 				& .one.member {}
 			}
@@ -532,7 +533,7 @@
 	}
 
 	/* 遮罩本身 */
-	--overlay-z: 50;
+	--overlay-z: 1000;
 	& .overlay {
 		position: absolute;
 		inset: 0;

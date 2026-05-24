@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
-<head>
+<!DOCTYPE html><html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage"><head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title itemprop="name">五子棋 | 工具兽 - 在线玩经典的棋类游戏</title>
@@ -93,10 +91,10 @@
 			<aside class="sidebar at-left">
 				<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 					<summary>本局信息</summary>
-					<ul class="group" v-if="isGaming">
+					<ul class="info list" v-if="isGaming">
 						<li class="one info : first player">先手：<span class="black piece unit"></span></li>
 					</ul>
-					<ul class="group" v-if="isGaming">
+					<ul class="info list" v-if="isGaming">
 						<li class="one info">当前： {{ curPlayer.name || '—' }}</li>
 						<li class="one info">回合：
 							<span v-if="turnHistory.length">第 {{ turnHistory.length }} 回合</span>
@@ -126,9 +124,9 @@
 					</ol>
 				</details>
 			</aside>
-			<el-dialog title="游戏结束" v-model="isGameOver" align-center class="result narrow">
+			<el-dialog title="游戏结束" v-model="isGameOver" align-center="" class="result narrow">
 				<div class="outcome win">{{ winner }} 获胜!</div>
-				<template #footer>
+				<template #footer="">
 					<el-button type="primary" @click="restartGame">再来一局</el-button>
 				</template>
 			</el-dialog>
@@ -332,5 +330,5 @@
 		}).use(ElementPlus).mount('.help.area');
 
 	</script>
-</body>
-</html>
+
+</body></html>

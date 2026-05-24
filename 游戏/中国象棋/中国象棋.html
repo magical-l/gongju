@@ -184,10 +184,10 @@
 					</details>
 					<details class="gaming info" data-panel="gamingInfo" :open="panels.gamingInfo" @toggle="onPanelToggle">
 						<summary>本局信息</summary>
-						<ul class="group">
+						<ul class="info list">
 							<li class="one info">先手：{{ gameFirstLabel }}</li>
 						</ul>
-						<ul class="group">
+						<ul class="info list">
 							<li class="one info">当前：{{ curPlayerLabel || '—' }}</li>
 							<li class="one info">回合：
 								<span v-if="currentRound === 0">尚未走棋</span>
@@ -857,6 +857,7 @@
 		window.app = app.mount('main>article');
 
 	</script>
+
 
 
 </body></html>
