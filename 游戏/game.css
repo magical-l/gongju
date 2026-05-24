@@ -77,8 +77,8 @@
 
 			/* ====== 队名 ====== */
 			& .name {
-				color: var(--lv-2-color);
 				font-weight: 400;
+				--name-color: var(--lv-2-color);
 			}
 
 			/* ====== 旗帜 ====== */
@@ -88,7 +88,7 @@
 				border-radius: 2px;
 				background-color: var(--team-flag-color);
 				/* ------ 盒模型 ------ */
-				flex: none;
+				flex: none;/* 被放在flex布局中时阻止伸缩。 */
 				/* 默认不能压缩。 */
 			}
 
@@ -375,9 +375,7 @@
 				object-fit: contain;
 				display: block;
 			}
-		}
-
-		/* .game .unit */
+		} /* .game .unit */
 		/* ====== 快捷键列表 ====== */
 		& .shortcut.list {
 			& .one.shortcut {
@@ -409,23 +407,27 @@
 		/* ====== 通用的"名字" ====== */
 		--name-color: var(--lv-1-color);
 		& .name {
-			color: var(--name-color);
-			font-weight: 500;
+			/* ------------ 外观 ------------ */
 			/* 确保内容完整显示 */
 			min-width: fit-content;
-			flex: none;
+			flex: none;/* 被放在flex布局中时阻止伸缩。 */
+			/* ------------ 布局 ------------ */
+			text-align: center; /* 名字是核心标识，默认居中 */
+			/* ------------ 文字 ------------ */
+			font-weight: 500;
+			color: var(--name-color);
 		}
 
 		/* ====== 通用的"标志" ====== */
 		--logo-width: 100%;
 		--logo-height: 100%;
 		& .logo {
-			/* ------ 外观 ------ */
+			/* ------------ 外观 ------------ */
 			width: var(--logo-width);
 			height: var(--logo-height);
 			aspect-ratio: 1/1;/* 默认宽高相等（1:1） */
 			flex: none;/* 被放在flex布局中时阻止伸缩。 */
-			/* ------ 布局 ------ */
+			/* ------------ 布局 ------------ */
 			/* 通常为单个子元素，所以默认用grid+center */
 			display: grid;
 			place-items: center;
@@ -445,6 +447,9 @@
 		/* ====== 通用的"简介/介绍" ====== */
 		--intro-color: var(--lv-3-color);
 		& .intro {
+			/* ------------ 布局 ------------ */
+			text-align: left; /* 辅助信息，默认靠左 */
+			/* ------------ 文字 ------------ */
 			font-size: 0.75rem;
 			color: var(--intro-color);
 		}
@@ -489,7 +494,7 @@
 				gap: 1rem;
 
 				>.summary {
-					flex: none;
+					flex: none;/* 被放在flex布局中时阻止伸缩。 */
 					width: 180px;
 				}
 			}
@@ -519,14 +524,13 @@
 				border-radius: 8px;
 			}
 
+			/*
 			>.name, >.summary>.name {
-				color: var(--lv-1-color);
-				text-align: center;
+				默认无覆盖样式
 			}
+			*/
 
 			>.intro, >.summary>.intro {
-				font-size: 0.85rem;
-				color: var(--lv-3-color);
 				text-align: center;
 				line-height: 1.5;
 			}
@@ -539,8 +543,7 @@
 
 		/* ====== 暂停 ====== */
 		& .paused {
-			cursor: pointer;
-			/* 默认：被暂停的可以通过点击取消暂停，所以设置光标为手型 */
+			cursor: pointer; /* 默认：被暂停的可以通过点击取消暂停，所以设置光标为手型 */
 		}
 
 		/* ====== 通用的"操作区"：放按钮之类的地方 ====== */
@@ -694,7 +697,7 @@
 					display: none;
 				}
 
-				/* 展开/收起箭头 */
+				/* “展开/收起”箭头 */
 				&::after {
 					content: '';
 					position: absolute;
@@ -711,13 +714,11 @@
 
 				/* ------ 不得不做的杂项 ------ */
 				&:focus {
-					outline: none;
+					outline: none;/* 获得焦点时不显示选中框 */
 				}
 
-				/* 获得焦点时不显示选中框 */
-			}
+			} /* .game details summary */
 
-			/* .game details summary */
 			&[open] summary::after {
 				transform: translateY(-50%) rotate(45deg);
 			}
@@ -743,26 +744,22 @@
 			&>p {
 				margin: 0;
 			}
-		}
+		}/* .game details */
 
-		/* .game details */
 		/* ------ 不得不做的杂项 ------ */
 		& input {
+			/* input默认有自己的 font-family，需显式继承才能使用到.game等处定义的字体 */
 			font-family: inherit;
 		}
+	}/* .game */
 
-		/* input默认有自己的 font-family，需显式继承才能使用到.game等处定义的字体 */
-	}
-
-	/* .game */
 	/* ====== 棋盘类游戏特需 ====== */
 	.board.game {
-
 		/* ====== 棋盘类游戏的单位 ====== */
 		& .unit {
 			/* ------------ 外观 ------------ */
 			/* ------ 盒模型 ------ */
-			flex: none;
+			flex: none;/* 被放在flex布局中时阻止伸缩。 */
 			/* 默认不能压缩。 */
 			/* ------------ 布局 ------------ */
 			/* 子元素（不管是啥）：默认在中间 */
@@ -784,7 +781,7 @@
 			aspect-ratio: 1/1;
 			/* 避免宽高变量未定义的兜底 */
 			/* ------ 盒模型 ------ */
-			flex: none;
+			flex: none;/* 被放在flex布局中时阻止伸缩。 */
 			/* 默认不能压缩。 */
 			/* ------ 背景 ------ */
 			background: #d4e0c8;
@@ -948,23 +945,20 @@
 			/* ------ 尺寸 ------ */
 			width: var(--unit-size);
 			height: var(--unit-size);
-			aspect-ratio: 1/1;
-			/* 避免宽高变量未定义的兜底 */
+			aspect-ratio: 1/1;/* 避免宽高变量未定义的兜底 */
 			/* ------ 圆角：4个圆角默认1/4圆，配合相同的宽高得到圆形 ------ */
 			border-radius: 50%;
 			/* ------ 阴影：非必需 ------ */
 			--piece-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 			box-shadow: var(--piece-shadow);
 			/* ------ 盒模型 ------ */
-			flex: none;
-			/* 默认不能压缩。 */
+			flex: none;/* 被放在flex布局中时阻止伸缩。 */
 			/* ------------ 布局 ------------ */
 			display: inline-flex;
 			justify-content: center;
 			align-items: center;
 			/* ------------ 交互 ------------ */
-			cursor: pointer;
-			/* 手型光标 */
+			cursor: pointer; /* 手型光标 */
 		}
 
 		/* ====== 单位可移动的棋盘类游戏 ====== */
@@ -980,12 +974,9 @@
 					/* 默认覆盖满整个格子 */
 				}
 			}
-		}
+		} /* .unit.movable.board.game */
+	} /* .board.game */
 
-		/* .unit.movable.board.game */
-	}
-
-	/* .board.game */
 	/* ============ 动画关键帧。@keyframes不能嵌套在内层 ============ */
 	@keyframes become-bigger-and-transparent {
 		0% {
