@@ -145,14 +145,6 @@
 				border-bottom: none;
 			}
 
-			&:nth-child(odd) {
-				background: #f5f7fa;
-			}
-
-			> .grid {
-				grid-template-columns: 1fr 1fr;
-			}
-
 			/* ====== 回合内对玩家行动的描述 ====== */
 			& .player.action {
 				align-items: center;
@@ -179,9 +171,7 @@
 		user-select: none;
 		-webkit-user-select: none;
 		/* ------------ 浏览器 ------------ */
-		contain: content;
-
-		/* 声明内部变化不影响外部元素，外部变化也不影响内部元素。可以提升浏览器性能 */
+		contain: content; /* 声明内部变化不影响外部元素，外部变化也不影响内部元素。可以提升浏览器性能 */
 		&:focus {
 			outline: none;/* 获得焦点时不显示选中框 */
 		}
