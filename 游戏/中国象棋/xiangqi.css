@@ -206,10 +206,13 @@
 		& .cur.unit.profile {
 			& .summary {
 				--unit-size: 50px;
+				--logo-width: 50px;
+				--logo-height: 50px;
 			}
 
 			/* 技能列表 */
 			& .skill.list {
+				margin: 0;
 				padding: 0;
 				width: 100%;
 
@@ -232,6 +235,7 @@
 			/* 功劳列表 */
 			& .merit.list {
 				--unit-size: 24px;
+				margin: 0;
 				padding: 0;
 				width: 100%;
 				counter-reset: merit-counter;

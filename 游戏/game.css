@@ -496,18 +496,13 @@
 			border-radius: 4px;
 		}
 
-		>.logo, >.summary>.logo {
-			--logo-width: 64px;
-			--logo-height: 64px;
-			border-radius: 8px;
-		}
-
 		/*
+		>.logo, >.summary>.logo {
+			默认无覆盖样式
+		}
 		>.name, >.summary>.name {
 			默认无覆盖样式
 		}
-		*/
-		/*
 		>.intro, >.summary>.intro {
 			默认无覆盖样式
 		}
