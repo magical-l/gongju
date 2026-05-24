@@ -1,4 +1,4 @@
-@charset "utf-8";
+﻿@charset "utf-8";
 
 @layer game {
 /* ====== 游戏：游戏页面必须声明一个带有.game类的根元素 ====== */
@@ -53,7 +53,7 @@
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
-		
+
 		/* ====== 队标 ====== */
 		--team-logo-size: 24px;
 		& .logo {
@@ -61,12 +61,12 @@
 			--logo-height: var(--team-logo-size);
 			border-radius: 4px;
 		}
-		
+
 		/* ====== 队名 ====== */
 		& .name {
 			--name-color: var(--lv-2-color);
 		}
-		
+
 		/* ====== 旗帜 ====== */
 		--team-flag-width: 20px;
 		--team-flag-height: 12px;
@@ -213,7 +213,7 @@
 			background: #f5f7fa;
 		}
 
-		&>.grid {
+		> .grid {
 			grid-template-columns: 1fr 1fr;
 		}
 
@@ -255,11 +255,11 @@
 	}
 
 	/* ====== 单位：有单位的游戏内，单位的默认样式表，如棋子、数字方块等。不局限于地图内，也可以是一局游戏之外的展示信息 ====== */
-	--unit-base-layer: 100;
+	--unit-z: 100;
 	& .unit {
 		/* ------------ 定位 ------------ */
 		position: relative;/* 默认可偏移，可作为子元素定位依据 */
-		z-index: var(--unit-base-layer);/* 给背景、纹理等留层叠空间 */
+		z-index: var(--unit-z);/* 给背景、纹理等留层叠空间 */
 		/* ------------ 交互 ------------ */
 		/* ------ 防止选中文字内容 ------ */
 		user-select: none;
@@ -282,6 +282,7 @@
 
 		/* ====== 上一个行动的单位的标记 ====== */
 		--last-action-color: rgba(255, 0, 0, 0.7);
+		--last-action-z: 15;
 		&.last.action::after {
 			content: '';
 			position: absolute;
@@ -289,24 +290,22 @@
 			height: 8px;
 			background-color: var(--last-action-color);
 			border-radius: 50%;
-			z-index: calc(var(--unit-base-layer) + 15);
+			z-index: var(--last-action-z);
 			top: 0;
 			right: 0;
 		}
-
-		/* ====== 单位名字 ======
+		/* ====== 单位名字 ====== */
 		& .name {
-			无属性覆盖
+			z-index: 10;
 		}
-		*/
-
 		/* ====== 标记/徽章 ====== */
+		--badge-z: 22;
 		& .badge {
 			/* ------------ 定位 ------------ */
 			position: absolute;
 			top: calc(var(--unit-size) * 0.03);
 			right: calc(var(--unit-size) * 0.03);
-			z-index: calc(var(--unit-base-layer) + 12);/* 需比.name高 */
+			z-index: var(--badge-z);
 			/* ------------ 外观：圆形 ------------ */
 			height: calc(var(--unit-size) * 0.2);
 			min-width: calc(var(--unit-size) * 0.2);
@@ -391,12 +390,11 @@
 	& .name {
 		/* ------------ 定位 ------------ */
 		position: relative;/* 默认可偏移，可作为子元素定位依据 */
-		z-index: calc(var(--unit-base-layer) + 10);
 		/* ------------ 外观 ------------ */
 		min-width: fit-content;/* 确保内容完整显示 */
 		flex: none;/* 被放在flex布局中时阻止伸缩。 */
 		/* ------------ 布局 ------------ */
-		text-align: center; /* 名字是核心标识，默认居中 */
+		text-align: center;/* 名字是核心标识，默认居中 */
 		/* ------------ 文字 ------------ */
 		font-weight: bold;
 		color: var(--name-color);
@@ -433,7 +431,7 @@
 	--intro-color: var(--lv-3-color);
 	& .intro {
 		/* ------------ 布局 ------------ */
-		text-align: left; /* 辅助信息，默认靠左 */
+		text-align: left;/* 辅助信息，默认靠左 */
 		/* ------------ 文字 ------------ */
 		font-size: var(--intro-font-size);
 		color: var(--intro-color);
@@ -549,10 +547,11 @@
 	}
 
 	/* 遮罩本身 */
+	--overlay-z: 50;
 	& .overlay {
 		position: absolute;
 		inset: 0;
-		z-index: calc(var(--unit-base-layer, 100) + 50);
+		z-index: var(--overlay-z);
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -562,14 +561,13 @@
 		border-radius: inherit;
 		pointer-events: auto;
 
-		>.title {
+		> .title {
 			font-size: clamp(1.25rem, 4vw, 2rem);
 			font-weight: 600;
 			color: #fff;
 			text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 		}
-
-		>.hint {
+		> .hint {
 			margin: 0;
 			font-size: 0.875rem;
 			color: rgba(255, 255, 255, 0.85);
@@ -577,13 +575,13 @@
 	}
 
 	/* ====== 强提示闪现：常用于暴击、将军、阵亡等 ====== */
-	--callout-base-z: 1000;
+	--callout-z: 1000;
 	--callout-duaration: 1s;
 
 	& .callout {
 		position: fixed;
 		inset: 0;
-		z-index: var(--callout-base-z);
+		z-index: var(--callout-z);
 		display: flex;
 		justify-content: center;
 		align-items: center;
@@ -703,7 +701,7 @@
 			margin-bottom: 12px;
 		}
 
-		&>section {
+		> section {
 			margin-bottom: 8px;
 
 			&:last-child {
@@ -711,13 +709,13 @@
 			}
 		}
 
-		&>h3 {
+		> h3 {
 			margin: 0 0 4px;
 			font-size: 0.9rem;
 			color: var(--lv-2-color);
 		}
 
-		&>p {
+		> p {
 			margin: 0;
 		}
 	}/* .game details */
@@ -765,7 +763,7 @@
 		justify-content: center;
 
 		/* ====== 棋盘类游戏的格子里的单位 ====== */
-		>.unit {
+		> .unit {
 			/* ------------ 外观 ------------ */
 			/* ------ 尺寸：默认占满格子空间。 ------ */
 			width: 100%;
@@ -815,11 +813,12 @@
 			background: #d4e0c8;
 
 			/* ====== 格子内的状态标记 ====== */
+			--mark-z: 20;
 			& .target.mark {
 				position: absolute;
 				width: 100%;
 				height: 100%;
-				z-index: calc(var(--unit-base-layer) + 20);
+				z-index: var(--mark-z);
 				pointer-events: none;
 
 				/* ====== 可作为移动目标的格子 ====== */
@@ -868,7 +867,7 @@
 					&::before, &::after {
 						content: "";
 						position: absolute;
-						z-index: calc(var(--unit-base-layer) + 20);
+						z-index: var(--mark-z);
 						width: 60%;
 						height: 15%;
 						top: 42.5%;

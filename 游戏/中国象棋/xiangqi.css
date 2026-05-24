@@ -186,7 +186,7 @@
 			position: absolute;
 			top: calc(var(--unit-size) * -0.06);
 			right: calc(var(--unit-size) * -0.06);
-			z-index: 20;
+			z-index: var(--mark-z);
 			width: calc(var(--unit-size) * 0.3);
 			height: calc(var(--unit-size) * 0.3);
 			border-radius: 50%;

@@ -30,6 +30,7 @@ html {
 
 :root {
 	--top-z: 9999;
+	--modal-z: 1010;
 	--dangerous-color: #D32F2F;
 	--correct-color: #4CAF50;
 	--incorrect-color: #F05C6A;
@@ -215,7 +216,7 @@ template, .template, .hidden, [v-cloak], .js.container {display: none !important
 	--modal-overlay-color: rgba(0,0,0,0.5);
 	position: absolute;
 	inset: 0;
-	z-index: 1000;
+	z-index: var(--modal-z);
 	background: var(--modal-overlay-color);
 	display: flex;
 	align-items: center;
