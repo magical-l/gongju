@@ -378,6 +378,14 @@
 	}
 
 	/* ======================== 通用业务语义 ======================== */
+	/* ====== 通用的"id" ====== */
+	--id-font-size: 0.7em;
+	--id-color: var(--lv-3-color);
+	& .id {
+		font-size: var(--id-font-size);
+		color: var(--id-color);
+	}
+
 	/* ====== 通用的"名字" ====== */
 	--name-color: var(--lv-1-color);
 	& .name {
@@ -485,16 +493,12 @@
 			}
 		}
 
+		/*
 		>.id, >.summary>.id {
 			position: absolute;
-			top: 0.25rem;
-			right: 0.5rem;
-			font-size: 0.7rem;
-			color: var(--lv-3-color);
-			background-color: rgba(0, 0, 0, 0.1);
-			padding: 0.1rem 0.3rem;
-			border-radius: 4px;
+			暂未设计样式
 		}
+		*/
 
 		/*
 		>.logo, >.summary>.logo {
