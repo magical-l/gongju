@@ -231,7 +231,15 @@
 
 /* ============ （实现：需要适配更多场景的实现，使用者通常无需关心） ============ */
 /* 下面这些搭配同默认值，无需覆盖
-:is(.go-x, .go-x.from-left, .go-x.from-right) {
+.go-x, .go-x.from-left, .go-x.from-right {
+	&.row-near-top {}
+	&.row-near-bottom {}
+	&.col-near-left {}
+	&.col-near-right {}
+	&.items-near-top {}
+	&.items-near-bottom {}
+	&.items-near-left {}
+	&.items-near-right {}
 	> .at-left {}
 	> .at-right {}
 	> .at-top {}
@@ -241,18 +249,28 @@
 	> .at-center {}
 }*/
 
-/* 纵向排列下保证 .at-* 的语义 */
+/* 纵向排列下保证语义 */
 .go-y {
+	&.row-near-top { justify-content: start; justify-items: start; }
+	&.row-near-bottom { justify-content: end; justify-items: end; }
+	&.col-near-left { align-content: start; align-items: start; }
+	&.col-near-right { align-content: end; align-items: end; }
+
+	&.items-near-top { justify-items: start; }
+	&.items-near-bottom { justify-items: end; }
+	&.items-near-left { align-items: start; }
+	&.items-near-right { align-items: end; }
+
 	> .at-left { justify-self: unset; align-self: start; }
 	> .at-right { justify-self: unset; align-self: end; }
 	> .at-top { align-self: unset; justify-self: start; }
 	> .at-bottom { align-self: unset; justify-self: end; }
 	> .at-x-center { justify-self: unset; align-self: center; }
 	> .at-y-center { align-self: unset; justify-self: center; }
-	> .at-center { justify-self: center; align-self: center; }
+	/* > .at-center {同前面的默认值，无需覆盖} */
 }
 /* 下面这些搭配同前面的默认值，无需覆盖
-:is(.go-y.from-top, .go-y.from-bottom) {
+.go-y.from-top, .go-y.from-bottom {
 	> .at-left {}
 	> .at-right {}
 	> .at-top {}
