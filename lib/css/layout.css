@@ -657,3 +657,57 @@
 	}
 	> main, > .main, > .body { grid-area: main; }
 }
+
+/* ================== 定位类布局适配 ================== */
+/* 适配 .go-x/y 和 .content-* 组合，让物理方向类在各布局下生效 */
+/* 只匹配作为子项/后代的情况，不匹配自己有书写模式类 */
+
+/* ------ .at-left 物理靠左 ------ */
+.at-left:where(.content-S *) { justify-self: end; }
+.at-left:where(.content-N *) { justify-self: unset; align-self: end; }
+.at-left:where(.content-И *) { justify-self: unset; align-self: start; }
+.at-left:where(.go-y *) { justify-self: unset; align-self: start; }
+.at-left:where(.go-y.content-N *) { align-self: unset; justify-self: end; }
+.at-left:where(.go-y.content-И *) { align-self: unset; justify-self: start; }
+
+/* ------ .at-right 物理靠右 ------ */
+.at-right:where(.content-S *) { justify-self: start; }
+.at-right:where(.content-N *) { justify-self: unset; align-self: start; }
+.at-right:where(.content-И *) { justify-self: unset; align-self: end; }
+.at-right:where(.go-y *) { justify-self: unset; align-self: end; }
+.at-right:where(.go-y.content-N *) { align-self: unset; justify-self: start; }
+.at-right:where(.go-y.content-И *) { align-self: unset; justify-self: end; }
+
+/* ------ .at-top 物理靠上 ------ */
+.at-top:where(.content-N *) { align-self: unset; justify-self: start; }
+.at-top:where(.content-И *) { align-self: unset; justify-self: start; }
+.at-top:where(.go-y *) { align-self: unset; justify-self: start; }
+.at-top:where(.go-y.content-N *) { justify-self: unset; align-self: start; }
+.at-top:where(.go-y.content-И *) { justify-self: unset; align-self: start; }
+
+/* ------ .at-bottom 物理靠下 ------ */
+.at-bottom:where(.content-N *) { align-self: unset; justify-self: end; }
+.at-bottom:where(.content-И *) { align-self: unset; justify-self: end; }
+.at-bottom:where(.go-y *) { align-self: unset; justify-self: end; }
+.at-bottom:where(.go-y.content-N *) { justify-self: unset; align-self: end; }
+.at-bottom:where(.go-y.content-И *) { justify-self: unset; align-self: end; }
+
+/* ------ .at-x-center 物理水平居中 ------ */
+.at-x-center:where(.content-N *) { justify-self: unset; align-self: center; }
+.at-x-center:where(.content-И *) { justify-self: unset; align-self: center; }
+.at-x-center:where(.go-y *) { justify-self: unset; align-self: center; }
+.at-x-center:where(.go-y.content-N *) { align-self: unset; justify-self: center; }
+.at-x-center:where(.go-y.content-И *) { align-self: unset; justify-self: center; }
+
+/* ------ .at-y-center 物理垂直居中 ------ */
+.at-y-center:where(.content-N *) { align-self: unset; justify-self: center; }
+.at-y-center:where(.content-И *) { align-self: unset; justify-self: center; }
+.at-y-center:where(.go-y *) { align-self: unset; justify-self: center; }
+.at-y-center:where(.go-y.content-N *) { justify-self: unset; align-self: center; }
+.at-y-center:where(.go-y.content-И *) { justify-self: unset; align-self: center; }
+
+/* ------ .at-center 物理水平垂直居中 ------ */
+.at-center:where(.content-N *, .content-И *, .go-y *) {
+	justify-self: center;
+	align-self: center;
+}
