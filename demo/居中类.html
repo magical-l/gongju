@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
+<!DOCTYPE html><html lang="zh-CN"><head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>居中类 demo</title>
@@ -80,28 +78,28 @@
 			<h3>.at-x-center 水平居中</h3>
 			<!-- 块级元素 -->
 			<article>
-				<h4>① 块级元素（margin auto）</h4>
+				<h4>1 块级元素（margin auto）</h4>
 				<div class="container">
 					<div class="box at-x-center">居中</div>
 				</div>
 			</article>
 			<!-- flex 子项 -->
 			<article>
-				<h4>② flex 子项（justify-self 无效，margin auto 生效）</h4>
+				<h4>2 flex 子项（justify-self 无效，margin auto 生效）</h4>
 				<div class="container flex-container">
 					<div class="box at-x-center">居中</div>
 				</div>
 			</article>
 			<!-- grid 子项 -->
 			<article>
-				<h4>③ grid 子项（justify-self + margin auto）</h4>
+				<h4>3 grid 子项（justify-self + margin auto）</h4>
 				<div class="container grid-container">
 					<div class="box at-x-center">居中</div>
 				</div>
 			</article>
 			<!-- 定位元素 -->
 			<article>
-				<h4>④ 定位元素（left/right + margin auto，宽高自适应内容）</h4>
+				<h4>4 定位元素（left/right + margin auto，宽高自适应内容）</h4>
 				<p>注：定位元素无指定宽度时，inset:0 会让元素宽度铺满容器，left:0/right:0 约束两边</p>
 				<div class="container relative-container">
 					<div class="box position-box at-x-center">居中</div>
@@ -109,7 +107,7 @@
 			</article>
 			<!-- 多子项场景 -->
 			<article>
-				<h4>⑤ flex 多子项 + .at-x-center（分散效果）</h4>
+				<h4>5 flex 多子项 + .at-x-center（分散效果）</h4>
 				<div class="container flex-container">
 					<div class="box at-x-center">A</div>
 					<div class="box at-x-center">B</div>
@@ -118,7 +116,7 @@
 				<p>注：flex 多子项同时设置 margin auto 会竞争空间，产生分散效果而非都居中</p>
 			</article>
 			<article>
-				<h4>⑥ grid 多子项 + .at-x-center（各自单元格内居中）</h4>
+				<h4>6 grid 多子项 + .at-x-center（各自单元格内居中）</h4>
 				<div class="container grid-container" style="grid-template-columns: 1fr 1fr 1fr;">
 					<div class="box at-x-center">A</div>
 					<div class="box at-x-center">B</div>
@@ -132,28 +130,28 @@
 			<h3>.at-y-center 垂直居中</h3>
 			<!-- flex 子项 -->
 			<article>
-				<h4>⑦ flex 子项（align-self + margin auto）</h4>
+				<h4>7 flex 子项（align-self + margin auto）</h4>
 				<div class="container flex-container">
 					<div class="box at-y-center">居中</div>
 				</div>
 			</article>
 			<!-- grid 子项 -->
 			<article>
-				<h4>⑧ grid 子项（align-self + margin auto）</h4>
+				<h4>8 grid 子项（align-self + margin auto）</h4>
 				<div class="container grid-container">
 					<div class="box at-y-center">居中</div>
 				</div>
 			</article>
 			<!-- 行内元素 -->
 			<article>
-				<h4>⑨ 行内元素（vertical-align）</h4>
+				<h4>9 行内元素（vertical-align）</h4>
 				<div class="container text-line">
 					文字 baseline <span class="inline-box at-y-center">居中</span> 文字 baseline
 				</div>
 			</article>
 			<!-- 定位元素 -->
 			<article>
-				<h4>⑩ 定位元素（top/bottom + margin auto，高度自适应内容）</h4>
+				<h4>10 定位元素（top/bottom + margin auto，高度自适应内容）</h4>
 				<p>注：定位元素无指定高度时，inset:0 会让元素高度铺满容器，top:0/bottom:0 约束两边</p>
 				<div class="container relative-container">
 					<div class="box position-box at-y-center">居中</div>
@@ -161,7 +159,7 @@
 			</article>
 			<!-- 多子项场景 -->
 			<article>
-				<h4>⑪ flex 多子项 + .at-y-center（各自垂直居中）</h4>
+				<h4>11 flex 多子项 + .at-y-center（各自垂直居中）</h4>
 				<div class="container flex-container" style="align-items: stretch;">
 					<div class="box at-y-center" style="height:60px">A高</div>
 					<div class="box at-y-center">B</div>
@@ -170,7 +168,7 @@
 				<p>注：flex 子项 align-self: center 各自生效，互不影响</p>
 			</article>
 			<article>
-				<h4>⑫ grid 多子项 + .at-y-center（各自垂直居中）</h4>
+				<h4>12 grid 多子项 + .at-y-center（各自垂直居中）</h4>
 				<div class="container grid-container" style="grid-template-columns: 1fr 1fr 1fr;">
 					<div class="box at-y-center" style="height:60px">A高</div>
 					<div class="box at-y-center">B</div>
@@ -179,7 +177,7 @@
 				<p>注：grid 子项 align-self: center 各自在单元格内生效</p>
 			</article>
 			<article>
-				<h4>⑬ 行内多个元素 + .at-y-center</h4>
+				<h4>13 行内多个元素 + .at-y-center</h4>
 				<div class="container text-line">
 					文字 <span class="inline-box at-y-center">A</span> <span class="inline-box at-y-center">B</span> <span class="inline-box at-y-center">C</span> 文字
 				</div>
@@ -191,7 +189,7 @@
 			<h3>.at-center 水平垂直居中</h3>
 			<!-- flex 子项 -->
 			<article>
-				<h4>⑭ flex 子项（margin auto，align-self/justify-self 无效）</h4>
+				<h4>14 flex 子项（margin auto，align-self/justify-self 无效）</h4>
 				<div class="container flex-container">
 					<div class="box at-center">居中</div>
 				</div>
@@ -205,7 +203,7 @@
 			</article>
 			<!-- 行内元素 -->
 			<article>
-				<h4>⑯ 行内元素（vertical-align 水平无效）</h4>
+				<h4>15 行内元素（vertical-align 水平无效）</h4>
 				<div class="container text-line">
 					文字 <span class="inline-box at-center">居中</span> 文字
 				</div>
@@ -213,7 +211,7 @@
 			</article>
 			<!-- 定位元素 inset + margin -->
 			<article>
-				<h4>⑰ 定位元素（inset + margin auto，宽度收缩高度填满）</h4>
+				<h4>16 定位元素（inset + margin auto，宽度收缩高度填满）</h4>
 				<p>注：定位元素无指定宽高时，宽高收缩到内容尺寸（由 line-height 决定），margin: auto 分配剩余空间居中。指定宽高后可完全控制尺寸。</p>
 				<div class="container relative-container">
 					<div class="box position-box at-center">居中</div>
@@ -221,7 +219,7 @@
 			</article>
 			<!-- 多子项场景 -->
 			<article>
-				<h4>⑱ flex 多子项 + .at-center（水平分散，垂直居中）</h4>
+				<h4>17 flex 多子项 + .at-center（水平分散，垂直居中）</h4>
 				<div class="container flex-container">
 					<div class="box at-center">A</div>
 					<div class="box at-center">B</div>
@@ -230,7 +228,7 @@
 				<p>注：水平方向 margin auto 分散，垂直方向 align-self: center 各自生效</p>
 			</article>
 			<article>
-				<h4>⑲ grid 多子项 + .at-center（各自单元格内居中）</h4>
+				<h4>18 grid 多子项 + .at-center（各自单元格内居中）</h4>
 				<div class="container grid-container" style="grid-template-columns: 1fr 1fr 1fr;">
 					<div class="box at-center">A</div>
 					<div class="box at-center">B</div>
@@ -243,14 +241,14 @@
 		<section class="demo-section">
 			<h3>对比参考</h3>
 			<article>
-				<h4>⑳ 多个子项各自居中（grid 场景）</h4>
+				<h4>19 多个子项各自居中（grid 场景）</h4>
 				<div class="container grid-container" style="grid-template-columns: 1fr 1fr;">
 					<div class="box at-center">左格居中</div>
 					<div class="box at-center">右格居中</div>
 				</div>
 			</article>
 			<article>
-				<h4>㉑ flex 容器 + justify-content: center（替代方案）</h4>
+				<h4>20 flex 容器 + justify-content: center（替代方案）</h4>
 				<div class="container flex-container" style="justify-content: center; align-items: center;">
 					<div class="box">父级控制居中</div>
 				</div>
@@ -262,20 +260,20 @@
 			<h3>靠边定位 .at-left / .at-right / .at-top / .at-bottom</h3>
 			<!-- at-left -->
 			<article>
-				<h4>㉒ 块级元素 + .at-left（靠左）</h4>
+				<h4>21 块级元素 + .at-left（靠左）</h4>
 				<div class="container">
 					<div class="box at-left">靠左</div>
 				</div>
 			</article>
 			<article>
-				<h4>㉓ flex 子项 + .at-left（靠左）</h4>
+				<h4>22 flex 子项 + .at-left（靠左）</h4>
 				<div class="container flex-container">
 					<div class="box at-left">靠左</div>
 				</div>
 				<p>注：flex 子项 justify-self 无效，靠 margin-left:0 + margin-right:auto 实现</p>
 			</article>
 			<article>
-				<h4>㉔ grid 子项 + .at-left（靠左）</h4>
+				<h4>23 grid 子项 + .at-left（靠左）</h4>
 				<div class="container grid-container">
 					<div class="box at-left">靠左</div>
 				</div>
@@ -283,78 +281,577 @@
 			</article>
 			<!-- at-right -->
 			<article>
-				<h4>㉕ 块级元素 + .at-right（靠右）</h4>
+				<h4>24 块级元素 + .at-right（靠右）</h4>
 				<div class="container">
 					<div class="box at-right">靠右</div>
 				</div>
 			</article>
 			<article>
-				<h4>㉖ flex 子项 + .at-right（靠右）</h4>
+				<h4>25 flex 子项 + .at-right（靠右）</h4>
 				<div class="container flex-container">
 					<div class="box at-right">靠右</div>
 				</div>
 			</article>
 			<article>
-				<h4>㉗ grid 子项 + .at-right（靠右）</h4>
+				<h4>26 grid 子项 + .at-right（靠右）</h4>
 				<div class="container grid-container">
 					<div class="box at-right">靠右</div>
 				</div>
 			</article>
 			<!-- at-top -->
 			<article>
-				<h4>㉘ flex 子项 + .at-top（靠上）</h4>
+				<h4>27 flex 子项 + .at-top（靠上）</h4>
 				<div class="container flex-container">
 					<div class="box at-top">靠上</div>
 				</div>
 			</article>
 			<article>
-				<h4>㉙ grid 子项 + .at-top（靠上）</h4>
+				<h4>28 grid 子项 + .at-top（靠上）</h4>
 				<div class="container grid-container">
 					<div class="box at-top">靠上</div>
 				</div>
 			</article>
 			<article>
-				<h4>㉚ 行内元素 + .at-top（靠上）</h4>
+				<h4>29 行内元素 + .at-top（靠上）</h4>
 				<div class="container text-line">
 					文字 <span class="inline-box at-top">靠上</span> 文字
 				</div>
 				<p>注：行内元素 vertical-align:top 生效</p>
 			</article>
 			<article>
-				<h4>㉛ 定位元素 + .at-top（靠上）</h4>
+				<h4>30 定位元素 + .at-top（靠上）</h4>
 				<div class="container relative-container">
 					<div class="box position-box at-top">靠上</div>
 				</div>
 			</article>
 			<!-- at-bottom -->
 			<article>
-				<h4>㉜ flex 子项 + .at-bottom（靠下）</h4>
+				<h4>31 flex 子项 + .at-bottom（靠下）</h4>
 				<div class="container flex-container">
 					<div class="box at-bottom">靠下</div>
 				</div>
 			</article>
 			<article>
-				<h4>㉝ grid 子项 + .at-bottom（靠下）</h4>
+				<h4>32 grid 子项 + .at-bottom（靠下）</h4>
 				<div class="container grid-container">
 					<div class="box at-bottom">靠下</div>
 				</div>
 			</article>
 			<article>
-				<h4>㉞ 行内元素 + .at-bottom（靠下）</h4>
+				<h4>33 行内元素 + .at-bottom（靠下）</h4>
 				<div class="container text-line">
 					文字 <span class="inline-box at-bottom">靠下</span> 文字
 				</div>
 			</article>
 			<article>
-				<h4>㉟ 定位元素 + .at-bottom（靠下）</h4>
+				<h4>34 定位元素 + .at-bottom（靠下）</h4>
 				<div class="container relative-container">
 					<div class="box position-box at-bottom">靠下</div>
 				</div>
 			</article>
 		</section>
+		<!-- ==================== go-y 纵向排列 ==================== -->
+		<section class="demo-section">
+			<h3>.go-y 纵向排列下的 .at-* 表现</h3>
+			<p>注：纵向排列时，物理左右的 .at-left/right 变成 align-self，物理上下 .at-top/bottom 变成 justify-self</p>
+			<article>
+				<h4>35 flex.go-y + .at-left</h4>
+				<div class="container flex-container go-y">
+					<div class="box at-left">靠左</div>
+				</div>
+				<p>期望：纵向排列时，靠左应该用 align-self: start</p>
+			</article>
+			<article>
+				<h4>36 flex.go-y + .at-top</h4>
+				<div class="container flex-container go-y">
+					<div class="box at-top">靠上</div>
+				</div>
+				<p>期望：纵向排列时，靠上应该用 justify-self: start</p>
+			</article>
+			<article>
+				<h4>37 grid.go-y + .at-center</h4>
+				<div class="container grid-container go-y" style="grid-template-columns: 1fr;">
+					<div class="box at-center">居中</div>
+				</div>
+				<p>期望：纵向排列时，居中应该在纵向单元格内生效</p>
+			</article>
+			<article>
+				<h4>38 定位元素 + go-y + .at-left</h4>
+				<div class="container relative-container go-y">
+					<div class="box position-box at-left">靠左</div>
+				</div>
+				<p>注：定位元素的 left/right 不受 flex/grid 排列方向影响</p>
+			</article>
+				<article>
+					<h4>39 content-N + .go-x（对比：竖向书写模式下的纵向排列）</h4>
+					<div class="container flex-container content-N go-x" style="height: 200px; width: 150px;">
+						<div class="box">A</div>
+						<div class="box">B</div>
+						<div class="box">C</div>
+					</div>
+					<p>对比：N字形下 .go-x 的 flex-direction 变成 column，子项纵向排列</p>
+				</article>
+				<article>
+					<h4>40 content-И + .go-x（对比：竖向书写模式下的纵向排列）</h4>
+					<div class="container flex-container content-И go-x" style="height: 200px; width: 150px;">
+						<div class="box">A</div>
+						<div class="box">B</div>
+						<div class="box">C</div>
+					</div>
+					<p>对比：И字形下 .go-x 的 flex-direction 变成 column</p>
+				</article>
+
+		</section>
+		<!-- ==================== content-S (RTL) ==================== -->
+		<section class="demo-section">
+			<h3>.content-S (RTL 阿拉伯语) 下的 .at-* 表现</h3>
+			<p>注：物理方向类保持物理语义。RTL 下 .at-left 仍视觉靠左。</p>
+			<article>
+				<h4>39 content-S + 块级 .at-left</h4>
+				<div class="container content-S">
+					<div class="box at-left">靠左</div>
+				</div>
+			</article>
+			<article>
+				<h4>40 content-S + flex + .at-left</h4>
+				<div class="container flex-container content-S">
+					<div class="box at-left">靠左</div>
+				</div>
+			</article>
+			<article>
+				<h4>41 content-S + grid + .at-left</h4>
+				<div class="container grid-container content-S">
+					<div class="box at-left">靠左</div>
+				</div>
+				<p>期望：justify-self: end（RTL下 end=视觉左）</p>
+			</article>
+			<article>
+				<h4>42 content-S + 定位 + .at-left</h4>
+				<div class="container relative-container content-S">
+					<div class="box position-box at-left">靠左</div>
+				</div>
+			</article>
+			<article>
+				<h4>43 content-S + .at-x-center</h4>
+				<div class="container content-S">
+					<div class="box at-x-center">居中</div>
+				</div>
+			</article>
+			<article>
+				<h4>44 content-S + 块级 .at-right</h4>
+				<div class="container content-S">
+					<div class="box at-right">靠右</div>
+				</div>
+			</article>
+			<article>
+				<h4>45 content-S + flex + .at-right</h4>
+				<div class="container flex-container content-S">
+					<div class="box at-right">靠右</div>
+				</div>
+			</article>
+			<article>
+				<h4>46 content-S + grid + .at-right</h4>
+				<div class="container grid-container content-S">
+					<div class="box at-right">靠右</div>
+				</div>
+				<p>期望：justify-self: start（RTL下 start=视觉右）</p>
+			</article>
+			<article>
+				<h4>47 content-S + 定位 + .at-right</h4>
+				<div class="container relative-container content-S">
+					<div class="box position-box at-right">靠右</div>
+				</div>
+			</article>
+			<article>
+				<h4>48 content-S + flex + .at-top</h4>
+				<div class="container flex-container content-S">
+					<div class="box at-top">靠上</div>
+				</div>
+				<p>期望：align-self: start（RTL 不影响上下）</p>
+			</article>
+			<article>
+				<h4>49 content-S + flex + .at-bottom</h4>
+				<div class="container flex-container content-S">
+					<div class="box at-bottom">靠下</div>
+				</div>
+				<p>期望：align-self: end（RTL 不影响上下）</p>
+			</article>
+		</section>
+		<!-- ==================== content-N (竖向从右到左) ==================== -->
+		<section class="demo-section">
+			<h3>.content-N (竖向从右到左，古代汉语) 下的 .at-* 表现</h3>
+			<p>注：物理方向类保持物理语义。N字形下 justify-self/align-self 需轴交换。</p>
+			<article>
+				<h4>50 content-N + grid + .at-left</h4>
+				<div class="container content-N grid-container" style="height: 200px; width: 150px;">
+					<div class="box at-left">靠左</div>
+				</div>
+				<p>期望：align-self: end（块级结束端=物理左）</p>
+			</article>
+			<article>
+				<h4>51 content-N + grid + .at-top</h4>
+				<div class="container content-N grid-container" style="height: 200px; width: 150px;">
+					<div class="box at-top">靠上</div>
+				</div>
+				<p>期望：justify-self: start（行内起始端=物理上）</p>
+			</article>
+			<article>
+				<h4>52 content-N + 定位 + .at-left</h4>
+				<div class="container relative-container content-N" style="height: 200px; width: 150px;">
+					<div class="box position-box at-left">靠左</div>
+				</div>
+			</article>
+			<article>
+				<h4>53 content-N + flex.go-x + .at-left</h4>
+				<div class="container flex-container content-N go-x" style="height: 200px; width: 150px;">
+					<div class="box at-left">靠左</div>
+				</div>
+			</article>
+			<article>
+				<h4>54 content-N + grid + .at-right</h4>
+				<div class="container content-N grid-container" style="height: 200px; width: 150px;">
+					<div class="box at-right">靠右</div>
+				</div>
+				<p>期望：align-self: start（块级起始端=物理右）</p>
+			</article>
+			<article>
+				<h4>55 content-N + flex + .at-right</h4>
+				<div class="container flex-container content-N" style="height: 200px; width: 150px;">
+					<div class="box at-right">靠右</div>
+				</div>
+			</article>
+			<article>
+				<h4>56 content-N + grid + .at-right</h4>
+				<div class="container grid-container content-N" style="height: 200px; width: 150px;">
+					<div class="box at-right">靠右</div>
+				</div>
+				<p>期望：align-self: start（块级起始端=物理右）</p>
+			</article>
+			<article>
+				<h4>57 content-N + 定位 + .at-right</h4>
+				<div class="container relative-container content-N" style="height: 200px; width: 150px;">
+					<div class="box position-box at-right">靠右</div>
+				</div>
+			</article>
+			<article>
+				<h4>58 content-N + grid + .at-bottom</h4>
+				<div class="container content-N grid-container" style="height: 200px; width: 150px;">
+					<div class="box at-bottom">靠下</div>
+				</div>
+				<p>期望：justify-self: end（行内结束端=物理下）</p>
+			</article>
+			<article>
+				<h4>59 content-N + grid + .at-bottom</h4>
+				<div class="container grid-container content-N" style="height: 200px; width: 150px;">
+					<div class="box at-bottom">靠下</div>
+				</div>
+				<p>期望：justify-self: end</p>
+			</article>
+			<article>
+				<h4>60 content-N + grid.go-y + .at-left</h4>
+				<div class="container grid-container content-N go-y" style="height: 200px; width: 150px;">
+					<div class="box at-left">靠左</div>
+				</div>
+				<p>期望：align-self: end</p>
+			</article>
+			<article>
+				<h4>61 content-N + grid.go-y + .at-top</h4>
+				<div class="container grid-container content-N go-y" style="height: 200px; width: 150px;">
+					<div class="box at-top">靠上</div>
+				</div>
+				<p>期望：justify-self: start</p>
+			</article>
+		</section>
+		<!-- ==================== content-И (竖向从左到右) ==================== -->
+		<section class="demo-section">
+			<h3>.content-И (竖向从左到右，蒙文) 下的 .at-* 表现</h3>
+			<p>注：И字形与 N字形类似，但左右方向相反</p>
+			<article>
+				<h4>62 content-И + grid + .at-left</h4>
+				<div class="container content-И grid-container" style="height: 200px; width: 150px;">
+					<div class="box at-left">靠左</div>
+				</div>
+				<p>期望：align-self: start（块级起始端=物理左）</p>
+			</article>
+			<article>
+				<h4>63 content-И + grid + .at-top</h4>
+				<div class="container content-И grid-container" style="height: 200px; width: 150px;">
+					<div class="box at-top">靠上</div>
+				</div>
+				<p>期望：justify-self: start（行内起始端=物理上）</p>
+			</article>
+			<article>
+				<h4>64 content-И + 定位 + .at-left</h4>
+				<div class="container relative-container content-И" style="height: 200px; width: 150px;">
+					<div class="box position-box at-left">靠左</div>
+				</div>
+			</article>
+			<article>
+				<h4>65 content-И + flex.go-x + .at-left</h4>
+				<div class="container flex-container content-И go-x" style="height: 200px; width: 150px;">
+					<div class="box at-left">靠左</div>
+				</div>
+			</article>
+			<article>
+				<h4>66 content-И + grid + .at-right</h4>
+				<div class="container content-И grid-container" style="height: 200px; width: 150px;">
+					<div class="box at-right">靠右</div>
+				</div>
+				<p>期望：align-self: end（块级结束端=物理右）</p>
+			</article>
+			<article>
+				<h4>67 content-И + flex + .at-right</h4>
+				<div class="container flex-container content-И" style="height: 200px; width: 150px;">
+					<div class="box at-right">靠右</div>
+				</div>
+			</article>
+			<article>
+				<h4>68 content-И + grid + .at-right</h4>
+				<div class="container grid-container content-И" style="height: 200px; width: 150px;">
+					<div class="box at-right">靠右</div>
+				</div>
+				<p>期望：align-self: end</p>
+			</article>
+			<article>
+				<h4>69 content-И + 定位 + .at-right</h4>
+				<div class="container relative-container content-И" style="height: 200px; width: 150px;">
+					<div class="box position-box at-right">靠右</div>
+				</div>
+			</article>
+			<article>
+				<h4>70 content-И + grid + .at-bottom</h4>
+				<div class="container content-И grid-container" style="height: 200px; width: 150px;">
+					<div class="box at-bottom">靠下</div>
+				</div>
+				<p>期望：justify-self: end（行内结束端=物理下）</p>
+			</article>
+			<article>
+				<h4>71 content-И + grid + .at-bottom</h4>
+				<div class="container grid-container content-И" style="height: 200px; width: 150px;">
+					<div class="box at-bottom">靠下</div>
+				</div>
+				<p>期望：justify-self: end</p>
+			</article>
+			<article>
+				<h4>72 content-И + grid.go-y + .at-left</h4>
+				<div class="container grid-container content-И go-y" style="height: 200px; width: 150px;">
+					<div class="box at-left">靠左</div>
+				</div>
+				<p>期望：align-self: start</p>
+			</article>
+			<article>
+				<h4>73 content-И + grid.go-y + .at-top</h4>
+				<div class="container grid-container content-И go-y" style="height: 200px; width: 150px;">
+					<div class="box at-top">靠上</div>
+				</div>
+				<p>期望：justify-self: start</p>
+			</article>
+		</section>
+		<!-- ==================== content-N (竖向从右到左) ==================== -->
+		<!-- ==================== content-И (竖向从左到右) ==================== -->
+		<!-- ==================== content-S (RTL) ==================== -->
+		<!-- ==================== go-y 纵向排列 ==================== -->
+		<!-- ==================== 书写模式 content-S (RTL) ==================== -->
+		<!-- ==================== 书写模式 content-N (竖向从右到左) ==================== -->
+		<!-- ==================== 书写模式 content-И (竖向从左到右) ==================== -->
 	</main>
 	<footer>
 		<p>总结：不同场景下各属性生效情况不同，但无害叠加</p>
 	</footer>
-</body>
-</html>
+	<script>
+		(function() {
+			// 期望表：[justifySelf, alignSelf] 对于各组合
+			// null 表示不检查（如块级元素justify-self无效）
+			// 物理语义：.at-left 永远视觉左，.at-right 永远视觉右
+			var expectMap = {
+				// Z字形（默认）：行内=横向，块级=纵向
+				'content-Z': {
+					'.at-left': ['start', null], // 行内起始端=物理左
+					'.at-right': ['end', null], // 行内结束端=物理右
+					'.at-top': [null, 'start'], // 块级起始端=物理上
+					'.at-bottom': [null, 'end'], // 块级结束端=物理下
+					'.at-x-center': ['center', null],
+					'.at-y-center': [null, 'center'],
+					'.at-center': ['center', 'center']
+				},
+				// S字形（RTL）：行内=横向（从右到左），块级=纵向
+				'content-S': {
+					'.at-left': ['end', null], // RTL下 end=物理左
+					'.at-right': ['start', null], // RTL下 start=物理右
+					'.at-top': [null, 'start'], // 块级不变
+					'.at-bottom': [null, 'end']
+				},
+				// N字形（竖向从右到左）：行内=纵向，块级=横向（从右到左）
+				'content-N': {
+					'.at-left': [null, 'end'], // 块级结束端=物理左
+					'.at-right': [null, 'start'], // 块级起始端=物理右
+					'.at-top': ['start', null], // 行内起始端=物理上
+					'.at-bottom': ['end', null], // 行内结束端=物理下
+					'.at-x-center': [null, 'center'],
+					'.at-y-center': ['center', null]
+				},
+				// И字形（竖向从左到右）：行内=纵向，块级=横向（从左到右）
+				'content-И': {
+					'.at-left': [null, 'start'], // 块级起始端=物理左
+					'.at-right': [null, 'end'], // 块级结束端=物理右
+					'.at-top': ['start', null],
+					'.at-bottom': ['end', null],
+					'.at-x-center': [null, 'center'],
+					'.at-y-center': ['center', null]
+				}
+			};
+			var articles = document.querySelectorAll('.demo-section article');
+			var pass = 0,
+				fail = 0;
+			articles.forEach(function(article) {
+				var box = article.querySelector('.box');
+				if (!box) return;
+				// 确定书写模式
+				var content = 'content-Z';
+				var parent = box.parentElement;
+				while (parent) {
+					if (parent.classList) {
+						for (var i = 0; i < parent.classList.length; i++) {
+							if (/^content-[ZSNИ]$/.test(parent.classList[i])) {
+								content = parent.classList[i];
+								break;
+							}
+						}
+					}
+					parent = parent.parentElement;
+				}
+				// 确定容器类型
+				var isGrid = false,
+					isFlex = false,
+					isPositioned = false;
+				parent = box.parentElement;
+				while (parent && parent !== article) {
+					if (parent.classList) {
+						if (parent.classList.contains('grid-container') || parent.classList.contains('grid')) isGrid = true;
+						if (parent.classList.contains('flex-container') || parent.classList.contains('flex')) isFlex = true;
+						if (parent.classList.contains('relative-container')) isPositioned = true;
+					}
+					parent = parent.parentElement;
+				}
+				// 确定排列方向
+				var goDir = '.go-x';
+				parent = box.parentElement;
+				while (parent) {
+					if (parent.classList) {
+						if (parent.classList.contains('go-y')) {
+							goDir = '.go-y';
+							break;
+						}
+						if (parent.classList.contains('go-x')) {
+							goDir = '.go-x';
+							break;
+						}
+					}
+					parent = parent.parentElement;
+				}
+				// 确定定位类
+				var atClass = null;
+				for (var i = 0; i < box.classList.length; i++) {
+					if (/^at-/.test(box.classList[i])) {
+						atClass = '.' + box.classList[i];
+						break;
+					}
+				}
+				if (!atClass) return;
+				// 获取期望
+				var map = expectMap[content];
+				if (!map) map = expectMap['content-Z'];
+				var exp = map[atClass];
+				if (!exp) return;
+				// go-y 轴交换：只对 Z/S 字形生效（N/И 字形在 CSS 嵌套中已处理）
+				if ((isGrid || isFlex) && goDir === '.go-y' && (content === 'content-Z' || content === 'content-S')) {
+					exp = [exp[1], exp[0]];
+				}
+				// 获取实际值
+				var s = getComputedStyle(box);
+				var js = s.justifySelf,
+					as = s.alignSelf;
+				// 定位元素检查 left/right/top/bottom
+				if (isPositioned && box.classList.contains('position-box')) {
+					var left = s.left,
+						right = s.right,
+						top = s.top,
+						bottom = s.bottom;
+					var posOK = true;
+					if (atClass === '.at-left') posOK = left === '0px';
+					else if (atClass === '.at-right') posOK = right === '0px';
+					else if (atClass === '.at-top') posOK = top === '0px';
+					else if (atClass === '.at-bottom') posOK = bottom === '0px';
+					if (posOK) {
+						pass++;
+						article.style.background = '#e8f5e9';
+						article.classList.add('pass');
+					} else {
+						fail++;
+						article.style.background = '#ffebee';
+						article.classList.add('fail');
+					}
+					return;
+				}
+				// 块级元素检查 margin
+				if (!isGrid && !isFlex) {
+					var ml = s.marginLeft,
+						mr = s.marginRight;
+					var marginOK = true;
+					if (atClass === '.at-left') marginOK = ml === '0px';
+					else if (atClass === '.at-right') marginOK = mr === '0px';
+					if (marginOK) {
+						pass++;
+						article.style.background = '#e8f5e9';
+					} else {
+						fail++;
+						article.style.background = '#ffebee';
+					}
+					return;
+				}
+				// grid 子项检查 justify-self 和 align-self
+				if (isGrid) {
+					var jsOK = exp[0] === null || js === exp[0];
+					var asOK = exp[1] === null || as === exp[1];
+					if (jsOK && asOK) {
+						pass++;
+						article.style.background = '#e8f5e9';
+					} else {
+						fail++;
+						article.style.background = '#ffebee';
+					}
+					return;
+				}
+				// flex 子项：justify-self 无效，检查 margin
+				if (isFlex) {
+					var ml = s.marginLeft,
+						mr = s.marginRight;
+					var marginOK = true;
+					if (atClass === '.at-left') marginOK = ml === '0px';
+					else if (atClass === '.at-right') marginOK = mr === '0px';
+					else if (atClass === '.at-x-center') marginOK = ml === mr && ml !== '0px';
+					else if (atClass === '.at-center') marginOK = true; // flex 居中靠父级
+					if (marginOK) {
+						pass++;
+						article.style.background = '#e8f5e9';
+					} else {
+						fail++;
+						article.style.background = '#ffebee';
+					}
+				}
+			});
+			// 显示汇总
+			var summary = document.createElement('div');
+			summary.id = 'verify-summary';
+			summary.style.cssText = 'position:sticky;top:0;z-index:100;padding:8px 16px;font-size:14px;font-weight:bold;margin-bottom:10px;';
+			var allPass = fail === 0;
+			summary.style.background = allPass ? '#e8f5e9' : '#ffebee';
+			summary.style.color = allPass ? '#2e7d32' : '#c62828';
+			summary.textContent = pass + ' 通过 / ' + fail + ' 失败 / ' + (pass + fail) + ' 总计' + (allPass ? ' ✓' : ' ✗');
+			document.body.insertBefore(summary, document.body.firstChild);
+		})();
+
+	</script>
+
+
+</body></html>
