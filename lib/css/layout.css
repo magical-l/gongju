@@ -310,7 +310,7 @@
 
 /* ================== 项目分布：items-x/y-* ================== */
 /* ============ 拉伸：.items-stretch、.items-x/y-stretch ============ */
-/* ------ .items-x-stretch：保证在横向上拉伸，占满容器宽度（grid、flex都适用，适配任何书写模式）。注：多行flex布局下，最后一行/列若“不满”，在排列方向上无法拉伸占满 ------ */
+/* ------ .items-x-stretch：保证在横向上拉伸，占满容器宽度（grid、flex都适用，适配任何书写模式）。注：多行flex布局下，最后一行/列若"不满"，在排列方向上无法拉伸占满 ------ */
 .grid.items-x-stretch:where(:not(.content-N, .content-И, .content-N *, .content-И *)) {
 	justify-items: stretch;
 }
@@ -327,7 +327,7 @@
 	flex: 1;
 }
 
-/* ------ .items-y-stretch：保证在竖向上拉伸，占满容器高度（grid、flex都适用，适配任何书写模式）。注：多行flex布局下，最后一行/列若“不满”，在排列方向上无法拉伸占满 ------ */
+/* ------ .items-y-stretch：保证在竖向上拉伸，占满容器高度（grid、flex都适用，适配任何书写模式）。注：多行flex布局下，最后一行/列若"不满"，在排列方向上无法拉伸占满 ------ */
 .grid.items-y-stretch:where(:not(.content-N, .content-И, .content-N *, .content-И *)) {
 	align-items: stretch;
 }
@@ -343,7 +343,7 @@
 .flex:not(.go-x).items-y-stretch:where(.content-N, .content-И, .content-N *, .content-И *) > * {
 	flex: 1;
 }
-/* ------ .items-stretch：在xy两个方向都尽量拉伸，占满容器。注：多行flex布局下，最后一行/列若“不满”，在排列方向上无法拉伸占满 ------ */
+/* ------ .items-stretch：在xy两个方向都尽量拉伸，占满容器。注：多行flex布局下，最后一行/列若"不满"，在排列方向上无法拉伸占满 ------ */
 .items-stretch {
 	place-items: stretch;
 	/* 直接子元素配合拉伸 */
@@ -528,7 +528,7 @@
 
 /* ============================== Grid/Flex 预设布局 ============================== */
 /* 为防没有使用.grid/.flex之类，所以不显式结合.grid/.flex，直接设置。若非display:grid/flex也没事，会被浏览器忽略。下同 */
-/* ------ “工字形”布局，上部导航栏，底部页脚，中间左右两栏均分。 ------ */
+/* ------ "工字形"布局，上部导航栏，底部页脚，中间左右两栏均分。 ------ */
 .工字形 {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
@@ -537,9 +537,19 @@
 		'header header'
 		'left right'
 		'footer footer';
+	& header, & .header {
+		grid-area: header;
+		grid-column: 1 / -1;
+	}
+	& footer, & .footer {
+		grid-area: footer;
+		grid-column: 1 / -1;
+	}
+	& .sidebar.at-left { grid-area: left; }
+	& .sidebar.at-right { grid-area: right; }
 }
 
-/* ------ “朋字形”布局，无顶部底部，只有左右两栏均分， ------ */
+/* ------ "朋字形"布局，无顶部底部，只有左右两栏均分， ------ */
 .朋字形 {
 	display: grid;
 	/* 50%vs50%是各占父容器的一半，如果有gap，将会突破父容器，所以用1fr vs 1fr */
@@ -562,6 +572,17 @@
 		'header header header'
 		'left-sidebar main right-sidebar'
 		'footer footer footer';
+	& header, & .header {
+		grid-area: header;
+		grid-column: 1 / -1;
+	}
+	& footer, & .footer {
+		grid-area: footer;
+		grid-column: 1 / -1;
+	}
+	& main, & .main, & .body { grid-area: main; }
+	& .sidebar.at-left { grid-area: left-sidebar; }
+	& .sidebar.at-right { grid-area: right-sidebar; }
 }
 
 /* ------ "叵字形"布局，上部导航栏，底部页脚，中间左侧栏宽度固定，右侧主要内容自适应 ------ */
@@ -576,6 +597,16 @@
 		'header header'
 		'left-sidebar main'
 		'footer footer';
+	& header, & .header {
+		grid-area: header;
+		grid-column: 1 / -1;
+	}
+	& footer, & .footer {
+		grid-area: footer;
+		grid-column: 1 / -1;
+	}
+	& main, & .main, & .body { grid-area: main; }
+	& .sidebar.at-left { grid-area: left-sidebar; }
 }
 
 /*------ "反叵字形"布局，上部导航栏，底部页脚，中间右侧栏宽度固定，左侧主要内容自适应 ------ */
@@ -590,6 +621,16 @@
 		'header header'
 		'main right-sidebar'
 		'footer footer';
+	& header, & .header {
+		grid-area: header;
+		grid-column: 1 / -1;
+	}
+	& footer, & .footer {
+		grid-area: footer;
+		grid-column: 1 / -1;
+	}
+	& main, & .main, & .body { grid-area: main; }
+	& .sidebar.at-right { grid-area: right-sidebar; }
 }
 
 /* ------ "目字形/三字形"布局，上部导航栏，底部页脚 ------ */
@@ -604,24 +645,11 @@
 		'header'
 		'main'
 		'footer';
+	& header, & .header {
+		grid-area: header;
+	}
+	& footer, & .footer {
+		grid-area: footer;
+	}
+	& main, & .main, & .body { grid-area: main; }
 }
-
-/* ------------ 配套 ------------ */
-header, .header {
-	grid-area: header;
-	grid-row: 1;
-	grid-column: 1 / -1;
-	flex: 1 1 100%;
-}
-
-footer, .footer {
-	grid-area: footer;
-	grid-column: 1 / -1;
-	flex: 1 1 100%;
-}
-
-main, .main, .body {grid-area: main; flex: 1;}
-
-.sidebar.at-left {grid-area: left-sidebar;}
-.sidebar.at-right {grid-area: right-sidebar;}
-
