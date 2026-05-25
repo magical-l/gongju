@@ -10,15 +10,39 @@
 	--right-sidebar-max-width: var(--sidebar-max-width);
 }
 
-/* ======================== 布局容器 ======================== */
-.flex {display: flex}
-.flex.inline {display: inline-flex}
-.grid {display: grid}
-.grid.inline {display: inline-grid}
+/* ======================== 布局 ======================== */
+.flex { display: flex; }
+.flex.inline { display: inline-flex; }
+.grid { display: grid; }
+.grid.inline { display: inline-grid; }
 
 .no-gap { gap: 0 !important; }
 
-.single-line {flex-wrap: nowrap;}
+/* ================== 布局容器排列 ================== */
+/* 横向排列：子元素按物理横向排列 */
+.go-x {
+	/* 适配flex布局 */
+	flex-direction: row;
+	/* 适配grid布局 */
+	grid-auto-flow: row;
+
+	/* &.from-left {同默认，无需覆盖} */
+	&.from-right { flex-direction: row-reverse;}
+}
+
+/* 纵向排列：子元素按物理纵向排列 */
+.go-y {
+	/* 适配flex布局 */
+	flex-direction: column;
+	/* 适配grid布局 */
+	grid-auto-flow: column;
+
+	/* &.from-top {同默认，无需覆盖} */
+	&.from-bottom { flex-direction: column-reverse; }
+}
+
+/* ================== 布局容器行列关系 ================== */
+.single-line { flex-wrap: nowrap; }
 .multi-line {
 	flex-wrap: wrap;
 	/* ------ 线路之间（align-content） ------ */
@@ -38,80 +62,176 @@
 	&:is(.lines-space-evenly, .lines-friendly) { align-content: space-evenly; }
 }
 
-/* ================== 物理方向/绝对方向 ================== */
+.row-near-top {
+	align-content: start;
+	align-items: start;
+}
+.row-near-bottom {
+	align-content: end;
+	align-items: end;
+}
+.col-near-left {
+	justify-content: start;
+	justify-items: start;
+}
+.col-near-right {
+	justify-content: end;
+	justify-items: end;
+}
 
+/* ================== 布局容器定位子元素 ================== */
+.items-near-top { align-items: start; }
+.items-near-bottom { align-items: end; }
+.items-near-left { justify-items: start; }
+.items-near-right { justify-items: end; }
+.items-near-center {/*todo：待审*/
+	place-items: center;
+	place-content: center;
+	text-align: center;
+}
+
+/* ================== 元素（含布局容器子元素）定位/方向 ================== */
 /* 靠左：元素无论在什么场景下都靠左 */
 .at-left {
-	margin-left: 0;
-	margin-right: auto;
+	/* 适配块元素、flex子元素 */
+	margin-left: 0; margin-right: auto;
+	/* 适配grid子元素 */
 	justify-self: start;
-	left: 0;
-	right: auto;
+	/* 适配定位元素 */
+	left: 0; right: auto;
 }
 
 /* 靠右：元素无论在什么场景下都靠右 */
 .at-right {
-	margin-left: auto;
-	margin-right: 0;
+	/* 适配块元素、flex子元素 */
+	margin-left: auto; margin-right: 0;
+	/* 适配grid子元素 */
 	justify-self: end;
-	left: auto;
-	right: 0;
+	/* 适配定位元素 */
+	left: auto; right: 0;
 }
 
 /* 靠上：元素无论在什么场景下都靠上 */
 .at-top {
-	margin-top: 0;
-	margin-bottom: auto;
+	/* 适配块元素 */
+	margin-top: 0; margin-bottom: auto;
+	/* 适配flex、grid子元素 */
 	align-self: start;
+	/* 适配行内元素 */
 	vertical-align: top;
-	top: 0;
-	bottom: auto;
+	/* 适配定位元素 */
+	top: 0; bottom: auto;
 }
 
 /* 靠下：元素无论在什么场景下都靠下 */
 .at-bottom {
-	margin-top: auto;
-	margin-bottom: 0;
+	/* 适配块元素 */
+	margin-top: auto; margin-bottom: 0;
+	/* 适配flex、grid子元素 */
 	align-self: end;
+	/* 适配行内元素 */
 	vertical-align: bottom;
-	top: auto;
-	bottom: 0;
+	/* 适配定位元素 */
+	top: auto; bottom: 0;
 }
 
 /* 水平居中：元素无论在什么场景下都水平居中 */
 .at-x-center {
-	margin-left: auto;
-	margin-right: auto;
+	/* 适配块元素、flex子元素 */
+	margin-left: auto; margin-right: auto;
+	/* 适配grid子元素 */
 	justify-self: center;
-	left: 0;
-	right: 0;
+	/* 适配定位元素 */
+	left: 0; right: 0;
 }
 
 /* 垂直居中：元素无论在什么场景下都垂直居中 */
 .at-y-center {
-	margin-top: auto;
-	margin-bottom: auto;
+	/* 适配块元素 */
+	margin-top: auto; margin-bottom: auto;
+	/* 适配flex、grid子元素 */
 	align-self: center;
+	/* 适配行内元素 */
 	vertical-align: middle;
-	top: 0;
-	bottom: 0;
+	/* 适配定位元素 */
+	top: 0; bottom: 0;
 }
 
 /* 居中：元素无论在什么场景下都居中 */
 .at-center {
+	/* 适配块元素、flex子元素 */
 	margin: auto;
-	justify-self: center;
-	align-self: center;
+	/* 适配grid子元素 */
+	justify-self: center; align-self: center;
+	/* 适配行内元素 */
 	vertical-align: middle;
+	/* 适配定位元素 */
 	inset: 0;
 }
 
-/* 横向排列 */
-.go-x {
-	flex-direction: row;
-	grid-auto-flow: row;
+.near-center {/* todo：重复了 */
+	justify-self: center;
+	align-self: center;
+	margin: auto;
+}
 
-	/* 无需覆盖
+/* ======================== 书写模式：决定内容排列方向，一些布局"行"、"列"会受其影响 ======================== */
+/* Z字形：横向（行），行内从左到右。行之间肯定是从上到下。现行最常见&默认的书写模式。 */
+.content-Z {
+	writing-mode: horizontal-tb;
+	direction: ltr;
+	/* Z字形默认，无需额外适配 */
+}
+
+/* S字形：横向（行），行内从右到左。行之间肯定是从上到下。阿拉伯语的书写模式。 */
+.content-S {
+	writing-mode: horizontal-tb;
+	direction: rtl;
+	/* RTL：justify-self/align-self 是逻辑属性，需要适配才能保持物理方向语义 */
+	/* margin/inset 是物理属性，不需要适配 */
+	& .at-left { justify-self: end; }  /* RTL下 end=视觉左 */
+	& .at-right { justify-self: start; }  /* RTL下 start=视觉右 */
+	/* .at-top/.at-bottom 不受 RTL 影响（上下方向不变） */
+	/* .at-x-center/.at-y-center/.at-center 不受影响（居中对称） */
+
+	& .go-x {
+		&.from-left { flex-direction: row-reverse; }
+		&.from-right { flex-direction: row; }
+	}
+}
+
+/* N字形：竖向（列），列之间从右到左。列内肯定是从上到下。汉字字符保持头朝上，字母数字头朝右。古代汉语的书写模式。 */
+.content-N {
+	writing-mode: vertical-rl;
+	direction: ltr;
+	/* N字形：行内=纵向，块级=横向（从右到左） */
+	/* 物理属性不变，只适配逻辑属性 */
+	/* .go-x/y 保持物理方向，不因书写模式改变 */
+	& .at-left { justify-self: unset; align-self: end; }  /* 块级结束端=物理左 */
+	& .at-right { justify-self: unset; align-self: start; }  /* 块级起始端=物理右 */
+	& .at-top { align-self: unset; justify-self: start; }  /* 行内起始端=物理上 */
+	& .at-bottom { align-self: unset; justify-self: end; }  /* 行内结束端=物理下 */
+	& .at-x-center { justify-self: unset; align-self: center; }
+	& .at-y-center { align-self: unset; justify-self: center; }
+}
+
+/* И字形：竖向（列），列之间从左到右。列内肯定是从上到下。蒙文的书写模式。 */
+.content-И {
+	writing-mode: vertical-lr;
+	direction: ltr;
+	/* И字形：行内=纵向，块级=横向（从左到右） */
+	/* 与N字形类似，但块级方向相反 */
+	& .at-left { justify-self: unset; align-self: start; }  /* 块级起始端=物理左 */
+	& .at-right { justify-self: unset; align-self: end; }  /* 块级结束端=物理右 */
+	& .at-top { align-self: unset; justify-self: start; }
+	& .at-bottom { align-self: unset; justify-self: end; }
+	& .at-x-center { justify-self: unset; align-self: center; }
+	& .at-y-center { align-self: unset; justify-self: center; }
+}
+
+/* ============ （实现：需要适配更多场景的实现，使用者通常无需关心） ============ */
+/* 下面这些搭配同默认值，无需覆盖
+:is(.go-x, .go-x.from-left, .go-x.from-right) {
 	> .at-left {}
 	> .at-right {}
 	> .at-top {}
@@ -119,72 +239,29 @@
 	> .at-x-center {}
 	> .at-y-center {}
 	> .at-center {}
-	*/
+}*/
 
-	/* 无需覆盖
-	&.from-left {
-		> .at-left {}
-		> .at-right {}
-		> .at-top {}
-		> .at-bottom {}
-		> .at-x-center {}
-		> .at-y-center {}
-		> .at-center {}
-	}*/
-
-	&.from-right {
-		flex-direction: row-reverse;
-
-		/* 无需覆盖
-		> .at-left {}
-		> .at-right {}
-		> .at-top {}
-		> .at-bottom {}
-		> .at-x-center {}
-		> .at-y-center {}
-		> .at-center {}
-		*/
-	}
-}
-
-/* 纵向排列 */
+/* 纵向排列下保证 .at-* 的语义 */
 .go-y {
-	flex-direction: column;
-	grid-auto-flow: column;
-
-	& .at-left { justify-self: unset; align-self: start; }
-	& .at-right { justify-self: unset; align-self: end; }
-	& .at-top { align-self: unset; justify-self: start; }
-	& .at-bottom { align-self: unset; justify-self: end; }
-	& .at-x-center { justify-self: unset; align-self: center; }
-	& .at-y-center { align-self: unset; justify-self: center; }
-	& .at-center { justify-self: center; align-self: center; }
-
-	/* 无需覆盖
-	&.from-top {
-		> .at-left {}
-		> .at-right {}
-		> .at-top {}
-		> .at-bottom {}
-		> .at-x-center {}
-		> .at-y-center {}
-		> .at-center {}
-	}*/
-
-	&.from-bottom {
-		flex-direction: column-reverse;
-
-		/* 无需覆盖
-		> .at-left {}
-		> .at-right {}
-		> .at-top {}
-		> .at-bottom {}
-		> .at-x-center {}
-		> .at-y-center {}
-		> .at-center {}
-		*/
-	}
+	> .at-left { justify-self: unset; align-self: start; }
+	> .at-right { justify-self: unset; align-self: end; }
+	> .at-top { align-self: unset; justify-self: start; }
+	> .at-bottom { align-self: unset; justify-self: end; }
+	> .at-x-center { justify-self: unset; align-self: center; }
+	> .at-y-center { align-self: unset; justify-self: center; }
+	> .at-center { justify-self: center; align-self: center; }
 }
+/* 下面这些搭配同前面的默认值，无需覆盖
+:is(.go-y.from-top, .go-y.from-bottom) {
+	> .at-left {}
+	> .at-right {}
+	> .at-top {}
+	> .at-bottom {}
+	> .at-x-center {}
+	> .at-y-center {}
+	> .at-center {}
+}*/
+
 
 /* ================== 行列位置：在任何书写模式、任何方向，grid或flex下，保证行/列视觉效果的统一（靠上/下/左/右之类） ================== */
 /* ============ 行位置 ============ */
@@ -386,20 +463,6 @@
 .items-near-right:where(.content-N:not(.go-x),
 						.content-N :not(.go-x, .content-S, .content-И, .content-Z)) {
 	align-items: start;
-}
-
-/* ------ .items-near-center：保证子元素居中 ------ */
-.items-near-center {
-	place-items: center;
-	place-content: center;
-	text-align: center;
-}
-
-/* ------ 子项目属性：让自己居中 ------ */
-.near-center {
-	justify-self: center;
-	align-self: center;
-	margin: auto;
 }
 
 /* ================== 项目分布：items-x/y-* ================== */
@@ -750,58 +813,4 @@
 		grid-area: footer;
 	}
 	> main, > .main, > .body { grid-area: main; }
-}
-
-/* ======================== 书写模式：决定内容排列方向，一些布局"行"、"列"会受其影响 ======================== */
-/* Z字形：横向（行），行内从左到右。行之间肯定是从上到下。现行最常见的书写模式。 */
-.content-Z {
-	writing-mode: horizontal-tb;
-	direction: ltr;
-}
-/* Z字形默认，无需额外适配 */
-
-/* S字形：横向（行），行内从右到左。行之间肯定是从上到下。阿拉伯语的书写模式。 */
-.content-S {
-	writing-mode: horizontal-tb;
-	direction: rtl;
-	/* RTL：justify-self/align-self 是逻辑属性，需要适配才能保持物理方向语义 */
-	/* margin/inset 是物理属性，不需要适配 */
-	& .at-left { justify-self: end; }  /* RTL下 end=视觉左 */
-	& .at-right { justify-self: start; }  /* RTL下 start=视觉右 */
-	/* .at-top/.at-bottom 不受 RTL 影响（上下方向不变） */
-	/* .at-x-center/.at-y-center/.at-center 不受影响（居中对称） */
-
-	& .go-x {
-		&.from-left { flex-direction: row-reverse; }
-		&.from-right { flex-direction: row; }
-	}
-}
-
-/* N字形：竖向（列），列之间从右到左。列内肯定是从上到下。汉字字符保持头朝上，字母数字头朝右。古代汉语的书写模式。 */
-.content-N {
-	writing-mode: vertical-rl;
-	direction: ltr;
-	/* N字形：行内=纵向，块级=横向（从右到左） */
-	/* 物理属性不变，只适配逻辑属性 */
-	/* .go-x/y 保持物理方向，不因书写模式改变 */
-	& .at-left { justify-self: unset; align-self: end; }  /* 块级结束端=物理左 */
-	& .at-right { justify-self: unset; align-self: start; }  /* 块级起始端=物理右 */
-	& .at-top { align-self: unset; justify-self: start; }  /* 行内起始端=物理上 */
-	& .at-bottom { align-self: unset; justify-self: end; }  /* 行内结束端=物理下 */
-	& .at-x-center { justify-self: unset; align-self: center; }
-	& .at-y-center { align-self: unset; justify-self: center; }
-}
-
-/* И字形：竖向（列），列之间从左到右。列内肯定是从上到下。蒙文的书写模式。 */
-.content-И {
-	writing-mode: vertical-lr;
-	direction: ltr;
-	/* И字形：行内=纵向，块级=横向（从左到右） */
-	/* 与N字形类似，但块级方向相反 */
-	& .at-left { justify-self: unset; align-self: start; }  /* 块级起始端=物理左 */
-	& .at-right { justify-self: unset; align-self: end; }  /* 块级结束端=物理右 */
-	& .at-top { align-self: unset; justify-self: start; }
-	& .at-bottom { align-self: unset; justify-self: end; }
-	& .at-x-center { justify-self: unset; align-self: center; }
-	& .at-y-center { align-self: unset; justify-self: center; }
 }

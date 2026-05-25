@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="zh-CN"><head>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>居中类 demo</title>
@@ -279,6 +281,12 @@
 				</div>
 				<p>注：grid 子项 justify-self:start 在单元格内生效</p>
 			</article>
+			<article>
+				<h4>23a 定位元素 + .at-left（靠左）</h4>
+				<div class="container relative-container">
+					<div class="box position-box at-left">靠左</div>
+				</div>
+			</article>
 			<!-- at-right -->
 			<article>
 				<h4>24 块级元素 + .at-right（靠右）</h4>
@@ -296,6 +304,12 @@
 				<h4>26 grid 子项 + .at-right（靠右）</h4>
 				<div class="container grid-container">
 					<div class="box at-right">靠右</div>
+				</div>
+			</article>
+			<article>
+				<h4>26a 定位元素 + .at-right（靠右）</h4>
+				<div class="container relative-container">
+					<div class="box position-box at-right">靠右</div>
 				</div>
 			</article>
 			<!-- at-top -->
@@ -382,25 +396,24 @@
 				</div>
 				<p>注：定位元素的 left/right 不受 flex/grid 排列方向影响</p>
 			</article>
-				<article>
-					<h4>39 content-N + .go-x（对比：竖向书写模式下的纵向排列）</h4>
-					<div class="container flex-container content-N go-x" style="height: 200px; width: 150px;">
-						<div class="box">A</div>
-						<div class="box">B</div>
-						<div class="box">C</div>
-					</div>
-					<p>对比：N字形下 .go-x 的 flex-direction 变成 column，子项纵向排列</p>
-				</article>
-				<article>
-					<h4>40 content-И + .go-x（对比：竖向书写模式下的纵向排列）</h4>
-					<div class="container flex-container content-И go-x" style="height: 200px; width: 150px;">
-						<div class="box">A</div>
-						<div class="box">B</div>
-						<div class="box">C</div>
-					</div>
-					<p>对比：И字形下 .go-x 的 flex-direction 变成 column</p>
-				</article>
-
+			<article>
+				<h4>39 content-N + .go-x（对比：竖向书写模式下的纵向排列）</h4>
+				<div class="container flex-container content-N go-x" style="height: 200px; width: 150px;">
+					<div class="box">A</div>
+					<div class="box">B</div>
+					<div class="box">C</div>
+				</div>
+				<p>对比：N字形下 .go-x 的 flex-direction 变成 column，子项纵向排列</p>
+			</article>
+			<article>
+				<h4>40 content-И + .go-x（对比：竖向书写模式下的纵向排列）</h4>
+				<div class="container flex-container content-И go-x" style="height: 200px; width: 150px;">
+					<div class="box">A</div>
+					<div class="box">B</div>
+					<div class="box">C</div>
+				</div>
+				<p>对比：И字形下 .go-x 的 flex-direction 变成 column</p>
+			</article>
 		</section>
 		<!-- ==================== content-S (RTL) ==================== -->
 		<section class="demo-section">
@@ -852,6 +865,5 @@
 		})();
 
 	</script>
-
-
-</body></html>
+</body>
+</html>
