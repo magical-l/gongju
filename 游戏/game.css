@@ -479,8 +479,8 @@
 		align-items: center;
 	}
 
-	/* ====== 提示 ====== */
-	& .hint:not(button, .btn) {
+	/* ====== 正在提示的元素 ====== */
+	& .hinting {
 		outline: 3px solid var(--hint-color, var(--orange-color));
 		outline-offset: -3px;
 	}

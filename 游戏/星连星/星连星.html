@@ -47,7 +47,7 @@
 				z-index: 2;
 			}
 
-			&:is(.path, .hint, .drawing) {
+			&:is(.path, .hinting, .drawing) {
 				opacity: 0.9;
 				inset: 0;
 				/* 中心圆点用背景渐变画 */
@@ -508,7 +508,7 @@
 						}
 						
 						// 提示
-						if (this.shouldShowHint(cell)) return ['unit', 'hint', ...this.getSolutionDirections(cell)];
+						if (this.shouldShowHint(cell)) return ['unit', 'hinting', ...this.getSolutionDirections(cell)];
 						
 						return []; // 空格子
 					},
