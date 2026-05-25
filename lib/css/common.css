@@ -119,23 +119,36 @@ template, .template, .hidden, [v-cloak], .js.container {display: none !important
 
 /* ================== 定位 ================== */
 
-/* 行内元素与同行文字垂直对齐（y 轴方向居中），否则会偏上 */
-.y-middle {vertical-align: middle;}
+/* 水平居中：块级元素用 margin auto，grid子项用 justify-self，定位元素用 left/right */
+.at-x-center {
+	margin-left: auto;
+	margin-right: auto;
+	justify-self: center;
+	left: 0;
+	right: 0;
+}
 
-/* 块级元素在容器内水平居中（x 轴） */
-.x-middle {margin-left: auto; margin-right: auto;}
+/* 垂直居中：flex/grid子项用 align-self + margin auto，行内元素用 vertical-align，定位元素用 top/bottom */
+.at-y-center {
+	margin-top: auto;
+	margin-bottom: auto;
+	align-self: center;
+	vertical-align: middle;
+	top: 0;
+	bottom: 0;
+}
 
-/* 在 flex/grid 子项上水平+垂直居中（xy 两轴） */
-.xy-middle {align-self: center; justify-self: center;}
+/* 水平垂直居中：综合上述所有属性 */
+.at-center {
+	margin: auto;
+	justify-self: center;
+	align-self: center;
+	vertical-align: middle;
+	inset: 0;
+}
 
 .position-fixed {
 	position: fixed;
-	
-	&.in-center { /* 固定于视口并居中 */
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-	}
 }
 
 .sticky {
