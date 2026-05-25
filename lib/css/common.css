@@ -147,6 +147,44 @@ template, .template, .hidden, [v-cloak], .js.container {display: none !important
 	inset: 0;
 }
 
+/* 靠左：块级元素 margin 靠左，grid子项 justify-self，定位元素 left */
+.at-left {
+	margin-left: 0;
+	margin-right: auto;
+	justify-self: start;
+	left: 0;
+	right: auto;
+}
+
+/* 靠右：块级元素 margin 靠右，grid子项 justify-self，定位元素 right */
+.at-right {
+	margin-left: auto;
+	margin-right: 0;
+	justify-self: end;
+	left: auto;
+	right: 0;
+}
+
+/* 靠上：flex/grid子项 align-self，行内元素 vertical-align，定位元素 top */
+.at-top {
+	margin-top: 0;
+	margin-bottom: auto;
+	align-self: start;
+	vertical-align: top;
+	top: 0;
+	bottom: auto;
+}
+
+/* 靠下：flex/grid子项 align-self，行内元素 vertical-align，定位元素 bottom */
+.at-bottom {
+	margin-top: auto;
+	margin-bottom: 0;
+	align-self: end;
+	vertical-align: bottom;
+	top: auto;
+	bottom: 0;
+}
+
 .position-fixed {
 	position: fixed;
 }

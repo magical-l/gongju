@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="zh-CN"><head>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>居中类 demo</title>
@@ -217,7 +219,6 @@
 					<div class="box position-box at-center">居中</div>
 				</div>
 			</article>
-			
 			<!-- 多子项场景 -->
 			<article>
 				<h4>⑱ flex 多子项 + .at-center（水平分散，垂直居中）</h4>
@@ -256,10 +257,104 @@
 				<p>注：flex 子项水平居中推荐父级设置 justify-content: center</p>
 			</article>
 		</section>
+		<!-- ==================== 靠边定位 ==================== -->
+		<section class="demo-section">
+			<h3>靠边定位 .at-left / .at-right / .at-top / .at-bottom</h3>
+			<!-- at-left -->
+			<article>
+				<h4>㉒ 块级元素 + .at-left（靠左）</h4>
+				<div class="container">
+					<div class="box at-left">靠左</div>
+				</div>
+			</article>
+			<article>
+				<h4>㉓ flex 子项 + .at-left（靠左）</h4>
+				<div class="container flex-container">
+					<div class="box at-left">靠左</div>
+				</div>
+				<p>注：flex 子项 justify-self 无效，靠 margin-left:0 + margin-right:auto 实现</p>
+			</article>
+			<article>
+				<h4>㉔ grid 子项 + .at-left（靠左）</h4>
+				<div class="container grid-container">
+					<div class="box at-left">靠左</div>
+				</div>
+				<p>注：grid 子项 justify-self:start 在单元格内生效</p>
+			</article>
+			<!-- at-right -->
+			<article>
+				<h4>㉕ 块级元素 + .at-right（靠右）</h4>
+				<div class="container">
+					<div class="box at-right">靠右</div>
+				</div>
+			</article>
+			<article>
+				<h4>㉖ flex 子项 + .at-right（靠右）</h4>
+				<div class="container flex-container">
+					<div class="box at-right">靠右</div>
+				</div>
+			</article>
+			<article>
+				<h4>㉗ grid 子项 + .at-right（靠右）</h4>
+				<div class="container grid-container">
+					<div class="box at-right">靠右</div>
+				</div>
+			</article>
+			<!-- at-top -->
+			<article>
+				<h4>㉘ flex 子项 + .at-top（靠上）</h4>
+				<div class="container flex-container">
+					<div class="box at-top">靠上</div>
+				</div>
+			</article>
+			<article>
+				<h4>㉙ grid 子项 + .at-top（靠上）</h4>
+				<div class="container grid-container">
+					<div class="box at-top">靠上</div>
+				</div>
+			</article>
+			<article>
+				<h4>㉚ 行内元素 + .at-top（靠上）</h4>
+				<div class="container text-line">
+					文字 <span class="inline-box at-top">靠上</span> 文字
+				</div>
+				<p>注：行内元素 vertical-align:top 生效</p>
+			</article>
+			<article>
+				<h4>㉛ 定位元素 + .at-top（靠上）</h4>
+				<div class="container relative-container">
+					<div class="box position-box at-top">靠上</div>
+				</div>
+			</article>
+			<!-- at-bottom -->
+			<article>
+				<h4>㉜ flex 子项 + .at-bottom（靠下）</h4>
+				<div class="container flex-container">
+					<div class="box at-bottom">靠下</div>
+				</div>
+			</article>
+			<article>
+				<h4>㉝ grid 子项 + .at-bottom（靠下）</h4>
+				<div class="container grid-container">
+					<div class="box at-bottom">靠下</div>
+				</div>
+			</article>
+			<article>
+				<h4>㉞ 行内元素 + .at-bottom（靠下）</h4>
+				<div class="container text-line">
+					文字 <span class="inline-box at-bottom">靠下</span> 文字
+				</div>
+			</article>
+			<article>
+				<h4>㉟ 定位元素 + .at-bottom（靠下）</h4>
+				<div class="container relative-container">
+					<div class="box position-box at-bottom">靠下</div>
+				</div>
+			</article>
+		</section>
 	</main>
 	<footer>
 		<p>总结：不同场景下各属性生效情况不同，但无害叠加</p>
 	</footer>
-
 </body>
 </html>
