@@ -537,11 +537,11 @@
 		'header header'
 		'left right'
 		'footer footer';
-	& header, & .header {
+	& header, & .header, & .at-top {
 		grid-area: header;
 		grid-column: 1 / -1;
 	}
-	& footer, & .footer {
+	& footer, & .footer, & .at-bottom {
 		grid-area: footer;
 		grid-column: 1 / -1;
 	}
@@ -555,6 +555,10 @@
 	/* 50%vs50%是各占父容器的一半，如果有gap，将会突破父容器，所以用1fr vs 1fr */
 	/* grid-template-columns: 50% 50%; */
 	grid-template-columns: 1fr 1fr;
+	grid-template-areas: 'left right';
+
+	& .at-left {grid-area: left;}
+	& .at-right {grid-area: right;}
 }
 
 /* ------ "亚字形"布局，上部导航栏，底部页脚，中间有左右侧栏，中部是主要内容 ------ */
@@ -572,11 +576,11 @@
 		'header header header'
 		'left-sidebar main right-sidebar'
 		'footer footer footer';
-	& header, & .header {
+	& header, & .header, & .at-top {
 		grid-area: header;
 		grid-column: 1 / -1;
 	}
-	& footer, & .footer {
+	& footer, & .footer, & .at-bottom {
 		grid-area: footer;
 		grid-column: 1 / -1;
 	}
@@ -597,11 +601,11 @@
 		'header header'
 		'left-sidebar main'
 		'footer footer';
-	& header, & .header {
+	& header, & .header, & .at-top {
 		grid-area: header;
 		grid-column: 1 / -1;
 	}
-	& footer, & .footer {
+	& footer, & .footer, & .at-bottom {
 		grid-area: footer;
 		grid-column: 1 / -1;
 	}
@@ -621,11 +625,11 @@
 		'header header'
 		'main right-sidebar'
 		'footer footer';
-	& header, & .header {
+	& header, & .header, & .at-top {
 		grid-area: header;
 		grid-column: 1 / -1;
 	}
-	& footer, & .footer {
+	& footer, & .footer, & .at-bottom {
 		grid-area: footer;
 		grid-column: 1 / -1;
 	}
@@ -645,10 +649,10 @@
 		'header'
 		'main'
 		'footer';
-	& header, & .header {
+	& header, & .header, & .at-top {
 		grid-area: header;
 	}
-	& footer, & .footer {
+	& footer, & .footer, & .at-bottom {
 		grid-area: footer;
 	}
 	& main, & .main, & .body { grid-area: main; }
