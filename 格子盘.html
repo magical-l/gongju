@@ -113,7 +113,7 @@
 	.edge-hotzone.left { left: 0; top: 0; width: 12px; height: 100%; }
 </style>
 </head>
-<body class="grid 反叵字形">
+<body class="反叵字形">
 <header>
 	<h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
 	<nav>
@@ -148,7 +148,7 @@
 			</el-button>
 			<el-dialog title="页面说明" class="page-lv intro" v-model="introVisible" width="60%">
 				<p>
-					“格子盘”是一个功能强大且简单易用的网页应用，旨在帮助用户轻松创建、定制和导出各种类型的格子，如田字格、米字格、九宫格等。无论您是书法爱好者、正在学习写字的学生，还是需要为设计项目制作网格的专业人士，这个工具都能满足您的需求。</p>
+					"格子盘"是一个功能强大且简单易用的网页应用，旨在帮助用户轻松创建、定制和导出各种类型的格子，如田字格、米字格、九宫格等。无论您是书法爱好者、正在学习写字的学生，还是需要为设计项目制作网格的专业人士，这个工具都能满足您的需求。</p>
 				<h2>主要功能</h2>
 				<p><strong>自定义行列：</strong>用户可以根据需要自由设置格子的行数和列数，最大支持19x19的网格，灵活适应不同场景。
 				</p>
@@ -169,7 +169,7 @@
 
 	<article v-cloak>
 		<header class="toolbar , flex items-mutex">
-			<div class="tool group , grid 朋字形">
+			<div class="tool group , 朋字形">
 				<label>行：
 					<el-input-number v-model="rows" :min="1" :max="maxSize" size="small"></el-input-number>
 				</label>
@@ -278,7 +278,7 @@
 		watch: {
 			currentMode(newMode) {
 				// 更新body的class来应用模式样式
-				document.body.className = `grid 反叵字形 ${newMode}-mode`;
+				document.body.className = `反叵字形 ${newMode}-mode`;
 				// Clear any active drawing/filling state when mode changes
 				this.isDrawing = false;
 				this.isFilling = false;
@@ -381,7 +381,7 @@
 					'top': 'bottom',
 					'bottom': 'top',
 					'left': 'right',
-					'right': 'left'
+					'reight': 'left'
 				};
 
 				// Set current cell's border
@@ -420,7 +420,7 @@
 		mounted() {
 			this.initGrid();
 			// 初始化body的class
-			document.body.className = `grid 反叵字形 ${this.currentMode}-mode`;
+			document.body.className = `反叵字形 ${this.currentMode}-mode`;
 			document.addEventListener('mouseup', this.handleMouseUp);
 		},
 		unmounted() {

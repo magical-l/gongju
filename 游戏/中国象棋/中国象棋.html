@@ -1,863 +1,863 @@
 <!DOCTYPE html><html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage"><head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title itemprop="name">中国象棋 | 工具兽 - 在线玩经典的棋类游戏</title>
-		<style>@import url("../../lib/element-plus/2.10.7/index.css") layer(el-plus);</style>
-	<link href="../../resources/el-plus.css" rel="stylesheet">
-	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/common.css" rel="stylesheet"> -->
-	<link href="../../lib/css/common.css" rel="stylesheet">
-	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/layout.css" rel="stylesheet"> -->
-	<link href="../../lib/css/layout.css" rel="stylesheet">
-	<link href="../../resources/biz.css?v=250821" rel="stylesheet">
-	<link href="../game.css" rel="stylesheet">
-	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/花活.css" rel="stylesheet"> -->
-	<link href="../../lib/css/花活.css" rel="stylesheet">
-	<link href="xiangqi.css" rel="stylesheet">
-</head>
-<body class="grid 目字形">
-	<header>
-		<h1 class="website name" title="工具人（gongju.ren）域名太贵买不起">工具兽</h1>
-		<nav>
-			<div class="nav-row">
-				<a href="../../文本转化.html">文本转化</a>
-				<a href="../../数字转化.html">数字转化</a>
-				<a href="../../符号/符号.html">符号</a>
-				<a href="../../格子盘.html">格子盘</a>
-				<a href="../../svg转图标.html">SVG转图标</a>
-				<a href="../../化学/元素周期表.html">元素周期表</a>
-				<a href="../../拼音/拼音.html">拼音</a>
-			</div>
-			<div class="nav-row">
-				<a class="active" href="中国象棋.html">中国象棋</a>
-				<a href="../五子棋/gobang.html">五子棋</a>
-				<a href="../俄罗斯方块.html">俄罗斯方块</a>
-				<a href="../贪吃蛇/贪吃蛇.html">贪吃蛇</a>
-				<a href="../2048/2048.html">2048</a>
-				<a href="../2048蛇/2048蛇.html">2048蛇</a>
-				<a href="../2048方块/2048方块.html">2048方块</a>
-				<a href="../点灯.html">点灯</a>
-				<a href="../数字华容道.html">数字华容道</a>
-				<a href="../星连星/星连星.html">星连星</a>
-			</div>
-		</nav>
-	</header>
-	<main class="unit movable board game">
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title itemprop="name">中国象棋 | 工具兽 - 在线玩经典的棋类游戏</title>
+			<style>@import url("../../lib/element-plus/2.10.7/index.css") layer(el-plus);</style>
+		<link href="../../resources/el-plus.css" rel="stylesheet">
+		<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/common.css" rel="stylesheet"> -->
+		<link href="../../lib/css/common.css" rel="stylesheet">
+		<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/layout.css" rel="stylesheet"> -->
+		<link href="../../lib/css/layout.css" rel="stylesheet">
+		<link href="../../resources/biz.css?v=250821" rel="stylesheet">
+		<link href="../game.css" rel="stylesheet">
+		<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/花活.css" rel="stylesheet"> -->
+		<link href="../../lib/css/花活.css" rel="stylesheet">
+		<link href="xiangqi.css" rel="stylesheet">
+	</head>
+	<body class="目字形">
 		<header>
-			<h2 class="game name">中国象棋</h2>
-		</header>
-		<article class="gaming area , 反叵字形 grid" v-cloak>
-			<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
-				<section class="setting list , flex single-line no-gap items-near-x-start items-near-y-center">
-					<div class="one setting group" v-if="isGaming">
-						<el-button class="one setting : new-game" type="danger" icon="RefreshRight" @click="returnToSettings">新局 </el-button>
-					</div>
-					<template v-if="!isGaming">
-						<div class="one setting group">
-							<el-button class="one setting : default-board" type="info" inline="" plain="" @click="resetBoard">默认棋盘 </el-button>
-						</div>
-						<div class="one setting group">
-							<el-button class="one setting : clear-board" type="danger" inline="" plain="" @click="clearBoard">清空棋盘 </el-button>
-						</div>
-						<div class="one setting group">
-							<el-radio-group class="one setting : first-player" v-model="gameSettings.firstPlayer">
-								<el-radio value="red" border="">红先</el-radio>
-								<el-radio value="black" border="">黑先</el-radio>
-							</el-radio-group>
-						</div>
-						<div class="one setting group">
-							<el-button class="one setting : start-game" type="primary" icon="VideoPlay" @click="startGame">开始游戏 </el-button>
-						</div>
-					</template>
-				</section>
-				<section class="controller list , flex single-line no-gap items-near-x-start items-near-y-center">
-					<div class="one controller group" v-if="isGaming">
-						<el-button class="one controller : restart" type="danger" icon="RefreshLeft" @click="restartGame">重来 </el-button>
-					</div>
-				</section>
-				<section class="tool list , flex single-line no-gap items-near-x-start items-near-y-center">
-					<div class="one tool group" v-if="isGaming">
-						<el-button class="one tool : undo" type="warning" :disabled="!isUndoAvailable" @click="undoMove">悔棋 </el-button>
-					</div>
-					<div class="one tool group">
-						<el-button class="one tool : reverse view btn" type="info" plain="" @click="showReversedView = !showReversedView">交换视角</el-button>
-					</div>
-				</section>
-			</header>
-			<section class="main board map , grid no-gap" :class="{ 'reversed view': showReversedView, editor: !isGaming }">
-				<div class="cell" v-for="cell in mainCells" :key="cell.position" :class="cell.classes" @click="handleCellClick(cell)" @dragover.prevent="" @drop="handleCellDrop(cell)">
-					<span v-if="cell.marker" class="target mark" :class="cell.marker"></span>
-					<div class="piece unit" v-for="unit in cell.units" :key="unit.id" :class="unit.classes" :draggable="unit.canDrag" @dragstart="dragStartPiece(unit, 'board')" @dragend="clearDraggedPiece">
-						{{ unit.display }}
-						<div class="remove unit btn" v-if="unit.canDrag" @click.stop="removeEditorPiece(unit)">×</div>
-					</div>
+			<h1 class="website name" title="工具人（gongju.ren）域名太贵买不起">工具兽</h1>
+			<nav>
+				<div class="nav-row">
+					<a href="../../文本转化.html">文本转化</a>
+					<a href="../../数字转化.html">数字转化</a>
+					<a href="../../符号/符号.html">符号</a>
+					<a href="../../格子盘.html">格子盘</a>
+					<a href="../../svg转图标.html">SVG转图标</a>
+					<a href="../../化学/元素周期表.html">元素周期表</a>
+					<a href="../../拼音/拼音.html">拼音</a>
 				</div>
-			</section>
-			<aside class="sidebar at-right">
-				<details data-panel="reversedView" :open="panels.reversedView" @toggle="onPanelToggle">
-					<summary>对面视角</summary>
-					<article class="mini board map , grid no-gap" :class="{ 'reversed view': !showReversedView, editor: !isGaming}">
-						<div class="cell" v-for="cell in miniCells" :key="'mini-'+cell.position" :class="cell.classes" @click="handleCellClick(cell)">
-							<span class="target mark" :class="cell.marker" v-if="cell.marker"></span>
-							<div class="piece unit" :class="unit.classes" v-for="unit in cell.units" :key="unit.id">
-								{{ unit.display }}
-							</div>
+				<div class="nav-row">
+					<a class="active" href="中国象棋.html">中国象棋</a>
+					<a href="../五子棋/gobang.html">五子棋</a>
+					<a href="../俄罗斯方块.html">俄罗斯方块</a>
+					<a href="../贪吃蛇/贪吃蛇.html">贪吃蛇</a>
+					<a href="../2048/2048.html">2048</a>
+					<a href="../2048蛇/2048蛇.html">2048蛇</a>
+					<a href="../2048方块/2048方块.html">2048方块</a>
+					<a href="../点灯.html">点灯</a>
+					<a href="../数字华容道.html">数字华容道</a>
+					<a href="../星连星/星连星.html">星连星</a>
+				</div>
+			</nav>
+		</header>
+		<main class="unit movable board game">
+			<header>
+				<h2 class="game name">中国象棋</h2>
+			</header>
+			<article class="gaming area , 反叵字形" v-cloak>
+				<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
+					<section class="setting list , flex single-line no-gap items-near-x-start items-near-y-center">
+						<div class="one setting group" v-if="isGaming">
+							<el-button class="one setting : new-game" type="danger" icon="RefreshRight" @click="returnToSettings">新局 </el-button>
 						</div>
-					</article>
-				</details>
-				<details data-panel="palette" v-if="!isGaming" :open="panels.palette" @toggle="onPanelToggle">
-					<summary>棋子库</summary>
-					<div class="unit type palette">
-						<div class="piece unit" v-for="(piece, type) in boardEditor.pieceTypes" :key="type" :class="getEditorPaletteClass(type)" draggable="true" @click="boardEditor.selectedPieceType = (boardEditor.selectedPieceType === type ? null : type)" @dragstart="dragStartPiece({name: type}, 'palette')" @dragend="clearDraggedPiece">
-							{{ piece.显示 }}
+						<template v-if="!isGaming">
+							<div class="one setting group">
+								<el-button class="one setting : default-board" type="info" inline="" plain="" @click="resetBoard">默认棋盘 </el-button>
+							</div>
+							<div class="one setting group">
+								<el-button class="one setting : clear-board" type="danger" inline="" plain="" @click="clearBoard">清空棋盘 </el-button>
+							</div>
+							<div class="one setting group">
+								<el-radio-group class="one setting : first-player" v-model="gameSettings.firstPlayer">
+									<el-radio value="red" border="">红先</el-radio>
+									<el-radio value="black" border="">黑先</el-radio>
+								</el-radio-group>
+							</div>
+							<div class="one setting group">
+								<el-button class="one setting : start-game" type="primary" icon="VideoPlay" @click="startGame">开始游戏 </el-button>
+							</div>
+						</template>
+					</section>
+					<section class="controller list , flex single-line no-gap items-near-x-start items-near-y-center">
+						<div class="one controller group" v-if="isGaming">
+							<el-button class="one controller : restart" type="danger" icon="RefreshLeft" @click="restartGame">重来 </el-button>
+						</div>
+					</section>
+					<section class="tool list , flex single-line no-gap items-near-x-start items-near-y-center">
+						<div class="one tool group" v-if="isGaming">
+							<el-button class="one tool : undo" type="warning" :disabled="!isUndoAvailable" @click="undoMove">悔棋 </el-button>
+						</div>
+						<div class="one tool group">
+							<el-button class="one tool : reverse view btn" type="info" plain="" @click="showReversedView = !showReversedView">交换视角</el-button>
+						</div>
+					</section>
+				</header>
+				<section class="main board map , grid no-gap" :class="{ 'reversed view': showReversedView, editor: !isGaming }">
+					<div class="cell" v-for="cell in mainCells" :key="cell.position" :class="cell.classes" @click="handleCellClick(cell)" @dragover.prevent="" @drop="handleCellDrop(cell)">
+						<span v-if="cell.marker" class="target mark" :class="cell.marker"></span>
+						<div class="piece unit" v-for="unit in cell.units" :key="unit.id" :class="unit.classes" :draggable="unit.canDrag" @dragstart="dragStartPiece(unit, 'board')" @dragend="clearDraggedPiece">
+							{{ unit.display }}
+							<div class="remove unit btn" v-if="unit.canDrag" @click.stop="removeEditorPiece(unit)">×</div>
 						</div>
 					</div>
-				</details>
-				<details data-panel="selected" :open="panels.selected" @toggle="onPanelToggle">
-					<summary>当前选中</summary>
-					<div class="cur unit profile , go-y" v-if="isGaming && selectedUnit">
-						<div class="summary">
-							<div class="logo">
-								<div class="piece unit" :class="getUnitClasses(selectedUnit)">{{ selectedUnit.display }}</div>
-							</div>
-						</div>
-
-						<ul class="skill list">
-							<header>技能</header>
-							<li class="one skill profile" v-for="skill in selectedUnit.skills" :key="skill.name" type="info">
-								<div class="logo">
-									<img :alt="skill.name" v-if="skill.logo" :src="skill.logo">
+				</section>
+				<aside class="sidebar at-right">
+					<details data-panel="reversedView" :open="panels.reversedView" @toggle="onPanelToggle">
+						<summary>对面视角</summary>
+						<article class="mini board map , grid no-gap" :class="{ 'reversed view': !showReversedView, editor: !isGaming}">
+							<div class="cell" v-for="cell in miniCells" :key="'mini-'+cell.position" :class="cell.classes" @click="handleCellClick(cell)">
+								<span class="target mark" :class="cell.marker" v-if="cell.marker"></span>
+								<div class="piece unit" :class="unit.classes" v-for="unit in cell.units" :key="unit.id">
+									{{ unit.display }}
 								</div>
-								<div class="name">{{ skill.name }}</div>
-								<div class="intro">{{ skill.intro }}</div>
-							</li>
-						</ul>
+							</div>
+						</article>
+					</details>
+					<details data-panel="palette" v-if="!isGaming" :open="panels.palette" @toggle="onPanelToggle">
+						<summary>棋子库</summary>
+						<div class="unit type palette">
+							<div class="piece unit" v-for="(piece, type) in boardEditor.pieceTypes" :key="type" :class="getEditorPaletteClass(type)" draggable="true" @click="boardEditor.selectedPieceType = (boardEditor.selectedPieceType === type ? null : type)" @dragstart="dragStartPiece({name: type}, 'palette')" @dragend="clearDraggedPiece">
+								{{ piece.显示 }}
+							</div>
+						</div>
+					</details>
+					<details data-panel="selected" :open="panels.selected" @toggle="onPanelToggle">
+						<summary>当前选中</summary>
+						<div class="cur unit profile , go-y" v-if="isGaming && selectedUnit">
+							<div class="summary">
+								<div class="logo">
+									<div class="piece unit" :class="getUnitClasses(selectedUnit)">{{ selectedUnit.display }}</div>
+								</div>
+							</div>
 
-						<ol class="merit list">
-							<header>功劳</header>
-							<template v-if="selectedUnit.kills?.length">
-								<li class="one merit" v-for="(kill, ki) in selectedUnit.kills" :key="ki">
-									<div class="killed piece unit profile" :class="kill.unit.owner.team.flag">
-										<div class="logo">
-											<img v-if="kill.unit.img" :src="kill.unit.img">
-											<div v-if="kill.unit.display">{{ kill.unit.display }}</div>
-										</div>
+							<ul class="skill list">
+								<header>技能</header>
+								<li class="one skill profile" v-for="skill in selectedUnit.skills" :key="skill.name" type="info">
+									<div class="logo">
+										<img :alt="skill.name" v-if="skill.logo" :src="skill.logo">
 									</div>
-									<span class="round num">第{{ kill.round }}回合</span>
+									<div class="name">{{ skill.name }}</div>
+									<div class="intro">{{ skill.intro }}</div>
 								</li>
-							</template>
-							<div class="empty" v-else>暂无功劳</div>
-						</ol>
-					</div>
-					<div v-else-if="!isGaming && boardEditor.selectedPieceType">
-						<el-form label-width="60px">
-							<el-form-item label="显示">
-								<el-input v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].显示" style="width: 60px" autofocus>
-								</el-input>
-							</el-form-item>
-							<el-form-item label="技能">
-								<el-checkbox-group v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].技能">
-									<el-checkbox v-for="skill in allAvailableSkills" :key="skill" :label="skill">
-									</el-checkbox>
-								</el-checkbox-group>
-							</el-form-item>
-						</el-form>
-					</div>
-					<div v-else>
-						<span v-if="isGaming">未选中棋子</span>
-						<span v-else>从上方棋子库中选择一个棋子进行编辑</span>
-					</div>
-				</details>
-				<template v-if="isGaming">
-					<details class="global-rule list" data-panel="globalRules" :open="panels.globalRules" @toggle="onPanelToggle">
-						<summary>全局规则</summary>
-						<el-checkbox-group v-model="gameSettings.rules">
-							<el-checkbox v-for="rule in allAvailableRules" :key="rule" :label="rule">
-							</el-checkbox>
-						</el-checkbox-group>
+							</ul>
+
+							<ol class="merit list">
+								<header>功劳</header>
+								<template v-if="selectedUnit.kills?.length">
+									<li class="one merit" v-for="(kill, ki) in selectedUnit.kills" :key="ki">
+										<div class="killed piece unit profile" :class="kill.unit.owner.team.flag">
+											<div class="logo">
+												<img v-if="kill.unit.img" :src="kill.unit.img">
+												<div v-if="kill.unit.display">{{ kill.unit.display }}</div>
+											</div>
+										</div>
+										<span class="round num">第{{ kill.round }}回合</span>
+									</li>
+								</template>
+								<div class="empty" v-else>暂无功劳</div>
+							</ol>
+						</div>
+						<div v-else-if="!isGaming && boardEditor.selectedPieceType">
+							<el-form label-width="60px">
+								<el-form-item label="显示">
+									<el-input v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].显示" style="width: 60px" autofocus>
+									</el-input>
+								</el-form-item>
+								<el-form-item label="技能">
+									<el-checkbox-group v-model="boardEditor.pieceTypes[boardEditor.selectedPieceType].技能">
+										<el-checkbox v-for="skill in allAvailableSkills" :key="skill" :label="skill">
+										</el-checkbox>
+									</el-checkbox-group>
+								</el-form-item>
+							</el-form>
+						</div>
+						<div v-else>
+							<span v-if="isGaming">未选中棋子</span>
+							<span v-else>从上方棋子库中选择一个棋子进行编辑</span>
+						</div>
 					</details>
-					<details class="plugin list" data-panel="plugins" :open="panels.plugins" @toggle="onPanelToggle">
-						<summary>插件</summary>
-						<el-checkbox-group v-model="gameSettings.plugins">
-							<el-checkbox v-for="plugin in allAvailablePlugins" :key="plugin" :label="plugin">
-							</el-checkbox>
-						</el-checkbox-group>
-					</details>
-					<details class="gaming info" data-panel="gamingInfo" :open="panels.gamingInfo" @toggle="onPanelToggle">
-						<summary>本局信息</summary>
-						<ul class="info list">
-							<li class="one gaming info">先手：{{ gameFirstLabel }}</li>
-						</ul>
-						<ul class="info list">
-							<li class="one gaming info">当前：{{ curPlayerLabel || '—' }}</li>
-							<li class="one gaming info">回合：
-								<span v-if="currentRound === 0">尚未走棋</span>
-								<span v-else>第 {{ currentRound }} 回合</span>
-							</li>
-						</ul>
-					</details>
-					<details class="record area" data-panel="recordArea" :open="panels.recordArea" @toggle="onPanelToggle">
-						<summary>回合</summary>
-						<header class="op area">
-							<el-button icon="Download" size="small" :disabled="!turnHistory.length" @click="downloadNotation">导出 </el-button>
-						</header>
-						<el-empty v-if="!turnHistory.length" description="尚未走棋"></el-empty>
-						<ol v-else class="round list">
-							<li class="one round" v-for="turn in turnHistory" :key="turn.id">
-								<span class="朋字形 grid">
-									<span class="player action">
-										<span class="red player name">红方</span>
-										<span class="action description">{{ turn.redMove }}</span>
+					<template v-if="isGaming">
+						<details class="global-rule list" data-panel="globalRules" :open="panels.globalRules" @toggle="onPanelToggle">
+							<summary>全局规则</summary>
+							<el-checkbox-group v-model="gameSettings.rules">
+								<el-checkbox v-for="rule in allAvailableRules" :key="rule" :label="rule">
+								</el-checkbox>
+							</el-checkbox-group>
+						</details>
+						<details class="plugin list" data-panel="plugins" :open="panels.plugins" @toggle="onPanelToggle">
+							<summary>插件</summary>
+							<el-checkbox-group v-model="gameSettings.plugins">
+								<el-checkbox v-for="plugin in allAvailablePlugins" :key="plugin" :label="plugin">
+								</el-checkbox>
+							</el-checkbox-group>
+						</details>
+						<details class="gaming info" data-panel="gamingInfo" :open="panels.gamingInfo" @toggle="onPanelToggle">
+							<summary>本局信息</summary>
+							<ul class="info list">
+								<li class="one gaming info">先手：{{ gameFirstLabel }}</li>
+							</ul>
+							<ul class="info list">
+								<li class="one gaming info">当前：{{ curPlayerLabel || '—' }}</li>
+								<li class="one gaming info">回合：
+									<span v-if="currentRound === 0">尚未走棋</span>
+									<span v-else>第 {{ currentRound }} 回合</span>
+								</li>
+							</ul>
+						</details>
+						<details class="record area" data-panel="recordArea" :open="panels.recordArea" @toggle="onPanelToggle">
+							<summary>回合</summary>
+							<header class="op area">
+								<el-button icon="Download" size="small" :disabled="!turnHistory.length" @click="downloadNotation">导出 </el-button>
+							</header>
+							<el-empty v-if="!turnHistory.length" description="尚未走棋"></el-empty>
+							<ol v-else class="round list">
+								<li class="one round" v-for="turn in turnHistory" :key="turn.id">
+									<span class="朋字形">
+										<span class="player action">
+											<span class="red player name">红方</span>
+											<span class="action description">{{ turn.redMove }}</span>
+										</span>
+										<span class="player action">
+											<span class="black player name">黑方</span>
+											<span class="action description">{{ turn.blackMove || '—' }}</span>
+										</span>
 									</span>
-									<span class="player action">
-										<span class="black player name">黑方</span>
-										<span class="action description">{{ turn.blackMove || '—' }}</span>
-									</span>
-								</span>
-							</li>
-						</ol>
-					</details>
-				</template>
-			</aside>
-			<!-- 将军提示 -->
-			<div class="check callout , red text-color" v-if="showCheck">将</div>
-			<!-- 游戏结束结算界面 -->
-			<el-dialog class="result" title="游戏结束" v-model="isGameOverForRender" align-center="" :show-close="true">
-				<div class="outcome win">{{ winnerName }} 胜利</div>
-				<template #footer="">
-					<el-button type="primary" icon="RefreshLeft" size="large" @click="restartGame">重来</el-button>
-					<el-button type="info" icon="RefreshRight" size="large" @click="returnToSettings">新局</el-button>
-					<el-button type="info" size="large" @click="downloadNotation">记谱</el-button>
-					<el-button type="warning" size="large" :disabled="!isUndoAvailable" @click="undoMove">悔棋</el-button>
-				</template>
-			</el-dialog>
-		</article>
-	</main>
-	<footer>
-		<article class="website info">
-			<section class="patronage area">
-				<img class="qr-code" title="赞助一下" alt="支付宝收款码" src="../../resources/支付宝收款码.jpg">
-				<p class="slogan">赞助一下</p>
-			</section>
-			<section class="copyright">
-				<p>© 2025 工具兽版权所有 All rights reserved.</p>
-			</section>
-			<section class="feedback">
-				<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
-			</section>
-		</article>
-	</footer>
-	<div class="js container">
-		<script src="../../resources/math.js"></script>
-		<script src="../../lib/jquery-3.4.1.min.js"></script>
-		<script src="../../lib/toastr.min.js"></script>
-		<script src="../../resources/util.js"></script>
-		<script src="../../lib/vue/3.5.18/vue.global.js"></script>
-		<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
-		<script src="../../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
-	</div>
-	<script type="module">
-		import {
-			中国象棋,
-			默认棋子类型,
-			默认棋盘布局,
-			所有可选规则,
-			默认启用规则,
-			内置技能集,
-			内置插件集,
-			红方玩家id,
-			黑方玩家id,
-			Move,
-			Attack,
-		} from './xiangqi.esm.js';
-		import {
-			compareWithId
-		} from './../kit.esm.js';
-		import {
-			棋盘点位
-		} from './../battlefield-module.esm.js';
-		const {
-			createApp,
-			reactive,
-			ref,
-			computed
-		} = Vue;
-		const app = createApp({
-			data() {
-				const panelKey = 'xiangqi-panels';
-				const defaultPanels = {
-					reversedView: true,
-					palette: true,
-					selected: true,
-					globalRules: true,
-					plugins: true,
-					gamingInfo: true,
-					recordArea: true
-				};
-				let saved;
-				try {
-					saved = JSON.parse(localStorage.getItem(panelKey) || 'null');
-				} catch (_) {
-					saved = null;
-				}
-				return {
-					isUndoAvailable: false,
-					gameSettings: {
-						firstPlayer: 'red',
-						rules: [],
-						plugins: [],
+								</li>
+							</ol>
+						</details>
+					</template>
+				</aside>
+				<!-- 将军提示 -->
+				<div class="check callout , red text-color" v-if="showCheck">将</div>
+				<!-- 游戏结束结算界面 -->
+				<el-dialog class="result" title="游戏结束" v-model="isGameOverForRender" align-center="" :show-close="true">
+					<div class="outcome win">{{ winnerName }} 胜利</div>
+					<template #footer="">
+						<el-button type="primary" icon="RefreshLeft" size="large" @click="restartGame">重来</el-button>
+						<el-button type="info" icon="RefreshRight" size="large" @click="returnToSettings">新局</el-button>
+						<el-button type="info" size="large" @click="downloadNotation">记谱</el-button>
+						<el-button type="warning" size="large" :disabled="!isUndoAvailable" @click="undoMove">悔棋</el-button>
+					</template>
+				</el-dialog>
+			</article>
+		</main>
+		<footer>
+			<article class="website info">
+				<section class="patronage area">
+					<img class="qr-code" title="赞助一下" alt="支付宝收款码" src="../../resources/支付宝收款码.jpg">
+					<p class="slogan">赞助一下</p>
+				</section>
+				<section class="copyright">
+					<p>© 2025 工具兽版权所有 All rights reserved.</p>
+				</section>
+				<section class="feedback">
+					<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+				</section>
+			</article>
+		</footer>
+		<div class="js container">
+			<script src="../../resources/math.js"></script>
+			<script src="../../lib/jquery-3.4.1.min.js"></script>
+			<script src="../../lib/toastr.min.js"></script>
+			<script src="../../resources/util.js"></script>
+			<script src="../../lib/vue/3.5.18/vue.global.js"></script>
+			<script src="../../lib/element-plus/2.10.7/index.full.js"></script>
+			<script src="../../lib/element-plus/icons-vue/2.3.1/index.iife.min.js"></script>
+		</div>
+		<script type="module">
+			import {
+				中国象棋,
+				默认棋子类型,
+				默认棋盘布局,
+				所有可选规则,
+				默认启用规则,
+				内置技能集,
+				内置插件集,
+				红方玩家id,
+				黑方玩家id,
+				Move,
+				Attack,
+			} from './xiangqi.esm.js';
+			import {
+				compareWithId
+			} from './../kit.esm.js';
+			import {
+				棋盘点位
+			} from './../battlefield-module.esm.js';
+			const {
+				createApp,
+				reactive,
+				ref,
+				computed
+			} = Vue;
+			const app = createApp({
+				data() {
+					const panelKey = 'xiangqi-panels';
+					const defaultPanels = {
+						reversedView: true,
+						palette: true,
+						selected: true,
+						globalRules: true,
+						plugins: true,
+						gamingInfo: true,
+						recordArea: true
+					};
+					let saved;
+					try {
+						saved = JSON.parse(localStorage.getItem(panelKey) || 'null');
+					} catch (_) {
+						saved = null;
+					}
+					return {
+						isUndoAvailable: false,
+						gameSettings: {
+							firstPlayer: 'red',
+							rules: [],
+							plugins: [],
+						},
+						gameCfg: {},
+						gaming: null,
+						battlefieldVersion: 0, // 响应式触发变量，游戏引擎是非Vue对象，需手动触发更新
+						turnHistoryForRender: [], // 用于渲染回合历史的数组
+						isGameOverForRender: false,
+						winnerNameForRender: '',
+						showCheck: false,
+						selectedUnit: null,
+						movableTargets: [], // 可移动的目标位置
+						attackTargets: [], // 可攻击的目标位置
+						blockedMoves: [], // 被阻碍的移动位置
+						showReversedView: false,
+						moveHistory: [],
+						// 棋盘编辑器数据
+						boardEditor: {
+							pieceTypes: 默认棋子类型,
+							defaultBoardLayout: 默认棋盘布局,
+							layout: [],
+							editorPositions: [],
+							draggedPiece: null, // { type, from, r, c }
+							selectedPiece: null, // {r, c}
+							selectedPieceType: null, // 选中的棋子类型key
+						},
+						// 规则编辑器数据
+						allAvailableRules: [],
+						// 技能编辑器数据
+						allAvailableSkills: [],
+						allAvailablePlugins: [],
+						panels: saved || defaultPanels,
+						_panelKey: panelKey,
+						_defaultPanels: {
+							...defaultPanels
+						},
+					};
+				},
+				computed: {
+					gameFirstLabel() {
+						return this.gameSettings.firstPlayer === 'red' ? '红先' : '黑先';
 					},
-					gameCfg: {},
-					gaming: null,
-					battlefieldVersion: 0, // 响应式触发变量，游戏引擎是非Vue对象，需手动触发更新
-					turnHistoryForRender: [], // 用于渲染回合历史的数组
-					isGameOverForRender: false,
-					winnerNameForRender: '',
-					showCheck: false,
-					selectedUnit: null,
-					movableTargets: [], // 可移动的目标位置
-					attackTargets: [], // 可攻击的目标位置
-					blockedMoves: [], // 被阻碍的移动位置
-					showReversedView: false,
-					moveHistory: [],
-					// 棋盘编辑器数据
-					boardEditor: {
-						pieceTypes: 默认棋子类型,
-						defaultBoardLayout: 默认棋盘布局,
-						layout: [],
-						editorPositions: [],
-						draggedPiece: null, // { type, from, r, c }
-						selectedPiece: null, // {r, c}
-						selectedPieceType: null, // 选中的棋子类型key
+					curPlayerLabel() {
+						const p = this.getCurPlayer();
+						if (!p) {
+							return '';
+						}
+						return p.id === 红方玩家id ? '红方' : '黑方';
 					},
-					// 规则编辑器数据
-					allAvailableRules: [],
-					// 技能编辑器数据
-					allAvailableSkills: [],
-					allAvailablePlugins: [],
-					panels: saved || defaultPanels,
-					_panelKey: panelKey,
-					_defaultPanels: {
-						...defaultPanels
+					currentRound() {
+						if (!this.isGaming || !this.turnHistoryForRender) {
+							return 0;
+						}
+						const n = this.turnHistoryForRender.length;
+						const p = this.getCurPlayer();
+						if (n === 0) {
+							return p ? 1 : 0; // 红方即将走第 1 回合
+						}
+						return p && p.id === 红方玩家id ? n + 1 : n; // 红方走则下一回合，黑方走则本回合
 					},
-				};
-			},
-			computed: {
-				gameFirstLabel() {
-					return this.gameSettings.firstPlayer === 'red' ? '红先' : '黑先';
-				},
-				curPlayerLabel() {
-					const p = this.getCurPlayer();
-					if (!p) {
-						return '';
-					}
-					return p.id === 红方玩家id ? '红方' : '黑方';
-				},
-				currentRound() {
-					if (!this.isGaming || !this.turnHistoryForRender) {
-						return 0;
-					}
-					const n = this.turnHistoryForRender.length;
-					const p = this.getCurPlayer();
-					if (n === 0) {
-						return p ? 1 : 0; // 红方即将走第 1 回合
-					}
-					return p && p.id === 红方玩家id ? n + 1 : n; // 红方走则下一回合，黑方走则本回合
-				},
-				isGaming() {
-					return !!this.gaming;
-				},
-				palettePieceTypes() {
-					return this.boardEditor.pieceTypes;
-				},
-				positions() {
-					return this.isGaming ? this.gaming?.battlefield?.positions : this.boardEditor.editorPositions;
-				},
-				reversedPositions() {
-					if (this.isGaming) {
-						return this.gaming?.battlefield?.revert ? this.gaming.battlefield.revert() : [];
-					}
-					if (!this.boardEditor.editorPositions || this.boardEditor.editorPositions.length === 0) {
-						return [];
-					}
-					return this.boardEditor.editorPositions.slice().reverse().map(row => row.slice().reverse());
-				},
-				mainCells() {
-					const _ = this.boardForRender; // 强制依赖追踪
-					const isReversed = this.showReversedView;
-					const rows = isReversed ? this.reversedPositions : this.positions;
-					if (!rows?.length) return [];
-					const cells = rows.flatMap((row, visualR) => row.map((position, visualC) => {
-							const units = this.getUnitsAt(position);
-							const cellResult = this.getCellClasses(position, visualR, visualC, isReversed);
-							return {
-								position,
-								classes: cellResult.classes,
-								units,
-								marker: cellResult.marker,
-							};
-						}));
-					return cells;
-				},
-				miniCells() {
-					const _ = this.boardForRender; // 强制依赖追踪
-					const isReversed = !this.showReversedView;
-					const rows = isReversed ? this.reversedPositions : this.positions;
-					if (!rows?.length) return [];
-					return rows.flatMap((row, visualR) => row.map((position, visualC) => {
-							const cellResult = this.getCellClasses(position, visualR, visualC, isReversed);
-							return {
-								position,
-								classes: cellResult.classes,
-								units: this.getUnitsAt(position),
-								marker: cellResult.marker,
-							};
-						}));
-				},
-				boardForRender() {
-					if (this.isGaming) {
-						const _ = this.battlefieldVersion; // 强制依赖追踪，触发重新计算
-						if (!this.gaming?.battlefield?.positions) {
+					isGaming() {
+						return !!this.gaming;
+					},
+					palettePieceTypes() {
+						return this.boardEditor.pieceTypes;
+					},
+					positions() {
+						return this.isGaming ? this.gaming?.battlefield?.positions : this.boardEditor.editorPositions;
+					},
+					reversedPositions() {
+						if (this.isGaming) {
+							return this.gaming?.battlefield?.revert ? this.gaming.battlefield.revert() : [];
+						}
+						if (!this.boardEditor.editorPositions || this.boardEditor.editorPositions.length === 0) {
 							return [];
 						}
-						return this.gaming.battlefield.positions.map(row => row.map(pos => {
-							const units = this.gaming.battlefield.getUnitsAt(pos);
-							return units.map(unit => ({
-								...unit,
-								id: unit._id || unit.id,
-								name: unit.name,
-								display: 默认棋子类型[unit.name]?.显示 || unit.name,
-								owner: unit.owner,
+						return this.boardEditor.editorPositions.slice().reverse().map(row => row.slice().reverse());
+					},
+					mainCells() {
+						const _ = this.boardForRender; // 强制依赖追踪
+						const isReversed = this.showReversedView;
+						const rows = isReversed ? this.reversedPositions : this.positions;
+						if (!rows?.length) return [];
+						const cells = rows.flatMap((row, visualR) => row.map((position, visualC) => {
+								const units = this.getUnitsAt(position);
+								const cellResult = this.getCellClasses(position, visualR, visualC, isReversed);
+								return {
+									position,
+									classes: cellResult.classes,
+									units,
+									marker: cellResult.marker,
+								};
 							}));
-						}));
-					}
-					// 编辑模式下，根据布局和棋子类型动态生成渲染数据
-					const newBoardForRender = [];
-					for (let r = 0; r < 10; r++) {
-						const renderRow = [];
-						for (let c = 0; c < 9; c++) {
-							const pieceName = this.boardEditor.layout[r]?.[c];
-							if (pieceName && pieceName !== '空') {
-								const pieceType = this.boardEditor.pieceTypes[pieceName];
-								renderRow.push([{
-									id: `${r}-${c}`,
-									name: pieceName,
-									display: pieceType.显示,
-									owner: {
-										team: {
-											flag: pieceType.玩家 === 红方玩家id ? 'red' : 'black'
-										}
-									},
-								}]);
-							} else {
-								renderRow.push([]);
+						return cells;
+					},
+					miniCells() {
+						const _ = this.boardForRender; // 强制依赖追踪
+						const isReversed = !this.showReversedView;
+						const rows = isReversed ? this.reversedPositions : this.positions;
+						if (!rows?.length) return [];
+						return rows.flatMap((row, visualR) => row.map((position, visualC) => {
+								const cellResult = this.getCellClasses(position, visualR, visualC, isReversed);
+								return {
+									position,
+									classes: cellResult.classes,
+									units: this.getUnitsAt(position),
+									marker: cellResult.marker,
+								};
+							}));
+					},
+					boardForRender() {
+						if (this.isGaming) {
+							const _ = this.battlefieldVersion; // 强制依赖追踪，触发重新计算
+							if (!this.gaming?.battlefield?.positions) {
+								return [];
 							}
+							return this.gaming.battlefield.positions.map(row => row.map(pos => {
+								const units = this.gaming.battlefield.getUnitsAt(pos);
+								return units.map(unit => ({
+									...unit,
+									id: unit._id || unit.id,
+									name: unit.name,
+									display: 默认棋子类型[unit.name]?.显示 || unit.name,
+									owner: unit.owner,
+								}));
+							}));
 						}
-						newBoardForRender.push(renderRow);
-					}
-					return newBoardForRender;
-				},
-				situation() {
-					return this.gaming?.situation;
-				},
-				isGameOver() {
-					return this.isGameOverForRender;
-				},
-				winnerName() {
-					return this.winnerNameForRender;
-				},
-				turnHistory() {
-					return this.turnHistoryForRender;
-				},
-				targetMarkers() {
-					const markers = {};
-					if (!this.isGaming) {
+						// 编辑模式下，根据布局和棋子类型动态生成渲染数据
+						const newBoardForRender = [];
+						for (let r = 0; r < 10; r++) {
+							const renderRow = [];
+							for (let c = 0; c < 9; c++) {
+								const pieceName = this.boardEditor.layout[r]?.[c];
+								if (pieceName && pieceName !== '空') {
+									const pieceType = this.boardEditor.pieceTypes[pieceName];
+									renderRow.push([{
+										id: `${r}-${c}`,
+										name: pieceName,
+										display: pieceType.显示,
+										owner: {
+											team: {
+												flag: pieceType.玩家 === 红方玩家id ? 'red' : 'black'
+											}
+										},
+									}]);
+								} else {
+									renderRow.push([]);
+								}
+							}
+							newBoardForRender.push(renderRow);
+						}
+						return newBoardForRender;
+					},
+					situation() {
+						return this.gaming?.situation;
+					},
+					isGameOver() {
+						return this.isGameOverForRender;
+					},
+					winnerName() {
+						return this.winnerNameForRender;
+					},
+					turnHistory() {
+						return this.turnHistoryForRender;
+					},
+					targetMarkers() {
+						const markers = {};
+						if (!this.isGaming) {
+							return markers;
+						}
+						// 可移动到空点
+						this.movableTargets.forEach(pos => markers[pos.toString()] = 'movable');
+						// 被阻碍的点位（如绊马脚、塞象眼）
+						this.blockedMoves.forEach(pos => markers[pos.toString()] = 'blocked');
+						// 可攻击的单位（会覆盖上面的movable和blocked）
+						const curPlayer = this.getCurPlayer();
+						if (curPlayer) {
+							this.attackTargets.forEach(unit => {
+								const posStr = unit.position.toString();
+								if (unit.owner.id !== curPlayer.id) {
+									markers[posStr] = 'attackable'; // 敌方单位
+								} else {
+									markers[posStr] = 'blocked'; // 己方单位
+								}
+							});
+						}
 						return markers;
-					}
-					// 可移动到空点
-					this.movableTargets.forEach(pos => markers[pos.toString()] = 'movable');
-					// 被阻碍的点位（如绊马脚、塞象眼）
-					this.blockedMoves.forEach(pos => markers[pos.toString()] = 'blocked');
-					// 可攻击的单位（会覆盖上面的movable和blocked）
-					const curPlayer = this.getCurPlayer();
-					if (curPlayer) {
-						this.attackTargets.forEach(unit => {
-							const posStr = unit.position.toString();
-							if (unit.owner.id !== curPlayer.id) {
-								markers[posStr] = 'attackable'; // 敌方单位
+					},
+				},
+				created() {
+					// 初始化规则编辑器，只向用户展示可选规则
+					this.allAvailableRules = [...所有可选规则];
+					this.gameSettings.rules = [...默认启用规则];
+					// 初始化技能编辑器
+					this.allAvailableSkills = Object.keys(内置技能集);
+					// 初始化插件编辑器
+					this.allAvailablePlugins = Object.keys(内置插件集);
+					this.gameSettings.plugins = Object.keys(内置插件集);
+				},
+				mounted() {
+					this.resetBoard();
+				},
+				methods: {
+					onPanelToggle(e) {
+						// 从e.target.dataset.panel获取面板名，toggle事件在details.open改变后触发，只需保存状态
+						const name = e.target.dataset.panel;
+						this.panels[name] = e.target.open;
+						try {
+							if (JSON.stringify(this.panels) === JSON.stringify(this._defaultPanels)) {
+								localStorage.removeItem(this._panelKey);
 							} else {
-								markers[posStr] = 'blocked'; // 己方单位
+								localStorage.setItem(this._panelKey, JSON.stringify(this.panels));
 							}
-						});
-					}
-					return markers;
-				},
-			},
-			created() {
-				// 初始化规则编辑器，只向用户展示可选规则
-				this.allAvailableRules = [...所有可选规则];
-				this.gameSettings.rules = [...默认启用规则];
-				// 初始化技能编辑器
-				this.allAvailableSkills = Object.keys(内置技能集);
-				// 初始化插件编辑器
-				this.allAvailablePlugins = Object.keys(内置插件集);
-				this.gameSettings.plugins = Object.keys(内置插件集);
-			},
-			mounted() {
-				this.resetBoard();
-			},
-			methods: {
-				onPanelToggle(e) {
-					// 从e.target.dataset.panel获取面板名，toggle事件在details.open改变后触发，只需保存状态
-					const name = e.target.dataset.panel;
-					this.panels[name] = e.target.open;
-					try {
-						if (JSON.stringify(this.panels) === JSON.stringify(this._defaultPanels)) {
-							localStorage.removeItem(this._panelKey);
-						} else {
-							localStorage.setItem(this._panelKey, JSON.stringify(this.panels));
-						}
-					} catch (_) {}
-				},
-				getCellClasses(position, visualR, visualC, isReversed) {
-					return isReversed ? this.getDynamicCellClasses(9 - visualR, 8 - visualC, position, visualR, visualC) : this.getDynamicCellClasses(visualR, visualC, position);
-				},
-				getUnitsAt(position) {
-					const units = this.boardForRender[position.rowNum - 1]?.[position.colNum - 1] || [];
-					return units.map(unit => {
-						const r = position.rowNum - 1;
-						const c = position.colNum - 1;
-						return {
-							...unit,
-							r,
-							c,
-							classes: this.isGaming ? this.getUnitClasses(unit) : this.getEditorPieceClasses({
-								name: unit.name,
+						} catch (_) {}
+					},
+					getCellClasses(position, visualR, visualC, isReversed) {
+						return isReversed ? this.getDynamicCellClasses(9 - visualR, 8 - visualC, position, visualR, visualC) : this.getDynamicCellClasses(visualR, visualC, position);
+					},
+					getUnitsAt(position) {
+						const units = this.boardForRender[position.rowNum - 1]?.[position.colNum - 1] || [];
+						return units.map(unit => {
+							const r = position.rowNum - 1;
+							const c = position.colNum - 1;
+							return {
+								...unit,
 								r,
-								c
-							}),
-							canDrag: !this.isGaming,
-						};
-					});
-				},
-				getCurPlayer() {
-					return this.gaming?.situation.curPlayer;
-				},
-				syncGameState() {
-					if (!this.gaming) {
-						return;
-					}
-					// 游戏引擎内部状态变化无法被Vue追踪，通过版本号触发boardForRender重新计算
-					this.battlefieldVersion++;
-					this.isUndoAvailable = this.gaming.situation.canRewind();
-					// 更新回合历史
-					this.turnHistoryForRender = this.gaming.situation?._roundNotations?.map((round, index) => ({
-						id: index + 1,
-						redMove: round[0] || null,
-						blackMove: round[1] || null,
-					}));
-					// 更新游戏结束状态
-					this.isGameOverForRender = this.gaming.situation?.isEnded || false;
-					this.winnerNameForRender = this.gaming.situation?.winner?.name || '';
-					// 清理选择状态
-					this.selectedUnit = null;
-					this.movableTargets = [];
-					this.attackTargets = [];
-					this.blockedMoves = [];
-				},
-				// 棋盘编辑器方法
-				getEditorUnitColor(piece) {
-					if (!piece) {
-						return '';
-					}
-					return piece.玩家 === 红方玩家id ? 'red' : 'black';
-				},
-				clearBoard() {
-					this.boardEditor.layout = Array(10).fill(0).map(() => Array(9).fill('空'));
-					this.boardEditor.selectedPiece = null;
-					this.updateEditorRenderData();
-				},
-				resetBoard() {
-					this.boardEditor.layout = this.boardEditor.defaultBoardLayout.trim().split('\n').map(row => row.trim().split(''));
-					this.boardEditor.selectedPiece = null;
-					this.updateEditorRenderData();
-				},
-				dragStartPiece(piece, from) {
-					this.boardEditor.draggedPiece = {
-						type: piece.name,
-						from,
-						r: piece.r,
-						c: piece.c,
-					};
-					this.boardEditor.selectedPiece = null;
-				},
-				dropOnBoard(position) {
-					if (!this.boardEditor.draggedPiece) return;
-					const r = position.rowNum - 1;
-					const c = position.colNum - 1;
-					// 如果是从棋盘上拖动，先清空原来的位置
-					if (this.boardEditor.draggedPiece.from === 'board') {
-						this.boardEditor.layout[this.boardEditor.draggedPiece.r][this.boardEditor.draggedPiece.c] = '空';
-					}
-					// 在新位置上放置棋子
-					this.boardEditor.layout[r][c] = this.boardEditor.draggedPiece.type;
-					this.boardEditor.draggedPiece = null;
-					this.boardEditor.layout = [...this.boardEditor.layout];
-					this.updateEditorRenderData();
-				},
-				selectEditorPiece(cell) {
-					const r = cell.rowNum - 1;
-					const c = cell.colNum - 1;
-					const selected = this.boardEditor.selectedPiece;
-					// 如果点击的是已有棋子，则选中它
-					if (this.boardEditor.layout[r][c] !== '空') {
-						// 如果重复点击同一个棋子，则取消选中
-						if (selected && selected.r === r && selected.c === c) {
-							this.boardEditor.selectedPiece = null;
-						} else {
-							this.boardEditor.selectedPiece = {
-								r,
-								c
+								c,
+								classes: this.isGaming ? this.getUnitClasses(unit) : this.getEditorPieceClasses({
+									name: unit.name,
+									r,
+									c
+								}),
+								canDrag: !this.isGaming,
 							};
-						}
-					} else {
-						// 如果点击的是空格，则取消选中
-						this.boardEditor.selectedPiece = null;
-					}
-				},
-				isEditorPieceSelected(unit) {
-					const selected = this.boardEditor.selectedPiece;
-					return selected && selected.r === unit.r && selected.c === unit.c;
-				},
-				removeEditorPiece(unit) {
-					this.boardEditor.layout[unit.r][unit.c] = '空';
-					this.boardEditor.selectedPiece = null;
-					this.updateEditorRenderData();
-				},
-				clearDraggedPiece() {
-					this.boardEditor.draggedPiece = null;
-				},
-				updateEditorRenderData() {
-					const newPositions = [];
-					if (!this.boardEditor.layout || this.boardEditor.layout.length === 0) {
-						this.boardEditor.layout = Array(10).fill(0).map(() => Array(9).fill('空'));
-					}
-					for (let r = 0; r < 10; r++) {
-						const row = [];
-						for (let c = 0; c < 9; c++) {
-							row.push(new 棋盘点位(r + 1, c + 1));
-						}
-						newPositions.push(row);
-					}
-					this.boardEditor.editorPositions = newPositions;
-				},
-				undoMove() {
-					if (this.gaming) {
-						this.gaming.situation.rewind(1);
-					}
-				},
-				// 游戏流程方法
-				startGame() {
-					let playerTurnSequence;
-					if (this.gameSettings.firstPlayer === 'red') {
-						playerTurnSequence = [红方玩家id, 黑方玩家id];
-					} else {
-						playerTurnSequence = [黑方玩家id, 红方玩家id];
-					}
-					const boardString = this.boardEditor.layout.map(row => row.join('')).join('\n');
-					this.gameCfg = {
-						玩家顺序: playerTurnSequence,
-						棋盘: boardString,
-						棋子类型: this.boardEditor.pieceTypes,
-						规则: this.gameSettings.rules,
-						插件: this.gameSettings.plugins,
-					};
-					this.launchGame();
-				},
-				launchGame() {
-					const gaming = new 中国象棋(this.gameCfg, 红方玩家id, 黑方玩家id).newGaming();
-					this.gaming = gaming;
-					// 监听游戏事件来更新UI
-					gaming.bulletin.watch('将军', () => {
-						this.showCheck = true;
-						setTimeout(() => this.showCheck = false, 1000);
-					});
-					gaming.bulletin.watch('玩家选择了单位', ({
-						units
-					}) => {
-						this.selectedUnit = units[0];
-						// 清空旧提示
-						this.movableTargets = [];
-						this.attackTargets = [];
-						this.blockedMoves = [];
-						// 主动访问技能的 getter 以触发通知
-						this.selectedUnit.skills.forEach(skill => {
-							const _ = skill.availableTargets;
 						});
-					});
-					gaming.bulletin.watch('skill get availableTargets end', ({
-						skill,
-						result
-					}) => {
-						if (skill instanceof Move) {
-							this.movableTargets = result || [];
-							this.blockedMoves = skill.blockedTargets || [];
-						} else if (skill instanceof Attack) {
-							this.attackTargets = result || [];
+					},
+					getCurPlayer() {
+						return this.gaming?.situation.curPlayer;
+					},
+					syncGameState() {
+						if (!this.gaming) {
+							return;
 						}
-					});
-					gaming.bulletin.watch('玩家取消选择单位', () => {
+						// 游戏引擎内部状态变化无法被Vue追踪，通过版本号触发boardForRender重新计算
+						this.battlefieldVersion++;
+						this.isUndoAvailable = this.gaming.situation.canRewind();
+						// 更新回合历史
+						this.turnHistoryForRender = this.gaming.situation?._roundNotations?.map((round, index) => ({
+							id: index + 1,
+							redMove: round[0] || null,
+							blackMove: round[1] || null,
+						}));
+						// 更新游戏结束状态
+						this.isGameOverForRender = this.gaming.situation?.isEnded || false;
+						this.winnerNameForRender = this.gaming.situation?.winner?.name || '';
+						// 清理选择状态
 						this.selectedUnit = null;
 						this.movableTargets = [];
 						this.attackTargets = [];
 						this.blockedMoves = [];
-					});
-					gaming.bulletin.watch('history-navigation-end', () => this.syncGameState());
-					gaming.bulletin.watch('单位移动', move => this.moveHistory.push(move));
-					gaming.bulletin.watch('单位杀敌', () => this.syncGameState());
-					gaming.bulletin.watch('游戏结束', () => this.syncGameState());
-					gaming.bulletin.watch('轮次结束', () => this.syncGameState());
-					// 初始渲染不再立即调用 syncGameState，而是依赖事件监听器
-				},
-				returnToSettings() {
-					this.isGameOverForRender = false; // 关闭结算弹框
-					this.showCheck = false;
-					this.selectedUnit = null;
-					this.movableTargets = [];
-					this.attackTargets = [];
-					this.blockedMoves = [];
-					this.moveHistory = [];
-					this.turnHistoryForRender = [];
-					this.gaming = null; // 销毁游戏实例
-				},
-				restartGame() {
-					this.showCheck = false;
-					this.isGameOverForRender = false; // 关闭结算弹框
-					this.selectedUnit = null;
-					this.movableTargets = [];
-					this.attackTargets = [];
-					this.blockedMoves = [];
-					this.moveHistory = [];
-					this.turnHistoryForRender = [];
-					this.gaming = null; // 销毁游戏实例
-					this.launchGame(); // 使用之前的配置重新开始游戏
-				},
-				downloadNotation() {
-					const notations = this.turnHistoryForRender.map((turn, index) => {
-						const redMove = turn.redMove ? turn.redMove.padEnd(8) : ' '.repeat(8);
-						const blackMove = turn.blackMove || '';
-						return `${(index + 1).toString().padStart(3)}. ${redMove}${blackMove}`;
-					}).join('\n');
-					const fileContent = `游戏配置:\n${JSON.stringify(this.gameCfg, null, 2)}\n\n记谱:\n${notations}`;
-					const blob = new Blob([fileContent], {
-						type: 'text/plain;charset=utf-8'
-					});
-					const link = document.createElement('a');
-					link.href = URL.createObjectURL(blob);
-					link.download = '中国象棋记谱.txt';
-					document.body.appendChild(link);
-					link.click();
-					document.body.removeChild(link);
-					URL.revokeObjectURL(link.href);
-				},
-				// 游戏中的UI辅助方法
-				getDynamicCellClasses(r, c, item, visualR, visualC) {
-					let position;
-					if (this.isGaming) {
-						position = item;
-					} else {
-						position = this.boardEditor.editorPositions[r]?.[c];
-					}
-					if (!position) {
-						return {classes: [], marker: null};
-					}
-					// 如果传入了 visualR/C (用于对面棋盘)，则所有视觉样式都根据它来计算
-					// 否则，使用棋盘本身的逻辑位置
-					const rNum = visualR !== undefined ? visualR + 1 : position.rowNum;
-					const cNum = visualC !== undefined ? visualC + 1 : position.colNum;
-					// "路"的名称维持逻辑位置不变
-					const logicalCNum = position.colNum;
-					const rt = [`row-${rNum}`, `col-${cNum}`, `红${ChineseNum.digitsFromArabic(10 - logicalCNum)}路`, // 红方从右往左数
-						`黑${logicalCNum}路`, // 黑方从左往右数
-					];
-					if ((rNum === 3 || rNum === 8) && (cNum === 2 || cNum === 8)) {
-						rt.push('炮位');
-					}
-					if ((rNum === 4 || rNum === 7) && cNum % 2 === 1) {
-						rt.push('兵卒位');
-					}
-					if ((rNum <= 3 || rNum >= 8) && (cNum >= 4 && cNum <= 6)) {
-						rt.push('九宫');
-						if ((rNum === 2 || rNum === 9) && cNum === 5) {
-							rt.push('窝心');
+					},
+					// 棋盘编辑器方法
+					getEditorUnitColor(piece) {
+						if (!piece) {
+							return '';
 						}
-						if ((rNum === 3 || rNum === 8) && (cNum === 4 || cNum === 6)) {
-							rt.push('士角');
+						return piece.玩家 === 红方玩家id ? 'red' : 'black';
+					},
+					clearBoard() {
+						this.boardEditor.layout = Array(10).fill(0).map(() => Array(9).fill('空'));
+						this.boardEditor.selectedPiece = null;
+						this.updateEditorRenderData();
+					},
+					resetBoard() {
+						this.boardEditor.layout = this.boardEditor.defaultBoardLayout.trim().split('\n').map(row => row.trim().split(''));
+						this.boardEditor.selectedPiece = null;
+						this.updateEditorRenderData();
+					},
+					dragStartPiece(piece, from) {
+						this.boardEditor.draggedPiece = {
+							type: piece.name,
+							from,
+							r: piece.r,
+							c: piece.c,
+						};
+						this.boardEditor.selectedPiece = null;
+					},
+					dropOnBoard(position) {
+						if (!this.boardEditor.draggedPiece) return;
+						const r = position.rowNum - 1;
+						const c = position.colNum - 1;
+						// 如果是从棋盘上拖动，先清空原来的位置
+						if (this.boardEditor.draggedPiece.from === 'board') {
+							this.boardEditor.layout[this.boardEditor.draggedPiece.r][this.boardEditor.draggedPiece.c] = '空';
 						}
-					}
-					let markers = null;
-					if (this.isGaming) {
-						markers = this.targetMarkers[position.toString()];
-					}
-					return {classes: rt, marker: markers};
+						// 在新位置上放置棋子
+						this.boardEditor.layout[r][c] = this.boardEditor.draggedPiece.type;
+						this.boardEditor.draggedPiece = null;
+						this.boardEditor.layout = [...this.boardEditor.layout];
+						this.updateEditorRenderData();
+					},
+					selectEditorPiece(cell) {
+						const r = cell.rowNum - 1;
+						const c = cell.colNum - 1;
+						const selected = this.boardEditor.selectedPiece;
+						// 如果点击的是已有棋子，则选中它
+						if (this.boardEditor.layout[r][c] !== '空') {
+							// 如果重复点击同一个棋子，则取消选中
+							if (selected && selected.r === r && selected.c === c) {
+								this.boardEditor.selectedPiece = null;
+							} else {
+								this.boardEditor.selectedPiece = {
+									r,
+									c
+								};
+							}
+						} else {
+							// 如果点击的是空格，则取消选中
+							this.boardEditor.selectedPiece = null;
+						}
+					},
+					isEditorPieceSelected(unit) {
+						const selected = this.boardEditor.selectedPiece;
+						return selected && selected.r === unit.r && selected.c === unit.c;
+					},
+					removeEditorPiece(unit) {
+						this.boardEditor.layout[unit.r][unit.c] = '空';
+						this.boardEditor.selectedPiece = null;
+						this.updateEditorRenderData();
+					},
+					clearDraggedPiece() {
+						this.boardEditor.draggedPiece = null;
+					},
+					updateEditorRenderData() {
+						const newPositions = [];
+						if (!this.boardEditor.layout || this.boardEditor.layout.length === 0) {
+							this.boardEditor.layout = Array(10).fill(0).map(() => Array(9).fill('空'));
+						}
+						for (let r = 0; r < 10; r++) {
+							const row = [];
+							for (let c = 0; c < 9; c++) {
+								row.push(new 棋盘点位(r + 1, c + 1));
+							}
+							newPositions.push(row);
+						}
+						this.boardEditor.editorPositions = newPositions;
+					},
+					undoMove() {
+						if (this.gaming) {
+							this.gaming.situation.rewind(1);
+						}
+					},
+					// 游戏流程方法
+					startGame() {
+						let playerTurnSequence;
+						if (this.gameSettings.firstPlayer === 'red') {
+							playerTurnSequence = [红方玩家id, 黑方玩家id];
+						} else {
+							playerTurnSequence = [黑方玩家id, 红方玩家id];
+						}
+						const boardString = this.boardEditor.layout.map(row => row.join('')).join('\n');
+						this.gameCfg = {
+							玩家顺序: playerTurnSequence,
+							棋盘: boardString,
+							棋子类型: this.boardEditor.pieceTypes,
+							规则: this.gameSettings.rules,
+							插件: this.gameSettings.plugins,
+						};
+						this.launchGame();
+					},
+					launchGame() {
+						const gaming = new 中国象棋(this.gameCfg, 红方玩家id, 黑方玩家id).newGaming();
+						this.gaming = gaming;
+						// 监听游戏事件来更新UI
+						gaming.bulletin.watch('将军', () => {
+							this.showCheck = true;
+							setTimeout(() => this.showCheck = false, 1000);
+						});
+						gaming.bulletin.watch('玩家选择了单位', ({
+							units
+						}) => {
+							this.selectedUnit = units[0];
+							// 清空旧提示
+							this.movableTargets = [];
+							this.attackTargets = [];
+							this.blockedMoves = [];
+							// 主动访问技能的 getter 以触发通知
+							this.selectedUnit.skills.forEach(skill => {
+								const _ = skill.availableTargets;
+							});
+						});
+						gaming.bulletin.watch('skill get availableTargets end', ({
+							skill,
+							result
+						}) => {
+							if (skill instanceof Move) {
+								this.movableTargets = result || [];
+								this.blockedMoves = skill.blockedTargets || [];
+							} else if (skill instanceof Attack) {
+								this.attackTargets = result || [];
+							}
+						});
+						gaming.bulletin.watch('玩家取消选择单位', () => {
+							this.selectedUnit = null;
+							this.movableTargets = [];
+							this.attackTargets = [];
+							this.blockedMoves = [];
+						});
+						gaming.bulletin.watch('history-navigation-end', () => this.syncGameState());
+						gaming.bulletin.watch('单位移动', move => this.moveHistory.push(move));
+						gaming.bulletin.watch('单位杀敌', () => this.syncGameState());
+						gaming.bulletin.watch('游戏结束', () => this.syncGameState());
+						gaming.bulletin.watch('轮次结束', () => this.syncGameState());
+						// 初始渲染不再立即调用 syncGameState，而是依赖事件监听器
+					},
+					returnToSettings() {
+						this.isGameOverForRender = false; // 关闭结算弹框
+						this.showCheck = false;
+						this.selectedUnit = null;
+						this.movableTargets = [];
+						this.attackTargets = [];
+						this.blockedMoves = [];
+						this.moveHistory = [];
+						this.turnHistoryForRender = [];
+						this.gaming = null; // 销毁游戏实例
+					},
+					restartGame() {
+						this.showCheck = false;
+						this.isGameOverForRender = false; // 关闭结算弹框
+						this.selectedUnit = null;
+						this.movableTargets = [];
+						this.attackTargets = [];
+						this.blockedMoves = [];
+						this.moveHistory = [];
+						this.turnHistoryForRender = [];
+						this.gaming = null; // 销毁游戏实例
+						this.launchGame(); // 使用之前的配置重新开始游戏
+					},
+					downloadNotation() {
+						const notations = this.turnHistoryForRender.map((turn, index) => {
+							const redMove = turn.redMove ? turn.redMove.padEnd(8) : ' '.repeat(8);
+							const blackMove = turn.blackMove || '';
+							return `${(index + 1).toString().padStart(3)}. ${redMove}${blackMove}`;
+						}).join('\n');
+						const fileContent = `游戏配置:\n${JSON.stringify(this.gameCfg, null, 2)}\n\n记谱:\n${notations}`;
+						const blob = new Blob([fileContent], {
+							type: 'text/plain;charset=utf-8'
+						});
+						const link = document.createElement('a');
+						link.href = URL.createObjectURL(blob);
+						link.download = '中国象棋记谱.txt';
+						document.body.appendChild(link);
+						link.click();
+						document.body.removeChild(link);
+						URL.revokeObjectURL(link.href);
+					},
+					// 游戏中的UI辅助方法
+					getDynamicCellClasses(r, c, item, visualR, visualC) {
+						let position;
+						if (this.isGaming) {
+							position = item;
+						} else {
+							position = this.boardEditor.editorPositions[r]?.[c];
+						}
+						if (!position) {
+							return {classes: [], marker: null};
+						}
+						// 如果传入了 visualR/C (用于对面棋盘)，则所有视觉样式都根据它来计算
+						// 否则，使用棋盘本身的逻辑位置
+						const rNum = visualR !== undefined ? visualR + 1 : position.rowNum;
+						const cNum = visualC !== undefined ? visualC + 1 : position.colNum;
+						// "路"的名称维持逻辑位置不变
+						const logicalCNum = position.colNum;
+						const rt = [`row-${rNum}`, `col-${cNum}`, `红${ChineseNum.digitsFromArabic(10 - logicalCNum)}路`, // 红方从右往左数
+							`黑${logicalCNum}路`, // 黑方从左往右数
+						];
+						if ((rNum === 3 || rNum === 8) && (cNum === 2 || cNum === 8)) {
+							rt.push('炮位');
+						}
+						if ((rNum === 4 || rNum === 7) && cNum % 2 === 1) {
+							rt.push('兵卒位');
+						}
+						if ((rNum <= 3 || rNum >= 8) && (cNum >= 4 && cNum <= 6)) {
+							rt.push('九宫');
+							if ((rNum === 2 || rNum === 9) && cNum === 5) {
+								rt.push('窝心');
+							}
+							if ((rNum === 3 || rNum === 8) && (cNum === 4 || cNum === 6)) {
+								rt.push('士角');
+							}
+						}
+						let markers = null;
+						if (this.isGaming) {
+							markers = this.targetMarkers[position.toString()];
+						}
+						return {classes: rt, marker: markers};
+					},
+					getEditorPieceClasses(unit) {
+						const piece = this.boardEditor.pieceTypes[unit.name];
+						const color = this.getEditorUnitColor(piece);
+						const selected = this.isEditorPieceSelected(unit);
+						return [color, {
+							selected
+						}];
+					},
+					getEditorPaletteClass(type) {
+						const piece = this.boardEditor.pieceTypes[type];
+						return [this.getEditorUnitColor(piece), {
+							selected: this.boardEditor.selectedPieceType === type
+						}];
+					},
+					handleCellDrop(cell) {
+						if (!this.isGaming) this.dropOnBoard(cell.position);
+					},
+					handleCellClick(cell) {
+						if (this.isGaming) {
+							this.clickCell(cell.position);
+						} else {
+							this.selectEditorPiece(cell.position);
+						}
+					},
+					getUnitClasses(unit) {
+						if (!unit) {
+							return [];
+						}
+						const classes = [];
+						classes.push(unit.owner.team.flag);
+						if (this.selectedUnit && compareWithId(this.selectedUnit, unit)) {
+							classes.push('cur');
+						}
+						return classes;
+					},
+					clickCell(position) {
+						if (!this.gaming || this.isGameOver) {
+							return;
+						}
+						const clickedUnits = this.gaming.battlefield.getUnitsAt(position);
+						if (clickedUnits.length > 0) {
+							// 如果点击的位置有单位，则输入是单位本身
+							this.gaming.bulletin.notice('ui input', clickedUnits[0]);
+						} else {
+							// 否则，输入是位置
+							this.gaming.bulletin.notice('ui input', position);
+						}
+					},
 				},
-				getEditorPieceClasses(unit) {
-					const piece = this.boardEditor.pieceTypes[unit.name];
-					const color = this.getEditorUnitColor(piece);
-					const selected = this.isEditorPieceSelected(unit);
-					return [color, {
-						selected
-					}];
-				},
-				getEditorPaletteClass(type) {
-					const piece = this.boardEditor.pieceTypes[type];
-					return [this.getEditorUnitColor(piece), {
-						selected: this.boardEditor.selectedPieceType === type
-					}];
-				},
-				handleCellDrop(cell) {
-					if (!this.isGaming) this.dropOnBoard(cell.position);
-				},
-				handleCellClick(cell) {
-					if (this.isGaming) {
-						this.clickCell(cell.position);
-					} else {
-						this.selectEditorPiece(cell.position);
-					}
-				},
-				getUnitClasses(unit) {
-					if (!unit) {
-						return [];
-					}
-					const classes = [];
-					classes.push(unit.owner.team.flag);
-					if (this.selectedUnit && compareWithId(this.selectedUnit, unit)) {
-						classes.push('cur');
-					}
-					return classes;
-				},
-				clickCell(position) {
-					if (!this.gaming || this.isGameOver) {
-						return;
-					}
-					const clickedUnits = this.gaming.battlefield.getUnitsAt(position);
-					if (clickedUnits.length > 0) {
-						// 如果点击的位置有单位，则输入是单位本身
-						this.gaming.bulletin.notice('ui input', clickedUnits[0]);
-					} else {
-						// 否则，输入是位置
-						this.gaming.bulletin.notice('ui input', position);
-					}
-				},
-			},
-		});
-		app.use(ElementPlus);
-		for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-			app.component(key, component);
-		}
-		window.app = app.mount('main>article');
+			});
+			app.use(ElementPlus);
+			for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+				app.component(key, component);
+			}
+			window.app = app.mount('main>article');
 
-	</script>
+		</script>
 
 
 
-</body></html>
+	</body></html>

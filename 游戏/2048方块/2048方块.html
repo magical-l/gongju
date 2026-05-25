@@ -19,7 +19,7 @@
 <link href="../2048/2048.css" rel="stylesheet">
 <link href="2048方块.css" rel="stylesheet">
 </head>
-<body class="grid 反叵字形">
+<body class="反叵字形">
 <header>
 	<h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
 	<nav>
@@ -58,7 +58,7 @@
 			</el-dialog>
 		</div>
 	</header>
-	<article class="gaming area , game-2048 , 叵字形 grid" tabindex="0" v-cloak>
+	<article class="gaming area , game-2048 , 叵字形" tabindex="0" v-cloak>
 		<header class="toolbar , multi-line flex , items-near-x-center items-stretch no-gap">
 			<section class="setting list , single-line flex , items-near-x-start items-near-y-center no-gap">
 				<div class="one setting group">
@@ -245,7 +245,7 @@
 					const total = rows * cols;
 					const s = state.lastStateForDisplay;
 					const getDisplay = v => window.Game2048Blocks && window.Game2048Blocks.getTileDisplayContent(s, v)
-																	|| {type: 'number', value: v};
+													|| {type: 'number', value: v};
 					if (cells.length === 0) {
 						return Array.from({length: total}, (_, i) => ({index: i, value: 0, unit: null}));
 					}

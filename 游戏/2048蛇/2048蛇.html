@@ -22,7 +22,7 @@
 	</style>
 	<link href="2048蛇.css" rel="stylesheet">
 </head>
-<body class="grid 反叵字形">
+<body class="反叵字形">
 <header>
 	<h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
 	<nav>
@@ -61,7 +61,7 @@
 			</el-dialog>
 		</div>
 	</header>
-	<article class="gaming area , game-2048 , 叵字形 grid" tabindex="0" v-cloak>
+	<article class="gaming area , game-2048 , 叵字形" tabindex="0" v-cloak>
 		<header class="toolbar , multi-line flex , items-near-x-center items-stretch no-gap">
 			<section class="setting list , single-line flex , items-near-x-start items-near-y-center no-gap">
 				<div class="one setting group">
@@ -83,7 +83,7 @@
 						<el-input-number :model-value="targetNumber" @update:model-value="onTargetNumberChange" :controls="false" placeholder="留空=无限" title="留空=无限" :min="8" style="width: 10em">
 							<template #prefix="">目标≥</template>
 							<template #suffix="">
-								<el-button v-if="targetNumber != null &amp;&amp; targetNumber !== ''" link="" type="primary" size="small" icon="CircleClose" circle title="清空为无限" @click.stop="onTargetNumberChange(null)"></el-button>
+								<el-button v-if="targetNumber != null && targetNumber !== ''" link="" type="primary" size="small" icon="CircleClose" circle title="清空为无限" @click.stop="onTargetNumberChange(null)"></el-button>
 							</template>
 						</el-input-number>
 					</el-form-item>
@@ -133,7 +133,7 @@
 						<el-descriptions-item label="行" class="one gaming info">{{ gameBoardHeight }}</el-descriptions-item>
 						<el-descriptions-item label="列" class="one gaming info">{{ gameBoardWidth }}</el-descriptions-item>
 						<el-descriptions-item label="目标≥" class="one gaming info">{{ gameTargetLabel }}</el-descriptions-item>
-						<el-descriptions-item :label="gameBoardWidth &amp;&amp; gameBoardHeight ? `最高记录 (${gameBoardWidth}×${gameBoardHeight})` : '最高记录'" class="one gaming info">
+						<el-descriptions-item :label="gameBoardWidth && gameBoardHeight ? `最高记录 (${gameBoardWidth}×${gameBoardHeight})` : '最高记录'" class="one gaming info">
 							{{ highScore }}
 						</el-descriptions-item>
 					</el-descriptions>
@@ -160,7 +160,7 @@
 			</template>
 		</el-dialog>
 		<!-- 彩纸效果（仅胜利时） -->
-		<div class="fullscreen non-interactive top-layer" v-if="gameResultVisible &amp;&amp; gameResultIsWin">
+		<div class="fullscreen non-interactive top-layer" v-if="gameResultVisible && gameResultIsWin">
 			<div class="confetti-piece" v-for="i in 150" :key="i"></div>
 		</div>
 	</article>
@@ -196,7 +196,7 @@
 		let saved;
 		try { saved = JSON.parse(localStorage.getItem(panelKey) || 'null'); } catch (_) { saved = null; }
 		const boardSizeOptions = window.Game2048SnakeConstants ? window.Game2048SnakeConstants.SIZE_OPTIONS || [6, 7, 8,
-																																																	 10, 12]
+																																		 10, 12]
 												 : [6, 7, 8, 10, 12];
 		const state = reactive({
 			score: 0,

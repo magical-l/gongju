@@ -7,7 +7,7 @@
   'use strict';
 
   /**
-   * 导出一条“元素链”上各节点的关键 CSS 计算值。
+   * 导出一条"元素链"上各节点的关键 CSS 计算值。
    * @param {Array<{ selector?: string, el?: Element, label: string }>} chain - 每项为 selector（用 querySelector）或 el，及 label
    * @param {string[]} props - 要导出的 CSS 属性名（如 'height', 'overflow-y'）
    * @param {Object} options - { title?: string, extraLine?: (el) => string }
@@ -174,7 +174,7 @@
       const board = document.getElementById('board');
       const chain = [
         { el: document.body, label: 'body' },
-        { selector: 'body.grid.反叵字形 main', label: 'main.scrollable' },
+        { selector: 'body.反叵字形 main', label: 'main.scrollable' },
         { selector: 'article.gaming.area', label: 'article.gaming.area' },
         { selector: '.main.map', label: '.main.map' },
         { selector: '#board-wrap', label: '#board-wrap' },
@@ -182,7 +182,7 @@
         { el: board ? board.querySelector('.cell') : null, label: '.cell 首个' }
       ];
       const props = ['height', 'min-height', 'max-height', 'overflow', 'overflow-y', 'display', 'flex-direction', 'flex-shrink', 'flex-grow', 'grid-template-rows'];
-      const main = document.querySelector('body.grid.反叵字形 main');
+      const main = document.querySelector('body.反叵字形 main');
       let out = exportLayoutChain(chain, props, {
         title: '--- __2048ExportLayoutChain__ ---',
         extraLine: function (el) {
@@ -197,7 +197,7 @@
     };
 
     window.__2048AuditCss__ = function () {
-      const out = auditStylesheet('2048.css', /\.gaming\.area|\.toolbar|\.el-select__prefix|\.按压式/, { title: '--- __2048AuditCss__ 仅“我们加的”规则 ---' });
+      const out = auditStylesheet('2048.css', /\.gaming\.area|\.toolbar|\.el-select__prefix|\.按压式/, { title: '--- __2048AuditCss__ 仅"我们加的"规则 ---' });
       console.log(out);
       return out;
     };
@@ -234,7 +234,7 @@
           const S = suffix ? suffix.offsetWidth : 0;
           const Sel = sel.offsetWidth;
           const remaining = W - P - S - 2 * gap - pl - pr;
-          out += '\n--- 验证：wrapper 内分配 ---\nwrapper.offsetWidth=' + W + ', prefix=' + P + ', suffix=' + S + ', selection.offsetWidth=' + Sel + ', gap=' + gap + ', paddingLeft=' + pl + ', paddingRight=' + pr + '\n若 selection 宽度由“剩余空间”分配，则 selection ≈ ' + remaining.toFixed(0) + 'px。若 Sel=' + Sel + ' 接近此值，则原因确定。\n';
+          out += '\n--- 验证：wrapper 内分配 ---\nwrapper.offsetWidth=' + W + ', prefix=' + P + ', suffix=' + S + ', selection.offsetWidth=' + Sel + ', gap=' + gap + ', paddingLeft=' + pl + ', paddingRight=' + pr + '\n若 selection 宽度由"剩余空间"分配，则 selection ≈ ' + remaining.toFixed(0) + 'px。若 Sel=' + Sel + ' 接近此值，则原因确定。\n';
         }
         const placeholder = sel ? sel.querySelector('.el-select__placeholder') : null;
         if (placeholder && sel) out += '\n--- placeholder vs selection 宽度 ---\nplaceholder.offsetWidth=' + placeholder.offsetWidth + ', selection.offsetWidth=' + sel.offsetWidth + '\n';

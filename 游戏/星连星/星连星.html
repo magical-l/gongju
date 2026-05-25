@@ -114,7 +114,7 @@
 		}
 	</style>
 </head>
-<body class="grid 反叵字形">
+<body class="反叵字形">
 	<header>
 		<h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
 		<nav>
@@ -145,7 +145,7 @@
 		<header>
 			<h2 class="game name">星连星游戏</h2>
 			<div class="page-lv help area" v-cloak>
-				<el-button title="游戏介绍" class="page-lv help btn" size="small" circle @click="introVisible = true">?
+				<el-button title="游戏介绍" class="page-lv help btn" size="small" circle="" @click="introVisible = true">?
 				</el-button>
 				<el-dialog title="游戏介绍" class="page-lv intro" v-model="introVisible" width="60%">
 					<p>欢迎来到"星连星"游戏，这是一款经典的益智连线游戏。</p>
@@ -164,7 +164,7 @@
 				</el-dialog>
 			</div>
 		</header>
-		<article class="gaming area , 叵字形 grid" v-cloak>
+		<article class="gaming area , 叵字形" v-cloak>
 			<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
 				<section class="setting list , flex single-line no-gap items-near-x-start items-near-y-center">
 					<div class="one setting group">
@@ -216,7 +216,7 @@
 			<article class="main board map" :style="{ '--board-cols': gridSize, '--board-rows': gridSize }" @mouseup="mouseUp" @mouseleave="mouseUp" @touchend="touchEnd" @touchcancel="touchEnd">
 				<div class="cell" v-for="cell in gridCells" :key="'cell-'+cell.row+'-'+cell.col" :data-row="cell.row" :data-col="cell.col" @mousedown="mouseDown(cell)" @mouseenter="mouseEnter(cell)" @touchstart="touchStart($event, cell)">
 					<div v-if="starAt(cell)" class="unit star" :style="{ backgroundColor: COLORS[starAt(cell).color] }">★</div>
-					<div :class="unitClass(cell)" :style="unitStyle(cell)" v-else></div>
+					<div :class="unitClass(cell)" :style="unitStyle(cell)" v-else=""></div>
 				</div>
 			</article>
 
@@ -2867,7 +2867,7 @@
 	</script>
 	<div class="ad-container">
 		<!-- 谷歌广告联盟 -->
-		<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789" crossorigin="anonymous"></script>
+		<script async="" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789" crossorigin="anonymous"></script>
 		<!-- 展示广告1 -->
 		<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true" data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
 		<script>

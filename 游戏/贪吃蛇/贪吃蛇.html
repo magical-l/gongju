@@ -19,7 +19,7 @@
 	<link href="../../lib/css/花活.css" rel="stylesheet">
 	<link href="贪吃蛇.css" rel="stylesheet">
 </head>
-<body class="grid 反叵字形">
+<body class="反叵字形">
 	<header>
 		<h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
 		<nav>
@@ -61,7 +61,7 @@
 				</el-dialog>
 			</div>
 		</header>
-		<article class="gaming area , 叵字形 grid" v-cloak>
+		<article class="gaming area , 叵字形" v-cloak>
 			<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
 				<section class="setting list , flex single-line no-gap items-near-x-start items-near-y-center">
 					<div class="one setting group">
@@ -100,7 +100,7 @@
 				<div v-for="(cell, index) in cells" :key="index" class="cell">
 					<div v-if="cell.unit" class="unit" :class="cell.unit"></div>
 				</div>
-				<div class="overlay" v-if="isPaused &amp;&amp; !gameOver">
+				<div class="overlay" v-if="isPaused && !gameOver">
 					<div class="title">{{ score === 0 ? '准备就绪' : '已暂停' }}</div>
 					<p class="tip">按空格或点击以开始/继续</p>
 				</div>

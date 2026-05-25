@@ -530,6 +530,7 @@
 /* 为防没有使用.grid/.flex之类，所以不显式结合.grid/.flex，直接设置。若非display:grid/flex也没事，会被浏览器忽略。下同 */
 /* ------ “工字形”布局，上部导航栏，底部页脚，中间左右两栏均分。 ------ */
 .工字形 {
+	display: grid;
 	grid-template-columns: 1fr 1fr;
 	grid-template-rows: auto 1fr auto;
 	grid-template-areas:
@@ -540,6 +541,7 @@
 
 /* ------ “朋字形”布局，无顶部底部，只有左右两栏均分， ------ */
 .朋字形 {
+	display: grid;
 	/* 50%vs50%是各占父容器的一半，如果有gap，将会突破父容器，所以用1fr vs 1fr */
 	/* grid-template-columns: 50% 50%; */
 	grid-template-columns: 1fr 1fr;
@@ -547,6 +549,7 @@
 
 /* ------ "亚字形"布局，上部导航栏，底部页脚，中间有左右侧栏，中部是主要内容 ------ */
 .亚字形 {
+	display: grid;
 	grid-template-rows:
 		auto /* Header 高度自适应内容 */
 		minmax(var(--layout-main-row-min), auto) /* 主内容区：有最小高度，再填充剩余 */
@@ -563,6 +566,7 @@
 
 /* ------ "叵字形"布局，上部导航栏，底部页脚，中间左侧栏宽度固定，右侧主要内容自适应 ------ */
 .叵字形 {
+	display: grid;
 	grid-template-rows:
 		auto /* Header 高度自适应内容 */
 		minmax(var(--layout-main-row-min), auto) /* 主内容区：有最小高度，再填充剩余 */
@@ -576,6 +580,7 @@
 
 /*------ "反叵字形"布局，上部导航栏，底部页脚，中间右侧栏宽度固定，左侧主要内容自适应 ------ */
 .反叵字形 {
+	display: grid;
 	grid-template-rows:
 		auto /* Header 高度自适应内容 */
 		minmax(var(--layout-main-row-min), auto) /* 主内容区：有最小高度，再填充剩余 */
@@ -589,6 +594,7 @@
 
 /* ------ "目字形/三字形"布局，上部导航栏，底部页脚 ------ */
 .目字形, .三字形 {
+	display: grid;
 	grid-template-rows:
 		auto /* Header 高度自适应内容 */
 		minmax(var(--layout-main-row-min), auto) /* 主内容区：有最小高度，再填充剩余 */

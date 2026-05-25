@@ -191,7 +191,7 @@
 	}
 </style>
 </head>
-<body class="grid 反叵字形">
+<body class="反叵字形">
 <header>
 	<h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
 	<nav>
@@ -225,7 +225,7 @@
 			<el-button title="显示说明" class="page-lv help btn" size="small" circle @click="introVisible = true">?
 			</el-button>
 			<el-dialog title="页面说明" class="page-lv intro" v-model="introVisible" width="60%">
-				<p>“符号大全”是一个方便用户查找和复制各种Unicode特殊字符的工具。</p>
+				<p>"符号大全"是一个方便用户查找和复制各种Unicode特殊字符的工具。</p>
 				<h2>核心功能</h2>
 				<ul>
 					<li><strong>搜索过滤：</strong> 输入关键字，实时过滤符号。</li>
@@ -451,7 +451,7 @@
 			},
 			copySymbol(symbol) {
 				navigator.clipboard.writeText(symbol.char).then(() => {
-					ElementPlus.ElMessage.success(`“${symbol.name || symbol.char}”已复制`);
+					ElementPlus.ElMessage.success(`"${symbol.name || symbol.char}"已复制`);
 				}).catch(err => {
 					ElementPlus.ElMessage.error('复制失败: ' + err);
 				});
@@ -506,10 +506,6 @@
 	<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true"
 			 data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
 	<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-</div>
-</body>
-</html>
-
 </div>
 </body>
 </html>
