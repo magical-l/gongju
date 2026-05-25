@@ -537,16 +537,16 @@
 		'header header'
 		'left right'
 		'footer footer';
-	& header, & .header, & .at-top {
+	> header, > .header, > .at-top {
 		grid-area: header;
 		grid-column: 1 / -1;
 	}
-	& footer, & .footer, & .at-bottom {
+	> footer, > .footer, > .at-bottom {
 		grid-area: footer;
 		grid-column: 1 / -1;
 	}
-	& .sidebar.at-left { grid-area: left; }
-	& .sidebar.at-right { grid-area: right; }
+	> .sidebar.at-left { grid-area: left; }
+	> .sidebar.at-right { grid-area: right; }
 }
 
 /* ------ "朋字形"布局，无顶部底部，只有左右两栏均分， ------ */
@@ -557,8 +557,8 @@
 	grid-template-columns: 1fr 1fr;
 	grid-template-areas: 'left right';
 
-	& .at-left {grid-area: left;}
-	& .at-right {grid-area: right;}
+	> .at-left {grid-area: left;}
+	> .at-right {grid-area: right;}
 }
 
 /* ------ "亚字形"布局，上部导航栏，底部页脚，中间有左右侧栏，中部是主要内容 ------ */
@@ -576,17 +576,17 @@
 		'header header header'
 		'left-sidebar main right-sidebar'
 		'footer footer footer';
-	& header, & .header, & .at-top {
+	> header, > .header, > .at-top {
 		grid-area: header;
 		grid-column: 1 / -1;
 	}
-	& footer, & .footer, & .at-bottom {
+	> footer, > .footer, > .at-bottom {
 		grid-area: footer;
 		grid-column: 1 / -1;
 	}
-	& main, & .main, & .body { grid-area: main; }
-	& .sidebar.at-left { grid-area: left-sidebar; }
-	& .sidebar.at-right { grid-area: right-sidebar; }
+	> main, > .main, > .body { grid-area: main; }
+	> .sidebar.at-left { grid-area: left-sidebar; }
+	> .sidebar.at-right { grid-area: right-sidebar; }
 }
 
 /* ------ "叵字形"布局，上部导航栏，底部页脚，中间左侧栏宽度固定，右侧主要内容自适应 ------ */
@@ -601,16 +601,16 @@
 		'header header'
 		'left-sidebar main'
 		'footer footer';
-	& header, & .header, & .at-top {
+	> header, > .header, > .at-top {
 		grid-area: header;
 		grid-column: 1 / -1;
 	}
-	& footer, & .footer, & .at-bottom {
+	> footer, > .footer, > .at-bottom {
 		grid-area: footer;
 		grid-column: 1 / -1;
 	}
-	& main, & .main, & .body { grid-area: main; }
-	& .sidebar.at-left { grid-area: left-sidebar; }
+	> main, > .main, > .body { grid-area: main; }
+	> .sidebar.at-left { grid-area: left-sidebar; }
 }
 
 /*------ "反叵字形"布局，上部导航栏，底部页脚，中间右侧栏宽度固定，左侧主要内容自适应 ------ */
@@ -625,16 +625,16 @@
 		'header header'
 		'main right-sidebar'
 		'footer footer';
-	& header, & .header, & .at-top {
+	> header, > .header, > .at-top {
 		grid-area: header;
 		grid-column: 1 / -1;
 	}
-	& footer, & .footer, & .at-bottom {
+	> footer, > .footer, > .at-bottom {
 		grid-area: footer;
 		grid-column: 1 / -1;
 	}
-	& main, & .main, & .body { grid-area: main; }
-	& .sidebar.at-right { grid-area: right-sidebar; }
+	> main, > .main, > .body { grid-area: main; }
+	> .sidebar.at-right { grid-area: right-sidebar; }
 }
 
 /* ------ "目字形/三字形"布局，上部导航栏，底部页脚 ------ */
@@ -649,11 +649,11 @@
 		'header'
 		'main'
 		'footer';
-	& header, & .header, & .at-top {
+	> header, > .header, > .at-top {
 		grid-area: header;
 	}
-	& footer, & .footer, & .at-bottom {
+	> footer, > .footer, > .at-bottom {
 		grid-area: footer;
 	}
-	& main, & .main, & .body { grid-area: main; }
+	> main, > .main, > .body { grid-area: main; }
 }
