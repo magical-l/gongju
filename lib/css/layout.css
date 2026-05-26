@@ -18,9 +18,10 @@
 
 .no-gap { gap: 0 !important; }
 
-/* ================== 布局容器排列 ================== */
-/* 横向排列：子元素按物理横向排列。默认flex；搭配.grid时自动适配 */
+/* ================== 布局容器排列方向 ================== */
+/* 横向排列：子元素按物理横向排列。 */
 .go-x {
+	/* 实现：把元素布局改为flex */
 	display: flex;
 	flex-direction: row;
 
@@ -40,6 +41,12 @@
 
 	/* &.from-top {同默认，无需覆盖} */
 	&.from-bottom { flex-direction: column-reverse; }
+
+	/* ------ 确保 行/列（含内容） 靠上/下/左/右，适用于有行/列的元素（grid/flex/table） ------ */
+	&.row-near-top { justify-content: start; justify-items: start; }
+	&.row-near-bottom { justify-content: end; justify-items: end; }
+	&.col-near-left { align-content: start; align-items: start; }
+	&.col-near-right { align-content: end; align-items: end; }
 }
 .grid.go-y {
 	display: grid;
@@ -68,32 +75,26 @@
 	&:is(.lines-space-evenly, .lines-friendly) { align-content: space-evenly; }
 }
 
+/* 整行/整列位置。flex/grid/table全覆盖：flex/grid管轨道+内容对齐；table管td/th内容对齐 */
 .row-near-top {
 	align-content: start;
 	align-items: start;
+	& td, & th { vertical-align: top; }
 }
 .row-near-bottom {
 	align-content: end;
 	align-items: end;
+	& td, & th { vertical-align: bottom; }
 }
 .col-near-left {
 	justify-content: start;
 	justify-items: start;
+	& td, & th { text-align: left; }
 }
 .col-near-right {
 	justify-content: end;
 	justify-items: end;
-}
-
-/* ================== 布局容器定位子元素 ================== */
-.items-near-top { align-items: start; }
-.items-near-bottom { align-items: end; }
-.items-near-left { justify-items: start; }
-.items-near-right { justify-items: end; }
-.items-near-center {/*todo：待审*/
-	place-items: center;
-	place-content: center;
-	text-align: center;
+	& td, & th { text-align: right; }
 }
 
 /* ================== 元素（含布局容器子元素）定位/方向 ================== */
@@ -206,6 +207,9 @@
 	/* 同默认，无需覆盖
 	&.go-y, & .go-y {}
 	*/
+	/* grid适配：RTL翻转左右 */
+	&.grid.col-near-left, & .grid.col-near-left { justify-content: end; justify-items: end; }
+	&.grid.col-near-right, & .grid.col-near-right { justify-content: start; justify-items: start; }
 
 	/* at-* 适配：逻辑属性翻转 */
 	& .at-left { justify-self: end; }
@@ -229,6 +233,11 @@
 		&.from-top { flex-direction: row; }
 		&.from-bottom { flex-direction: row-reverse; }
 	}
+	/* grid适配：竖排下轴交换+块轴右→左 */
+	&.grid.row-near-top, & .grid.row-near-top { justify-content: start; justify-items: start; }
+	&.grid.row-near-bottom, & .grid.row-near-bottom { justify-content: end; justify-items: end; }
+	&.grid.col-near-left, & .grid.col-near-left { align-content: end; align-items: end; }
+	&.grid.col-near-right, & .grid.col-near-right { align-content: start; align-items: start; }
 
 	/* at-* 适配：逻辑属性轴交换 */
 	& .at-left { justify-self: unset; align-self: end; }
@@ -254,6 +263,11 @@
 		&.from-top { flex-direction: row; }
 		&.from-bottom { flex-direction: row-reverse; }
 	}
+	/* grid适配：竖排下轴交换+块轴左→右 */
+	&.grid.row-near-top, & .grid.row-near-top { justify-content: start; justify-items: start; }
+	&.grid.row-near-bottom, & .grid.row-near-bottom { justify-content: end; justify-items: end; }
+	&.grid.col-near-left, & .grid.col-near-left { align-content: start; align-items: start; }
+	&.grid.col-near-right, & .grid.col-near-right { align-content: end; align-items: end; }
 
 	/* at-* 适配：逻辑属性轴交换 */
 	& .at-left { justify-self: unset; align-self: start; }
@@ -272,10 +286,7 @@
 	&.row-near-bottom {}
 	&.col-near-left {}
 	&.col-near-right {}
-	&.items-near-top {}
-	&.items-near-bottom {}
-	&.items-near-left {}
-	&.items-near-right {}
+
 	> .at-left {}
 	> .at-right {}
 	> .at-top {}
@@ -287,15 +298,7 @@
 
 /* 纵向排列下保证语义 */
 .go-y {
-	&.row-near-top { justify-content: start; justify-items: start; }
-	&.row-near-bottom { justify-content: end; justify-items: end; }
-	&.col-near-left { align-content: start; align-items: start; }
-	&.col-near-right { align-content: end; align-items: end; }
 
-	&.items-near-top { justify-items: start; }
-	&.items-near-bottom { justify-items: end; }
-	&.items-near-left { align-items: start; }
-	&.items-near-right { align-items: end; }
 
 	> .at-left { justify-self: unset; align-self: start; }
 	> .at-right { justify-self: unset; align-self: end; }
@@ -316,208 +319,6 @@
 	> .at-center {}
 }*/
 
-
-/* ================== 行列位置：在任何书写模式、任何方向，grid或flex下，保证行/列视觉效果的统一（靠上/下/左/右之类） ================== */
-/* ============ 行位置 ============ */
-/* ------ .row-near-top：保证行靠上（grid、flex都适用，适配任何书写模式）。 ------ */
-/*（显式|不显式）继承+（显式|不显式）Z/S模式+（显式|不显式）横向*/
-.row-near-top:where(:not(.go-y, .content-N, .content-И, .content-N *, .content-И *)),
-/*（继承|直接）N/И模式+横向*/
-.row-near-top:where(:is(.content-N, .content-И).go-x,
-					:is(.content-N, .content-И) .go-x:not(.content-S, .content-Z)) {
-	align-content: start;
-	align-items: start;
-}
-/*（显式|不显式）继承+（显式|不显式）Z/S模式+纵向*/
-.row-near-top:where(.go-y:not(.content-N, .content-И, .content-N *, .content-И *)),
-/*（继承|直接）N/И模式+（显式|不显式）纵向*/
-.row-near-top:where(:is(.content-N, .content-И):not(.go-x),
-					:is(.content-N, .content-И) :not(.go-x, .content-S, .content-Z)) {
-	justify-content: start;
-	justify-items: start;
-}
-
-/* ------ .row-near-bottom：保证行靠下（grid、flex都适用，适配任何书写模式）。 ------ */
-/*（显式|不显式）继承+（显式|不显式）Z/S模式+（显式|不显式）横向*/
-.row-near-bottom:where(:not(.go-y, .content-N, .content-И, .content-N *, .content-И *)),
-/*（继承|直接）N/И模式+横向*/
-.row-near-bottom:where(:is(.content-N, .content-И).go-x,
-					:is(.content-N, .content-И) .go-x:not(.content-S, .content-Z)) {
-	align-content: end;
-	align-items: end;
-}
-/*（显式|不显式）继承+（显式|不显式）Z/S模式+纵向*/
-.row-near-bottom:where(.go-y:not(.content-N, .content-И, .content-N *, .content-И *)),
-/*（继承|直接）N/И模式+（显式|不显式）纵向*/
-.row-near-bottom:where(:is(.content-N, .content-И):not(.go-x),
-					:is(.content-N, .content-И) :not(.go-x, .content-S, .content-Z)) {
-	justify-content: end;
-	justify-items: end;
-}
-
-/* ============ 列位置 ============ */
-/* ------ .col-near-left：保证列靠左（grid、flex都适用，适配任何书写模式）。 ------ */
-/*（显式|不显式）继承+（显式|不显式）Z模式+（显式|不显式）横向*/
-.col-near-left:where(:not(.go-y, .content-S, .content-N, .content-И, .content-S *, .content-N *, .content-И *)),
-/*（继承|直接）И模式+横向*/
-.col-near-left:where(.content-И.go-x,
-					.content-И .go-x:not(.content-S, .content-N, .content-Z)) {
-	justify-content: start;
-	justify-items: start;
-}
-/*（显式|不显式）继承+（显式|不显式）Z模式+纵向*/
-.col-near-left:where(.go-y:not(.content-S, .content-N, .content-И, .content-S *, .content-N *, .content-И *)),
-/*（继承|直接）И模式+（显式|不显式）纵向*/
-.col-near-left:where(.content-И:not(.go-x),
-					.content-И :not(.go-x, .content-S, .content-N, .content-Z)) {
-	align-content: start;
-	align-items: start;
-}
-
-/*（继承|直接）S模式+（显式|不显式）横向*/
-.col-near-left:where(.content-S:not(.go-y),
-					.content-S :not(.go-y, .content-N, .content-И, .content-Z)),
-/*（继承|直接）N模式+横向*/
-.col-near-left:where(.content-N.go-x,
-					.content-N .go-x:not(.content-S, .content-И, .content-Z)) {
-	justify-content: end;
-	justify-items: end;
-}
-/*（继承|直接）S模式+纵向*/
-.col-near-left:where(.content-S.go-y,
-					.content-S .go-y:not(.content-N, .content-И, .content-Z)),
-/*（继承|直接）N模式+（显式|不显式）纵向*/
-.col-near-left:where(.content-N:not(.go-x),
-					.content-N :not(.go-x, .content-S, .content-И, .content-Z)) {
-	align-content: end;
-	align-items: end;
-}
-
-/* ------ .col-near-right：保证列靠右（grid、flex都适用，适配任何书写模式）。 ------ */
-/*（显式|不显式）继承+（显式|不显式）Z模式+（显式|不显式）横向*/
-.col-near-right:where(:not(.go-y, .content-S, .content-N, .content-И, .content-S *, .content-N *, .content-И *)),
-/*（继承|直接）И模式+横向*/
-.col-near-right:where(.content-И.go-x,
-					.content-И .go-x:not(.content-S, .content-N, .content-Z)) {
-	justify-content: end;
-	justify-items: end;
-}
-/*（显式|不显式）继承+（显式|不显式）Z模式+纵向*/
-.col-near-right:where(.go-y:not(.content-S, .content-N, .content-И, .content-S *, .content-N *, .content-И *)),
-/*（继承|直接）И模式+（显式|不显式）纵向*/
-.col-near-right:where(.content-И:not(.go-x),
-					.content-И :not(.go-x, .content-S, .content-N, .content-Z)) {
-	align-content: end;
-	align-items: end;
-}
-
-/*（继承|直接）S模式+（显式|不显式）横向*/
-.col-near-right:where(.content-S:not(.go-y),
-					.content-S :not(.go-y, .content-N, .content-И, .content-Z)),
-/*（继承|直接）N模式+横向*/
-.col-near-right:where(.content-N.go-x,
-					.content-N .go-x:not(.content-S, .content-И, .content-Z)) {
-	justify-content: start;
-	justify-items: start;
-}
-/*（继承|直接）S模式+纵向*/
-.col-near-right:where(.content-S.go-y,
-					.content-S .go-y:not(.content-N, .content-И, .content-Z)),
-/*（继承|直接）N模式+（显式|不显式）纵向*/
-.col-near-right:where(.content-N:not(.go-x),
-					.content-N :not(.go-x, .content-S, .content-И, .content-Z)) {
-	align-content: start;
-	align-items: start;
-}
-
-/* ============ 项目位置：items-near-* ============ */
-/* 只设 items 属性（align-items/justify-items），不动 content。row-near-* / col-near-* 已包含 items 属性，通常不需要同时使用。Flex 下 justify-items 被忽略，align-items 正常生效。 */
-/* ------ .items-near-top：保证子元素靠上（grid、flex都适用，适配任何书写模式）。 ------ */
-.items-near-top:where(:not(.go-y, .content-N, .content-И, .content-N *, .content-И *)),
-.items-near-top:where(.go-x:is(.content-N, .content-И, .content-N *, .content-И *)) {
-	align-items: start;
-}
-.items-near-top:where(:is(.content-N, .content-И, .content-N *, .content-И *):not(.go-x)),
-.items-near-top:where(.go-y) {
-	justify-items: start;
-}
-/* ------ .items-near-bottom：保证子元素靠下（grid、flex都适用，适配任何书写模式）。 ------ */
-.items-near-bottom:where(:not(.go-y, .content-N, .content-И, .content-N *, .content-И *)),
-.items-near-bottom:where(.go-x:is(.content-N, .content-И, .content-N *, .content-И *)) {
-	align-items: end;
-}
-.items-near-bottom:where(:is(.content-N, .content-И, .content-N *, .content-И *):not(.go-x)),
-.items-near-bottom:where(.go-y) {
-	justify-items: end;
-}
-/* ------ .items-near-left：保证子元素靠左（grid、flex都适用，适配任何书写模式）。 ------ */
-/*（显式|不显式）继承+（显式|不显式）Z模式+（显式|不显式）横向*/
-.items-near-left:where(:not(.go-y, .content-S, .content-N, .content-И,
-							.content-S *, .content-N *, .content-И *)),
-/*（继承|直接）И模式+横向*/
-.items-near-left:where(.content-И.go-x,
-					.content-И .go-x:not(.content-S, .content-N, .content-Z)) {
-	justify-items: start;
-}
-/*（显式|不显式）继承+（显式|不显式）Z模式+纵向*/
-.items-near-left:where(.go-y:not(.content-S, .content-N, .content-И,
-							.content-S *, .content-N *, .content-И *)),
-/*（继承|直接）И模式+（显式|不显式）纵向*/
-.items-near-left:where(.content-И:not(.go-x),
-					.content-И :not(.go-x, .content-S, .content-N, .content-Z)) {
-	align-items: start;
-}
-
-/*（继承|直接）S模式+（显式|不显式）横向*/
-.items-near-left:where(.content-S:not(.go-y),
-					.content-S :not(.go-y, .content-N, .content-И, .content-Z)),
-/*（继承|直接）N模式+横向*/
-.items-near-left:where(.content-N.go-x,
-					.content-N .go-x:not(.content-S, .content-И, .content-Z)) {
-	justify-items: end;
-}
-/*（继承|直接）S模式+纵向*/
-.items-near-left:where(.content-S.go-y,
-					.content-S .go-y:not(.content-N, .content-И, .content-Z)),
-/*（继承|直接）N模式+（显式|不显式）纵向*/
-.items-near-left:where(.content-N:not(.go-x),
-					.content-N :not(.go-x, .content-S, .content-И, .content-Z)) {
-	align-items: end;
-}
-/* ------ .items-near-right：保证子元素靠右（grid、flex都适用，适配任何书写模式）。 ------ */
-/*（显式|不显式）继承+（显式|不显式）Z模式+（显式|不显式）横向*/
-.items-near-right:where(:not(.go-y, .content-S, .content-N, .content-И,
-							.content-S *, .content-N *, .content-И *)),
-/*（继承|直接）И模式+横向*/
-.items-near-right:where(.content-И.go-x,
-						.content-И .go-x:not(.content-S, .content-N, .content-Z)) {
-	justify-items: end;
-}
-/*（显式|不显式）继承+（显式|不显式）Z模式+纵向*/
-.items-near-right:where(.go-y:not(.content-S, .content-N, .content-И,
-							.content-S *, .content-N *, .content-И *)),
-/*（继承|直接）И模式+（显式|不显式）纵向*/
-.items-near-right:where(.content-И:not(.go-x),
-						.content-И :not(.go-x, .content-S, .content-N, .content-Z)) {
-	align-items: end;
-}
-
-/*（继承|直接）S模式+（显式|不显式）横向*/
-.items-near-right:where(.content-S:not(.go-y),
-						.content-S :not(.go-y, .content-N, .content-И, .content-Z)),
-/*（继承|直接）N模式+横向*/
-.items-near-right:where(.content-N.go-x,
-						.content-N .go-x:not(.content-S, .content-И, .content-Z)) {
-	justify-items: start;
-}
-/*（继承|直接）S模式+纵向*/
-.items-near-right:where(.content-S.go-y,
-						.content-S .go-y:not(.content-N, .content-И, .content-Z)),
-/*（继承|直接）N模式+（显式|不显式）纵向*/
-.items-near-right:where(.content-N:not(.go-x),
-						.content-N :not(.go-x, .content-S, .content-И, .content-Z)) {
-	align-items: start;
-}
 
 /* ================== 项目分布：items-x/y-* ================== */
 /* ============ 拉伸：.items-stretch、.items-x/y-stretch ============ */
