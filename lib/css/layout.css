@@ -66,64 +66,54 @@
 */
 
 /* ========================================================================
- * 确保容器内子元素线路之间的关系：
- * 	线路膨胀
- * 	线路靠前
- * 	线路靠后
- * 	线路居中
- * 	线路互斥
- * 	线路不熟
- * 	线路友好
- * 注：flex布局需多行才有效。
+ * 确保 行/列 轨道分布：
+ * 	拉伸
+ * 	居中
+ * 	互斥（space-between）
+ * 	不熟（space-around）
+ * 	友好（space-evenly）
+ * 适用于 flex、grid。go-x下 row=垂直分布 col=水平分布；go-y下交换。grid下跟随书写模式。
  */
-/* ------ 线路之间（align-content） ------ */
-/* 所有线路都拉伸膨胀，充满空间。受项目实际排布方向影响。 */
-.lines-stretch {
-	display: flex;
-	flex-wrap: wrap;
+/* ------ 行分布（默认 cross轴=垂直） ------ */
+.row-stretch {
 	align-content: stretch;
 }
 
-/* 所有线路都拥到第一条线路这边。受项目实际排布方向影响。 */
-.lines-near-start {
-	display: flex;
-	flex-wrap: wrap;
-	align-content: start;
-}
-
-/* 所有线路都退到最后一条线路这边。受项目实际排布方向影响。 */
-.lines-near-end {
-	display: flex;
-	flex-wrap: wrap;
-	align-content: end;
-}
-
-/* 所有线路都挤在中间。受项目实际排布方向影响。 */
-.lines-near-center {
-	display: flex;
-	flex-wrap: wrap;
+.row-center {
 	align-content: center;
 }
 
-/* 线路互斥（社恐），即线路互相之间距离尽量远。受项目实际排布方向影响。 */
-.lines-space-between, .lines-mutex, .lines-social-phobia {
-	display: flex;
-	flex-wrap: wrap;
+.row-space-between, .row-mutex, .row-social-phobia {
 	align-content: space-between;
 }
 
-/* 线路不熟，即线路互相之间保持距离但又不极端排斥。受项目实际排布方向影响。 */
-.lines-space-around, .lines-unfamiliar {
-	display: flex;
-	flex-wrap: wrap;
+.row-space-around, .row-unfamiliar {
 	align-content: space-around;
 }
 
-/* 线路不熟但比较友好。受项目实际排布方向影响。 */
-.lines-space-evenly, .lines-friendly {
-	display: flex;
-	flex-wrap: wrap;
+.row-space-evenly, .row-friendly {
 	align-content: space-evenly;
+}
+
+/* ------ 列分布（默认 main轴=水平） ------ */
+.col-stretch {
+	justify-content: stretch;
+}
+
+.col-center {
+	justify-content: center;
+}
+
+.col-space-between, .col-mutex, .col-social-phobia {
+	justify-content: space-between;
+}
+
+.col-space-around, .col-unfamiliar {
+	justify-content: space-around;
+}
+
+.col-space-evenly, .col-friendly {
+	justify-content: space-evenly;
 }
 
 /* ========================================================================
@@ -158,10 +148,66 @@
 .go-x.col-near-left
 .go-x.col-near-right
 */
-.go-y.row-near-top { justify-content: start; justify-items: start; }
-.go-y.row-near-bottom { justify-content: end; justify-items: end; }
-.go-y.col-near-left { align-content: start; align-items: start; }
-.go-y.col-near-right { align-content: end; align-items: end; }
+.go-y.row-near-top {
+	justify-content: start;
+	justify-items: start;
+}
+
+.go-y.row-near-bottom {
+	justify-content: end;
+	justify-items: end;
+}
+
+.go-y.col-near-left {
+	align-content: start;
+	align-items: start;
+}
+
+.go-y.col-near-right {
+	align-content: end;
+	align-items: end;
+}
+
+/* go-y下轴交换：row-*用justify，col-*用align */
+.go-y.row-stretch {
+	justify-content: stretch;
+}
+
+.go-y.row-center {
+	justify-content: center;
+}
+
+.go-y.row-space-between, .go-y.row-mutex, .go-y.row-social-phobia {
+	justify-content: space-between;
+}
+
+.go-y.row-space-around, .go-y.row-unfamiliar {
+	justify-content: space-around;
+}
+
+.go-y.row-space-evenly, .go-y.row-friendly {
+	justify-content: space-evenly;
+}
+
+.go-y.col-stretch {
+	align-content: stretch;
+}
+
+.go-y.col-center {
+	align-content: center;
+}
+
+.go-y.col-space-between, .go-y.col-mutex, .go-y.col-social-phobia {
+	align-content: space-between;
+}
+
+.go-y.col-space-around, .go-y.col-unfamiliar {
+	align-content: space-around;
+}
+
+.go-y.col-space-evenly, .go-y.col-friendly {
+	align-content: space-evenly;
+}
 
 /* ================== 元素（含布局容器子元素）定位/方向 ================== */
 /* 靠左：元素无论在什么场景下都靠左 */
@@ -300,10 +346,72 @@
 		&.from-bottom { flex-direction: row-reverse; }
 	}
 	/* grid适配：竖排下轴交换+块轴右→左 */
-	&.grid.row-near-top, & .grid.row-near-top { justify-content: start; justify-items: start; }
-	&.grid.row-near-bottom, & .grid.row-near-bottom { justify-content: end; justify-items: end; }
-	&.grid.col-near-left, & .grid.col-near-left { align-content: end; align-items: end; }
-	&.grid.col-near-right, & .grid.col-near-right { align-content: start; align-items: start; }
+	&.grid.row-near-top, & .grid.row-near-top {
+		justify-content: start;
+		justify-items: start;
+	}
+
+	&.grid.row-near-bottom, & .grid.row-near-bottom {
+		justify-content: end;
+		justify-items: end;
+	}
+
+	&.grid.col-near-left, & .grid.col-near-left {
+		align-content: end;
+		align-items: end;
+	}
+
+	&.grid.col-near-right, & .grid.col-near-right {
+		align-content: start;
+		align-items: start;
+	}
+
+	/* 轨道分布：row-* → justify(行内轴) col-* → align(块轴) */
+	&.grid.row-stretch, & .grid.row-stretch {
+		justify-content: stretch;
+	}
+
+	&.grid.row-center, & .grid.row-center {
+		justify-content: center;
+	}
+
+	&.grid:is(.row-space-between, .row-mutex, .row-social-phobia),
+	& .grid:is(.row-space-between, .row-mutex, .row-social-phobia) {
+		justify-content: space-between;
+	}
+
+	&.grid:is(.row-space-around, .row-unfamiliar),
+	& .grid:is(.row-space-around, .row-unfamiliar) {
+		justify-content: space-around;
+	}
+
+	&.grid:is(.row-space-evenly, .row-friendly),
+	& .grid:is(.row-space-evenly, .row-friendly) {
+		justify-content: space-evenly;
+	}
+
+	&.grid.col-stretch, & .grid.col-stretch {
+		align-content: stretch;
+	}
+
+	&.grid.col-center, & .grid.col-center {
+		align-content: center;
+	}
+
+	&.grid:is(.col-space-between, .col-mutex, .col-social-phobia),
+	& .grid:is(.col-space-between, .col-mutex, .col-social-phobia) {
+		align-content: space-between;
+	}
+
+	&.grid:is(.col-space-around, .col-unfamiliar),
+	& .grid:is(.col-space-around, .col-unfamiliar) {
+		align-content: space-around;
+	}
+
+	&.grid:is(.col-space-evenly, .col-friendly),
+	& .grid:is(.col-space-evenly, .col-friendly) {
+		align-content: space-evenly;
+	}
 
 	/* at-* 适配：逻辑属性轴交换 */
 	& .at-left { justify-self: unset; align-self: end; }
@@ -330,10 +438,72 @@
 		&.from-bottom { flex-direction: row-reverse; }
 	}
 	/* grid适配：竖排下轴交换+块轴左→右 */
-	&.grid.row-near-top, & .grid.row-near-top { justify-content: start; justify-items: start; }
-	&.grid.row-near-bottom, & .grid.row-near-bottom { justify-content: end; justify-items: end; }
-	&.grid.col-near-left, & .grid.col-near-left { align-content: start; align-items: start; }
-	&.grid.col-near-right, & .grid.col-near-right { align-content: end; align-items: end; }
+	&.grid.row-near-top, & .grid.row-near-top {
+		justify-content: start;
+		justify-items: start;
+	}
+
+	&.grid.row-near-bottom, & .grid.row-near-bottom {
+		justify-content: end;
+		justify-items: end;
+	}
+
+	&.grid.col-near-left, & .grid.col-near-left {
+		align-content: start;
+		align-items: start;
+	}
+
+	&.grid.col-near-right, & .grid.col-near-right {
+		align-content: end;
+		align-items: end;
+	}
+
+	/* 轨道分布：row-* → justify(行内轴) col-* → align(块轴) */
+	&.grid.row-stretch, & .grid.row-stretch {
+		justify-content: stretch;
+	}
+
+	&.grid.row-center, & .grid.row-center {
+		justify-content: center;
+	}
+
+	&.grid:is(.row-space-between, .row-mutex, .row-social-phobia),
+	& .grid:is(.row-space-between, .row-mutex, .row-social-phobia) {
+		justify-content: space-between;
+	}
+
+	&.grid:is(.row-space-around, .row-unfamiliar),
+	& .grid:is(.row-space-around, .row-unfamiliar) {
+		justify-content: space-around;
+	}
+
+	&.grid:is(.row-space-evenly, .row-friendly),
+	& .grid:is(.row-space-evenly, .row-friendly) {
+		justify-content: space-evenly;
+	}
+
+	&.grid.col-stretch, & .grid.col-stretch {
+		align-content: stretch;
+	}
+
+	&.grid.col-center, & .grid.col-center {
+		align-content: center;
+	}
+
+	&.grid:is(.col-space-between, .col-mutex, .col-social-phobia),
+	& .grid:is(.col-space-between, .col-mutex, .col-social-phobia) {
+		align-content: space-between;
+	}
+
+	&.grid:is(.col-space-around, .col-unfamiliar),
+	& .grid:is(.col-space-around, .col-unfamiliar) {
+		align-content: space-around;
+	}
+
+	&.grid:is(.col-space-evenly, .col-friendly),
+	& .grid:is(.col-space-evenly, .col-friendly) {
+		align-content: space-evenly;
+	}
 
 	/* at-* 适配：逻辑属性轴交换 */
 	& .at-left { justify-self: unset; align-self: start; }
