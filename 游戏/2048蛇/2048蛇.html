@@ -62,8 +62,8 @@
 		</div>
 	</header>
 	<article class="gaming area , game-2048 , 叵字形" tabindex="0" v-cloak>
-		<header class="toolbar , multi-line flex , items-near-x-center items-stretch no-gap">
-			<section class="setting list , single-line flex , items-near-x-start items-near-y-center no-gap">
+		<header class="toolbar , items-multi-line flex , items-near-x-center items-stretch items-no-gap">
+			<section class="setting list , items-single-line flex , items-near-x-start items-near-y-center items-no-gap">
 				<div class="one setting group">
 					<el-form-item class="one setting : height">
 						<el-select v-model.number="boardHeight">
@@ -94,7 +94,7 @@
 					</el-form-item>
 				</div>
 			</section>
-			<section class="controller list , single-line flex , items-near-x-start items-near-y-center no-gap">
+			<section class="controller list , items-single-line flex , items-near-x-start items-near-y-center items-no-gap">
 				<div class="one controller group">
 					<el-form-item class="one controller : pause">
 						<el-button :type="paused ? 'success' : 'warning'" :icon="paused ? 'VideoPlay' : 'VideoPause'" @click="onTogglePause">{{ paused ? '开始' : '暂停' }}
@@ -102,7 +102,7 @@
 					</el-form-item>
 				</div>
 			</section>
-			<section class="tool list , single-line flex , items-near-x-start items-near-y-center no-gap">
+			<section class="tool list , items-single-line flex , items-near-x-start items-near-y-center items-no-gap">
 			</section>
 		</header>
 

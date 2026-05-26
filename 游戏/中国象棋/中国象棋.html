@@ -46,8 +46,8 @@
 				<h2 class="game name">中国象棋</h2>
 			</header>
 			<article class="gaming area , 反叵字形" v-cloak>
-				<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
-					<section class="setting list , flex single-line no-gap items-near-x-start items-near-y-center">
+				<header class="toolbar , flex items-multi-line items-no-gap items-near-x-center items-stretch">
+					<section class="setting list , flex items-single-line items-no-gap items-near-x-start items-near-y-center">
 						<div class="one setting group" v-if="isGaming">
 							<el-button class="one setting : new-game" type="danger" icon="RefreshRight" @click="returnToSettings">新局 </el-button>
 						</div>
@@ -69,12 +69,12 @@
 							</div>
 						</template>
 					</section>
-					<section class="controller list , flex single-line no-gap items-near-x-start items-near-y-center">
+					<section class="controller list , flex items-single-line items-no-gap items-near-x-start items-near-y-center">
 						<div class="one controller group" v-if="isGaming">
 							<el-button class="one controller : restart" type="danger" icon="RefreshLeft" @click="restartGame">重来 </el-button>
 						</div>
 					</section>
-					<section class="tool list , flex single-line no-gap items-near-x-start items-near-y-center">
+					<section class="tool list , flex items-single-line items-no-gap items-near-x-start items-near-y-center">
 						<div class="one tool group" v-if="isGaming">
 							<el-button class="one tool : undo" type="warning" :disabled="!isUndoAvailable" @click="undoMove">悔棋 </el-button>
 						</div>
@@ -83,7 +83,7 @@
 						</div>
 					</section>
 				</header>
-				<section class="main board map , grid no-gap" :class="{ 'reversed view': showReversedView, editor: !isGaming }">
+				<section class="main board map , grid items-no-gap" :class="{ 'reversed view': showReversedView, editor: !isGaming }">
 					<div class="cell" v-for="cell in mainCells" :key="cell.position" :class="cell.classes" @click="handleCellClick(cell)" @dragover.prevent="" @drop="handleCellDrop(cell)">
 						<span v-if="cell.marker" class="target mark" :class="cell.marker"></span>
 						<div class="piece unit" v-for="unit in cell.units" :key="unit.id" :class="unit.classes" :draggable="unit.canDrag" @dragstart="dragStartPiece(unit, 'board')" @dragend="clearDraggedPiece">
@@ -95,7 +95,7 @@
 				<aside class="sidebar near-right">
 					<details data-panel="reversedView" :open="panels.reversedView" @toggle="onPanelToggle">
 						<summary>对面视角</summary>
-						<article class="mini board map , grid no-gap" :class="{ 'reversed view': !showReversedView, editor: !isGaming}">
+						<article class="mini board map , grid items-no-gap" :class="{ 'reversed view': !showReversedView, editor: !isGaming}">
 							<div class="cell" v-for="cell in miniCells" :key="'mini-'+cell.position" :class="cell.classes" @click="handleCellClick(cell)">
 								<span class="target mark" :class="cell.marker" v-if="cell.marker"></span>
 								<div class="piece unit" :class="unit.classes" v-for="unit in cell.units" :key="unit.id">

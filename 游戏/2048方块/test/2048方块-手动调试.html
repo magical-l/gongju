@@ -86,8 +86,8 @@
 <body>
 <main class="game">
 	<article class="gaming area , 反叵字形 dbg-manual" id="dbg-article" tabindex="0">
-		<header class="toolbar , multi-line flex , items-near-x-center items-stretch no-gap dbg-manual-toolbar one-row">
-			<section class="setting list , multi-line flex , items-near-x-start items-near-y-center no-gap">
+		<header class="toolbar , items-multi-line flex , items-near-x-center items-stretch items-no-gap dbg-manual-toolbar one-row">
+			<section class="setting list , items-multi-line flex , items-near-x-start items-near-y-center items-no-gap">
 				<div class="one setting group">
 					<label>行数 <select id="inp-rows" class="select-width-6ch"></select></label>
 					<label>列数 <select id="inp-cols" class="select-width-6ch"></select></label>
@@ -95,7 +95,7 @@
 					<label>间隔 ms <input type="number" id="inp-interval" min="50" max="3000" step="50" value="400" style="width:88px"></label>
 				</div>
 			</section>
-			<section class="controller list , single-line flex , items-near-x-start items-near-y-center no-gap">
+			<section class="controller list , items-single-line flex , items-near-x-start items-near-y-center items-no-gap">
 				<div class="one controller group">
 					<button type="button" class="el-button el-button--primary" id="btn-start" title="从当前布局开始模拟；若已停在「生成下一块」之前，会先恢复再重播">开始</button>
 					<button type="button" class="el-button el-button--warning" id="btn-pause" disabled>暂停</button>
@@ -122,14 +122,14 @@
 				<h2>编辑选区</h2>
 				<p class="edit-intro">单击只选一格；拖选一片；<kbd>Shift</kbd>+拖/点按为累加。点数字或固定/下落设定。「清空选中格」「清除选区」仍可用。选中=<strong>格外侧</strong>青框；固定堆=左棕条；下落块=顶蓝条+灰绿底。暂停点=在「生成下一块」之前停住（调试用）。「开始」=运行，再点=重播；「回到开始」=本轮布局。运行中 <kbd>空格</kbd> 暂停。<strong>消行整理</strong>时：剩格为<strong>红框</strong>，上方行抠块为<strong>蓝框</strong>；当前操控的剩格/整块上方为略亮的同色系描边（与正式游戏页一致）。</p>
 				<p id="status" class="edit-status"></p>
-				<div class="legend flex multi-line items-near-x-start items-near-y-center">
+				<div class="legend flex items-multi-line items-near-x-start items-near-y-center">
 					<span class="flex inline items-near-y-center"><i class="legend-swatch legend-swatch-empty"></i> 空</span>
 					<span class="flex inline items-near-y-center"><i class="legend-swatch legend-swatch-fixed"></i> 固定堆</span>
 					<span class="flex inline items-near-y-center"><i class="legend-swatch legend-swatch-falling"></i> 活动块</span>
 					<span id="legend-run" class="flex inline items-near-y-center" style="display:none"><i class="legend-swatch legend-swatch-run"></i> 当前块</span>
 				</div>
 				<div class="items-go-y grp">
-					<div class="flex multi-line items-near-x-start items-near-y-center">
+					<div class="flex items-multi-line items-near-x-start items-near-y-center">
 						<button type="button" class="el-button el-button--default" data-dbg-val="2">2</button>
 						<button type="button" class="el-button el-button--default" data-dbg-val="4">4</button>
 						<button type="button" class="el-button el-button--default" data-dbg-val="8">8</button>
@@ -138,12 +138,12 @@
 					</div>
 				</div>
 				<div class="items-go-y grp">
-					<div class="flex single-line items-near-x-start" style="width:100%;gap:10px">
+					<div class="flex items-single-line items-near-x-start" style="width:100%;gap:10px">
 						<button type="button" class="el-button el-button--default stretch" data-dbg-kind="fixed">固定块堆</button>
 						<button type="button" class="el-button el-button--default stretch" data-dbg-kind="falling">下落块</button>
 					</div>
 				</div>
-				<div class="flex multi-line items-near-x-start dbg-row-actions" style="gap:10px;width:100%">
+				<div class="flex items-multi-line items-near-x-start dbg-row-actions" style="gap:10px;width:100%">
 					<button type="button" class="el-button el-button--default stretch" id="btn-clear-cells">清空选中格</button>
 					<button type="button" class="el-button el-button--default stretch" id="btn-clear-sel">清除选区</button>
 				</div>

@@ -16,10 +16,10 @@
 .grid { display: grid; }
 .grid.inline { display: inline-grid; }
 
-.no-gap { gap: 0 !important; }
+.items-no-gap { gap: 0 !important; }
 
-.single-line { display:flex; flex-wrap: nowrap; }
-.multi-line { display:flex; flex-wrap: wrap; }
+.items-single-line { display:flex; flex-wrap: nowrap; }
+.items-multi-line { display:flex; flex-wrap: wrap; }
 
 /* ========================================================================
  * 确保容器的子元素排列方向
@@ -53,7 +53,7 @@
 
 	&.items-go-x { grid-auto-flow: row; }
 	&.items-go-y { grid-auto-flow: column; }
-	&.single-line, &.multi-line { flex-wrap: unset;/* 重置避免困惑 */ }
+	&.items-single-line, &.items-multi-line { flex-wrap: unset;/* 重置避免困惑 */ }
 }
 
 /* 同默认，无需覆盖
@@ -227,9 +227,9 @@
 
 /* ------ flex专属拉伸 ------ */
 /* 在横向flex容器里，保证本项目独占一行 */
-.multi-line.items-go-x .monopoly-x,
+.items-multi-line.items-go-x .monopoly-x,
 /* 在纵向flex容器里，保证本项目独占一列 */
-.multi-line.items-go-y .monopoly-y {
+.items-multi-line.items-go-y .monopoly-y {
 	flex-basis: 100%;
 }
 

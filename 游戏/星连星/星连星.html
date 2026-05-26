@@ -165,8 +165,8 @@
 			</div>
 		</header>
 		<article class="gaming area , 叵字形" v-cloak>
-			<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
-				<section class="setting list , flex single-line no-gap items-near-x-start items-near-y-center">
+			<header class="toolbar , flex items-multi-line items-no-gap items-near-x-center items-stretch">
+				<section class="setting list , flex items-single-line items-no-gap items-near-x-start items-near-y-center">
 					<div class="one setting group">
 						<el-form-item label="尺寸" class="one setting : grid-size">
 							<el-select v-model="settings.gridSize" @change="onSettingsChange" class="select-width-6ch">
@@ -195,13 +195,13 @@
 						<el-button type="danger" class="one setting : new-game" @click="newGame" icon="RefreshRight">新局</el-button>
 					</div>
 				</section>
-				<section class="controller list , flex single-line no-gap items-near-x-start items-near-y-center">
+				<section class="controller list , flex items-single-line items-no-gap items-near-x-start items-near-y-center">
 					<div class="one controller group">
 						<el-button type="danger" class="one controller : restart" @click="restartCurrentGame" icon="RefreshLeft">重来
 						</el-button>
 					</div>
 				</section>
-				<section class="tool list , flex single-line no-gap items-near-x-start items-near-y-center">
+				<section class="tool list , flex items-single-line items-no-gap items-near-x-start items-near-y-center">
 					<div class="one tool group">
 						<el-button-group>
 							<el-button class="one tool : hint" @click="showHint" :type="hintColorIndex !== null ? 'primary' : 'default'" icon="MagicStick">提示

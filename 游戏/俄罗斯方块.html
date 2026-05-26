@@ -157,8 +157,8 @@
 			</div>
 		</header>
 		<article class="gaming area , 叵字形" v-cloak>
-			<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
-				<section class="setting list , flex single-line no-gap items-near-x-start items-near-y-center">
+			<header class="toolbar , flex items-multi-line items-no-gap items-near-x-center items-stretch">
+				<section class="setting list , flex items-single-line items-no-gap items-near-x-start items-near-y-center">
 					<div class="one setting group">
 						<el-form-item label="行" class="one setting : rows">
 							<el-select v-model="settings.rows">
@@ -190,13 +190,13 @@
 						<el-button type="danger" class="one setting : new-game" @click="startGame" icon="RefreshRight">新局 </el-button>
 					</div>
 				</section>
-				<section class="controller list , flex single-line no-gap items-near-x-start items-near-y-center">
+				<section class="controller list , flex items-single-line items-no-gap items-near-x-start items-near-y-center">
 					<div class="one controller group">
 						<el-button v-if="isPaused" class="one controller : pause" title="开始（快捷键：空格）" @click="togglePause" :disabled="isGameOver" type="primary" icon="VideoPlay">开始 </el-button>
 						<el-button v-else class="one controller : pause" title="暂停（快捷键：空格）" @click="togglePause" :disabled="isGameOver" icon="VideoPause">暂停 </el-button>
 					</div>
 				</section>
-				<section class="tool list , flex single-line no-gap items-near-x-start items-near-y-center">
+				<section class="tool list , flex items-single-line items-no-gap items-near-x-start items-near-y-center">
 					<div class="one tool group">
 						<el-form-item label="显示落点" class="one tool : show-ghost">
 							<el-switch v-model="settings.showGhost"></el-switch>

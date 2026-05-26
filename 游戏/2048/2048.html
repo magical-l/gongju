@@ -61,8 +61,8 @@
 			</div>
 		</header>
 		<article class="gaming area , game-2048 , 叵字形" tabindex="0" v-cloak>
-			<header class="toolbar , multi-line flex , items-near-x-center items-stretch no-gap">
-				<section class="setting list , single-line flex , items-near-x-start items-near-y-center no-gap">
+			<header class="toolbar , items-multi-line flex , items-near-x-center items-stretch items-no-gap">
+				<section class="setting list , items-single-line flex , items-near-x-start items-near-y-center items-no-gap">
 					<div class="one setting group">
 						<el-form-item class="one setting : height">
 							<el-select v-model.number="boardHeight">
@@ -93,14 +93,14 @@
 						</el-form-item>
 					</div>
 				</section>
-				<section class="controller list , single-line flex , items-near-x-start items-near-y-center no-gap">
+				<section class="controller list , items-single-line flex , items-near-x-start items-near-y-center items-no-gap">
 					<div class="one controller group">
 						<el-form-item class="one controller : undo">
 							<el-button @click="onUndo">撤销</el-button>
 						</el-form-item>
 					</div>
 				</section>
-				<section class="tool list , single-line flex , items-near-x-start items-near-y-center no-gap">
+				<section class="tool list , items-single-line flex , items-near-x-start items-near-y-center items-no-gap">
 					<div class="one tool group" v-for="item in quickSettingsList" :key="item.key">
 						<el-form-item :class="'one tool : ' + item.key">
 							<el-button v-if="item.type === 'toggle'" class="按压式" :class="{ pressed: getQuickValue(item.key) }" @click="setQuickValue(item.key, !getQuickValue(item.key))">
