@@ -18,43 +18,60 @@
 
 .no-gap { gap: 0 !important; }
 
-/* ================== 布局容器排列方向 ================== */
+/* ========================================================================
+ * 确保容器的子元素排列方向
+ * 	横向从左到右
+ * 	横向从右到左
+ * 	纵向从上到下
+ * 	纵向从下到上
+ * 适用于：flex、grid、块级（block）、行内级（inline/inline-block）
+ * 注：只有flex同时支持这4种排列，其他布局不支持横向从右到左、纵向从下到上。所以默认实现是把布局修改为flex。若需保持grid布局，需要搭配.grid类
+ */
+/* 单独定义，可以直接搭配任意display:flex的元素 */
+.from-left { flex-direction: row; }
+.from-right { flex-direction: row-reverse; }
+.from-top { flex-direction: column; }
+.from-bottom { flex-direction: column-reverse; }
+
 /* 横向排列：子元素按物理横向排列。 */
 .go-x {
 	/* 实现：把元素布局改为flex */
 	display: flex;
 	flex-direction: row;
-
-	/* &.from-left {同默认，无需覆盖} */
-	&.from-right { flex-direction: row-reverse; }
 }
-.grid.go-x {
-	display: grid;
-	grid-auto-flow: row;
-	flex-direction: unset;/* 重置避免困惑 */
-}
-
-/* 纵向排列：子元素按物理纵向排列。默认flex；搭配.grid时自动适配 */
+/* 纵向排列：子元素按物理纵向排列。 */
 .go-y {
 	display: flex;
 	flex-direction: column;
-
-	/* &.from-top {同默认，无需覆盖} */
-	&.from-bottom { flex-direction: column-reverse; }
-
-	/* ------ 确保 行/列（含内容） 靠上/下/左/右，适用于有行/列的元素（grid/flex/table） ------ */
-	&.row-near-top { justify-content: start; justify-items: start; }
-	&.row-near-bottom { justify-content: end; justify-items: end; }
-	&.col-near-left { align-content: start; align-items: start; }
-	&.col-near-right { align-content: end; align-items: end; }
 }
-.grid.go-y {
+
+/* 显式搭配.grid时，尽量适配grid布局。不支持横向从右到左、纵向从下到上 */
+.grid {
 	display: grid;
-	grid-auto-flow: column;
 	flex-direction: unset;/* 重置避免困惑 */
+
+	&.go-x { grid-auto-flow: row; }
+	&.go-y { grid-auto-flow: column; }
 }
 
-/* ================== 布局容器行列关系 ================== */
+/* 同默认，无需覆盖
+.go-x.from-left
+.go-x.from-right
+.go-y.from-top
+.go-y.from-bottom
+*/
+
+/* ========================================================================
+ * 确保容器内子元素线路关系：
+ * 	单线
+ * 	线路膨胀
+ * 	线路靠前
+ * 	线路靠后
+ * 	线路居中
+ * 	线路互斥
+ * 	线路不熟
+ * 	线路友好
+ */
 .single-line { flex-wrap: nowrap; }
 .multi-line {
 	flex-wrap: wrap;
@@ -75,7 +92,11 @@
 	&:is(.lines-space-evenly, .lines-friendly) { align-content: space-evenly; }
 }
 
-/* 整行/整列位置。flex/grid/table全覆盖：flex/grid管轨道+内容对齐；table管td/th内容对齐 */
+/* ========================================================================
+ * 确保 行/列（含内容） 靠上/下/左/右。
+ * 适用于有行列的元素：flex、grid、table。
+ * 注：是否能完全抵达该方向，还需要取决于线路关系。
+ */
 .row-near-top {
 	align-content: start;
 	align-items: start;
@@ -96,6 +117,17 @@
 	justify-items: end;
 	& td, & th { text-align: right; }
 }
+
+/*同默认，无需覆盖
+.go-x.row-near-top
+.go-x.row-near-bottom
+.go-x.col-near-left
+.go-x.col-near-right
+*/
+.go-y.row-near-top { justify-content: start; justify-items: start; }
+.go-y.row-near-bottom { justify-content: end; justify-items: end; }
+.go-y.col-near-left { align-content: start; align-items: start; }
+.go-y.col-near-right { align-content: end; align-items: end; }
 
 /* ================== 元素（含布局容器子元素）定位/方向 ================== */
 /* 靠左：元素无论在什么场景下都靠左 */
