@@ -66,55 +66,30 @@
 */
 
 /* ========================================================================
- * 确保 行/列 轨道分布：
- * 	拉伸
- * 	居中
- * 	互斥（space-between）
- * 	不熟（space-around）
- * 	友好（space-evenly）
- * 适用于 flex、grid。go-x下 row=垂直分布 col=水平分布；go-y下交换。grid下跟随书写模式。
+ * 确保 行/列 之间的关系：
+ * 	统一靠左/右/上/下：也适用于table
+ * 	拉伸：子元素在行/列方向上拉伸，占满空间，无空隙
+ * 	集体居中：行/列往中间挤，空隙在外部
+ * 	互斥/集体靠外：行/列倾向于往外跑，外部无空隙，行/列间均分空隙
+ * 	友好：行/列间和外侧等分空隙，行/列间空隙也是一份
+ * 	不熟：每行/列两侧自带等分的空隙，行/列间空隙是两份
+ * 适用于 flex、grid，部分适用于table。
  */
-/* ------ 行分布（默认 cross轴=垂直） ------ */
-.row-stretch {
-	align-content: stretch;
-}
-
-.row-center {
-	align-content: center;
-}
-
-.row-space-between, .row-mutex, .row-social-phobia {
-	align-content: space-between;
-}
-
-.row-space-around, .row-unfamiliar {
-	align-content: space-around;
-}
-
-.row-space-evenly, .row-friendly {
-	align-content: space-evenly;
-}
-
-/* ------ 列分布（默认 main轴=水平） ------ */
-.col-stretch {
-	justify-content: stretch;
-}
-
-.col-center {
-	justify-content: center;
-}
-
-.col-space-between, .col-mutex, .col-social-phobia {
-	justify-content: space-between;
-}
-
-.col-space-around, .col-unfamiliar {
-	justify-content: space-around;
-}
-
-.col-space-evenly, .col-friendly {
-	justify-content: space-evenly;
-}
+/* ------ 拉伸：子元素在行/列方向上拉伸，占满空间，无空隙 ------ */
+.row-stretch { align-content: stretch; }
+.col-stretch { justify-content: stretch; }
+/* ------ 集体居中：行/列往中间挤，空隙在外部 ------ */
+.row-center { align-content: center; }
+.col-center { justify-content: center; }
+/* ------ 互斥/集体靠外：行/列倾向于往外跑，外部无空隙，行/列间均分空隙 ------- */
+.row-space-between, .row-mutex, .row-social-phobia { align-content: space-between; }
+.col-space-between, .col-mutex, .col-social-phobia { justify-content: space-between; }
+/* ------ 友好：行/列间和外侧等分空隙，行/列间空隙也是一份 ------ */
+.row-space-evenly, .row-friendly { align-content: space-evenly; }
+.col-space-evenly, .col-friendly { justify-content: space-evenly; }
+/* ------ 不熟：每行/列两侧自带等分的空隙，行/列间空隙是两份 ------ */
+.row-space-around, .row-unfamiliar { align-content: space-around; }
+.col-space-around, .col-unfamiliar { justify-content: space-around; }
 
 /* ========================================================================
  * 确保 行/列（含内容） 靠上/下/左/右。
