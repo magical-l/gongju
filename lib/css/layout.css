@@ -18,6 +18,9 @@
 
 .no-gap { gap: 0 !important; }
 
+.single-line { display:flex; flex-wrap: nowrap; }
+.multi-line { display:flex; flex-wrap: wrap; }
+
 /* ========================================================================
  * 确保容器的子元素排列方向
  * 	横向从左到右
@@ -52,6 +55,7 @@
 
 	&.go-x { grid-auto-flow: row; }
 	&.go-y { grid-auto-flow: column; }
+	&.single-line, &.multi-line { flex-wrap: unset;/* 重置避免困惑 */ }
 }
 
 /* 同默认，无需覆盖
@@ -62,8 +66,7 @@
 */
 
 /* ========================================================================
- * 确保容器内子元素线路关系：
- * 	单线
+ * 确保容器内子元素线路之间的关系：
  * 	线路膨胀
  * 	线路靠前
  * 	线路靠后
@@ -71,26 +74,23 @@
  * 	线路互斥
  * 	线路不熟
  * 	线路友好
+ * 注：flex布局需多行才有效。
  */
-.single-line { flex-wrap: nowrap; }
-.multi-line {
-	flex-wrap: wrap;
-	/* ------ 线路之间（align-content） ------ */
-	/* 所有线路都拉伸膨胀，充满空间。受项目实际排布方向影响。 */
-	&.lines-stretch { align-content: stretch; }
-	/* 所有线路都拥到第一条线路这边。受项目实际排布方向影响。 */
-	&.lines-near-start { align-content: start; }
-	/* 所有线路都退到最后一条线路这边。受项目实际排布方向影响。 */
-	&.lines-near-end { align-content: end; }
-	/* 所有线路都挤在中间。受项目实际排布方向影响。 */
-	&.lines-near-center { align-content: center; }
-	/* 线路互斥（社恐），即线路互相之间距离尽量远。受项目实际排布方向影响。 */
-	&:is(.lines-space-between, .lines-mutex, .lines-social-phobia) { align-content: space-between; }
-	/* 线路不熟，即线路互相之间保持距离但又不极端排斥。受项目实际排布方向影响。 */
-	&:is(.lines-space-around, .lines-unfamiliar) { align-content: space-around; }
-	/* 线路不熟但比较友好。受项目实际排布方向影响。 */
-	&:is(.lines-space-evenly, .lines-friendly) { align-content: space-evenly; }
-}
+/* ------ 线路之间（align-content） ------ */
+/* 所有线路都拉伸膨胀，充满空间。受项目实际排布方向影响。 */
+.lines-stretch { align-content: stretch; }
+/* 所有线路都拥到第一条线路这边。受项目实际排布方向影响。 */
+.lines-near-start { align-content: start; }
+/* 所有线路都退到最后一条线路这边。受项目实际排布方向影响。 */
+.lines-near-end { align-content: end; }
+/* 所有线路都挤在中间。受项目实际排布方向影响。 */
+.lines-near-center { align-content: center; }
+/* 线路互斥（社恐），即线路互相之间距离尽量远。受项目实际排布方向影响。 */
+.lines-space-between, .lines-mutex, .lines-social-phobia { align-content: space-between; }
+/* 线路不熟，即线路互相之间保持距离但又不极端排斥。受项目实际排布方向影响。 */
+.lines-space-around, .lines-unfamiliar { align-content: space-around; }
+/* 线路不熟但比较友好。受项目实际排布方向影响。 */
+.lines-space-evenly, .lines-friendly { align-content: space-evenly; }
 
 /* ========================================================================
  * 确保 行/列（含内容） 靠上/下/左/右。
