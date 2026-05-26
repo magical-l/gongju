@@ -62,6 +62,14 @@
 .items-go-y.items-from-top
 .items-go-y.items-from-bottom
 */
+.items-go-x.items-from-right {
+	&.items-near-left { justify-content: end; justify-items: end; }
+	&.items-near-right { justify-content: start; justify-items: start; }
+}
+.items-go-y.items-from-bottom {
+	&.items-near-top { justify-content: end; justify-items: end; }
+	&.items-near-bottom { justify-content: start; justify-items: start; }
+}
 
 /* ========================================================================
  * 确保【横向/纵向】上的【内容/空隙】的分布：
