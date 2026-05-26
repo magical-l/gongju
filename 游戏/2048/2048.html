@@ -105,7 +105,7 @@
 						<el-form-item :class="'one tool : ' + item.key">
 							<el-button v-if="item.type === 'toggle'" class="按压式" :class="{ pressed: getQuickValue(item.key) }" @click="setQuickValue(item.key, !getQuickValue(item.key))">
 								<el-icon v-if="item.key === 'showNewTileMarker'">
-									<svg class="at-y-center" viewBox="0 0 24 24" width="1em" height="1em" title="角标式标记">
+									<svg class="near-y-center" viewBox="0 0 24 24" width="1em" height="1em" title="角标式标记">
 										<rect x="2" y="2" width="20" height="20" rx="5" fill="currentColor" opacity="0.85"></rect>
 										<circle cx="18" cy="6" r="3.5" fill="var(--el-color-danger, #f56c6c)"></circle>
 									</svg>
@@ -136,7 +136,7 @@
 				</div>
 			</section>
 			<!-- 信息区 -->
-			<aside class="info area , sidebar at-left">
+			<aside class="info area , sidebar near-left">
 				<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 					<summary>本局信息</summary>
 					<div class="items-go-y">
@@ -216,7 +216,7 @@
 			</el-dialog>
 		</article>
 	</main>
-	<aside class="sidebar at-right">
+	<aside class="sidebar near-right">
 		<article class="website info">
 			<section class="patronage area">
 				<img class="qr-code" src="../../resources/支付宝收款码.jpg" alt="支付宝收款码" title="赞助一下">

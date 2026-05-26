@@ -184,7 +184,7 @@
 			</div>
 		</section>
 
-		<aside class="sidebar at-left">
+		<aside class="sidebar near-left">
 			<details data-panel="info" class="gaming info" :open="panels.info" @toggle="onPanelToggle">
 				<summary>本局信息</summary>
 				<section class="one gaming info : init situation">
@@ -198,7 +198,7 @@
 			</details>
 			<details data-panel="record" class="record area" :open="panels.record" @toggle="onPanelToggle">
 				<summary>回合</summary>
-				<p v-if="solutionSteps.length" class="tip at-top">
+				<p v-if="solutionSteps.length" class="tip near-top">
 					共 {{ roundSteps.length }} 步。注：未必最优。
 				</p>
 				<div class="op area">
@@ -221,7 +221,7 @@
 						<div class="unit"><span class="name">{{ val }}</span></div>
 					</li>
 				</ol>
-				<p v-if="isWin" class="tip at-bottom">本局已过关</p>
+				<p v-if="isWin" class="tip near-bottom">本局已过关</p>
 			</details>
 			<details data-panel="shortcuts" class="shortcut list" :open="panels.shortcuts" @toggle="onPanelToggle">
 				<summary>快捷键</summary>
@@ -248,7 +248,7 @@
 	</article>
 </main>
 
-<aside class="sidebar at-right">
+<aside class="sidebar near-right">
 	<article class="website info">
 		<section class="patronage area">
 			<img title="赞助一下" class="qr-code" alt="支付宝收款码" src="../resources/支付宝收款码.jpg">
@@ -618,10 +618,10 @@
 				const dir = this.getMoveDirection(index);
 				if (!dir) return null;
 				return {
-				'at-left to-left': dir === 'left',
-				'at-right to-right': dir === 'right',
-				'at-top to-up': dir === 'up',
-				'at-bottom to-down': dir === 'down',
+				'near-left to-left': dir === 'left',
+				'near-right to-right': dir === 'right',
+				'near-top to-up': dir === 'up',
+				'near-bottom to-down': dir === 'down',
 				};
 				},
 			// 提示：与「本局解法」一致。已开答案用 solutionSteps；未开答案时用与 turnOnAnswer 相同的接轨/回滚逻辑，能接上则提示解法下一步，需先回滚则提示撤销上一步（玩家最后一步）

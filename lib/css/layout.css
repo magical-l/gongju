@@ -105,9 +105,9 @@
 	> * { flex: 1; }
 }
 /* ------ 集体居中 ------ */
-.items-y-center { align-content: center; }
-.items-x-center { justify-content: center; }
-.items-center { place-content: center; }
+.items-y-near-center { align-content: center; }
+.items-x-near-center { justify-content: center; }
+.items-near-center { place-content: center; }
 /* ------ 互斥 ------ */
 .items-y-space-between, .items-y-mutex, .items-y-social-phobia { align-content: space-between; }
 .items-x-space-between, .items-x-mutex, .items-x-social-phobia { justify-content: space-between; }
@@ -134,13 +134,13 @@
 	&.items-near-right { align-content: end; align-items: end; }
 
 	&.items-y-stretch { justify-content: stretch; justify-items: stretch; }
-	&.items-y-center { justify-content: center; }
+	&.items-y-near-center { justify-content: center; }
 	&.items-y-space-between, &.items-y-mutex, &.items-y-social-phobia { justify-content: space-between; }
 	&.items-y-space-evenly, &.items-y-friendly { justify-content: space-evenly; }
 	&.items-y-space-around, &.items-y-unfamiliar { justify-content: space-around; }
 
 	&.items-x-stretch { align-content: stretch; align-items: stretch; }
-	&.items-x-center { align-content: center; }
+	&.items-x-near-center { align-content: center; }
 	&.items-x-space-between, &.items-x-mutex, &.items-x-social-phobia { align-content: space-between; }
 	&.items-x-space-evenly, &.items-x-friendly { align-content: space-evenly; }
 	&.items-x-space-around, &.items-x-unfamiliar { align-content: space-around; }
@@ -148,7 +148,7 @@
 
 /* ================== 元素（含布局容器子元素）定位/方向 ================== */
 /* 靠左：元素无论在什么场景下都靠左 */
-.at-left {
+.near-left {
 	/* 适配块元素、flex子元素 */
 	margin-left: 0; margin-right: auto;
 	/* 适配grid子元素 */
@@ -158,7 +158,7 @@
 }
 
 /* 靠右：元素无论在什么场景下都靠右 */
-.at-right {
+.near-right {
 	/* 适配块元素、flex子元素 */
 	margin-left: auto; margin-right: 0;
 	/* 适配grid子元素 */
@@ -168,7 +168,7 @@
 }
 
 /* 靠上：元素无论在什么场景下都靠上 */
-.at-top {
+.near-top {
 	/* 适配块元素 */
 	margin-top: 0; margin-bottom: auto;
 	/* 适配flex、grid子元素 */
@@ -180,7 +180,7 @@
 }
 
 /* 靠下：元素无论在什么场景下都靠下 */
-.at-bottom {
+.near-bottom {
 	/* 适配块元素 */
 	margin-top: auto; margin-bottom: 0;
 	/* 适配flex、grid子元素 */
@@ -192,7 +192,7 @@
 }
 
 /* 水平居中：元素无论在什么场景下都水平居中 */
-.at-x-center {
+.near-x-center {
 	/* 适配块元素、flex子元素 */
 	margin-left: auto; margin-right: auto;
 	/* 适配grid子元素 */
@@ -202,7 +202,7 @@
 }
 
 /* 垂直居中：元素无论在什么场景下都垂直居中 */
-.at-y-center {
+.near-y-center {
 	/* 适配块元素 */
 	margin-top: auto; margin-bottom: auto;
 	/* 适配flex、grid子元素 */
@@ -214,7 +214,7 @@
 }
 
 /* 居中：元素无论在什么场景下都居中 */
-.at-center {
+.near-center {
 	/* 适配块元素、flex子元素 */
 	margin: auto;
 	/* 适配grid子元素 */
@@ -223,12 +223,6 @@
 	vertical-align: middle;
 	/* 适配定位元素 */
 	inset: 0;
-}
-
-.near-center {/* todo：重复了 */
-	justify-self: center;
-	align-self: center;
-	margin: auto;
 }
 
 /* ------ flex专属拉伸 ------ */
@@ -286,8 +280,8 @@
 	}
 
 	/* at-* 适配：逻辑属性翻转 */
-	& .at-left { justify-self: end; }
-	& .at-right { justify-self: start; }
+	& .near-left { justify-self: end; }
+	& .near-right { justify-self: start; }
 }
 
 /* N字形：竖向（列），列之间从右到左。列内肯定是从上到下。汉字字符保持头朝上，字母数字头朝右。古代汉语的书写模式。 */
@@ -315,26 +309,26 @@
 
 		/* 轨道分布 */
 		&.items-y-stretch { justify-content: stretch; justify-items: stretch; }
-		&.items-y-center { justify-content: center; }
+		&.items-y-near-center { justify-content: center; }
 		&.items-y-space-between, &.items-y-mutex, &.items-y-social-phobia { justify-content: space-between; }
 		&.items-y-space-around, &.items-y-unfamiliar { justify-content: space-around; }
 		&.items-y-space-evenly, &.items-y-friendly { justify-content: space-evenly; }
 
 		&.items-x-stretch { align-content: stretch; align-items: stretch; }
-		&.items-x-center { align-content: center; }
+		&.items-x-near-center { align-content: center; }
 		&.items-x-space-between, &.items-x-mutex, &.items-x-social-phobia { align-content: space-between; }
 		&.items-x-space-around, &.items-x-unfamiliar { align-content: space-around; }
 		&.items-x-space-evenly, &.items-x-friendly { align-content: space-evenly; }
 	}
 
 	/* at-* 适配：逻辑属性轴交换 */
-	& .at-left { justify-self: unset; align-self: end; }
-	& .at-right { justify-self: unset; align-self: start; }
-	& .at-top { align-self: unset; justify-self: start; }
-	& .at-bottom { align-self: unset; justify-self: end; }
-	& .at-x-center { justify-self: unset; align-self: center; }
-	& .at-y-center { align-self: unset; justify-self: center; }
-	/* .at-center 同默认，无需覆盖 */
+	& .near-left { justify-self: unset; align-self: end; }
+	& .near-right { justify-self: unset; align-self: start; }
+	& .near-top { align-self: unset; justify-self: start; }
+	& .near-bottom { align-self: unset; justify-self: end; }
+	& .near-x-center { justify-self: unset; align-self: center; }
+	& .near-y-center { align-self: unset; justify-self: center; }
+	/* .near-center 同默认，无需覆盖 */
 }
 
 /* И字形：竖向（列），列之间从左到右。列内肯定是从上到下。蒙文的书写模式。 */
@@ -362,26 +356,26 @@
 
 		/* 轨道分布 */
 		&.items-y-stretch { justify-content: stretch; justify-items: stretch; }
-		&.items-y-center { justify-content: center; }
+		&.items-y-near-center { justify-content: center; }
 		&.items-y-space-between, &.items-y-mutex, &.items-y-social-phobia { justify-content: space-between; }
 		&.items-y-space-around, &.items-y-unfamiliar { justify-content: space-around; }
 		&.items-y-space-evenly, &.items-y-friendly { justify-content: space-evenly; }
 
 		&.items-x-stretch { align-content: stretch; align-items: stretch; }
-		&.items-x-center { align-content: center; }
+		&.items-x-near-center { align-content: center; }
 		&.items-x-space-between, &.items-x-mutex, &.items-x-social-phobia { align-content: space-between; }
 		&.items-x-space-around, &.items-x-unfamiliar { align-content: space-around; }
 		&.items-x-space-evenly, &.items-x-friendly { align-content: space-evenly; }
 	}
 
 	/* at-* 适配：逻辑属性轴交换 */
-	& .at-left { justify-self: unset; align-self: start; }
-	& .at-right { justify-self: unset; align-self: end; }
-	& .at-top { align-self: unset; justify-self: start; }
-	& .at-bottom { align-self: unset; justify-self: end; }
-	& .at-x-center { justify-self: unset; align-self: center; }
-	& .at-y-center { align-self: unset; justify-self: center; }
-	/* .at-center 同默认，无需覆盖 */
+	& .near-left { justify-self: unset; align-self: start; }
+	& .near-right { justify-self: unset; align-self: end; }
+	& .near-top { align-self: unset; justify-self: start; }
+	& .near-bottom { align-self: unset; justify-self: end; }
+	& .near-x-center { justify-self: unset; align-self: center; }
+	& .near-y-center { align-self: unset; justify-self: center; }
+	/* .near-center 同默认，无需覆盖 */
 }
 
 /* ============ （实现：需要适配更多场景的实现，使用者通常无需关心） ============ */
@@ -392,34 +386,34 @@
 	&.items-near-left {}
 	&.items-near-right {}
 
-	> .at-left {}
-	> .at-right {}
-	> .at-top {}
-	> .at-bottom {}
-	> .at-x-center {}
-	> .at-y-center {}
-	> .at-center {}
+	> .near-left {}
+	> .near-right {}
+	> .near-top {}
+	> .near-bottom {}
+	> .near-x-center {}
+	> .near-y-center {}
+	> .near-center {}
 }*/
 
 /* 纵向排列下保证语义 */
 .items-go-y {
-	> .at-left { justify-self: unset; align-self: start; }
-	> .at-right { justify-self: unset; align-self: end; }
-	> .at-top { align-self: unset; justify-self: start; }
-	> .at-bottom { align-self: unset; justify-self: end; }
-	> .at-x-center { justify-self: unset; align-self: center; }
-	> .at-y-center { align-self: unset; justify-self: center; }
-	/* > .at-center {同前面的默认值，无需覆盖} */
+	> .near-left { justify-self: unset; align-self: start; }
+	> .near-right { justify-self: unset; align-self: end; }
+	> .near-top { align-self: unset; justify-self: start; }
+	> .near-bottom { align-self: unset; justify-self: end; }
+	> .near-x-center { justify-self: unset; align-self: center; }
+	> .near-y-center { align-self: unset; justify-self: center; }
+	/* > .near-center {同前面的默认值，无需覆盖} */
 }
 /* 下面这些搭配同前面的默认值，无需覆盖
 .items-go-y.items-from-top, .items-go-y.items-from-bottom {
-	> .at-left {}
-	> .at-right {}
-	> .at-top {}
-	> .at-bottom {}
-	> .at-x-center {}
-	> .at-y-center {}
-	> .at-center {}
+	> .near-left {}
+	> .near-right {}
+	> .near-top {}
+	> .near-bottom {}
+	> .near-x-center {}
+	> .near-y-center {}
+	> .near-center {}
 }*/
 
 /* ============================== Grid/Flex 预设布局 ============================== */
@@ -433,16 +427,16 @@
 		'header header'
 		'left right'
 		'footer footer';
-	> header, > .header, > .at-top {
+	> header, > .header, > .near-top {
 		grid-area: header;
 		grid-column: 1 / -1;
 	}
-	> footer, > .footer, > .at-bottom {
+	> footer, > .footer, > .near-bottom {
 		grid-area: footer;
 		grid-column: 1 / -1;
 	}
-	> .sidebar.at-left { grid-area: left; }
-	> .sidebar.at-right { grid-area: right; }
+	> .sidebar.near-left { grid-area: left; }
+	> .sidebar.near-right { grid-area: right; }
 }
 
 /* ------ "朋字形"布局，无顶部底部，只有左右两栏均分， ------ */
@@ -453,8 +447,8 @@
 	grid-template-columns: 1fr 1fr;
 	grid-template-areas: 'left right';
 
-	> .at-left {grid-area: left;}
-	> .at-right {grid-area: right;}
+	> .near-left {grid-area: left;}
+	> .near-right {grid-area: right;}
 }
 
 /* ------ "亚字形"布局，上部导航栏，底部页脚，中间有左右侧栏，中部是主要内容 ------ */
@@ -472,17 +466,17 @@
 		'header header header'
 		'left-sidebar main right-sidebar'
 		'footer footer footer';
-	> header, > .header, > .at-top {
+	> header, > .header, > .near-top {
 		grid-area: header;
 		grid-column: 1 / -1;
 	}
-	> footer, > .footer, > .at-bottom {
+	> footer, > .footer, > .near-bottom {
 		grid-area: footer;
 		grid-column: 1 / -1;
 	}
 	> main, > .main, > .body { grid-area: main; }
-	> .sidebar.at-left { grid-area: left-sidebar; }
-	> .sidebar.at-right { grid-area: right-sidebar; }
+	> .sidebar.near-left { grid-area: left-sidebar; }
+	> .sidebar.near-right { grid-area: right-sidebar; }
 }
 
 /* ------ "叵字形"布局，上部导航栏，底部页脚，中间左侧栏宽度固定，右侧主要内容自适应 ------ */
@@ -497,16 +491,16 @@
 		'header header'
 		'left-sidebar main'
 		'footer footer';
-	> header, > .header, > .at-top {
+	> header, > .header, > .near-top {
 		grid-area: header;
 		grid-column: 1 / -1;
 	}
-	> footer, > .footer, > .at-bottom {
+	> footer, > .footer, > .near-bottom {
 		grid-area: footer;
 		grid-column: 1 / -1;
 	}
 	> main, > .main, > .body { grid-area: main; }
-	> .sidebar.at-left { grid-area: left-sidebar; }
+	> .sidebar.near-left { grid-area: left-sidebar; }
 }
 
 /*------ "反叵字形"布局，上部导航栏，底部页脚，中间右侧栏宽度固定，左侧主要内容自适应 ------ */
@@ -521,16 +515,16 @@
 		'header header'
 		'main right-sidebar'
 		'footer footer';
-	> header, > .header, > .at-top {
+	> header, > .header, > .near-top {
 		grid-area: header;
 		grid-column: 1 / -1;
 	}
-	> footer, > .footer, > .at-bottom {
+	> footer, > .footer, > .near-bottom {
 		grid-area: footer;
 		grid-column: 1 / -1;
 	}
 	> main, > .main, > .body { grid-area: main; }
-	> .sidebar.at-right { grid-area: right-sidebar; }
+	> .sidebar.near-right { grid-area: right-sidebar; }
 }
 
 /* ------ "目字形/三字形"布局，上部导航栏，底部页脚 ------ */
@@ -545,10 +539,10 @@
 		'header'
 		'main'
 		'footer';
-	> header, > .header, > .at-top {
+	> header, > .header, > .near-top {
 		grid-area: header;
 	}
-	> footer, > .footer, > .at-bottom {
+	> footer, > .footer, > .near-bottom {
 		grid-area: footer;
 	}
 	> main, > .main, > .body { grid-area: main; }
