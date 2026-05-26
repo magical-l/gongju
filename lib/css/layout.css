@@ -186,53 +186,83 @@
 .content-Z {
 	writing-mode: horizontal-tb;
 	direction: ltr;
-	/* Z字形默认，无需额外适配 */
+
+	/* 同默认，无需覆盖
+	&.go-x, & .go-x {}
+	&.go-y, & .go-y {}
+	*/
 }
 
-/* S字形：横向（行），行内从右到左。行之间肯定是从上到下。阿拉伯语的书写模式。 */
+/* S字形：横向（行），行内从右到左。阿拉伯文书写模式。需翻转x轴from语义。column不受direction影响。 */
 .content-S {
 	writing-mode: horizontal-tb;
 	direction: rtl;
-	/* RTL：justify-self/align-self 是逻辑属性，需要适配才能保持物理方向语义 */
-	/* margin/inset 是物理属性，不需要适配 */
-	& .at-left { justify-self: end; }  /* RTL下 end=视觉左 */
-	& .at-right { justify-self: start; }  /* RTL下 start=视觉右 */
-	/* .at-top/.at-bottom 不受 RTL 影响（上下方向不变） */
-	/* .at-x-center/.at-y-center/.at-center 不受影响（居中对称） */
 
-	& .go-x {
+	/* go-x/go-y 适配：保持物理语义 */
+	&.go-x, & .go-x {
 		&.from-left { flex-direction: row-reverse; }
 		&.from-right { flex-direction: row; }
 	}
+	/* 同默认，无需覆盖
+	&.go-y, & .go-y {}
+	*/
+
+	/* at-* 适配：逻辑属性翻转 */
+	& .at-left { justify-self: end; }
+	& .at-right { justify-self: start; }
+	/* 同默认，无需覆盖
+	& .at-top, & .at-bottom, & .at-center
+	*/
 }
 
 /* N字形：竖向（列），列之间从右到左。列内肯定是从上到下。汉字字符保持头朝上，字母数字头朝右。古代汉语的书写模式。 */
 .content-N {
 	writing-mode: vertical-rl;
 	direction: ltr;
-	/* N字形：行内=纵向，块级=横向（从右到左） */
-	/* 物理属性不变，只适配逻辑属性 */
-	/* .go-x/y 保持物理方向，不因书写模式改变 */
-	& .at-left { justify-self: unset; align-self: end; }  /* 块级结束端=物理左 */
-	& .at-right { justify-self: unset; align-self: start; }  /* 块级起始端=物理右 */
-	& .at-top { align-self: unset; justify-self: start; }  /* 行内起始端=物理上 */
-	& .at-bottom { align-self: unset; justify-self: end; }  /* 行内结束端=物理下 */
+
+	/* go-x/go-y 适配：保持物理语义 */
+	&.go-x, & .go-x {
+		&.from-left { flex-direction: column-reverse; }
+		&.from-right { flex-direction: column; }
+	}
+	&.go-y, & .go-y {
+		&.from-top { flex-direction: row; }
+		&.from-bottom { flex-direction: row-reverse; }
+	}
+
+	/* at-* 适配：逻辑属性轴交换 */
+	& .at-left { justify-self: unset; align-self: end; }
+	& .at-right { justify-self: unset; align-self: start; }
+	& .at-top { align-self: unset; justify-self: start; }
+	& .at-bottom { align-self: unset; justify-self: end; }
 	& .at-x-center { justify-self: unset; align-self: center; }
 	& .at-y-center { align-self: unset; justify-self: center; }
+	/* .at-center 同默认，无需覆盖 */
 }
 
 /* И字形：竖向（列），列之间从左到右。列内肯定是从上到下。蒙文的书写模式。 */
 .content-И {
 	writing-mode: vertical-lr;
 	direction: ltr;
-	/* И字形：行内=纵向，块级=横向（从左到右） */
-	/* 与N字形类似，但块级方向相反 */
-	& .at-left { justify-self: unset; align-self: start; }  /* 块级起始端=物理左 */
-	& .at-right { justify-self: unset; align-self: end; }  /* 块级结束端=物理右 */
+
+	/* go-x/go-y 适配：保持物理语义 */
+	&.go-x, & .go-x {
+		&.from-left { flex-direction: column; }
+		&.from-right { flex-direction: column-reverse; }
+	}
+	&.go-y, & .go-y {
+		&.from-top { flex-direction: row; }
+		&.from-bottom { flex-direction: row-reverse; }
+	}
+
+	/* at-* 适配：逻辑属性轴交换 */
+	& .at-left { justify-self: unset; align-self: start; }
+	& .at-right { justify-self: unset; align-self: end; }
 	& .at-top { align-self: unset; justify-self: start; }
 	& .at-bottom { align-self: unset; justify-self: end; }
 	& .at-x-center { justify-self: unset; align-self: center; }
 	& .at-y-center { align-self: unset; justify-self: center; }
+	/* .at-center 同默认，无需覆盖 */
 }
 
 /* ============ （实现：需要适配更多场景的实现，使用者通常无需关心） ============ */
