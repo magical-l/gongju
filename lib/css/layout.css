@@ -75,69 +75,76 @@
  * 注：flex单行时align-content无效但align-items仍生效，视觉效果不变
  */
 /* 靠边（轨道+内容）  */
-.row-near-top {
+.y-near-top {
 	align-content: start;
 	align-items: start;
 	& td, & th { vertical-align: top; }
 }
-.row-near-bottom {
+.y-near-bottom {
 	align-content: end;
 	align-items: end;
 	& td, & th { vertical-align: bottom; }
 }
-.col-near-left {
+.x-near-left {
 	justify-content: start;
 	justify-items: start;
 	& td, & th { text-align: left; }
 }
-.col-near-right {
+.x-near-right {
 	justify-content: end;
 	justify-items: end;
 	& td, & th { text-align: right; }
 }
 
-/* 拉伸 */
-.row-stretch { align-content: stretch; }
-.col-stretch { justify-content: stretch; }
+/* ------ 拉伸 ------ */
+.y-stretch { align-content: stretch; }
+.x-stretch { justify-content: stretch; }
 /* flex主轴上子元素配合拉伸（次轴默认stretch无需额外处理） */
-.go-x.col-stretch > *, .go-y.row-stretch > * { flex: 1; }
-
-/* 集体居中 */
-.row-center { align-content: center; }
-.col-center { justify-content: center; }
-/* 互斥 */
-.row-space-between, .row-mutex, .row-social-phobia { align-content: space-between; }
-.col-space-between, .col-mutex, .col-social-phobia { justify-content: space-between; }
-/* 友好 */
-.row-space-evenly, .row-friendly { align-content: space-evenly; }
-.col-space-evenly, .col-friendly { justify-content: space-evenly; }
-/* 不熟 */
-.row-space-around, .row-unfamiliar { align-content: space-around; }
-.col-space-around, .col-unfamiliar { justify-content: space-around; }
+.go-x.x-stretch > *, .go-y.y-stretch > * { flex: 1; }
+.xy-stretch {
+	place-items: stretch;
+	/* 直接子元素配合拉伸（flex主轴方向） */
+	> * { flex: 1; }
+}
+/* ------ 集体居中 ------ */
+.y-center { align-content: center; }
+.x-center { justify-content: center; }
+/* ------ 互斥 ------ */
+.y-space-between, .y-mutex, .y-social-phobia { align-content: space-between; }
+.x-space-between, .x-mutex, .x-social-phobia { justify-content: space-between; }
+.xy-space-between, .xy-mutex, .xy-social-phobia { place-content: space-between; }
+/* ------ 友好 ------ */
+.y-space-evenly, .y-friendly { align-content: space-evenly; }
+.x-space-evenly, .x-friendly { justify-content: space-evenly; }
+.xy-space-evenly, .xy-friendly { place-content: space-evenly; flex-wrap: wrap; }
+/* ------ 不熟 ------ */
+.y-space-around, .y-unfamiliar { align-content: space-around; }
+.x-space-around, .x-unfamiliar { justify-content: space-around; }
+.xy-space-around, .xy-unfamiliar { place-content: space-around; flex-wrap: wrap; }
 
 /* 同默认，无需覆盖
 .go-x {
-	&.row/col-near-*
-	&.row/col-stretch/center/space-*
+	&.x/y-near-*
+	&.x/y-stretch/center/space-*
 }
 */
 .go-y {
-	&.row-near-top { justify-content: start; justify-items: start; }
-	&.row-near-bottom { justify-content: end; justify-items: end; }
-	&.col-near-left { align-content: start; align-items: start; }
-	&.col-near-right { align-content: end; align-items: end; }
+	&.y-near-top { justify-content: start; justify-items: start; }
+	&.y-near-bottom { justify-content: end; justify-items: end; }
+	&.x-near-left { align-content: start; align-items: start; }
+	&.x-near-right { align-content: end; align-items: end; }
 
-	&.row-stretch { justify-content: stretch; justify-items: stretch; }
-	&.row-center { justify-content: center; }
-	&.row-space-between, &.row-mutex, &.row-social-phobia { justify-content: space-between; }
-	&.row-space-evenly, &.row-friendly { justify-content: space-evenly; }
-	&.row-space-around, &.row-unfamiliar { justify-content: space-around; }
+	&.y-stretch { justify-content: stretch; justify-items: stretch; }
+	&.y-center { justify-content: center; }
+	&.y-space-between, &.y-mutex, &.y-social-phobia { justify-content: space-between; }
+	&.y-space-evenly, &.y-friendly { justify-content: space-evenly; }
+	&.y-space-around, &.y-unfamiliar { justify-content: space-around; }
 
-	&.col-stretch { align-content: stretch; align-items: stretch; }
-	&.col-center { align-content: center; }
-	&.col-space-between, &.col-mutex, &.col-social-phobia { align-content: space-between; }
-	&.col-space-evenly, &.col-friendly { align-content: space-evenly; }
-	&.col-space-around, &.col-unfamiliar { align-content: space-around; }
+	&.x-stretch { align-content: stretch; align-items: stretch; }
+	&.x-center { align-content: center; }
+	&.x-space-between, &.x-mutex, &.x-social-phobia { align-content: space-between; }
+	&.x-space-evenly, &.x-friendly { align-content: space-evenly; }
+	&.x-space-around, &.x-unfamiliar { align-content: space-around; }
 }
 
 /* ================== 元素（含布局容器子元素）定位/方向 ================== */
@@ -251,9 +258,9 @@
 
 	/* grid适配：RTL翻转左右 */
 	&.grid, & .grid {
-		&.col-near-left { justify-content: end; justify-items: end; }
-		&.col-near-right { justify-content: start; justify-items: start; }
-		/* row-* col-stretch/center/space-* 对称值不受RTL影响，无需覆盖 */
+		&.x-near-left { justify-content: end; justify-items: end; }
+		&.x-near-right { justify-content: start; justify-items: start; }
+		/* y-* x-stretch/center/space-* 对称值不受RTL影响，无需覆盖 */
 	}
 
 	/* at-* 适配：逻辑属性翻转 */
@@ -278,24 +285,24 @@
 
 	/* grid适配：竖排下轴交换+块轴右→左 */
 	&.grid, & .grid {
-		/* 靠边：row-*→justify col-*→align */
-		&.row-near-top { justify-content: start; justify-items: start; }
-		&.row-near-bottom { justify-content: end; justify-items: end; }
-		&.col-near-left { align-content: end; align-items: end; }
-		&.col-near-right { align-content: start; align-items: start; }
+		/* 靠边：y-*→justify x-*→align */
+		&.y-near-top { justify-content: start; justify-items: start; }
+		&.y-near-bottom { justify-content: end; justify-items: end; }
+		&.x-near-left { align-content: end; align-items: end; }
+		&.x-near-right { align-content: start; align-items: start; }
 
 		/* 轨道分布 */
-		&.row-stretch { justify-content: stretch; justify-items: stretch; }
-		&.row-center { justify-content: center; }
-		&.row-space-between, &.row-mutex, &.row-social-phobia { justify-content: space-between; }
-		&.row-space-around, &.row-unfamiliar { justify-content: space-around; }
-		&.row-space-evenly, &.row-friendly { justify-content: space-evenly; }
+		&.y-stretch { justify-content: stretch; justify-items: stretch; }
+		&.y-center { justify-content: center; }
+		&.y-space-between, &.y-mutex, &.y-social-phobia { justify-content: space-between; }
+		&.y-space-around, &.y-unfamiliar { justify-content: space-around; }
+		&.y-space-evenly, &.y-friendly { justify-content: space-evenly; }
 
-		&.col-stretch { align-content: stretch; align-items: stretch; }
-		&.col-center { align-content: center; }
-		&.col-space-between, &.col-mutex, &.col-social-phobia { align-content: space-between; }
-		&.col-space-around, &.col-unfamiliar { align-content: space-around; }
-		&.col-space-evenly, &.col-friendly { align-content: space-evenly; }
+		&.x-stretch { align-content: stretch; align-items: stretch; }
+		&.x-center { align-content: center; }
+		&.x-space-between, &.x-mutex, &.x-social-phobia { align-content: space-between; }
+		&.x-space-around, &.x-unfamiliar { align-content: space-around; }
+		&.x-space-evenly, &.x-friendly { align-content: space-evenly; }
 	}
 
 	/* at-* 适配：逻辑属性轴交换 */
@@ -325,24 +332,24 @@
 
 	/* grid适配：竖排下轴交换+块轴左→右 */
 	&.grid, & .grid {
-		/* 靠边：row-*→justify col-*→align */
-		&.row-near-top { justify-content: start; justify-items: start; }
-		&.row-near-bottom { justify-content: end; justify-items: end; }
-		&.col-near-left { align-content: start; align-items: start; }
-		&.col-near-right { align-content: end; align-items: end; }
+		/* 靠边：y-*→justify x-*→align */
+		&.y-near-top { justify-content: start; justify-items: start; }
+		&.y-near-bottom { justify-content: end; justify-items: end; }
+		&.x-near-left { align-content: start; align-items: start; }
+		&.x-near-right { align-content: end; align-items: end; }
 
 		/* 轨道分布 */
-		&.row-stretch { justify-content: stretch; justify-items: stretch; }
-		&.row-center { justify-content: center; }
-		&.row-space-between, &.row-mutex, &.row-social-phobia { justify-content: space-between; }
-		&.row-space-around, &.row-unfamiliar { justify-content: space-around; }
-		&.row-space-evenly, &.row-friendly { justify-content: space-evenly; }
+		&.y-stretch { justify-content: stretch; justify-items: stretch; }
+		&.y-center { justify-content: center; }
+		&.y-space-between, &.y-mutex, &.y-social-phobia { justify-content: space-between; }
+		&.y-space-around, &.y-unfamiliar { justify-content: space-around; }
+		&.y-space-evenly, &.y-friendly { justify-content: space-evenly; }
 
-		&.col-stretch { align-content: stretch; align-items: stretch; }
-		&.col-center { align-content: center; }
-		&.col-space-between, &.col-mutex, &.col-social-phobia { align-content: space-between; }
-		&.col-space-around, &.col-unfamiliar { align-content: space-around; }
-		&.col-space-evenly, &.col-friendly { align-content: space-evenly; }
+		&.x-stretch { align-content: stretch; align-items: stretch; }
+		&.x-center { align-content: center; }
+		&.x-space-between, &.x-mutex, &.x-social-phobia { align-content: space-between; }
+		&.x-space-around, &.x-unfamiliar { align-content: space-around; }
+		&.x-space-evenly, &.x-friendly { align-content: space-evenly; }
 	}
 
 	/* at-* 适配：逻辑属性轴交换 */
@@ -358,10 +365,10 @@
 /* ============ （实现：需要适配更多场景的实现，使用者通常无需关心） ============ */
 /* 下面这些搭配同默认值，无需覆盖
 .go-x, .go-x.from-left, .go-x.from-right {
-	&.row-near-top {}
-	&.row-near-bottom {}
-	&.col-near-left {}
-	&.col-near-right {}
+	&.y-near-top {}
+	&.y-near-bottom {}
+	&.x-near-left {}
+	&.x-near-right {}
 
 	> .at-left {}
 	> .at-right {}
@@ -393,14 +400,6 @@
 	> .at-center {}
 }*/
 
-/* ================== xy双轴快捷方式 ================== */
-/* 双轴拉伸 */
-.items-stretch {
-	place-items: stretch;
-	/* 直接子元素配合拉伸（flex主轴方向） */
-	> * { flex: 1; }
-}
-
 /* ------ flex专属拉伸 ------ */
 /* 在横向flex容器里，保证本项目独占一行 */
 .multi-line.go-x .monopoly-x,
@@ -423,19 +422,6 @@
 /* 不一定真的能独占一行/列。如果另有项目也安排在同一行/列，两者会堆叠 */
 .one-row {grid-column: 1 / -1;}
 .one-column {grid-row: 1 / -1;}
-
-/* 双轴互斥 */
-.items-space-between,
-.items-mutex,
-.items-social-phobia { place-content: space-between; }
-
-/* 双轴不熟 */
-.items-space-around,
-.items-unfamiliar { place-content: space-around; flex-wrap: wrap; }
-
-/* 双轴友好 */
-.items-space-evenly,
-.items-friendly { place-content: space-evenly; flex-wrap: wrap; }
 
 /* ============================== Grid/Flex 预设布局 ============================== */
 /* 为防没有使用.grid/.flex之类，所以不显式结合.grid/.flex，直接设置。若非display:grid/flex也没事，会被浏览器忽略。下同 */

@@ -61,7 +61,7 @@
 			</div>
 		</header>
 		<article class="gaming area , game-2048 , 叵字形" tabindex="0" v-cloak>
-			<header class="toolbar , multi-line flex , items-near-x-center items-stretch no-gap">
+			<header class="toolbar , multi-line flex , items-near-x-center xy-stretch no-gap">
 				<section class="setting list , single-line flex , items-near-x-start items-near-y-center no-gap">
 					<div class="one setting group">
 						<el-form-item class="one setting : height">
@@ -183,7 +183,7 @@
 				<input ref="unitFileInput" type="file" accept="image/*" class="hidden" @change="onUnitFileChange">
 				<div class="unit list">
 					<el-card :header="`数字 ${pu.key}`" class="one unit area" v-for="pu in previewUnits" :key="pu.key" shadow="never">
-						<div class="flex items-stretch">
+						<div class="flex xy-stretch">
 							<div class="cell">
 								<div class="unit preview" :class="['unit-' + pu.key, { 'preview-error': previewImageErrors[pu.key] }]">
 									<img v-if="pu.image" :src="pu.image" :alt="pu.text" loading="lazy" @error="previewImageErrors[pu.key]=true">
