@@ -98,7 +98,7 @@
 .y-stretch { align-content: stretch; }
 .x-stretch { justify-content: stretch; }
 /* flex主轴上子元素配合拉伸（次轴默认stretch无需额外处理） */
-.go-x.x-stretch > *, .go-y.y-stretch > * { flex: 1; }
+:not(.go-y).x-stretch > *, .go-y.y-stretch > * { flex: 1; }
 .xy-stretch {
 	place-items: stretch;
 	/* 直接子元素配合拉伸（flex主轴方向） */
@@ -107,6 +107,7 @@
 /* ------ 集体居中 ------ */
 .y-center { align-content: center; }
 .x-center { justify-content: center; }
+.xy-center { place-content: center; }
 /* ------ 互斥 ------ */
 .y-space-between, .y-mutex, .y-social-phobia { align-content: space-between; }
 .x-space-between, .x-mutex, .x-social-phobia { justify-content: space-between; }
@@ -114,11 +115,11 @@
 /* ------ 友好 ------ */
 .y-space-evenly, .y-friendly { align-content: space-evenly; }
 .x-space-evenly, .x-friendly { justify-content: space-evenly; }
-.xy-space-evenly, .xy-friendly { place-content: space-evenly; flex-wrap: wrap; }
+.xy-space-evenly, .xy-friendly { place-content: space-evenly; }
 /* ------ 不熟 ------ */
 .y-space-around, .y-unfamiliar { align-content: space-around; }
 .x-space-around, .x-unfamiliar { justify-content: space-around; }
-.xy-space-around, .xy-unfamiliar { place-content: space-around; flex-wrap: wrap; }
+.xy-space-around, .xy-unfamiliar { place-content: space-around; }
 
 /* 同默认，无需覆盖
 .go-x {
@@ -229,6 +230,29 @@
 	align-self: center;
 	margin: auto;
 }
+
+/* ------ flex专属拉伸 ------ */
+/* 在横向flex容器里，保证本项目独占一行 */
+.multi-line.go-x .monopoly-x,
+/* 在纵向flex容器里，保证本项目独占一列 */
+.multi-line.go-y .monopoly-y {
+	flex-basis: 100%;
+}
+
+.no-shrink { flex-shrink: 0; }
+
+/* 本项目弹性填充 */
+.flexible {
+	flex: 1 1 auto;
+	align-self: stretch;
+	min-width: 0;
+	min-height: 0;
+}
+
+/* ------grid专属拉伸 ------ */
+/* 不一定真的能独占一行/列。如果另有项目也安排在同一行/列，两者会堆叠 */
+.one-row { grid-column: 1 / -1; }
+.one-column { grid-row: 1 / -1; }
 
 /* ======================== 书写模式：决定内容排列方向，一些布局"行"、"列"会受其影响 ======================== */
 /* Z字形：横向（行），行内从左到右。行之间肯定是从上到下。现行最常见&默认的书写模式。 */
@@ -397,29 +421,6 @@
 	> .at-y-center {}
 	> .at-center {}
 }*/
-
-/* ------ flex专属拉伸 ------ */
-/* 在横向flex容器里，保证本项目独占一行 */
-.multi-line.go-x .monopoly-x,
-/* 在纵向flex容器里，保证本项目独占一列 */
-.multi-line.go-y .monopoly-y {
-	flex-basis: 100%;
-}
-
-.no-shrink { flex-shrink: 0; }
-
-/* 本项目弹性填充 */
-.flexible {
-	flex: 1 1 auto;
-	align-self: stretch;
-	min-width: 0;
-	min-height: 0;
-}
-
-/* ------grid专属拉伸 ------ */
-/* 不一定真的能独占一行/列。如果另有项目也安排在同一行/列，两者会堆叠 */
-.one-row {grid-column: 1 / -1;}
-.one-column {grid-row: 1 / -1;}
 
 /* ============================== Grid/Flex 预设布局 ============================== */
 /* 为防没有使用.grid/.flex之类，所以不显式结合.grid/.flex，直接设置。若非display:grid/flex也没事，会被浏览器忽略。下同 */
