@@ -364,55 +364,55 @@
 				</div>
 			</article>
 		</section>
-		<!-- ==================== go-y 纵向排列 ==================== -->
+		<!-- ==================== items-go-y 纵向排列 ==================== -->
 		<section class="demo-section">
-			<h3>.go-y 纵向排列下的 .at-* 表现</h3>
+			<h3>.items-go-y 纵向排列下的 .at-* 表现</h3>
 			<p>注：纵向排列时，物理左右的 .at-left/right 变成 align-self，物理上下 .at-top/bottom 变成 justify-self</p>
 			<article>
-				<h4>35 flex.go-y + .at-left</h4>
-				<div class="container flex-container go-y">
+				<h4>35 flex.items-go-y + .at-left</h4>
+				<div class="container flex-container items-go-y">
 					<div class="box at-left">靠左</div>
 				</div>
 				<p>期望：纵向排列时，靠左应该用 align-self: start</p>
 			</article>
 			<article>
-				<h4>36 flex.go-y + .at-top</h4>
-				<div class="container flex-container go-y">
+				<h4>36 flex.items-go-y + .at-top</h4>
+				<div class="container flex-container items-go-y">
 					<div class="box at-top">靠上</div>
 				</div>
 				<p>期望：纵向排列时，靠上应该用 justify-self: start</p>
 			</article>
 			<article>
-				<h4>37 grid.go-y + .at-center</h4>
-				<div class="container grid-container go-y" style="grid-template-columns: 1fr;">
+				<h4>37 grid.items-go-y + .at-center</h4>
+				<div class="container grid-container items-go-y" style="grid-template-columns: 1fr;">
 					<div class="box at-center">居中</div>
 				</div>
 				<p>期望：纵向排列时，居中应该在纵向单元格内生效</p>
 			</article>
 			<article>
-				<h4>38 定位元素 + go-y + .at-left</h4>
-				<div class="container relative-container go-y">
+				<h4>38 定位元素 + items-go-y + .at-left</h4>
+				<div class="container relative-container items-go-y">
 					<div class="box position-box at-left">靠左</div>
 				</div>
 				<p>注：定位元素的 left/right 不受 flex/grid 排列方向影响</p>
 			</article>
 			<article>
-				<h4>39 content-N + .go-x（对比：竖向书写模式下的纵向排列）</h4>
-				<div class="container flex-container content-N go-x" style="height: 200px; width: 150px;">
+				<h4>39 content-N + .items-go-x（对比：竖向书写模式下的纵向排列）</h4>
+				<div class="container flex-container content-N items-go-x" style="height: 200px; width: 150px;">
 					<div class="box">A</div>
 					<div class="box">B</div>
 					<div class="box">C</div>
 				</div>
-				<p>对比：N字形下 .go-x 的 flex-direction 变成 column，子项纵向排列</p>
+				<p>对比：N字形下 .items-go-x 的 flex-direction 变成 column，子项纵向排列</p>
 			</article>
 			<article>
-				<h4>40 content-И + .go-x（对比：竖向书写模式下的纵向排列）</h4>
-				<div class="container flex-container content-И go-x" style="height: 200px; width: 150px;">
+				<h4>40 content-И + .items-go-x（对比：竖向书写模式下的纵向排列）</h4>
+				<div class="container flex-container content-И items-go-x" style="height: 200px; width: 150px;">
 					<div class="box">A</div>
 					<div class="box">B</div>
 					<div class="box">C</div>
 				</div>
-				<p>对比：И字形下 .go-x 的 flex-direction 变成 column</p>
+				<p>对比：И字形下 .items-go-x 的 flex-direction 变成 column</p>
 			</article>
 		</section>
 		<!-- ==================== content-S (RTL) ==================== -->
@@ -515,8 +515,8 @@
 				</div>
 			</article>
 			<article>
-				<h4>53 content-N + flex.go-x + .at-left</h4>
-				<div class="container flex-container content-N go-x" style="height: 200px; width: 150px;">
+				<h4>53 content-N + flex.items-go-x + .at-left</h4>
+				<div class="container flex-container content-N items-go-x" style="height: 200px; width: 150px;">
 					<div class="box at-left">靠左</div>
 				</div>
 			</article>
@@ -561,15 +561,15 @@
 				<p>期望：justify-self: end</p>
 			</article>
 			<article>
-				<h4>60 content-N + grid.go-y + .at-left</h4>
-				<div class="container grid-container content-N go-y" style="height: 200px; width: 150px;">
+				<h4>60 content-N + grid.items-go-y + .at-left</h4>
+				<div class="container grid-container content-N items-go-y" style="height: 200px; width: 150px;">
 					<div class="box at-left">靠左</div>
 				</div>
 				<p>期望：align-self: end</p>
 			</article>
 			<article>
-				<h4>61 content-N + grid.go-y + .at-top</h4>
-				<div class="container grid-container content-N go-y" style="height: 200px; width: 150px;">
+				<h4>61 content-N + grid.items-go-y + .at-top</h4>
+				<div class="container grid-container content-N items-go-y" style="height: 200px; width: 150px;">
 					<div class="box at-top">靠上</div>
 				</div>
 				<p>期望：justify-self: start</p>
@@ -600,8 +600,8 @@
 				</div>
 			</article>
 			<article>
-				<h4>65 content-И + flex.go-x + .at-left</h4>
-				<div class="container flex-container content-И go-x" style="height: 200px; width: 150px;">
+				<h4>65 content-И + flex.items-go-x + .at-left</h4>
+				<div class="container flex-container content-И items-go-x" style="height: 200px; width: 150px;">
 					<div class="box at-left">靠左</div>
 				</div>
 			</article>
@@ -646,15 +646,15 @@
 				<p>期望：justify-self: end</p>
 			</article>
 			<article>
-				<h4>72 content-И + grid.go-y + .at-left</h4>
-				<div class="container grid-container content-И go-y" style="height: 200px; width: 150px;">
+				<h4>72 content-И + grid.items-go-y + .at-left</h4>
+				<div class="container grid-container content-И items-go-y" style="height: 200px; width: 150px;">
 					<div class="box at-left">靠左</div>
 				</div>
 				<p>期望：align-self: start</p>
 			</article>
 			<article>
-				<h4>73 content-И + grid.go-y + .at-top</h4>
-				<div class="container grid-container content-И go-y" style="height: 200px; width: 150px;">
+				<h4>73 content-И + grid.items-go-y + .at-top</h4>
+				<div class="container grid-container content-И items-go-y" style="height: 200px; width: 150px;">
 					<div class="box at-top">靠上</div>
 				</div>
 				<p>期望：justify-self: start</p>
@@ -663,7 +663,7 @@
 		<!-- ==================== content-N (竖向从右到左) ==================== -->
 		<!-- ==================== content-И (竖向从左到右) ==================== -->
 		<!-- ==================== content-S (RTL) ==================== -->
-		<!-- ==================== go-y 纵向排列 ==================== -->
+		<!-- ==================== items-go-y 纵向排列 ==================== -->
 		<!-- ==================== 书写模式 content-S (RTL) ==================== -->
 		<!-- ==================== 书写模式 content-N (竖向从右到左) ==================== -->
 		<!-- ==================== 书写模式 content-И (竖向从左到右) ==================== -->
@@ -747,16 +747,16 @@
 					parent = parent.parentElement;
 				}
 				// 确定排列方向
-				var goDir = '.go-x';
+				var goDir = '.items-go-x';
 				parent = box.parentElement;
 				while (parent) {
 					if (parent.classList) {
-						if (parent.classList.contains('go-y')) {
-							goDir = '.go-y';
+						if (parent.classList.contains('items-go-y')) {
+							goDir = '.items-go-y';
 							break;
 						}
-						if (parent.classList.contains('go-x')) {
-							goDir = '.go-x';
+						if (parent.classList.contains('items-go-x')) {
+							goDir = '.items-go-x';
 							break;
 						}
 					}
@@ -776,8 +776,8 @@
 				if (!map) map = expectMap['content-Z'];
 				var exp = map[atClass];
 				if (!exp) return;
-				// go-y 轴交换：只对 Z/S 字形生效（N/И 字形在 CSS 嵌套中已处理）
-				if ((isGrid || isFlex) && goDir === '.go-y' && (content === 'content-Z' || content === 'content-S')) {
+				// items-go-y 轴交换：只对 Z/S 字形生效（N/И 字形在 CSS 嵌套中已处理）
+				if ((isGrid || isFlex) && goDir === '.items-go-y' && (content === 'content-Z' || content === 'content-S')) {
 					exp = [exp[1], exp[0]];
 				}
 				// 获取实际值

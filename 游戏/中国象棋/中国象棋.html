@@ -46,7 +46,7 @@
 				<h2 class="game name">中国象棋</h2>
 			</header>
 			<article class="gaming area , 反叵字形" v-cloak>
-				<header class="toolbar , flex multi-line no-gap items-near-x-center xy-stretch">
+				<header class="toolbar , flex multi-line no-gap items-near-x-center items-stretch">
 					<section class="setting list , flex single-line no-gap items-near-x-start items-near-y-center">
 						<div class="one setting group" v-if="isGaming">
 							<el-button class="one setting : new-game" type="danger" icon="RefreshRight" @click="returnToSettings">新局 </el-button>
@@ -114,7 +114,7 @@
 					</details>
 					<details data-panel="selected" :open="panels.selected" @toggle="onPanelToggle">
 						<summary>当前选中</summary>
-						<div class="cur unit profile , go-y" v-if="isGaming && selectedUnit">
+						<div class="cur unit profile , items-go-y" v-if="isGaming && selectedUnit">
 							<div class="summary">
 								<div class="logo">
 									<div class="piece unit" :class="getUnitClasses(selectedUnit)">{{ selectedUnit.display }}</div>

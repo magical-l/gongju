@@ -348,7 +348,7 @@
 					.intro
 					.skill.list
 					.friend.list
-		变体：横向（.go-x）、纵向（.go-y）
+		变体：横向（.items-go-x）、纵向（.items-go-y）
 	*/
 	& .profile {
 		position: relative;/* 默认可偏移，可作为子元素定位依据 */
@@ -365,7 +365,7 @@
 			background-color: rgba(255, 255, 255, 0.6);
 		}
 
-		&.go-x {
+		&.items-go-x {
 			align-items: flex-start;
 			gap: 1rem;
 
@@ -375,7 +375,7 @@
 			}
 		}
 
-		&.go-y {
+		&.items-go-y {
 			gap: 0.75rem;
 
 			>.summary {

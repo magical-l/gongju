@@ -59,7 +59,7 @@
 		</div>
 	</header>
 	<article class="gaming area , game-2048 , 叵字形" tabindex="0" v-cloak>
-		<header class="toolbar , multi-line flex , items-near-x-center xy-stretch no-gap">
+		<header class="toolbar , multi-line flex , items-near-x-center items-stretch no-gap">
 			<section class="setting list , single-line flex , items-near-x-start items-near-y-center no-gap">
 				<div class="one setting group">
 					<el-form-item class="one setting : height" label="行数">
@@ -122,7 +122,7 @@
 			</details>
 			<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 				<summary>本局信息</summary>
-				<div class="go-y">
+				<div class="items-go-y">
 					<el-card header="当前得分" class="one gaming info : scoreboard" body-class="score" shadow="never">
 						{{ score }}
 					</el-card>

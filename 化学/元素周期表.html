@@ -440,7 +440,7 @@
 			<p>{{group.name}}</p>
 		</section>-->
 
-		<section :id="element.name" class="one element , go-y"
+		<section :id="element.name" class="one element , items-go-y"
 						 :class="[...element.tags, `周期`+element.period, getElementPhase(element)]"
 						 :style="[getElementStyle(element), getYearFilterStyle(element)]"
 						 v-for="element in elements" :key="element.id" @click="curElement=element">

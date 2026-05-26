@@ -86,7 +86,7 @@
 <body>
 <main class="game">
 	<article class="gaming area , 反叵字形 dbg-manual" id="dbg-article" tabindex="0">
-		<header class="toolbar , multi-line flex , items-near-x-center xy-stretch no-gap dbg-manual-toolbar one-row">
+		<header class="toolbar , multi-line flex , items-near-x-center items-stretch no-gap dbg-manual-toolbar one-row">
 			<section class="setting list , multi-line flex , items-near-x-start items-near-y-center no-gap">
 				<div class="one setting group">
 					<label>行数 <select id="inp-rows" class="select-width-6ch"></select></label>
@@ -107,9 +107,9 @@
 			</section>
 		</header>
 
-		<section class="main go-y items-near-x-start items-near-y-center flexible" style="min-width:0">
+		<section class="main items-go-y items-near-x-start items-near-y-center flexible" style="min-width:0">
 			<section class="main map area , no-shrink , flex items-near-x-center dbg-board-section" id="dbg-board-section">
-				<div class="dbg-board-col go-y items-near-y-center">
+				<div class="dbg-board-col items-go-y items-near-y-center">
 					<div class="board-wrap" id="board-wrap">
 						<div id="board" class="board" aria-label="棋盘"></div>
 					</div>
@@ -117,7 +117,7 @@
 			</section>
 		</section>
 
-		<aside class="sidebar at-right go-y xy-stretch" style="min-width:0;gap:1rem">
+		<aside class="sidebar at-right items-go-y items-stretch" style="min-width:0;gap:1rem">
 			<div id="edit-panel">
 				<h2>编辑选区</h2>
 				<p class="edit-intro">单击只选一格；拖选一片；<kbd>Shift</kbd>+拖/点按为累加。点数字或固定/下落设定。「清空选中格」「清除选区」仍可用。选中=<strong>格外侧</strong>青框；固定堆=左棕条；下落块=顶蓝条+灰绿底。暂停点=在「生成下一块」之前停住（调试用）。「开始」=运行，再点=重播；「回到开始」=本轮布局。运行中 <kbd>空格</kbd> 暂停。<strong>消行整理</strong>时：剩格为<strong>红框</strong>，上方行抠块为<strong>蓝框</strong>；当前操控的剩格/整块上方为略亮的同色系描边（与正式游戏页一致）。</p>
@@ -128,7 +128,7 @@
 					<span class="flex inline items-near-y-center"><i class="legend-swatch legend-swatch-falling"></i> 活动块</span>
 					<span id="legend-run" class="flex inline items-near-y-center" style="display:none"><i class="legend-swatch legend-swatch-run"></i> 当前块</span>
 				</div>
-				<div class="go-y grp">
+				<div class="items-go-y grp">
 					<div class="flex multi-line items-near-x-start items-near-y-center">
 						<button type="button" class="el-button el-button--default" data-dbg-val="2">2</button>
 						<button type="button" class="el-button el-button--default" data-dbg-val="4">4</button>
@@ -137,7 +137,7 @@
 						<button type="button" class="el-button el-button--default" data-dbg-val="32">32</button>
 					</div>
 				</div>
-				<div class="go-y grp">
+				<div class="items-go-y grp">
 					<div class="flex single-line items-near-x-start" style="width:100%;gap:10px">
 						<button type="button" class="el-button el-button--default stretch" data-dbg-kind="fixed">固定块堆</button>
 						<button type="button" class="el-button el-button--default stretch" data-dbg-kind="falling">下落块</button>
