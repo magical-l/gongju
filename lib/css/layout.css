@@ -64,27 +64,16 @@
 */
 
 /* ========================================================================
- * 确保 行/列 和空隙分布：
- * 	靠上/下/左/右 — 轨道+内容，额外支持table（td/th内容对齐）
- * 	拉伸 — 子元素在行/列方向上拉伸，占满空间
- * 	集体居中 — 行/列往中间挤，空隙在外部
- * 	互斥 — 行/列间均分空隙，外部无空隙
- * 	友好 — 行/列间和外侧等分空隙
- * 	不熟 — 每行/列两侧自带空隙，行/列间空隙是两份
+ * 确保【横向/纵向】上的【内容/空隙】的分布：
+ * 	靠上/下/左/右 — 在【横向/纵向】上，空隙全部排向另一侧。额外支持<table>。
+ * 	拉伸 — 在【横向/纵向】上，子元素占满空间，无空隙。
+ * 	集体居中 — 在【横向/纵向】上，子元素往中间挤，空隙在外部
+ * 	互斥 — 在【横向/纵向】上，子元素之间均分空隙，外部无空隙
+ * 	友好 — 在【横向/纵向】上，子元素之间和外侧等分空隙
+ * 	不熟 — 在【横向/纵向】上，子元素两侧自带空隙，间隔是双份空隙
  * 适用于 flex、grid。
  * 注：flex单行时align-content无效但align-items仍生效，视觉效果不变
  */
-/* 靠边（轨道+内容）  */
-.y-near-top {
-	align-content: start;
-	align-items: start;
-	& td, & th { vertical-align: top; }
-}
-.y-near-bottom {
-	align-content: end;
-	align-items: end;
-	& td, & th { vertical-align: bottom; }
-}
 .x-near-left {
 	justify-content: start;
 	justify-items: start;
@@ -95,7 +84,16 @@
 	justify-items: end;
 	& td, & th { text-align: right; }
 }
-
+.y-near-top {
+	align-content: start;
+	align-items: start;
+	& td, & th { vertical-align: top; }
+}
+.y-near-bottom {
+	align-content: end;
+	align-items: end;
+	& td, & th { vertical-align: bottom; }
+}
 /* ------ 拉伸 ------ */
 .y-stretch { align-content: stretch; }
 .x-stretch { justify-content: stretch; }
