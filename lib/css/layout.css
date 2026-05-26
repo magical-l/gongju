@@ -11,15 +11,20 @@
 }
 
 /* ======================== 布局 ======================== */
+.inline { display: inline; }
+.block { display: block; }
+.block.inline { display: inline-block; }
+.table { display: table; }
+.table.inline {display: inline-table; }
 .flex { display: flex; }
 .flex.inline { display: inline-flex; }
 .grid { display: grid; }
 .grid.inline { display: inline-grid; }
 
-.items-no-gap { gap: 0 !important; }
-
 .items-single-line { display:flex; flex-wrap: nowrap; }
 .items-multi-line { display:flex; flex-wrap: wrap; }
+
+.items-no-gap { gap: 0; }
 
 /* ========================================================================
  * 确保容器的子元素排列方向
