@@ -139,7 +139,7 @@
 			<aside class="info area , sidebar at-left">
 				<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 					<summary>本局信息</summary>
-					<div class="flex go-y">
+					<div class="go-y">
 						<el-card header="当前得分" class="one gaming info : scoreboard" body-class="score" shadow="never">
 							{{ score }}
 						</el-card>
@@ -193,7 +193,7 @@
 									×
 								</el-button>
 							</div>
-							<div class="preview input area , flexible , flex go-y">
+							<div class="preview input area , flexible , go-y">
 								<el-input placeholder="自定义文字" class="flexible" :model-value="customLabels[pu.key] || ''" @update:model-value="onCustomLabelInput(pu.key, $event)" @blur="applyCustomTiles" maxlength="10"></el-input>
 								<div class="flex items-near-y-center"><span>或</span>
 									<el-input class="flexible" :model-value="customImageDisplayValue(pu.key)" @update:model-value="onCustomImageInput(pu.key, $event)" @blur="applyCustomTiles" :placeholder="customImagePlaceholder(pu.key)"></el-input>

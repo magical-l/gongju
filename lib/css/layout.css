@@ -19,26 +19,32 @@
 .no-gap { gap: 0 !important; }
 
 /* ================== 布局容器排列 ================== */
-/* 横向排列：子元素按物理横向排列 */
+/* 横向排列：子元素按物理横向排列。默认flex；搭配.grid时自动适配 */
 .go-x {
-	/* 适配flex布局 */
+	display: flex;
 	flex-direction: row;
-	/* 适配grid布局 */
-	grid-auto-flow: row;
 
 	/* &.from-left {同默认，无需覆盖} */
-	&.from-right { flex-direction: row-reverse;}
+	&.from-right { flex-direction: row-reverse; }
+}
+.grid.go-x {
+	display: grid;
+	grid-auto-flow: row;
+	flex-direction: unset;/* 重置避免困惑 */
 }
 
-/* 纵向排列：子元素按物理纵向排列 */
+/* 纵向排列：子元素按物理纵向排列。默认flex；搭配.grid时自动适配 */
 .go-y {
-	/* 适配flex布局 */
+	display: flex;
 	flex-direction: column;
-	/* 适配grid布局 */
-	grid-auto-flow: column;
 
 	/* &.from-top {同默认，无需覆盖} */
 	&.from-bottom { flex-direction: column-reverse; }
+}
+.grid.go-y {
+	display: grid;
+	grid-auto-flow: column;
+	flex-direction: unset;/* 重置避免困惑 */
 }
 
 /* ================== 布局容器行列关系 ================== */
