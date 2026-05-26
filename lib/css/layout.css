@@ -99,6 +99,9 @@
 /* 拉伸 */
 .row-stretch { align-content: stretch; }
 .col-stretch { justify-content: stretch; }
+/* flex主轴上子元素配合拉伸（次轴默认stretch无需额外处理） */
+.go-x.col-stretch > *, .go-y.row-stretch > * { flex: 1; }
+
 /* 集体居中 */
 .row-center { align-content: center; }
 .col-center { justify-content: center; }
@@ -124,13 +127,13 @@
 	&.col-near-left { align-content: start; align-items: start; }
 	&.col-near-right { align-content: end; align-items: end; }
 
-	&.row-stretch { justify-content: stretch; }
+	&.row-stretch { justify-content: stretch; justify-items: stretch; }
 	&.row-center { justify-content: center; }
 	&.row-space-between, &.row-mutex, &.row-social-phobia { justify-content: space-between; }
 	&.row-space-evenly, &.row-friendly { justify-content: space-evenly; }
 	&.row-space-around, &.row-unfamiliar { justify-content: space-around; }
 
-	&.col-stretch { align-content: stretch; }
+	&.col-stretch { align-content: stretch; align-items: stretch; }
 	&.col-center { align-content: center; }
 	&.col-space-between, &.col-mutex, &.col-social-phobia { align-content: space-between; }
 	&.col-space-evenly, &.col-friendly { align-content: space-evenly; }
@@ -282,13 +285,13 @@
 		&.col-near-right { align-content: start; align-items: start; }
 
 		/* 轨道分布 */
-		&.row-stretch { justify-content: stretch; }
+		&.row-stretch { justify-content: stretch; justify-items: stretch; }
 		&.row-center { justify-content: center; }
 		&.row-space-between, &.row-mutex, &.row-social-phobia { justify-content: space-between; }
 		&.row-space-around, &.row-unfamiliar { justify-content: space-around; }
 		&.row-space-evenly, &.row-friendly { justify-content: space-evenly; }
 
-		&.col-stretch { align-content: stretch; }
+		&.col-stretch { align-content: stretch; align-items: stretch; }
 		&.col-center { align-content: center; }
 		&.col-space-between, &.col-mutex, &.col-social-phobia { align-content: space-between; }
 		&.col-space-around, &.col-unfamiliar { align-content: space-around; }
@@ -329,13 +332,13 @@
 		&.col-near-right { align-content: end; align-items: end; }
 
 		/* 轨道分布 */
-		&.row-stretch { justify-content: stretch; }
+		&.row-stretch { justify-content: stretch; justify-items: stretch; }
 		&.row-center { justify-content: center; }
 		&.row-space-between, &.row-mutex, &.row-social-phobia { justify-content: space-between; }
 		&.row-space-around, &.row-unfamiliar { justify-content: space-around; }
 		&.row-space-evenly, &.row-friendly { justify-content: space-evenly; }
 
-		&.col-stretch { align-content: stretch; }
+		&.col-stretch { align-content: stretch; align-items: stretch; }
 		&.col-center { align-content: center; }
 		&.col-space-between, &.col-mutex, &.col-social-phobia { align-content: space-between; }
 		&.col-space-around, &.col-unfamiliar { align-content: space-around; }
@@ -390,45 +393,11 @@
 	> .at-center {}
 }*/
 
-/* ================== 项目分布：items-x/y-* ================== */
-/* ============ 拉伸：.items-stretch、.items-x/y-stretch ============ */
-/* ------ .items-x-stretch：保证在横向上拉伸，占满容器宽度（grid、flex都适用，适配任何书写模式）。注：多行flex布局下，最后一行/列若"不满"，在排列方向上无法拉伸占满 ------ */
-.grid.items-x-stretch:where(:not(.content-N, .content-И, .content-N *, .content-И *)) {
-	justify-items: stretch;
-}
-.grid.items-x-stretch:where(.content-N, .content-И, .content-N *, .content-И *) {
-	align-items: stretch;
-}
-.flex.go-y.items-x-stretch:where(:not(.content-N, .content-И, .content-N *, .content-И *)),
-.flex:not(.go-x).items-x-stretch:where(.content-N, .content-И, .content-N *, .content-И *) {
-	align-items: stretch;
-}
-/* flex布局专用：flex容器只能拉伸次轴方向，主轴方向要靠项目（子元素）自己拉伸 */
-.flex.items-x-stretch:where(:not(.go-y, .content-N, .content-И, .content-N *, .content-И *)) > *,
-.flex.go-x.items-x-stretch:where(.content-N, .content-И, .content-N *, .content-И *) > * {
-	flex: 1;
-}
-
-/* ------ .items-y-stretch：保证在竖向上拉伸，占满容器高度（grid、flex都适用，适配任何书写模式）。注：多行flex布局下，最后一行/列若"不满"，在排列方向上无法拉伸占满 ------ */
-.grid.items-y-stretch:where(:not(.content-N, .content-И, .content-N *, .content-И *)) {
-	align-items: stretch;
-}
-.grid.items-y-stretch:where(.content-N, .content-И, .content-N *, .content-И *) {
-	justify-items: stretch;
-}
-.flex:not(.go-y).items-y-stretch:where(:not(.content-N, .content-И, .content-N *, .content-И *)),
-.flex.go-x.items-y-stretch:where(.content-N, .content-И, .content-N *, .content-И *) {
-	align-items: stretch;
-}
-/* flex布局专用：flex容器只能拉伸次轴方向，主轴方向要靠项目（子元素）自己拉伸 */
-.flex.go-y.items-y-stretch:where(:not(.content-N, .content-И, .content-N *, .content-И *)) > *,
-.flex:not(.go-x).items-y-stretch:where(.content-N, .content-И, .content-N *, .content-И *) > * {
-	flex: 1;
-}
-/* ------ .items-stretch：在xy两个方向都尽量拉伸，占满容器。注：多行flex布局下，最后一行/列若"不满"，在排列方向上无法拉伸占满 ------ */
+/* ================== xy双轴快捷方式 ================== */
+/* 双轴拉伸 */
 .items-stretch {
 	place-items: stretch;
-	/* 直接子元素配合拉伸 */
+	/* 直接子元素配合拉伸（flex主轴方向） */
 	> * { flex: 1; }
 }
 
@@ -455,156 +424,16 @@
 .one-row {grid-column: 1 / -1;}
 .one-column {grid-row: 1 / -1;}
 
-/* ------ .items-x-space-between/.items-x-mutex/.items-x-social-phobia：在横向上项目尽量互相远离，仿佛互斥/社恐。 ------ */
-.grid:is(.items-x-space-between, .items-x-mutex, .items-x-social-phobia):where(
-	:not(.content-N, .content-И, .content-N *, .content-И *))
-{
-	justify-content: space-between;
-}
-.grid:is(.items-x-space-between, .items-x-mutex, .items-x-social-phobia
-	):where(.content-N, .content-И, .content-N *, .content-И *)
-{
-	align-content: space-between;
-}
-
-.flex:is(.items-x-space-between, .items-x-mutex, .items-x-social-phobia
-	):where(:not(.content-N, .content-И, .content-N *, .content-И *).go-y,
-			:is(.content-N, .content-И, .content-N *, .content-И *):not(.go-x))
-{
-	align-content: space-between;
-	flex-wrap: wrap;
-}
-.flex:is(.items-x-space-between, .items-x-mutex, .items-x-social-phobia
-	):where(:not(.content-N, .content-И, .content-N *, .content-И *, .go-y),
-			:is(.content-N, .content-И, .content-N *, .content-И *).go-x)
-{
-	justify-content: space-between;
-}
-
-/* ------ .items-y-space-between/.items-y-mutex/.items-y-social-phobia：在竖向上项目尽量互相远离，仿佛互斥/社恐。 ------ */
-.grid:is(.items-y-space-between, .items-y-mutex, .items-y-social-phobia):where(
-	:not(.content-N, .content-И, .content-N *, .content-И *))
-{
-	align-content: space-between;
-}
-.grid:is(.items-y-space-between, .items-y-mutex, .items-y-social-phobia
-	):where(.content-N, .content-И, .content-N *, .content-И *)
-{
-	justify-content: space-between;
-}
-
-.flex:is(.items-y-space-between, .items-y-mutex, .items-y-social-phobia
-	):where(:not(.content-N, .content-И, .content-N *, .content-И *, .go-y),
-			:is(.content-N, .content-И, .content-N *, .content-И *).go-x)
-{
-	align-content: space-between;
-	flex-wrap: wrap;
-}
-.flex:is(.items-y-space-between, .items-y-mutex, .items-y-social-phobia
-	):where(:not(.content-N, .content-И, .content-N *, .content-И *).go-y,
-			:is(.content-N, .content-И, .content-N *, .content-И *):not(.go-x))
-{
-	justify-content: space-between;
-}
-
-/* ------ .items-space-between/.items-mutex/.items-social-phobia：在xy双向上项目尽量互相远离，仿佛互斥/社恐。 ------ */
+/* 双轴互斥 */
 .items-space-between,
 .items-mutex,
 .items-social-phobia { place-content: space-between; }
 
-/* ============ 空隙环绕：.items-space-around、.items-x/y-space-around ============ */
-/* ------ .items-x-space-around/.items-x-unfamiliar：保证在横向上，剩余空隙均分贴在每个项目的两侧，仿佛项目间不熟（grid、flex都适用，适配任何书写模式）。 ------ */
-.grid:is(.items-x-space-around, .items-x-unfamiliar):where(:not(.content-N, .content-И, .content-N *, .content-И *))
-{
-	justify-content: space-around;
-}
-.grid:is(.items-x-space-around, .items-x-unfamiliar):where(.content-N, .content-И, .content-N *, .content-И *)
-{
-	align-content: space-around;
-}
-.flex:is(.items-x-space-around, .items-x-unfamiliar
-	):where(:not(.content-N, .content-И, .content-N *, .content-И *).go-y,
-			:is(.content-N, .content-И, .content-N *, .content-И *):not(.go-x))
-{
-	align-content: space-around;
-	flex-wrap: wrap;
-}
-.flex:is(.items-x-space-around, .items-x-unfamiliar
-	):where(:not(.content-N, .content-И, .content-N *, .content-И *, .go-y),
-			:is(.content-N, .content-И, .content-N *, .content-И *).go-x)
-{
-	justify-content: space-around;
-}
-
-/* ------ .items-y-space-around/.items-y-unfamiliar：保证在竖向上，剩余空隙均分贴在每个项目的两侧，仿佛项目间不熟（grid、flex都适用，适配任何书写模式）。 ------ */
-.grid:is(.items-y-space-around, .items-y-unfamiliar):where(:not(.content-N, .content-И, .content-N *, .content-И *)) {
-	align-content: space-around;
-}
-.grid:is(.items-y-space-around, .items-y-unfamiliar):is(.content-N, .content-И, .content-N *, .content-И *) {
-	justify-content: space-around;
-}
-.flex:is(.items-y-space-around, .items-y-unfamiliar
-	):where(:not(.content-N, .content-И, .content-N *, .content-И *, .go-y),
-			:is(.content-N, .content-И, .content-N *, .content-И *).go-x)
-{
-	align-content: space-around;
-	flex-wrap: wrap;
-}
-.flex:is(.items-y-space-around, .items-y-unfamiliar
-	):where(:not(.content-N, .content-И, .content-N *, .content-И *).go-y,
-			:is(.content-N, .content-И, .content-N *, .content-И *):not(.go-x))
-{
-	justify-content: space-around;
-}
-
-/* ------ .items-space-around/.items-unfamiliar：保证在xy双向上，剩余空隙均分贴在每个项目的两侧，仿佛项目间不熟（grid、flex都适用，适配任何书写模式）。 ------ */
+/* 双轴不熟 */
 .items-space-around,
 .items-unfamiliar { place-content: space-around; flex-wrap: wrap; }
 
-/* ============ 空隙均分：.items-space-evenly、.items-x/y-space-evenly ============ */
-/* ------ .items-x-space-evenly/.items-x-friendly：保证在横向上，剩余空隙均分在项目之间（含外侧），仿佛项目间比较友好（grid、flex都适用，适配任何书写模式）。 ------ */
-.grid:is(.items-x-space-evenly, .items-x-friendly):where(:not(.content-N, .content-И, .content-N *, .content-И *)) {
-	justify-content: space-evenly;
-}
-.grid:is(.items-x-space-evenly, .items-x-friendly):where(.content-N, .content-И, .content-N *, .content-И *) {
-	align-content: space-evenly;
-}
-.flex:is(.items-x-space-evenly, .items-x-friendly
-	):where(:not(.content-N, .content-И, .content-N *, .content-И *).go-y,
-			:is(.content-N, .content-И, .content-N *, .content-И *):not(.go-x))
-{
-	align-content: space-evenly;
-	flex-wrap: wrap;
-}
-.flex:is(.items-x-space-evenly, .items-x-friendly
-	):where(:not(.content-N, .content-И, .content-N *, .content-И *, .go-y),
-			:is(.content-N, .content-И, .content-N *, .content-И *).go-x)
-{
-	justify-content: space-evenly;
-}
-
-/* ------ .items-y-space-evenly/.items-y-friendly：保证在竖向上，剩余空隙均分在项目之间（含外侧），仿佛项目间比较友好（grid、flex都适用，适配任何书写模式）。 ------ */
-.grid:is(.items-y-space-evenly, .items-y-friendly):where(:not(.content-N, .content-И, .content-N *, .content-И *)) {
-	align-content: space-evenly;
-}
-.grid:is(.items-y-space-evenly, .items-y-friendly):where(.content-N, .content-И, .content-N *, .content-И *) {
-	justify-content: space-evenly;
-}
-.flex:is(.items-y-space-evenly, .items-y-friendly
-	):where(:not(.content-N, .content-И, .content-N *, .content-И *, .go-y),
-			:is(.content-N, .content-И, .content-N *, .content-И *).go-x)
-{
-	align-content: space-evenly;
-	flex-wrap: wrap;
-}
-.flex:is(.items-y-space-evenly, .items-y-friendly
-	):where(:not(.content-N, .content-И, .content-N *, .content-И *).go-y,
-			:is(.content-N, .content-И, .content-N *, .content-И *):not(.go-x))
-{
-	justify-content: space-evenly;
-}
-
-/* ------ .items-space-evenly/.items-friendly：保证在xy双向上，剩余空隙均分在项目之间（含外侧），仿佛项目间比较友好（grid、flex都适用，适配任何书写模式）。 ------ */
+/* 双轴友好 */
 .items-space-evenly,
 .items-friendly { place-content: space-evenly; flex-wrap: wrap; }
 
