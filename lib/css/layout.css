@@ -21,7 +21,7 @@
 .grid { display: grid; }
 .grid.inline { display: inline-grid; }
 
-/* 
+/*
  * 单行/多行
  * 适用于：flex、grid、块级（block）、行内级（inline/inline-block）
  * 默认实现：把布局修改为flex。grid布局按grid适配
@@ -311,6 +311,44 @@
 .one-row { grid-column: 1 / -1; }
 .one-column { grid-row: 1 / -1; }
 
+/* ============ （实现：需要适配更多场景的实现，使用者通常无需关心） ============ */
+/* 下面这些搭配已被覆盖，无需声明
+.items-go-x, .items-go-x.items-from-left, .items-go-x.items-from-right {
+	&.items-near-top {}
+	&.items-near-bottom {}
+	&.items-near-left {}
+	&.items-near-right {}
+
+	> .near-left {}
+	> .near-right {}
+	> .near-top {}
+	> .near-bottom {}
+	> .near-x-center {}
+	> .near-y-center {}
+	> .near-center {}
+}*/
+
+/* 纵向排列下保证语义 */
+.items-go-y {
+	> .near-left { justify-self: unset; align-self: start; }
+	> .near-right { justify-self: unset; align-self: end; }
+	> .near-top { align-self: unset; justify-self: start; }
+	> .near-bottom { align-self: unset; justify-self: end; }
+	> .near-x-center { justify-self: unset; align-self: center; }
+	> .near-y-center { align-self: unset; justify-self: center; }
+	/* > .near-center 已被覆盖，无需声明 */
+}
+/* 下面这些搭配已被覆盖，无需声明
+.items-go-y.items-from-top, .items-go-y.items-from-bottom {
+	> .near-left {}
+	> .near-right {}
+	> .near-top {}
+	> .near-bottom {}
+	> .near-x-center {}
+	> .near-y-center {}
+	> .near-center {}
+}*/
+
 /* ======================== 书写模式：决定内容排列方向，一些布局"行"、"列"会受其影响 ======================== */
 /* Z字形：横向（行），行内从左到右。行之间肯定是从上到下。现行最常见&默认的书写模式。 */
 .content-Z {
@@ -345,6 +383,12 @@
 	/* at-* 适配：逻辑属性翻转 */
 	& .near-left { justify-self: end; }
 	& .near-right { justify-self: start; }
+
+	/* items-go-y 适配：RTL下左右翻转 */
+	&.items-go-y, & .items-go-y {
+		> .near-left { justify-self: unset; align-self: end; }
+		> .near-right { justify-self: unset; align-self: start; }
+	}
 }
 
 /* N字形：竖向（列），列之间从右到左。列内肯定是从上到下。汉字字符保持头朝上，字母数字头朝右。古代汉语的书写模式。 */
@@ -440,44 +484,6 @@
 	& .near-y-center { align-self: unset; justify-self: center; }
 	/* .near-center 已被覆盖，无需声明 */
 }
-
-/* ============ （实现：需要适配更多场景的实现，使用者通常无需关心） ============ */
-/* 下面这些搭配已被覆盖，无需声明
-.items-go-x, .items-go-x.items-from-left, .items-go-x.items-from-right {
-	&.items-near-top {}
-	&.items-near-bottom {}
-	&.items-near-left {}
-	&.items-near-right {}
-
-	> .near-left {}
-	> .near-right {}
-	> .near-top {}
-	> .near-bottom {}
-	> .near-x-center {}
-	> .near-y-center {}
-	> .near-center {}
-}*/
-
-/* 纵向排列下保证语义 */
-.items-go-y {
-	> .near-left { justify-self: unset; align-self: start; }
-	> .near-right { justify-self: unset; align-self: end; }
-	> .near-top { align-self: unset; justify-self: start; }
-	> .near-bottom { align-self: unset; justify-self: end; }
-	> .near-x-center { justify-self: unset; align-self: center; }
-	> .near-y-center { align-self: unset; justify-self: center; }
-	/* > .near-center 已被覆盖，无需声明 */
-}
-/* 下面这些搭配已被覆盖，无需声明
-.items-go-y.items-from-top, .items-go-y.items-from-bottom {
-	> .near-left {}
-	> .near-right {}
-	> .near-top {}
-	> .near-bottom {}
-	> .near-x-center {}
-	> .near-y-center {}
-	> .near-center {}
-}*/
 
 /* ============================== Grid/Flex 预设布局 ============================== */
 /* 为防没有使用.grid/.flex之类，所以不显式结合.grid/.flex，直接设置。若非display:grid/flex也没事，会被浏览器忽略。下同 */

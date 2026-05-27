@@ -88,3 +88,29 @@ flex-direction: unset;/* 重置避免困惑 */  ← why value
 - "保持物理语义" — 轴交换但视觉效果不变
 - "确保" — 语义保证
 - 全中文，CSS 术语不翻译（flex、grid、gap、RTL 等）
+
+## 五、属性简写
+
+`place-*` 系列简写优先于拆开的 `justify-*` + `align-*`：
+
+- `place-self: center;` 优于 `justify-self: center; align-self: center;`
+- `place-content: stretch;` 优于 `align-content: stretch; justify-content: stretch;`（已执行）
+- `place-items: center;` 优于 `justify-items: center; align-items: center;`（已执行）
+
+两个轴向值相同时用简写，不同时当然拆开。
+
+## 六、选择器对称补全
+
+修饰组合即使"已被覆盖"，也应当显式写出注释块，保持结构对称、防止遗漏。
+
+```css
+.items-go-y {
+    /* 已被覆盖，无需声明
+    &.items-from-top {}
+    */
+    /* 显式从下到上 */
+    &.items-from-bottom { ... }
+}
+```
+
+而非只写活跃规则、漏掉已被覆盖的对称项。
