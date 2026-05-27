@@ -119,9 +119,18 @@
 .items-from-bottom.items-near-bottom { justify-content: start; justify-items: start; }
 
 /* ------ 拉伸 ------ */
-.items-x-stretch { justify-content: stretch; }
-.items-y-stretch { align-content: stretch; }
-.items-stretch { place-items: stretch; }
+.items-x-stretch {
+	justify-content: stretch;/* 轨道占满容器 */
+	justify-items: stretch;/* 子元素占满轨道 */
+}
+.items-y-stretch {
+	align-content: stretch;/* 轨道占满容器 */
+	align-items: stretch;/* 子元素占满轨道 */
+}
+.items-stretch {
+	place-content: stretch;/* 轨道占满容器 */
+	place-items: stretch;/* 子元素占满轨道 */
+}
 /* flex布局下，容器不能在主轴上拉伸子元素，需要子元素自行拉伸（次轴默认拉伸，无需额外处理） */
 :not(.items-go-y).items-x-stretch > *,
 .items-go-y.items-y-stretch > *,
@@ -129,9 +138,18 @@
 	flex: 1;
 }
 /* ------ 集体居中 ------ */
-.items-x-near-center { justify-content: center; }
-.items-y-near-center { align-content: center; }
-.items-near-center { place-content: center; }
+.items-x-near-center {
+	justify-content: center;
+	justify-items: center;
+}
+.items-y-near-center {
+	align-content: center;
+	align-items: center;
+}
+.items-near-center {
+	place-content: center;
+	place-items: center;
+}
 /* ------ 互斥 ------ */
 .items-x-space-between, .items-x-mutex, .items-x-social-phobia { justify-content: space-between; }
 .items-y-space-between, .items-y-mutex, .items-y-social-phobia { align-content: space-between; }
