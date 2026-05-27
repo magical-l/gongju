@@ -15,7 +15,7 @@
 .block { display: block; }
 .block.inline { display: inline-block; }
 .table { display: table; }
-.table.inline {display: inline-table; }
+.table.inline { display: inline-table; }
 .flex { display: flex; }
 .flex.inline { display: inline-flex; }
 .grid { display: grid; }
@@ -28,7 +28,7 @@
  */
 :not(.grid).items-single-line { display:flex; flex-wrap: nowrap; }
 :not(.grid).items-multi-line { display:flex; flex-wrap: wrap; }
-/* 同默认，无需覆盖
+/* 已被覆盖，无需声明
 .items-single-line.grid、.items-multi-line.grid
 */
 
@@ -92,7 +92,7 @@
 	justify-items: end;
 	& td, & th { text-align: right; }
 }
-/* 显式指定从左向右排，同默认，无需覆盖
+/* 显式指定从左向右排，已被覆盖，无需声明
 .items-from-left.items-near-left
 .items-from-left.items-near-right
 */
@@ -110,10 +110,10 @@
 	align-items: end;
 	& td, & th { vertical-align: bottom; }
 }
-/* 显式指定从上向下排，同默认，无需覆盖
+/* 显式指定从上向下排，已被覆盖，无需声明
 .items-from-top.items-near-top
 .items-from-top.items-near-bottom
- */
+*/
 /* 显式指定从下向上排 */
 .items-from-bottom.items-near-top { justify-content: end; justify-items: end; }
 .items-from-bottom.items-near-bottom { justify-content: start; justify-items: start; }
@@ -166,16 +166,16 @@
 /* ========================================================================
  * 各种搭配场景的适配实现，通常使用者不需要关注。
  */
-/* 同默认，无需覆盖
+/* 已被覆盖，无需声明
 .items-go-x.items-from-left
 .items-go-x.items-from-right
 .items-go-y.items-from-top
 .items-go-y.items-from-bottom
 */
 .items-go-x {
-	/* 子元素排列方向=默认（从左到右）：同默认，无需覆盖 */
+	/* 子元素排列方向=默认（从左到右）：已被覆盖，无需声明 */
 
-	/* 子元素排列方向=显式从左到右：同默认，无需覆盖
+	/* 子元素排列方向=显式从左到右：已被覆盖，无需声明
 	&.items-from-left {}
 	*/
 	/* 子元素排列方向=显式从右到左 */
@@ -306,7 +306,7 @@
 	min-height: 0;
 }
 
-/* ------grid专属拉伸 ------ */
+/* ------ grid专属拉伸 ------ */
 /* 不一定真的能独占一行/列。如果另有项目也安排在同一行/列，两者会堆叠 */
 .one-row { grid-column: 1 / -1; }
 .one-column { grid-row: 1 / -1; }
@@ -317,7 +317,7 @@
 	writing-mode: horizontal-tb;
 	direction: ltr;
 
-	/* 同默认，无需覆盖
+	/* 已被覆盖，无需声明
 	&.items-go-x, & .items-go-x {}
 	&.items-go-y, & .items-go-y {}
 	*/
@@ -333,7 +333,7 @@
 		&.items-from-left { flex-direction: row-reverse; }
 		&.items-from-right { flex-direction: row; }
 	}
-	/* items-go-y 同默认，无需覆盖 */
+	/* items-go-y 已被覆盖，无需声明 */
 
 	/* grid适配：RTL翻转左右 */
 	&.grid, & .grid {
@@ -391,7 +391,7 @@
 	& .near-bottom { align-self: unset; justify-self: end; }
 	& .near-x-center { justify-self: unset; align-self: center; }
 	& .near-y-center { align-self: unset; justify-self: center; }
-	/* .near-center 同默认，无需覆盖 */
+	/* .near-center 已被覆盖，无需声明 */
 }
 
 /* И字形：竖向（列），列之间从左到右。列内肯定是从上到下。蒙文的书写模式。 */
@@ -438,11 +438,11 @@
 	& .near-bottom { align-self: unset; justify-self: end; }
 	& .near-x-center { justify-self: unset; align-self: center; }
 	& .near-y-center { align-self: unset; justify-self: center; }
-	/* .near-center 同默认，无需覆盖 */
+	/* .near-center 已被覆盖，无需声明 */
 }
 
 /* ============ （实现：需要适配更多场景的实现，使用者通常无需关心） ============ */
-/* 下面这些搭配同默认值，无需覆盖
+/* 下面这些搭配已被覆盖，无需声明
 .items-go-x, .items-go-x.items-from-left, .items-go-x.items-from-right {
 	&.items-near-top {}
 	&.items-near-bottom {}
@@ -466,9 +466,9 @@
 	> .near-bottom { align-self: unset; justify-self: end; }
 	> .near-x-center { justify-self: unset; align-self: center; }
 	> .near-y-center { align-self: unset; justify-self: center; }
-	/* > .near-center {同前面的默认值，无需覆盖} */
+	/* > .near-center 已被覆盖，无需声明 */
 }
-/* 下面这些搭配同前面的默认值，无需覆盖
+/* 下面这些搭配已被覆盖，无需声明
 .items-go-y.items-from-top, .items-go-y.items-from-bottom {
 	> .near-left {}
 	> .near-right {}
@@ -502,7 +502,7 @@
 	> .sidebar.near-right { grid-area: right; }
 }
 
-/* ------ "朋字形"布局，无顶部底部，只有左右两栏均分， ------ */
+/* ------ "朋字形"布局，无顶部底部，只有左右两栏均分。 ------ */
 .朋字形 {
 	display: grid;
 	/* 50%vs50%是各占父容器的一半，如果有gap，将会突破父容器，所以用1fr vs 1fr */
@@ -510,8 +510,8 @@
 	grid-template-columns: 1fr 1fr;
 	grid-template-areas: 'left right';
 
-	> .near-left {grid-area: left;}
-	> .near-right {grid-area: right;}
+	> .near-left { grid-area: left; }
+	> .near-right { grid-area: right; }
 }
 
 /* ------ "亚字形"布局，上部导航栏，底部页脚，中间有左右侧栏，中部是主要内容 ------ */
@@ -566,7 +566,7 @@
 	> .sidebar.near-left { grid-area: left-sidebar; }
 }
 
-/*------ "反叵字形"布局，上部导航栏，底部页脚，中间右侧栏宽度固定，左侧主要内容自适应 ------ */
+/* ------ "反叵字形"布局，上部导航栏，底部页脚，中间右侧栏宽度固定，左侧主要内容自适应 ------ */
 .反叵字形 {
 	display: grid;
 	grid-template-rows:
