@@ -96,8 +96,7 @@
 	</header>
 	<article v-cloak>
 		<section class="input area">
-			<el-input placeholder="在此输入要处理的文本，处理文本中的数字，非数字部分将保留原样。" type="textarea" :rows="5"
-								v-model="inputText" @input="processInput"></el-input>
+			<el-input placeholder="在此输入要处理的文本，处理文本中的数字，非数字部分将保留原样。" type="textarea" :rows="5" v-model="inputText" @input="processInput"></el-input>
 			<div class="radix setting area , flex items-near-x-start">
 				<el-radio-group v-model="inputRadix" @change="processInput">
 					<el-radio-button v-for="radix in radixOptions" :key="radix" :label="radix"/>
@@ -113,14 +112,11 @@
 				<p>转换结果：</p>
 				<p>（点击文本即可复制）</p>
 			</header>
-			<el-card class="one result" v-for="(result,label) in results" :key="label"
-							 header-class="header , flex items-mutex items-like-册" body-class="val">
+			<el-card class="one result" v-for="(result,label) in results" :key="label" header-class="header , flex items-mutex items-like-册" body-class="val">
 				<template #header>
 					<p>{{ label }}</p>
 					<div class="setting">
-						<el-radio-group class="one setting" v-for="(setting,settingName) in result.settings" :key="settingName"
-														v-model="setting.val" size="small"
-														@change="updateResult(result, inputText, inputRadix)">
+						<el-radio-group class="one setting" v-for="(setting,settingName) in result.settings" :key="settingName" v-model="setting.val" size="small" @change="updateResult(result, inputText, inputRadix)">
 							<el-radio-button v-for="opt in setting.options" :key="opt" :label="opt"/>
 						</el-radio-group>
 					</div>
@@ -128,9 +124,7 @@
 				<section class="grid" style="grid-template-columns: 1fr auto;align-items: center">
 					<p v-if="result.value" class="hide-long-text end-with-ellipsis" @click="copyToClipboard(result.value)">{{result.value}}</p>
 					<p v-else>（无结果。等待输入）</p>
-					<el-button title="把此结果作为输入" v-if="result.value" @click.stop="asInput(result.value)"
-										 aria-label="把此结果作为输入"
-										 type="primary" icon="Upload">
+					<el-button title="把此结果作为输入" v-if="result.value" @click.stop="asInput(result.value)" aria-label="把此结果作为输入" type="primary" icon="Upload">
 					</el-button>
 				</section>
 			</el-card>

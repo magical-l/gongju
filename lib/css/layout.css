@@ -27,6 +27,9 @@
 
 .items-single-line { flex-wrap: nowrap; }
 
+.one-row	{ grid-column: 1 / -1; }
+.one-column { grid-row: 1 / -1; }
+
 .items-no-gap { gap: 0; }
 
 /* ================== flex大组 ================== */
@@ -189,9 +192,6 @@
 	&.items-x-space-around, &.items-x-unfamiliar { justify-content: space-around; }
 	&.items-y-space-around, &.items-y-unfamiliar { align-content: space-around; }
 	&.items-space-around, &.items-unfamiliar { place-content: space-around; }
-
-	& .one-row		{ grid-column: 1 / -1; }
-	& .one-column { grid-row: 1 / -1; }
 
 	/* 反向流（默认 Z 模式） */
 	&.items-go-y.items-from-bottom {
