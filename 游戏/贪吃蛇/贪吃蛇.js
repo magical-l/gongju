@@ -220,6 +220,7 @@ const SnakeGame = {
 				handleKeydown(e) {
 					if (e.key === ' ') {
 						e.preventDefault();
+						if (Array.from(document.querySelectorAll('.el-overlay')).some(o => getComputedStyle(o).display !== 'none')) return;
 						this.togglePause();
 						return;
 					}

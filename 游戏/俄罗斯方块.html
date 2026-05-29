@@ -697,6 +697,7 @@
 				handleKeydown(event) {
 					if (event.key === ' ') {
 						event.preventDefault();
+						if (Array.from(document.querySelectorAll('.el-overlay')).some(o => getComputedStyle(o).display !== 'none')) return;
 						this.togglePause();
 						return;
 					}

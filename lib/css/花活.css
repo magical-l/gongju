@@ -40,8 +40,8 @@
 	position: relative;
 
 	/* 只给有位置类的伪元素设置content */
-	&.at-top::before, &.at-left::before,
-	&.at-bottom::after, &.at-right::after {
+	&.near-top::before, &.near-left::before,
+	&.near-bottom::after, &.near-right::after {
 		content: '';
 		position: absolute;
 		width: 0;
@@ -50,10 +50,10 @@
 	}
 
 	/* 箭头位置 */
-	&.at-top::before { top: var(--triangle-offset); left: 50%; transform: translateX(-50%); }
-	&.at-left::before { left: var(--triangle-offset); top: 50%; transform: translateY(-50%); }
-	&.at-bottom::after { bottom: var(--triangle-offset); left: 50%; transform: translateX(-50%); }
-	&.at-right::after { right: var(--triangle-offset); top: 50%; transform: translateY(-50%); }
+	&.near-top::before { top: var(--triangle-offset); left: 50%; transform: translateX(-50%); }
+	&.near-left::before { left: var(--triangle-offset); top: 50%; transform: translateY(-50%); }
+	&.near-bottom::after { bottom: var(--triangle-offset); left: 50%; transform: translateX(-50%); }
+	&.near-right::after { right: var(--triangle-offset); top: 50%; transform: translateY(-50%); }
 
 	/* 箭头方向 */
 	&.to-down::before, &.to-down::after { border-top-color: var(--triangle-color); border-bottom-width: 0; }
