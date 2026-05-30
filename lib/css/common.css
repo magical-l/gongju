@@ -176,14 +176,16 @@ template, .template, .hidden, [v-cloak], .js.container {display: none !important
 
 	/* 长文本隐藏 */
 	&.hide.long {
-		overflow: hidden;
+		min-width: 0;/* min-width默认值auto，会导致元素不能缩小到比内容更小。改为0才能决定它“能被压缩”。 */
+		flex-shrink: 1;/* 在flex下，确保“要压缩”。 */
+		overflow: hidden;/* 选择：超出部分隐藏 */
 		white-space: nowrap;
-		/* 鼠标指向时显示 */
+		/* 鼠标指向时显示全文 */
 		&:hover {
 			overflow: visible;
 			text-overflow: inherit;
 		}
-		/* 结尾再加个省略号 */
+		/* 可选子类.ellipsis：结尾加个省略号 */
 		&.ellipsis {text-overflow: ellipsis;}
 	}
 

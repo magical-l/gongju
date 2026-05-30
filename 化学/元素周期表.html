@@ -21,17 +21,15 @@
 		padding: 0;
 	}
 
-	body > main > header { margin: 0;}
-
 	/*=====================工具栏====================*/
 	.toolbar {
 		flex: 1 0 100%;
 		border-bottom: 1px solid #dcdfe6;
 		padding: 0.5rem 1rem;
-	}
 
-	.toolbar [title='显示说明'] {
-		margin-left: auto;
+		& [title='显示说明'] {
+			margin-left: auto;
+		}
 	}
 
 	/*----------------过滤器------------*/
@@ -46,29 +44,14 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-	}
 
-	.temperature.controller .el-input-number {
-		width: 80px;
-	}
+		& .el-input-number {
+			width: 80px;
+		}
 
-	.temperature.controller .temperature.mode.input {
-		width: 24px;
-	}
-
-	/*--------------发现年代------------*/
-	.discovery.year.filter {
-		width: 100%;
-		flex-shrink: 0;
-		flex-grow: 1;
-		border-bottom: 1px solid #dcdfe6;
-		padding: 5px 30px;
-		display: flex;
-		align-items: center;
-	}
-
-	.discovery.year.filter .label {
-		width: 60px;
+		& .temperature.mode.input {
+			width: 24px;
+		}
 	}
 
 	/*==========================元素周期表========================*/
@@ -78,19 +61,19 @@
 		min-width: 0; /* 防止flex项目因内容过宽而溢出 */
 		transition: all 0.5s ease-in-out;
 		overflow: auto;
-	}
 
-	.full-width.periodic-table-of-chemical-element {
-		height: 600px;
-		grid-template-columns: 10px repeat(32, 81px);
-		grid-template-rows: repeat(7, 1fr);
-	}
+		&.full-width {
+			height: 600px;
+			grid-template-columns: 10px repeat(32, 81px);
+			grid-template-rows: repeat(7, 1fr);
+		}
 
-	.half-width.periodic-table-of-chemical-element {
-		height: 720px;
-		grid-template-columns: 10px repeat(18, 1fr);
-		/* 经测试，1fr（80px）都会导致出现纵向滚动条（edge上阈值为79.7858px，即总高度超过718px，不可解，不知道哪里来的2像素导致了溢出），所以写死79px。 */
-		grid-template-rows: repeat(9, 79px);
+		&.half-width {
+			height: 720px;
+			grid-template-columns: 10px repeat(18, 1fr);
+			/* 经测试，1fr（80px）都会导致出现纵向滚动条（edge上阈值为79.7858px，即总高度超过718px，不可解，不知道哪里来的2像素导致了溢出），所以写死79px。 */
+			grid-template-rows: repeat(9, 79px);
+		}
 	}
 
 	/*----------------元素卡--------------*/
@@ -103,95 +86,97 @@
 	}
 
 	.element.info {
-		--反叵字形-right-sidebar-min-width: 12px;
-		--反叵字形-right-sidebar-max-width: 12px;
 		height: 100%;
 		padding: 2px;
+
+		& > header {
+			grid-area: header;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		> .body {
+			display: flex;
+			flex-wrap: wrap;
+		}
+
+		& p {
+			margin: 0;
+			padding: 1px 2px;
+			line-height: 1.2;
+		}
+
+		& .name {
+			flex: 1;
+			padding: 0;
+			justify-self: center;
+			text-align: center;
+			font-size: 1.2em;
+
+			& span {
+				display: inline-block;
+				transform: translateX(50%);
+			}
+		}
+
+		& .atomic-mass {
+			flex-basis: 100%;
+			justify-content: end;
+			font-size: 0.7em;
+			text-align: center;
+			line-height: 1;
+			opacity: 0.8;
+		}
+
+		& > footer {
+			display: flex;
+			justify-content: space-around;
+			align-items: center;
+			height: 16px;
+		}
+
+		& .icon::after {
+			font-style: normal;
+			font-size: 0.8em;
+			line-height: 1;
+		}
 	}
 
-	.element.info > header {
-		grid-area: header;
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-	}
+	.half-width {
+		& .镧系, & .锕系 {
+			grid-row-end: span 2;
+			justify-content: end;
+		}
 
-	.element.info > .body {
-		display: flex;
-		flex-wrap: wrap;
-	}
+		& .镧系 .element.info, & .锕系 .element.info {
+			height: auto; /* 否则占不满一行的格子 */
+		}
 
-	.element.info p {
-		margin: 0;
-		padding: 1px 2px;
-		line-height: 1.2;
-	}
+		& #镧, & #锕 {
+			clip-path: polygon(0% 100%, 100% 100%, 100% 10%, 50% 5%, 0% 10%);
+		}
 
-	.element.info .name {
-		flex: 1;
-		padding: 0;
-		justify-self: center;
-		text-align: center;
-		font-size: 1.2em;
-	}
+		& #镧::before { content: '57~71\A  镧系'; /* 在css里\A是换行 */ }
 
-	.element.info .name span {
-		display: inline-block;
-		transform: translateX(50%);
-	}
+		& #锕::before { content: '89~103\A    锕系'; /* 序号到了3位数，所以空格要多些 */ }
 
-	.element.info .phase {
-		justify-self: end;
-	}
+		& #镧::before, & #锕::before {
+			width: 100%;
+			height: 100%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			white-space: pre;
+		}
 
-	.element.info .atomic-mass {
-		flex-basis: 100%;
-		justify-content: end;
-		font-size: 0.7em;
-		text-align: center;
-		line-height: 1;
-		opacity: 0.8;
-	}
+		& .周期7 {
+			grid-row-start: calc(8 + var(--period1-row-offset));
+		}
 
-	.element.info > footer {
-		display: flex;
-		justify-content: end;
-		align-items: center;
-		height: 16px;
-		justify-content: space-around; /* 分散对齐图标 */
-		align-items: center;
-	}
-
-	.element.info .icon::after {
-		font-style: normal;
-		font-size: 0.8em;
-		line-height: 1;
-	}
-
-	.half-width .镧系, .half-width .锕系 {
-		grid-row-end: span 2;
-		justify-content: end;
-	}
-
-	.half-width .镧系 .element.info, .half-width .锕系 .element.info {
-		height: auto; /* 否则占不满一行的格子 */
-	}
-
-	.half-width #镧, .half-width #锕 {
-		clip-path: polygon(0% 100%, 100% 100%, 100% 10%, 50% 5%, 0% 10%);
-	}
-
-	.half-width #镧::before { content: '57~71\A  镧系'; /* 在css里\A是换行 */ }
-
-	.half-width #锕::before { content: '89~103\A    锕系'; /* 序号到了3位数，所以空格要多些 */ }
-
-	.half-width #镧::before, .half-width #锕::before {
-		width: 100%;
-		height: 100%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		white-space: pre;
+		& .周期6.周期序号, & .周期7.周期序号 {
+			grid-row-end: span 2;
+		}
 	}
 
 	/*========================分组分类=====================*/
@@ -225,21 +210,9 @@
 
 	.周期7 {grid-row: calc(7 + var(--period1-row-offset));}
 
-	.half-width .周期7 {grid-row-start: calc(8 + var(--period1-row-offset));}
-
-	.half-width .周期6.周期序号, .half-width .周期7.周期序号 {grid-row-end: span 2;}
-
 	.周期序号 {
 		grid-column: 1;
 		border: 1px solid #ccc;
-	}
-
-	.族 {
-		grid-row: 1;
-		border: 1px solid #ccc;
-		display: flex;
-		align-items: center;
-		justify-content: center;
 	}
 
 	.硼族元素 { grid-column: -7; }
@@ -251,11 +224,6 @@
 	.氧族元素 { grid-column: -4; }
 
 	.卤素 { grid-column: -3; }
-
-	.族 p {
-		padding: 0;
-		margin: 0;
-	}
 
 	.碱金属.element { background-color: #ffadad; }
 
@@ -314,48 +282,48 @@
 		gap: 0.5rem;
 		align-items: start;
 		justify-content: start;
-	}
 
-	.element.detail.card .element.info {
-		width: 120px;
-		height: 100%;
-		flex-shrink: 0;
-	}
+		& .element.info {
+			width: 120px;
+			height: 100%;
+			flex-shrink: 0;
+		}
 
-	/*------元素属性------*/
-	.element.detail.card .properties {
-		margin: 0;
-		padding: 0;
-		display: grid;
-		grid-template-columns: auto 1fr;
-		gap: 0.5rem;
-		min-width: 0;
-	}
+		/*------元素属性------*/
+		& .properties {
+			margin: 0;
+			padding: 0;
+			display: grid;
+			grid-template-columns: auto 1fr;
+			gap: 0.5rem;
+			min-width: 0;
 
-	.element.detail.card .properties dt {
-		font-weight: bold;
-		color: #606266;
-		flex-shrink: 0; /* 防止标签被压缩 */
-	}
+			& dt {
+				font-weight: bold;
+				color: #606266;
+				flex-shrink: 0; /* 防止标签被压缩 */
+			}
 
-	.element.detail.card .properties dd {
-		margin: 0;
-		color: #303133;
-		word-break: break-word; /* 允许值在必要时换行 */
-	}
+			& dd {
+				margin: 0;
+				color: #303133;
+				word-break: break-word; /* 允许值在必要时换行 */
+			}
+		}
 
-	.element.detail.card footer {
-		flex-direction: column;
-		align-items: start;
-		gap: 0.5rem;
-		height: auto;
-		justify-content: start;
-	}
+		& footer {
+			flex-direction: column;
+			align-items: start;
+			gap: 0.5rem;
+			height: auto;
+			justify-content: start;
+		}
 
-	.element.detail.card > footer .tag {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
+		& > footer .tag {
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+		}
 	}
 </style>
 </head>
