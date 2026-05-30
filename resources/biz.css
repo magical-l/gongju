@@ -33,7 +33,7 @@ body > header {
 	grid-area: header;
 	background-color: #FFF;
 	border-bottom: 1px solid #DEE2E6;
-	padding: 1rem 1rem;
+	padding: 0 1rem;
 	display: flex;
 	flex-wrap: wrap;
 	gap: 1rem;
