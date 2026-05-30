@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
+<!DOCTYPE html><html lang="zh-CN"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>符号大全 - CoolSymbol在线复制</title>
@@ -189,7 +187,15 @@
 		font-family: 'Noto Sans Symbols 2', sans-serif;
 		margin: 0 2px;
 	}
-</style>
+
+
+.symbol-detail-floater .floater-title {
+	font-size: 1rem;
+	font-weight: bold;
+	text-align: center;
+	margin-top: 8px;
+	color: var(--el-text-color-regular);
+}</style>
 </head>
 <body class="反叵字形">
 <header>
@@ -229,9 +235,9 @@
 				<h2>核心功能</h2>
 				<ul>
 					<li><strong>搜索过滤：</strong> 输入关键字，实时过滤符号。</li>
-					<li><strong>分类浏览：：</strong> 符号按类别进行组织，方便快速查找。</li>
-					<li><strong>双语名称：：</strong> 提供中文和英文官方名称，便于理解和学习。</li>
-					<li><strong>一键复制：：</strong> 点击任意符号即可将其复制到剪贴板。</li>
+					<li><strong>分类浏览：</strong> 符号按类别进行组织，方便快速查找。</li>
+					<li><strong>双语名称：</strong> 提供中文和英文官方名称，便于理解和学习。</li>
+					<li><strong>一键复制：</strong> 点击任意符号即可将其复制到剪贴板。</li>
 				</ul>
 				<h2>如何使用</h2>
 				<p>
@@ -245,9 +251,8 @@
 
 	<article v-cloak>
 		<div class="symbol-detail-floater" :class="{'is-visible': hoveredSymbol}" v-if="hoveredSymbol">
-			<div class="char-preview">
-				<span class="placeholder-char">文</span><span class="symbol-char">{{ hoveredSymbol.char }}</span><span
-					class="placeholder-char">字</span>
+			<div class="floater-title">效果预览</div><div class="char-preview">
+				<span class="placeholder-char">文</span><span class="symbol-char">{{ hoveredSymbol.char }}</span><span class="placeholder-char">字</span>
 			</div>
 			<div class="details">
 				<div class="name">{{ hoveredSymbol.name || hoveredSymbol.char }}</div>
@@ -264,7 +269,7 @@
 		<div class="symbol-groups">
 			<el-collapse v-model="activeGroupNames">
 				<el-collapse-item v-for="group in groups" :key="group" :name="group">
-					<template #title>
+					<template #title="">
 						<h3 class="name">{{ group }}</h3>
 					</template>
 
@@ -279,9 +284,7 @@
 							<div v-for="subgroup in filteredSymbolGroups[group].groups" :key="subgroup.name" class="subgroup">
 								<h4 class="subgroup-name">{{ subgroup.name }}</h4>
 								<div class="symbols">
-									<div class="symbol" v-for="s in subgroup.symbols" :key="s.char" @click="copySymbol(s)"
-											 title="点击复制"
-											 @mouseenter="setHoveredSymbol(s)" @mouseleave="clearHoveredSymbol">
+									<div class="symbol" v-for="s in subgroup.symbols" :key="s.char" @click="copySymbol(s)" title="点击复制" @mouseenter="setHoveredSymbol(s)" @mouseleave="clearHoveredSymbol">
 										<span class="char">{{ s.char }}</span>
 										<span class="name">{{ s.name }}</span>
 										<span class="ename">{{ s.ename }}</span>
@@ -290,8 +293,7 @@
 							</div>
 						</div>
 						<div v-else-if="filteredSymbolGroups[group].symbols" class="symbols">
-							<div class="symbol" v-for="s in filteredSymbolGroups[group].symbols" :key="s.char" @click="copySymbol(s)"
-									 @mouseenter="setHoveredSymbol(s)" @mouseleave="clearHoveredSymbol" title="点击复制">
+							<div class="symbol" v-for="s in filteredSymbolGroups[group].symbols" :key="s.char" @click="copySymbol(s)" @mouseenter="setHoveredSymbol(s)" @mouseleave="clearHoveredSymbol" title="点击复制">
 								<span class="char">{{ s.char }}</span>
 								<span class="name">{{ s.name }}</span>
 								<span class="ename">{{ s.ename }}</span>
@@ -310,7 +312,7 @@
 			<img title="赞助一下" class="qr-code" alt="支付宝收款码" src="../resources/支付宝收款码.jpg">
 			<p class="slogan">赞助一下</p>
 		</section>
-		<section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
+		<section class="copyright"><p>© 2025 工具兽版权所有 All rights reserved.</p></section>
 		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
 		</section>
 	</article>
@@ -345,7 +347,7 @@
 				symbolGroups: {},
 				loadedGroups: {},
 				loadingGroups: {},
-				hoveredSymbol: {char: "☺", name: "白笑脸", ename: "WHITE SMILING FACE", tags: ['高兴', '开心']}
+				hoveredSymbol: null,
 			};
 		},
 		computed: {
@@ -503,9 +505,8 @@
 	<!-- 谷歌广告联盟 -->
 	<script async crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"></script>
 	<!-- 展示广告1 -->
-	<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true"
-			 data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
+	<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true" data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
 	<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 </div>
-</body>
-</html>
+
+</body></html>
