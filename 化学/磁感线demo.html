@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html><head><title>磁感线 Demo</title>
+<style>
+	:root {
+		--block-width: 100px;
+		--block-height: 100px;
+		--line-w: 100px;
+		--line-h: 200px;
+	}
+	body {
+		background: #fff;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 100vh;
+		margin: 0;
+	}
+	.a {
+		width: var(--block-width);
+		height: var(--block-height);
+		border: 1px solid #999;
+		background: #ccc;
+		position: relative;
+
+		
+		&::before, &::after {
+			position: absolute;
+			top: calc((100% - var(--line-h))/2);
+			z-index: -1;
+			width: var(--line-w);
+			height: var(--line-h);
+			content: '';
+			background-image: url("弧.svg"), url("弧.svg"), url("弧.svg");
+			background-size:
+				calc(var(--line-w)*0.90) calc(var(--line-h)*0.90),
+				calc(var(--line-w)*0.75) calc(var(--line-h)*0.75),
+				calc(var(--line-w)*0.60) calc(var(--line-h)*0.60);
+			background-position: center;
+			background-repeat: no-repeat;
+			pointer-events: none;
+		}
+		&::before {
+			left: calc(100% - var(--line-w)/2);
+		}
+		&::after {
+			right: calc(100% - var(--line-w)/2);
+		}
+	}
+</style>
+</head>
+<body>
+	<div class="a"></div>
+</body>
+</html>

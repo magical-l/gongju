@@ -56,6 +56,7 @@
 
 		/*==========================元素周期表========================*/
 		.periodic-table-of-chemical-element {
+			isolation: isolate;
 			flex-grow: 1;
 			width: 100%;
 			min-width: 0;
@@ -252,9 +253,9 @@
 			position: absolute;
 			inset: 0;
 			background: linear-gradient(135deg,
-					rgba(255, 50, 50, 0.2), rgba(200, 200, 0, 0.2),
-					rgba(50, 200, 50, 0.2), rgba(50, 200, 200, 0.2),
-					rgba(50, 50, 200, 0.2), rgba(200, 50, 200, 0.2));
+					rgba(255, 50, 50, 0.5), rgba(200, 200, 0, 0.5),
+					rgba(50, 200, 50, 0.5), rgba(50, 200, 200, 0.5),
+					rgba(50, 50, 200, 0.5), rgba(200, 50, 200, 0.5));
 			pointer-events: none;
 		}
 
@@ -263,43 +264,53 @@
 			content: '';
 			position: absolute;
 			inset: 0;
-			background-image: repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(100, 100, 100, 0.15) 3px, rgba(100, 100, 100, 0.15) 4px), repeating-linear-gradient(-45deg, transparent, transparent 3px, rgba(100, 100, 100, 0.15) 3px, rgba(100, 100, 100, 0.15) 4px);
+			background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(100, 100, 100, 0.35) 5px, rgba(100, 100, 100, 0.35) 6px), repeating-linear-gradient(-45deg, transparent, transparent 5px, rgba(100, 100, 100, 0.35) 5px, rgba(100, 100, 100, 0.35) 6px);
 			pointer-events: none;
 		}
 
 		/* 贵金属：暖金色内发光 */
 		.one.element.贵金属 {
-			box-shadow: inset 0 0 8px 2px rgba(255, 215, 0, 0.35);
-		}
-
-		/* 铁磁性：磁蓝色边框 */
-		.one.element.铁磁性元素 {
-			border-color: rgba(60, 120, 220, 0.55);
+			box-shadow: inset 0 0 12px 3px rgba(255, 215, 0, 0.6);
 		}
 
 		/* 铁磁性：磁感线弧 */
-		.one.element.铁磁性元素::after {
-			content: '';
-			position: absolute;
-			inset: 0;
-			background:
-				radial-gradient(ellipse 100% 40% at 50% -30%, rgba(60, 120, 220, 0.15) 0%, transparent 60%),
-				radial-gradient(ellipse 100% 40% at 50% 130%, rgba(60, 120, 220, 0.15) 0%, transparent 60%),
-				radial-gradient(ellipse 80% 30% at 30% -20%, rgba(60, 120, 220, 0.1) 0%, transparent 50%),
-				radial-gradient(ellipse 80% 30% at 70% 120%, rgba(60, 120, 220, 0.1) 0%, transparent 50%),
-				radial-gradient(ellipse 80% 30% at 70% -20%, rgba(60, 120, 220, 0.1) 0%, transparent 50%),
-				radial-gradient(ellipse 80% 30% at 30% 120%, rgba(60, 120, 220, 0.1) 0%, transparent 50%);
-			pointer-events: none;
+		.one.element.铁磁性元素 {
+			--line-w: 70px;
+			--line-h: 150px;
+			overflow-x: clip;
+
+			&::before, &::after {
+				position: absolute;
+				top: calc((100% - var(--line-h))/2);
+				z-index: -1;
+				width: var(--line-w);
+				height: var(--line-h);
+				content: '';
+				background-image: url("弧.svg"), url("弧.svg"), url("弧.svg");
+				background-size:
+					calc(var(--line-w)*0.90) calc(var(--line-h)*0.90),
+					calc(var(--line-w)*0.75) calc(var(--line-h)*0.75),
+					calc(var(--line-w)*0.60) calc(var(--line-h)*0.60);
+				background-position: center;
+				background-repeat: no-repeat;
+				pointer-events: none;
+			}
+			&::before {
+				left: calc(100% - var(--line-w)/2);
+			}
+			&::after {
+				right: calc(100% - var(--line-w)/2);
+			}
 		}
 
-		/* [title='人造元素'].with.icon::after {content: '🧪';font-size: 0.6em;}
-	[title='放射性元素'].with.icon::after {content: '☢️';font-size: 0.6em;}
-	[title='铁磁性元素'].with.icon::after {content: '🧲';font-size: 0.6em;}
-	[title='稀土元素'].with.icon::after {content: '💎';font-size: 0.6em;}
-	[title='贵金属'].with.icon::after {content: '💰';font-size: 0.6em;}
-	[title='气体'].with.icon::after {content: '🌀';}
-	[title='液体'].with.icon::after {content: '💧';}
-	[title='固体'].with.icon::after {content: '🪨';} */
+	/* [title='人造元素'].with.icon::after {content: '🧪';font-size: 0.6em;}
+		[title='放射性元素'].with.icon::after {content: '☢️';font-size: 0.6em;}
+		[title='铁磁性元素'].with.icon::after {content: '🧲';font-size: 0.6em;}
+		[title='稀土元素'].with.icon::after {content: '💎';font-size: 0.6em;}
+		[title='贵金属'].with.icon::after {content: '💰';font-size: 0.6em;}
+		[title='气体'].with.icon::after {content: '🌀';}
+		[title='液体'].with.icon::after {content: '💧';}
+		[title='固体'].with.icon::after {content: '🪨';} */
 		.周期1 {
 			grid-row: calc(1 + var(--period1-row-offset));
 		}
