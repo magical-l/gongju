@@ -258,10 +258,12 @@
 
 		/* 人造元素：斜线网格 overlay */
 		.one.element.人造元素::after {
-			content: '';
+			content: '🫴';
 			position: absolute;
-			inset: 0;
-			background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(100, 100, 100, 0.35) 5px, rgba(100, 100, 100, 0.35) 6px), repeating-linear-gradient(-45deg, transparent, transparent 5px, rgba(100, 100, 100, 0.35) 5px, rgba(100, 100, 100, 0.35) 6px);
+			font-size: 22px;
+			line-height: 1;
+			bottom: -8px;
+			left: -10px;
 			pointer-events: none;
 		}
 

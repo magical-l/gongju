@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html><head><title>人造元素 Demo</title>
+<style>
+	:root { --w: 100px; --h: 100px; }
+	body {
+		background: #f5f0eb;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 100vh; margin: 0;
+		font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+	}
+	.a {
+		width: var(--w); height: var(--h);
+		border: 1px solid #999;
+		background: #ddd;
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 0.9em;
+	}
+	.a::after {
+		content: '🫴';
+		position: absolute;
+		font-size: 22px;
+		line-height: 1;
+		pointer-events: none;
+		bottom: -2px;
+		left: -2px;
+	}
+</style></head>
+<body><div class="a">人造元素<br>🫴</div></body></html>
