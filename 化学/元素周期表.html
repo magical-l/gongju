@@ -56,11 +56,12 @@
 
 		/*==========================元素周期表========================*/
 		.periodic-table-of-chemical-element {
+			--bg: seashell;
 			isolation: isolate;
 			flex-grow: 1;
 			width: 100%;
 			min-width: 0;/* 防止flex项目因内容过宽而溢出 */
-			background-color: seashell;
+			background-color: var(--bg);
 			transition: all 0.5s ease-in-out;
 			overflow: auto;
 			gap: var(--element-gap);
@@ -206,42 +207,15 @@
 			box-shadow: 0 0 6px rgba(0, 0, 0, 0.08);
 		}
 
-		.one.element.放射性元素 {
-			box-shadow: 0 0 4px 2px rgba(255, 180, 50, 0.3), 0 0 10px 6px rgba(255, 180, 50, 0.15), 0 0 20px 12px rgba(255, 180, 50, 0.08);
-		}
-
-		.one.element.气体.放射性元素 {
-			box-shadow: 0 0 6px rgba(0, 0, 0, 0.08), 0 0 4px 2px rgba(255, 180, 50, 0.3), 0 0 10px 6px rgba(255, 180, 50, 0.15), 0 0 20px 12px rgba(255, 180, 50, 0.08);
-		}
-
-		.glow-animated .one.element.放射性元素 {
-			box-shadow: none;
-			animation: radioactive-glow 2s ease-in-out infinite;
-		}
-
-		.glow-animated .one.element.气体.放射性元素 {
-			box-shadow: none;
-			animation: radioactive-glow-gas 2s ease-in-out infinite;
-		}
-
-		@keyframes radioactive-glow {
-			0%, 100% {
-				box-shadow: 0 0 6px 3px rgba(255, 180, 50, 0.15);
-			}
-
-			50% {
-				box-shadow: 0 0 14px 8px rgba(255, 180, 50, 0.3), 0 0 30px 16px rgba(255, 180, 50, 0.12);
-			}
-		}
-
-		@keyframes radioactive-glow-gas {
-			0%, 100% {
-				box-shadow: 0 0 6px rgba(0, 0, 0, 0.08), 0 0 6px 3px rgba(255, 180, 50, 0.15);
-			}
-
-			50% {
-				box-shadow: 0 0 6px rgba(0, 0, 0, 0.08), 0 0 14px 8px rgba(255, 180, 50, 0.3), 0 0 30px 16px rgba(255, 180, 50, 0.12);
-			}
+		.one.element.放射性元素::before {
+			content: '☢';
+			position: absolute;
+			font-size: 70px;
+			color: rgba(180, 90, 30, 0.5);
+			pointer-events: none;
+			top: 50%; left: 50%;
+			transform: translate(-50%, -50%);
+			opacity: 0.6;
 		}
 
 		/* 稀土：彩虹渐变 overlay */
