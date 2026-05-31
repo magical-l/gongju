@@ -188,6 +188,29 @@
 			border-radius: 15%;
 		}
 
+		.one.element.气体 {
+			border-style: dashed;
+			box-shadow: 0 0 6px rgba(0,0,0,0.08);
+		}
+
+		.one.element.放射性元素 {
+			animation: radioactive-glow 2s ease-in-out infinite;
+		}
+
+		.one.element.气体.放射性元素 {
+			animation: radioactive-glow-gas 2s ease-in-out infinite;
+		}
+
+		@keyframes radioactive-glow {
+			0%, 100% { box-shadow: 0 0 6px 3px rgba(255, 180, 50, 0.15); }
+			50% { box-shadow: 0 0 14px 8px rgba(255, 180, 50, 0.3), 0 0 30px 16px rgba(255, 180, 50, 0.12); }
+		}
+
+		@keyframes radioactive-glow-gas {
+			0%, 100% { box-shadow: 0 0 6px rgba(0,0,0,0.08), 0 0 6px 3px rgba(255, 180, 50, 0.15); }
+			50% { box-shadow: 0 0 6px rgba(0,0,0,0.08), 0 0 14px 8px rgba(255, 180, 50, 0.3), 0 0 30px 16px rgba(255, 180, 50, 0.12); }
+		}
+
 		[title='人造元素'].with.icon::after {content: '🧪';font-size: 0.8em;}
 		[title='放射性元素'].with.icon::after {content: '☢️';font-size: 0.8em;}
 		[title='铁磁性元素'].with.icon::after {content: '🧲';font-size: 0.8em;}
@@ -413,7 +436,7 @@
 					</header>
 					<div class="body">
 						<p class="element name"><span>{{element.name}}</span></p>
-						<p class="phase with icon" :title="getElementPhase(element)"></p>
+						<p class="element phase with icon" :title="getElementPhase(element)"></p>
 						<p class="element atomic-mass">{{element.原子量}}</p>
 					</div>
 					<footer>
