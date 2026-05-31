@@ -18,6 +18,7 @@
 <style>
 	body > main {
 		--period1-row-offset: 0;
+		--element-gap: 8px;
 		padding: 0;
 	}
 
@@ -61,7 +62,7 @@
 		min-width: 0; /* 防止flex项目因内容过宽而溢出 */
 		transition: all 0.5s ease-in-out;
 		overflow: auto;
-		gap: 8px;
+		gap: var(--element-gap);
 
 		&.full-width {
 			height: 600px;
@@ -167,13 +168,15 @@
 
 		& .镧系标签, & .锕系标签 {
 			grid-column: 4;
+			position: relative;
+			top: var(--element-gap);
 			height: 100%;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			font-size: 0.75em;
+			clip-path: polygon(0% 0%, 100% 0%, 100% 85%, 50% 100%, 0% 85%);
 			background: #eee;
-			clip-path: polygon(0% 100%, 100% 100%, 100% 30%, 50% 15%, 0% 30%);
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			font-size: 0.75em;
 
 			& p {
 				text-align: center;
@@ -250,6 +253,10 @@
 	.贫金属 { color: #8844aa; }
 	.活泼非金属 { color: #cc44aa; }
 	.稀有气体 { color: #888888; }
+
+	.金属 {
+		background: linear-gradient(145deg, transparent 35%, rgba(255,255,255,.5) 46%, rgba(255,255,255,.8) 49%, rgba(255,255,255,.5) 52%, transparent 63%)
+	}
 
 	.碱金属.category.filter { --el-checkbox-button-checked-bg-color: #cc5555; --el-checkbox-button-checked-text-color: #fff; }
 	.碱土金属.category.filter { --el-checkbox-button-checked-bg-color: #cc8833; --el-checkbox-button-checked-text-color: #fff; }
@@ -731,9 +738,6 @@
 				const color = colorDesc && 物态色值[colorDesc] ? 物态色值[colorDesc] : null;
 				if (color) {
 					s.backgroundColor = color;
-					if (element.tags?.includes('金属')) {
-						s.backgroundImage = 'linear-gradient(145deg, transparent 35%, rgba(255,255,255,.5) 46%, rgba(255,255,255,.8) 49%, rgba(255,255,255,.5) 52%, transparent 63%)';
-					}
 				} else {
 					s.backgroundColor = 'transparent';
 				}
