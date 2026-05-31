@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html><head><title>贵金属 Demo</title>
+<style>
+	:root {
+		--block-w: 100px;
+		--block-h: 100px;
+		--line-w:200px;
+		--line-h:200px;
+	}
+	body {
+		background: #fff;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 100vh;
+		margin: 0;
+	}
+	.wrap {
+		isolation: isolate;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+	.a {
+		width: var(--block-w);
+		height: var(--block-h);
+		border: 1px solid #aaa;
+		background: #e8c860;
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 1.5em;
+	}
+	.a::before {
+		position: absolute;
+		top: calc((100% - var(--line-h))/2);
+		left: calc((100% - var(--line-w))/2);
+		z-index: -1;
+		width: var(--line-w);
+		height: var(--line-h);
+		content: '';
+		background: url("金光.svg") center/contain no-repeat;
+		pointer-events: none;
+	}
+</style></head>
+<body><div class="wrap"><div class="a">Au</div></div></body></html>
