@@ -8,729 +8,790 @@
 <link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
 <link href="../resources/el-plus.css" rel="stylesheet">
 <link href="../lib/toastr.min.css" rel="stylesheet">
-	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/common.css" rel="stylesheet"> -->
-	<link href="../lib/css/common.css" rel="stylesheet">
-	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/花活.css" rel="stylesheet"> -->
-	<link href="../lib/css/花活.css" rel="stylesheet">
-	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/layout.css" rel="stylesheet"> -->
-	<link href="../lib/css/layout.css" rel="stylesheet">
-<link href="../resources/biz.css?v=250821" rel="stylesheet">
-<style>
-	body > main {
-		--period1-row-offset: 0;
-		padding: 0;
-	}
-
-	/*=====================工具栏====================*/
-	.toolbar {
-		flex: 1 0 100%;
-		border-bottom: 1px solid #dcdfe6;
-		padding: 0.5rem 1rem;
-
-		& [title='显示说明'] {
-			margin-left: auto;
-		}
-	}
-
-	/*----------------过滤器------------*/
-	.element.category.filter {
-		--el-checkbox-button-checked-bg-color: transparent;
-		--el-button-bg-color: transparent;
-		--el-checkbox-button-checked-text-color: var(--el-color-primary);
-	}
-
-	/*-------------温度控制器-------------*/
-	.temperature.controller {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-
-		& .el-input-number {
-			width: 80px;
-		}
-
-		& .temperature.mode.input {
-			width: 24px;
-		}
-	}
-
-	/*==========================元素周期表========================*/
-	.periodic-table-of-chemical-element {
-		flex-grow: 1;
-		width: 100%;
-		min-width: 0; /* 防止flex项目因内容过宽而溢出 */
-		transition: all 0.5s ease-in-out;
-		overflow: auto;
-
-		&.full-width {
-			height: 600px;
-			grid-template-columns: 10px repeat(32, 81px);
-			grid-template-rows: repeat(7, 1fr);
-		}
-
-		&.half-width {
-			height: 720px;
-			grid-template-columns: 10px repeat(18, 1fr);
-			/* 经测试，1fr（80px）都会导致出现纵向滚动条（edge上阈值为79.7858px，即总高度超过718px，不可解，不知道哪里来的2像素导致了溢出），所以写死79px。 */
-			grid-template-rows: repeat(9, 79px);
-		}
-	}
-
-	/*----------------元素卡--------------*/
-	.one.element {
-		position: relative;
-		border: 1px solid #ccc;
-		background-color: #ccc; /* 默认颜色 */
-		display: flex;
-		flex-direction: column;
-	}
-
-	.element.info {
-		height: 100%;
-		padding: 2px;
-
-		& > header {
-			grid-area: header;
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-		}
-
-		> .body {
-			display: flex;
-			flex-wrap: wrap;
-		}
-
-		& p {
-			margin: 0;
-			padding: 1px 2px;
-			line-height: 1.2;
-		}
-
-		& .name {
-			flex: 1;
+		<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/common.css" rel="stylesheet"> -->
+		<link href="../lib/css/common.css" rel="stylesheet">
+		<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/花活.css" rel="stylesheet"> -->
+		<link href="../lib/css/花活.css" rel="stylesheet">
+		<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/layout.css" rel="stylesheet"> -->
+		<link href="../lib/css/layout.css" rel="stylesheet">
+	<link href="../resources/biz.css?v=250821" rel="stylesheet">
+	<style>
+		body > main {
+			--period1-row-offset: 0;
 			padding: 0;
-			justify-self: center;
-			text-align: center;
-			font-size: 1.2em;
+		}
 
-			& span {
-				display: inline-block;
-				transform: translateX(50%);
+		/*=====================工具栏====================*/
+		.toolbar {
+			flex: 1 0 100%;
+			border-bottom: 1px solid #dcdfe6;
+			padding: 0.5rem 1rem;
+
+			& [title='显示说明'] {
+				margin-left: auto;
 			}
 		}
 
-		& .atomic-mass {
-			flex-basis: 100%;
-			justify-content: end;
-			font-size: 0.7em;
-			text-align: center;
-			line-height: 1;
-			opacity: 0.8;
+		/*----------------过滤器------------*/
+		.element.category.filter {
+			--el-checkbox-button-checked-bg-color: transparent;
+			--el-button-bg-color: transparent;
+			--el-checkbox-button-checked-text-color: var(--el-color-primary);
 		}
 
-		& > footer {
+		/*-------------温度控制器-------------*/
+		.temperature.controller {
 			display: flex;
-			justify-content: space-around;
 			align-items: center;
-			height: 16px;
+			justify-content: center;
+
+			& .el-input-number {
+				width: 80px;
+			}
+
+			& .temperature.mode.input {
+				width: 24px;
+			}
 		}
 
-		& .icon::after {
-			font-style: normal;
-			font-size: 0.8em;
-			line-height: 1;
-		}
-	}
+		/*==========================元素周期表========================*/
+		.periodic-table-of-chemical-element {
+			flex-grow: 1;
+			width: 100%;
+			min-width: 0; /* 防止flex项目因内容过宽而溢出 */
+			transition: all 0.5s ease-in-out;
+			overflow: auto;
 
-	.half-width {
-		& .镧系, & .锕系 {
-			grid-row-end: span 2;
+			&.full-width {
+				height: 600px;
+				grid-template-columns: 10px repeat(32, 81px);
+				grid-template-rows: repeat(7, 1fr);
+			}
+
+			&.half-width {
+				height: 720px;
+				grid-template-columns: 10px repeat(18, 1fr);
+				/* 经测试，1fr（80px）都会导致出现纵向滚动条（edge上阈值为79.7858px，即总高度超过718px，不可解，不知道哪里来的2像素导致了溢出），所以写死79px。 */
+				grid-template-rows: repeat(9, 79px);
+			}
+		}
+
+		/*----------------元素卡--------------*/
+		.one.element {
+			position: relative;
+			border: 1px solid #ccc;
+			background-color: #ccc; /* 默认颜色 */
+			display: flex;
+			flex-direction: column;
+		}
+
+		.element.info {
+			height: 100%;
+			padding: 2px;
+
+			& > header {
+				grid-area: header;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+
+			> .body {
+				display: flex;
+				flex-wrap: wrap;
+			}
+
+			& p {
+				margin: 0;
+				padding: 1px 2px;
+				line-height: 1.2;
+			}
+
+			& .name {
+				flex: 1;
+				padding: 0;
+				justify-self: center;
+				text-align: center;
+				font-size: 1.2em;
+
+				& span {
+					display: inline-block;
+					transform: translateX(50%);
+				}
+			}
+
+			& .atomic-mass {
+				flex-basis: 100%;
+				justify-content: end;
+				font-size: 0.7em;
+				text-align: center;
+				line-height: 1;
+				opacity: 0.8;
+			}
+
+			& > footer {
+				display: flex;
+				justify-content: space-around;
+				align-items: center;
+				height: 16px;
+			}
+
+			& .icon::after {
+				font-style: normal;
+				font-size: 0.8em;
+				line-height: 1;
+			}
+		}
+
+		.half-width .镧系.周期6 {
+			grid-row: 7;
 			justify-content: end;
 		}
 
-		& .镧系 .element.info, & .锕系 .element.info {
-			height: auto; /* 否则占不满一行的格子 */
+		.half-width .锕系.周期7 {
+			grid-row: 9;
+			justify-content: end;
 		}
 
-		& #镧, & #锕 {
-			clip-path: polygon(0% 100%, 100% 100%, 100% 10%, 50% 5%, 0% 10%);
+		.half-width .镧系 .element.info, .half-width .锕系 .element.info {
+			height: auto;
 		}
 
-		& #镧::before { content: '57~71\A  镧系'; /* 在css里\A是换行 */ }
+		.half-width .周期7 {
+			grid-row-start: calc(8 + var(--period1-row-offset));
+		}
 
-		& #锕::before { content: '89~103\A    锕系'; /* 序号到了3位数，所以空格要多些 */ }
+		.half-width .周期6.周期序号, .half-width .周期7.周期序号 {
+			grid-row-end: span 2;
+		}
 
-		& #镧::before, & #锕::before {
-			width: 100%;
+		.half-width .镧系标签, .half-width .锕系标签 {
+			grid-column: 4;
 			height: 100%;
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			white-space: pre;
+			font-size: 0.75em;
+			color: #999;
+			background: #eee;
+			clip-path: polygon(0% 100%, 100% 100%, 100% 30%, 50% 15%, 0% 30%);
 		}
+		.half-width .镧系标签 { grid-row: 6; }
+		.half-width .锕系标签 { grid-row: 8; }
 
-		& .周期7 {
-			grid-row-start: calc(8 + var(--period1-row-offset));
-		}
-
-		& .周期6.周期序号, & .周期7.周期序号 {
-			grid-row-end: span 2;
-		}
-	}
-
-	/*========================分组分类=====================*/
-	[title='人造元素'].with.icon::after {content: '🧪';font-size: 0.8em;}
-
-	[title='放射性元素'].with.icon::after {content: '☢️';font-size: 0.8em;}
-
-	[title='铁磁性元素'].with.icon::after {content: '🧲';font-size: 0.8em;}
-
-	[title='稀土元素'].with.icon::after {content: '💎';font-size: 0.8em;}
-
-	[title='贵金属'].with.icon::after {content: '💰';font-size: 0.8em;}
-
-	[title='气体'].with.icon::after {content: '🌀';}
-
-	[title='液体'].with.icon::after {content: '💧';}
-
-	[title='固体'].with.icon::after {content: '🪨';}
-
-	.周期1 {grid-row: calc(1 + var(--period1-row-offset));}
-
-	.周期2 {grid-row: calc(2 + var(--period1-row-offset));}
-
-	.周期3 {grid-row: calc(3 + var(--period1-row-offset));}
-
-	.周期4 {grid-row: calc(4 + var(--period1-row-offset));}
-
-	.周期5 {grid-row: calc(5 + var(--period1-row-offset));}
-
-	.周期6 {grid-row: calc(6 + var(--period1-row-offset));}
-
-	.周期7 {grid-row: calc(7 + var(--period1-row-offset));}
-
-	.周期序号 {
-		grid-column: 1;
-		border: 1px solid #ccc;
-	}
-
-	.硼族元素 { grid-column: -7; }
-
-	.碳族元素 { grid-column: -6; }
-
-	.氮族元素 { grid-column: -5; }
-
-	.氧族元素 { grid-column: -4; }
-
-	.卤素 { grid-column: -3; }
-
-	.碱金属.element { background-color: #ffadad; }
-
-	.碱土金属.element { background-color: #ffd6a5; }
-
-	.过渡金属.element { background-color: #fdffb6; }
-
-	.镧系.element { background-color: #caffbf; }
-
-	.锕系.element { background-color: #9bf6ff; }
-
-	.类金属.element { background-color: #a0c4ff; }
-
-	.贫金属.element { background-color: #bdb2ff; }
-
-	.活泼非金属.element { background-color: #ffc6ff; }
-
-	.稀有气体.element { background-color: #f1f1f1; }
-
-	.one.element.金属 {
-		background-image: linear-gradient(145deg, transparent 35%, rgba(255,255,255,.5) 46%, rgba(255,255,255,.8) 49%, rgba(255,255,255,.5) 52%, transparent 63%);
-	}
-
-	.filtering.碱金属 .one.element:not(.碱金属),
-	.filtering.碱土金属 .one.element:not(.碱土金属),
-	.filtering.过渡金属 .one.element:not(.过渡金属),
-	.filtering.贫金属 .one.element:not(.贫金属),
-	.filtering.类金属 .one.element:not(.类金属),
-	.filtering.活泼非金属 .one.element:not(.活泼非金属),
-	.filtering.稀有气体 .one.element:not(.稀有气体),
-	.filtering.放射性元素 .one.element:not(.放射性元素),
-	.filtering.人造元素 .one.element:not(.人造元素),
-	.filtering.稀土元素 .one.element:not(.稀土元素),
-	.filtering.铁磁性元素 .one.element:not(.铁磁性元素),
-	.filtering.贵金属 .one.element:not(.贵金属),
-	.filtering.卤素 .one.element:not(.卤素),
-	.filtering.气体 .one.element:not(.气体),
-	.filtering.液体 .one.element:not(.液体),
-	.filtering.固体 .one.element:not(.固体) {
-		opacity: 0.5;
-	}
-
-	/*=====================元素详情区====================*/
-	.element.detail.area {
-		grid-column: 4 / 14;
-		grid-row: 1 / 4;
-		width: 100%;
-		height: 100%;
-		padding: 20px;
-	}
-
-	/*------------元素详情卡------------*/
-	.element.detail.card {
-		width: 100%;
-		height: 100%;
-		padding: 20px;
-		border-radius: 8px;
-		box-shadow: 0 2px 12px 0 rgba(0, 0, 0, .1);
-		display: flex;
-		gap: 0.5rem;
-		align-items: start;
-		justify-content: start;
-
-		& .element.info {
-			width: 120px;
-			height: 100%;
-			flex-shrink: 0;
-		}
-
-		/*------元素属性------*/
-		& .properties {
+		.half-width .镧系标签 p, .half-width .锕系标签 p {
+			text-align: center;
+			line-height: 1.3;
 			margin: 0;
-			padding: 0;
-			display: grid;
-			grid-template-columns: auto 1fr;
-			gap: 0.5rem;
-			min-width: 0;
-
-			& dt {
-				font-weight: bold;
-				color: #606266;
-				flex-shrink: 0; /* 防止标签被压缩 */
-			}
-
-			& dd {
-				margin: 0;
-				color: #303133;
-				word-break: break-word; /* 允许值在必要时换行 */
-			}
 		}
 
-		& footer {
-			flex-direction: column;
-			align-items: start;
-			gap: 0.5rem;
-			height: auto;
-			justify-content: start;
+		/*========================分组分类=====================*/
+		[title='人造元素'].with.icon::after {content: '🧪';font-size: 0.8em;}
+
+		[title='放射性元素'].with.icon::after {content: '☢️';font-size: 0.8em;}
+
+		[title='铁磁性元素'].with.icon::after {content: '🧲';font-size: 0.8em;}
+
+		[title='稀土元素'].with.icon::after {content: '💎';font-size: 0.8em;}
+
+		[title='贵金属'].with.icon::after {content: '💰';font-size: 0.8em;}
+
+		[title='气体'].with.icon::after {content: '🌀';}
+
+		[title='液体'].with.icon::after {content: '💧';}
+
+		[title='固体'].with.icon::after {content: '🪨';}
+
+		.周期1 {grid-row: calc(1 + var(--period1-row-offset));}
+
+		.周期2 {grid-row: calc(2 + var(--period1-row-offset));}
+
+		.周期3 {grid-row: calc(3 + var(--period1-row-offset));}
+
+		.周期4 {grid-row: calc(4 + var(--period1-row-offset));}
+
+		.周期5 {grid-row: calc(5 + var(--period1-row-offset));}
+
+		.周期6 {grid-row: calc(6 + var(--period1-row-offset));}
+
+		.周期7 {grid-row: calc(7 + var(--period1-row-offset));}
+
+		.周期序号 {
+			grid-column: 1;
+			border: 1px solid #ccc;
 		}
 
-		& > footer .tag {
+		.硼族元素 { grid-column: -7; }
+
+		.碳族元素 { grid-column: -6; }
+
+		.氮族元素 { grid-column: -5; }
+
+		.氧族元素 { grid-column: -4; }
+
+		.卤素 { grid-column: -3; }
+
+		.碱金属 .element.info { color: #cc5555; }
+
+		.碱土金属 .element.info { color: #cc8833; }
+
+		.过渡金属 .element.info { color: #999933; }
+
+		.镧系 .element.info { color: #339933; }
+
+		.锕系 .element.info { color: #3366cc; }
+
+		.类金属 .element.info { color: #6644cc; }
+
+		.贫金属 .element.info { color: #8844aa; }
+
+		.活泼非金属 .element.info { color: #cc44aa; }
+
+		.稀有气体 .element.info { color: #888888; }
+
+		.碱金属.category.filter { --el-checkbox-button-checked-bg-color: #cc5555; --el-checkbox-button-checked-text-color: #fff; }
+
+		.碱土金属.category.filter { --el-checkbox-button-checked-bg-color: #cc8833; --el-checkbox-button-checked-text-color: #fff; }
+
+		.过渡金属.category.filter { --el-checkbox-button-checked-bg-color: #999933; --el-checkbox-button-checked-text-color: #fff; }
+
+		.镧系.category.filter { --el-checkbox-button-checked-bg-color: #339933; --el-checkbox-button-checked-text-color: #fff; }
+
+		.锕系.category.filter { --el-checkbox-button-checked-bg-color: #3366cc; --el-checkbox-button-checked-text-color: #fff; }
+
+		.类金属.category.filter { --el-checkbox-button-checked-bg-color: #6644cc; --el-checkbox-button-checked-text-color: #fff; }
+
+		.贫金属.category.filter { --el-checkbox-button-checked-bg-color: #8844aa; --el-checkbox-button-checked-text-color: #fff; }
+
+		.活泼非金属.category.filter { --el-checkbox-button-checked-bg-color: #cc44aa; --el-checkbox-button-checked-text-color: #fff; }
+
+		.稀有气体.category.filter { --el-checkbox-button-checked-bg-color: #888888; --el-checkbox-button-checked-text-color: #fff; }
+
+		.filtering.碱金属 .one.element:not(.碱金属),
+		.filtering.碱土金属 .one.element:not(.碱土金属),
+		.filtering.过渡金属 .one.element:not(.过渡金属),
+		.filtering.贫金属 .one.element:not(.贫金属),
+		.filtering.类金属 .one.element:not(.类金属),
+		.filtering.活泼非金属 .one.element:not(.活泼非金属),
+		.filtering.稀有气体 .one.element:not(.稀有气体),
+		.filtering.放射性元素 .one.element:not(.放射性元素),
+		.filtering.人造元素 .one.element:not(.人造元素),
+		.filtering.稀土元素 .one.element:not(.稀土元素),
+		.filtering.铁磁性元素 .one.element:not(.铁磁性元素),
+		.filtering.贵金属 .one.element:not(.贵金属),
+		.filtering.卤素 .one.element:not(.卤素),
+		.filtering.气体 .one.element:not(.气体),
+		.filtering.液体 .one.element:not(.液体),
+		.filtering.固体 .one.element:not(.固体) {
+			opacity: 0.5;
+		}
+
+		/*=====================元素详情区====================*/
+		.element.detail.area {
+			grid-column: 4 / 14;
+			grid-row: 1 / 4;
+			width: 100%;
+			height: 100%;
+			padding: 20px;
+		}
+
+		/*------------元素详情卡------------*/
+		.element.detail.card {
+			width: 100%;
+			height: 100%;
+			padding: 20px;
+			border-radius: 8px;
+			box-shadow: 0 2px 12px 0 rgba(0, 0, 0, .1);
 			display: flex;
-			align-items: center;
 			gap: 0.5rem;
+			align-items: start;
+			justify-content: start;
+
+			& .element.info {
+				width: 120px;
+				height: 100%;
+				flex-shrink: 0;
+			}
+
+			/*------元素属性------*/
+			& .properties {
+				margin: 0;
+				padding: 0;
+				display: grid;
+				grid-template-columns: auto 1fr;
+				gap: 0.5rem;
+				min-width: 0;
+
+				& dt {
+					font-weight: bold;
+					color: #606266;
+					flex-shrink: 0; /* 防止标签被压缩 */
+				}
+
+				& dd {
+					margin: 0;
+					color: #303133;
+					word-break: break-word; /* 允许值在必要时换行 */
+				}
+			}
+
+			& footer {
+				flex-direction: column;
+				align-items: start;
+				gap: 0.5rem;
+				height: auto;
+				justify-content: start;
+			}
+
+			& > footer .tag {
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+			}
 		}
-	}
-</style>
-</head>
-<body>
-<header>
-	<h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
-	<nav>
-		<div class="nav-row">
-			<a href="../文本转化.html">文本转化</a>
-			<a href="../数字转化.html">数字转化</a>
-			<a href="../符号/符号.html">符号</a>
-			<a href="../格子盘.html">格子盘</a>
-			<a href="../svg转图标.html">SVG转图标</a>
-			<a href="元素周期表.html" class="active">元素周期表</a>
-			<a href="../拼音/拼音.html">拼音</a>
-		</div>
-		<div class="nav-row">
-			<a href="../游戏/中国象棋/中国象棋.html">中国象棋</a>
-			<a href="../游戏/五子棋/gobang.html">五子棋</a>
-			<a href="../游戏/俄罗斯方块.html">俄罗斯方块</a>
-			<a href="../游戏/贪吃蛇.html">贪吃蛇</a>
-			<a href="../游戏/2048/2048.html">2048</a>
-			<a href="../游戏/2048蛇/2048蛇.html">2048蛇</a>
-			<a href="../游戏/2048方块/2048方块.html">2048方块</a>
-			<a href="../游戏/点灯.html">点灯</a>
-			<a href="../游戏/数字华容道.html">数字华容道</a>
-			<a href="../游戏/星连星/星连星.html">星连星</a>
-		</div>
-	</nav>
-</header>
-<main class="flex items-multi-line" v-cloak>
-	<header class="toolbar , monopoly item , items-multi-line flex items-near-x-center">
-		<el-radio-group class="one controller : width-mode" v-model="layout">
-			<el-radio-button v-for="opt in widthModes" :key="opt.value" :value="opt.value" size="small">{{ opt.label }}
-			</el-radio-button>
-		</el-radio-group>
-
-		<el-checkbox-group class="one controller" v-model="filtering" size="small">
-			<el-checkbox-button class="element category filter maybe with icon" :class="f.name"
-													:title="f.name" :value="f.name"
-													v-for="f in filters" :key="f.name"
-													@mouseenter="hoverFilter=f.name" @mouseleave="hoverFilter=null">
-				{{ f.name }}
-			</el-checkbox-button>
-		</el-checkbox-group>
-
-		<span class="one controller : temperature">
-			<el-input-number v-model="temperatureInMode" :min="temperatureMin" :max="temperatureMax" controls-position="right"
-											 size="small"></el-input-number>
-			<el-button class="temperature mode input , toggle" size="small" type="primary" @click="nextTemperatureMode">
-				{{temperatureMode}}</el-button>
-		</span>
-
-		<el-popover class="one controller" placement="bottom" title="筛选发现年代" :width="400" trigger="click">
-			<template #reference>
-				<el-button size="small">年代</el-button>
-			</template>
-			<el-slider v-model="discoveryYear" :min="1650" :max="2025" show-input size="small"></el-slider>
-		</el-popover>
-
-		<el-button title="显示说明" size="small" circle @click="introVisible = true">?</el-button>
-		<el-dialog title="页面说明" v-model="introVisible" width="60%">
-			<p>这是一个交互式化学元素周期表。您可以探索元素的各种属性，并利用以下功能：</p>
-			<ul>
-				<li><strong>布局切换：</strong>在“宽版”和“窄版”之间切换，以适应不同屏幕尺寸。</li>
-				<li><strong>分类筛选：</strong>点击上方的分类按钮（如“碱金属”、“稀有气体”等），可以高亮显示特定类别的所有元素。再次点击可取消筛选。
-				</li>
-				<li><strong>发现年代筛选：</strong>通过拖动年代滑块，可以筛选出在特定年份之前发现的元素。</li>
-				<li><strong>温度模拟：</strong>拖动右侧的温度计滑块，或直接输入温度值，可以观察各元素在不同温度下的物态（固态、液态、气态）。您也可以切换温标（摄氏度、开尔文、华氏度）。
-				</li>
-				<li><strong>详细信息：</strong>点击任意元素，会在元素周期表右侧区域显示该元素的详细信息卡片，包括熔点、沸点、物态和发现年份等。
-				</li>
-			</ul>
-			<p>将鼠标悬停在元素上可以查看其基本信息，元素右下角的图标代表了元素的特殊属性，例如放射性、人造、稀土等。</p>
-		</el-dialog>
-	</header><!-- /工具栏 -->
-
-	<article class="periodic-table-of-chemical-element , grid" :class="tableClasses">
-		<section class="周期序号" :class="`周期`+n" v-for="n in 7" :key="n">
-			<p>{{n}}</p>
-		</section>
-
-		<!--<section class="族" v-for="group in groups" :key="group.name" :class="group.name">
-			<p>{{group.name}}</p>
-		</section>-->
-
-		<section :id="element.name" class="one element , items-go-y"
-						 :class="[...element.tags, `周期`+element.period, getElementPhase(element)]"
-						 :style="[getElementStyle(element), getYearFilterStyle(element)]"
-						 v-for="element in elements" :key="element.id" @click="curElement=element">
-			<div class="element info , 目字形"><!-- 窄版时作为镧系锕系的正式内容，底部对齐至下一行 -->
-				<header>
-					<p class="element id">{{element.id}}</p>
-					<p class="element symbol">{{element.symbol}}</p>
-				</header>
-				<div class="body">
-					<p class="element name"><span>{{element.name}}</span></p>
-					<p class="phase with icon" :title="getElementPhase(element)"></p>
-					<p class="element atomic-mass">{{element.原子量}}</p>
-				</div>
-				<footer>
-					<span class="tag with icon" v-for="tag in element.tags" :title="tag"></span>
-				</footer>
+	</style>
+	</head>
+	<body>
+	<header>
+		<h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
+		<nav>
+			<div class="nav-row">
+				<a href="../文本转化.html">文本转化</a>
+				<a href="../数字转化.html">数字转化</a>
+				<a href="../符号/符号.html">符号</a>
+				<a href="../格子盘.html">格子盘</a>
+				<a href="../svg转图标.html">SVG转图标</a>
+				<a href="元素周期表.html" class="active">元素周期表</a>
+				<a href="../拼音/拼音.html">拼音</a>
 			</div>
-		</section>
+			<div class="nav-row">
+				<a href="../游戏/中国象棋/中国象棋.html">中国象棋</a>
+				<a href="../游戏/五子棋/gobang.html">五子棋</a>
+				<a href="../游戏/俄罗斯方块.html">俄罗斯方块</a>
+				<a href="../游戏/贪吃蛇.html">贪吃蛇</a>
+				<a href="../游戏/2048/2048.html">2048</a>
+				<a href="../游戏/2048蛇/2048蛇.html">2048蛇</a>
+				<a href="../游戏/2048方块/2048方块.html">2048方块</a>
+				<a href="../游戏/点灯.html">点灯</a>
+				<a href="../游戏/数字华容道.html">数字华容道</a>
+				<a href="../游戏/星连星/星连星.html">星连星</a>
+			</div>
+		</nav>
+	</header>
+	<main class="flex items-multi-line" v-cloak>
+		<header class="toolbar , monopoly item , items-multi-line flex items-near-x-center">
+			<el-radio-group class="one controller : width-mode" v-model="layout">
+				<el-radio-button v-for="opt in widthModes" :key="opt.value" :value="opt.value" size="small">{{ opt.label }}
+				</el-radio-button>
+			</el-radio-group>
 
-		<section class="element detail area" v-if="curElement">
-			<div class="element detail card" :class="curElement.tags">
-				<div class="element info">
+			<el-checkbox-group class="one controller" v-model="filtering" size="small">
+				<el-checkbox-button class="element category filter maybe with icon" :class="f.name"
+														:title="f.name" :value="f.name"
+														v-for="f in filters" :key="f.name"
+														@mouseenter="hoverFilter=f.name" @mouseleave="hoverFilter=null">
+					{{ f.name }}
+				</el-checkbox-button>
+			</el-checkbox-group>
+
+			<span class="one controller : temperature">
+				<el-input-number v-model="temperatureInMode" :min="temperatureMin" :max="temperatureMax" controls-position="right"
+												 size="small"></el-input-number>
+				<el-button class="temperature mode input , toggle" size="small" type="primary" @click="nextTemperatureMode">
+					{{temperatureMode}}</el-button>
+			</span>
+
+			<el-popover class="one controller" placement="bottom" title="筛选发现年代" :width="400" trigger="click">
+				<template #reference>
+					<el-button size="small">年代</el-button>
+				</template>
+				<el-slider v-model="discoveryYear" :min="1650" :max="2025" show-input size="small"></el-slider>
+			</el-popover>
+
+			<el-button title="显示说明" size="small" circle @click="introVisible = true">?</el-button>
+			<el-dialog title="页面说明" v-model="introVisible" width="60%">
+				<p>这是一个交互式化学元素周期表。您可以探索元素的各种属性，并利用以下功能：</p>
+				<ul>
+					<li><strong>布局切换：</strong>在“宽版”和“窄版”之间切换，以适应不同屏幕尺寸。</li>
+					<li><strong>分类筛选：</strong>点击上方的分类按钮（如“碱金属”、“稀有气体”等），可以高亮显示特定类别的所有元素。再次点击可取消筛选。
+					</li>
+					<li><strong>发现年代筛选：</strong>通过拖动年代滑块，可以筛选出在特定年份之前发现的元素。</li>
+					<li><strong>温度模拟：</strong>拖动右侧的温度计滑块，或直接输入温度值，可以观察各元素在不同温度下的物态（固态、液态、气态）。您也可以切换温标（摄氏度、开尔文、华氏度）。
+					</li>
+					<li><strong>详细信息：</strong>点击任意元素，会在元素周期表右侧区域显示该元素的详细信息卡片，包括熔点、沸点、物态和发现年份等。
+					</li>
+				</ul>
+				<p>将鼠标悬停在元素上可以查看其基本信息，元素右下角的图标代表了元素的特殊属性，例如放射性、人造、稀土等。</p>
+			</el-dialog>
+		</header><!-- /工具栏 -->
+
+		<article class="periodic-table-of-chemical-element , grid" :class="tableClasses">
+			<section class="周期序号" :class="`周期`+n" v-for="n in 7" :key="n">
+				<p>{{n}}</p>
+			</section>
+
+			<!--<section class="族" v-for="group in groups" :key="group.name" :class="group.name">
+				<p>{{group.name}}</p>
+			</section>-->
+
+			<section :id="element.name" class="one element , items-go-y"
+									:class="[...element.tags, `周期`+element.period, getElementPhase(element)]"
+									:style="[getElementStyle(element), getYearFilterStyle(element)]"
+									v-for="element in elements" :key="element.id" @click="curElement=element">
+				<div class="element info , 目字形"><!-- 窄版时作为镧系锕系的正式内容，底部对齐至下一行 -->
 					<header>
-						<p class="element id">{{curElement.id}}</p>
-						<p class="element symbol">{{curElement.symbol}}</p>
+						<p class="element id">{{element.id}}</p>
+						<p class="element symbol">{{element.symbol}}</p>
 					</header>
-					<p class="element name">{{curElement.name}}</p>
+					<div class="body">
+						<p class="element name"><span>{{element.name}}</span></p>
+						<p class="phase with icon" :title="getElementPhase(element)"></p>
+						<p class="element atomic-mass">{{element.原子量}}</p>
+					</div>
 					<footer>
-						<span class="tag with icon" v-for="tag in curElement.tags" :key="tag" :title="tag">{{tag}}</span>
+						<span class="tag with icon" v-for="tag in element.tags" :title="tag"></span>
 					</footer>
 				</div>
-				<dl class="properties">
-					<dt>原子量</dt><dd>{{curElement.原子量}}</dd>
-					<dt>熔点</dt><dd>{{curElement.熔点}} °C</dd>
-					<dt>沸点</dt><dd>{{curElement.沸点}} °C</dd>
-					<dt>物态</dt>
-					<dd>
-						<span :title="getElementPhase(curElement)"
-									class="element phase with icon">{{getElementPhase(curElement)}}</span>
-						（{{temperatureInMode}}{{temperatureMode}}）
-					</dd>
-				</dl>
-				<dl class="properties">
-					<dt>发现年份</dt><dd>{{curElement.发现年份 || '未知'}}</dd>
-					<dt>电负性</dt><dd>{{curElement.电负性 || '未知'}}</dd>
-					<dt>电子亲和能</dt><dd>{{curElement.电子亲和能 || '未知'}}</dd>
-				</dl>
-			</div>
-		</section>
-	</article><!-- /周期表 -->
-</main>
+			</section>
+			<section class="镧系标签" v-if="layout === 'half-width'"><p>57~71<br>镧系</p></section>
+			<section class="锕系标签" v-if="layout === 'half-width'"><p>89~103<br>锕系</p></section>
 
-<footer>
-	<article class="website info">
-		<section class="patronage area">
-			<img title="赞助一下" class="qr-code" alt="支付宝收款码" src="../resources/支付宝收款码.jpg">
-			<p class="slogan">赞助一下</p>
-		</section>
-		<section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
-		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
-		</section>
-	</article>
-</footer>
+			<section class="element detail area" v-if="curElement">
+				<div class="element detail card" :class="curElement.tags">
+					<div class="element info">
+						<header>
+							<p class="element id">{{curElement.id}}</p>
+							<p class="element symbol">{{curElement.symbol}}</p>
+						</header>
+						<p class="element name">{{curElement.name}}</p>
+						<footer>
+							<span class="tag with icon" v-for="tag in curElement.tags" :key="tag" :title="tag">{{tag}}</span>
+						</footer>
+					</div>
+					<dl class="properties">
+						<dt>原子量</dt><dd>{{curElement.原子量}}</dd>
+						<dt>熔点</dt><dd>{{curElement.熔点}} °C</dd>
+						<dt>沸点</dt><dd>{{curElement.沸点}} °C</dd>
+						<dt>物态</dt>
+						<dd>
+							<span :title="getElementPhase(curElement)"
+										class="element phase with icon">{{getElementPhase(curElement)}}</span>
+							（{{temperatureInMode}}{{temperatureMode}}）
+						</dd>
+					</dl>
+					<dl class="properties">
+						<dt>发现年份</dt><dd>{{curElement.发现年份 || '未知'}}</dd>
+						<dt>电负性</dt><dd>{{curElement.电负性 || '未知'}}</dd>
+						<dt>电子亲和能</dt><dd>{{curElement.电子亲和能 || '未知'}}</dd>
+					</dl>
+				</div>
+			</section>
+		</article><!-- /周期表 -->
+	</main>
 
-<div class="js container">
-	<script src="../lib/vue/3.5.18/vue.global.js"></script>
-	<script src="../lib/element-plus/2.10.7/index.full.js"></script>
-	<script src="../lib/toastr.min.js"></script>
-	<script src="../resources/util.js"></script>
-	<script src="../resources/biz-util.js?v=250801"></script>
-</div>
-<script type="module">
-	import elements from './elements.js';
+	<footer>
+		<article class="website info">
+			<section class="patronage area">
+				<img title="赞助一下" class="qr-code" alt="支付宝收款码" src="../resources/支付宝收款码.jpg">
+				<p class="slogan">赞助一下</p>
+			</section>
+			<section class="copyright"><p>&copy; 2025 工具兽版权所有 All rights reserved.</p></section>
+			<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+			</section>
+		</article>
+	</footer>
 
-	const groups = [
-		{name: '硼族元素', col: -5},
-		{name: '碳族元素', col: -4},
-		{name: '氮族元素', col: -3},
-		{name: '氧族元素', col: -2},
-		{name: '卤素', col: -1}
-	];
-	const a = [2, 8, 8, 18, 18, 32, 32];
-	const categories = [
-		{name: '碱金属', filterable: true},
-		{name: '碱土金属', filterable: true},
-		{name: '过渡金属', filterable: true},
-		{name: '贫金属', filterable: true},
-		{name: '类金属', filterable: true},
-		{name: '活泼非金属', filterable: true},
-		{name: '稀有气体', filterable: true},
-		{name: '放射性元素', filterable: true},
-		{name: '人造元素', filterable: true},
-		{name: '稀土元素', filterable: true},
-		{name: '铁磁性元素', filterable: true},
-		{name: '贵金属', filterable: true},
-		{name: '镧系元素', filterable: false},
-		{name: '锕系元素', filterable: false},
-		{name: '卤素', filterable: true},
-		{name: '氧族元素', filterable: false},
-		{name: '氮族元素', filterable: false},
-		{name: '碳族元素', filterable: false},
-		{name: '硼族元素', filterable: false},
-		{name: '气体', filterable: true},
-		{name: '液体', filterable: true},
-		{name: '固体', filterable: true}
-	];
-	const temperatureModes = ['°C', 'K', '°F'];
+	<div class="js container">
+		<script src="../lib/vue/3.5.18/vue.global.js"></script>
+		<script src="../lib/element-plus/2.10.7/index.full.js"></script>
+		<script src="../lib/toastr.min.js"></script>
+		<script src="../resources/util.js"></script>
+		<script src="../resources/biz-util.js?v=250801"></script>
+	</div>
+	<script type="module">
+		import elements from './elements.js';
 
-	const data = {
-		elements,
-		curElement: elements.find(e => e.name === '钷'),
-		groups,
-		layout: null,
-		widthModes: [
-			{label: '宽版', value: 'full-width'},
-			{label: '窄版', value: 'half-width'}
-		],
-		filtering: [],
-		hoverFilter: null,
-		temperature: 0,
-		temperatureMode: '°C',
-		unitMenuVisible: false,
-		isThermometerDragging: false,
-		thermometerBoxHalf: 12,
-		discoveryYear: 2025,
-		introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname),
-		temperatureModes
-	};
+		const groups = [
+			{name: '硼族元素', col: -5},
+			{name: '碳族元素', col: -4},
+			{name: '氮族元素', col: -3},
+			{name: '氧族元素', col: -2},
+			{name: '卤素', col: -1}
+		];
+		const a = [2, 8, 8, 18, 18, 32, 32];
+		const categories = [
+			{name: '碱金属', filterable: true},
+			{name: '碱土金属', filterable: true},
+			{name: '过渡金属', filterable: true},
+			{name: '贫金属', filterable: true},
+			{name: '类金属', filterable: true},
+			{name: '活泼非金属', filterable: true},
+			{name: '稀有气体', filterable: true},
+			{name: '放射性元素', filterable: true},
+			{name: '人造元素', filterable: true},
+			{name: '稀土元素', filterable: true},
+			{name: '铁磁性元素', filterable: true},
+			{name: '贵金属', filterable: true},
+			{name: '镧系元素', filterable: false},
+			{name: '锕系元素', filterable: false},
+			{name: '卤素', filterable: true},
+			{name: '氧族元素', filterable: false},
+			{name: '氮族元素', filterable: false},
+			{name: '碳族元素', filterable: false},
+			{name: '硼族元素', filterable: false},
+			{name: '气体', filterable: true},
+			{name: '液体', filterable: true},
+			{name: '固体', filterable: true}
+		];
+		const temperatureModes = ['°C', 'K', '°F'];
 
-	const {createApp} = Vue;
-	const app = createApp({
-		data() {
-			return data;
-		},
-		computed: {
-			filters() {
-				return categories.filter(e => e.filterable);
+		const 物态色值 = {
+			'无色至淡黄色': '#f5f5dc',
+			'淡蓝色': '#add8e6',
+			'淡黄色': '#ffff99',
+			'深红色至黑色': '#8b0000',
+			'灰/黄/黑': '#a09080',
+			'灰色金属光泽': '#a0a0a0',
+			'紫色': '#800080',
+			'紫黑色': '#4a004a',
+			'红/白 (有光泽)': '#ff6666',
+			'红棕色': '#a0522d',
+			'红棕色金属光泽': '#cd5c1c',
+			'金黄色': '#ffd700',
+			'银灰色': '#a9a9a0',
+			'银灰色带蓝': '#8a9aa8',
+			'银白色': '#c0c0c0',
+			'银白色/灰白': '#c0c0c0',
+			'银白色带淡黄': '#c0c0a0',
+			'银白色带粉': '#c0b0b0',
+			'银白色带蓝': '#b0b0d0',
+			'银蓝色': '#8a9ab0',
+			'黄绿色': '#b0d040',
+			'黄色': '#ffd700',
+			'黑色': '#333333',
+			'黑色 (石墨) / 无色透明 (金刚石)': '#555555',
+			'黑色/棕色': '#4a3728',
+			'未知 (推测为银白色)': '#c0c0c0'
+		};
+
+		const data = {
+			elements,
+			curElement: elements.find(e => e.name === '钷'),
+			groups,
+			layout: null,
+			widthModes: [
+				{label: '宽版', value: 'full-width'},
+				{label: '窄版', value: 'half-width'}
+			],
+			filtering: [],
+			hoverFilter: null,
+			temperature: 0,
+			temperatureMode: '°C',
+			unitMenuVisible: false,
+			isThermometerDragging: false,
+			thermometerBoxHalf: 12,
+			discoveryYear: 2025,
+			introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname),
+			temperatureModes
+		};
+
+		const {createApp} = Vue;
+		const app = createApp({
+			data() {
+				return data;
 			},
-			tableClasses() {
-				let rt = this.layout;
-				if (this.filtering?.length) {
-					rt += ' , filtering ' + this.filtering.join(' ');
-				}
-				if (this.hoverFilter) {
-					rt += ' , filtering ' + this.hoverFilter;
-				}
-				return rt;
-			},
-			temperatureInMode: {
-				get() {
+			computed: {
+				filters() {
+					return categories.filter(e => e.filterable);
+				},
+				tableClasses() {
+					let rt = this.layout;
+					if (this.filtering?.length) {
+						rt += ' , filtering ' + this.filtering.join(' ');
+					}
+					if (this.hoverFilter) {
+						rt += ' , filtering ' + this.hoverFilter;
+					}
+					return rt;
+				},
+				temperatureInMode: {
+					get() {
+						if (this.temperatureMode === '°C') {
+							return Math.round(this.temperature);
+						}
+						if (this.temperatureMode === 'K') {
+							return Math.round(celsiusToKelvin(this.temperature));
+						}
+						return Math.round(celsiusToFahrenheit(this.temperature));
+					},
+					set(v) {
+						if (this.temperatureMode === '°C') {
+							this.temperature = Math.round(v);
+						} else if (this.temperatureMode === 'K') {
+							this.temperature = Math.round(kelvinToCelsius(v));
+						} else {
+							this.temperature = Math.round(fahrenheitToCelsius(v));
+						}
+					}
+				},
+				temperatureMin() {
 					if (this.temperatureMode === '°C') {
-						return Math.round(this.temperature);
+						return Math.round(kelvinToCelsius(0));
 					}
 					if (this.temperatureMode === 'K') {
-						return Math.round(celsiusToKelvin(this.temperature));
+						return 0;
 					}
-					return Math.round(celsiusToFahrenheit(this.temperature));
+					return Math.round(celsiusToFahrenheit(kelvinToCelsius(0)));
 				},
-				set(v) {
+				temperatureMax() {
 					if (this.temperatureMode === '°C') {
-						this.temperature = Math.round(v);
-					} else if (this.temperatureMode === 'K') {
-						this.temperature = Math.round(kelvinToCelsius(v));
+						return 6000;
+					}
+					if (this.temperatureMode === 'K') {
+						return Math.round(celsiusToKelvin(6000));
+					}
+					return Math.round(celsiusToFahrenheit(6000));
+				},
+				temperatureMarks() {
+					const marks = {};
+					const min = this.temperatureMin;
+					const max = this.temperatureMax;
+					// 添加最低温度标记
+					marks[min] = `${min}`;
+					// 从0开始，每1000一档
+					for (let i = 0; i <= max; i += 1000) {
+						// 确保标记在有效范围内
+						if (i >= min && i <= max) {
+							marks[i] = `${i}`;
+						}
+					}
+					// 添加最高温度标记（如果最高温度不是1000的倍数，或者没有被之前的循环覆盖）
+					// 并且最高温度不等于最低温度，避免重复
+					if (max % 1000 !== 0 && max !== min) {
+						marks[max] = `${max}`;
+					}
+					return marks;
+				}
+			},
+			watch: {
+				layout(newLayout) {
+					if (!newLayout) {
+						this.checkLayout();
+					}
+				},
+				temperatureInMode() {
+					this.$nextTick(this.measureThermometerBox);
+				},
+				introVisible(newValue) {
+					const storageKey = 'intro-hidden-' + window.location.pathname;
+					if (!newValue) {
+						localStorage.setItem(storageKey, 'true');
 					} else {
-						this.temperature = Math.round(fahrenheitToCelsius(v));
+						localStorage.removeItem(storageKey);
 					}
 				}
 			},
-			temperatureMin() {
-				if (this.temperatureMode === '°C') {
-					return Math.round(kelvinToCelsius(0));
-				}
-				if (this.temperatureMode === 'K') {
-					return 0;
-				}
-				return Math.round(celsiusToFahrenheit(kelvinToCelsius(0)));
-			},
-			temperatureMax() {
-				if (this.temperatureMode === '°C') {
-					return 6000;
-				}
-				if (this.temperatureMode === 'K') {
-					return Math.round(celsiusToKelvin(6000));
-				}
-				return Math.round(celsiusToFahrenheit(6000));
-			},
-			temperatureMarks() {
-				const marks = {};
-				const min = this.temperatureMin;
-				const max = this.temperatureMax;
-				// 添加最低温度标记
-				marks[min] = `${min}`;
-				// 从0开始，每1000一档
-				for (let i = 0; i <= max; i += 1000) {
-					// 确保标记在有效范围内
-					if (i >= min && i <= max) {
-						marks[i] = `${i}`;
+			methods: {
+				getYearFilterStyle(element) {
+					const year = element.发现年份;
+					if (year === '古代' || !year) {
+						return {};
 					}
-				}
-				// 添加最高温度标记（如果最高温度不是1000的倍数，或者没有被之前的循环覆盖）
-				// 并且最高温度不等于最低温度，避免重复
-				if (max % 1000 !== 0 && max !== min) {
-					marks[max] = `${max}`;
-				}
-				return marks;
-			}
-		},
-		watch: {
-			layout(newLayout) {
-				if (!newLayout) {
-					this.checkLayout();
+					if (year === '未知') {
+						return this.discoveryYear === 2025 ? {} : {opacity: 0.2, pointerEvents: 'none'};
+					}
+					if (Number(year) > this.discoveryYear) {
+						return {opacity: 0.2, pointerEvents: 'none'};
+					}
+					return {};
+				},
+				measureThermometerBox() {
+					const el = this.$refs.thermometerValueBox;
+					if (!el) {
+						return;
+					}
+					const rect = el.getBoundingClientRect();
+					const half = rect.height / 2;
+					if (half > 6 && Math.abs(half - this.thermometerBoxHalf) > 0.5) {
+						this.thermometerBoxHalf = half;
+					}
+				},
+				checkLayout() {
+					if (this.layout) {
+						return;
+					}
+					const threshold = 2500;
+					if (window.innerWidth < threshold) {
+						this.layout = 'half-width';
+					} else {
+						this.layout = 'full-width';
+					}
+				},
+				getElementStyle(element) {
+					const s = {
+						'grid-column': element.col > 0 ? element.col + 1 : element.col - 1
+					};
+					const phase = this.getElementPhase(element);
+					let state = element.states?.[phase];
+					if (!state) state = element.states?.['固体'];
+					const colorDesc = state?.['颜色'];
+					const color = colorDesc && 物态色值[colorDesc] ? 物态色值[colorDesc] : null;
+					if (color) {
+						s.backgroundColor = color;
+						if (element.tags?.includes('金属')) {
+							s.backgroundImage = 'linear-gradient(145deg, transparent 35%, rgba(255,255,255,.5) 46%, rgba(255,255,255,.8) 49%, rgba(255,255,255,.5) 52%, transparent 63%)';
+						}
+					} else {
+						s.backgroundColor = 'transparent';
+					}
+					return s;
+				},
+				getElementPhase(element) {
+					const mp = parseFloat(element.熔点);
+					const bp = parseFloat(element.沸点);
+					const temp = this.temperature;
+					if (!isNaN(bp) && temp >= bp) {
+						return '气体';
+					}
+					const isAboveMeltingPoint = !isNaN(mp) && temp >= mp;
+					const isMeltUnknownAndBelowBoiling = isNaN(mp) && !isNaN(bp) && temp < bp;
+					if (isAboveMeltingPoint || isMeltUnknownAndBelowBoiling) {
+						return '液体';
+					}
+					if (!isNaN(mp) && temp < mp) {
+						return '固体';
+					}
+					return '未知';
+				},
+				nextTemperatureMode() {
+					const len = temperatureModes.length;
+					const index = temperatureModes.indexOf(this.temperatureMode);
+					this.temperatureMode = temperatureModes[(index + 1) % len];
 				}
 			},
-			temperatureInMode() {
+			mounted() {
+				this.checkLayout();
+				window.addEventListener('resize', this.checkLayout);
 				this.$nextTick(this.measureThermometerBox);
 			},
-			introVisible(newValue) {
-				const storageKey = 'intro-hidden-' + window.location.pathname;
-				if (!newValue) {
-					localStorage.setItem(storageKey, 'true');
-				} else {
-					localStorage.removeItem(storageKey);
-				}
+			beforeUnmount() {
+				window.removeEventListener('resize', this.checkLayout);
 			}
-		},
-		methods: {
-			getYearFilterStyle(element) {
-				const year = element.发现年份;
-				if (year === '古代' || !year) {
-					return {};
-				}
-				if (year === '未知') {
-					return this.discoveryYear === 2025 ? {} : {opacity: 0.2, pointerEvents: 'none'};
-				}
-				if (Number(year) > this.discoveryYear) {
-					return {opacity: 0.2, pointerEvents: 'none'};
-				}
-				return {};
-			},
-			measureThermometerBox() {
-				const el = this.$refs.thermometerValueBox;
-				if (!el) {
-					return;
-				}
-				const rect = el.getBoundingClientRect();
-				const half = rect.height / 2;
-				if (half > 6 && Math.abs(half - this.thermometerBoxHalf) > 0.5) {
-					this.thermometerBoxHalf = half;
-				}
-			},
-			checkLayout() {
-				if (this.layout) {
-					return;
-				}
-				const threshold = 2500;
-				if (window.innerWidth < threshold) {
-					this.layout = 'half-width';
-				} else {
-					this.layout = 'full-width';
-				}
-			},
-			getElementStyle(element) {
-				const s = {
-					'grid-column': element.col > 0 ? element.col + 1 : element.col - 1
-				};
-				if (element.颜色) {
-					s.backgroundColor = element.颜色;
-				}
-				return s;
-			},
-			getElementPhase(element) {
-				const mp = parseFloat(element.熔点);
-				const bp = parseFloat(element.沸点);
-				const temp = this.temperature;
-				if (!isNaN(bp) && temp >= bp) {
-					return '气体';
-				}
-				const isAboveMeltingPoint = !isNaN(mp) && temp >= mp;
-				const isMeltUnknownAndBelowBoiling = isNaN(mp) && !isNaN(bp) && temp < bp;
-				if (isAboveMeltingPoint || isMeltUnknownAndBelowBoiling) {
-					return '液体';
-				}
-				if (!isNaN(mp) && temp < mp) {
-					return '固体';
-				}
-				return '未知';
-			},
-			nextTemperatureMode() {
-				const len = temperatureModes.length;
-				const index = temperatureModes.indexOf(this.temperatureMode);
-				this.temperatureMode = temperatureModes[(index + 1) % len];
-			}
-		},
-		mounted() {
-			this.checkLayout();
-			window.addEventListener('resize', this.checkLayout);
-			this.$nextTick(this.measureThermometerBox);
-		},
-		beforeUnmount() {
-			window.removeEventListener('resize', this.checkLayout);
-		}
-	})
-	.use(ElementPlus)
-	.mount('main');
+		})
+		.use(ElementPlus)
+		.mount('main');
 
-	window.data = data;
-	window.app = app;
-</script>
+		window.data = data;
+		window.app = app;
+	</script>
 
-<div>
-	<!-- 谷歌广告联盟 -->
-	<script async crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"></script>
-	<!-- 展示广告1 -->
-	<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true"
-			 data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
-	<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-</div>
-</body>
-</html>
+	<div>
+		<!-- 谷歌广告联盟 -->
+		<script async crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"></script>
+		<!-- 展示广告1 -->
+		<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true"
+				 data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
+		<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+	</div>
+	</body>
+	</html>
