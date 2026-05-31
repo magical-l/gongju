@@ -213,14 +213,14 @@
 		50% { box-shadow: 0 0 6px rgba(0,0,0,0.08), 0 0 14px 8px rgba(255, 180, 50, 0.3), 0 0 30px 16px rgba(255, 180, 50, 0.12); }
 	}
 
-	[title='人造元素'].with.icon::after {content: '🧪';font-size: 0.8em;}
-	[title='放射性元素'].with.icon::after {content: '☢️';font-size: 0.8em;}
-	[title='铁磁性元素'].with.icon::after {content: '🧲';font-size: 0.8em;}
-	[title='稀土元素'].with.icon::after {content: '💎';font-size: 0.8em;}
-	[title='贵金属'].with.icon::after {content: '💰';font-size: 0.8em;}
+	/* [title='人造元素'].with.icon::after {content: '🧪';font-size: 0.6em;}
+	[title='放射性元素'].with.icon::after {content: '☢️';font-size: 0.6em;}
+	[title='铁磁性元素'].with.icon::after {content: '🧲';font-size: 0.6em;}
+	[title='稀土元素'].with.icon::after {content: '💎';font-size: 0.6em;}
+	[title='贵金属'].with.icon::after {content: '💰';font-size: 0.6em;}
 	[title='气体'].with.icon::after {content: '🌀';}
 	[title='液体'].with.icon::after {content: '💧';}
-	[title='固体'].with.icon::after {content: '🪨';}
+	[title='固体'].with.icon::after {content: '🪨';} */
 
 	.周期1 {grid-row: calc(1 + var(--period1-row-offset));}
 	.周期2 {grid-row: calc(2 + var(--period1-row-offset));}
@@ -438,7 +438,7 @@
 				</header>
 				<div class="body">
 					<p class="element name"><span>{{element.name}}</span></p>
-					<p class="element phase with icon" :title="getElementPhase(element)"></p>
+					<!-- <p class="element phase with icon" :title="getElementPhase(element)"></p> -->
 					<p class="element atomic-mass">{{element.原子量}}</p>
 				</div>
 				<footer>
