@@ -8,13 +8,13 @@
 <link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
 <link href="../resources/el-plus.css" rel="stylesheet">
 <link href="../lib/toastr.min.css" rel="stylesheet">
-		<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/common.css" rel="stylesheet"> -->
-		<link href="../lib/css/common.css" rel="stylesheet">
-		<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/花活.css" rel="stylesheet"> -->
-		<link href="../lib/css/花活.css" rel="stylesheet">
-		<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/layout.css" rel="stylesheet"> -->
-		<link href="../lib/css/layout.css" rel="stylesheet">
-	<link href="../resources/biz.css?v=250821" rel="stylesheet">
+<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/common.css" rel="stylesheet"> -->
+<link href="../lib/css/common.css" rel="stylesheet">
+<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/花活.css" rel="stylesheet"> -->
+<link href="../lib/css/花活.css" rel="stylesheet">
+<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/layout.css" rel="stylesheet"> -->
+<link href="../lib/css/layout.css" rel="stylesheet">
+<link href="../resources/biz.css?v=250821" rel="stylesheet">
 	<style>
 		body > main {
 			--period1-row-offset: 0;
@@ -79,7 +79,7 @@
 		/*----------------元素卡--------------*/
 		.one.element {
 			position: relative;
-			border: 1px solid #ccc;
+			border: 2px solid #ccc;
 			background-color: #ccc; /* 默认颜色 */
 			display: flex;
 			flex-direction: column;
@@ -198,17 +198,11 @@
 		[title='固体'].with.icon::after {content: '🪨';}
 
 		.周期1 {grid-row: calc(1 + var(--period1-row-offset));}
-
 		.周期2 {grid-row: calc(2 + var(--period1-row-offset));}
-
 		.周期3 {grid-row: calc(3 + var(--period1-row-offset));}
-
 		.周期4 {grid-row: calc(4 + var(--period1-row-offset));}
-
 		.周期5 {grid-row: calc(5 + var(--period1-row-offset));}
-
 		.周期6 {grid-row: calc(6 + var(--period1-row-offset));}
-
 		.周期7 {grid-row: calc(7 + var(--period1-row-offset));}
 
 		.周期序号 {
@@ -217,13 +211,9 @@
 		}
 
 		.硼族元素 { grid-column: -7; }
-
 		.碳族元素 { grid-column: -6; }
-
 		.氮族元素 { grid-column: -5; }
-
 		.氧族元素 { grid-column: -4; }
-
 		.卤素 { grid-column: -3; }
 
 		.碱金属 { color: #cc5555; }
@@ -237,21 +227,13 @@
 		.稀有气体 { color: #888888; }
 
 		.碱金属.category.filter { --el-checkbox-button-checked-bg-color: #cc5555; --el-checkbox-button-checked-text-color: #fff; }
-
 		.碱土金属.category.filter { --el-checkbox-button-checked-bg-color: #cc8833; --el-checkbox-button-checked-text-color: #fff; }
-
 		.过渡金属.category.filter { --el-checkbox-button-checked-bg-color: #999933; --el-checkbox-button-checked-text-color: #fff; }
-
 		.镧系.category.filter { --el-checkbox-button-checked-bg-color: #339933; --el-checkbox-button-checked-text-color: #fff; }
-
 		.锕系.category.filter { --el-checkbox-button-checked-bg-color: #3366cc; --el-checkbox-button-checked-text-color: #fff; }
-
 		.类金属.category.filter { --el-checkbox-button-checked-bg-color: #6644cc; --el-checkbox-button-checked-text-color: #fff; }
-
 		.贫金属.category.filter { --el-checkbox-button-checked-bg-color: #8844aa; --el-checkbox-button-checked-text-color: #fff; }
-
 		.活泼非金属.category.filter { --el-checkbox-button-checked-bg-color: #cc44aa; --el-checkbox-button-checked-text-color: #fff; }
-
 		.稀有气体.category.filter { --el-checkbox-button-checked-bg-color: #888888; --el-checkbox-button-checked-text-color: #fff; }
 
 		.filtering.碱金属 .one.element:not(.碱金属),
@@ -382,8 +364,7 @@
 			</el-checkbox-group>
 
 			<span class="one controller : temperature">
-				<el-input-number v-model="temperatureInMode" :min="temperatureMin" :max="temperatureMax" controls-position="right"
-												 size="small"></el-input-number>
+				<el-input-number v-model="temperatureInMode" :min="temperatureMin" :max="temperatureMax" controls-position="right" size="small"></el-input-number>
 				<el-button class="temperature mode input , toggle" size="small" type="primary" @click="nextTemperatureMode">
 					{{temperatureMode}}</el-button>
 			</span>
@@ -776,9 +757,8 @@
 		<!-- 谷歌广告联盟 -->
 		<script async crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"></script>
 		<!-- 展示广告1 -->
-		<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true"
-				 data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
+		<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true" data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
 		<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 	</div>
-	</body>
-	</html>
+</body>
+</html>
