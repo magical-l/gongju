@@ -539,3 +539,27 @@
 		grid-area: footer;
 	}
 }
+
+/* ------ "九宫格"布局，三行三列 ------ */
+.九宫格 {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	grid-template-rows: 1fr 1fr 1fr;
+	grid-template-areas:
+		'top-left top top-right'
+		'left center right'
+		'bottom-left bottom bottom-right';
+
+	> header, > .header, > .near-top { grid-area: top; }
+	> .tail, .near-bottom { grid-area: bottom; }
+	> .sidebar.near-left { grid-area: left; margin: 0; justify-self: auto; }
+	> .sidebar.near-right { grid-area: right; margin: 0; justify-self: auto; }
+
+	&.大中宫 {
+		grid-template-columns:
+			minmax(var(--left-sidebar-min-width), var(--left-sidebar-max-width))
+			1fr
+			minmax(var(--right-sidebar-min-width), var(--right-sidebar-max-width));
+		grid-template-rows: auto 1fr auto;
+	}
+}
