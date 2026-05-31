@@ -446,7 +446,7 @@
 				<div class="body">
 					<p class="element name"><span>{{element.name}}</span></p>
 					<!-- <p class="element phase with icon" :title="getElementPhase(element)"></p> -->
-					<p class="element atomic-mass">{{element.原子量}}</p>
+					<p class="element atomic-mass">{{element.原子量_近似}}</p>
 				</div>
 				<footer>
 					<span class="tag with icon" v-for="tag in element.tags" :title="tag"></span>
@@ -469,7 +469,7 @@
 					</footer>
 				</div>
 				<dl class="properties">
-					<dt>原子量</dt><dd>{{curElement.原子量}}</dd>
+					<dt>原子量</dt><dd>{{curElement.原子量_近似}}</dd>
 					<dt>熔点</dt><dd>{{curElement.熔点}} °C</dd>
 					<dt>沸点</dt><dd>{{curElement.沸点}} °C</dd>
 					<dt>物态</dt>
