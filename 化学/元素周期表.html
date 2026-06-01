@@ -461,8 +461,8 @@
 
 			/*----- 金属：145°高光从左上到右下滑过 -----*/
 			& .金属 {
-				background-size: 200% 200%;
-				background-position: 200% 200%;
+				background-size: 150% 150%;
+				background-position: 100% 100%;
 				animation: metal-shine 2.5s ease-in-out infinite;
 			}
 
@@ -556,8 +556,8 @@
 			50% { box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(180, 225, 70, 0.9); }
 		}
 		@keyframes metal-shine {
-			0% { background-position: 200% 200%; }
-			100% { background-position: -100% -100%; }
+			0% { background-position: 100% 100%; }
+			100% { background-position: 0% 0%; }
 		}
 		@keyframes rad-breathe {
 			0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(0.9); }
