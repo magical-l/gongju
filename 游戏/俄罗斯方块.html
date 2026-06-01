@@ -252,8 +252,8 @@
 				</template>
 			</el-dialog>
 			<!-- 彩纸效果 -->
-			<div class="fullscreen non-interactive top-layer" v-if="showGameOverModal">
-				<div class="confetti-piece" v-for="i in 150" :key="'confetti'+i"></div>
+			<div class="confetti animation fullscreen non-interactive top-layer" v-if="showGameOverModal">
+				<div class="piece" v-for="i in 150" :key="'confetti'+i"></div>
 			</div>
 		</article>
 	</main>

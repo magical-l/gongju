@@ -160,8 +160,8 @@
 			</template>
 		</el-dialog>
 		<!-- 彩纸效果（仅胜利时） -->
-		<div class="fullscreen non-interactive top-layer" v-if="gameResultVisible && gameResultIsWin">
-			<div class="confetti-piece" v-for="i in 150" :key="i"></div>
+		<div class="confetti animation fullscreen non-interactive top-layer" v-if="gameResultVisible && gameResultIsWin">
+			<div class="piece" v-for="i in 150" :key="i"></div>
 		</div>
 	</article>
 </main>
