@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html><head><title>金属高光 Demo</title>
+<style>
+	body {
+		background: seashell;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		min-height: 100vh;
+		margin: 0;
+		flex-wrap: wrap;
+		gap: 30px;
+		padding: 40px;
+		font-family: sans-serif;
+	}
+	.card {
+		width: 81px; height: 97px;
+		border: 1px solid #999;
+		border-radius: 4px;
+		background-color: #c0c0c0;
+		background-image: linear-gradient(145deg, transparent 20%, rgba(255,255,255,.35) 44%, rgba(255,255,255,.85) 49%, rgba(255,255,255,.35) 54%, transparent 80%);
+		background-size: 150% 150%;
+		background-repeat: no-repeat;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-direction: column;
+		font-size: 14px;
+		position: relative;
+		overflow: hidden;
+	}
+	.card .label {
+		font-size: 10px;
+		opacity: 0.6;
+		margin-top: 2px;
+	}
+	.controls {
+		width: 100%;
+		text-align: center;
+		margin: 20px 0;
+	}
+	.controls label {
+		margin: 0 15px;
+		font-size: 13px;
+	}
+	.controls input[type="range"] {
+		width: 200px;
+	}
+
+	/* 方案A */ .a { animation: shine-a 2.5s ease-in-out infinite; }
+	@keyframes shine-a { 0% { background-position: 100% 100%; } 100% { background-position: -50% -50%; } }
+
+	/* 方案B */ .b { animation: shine-b 2.5s ease-in-out infinite; }
+	@keyframes shine-b { 0% { background-position: 0% 0%; } 100% { background-position: 100% 100%; } }
+
+	/* 方案C: 从负到正 */ .c { animation: shine-c 2.5s ease-in-out infinite; }
+	@keyframes shine-c { 0% { background-position: 100% 100%; } 100% { background-position: 0% 0%; } }
+
+	/* 方案D: 200%行程 */ .d { animation: shine-d 2.5s ease-in-out infinite; background-size: 200% 200%; }
+	@keyframes shine-d { 0% { background-position: 200% 200%; } 100% { background-position: -100% -100%; } }
+
+	/* 方案E: 用transform */ .e { overflow: hidden; }
+	.e::after {
+		content: '';
+		position: absolute; inset: -100%;
+		background: linear-gradient(145deg, transparent 20%, rgba(255,255,255,.35) 44%, rgba(255,255,255,.85) 49%, rgba(255,255,255,.35) 54%, transparent 80%);
+		pointer-events: none;
+		animation: shine-e 2.5s ease-in-out infinite;
+	}
+	@keyframes shine-e { 0% { transform: translate(0, 0); } 100% { transform: translate(-50%, -50%); } }
+
+	/* 方案F: 水平扫 */ .f { background-size: 300% 100%; animation: shine-f 2.5s ease-in-out infinite; }
+	@keyframes shine-f { 0% { background-position: 100% 0; } 100% { background-position: 0% 0; } }
+
+	.tag { font-size: 11px; color: #666; margin-top: 6px; }
+</style>
+</head>
+<body>
+	<div style="width:100%;text-align:center;font-size:18px;color:#333;margin-bottom:10px">金属高光调试 — 哪个方向对？</div>
+	<div style="width:100%;text-align:center;font-size:13px;color:#666;margin-bottom:20px">A=当前实现 B=反向 C=0→100% D=200%→-100%(原始) E=伪元素transform F=水平扫</div>
+
+	<div><div class="card a">Fe<div class="label">A: 100→-50</div></div><div class="tag">145°, 150%</div></div>
+	<div><div class="card b">Fe<div class="label">B: 0→100</div></div><div class="tag">反向</div></div>
+	<div><div class="card c">Fe<div class="label">C: 100→0</div></div><div class="tag">单次半程</div></div>
+	<div><div class="card d">Fe<div class="label">D: 200→-100</div></div><div class="tag">原始(200%)</div></div>
+	<div><div class="card e">Fe<div class="label">E: pseudo</div></div><div class="tag">伪元素transform</div></div>
+	<div><div class="card f">Fe<div class="label">F: 水平</div></div><div class="tag">300%水平扫</div></div>
+
+	<div class="controls">
+		<label>速度: <input type="range" min="1" max="10" value="2.5" step="0.5" oninput="document.querySelectorAll('.card').forEach(c=>c.style.animationDuration=this.value+'s')"><span id="speed">2.5s</span></label>
+		<label>角度: <input type="range" min="0" max="360" value="145" step="5" oninput="document.querySelectorAll('.card:not(.f)').forEach(c=>c.style.setProperty('background-image','linear-gradient('+this.value+'deg, transparent 20%, rgba(255,255,255,.35) 44%, rgba(255,255,255,.85) 49%, rgba(255,255,255,.35) 54%, transparent 80%)'));document.getElementById('ang').textContent=this.value+'°'"><span id="ang">145°</span></label>
+	</div>
+	<script>
+		document.querySelector('input[type=range]').oninput = function() {
+			document.getElementById('speed').textContent = this.value + 's';
+		};
+	</script>
+</body>
+</html>

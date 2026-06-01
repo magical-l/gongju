@@ -461,8 +461,8 @@
 
 			/*----- 金属：145°高光从左上到右下滑过 -----*/
 			& .金属 {
-				background-size: 150% 150%;
-				background-position: 100% 100%;
+				background-size: 200% 200%;
+				background-repeat: no-repeat;
 				animation: metal-shine 2.5s ease-in-out infinite;
 			}
 
@@ -484,7 +484,6 @@
 				pointer-events: none;
 				animation: rad-emit 3s ease-out infinite both;
 			}
-
 
 			/*----- 铁磁性：磁感线沿椭圆路径流动 -----*/
 			& .铁磁性元素 {
@@ -556,8 +555,8 @@
 			50% { box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(180, 225, 70, 0.9); }
 		}
 		@keyframes metal-shine {
-			0% { background-position: 100% 100%; }
-			100% { background-position: 0% 0%; }
+			0% { background-position: 140% 140%; }
+			100% { background-position: -40% -40%; }
 		}
 		@keyframes rad-breathe {
 			0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(0.9); }
