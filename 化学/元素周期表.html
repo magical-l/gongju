@@ -438,40 +438,25 @@
 
 		/*===================== 动态效果（动/静开关） ====================*/
 		.animation {
+
 			/*----- 液态：形态变化（表面张力） -----*/
 			& .液体 {
 				animation: liquid-morph 2s ease-in-out infinite;
-			}
-			@keyframes liquid-morph {
-				0%, 100% { border-radius: 15%; scale: 1; }
-				50% { border-radius: 25% 15% 20% 15%; scale: 1.02; }
 			}
 
 			/*----- 气体：呼吸脉动 -----*/
 			& .气体 {
 				animation: gas-breathe 4s ease-in-out infinite;
 			}
-			@keyframes gas-breathe {
-				0%, 100% { scale: 1; box-shadow: 0 0 6px rgba(0, 0, 0, 0.08); }
-				50% { scale: 1.04; box-shadow: 0 0 12px rgba(0, 0, 0, 0.12); }
-			}
 
 			/*----- 贵金属：box-shadow 呼吸灯 -----*/
 			& .贵金属 {
 				animation: noble-shine 3s ease-in-out infinite;
 			}
-			@keyframes noble-shine {
-				0%, 100% { box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(255, 215, 0, 0.4); }
-				50% { box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(255, 215, 0, 0.8); }
-			}
 
 			/*----- 稀土：box-shadow 呼吸灯 -----*/
 			& .稀土元素 {
 				animation: rare-shine 3s ease-in-out infinite;
-			}
-			@keyframes rare-shine {
-				0%, 100% { box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(180, 225, 70, 0.5); }
-				50% { box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(180, 225, 70, 0.9); }
 			}
 
 			/*----- 金属：145°高光从左上到右下滑过 -----*/
@@ -480,17 +465,13 @@
 				background-position: 200% 200%;
 				animation: metal-shine 2.5s ease-in-out infinite;
 			}
-			@keyframes metal-shine {
-				0% { background-position: 200% 200%; }
-				100% { background-position: -100% -100%; }
-			}
 
 			/*----- 放射性：☢ 呼吸 + 点状粒子环辐射 -----*/
 			& .放射性元素::before {
 				content: '☢';
 				position: absolute;
 				pointer-events: none;
-				top: 50%; left: 50%;
+				top: 50%; left: 50%; translate: -50% -50%;
 				z-index: 1;
 				animation: rad-breathe 3s ease-in-out infinite;
 			}
@@ -504,17 +485,6 @@
 				animation: rad-emit 3s ease-out infinite;
 			}
 
-			@keyframes rad-breathe {
-				0%, 100% { opacity: 0.5; scale: 0.9; transform: translate(-50%, -50%); }
-				40% { opacity: 1; scale: 1.1; transform: translate(-50%, -50%); }
-				50% { opacity: 0.9; scale: 1.05; transform: translate(-50%, -50%); }
-			}
-			@keyframes rad-emit {
-				0% { width: 10px; height: 10px; opacity: 0.8; border-width: 3px; transform: translate(-50%, -50%); }
-				40% { width: 10px; height: 10px; opacity: 0; transform: translate(-50%, -50%); }
-				42% { width: 40px; height: 40px; opacity: 0.7; border-width: 2.5px; transform: translate(-50%, -50%); }
-				100% { width: 150px; height: 150px; opacity: 0; border-width: 1px; transform: translate(-50%, -50%); }
-			}
 
 			/*----- 铁磁性：磁感线沿椭圆路径流动 -----*/
 			& .铁磁性元素 {
@@ -567,6 +537,41 @@
 				display: none;
 			}
 
+
+			}
+
+			/*--- @keyframes （从 .animation 中提取到外层） ---*/
+			@keyframes liquid-morph {
+				0%, 100% { border-radius: 15%; scale: 1; }
+				50% { border-radius: 25% 15% 20% 15%; scale: 1.02; }
+			}
+			@keyframes gas-breathe {
+				0%, 100% { scale: 1; box-shadow: 0 0 6px rgba(0, 0, 0, 0.08); }
+				50% { scale: 1.04; box-shadow: 0 0 12px rgba(0, 0, 0, 0.12); }
+			}
+			@keyframes noble-shine {
+				0%, 100% { box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(255, 215, 0, 0.4); }
+				50% { box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(255, 215, 0, 0.8); }
+			}
+			@keyframes rare-shine {
+				0%, 100% { box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(180, 225, 70, 0.5); }
+				50% { box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(180, 225, 70, 0.9); }
+			}
+			@keyframes metal-shine {
+				0% { background-position: 200% 200%; }
+				100% { background-position: -100% -100%; }
+			}
+			@keyframes rad-breathe {
+				0%, 100% { opacity: 0.5; scale: 0.9; transform: translate(-50%, -50%); }
+				40% { opacity: 1; scale: 1.1; transform: translate(-50%, -50%); }
+				50% { opacity: 0.9; scale: 1.05; transform: translate(-50%, -50%); }
+			}
+			@keyframes rad-emit {
+				0% { width: 10px; height: 10px; opacity: 0.8; border-width: 3px; transform: translate(-50%, -50%); }
+				40% { width: 10px; height: 10px; opacity: 0; transform: translate(-50%, -50%); }
+				42% { width: 40px; height: 40px; opacity: 0.7; border-width: 2.5px; transform: translate(-50%, -50%); }
+				100% { width: 150px; height: 150px; opacity: 0; border-width: 1px; transform: translate(-50%, -50%); }
+			}
 			@keyframes synth-hand-flash {
 				0%, 78%, 100% { opacity: 0.4; }
 				80% { opacity: 1; }
@@ -584,7 +589,6 @@
 				92% { opacity: 0.6; filter: blur(1.5px) hue-rotate(-60deg); transform: translate(-1px, 1px); }
 				94% { opacity: 1; filter: none; transform: none; }
 			}
-		}
 
 		/*=====================元素详情区====================*/
 		.element.detail.area {
