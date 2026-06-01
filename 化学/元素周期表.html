@@ -224,7 +224,7 @@
 			box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(180, 225, 70, 0.8);
 		}
 
-		/* 人造元素：斜线网格 overlay */
+		/* 人造元素 */
 		.one.element.人造元素::after {
 			content: '🫴';
 			position: absolute;
@@ -478,22 +478,21 @@
 
 			/*----- 放射性：☢ 呼吸 + 点状粒子环辐射 -----*/
 			& .放射性元素::before {
-				content: '☢';
-				position: absolute;
-				pointer-events: none;
-				top: 50%; left: 50%; transform: translate(-50%, -50%);
-				z-index: 1;
 				animation: rad-breathe 3s ease-in-out infinite both;
 			}
-			& .放射性元素::after {
-				content: '';
+
+			& .放射性元素 .rad-ring {
 				position: absolute;
 				top: 50%; left: 50%;
+				width: 14px; height: 14px;
 				border-radius: 50%;
 				border: 2.5px dotted rgba(180, 90, 30, 0.6);
+				transform: translate(-50%, -50%);
 				pointer-events: none;
-				animation: rad-emit 3s ease-out infinite both;
+				z-index: 0;
+				animation: rad-ring 3s ease-in-out infinite both;
 			}
+
 
 			/*----- 铁磁性：磁感线沿椭圆路径流动 -----*/
 			& .铁磁性元素 {
@@ -518,16 +517,10 @@
 			}
 
 			/*----- 人造元素：叉状闪电 + glitch -----*/
-			& .人造元素 .synth-hand {
-				position: absolute;
-				font-size: 24px;
-				line-height: 1;
-				bottom: -6px; left: -6px;
-				pointer-events: none;
-				z-index: 3;
-				opacity: 0.4;
+			& .人造元素::after {
 				animation: synth-hand-flash 3s ease infinite;
 			}
+
 			& .人造元素 .synth-bolt {
 				position: absolute;
 				pointer-events: none;
@@ -541,9 +534,6 @@
 				position: relative;
 				z-index: 4;
 				animation: synth-glitch 3s steps(1) infinite;
-			}
-			.one.element.人造元素::after {
-				display: none;
 			}
 		}
 
@@ -573,11 +563,10 @@
 			40% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
 			50% { opacity: 0.9; transform: translate(-50%, -50%) scale(1.05); }
 		}
-		@keyframes rad-emit {
-			0% { width: 10px; height: 10px; opacity: 0.8; border-width: 3px; transform: translate(-50%, -50%); }
-			40% { width: 10px; height: 10px; opacity: 0; transform: translate(-50%, -50%); }
-			42% { width: 40px; height: 40px; opacity: 0.7; border-width: 2.5px; transform: translate(-50%, -50%); }
-			100% { width: 150px; height: 150px; opacity: 0; border-width: 1px; transform: translate(-50%, -50%); }
+		@keyframes rad-ring {
+			0%, 40% { width: 70px; height: 70px; opacity: 0; border-width: 2.5px; }
+			42% { width: 70px; height: 70px; opacity: 0.7; border-width: 2.5px; }
+			100% { width: 140px; height: 140px; opacity: 0; border-width: 1px; }
 		}
 		@keyframes synth-hand-flash {
 			0%, 78%, 100% { opacity: 0.4; }
@@ -741,7 +730,6 @@
 			<section :id="element.name" class="one element , items-go-y" :class="[...element.tags, `周期`+element.period, getElementPhase(element)]" :style="[getElementStyle(element), getYearFilterStyle(element)]" v-for="element in elements" :key="element.id" @click="curElement=element">
 				<!-- 人造元素动态效果（闪电 + glitch） -->
 					<template v-if="animationMode && element.tags.includes('人造元素')">
-						<span class="synth-hand">🫴</span>
 						<svg class="synth-bolt" viewBox="0 0 90 110">
 							<path d="M10,85 L28,50 L18,50 L35,12 L48,38 L40,38 L58,5"
 								fill="none" stroke="#7B68EE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -761,6 +749,8 @@
 							</path>
 						</svg>
 					</template>
+					<!-- 放射性粒子环 -->
+					<div v-if="animationMode && element.tags.includes('放射性元素')" class="rad-ring"></div>
 					<!-- 磁感线（铁磁性元素，动画模式用SVG代替background-image伪元素） -->
 				<template v-if="animationMode && element.tags.includes('铁磁性元素')">
 					<svg class="mag-line left" viewBox="-50 -100 100 200">
