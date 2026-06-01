@@ -369,7 +369,7 @@
 		}
 
 		.金属 {
-			background: linear-gradient(145deg, transparent 35%, rgba(255, 255, 255, .5) 46%, rgba(255, 255, 255, .8) 49%, rgba(255, 255, 255, .5) 52%, transparent 63%)
+			background: linear-gradient(145deg, transparent 20%, rgba(255, 255, 255, .35) 44%, rgba(255, 255, 255, .85) 49%, rgba(255, 255, 255, .35) 54%, transparent 80%)
 		}
 
 		.碱金属.category.filter {
@@ -471,9 +471,9 @@
 				content: '☢';
 				position: absolute;
 				pointer-events: none;
-				top: 50%; left: 50%; translate: -50% -50%;
+				top: 50%; left: 50%; transform: translate(-50%, -50%);
 				z-index: 1;
-				animation: rad-breathe 3s ease-in-out infinite;
+				animation: rad-breathe 3s ease-in-out infinite both;
 			}
 			& .放射性元素::after {
 				content: '';
@@ -482,7 +482,7 @@
 				border-radius: 50%;
 				border: 2.5px dotted rgba(180, 90, 30, 0.6);
 				pointer-events: none;
-				animation: rad-emit 3s ease-out infinite;
+				animation: rad-emit 3s ease-out infinite both;
 			}
 
 
@@ -543,18 +543,18 @@
 			/*--- @keyframes （从 .animation 中提取到外层） ---*/
 			@keyframes liquid-morph {
 				0%, 100% { border-radius: 15%; scale: 1; }
-				50% { border-radius: 25% 15% 20% 15%; scale: 1.02; }
+				50% { border-radius: 25% 15% 20% 15%; scale: 1.06; }
 			}
 			@keyframes gas-breathe {
 				0%, 100% { scale: 1; box-shadow: 0 0 6px rgba(0, 0, 0, 0.08); }
 				50% { scale: 1.04; box-shadow: 0 0 12px rgba(0, 0, 0, 0.12); }
 			}
 			@keyframes noble-shine {
-				0%, 100% { box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(255, 215, 0, 0.4); }
+				0%, 100% { box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(255, 215, 0, 0.1); }
 				50% { box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(255, 215, 0, 0.8); }
 			}
 			@keyframes rare-shine {
-				0%, 100% { box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(180, 225, 70, 0.5); }
+				0%, 100% { box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(180, 225, 70, 0.15); }
 				50% { box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(180, 225, 70, 0.9); }
 			}
 			@keyframes metal-shine {
@@ -562,9 +562,9 @@
 				100% { background-position: -100% -100%; }
 			}
 			@keyframes rad-breathe {
-				0%, 100% { opacity: 0.5; scale: 0.9; transform: translate(-50%, -50%); }
-				40% { opacity: 1; scale: 1.1; transform: translate(-50%, -50%); }
-				50% { opacity: 0.9; scale: 1.05; transform: translate(-50%, -50%); }
+				0%, 100% { opacity: 0.5; scale: 0.9; }
+				40% { opacity: 1; scale: 1.1; }
+				50% { opacity: 0.9; scale: 1.05; }
 			}
 			@keyframes rad-emit {
 				0% { width: 10px; height: 10px; opacity: 0.8; border-width: 3px; transform: translate(-50%, -50%); }
@@ -758,24 +758,24 @@
 				<template v-if="animationMode && element.tags.includes('铁磁性元素')">
 					<svg class="mag-line left" viewBox="-50 -100 100 200">
 						<ellipse cx="0" cy="0" rx="50" ry="100" fill="none" stroke="#3B82D6" stroke-width="2.5" stroke-dasharray="5 6">
-							<animate attributeName="stroke-dashoffset" from="484" to="0" dur="2s" repeatCount="indefinite"/>
+							<animate attributeName="stroke-dashoffset" from="484" to="0" dur="5s" repeatCount="indefinite"/>
 						</ellipse>
 						<ellipse cx="0" cy="0" rx="37.5" ry="75" fill="none" stroke="#3B82D6" stroke-width="2" stroke-dasharray="4 5">
-							<animate attributeName="stroke-dashoffset" from="360" to="0" dur="2s" repeatCount="indefinite"/>
+							<animate attributeName="stroke-dashoffset" from="360" to="0" dur="5s" repeatCount="indefinite"/>
 						</ellipse>
 						<ellipse cx="0" cy="0" rx="25" ry="50" fill="none" stroke="#3B82D6" stroke-width="1.5" stroke-dasharray="3 4">
-							<animate attributeName="stroke-dashoffset" from="294" to="0" dur="2s" repeatCount="indefinite"/>
+							<animate attributeName="stroke-dashoffset" from="294" to="0" dur="5s" repeatCount="indefinite"/>
 						</ellipse>
 					</svg>
 					<svg class="mag-line right" viewBox="-50 -100 100 200">
 						<ellipse cx="0" cy="0" rx="50" ry="100" fill="none" stroke="#3B82D6" stroke-width="2.5" stroke-dasharray="5 6">
-							<animate attributeName="stroke-dashoffset" from="0" to="484" dur="2s" repeatCount="indefinite"/>
+							<animate attributeName="stroke-dashoffset" from="0" to="484" dur="5s" repeatCount="indefinite"/>
 						</ellipse>
 						<ellipse cx="0" cy="0" rx="37.5" ry="75" fill="none" stroke="#3B82D6" stroke-width="2" stroke-dasharray="4 5">
-							<animate attributeName="stroke-dashoffset" from="0" to="360" dur="2s" repeatCount="indefinite"/>
+							<animate attributeName="stroke-dashoffset" from="0" to="360" dur="5s" repeatCount="indefinite"/>
 						</ellipse>
 						<ellipse cx="0" cy="0" rx="25" ry="50" fill="none" stroke="#3B82D6" stroke-width="1.5" stroke-dasharray="3 4">
-							<animate attributeName="stroke-dashoffset" from="0" to="294" dur="2s" repeatCount="indefinite"/>
+							<animate attributeName="stroke-dashoffset" from="0" to="294" dur="5s" repeatCount="indefinite"/>
 						</ellipse>
 					</svg>
 				</template>
