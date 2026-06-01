@@ -64,9 +64,23 @@
 
 /* ======================== 静态光影效果 ======================== */
 .effect {
-	--raser: linear-gradient(135deg, rgba(255, 50, 50, 0.5), rgba(200, 200, 0, 0.5), rgba(50, 200, 50, 0.5), rgba(50, 200, 200, 0.5), rgba(50, 50, 200, 0.5), rgba(200, 50, 200, 0.5));
 	/* ------------ 彩虹渐变/防伪激光膜 ------------ */
-	.raser {
+	--raser-degree: 135deg;
+	--raser-alpha: 0.618;
+	--raser-color1: rgba(255, 50, 50, var(--raser-alpha));
+	--raser-color2: rgba(200, 200, 0, var(--raser-alpha));
+	--raser-color3: rgba(50, 200, 50, var(--raser-alpha));
+	--raser-color4: rgba(50, 200, 200, var(--raser-alpha));
+	--raser-color5: rgba(50, 50, 200, var(--raser-alpha));
+	--raser-color6: rgba(200, 50, 200, var(--raser-alpha));
+	--raser: linear-gradient(var(--raser-degree),
+		var(--raser-color1),
+		var(--raser-color2),
+		var(--raser-color3),
+		var(--raser-color4),
+		var(--raser-color5),
+		var(--raser-color6));
+	&.raser {
 		&.on-bg {
 			background: var(--raser);
 			background-blend-mode: overlay;
