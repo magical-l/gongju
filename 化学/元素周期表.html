@@ -546,7 +546,7 @@
 				<el-input-number v-model="temperatureInMode" :min="temperatureMin" :max="temperatureMax" controls-position="right" size="small"></el-input-number>
 				<el-button class="temperature mode input , toggle" size="small" type="primary" @click="nextTemperatureMode">
 					{{temperatureMode}}</el-button>
-				<el-switch class="one controller" v-model="glowAnimated" active-text="动" inactive-text="静" size="small" style="--el-switch-on-color: #e8a020"></el-switch>
+				<el-switch class="one controller" v-model="animationMode" active-text="动" inactive-text="静" size="small" style="--el-switch-on-color: #e8a020"></el-switch>
 			</span>
 			<el-popover class="one controller" placement="bottom" title="筛选发现年代" :width="400" trigger="click">
 				<template #reference>
@@ -794,7 +794,7 @@
 			discoveryYear: 2025,
 			introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname),
 			temperatureModes,
-			glowAnimated: false,
+			animationMode: false,
 		};
 		const {
 			createApp
@@ -815,8 +815,8 @@
 					if (this.hoverFilter) {
 						rt += ' , filtering ' + this.hoverFilter;
 					}
-					if (this.glowAnimated) {
-						rt += ' glow-animated';
+					if (this.animationMode) {
+						rt += ' animation';
 					}
 					return rt;
 				},
