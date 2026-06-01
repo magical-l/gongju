@@ -218,16 +218,10 @@
 			opacity: 0.6;
 		}
 
-		/* 稀土：彩虹渐变 overlay */
-		.one.element.稀土元素::before {
-			content: '';
-			position: absolute;
-			inset: 0;
-			background: linear-gradient(135deg,
-					rgba(255, 50, 50, 0.5), rgba(200, 200, 0, 0.5),
-					rgba(50, 200, 50, 0.5), rgba(50, 200, 200, 0.5),
-					rgba(50, 50, 200, 0.5), rgba(200, 50, 200, 0.5));
-			pointer-events: none;
+		.one.element.稀土元素 {
+			outline: 1px solid rgba(180, 225, 70, 1);
+			outline-offset: 1px;
+			box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(180, 225, 70, 0.8);
 		}
 
 		/* 人造元素：斜线网格 overlay */

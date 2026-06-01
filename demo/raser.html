@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Raser 彩虹渐变效果 Demo</title>
+	<link rel="stylesheet" href="../lib/css/花活.css">
+	<style>
+		body {
+			font-family: system-ui, sans-serif;
+			margin: 40px;
+			background: #222;
+			color: #ddd;
+		}
+		h1 { text-align: center; color: #fff; }
+		.compares {
+			display: flex; gap: 40px;
+			justify-content: center;
+			flex-wrap: wrap;
+		}
+		.group {
+			background: #333;
+			border-radius: 12px; padding: 24px;
+			flex: 1; max-width: 500px;
+		}
+		.group h2 { margin: 0 0 16px; font-size: 18px; text-align: center; }
+		.blocks {
+			display: flex; flex-wrap: wrap; gap: 16px;
+			justify-content: center;
+		}
+		.block {
+			width: 120px; height: 120px;
+			border-radius: 8px;
+			display: flex; align-items: end; justify-content: center;
+			padding: 8px; font-size: 13px;
+			color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.6);
+		}
+	</style>
+</head>
+<body>
+	<h1>Raser 彩虹渐变</h1>
+	<div class="compares">
+		<section class="group effect">
+			<h2>on-bg（背景混合）</h2>
+			<div class="blocks">
+				<div class="block raser on-bg" style="background-color:#e74c3c">红</div>
+				<div class="block raser on-bg" style="background-color:#2ecc71">绿</div>
+				<div class="block raser on-bg" style="background-color:#3498db">蓝</div>
+				<div class="block raser on-bg" style="background-color:#f1c40f">黄</div>
+				<div class="block raser on-bg" style="background-color:#9b59b6">紫</div>
+				<div class="block raser on-bg" style="background-color:#e67e22">橙</div>
+			</div>
+		</section>
+		<section class="group effect">
+			<h2>on-overlay（覆盖层）</h2>
+			<div class="blocks">
+				<div class="block raser on-overlay" style="background:#e74c3c">红</div>
+				<div class="block raser on-overlay" style="background:#2ecc71">绿</div>
+				<div class="block raser on-overlay" style="background:#3498db">蓝</div>
+				<div class="block raser on-overlay" style="background:#f1c40f">黄</div>
+				<div class="block raser on-overlay" style="background:#9b59b6">紫</div>
+				<div class="block raser on-overlay" style="background:#e67e22">橙</div>
+			</div>
+		</section>
+	</div>
+</body>
+</html>

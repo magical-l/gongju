@@ -62,6 +62,31 @@
 	&.to-right::before, &.to-right::after { border-left-color: var(--triangle-color); border-right-width: 0; }
 }
 
+/* ======================== 静态光影效果 ======================== */
+.effect {
+	--raser: linear-gradient(135deg, rgba(255, 50, 50, 0.5), rgba(200, 200, 0, 0.5), rgba(50, 200, 50, 0.5), rgba(50, 200, 200, 0.5), rgba(50, 50, 200, 0.5), rgba(200, 50, 200, 0.5));
+	/* ------------ 彩虹渐变/防伪激光膜 ------------ */
+	.raser {
+		&.on-bg {
+			background: var(--raser);
+			background-blend-mode: overlay;
+		}
+
+		&.on-overlay {
+			position: relative;
+
+			&::before {
+				position: absolute;
+				inset: 0;
+				z-index: 0;
+				background: var(--raser);
+				content: '';
+				pointer-events: none;/* 作为overlay，需要把点击事件穿透到下层 */
+			}
+		}
+	}
+}
+
 /* ======================== 动画 ======================== */
 /* ------------ 撒花 ------------ */
 /* 主体：8px彩纸，下落+控制整体opacity */
