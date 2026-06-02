@@ -60,10 +60,10 @@
 			& .周期7 { grid-row: calc(7 + var(--period1-row-offset)); }
 
 			& .周期序号 { grid-column: 1; border: 1px solid #ccc; }
-			& .硼族元素 { grid-column: -7; }
-			& .碳族元素 { grid-column: -6; }
-			& .氮族元素 { grid-column: -5; }
-			& .氧族元素 { grid-column: -4; }
+			& .硼族 { grid-column: -7; }
+			& .碳族 { grid-column: -6; }
+			& .氮族 { grid-column: -5; }
+			& .氧族 { grid-column: -4; }
 			& .卤素 { grid-column: -3; }
 
 			&.full-width {
@@ -149,7 +149,7 @@
 				background: linear-gradient(145deg, transparent 20%, rgba(255, 255, 255, .35) 44%, rgba(255, 255, 255, .85) 49%, rgba(255, 255, 255, .35) 54%, transparent 80%);
 			}
 			/* 稀土元素：用黄绿色阴影表示荧光 */
-			&.稀土元素 {
+			&.稀土 {
 				box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(180, 225, 70, 0.8);
 			}
 			/* 贵金属：用金色阴影表示贵重 */
@@ -310,7 +310,7 @@
 				animation: noble-shine 3s ease-in-out infinite;
 			}
 			/*----- 稀土：box-shadow 呼吸灯 -----*/
-			& .稀土元素 {
+			& .稀土 {
 				animation: rare-shine 3s ease-in-out infinite;
 			}
 			/*----- 金属：145°高光从左上到右下滑过 -----*/
@@ -325,7 +325,7 @@
 					metal-shine 2.5s ease-in-out infinite;
 			}
 
-			& .金属.稀土元素 {
+			& .金属.稀土 {
 				animation: rare-shine 3s ease-in-out infinite,
 					metal-shine 2.5s ease-in-out infinite;
 			}
@@ -335,7 +335,7 @@
 				animation: rad-breathe 3s ease-in-out infinite both;
 			}
 
-			& .放射性元素 .rad-ring {
+			& .放射性 .rad-ring {
 				position: absolute;
 				top: 50%; left: 50%;
 				width: 70px; height: 70px;
@@ -348,7 +348,7 @@
 			}
 
 			/*----- 铁磁性：磁感线沿椭圆路径流动 -----*/
-			& .铁磁性元素 {
+			& .铁磁性 {
 				overflow-x: clip;
 				& .mag-line {
 					position: absolute;
@@ -543,11 +543,11 @@
 			<section :id="element.name" class="one element , items-go-y" :class="[...element.tags, `周期`+element.period, getElementPhase(element)]" :style="[getElementStyle(element), getYearFilterStyle(element), elementFilterStyle(element)]" v-for="element in elements" :key="element.id" @click="curElement=element">
 				
 					<!-- 放射性粒子环 -->
-					<div v-if="animationMode && element.tags.includes('放射性元素')" class="rad-ring"></div>
-						<span v-if="element.tags.includes('放射性元素')" class="辐射-icon">☢</span>
-						<span v-if="element.tags.includes('人造元素')" class="人造-icon">🫴</span>
+					<div v-if="animationMode && element.tags.includes('放射性')" class="rad-ring"></div>
+						<span v-if="element.tags.includes('放射性')" class="辐射-icon">☢</span>
+						<span v-if="element.tags.includes('人造')" class="人造-icon">🫴</span>
 					<!-- 磁感线（铁磁性元素，动画模式用SVG代替background-image伪元素） -->
-				<template v-if="element.tags.includes('铁磁性元素')">
+				<template v-if="element.tags.includes('铁磁性')">
 					<svg class="mag-line left" viewBox="-50 -100 100 200">
 						<ellipse cx="0" cy="0" rx="50" ry="100" fill="none" stroke="#3B82D6" stroke-width="2.5" stroke-dasharray="5 6">
 							<animate attributeName="stroke-dashoffset" from="484" to="0" dur="30s" repeatCount="indefinite"></animate>
@@ -652,55 +652,6 @@
 	<script type="module">
 		import elements from './elements.js';
 		import categories from './categories.js';
-	const categories = [{
-			name: '碱金属',
-			filterable: true
-		}, {
-			name: '碱土金属',
-			filterable: true
-		}, {
-			name: '过渡金属',
-			filterable: true
-		}, {
-			name: '贫金属',
-			filterable: true
-		}, {
-			name: '类金属',
-			filterable: true
-		}, {
-			name: '活泼非金属',
-			filterable: true
-		}, {
-			name: '稀有气体',
-			filterable: true
-		}, {
-			name: '放射性元素',
-			filterable: true
-		}, {
-			name: '人造元素',
-			filterable: true
-		}, {
-			name: '稀土元素',
-			filterable: true
-		}, {
-			name: '铁磁性元素',
-			filterable: true
-		}, {
-			name: '贵金属',
-			filterable: true
-		}, {
-			name: '卤素',
-			filterable: true
-		}, {
-			name: '气体',
-			filterable: true
-		}, {
-			name: '液体',
-			filterable: true
-		}, {
-			name: '固体',
-			filterable: true
-		}];
 		const temperatureModes = ['°C', 'K', '°F'];
 		const 物态色值 = {
 			'无色至淡黄色': '#f5f5dc',
@@ -883,7 +834,8 @@
 						if (cat) collectTags(cat).forEach(t => activeTags.add(t));
 					}
 
-					const visible = element.tags.some(t => activeTags.has(t));
+					const phase = this.getElementPhase(element);
+					const visible = element.tags.some(t => activeTags.has(t)) || activeTags.has(phase);
 					return visible ? {} : { opacity: 0.5, pointerEvents: 'none' };
 				},
 				checkLayout() {
@@ -902,9 +854,8 @@
 						'grid-column': element.col > 0 ? element.col + 1 : element.col - 1
 					};
 					const phase = this.getElementPhase(element);
-					const stateKey = { '气态': '气体', '液态': '液体', '固态': '固体' }[phase] || phase;
-					let state = element.states?.[stateKey];
-					if (!state) state = element.states?.['固体'];
+					let state = element.states?.[phase];
+					if (!state) state = element.states?.['固态'];
 					const colorDesc = state?.['颜色'];
 					const color = colorDesc && 物态色值[colorDesc] ? 物态色值[colorDesc] : null;
 					if (color) {
