@@ -265,6 +265,12 @@
 			}
 		}
 
+		/* 多色元素：文字自动反相可读 */
+		.one.element[style*="--multi"] .element.info {
+			color: white;
+			mix-blend-mode: difference;
+		}
+
 		/*========================分组分类=====================*/
 
 		.碱金属 { color: #cc5555; }
@@ -689,6 +695,7 @@
 			'灰/黄/黑': '#a09080',
 			'灰色金属光泽': '#a0a0a0',
 			'暗红色': '#8b2500',
+			'白色': '#f0f0f0',
 			'亮白色': '#fff9f0',
 			'亮黄色': '#ffe600',
 			'橙红色': '#ff6b35',
@@ -701,6 +708,7 @@
 			'深红色': '#c00000',
 			'紫色': '#800080',
 			'紫黑色': '#4a004a',
+			'红色': '#d03030',
 			'红/白 (有光泽)': '#ff6666',
 			'红棕色': '#a0522d',
 			'红棕色金属光泽': '#cd5c1c',
@@ -910,6 +918,20 @@
 							color = grad.mid;
 							stateColor = grad.mid;
 						}
+					} else if (Array.isArray(colorDesc) && typeof colorDesc[0] === 'string') {
+						// 多色 sharp-stop 渐变
+						const num = colorDesc.length;
+						const parts = colorDesc.map((c, i) => {
+							const hex = c === '无色' ? 'transparent' : 物态色值[c];
+							const p0 = (i / num * 100).toFixed(1) + '%';
+							const p1 = ((i + 1) / num * 100).toFixed(1) + '%';
+							return `${hex} ${p0}, ${hex} ${p1}`;
+						}).join(', ');
+						s.backgroundImage = `linear-gradient(135deg, ${parts})`;
+						s.backgroundSize = '100% 100%';
+						s.backgroundRepeat = 'no-repeat';
+						s['--multi'] = '1';
+						stateColor = colorDesc[0] === '无色' ? null : 物态色值[colorDesc[0]];
 					} else {
 						color = colorDesc && 物态色值[colorDesc] ? 物态色值[colorDesc] : null;
 					}
@@ -948,7 +970,11 @@
 					if (Array.isArray(color)) {
 						// 锚点渐变格式: [{温度:1538,颜色:"橙红色"},...]
 						if (color.length > 0 && color[0].温度 !== undefined) {
-							return color; // 原样返回给 getElementStyle 处理渐变
+							return color;
+						}
+						// 多色格式: ["黑色","无色"]
+						if (color.length > 0 && typeof color[0] === 'string') {
+							return color;
 						}
 						// 旧的分段格式: [{范围:[1538,2000],颜色:"橙红色"},...]
 						for (const entry of color) {
