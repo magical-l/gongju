@@ -142,8 +142,8 @@
 			}
 			/* 气体元素：用虚线边框表示无边界，阴影表示扩散 */
 			&.气态 {
-				border-style: dashed;
-				box-shadow: 0 0 20px 2px rgba(0, 0, 0, 0.8)
+				outline: 2px dashed var(--state-color, rgba(255, 255, 255, 0.8));
+				box-shadow: 0 0 20px 2px color-mix(in hsl, var(--state-color, rgba(255,255,255,0.4)) 70%, black 30%);
 			}
 			/* 金属元素：用光滑表面的斜线高光展现金属光洁表面反光 */
 			&.金属 {
@@ -157,7 +157,7 @@
 			&.贵金属 {
 				box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(255, 215, 0, 0.6);
 			}
-			
+
 			& .辐射-icon {
 				position: absolute;
 				font-size: 70px;
@@ -167,7 +167,7 @@
 				transform: translate(-50%, -50%);
 				opacity: 0.6;
 			}
-		
+
 			& .人造-icon {
 				position: absolute;
 				font-size: 22px;
@@ -254,42 +254,42 @@
 				--el-checkbox-button-checked-bg-color: #cc5555;
 				--el-checkbox-button-checked-text-color: #fff;
 			}
-	
+
 			&.碱土金属 {
 				--el-checkbox-button-checked-bg-color: #cc8833;
 				--el-checkbox-button-checked-text-color: #fff;
 			}
-	
+
 			&.过渡金属 {
 				--el-checkbox-button-checked-bg-color: #999933;
 				--el-checkbox-button-checked-text-color: #fff;
 			}
-	
+
 			&.镧系 {
 				--el-checkbox-button-checked-bg-color: #339933;
 				--el-checkbox-button-checked-text-color: #fff;
 			}
-	
+
 			&.锕系 {
 				--el-checkbox-button-checked-bg-color: #3366cc;
 				--el-checkbox-button-checked-text-color: #fff;
 			}
-	
+
 			&.类金属 {
 				--el-checkbox-button-checked-bg-color: #6644cc;
 				--el-checkbox-button-checked-text-color: #fff;
 			}
-	
+
 			&.贫金属 {
 				--el-checkbox-button-checked-bg-color: #8844aa;
 				--el-checkbox-button-checked-text-color: #fff;
 			}
-	
+
 			&.活泼非金属 {
 				--el-checkbox-button-checked-bg-color: #cc44aa;
 				--el-checkbox-button-checked-text-color: #fff;
 			}
-	
+
 			&.稀有气体 {
 				--el-checkbox-button-checked-bg-color: #888888;
 				--el-checkbox-button-checked-text-color: #fff;
@@ -522,8 +522,8 @@
 			<el-dialog title="页面说明" v-model="introVisible" width="60%">
 				<p>这是一个交互式化学元素周期表。您可以探索元素的各种属性，并利用以下功能：</p>
 				<ul>
-					<li><strong>布局切换：</strong>在“宽版”和“窄版”之间切换，以适应不同屏幕尺寸。</li>
-					<li><strong>分类筛选：</strong>点击上方的分类按钮（如“碱金属”、“稀有气体”等），可以高亮显示特定类别的所有元素。再次点击可取消筛选。
+					<li><strong>布局切换：</strong>在"宽版"和"窄版"之间切换，以适应不同屏幕尺寸。</li>
+					<li><strong>分类筛选：</strong>点击上方的分类按钮（如"碱金属"、"稀有气体"等），可以高亮显示特定类别的所有元素。再次点击可取消筛选。
 					</li>
 					<li><strong>发现年代筛选：</strong>通过拖动年代滑块，可以筛选出在特定年份之前发现的元素。</li>
 					<li><strong>温度模拟：</strong>拖动右侧的温度计滑块，或直接输入温度值，可以观察各元素在不同温度下的物态（固态、液态、气态）。您也可以切换温标（摄氏度、开尔文、华氏度）。
@@ -542,7 +542,7 @@
 				<p>{{group.name}}</p>
 			</section>-->
 			<section :id="element.name" class="one element , items-go-y" :class="[...element.tags, `周期`+element.period, getElementPhase(element)]" :style="[getElementStyle(element), getYearFilterStyle(element), elementFilterStyle(element)]" v-for="element in elements" :key="element.id" @click="curElement=element">
-				
+
 					<!-- 放射性粒子环 -->
 					<div v-if="animationMode && element.tags.includes('放射性')" class="rad-ring"></div>
 						<span v-if="element.tags.includes('放射性')" class="辐射-icon">☢</span>
@@ -861,8 +861,10 @@
 					const color = colorDesc && 物态色值[colorDesc] ? 物态色值[colorDesc] : null;
 					if (color) {
 						s.backgroundColor = color;
+						s['--state-color'] = color;
 					} else {
 						s.backgroundColor = 'transparent';
+						s['--state-color'] = 'rgba(255,255,255,0.5)';
 					}
 					return s;
 				},
