@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<title>蒸腾/冒烟 Demo</title>
+	<style>
+		:root {
+			--card-w: 100px;
+			--card-h: 100px;
+			--gas-color: #b0d040;
+			--bg: seashell;
+		}
+		body {
+			background: var(--bg);
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			align-items: center;
+			gap: 60px;
+			min-height: 100vh;
+			margin: 0;
+			font-family: sans-serif;
+		}
+
+		/*===== 卡片 =====*/
+		.card {
+			width: var(--card-w);
+			height: var(--card-h);
+			border: 1px solid #aaa;
+			background: var(--gas-color);
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 1.5em;
+			font-weight: bold;
+			color: #333;
+			border-radius: 4px;
+			overflow: visible;
+		}
+
+		/*===== 蒸腾容器 =====*/
+		.vapor {
+			position: absolute;
+			left: 0;
+			right: 0;
+			bottom: 100%;
+			height: 80px;
+			pointer-events: none;
+			overflow: visible;
+		}
+
+		/*===== 蒸腾粒子 =====*/
+		.vapor-particle {
+			position: absolute;
+			bottom: 0;
+			width: 12px;
+			height: 12px;
+			border-radius: 50%;
+			background: radial-gradient(circle, rgba(255,255,255,0.6), rgba(255,255,255,0.1));
+			filter: blur(3px);
+			opacity: 0;
+			animation: vapor-rise 2.5s ease-out infinite;
+		}
+
+		/* 不同的位置、大小、延迟 */
+		.vapor-particle:nth-child(1) { left: 20%; width: 10px; height: 10px; animation-delay: 0s; }
+		.vapor-particle:nth-child(2) { left: 45%; width: 14px; height: 14px; animation-delay: 0.6s; }
+		.vapor-particle:nth-child(3) { left: 70%; width: 8px; height: 8px; animation-delay: 1.2s; }
+		.vapor-particle:nth-child(4) { left: 55%; width: 11px; height: 11px; animation-delay: 0.3s; }
+		.vapor-particle:nth-child(5) { left: 30%; width: 9px; height: 9px; animation-delay: 0.9s; }
+		.vapor-particle:nth-child(6) { left: 80%; width: 7px; height: 7px; animation-delay: 1.5s; }
+		.vapor-particle:nth-child(7) { left: 10%; width: 6px; height: 6px; animation-delay: 1.8s; }
+		.vapor-particle:nth-child(8) { left: 62%; width: 13px; height: 13px; animation-delay: 0.15s; }
+
+		@keyframes vapor-rise {
+			0% {
+				opacity: 0;
+				transform: translateY(0) translateX(0) scale(0.6);
+			}
+			10% {
+				opacity: 0.6;
+			}
+			60% {
+				opacity: 0.3;
+				transform: translateY(-65px) translateX(var(--drift, 8px)) scale(1.2);
+			}
+			100% {
+				opacity: 0;
+				transform: translateY(-80px) translateX(var(--drift-end, -5px)) scale(0.8);
+			}
+		}
+
+		/* 给部分粒子不同的漂移方向 */
+		.vapor-particle:nth-child(odd) { --drift: 12px; --drift-end: -8px; }
+		.vapor-particle:nth-child(even) { --drift: -10px; --drift-end: 6px; }
+
+		/*===== 多种颜色示例 =====*/
+		.sample-row {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			gap: 60px;
+			width: 100%;
+		}
+		.sample-row .card { margin-top: 80px; }
+
+		/* 说明 */
+		.legend {
+			width: 100%;
+			text-align: center;
+			color: #666;
+			font-size: 0.85em;
+			margin-top: 20px;
+		}
+		.legend h2 { margin: 0 0 0.5em; color: #444; }
+		.legend p { margin: 0.3em 0; line-height: 1.5; }
+
+		/* 固态/液态也展示对比 */
+		.vapor-particle.color-matched {
+			background: radial-gradient(circle, color-mix(in srgb, var(--gas-color) 80%, white), transparent);
+		}
+	</style>
+</head>
+<body>
+
+	<div class="legend">
+		<h2>蒸腾/冒烟效果 — 气体元素动画</h2>
+		<p>粒子从卡片顶部升起，逐渐扩散消失，模拟气体"挥发/蒸腾"的视觉形态</p>
+		<p>粒子颜色：白色（通用）｜也可用元素本色 + 白色混合</p>
+	</div>
+
+	<div class="sample-row">
+		<!-- 黄绿色气体（氯） -->
+		<div class="card" style="--gas-color: #b0d040;">
+			<span>Cl</span>
+			<div class="vapor">
+				<span class="vapor-particle"></span>
+				<span class="vapor-particle"></span>
+				<span class="vapor-particle"></span>
+				<span class="vapor-particle"></span>
+				<span class="vapor-particle"></span>
+				<span class="vapor-particle"></span>
+				<span class="vapor-particle"></span>
+				<span class="vapor-particle"></span>
+			</div>
+		</div>
+
+		<!-- 红棕色气体（溴蒸气） -->
+		<div class="card" style="--gas-color: #a0522d;">
+			<span>Br</span>
+			<div class="vapor">
+				<span class="vapor-particle"></span>
+				<span class="vapor-particle"></span>
+				<span class="vapor-particle"></span>
+				<span class="vapor-particle"></span>
+				<span class="vapor-particle"></span>
+				<span class="vapor-particle"></span>
+				<span class="vapor-particle"></span>
+				<span class="vapor-particle"></span>
+			</div>
+		</div>
+
+		<!-- 紫色气体（碘蒸气） -->
+		<div class="card" style="--gas-color: #800080;">
+			<span>I</span>
+			<div class="vapor">
+				<span class="vapor-particle"></span>
+				<span class="vapor-particle"></span>
+				<span class="vapor-particle"></span>
+				<span class="vapor-particle"></span>
+				<span class="vapor-particle"></span>
+				<span class="vapor-particle"></span>
+				<span class="vapor-particle"></span>
+				<span class="vapor-particle"></span>
+			</div>
+		</div>
+	</div>
+
+	<div class="sample-row">
+		<!-- 用元素本色的版本 -->
+		<div class="card" style="--gas-color: #b0d040;">
+			<span>本色↑</span>
+			<div class="vapor">
+				<span class="vapor-particle color-matched"></span>
+				<span class="vapor-particle color-matched"></span>
+				<span class="vapor-particle color-matched"></span>
+				<span class="vapor-particle color-matched"></span>
+				<span class="vapor-particle color-matched"></span>
+				<span class="vapor-particle color-matched"></span>
+				<span class="vapor-particle color-matched"></span>
+				<span class="vapor-particle color-matched"></span>
+			</div>
+		</div>
+
+		<!-- 无色气体 -->
+		<div class="card" style="--gas-color: transparent; border-color: #ccc;">
+			<span>无色</span>
+			<div class="vapor">
+				<span class="vapor-particle"></span>
+				<span class="vapor-particle"></span>
+				<span class="vapor-particle"></span>
+				<span class="vapor-particle"></span>
+				<span class="vapor-particle"></span>
+				<span class="vapor-particle"></span>
+				<span class="vapor-particle"></span>
+				<span class="vapor-particle"></span>
+			</div>
+		</div>
+	</div>
+
+	<div class="legend">
+		<p style="margin-top: 1em;">↑ 本色粒子版本：粒子用 <code>color-mix</code> 混合元素本色 + 白色，与元素颜色一致</p>
+		<p>无色气体用白色粒子，保持透明底色</p>
+	</div>
+
+</body>
+</html>

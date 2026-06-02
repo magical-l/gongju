@@ -41,7 +41,7 @@
 
 		/*==========================元素周期表========================*/
 		.periodic-table-of-chemical-element {
-			--bg: seashell;
+			--bg: burlywood;
 			isolation: isolate;
 			flex-grow: 1;
 			width: 100%;
@@ -138,15 +138,44 @@
 			&.固态 {
 				border: 1px solid rgba(66, 66, 66, 0.35);
 			}
-			/* 液体元素：用圆角表现液体张力 */
+			/* 液态元素：用圆角表现液体张力 */
 			&.液态 {
 				border: 1px solid rgba(120, 200, 255, 0.35);
 				border-radius: 15%;
 			}
-			/* 气体元素：用虚线边框表示无边界，阴影表示扩散 */
+			/* 气态元素：顶部蒸腾效果 */
 			&.气态 {
 				outline: 2px dashed var(--state-color, rgba(255, 255, 255, 0.8));
-				box-shadow: 0 0 20px 2px color-mix(in hsl, var(--state-color, rgba(255,255,255,0.4)) 70%, black 30%);
+				
+				/* 蒸腾粒子（气体元素顶部） */
+				& .vapor {
+					position: absolute;
+					left: 0;
+					right: 0;
+					bottom: 100%;
+					height: 60px;
+					pointer-events: none;
+					overflow: visible;
+					display: none;
+					display: block;
+					& .vapor-particle {
+						position: absolute;
+						bottom: 0;
+						border-radius: 50%;
+						background: radial-gradient(circle, var(--state-color, rgba(255,255,255,0.9)), transparent);
+						filter: blur(3px);
+						/* opacity: 0.25; */
+		
+						&:nth-child(1) { left: 20%; width: 10px; height: 10px; }
+						&:nth-child(2) { left: 45%; width: 14px; height: 14px; }
+						&:nth-child(3) { left: 70%; width: 8px; height: 8px; }
+						&:nth-child(4) { left: 55%; width: 11px; height: 11px; }
+						&:nth-child(5) { left: 30%; width: 9px; height: 9px; }
+						&:nth-child(6) { left: 80%; width: 7px; height: 7px; }
+						&:nth-child(7) { left: 10%; width: 6px; height: 6px; }
+						&:nth-child(8) { left: 62%; width: 13px; height: 13px; }
+					}
+				}
 			}
 			/* 金属元素：用光滑表面的斜线高光展现金属光洁表面反光 */
 			&.金属 {
@@ -300,9 +329,9 @@
 			& .液态 {
 				animation: liquid-morph 2s ease-in-out infinite;
 			}
-			/*----- 气体：呼吸脉动 -----*/
-			& .气态 {
-				animation: gas-breathe 4s ease-in-out infinite;
+			/*----- 气体：蒸腾粒子上升 -----*/
+			& .气态 .vapor-particle {
+				animation: vapor-rise 2.5s ease-out infinite;
 			}
 			/*----- 贵金属：box-shadow 呼吸灯 -----*/
 			& .贵金属 {
@@ -370,10 +399,23 @@
 			0%, 100% { border-radius: 15%; scale: 1; }
 			50% { border-radius: 35% 10% 30% 8%; scale: 1.06; }
 		}
-		@keyframes gas-breathe {
-			0%, 100% { scale: 1; box-shadow: 0 0 6px rgba(0, 0, 0, 0.08); }
-			50% { scale: 1.04; box-shadow: 0 0 12px rgba(0, 0, 0, 0.12); }
+		@keyframes vapor-rise {
+			0% {
+				opacity: 0;
+				transform: translateY(0) translateX(0) scale(0.6);
+			}
+			10% { opacity: 0.6; }
+			60% {
+				opacity: 0.3;
+				transform: translateY(-50px) translateX(var(--drift, 8px)) scale(1.2);
+			}
+			100% {
+				opacity: 0;
+				transform: translateY(-58px) translateX(var(--drift-end, -5px)) scale(0.8);
+			}
 		}
+		.vapor-particle:nth-child(odd) { --drift: 10px; --drift-end: -6px; }
+		.vapor-particle:nth-child(even) { --drift: -8px; --drift-end: 5px; }
 		@keyframes noble-shine {
 			0%, 100% { box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(255, 215, 0, 0.1); }
 			50% { box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(255, 215, 0, 0.8); }
@@ -570,6 +612,16 @@
 						</ellipse>
 					</svg>
 				</template>
+				<div class="vapor" aria-hidden="true">
+					<span class="vapor-particle"></span>
+					<span class="vapor-particle"></span>
+					<span class="vapor-particle"></span>
+					<span class="vapor-particle"></span>
+					<span class="vapor-particle"></span>
+					<span class="vapor-particle"></span>
+					<span class="vapor-particle"></span>
+					<span class="vapor-particle"></span>
+				</div>
 				<div class="element info , 目字形">
 					<header>
 						<p class="element id">{{element.id}}</p>
@@ -862,7 +914,7 @@
 						s['--state-color'] = color;
 					} else {
 						s.backgroundColor = 'transparent';
-						s['--state-color'] = 'rgba(255,255,255,0.5)';
+						s['--state-color'] = 'rgba(255,255,255,0.85)';
 					}
 					return s;
 				},
