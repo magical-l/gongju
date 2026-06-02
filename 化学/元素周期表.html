@@ -215,6 +215,8 @@
 			height: 100%;
 			padding: 2px;
 
+			color: darkgray;
+			mix-blend-mode: difference;
 			& > header {
 				grid-area: header;
 				display: flex;
@@ -265,23 +267,6 @@
 			}
 		}
 
-		/* 多色元素：文字自动反相可读 */
-		.one.element[style*="--multi"] .element.info {
-			color: white;
-			mix-blend-mode: difference;
-		}
-
-		/*========================分组分类=====================*/
-
-		.碱金属 { color: #cc5555; }
-		.碱土金属 { color: #cc8833; }
-		.过渡金属 { color: #999933; }
-		.镧系 { color: #339933; }
-		.锕系 { color: #3366cc; }
-		.类金属 { color: #6644cc; }
-		.贫金属 { color: #8844aa; }
-		.活泼非金属 { color: #cc44aa; }
-		.稀有气体 { color: #888888; }
 
 		.category.filter {
 			&.碱金属 {
@@ -930,7 +915,6 @@
 						s.backgroundImage = `linear-gradient(135deg, ${parts})`;
 						s.backgroundSize = '100% 100%';
 						s.backgroundRepeat = 'no-repeat';
-						s['--multi'] = '1';
 						stateColor = colorDesc[0] === '无色' ? null : 物态色值[colorDesc[0]];
 					} else {
 						color = colorDesc && 物态色值[colorDesc] ? 物态色值[colorDesc] : null;
