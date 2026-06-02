@@ -32,14 +32,18 @@
 			}
 		}
 
-		/* 温度滑块输入框宽度 */
-		.temperature.slider + .el-slider__input,
-		.temperature.slider .el-slider__input {
-			width: 90px;
-		}
-		.temperature.label {
+		.one.controller.group > .label {
 			font-size: 1.3em;
 			line-height: 1;
+		}
+
+		.controller {
+			.temperature.slider, .discovery.year {
+				/* 滑块输入框宽度 */
+				& + .el-slider__input, & .el-slider__input {
+					width: 90px;
+				}
+			}
 		}
 
 		/*----------------过滤器------------*/
@@ -527,12 +531,8 @@
 					<el-button class="one controller : temperature mode input , toggle" size="small" type="primary" @click="nextTemperatureMode">{{temperatureMode}}</el-button>
 				</div>
 				<div class="one controller group">
-					<el-popover title="发现年代筛选" class="one controller : discovery year" placement="bottom" :width="400" trigger="click">
-						<template #reference>
-							<el-button size="small">年代</el-button>
-						</template>
-						<el-slider v-model="discoveryYear" :min="1650" :max="2025" show-input size="small"></el-slider>
-					</el-popover>
+					<span>年份</span>
+					<el-slider class="one controller : discovery year" v-model="discoveryYear" :min="1650" :max="2025" show-input size="small" style="width:400px"></el-slider>
 				</div>
 				<div class="one controller group">
 					<el-switch title="动静态切换" class="one controller : animation toggle" v-model="animationMode" active-text="动态" inactive-text="静态" size="small" style="--el-switch-on-color: #e8a020"></el-switch>
