@@ -207,8 +207,7 @@
 			box-shadow: 0 0 6px rgba(0, 0, 0, 0.08);
 		}
 
-		.one.element.放射性元素::before {
-			content: '☢';
+		.辐射-icon {
 			position: absolute;
 			font-size: 70px;
 			color: rgba(180, 90, 30, 0.5);
@@ -449,17 +448,17 @@
 			}
 
 			/*----- 放射性：☢ 呼吸 + 点状粒子环辐射 -----*/
-			& .放射性元素::before {
+			& .辐射-icon {
 				animation: rad-breathe 3s ease-in-out infinite both;
 			}
 
 			& .放射性元素 .rad-ring {
 				position: absolute;
 				top: 50%; left: 50%;
-				width: 14px; height: 14px;
+				width: 70px; height: 70px;
+				margin: -35px 0 0 -35px;
 				border-radius: 50%;
 				border: 2.5px dotted rgba(180, 90, 30, 0.6);
-				transform: translate(-50%, -50%);
 				pointer-events: none;
 				z-index: 0;
 				animation: rad-ring 3s ease-in-out infinite both;
@@ -662,6 +661,7 @@
 				
 					<!-- 放射性粒子环 -->
 					<div v-if="animationMode && element.tags.includes('放射性元素')" class="rad-ring"></div>
+						<span v-if="element.tags.includes('放射性元素')" class="辐射-icon">☢</span>
 					<!-- 磁感线（铁磁性元素，动画模式用SVG代替background-image伪元素） -->
 				<template v-if="element.tags.includes('铁磁性元素')">
 					<svg class="mag-line left" viewBox="-50 -100 100 200">
