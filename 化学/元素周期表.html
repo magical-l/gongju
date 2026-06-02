@@ -612,10 +612,10 @@
 					</footer>
 				</div>
 			</section>
-			<section class="镧系 镧系标签" v-if="layout === 'half-width'">
+			<section class="镧系 镧系标签" v-if="layout === 'half-width'" :style="filtering?.length || hoverFilter ? {opacity:.5} : {}">
 				<p>57~71<br>镧系</p>
 			</section>
-			<section class="锕系 锕系标签" v-if="layout === 'half-width'">
+			<section class="锕系 锕系标签" v-if="layout === 'half-width'" :style="filtering?.length || hoverFilter ? {opacity:.5} : {}">
 				<p>89~103<br>锕系</p>
 			</section>
 			<section class="element detail area" v-if="curElement">
