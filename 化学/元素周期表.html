@@ -223,9 +223,7 @@
 			box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(180, 225, 70, 0.8);
 		}
 
-		/* 人造元素 */
-		.one.element.人造元素::after {
-			content: '🫴';
+		.人造-icon {
 			position: absolute;
 			font-size: 22px;
 			line-height: 1;
@@ -456,9 +454,9 @@
 				position: absolute;
 				top: 50%; left: 50%;
 				width: 70px; height: 70px;
-				margin: -35px 0 0 -35px;
 				border-radius: 50%;
 				border: 2.5px dotted rgba(180, 90, 30, 0.6);
+				transform: translate(-50%, -50%);
 				pointer-events: none;
 				z-index: 0;
 				animation: rad-ring 3s ease-in-out infinite both;
@@ -662,6 +660,7 @@
 					<!-- 放射性粒子环 -->
 					<div v-if="animationMode && element.tags.includes('放射性元素')" class="rad-ring"></div>
 						<span v-if="element.tags.includes('放射性元素')" class="辐射-icon">☢</span>
+						<span v-if="element.tags.includes('人造元素')" class="人造-icon">🫴</span>
 					<!-- 磁感线（铁磁性元素，动画模式用SVG代替background-image伪元素） -->
 				<template v-if="element.tags.includes('铁磁性元素')">
 					<svg class="mag-line left" viewBox="-50 -100 100 200">
@@ -687,7 +686,7 @@
 						</ellipse>
 					</svg>
 				</template>
-				<div class="element info , 目字形" :class="animationMode && element.tags.includes('人造元素') ? 'synth-content' : ''">
+				<div class="element info , 目字形">
 					<header>
 						<p class="element id">{{element.id}}</p>
 						<p class="element symbol">{{element.symbol}}</p>
