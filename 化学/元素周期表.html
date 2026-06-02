@@ -324,6 +324,24 @@
 			}
 		}
 
+		/*----- 铁磁性：磁感线沿椭圆路径流动 -----*/
+		.铁磁性 {
+			overflow-x: clip;
+			& .mag-line {
+				position: absolute;
+				top: calc((100% - 150px)/2);
+				z-index: -1;
+				width: 70px; height: 150px;
+				pointer-events: none;
+				&.left {
+					left: calc(100% - 35px);
+				}
+				&.right {
+					right: calc(100% - 35px);
+				}
+			}
+		}
+
 		/*===================== 动态效果（动/静开关） ====================*/
 		.animation {
 			/*----- 液态、金属、贵金属、稀土 → 由 JS 动态拼接 animation 到 style -----*/
@@ -353,23 +371,6 @@
 				animation: rad-ring 3s ease-in-out infinite both;
 			}
 
-			/*----- 铁磁性：磁感线沿椭圆路径流动 -----*/
-			& .铁磁性 {
-				overflow-x: clip;
-				& .mag-line {
-					position: absolute;
-					top: calc((100% - 150px)/2);
-					z-index: -1;
-					width: 70px; height: 150px;
-					pointer-events: none;
-					&.left {
-						left: calc(100% - 35px);
-					}
-					&.right {
-						right: calc(100% - 35px);
-					}
-				}
-			}
 		}
 
 		/*--- @keyframes （从 .animation 中提取到外层） ---*/
@@ -562,33 +563,32 @@
 				<p>{{group.name}}</p>
 			</section>-->
 			<section :id="element.name" class="one element , items-go-y" :class="[...element.tags, `周期`+element.period, getElementPhase(element)]" :style="[getElementStyle(element), getYearFilterStyle(element), elementFilterStyle(element), getElementAnimation(element)]" v-for="element in elements" :key="element.id" @click="curElement=element">
-
-					<!-- 放射性粒子环 -->
-					<div v-if="animationMode && element.tags.includes('放射性')" class="rad-ring"></div>
-						<span v-if="element.tags.includes('放射性')" class="辐射-icon">☢</span>
-						<span v-if="element.tags.includes('人造')" class="人造-icon">🫴</span>
-					<!-- 磁感线（铁磁性元素，动画模式用SVG代替background-image伪元素） -->
+				<!-- 放射性粒子环 -->
+				<div v-if="animationMode && element.tags.includes('放射性')" class="rad-ring"></div>
+				<span v-if="element.tags.includes('放射性')" class="辐射-icon">☢</span>
+				<span v-if="element.tags.includes('人造')" class="人造-icon">🫴</span>
+				<!-- 磁感线（铁磁性元素，动画模式用SVG代替background-image伪元素） -->
 				<template v-if="element.tags.includes('铁磁性')">
 					<svg class="mag-line left" viewBox="-50 -100 100 200">
 						<ellipse cx="0" cy="0" rx="50" ry="100" fill="none" stroke="#3B82D6" stroke-width="2.5" stroke-dasharray="5 6">
-							<animate attributeName="stroke-dashoffset" from="484" to="0" dur="30s" repeatCount="indefinite"></animate>
+							<animate v-if="animationMode" attributeName="stroke-dashoffset" from="484" to="0" dur="30s" repeatCount="indefinite"></animate>
 						</ellipse>
 						<ellipse cx="0" cy="0" rx="37.5" ry="80" fill="none" stroke="#3B82D6" stroke-width="2" stroke-dasharray="4 5">
-							<animate attributeName="stroke-dashoffset" from="360" to="0" dur="30s" repeatCount="indefinite"></animate>
+							<animate v-if="animationMode" attributeName="stroke-dashoffset" from="360" to="0" dur="30s" repeatCount="indefinite"></animate>
 						</ellipse>
 						<ellipse cx="0" cy="0" rx="25" ry="60" fill="none" stroke="#3B82D6" stroke-width="1.5" stroke-dasharray="3 4">
-							<animate attributeName="stroke-dashoffset" from="294" to="0" dur="30s" repeatCount="indefinite"></animate>
+							<animate v-if="animationMode" attributeName="stroke-dashoffset" from="294" to="0" dur="30s" repeatCount="indefinite"></animate>
 						</ellipse>
 					</svg>
 					<svg class="mag-line right" viewBox="-50 -100 100 200">
 						<ellipse cx="0" cy="0" rx="50" ry="100" fill="none" stroke="#3B82D6" stroke-width="2.5" stroke-dasharray="5 6">
-							<animate attributeName="stroke-dashoffset" from="0" to="484" dur="30s" repeatCount="indefinite"></animate>
+							<animate v-if="animationMode" attributeName="stroke-dashoffset" from="0" to="484" dur="30s" repeatCount="indefinite"></animate>
 						</ellipse>
 						<ellipse cx="0" cy="0" rx="37.5" ry="80" fill="none" stroke="#3B82D6" stroke-width="2" stroke-dasharray="4 5">
-							<animate attributeName="stroke-dashoffset" from="0" to="360" dur="30s" repeatCount="indefinite"></animate>
+							<animate v-if="animationMode" attributeName="stroke-dashoffset" from="0" to="360" dur="30s" repeatCount="indefinite"></animate>
 						</ellipse>
 						<ellipse cx="0" cy="0" rx="25" ry="60" fill="none" stroke="#3B82D6" stroke-width="1.5" stroke-dasharray="3 4">
-							<animate attributeName="stroke-dashoffset" from="0" to="294" dur="30s" repeatCount="indefinite"></animate>
+							<animate v-if="animationMode" attributeName="stroke-dashoffset" from="0" to="294" dur="30s" repeatCount="indefinite"></animate>
 						</ellipse>
 					</svg>
 				</template>
