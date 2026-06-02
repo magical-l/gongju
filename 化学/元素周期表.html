@@ -692,8 +692,11 @@
 			'灰/黄/黑': '#a09080',
 			'灰色金属光泽': '#a0a0a0',
 			'亮白色': '#fff9f0',
+			'亮黄色': '#ffe600',
 			'橙红色': '#ff6b35',
-			'无色': '#f9f9f9',
+			'海绿色': '#40a080',
+			'蓝绿色': '#20b2aa',
+			'淡紫色': '#c8a0d0',
 			'紫色': '#800080',
 			'紫黑色': '#4a004a',
 			'红/白 (有光泽)': '#ff6666',
@@ -922,6 +925,7 @@
 					if (!state) return null;
 					const color = state['颜色'];
 					if (color === null || color === undefined) return null;
+					if (color === '无色') return null;
 					if (typeof color === 'string') return color;
 					if (Array.isArray(color)) {
 						for (const entry of color) {
