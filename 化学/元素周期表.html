@@ -32,6 +32,16 @@
 			}
 		}
 
+		/* 温度滑块输入框宽度 */
+		.temperature.slider + .el-slider__input,
+		.temperature.slider .el-slider__input {
+			width: 90px;
+		}
+		.temperature.label {
+			font-size: 1.3em;
+			line-height: 1;
+		}
+
 		/*----------------过滤器------------*/
 		.element.category.filter {
 			--el-checkbox-button-checked-bg-color: transparent;
@@ -505,40 +515,48 @@
 	</header>
 	<main class="flex items-multi-line" v-cloak>
 		<header class="toolbar , monopoly item , items-multi-line flex items-near-x-center">
-			<el-radio-group class="one controller : width-mode" v-model="layout">
-				<el-radio-button v-for="opt in widthModes" :key="opt.value" :value="opt.value" size="small">{{ opt.label }}
-				</el-radio-button>
-			</el-radio-group>
-			<el-checkbox-group class="one controller" v-model="filtering" size="small">
-				<el-checkbox-button class="element category filter maybe with icon" :class="f.name" :title="f.name" :value="f.name" v-for="f in filters" :key="f.name" @mouseenter="hoverFilter=f.name" @mouseleave="hoverFilter=null">
-					<template v-if="f.symbol">{{ f.symbol }}</template>
-					<template v-else>{{ f.name }}</template>
-				</el-checkbox-button>
-			</el-checkbox-group>
-			<span class="one controller : temperature">
-				<el-input-number v-model="temperatureInMode" :min="temperatureMin" :max="temperatureMax" controls-position="right" size="small"></el-input-number>
-				<el-button class="temperature mode input , toggle" size="small" type="primary" @click="nextTemperatureMode">
-					{{temperatureMode}}</el-button>
-				<el-switch class="one controller" v-model="animationMode" active-text="动" inactive-text="静" size="small" style="--el-switch-on-color: #e8a020"></el-switch>
-			</span>
-			<el-popover class="one controller" placement="bottom" title="筛选发现年代" :width="400" trigger="click">
-				<template #reference>
-					<el-button size="small">年代</el-button>
-				</template>
-				<el-slider v-model="discoveryYear" :min="1650" :max="2025" show-input size="small"></el-slider>
-			</el-popover>
-			<el-button title="显示说明" size="small" circle @click="introVisible = true">?</el-button>
+			<div class="flex items-single-line items-near-x-center" style="gap:8px">
+				<div class="one controller group">
+					<el-radio-group title="宽度模式" class="one controller : width-mode" v-model="layout">
+						<el-radio-button v-for="opt in widthModes" :key="opt.value" :value="opt.value" size="small">{{ opt.label }}</el-radio-button>
+					</el-radio-group>
+				</div>
+				<div class="one controller group">
+					<span class="temperature label">🌡</span>
+					<el-slider title="温度" class="one controller : temperature slider"  v-model="temperatureInMode" :min="temperatureMin" :max="temperatureMax" :marks="temperatureMarks" show-input size="small" style="width:400px"></el-slider>
+					<el-button class="one controller : temperature mode input , toggle" size="small" type="primary" @click="nextTemperatureMode">{{temperatureMode}}</el-button>
+				</div>
+				<div class="one controller group">
+					<el-popover title="发现年代筛选" class="one controller : discovery year" placement="bottom" :width="400" trigger="click">
+						<template #reference>
+							<el-button size="small">年代</el-button>
+						</template>
+						<el-slider v-model="discoveryYear" :min="1650" :max="2025" show-input size="small"></el-slider>
+					</el-popover>
+				</div>
+				<div class="one controller group">
+					<el-switch title="动静态切换" class="one controller : animation toggle" v-model="animationMode" active-text="动态" inactive-text="静态" size="small" style="--el-switch-on-color: #e8a020"></el-switch>
+				</div>
+				<div class="one tool group">
+					<el-button title="显示说明" class="one tool : near-right" size="small" circle @click="introVisible = true">?</el-button>
+				</div>
+			</div>
+			<div class="monopoly-x flex items-single-line items-near-x-center" style="gap:8px;border-top:1px solid #dcdfe6;padding-top:8px">
+				<el-checkbox-group title="筛选" class="one controller : filter" v-model="filtering" size="small">
+					<el-checkbox-button class="element category filter maybe with icon" :class="f.name" :title="f.name" :value="f.name" v-for="f in filters" :key="f.name" @mouseenter="hoverFilter=f.name" @mouseleave="hoverFilter=null">
+						<template v-if="f.symbol">{{ f.symbol }}</template>
+						<template v-else>{{ f.name }}</template>
+					</el-checkbox-button>
+				</el-checkbox-group>
+			</div>
 			<el-dialog title="页面说明" v-model="introVisible" width="60%">
 				<p>这是一个交互式化学元素周期表。您可以探索元素的各种属性，并利用以下功能：</p>
 				<ul>
 					<li><strong>布局切换：</strong>在"宽版"和"窄版"之间切换，以适应不同屏幕尺寸。</li>
-					<li><strong>分类筛选：</strong>点击上方的分类按钮（如"碱金属"、"稀有气体"等），可以高亮显示特定类别的所有元素。再次点击可取消筛选。
-					</li>
+					<li><strong>分类筛选：</strong>点击上方的分类按钮（如"碱金属"、"稀有气体"等），可以高亮显示特定类别的所有元素。再次点击可取消筛选。</li>
 					<li><strong>发现年代筛选：</strong>通过拖动年代滑块，可以筛选出在特定年份之前发现的元素。</li>
-					<li><strong>温度模拟：</strong>拖动右侧的温度计滑块，或直接输入温度值，可以观察各元素在不同温度下的物态（固态、液态、气态）。您也可以切换温标（摄氏度、开尔文、华氏度）。
-					</li>
-					<li><strong>详细信息：</strong>点击任意元素，会在元素周期表右侧区域显示该元素的详细信息卡片，包括熔点、沸点、物态和发现年份等。
-					</li>
+					<li><strong>温度模拟：</strong>拖动右侧的温度计滑块，或直接输入温度值，可以观察各元素在不同温度下的物态（固态、液态、气态）。您也可以切换温标（摄氏度、开尔文、华氏度）。</li>
+					<li><strong>详细信息：</strong>点击任意元素，会在元素周期表右侧区域显示该元素的详细信息卡片，包括熔点、沸点、物态和发现年份等。</li>
 				</ul>
 				<p>将鼠标悬停在元素上可以查看其基本信息，元素右下角的图标代表了元素的特殊属性，例如放射性、人造、稀土等。</p>
 			</el-dialog>
@@ -792,12 +810,14 @@
 						return Math.round(celsiusToFahrenheit(this.temperature));
 					},
 					set(v) {
+						const min = this.temperatureMin, max = this.temperatureMax;
+						const clamped = Math.min(max, Math.max(min, v));
 						if (this.temperatureMode === '°C') {
-							this.temperature = Math.round(v);
+							this.temperature = Math.round(clamped);
 						} else if (this.temperatureMode === 'K') {
-							this.temperature = Math.round(kelvinToCelsius(v));
+							this.temperature = Math.round(kelvinToCelsius(clamped));
 						} else {
-							this.temperature = Math.round(fahrenheitToCelsius(v));
+							this.temperature = Math.round(fahrenheitToCelsius(clamped));
 						}
 					}
 				},
@@ -818,6 +838,17 @@
 						return Math.round(celsiusToKelvin(6000));
 					}
 					return Math.round(celsiusToFahrenheit(6000));
+				},
+				temperatureMarks() {
+					var marks = {};
+					if (this.temperatureMode === '°C') {
+						for (var t = 0; t <= 6000; t += 1000) marks[t] = {};
+					} else if (this.temperatureMode === 'K') {
+						for (var t = 0; t <= 6000; t += 1000) marks[Math.round(celsiusToKelvin(t))] = {};
+					} else {
+						for (var t = 0; t <= 6000; t += 1000) marks[Math.round(celsiusToFahrenheit(t))] = {};
+					}
+					return marks;
 				},
 			},
 			watch: {
