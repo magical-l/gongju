@@ -345,10 +345,6 @@
 		/*===================== 动态效果（动/静开关） ====================*/
 		.animation {
 			/*----- 液态、金属、贵金属、稀土 → 由 JS 动态拼接 animation 到 style -----*/
-			& .金属 {
-				background-size: 200% 200%;
-				background-repeat: no-repeat;
-			}
 			/*----- 气体：蒸腾粒子上升 -----*/
 			& .气态 .vapor-particle {
 				animation: vapor-rise 2.5s ease-out infinite;
@@ -406,9 +402,10 @@
 			50% { box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(180, 225, 70, 0.9); }
 		}
 		@keyframes metal-shine {
-			0% { background-position: 140% 140%; }
-			100% { background-position: -40% -40%; }
+			0% { background-position: 140% 140%, 0 0; }
+			100% { background-position: -40% -40%, 0 0; }
 		}
+
 		@keyframes rad-breathe {
 			0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(0.9); }
 			40% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
@@ -899,10 +896,26 @@
 					let state = element.states?.[phase];
 					if (!state) state = element.states?.['固态'];
 					const colorDesc = this.getColorDesc(state, this.temperature);
-					const color = colorDesc && 物态色值[colorDesc] ? 物态色值[colorDesc] : null;
+					let color, stateColor;
+					if (Array.isArray(colorDesc) && colorDesc[0]?.温度 !== undefined) {
+						const grad = this.computeGradientColor(colorDesc, this.temperature);
+						if (grad) {
+							// 静态：状态渐变色 + 固定金属高光（双层）
+							s.backgroundImage = [
+								`linear-gradient(145deg, transparent 20%, rgba(255,255,255,.35) 44%, rgba(255,255,255,.85) 49%, rgba(255,255,255,.35) 54%, transparent 80%)`,
+								`linear-gradient(135deg, ${grad.gradientA}, ${grad.gradientB})`
+							].join(',');
+							s.backgroundSize = '100% 100%, 100% 100%';
+							s.backgroundRepeat = 'no-repeat, no-repeat';
+							color = grad.mid;
+							stateColor = grad.mid;
+						}
+					} else {
+						color = colorDesc && 物态色值[colorDesc] ? 物态色值[colorDesc] : null;
+					}
 					if (color) {
 						s.backgroundColor = color;
-						s['--state-color'] = color;
+						s['--state-color'] = stateColor || color;
 					} else {
 						s.backgroundColor = 'var(--bg)';
 						s['--state-color'] = 'rgba(255,255,255,0.85)';
@@ -933,6 +946,11 @@
 					if (color === '无色') return null;
 					if (typeof color === 'string') return color;
 					if (Array.isArray(color)) {
+						// 锚点渐变格式: [{温度:1538,颜色:"橙红色"},...]
+						if (color.length > 0 && color[0].温度 !== undefined) {
+							return color; // 原样返回给 getElementStyle 处理渐变
+						}
+						// 旧的分段格式: [{范围:[1538,2000],颜色:"橙红色"},...]
 						for (const entry of color) {
 							if (!entry.范围) continue;
 							const [low, high] = entry.范围;
@@ -944,6 +962,39 @@
 					}
 					return null;
 				},
+				hexToRgb(hex) {
+					const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+					return result ? {
+						r: parseInt(result[1], 16),
+						g: parseInt(result[2], 16),
+						b: parseInt(result[3], 16)
+					} : { r: 0, g: 0, b: 0 };
+				},
+				computeGradientColor(anchors, temp) {
+					if (!anchors || anchors.length < 2) {
+						return anchors?.[0]?.颜色 ? 物态色值[anchors[0].颜色] : null;
+					}
+					// 确定两端锚点，只用首尾两个
+					const first = anchors[0], last = anchors[anchors.length - 1];
+					const range = last.温度 - first.温度;
+					const ratio = range === 0 ? 0 : Math.max(0, Math.min(1, (temp - first.温度) / range));
+					const hA = 物态色值[first.颜色];
+					const hB = 物态色值[last.颜色];
+					if (!hA || !hB) return null;
+					// 将ratio映射到渐变两端各自的混合比例
+					// 低温时两端都接近colorA（渐变几乎纯色）
+					// 中温时一端A一端B（渐变最明显）
+					// 高温时两端都接近colorB（渐变几乎纯色）
+					const startMix = Math.max(0, (ratio - 0.5) * 2);
+					const endMix = Math.min(1, ratio * 2);
+					const rgbA = this.hexToRgb(hA), rgbB = this.hexToRgb(hB);
+					const lerp = (a, b, t) => Math.round(a + (b - a) * t);
+					const startRgb = `rgb(${lerp(rgbA.r, rgbB.r, startMix)},${lerp(rgbA.g, rgbB.g, startMix)},${lerp(rgbA.b, rgbB.b, startMix)})`;
+					const endRgb = `rgb(${lerp(rgbA.r, rgbB.r, endMix)},${lerp(rgbA.g, rgbB.g, endMix)},${lerp(rgbA.b, rgbB.b, endMix)})`;
+					// 返回渐变色和中间色（用于--state-color和边框）
+					const midRgb = `rgb(${lerp(rgbA.r, rgbB.r, ratio)},${lerp(rgbA.g, rgbB.g, ratio)},${lerp(rgbA.b, rgbB.b, ratio)})`;
+					return { gradientA: startRgb, gradientB: endRgb, mid: midRgb };
+				},
 				getElementAnimation(element) {
 					if (!this.animationMode) return {};
 					const anims = [];
@@ -951,11 +1002,30 @@
 					const phase = this.getElementPhase(element);
 					if (tags.includes('贵金属')) anims.push('noble-shine 3s ease-in-out infinite');
 					if (tags.includes('稀土')) anims.push('rare-shine 3s ease-in-out infinite');
-					if (tags.includes('金属')) anims.push('metal-shine 2.5s ease-in-out infinite');
+					if (tags.includes('金属')) anims.push('metal-shine 2.5s ease-in-out infinite alternate');
 					if (phase === '液态') anims.push('liquid-morph 2s ease-in-out infinite');
 					if (anims.length === 0) return {};
 					const style = { animation: anims.join(', ') };
 					if (tags.includes('金属')) {
+						// 检查当前状态是否有渐变色
+						const state = element.states?.[phase];
+						if (state) {
+							const cd = this.getColorDesc(state, this.temperature);
+							if (Array.isArray(cd) && cd[0]?.温度 !== undefined) {
+								const grad = this.computeGradientColor(cd, this.temperature);
+								if (grad) {
+									style.backgroundImage = [
+										`linear-gradient(145deg, transparent 20%, rgba(255,255,255,.35) 44%, rgba(255,255,255,.85) 49%, rgba(255,255,255,.35) 54%, transparent 80%)`,
+										`linear-gradient(135deg, ${grad.gradientA}, ${grad.gradientB})`
+									].join(',');
+									style.backgroundSize = '200% 200%, 100% 100%';
+									style.backgroundRepeat = 'no-repeat, no-repeat';
+									return style;
+								}
+							}
+						}
+						// 非渐变的金属：只有高光层
+						style.backgroundImage = `linear-gradient(145deg, transparent 20%, rgba(255,255,255,.35) 44%, rgba(255,255,255,.85) 49%, rgba(255,255,255,.35) 54%, transparent 80%)`;
 						style.backgroundSize = '200% 200%';
 						style.backgroundRepeat = 'no-repeat';
 					}
