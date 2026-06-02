@@ -39,21 +39,6 @@
 			--el-checkbox-button-checked-text-color: var(--el-color-primary);
 		}
 
-		/*-------------温度控制器-------------*/
-		.temperature.controller {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-
-			& .el-input-number {
-				width: 80px;
-			}
-
-			& .temperature.mode.input {
-				width: 24px;
-			}
-		}
-
 		/*==========================元素周期表========================*/
 		.periodic-table-of-chemical-element {
 			--bg: seashell;
@@ -151,11 +136,11 @@
 			flex-direction: column;
 
 			/* 液体元素：用圆角表现液体张力 */
-			&.液体 {
+			&.液态 {
 				border-radius: 15%;
 			}
 			/* 气体元素：用虚线边框表示无边界，阴影表示扩散 */
-			&.气体 {
+			&.气态 {
 				border-style: dashed;
 				box-shadow: 0 0 20px 2px rgba(0, 0, 0, 0.8)
 			}
@@ -253,15 +238,6 @@
 
 		/*========================分组分类=====================*/
 
-	/* [title='人造元素'].with.icon::after {content: '🧪';font-size: 0.6em;}
-		[title='放射性元素'].with.icon::after {content: '☢️';font-size: 0.6em;}
-		[title='铁磁性元素'].with.icon::after {content: '🧲';font-size: 0.6em;}
-		[title='稀土元素'].with.icon::after {content: '💎';font-size: 0.6em;}
-		[title='贵金属'].with.icon::after {content: '💰';font-size: 0.6em;}
-		[title='气体'].with.icon::after {content: '🌀';}
-		[title='液体'].with.icon::after {content: '💧';}
-		[title='固体'].with.icon::after {content: '🪨';} */
-
 		.碱金属 { color: #cc5555; }
 		.碱土金属 { color: #cc8833; }
 		.过渡金属 { color: #999933; }
@@ -319,35 +295,14 @@
 			}
 		}
 
-		.filtering {
-			&.碱金属 .one.element:not(.碱金属),
-			&.碱土金属 .one.element:not(.碱土金属),
-			&.过渡金属 .one.element:not(.过渡金属),
-			&.贫金属 .one.element:not(.贫金属),
-			&.类金属 .one.element:not(.类金属),
-			&.活泼非金属 .one.element:not(.活泼非金属),
-			&.稀有气体 .one.element:not(.稀有气体),
-			&.放射性元素 .one.element:not(.放射性元素),
-			&.人造元素 .one.element:not(.人造元素),
-			&.稀土元素 .one.element:not(.稀土元素),
-			&.铁磁性元素 .one.element:not(.铁磁性元素),
-			&.贵金属 .one.element:not(.贵金属),
-			&.卤素 .one.element:not(.卤素),
-			&.气体 .one.element:not(.气体),
-			&.液体 .one.element:not(.液体),
-			&.固体 .one.element:not(.固体) {
-				opacity: 0.5;
-			}
-		}
-
 		/*===================== 动态效果（动/静开关） ====================*/
 		.animation {
 			/*----- 液态：形态变化（表面张力） -----*/
-			& .液体 {
+			& .液态 {
 				animation: liquid-morph 2s ease-in-out infinite;
 			}
 			/*----- 气体：呼吸脉动 -----*/
-			& .气体 {
+			& .气态 {
 				animation: gas-breathe 4s ease-in-out infinite;
 			}
 			/*----- 贵金属：box-shadow 呼吸灯 -----*/
@@ -546,7 +501,8 @@
 			</el-radio-group>
 			<el-checkbox-group class="one controller" v-model="filtering" size="small">
 				<el-checkbox-button class="element category filter maybe with icon" :class="f.name" :title="f.name" :value="f.name" v-for="f in filters" :key="f.name" @mouseenter="hoverFilter=f.name" @mouseleave="hoverFilter=null">
-					{{ f.name }}
+					<template v-if="f.symbol">{{ f.symbol }}</template>
+					<template v-else>{{ f.name }}</template>
 				</el-checkbox-button>
 			</el-checkbox-group>
 			<span class="one controller : temperature">
@@ -582,9 +538,9 @@
 				<p>{{n}}</p>
 			</section>
 			<!--<section class="族" v-for="group in groups" :key="group.name" :class="group.name">
-			<p>{{group.name}}</p>
-		</section>-->
-			<section :id="element.name" class="one element , items-go-y" :class="[...element.tags, `周期`+element.period, getElementPhase(element)]" :style="[getElementStyle(element), getYearFilterStyle(element)]" v-for="element in elements" :key="element.id" @click="curElement=element">
+				<p>{{group.name}}</p>
+			</section>-->
+			<section :id="element.name" class="one element , items-go-y" :class="[...element.tags, `周期`+element.period, getElementPhase(element)]" :style="[getElementStyle(element), getYearFilterStyle(element), elementFilterStyle(element)]" v-for="element in elements" :key="element.id" @click="curElement=element">
 				
 					<!-- 放射性粒子环 -->
 					<div v-if="animationMode && element.tags.includes('放射性元素')" class="rad-ring"></div>
@@ -622,7 +578,6 @@
 					</header>
 					<div class="body">
 						<p class="element name"><span>{{element.name}}</span></p>
-						<!-- <p class="element phase with icon" :title="getElementPhase(element)"></p> -->
 						<p class="element atomic-mass">{{element.原子量_近似}}</p>
 					</div>
 					<footer>
@@ -696,24 +651,8 @@
 	</div>
 	<script type="module">
 		import elements from './elements.js';
-		const groups = [{
-			name: '硼族元素',
-			col: -5
-		}, {
-			name: '碳族元素',
-			col: -4
-		}, {
-			name: '氮族元素',
-			col: -3
-		}, {
-			name: '氧族元素',
-			col: -2
-		}, {
-			name: '卤素',
-			col: -1
-		}];
-		const a = [2, 8, 8, 18, 18, 32, 32];
-		const categories = [{
+		import categories from './categories.js';
+	const categories = [{
 			name: '碱金属',
 			filterable: true
 		}, {
@@ -750,26 +689,8 @@
 			name: '贵金属',
 			filterable: true
 		}, {
-			name: '镧系元素',
-			filterable: false
-		}, {
-			name: '锕系元素',
-			filterable: false
-		}, {
 			name: '卤素',
 			filterable: true
-		}, {
-			name: '氧族元素',
-			filterable: false
-		}, {
-			name: '氮族元素',
-			filterable: false
-		}, {
-			name: '碳族元素',
-			filterable: false
-		}, {
-			name: '硼族元素',
-			filterable: false
 		}, {
 			name: '气体',
 			filterable: true
@@ -812,7 +733,6 @@
 		const data = {
 			elements,
 			curElement: elements.find(e => e.name === '钷'),
-			groups,
 			layout: null,
 			widthModes: [{
 				label: '宽版',
@@ -825,14 +745,27 @@
 			hoverFilter: null,
 			temperature: 0,
 			temperatureMode: '°C',
-			unitMenuVisible: false,
-			isThermometerDragging: false,
-			thermometerBoxHalf: 12,
 			discoveryYear: 2025,
 			introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname),
 			temperatureModes,
 			animationMode: false,
 		};
+		function findCategory(items, name) {
+			for (const item of items) {
+				if (item.name === name) return item;
+				if (item.children) {
+					const found = findCategory(item.children, name);
+					if (found) return found;
+				}
+			}
+			return null;
+		}
+		function collectTags(cat) {
+			const tags = new Set([cat.name]);
+			if (cat.children) cat.children.forEach(c => collectTags(c).forEach(t => tags.add(t)));
+			return tags;
+		}
+
 		const {
 			createApp
 		} = Vue;
@@ -842,16 +775,22 @@
 			},
 			computed: {
 				filters() {
-					return categories.filter(e => e.filterable);
+					const flatten = (items) => {
+						let result = [];
+						for (const item of items) {
+							if (item.children) {
+								if (item.filterable) result.push(item);
+								result = result.concat(flatten(item.children));
+							} else if (item.filterable) {
+								result.push(item);
+							}
+						}
+						return result;
+					};
+					return flatten(categories);
 				},
 				tableClasses() {
 					let rt = this.layout;
-					if (this.filtering?.length) {
-						rt += ' , filtering ' + this.filtering.join(' ');
-					}
-					if (this.hoverFilter) {
-						rt += ' , filtering ' + this.hoverFilter;
-					}
 					if (this.animationMode) {
 						// 注意：.animation 在花活.css 中仅用于 &.confetti（额外类名），
 						// 不含无前缀样式，因此不会注入无关样式。
@@ -897,35 +836,12 @@
 					}
 					return Math.round(celsiusToFahrenheit(6000));
 				},
-				temperatureMarks() {
-					const marks = {};
-					const min = this.temperatureMin;
-					const max = this.temperatureMax;
-					// 添加最低温度标记
-					marks[min] = `${min}`;
-					// 从0开始，每1000一档
-					for (let i = 0; i <= max; i += 1000) {
-						// 确保标记在有效范围内
-						if (i >= min && i <= max) {
-							marks[i] = `${i}`;
-						}
-					}
-					// 添加最高温度标记（如果最高温度不是1000的倍数，或者没有被之前的循环覆盖）
-					// 并且最高温度不等于最低温度，避免重复
-					if (max % 1000 !== 0 && max !== min) {
-						marks[max] = `${max}`;
-					}
-					return marks;
-				}
 			},
 			watch: {
 				layout(newLayout) {
 					if (!newLayout) {
 						this.checkLayout();
 					}
-				},
-				temperatureInMode() {
-					this.$nextTick(this.measureThermometerBox);
 				},
 				introVisible(newValue) {
 					const storageKey = 'intro-hidden-' + window.location.pathname;
@@ -956,16 +872,19 @@
 					}
 					return {};
 				},
-				measureThermometerBox() {
-					const el = this.$refs.thermometerValueBox;
-					if (!el) {
-						return;
+				elementFilterStyle(element) {
+					if (!this.filtering?.length && !this.hoverFilter) return {};
+					const names = [...(this.filtering || [])];
+					if (this.hoverFilter) names.push(this.hoverFilter);
+
+					const activeTags = new Set();
+					for (const name of names) {
+						const cat = findCategory(categories, name);
+						if (cat) collectTags(cat).forEach(t => activeTags.add(t));
 					}
-					const rect = el.getBoundingClientRect();
-					const half = rect.height / 2;
-					if (half > 6 && Math.abs(half - this.thermometerBoxHalf) > 0.5) {
-						this.thermometerBoxHalf = half;
-					}
+
+					const visible = element.tags.some(t => activeTags.has(t));
+					return visible ? {} : { opacity: 0.5, pointerEvents: 'none' };
 				},
 				checkLayout() {
 					if (this.layout) {
@@ -983,7 +902,8 @@
 						'grid-column': element.col > 0 ? element.col + 1 : element.col - 1
 					};
 					const phase = this.getElementPhase(element);
-					let state = element.states?.[phase];
+					const stateKey = { '气态': '气体', '液态': '液体', '固态': '固体' }[phase] || phase;
+					let state = element.states?.[stateKey];
 					if (!state) state = element.states?.['固体'];
 					const colorDesc = state?.['颜色'];
 					const color = colorDesc && 物态色值[colorDesc] ? 物态色值[colorDesc] : null;
@@ -999,15 +919,15 @@
 					const bp = parseFloat(element.沸点);
 					const temp = this.temperature;
 					if (!isNaN(bp) && temp >= bp) {
-						return '气体';
+						return '气态';
 					}
 					const isAboveMeltingPoint = !isNaN(mp) && temp >= mp;
 					const isMeltUnknownAndBelowBoiling = isNaN(mp) && !isNaN(bp) && temp < bp;
 					if (isAboveMeltingPoint || isMeltUnknownAndBelowBoiling) {
-						return '液体';
+						return '液态';
 					}
 					if (!isNaN(mp) && temp < mp) {
-						return '固体';
+						return '固态';
 					}
 					return '未知';
 				},
@@ -1020,7 +940,6 @@
 			mounted() {
 				this.checkLayout();
 				window.addEventListener('resize', this.checkLayout);
-				this.$nextTick(this.measureThermometerBox);
 			},
 			beforeUnmount() {
 				window.removeEventListener('resize', this.checkLayout);
