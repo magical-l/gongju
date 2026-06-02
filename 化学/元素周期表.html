@@ -325,37 +325,14 @@
 
 		/*===================== 动态效果（动/静开关） ====================*/
 		.animation {
-			/*----- 液态：形态变化（表面张力） -----*/
-			& .液态 {
-				animation: liquid-morph 2s ease-in-out infinite;
+			/*----- 液态、金属、贵金属、稀土 → 由 JS 动态拼接 animation 到 style -----*/
+			& .金属 {
+				background-size: 200% 200%;
+				background-repeat: no-repeat;
 			}
 			/*----- 气体：蒸腾粒子上升 -----*/
 			& .气态 .vapor-particle {
 				animation: vapor-rise 2.5s ease-out infinite;
-			}
-			/*----- 贵金属：box-shadow 呼吸灯 -----*/
-			& .贵金属 {
-				animation: noble-shine 3s ease-in-out infinite;
-			}
-			/*----- 稀土：box-shadow 呼吸灯 -----*/
-			& .稀土 {
-				animation: rare-shine 3s ease-in-out infinite;
-			}
-			/*----- 金属：145°高光从左上到右下滑过 -----*/
-			& .金属 {
-				background-size: 200% 200%;
-				background-repeat: no-repeat;
-				animation: metal-shine 2.5s ease-in-out infinite;
-			}
-
-			& .金属.贵金属 {
-				animation: noble-shine 3s ease-in-out infinite,
-					metal-shine 2.5s ease-in-out infinite;
-			}
-
-			& .金属.稀土 {
-				animation: rare-shine 3s ease-in-out infinite,
-					metal-shine 2.5s ease-in-out infinite;
 			}
 
 			/*----- 放射性：☢ 呼吸 + 点状粒子环辐射 -----*/
@@ -583,7 +560,7 @@
 			<!--<section class="族" v-for="group in groups" :key="group.name" :class="group.name">
 				<p>{{group.name}}</p>
 			</section>-->
-			<section :id="element.name" class="one element , items-go-y" :class="[...element.tags, `周期`+element.period, getElementPhase(element)]" :style="[getElementStyle(element), getYearFilterStyle(element), elementFilterStyle(element)]" v-for="element in elements" :key="element.id" @click="curElement=element">
+			<section :id="element.name" class="one element , items-go-y" :class="[...element.tags, `周期`+element.period, getElementPhase(element)]" :style="[getElementStyle(element), getYearFilterStyle(element), elementFilterStyle(element), getElementAnimation(element)]" v-for="element in elements" :key="element.id" @click="curElement=element">
 
 					<!-- 放射性粒子环 -->
 					<div v-if="animationMode && element.tags.includes('放射性')" class="rad-ring"></div>
@@ -936,6 +913,23 @@
 						return '固态';
 					}
 					return '未知';
+				},
+				getElementAnimation(element) {
+					if (!this.animationMode) return {};
+					const anims = [];
+					const tags = element.tags;
+					const phase = this.getElementPhase(element);
+					if (tags.includes('贵金属')) anims.push('noble-shine 3s ease-in-out infinite');
+					if (tags.includes('稀土')) anims.push('rare-shine 3s ease-in-out infinite');
+					if (tags.includes('金属')) anims.push('metal-shine 2.5s ease-in-out infinite');
+					if (phase === '液态') anims.push('liquid-morph 2s ease-in-out infinite');
+					if (anims.length === 0) return {};
+					const style = { animation: anims.join(', ') };
+					if (tags.includes('金属')) {
+						style.backgroundSize = '200% 200%';
+						style.backgroundRepeat = 'no-repeat';
+					}
+					return style;
 				},
 				nextTemperatureMode() {
 					const len = temperatureModes.length;
