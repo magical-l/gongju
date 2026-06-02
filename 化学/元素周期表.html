@@ -907,13 +907,17 @@
 					if (Array.isArray(colorDesc) && colorDesc[0]?.温度 !== undefined) {
 						const grad = this.computeGradientColor(colorDesc, this.temperature);
 						if (grad) {
-							// 静态：状态渐变色 + 固定金属高光（双层）
-							s.backgroundImage = [
-								`linear-gradient(145deg, transparent 20%, rgba(255,255,255,.35) 44%, rgba(255,255,255,.85) 49%, rgba(255,255,255,.35) 54%, transparent 80%)`,
+							const layers = [
 								`linear-gradient(135deg, ${grad.gradientA}, ${grad.gradientB})`
-							].join(',');
-							s.backgroundSize = '100% 100%, 100% 100%';
-							s.backgroundRepeat = 'no-repeat, no-repeat';
+							];
+							if (element.tags?.includes('金属')) {
+								layers.unshift(
+									`linear-gradient(145deg, transparent 20%, rgba(255,255,255,.35) 44%, rgba(255,255,255,.85) 49%, rgba(255,255,255,.35) 54%, transparent 80%)`
+								);
+							}
+							s.backgroundImage = layers.join(',');
+							s.backgroundSize = '100% 100%' + (element.tags?.includes('金属') ? ', 100% 100%' : '');
+							s.backgroundRepeat = 'no-repeat' + (element.tags?.includes('金属') ? ', no-repeat' : '');
 							color = grad.mid;
 							stateColor = grad.mid;
 						}
