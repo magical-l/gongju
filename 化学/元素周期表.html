@@ -66,6 +66,21 @@
 			overflow: auto;
 			gap: var(--element-gap);
 
+			& .周期1 { grid-row: calc(1 + var(--period1-row-offset)); }
+			& .周期2 { grid-row: calc(2 + var(--period1-row-offset)); }
+			& .周期3 { grid-row: calc(3 + var(--period1-row-offset)); }
+			& .周期4 { grid-row: calc(4 + var(--period1-row-offset)); }
+			& .周期5 { grid-row: calc(5 + var(--period1-row-offset)); }
+			& .周期6 { grid-row: calc(6 + var(--period1-row-offset)); }
+			& .周期7 { grid-row: calc(7 + var(--period1-row-offset)); }
+
+			& .周期序号 { grid-column: 1; border: 1px solid #ccc; }
+			& .硼族元素 { grid-column: -7; }
+			& .碳族元素 { grid-column: -6; }
+			& .氮族元素 { grid-column: -5; }
+			& .氧族元素 { grid-column: -4; }
+			& .卤素 { grid-column: -3; }
+
 			&.full-width {
 				height: 600px;
 				grid-template-columns: 10px repeat(32, 81px);
@@ -77,6 +92,55 @@
 				grid-template-columns: 10px repeat(18, 70px);
 				/* 经测试，1fr（80px）都会导致出现纵向滚动条（edge上阈值为79.7858px，即总高度超过718px，不可解，不知道哪里来的2像素导致了溢出），所以写死79px。 */
 				grid-template-rows: repeat(9, 70px);
+
+				& .周期7 {
+					grid-row-start: calc(8 + var(--period1-row-offset));
+
+					&.周期序号 {
+						grid-row-end: span 2;
+					}
+
+					&.锕系 {
+						grid-row: 9;
+					}
+				}
+
+				& .周期6 {
+					&.周期序号 {
+						grid-row-end: span 2;
+					}
+
+					&.镧系 {
+						grid-row: 7;
+					}
+				}
+
+				& .镧系标签, & .锕系标签 {
+					grid-column: 4;
+					position: relative;
+					top: var(--element-gap);
+					height: 100%;
+					clip-path: polygon(0% 0%, 100% 0%, 100% 85%, 50% 100%, 0% 85%);
+					background: #eee;
+					display: flex;
+					justify-content: center;
+					align-items: center;
+					font-size: 0.75em;
+
+					& p {
+						text-align: center;
+						line-height: 1.3;
+						margin: 0;
+					}
+				}
+
+				& .镧系标签 {
+					grid-row: 6;
+				}
+
+				& .锕系标签 {
+					grid-row: 8;
+				}
 			}
 		}
 
@@ -85,6 +149,47 @@
 			position: relative;
 			display: flex;
 			flex-direction: column;
+
+			/* 液体元素：用圆角表现液体张力 */
+			&.液体 {
+				border-radius: 15%;
+			}
+			/* 气体元素：用虚线边框表示无边界，阴影表示扩散 */
+			&.气体 {
+				border-style: dashed;
+				box-shadow: 0 0 20px 2px rgba(0, 0, 0, 0.8)
+			}
+			/* 金属元素：用光滑表面的斜线高光展现金属光洁表面反光 */
+			&.金属 {
+				background: linear-gradient(145deg, transparent 20%, rgba(255, 255, 255, .35) 44%, rgba(255, 255, 255, .85) 49%, rgba(255, 255, 255, .35) 54%, transparent 80%);
+			}
+			/* 稀土元素：用黄绿色阴影表示荧光 */
+			&.稀土元素 {
+				box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(180, 225, 70, 0.8);
+			}
+			/* 贵金属：用金色阴影表示贵重 */
+			&.贵金属 {
+				box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(255, 215, 0, 0.6);
+			}
+			
+			& .辐射-icon {
+				position: absolute;
+				font-size: 70px;
+				color: rgba(180, 90, 30, 0.5);
+				pointer-events: none;
+				top: 50%; left: 50%;
+				transform: translate(-50%, -50%);
+				opacity: 0.6;
+			}
+		
+			& .人造-icon {
+				position: absolute;
+				font-size: 22px;
+				line-height: 1;
+				bottom: -8px;
+				left: -10px;
+				pointer-events: none;
+			}
 		}
 
 		.element.info {
@@ -146,99 +251,7 @@
 			}
 		}
 
-		.half-width {
-			& .周期7 {
-				grid-row-start: calc(8 + var(--period1-row-offset));
-
-				&.周期序号 {
-					grid-row-end: span 2;
-				}
-
-				&.锕系 {
-					grid-row: 9;
-				}
-			}
-
-			& .周期6 {
-				&.周期序号 {
-					grid-row-end: span 2;
-				}
-
-				&.镧系 {
-					grid-row: 7;
-				}
-			}
-
-			& .镧系标签, & .锕系标签 {
-				grid-column: 4;
-				position: relative;
-				top: var(--element-gap);
-				height: 100%;
-				clip-path: polygon(0% 0%, 100% 0%, 100% 85%, 50% 100%, 0% 85%);
-				background: #eee;
-				display: flex;
-				justify-content: center;
-				align-items: center;
-				font-size: 0.75em;
-
-				& p {
-					text-align: center;
-					line-height: 1.3;
-					margin: 0;
-				}
-			}
-
-			& .镧系标签 {
-				grid-row: 6;
-			}
-
-			& .锕系标签 {
-				grid-row: 8;
-			}
-		}
-
 		/*========================分组分类=====================*/
-		.one.element.液体 {
-			border-radius: 15%;
-		}
-
-		.one.element.气体 {
-			border-style: dashed;
-			box-shadow: 0 0 6px rgba(0, 0, 0, 0.08);
-		}
-
-		.辐射-icon {
-			position: absolute;
-			font-size: 70px;
-			color: rgba(180, 90, 30, 0.5);
-			pointer-events: none;
-			top: 50%; left: 50%;
-			transform: translate(-50%, -50%);
-			opacity: 0.6;
-		}
-
-		.one.element.稀土元素 {
-			outline: 1px solid rgba(180, 225, 70, 1);
-			outline-offset: 1px;
-			box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(180, 225, 70, 0.8);
-		}
-
-		.人造-icon {
-			position: absolute;
-			font-size: 22px;
-			line-height: 1;
-			bottom: -8px;
-			left: -10px;
-			pointer-events: none;
-		}
-
-		/* 贵金属：金光闪闪 */
-		.one.element.贵金属 {
-			border: 1px solid rgba(255, 215, 0, 0.8);
-			box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(255, 215, 0, 0.6);
-		}
-
-		/* 铁磁性：磁感线弧 */
 
 	/* [title='人造元素'].with.icon::after {content: '🧪';font-size: 0.6em;}
 		[title='放射性元素'].with.icon::after {content: '☢️';font-size: 0.6em;}
@@ -248,186 +261,103 @@
 		[title='气体'].with.icon::after {content: '🌀';}
 		[title='液体'].with.icon::after {content: '💧';}
 		[title='固体'].with.icon::after {content: '🪨';} */
-		.周期1 {
-			grid-row: calc(1 + var(--period1-row-offset));
+
+		.碱金属 { color: #cc5555; }
+		.碱土金属 { color: #cc8833; }
+		.过渡金属 { color: #999933; }
+		.镧系 { color: #339933; }
+		.锕系 { color: #3366cc; }
+		.类金属 { color: #6644cc; }
+		.贫金属 { color: #8844aa; }
+		.活泼非金属 { color: #cc44aa; }
+		.稀有气体 { color: #888888; }
+
+		.category.filter {
+			&.碱金属 {
+				--el-checkbox-button-checked-bg-color: #cc5555;
+				--el-checkbox-button-checked-text-color: #fff;
+			}
+	
+			&.碱土金属 {
+				--el-checkbox-button-checked-bg-color: #cc8833;
+				--el-checkbox-button-checked-text-color: #fff;
+			}
+	
+			&.过渡金属 {
+				--el-checkbox-button-checked-bg-color: #999933;
+				--el-checkbox-button-checked-text-color: #fff;
+			}
+	
+			&.镧系 {
+				--el-checkbox-button-checked-bg-color: #339933;
+				--el-checkbox-button-checked-text-color: #fff;
+			}
+	
+			&.锕系 {
+				--el-checkbox-button-checked-bg-color: #3366cc;
+				--el-checkbox-button-checked-text-color: #fff;
+			}
+	
+			&.类金属 {
+				--el-checkbox-button-checked-bg-color: #6644cc;
+				--el-checkbox-button-checked-text-color: #fff;
+			}
+	
+			&.贫金属 {
+				--el-checkbox-button-checked-bg-color: #8844aa;
+				--el-checkbox-button-checked-text-color: #fff;
+			}
+	
+			&.活泼非金属 {
+				--el-checkbox-button-checked-bg-color: #cc44aa;
+				--el-checkbox-button-checked-text-color: #fff;
+			}
+	
+			&.稀有气体 {
+				--el-checkbox-button-checked-bg-color: #888888;
+				--el-checkbox-button-checked-text-color: #fff;
+			}
 		}
 
-		.周期2 {
-			grid-row: calc(2 + var(--period1-row-offset));
-		}
-
-		.周期3 {
-			grid-row: calc(3 + var(--period1-row-offset));
-		}
-
-		.周期4 {
-			grid-row: calc(4 + var(--period1-row-offset));
-		}
-
-		.周期5 {
-			grid-row: calc(5 + var(--period1-row-offset));
-		}
-
-		.周期6 {
-			grid-row: calc(6 + var(--period1-row-offset));
-		}
-
-		.周期7 {
-			grid-row: calc(7 + var(--period1-row-offset));
-		}
-
-		.周期序号 {
-			grid-column: 1;
-			border: 1px solid #ccc;
-		}
-
-		.硼族元素 {
-			grid-column: -7;
-		}
-
-		.碳族元素 {
-			grid-column: -6;
-		}
-
-		.氮族元素 {
-			grid-column: -5;
-		}
-
-		.氧族元素 {
-			grid-column: -4;
-		}
-
-		.卤素 {
-			grid-column: -3;
-		}
-
-		.碱金属 {
-			color: #cc5555;
-		}
-
-		.碱土金属 {
-			color: #cc8833;
-		}
-
-		.过渡金属 {
-			color: #999933;
-		}
-
-		.镧系 {
-			color: #339933;
-		}
-
-		.锕系 {
-			color: #3366cc;
-		}
-
-		.类金属 {
-			color: #6644cc;
-		}
-
-		.贫金属 {
-			color: #8844aa;
-		}
-
-		.活泼非金属 {
-			color: #cc44aa;
-		}
-
-		.稀有气体 {
-			color: #888888;
-		}
-
-		.金属 {
-			background: linear-gradient(145deg, transparent 20%, rgba(255, 255, 255, .35) 44%, rgba(255, 255, 255, .85) 49%, rgba(255, 255, 255, .35) 54%, transparent 80%)
-		}
-
-		.碱金属.category.filter {
-			--el-checkbox-button-checked-bg-color: #cc5555;
-			--el-checkbox-button-checked-text-color: #fff;
-		}
-
-		.碱土金属.category.filter {
-			--el-checkbox-button-checked-bg-color: #cc8833;
-			--el-checkbox-button-checked-text-color: #fff;
-		}
-
-		.过渡金属.category.filter {
-			--el-checkbox-button-checked-bg-color: #999933;
-			--el-checkbox-button-checked-text-color: #fff;
-		}
-
-		.镧系.category.filter {
-			--el-checkbox-button-checked-bg-color: #339933;
-			--el-checkbox-button-checked-text-color: #fff;
-		}
-
-		.锕系.category.filter {
-			--el-checkbox-button-checked-bg-color: #3366cc;
-			--el-checkbox-button-checked-text-color: #fff;
-		}
-
-		.类金属.category.filter {
-			--el-checkbox-button-checked-bg-color: #6644cc;
-			--el-checkbox-button-checked-text-color: #fff;
-		}
-
-		.贫金属.category.filter {
-			--el-checkbox-button-checked-bg-color: #8844aa;
-			--el-checkbox-button-checked-text-color: #fff;
-		}
-
-		.活泼非金属.category.filter {
-			--el-checkbox-button-checked-bg-color: #cc44aa;
-			--el-checkbox-button-checked-text-color: #fff;
-		}
-
-		.稀有气体.category.filter {
-			--el-checkbox-button-checked-bg-color: #888888;
-			--el-checkbox-button-checked-text-color: #fff;
-		}
-
-		.filtering.碱金属 .one.element:not(.碱金属),
-		.filtering.碱土金属 .one.element:not(.碱土金属),
-		.filtering.过渡金属 .one.element:not(.过渡金属),
-		.filtering.贫金属 .one.element:not(.贫金属),
-		.filtering.类金属 .one.element:not(.类金属),
-		.filtering.活泼非金属 .one.element:not(.活泼非金属),
-		.filtering.稀有气体 .one.element:not(.稀有气体),
-		.filtering.放射性元素 .one.element:not(.放射性元素),
-		.filtering.人造元素 .one.element:not(.人造元素),
-		.filtering.稀土元素 .one.element:not(.稀土元素),
-		.filtering.铁磁性元素 .one.element:not(.铁磁性元素),
-		.filtering.贵金属 .one.element:not(.贵金属),
-		.filtering.卤素 .one.element:not(.卤素),
-		.filtering.气体 .one.element:not(.气体),
-		.filtering.液体 .one.element:not(.液体),
-		.filtering.固体 .one.element:not(.固体) {
-			opacity: 0.5;
+		.filtering {
+			&.碱金属 .one.element:not(.碱金属),
+			&.碱土金属 .one.element:not(.碱土金属),
+			&.过渡金属 .one.element:not(.过渡金属),
+			&.贫金属 .one.element:not(.贫金属),
+			&.类金属 .one.element:not(.类金属),
+			&.活泼非金属 .one.element:not(.活泼非金属),
+			&.稀有气体 .one.element:not(.稀有气体),
+			&.放射性元素 .one.element:not(.放射性元素),
+			&.人造元素 .one.element:not(.人造元素),
+			&.稀土元素 .one.element:not(.稀土元素),
+			&.铁磁性元素 .one.element:not(.铁磁性元素),
+			&.贵金属 .one.element:not(.贵金属),
+			&.卤素 .one.element:not(.卤素),
+			&.气体 .one.element:not(.气体),
+			&.液体 .one.element:not(.液体),
+			&.固体 .one.element:not(.固体) {
+				opacity: 0.5;
+			}
 		}
 
 		/*===================== 动态效果（动/静开关） ====================*/
 		.animation {
-
 			/*----- 液态：形态变化（表面张力） -----*/
 			& .液体 {
 				animation: liquid-morph 2s ease-in-out infinite;
 			}
-
 			/*----- 气体：呼吸脉动 -----*/
 			& .气体 {
 				animation: gas-breathe 4s ease-in-out infinite;
 			}
-
 			/*----- 贵金属：box-shadow 呼吸灯 -----*/
 			& .贵金属 {
 				animation: noble-shine 3s ease-in-out infinite;
 			}
-
 			/*----- 稀土：box-shadow 呼吸灯 -----*/
 			& .稀土元素 {
 				animation: rare-shine 3s ease-in-out infinite;
 			}
-
 			/*----- 金属：145°高光从左上到右下滑过 -----*/
 			& .金属 {
 				background-size: 200% 200%;
@@ -462,23 +392,22 @@
 				animation: rad-ring 3s ease-in-out infinite both;
 			}
 
-
 			/*----- 铁磁性：磁感线沿椭圆路径流动 -----*/
 			& .铁磁性元素 {
 				overflow-x: clip;
-			}
-			& .铁磁性元素 .mag-line {
-				position: absolute;
-				top: calc((100% - 150px)/2);
-				z-index: -1;
-				width: 70px; height: 150px;
-				pointer-events: none;
-			}
-			& .铁磁性元素 .mag-line.left {
-				left: calc(100% - 35px);
-			}
-			& .铁磁性元素 .mag-line.right {
-				right: calc(100% - 35px);
+				& .mag-line {
+					position: absolute;
+					top: calc((100% - 150px)/2);
+					z-index: -1;
+					width: 70px; height: 150px;
+					pointer-events: none;
+					&.left {
+						left: calc(100% - 35px);
+					}
+					&.right {
+						right: calc(100% - 35px);
+					}
+				}
 			}
 		}
 
