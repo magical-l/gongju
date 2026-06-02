@@ -48,7 +48,8 @@
 			min-width: 0;/* 防止flex项目因内容过宽而溢出 */
 			background-color: var(--bg);
 			transition: all 0.5s ease-in-out;
-			overflow: auto;
+			/* overflow: auto; */
+			padding-top: 8px;
 			gap: var(--element-gap);
 
 			& .周期1 { grid-row: calc(1 + var(--period1-row-offset)); }
@@ -690,6 +691,9 @@
 			'深红色至黑色': '#8b0000',
 			'灰/黄/黑': '#a09080',
 			'灰色金属光泽': '#a0a0a0',
+			'亮白色': '#fff9f0',
+			'橙红色': '#ff6b35',
+			'无色': '#f9f9f9',
 			'紫色': '#800080',
 			'紫黑色': '#4a004a',
 			'红/白 (有光泽)': '#ff6666',
@@ -886,13 +890,13 @@
 					const phase = this.getElementPhase(element);
 					let state = element.states?.[phase];
 					if (!state) state = element.states?.['固态'];
-					const colorDesc = state?.['颜色'];
+					const colorDesc = this.getColorDesc(state, this.temperature);
 					const color = colorDesc && 物态色值[colorDesc] ? 物态色值[colorDesc] : null;
 					if (color) {
 						s.backgroundColor = color;
 						s['--state-color'] = color;
 					} else {
-						s.backgroundColor = 'transparent';
+						s.backgroundColor = 'var(--bg)';
 						s['--state-color'] = 'rgba(255,255,255,0.85)';
 					}
 					return s;
@@ -913,6 +917,23 @@
 						return '固态';
 					}
 					return '未知';
+				},
+				getColorDesc(state, temp) {
+					if (!state) return null;
+					const color = state['颜色'];
+					if (color === null || color === undefined) return null;
+					if (typeof color === 'string') return color;
+					if (Array.isArray(color)) {
+						for (const entry of color) {
+							if (!entry.范围) continue;
+							const [low, high] = entry.范围;
+							const lowOk = low === null || temp >= low;
+							const highOk = high === null || temp < high;
+							if (lowOk && highOk) return entry.颜色;
+						}
+						return null;
+					}
+					return null;
 				},
 				getElementAnimation(element) {
 					if (!this.animationMode) return {};
