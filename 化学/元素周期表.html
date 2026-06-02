@@ -242,34 +242,6 @@
 		}
 
 		/* 铁磁性：磁感线弧 */
-		.one.element.铁磁性元素 {
-			--line-w: 70px;
-			--line-h: 150px;
-			overflow-x: clip;
-
-			&::before, &::after {
-				position: absolute;
-				top: calc((100% - var(--line-h))/2);
-				z-index: -1;
-				width: var(--line-w);
-				height: var(--line-h);
-				content: '';
-				background-image: url("弧.svg"), url("弧.svg"), url("弧.svg");
-				background-size:
-					calc(var(--line-w)*0.90) calc(var(--line-h)*0.90),
-					calc(var(--line-w)*0.75) calc(var(--line-h)*0.75),
-					calc(var(--line-w)*0.60) calc(var(--line-h)*0.60);
-				background-position: center;
-				background-repeat: no-repeat;
-				pointer-events: none;
-			}
-			&::before {
-				left: calc(100% - var(--line-w)/2);
-			}
-			&::after {
-				right: calc(100% - var(--line-w)/2);
-			}
-		}
 
 	/* [title='人造元素'].with.icon::after {content: '🧪';font-size: 0.6em;}
 		[title='放射性元素'].with.icon::after {content: '☢️';font-size: 0.6em;}
@@ -511,10 +483,6 @@
 			& .铁磁性元素 .mag-line.right {
 				right: calc(100% - 35px);
 			}
-			.one.element.铁磁性元素::before,
-			.one.element.铁磁性元素::after {
-				display: none;
-			}
 		}
 
 		/*--- @keyframes （从 .animation 中提取到外层） ---*/
@@ -695,7 +663,7 @@
 					<!-- 放射性粒子环 -->
 					<div v-if="animationMode && element.tags.includes('放射性元素')" class="rad-ring"></div>
 					<!-- 磁感线（铁磁性元素，动画模式用SVG代替background-image伪元素） -->
-				<template v-if="animationMode && element.tags.includes('铁磁性元素')">
+				<template v-if="element.tags.includes('铁磁性元素')">
 					<svg class="mag-line left" viewBox="-50 -100 100 200">
 						<ellipse cx="0" cy="0" rx="50" ry="100" fill="none" stroke="#3B82D6" stroke-width="2.5" stroke-dasharray="5 6">
 							<animate attributeName="stroke-dashoffset" from="484" to="0" dur="30s" repeatCount="indefinite"></animate>
