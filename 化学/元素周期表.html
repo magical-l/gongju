@@ -522,7 +522,7 @@
 				</div>
 				<div class="one controller group">
 					<span>年份</span>
-					<el-slider class="one controller : discovery year" v-model="discoveryYear" :min="1650" :max="2025" show-input size="small" style="width:400px"></el-slider>
+					<el-slider class="one controller : discovery year" v-model="discoveryYear" :min="1650" :max="2025" :marks="yearMarks" show-input size="small" style="width:400px"></el-slider>
 				</div>
 				<div class="one controller group">
 					<el-switch title="动静态切换" class="one controller : animation toggle" v-model="animationMode" active-text="动态" inactive-text="静态" size="small" style="--el-switch-on-color: #e8a020"></el-switch>
@@ -822,6 +822,9 @@
 					}
 					return Math.round(celsiusToFahrenheit(6000));
 				},
+				yearMarks() {
+					return { 1700:{}, 1800:{}, 1900:{}, 2000:{} };
+				},
 				temperatureMarks() {
 					var marks = {};
 					if (this.temperatureMode === '°C') {
@@ -853,7 +856,7 @@
 				getYearFilterStyle(element) {
 					const year = element.发现年份;
 					if (year === '古代' || !year) {
-						return {};
+					return {};
 					}
 					if (year === '未知') {
 						return this.discoveryYear === 2025 ? {} : {
@@ -862,7 +865,7 @@
 						};
 					}
 					if (Number(year) > this.discoveryYear) {
-						return {
+					return {
 							opacity: 0.2,
 							pointerEvents: 'none'
 						};
