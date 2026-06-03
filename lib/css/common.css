@@ -96,6 +96,7 @@ form:has(input:invalid:not(:placeholder-shown)) {
 	<label class="toggle btn">
 		<input type="checkbox" />
 		<span>弹起</span>
+		<span>凹陷</span>
 	</label>
  */
 label.toggle.btn {

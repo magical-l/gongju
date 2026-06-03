@@ -114,24 +114,25 @@
 
 				&.镧系收起 .镧系, &.锕系收起 .锕系 { display: none; }
 
-				/* ------ 标签 ------*/
+				/* ------ 标签：透明卡盒 ------*/
 				& .镧系标签, & .锕系标签 {
 					grid-column: 4;
 					position: relative;
-					top: var(--element-gap);
 					height: 100%;
-					clip-path: polygon(0% 0%, 100% 0%, 100% 85%, 50% 100%, 0% 85%);
 					display: flex;
 					justify-content: center;
 					align-items: center;
 					font-size: 0.75em;
-					transition: background 0.3s, color 0.3s, box-shadow 0.3s;
+					transition: background 0.3s, color 0.3s, box-shadow 0.3s, border-color 0.3s;
 					cursor: pointer;
 					user-select: none;
-					/* 卡盒（收起默认外观） */
-					background: linear-gradient(145deg, #6B3A1F, #8B5E3C, #6B3A1F);
-					color: #f5deb3;
-					box-shadow: inset 0 -4px 6px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.25);
+					--box-border: 2px;
+					/* 透明盒 */
+					border: var(--box-border) solid rgba(255,255,255,0.6);
+					background: linear-gradient(145deg, rgba(240,230,210,0.6), rgba(210,195,170,0.4));
+					color: rgba(255,250,240,0.85);
+					box-shadow: 0 2px 6px rgba(0,0,0,0.12), inset 0 0 20px rgba(255,255,255,0.1);
+					perspective: 200px;
 
 					& p { text-align: center; line-height: 1.3; margin: 0; }
 
@@ -141,6 +142,21 @@
 						opacity: 0.5;
 						pointer-events: none;
 						transform: translate(-50%, -50%) rotate(-8deg);
+					}
+					/* 封口三角（全宽，底部为轴翻转） */
+					& .flap {
+						position: absolute;
+						left: 0; right: 0;
+						bottom: 0;
+						height: 8px;
+						background: rgba(220,210,190,0.6);
+						clip-path: polygon(0% 100%, 50% 0%, 100% 100%);
+						transform-origin: bottom;
+						transform: rotateX(0deg);
+						transition: transform 0.3s;
+						backface-visibility: visible;
+						pointer-events: none;
+						z-index: 0;
 					}
 				}
 				& .镧系标签 {
@@ -154,20 +170,23 @@
 					&::after { content: "♦"; right: 15%; top: 55%; }
 				}
 
-				/* 展开状态：空盒 */
+				/* 展开：盒子空了，封口向下打开 */
 				&.镧系展开 .镧系标签, &.锕系展开 .锕系标签 {
-					background: linear-gradient(145deg, #d4c5a9, #c4b599, #d4c5a9);
-					color: #5a4a3a;
-					box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
+					background: linear-gradient(145deg, rgba(240,230,210,0.3), rgba(210,195,170,0.15));
+					border-color: rgba(255,255,255,0.3);
+					border-bottom: 0;
+					color: rgba(255,250,240,0.5);
+					box-shadow: inset 0 0 8px rgba(0,0,0,0.06);
 				}
 				&.镧系展开 .镧系标签::after, &.锕系展开 .锕系标签::after {
 					content: "♢";
-					position: absolute;
 					top: 50%; left: 50%;
 					transform: translate(-50%, -50%) rotate(10deg);
 					font-size: 2.2em;
 					opacity: 0.35;
-					pointer-events: none;
+				}
+				&.镧系展开 .镧系标签 .flap, &.锕系展开 .锕系标签 .flap {
+					transform: rotateX(180deg);
 				}
 			}/* half-width */
 
@@ -823,9 +842,11 @@
 			</section>
 			<section class="镧系标签" v-if="layout === 'half-width'" :class="{ expanded: lanthanideExpanded }" :style="filtering?.length || hoverFilter ? {opacity:.5} : {}" @click="toggleLanthanides">
 				<p>57~71<br>镧系</p>
+				<span class="flap"></span>
 			</section>
 			<section class="锕系标签" v-if="layout === 'half-width'" :class="{ expanded: actinideExpanded }" :style="filtering?.length || hoverFilter ? {opacity:.5} : {}" @click="toggleActinides">
 				<p>89~103<br>锕系</p>
+				<span class="flap"></span>
 			</section>
 			<section class="element detail area" v-if="curElement">
 				<div class="element detail card" :class="curElement.tags">
