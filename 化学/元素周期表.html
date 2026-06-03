@@ -35,6 +35,7 @@
 
 		.controller {
 			.temperature.slider, .discovery.year {
+
 				/* 滑块输入框宽度 */
 				& + .el-slider__input, & .el-slider__input {
 					width: 90px;
@@ -55,27 +56,66 @@
 			isolation: isolate;
 			flex-grow: 1;
 			width: 100%;
-			min-width: 0;/* 防止flex项目因内容过宽而溢出 */
+			min-width: 0;
+			/* 防止flex项目因内容过宽而溢出 */
 			background-color: var(--bg);
 			transition: all 0.5s ease-in-out;
 			/* overflow: auto; */
 			padding-top: 8px;
 			gap: var(--element-gap);
 
-			& .周期1 { grid-row: calc(1 + var(--period1-row-offset)); }
-			& .周期2 { grid-row: calc(2 + var(--period1-row-offset)); }
-			& .周期3 { grid-row: calc(3 + var(--period1-row-offset)); }
-			& .周期4 { grid-row: calc(4 + var(--period1-row-offset)); }
-			& .周期5 { grid-row: calc(5 + var(--period1-row-offset)); }
-			& .周期6 { grid-row: calc(6 + var(--period1-row-offset)); }
-			& .周期7 { grid-row: calc(7 + var(--period1-row-offset)); }
+			& .周期1 {
+				grid-row: calc(1 + var(--period1-row-offset));
+			}
 
-			& .周期序号 { grid-column: 1; border: 1px solid #ccc; }
-			& .硼族 { grid-column: -7; }
-			& .碳族 { grid-column: -6; }
-			& .氮族 { grid-column: -5; }
-			& .氧族 { grid-column: -4; }
-			& .卤素 { grid-column: -3; }
+			& .周期2 {
+				grid-row: calc(2 + var(--period1-row-offset));
+			}
+
+			& .周期3 {
+				grid-row: calc(3 + var(--period1-row-offset));
+			}
+
+			& .周期4 {
+				grid-row: calc(4 + var(--period1-row-offset));
+			}
+
+			& .周期5 {
+				grid-row: calc(5 + var(--period1-row-offset));
+			}
+
+			& .周期6 {
+				grid-row: calc(6 + var(--period1-row-offset));
+			}
+
+			& .周期7 {
+				grid-row: calc(7 + var(--period1-row-offset));
+			}
+
+			& .周期序号 {
+				grid-column: 1;
+				border: 1px solid #ccc;
+			}
+
+			& .硼族 {
+				grid-column: -7;
+			}
+
+			& .碳族 {
+				grid-column: -6;
+			}
+
+			& .氮族 {
+				grid-column: -5;
+			}
+
+			& .氧族 {
+				grid-column: -4;
+			}
+
+			& .卤素 {
+				grid-column: -3;
+			}
 
 			&.full-width {
 				height: 600px;
@@ -84,10 +124,22 @@
 			}
 
 			&.half-width {
+				--col-width: 70px;
 				height: 720px;
-				grid-template-columns: 10px repeat(18, 70px);
+				grid-template-columns: 10px repeat(18, var(--col-width));
 				/* 经测试，1fr（80px）都会导致出现纵向滚动条（edge上阈值为79.7858px，即总高度超过718px，不可解，不知道哪里来的2像素导致了溢出），所以写死79px。 */
-				grid-template-rows: repeat(9, 70px);
+				grid-template-rows: repeat(9, var(--col-width));
+				/* 收起时网格压缩（镧系/锕系隐藏后无多余空行） */
+				&:not(.镧系展开):not(.镧系收起):not(.锕系展开):not(.锕系收起) {
+					grid-template-rows: repeat(7, var(--col-width));
+				}
+				/* 仅一个展开时8行 */
+				&.镧系展开:not(.锕系展开):not(.锕系收起),
+				&.镧系收起:not(.锕系展开):not(.锕系收起),
+				&.锕系展开:not(.镧系展开):not(.镧系收起),
+				&.锕系收起:not(.镧系展开):not(.镧系收起) {
+					grid-template-rows: repeat(8, var(--col-width));
+				}
 
 				& .周期7 {
 					grid-row-start: calc(8 + var(--period1-row-offset));
@@ -137,6 +189,104 @@
 				& .锕系标签 {
 					grid-row: 8;
 				}
+
+				/*---------- 镧系/锕系折叠开关 ----------*/
+				/* 隐藏：两个类都不在时（加载页面 / 动画播完后） */
+				&:not(.镧系展开):not(.镧系收起) .镧系:not(.镧系标签) { display: none; }
+				&:not(.锕系展开):not(.锕系收起) .锕系:not(.锕系标签) { display: none; }
+					/* 页面加载时镧系/锕系隐藏，周期序号不占多余行 */
+				&:not(.镧系展开):not(.镧系收起) .周期6.周期序号 { grid-row-end: span 1; }
+				&:not(.锕系展开):not(.锕系收起) .周期7.周期序号 { grid-row-end: span 1; }
+				&:not(.镧系展开):not(.镧系收起):not(.锕系展开):not(.锕系收起) .锕系标签 { grid-row: 7; }
+				&:not(.镧系展开):not(.镧系收起):not(.锕系展开):not(.锕系收起) .周期7 { grid-row-start: 7; }
+				/* 仅锕系展开（镧系隐藏）时，锕系上移一行 */
+				&.锕系展开:not(.镧系展开):not(.镧系收起) .锕系标签,
+				&.锕系收起:not(.镧系展开):not(.镧系收起) .锕系标签 { grid-row: 7; }
+				&.锕系展开:not(.镧系展开):not(.镧系收起) .周期7,
+				&.锕系收起:not(.镧系展开):not(.镧系收起) .周期7 { grid-row-start: 7; }
+				&.锕系展开:not(.镧系展开):not(.镧系收起) .周期7.锕系,
+				&.锕系收起:not(.镧系展开):not(.镧系收起) .周期7.锕系 { grid-row: 8; }
+
+				/* 展开动画 */
+				&.镧系展开 .镧系:not(.镧系标签) {
+					animation:
+						stack-drop 0.15s ease-out 0s forwards,
+						deal-card 0.5s ease-out calc(0.15s + var(--i) * 0.08s) both;
+				}
+				&.锕系展开 .锕系:not(.锕系标签) {
+					animation:
+						stack-drop 0.15s ease-out 0s forwards,
+						deal-card 0.5s ease-out calc(0.15s + var(--i) * 0.08s) both;
+				}
+				/* 收起动画 */
+				&.镧系收起 .镧系:not(.镧系标签) {
+					animation:
+						collect-card 0.5s ease-in calc(0.15s + (14 - var(--i)) * 0.08s) both,
+						stack-rise 0.15s ease-in calc(0.5s + 0.15s + 14 * 0.08s) forwards;
+				}
+				&.锕系收起 .锕系:not(.锕系标签) {
+					animation:
+						collect-card 0.5s ease-in calc(0.15s + (14 - var(--i)) * 0.08s) both,
+						stack-rise 0.15s ease-in calc(0.5s + 0.15s + 14 * 0.08s) forwards;
+				}
+
+				/* 镧系展开时：锕系标签在行8，锕系元素在行9（最后一行） */
+				&.镧系展开, &.镧系收起 {
+					--标签行: 8;
+					--元素行: 9;
+					--周期行: 8;
+				}
+				&.镧系展开 .周期7, &.镧系收起 .周期7 { grid-row-start: var(--周期行); }
+				&.镧系展开 .周期7.周期序号, &.镧系收起 .周期7.周期序号 { grid-row-end: span 2; }
+				&.镧系展开 .周期7.锕系, &.镧系收起 .周期7.锕系 { grid-row: var(--元素行); }
+				&.镧系展开 .周期6.周期序号, &.镧系收起 .周期6.周期序号 { grid-row-end: span 2; }
+				/* 仅镧系展开/收起、锕系隐藏时：周期7在行8（6行+镧系2行后的最后行），序号缩为1行 */
+				&.镧系展开:not(.锕系展开):not(.锕系收起) .周期7.周期序号,
+				&.镧系收起:not(.锕系展开):not(.锕系收起) .周期7.周期序号 { grid-row-end: span 1; }
+
+				/* 锕系收起时 */
+				&.锕系收起 .周期7.周期序号 { grid-row-end: span 1; }
+				& .镧系标签, & .锕系标签 {
+					cursor: pointer;
+					user-select: none;
+					transition: background 0.3s, color 0.3s, box-shadow 0.3s;
+				}
+
+				/* 收起状态：卡盒（默认，.镧系展开 不存在时） */
+				&:not(.镧系展开) .镧系标签, &:not(.锕系展开) .锕系标签 {
+					background: linear-gradient(145deg, #6B3A1F, #8B5E3C, #6B3A1F);
+					color: #f5deb3;
+					box-shadow: inset 0 -4px 6px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.25);
+				}
+				&:not(.镧系展开) .镧系标签::before { content: "♠"; left: 15%; top: 30%; }
+				&:not(.镧系展开) .镧系标签::after { content: "♥"; right: 15%; top: 55%; }
+				&:not(.锕系展开) .锕系标签::before { content: "♣"; left: 15%; top: 30%; }
+				&:not(.锕系展开) .锕系标签::after { content: "♦"; right: 15%; top: 55%; }
+				&:not(.镧系展开) .镧系标签::before, &:not(.锕系展开) .锕系标签::before,
+				&:not(.镧系展开) .镧系标签::after, &:not(.锕系展开) .锕系标签::after {
+					position: absolute;
+					font-size: 1.8em;
+					opacity: 0.5;
+					pointer-events: none;
+					transform: translate(-50%, -50%) rotate(-8deg);
+				}
+
+				/* 展开状态：空盒 */
+				&.镧系展开 .镧系标签, &.锕系展开 .锕系标签 {
+					background: linear-gradient(145deg, #d4c5a9, #c4b599, #d4c5a9);
+					color: #5a4a3a;
+					box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
+				}
+				&.镧系展开 .镧系标签::after, &.锕系展开 .锕系标签::after {
+					content: "♢";
+					position: absolute;
+					top: 50%;
+					left: 50%;
+					transform: translate(-50%, -50%) rotate(10deg);
+					font-size: 2.2em;
+					opacity: 0.35;
+					pointer-events: none;
+				}
 			}
 		}
 
@@ -149,11 +299,13 @@
 			&.固态 {
 				border: 1px solid rgba(66, 66, 66, 0.35);
 			}
+
 			/* 液态元素：用圆角表现液体张力 */
 			&.液态 {
 				border: 1px solid rgba(120, 200, 255, 0.35);
 				border-radius: 15%;
 			}
+
 			/* 气态元素：顶部蒸腾效果 */
 			&.气态 {
 				outline: 2px dashed var(--state-color, rgba(255, 255, 255, 0.8));
@@ -168,33 +320,76 @@
 					pointer-events: none;
 					overflow: visible;
 					display: block;
+
 					& .vapor-particle {
 						position: absolute;
 						bottom: 0;
 						border-radius: 50%;
-						background: radial-gradient(circle, var(--state-color, rgba(255,255,255,0.9)), transparent);
+						background: radial-gradient(circle, var(--state-color, rgba(255, 255, 255, 0.9)), transparent);
 						filter: blur(3px);
-						/* opacity: 0.25; */
 
-						&:nth-child(1) { left: 20%; width: 10px; height: 10px; }
-						&:nth-child(2) { left: 45%; width: 14px; height: 14px; }
-						&:nth-child(3) { left: 70%; width: 8px; height: 8px; }
-						&:nth-child(4) { left: 55%; width: 11px; height: 11px; }
-						&:nth-child(5) { left: 30%; width: 9px; height: 9px; }
-						&:nth-child(6) { left: 80%; width: 7px; height: 7px; }
-						&:nth-child(7) { left: 10%; width: 6px; height: 6px; }
-						&:nth-child(8) { left: 62%; width: 13px; height: 13px; }
+						/* opacity: 0.25; */
+						&:nth-child(1) {
+							left: 20%;
+							width: 10px;
+							height: 10px;
+						}
+
+						&:nth-child(2) {
+							left: 45%;
+							width: 14px;
+							height: 14px;
+						}
+
+						&:nth-child(3) {
+							left: 70%;
+							width: 8px;
+							height: 8px;
+						}
+
+						&:nth-child(4) {
+							left: 55%;
+							width: 11px;
+							height: 11px;
+						}
+
+						&:nth-child(5) {
+							left: 30%;
+							width: 9px;
+							height: 9px;
+						}
+
+						&:nth-child(6) {
+							left: 80%;
+							width: 7px;
+							height: 7px;
+						}
+
+						&:nth-child(7) {
+							left: 10%;
+							width: 6px;
+							height: 6px;
+						}
+
+						&:nth-child(8) {
+							left: 62%;
+							width: 13px;
+							height: 13px;
+						}
 					}
 				}
 			}
+
 			/* 金属元素：用光滑表面的斜线高光展现金属光洁表面反光 */
 			&.金属 {
 				background-image: linear-gradient(145deg, transparent 20%, rgba(255, 255, 255, .35) 44%, rgba(255, 255, 255, .85) 49%, rgba(255, 255, 255, .35) 54%, transparent 80%);
 			}
+
 			/* 稀土元素：用黄绿色阴影表示荧光 */
 			&.稀土 {
 				box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(180, 225, 70, 0.8);
 			}
+
 			/* 贵金属：用金色阴影表示贵重 */
 			&.贵金属 {
 				box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(255, 215, 0, 0.6);
@@ -205,7 +400,8 @@
 				font-size: 70px;
 				color: rgba(180, 90, 30, 0.5);
 				pointer-events: none;
-				top: 50%; left: 50%;
+				top: 50%;
+				left: 50%;
 				transform: translate(-50%, -50%);
 				opacity: 0.6;
 			}
@@ -223,9 +419,9 @@
 		.element.info {
 			height: 100%;
 			padding: 2px;
-
 			color: darkgray;
 			mix-blend-mode: difference;
+
 			& > header {
 				grid-area: header;
 				display: flex;
@@ -276,7 +472,6 @@
 			}
 		}
 
-
 		.category.filter {
 			&.碱金属 {
 				--el-checkbox-button-checked-bg-color: #cc5555;
@@ -292,7 +487,6 @@
 				--el-checkbox-button-checked-bg-color: #999933;
 				--el-checkbox-button-checked-text-color: #fff;
 			}
-
 
 			&.类金属 {
 				--el-checkbox-button-checked-bg-color: #6644cc;
@@ -318,15 +512,19 @@
 		/*----- 铁磁性：磁感线沿椭圆路径流动 -----*/
 		.铁磁性 {
 			overflow-x: clip;
+
 			& .mag-line {
 				position: absolute;
 				top: calc((100% - 150px)/2);
 				z-index: -1;
-				width: 70px; height: 150px;
+				width: 70px;
+				height: 150px;
 				pointer-events: none;
+
 				&.left {
 					left: calc(100% - 35px);
 				}
+
 				&.right {
 					right: calc(100% - 35px);
 				}
@@ -335,6 +533,7 @@
 
 		/*===================== 动态效果（动/静开关） ====================*/
 		.animation {
+
 			/*----- 液态、金属、贵金属、稀土 → 由 JS 动态拼接 animation 到 style -----*/
 			/*----- 气体：蒸腾粒子上升 -----*/
 			& .气态 .vapor-particle {
@@ -348,8 +547,10 @@
 
 			& .放射性 .rad-ring {
 				position: absolute;
-				top: 50%; left: 50%;
-				width: 70px; height: 70px;
+				top: 50%;
+				left: 50%;
+				width: 70px;
+				height: 70px;
 				border-radius: 50%;
 				border: 2.5px dotted rgba(180, 90, 30, 0.6);
 				transform: translate(-50%, -50%);
@@ -357,55 +558,126 @@
 				z-index: 0;
 				animation: rad-ring 3s ease-in-out infinite both;
 			}
-
 		}
 
 		/*--- @keyframes （从 .animation 中提取到外层） ---*/
 		@keyframes liquid-morph {
-			0%, 100% { border-radius: 30%; }
-			25% { border-radius: 33% 27%; }
-			50% { border-radius: 27% 33%; }
-			75% { border-radius: 30%; }
+			0%, 100% {
+				border-radius: 30%;
+			}
+
+			25% {
+				border-radius: 33% 27%;
+			}
+
+			50% {
+				border-radius: 27% 33%;
+			}
+
+			75% {
+				border-radius: 30%;
+			}
 		}
+
 		@keyframes vapor-rise {
 			0% {
 				opacity: 0;
 				transform: translateY(0) translateX(0) scale(0.6);
 			}
-			10% { opacity: 0.6; }
+
+			10% {
+				opacity: 0.6;
+			}
+
 			60% {
 				opacity: 0.3;
 				transform: translateY(-50px) translateX(var(--drift, 8px)) scale(1.2);
 			}
+
 			100% {
 				opacity: 0;
 				transform: translateY(-58px) translateX(var(--drift-end, -5px)) scale(0.8);
 			}
 		}
-		.vapor-particle:nth-child(odd) { --drift: 10px; --drift-end: -6px; }
-		.vapor-particle:nth-child(even) { --drift: -8px; --drift-end: 5px; }
+
+		.vapor-particle:nth-child(odd) {
+			--drift: 10px;
+			--drift-end: -6px;
+		}
+
+		.vapor-particle:nth-child(even) {
+			--drift: -8px;
+			--drift-end: 5px;
+		}
+
 		@keyframes noble-shine {
-			0%, 100% { box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(255, 215, 0, 0.1); }
-			50% { box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(255, 215, 0, 0.8); }
+			0%, 100% {
+				box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(255, 215, 0, 0.1);
+			}
+
+			50% {
+				box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(255, 215, 0, 0.8);
+			}
 		}
+
 		@keyframes rare-shine {
-			0%, 100% { box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(180, 225, 70, 0.15); }
-			50% { box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(180, 225, 70, 0.9); }
+			0%, 100% {
+				box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(180, 225, 70, 0.15);
+			}
+
+			50% {
+				box-shadow: 0 0 var(--element-gap) var(--element-gap) rgba(180, 225, 70, 0.9);
+			}
 		}
+
 		@keyframes metal-shine {
-			0% { background-position: 140% 140%, 0 0; }
-			100% { background-position: -40% -40%, 0 0; }
+			0% {
+				background-position: 140% 140%, 0 0;
+			}
+
+			100% {
+				background-position: -40% -40%, 0 0;
+			}
 		}
 
 		@keyframes rad-breathe {
-			0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(0.9); }
-			40% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-			50% { opacity: 0.9; transform: translate(-50%, -50%) scale(1.05); }
+			0%, 100% {
+				opacity: 0.5;
+				transform: translate(-50%, -50%) scale(0.9);
+			}
+
+			40% {
+				opacity: 1;
+				transform: translate(-50%, -50%) scale(1.1);
+			}
+
+			50% {
+				opacity: 0.9;
+				transform: translate(-50%, -50%) scale(1.05);
+			}
 		}
+
 		@keyframes rad-ring {
-			0%, 40% { width: 70px; height: 70px; opacity: 0; border-width: 2.5px; }
-			42% { width: 70px; height: 70px; opacity: 0.7; border-width: 2.5px; }
-			100% { width: 140px; height: 140px; opacity: 0; border-width: 1px; }
+			0%, 40% {
+				width: 70px;
+				height: 70px;
+				opacity: 0;
+				border-width: 2.5px;
+			}
+
+			42% {
+				width: 70px;
+				height: 70px;
+				opacity: 0.7;
+				border-width: 2.5px;
+			}
+
+			100% {
+				width: 140px;
+				height: 140px;
+				opacity: 0;
+				border-width: 1px;
+			}
 		}
 
 		/*=====================元素详情区====================*/
@@ -474,6 +746,49 @@
 			}
 		}
 
+		@keyframes stack-drop {
+			0% {
+				opacity: 0;
+				transform: translate(calc((3 - var(--col)) * (var(--col-width) + var(--element-gap))), calc(-1 * (var(--col-width) + var(--element-gap)))) rotate(0deg);
+			}
+			100% {
+				opacity: 1;
+				transform: translate(calc((3 - var(--col)) * (var(--col-width) + var(--element-gap))), 0px) rotate(0deg);
+			}
+		}
+		@keyframes deal-card {
+			0% {
+				opacity: 1;
+				transform: translate(calc((3 - var(--col)) * (var(--col-width) + var(--element-gap))), 0px) rotate(0deg);
+			}
+			100% {
+				opacity: 1;
+				transform: translate(0, 0) rotate(var(--spin, 360deg));
+			}
+		}
+
+		@keyframes collect-card {
+			0% {
+				opacity: 1;
+				transform: translate(0, 0) rotate(var(--spin, 360deg));
+			}
+			100% {
+				opacity: 1;
+				transform: translate(calc((3 - var(--col)) * (var(--col-width) + var(--element-gap))), 0px) rotate(0deg);
+			}
+		}
+		@keyframes stack-rise {
+			0% {
+				opacity: 1;
+				transform: translate(calc((3 - var(--col)) * (var(--col-width) + var(--element-gap))), 0px) rotate(0deg);
+			}
+			100% {
+				opacity: 0;
+				display: none;
+				transform: translate(calc((3 - var(--col)) * (var(--col-width) + var(--element-gap))), calc(-1 * (var(--col-width) + var(--element-gap)))) rotate(0deg);
+			}
+		}
+
 	</style>
 </head>
 <body>
@@ -513,7 +828,7 @@
 				</div>
 				<div class="one controller group">
 					<span class="temperature label">🌡</span>
-					<el-slider title="温度" class="one controller : temperature slider"  v-model="temperatureInMode" :min="temperatureMin" :max="temperatureMax" :marks="temperatureMarks" show-input size="small" style="width:400px"></el-slider>
+					<el-slider title="温度" class="one controller : temperature slider" v-model="temperatureInMode" :min="temperatureMin" :max="temperatureMax" :marks="temperatureMarks" show-input size="small" style="width:400px"></el-slider>
 					<el-button class="one controller : temperature mode input , toggle" size="small" type="primary" @click="nextTemperatureMode">{{temperatureMode}}</el-button>
 				</div>
 				<div class="one controller group">
@@ -547,14 +862,14 @@
 				<p>将鼠标悬停在元素上可以查看其基本信息，元素右下角的图标代表了元素的特殊属性，例如放射性、人造、稀土等。</p>
 			</el-dialog>
 		</header><!-- /工具栏 -->
-		<article class="periodic-table-of-chemical-element , grid" :class="tableClasses">
+		<article class="periodic-table-of-chemical-element , grid" :class="[tableClasses, {'镧系展开': lanthanideExpanded, '镧系收起': lanthanideCollapsing, '锕系展开': actinideExpanded, '锕系收起': actinideCollapsing}]">
 			<section class="周期序号" :class="`周期`+n" v-for="n in 7" :key="n">
 				<p>{{n}}</p>
 			</section>
 			<!--<section class="族" v-for="group in groups" :key="group.name" :class="group.name">
 				<p>{{group.name}}</p>
 			</section>-->
-			<section :id="element.name" class="one element , items-go-y" :class="[...element.tags, `周期`+element.period, getElementPhase(element)]" :style="[getElementStyle(element), getYearFilterStyle(element), elementFilterStyle(element), getElementAnimation(element)]" v-for="element in elements" :key="element.id" @click="curElement=element">
+			<section :id="element.name" class="one element , items-go-y" :class="[...element.tags, `周期`+element.period, getElementPhase(element)]" :style="[getElementStyle(element), getYearFilterStyle(element), elementFilterStyle(element), getElementAnimation(element), elementDealOrder(element)]" v-for="element in elements" :key="element.id" @click="curElement=element">
 				<!-- 放射性粒子环 -->
 				<div v-if="animationMode && element.tags.includes('放射性')" class="rad-ring"></div>
 				<span v-if="element.tags.includes('放射性')" class="辐射-icon">☢</span>
@@ -608,10 +923,10 @@
 					</footer>
 				</div>
 			</section>
-			<section class="镧系 镧系标签" v-if="layout === 'half-width'" :style="filtering?.length || hoverFilter ? {opacity:.5} : {}">
+			<section class="镧系 镧系标签" v-if="layout === 'half-width'" :class="{ expanded: lanthanideExpanded }" :style="filtering?.length || hoverFilter ? {opacity:.5} : {}" @click="toggleLanthanides">
 				<p>57~71<br>镧系</p>
 			</section>
-			<section class="锕系 锕系标签" v-if="layout === 'half-width'" :style="filtering?.length || hoverFilter ? {opacity:.5} : {}">
+			<section class="锕系 锕系标签" v-if="layout === 'half-width'" :class="{ expanded: actinideExpanded }" :style="filtering?.length || hoverFilter ? {opacity:.5} : {}" @click="toggleActinides">
 				<p>89~103<br>锕系</p>
 			</section>
 			<section class="element detail area" v-if="curElement">
@@ -721,6 +1036,10 @@
 				label: '><',
 				value: 'half-width'
 			}],
+			lanthanideExpanded: false,
+			lanthanideCollapsing: false,
+			actinideExpanded: false,
+			actinideCollapsing: false,
 			filtering: [],
 			hoverFilter: null,
 			temperature: 0,
@@ -730,6 +1049,7 @@
 			temperatureModes,
 			animationMode: false,
 		};
+
 		function findCategory(items, name) {
 			for (const item of items) {
 				if (item.name === name) return item;
@@ -740,12 +1060,12 @@
 			}
 			return null;
 		}
+
 		function collectTags(cat) {
 			const tags = new Set([cat.name]);
 			if (cat.children) cat.children.forEach(c => collectTags(c).forEach(t => tags.add(t)));
 			return tags;
 		}
-
 		const {
 			createApp
 		} = Vue;
@@ -761,7 +1081,7 @@
 							if (item.children) {
 								if (item.filterable) result.push(item);
 								result = result.concat(flatten(item.children));
-							} else if (item.filterable) {
+						} else if (item.filterable) {
 								result.push(item);
 							}
 						}
@@ -789,7 +1109,8 @@
 						return Math.round(celsiusToFahrenheit(this.temperature));
 					},
 					set(v) {
-						const min = this.temperatureMin, max = this.temperatureMax;
+						const min = this.temperatureMin,
+							max = this.temperatureMax;
 						const clamped = Math.min(max, Math.max(min, v));
 						if (this.temperatureMode === '°C') {
 							this.temperature = Math.round(clamped);
@@ -819,7 +1140,12 @@
 					return Math.round(celsiusToFahrenheit(6000));
 				},
 				yearMarks() {
-					return { 1700:{}, 1800:{}, 1900:{}, 2000:{} };
+					return {
+						1700: {},
+						1800: {},
+						1900: {},
+						2000: {}
+					};
 				},
 				temperatureMarks() {
 					var marks = {};
@@ -852,7 +1178,7 @@
 				getYearFilterStyle(element) {
 					const year = element.发现年份;
 					if (year === '古代' || !year) {
-					return {};
+						return {};
 					}
 					if (year === '未知') {
 						return this.discoveryYear === 2025 ? {} : {
@@ -861,7 +1187,7 @@
 						};
 					}
 					if (Number(year) > this.discoveryYear) {
-					return {
+						return {
 							opacity: 0.2,
 							pointerEvents: 'none'
 						};
@@ -872,16 +1198,17 @@
 					if (!this.filtering?.length && !this.hoverFilter) return {};
 					const names = [...(this.filtering || [])];
 					if (this.hoverFilter) names.push(this.hoverFilter);
-
 					const activeTags = new Set();
 					for (const name of names) {
 						const cat = findCategory(categories, name);
 						if (cat) collectTags(cat).forEach(t => activeTags.add(t));
 					}
-
 					const phase = this.getElementPhase(element);
 					const visible = element.tags.some(t => activeTags.has(t)) || activeTags.has(phase);
-					return visible ? {} : { opacity: 0.5, pointerEvents: 'none' };
+					return visible ? {} : {
+						opacity: 0.5,
+						pointerEvents: 'none'
+					};
 				},
 				checkLayout() {
 					if (this.layout) {
@@ -906,13 +1233,9 @@
 					if (Array.isArray(colorDesc) && colorDesc[0]?.温度 !== undefined) {
 						const grad = this.computeGradientColor(colorDesc, this.temperature);
 						if (grad) {
-							const layers = [
-								`linear-gradient(135deg, ${grad.gradientA}, ${grad.gradientB})`
-							];
+							const layers = [`linear-gradient(135deg, ${grad.gradientA}, ${grad.gradientB})`];
 							if (element.tags?.includes('金属')) {
-								layers.unshift(
-									`linear-gradient(145deg, transparent 20%, rgba(255,255,255,.35) 44%, rgba(255,255,255,.85) 49%, rgba(255,255,255,.35) 54%, transparent 80%)`
-								);
+								layers.unshift(`linear-gradient(145deg, transparent 20%, rgba(255,255,255,.35) 44%, rgba(255,255,255,.85) 49%, rgba(255,255,255,.35) 54%, transparent 80%)`);
 							}
 							s.backgroundImage = layers.join(',');
 							s.backgroundSize = '100% 100%' + (element.tags?.includes('金属') ? ', 100% 100%' : '');
@@ -995,14 +1318,19 @@
 						r: parseInt(result[1], 16),
 						g: parseInt(result[2], 16),
 						b: parseInt(result[3], 16)
-					} : { r: 0, g: 0, b: 0 };
+					} : {
+						r: 0,
+						g: 0,
+						b: 0
+					};
 				},
 				computeGradientColor(anchors, temp) {
 					if (!anchors || anchors.length < 2) {
 						return anchors?.[0]?.颜色 ? 物态色值[anchors[0].颜色] : null;
 					}
 					// 确定两端锚点，只用首尾两个
-					const first = anchors[0], last = anchors[anchors.length - 1];
+					const first = anchors[0],
+						last = anchors[anchors.length - 1];
 					const range = last.温度 - first.温度;
 					const ratio = range === 0 ? 0 : Math.max(0, Math.min(1, (temp - first.温度) / range));
 					const hA = 物态色值[first.颜色];
@@ -1014,13 +1342,18 @@
 					// 高温时两端都接近colorB（渐变几乎纯色）
 					const startMix = Math.max(0, (ratio - 0.5) * 2);
 					const endMix = Math.min(1, ratio * 2);
-					const rgbA = this.hexToRgb(hA), rgbB = this.hexToRgb(hB);
+					const rgbA = this.hexToRgb(hA),
+						rgbB = this.hexToRgb(hB);
 					const lerp = (a, b, t) => Math.round(a + (b - a) * t);
 					const startRgb = `rgb(${lerp(rgbA.r, rgbB.r, startMix)},${lerp(rgbA.g, rgbB.g, startMix)},${lerp(rgbA.b, rgbB.b, startMix)})`;
 					const endRgb = `rgb(${lerp(rgbA.r, rgbB.r, endMix)},${lerp(rgbA.g, rgbB.g, endMix)},${lerp(rgbA.b, rgbB.b, endMix)})`;
 					// 返回渐变色和中间色（用于--state-color和边框）
 					const midRgb = `rgb(${lerp(rgbA.r, rgbB.r, ratio)},${lerp(rgbA.g, rgbB.g, ratio)},${lerp(rgbA.b, rgbB.b, ratio)})`;
-					return { gradientA: startRgb, gradientB: endRgb, mid: midRgb };
+					return {
+						gradientA: startRgb,
+						gradientB: endRgb,
+						mid: midRgb
+					};
 				},
 				getElementAnimation(element) {
 					if (!this.animationMode) return {};
@@ -1032,7 +1365,9 @@
 					if (tags.includes('金属')) anims.push('metal-shine 2.5s ease-in-out infinite alternate');
 					if (phase === '液态') anims.push('liquid-morph 2s ease-in-out infinite');
 					if (anims.length === 0) return {};
-					const style = { animation: anims.join(', ') };
+					const style = {
+						animation: anims.join(', ')
+					};
 					if (tags.includes('金属')) {
 						// 检查当前状态是否有渐变色
 						const state = element.states?.[phase];
@@ -1041,10 +1376,7 @@
 							if (Array.isArray(cd) && cd[0]?.温度 !== undefined) {
 								const grad = this.computeGradientColor(cd, this.temperature);
 								if (grad) {
-									style.backgroundImage = [
-										`linear-gradient(145deg, transparent 20%, rgba(255,255,255,.35) 44%, rgba(255,255,255,.85) 49%, rgba(255,255,255,.35) 54%, transparent 80%)`,
-										`linear-gradient(135deg, ${grad.gradientA}, ${grad.gradientB})`
-									].join(',');
+									style.backgroundImage = [`linear-gradient(145deg, transparent 20%, rgba(255,255,255,.35) 44%, rgba(255,255,255,.85) 49%, rgba(255,255,255,.35) 54%, transparent 80%)`, `linear-gradient(135deg, ${grad.gradientA}, ${grad.gradientB})`].join(',');
 									style.backgroundSize = '200% 200%, 100% 100%';
 									style.backgroundRepeat = 'no-repeat, no-repeat';
 									return style;
@@ -1057,6 +1389,43 @@
 						style.backgroundRepeat = 'no-repeat';
 					}
 					return style;
+				},
+				elementDealOrder(element) {
+					if (element.tags?.includes('镧系')) {
+						return {
+							'--i': 71 - element.id,
+							'--col': element.col,
+							'--spin': element.col === 3 ? '0deg' : '360deg'
+						};
+					}
+					if (element.tags?.includes('锕系')) {
+						return {
+							'--i': 103 - element.id,
+							'--col': element.col,
+							'--spin': element.col === 3 ? '0deg' : '360deg'
+						};
+					}
+					return {};
+				},
+				toggleLanthanides() {
+					if (this.lanthanideExpanded) {
+						this.lanthanideExpanded = false;
+						this.lanthanideCollapsing = true;
+						setTimeout(() => { this.lanthanideCollapsing = false; }, 2100);
+					} else {
+						this.lanthanideCollapsing = false;
+						this.lanthanideExpanded = true;
+					}
+				},
+				toggleActinides() {
+					if (this.actinideExpanded) {
+						this.actinideExpanded = false;
+						this.actinideCollapsing = true;
+						setTimeout(() => { this.actinideCollapsing = false; }, 2100);
+					} else {
+						this.actinideCollapsing = false;
+						this.actinideExpanded = true;
+					}
 				},
 				nextTemperatureMode() {
 					const len = temperatureModes.length;
