@@ -207,43 +207,27 @@
 				&.锕系展开:not(.镧系展开):not(.镧系收起) .周期7.锕系,
 				&.锕系收起:not(.镧系展开):not(.镧系收起) .周期7.锕系 { grid-row: 8; }
 
-				/* 展开动画 */
-				&.镧系展开 .镧系:not(.镧系标签) {
-					animation:
-						stack-drop 0.15s ease-out 0s forwards,
+				/* 展开/收起动画 */
+				&.镧系展开 .镧系:not(.镧系标签), &.锕系展开 .锕系:not(.锕系标签) {
+					animation: stack-drop 0.15s ease-out 0s forwards,
 						deal-card 0.5s ease-out calc(0.15s + var(--i) * 0.08s) both;
 				}
-				&.锕系展开 .锕系:not(.锕系标签) {
-					animation:
-						stack-drop 0.15s ease-out 0s forwards,
-						deal-card 0.5s ease-out calc(0.15s + var(--i) * 0.08s) both;
-				}
-				/* 收起动画 */
-				&.镧系收起 .镧系:not(.镧系标签) {
-					animation:
-						collect-card 0.5s ease-in calc(0.15s + (14 - var(--i)) * 0.08s) both,
-						stack-rise 0.15s ease-in calc(0.5s + 0.15s + 14 * 0.08s) forwards;
-				}
-				&.锕系收起 .锕系:not(.锕系标签) {
-					animation:
-						collect-card 0.5s ease-in calc(0.15s + (14 - var(--i)) * 0.08s) both,
+				&.镧系收起 .镧系:not(.镧系标签), &.锕系收起 .锕系:not(.锕系标签) {
+					animation: collect-card 0.5s ease-in calc(0.15s + (14 - var(--i)) * 0.08s) both,
 						stack-rise 0.15s ease-in calc(0.5s + 0.15s + 14 * 0.08s) forwards;
 				}
 
-				/* 镧系展开时：锕系标签在行8，锕系元素在行9（最后一行） */
+				/* 镧系展开/收起时：锕系行号变量 + 相关定位 */
 				&.镧系展开, &.镧系收起 {
-					--标签行: 8;
-					--元素行: 9;
-					--周期行: 8;
-				}
-				&.镧系展开 .周期7, &.镧系收起 .周期7 { grid-row-start: var(--周期行); }
-				&.镧系展开 .周期7.周期序号, &.镧系收起 .周期7.周期序号 { grid-row-end: span 2; }
-				&.镧系展开 .周期7.锕系, &.镧系收起 .周期7.锕系 { grid-row: var(--元素行); }
-				&.镧系展开 .周期6.周期序号, &.镧系收起 .周期6.周期序号 { grid-row-end: span 2; }
-				/* 仅镧系展开/收起、锕系隐藏时：周期7在行8（6行+镧系2行后的最后行），序号缩为1行 */
-				&.镧系展开:not(.锕系展开):not(.锕系收起) .周期7.周期序号,
-				&.镧系收起:not(.锕系展开):not(.锕系收起) .周期7.周期序号 { grid-row-end: span 1; }
+					--标签行: 8; --元素行: 9; --周期行: 8;
 
+					& .周期7 { grid-row-start: var(--周期行); }
+					& .周期7.周期序号 { grid-row-end: span 2; }
+					& .周期7.锕系 { grid-row: var(--元素行); }
+					& .周期6.周期序号 { grid-row-end: span 2; }
+					/* 锕系隐藏时序号缩为1行 */
+					&:not(.锕系展开):not(.锕系收起) .周期7.周期序号 { grid-row-end: span 1; }
+				}
 				/* 锕系收起时 */
 				&.锕系收起 .周期7.周期序号 { grid-row-end: span 1; }
 				& .镧系标签, & .锕系标签 {
