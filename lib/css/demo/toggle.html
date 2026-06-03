@@ -12,8 +12,19 @@
 			background: #222;
 			color: #ddd;
 		}
-		h1 { text-align: center; color: #fff; margin-bottom: 8px; }
-		.subtitle { text-align: center; color: #888; margin-bottom: 40px; font-size: 14px; }
+
+		h1 {
+			text-align: center;
+			color: #fff;
+			margin-bottom: 8px;
+		}
+
+		.subtitle {
+			text-align: center;
+			color: #888;
+			margin-bottom: 40px;
+			font-size: 14px;
+		}
 
 		.group {
 			background: #333;
@@ -24,12 +35,14 @@
 			margin-left: auto;
 			margin-right: auto;
 		}
+
 		.group h2 {
 			margin: 0 0 16px;
 			font-size: 18px;
 			text-align: center;
 			color: #ccc;
 		}
+
 		.row {
 			display: flex;
 			align-items: center;
@@ -37,6 +50,7 @@
 			margin-bottom: 12px;
 			flex-wrap: wrap;
 		}
+
 		.row .label {
 			min-width: 80px;
 			font-size: 14px;
@@ -48,6 +62,7 @@
 			padding: 2px 8px;
 			font-size: 12px;
 		}
+
 		.toggle.btn.large > span {
 			padding: 10px 20px;
 			font-size: 16px;
@@ -63,12 +78,12 @@
 			color: #888;
 			margin-left: 8px;
 		}
+
 	</style>
 </head>
 <body>
 	<h1>凹陷按钮开关</h1>
 	<p class="subtitle">label.toggle.btn — 弹起/凹陷式切换按钮</p>
-
 	<!-- 基础用法 -->
 	<section class="group">
 		<h2>基础用法</h2>
@@ -76,7 +91,7 @@
 			<span class="label">默认</span>
 			<label class="toggle btn">
 				<input type="checkbox">
-				<span>弹起</span>
+				<span>弹起</span><span>凹陷</span>
 			</label>
 			<span class="status-text">点击切换</span>
 		</div>
@@ -84,7 +99,7 @@
 			<span class="label">默认选中</span>
 			<label class="toggle btn">
 				<input type="checkbox" checked>
-				<span>凹陷</span>
+				<span>弹起</span><span>凹陷</span>
 			</label>
 			<span class="status-text">初始即选中</span>
 		</div>
@@ -92,18 +107,17 @@
 			<span class="label">禁用</span>
 			<label class="toggle btn" disabled>
 				<input type="checkbox" disabled>
-				<span>不可选</span>
+				<span>弹起</span><span>凹陷</span>
 			</label>
 		</div>
 		<div class="row">
 			<span class="label">禁用+选中</span>
 			<label class="toggle btn" disabled>
 				<input type="checkbox" checked disabled>
-				<span>已锁定</span>
+				<span>弹起</span><span>凹陷</span>
 			</label>
 		</div>
 	</section>
-
 	<!-- 尺寸变体 -->
 	<section class="group">
 		<h2>尺寸变体</h2>
@@ -111,25 +125,24 @@
 			<span class="label">小号</span>
 			<label class="toggle btn small">
 				<input type="checkbox">
-				<span>小</span>
+				<span>小</span><span>小</span>
 			</label>
 		</div>
 		<div class="row">
 			<span class="label">默认</span>
 			<label class="toggle btn">
 				<input type="checkbox">
-				<span>中</span>
+				<span>中</span><span>中</span>
 			</label>
 		</div>
 		<div class="row">
 			<span class="label">大号</span>
 			<label class="toggle btn large">
 				<input type="checkbox">
-				<span>大</span>
+				<span>大</span><span>大</span>
 			</label>
 		</div>
 	</section>
-
 	<!-- 圆角变体 -->
 	<section class="group">
 		<h2>圆角变体</h2>
@@ -137,11 +150,10 @@
 			<span class="label">圆角</span>
 			<label class="toggle btn round">
 				<input type="checkbox">
-				<span>药丸形</span>
+				<span>药丸形</span><span>药丸形</span>
 			</label>
 		</div>
 	</section>
-
 	<!-- 实际应用示例 -->
 	<section class="group">
 		<h2>实际应用：设置面板</h2>
@@ -149,49 +161,30 @@
 			<span class="label">通知</span>
 			<label class="toggle btn">
 				<input type="checkbox" checked>
-				<span data-on="开启" data-off="关闭">开启</span>
+				<span>关闭</span><span>开启</span>
 			</label>
 		</div>
 		<div class="row">
 			<span class="label">暗黑模式</span>
 			<label class="toggle btn">
 				<input type="checkbox">
-				<span data-on="开启" data-off="关闭">关闭</span>
+				<span>关闭</span><span>开启</span>
 			</label>
 		</div>
 		<div class="row">
 			<span class="label">自动保存</span>
 			<label class="toggle btn">
 				<input type="checkbox" checked>
-				<span data-on="开启" data-off="关闭">开启</span>
+				<span>关闭</span><span>开启</span>
 			</label>
 		</div>
 		<div class="row">
 			<span class="label">开发者模式</span>
 			<label class="toggle btn" disabled>
 				<input type="checkbox" disabled>
-				<span>不可用</span>
+				<span>不可用</span><span>不可用</span>
 			</label>
 		</div>
 	</section>
-
-	<script>
-		// 切换时更新按钮文字
-		document.querySelectorAll('.toggle.btn').forEach(btn => {
-			const checkbox = btn.querySelector('input[type="checkbox"]');
-			const span = btn.querySelector('span');
-			if (!checkbox || !span) return;
-
-			const textOn = span.dataset.on;
-			const textOff = span.dataset.off;
-			if (!textOn && !textOff) return;
-
-			const update = () => {
-				span.textContent = checkbox.checked ? textOn : textOff;
-			};
-			checkbox.addEventListener('change', update);
-			update();
-		});
-	</script>
 </body>
 </html>

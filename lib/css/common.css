@@ -113,7 +113,7 @@ label.toggle.btn {
 		margin: 0;                /* 避免残留边距影响布局 */
 	}
 
-	/* 按钮外观区域（弹起状态——凸起感） */
+	/* 共享基础按钮外观（弹起状态） */
 	> span {
 		display: inline-block;
 		padding: 6px 12px;        /* 基础内边距，使用者可覆盖 */
@@ -121,8 +121,8 @@ label.toggle.btn {
 		color: #333;
 		border: 1px solid #bbb;
 		border-radius: 4px;
-		box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-		transition: all 0.2s ease; /* 背景、边框、颜色过渡 */
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+		transition: all 0.2s ease;
 
 		/* 点击微动效 */
 		&:active {
@@ -130,24 +130,37 @@ label.toggle.btn {
 		}
 	}
 
-	/* 按下状态（选中时）——凹陷感 */
-	&:has(> input:checked) > span {
-		background: #a0a0a0;
-		color: #333;
-		border-color: #888;
-		box-shadow: inset 0 2px 4px rgba(0,0,0,0.25);
+	/* 第二个 span 默认隐藏 */
+	> span + span {
+		display: none;
+	}
+
+	/* 选中状态：隐藏第一个 span，显示第二个 span（凹陷感） */
+	&:has(> input:checked) {
+		> input + span {
+			display: none;
+		}
+
+		> span + span {
+			display: inline-block;
+			background: #a0a0a0;
+			color: #333;
+			border-color: #888;
+			box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25);
+		}
 	}
 
 	/* 禁用状态 */
-	&:disabled > input + span,/* 兼容把disabled写在label上的情况 */
-	> input:disabled + span {
+	&:disabled > input ~ span,
+	/* 兼容把disabled写在label上的情况 */
+	> input:disabled ~ span {
 		opacity: 0.5;
 		cursor: not-allowed;
 		transform: none;
 	}
 
 	/* 键盘焦点指示器（可访问性） */
-	> input:focus-visible + span {
+	> input:focus-visible ~ span {
 		outline: 2px solid #666;
 		outline-offset: 2px;
 	}
