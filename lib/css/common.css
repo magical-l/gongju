@@ -89,6 +89,69 @@ form:has(input:invalid:not(:placeholder-shown)) {
 	border: 2px solid #f56c6c;
 }
 
+/* ======================== 一些组件 ======================== */
+
+/* ================== 凹陷按钮开关 ==================
+ * 可以简单地使用以下代码构造一个"弹起/凹陷"式按钮开关：
+	<label class="toggle btn">
+		<input type="checkbox" />
+		<span>弹起</span>
+	</label>
+ */
+label.toggle.btn {
+	/* label 本身不设宽高，由内部 span 撑开 */
+	display: inline-flex;        /* 让宽度自适应内容 */
+	cursor: pointer;
+
+	/* 隐藏 checkbox 但保留交互。display:none不能保交互 */
+	> input[type="checkbox"] {
+		position: absolute;
+		opacity: 0;
+		width: 0;
+		height: 0;
+		margin: 0;                /* 避免残留边距影响布局 */
+	}
+
+	/* 按钮外观区域（弹起状态——凸起感） */
+	> span {
+		display: inline-block;
+		padding: 6px 12px;        /* 基础内边距，使用者可覆盖 */
+		background: #e8e8e8;
+		color: #333;
+		border: 1px solid #bbb;
+		border-radius: 4px;
+		box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+		transition: all 0.2s ease; /* 背景、边框、颜色过渡 */
+
+		/* 点击微动效 */
+		&:active {
+			transform: scale(0.98);
+		}
+	}
+
+	/* 按下状态（选中时）——凹陷感 */
+	&:has(> input:checked) > span {
+		background: #a0a0a0;
+		color: #333;
+		border-color: #888;
+		box-shadow: inset 0 2px 4px rgba(0,0,0,0.25);
+	}
+
+	/* 禁用状态 */
+	&:disabled > input + span,/* 兼容把disabled写在label上的情况 */
+	> input:disabled + span {
+		opacity: 0.5;
+		cursor: not-allowed;
+		transform: none;
+	}
+
+	/* 键盘焦点指示器（可访问性） */
+	> input:focus-visible + span {
+		outline: 2px solid #666;
+		outline-offset: 2px;
+	}
+}
+
 /* ======================== 一些工具类 ======================== */
 
 /* ================== 可见性 ================== */
