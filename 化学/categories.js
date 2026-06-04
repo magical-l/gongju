@@ -45,8 +45,8 @@ export default [
 		filterable: true
 	},
 	{
-		name: '人造',
-		symbol:'🧪',
+		name: '人造元素',
+		symbol:'🫴',
 		filterable: true
 	},
 	{
