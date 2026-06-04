@@ -126,11 +126,12 @@
 
 				/* ------ 标签：卡盒 ------*/
 				& .镧系标签, & .锕系标签 {
+					--box-border: 2px;
 					grid-column: 4;
 					position: relative;
-					margin: -3px;
-					width: calc(100% + 6px);
-					height: calc(100% + 6px);
+					margin: calc(var(--box-border) / -2);
+					width: calc(100% + var(--box-border));
+					height: calc(100% + var(--box-border));
 					display: flex;
 					justify-content: center;
 					align-items: center;
@@ -138,7 +139,6 @@
 					transition: box-shadow 0.3s, border-color 0.3s;
 					cursor: pointer;
 					user-select: none;
-					--box-border: 2px;
 					border: var(--box-border) solid #a09070;
 					background: linear-gradient(145deg, #d0c0a8, #c0b090, #a89878);
 					color: #5a4a3a;
