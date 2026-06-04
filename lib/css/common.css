@@ -92,31 +92,35 @@ form:has(input:invalid:not(:placeholder-shown)) {
 /* ======================== 一些组件 ======================== */
 
 /* ================== 凹陷按钮开关 ==================
- * 可以简单地使用以下代码构造一个"弹起/凹陷"式按钮开关：
+ * 可以简单地使用以下代码构造一个"弹起（未按下）/凹陷（按下）"式按钮开关：
 	<label class="toggle btn">
 		<input type="checkbox" />
-		<span>弹起</span>
-		<span>凹陷</span>
+		<span class="text when-on">凹陷</span>
+		<span class="text when-off">弹起</span>
 	</label>
+	入口：label.toggle.btn
+
+	span.text.when-on为“凹陷（按下）”状态时显示的文字。
+	span.text.when-off为“弹起（未按下）”状态时显示的文字。
+	也可以不写类，此时按span的顺序，第一个是“凹陷（按下）”状态时显示的文字，第二个是“弹起（未按下）”状态时显示的文字。
  */
 label.toggle.btn {
-	/* label 本身不设宽高，由内部 span 撑开 */
-	display: inline-flex;        /* 让宽度自适应内容 */
+	display: inline-flex;
 	cursor: pointer;
 
-	/* 隐藏 checkbox 但保留交互。display:none不能保交互 */
+	/* 隐藏 checkbox 但保留交互 */
 	> input[type="checkbox"] {
 		position: absolute;
 		opacity: 0;
 		width: 0;
 		height: 0;
-		margin: 0;                /* 避免残留边距影响布局 */
+		margin: 0;
 	}
 
 	/* 共享基础按钮外观（弹起状态） */
 	> span {
 		display: inline-block;
-		padding: 6px 12px;        /* 基础内边距，使用者可覆盖 */
+		padding: 6px 12px;
 		background: #e8e8e8;
 		color: #333;
 		border: 1px solid #bbb;
@@ -130,29 +134,44 @@ label.toggle.btn {
 		}
 	}
 
-	/* 第二个 span 默认隐藏 */
-	> span + span {
+	/* 方式A：显式类名 .text.when-off / .text.when-on */
+	> span.text.when-on {
 		display: none;
 	}
 
-	/* 选中状态：隐藏第一个 span，显示第二个 span（凹陷感） */
 	&:has(> input:checked) {
-		> input + span {
+		> span.text.when-on {
+			display: inline-block;
+			background: #a0a0a0;
+			border-color: #888;
+			box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25);
+		}
+		> span.text.when-off {
+			display: none;
+		}
+	}
+
+	/* 方式B：无显式类名时按 DOM 位置降级 */
+	&:not(:has(> span.text.when-off)):not(:has(> span.text.when-on)) {
+		> span:first-of-type {
 			display: none;
 		}
 
-		> span + span {
-			display: inline-block;
-			background: #a0a0a0;
-			color: #333;
-			border-color: #888;
-			box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25);
+		&:has(> input:checked) {
+			> span:first-of-type {
+				display: inline-block;
+				background: #a0a0a0;
+				border-color: #888;
+				box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25);
+			}
+			> span:first-of-type ~ span {
+				display: none;
+			}
 		}
 	}
 
 	/* 禁用状态 */
 	&:disabled > input ~ span,
-	/* 兼容把disabled写在label上的情况 */
 	> input:disabled ~ span {
 		opacity: 0.5;
 		cursor: not-allowed;

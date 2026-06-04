@@ -91,7 +91,7 @@
 			<span class="label">默认</span>
 			<label class="toggle btn">
 				<input type="checkbox">
-				<span>弹起</span><span>凹陷</span>
+				<span>凹陷</span><span>弹起</span>
 			</label>
 			<span class="status-text">点击切换</span>
 		</div>
@@ -99,7 +99,7 @@
 			<span class="label">默认选中</span>
 			<label class="toggle btn">
 				<input type="checkbox" checked>
-				<span>弹起</span><span>凹陷</span>
+				<span>凹陷</span><span>弹起</span>
 			</label>
 			<span class="status-text">初始即选中</span>
 		</div>
@@ -107,14 +107,14 @@
 			<span class="label">禁用</span>
 			<label class="toggle btn" disabled>
 				<input type="checkbox" disabled>
-				<span>弹起</span><span>凹陷</span>
+				<span>凹陷</span><span>弹起</span>
 			</label>
 		</div>
 		<div class="row">
 			<span class="label">禁用+选中</span>
 			<label class="toggle btn" disabled>
 				<input type="checkbox" checked disabled>
-				<span>弹起</span><span>凹陷</span>
+				<span>凹陷</span><span>弹起</span>
 			</label>
 		</div>
 	</section>
@@ -154,6 +154,25 @@
 			</label>
 		</div>
 	</section>
+	<!-- 显式类名 -->
+	<section class="group">
+		<h2>显式类名（.text.when-off / .text.when-on）</h2>
+		<div class="row">
+			<span class="label">都在 input 前</span>
+			<label class="toggle btn">
+				<span class="text when-off">关</span><span class="text when-on">开</span>
+				<input type="checkbox">
+			</label>
+		</div>
+		<div class="row">
+			<span class="label">一前一后</span>
+			<label class="toggle btn">
+				<span class="text when-off">关</span>
+				<input type="checkbox">
+				<span class="text when-on">开</span>
+			</label>
+		</div>
+	</section>
 	<!-- 实际应用示例 -->
 	<section class="group">
 		<h2>实际应用：设置面板</h2>
@@ -161,21 +180,21 @@
 			<span class="label">通知</span>
 			<label class="toggle btn">
 				<input type="checkbox" checked>
-				<span>关闭</span><span>开启</span>
+				<span>开启</span><span>关闭</span>
 			</label>
 		</div>
 		<div class="row">
 			<span class="label">暗黑模式</span>
 			<label class="toggle btn">
 				<input type="checkbox">
-				<span>关闭</span><span>开启</span>
+				<span>开启</span><span>关闭</span>
 			</label>
 		</div>
 		<div class="row">
 			<span class="label">自动保存</span>
 			<label class="toggle btn">
 				<input type="checkbox" checked>
-				<span>关闭</span><span>开启</span>
+				<span>开启</span><span>关闭</span>
 			</label>
 		</div>
 		<div class="row">
