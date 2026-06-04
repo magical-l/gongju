@@ -112,54 +112,42 @@
 						stack-rise 0.15s ease-in calc(0.5s + 0.15s + 14 * 0.08s) forwards;
 				}
 
-				&.镧系收起 .镧系 {
-					grid-row: calc(6 + var(--period1-row-offset));
-					transform: translate(calc((3 - var(--col)) * (var(--cell-width) + var(--element-gap))), 0) scale(0.85);
-					z-index: var(--i);
-				}
-				&.锕系收起 .锕系 {
-					grid-row: calc(7 + var(--period1-row-offset) + var(--lan-open));
-					transform: translate(calc((3 - var(--col)) * (var(--cell-width) + var(--element-gap))), 0) scale(0.85);
-					z-index: var(--i);
-				}
+				&.镧系收起 .镧系, &.锕系收起 .锕系 { display: none; }
 
-				/* ------ 标签：透明卡盒 ------*/
+				/* ------ 标签：卡盒 ------*/
 				& .镧系标签, & .锕系标签 {
 					grid-column: 4;
 					position: relative;
-					z-index: 20;
 					margin: -3px; width: calc(100% + 6px); height: calc(100% + 6px);
 					display: flex;
 					justify-content: center;
 					align-items: center;
 					font-size: 0.75em;
-					transition: background 0.3s, color 0.3s, box-shadow 0.3s, border-color 0.3s;
+					transition: box-shadow 0.3s, border-color 0.3s;
 					cursor: pointer;
 					user-select: none;
 					--box-border: 2px;
-					/* 透明盒 */
-					border: var(--box-border) solid rgba(255,255,255,0.6);
-					background: linear-gradient(145deg, rgba(240,230,210,0.6), rgba(210,195,170,0.4));
-					color: rgba(66, 66, 66, 0.85);
-					box-shadow: 0 2px 6px rgba(0,0,0,0.12), inset 0 0 20px rgba(255,255,255,0.1);
-					perspective: 200px;
+					border: var(--box-border) solid #a09070;
+					background: linear-gradient(145deg, #d0c0a8, #c0b090, #a89878);
+					color: #5a4a3a;
+					box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 
 					& p {
 						position: absolute;
-						left: calc(50% + 1em);
-						bottom: calc(50% - 0.2em);
+						left: 50%;
+						bottom: calc(50% + 0.2em);
+						transform: translateX(-50%);
 						line-height: 1;
 						margin: 0;
-						font-size: 0.8em;
-						transition: all 0.3s;
+						font-size: 0.85em;
 					}
 					& .range {
 						position: absolute;
-						bottom: 2px;
+						bottom: calc(50% - 1.6em);
 						left: 50%;
 						transform: translateX(-50%);
 						font-size: 0.55em;
-						opacity: 0.5;
+						opacity: 0.7;
 						line-height: 1;
 						pointer-events: none;
 					}
@@ -170,14 +158,14 @@
 						left: 0; right: 0;
 						bottom: 0;
 						height: 8px;
-						background: rgba(220,210,190,0.6);
+						background: #a09070;
 						clip-path: polygon(0% 100%, 50% 0%, 100% 100%);
 						transform-origin: bottom;
-						transform: rotateX(0deg);
+						transform: perspective(200px) rotateX(0deg);
 						transition: transform 0.3s;
 						backface-visibility: visible;
 						pointer-events: none;
-						z-index: 0;
+						z-index: -1;
 					}
 				}
 				& .镧系标签 {
@@ -187,20 +175,12 @@
 					grid-row: calc(7 + var(--period1-row-offset) + var(--lan-open));
 				}
 
-				/* 展开：盒子空了，封口向下打开 */
+				/* 展开：封口向下打开 */
 				&.镧系展开 .镧系标签, &.锕系展开 .锕系标签 {
-					background: linear-gradient(145deg, rgba(240,230,210,0.5), rgba(210,195,170,0.3));
-					border-color: rgba(255,255,255,0.3);
 					border-bottom: 0;
-					color: rgba(66, 66, 66, 0.85);
-					box-shadow: inset 0 0 8px rgba(0,0,0,0.06);
-				}
-				&.镧系展开 .镧系标签 p, &.锕系展开 .锕系标签 p {
-					left: 50%;
-					transform: none;
 				}
 				&.镧系展开 .镧系标签 .flap, &.锕系展开 .锕系标签 .flap {
-					transform: rotateX(180deg);
+					transform: perspective(200px) rotateX(180deg);
 				}
 			}/* half-width */
 
@@ -856,12 +836,12 @@
 			</section>
 			<section class="镧系标签" v-if="layout === 'half-width'" :class="{ expanded: lanthanideExpanded }" :style="filtering?.length || hoverFilter ? {opacity:.5} : {}" @click="toggleLanthanides">
 				<span class="range">57~71</span>
-				<p>{{ lanthanideExpanded ? '镧系' : '系' }}</p>
+				<p>镧系</p>
 				<span class="flap"></span>
 			</section>
 			<section class="锕系标签" v-if="layout === 'half-width'" :class="{ expanded: actinideExpanded }" :style="filtering?.length || hoverFilter ? {opacity:.5} : {}" @click="toggleActinides">
 				<span class="range">89~103</span>
-				<p>{{ actinideExpanded ? '锕系' : '系' }}</p>
+				<p>锕系</p>
 				<span class="flap"></span>
 			</section>
 			<section class="element detail area" v-if="curElement">
