@@ -41,6 +41,13 @@
 					width: 90px;
 				}
 			}
+
+			& .toggle.btn > span {
+				font-size: 12px;
+				line-height: 1;
+				padding: 5px 11px;
+				border-radius: 3px;
+			}
 		}
 
 		/*----------------过滤器------------*/
@@ -747,7 +754,10 @@
 					<el-slider class="one controller : discovery year" v-model="discoveryYear" :min="1650" :max="2025" :marks="yearMarks" show-input size="small" style="width:400px"></el-slider>
 				</div>
 				<div class="one controller group">
-					<el-switch title="动静态切换" class="one controller : animation toggle" v-model="animationMode" active-text="动态" inactive-text="静态" size="small" style="--el-switch-on-color: #e8a020"></el-switch>
+					<label class="toggle btn" title="动静态切换">
+						<input type="checkbox" v-model="animationMode">
+						<span>动态</span><span>静态</span>
+					</label>
 				</div>
 				<div class="one tool group near-right">
 					<el-button title="显示说明" class="one tool" size="small" circle @click="introVisible = true">?</el-button>
