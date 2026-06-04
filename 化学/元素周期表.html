@@ -128,7 +128,7 @@
 					grid-column: 4;
 					position: relative;
 					z-index: 20;
-					height: 100%;
+					margin: -3px; width: calc(100% + 6px); height: calc(100% + 6px);
 					display: flex;
 					justify-content: center;
 					align-items: center;
@@ -189,10 +189,10 @@
 
 				/* 展开：盒子空了，封口向下打开 */
 				&.镧系展开 .镧系标签, &.锕系展开 .锕系标签 {
-					background: linear-gradient(145deg, rgba(240,230,210,0.3), rgba(210,195,170,0.15));
+					background: linear-gradient(145deg, rgba(240,230,210,0.5), rgba(210,195,170,0.3));
 					border-color: rgba(255,255,255,0.3);
 					border-bottom: 0;
-					color: rgba(255,250,240,0.5);
+					color: rgba(66, 66, 66, 0.85);
 					box-shadow: inset 0 0 8px rgba(0,0,0,0.06);
 				}
 				&.镧系展开 .镧系标签 p, &.锕系展开 .锕系标签 p {
