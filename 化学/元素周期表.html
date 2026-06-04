@@ -58,7 +58,7 @@
 		}
 
 		/*==========================元素周期表========================*/
-		:root{
+		:root {
 			--row-count-base: 7;
 			--row-count: var(--row-count-base);
 			--col-count: 32;
@@ -87,6 +87,7 @@
 
 			--lan-open: 0;
 			--a-open: 0;
+
 			&.half-width {
 				--col-count: 18;
 				--cell-width: 75px;
@@ -98,7 +99,8 @@
 				&.镧系展开 .镧系, &.锕系展开 .锕系 {
 					animation:
 						stack-drop 0.15s ease-out 0s forwards,
-						deal-card 0.5s ease-out calc(0.15s + var(--i) * 0.08s) both;
+						deal-card 0.5s ease-out calc(0.15s + var(--i) * 0.08s) both,
+						var(--shine-anims, none);
 				}
 				&.镧系展开 {
 					--lan-open: 1;
@@ -116,7 +118,8 @@
 					display: block;
 					animation:
 						collect-card 0.5s ease-in calc(0.15s + (14 - var(--i)) * 0.08s) both,
-						stack-rise 0.15s ease-in calc(0.5s + 0.15s + 14 * 0.08s) forwards;
+						stack-rise 0.15s ease-in calc(0.5s + 0.15s + 14 * 0.08s) forwards,
+						var(--shine-anims, none);
 				}
 
 				&.镧系收起 .镧系, &.锕系收起 .锕系 { display: none; }
@@ -125,7 +128,9 @@
 				& .镧系标签, & .锕系标签 {
 					grid-column: 4;
 					position: relative;
-					margin: -3px; width: calc(100% + 6px); height: calc(100% + 6px);
+					margin: -3px;
+					width: calc(100% + 6px);
+					height: calc(100% + 6px);
 					display: flex;
 					justify-content: center;
 					align-items: center;
@@ -137,7 +142,7 @@
 					border: var(--box-border) solid #a09070;
 					background: linear-gradient(145deg, #d0c0a8, #c0b090, #a89878);
 					color: #5a4a3a;
-					box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+					box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 
 					& p {
 						position: absolute;
@@ -148,6 +153,7 @@
 						margin: 0;
 						font-size: 0.85em;
 					}
+
 					& .range {
 						position: absolute;
 						bottom: calc(50% - 1.6em);
@@ -162,7 +168,8 @@
 					/* 封口三角（全宽，底部为轴翻转） */
 					& .flap {
 						position: absolute;
-						left: 0; right: 0;
+						left: 0;
+						right: 0;
 						bottom: 0;
 						height: 8px;
 						background: #a09070;
@@ -209,6 +216,7 @@
 			& .氧族 { grid-column: -4; }
 			& .卤素 { grid-column: -3; }
 		}
+
 		/*----------------元素卡--------------*/
 		.one.element {
 			position: relative;
@@ -1008,7 +1016,7 @@
 							if (item.children) {
 								if (item.filterable) result.push(item);
 								result = result.concat(flatten(item.children));
-						} else if (item.filterable) {
+							} else if (item.filterable) {
 								result.push(item);
 							}
 						}
@@ -1291,10 +1299,15 @@
 					if (tags.includes('稀土')) anims.push('rare-shine 3s ease-in-out infinite');
 					if (tags.includes('金属')) anims.push('metal-shine 2.5s ease-in-out infinite alternate');
 					if (phase === '液态') anims.push('liquid-morph 2s ease-in-out infinite');
-					if (anims.length === 0) return {};
-					const style = {
-						animation: anims.join(', ')
-					};
+					const style = {};
+					if (anims.length > 0) {
+						// 镧系/锕系：通过 CSS 变量传给发牌/收牌规则，与 stack-drop 等同步播放
+						if (tags.includes('镧系') || tags.includes('锕系')) {
+							style['--shine-anims'] = anims.join(', ');
+						} else {
+							style.animation = anims.join(', ');
+						}
+					}
 					if (tags.includes('金属')) {
 						// 检查当前状态是否有渐变色
 						const state = element.states?.[phase];
