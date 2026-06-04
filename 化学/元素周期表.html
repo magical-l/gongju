@@ -340,6 +340,25 @@
 				bottom: -8px;
 				left: -10px;
 				pointer-events: none;
+
+				& .hand {
+					display: inline-block;
+					position: relative;
+					z-index: 1;
+					&.tossing { animation: hand-toss 2.5s ease-out infinite; }
+				}
+
+				& .p1, & .p2, & .merged-dot {
+					position: absolute;
+					top: -4px;
+					left: 50%;
+					font-size: 16px;
+					line-height: 1;
+					pointer-events: none;
+				}
+				& .p1 { animation: chase-1 2.5s ease-out infinite; color: #fff; }
+				& .p2 { animation: chase-2 2.5s ease-out infinite; color: #fff; }
+				& .merged-dot { animation: merge-pop 2.5s ease-out infinite; color: #00e5ff; }
 			}
 		}
 
@@ -802,7 +821,15 @@
 				<!-- 放射性粒子环 -->
 				<div v-if="animationMode && element.tags.includes('放射性')" class="rad-ring"></div>
 				<span v-if="element.tags.includes('放射性')" class="辐射-icon">☢</span>
-				<span v-if="element.tags.includes('人造')" class="人造-icon">🫴</span>
+				<span v-if="element.tags.includes('人造')" class="人造-icon" :class="{ merging: animationMode }">
+					<span v-if="!animationMode">🫴</span>
+					<template v-else>
+						<span class="hand tossing">🫴</span>
+						<span class="p1">⚆</span>
+						<span class="p2">⚆</span>
+						<span class="merged-dot">⚇</span>
+					</template>
+				</span>
 				<!-- 磁感线（铁磁性元素，动画模式用SVG代替background-image伪元素） -->
 				<template v-if="element.tags.includes('铁磁性')">
 					<svg class="mag-line left" viewBox="-50 -100 100 200">
@@ -1382,6 +1409,50 @@
 			mounted() {
 				this.checkLayout();
 				window.addEventListener('resize', this.checkLayout);
+				// 注入人造元素动画 keyframes（LESS 编译有 bug，keyframes 在嵌套较深时可能丢失）
+				const kfStyle = document.createElement('style');
+				kfStyle.textContent = `
+					/* 手：抛掷动作 */
+					@keyframes hand-toss {
+						0%, 100% { transform: translateY(0) rotate(0deg); }
+						4%       { transform: translateY(-5px) rotate(-10deg); }
+						10%      { transform: translateY(1px) rotate(3deg); }
+						16%      { transform: translateY(0) rotate(0deg); }
+					}
+					/* 粒子1：先发，右上弧线 */
+					@keyframes chase-1 {
+						0%   { transform: translate(-50%, 0); opacity: 0; scale: 0.3; }
+						3%   { transform: translate(-50%, 0); opacity: 1; scale: 0.6; }
+						18%  { transform: translate(calc(-50% + 12px), -8px); opacity: 1; scale: 1; }
+						38%  { transform: translate(calc(-50% + 5px), -20px); opacity: 1; scale: 1; }
+						46%  { transform: translate(calc(-50% + 1px), -25px); opacity: 0.7; scale: 0.9; }
+						48%  { transform: translate(-50%, -25px); opacity: 0; scale: 0; }
+						100% { transform: translate(-50%, -25px); opacity: 0; scale: 0; }
+					}
+					/* 粒子2：后发，更快的左上弧线，追上粒子1 */
+					@keyframes chase-2 {
+						0%   { transform: translate(-50%, 0); opacity: 0; scale: 0.3; }
+						7%   { transform: translate(-50%, 0); opacity: 0; scale: 0.3; }
+						10%  { transform: translate(-50%, 0); opacity: 1; scale: 0.6; }
+						26%  { transform: translate(calc(-50% - 10px), -10px); opacity: 1; scale: 1; }
+						44%  { transform: translate(calc(-50% - 2px), -23px); opacity: 1; scale: 1; }
+						47%  { transform: translate(-50%, -25px); opacity: 0.8; scale: 1; }
+						49%  { transform: translate(-50%, -25px); opacity: 0; scale: 0; }
+						100% { transform: translate(-50%, -25px); opacity: 0; scale: 0; }
+					}
+					/* 合成 ⚇：闪现 → 飘落回手心 */
+					@keyframes merge-pop {
+						0%, 46% { opacity: 0; scale: 0; transform: translate(-50%, -25px); }
+						48%     { opacity: 0.6; scale: 0.8; transform: translate(-50%, -25px); }
+						50%     { opacity: 1; scale: 1.3; transform: translate(-50%, -25px); }
+						55%     { opacity: 0.9; scale: 1; transform: translate(-50%, -20px); }
+						65%     { opacity: 0.6; scale: 0.8; transform: translate(-50%, -8px); }
+						78%     { opacity: 0.2; scale: 0.5; transform: translate(-50%, -1px); }
+						90%     { opacity: 0; scale: 0; transform: translate(-50%, 0); }
+						100%    { opacity: 0; scale: 0; transform: translate(-50%, 0); }
+					}
+				`;
+				document.head.appendChild(kfStyle);
 			},
 			beforeUnmount() {
 				window.removeEventListener('resize', this.checkLayout);
