@@ -179,7 +179,7 @@
 						transition: transform 0.3s;
 						backface-visibility: visible;
 						pointer-events: none;
-						z-index: -1;
+						z-index: auto;
 					}
 				}
 				& .镧系标签 {
@@ -195,6 +195,7 @@
 				}
 				&.镧系展开 .镧系标签 .flap, &.锕系展开 .锕系标签 .flap {
 					transform: perspective(200px) rotateX(180deg);
+					z-index: -1;
 				}
 			}/* half-width */
 
