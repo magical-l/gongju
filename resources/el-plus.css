@@ -68,3 +68,7 @@
 body:has(.el-overlay:not([style*="display: none"]):not([style*="display:none"])) {
 	overflow: hidden;
 }
+
+.el-collapse-item__header h3 {
+	margin: 0;
+}
