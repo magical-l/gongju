@@ -74,7 +74,7 @@
 			min-width: 0;
 			/* 防止flex项目因内容过宽而溢出 */
 			background-color: var(--bg);
-			transition: all 0.5s ease-in-out;
+			transition: padding 0.5s ease-in-out;
 			padding-top: 8px;
 			gap: var(--element-gap);
 			grid-template-columns: 10px repeat(var(--col-count), var(--cell-width));
@@ -85,10 +85,14 @@
 				height: 600px;
 			}
 
-			--lan-open: 0;
-			--a-open: 0;
-
 			&.half-width {
+				--lan-open: 0;
+				--a-open: 0;
+				--quick-dur: 0.15s;
+				--fly-dur: 0.5s;
+				--stagger: 0.08s;
+				--flap-time: 0.3s;
+				--series-count: 14;
 				--col-count: 18;
 				--cell-width: 70px;
 				--cell-height: var(--cell-width);
@@ -98,8 +102,8 @@
 
 				&.镧系展开 .镧系, &.锕系展开 .锕系 {
 					animation:
-						stack-drop 0.15s ease-out 0.3s both,
-						deal-card 0.5s ease-out calc(0.45s + var(--i) * 0.08s) forwards,
+						stack-drop var(--quick-dur) ease-out var(--flap-time) both,
+						deal-card var(--fly-dur) ease-out calc(var(--flap-time) + var(--quick-dur) + var(--i) * var(--stagger)) forwards,
 						var(--shine-anims, none);
 				}
 				&.镧系展开 {
@@ -117,8 +121,8 @@
 				&.镧系正在收起 .镧系, &.锕系正在收起 .锕系 {
 					display: block;
 					animation:
-						collect-card 0.5s ease-in calc(0.15s + (14 - var(--i)) * 0.08s) both,
-						stack-rise 0.15s ease-in calc(0.5s + 0.15s + 14 * 0.08s) forwards,
+						collect-card var(--fly-dur) ease-in calc(var(--quick-dur) + (var(--series-count) - var(--i)) * var(--stagger)) both,
+						stack-rise var(--quick-dur) ease-in calc(var(--fly-dur) + var(--quick-dur) + var(--series-count) * var(--stagger)) forwards,
 						var(--shine-anims, none);
 				}
 
@@ -127,6 +131,7 @@
 				/* ------ 标签：卡盒 ------*/
 				& .镧系标签, & .锕系标签 {
 					--box-border: 2px;
+					--box-accent: #a09070;
 					grid-column: 4;
 					position: relative;
 					margin: calc(var(--box-border) / -2);
@@ -139,7 +144,7 @@
 					transition: box-shadow 0.3s, border-color 0.3s;
 					cursor: pointer;
 					user-select: none;
-					border: var(--box-border) solid #a09070;
+					border: var(--box-border) solid var(--box-accent);
 					background: linear-gradient(145deg, #f0e0cc, #e0ccb0, #c8b090);
 					color: #4a3a2a;
 					box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
@@ -172,7 +177,7 @@
 						right: 0;
 						bottom: 0;
 						height: 8px;
-						background: #a09070;
+						background: var(--box-accent);
 						clip-path: polygon(0% 100%, 50% 0%, 100% 100%);
 						transform-origin: bottom;
 						transform: perspective(200px) rotateX(0deg);
@@ -247,7 +252,6 @@
 					height: 60px;
 					pointer-events: none;
 					overflow: visible;
-					display: block;
 
 					& .vapor-particle {
 						position: absolute;
