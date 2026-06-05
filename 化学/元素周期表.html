@@ -18,7 +18,7 @@
 		body > main {
 			--period1-row-offset: 0;
 			--element-gap: 8px;
-			padding: 0;
+			padding: 0 0 20px;
 		}
 
 		/*=====================工具栏====================*/
@@ -70,6 +70,8 @@
 			--bg: bisque;
 			isolation: isolate;
 			contain: paint;
+			overflow-x: auto;
+			overflow-y: clip;
 			flex-grow: 1;
 			width: 100%;
 			min-width: 0;
@@ -82,8 +84,8 @@
 			grid-template-rows: repeat(var(--row-count), var(--cell-height));
 
 			&.full-width {
-				--cell-width: 81px;
-				height: 600px;
+				--cell-width: 68px;
+				--cell-height: var(--cell-width);
 			}
 
 			&.half-width {
