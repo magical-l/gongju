@@ -206,7 +206,7 @@ const data = {
 				{char: "⛥", name: "右手交织五角星", ename: "Right-Handed Interlaced Pentagram", tags: ['神秘学', '炼金术']},
 				{char: "⛦", name: "左手交织五角星", ename: "Left-Handed Interlaced Pentagram", tags: ['基督教', '东正教']},
 				{char: "⛧", name: "倒五角星", ename: "Inverted Pentagram", tags: ['倒置', '基督教']},
-				{char: "⛨", name: "盾牌黑十字", ename: "Black Cross On Shield", tags: ['盾牌']},
+				{char: "⛨", name: "盾牌实心十字", ename: "Solid Cross On Shield", tags: ['盾牌']},
 				{char: "⛩", name: "神道教神社", ename: "Shinto Shrine", tags: []},
 				{char: "⛪", name: "教堂", ename: "Church", tags: []},
 

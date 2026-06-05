@@ -4,9 +4,9 @@ const data = {
 		{
 			name: '表情',
 			symbols: [
-				{char: "☺", name: "白笑脸", ename: "WHITE SMILING FACE", tags: ['高兴', '开心']},
-				{char: "☻", name: "黑笑脸", ename: "BLACK SMILING FACE", tags: ['高兴', '开心']},
-				{char: "☹", name: "白皱眉", ename: "WHITE FROWNING FACE", tags: []}
+				{char: "☺", name: "空心笑脸", ename: "HOLLOW SMILING FACE", tags: ['高兴', '开心']},
+				{char: "☻", name: "实心笑脸", ename: "SOLID SMILING FACE", tags: ['高兴', '开心']},
+				{char: "☹", name: "空心皱眉", ename: "HOLLOW FROWNING FACE", tags: []}
 			]
 		},
 		{
@@ -28,8 +28,8 @@ const data = {
 				{char: "⚯", name: "未婚", ename: "Unmarried Partnership Symbol", tags: ['未婚', '关系']},
 				{char: "⚰", name: "棺材", ename: "Coffin", tags: ['死亡', '葬礼']},
 				{char: "⚱", name: "骨灰盒", ename: "Funeral Urn", tags: ['死亡', '葬礼']},
-				{char: "☎", name: "黑电话", ename: "Black Telephone"},
-				{char: "☏", name: "白电话", ename: "White Telephone"},
+				{char: "☎", name: "实心电话", ename: "Solid Telephone"},
+				{char: "☏", name: "空心电话", ename: "Hollow Telephone"},
 				{char: "☐", name: "投票框", ename: "Ballot Box"},
 				{char: "☑", name: "带勾的投票框", ename: "Ballot Box with Check"},
 				{char: "☒", name: "带叉的投票框", ename: "Ballot Box with X"},
@@ -65,8 +65,8 @@ const data = {
 				{char: "🚿", name: "淋浴", ename: "Shower", tags: ['设施']},
 				{char: "🛀", name: "浴缸", ename: "Bath", tags: ['设施']},
 				{char: "🛁", name: "浴缸", ename: "Bathtub", tags: ['设施']},
-				{char: "⚐", name: "白旗", ename: "WHITE FLAG", tags: []},
-				{char: "⚑", name: "黑旗", ename: "BLACK FLAG", tags: []},
+				{char: "⚐", name: "空心旗", ename: "HOLLOW FLAG", tags: []},
+				{char: "⚑", name: "实心旗", ename: "SOLID FLAG", tags: []},
 				{char: "⚒", name: "锤子和镐", ename: "HAMMER AND PICK", tags: []},
 				{
 					char: "⚕", name: "阿斯克勒庇俄斯之杖", ename: "Staff of Aesculapius",
@@ -79,7 +79,7 @@ const data = {
 				{char: "⛏", name: "十字镐、矿镐", ename: "PICK", tags: []},
 				{char: "⛓", name: "链条", ename: "CHAINS", tags: []},
 				{
-					char: "⛞", name: "黑方块中白圈内的斜线", ename: "FALLING DIAGONAL IN WHITE CIRCLE IN BLACK SQUARE",
+					char: "⛞", name: "实心方块中空心圈内的斜线", ename: "FALLING DIAGONAL IN WHITE CIRCLE IN BLACK SQUARE",
 					tags: ["符号", "警告"]
 				},
 				{char: "⛭", name: "无毂齿轮", ename: "GEAR WITHOUT HUB", tags: ["工具", "机械"]},
@@ -145,7 +145,7 @@ const data = {
 		{
 			name: '建筑',
 			symbols: [
-				{char: "⛨", name: "黑教堂、盾牌黑十字", ename: "Black Cross On Shield", tags: []},
+				{char: "⛨", name: "实心教堂、盾牌实心十字", ename: "Solid Cross On Shield", tags: []},
 				{char: "⛩", name: "神社鸟居/神道教神社", ename: "Shinto Shrine", tags: ['日本']},
 				{char: "⛪", name: "教堂", ename: "Church", tags: []},
 				{char: "⛫", name: "城堡", ename: "Castle", tags: ['城堡', '建筑']},
@@ -156,7 +156,7 @@ const data = {
 		{
 			name: '饮食',
 			symbols: [
-				{char: "⛾", name: "黑底白杯", ename: "CUP ON BLACK SQUARE", tags: ["杯子", '饮料']},
+				{char: "⛾", name: "实心底空心杯", ename: "CUP ON SOLID SQUARE", tags: ["杯子", '饮料']},
 				{char: "☕", name: "热饮", ename: "Hot Beverage", tags: ["咖啡", '饮料']}
 			]
 		},
@@ -166,7 +166,7 @@ const data = {
 				{char: "☂", name: "雨伞", ename: "Umbrella"},
 				{char: "☔", name: "带雨滴的雨伞", ename: "Umbrella with Rain Drops"},
 				{char: "⛱", name: "地面雨伞", ename: "Umbrella On Ground", tags: ['沙滩', '度假']},
-				{char: "⛟", name: "黑色卡车", ename: "BLACK TRUCK", tags: ["交通", "车辆"]},
+				{char: "⛟", name: "实心卡车", ename: "SOLID TRUCK", tags: ["交通", "车辆"]},
 				{char: "⛴", name: "渡轮", ename: "FERRY", tags: ["交通", "航海"]},
 				{char: "⛺", name: "帐篷", ename: "Tent", tags: ['帐篷', '露营']},
 				{char: "⛵", name: "帆船", ename: "Sailboat", tags: []},
@@ -234,10 +234,10 @@ const data = {
 				{char: "⛒", name: "圆圈内的交叉车道", ename: "CIRCLED CROSSING LANES", tags: []},
 				{char: "⛔", name: "禁止进入", ename: "NO ENTRY", tags: []},
 				{char: "⛕", name: "交替单向左行交通", ename: "ALTERNATE ONE-WAY LEFT WAY TRAFFIC", tags: []},
-				{char: "⛖", name: "黑色双向左行交通", ename: "BLACK TWO-WAY LEFT WAY TRAFFIC", tags: []},
-				{char: "⛗", name: "白色双向左行交通", ename: "WHITE TWO-WAY LEFT WAY TRAFFIC", tags: ["交通", "道路"]},
-				{char: "⛘", name: "黑色左车道合并", ename: "BLACK LEFT LANE MERGE", tags: ["交通", "道路"]},
-				{char: "⛙", name: "白色左车道合并", ename: "WHITE LEFT LANE MERGE", tags: ["交通", "道路"]},
+				{char: "⛖", name: "实心双向左行交通", ename: "SOLID TWO-WAY LEFT WAY TRAFFIC", tags: []},
+				{char: "⛗", name: "空心双向左行交通", ename: "HOLLOW TWO-WAY LEFT WAY TRAFFIC", tags: ["交通", "道路"]},
+				{char: "⛘", name: "实心左车道合并", ename: "SOLID LEFT LANE MERGE", tags: ["交通", "道路"]},
+				{char: "⛙", name: "空心左车道合并", ename: "HOLLOW LEFT LANE MERGE", tags: ["交通", "道路"]},
 				{char: "⛚", name: "慢行标志", ename: "DRIVE SLOW SIGN", tags: ["交通", "警告"]},
 				{char: "⛜", name: "左侧入口关闭", ename: "LEFT CLOSED ENTRY", tags: ["交通", "道路"]},
 				{char: "⛠", name: "限制左转入口-1", ename: "RESTRICTED LEFT ENTRY-1", tags: ["交通", "道路"]},
@@ -528,10 +528,10 @@ const data = {
 				{char: "➞", name: "粗三角头右箭头", ename: "Heavy Triangle-Headed Rightwards Arrow"},
 				{char: "➟", name: "虚线三角头右箭头", ename: "Dashed Triangle-Headed Rightwards Arrow"},
 				{char: "➠", name: "粗虚线三角头右箭头", ename: "Heavy Dashed Triangle-Headed Rightwards Arrow"},
-				{char: "➡", name: "黑三角右箭头", ename: "Black Rightwards Arrow"},
+				{char: "➡", name: "实心三角右箭头", ename: "Solid Rightwards Arrow"},
 				{char: "➢", name: "三维顶灯右箭头", ename: "Three-D Top-Lighted Rightwards Arrowhead"},
 				{char: "➣", name: "三维底灯右箭头", ename: "Three-D Bottom-Lighted Rightwards Arrowhead"},
-				{char: "➤", name: "黑三角", ename: "Black Rightwards Arrowhead"},
+				{char: "➤", name: "实心三角", ename: "Solid Rightwards Arrowhead"},
 				{char: "➥", name: "旋转粗右箭头", ename: "Heavy Rightwards Arrow With Tip Downwards"},
 				{char: "➦", name: "圆圈内右箭头", ename: "Rightwards Arrow With Tip Towards Top-Left Corner"},
 				{char: "➧", name: "重黑三角", ename: "Heavy Black Curved Upwards and Rightwards Arrow"},
@@ -557,12 +557,12 @@ const data = {
 				{char: "➼", name: "粗右箭头", ename: "Heavy Rightwards Arrow"},
 				{char: "➽", name: "右上箭头", ename: "Heavy North East Arrow"},
 				{char: "➾", name: "粗右箭头", ename: "Heavy Rightwards Arrow"},
-				{char: "☚", name: "黑左指", ename: "Black Left Pointing Index", tags: ['手指', '指向']},
-				{char: "☛", name: "黑右指", ename: "Black Right Pointing Index", tags: ['手指', '指向']},
-				{char: "☜", name: "白左指", ename: "White Left Pointing Index", tags: ['手指', '指向']},
-				{char: "☝", name: "白上指", ename: "White Up Pointing Index", tags: ['手指', '指向']},
-				{char: "☞", name: "白右指", ename: "White Right Pointing Index", tags: ['手指', '指向']},
-				{char: "☟", name: "白下指", ename: "White Down Pointing Index", tags: ['手指', '指向']},
+				{char: "☚", name: "实心左指", ename: "Solid Left Pointing Index", tags: ['手指', '指向']},
+				{char: "☛", name: "实心右指", ename: "Solid Right Pointing Index", tags: ['手指', '指向']},
+				{char: "☜", name: "空心左指", ename: "Hollow Left Pointing Index", tags: ['手指', '指向']},
+				{char: "☝", name: "空心上指", ename: "Hollow Up Pointing Index", tags: ['手指', '指向']},
+				{char: "☞", name: "空心右指", ename: "Hollow Right Pointing Index", tags: ['手指', '指向']},
+				{char: "☟", name: "空心下指", ename: "Hollow Down Pointing Index", tags: ['手指', '指向']},
 				{char: "⚞", name: "右聚三线", ename: "Three Lines Converging Right", tags: ['汇聚']},
 				{char: "⚟", name: "左聚三线", ename: "Three Lines Converging Left", tags: ['汇聚']}
 			]

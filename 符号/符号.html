@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="zh-CN"><head>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>符号大全 - CoolSymbol在线复制</title>
@@ -32,9 +34,16 @@
 		}
 
 		.symbol-groups {
+			background-color: bisque;
 			display: flex;
 			flex-direction: column;
 			gap: 0.5rem;
+
+			& .el-collapse,
+			& .el-collapse-item__header,
+			& .el-collapse-item__wrap {
+				background-color: transparent;
+			}
 		}
 
 		.symbol-group .name {
@@ -54,6 +63,7 @@
 		.symbols {
 			display: grid;
 			grid-template-columns: repeat(10, 1fr);
+			background-color: bisque;
 		}
 
 		.symbol {
@@ -75,10 +85,10 @@
 			background-color: var(--el-color-primary-light-9);
 		}
 
-			.symbol.auto-focused {
-				background-color: var(--el-color-primary-light-9);
-				outline: 2px solid var(--el-color-primary);
-			}
+		.symbol.auto-focused {
+			background-color: var(--el-color-primary-light-9);
+			outline: 2px solid var(--el-color-primary);
+		}
 
 		.symbol .char {
 			font-family: 'Noto Sans Symbols 2', sans-serif;
@@ -455,39 +465,39 @@
 					});
 				},
 				autoFocusWhiteSmile() {
-						const group = this.symbolGroups['人类生活'];
-						if (!group) return;
-						const findSymbol = (symbols) => symbols.find(s => s.char === '☺');
-						let target = group.symbols ? findSymbol(group.symbols) : null;
-						if (!target && group.groups) {
-							for (const subgroup of group.groups) {
-								target = findSymbol(subgroup.symbols);
-								if (target) break;
-							}
-						}
-						if (!target) return;
-						this.setHoveredSymbol(target);
-						const chars = document.querySelectorAll('.symbol .char');
-						for (const el of chars) {
-							if (el.textContent === '☺') {
-								const symbolEl = el.closest('.symbol');
-								if (symbolEl) {
-									symbolEl.classList.add('auto-focused');
-								}
-								document.addEventListener('mouseover', function handler(e) {
-									if (e.target.closest('.symbol')) {
-										document.querySelectorAll('.symbol.auto-focused').forEach(s => s.classList.remove('auto-focused'));
-										document.removeEventListener('mouseover', handler);
-									}
-								});
-								el.scrollIntoView({
-									behavior: 'smooth',
-									block: 'center'
-								});
-								break;
-							}
+					const group = this.symbolGroups['人类生活'];
+					if (!group) return;
+					const findSymbol = (symbols) => symbols.find(s => s.char === '☺');
+					let target = group.symbols ? findSymbol(group.symbols) : null;
+					if (!target && group.groups) {
+						for (const subgroup of group.groups) {
+							target = findSymbol(subgroup.symbols);
+							if (target) break;
 						}
 					}
+					if (!target) return;
+					this.setHoveredSymbol(target);
+					const chars = document.querySelectorAll('.symbol .char');
+					for (const el of chars) {
+						if (el.textContent === '☺') {
+							const symbolEl = el.closest('.symbol');
+							if (symbolEl) {
+								symbolEl.classList.add('auto-focused');
+							}
+							document.addEventListener('mouseover', function handler(e) {
+								if (e.target.closest('.symbol')) {
+									document.querySelectorAll('.symbol.auto-focused').forEach(s => s.classList.remove('auto-focused'));
+									document.removeEventListener('mouseover', handler);
+								}
+							});
+							el.scrollIntoView({
+								behavior: 'smooth',
+								block: 'center'
+							});
+							break;
+						}
+					}
+				}
 			},
 			watch: {
 				activeGroupNames(newNames) {
@@ -536,6 +546,5 @@
 
 		</script>
 	</div>
-
-
-</body></html>
+</body>
+</html>

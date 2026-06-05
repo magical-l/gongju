@@ -73,13 +73,13 @@ const data = {
 		{
 			name: '几何图形',
 			symbols: [
-				{char: "⚪", name: "白圆", ename: "Medium White Circle", tags: ['圆形', '白色']},
-				{char: "⚫", name: "黑圆", ename: "Medium Black Circle", tags: ['圆形', '黑色']},
+				{char: "⚪", name: "空心圆", ename: "Medium Hollow Circle", tags: ['圆形', '白色']},
+				{char: "⚫", name: "实心圆", ename: "Medium Solid Circle", tags: ['圆形', '黑色']},
 				{char: "⛛", name: "重白下指三角", ename: "Heavy White Down-Pointing Triangle", tags: ['指向']},
-				{char: "⚆", name: "白圆右点", ename: "White Circle with Dot Right", tags: ['圆形', '点']},
-				{char: "⚇", name: "白圆双点", ename: "White Circle with Two Dots", tags: ['圆形', '点']},
-				{char: "⚈", name: "黑圆右点", ename: "Black Circle with White Dot Right", tags: ['圆形', '点']},
-				{char: "⚉", name: "黑圆双点", ename: "Black Circle with Two White Dots", tags: ['圆形', '点']},
+				{char: "⚆", name: "空心圆右点", ename: "Hollow Circle with Dot Right", tags: ['圆形', '点']},
+				{char: "⚇", name: "空心圆双点", ename: "Hollow Circle with Two Dots", tags: ['圆形', '点']},
+				{char: "⚈", name: "实心圆右点", ename: "Solid Circle with White Dot Right", tags: ['圆形', '点']},
+				{char: "⚉", name: "实心圆双点", ename: "Solid Circle with Two White Dots", tags: ['圆形', '点']},
 				{char: "⛋", name: "正方形内接菱形", ename: "WHITE DIAMOND IN SQUARE", tags: ['圆形', '点']},
 				{char: "⛶", name: "四角方框", ename: "SQUARE FOUR CORNERS", tags: ["符号", "几何"]}
 			]

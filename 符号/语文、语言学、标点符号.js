@@ -30,10 +30,10 @@ const data = {
 				{char: "》", name: "双尖括号", ename: "Double Angle Bracket", tags: ["书名号"]},
 				{char: "〈", name: "单尖括号", ename: "Single Angle Bracket", tags: ["书名号"]},
 				{char: "〉", name: "单尖括号", ename: "Single Angle Bracket", tags: ["书名号"]},
-				{char: "『", name: "白透镜括号", ename: "White Lenticular Bracket"},
-				{char: "』", name: "白透镜括号", ename: "White Lenticular Bracket"},
-				{char: "「", name: "白角括号", ename: "White Corner Bracket"},
-				{char: "」", name: "白角括号", ename: "White Corner Bracket"},
+				{char: "『", name: "空心透镜括号", ename: "Hollow Lenticular Bracket"},
+				{char: "』", name: "空心透镜括号", ename: "Hollow Lenticular Bracket"},
+				{char: "「", name: "空心角括号", ename: "Hollow Corner Bracket"},
+				{char: "」", name: "空心角括号", ename: "Hollow Corner Bracket"},
 				{char: "﹃", name: "竖排左双引号", ename: "Presentation Form for Vertical Left Double Quotation Mark"},
 				{
 					char: "﹄",
@@ -61,16 +61,16 @@ const data = {
 				{char: "〉", name: "右尖括号", ename: "Right Angle Bracket"},
 				{char: "《", name: "左双尖括号", ename: "Left Double Angle Bracket"},
 				{char: "》", name: "右双尖括号", ename: "Right Double Angle Bracket"},
-				{char: "「", name: "左白角括号", ename: "Left Corner Bracket"},
-				{char: "」", name: "右白角括号", ename: "Right Corner Bracket"},
-				{char: "『", name: "左白透镜括号", ename: "Left White Corner Bracket"},
-				{char: "』", name: "右白透镜括号", ename: "Right White Corner Bracket"},
-				{char: "【", name: "左黑透镜括号", ename: "Left Black Lenticular Bracket"},
-				{char: "】", name: "右黑透镜括号", ename: "Right Black Lenticular Bracket"},
+				{char: "「", name: "左空心角括号", ename: "Left Corner Bracket"},
+				{char: "」", name: "右空心角括号", ename: "Right Corner Bracket"},
+				{char: "『", name: "左空心透镜括号", ename: "Left Hollow Corner Bracket"},
+				{char: "』", name: "右空心透镜括号", ename: "Right Hollow Corner Bracket"},
+				{char: "【", name: "左实心透镜括号", ename: "Left Solid Lenticular Bracket"},
+				{char: "】", name: "右实心透镜括号", ename: "Right Solid Lenticular Bracket"},
 				{char: "〔", name: "左六角括号", ename: "Left Tortoise Shell Bracket"},
 				{char: "〕", name: "右六角括号", ename: "Right Tortoise Shell Bracket"},
-				{char: "〖", name: "左白六角括号", ename: "Left White Tortoise Shell Bracket"},
-				{char: "〗", name: "右白六角括号", ename: "Right White Tortoise Shell Bracket"},
+				{char: "〖", name: "左空心六角括号", ename: "Left Hollow Tortoise Shell Bracket"},
+				{char: "〗", name: "右空心六角括号", ename: "Right Hollow Tortoise Shell Bracket"},
 				{char: "〶", name: "表意邮政符号", ename: "Ideographic Postal Mark"},
 				{char: "〒", name: "邮政符号", ename: "Postal Mark"}
 			]
@@ -120,12 +120,12 @@ const data = {
 				},
 				{
 					char: "︻",
-					name: "竖排左黑方括号",
+					name: "竖排左实心方括号",
 					ename: "Presentation Form For Vertical Left Black Lenticular Bracket"
 				},
 				{
 					char: "︼",
-					name: "竖排右黑方括号",
+					name: "竖排右实心方括号",
 					ename: "Presentation Form For Vertical Right Black Lenticular Bracket"
 				},
 				{
@@ -144,12 +144,12 @@ const data = {
 				{char: "﹂", name: "竖排右角括号", ename: "Presentation Form For Vertical Right Corner Bracket"},
 				{
 					char: "﹃",
-					name: "竖排左白角括号",
+					name: "竖排左空心角括号",
 					ename: "Presentation Form For Vertical Left White Corner Bracket"
 				},
 				{
 					char: "﹄",
-					name: "竖排右白角括号",
+					name: "竖排右空心角括号",
 					ename: "Presentation Form For Vertical Right White Corner Bracket"
 				}
 			]
