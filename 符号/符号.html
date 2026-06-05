@@ -1,512 +1,541 @@
 <!DOCTYPE html><html lang="zh-CN"><head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>符号大全 - CoolSymbol在线复制</title>
-<meta name="description" content="在线复制各种酷炫的Unicode符号、表情符号和特殊字符，方便在社交媒体、聊天和文档中使用。">
-<meta name="keywords" content="符号, 特殊字符, Unicode, 表情符号, 在线工具">
-<meta name="author" content="工具兽">
-<meta property="og:title" content="符号大全 - CoolSymbol在线复制">
-<meta property="og:description" content="在线复制各种酷炫的Unicode符号、表情符号和特殊字符。">
-<meta property="og:type" content="website">
-
-<link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
-<link href="../resources/el-plus.css" rel="stylesheet">
-<link href="../lib/toastr.min.css" rel="stylesheet">
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>符号大全 - CoolSymbol在线复制</title>
+	<meta name="description" content="在线复制各种酷炫的Unicode符号、表情符号和特殊字符，方便在社交媒体、聊天和文档中使用。">
+	<meta name="keywords" content="符号, 特殊字符, Unicode, 表情符号, 在线工具">
+	<meta name="author" content="工具兽">
+	<meta property="og:title" content="符号大全 - CoolSymbol在线复制">
+	<meta property="og:description" content="在线复制各种酷炫的Unicode符号、表情符号和特殊字符。">
+	<meta property="og:type" content="website">
+	<link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
+	<link href="../resources/el-plus.css" rel="stylesheet">
+	<link href="../lib/toastr.min.css" rel="stylesheet">
 	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/common.css" rel="stylesheet"> -->
 	<link href="../lib/css/common.css" rel="stylesheet">
 	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/layout.css" rel="stylesheet"> -->
 	<link href="../lib/css/layout.css" rel="stylesheet">
-<link href="../resources/biz.css?v=250821" rel="stylesheet">
+	<link href="../resources/biz.css?v=250821" rel="stylesheet">
 	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/花活.css" rel="stylesheet"> -->
 	<link href="../lib/css/花活.css" rel="stylesheet">
-<style>
-	@font-face {
-		font-family: 'Noto Sans Symbols 2';
-		src: url('../lib/fonts/NotoSansSymbols2-Regular.ttf') format('truetype');
-		font-weight: normal;
-		font-style: normal;
-		font-display: swap;
-	}
+	<style>
+		@font-face {
+			font-family: 'Noto Sans Symbols 2';
+			src: url('../lib/fonts/NotoSansSymbols2-Regular.ttf') format('truetype');
+			font-weight: normal;
+			font-style: normal;
+			font-display: swap;
+		}
 
-	.search-bar {
-		margin-bottom: 2rem;
-	}
+		.search-bar {
+			margin-bottom: 2rem;
+		}
 
-	.symbol-groups {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
+		.symbol-groups {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5rem;
+		}
 
-	.symbol-group .name {
-		font-size: 1.5rem;
-		border-bottom: 1px solid var(--el-border-color-light);
-	}
+		.symbol-group .name {
+			font-size: 1.5rem;
+			border-bottom: 1px solid var(--el-border-color-light);
+		}
 
-	.symbol-group h4.name {
-		font-size: 1.1rem;
-		font-weight: 600;
-		color: var(--el-text-color-regular);
-		margin-top: 1rem;
-		margin-bottom: 0.5rem;
-		padding-left: 8px;
-	}
+		.symbol-group h4.name {
+			font-size: 1.1rem;
+			font-weight: 600;
+			color: var(--el-text-color-regular);
+			margin-top: 1rem;
+			margin-bottom: 0.5rem;
+			padding-left: 8px;
+		}
 
-	.symbols {
-		display: grid;
-		grid-template-columns: repeat(10, 1fr);
-	}
+		.symbols {
+			display: grid;
+			grid-template-columns: repeat(10, 1fr);
+		}
 
-	.symbol {
-		display: flex;
-		flex-direction: column;
-		justify-content: start;
-		align-items: center;
-		height: 120px;
-		width: 90px;
-		cursor: pointer;
-		border-radius: 4px;
-		transition: background-color 0.3s;
-		padding: 4px;
-		box-sizing: border-box;
-		flex-shrink: 0;
-	}
+		.symbol {
+			display: flex;
+			flex-direction: column;
+			justify-content: start;
+			align-items: center;
+			height: 120px;
+			width: 90px;
+			cursor: pointer;
+			border-radius: 4px;
+			transition: background-color 0.3s;
+			padding: 4px;
+			box-sizing: border-box;
+			flex-shrink: 0;
+		}
 
-	.symbol:hover {
-		background-color: var(--el-color-primary-light-9);
-	}
+		.symbol:hover {
+			background-color: var(--el-color-primary-light-9);
+		}
 
-	.symbol .char {
-		font-family: 'Noto Sans Symbols 2', sans-serif;
-		font-size: 1.8rem;
-		flex-basis: 40px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
+			.symbol.auto-focused {
+				background-color: var(--el-color-primary-light-9);
+				outline: 2px solid var(--el-color-primary);
+			}
 
-	.symbol .name, .symbol .ename {
-		text-align: center;
-		width: 100%;
-		white-space: normal;
-		line-height: 1.2;
-		overflow: hidden;
-	}
+		.symbol .char {
+			font-family: 'Noto Sans Symbols 2', sans-serif;
+			font-size: 1.8rem;
+			flex-basis: 40px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
 
-	.symbol .name {
-		font-size: 0.75rem;
-		color: var(--el-text-color-primary);
-	}
+		.symbol .name, .symbol .ename {
+			text-align: center;
+			width: 100%;
+			white-space: normal;
+			line-height: 1.2;
+			overflow: hidden;
+		}
 
-	.symbol .ename {
-		font-size: 0.65rem;
-		color: var(--el-text-color-placeholder);
-		text-transform: capitalize;
-	}
+		.symbol .name {
+			font-size: 0.75rem;
+			color: var(--el-text-color-primary);
+		}
 
-	.loading-placeholder {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		height: 100px;
-		color: var(--el-text-color-placeholder);
-	}
+		.symbol .ename {
+			font-size: 0.65rem;
+			color: var(--el-text-color-placeholder);
+			text-transform: capitalize;
+		}
 
-	.subgroup {
-		margin-bottom: 1.5rem;
-	}
+		.loading-placeholder {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			height: 100px;
+			color: var(--el-text-color-placeholder);
+		}
 
-	.subgroup .subgroup-name {
-		font-size: 1rem;
-		font-weight: 500;
-		color: var(--el-text-color-regular);
-		margin-bottom: 0.75rem;
-		padding-left: 8px;
-		border-left: 3px solid var(--el-color-primary);
-	}
+		.subgroup {
+			margin-bottom: 1.5rem;
+		}
 
-	.symbol-detail-floater {
-		position: fixed;
-		bottom: 200px;
-		right: 10px;
-		z-index: 100;
-		width: 330px;
-		box-shadow: var(--el-box-shadow-light);
-		background-color: #fff;
-		border: 1px solid var(--el-border-color-light);
-		border-radius: 8px;
-		opacity: 0;
-		pointer-events: none;
-		transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
-		transform: translateX(10px);
-	}
+		.subgroup .subgroup-name {
+			font-size: 1rem;
+			font-weight: 500;
+			color: var(--el-text-color-regular);
+			margin-bottom: 0.75rem;
+			padding-left: 8px;
+			border-left: 3px solid var(--el-color-primary);
+		}
 
-	.symbol-detail-floater.is-visible {
-		opacity: 0.8;
-		transform: translateX(0);
-	}
+		.symbol-detail-floater {
+			position: fixed;
+			bottom: 200px;
+			right: 10px;
+			z-index: 100;
+			width: 330px;
+			box-shadow: var(--el-box-shadow-light);
+			background-color: #fff;
+			border: 1px solid var(--el-border-color-light);
+			border-radius: 8px;
+			opacity: 0;
+			pointer-events: none;
+			transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+			transform: translateX(10px);
+		}
 
-	.symbol-detail-floater .char-preview {
-		font-size: 5rem;
-		text-align: center;
-		font-family: 'Noto Sans Symbols 2', sans-serif;
-		line-height: 1;
-	}
+		.symbol-detail-floater.is-visible {
+			opacity: 0.8;
+			transform: translateX(0);
+		}
 
-	.symbol-detail-floater .details {
-		text-align: center;
-	}
+		.symbol-detail-floater .char-preview {
+			font-size: 5rem;
+			text-align: center;
+			font-family: 'Noto Sans Symbols 2', sans-serif;
+			line-height: 1;
+		}
 
-	.symbol-detail-floater .details .name {
-		font-size: 1.2rem;
-		font-weight: 600;
-		color: var(--el-text-color-primary);
-	}
+		.symbol-detail-floater .details {
+			text-align: center;
+		}
 
-	.symbol-detail-floater .details .ename {
-		font-size: 0.9rem;
-		color: var(--el-text-color-placeholder);
-		text-transform: capitalize;
-		margin-top: 4px;
-	}
+		.symbol-detail-floater .details .name {
+			font-size: 1.2rem;
+			font-weight: 600;
+			color: var(--el-text-color-primary);
+		}
 
-	.symbol-detail-floater .details .code {
-		font-family: monospace;
-		color: var(--el-text-color-secondary);
-		margin-top: 0.75rem;
-		font-size: 0.9em;
-	}
+		.symbol-detail-floater .details .ename {
+			font-size: 0.9rem;
+			color: var(--el-text-color-placeholder);
+			text-transform: capitalize;
+			margin-top: 4px;
+		}
 
-	.symbol-detail-floater .placeholder-char {
-		font-family: sans-serif;
-		color: #eee;
-		user-select: none;
-	}
+		.symbol-detail-floater .details .code {
+			font-family: monospace;
+			color: var(--el-text-color-secondary);
+			margin-top: 0.75rem;
+			font-size: 0.9em;
+		}
 
-	.symbol-detail-floater .symbol-char {
-		font-family: 'Noto Sans Symbols 2', sans-serif;
-		margin: 0 2px;
-	}
+		.symbol-detail-floater .placeholder-char {
+			font-family: sans-serif;
+			color: #eee;
+			user-select: none;
+		}
 
+		.symbol-detail-floater .symbol-char {
+			font-family: 'Noto Sans Symbols 2', sans-serif;
+			margin: 0 2px;
+		}
 
-.symbol-detail-floater .floater-title {
-	font-size: 1rem;
-	font-weight: bold;
-	text-align: center;
-	margin-top: 8px;
-	color: var(--el-text-color-regular);
-}</style>
+		.symbol-detail-floater .floater-title {
+			font-size: 1rem;
+			font-weight: bold;
+			text-align: center;
+			margin-top: 8px;
+			color: var(--el-text-color-regular);
+		}
+
+	</style>
 </head>
 <body class="反叵字形">
-<header>
-	<h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
-	<nav>
-		<div class="nav-row">
-			<a href="../文本转化.html">文本转化</a>
-			<a href="../数字转化.html">数字转化</a>
-			<a href="符号.html" class="active">符号</a>
-			<a href="../格子盘.html">格子盘</a>
-			<a href="../svg转图标.html">SVG转图标</a>
-			<a href="../化学/元素周期表.html">元素周期表</a>
-			<a href="../拼音/拼音.html">拼音</a>
-		</div>
-		<div class="nav-row">
-			<a href="../游戏/中国象棋/中国象棋.html">中国象棋</a>
-			<a href="../游戏/五子棋/gobang.html">五子棋</a>
-			<a href="../游戏/俄罗斯方块.html">俄罗斯方块</a>
-			<a href="../游戏/贪吃蛇.html">贪吃蛇</a>
-			<a href="../游戏/2048/2048.html">2048</a>
-			<a href="../游戏/2048蛇/2048蛇.html">2048蛇</a>
-			<a href="../游戏/2048方块/2048方块.html">2048方块</a>
-			<a href="../游戏/点灯.html">点灯</a>
-			<a href="../游戏/数字华容道.html">数字华容道</a>
-			<a href="../游戏/星连星/星连星.html">星连星</a>
-		</div>
-	</nav>
-</header>
-<main>
 	<header>
-		<h2 class="page-lv name">符号大全</h2>
-		<div class="page-lv help area" v-cloak>
-			<el-button title="显示说明" class="page-lv help btn" size="small" circle @click="introVisible = true">?
-			</el-button>
-			<el-dialog title="页面说明" class="page-lv intro" v-model="introVisible" width="60%">
-				<p>"符号大全"是一个方便用户查找和复制各种Unicode特殊字符的工具。</p>
-				<h2>核心功能</h2>
-				<ul>
-					<li><strong>搜索过滤：</strong> 输入关键字，实时过滤符号。</li>
-					<li><strong>分类浏览：</strong> 符号按类别进行组织，方便快速查找。</li>
-					<li><strong>双语名称：</strong> 提供中文和英文官方名称，便于理解和学习。</li>
-					<li><strong>一键复制：</strong> 点击任意符号即可将其复制到剪贴板。</li>
-				</ul>
-				<h2>如何使用</h2>
-				<p>
-					直接在搜索框输入关键字，或者浏览不同类别的符号，找到你想要的，然后单击它。符号会自动复制到你的剪贴板，并有提示信息确认。然后你可以将其粘贴到任何需要的地方。</p>
-				<p style="color: #e6a23c; font-weight: bold;">
-					温馨提示：本页面已尽力确保符号显示完整，但复制到其他软件（如聊天工具、文档编辑器等）后，能否正常显示取决于该软件或操作系统的字体支持。如果目标环境缺少相应字体，符号可能显示为方框或乱码。
-				</p>
-			</el-dialog>
-		</div>
+		<h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
+		<nav>
+			<div class="nav-row">
+				<a href="../文本转化.html">文本转化</a>
+				<a href="../数字转化.html">数字转化</a>
+				<a href="符号.html" class="active">符号</a>
+				<a href="../格子盘.html">格子盘</a>
+				<a href="../svg转图标.html">SVG转图标</a>
+				<a href="../化学/元素周期表.html">元素周期表</a>
+				<a href="../拼音/拼音.html">拼音</a>
+			</div>
+			<div class="nav-row">
+				<a href="../游戏/中国象棋/中国象棋.html">中国象棋</a>
+				<a href="../游戏/五子棋/gobang.html">五子棋</a>
+				<a href="../游戏/俄罗斯方块.html">俄罗斯方块</a>
+				<a href="../游戏/贪吃蛇.html">贪吃蛇</a>
+				<a href="../游戏/2048/2048.html">2048</a>
+				<a href="../游戏/2048蛇/2048蛇.html">2048蛇</a>
+				<a href="../游戏/2048方块/2048方块.html">2048方块</a>
+				<a href="../游戏/点灯.html">点灯</a>
+				<a href="../游戏/数字华容道.html">数字华容道</a>
+				<a href="../游戏/星连星/星连星.html">星连星</a>
+			</div>
+		</nav>
 	</header>
-
-	<article v-cloak>
-		<div class="symbol-detail-floater" :class="{'is-visible': hoveredSymbol}" v-if="hoveredSymbol">
-			<div class="floater-title">效果预览</div><div class="char-preview">
-				<span class="placeholder-char">文</span><span class="symbol-char">{{ hoveredSymbol.char }}</span><span class="placeholder-char">字</span>
+	<main>
+		<header>
+			<h2 class="page-lv name">符号大全</h2>
+			<div class="page-lv help area" v-cloak>
+				<el-button title="显示说明" class="page-lv help btn" size="small" circle @click="introVisible = true">?
+				</el-button>
+				<el-dialog title="页面说明" class="page-lv intro" v-model="introVisible" width="60%">
+					<p>"符号大全"是一个方便用户查找和复制各种Unicode特殊字符的工具。</p>
+					<h2>核心功能</h2>
+					<ul>
+						<li><strong>搜索过滤：</strong> 输入关键字，实时过滤符号。</li>
+						<li><strong>分类浏览：</strong> 符号按类别进行组织，方便快速查找。</li>
+						<li><strong>双语名称：</strong> 提供中文和英文官方名称，便于理解和学习。</li>
+						<li><strong>一键复制：</strong> 点击任意符号即可将其复制到剪贴板。</li>
+					</ul>
+					<h2>如何使用</h2>
+					<p>
+						直接在搜索框输入关键字，或者浏览不同类别的符号，找到你想要的，然后单击它。符号会自动复制到你的剪贴板，并有提示信息确认。然后你可以将其粘贴到任何需要的地方。</p>
+					<p style="color: #e6a23c; font-weight: bold;">
+						温馨提示：本页面已尽力确保符号显示完整，但复制到其他软件（如聊天工具、文档编辑器等）后，能否正常显示取决于该软件或操作系统的字体支持。如果目标环境缺少相应字体，符号可能显示为方框或乱码。
+					</p>
+				</el-dialog>
 			</div>
-			<div class="details">
-				<div class="name">{{ hoveredSymbol.name || hoveredSymbol.char }}</div>
-				<div v-if="hoveredSymbol.ename" class="ename">{{ hoveredSymbol.ename }}</div>
-				<div class="code">U+{{ hoveredSymbol.char.codePointAt(0).toString(16).toUpperCase() }}</div>
-				<div class="code">&#{{ hoveredSymbol.char.codePointAt(0) }};</div>
+		</header>
+		<article v-cloak>
+			<div class="symbol-detail-floater" :class="{'is-visible': hoveredSymbol}" v-if="hoveredSymbol">
+				<div class="floater-title">效果预览</div>
+				<div class="char-preview">
+					<span class="placeholder-char">文</span><span class="symbol-char">{{ hoveredSymbol.char }}</span><span class="placeholder-char">字</span>
+				</div>
+				<div class="details">
+					<div class="name">{{ hoveredSymbol.name || hoveredSymbol.char }}</div>
+					<div v-if="hoveredSymbol.ename" class="ename">{{ hoveredSymbol.ename }}</div>
+					<div class="code">U+{{ hoveredSymbol.char.codePointAt(0).toString(16).toUpperCase() }}</div>
+					<div class="code">&amp;#{{ hoveredSymbol.char.codePointAt(0) }};</div>
+				</div>
 			</div>
-		</div>
-
-		<section class="search-bar">
-			<el-input v-model="searchQuery" placeholder="输入中文/英文搜索组/符号..." clearable size="large"></el-input>
-		</section>
-
-		<div class="symbol-groups">
-			<el-collapse v-model="activeGroupNames">
-				<el-collapse-item v-for="group in groups" :key="group" :name="group">
-					<template #title="">
-						<h3 class="name">{{ group }}</h3>
-					</template>
-
-					<div v-if="!loadedGroups[group]" class="loading-placeholder">
-						<el-button @click="loadGroup(group)" type="primary" :loading="loadingGroups[group]">
-							{{ loadingGroups[group] ? '加载中...' : '点击加载' }}
-						</el-button>
-					</div>
-
-					<div v-else-if="loadedGroups[group] && filteredSymbolGroups[group]">
-						<div v-if="filteredSymbolGroups[group].groups" class="subgroups">
-							<div v-for="subgroup in filteredSymbolGroups[group].groups" :key="subgroup.name" class="subgroup">
-								<h4 class="subgroup-name">{{ subgroup.name }}</h4>
-								<div class="symbols">
-									<div class="symbol" v-for="s in subgroup.symbols" :key="s.char" @click="copySymbol(s)" title="点击复制" @mouseenter="setHoveredSymbol(s)" @mouseleave="clearHoveredSymbol">
-										<span class="char">{{ s.char }}</span>
-										<span class="name">{{ s.name }}</span>
-										<span class="ename">{{ s.ename }}</span>
+			<section class="search-bar">
+				<el-input v-model="searchQuery" placeholder="输入中文/英文搜索组/符号..." clearable="" size="large"></el-input>
+			</section>
+			<div class="symbol-groups">
+				<el-collapse v-model="activeGroupNames">
+					<el-collapse-item v-for="group in groups" :key="group" :name="group">
+						<template #title="">
+							<h3 class="name">{{ group }}</h3>
+						</template>
+						<div v-if="!loadedGroups[group]" class="loading-placeholder">
+							<el-button @click="loadGroup(group)" type="primary" :loading="loadingGroups[group]">
+								{{ loadingGroups[group] ? '加载中...' : '点击加载' }}
+							</el-button>
+						</div>
+						<div v-else-if="loadedGroups[group] && filteredSymbolGroups[group]">
+							<div v-if="filteredSymbolGroups[group].groups" class="subgroups">
+								<div v-for="subgroup in filteredSymbolGroups[group].groups" :key="subgroup.name" class="subgroup">
+									<h4 class="subgroup-name">{{ subgroup.name }}</h4>
+									<div class="symbols">
+										<div class="symbol" v-for="s in subgroup.symbols" :key="s.char" @click="copySymbol(s)" title="点击复制" @mouseenter="setHoveredSymbol(s)" @mouseleave="clearHoveredSymbol">
+											<span class="char">{{ s.char }}</span>
+											<span class="name">{{ s.name }}</span>
+											<span class="ename">{{ s.ename }}</span>
+										</div>
 									</div>
 								</div>
 							</div>
-						</div>
-						<div v-else-if="filteredSymbolGroups[group].symbols" class="symbols">
-							<div class="symbol" v-for="s in filteredSymbolGroups[group].symbols" :key="s.char" @click="copySymbol(s)" @mouseenter="setHoveredSymbol(s)" @mouseleave="clearHoveredSymbol" title="点击复制">
-								<span class="char">{{ s.char }}</span>
-								<span class="name">{{ s.name }}</span>
-								<span class="ename">{{ s.ename }}</span>
+							<div v-else-if="filteredSymbolGroups[group].symbols" class="symbols">
+								<div class="symbol" v-for="s in filteredSymbolGroups[group].symbols" :key="s.char" @click="copySymbol(s)" @mouseenter="setHoveredSymbol(s)" @mouseleave="clearHoveredSymbol" title="点击复制">
+									<span class="char">{{ s.char }}</span>
+									<span class="name">{{ s.name }}</span>
+									<span class="ename">{{ s.ename }}</span>
+								</div>
 							</div>
 						</div>
-					</div>
-				</el-collapse-item>
-			</el-collapse>
-		</div>
-	</article>
-</main>
-
-<aside class="sidebar near-right">
-	<article class="website info">
-		<section class="patronage area">
-			<img title="赞助一下" class="qr-code" alt="支付宝收款码" src="../resources/支付宝收款码.jpg">
-			<p class="slogan">赞助一下</p>
-		</section>
-		<section class="copyright"><p>© 2026 工具兽版权所有 All rights reserved.</p></section>
-		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
-		</section>
-	</article>
-</aside>
-
-<div class="js container">
-	<script src="../lib/vue/3.5.18/vue.global.js"></script>
-	<script src="../lib/element-plus/2.10.7/index.full.js"></script>
-	<script src="../lib/jquery-3.4.1.min.js"></script>
-	<script src="../lib/toastr.min.js"></script>
-	<script src="../resources/biz-util.js?v=250801"></script>
-</div>
-<script>
-	const {createApp} = Vue;
-
-	const groups = [
-		'人类生活',
-		'体育、运动',
-		'语文、语言学、标点符号',
-		'数学',
-		'自然',
-		'哲学、宗教、神秘学',
-		'其他'
-	];
-
-	const app = createApp({
-		data() {
-			return {
-				searchQuery: '',
-				activeGroupNames: ['人类生活'],
-				groups,
-				symbolGroups: {},
-				loadedGroups: {},
-				loadingGroups: {},
-				hoveredSymbol: null,
-			};
-		},
-		computed: {
-			filteredSymbolGroups() {
-				if (!this.searchQuery) {
-					return this.symbolGroups;
-				}
-				const query = this.searchQuery.toLowerCase();
-				const result = {};
-
-				for (const [groupName, group] of Object.entries(this.symbolGroups)) {
-					if (!group) {
-						continue;
+					</el-collapse-item>
+				</el-collapse>
+			</div>
+		</article>
+	</main>
+	<aside class="sidebar near-right">
+		<article class="website info">
+			<section class="patronage area">
+				<img title="赞助一下" class="qr-code" alt="支付宝收款码" src="../resources/支付宝收款码.jpg">
+				<p class="slogan">赞助一下</p>
+			</section>
+			<section class="copyright">
+				<p>© 2026 工具兽版权所有 All rights reserved.</p>
+			</section>
+			<section class="feedback">
+				<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+			</section>
+		</article>
+	</aside>
+	<div class="js container">
+		<script src="../lib/vue/3.5.18/vue.global.js"></script>
+		<script src="../lib/element-plus/2.10.7/index.full.js"></script>
+		<script src="../lib/jquery-3.4.1.min.js"></script>
+		<script src="../lib/toastr.min.js"></script>
+		<script src="../resources/biz-util.js?v=250801"></script>
+	</div>
+	<script>
+		const {
+			createApp
+		} = Vue;
+		const groups = ['人类生活', '体育、运动', '语文、语言学、标点符号', '数学', '自然', '哲学、宗教、神秘学', '其他'];
+		const app = createApp({
+			data() {
+				return {
+					searchQuery: '',
+					activeGroupNames: ['人类生活'],
+					groups,
+					symbolGroups: {},
+					loadedGroups: {},
+					loadingGroups: {},
+					hoveredSymbol: null,
+				};
+			},
+			computed: {
+				filteredSymbolGroups() {
+					if (!this.searchQuery) {
+						return this.symbolGroups;
 					}
-
-					// If group name matches, add entire group and continue
-					if (groupName.toLowerCase().includes(query)) {
-						result[groupName] = group;
-						continue;
-					}
-
-					const filterSymbols = symbols => {
-						return symbols.filter(s => {
-							const tags = s.tags || [];
-							return s.char.toLowerCase().includes(query)
-										 || s.name.toLowerCase().includes(query)
-										 || s.ename.toLowerCase().includes(query)
-										 || tags.some(t => t.toLowerCase().includes(query));
-						});
-					};
-
-					if (group.symbols) {
-						const filtered = filterSymbols(group.symbols);
-						if (filtered.length > 0) {
-							result[groupName] = {...group, symbols: filtered};
+					const query = this.searchQuery.toLowerCase();
+					const result = {};
+					for (const [groupName, group] of Object.entries(this.symbolGroups)) {
+						if (!group) {
+							continue;
 						}
-					} else if (group.groups) {
-						const filteredSubgroups = [];
-						for (const subgroup of group.groups) {
-							// If subgroup name matches, add the entire subgroup
-							if (subgroup.name.toLowerCase().includes(query)) {
-								filteredSubgroups.push(subgroup);
-								continue;
-							}
-
-							// Otherwise, filter symbols inside the subgroup
-							const filtered = filterSymbols(subgroup.symbols);
+						// If group name matches, add entire group and continue
+						if (groupName.toLowerCase().includes(query)) {
+							result[groupName] = group;
+							continue;
+						}
+						const filterSymbols = symbols => {
+							return symbols.filter(s => {
+								const tags = s.tags || [];
+								return s.char.toLowerCase().includes(query) || s.name.toLowerCase().includes(query) || s.ename.toLowerCase().includes(query) || tags.some(t => t.toLowerCase().includes(query));
+							});
+						};
+						if (group.symbols) {
+							const filtered = filterSymbols(group.symbols);
 							if (filtered.length > 0) {
-								filteredSubgroups.push({...subgroup, symbols: filtered});
+								result[groupName] = {
+									...group,
+									symbols: filtered
+								};
+							}
+						} else if (group.groups) {
+							const filteredSubgroups = [];
+							for (const subgroup of group.groups) {
+								// If subgroup name matches, add the entire subgroup
+								if (subgroup.name.toLowerCase().includes(query)) {
+									filteredSubgroups.push(subgroup);
+									continue;
+								}
+								// Otherwise, filter symbols inside the subgroup
+								const filtered = filterSymbols(subgroup.symbols);
+								if (filtered.length > 0) {
+									filteredSubgroups.push({
+										...subgroup,
+										symbols: filtered
+									});
+								}
+							}
+							if (filteredSubgroups.length > 0) {
+								result[groupName] = {
+									...group,
+									groups: filteredSubgroups
+								};
 							}
 						}
-						if (filteredSubgroups.length > 0) {
-							result[groupName] = {...group, groups: filteredSubgroups};
+					}
+					return result;
+				}
+			},
+			mounted() {
+				this.groups.forEach(groupName => {
+					this.loadGroup(groupName);
+				});
+			},
+			methods: {
+				setHoveredSymbol(symbol) {
+					this.hoveredSymbol = symbol;
+				},
+				clearHoveredSymbol() {
+					this.hoveredSymbol = null;
+				},
+				async loadGroup(groupName) {
+					if (this.loadedGroups[groupName] || this.loadingGroups[groupName]) {
+						return;
+					}
+					this.loadingGroups[groupName] = true;
+					try {
+						const response = await fetch(`${groupName}.js`);
+						if (!response.ok) {
+							throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+						}
+						const jsContent = await response.text();
+						// 使用Function构造函数在隔离的作用域中执行代码，并返回data变量
+						// 这样更安全，不会污染全局作用域
+						const getData = new Function(jsContent + '\nreturn data;');
+						const data = getData();
+						if (typeof data !== 'undefined') {
+							this.symbolGroups[groupName] = data;
+							this.loadedGroups[groupName] = true;
+							if (groupName === '人类生活') {
+								this.$nextTick(() => {
+									this.autoFocusWhiteSmile();
+								});
+							}
+						} else {
+							throw new Error('数据加载失败：JS文件中未找到data变量');
+						}
+					} catch (error) {
+						console.error(`加载${groupName}组失败:`, error);
+						ElementPlus.ElMessage.error(`加载${groupName}组失败: ${error.message}`);
+					} finally {
+						this.loadingGroups[groupName] = false;
+					}
+				},
+				copySymbol(symbol) {
+					navigator.clipboard.writeText(symbol.char).then(() => {
+						ElementPlus.ElMessage.success(`"${symbol.name || symbol.char}"已复制`);
+					}).catch(err => {
+						ElementPlus.ElMessage.error('复制失败: ' + err);
+					});
+				},
+				autoFocusWhiteSmile() {
+						const group = this.symbolGroups['人类生活'];
+						if (!group) return;
+						const findSymbol = (symbols) => symbols.find(s => s.char === '☺');
+						let target = group.symbols ? findSymbol(group.symbols) : null;
+						if (!target && group.groups) {
+							for (const subgroup of group.groups) {
+								target = findSymbol(subgroup.symbols);
+								if (target) break;
+							}
+						}
+						if (!target) return;
+						this.setHoveredSymbol(target);
+						const chars = document.querySelectorAll('.symbol .char');
+						for (const el of chars) {
+							if (el.textContent === '☺') {
+								const symbolEl = el.closest('.symbol');
+								if (symbolEl) {
+									symbolEl.classList.add('auto-focused');
+								}
+								document.addEventListener('mouseover', function handler(e) {
+									if (e.target.closest('.symbol')) {
+										document.querySelectorAll('.symbol.auto-focused').forEach(s => s.classList.remove('auto-focused'));
+										document.removeEventListener('mouseover', handler);
+									}
+								});
+								el.scrollIntoView({
+									behavior: 'smooth',
+									block: 'center'
+								});
+								break;
+							}
 						}
 					}
-				}
-				return result;
-			}
-		},
-		mounted() {
-			this.groups.forEach(groupName => {
-				this.loadGroup(groupName);
-			});
-		},
-		methods: {
-			setHoveredSymbol(symbol) {
-				this.hoveredSymbol = symbol;
 			},
-			clearHoveredSymbol() {
-				this.hoveredSymbol = null;
-			},
-			async loadGroup(groupName) {
-				if (this.loadedGroups[groupName] || this.loadingGroups[groupName]) {
-					return;
-				}
-
-				this.loadingGroups[groupName] = true;
-
-				try {
-					const response = await fetch(`${groupName}.js`);
-					if (!response.ok) {
-						throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+			watch: {
+				activeGroupNames(newNames) {
+					// 当展开某个组时，自动加载数据
+					for (const groupName of newNames) {
+						if (!this.loadedGroups[groupName] && !this.loadingGroups[groupName]) {
+							this.loadGroup(groupName);
+						}
 					}
-					const jsContent = await response.text();
-
-					// 使用Function构造函数在隔离的作用域中执行代码，并返回data变量
-					// 这样更安全，不会污染全局作用域
-					const getData = new Function(jsContent + '\nreturn data;');
-					const data = getData();
-
-					if (typeof data !== 'undefined') {
-						this.symbolGroups[groupName] = data;
-						this.loadedGroups[groupName] = true;
+				},
+				filteredSymbolGroups(newFilteredGroups) {
+					if (this.searchQuery) {
+						this.activeGroupNames = Object.keys(newFilteredGroups);
 					} else {
-						throw new Error('数据加载失败：JS文件中未找到data变量');
-					}
-				} catch (error) {
-					console.error(`加载${groupName}组失败:`, error);
-					ElementPlus.ElMessage.error(`加载${groupName}组失败: ${error.message}`);
-				} finally {
-					this.loadingGroups[groupName] = false;
-				}
-			},
-			copySymbol(symbol) {
-				navigator.clipboard.writeText(symbol.char).then(() => {
-					ElementPlus.ElMessage.success(`"${symbol.name || symbol.char}"已复制`);
-				}).catch(err => {
-					ElementPlus.ElMessage.error('复制失败: ' + err);
-				});
-			}
-		},
-		watch: {
-			activeGroupNames(newNames) {
-				// 当展开某个组时，自动加载数据
-				for (const groupName of newNames) {
-					if (!this.loadedGroups[groupName] && !this.loadingGroups[groupName]) {
-						this.loadGroup(groupName);
+						this.activeGroupNames = ['人类生活']; // Reset to default when search is cleared
 					}
 				}
+			}
+		}).use(ElementPlus).mount('main>article');
+		const help = createApp({
+			data() {
+				return {
+					introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname)
+				};
 			},
-			filteredSymbolGroups(newFilteredGroups) {
-				if (this.searchQuery) {
-					this.activeGroupNames = Object.keys(newFilteredGroups);
-				} else {
-					this.activeGroupNames = ['人类生活']; // Reset to default when search is cleared
+			watch: {
+				introVisible(newValue) {
+					const storageKey = 'intro-hidden-' + window.location.pathname;
+					if (!newValue) {
+						localStorage.setItem(storageKey, 'true');
+					} else {
+						localStorage.removeItem(storageKey);
+					}
 				}
 			}
-		}
-	})
-	.use(ElementPlus)
-	.mount('main>article');
+		}).use(ElementPlus).mount('.help.area');
 
-	const help = createApp({
-		data() {
-			return {
-				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname)
-			};
-		},
-		watch: {
-			introVisible(newValue) {
-				const storageKey = 'intro-hidden-' + window.location.pathname;
-				if (!newValue) {
-					localStorage.setItem(storageKey, 'true');
-				} else {
-					localStorage.removeItem(storageKey);
-				}
-			}
-		}
-	})
-	.use(ElementPlus)
-	.mount('.help.area');
-</script>
+	</script>
+	<div>
+		<!-- 谷歌广告联盟 -->
+		<script async crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"></script>
+		<!-- 展示广告1 -->
+		<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true" data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
+		<script>
+			(adsbygoogle = window.adsbygoogle || []).push({});
 
-<div>
-	<!-- 谷歌广告联盟 -->
-	<script async crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"></script>
-	<!-- 展示广告1 -->
-	<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true" data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
-	<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-</div>
+		</script>
+	</div>
+
 
 </body></html>
