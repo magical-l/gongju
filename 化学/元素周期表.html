@@ -107,15 +107,29 @@
 						deal-card var(--fly-dur) ease-out calc(var(--flap-time) + var(--quick-dur) + var(--i) * var(--stagger)) forwards,
 						var(--shine-anims, none);
 				}
+
 				&.镧系展开 {
 					--lan-open: 1;
-					& .周期6.周期序号 { grid-row-end: span 2; }
-					& .镧系 { grid-row: calc(6 + var(--period1-row-offset) + var(--lan-open)); }
+
+					& .周期6.周期序号 {
+						grid-row-end: span 2;
+					}
+
+					& .镧系 {
+						grid-row: calc(6 + var(--period1-row-offset) + var(--lan-open));
+					}
 				}
+
 				&.锕系展开 {
 					--a-open: 1;
-					& .周期7.周期序号 { grid-row-end: span 2; }
-					& .锕系 { grid-row: -2; }
+
+					& .周期7.周期序号 {
+						grid-row-end: span 2;
+					}
+
+					& .锕系 {
+						grid-row: -2;
+					}
 				}
 
 				/* 收起动画（过渡类临时加上，结束后变回 display:none） */
@@ -127,7 +141,9 @@
 						var(--shine-anims, none);
 				}
 
-				&.镧系收起 .镧系, &.锕系收起 .锕系 { display: none; }
+				&.镧系收起 .镧系, &.锕系收起 .锕系 {
+					display: none;
+				}
 
 				/* ------ 标签：卡盒 ------*/
 				& .镧系标签, & .锕系标签 {
@@ -189,9 +205,11 @@
 						z-index: auto;
 					}
 				}
+
 				& .镧系标签 {
 					grid-row: calc(6 + var(--period1-row-offset));
 				}
+
 				& .锕系标签 {
 					grid-row: calc(7 + var(--period1-row-offset) + var(--lan-open));
 				}
@@ -200,29 +218,66 @@
 				&.镧系展开 .镧系标签, &.锕系展开 .锕系标签 {
 					border-bottom: 0;
 				}
+
 				&.镧系展开 .镧系标签 .flap, &.锕系展开 .锕系标签 .flap {
 					transform: perspective(200px) rotateX(180deg);
 					z-index: -1;
 				}
-			}/* half-width */
+			}
 
-			& .周期1 { grid-row: calc(1 + var(--period1-row-offset)); }
-			& .周期2 { grid-row: calc(2 + var(--period1-row-offset)); }
-			& .周期3 { grid-row: calc(3 + var(--period1-row-offset)); }
-			& .周期4 { grid-row: calc(4 + var(--period1-row-offset)); }
-			& .周期5 { grid-row: calc(5 + var(--period1-row-offset)); }
-			& .周期6 { grid-row: calc(6 + var(--period1-row-offset)); }
-			& .周期7 { grid-row: calc(7 + var(--period1-row-offset) + var(--lan-open)); }
+			/* half-width */
+			& .周期1 {
+				grid-row: calc(1 + var(--period1-row-offset));
+			}
+
+			& .周期2 {
+				grid-row: calc(2 + var(--period1-row-offset));
+			}
+
+			& .周期3 {
+				grid-row: calc(3 + var(--period1-row-offset));
+			}
+
+			& .周期4 {
+				grid-row: calc(4 + var(--period1-row-offset));
+			}
+
+			& .周期5 {
+				grid-row: calc(5 + var(--period1-row-offset));
+			}
+
+			& .周期6 {
+				grid-row: calc(6 + var(--period1-row-offset));
+			}
+
+			& .周期7 {
+				grid-row: calc(7 + var(--period1-row-offset) + var(--lan-open));
+			}
 
 			& .周期序号 {
 				grid-column: 1;
 				border: 1px solid #ccc;
 			}
-			& .硼族 { grid-column: -7; }
-			& .碳族 { grid-column: -6; }
-			& .氮族 { grid-column: -5; }
-			& .氧族 { grid-column: -4; }
-			& .卤素 { grid-column: -3; }
+
+			& .硼族 {
+				grid-column: -7;
+			}
+
+			& .碳族 {
+				grid-column: -6;
+			}
+
+			& .氮族 {
+				grid-column: -5;
+			}
+
+			& .氧族 {
+				grid-column: -4;
+			}
+
+			& .卤素 {
+				grid-column: -3;
+			}
 		}
 
 		/*----------------元素卡--------------*/
@@ -354,7 +409,10 @@
 					display: inline-block;
 					position: relative;
 					z-index: 1;
-					&.tossing { animation: hand-toss 2.5s ease-out infinite; }
+
+					&.tossing {
+						animation: hand-toss 2.5s ease-out infinite;
+					}
 				}
 
 				& .p1, & .p2, & .merged-dot {
@@ -365,9 +423,21 @@
 					line-height: 1;
 					pointer-events: none;
 				}
-				& .p1 { animation: chase-1 2.5s ease-out infinite; color: #fff; }
-				& .p2 { animation: chase-2 2.5s ease-out infinite; color: #fff; }
-				& .merged-dot { animation: merge-pop 2.5s ease-out infinite; color: #00e5ff; }
+
+				& .p1 {
+					animation: chase-1 2.5s ease-out infinite;
+					color: #fff;
+				}
+
+				& .p2 {
+					animation: chase-2 2.5s ease-out infinite;
+					color: #fff;
+				}
+
+				& .merged-dot {
+					animation: merge-pop 2.5s ease-out infinite;
+					color: #00e5ff;
+				}
 			}
 		}
 
@@ -498,7 +568,6 @@
 			/*----- 放射性：☢ 呼吸 + 点状粒子环辐射 -----*/
 			& .辐射-icon {
 				animation: rad-breathe 3s ease-in-out infinite both;
-
 			}
 
 			& .放射性 .rad-ring {
@@ -643,24 +712,23 @@
 			width: 100%;
 			height: 100%;
 			padding: 20px;
+			overflow-y: auto;
 		}
 
 		/*------------元素详情卡------------*/
 		.element.detail.card {
 			width: 100%;
 			height: 100%;
-			padding: 20px;
+			padding: 14px;
 			border-radius: 8px;
 			box-shadow: 0 2px 12px 0 rgba(0, 0, 0, .1);
 			display: flex;
-			gap: 0.5rem;
-			align-items: start;
-			justify-content: start;
+			flex-direction: column;
+			gap: 10px;
 
-			& .element.info {
-				width: 120px;
-				height: 100%;
-				flex-shrink: 0;
+			& > .detail.body {
+				display: flex;
+				gap: 0.5rem;
 			}
 
 			/*------元素属性------*/
@@ -669,36 +737,28 @@
 				padding: 0;
 				display: grid;
 				grid-template-columns: auto 1fr;
-				gap: 0.5rem;
+				gap: 0.2rem;
 				min-width: 0;
 
 				& dt {
 					font-weight: bold;
 					color: #606266;
 					flex-shrink: 0;
-					/* 防止标签被压缩 */
 				}
 
 				& dd {
 					margin: 0;
 					color: #303133;
 					word-break: break-word;
-					/* 允许值在必要时换行 */
 				}
 			}
 
-			& footer {
-				flex-direction: column;
-				align-items: start;
-				gap: 0.5rem;
-				height: auto;
-				justify-content: start;
-			}
-
-			& > footer .tag {
+			& > .tags {
 				display: flex;
-				align-items: center;
-				gap: 0.5rem;
+				flex-wrap: wrap;
+				gap: 6px;
+				padding-top: 12px;
+				border-top: 1px solid #ebeef5;
 			}
 		}
 
@@ -707,11 +767,13 @@
 				opacity: 0;
 				transform: translate(calc((3 - var(--col)) * (var(--cell-width) + var(--element-gap))), calc(-1 * (var(--cell-width) + var(--element-gap)))) rotate(0deg);
 			}
+
 			100% {
 				opacity: 1;
 				transform: translate(calc((3 - var(--col)) * (var(--cell-width) + var(--element-gap))), 0px) rotate(0deg);
 			}
 		}
+
 		@keyframes deal-card {
 			to {
 				transform: translate(0, 0) rotate(var(--spin, 360deg));
@@ -723,16 +785,19 @@
 				opacity: 1;
 				transform: translate(0, 0) rotate(var(--spin, 360deg));
 			}
+
 			100% {
 				opacity: 1;
 				transform: translate(calc((3 - var(--col)) * (var(--cell-width) + var(--element-gap))), 0px) rotate(0deg);
 			}
 		}
+
 		@keyframes stack-rise {
 			0% {
 				opacity: 1;
 				transform: translate(calc((3 - var(--col)) * (var(--cell-width) + var(--element-gap))), 0px) rotate(0deg);
 			}
+
 			100% {
 				opacity: 0;
 				transform: translate(calc((3 - var(--col)) * (var(--cell-width) + var(--element-gap))), calc(-1 * (var(--cell-width) + var(--element-gap)))) rotate(0deg);
@@ -896,37 +961,39 @@
 			</section>
 			<section class="element detail area" v-if="curElement">
 				<div class="element detail card" :class="curElement.tags">
-					<div class="element info">
-						<header>
-							<p class="element id">{{curElement.id}}</p>
-							<p class="element symbol">{{curElement.symbol}}</p>
-						</header>
-						<p class="element name">{{curElement.name}}</p>
-						<footer>
-							<span class="tag with icon" v-for="tag in curElement.tags" :key="tag" :title="tag">{{tag}}</span>
-						</footer>
+					<div class="detail body">
+						<div class="element info">
+							<header>
+								<p class="element id">{{curElement.id}}</p>
+								<p class="element symbol">{{curElement.symbol}}</p>
+							</header>
+							<p class="element name">{{curElement.name}}</p>
+						</div>
+						<dl class="properties">
+							<dt>原子量</dt>
+							<dd>{{curElement.原子量_近似}}</dd>
+							<dt>熔点</dt>
+							<dd>{{curElement.熔点}} °C</dd>
+							<dt>沸点</dt>
+							<dd>{{curElement.沸点}} °C</dd>
+							<dt>物态</dt>
+							<dd>
+								<span :title="getElementPhase(curElement)" class="element phase with icon">{{getElementPhase(curElement)}}</span>
+								（{{temperatureInMode}}{{temperatureMode}}）
+							</dd>
+						</dl>
+						<dl class="properties">
+							<dt>发现年份</dt>
+							<dd>{{curElement.发现年份 || '未知'}}</dd>
+							<dt>电负性</dt>
+							<dd>{{curElement.电负性 || '未知'}}</dd>
+							<dt>电子亲和能</dt>
+							<dd>{{curElement.电子亲和能 || '未知'}}</dd>
+						</dl>
 					</div>
-					<dl class="properties">
-						<dt>原子量</dt>
-						<dd>{{curElement.原子量_近似}}</dd>
-						<dt>熔点</dt>
-						<dd>{{curElement.熔点}} °C</dd>
-						<dt>沸点</dt>
-						<dd>{{curElement.沸点}} °C</dd>
-						<dt>物态</dt>
-						<dd>
-							<span :title="getElementPhase(curElement)" class="element phase with icon">{{getElementPhase(curElement)}}</span>
-							（{{temperatureInMode}}{{temperatureMode}}）
-						</dd>
-					</dl>
-					<dl class="properties">
-						<dt>发现年份</dt>
-						<dd>{{curElement.发现年份 || '未知'}}</dd>
-						<dt>电负性</dt>
-						<dd>{{curElement.电负性 || '未知'}}</dd>
-						<dt>电子亲和能</dt>
-						<dd>{{curElement.电子亲和能 || '未知'}}</dd>
-					</dl>
+					<div class="tags">
+						<span class="tag with icon" v-for="tag in curElement.tags" :key="tag" :title="tag">{{tag}}</span>
+					</div>
 				</div>
 			</section>
 		</article><!-- /周期表 -->
