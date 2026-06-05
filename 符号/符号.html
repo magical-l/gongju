@@ -29,6 +29,10 @@
 			font-display: swap;
 		}
 
+		.el-collapse-item__content {
+			padding: 10px 0;
+		}
+
 		.search-bar {
 			margin-bottom: 2rem;
 		}
@@ -61,9 +65,10 @@
 		}
 
 		.symbols {
+			background-color: bisque;
 			display: grid;
 			grid-template-columns: repeat(10, 1fr);
-			background-color: bisque;
+			justify-items: center;
 		}
 
 		.symbol {
@@ -87,7 +92,7 @@
 
 		.symbol.auto-focused {
 			background-color: var(--el-color-primary-light-9);
-			outline: 2px solid var(--el-color-primary);
+			box-shadow: 0 0 0 2px var(--el-color-primary);
 		}
 
 		.symbol .char {
@@ -277,15 +282,15 @@
 				</div>
 			</div>
 			<section class="search-bar">
-				<el-input v-model="searchQuery" placeholder="输入中文/英文搜索组/符号..." clearable="" size="large"></el-input>
+				<el-input v-model="searchQuery" placeholder="输入中文/英文搜索组/符号..." clearable size="large"></el-input>
 			</section>
 			<div class="symbol-groups">
 				<el-collapse v-model="activeGroupNames">
 					<el-collapse-item v-for="group in categoryNames" :key="group" :name="group">
-						<template #title="">
+						<template #title>
 							<h3 class="name">{{ group }}</h3>
 						</template>
-						<div v-if="filteredSymbolGroups[group]">
+						<template v-if="filteredSymbolGroups[group]">
 							<div v-if="filteredSymbolGroups[group].groups" class="subgroups">
 								<div v-for="subgroup in filteredSymbolGroups[group].groups" :key="subgroup.name" class="subgroup">
 									<h4 class="subgroup-name">{{ subgroup.name }}</h4>
@@ -305,7 +310,7 @@
 									<span class="ename">{{ s.ename }}</span>
 								</div>
 							</div>
-						</div>
+						</template>
 					</el-collapse-item>
 				</el-collapse>
 			</div>
@@ -341,7 +346,7 @@
 			data() {
 				return {
 					searchQuery: '',
-					activeGroupNames: ['人类生活'],
+					activeGroupNames: [],
 					hoveredSymbol: null,
 				};
 			},
@@ -352,17 +357,31 @@
 				groupedSymbols() {
 					const result = {};
 					for (const [cat, subs] of Object.entries(CATEGORIES)) {
-						const groups = [];
-						for (const sub of subs) {
-							const symbols = SYMBOLS.filter(s =>
-								s.tags.includes(sub)
-							);
+						if (subs.length === 0) {
+							// 叶子节点：符号直接在此标签下
+							const symbols = SYMBOLS.filter(s => s.tags.includes(cat));
 							if (symbols.length > 0) {
-								groups.push({ name: sub, symbols });
+								result[cat] = {
+									symbols
+								};
 							}
-						}
-						if (groups.length > 0) {
-							result[cat] = { groups };
+						} else {
+							// 分支节点：符号在子组中
+							const groups = [];
+							for (const sub of subs) {
+								const symbols = SYMBOLS.filter(s => s.tags.includes(sub));
+								if (symbols.length > 0) {
+									groups.push({
+										name: sub,
+										symbols
+									});
+								}
+							}
+							if (groups.length > 0) {
+								result[cat] = {
+									groups
+								};
+							}
 						}
 					}
 					return result;
@@ -374,19 +393,15 @@
 					const query = this.searchQuery.toLowerCase();
 					const result = {};
 					for (const [cat, subs] of Object.entries(CATEGORIES)) {
+						// 标签名匹配 → 展示整组
 						if (cat.toLowerCase().includes(query)) {
 							result[cat] = this.groupedSymbols[cat];
 							continue;
 						}
-						const matchedSubs = [];
-						for (const sub of subs) {
-							if (sub.toLowerCase().includes(query)) {
-								const g = this.groupedSymbols[cat]?.groups?.find(x => x.name === sub);
-								if (g) matchedSubs.push(g);
-								continue;
-							}
+						if (subs.length === 0) {
+							// 叶子节点：直接过滤符号
 							const symbols = SYMBOLS.filter(s => {
-														if (!s.tags.includes(sub)) return false;
+								if (!s.tags.includes(cat)) return false;
 								const targets = [
 									s.char.toLowerCase(),
 									s.name.toLowerCase(),
@@ -395,24 +410,49 @@
 								return targets.some(t => t.includes(query));
 							});
 							if (symbols.length > 0) {
-								matchedSubs.push({
-									name: sub,
+								result[cat] = {
 									symbols
-								});
+								};
 							}
-						}
-						if (matchedSubs.length > 0) {
-							result[cat] = {
-								groups: matchedSubs
-							};
+						} else {
+							// 分支节点
+							const matchedSubs = [];
+							for (const sub of subs) {
+								if (sub.toLowerCase().includes(query)) {
+									const g = this.groupedSymbols[cat]?.groups?.find(x => x.name === sub);
+									if (g) matchedSubs.push(g);
+									continue;
+								}
+								const symbols = SYMBOLS.filter(s => {
+									if (!s.tags.includes(sub)) return false;
+									const targets = [
+										s.char.toLowerCase(),
+										s.name.toLowerCase(),
+										s.ename.toLowerCase(), ...s.tags.map(t => t.toLowerCase()), ...(s.alias || []).map(a => a.toLowerCase())
+									];
+									return targets.some(t => t.includes(query));
+								});
+								if (symbols.length > 0) {
+									matchedSubs.push({
+										name: sub,
+										symbols
+									});
+								}
+							}
+							if (matchedSubs.length > 0) {
+								result[cat] = {
+									groups: matchedSubs
+								};
+							}
 						}
 					}
 					return result;
-				}
+				},
 			},
 			mounted() {
+				this.activeGroupNames = [this.categoryNames[0]];
 				this.$nextTick(() => {
-					this.autoFocusWhiteSmile();
+					this.autoFocusFirst();
 				});
 			},
 			methods: {
@@ -429,13 +469,20 @@
 						ElementPlus.ElMessage.error('复制失败: ' + err);
 					});
 				},
-				autoFocusWhiteSmile() {
-					const target = SYMBOLS.find(s => s.char === '☺');
-					if (!target) return;
-					this.setHoveredSymbol(target);
+				autoFocusFirst() {
+					const firstGroup = this.groupedSymbols[this.categoryNames[0]];
+					if (!firstGroup) return;
+					let firstSymbol;
+					if (firstGroup.symbols) {
+						firstSymbol = firstGroup.symbols[0];
+					} else if (firstGroup.groups && firstGroup.groups.length > 0) {
+						firstSymbol = firstGroup.groups[0].symbols[0];
+					}
+					if (!firstSymbol) return;
+					this.setHoveredSymbol(firstSymbol);
 					const chars = document.querySelectorAll('.symbol .char');
 					for (const el of chars) {
-						if (el.textContent === '☺') {
+						if (el.textContent === firstSymbol.char) {
 							const symbolEl = el.closest('.symbol');
 							if (symbolEl) {
 								symbolEl.classList.add('auto-focused');
@@ -460,7 +507,7 @@
 					if (this.searchQuery) {
 						this.activeGroupNames = Object.keys(newVal);
 					} else {
-						this.activeGroupNames = ['人类生活'];
+						this.activeGroupNames = [this.categoryNames[0]];
 					}
 				}
 			}
