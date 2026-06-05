@@ -281,16 +281,11 @@
 			</section>
 			<div class="symbol-groups">
 				<el-collapse v-model="activeGroupNames">
-					<el-collapse-item v-for="group in groups" :key="group" :name="group">
+					<el-collapse-item v-for="group in categoryNames" :key="group" :name="group">
 						<template #title="">
 							<h3 class="name">{{ group }}</h3>
 						</template>
-						<div v-if="!loadedGroups[group]" class="loading-placeholder">
-							<el-button @click="loadGroup(group)" type="primary" :loading="loadingGroups[group]">
-								{{ loadingGroups[group] ? '加载中...' : '点击加载' }}
-							</el-button>
-						</div>
-						<div v-else-if="loadedGroups[group] && filteredSymbolGroups[group]">
+						<div v-if="filteredSymbolGroups[group]">
 							<div v-if="filteredSymbolGroups[group].groups" class="subgroups">
 								<div v-for="subgroup in filteredSymbolGroups[group].groups" :key="subgroup.name" class="subgroup">
 									<h4 class="subgroup-name">{{ subgroup.name }}</h4>
@@ -331,6 +326,7 @@
 		</article>
 	</aside>
 	<div class="js container">
+		<script src="符号数据.js"></script>
 		<script src="../lib/vue/3.5.18/vue.global.js"></script>
 		<script src="../lib/element-plus/2.10.7/index.full.js"></script>
 		<script src="../lib/jquery-3.4.1.min.js"></script>
@@ -341,80 +337,82 @@
 		const {
 			createApp
 		} = Vue;
-		const groups = ['人类生活', '体育、运动', '语文、语言学、标点符号', '数学', '自然', '哲学、宗教、神秘学', '其他'];
 		const app = createApp({
 			data() {
 				return {
 					searchQuery: '',
 					activeGroupNames: ['人类生活'],
-					groups,
-					symbolGroups: {},
-					loadedGroups: {},
-					loadingGroups: {},
 					hoveredSymbol: null,
 				};
 			},
 			computed: {
+				categoryNames() {
+					return Object.keys(CATEGORIES);
+				},
+				groupedSymbols() {
+					const result = {};
+					for (const [cat, subs] of Object.entries(CATEGORIES)) {
+						const groups = [];
+						for (const sub of subs) {
+							const symbols = SYMBOLS.filter(s =>
+								s.tags.includes(sub)
+							);
+							if (symbols.length > 0) {
+								groups.push({ name: sub, symbols });
+							}
+						}
+						if (groups.length > 0) {
+							result[cat] = { groups };
+						}
+					}
+					return result;
+				},
 				filteredSymbolGroups() {
 					if (!this.searchQuery) {
-						return this.symbolGroups;
+						return this.groupedSymbols;
 					}
 					const query = this.searchQuery.toLowerCase();
 					const result = {};
-					for (const [groupName, group] of Object.entries(this.symbolGroups)) {
-						if (!group) {
+					for (const [cat, subs] of Object.entries(CATEGORIES)) {
+						if (cat.toLowerCase().includes(query)) {
+							result[cat] = this.groupedSymbols[cat];
 							continue;
 						}
-						// If group name matches, add entire group and continue
-						if (groupName.toLowerCase().includes(query)) {
-							result[groupName] = group;
-							continue;
-						}
-						const filterSymbols = symbols => {
-							return symbols.filter(s => {
-								const tags = s.tags || [];
-								return s.char.toLowerCase().includes(query) || s.name.toLowerCase().includes(query) || s.ename.toLowerCase().includes(query) || tags.some(t => t.toLowerCase().includes(query));
+						const matchedSubs = [];
+						for (const sub of subs) {
+							if (sub.toLowerCase().includes(query)) {
+								const g = this.groupedSymbols[cat]?.groups?.find(x => x.name === sub);
+								if (g) matchedSubs.push(g);
+								continue;
+							}
+							const symbols = SYMBOLS.filter(s => {
+														if (!s.tags.includes(sub)) return false;
+								const targets = [
+									s.char.toLowerCase(),
+									s.name.toLowerCase(),
+									s.ename.toLowerCase(), ...s.tags.map(t => t.toLowerCase()), ...(s.alias || []).map(a => a.toLowerCase())
+								];
+								return targets.some(t => t.includes(query));
 							});
-						};
-						if (group.symbols) {
-							const filtered = filterSymbols(group.symbols);
-							if (filtered.length > 0) {
-								result[groupName] = {
-									...group,
-									symbols: filtered
-								};
+							if (symbols.length > 0) {
+								matchedSubs.push({
+									name: sub,
+									symbols
+								});
 							}
-						} else if (group.groups) {
-							const filteredSubgroups = [];
-							for (const subgroup of group.groups) {
-								// If subgroup name matches, add the entire subgroup
-								if (subgroup.name.toLowerCase().includes(query)) {
-									filteredSubgroups.push(subgroup);
-									continue;
-								}
-								// Otherwise, filter symbols inside the subgroup
-								const filtered = filterSymbols(subgroup.symbols);
-								if (filtered.length > 0) {
-									filteredSubgroups.push({
-										...subgroup,
-										symbols: filtered
-									});
-								}
-							}
-							if (filteredSubgroups.length > 0) {
-								result[groupName] = {
-									...group,
-									groups: filteredSubgroups
-								};
-							}
+						}
+						if (matchedSubs.length > 0) {
+							result[cat] = {
+								groups: matchedSubs
+							};
 						}
 					}
 					return result;
 				}
 			},
 			mounted() {
-				this.groups.forEach(groupName => {
-					this.loadGroup(groupName);
+				this.$nextTick(() => {
+					this.autoFocusWhiteSmile();
 				});
 			},
 			methods: {
@@ -424,39 +422,6 @@
 				clearHoveredSymbol() {
 					this.hoveredSymbol = null;
 				},
-				async loadGroup(groupName) {
-					if (this.loadedGroups[groupName] || this.loadingGroups[groupName]) {
-						return;
-					}
-					this.loadingGroups[groupName] = true;
-					try {
-						const response = await fetch(`${groupName}.js`);
-						if (!response.ok) {
-							throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-						}
-						const jsContent = await response.text();
-						// 使用Function构造函数在隔离的作用域中执行代码，并返回data变量
-						// 这样更安全，不会污染全局作用域
-						const getData = new Function(jsContent + '\nreturn data;');
-						const data = getData();
-						if (typeof data !== 'undefined') {
-							this.symbolGroups[groupName] = data;
-							this.loadedGroups[groupName] = true;
-							if (groupName === '人类生活') {
-								this.$nextTick(() => {
-									this.autoFocusWhiteSmile();
-								});
-							}
-						} else {
-							throw new Error('数据加载失败：JS文件中未找到data变量');
-						}
-					} catch (error) {
-						console.error(`加载${groupName}组失败:`, error);
-						ElementPlus.ElMessage.error(`加载${groupName}组失败: ${error.message}`);
-					} finally {
-						this.loadingGroups[groupName] = false;
-					}
-				},
 				copySymbol(symbol) {
 					navigator.clipboard.writeText(symbol.char).then(() => {
 						ElementPlus.ElMessage.success(`"${symbol.name || symbol.char}"已复制`);
@@ -465,16 +430,7 @@
 					});
 				},
 				autoFocusWhiteSmile() {
-					const group = this.symbolGroups['人类生活'];
-					if (!group) return;
-					const findSymbol = (symbols) => symbols.find(s => s.char === '☺');
-					let target = group.symbols ? findSymbol(group.symbols) : null;
-					if (!target && group.groups) {
-						for (const subgroup of group.groups) {
-							target = findSymbol(subgroup.symbols);
-							if (target) break;
-						}
-					}
+					const target = SYMBOLS.find(s => s.char === '☺');
 					if (!target) return;
 					this.setHoveredSymbol(target);
 					const chars = document.querySelectorAll('.symbol .char');
@@ -500,19 +456,11 @@
 				}
 			},
 			watch: {
-				activeGroupNames(newNames) {
-					// 当展开某个组时，自动加载数据
-					for (const groupName of newNames) {
-						if (!this.loadedGroups[groupName] && !this.loadingGroups[groupName]) {
-							this.loadGroup(groupName);
-						}
-					}
-				},
-				filteredSymbolGroups(newFilteredGroups) {
+				filteredSymbolGroups(newVal) {
 					if (this.searchQuery) {
-						this.activeGroupNames = Object.keys(newFilteredGroups);
+						this.activeGroupNames = Object.keys(newVal);
 					} else {
-						this.activeGroupNames = ['人类生活']; // Reset to default when search is cleared
+						this.activeGroupNames = ['人类生活'];
 					}
 				}
 			}
