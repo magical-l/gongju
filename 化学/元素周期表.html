@@ -69,6 +69,7 @@
 		.periodic-table-of-chemical-element {
 			--bg: bisque;
 			isolation: isolate;
+			contain: paint;
 			flex-grow: 1;
 			width: 100%;
 			min-width: 0;
@@ -172,6 +173,7 @@
 
 					/* 封口三角（全宽，底部为轴翻转） */
 					& .flap {
+						will-change: transform;
 						position: absolute;
 						left: 0;
 						right: 0;
