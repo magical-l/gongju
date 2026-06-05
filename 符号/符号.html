@@ -38,7 +38,6 @@
 		}
 
 		.symbol-groups {
-			background-color: bisque;
 			display: flex;
 			flex-direction: column;
 			gap: 0.5rem;
@@ -65,7 +64,6 @@
 		}
 
 		.symbols {
-			background-color: bisque;
 			display: grid;
 			grid-template-columns: repeat(10, 1fr);
 			justify-items: center;
@@ -163,6 +161,8 @@
 		.symbol-detail-floater.is-visible {
 			opacity: 0.8;
 			transform: translateX(0);
+			background: cornsilk;
+			pointer-events: auto;
 		}
 
 		.symbol-detail-floater .char-preview {
@@ -192,13 +192,28 @@
 		.symbol-detail-floater .details .code {
 			font-family: monospace;
 			color: var(--el-text-color-secondary);
-			margin-top: 0.75rem;
 			font-size: 0.9em;
+		}
+
+		.symbol-detail-floater .code {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 0.5em;
+		}
+		.symbol-detail-floater .code-copy {
+			cursor: pointer;
+			font-size: 1.1em;
+			opacity: 0.5;
+			transition: opacity 0.2s;
+		}
+		.symbol-detail-floater .code-copy:hover {
+			opacity: 1;
 		}
 
 		.symbol-detail-floater .placeholder-char {
 			font-family: sans-serif;
-			color: #eee;
+			color: #ccc;
 			user-select: none;
 		}
 
@@ -277,8 +292,8 @@
 				<div class="details">
 					<div class="name">{{ hoveredSymbol.name || hoveredSymbol.char }}</div>
 					<div v-if="hoveredSymbol.ename" class="ename">{{ hoveredSymbol.ename }}</div>
-					<div class="code">U+{{ hoveredSymbol.char.codePointAt(0).toString(16).toUpperCase() }}</div>
-					<div class="code">&amp;#{{ hoveredSymbol.char.codePointAt(0) }};</div>
+					<div class="code"><span class="code-text">U+{{ hoveredSymbol.char.codePointAt(0).toString(16).toUpperCase() }}</span><span class="code-copy" @click.stop="copyCode" title="复制">⧉</span></div>
+					<div class="code"><span class="code-text">&amp;#{{ hoveredSymbol.char.codePointAt(0) }};</span><span class="code-copy" @click.stop="copyCode" title="复制">⧉</span></div>
 				</div>
 			</div>
 			<section class="search-bar">
@@ -465,6 +480,15 @@
 				copySymbol(symbol) {
 					navigator.clipboard.writeText(symbol.char).then(() => {
 						ElementPlus.ElMessage.success(`"${symbol.name || symbol.char}"已复制`);
+					}).catch(err => {
+						ElementPlus.ElMessage.error('复制失败: ' + err);
+					});
+				},
+
+				copyCode(event) {
+					const codeText = event.target.closest('.code').querySelector('.code-text').textContent;
+					navigator.clipboard.writeText(codeText).then(() => {
+						ElementPlus.ElMessage.success(`"${codeText}"已复制`);
 					}).catch(err => {
 						ElementPlus.ElMessage.error('复制失败: ' + err);
 					});
