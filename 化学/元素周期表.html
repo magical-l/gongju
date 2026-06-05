@@ -856,7 +856,7 @@
 			<div class="flexible , flex items-single-line items-near-x-center" style="gap:8px">
 				<div class="one controller group">
 					<el-radio-group title="宽度模式" class="one controller : width-mode" v-model="layout">
-						<el-radio-button v-for="opt in widthModes" :key="opt.value" :value="opt.value" size="small">{{ opt.label }}</el-radio-button>
+						<el-radio-button v-for="opt in widthModes" :key="opt.value" :value="opt.value" :title="opt.intro" size="small">{{ opt.label }}</el-radio-button>
 					</el-radio-group>
 				</div>
 				<div class="one controller group">
@@ -967,12 +967,12 @@
 					</footer>
 				</div>
 			</section>
-			<section class="镧系标签" v-if="layout === 'half-width'" :class="{ expanded: lanthanideExpanded }" :style="filtering?.length || hoverFilter ? {opacity:.5} : {}" @click="toggleLanthanides">
+			<section class="镧系标签" v-if="layout !== 'full-width'" :class="{ expanded: lanthanideExpanded }" :style="filtering?.length || hoverFilter ? {opacity:.5} : {}" @click="toggleLanthanides">
 				<span class="range">57~71</span>
 				<p>镧系</p>
 				<span class="flap"></span>
 			</section>
-			<section class="锕系标签" v-if="layout === 'half-width'" :class="{ expanded: actinideExpanded }" :style="filtering?.length || hoverFilter ? {opacity:.5} : {}" @click="toggleActinides">
+			<section class="锕系标签" v-if="layout !== 'full-width'" :class="{ expanded: actinideExpanded }" :style="filtering?.length || hoverFilter ? {opacity:.5} : {}" @click="toggleActinides">
 				<span class="range">89~103</span>
 				<p>锕系</p>
 				<span class="flap"></span>
@@ -1086,12 +1086,21 @@
 			curElement: elements.find(e => e.name === '氧'),
 			layout: null,
 			widthModes: [{
-				label: '<>',
-				value: 'full-width'
-			}, {
-				label: '><',
-				value: 'half-width'
-			}],
+					label: '<>',
+					value: 'full-width',
+					intro: '宽版'
+				},
+				{
+					label: '><',
+					value: 'half-width',
+					intro: '窄版'
+				},
+				{
+					label: '>.<',
+					value: 'half-width-expanded',
+					intro: '窄版·展开镧系锕系'
+				}
+			],
 			lanthanideExpanded: false,
 			lanthanideCollapsed: true,
 			lanthanideCollapsing: false,
@@ -1148,7 +1157,7 @@
 					return flatten(categories);
 				},
 				tableClasses() {
-					let rt = this.layout;
+					let rt = this.layout === 'half-width-expanded' ? 'half-width' : this.layout;
 					if (this.animationMode) {
 						// 注意：.animation 在花活.css 中仅用于 &.confetti（额外类名），
 						// 不含无前缀样式，因此不会注入无关样式。
@@ -1219,7 +1228,15 @@
 			},
 			watch: {
 				layout(newLayout) {
-					if (!newLayout) {
+					if (newLayout) {
+						localStorage.setItem('periodic-table-layout', newLayout);
+						if (newLayout === 'half-width-expanded') {
+							this.lanthanideExpanded = true;
+							this.lanthanideCollapsed = false;
+							this.actinideExpanded = true;
+							this.actinideCollapsed = false;
+						}
+					} else {
 						this.checkLayout();
 					}
 				},
@@ -1507,7 +1524,12 @@
 				}
 			},
 			mounted() {
-				this.checkLayout();
+					const savedLayout = localStorage.getItem('periodic-table-layout');
+					if (savedLayout) {
+						this.layout = savedLayout;
+					} else {
+						this.checkLayout();
+					}
 				window.addEventListener('resize', this.checkLayout);
 				// 注入人造元素动画 keyframes（LESS 编译有 bug，keyframes 在嵌套较深时可能丢失）
 				const kfStyle = document.createElement('style');
