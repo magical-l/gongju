@@ -98,8 +98,8 @@
 
 				&.镧系展开 .镧系, &.锕系展开 .锕系 {
 					animation:
-						stack-drop 0.15s ease-out 0s forwards,
-						deal-card 0.5s ease-out calc(0.15s + var(--i) * 0.08s) both,
+						stack-drop 0.15s ease-out 0.3s both,
+						deal-card 0.5s ease-out calc(0.45s + var(--i) * 0.08s) forwards,
 						var(--shine-anims, none);
 				}
 				&.镧系展开 {
@@ -140,8 +140,8 @@
 					cursor: pointer;
 					user-select: none;
 					border: var(--box-border) solid #a09070;
-					background: linear-gradient(145deg, #d0c0a8, #c0b090, #a89878);
-					color: #5a4a3a;
+					background: linear-gradient(145deg, #f0e0cc, #e0ccb0, #c8b090);
+					color: #4a3a2a;
 					box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 
 					& p {
@@ -704,12 +704,7 @@
 			}
 		}
 		@keyframes deal-card {
-			0% {
-				opacity: 1;
-				transform: translate(calc((3 - var(--col)) * (var(--cell-width) + var(--element-gap))), 0px) rotate(0deg);
-			}
-			100% {
-				opacity: 1;
+			to {
 				transform: translate(0, 0) rotate(var(--spin, 360deg));
 			}
 		}
