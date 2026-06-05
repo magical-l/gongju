@@ -726,7 +726,7 @@
 			flex-direction: column;
 			gap: 10px;
 
-			& > .detail.body {
+			> .detail.body {
 				display: flex;
 				gap: 0.5rem;
 			}
@@ -743,22 +743,38 @@
 				& dt {
 					font-weight: bold;
 					color: #606266;
-					flex-shrink: 0;
 				}
 
 				& dd {
 					margin: 0;
 					color: #303133;
-					word-break: break-word;
 				}
 			}
 
-			& > .tags {
+			> .tag.list {
 				display: flex;
+				flex-direction: row;
 				flex-wrap: wrap;
 				gap: 6px;
 				padding-top: 12px;
 				border-top: 1px solid #ebeef5;
+
+				& .one.tag {
+					padding: 3px 8px;
+					border-radius: 4px;
+					font-size: .8rem;
+					line-height: 1.4;
+					background: #f0f2f5;
+					color: #606266;
+					white-space: nowrap;
+					user-select: none;
+				}
+			}
+
+			& .one.element {
+				flex-shrink: 0;
+				min-width: 70px;
+				align-self: start;
 			}
 		}
 
@@ -962,13 +978,19 @@
 			<section class="element detail area" v-if="curElement">
 				<div class="element detail card" :class="curElement.tags">
 					<div class="detail body">
-						<div class="element info">
-							<header>
-								<p class="element id">{{curElement.id}}</p>
-								<p class="element symbol">{{curElement.symbol}}</p>
-							</header>
-							<p class="element name">{{curElement.name}}</p>
-						</div>
+						<section class="one element , items-go-y" :class="[...curElement.tags, getElementPhase(curElement)]" :style="getElementStyle(curElement)">
+							<div class="element info , 目字形">
+								<header>
+									<p class="element id">{{curElement.id}}</p>
+									<p class="element symbol">{{curElement.symbol}}</p>
+								</header>
+								<div class="body">
+									<p class="element name"><span>{{curElement.name}}</span></p>
+									<p class="element atomic-mass">{{curElement.原子量_近似}}</p>
+								</div>
+								<footer></footer>
+							</div>
+						</section>
 						<dl class="properties">
 							<dt>原子量</dt>
 							<dd>{{curElement.原子量_近似}}</dd>
@@ -991,8 +1013,8 @@
 							<dd>{{curElement.电子亲和能 || '未知'}}</dd>
 						</dl>
 					</div>
-					<div class="tags">
-						<span class="tag with icon" v-for="tag in curElement.tags" :key="tag" :title="tag">{{tag}}</span>
+					<div class="tag list">
+						<span class="one tag with icon" :class="tag" v-for="tag in curElement.tags" :key="tag" :title="tag"><template v-if="categorySymbol(tag)">{{categorySymbol(tag)}} </template>{{tag}}</span>
 					</div>
 				</div>
 			</section>
@@ -1059,7 +1081,7 @@
 		};
 		const data = {
 			elements,
-			curElement: elements.find(e => e.name === '钷'),
+			curElement: elements.find(e => e.name === '氧'),
 			layout: null,
 			widthModes: [{
 				label: '<>',
@@ -1209,6 +1231,10 @@
 				}
 			},
 			methods: {
+				categorySymbol(name) {
+					const cat = findCategory(categories, name);
+					return cat?.symbol || '';
+				},
 				getYearFilterStyle(element) {
 					const year = element.发现年份;
 					if (year === '古代' || !year) {
