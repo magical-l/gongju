@@ -112,62 +112,81 @@
 				border-color: var(--el-color-primary);
 			}
 		}
-		& .one.block:not(.expandable) {
+		& .one.block.selected {
+			border-color: var(--el-color-primary);
+			box-shadow: 0 0 0 1px var(--el-color-primary-light-3);
+		}
+		& .one.block.too-many {
+			opacity: 0.7;
+
+			& .too-many-note {
+				margin: 0.25rem 0 0;
+				font-size: 0.8em;
+				color: #909399;
+			}
+		}
+		& .one.block:not(.expandable):not(.too-many) {
 			opacity: 0.45;
 			cursor: default;
 		}
 
 		/* ------ 字符展示面板 ------ */
-		& .el-row.has-expanded-child {
-			position: relative;
-		}
-
 		& .character-display-wrapper {
-			position: absolute;
-			z-index: 10;
-			padding: 1rem 6px 0; /* 1rem 顶部分隔被展开的 block，6px 与 el-col padding 对齐 */
+			flex-basis: 100%; /* 在 el-row flex 容器中强制换行，独占一行 */
+			padding: 1rem 6px 0; /* 6px 与 el-col 的 gutter padding 对齐 */
 			box-sizing: border-box;
 		}
 
+		& .display-header {
+			position: sticky;
+			top: 0;
+			z-index: 5;
+			display: flex;
+			align-items: center;
+			gap: 0.75rem;
+			padding: 0.4em 0.8em;
+			background: #e8eaed;
+			border: 1px solid var(--el-border-color-lighter);
+			border-radius: 4px 4px 0 0;
+
+			& .block-name {
+				font-weight: bold;
+				font-size: 0.95em;
+				flex: 1;
+				overflow: hidden;
+				white-space: nowrap;
+				text-overflow: ellipsis;
+			}
+
+			& .size-slider {
+				width: 60px;
+				accent-color: var(--el-color-primary);
+			}
+
+			& .close-btn {
+				cursor: pointer;
+				font-size: 1.2em;
+				color: #909399;
+				line-height: 1;
+
+				&:hover {
+					color: var(--el-color-primary);
+				}
+			}
+		}
+
 		& .character-display-container {
-			position: relative; /* 定位关闭按钮 */
 			background-color: #f5f7fa;
 			border: 1px solid var(--el-border-color-lighter);
-			border-radius: 4px;
+			border-top: none;
+			border-radius: 0 0 4px 4px;
 			padding: 1em;
-			box-shadow: var(--el-box-shadow-light);
 		}
 
 		& .character-display {
 			display: flex;
 			flex-wrap: wrap;
 			gap: 0.5rem;
-		}
-
-		/* 字号调节 */
-		& .font-size-ctrl {
-			position: absolute;
-			top: 0.7em;
-			right: 2.8em;
-			display: flex;
-			gap: 2px;
-
-			& .btn {
-				cursor: pointer;
-				color: #909399;
-				font-size: 0.8em;
-				font-weight: bold;
-				padding: 0 5px;
-				border: 1px solid var(--el-border-color);
-				border-radius: 3px;
-				user-select: none;
-				line-height: 1.6;
-
-				&:hover {
-					color: var(--el-color-primary);
-					border-color: var(--el-color-primary);
-				}
-			}
 		}
 
 		& .char-cell {
@@ -201,18 +220,6 @@
 			}
 		}
 
-		& .char-display-close-btn {
-			position: absolute;
-			top: 1em;
-			right: 0.5em;
-			font-size: 1.2em;
-			cursor: pointer;
-			color: #909399;
-
-			&:hover {
-				color: var(--el-color-primary);
-			}
-		}
 	}
 </style>
 </head>
@@ -2775,11 +2782,11 @@
 
 	createApp({
 		mounted() {
-			let activeDisplay = {element: null, ownerCard: null, pushedElement: null, ownerRow: null, parentCol: null};
+			let activeDisplay = {element: null, ownerCard: null, ownerRow: null, parentCol: null};
 
 			const documentClickHandler = (event) => {
 				// If the click is outside the display container AND not on an expandable card, clean up.
-				if (!event.target.closest('.character-display-container') && !event.target.closest('.expandable')) {
+				if (!event.target.closest('.character-display-wrapper') && !event.target.closest('.expandable')) {
 					cleanup();
 				}
 			};
@@ -2791,8 +2798,8 @@
 			const cleanup = () => {
 				if (activeDisplay.element) activeDisplay.element.remove();
 				if (activeDisplay.pushedElement) activeDisplay.pushedElement.style.marginTop = '';
-				if (activeDisplay.ownerRow) activeDisplay.ownerRow.classList.remove('has-expanded-child');
-				activeDisplay = {element: null, ownerCard: null, pushedElement: null, ownerRow: null, parentCol: null};
+				if (activeDisplay.ownerCard) activeDisplay.ownerCard.classList.remove('selected');
+				activeDisplay = {element: null, ownerCard: null, ownerRow: null, parentCol: null};
 				document.removeEventListener('click', documentClickHandler);
 				document.removeEventListener('keydown', keydownHandler);
 			}
@@ -2868,7 +2875,7 @@
 
 					blockCard.addEventListener('click', (event) => {
 						// Do not trigger when clicking the copy-able cells or the close button
-						if (event.target.closest('.character-display .char-cell, .char-display-close-btn')) {
+						if (event.target.closest('.character-display-wrapper')) {
 							return;
 						}
 
@@ -2893,12 +2900,14 @@
 									charCell.className = 'char-cell';
 									charCell.textContent = char;
 
-									const isInvisible = isTrulyInvisible(char);
-									if (isInvisible) {
+									const hasGlyph = !isTrulyInvisible(char) && !/^(\p{Zs}|\p{Zl}|\p{Zp})$/u.test(char);
+									const codeStr = 'U+' + i.toString(16).toUpperCase().padStart(4, '0');
+									if (!hasGlyph) {
 										charCell.classList.add('invisible');
-										charCell.title = 'U+' + i.toString(16).toUpperCase().padStart(4, '0') + ' (不可见字符)';
+										charCell.textContent = codeStr;
+										charCell.title = '不可见字符（无字形）';
 									} else {
-										charCell.title = 'U+' + i.toString(16).toUpperCase().padStart(4, '0') + ' (点击复制)';
+										charCell.title = codeStr + ' (点击复制)';
 										charCell.addEventListener('click', () => {
 											navigator.clipboard.writeText(char).then(() => {
 												ElMessage({message: `字符 '${char}' 已复制`, type: 'success', duration: 2000});
@@ -2914,93 +2923,80 @@
 
 							if (displayGrid.childElementCount === 0) return;
 
-							const parentCol = blockCard.closest('.el-col');
-							const parentRow = blockCard.closest('.el-row');
-							parentRow.classList.add('has-expanded-child');
+						const parentCol = blockCard.closest('.el-col');
+						const parentRow = blockCard.closest('.el-row');
+						blockCard.classList.add('selected');
 
-							const displayWrapper = document.createElement('div');
-							displayWrapper.className = 'character-display-wrapper';
-							displayWrapper.style.left = '0';
-							displayWrapper.style.width = '100%';
-							displayWrapper.style.top = (parentCol.offsetTop + parentCol.offsetHeight - 16) + 'px';
+						// 标题栏
+						const displayHeader = document.createElement('div');
+						displayHeader.className = 'display-header';
 
-							const displayContainer = document.createElement('div');
-							displayContainer.className = 'character-display-container';
+						const nameSpan = document.createElement('span');
+						nameSpan.className = 'block-name';
+						const blockNameEl = blockCard.querySelector('header .name');
+						nameSpan.textContent = blockNameEl ? blockNameEl.textContent.trim() : '';
 
-							const fontSizeCtrl = document.createElement('div');
-							fontSizeCtrl.className = 'font-size-ctrl';
-							const sizes = [0.8, 1.0, 1.2, 1.5, 2.0, 2.5];
-							let sizeIdx = sizes.indexOf(1.2);
-							const updateCellSize = () => {
-								displayContainer.style.setProperty('--cell-font-size', sizes[sizeIdx] + 'em');
-							};
-							const smallerBtn = document.createElement('span');
-							smallerBtn.className = 'btn';
-							smallerBtn.textContent = 'A-';
-							smallerBtn.title = '缩小字号';
-							smallerBtn.addEventListener('click', (e) => {
-								e.stopPropagation();
-								if (sizeIdx > 0) { sizeIdx--; updateCellSize(); }
-							});
-							const largerBtn = document.createElement('span');
-							largerBtn.className = 'btn';
-							largerBtn.textContent = 'A+';
-							largerBtn.title = '放大字号';
-							largerBtn.addEventListener('click', (e) => {
-								e.stopPropagation();
-								if (sizeIdx < sizes.length - 1) { sizeIdx++; updateCellSize(); }
-							});
-							fontSizeCtrl.appendChild(smallerBtn);
-							fontSizeCtrl.appendChild(largerBtn);
+						// 字号滑杆
+						const sizes = [0.8, 1.0, 1.2, 1.5, 2.0, 2.5];
+						const sizeLabel = document.createElement('span');
+						sizeLabel.textContent = '字号';
+						sizeLabel.style.fontSize = '0.85em';
+						sizeLabel.style.color = '#909399';
+						const slider = document.createElement('input');
+						slider.type = 'range';
+						slider.className = 'size-slider';
+						slider.min = 0;
+						slider.max = sizes.length - 1;
+						slider.value = sizes.indexOf(1.2);
+						slider.title = '字号';
+						slider.addEventListener('input', () => {
+							displayContainer.style.setProperty('--cell-font-size', sizes[slider.value] + 'em');
+						});
 
-							const closeBtn = document.createElement('i');
-							closeBtn.className = 'el-icon char-display-close-btn';
-							closeBtn.innerHTML = '<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M764.288 214.592 512 466.88 259.712 214.592a31.936 31.936 0 0 0-45.12 45.12L466.88 512 214.592 764.288a31.936 31.936 0 1 0 45.12 45.12L512 557.12l252.288 252.288a31.936 31.936 0 0 0 45.12-45.12L557.12 512l252.288-252.288a31.936 31.936 0 1 0-45.12-45.12z"></path></svg>';
-							closeBtn.addEventListener('click', cleanup);
+						const closeBtn = document.createElement('i');
+						closeBtn.className = 'close-btn';
+						closeBtn.innerHTML = '✕';
+						closeBtn.title = '关闭';
+						closeBtn.addEventListener('click', cleanup);
 
-							displayContainer.appendChild(fontSizeCtrl);
-							displayContainer.appendChild(closeBtn);
-							displayContainer.appendChild(displayGrid);
-							displayWrapper.appendChild(displayContainer);
-							parentRow.appendChild(displayWrapper);
+						displayHeader.appendChild(nameSpan);
+						displayHeader.appendChild(sizeLabel);
+						displayHeader.appendChild(slider);
+						displayHeader.appendChild(closeBtn);
 
-							let pushedElement = parentRow.nextElementSibling;
-							if (pushedElement) {
-								requestAnimationFrame(() => {
-									const height = displayWrapper.offsetHeight;
-									pushedElement.style.marginTop = height + 'px';
-								});
-							}
+						// 容器
+						const displayContainer = document.createElement('div');
+						displayContainer.className = 'character-display-container';
+						displayContainer.appendChild(displayGrid);
 
-							activeDisplay = {
-								element: displayWrapper,
-								ownerCard: blockCard,
-								ownerRow: parentRow,
-								pushedElement: pushedElement,
-								parentCol: parentCol
-							};
+						const displayWrapper = document.createElement('div');
+						displayWrapper.className = 'character-display-wrapper';
+						displayWrapper.appendChild(displayHeader);
+						displayWrapper.appendChild(displayContainer);
+						parentRow.insertBefore(displayWrapper, parentCol.nextElementSibling);
 
-							// Add global listener, with a timeout to prevent the opening click from being caught.
+						activeDisplay = {
+							element: displayWrapper,
+							ownerCard: blockCard,
+							ownerRow: parentRow,
+							parentCol: parentCol
+						};
+
+// Add global listener, with a timeout to prevent the opening click from being caught.
 							setTimeout(() => document.addEventListener('click', documentClickHandler), 0);
 							setTimeout(() => document.addEventListener('keydown', keydownHandler), 0);
 						}
 					});
+				} else if (characterCount > characterThreshold) {
+					blockCard.classList.add('too-many');
+					const tooManyNote = document.createElement('p');
+					tooManyNote.className = 'too-many-note';
+					tooManyNote.textContent = '字符过多（' + characterCount + '），暂不支持展开';
+					statsEl.appendChild(tooManyNote);
 				}
 			});
 
-			const handleResize = () => {
-					if (!activeDisplay.element) return;
-					const { element, parentCol, pushedElement } = activeDisplay;
-					element.style.top = (parentCol.offsetTop + parentCol.offsetHeight - 16) + 'px';
-					if (pushedElement) {
-						pushedElement.style.marginTop = '';
-						requestAnimationFrame(() => {
-							const height = element.offsetHeight;
-							pushedElement.style.marginTop = height + 'px';
-						});
-					}
-				};
-				window.addEventListener('resize', handleResize);
+
 		}
 	}).use(ElementPlus).mount('main');
 </script>
