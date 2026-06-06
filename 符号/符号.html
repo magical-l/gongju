@@ -147,7 +147,7 @@
 			bottom: 200px;
 			right: 10px;
 			z-index: 100;
-			width: 330px;
+			width: 300px;
 			box-shadow: var(--el-box-shadow-light);
 			background-color: #fff;
 			border: 1px solid var(--el-border-color-light);
@@ -201,14 +201,23 @@
 			justify-content: center;
 			gap: 0.5em;
 		}
+
 		.symbol-detail-floater .code-copy {
 			cursor: pointer;
 			font-size: 1.1em;
 			opacity: 0.5;
 			transition: opacity 0.2s;
 		}
+
 		.symbol-detail-floater .code-copy:hover {
 			opacity: 1;
+		}
+
+		.symbol-detail-floater .code-label {
+			font-size: 0.8em;
+			color: var(--el-text-color-placeholder);
+			margin-right: 0.25em;
+			font-family: sans-serif;
 		}
 
 		.symbol-detail-floater .placeholder-char {
@@ -284,25 +293,31 @@
 			</div>
 		</header>
 		<article v-cloak>
-			<div class="symbol-detail-floater" :class="{'is-visible': hoveredSymbol}" v-if="hoveredSymbol">
+			<div class="symbol-detail-floater is-visible">
+				<div class="details">
+					<div class="name">{{ hoveredSymbol.name || hoveredSymbol.char }}</div>
+					<div v-if="hoveredSymbol.ename" class="ename">{{ hoveredSymbol.ename }}</div>
+					<div class="code">
+						<span class="code-label">Unicode</span><span class="code-text">U+{{ hoveredSymbol.char.codePointAt(0).toString(16).toUpperCase() }}</span>
+						<span class="code-copy" @click.stop="copyCode" title="复制">⧉</span>
+					</div>
+					<div class="code">
+						<span class="code-label">HTML转义</span><span class="code-text">&amp;#{{ hoveredSymbol.char.codePointAt(0) }};</span>
+						<span class="code-copy" @click.stop="copyCode" title="复制">⧉</span>
+					</div>
+				</div>
 				<div class="floater-title">效果预览</div>
 				<div class="char-preview">
 					<span class="placeholder-char">文</span><span class="symbol-char">{{ hoveredSymbol.char }}</span><span class="placeholder-char">字</span>
 				</div>
-				<div class="details">
-					<div class="name">{{ hoveredSymbol.name || hoveredSymbol.char }}</div>
-					<div v-if="hoveredSymbol.ename" class="ename">{{ hoveredSymbol.ename }}</div>
-					<div class="code"><span class="code-text">U+{{ hoveredSymbol.char.codePointAt(0).toString(16).toUpperCase() }}</span><span class="code-copy" @click.stop="copyCode" title="复制">⧉</span></div>
-					<div class="code"><span class="code-text">&amp;#{{ hoveredSymbol.char.codePointAt(0) }};</span><span class="code-copy" @click.stop="copyCode" title="复制">⧉</span></div>
-				</div>
 			</div>
 			<section class="search-bar">
-				<el-input v-model="searchQuery" placeholder="输入中文/英文搜索组/符号..." clearable size="large"></el-input>
+				<el-input v-model="searchQuery" placeholder="输入中文/英文搜索组/符号..." clearable="" size="large"></el-input>
 			</section>
 			<div class="symbol-groups">
 				<el-collapse v-model="activeGroupNames">
 					<el-collapse-item v-for="group in categoryNames" :key="group" :name="group">
-						<template #title>
+						<template #title="">
 							<h3 class="name">{{ group }}</h3>
 						</template>
 						<template v-if="filteredSymbolGroups[group]">
@@ -310,7 +325,7 @@
 								<div v-for="subgroup in filteredSymbolGroups[group].groups" :key="subgroup.name" class="subgroup">
 									<h4 class="subgroup-name">{{ subgroup.name }}</h4>
 									<div class="symbols">
-										<div class="symbol" v-for="s in subgroup.symbols" :key="s.char" @click="copySymbol(s)" title="点击复制" @mouseenter="setHoveredSymbol(s)" @mouseleave="clearHoveredSymbol">
+										<div class="symbol" v-for="s in subgroup.symbols" :key="s.char" @click="copySymbol(s)" title="点击复制" @mouseenter="setHoveredSymbol(s)">
 											<span class="char">{{ s.char }}</span>
 											<span class="name">{{ s.name }}</span>
 											<span class="ename">{{ s.ename }}</span>
@@ -319,7 +334,7 @@
 								</div>
 							</div>
 							<div v-else-if="filteredSymbolGroups[group].symbols" class="symbols">
-								<div class="symbol" v-for="s in filteredSymbolGroups[group].symbols" :key="s.char" @click="copySymbol(s)" @mouseenter="setHoveredSymbol(s)" @mouseleave="clearHoveredSymbol" title="点击复制">
+								<div class="symbol" v-for="s in filteredSymbolGroups[group].symbols" :key="s.char" @click="copySymbol(s)" @mouseenter="setHoveredSymbol(s)" title="点击复制">
 									<span class="char">{{ s.char }}</span>
 									<span class="name">{{ s.name }}</span>
 									<span class="ename">{{ s.ename }}</span>
@@ -362,7 +377,7 @@
 				return {
 					searchQuery: '',
 					activeGroupNames: [],
-					hoveredSymbol: null,
+					hoveredSymbol: SYMBOLS[0],
 				};
 			},
 			computed: {
@@ -475,7 +490,7 @@
 					this.hoveredSymbol = symbol;
 				},
 				clearHoveredSymbol() {
-					this.hoveredSymbol = null;
+					// 始终显示详情卡片
 				},
 				copySymbol(symbol) {
 					navigator.clipboard.writeText(symbol.char).then(() => {
@@ -484,7 +499,6 @@
 						ElementPlus.ElMessage.error('复制失败: ' + err);
 					});
 				},
-
 				copyCode(event) {
 					const codeText = event.target.closest('.code').querySelector('.code-text').textContent;
 					navigator.clipboard.writeText(codeText).then(() => {
