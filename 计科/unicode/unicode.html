@@ -14,6 +14,12 @@
 <style>@import url("../../lib/element-plus/2.10.7/index.css") layer(el-plus);</style>
 <link href="../../resources/el-plus.css" rel="stylesheet">
 <style>
+	/* unicode 符号需要特殊字体才能正常显示 */
+	@font-face {
+		font-family: 'NotoSansSymbols2';
+		src: url('../../lib/fonts/NotoSansSymbols2-Regular.ttf') format('truetype');
+	}
+
 	.unicode.catalog {
 		> article > header > h2 {
 			margin-top: 2em;
@@ -27,6 +33,9 @@
 		/* ------ 平面/分区卡片 ------ */
 		& .one.plane, & .one.block {
 			margin-bottom: 1rem;
+		}
+		& .one.block {
+			height: 100%; /* 同行等高：el-row flex 默认 stretch，填满 el-col */
 		}
 		& .one.plane {
 			overflow: visible; /* el-card 默认 overflow:hidden 会裁剪绝对定位的字符展示面板 */
@@ -66,6 +75,32 @@
 				font-size: 0.9em;
 				color: #606266;
 			}
+
+			& .preview {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 4px;
+				margin-top: 0.25rem;
+
+				& .char-cell {
+					width: 28px;
+					height: 28px;
+					font-size: 0.85em;
+					cursor: default;
+					pointer-events: none; /* 避免干扰 block 展开点击 */
+					&:hover {
+						border-color: var(--el-border-color);
+						background: transparent;
+					}
+				}
+			}
+
+			& .preview-note {
+				margin: 0.25rem 0 0;
+				font-size: 0.8em;
+				color: #909399;
+			}
+
 		}
 
 		/* ------ 可展开分区 ------ */
@@ -109,6 +144,32 @@
 			gap: 0.5rem;
 		}
 
+		/* 字号调节 */
+		& .font-size-ctrl {
+			position: absolute;
+			top: 0.7em;
+			right: 2.8em;
+			display: flex;
+			gap: 2px;
+
+			& .btn {
+				cursor: pointer;
+				color: #909399;
+				font-size: 0.8em;
+				font-weight: bold;
+				padding: 0 5px;
+				border: 1px solid var(--el-border-color);
+				border-radius: 3px;
+				user-select: none;
+				line-height: 1.6;
+
+				&:hover {
+					color: var(--el-color-primary);
+					border-color: var(--el-color-primary);
+				}
+			}
+		}
+
 		& .char-cell {
 			width: 60px;
 			height: 60px;
@@ -117,7 +178,8 @@
 			justify-content: center;
 			border: 1px solid var(--el-border-color);
 			border-radius: 4px;
-			font-size: 1.2em;
+			font-family: 'NotoSansSymbols2', sans-serif; /* 只字符展示用 Noto，避免全局覆盖 */
+			font-size: var(--cell-font-size, 1.2em);
 			cursor: pointer;
 
 			&:hover {
@@ -2746,16 +2808,18 @@
 				return invisibleRegex.test(char);
 			};
 
+			// 空格、组合标记等：已分配但无独立字形，预览中跳过
+			const isBlank = (char) => {
+				const blankRegex = /^(\p{Zs}|\p{Zl}|\p{Zp})$/u;
+				return blankRegex.test(char);
+			};
+
 			const blocks = document.querySelectorAll('.one.block');
-			const excludedKeywords = ['CJK', '标点', '中日韩'];
-			const characterThreshold = 256;
+			const characterThreshold = 800; /* 约 47 行网格，覆盖大多数符号类 block */
 
 			blocks.forEach(blockCard => {
 				const header = blockCard.querySelector('header');
 				if (!header) return;
-
-				const nameEl = header.querySelector('.name');
-				const nameText = nameEl ? nameEl.textContent.trim() : '';
 
 				const statsEl = blockCard.querySelector('.stats');
 				if (!statsEl) return;
@@ -2764,19 +2828,47 @@
 				const countText = countEl ? countEl.textContent : '字符数：0';
 				const characterCount = parseInt(countText.replace(/[^0-9]/g, '') || '0');
 
-				const enNameEl = nameEl ? nameEl.querySelector('.en') : null;
-				const enNameText = enNameEl ? enNameEl.textContent.trim().toLowerCase() : '';
-				const isExcluded = excludedKeywords.some(keyword => nameText.includes(keyword)) ||
-						enNameText.includes('cjk') ||
-						enNameText.includes('punctuation') ||
-						enNameText.includes('ideograph');
+				// 解析码位区间，用于预览和展开
+				const rangeEl = statsEl.querySelector('.range');
+				const rangeText = rangeEl ? rangeEl.textContent : '';
+				const rangeMatch = rangeText.match(/U\+([0-9A-F]+)\s*~\s*U\+([0-9A-F]+)/i);
+				const rangeStart = rangeMatch ? parseInt(rangeMatch[1], 16) : 0;
+				const rangeEnd = rangeMatch ? parseInt(rangeMatch[2], 16) : 0;
 
-				if (characterCount > 0 && characterCount <= characterThreshold && !isExcluded) {
+				// 预览前几个字符
+				if (characterCount > 0 && rangeMatch) {
+					const previewEl = document.createElement('div');
+					previewEl.className = 'preview';
+					let blankCount = 0;
+					for (let i = rangeStart; i <= rangeEnd && previewEl.childElementCount < 6; i++) {
+						const char = String.fromCodePoint(i);
+						if (!isAssigned(char)) continue;
+						if (isTrulyInvisible(char) || isBlank(char)) {
+							blankCount++;
+							continue;
+						}
+						const span = document.createElement('span');
+						span.className = 'char-cell';
+						span.textContent = char;
+						previewEl.appendChild(span);
+					}
+					if (previewEl.childElementCount > 0) {
+						statsEl.appendChild(previewEl);
+					}
+					if (blankCount > 0) {
+						const noteEl = document.createElement('p');
+						noteEl.className = 'preview-note';
+						noteEl.textContent = '含 ' + blankCount + ' 个控制/空白字符';
+						statsEl.appendChild(noteEl);
+					}
+				}
+
+				if (characterCount > 0 && characterCount <= characterThreshold) {
 					blockCard.classList.add('expandable');
 
 					blockCard.addEventListener('click', (event) => {
 						// Do not trigger when clicking the copy-able cells or the close button
-						if (event.target.closest('.char-cell, .char-display-close-btn')) {
+						if (event.target.closest('.character-display .char-cell, .char-display-close-btn')) {
 							return;
 						}
 
@@ -2787,13 +2879,9 @@
 							return; // Toggled off
 						}
 
-						const rangeEl = statsEl.querySelector('.range');
-						const rangeText = rangeEl ? rangeEl.textContent : '';
-						const matches = rangeText.match(/U\+([0-9A-F]+)\s*~\s*U\+([0-9A-F]+)/i);
-
-						if (matches) {
-							const start = parseInt(matches[1], 16);
-							const end = parseInt(matches[2], 16);
+						if (rangeMatch) {
+							const start = rangeStart;
+							const end = rangeEnd;
 
 							const displayGrid = document.createElement('div');
 							displayGrid.className = 'character-display';
@@ -2839,11 +2927,38 @@
 							const displayContainer = document.createElement('div');
 							displayContainer.className = 'character-display-container';
 
+							const fontSizeCtrl = document.createElement('div');
+							fontSizeCtrl.className = 'font-size-ctrl';
+							const sizes = [0.8, 1.0, 1.2, 1.5, 2.0, 2.5];
+							let sizeIdx = sizes.indexOf(1.2);
+							const updateCellSize = () => {
+								displayContainer.style.setProperty('--cell-font-size', sizes[sizeIdx] + 'em');
+							};
+							const smallerBtn = document.createElement('span');
+							smallerBtn.className = 'btn';
+							smallerBtn.textContent = 'A-';
+							smallerBtn.title = '缩小字号';
+							smallerBtn.addEventListener('click', (e) => {
+								e.stopPropagation();
+								if (sizeIdx > 0) { sizeIdx--; updateCellSize(); }
+							});
+							const largerBtn = document.createElement('span');
+							largerBtn.className = 'btn';
+							largerBtn.textContent = 'A+';
+							largerBtn.title = '放大字号';
+							largerBtn.addEventListener('click', (e) => {
+								e.stopPropagation();
+								if (sizeIdx < sizes.length - 1) { sizeIdx++; updateCellSize(); }
+							});
+							fontSizeCtrl.appendChild(smallerBtn);
+							fontSizeCtrl.appendChild(largerBtn);
+
 							const closeBtn = document.createElement('i');
 							closeBtn.className = 'el-icon char-display-close-btn';
 							closeBtn.innerHTML = '<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M764.288 214.592 512 466.88 259.712 214.592a31.936 31.936 0 0 0-45.12 45.12L466.88 512 214.592 764.288a31.936 31.936 0 1 0 45.12 45.12L512 557.12l252.288 252.288a31.936 31.936 0 0 0 45.12-45.12L557.12 512l252.288-252.288a31.936 31.936 0 1 0-45.12-45.12z"></path></svg>';
 							closeBtn.addEventListener('click', cleanup);
 
+							displayContainer.appendChild(fontSizeCtrl);
 							displayContainer.appendChild(closeBtn);
 							displayContainer.appendChild(displayGrid);
 							displayWrapper.appendChild(displayContainer);
