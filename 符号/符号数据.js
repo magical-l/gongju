@@ -16,8 +16,7 @@ const CATEGORIES = {
 		"扑克牌",
 		"麻将",
 		"骰子/色子",
-		"多米诺骨牌",
-		"体育、运动·其他"
+		"多米诺骨牌"
 	],
 	"语文、语言学、标点符号": [
 		"西文字母变体",
@@ -48,8 +47,7 @@ const CATEGORIES = {
 	],
 	"哲学、宗教、神秘学": [
 		"《易经》符号（八卦、六十四卦）",
-		"《太玄经》符号（八十一首）",
-		"哲学、宗教、神秘学·其他"
+		"《太玄经》符号（八十一首）"
 	],
 	"其他": []
 };
@@ -7952,7 +7950,7 @@ const SYMBOLS = [
 		"name": "足球",
 		"ename": "Soccer Ball",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		],
 		"alias": [
 			"足球",
@@ -7964,7 +7962,7 @@ const SYMBOLS = [
 		"name": "棒球",
 		"ename": "Baseball",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		],
 		"alias": [
 			"棒球",
@@ -7976,7 +7974,7 @@ const SYMBOLS = [
 		"name": "篮球",
 		"ename": "Basketball",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		]
 	},
 	{
@@ -7984,7 +7982,7 @@ const SYMBOLS = [
 		"name": "排球",
 		"ename": "Volleyball",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		]
 	},
 	{
@@ -7992,7 +7990,7 @@ const SYMBOLS = [
 		"name": "橄榄球",
 		"ename": "American Football",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		]
 	},
 	{
@@ -8000,7 +7998,7 @@ const SYMBOLS = [
 		"name": "英式橄榄球",
 		"ename": "Rugby Football",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		]
 	},
 	{
@@ -8008,7 +8006,7 @@ const SYMBOLS = [
 		"name": "网球",
 		"ename": "Tennis",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		]
 	},
 	{
@@ -8016,7 +8014,7 @@ const SYMBOLS = [
 		"name": "保龄球",
 		"ename": "Bowling",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		]
 	},
 	{
@@ -8024,7 +8022,7 @@ const SYMBOLS = [
 		"name": "板球",
 		"ename": "Cricket Game",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		]
 	},
 	{
@@ -8032,7 +8030,7 @@ const SYMBOLS = [
 		"name": "曲棍球",
 		"ename": "Field Hockey",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		]
 	},
 	{
@@ -8040,7 +8038,7 @@ const SYMBOLS = [
 		"name": "冰球",
 		"ename": "Ice Hockey",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		]
 	},
 	{
@@ -8048,7 +8046,7 @@ const SYMBOLS = [
 		"name": "乒乓球",
 		"ename": "Ping Pong",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		]
 	},
 	{
@@ -8056,7 +8054,7 @@ const SYMBOLS = [
 		"name": "羽毛球",
 		"ename": "Badminton",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		]
 	},
 	{
@@ -8064,7 +8062,7 @@ const SYMBOLS = [
 		"name": "拳击手套",
 		"ename": "Boxing Glove",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		]
 	},
 	{
@@ -8072,7 +8070,7 @@ const SYMBOLS = [
 		"name": "武术服",
 		"ename": "Martial Arts Uniform",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		]
 	},
 	{
@@ -8080,7 +8078,7 @@ const SYMBOLS = [
 		"name": "球门",
 		"ename": "Goal Net",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		]
 	},
 	{
@@ -8088,7 +8086,7 @@ const SYMBOLS = [
 		"name": "金牌",
 		"ename": "1st Place Medal",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		]
 	},
 	{
@@ -8096,7 +8094,7 @@ const SYMBOLS = [
 		"name": "银牌",
 		"ename": "2nd Place Medal",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		]
 	},
 	{
@@ -8104,7 +8102,7 @@ const SYMBOLS = [
 		"name": "铜牌",
 		"ename": "3rd Place Medal",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		]
 	},
 	{
@@ -8112,7 +8110,7 @@ const SYMBOLS = [
 		"name": "奖杯",
 		"ename": "Trophy",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		]
 	},
 	{
@@ -8120,7 +8118,7 @@ const SYMBOLS = [
 		"name": "靶心",
 		"ename": "Direct Hit",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		],
 		"alias": [
 			"射箭",
@@ -8132,7 +8130,7 @@ const SYMBOLS = [
 		"name": "帆船",
 		"ename": "Sailboat",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		]
 	},
 	{
@@ -8140,7 +8138,7 @@ const SYMBOLS = [
 		"name": "空心跳棋",
 		"ename": "Hollow Draughts Man",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		]
 	},
 	{
@@ -8148,7 +8146,7 @@ const SYMBOLS = [
 		"name": "空心跳棋王",
 		"ename": "Hollow Draughts King",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		]
 	},
 	{
@@ -8156,7 +8154,7 @@ const SYMBOLS = [
 		"name": "实心跳棋",
 		"ename": "Solid Draughts Man",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		]
 	},
 	{
@@ -8164,7 +8162,7 @@ const SYMBOLS = [
 		"name": "实心跳棋王",
 		"ename": "Solid Draughts King",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		],
 		"alias": [
 			"跳棋"
@@ -8175,7 +8173,7 @@ const SYMBOLS = [
 		"name": "翻转白将棋",
 		"ename": "Turned White Shogi Piece",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		]
 	},
 	{
@@ -8183,7 +8181,7 @@ const SYMBOLS = [
 		"name": "翻转黑将棋",
 		"ename": "Turned Black Shogi Piece",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		]
 	},
 	{
@@ -8191,7 +8189,7 @@ const SYMBOLS = [
 		"name": "洞中旗",
 		"ename": "Flag In Hole",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		],
 		"alias": [
 			"高尔夫球"
@@ -8202,7 +8200,7 @@ const SYMBOLS = [
 		"name": "帐篷",
 		"ename": "Tent",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		],
 		"alias": [
 			"露营",
@@ -8214,7 +8212,7 @@ const SYMBOLS = [
 		"name": "击剑",
 		"ename": "CROSSED SWORDS",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		]
 	},
 	{
@@ -8222,7 +8220,7 @@ const SYMBOLS = [
 		"name": "滑雪者",
 		"ename": "SKIER",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		],
 		"alias": [
 			"运动",
@@ -8234,7 +8232,7 @@ const SYMBOLS = [
 		"name": "冰鞋",
 		"ename": "ICE SKATE",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		],
 		"alias": [
 			"运动",
@@ -8246,7 +8244,7 @@ const SYMBOLS = [
 		"name": "玩球的人",
 		"ename": "PERSON WITH BALL",
 		"tags": [
-			"体育、运动·其他"
+			"体育、运动"
 		],
 		"alias": [
 			"运动",
@@ -13011,7 +13009,7 @@ const SYMBOLS = [
 		"name": "佛教法轮",
 		"ename": "WHEEL OF DHARMA",
 		"tags": [
-			"哲学、宗教、神秘学·其他"
+			"哲学、宗教、神秘学"
 		]
 	},
 	{
@@ -13019,7 +13017,7 @@ const SYMBOLS = [
 		"name": "生命之符",
 		"ename": "Ankh",
 		"tags": [
-			"哲学、宗教、神秘学·其他"
+			"哲学、宗教、神秘学"
 		],
 		"alias": [
 			"安卡",
@@ -13032,7 +13030,7 @@ const SYMBOLS = [
 		"name": "商神杖",
 		"ename": "Caduceus",
 		"tags": [
-			"哲学、宗教、神秘学·其他"
+			"哲学、宗教、神秘学"
 		],
 		"alias": [
 			"墨丘利的节杖",
@@ -13044,7 +13042,7 @@ const SYMBOLS = [
 		"name": "圣安德鲁十字",
 		"ename": "St Andrew's Cross",
 		"tags": [
-			"哲学、宗教、神秘学·其他"
+			"哲学、宗教、神秘学"
 		],
 		"alias": [
 			"基督教"
@@ -13055,7 +13053,7 @@ const SYMBOLS = [
 		"name": "东正教十字",
 		"ename": "Orthodox Cross",
 		"tags": [
-			"哲学、宗教、神秘学·其他"
+			"哲学、宗教、神秘学"
 		],
 		"alias": [
 			"基督教"
@@ -13066,7 +13064,7 @@ const SYMBOLS = [
 		"name": "基督符号",
 		"ename": "Chi Rho",
 		"tags": [
-			"哲学、宗教、神秘学·其他"
+			"哲学、宗教、神秘学"
 		],
 		"alias": [
 			"基督教"
@@ -13077,7 +13075,7 @@ const SYMBOLS = [
 		"name": "洛林十字",
 		"ename": "Cross of Lorraine",
 		"tags": [
-			"哲学、宗教、神秘学·其他"
+			"哲学、宗教、神秘学"
 		],
 		"alias": [
 			"基督教",
@@ -13089,7 +13087,7 @@ const SYMBOLS = [
 		"name": "耶路撒冷十字",
 		"ename": "Cross of Jerusalem",
 		"tags": [
-			"哲学、宗教、神秘学·其他"
+			"哲学、宗教、神秘学"
 		],
 		"alias": [
 			"基督教"
@@ -13100,7 +13098,7 @@ const SYMBOLS = [
 		"name": "西叙利亚十字",
 		"ename": "West Syriac Cross",
 		"tags": [
-			"哲学、宗教、神秘学·其他"
+			"哲学、宗教、神秘学"
 		],
 		"alias": [
 			"十字",
@@ -13112,7 +13110,7 @@ const SYMBOLS = [
 		"name": "东叙利亚十字",
 		"ename": "East Syriac Cross",
 		"tags": [
-			"哲学、宗教、神秘学·其他"
+			"哲学、宗教、神秘学"
 		],
 		"alias": [
 			"十字",
@@ -13124,7 +13122,7 @@ const SYMBOLS = [
 		"name": "交叉十字",
 		"ename": "SQUARED SALTIRE",
 		"tags": [
-			"哲学、宗教、神秘学·其他"
+			"哲学、宗教、神秘学"
 		],
 		"alias": [
 			"符号",
@@ -13136,7 +13134,7 @@ const SYMBOLS = [
 		"name": "星月",
 		"ename": "Star and Crescent",
 		"tags": [
-			"哲学、宗教、神秘学·其他"
+			"哲学、宗教、神秘学"
 		],
 		"alias": [
 			"伊斯兰教"
@@ -13147,7 +13145,7 @@ const SYMBOLS = [
 		"name": "法拉瓦哈",
 		"ename": "Faravahar",
 		"tags": [
-			"哲学、宗教、神秘学·其他"
+			"哲学、宗教、神秘学"
 		],
 		"alias": [
 			"伊朗"
@@ -13158,7 +13156,7 @@ const SYMBOLS = [
 		"name": "坎达（锡克教符号）",
 		"ename": "Khanda",
 		"tags": [
-			"哲学、宗教、神秘学·其他"
+			"哲学、宗教、神秘学"
 		],
 		"alias": [
 			"印度"
@@ -13169,7 +13167,7 @@ const SYMBOLS = [
 		"name": "镰刀锤子",
 		"ename": "Hammer and Sickle",
 		"tags": [
-			"哲学、宗教、神秘学·其他"
+			"哲学、宗教、神秘学"
 		],
 		"alias": [
 			"共产党",
@@ -13182,7 +13180,7 @@ const SYMBOLS = [
 		"name": "五角星",
 		"ename": "Pentagram",
 		"tags": [
-			"哲学、宗教、神秘学·其他"
+			"哲学、宗教、神秘学"
 		],
 		"alias": [
 			"五角星",
@@ -13194,7 +13192,7 @@ const SYMBOLS = [
 		"name": "右手交织五角星",
 		"ename": "Right-Handed Interlaced Pentagram",
 		"tags": [
-			"哲学、宗教、神秘学·其他"
+			"哲学、宗教、神秘学"
 		],
 		"alias": [
 			"神秘学",
@@ -13206,7 +13204,7 @@ const SYMBOLS = [
 		"name": "左手交织五角星",
 		"ename": "Left-Handed Interlaced Pentagram",
 		"tags": [
-			"哲学、宗教、神秘学·其他"
+			"哲学、宗教、神秘学"
 		],
 		"alias": [
 			"基督教",
@@ -13218,7 +13216,7 @@ const SYMBOLS = [
 		"name": "倒五角星",
 		"ename": "Inverted Pentagram",
 		"tags": [
-			"哲学、宗教、神秘学·其他"
+			"哲学、宗教、神秘学"
 		],
 		"alias": [
 			"倒置",
@@ -13230,7 +13228,7 @@ const SYMBOLS = [
 		"name": "盾牌实心十字",
 		"ename": "Solid Cross On Shield",
 		"tags": [
-			"哲学、宗教、神秘学·其他"
+			"哲学、宗教、神秘学"
 		],
 		"alias": [
 			"盾牌"
@@ -13241,7 +13239,7 @@ const SYMBOLS = [
 		"name": "神道教神社",
 		"ename": "Shinto Shrine",
 		"tags": [
-			"哲学、宗教、神秘学·其他"
+			"哲学、宗教、神秘学"
 		]
 	},
 	{
@@ -13249,7 +13247,7 @@ const SYMBOLS = [
 		"name": "教堂",
 		"ename": "Church",
 		"tags": [
-			"哲学、宗教、神秘学·其他"
+			"哲学、宗教、神秘学"
 		]
 	},
 	{
@@ -13257,7 +13255,7 @@ const SYMBOLS = [
 		"name": "黑月莉莉丝",
 		"ename": "Black Moon Lilith",
 		"tags": [
-			"哲学、宗教、神秘学·其他"
+			"哲学、宗教、神秘学"
 		],
 		"alias": [
 			"黑月",
@@ -13269,7 +13267,7 @@ const SYMBOLS = [
 		"name": "六分相",
 		"ename": "Sextile",
 		"tags": [
-			"哲学、宗教、神秘学·其他"
+			"哲学、宗教、神秘学"
 		],
 		"alias": [
 			"六分相",
@@ -13281,7 +13279,7 @@ const SYMBOLS = [
 		"name": "十二分相",
 		"ename": "Semisextile",
 		"tags": [
-			"哲学、宗教、神秘学·其他"
+			"哲学、宗教、神秘学"
 		],
 		"alias": [
 			"半六分相",
@@ -13293,7 +13291,7 @@ const SYMBOLS = [
 		"name": "梅花相",
 		"ename": "Quincunx",
 		"tags": [
-			"哲学、宗教、神秘学·其他"
+			"哲学、宗教、神秘学"
 		],
 		"alias": [
 			"梅花相",
@@ -13305,7 +13303,7 @@ const SYMBOLS = [
 		"name": "倍八分相",
 		"ename": "Sesquiquadrate",
 		"tags": [
-			"哲学、宗教、神秘学·其他"
+			"哲学、宗教、神秘学"
 		],
 		"alias": [
 			"倍半四分相",

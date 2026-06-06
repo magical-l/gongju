@@ -321,6 +321,13 @@
 							<h3 class="name">{{ group }}</h3>
 						</template>
 						<template v-if="filteredSymbolGroups[group]">
+							<div v-if="filteredSymbolGroups[group].symbols" class="symbols">
+								<div class="symbol" v-for="s in filteredSymbolGroups[group].symbols" :key="s.char" @click="copySymbol(s)" @mouseenter="setHoveredSymbol(s)" title="点击复制">
+									<span class="char">{{ s.char }}</span>
+									<span class="name">{{ s.name }}</span>
+									<span class="ename">{{ s.ename }}</span>
+								</div>
+							</div>
 							<div v-if="filteredSymbolGroups[group].groups" class="subgroups">
 								<div v-for="subgroup in filteredSymbolGroups[group].groups" :key="subgroup.name" class="subgroup">
 									<h4 class="subgroup-name">{{ subgroup.name }}</h4>
@@ -331,13 +338,6 @@
 											<span class="ename">{{ s.ename }}</span>
 										</div>
 									</div>
-								</div>
-							</div>
-							<div v-else-if="filteredSymbolGroups[group].symbols" class="symbols">
-								<div class="symbol" v-for="s in filteredSymbolGroups[group].symbols" :key="s.char" @click="copySymbol(s)" @mouseenter="setHoveredSymbol(s)" title="点击复制">
-									<span class="char">{{ s.char }}</span>
-									<span class="name">{{ s.name }}</span>
-									<span class="ename">{{ s.ename }}</span>
 								</div>
 							</div>
 						</template>
@@ -396,7 +396,7 @@
 								};
 							}
 						} else {
-							// 分支节点：符号在子组中
+							// 分支节点：符号可能在子组中，也可能直接在此标签下
 							const groups = [];
 							for (const sub of subs) {
 								const symbols = SYMBOLS.filter(s => s.tags.includes(sub));
@@ -407,11 +407,10 @@
 									});
 								}
 							}
-							if (groups.length > 0) {
-								result[cat] = {
-									groups
-								};
-							}
+							const direct = SYMBOLS.filter(s => s.tags.includes(cat) && !subs.some(sub => s.tags.includes(sub)));
+							result[cat] = {};
+							if (groups.length > 0) result[cat].groups = groups;
+							if (direct.length > 0) result[cat].symbols = direct;
 						}
 					}
 					return result;
@@ -469,18 +468,26 @@
 									});
 								}
 							}
-							if (matchedSubs.length > 0) {
-								result[cat] = {
-									groups: matchedSubs
-								};
-							}
+							// 也搜索直接挂在此标签下的符号
+							const directSymbols = SYMBOLS.filter(s => {
+								if (!s.tags.includes(cat) || subs.some(sub => s.tags.includes(sub))) return false;
+								const targets = [
+									s.char.toLowerCase(),
+									s.name.toLowerCase(),
+									s.ename.toLowerCase(), ...s.tags.map(t => t.toLowerCase()), ...(s.alias || []).map(a => a.toLowerCase())
+								];
+								return targets.some(t => t.includes(query));
+							});
+							result[cat] = {};
+							if (matchedSubs.length > 0) result[cat].groups = matchedSubs;
+							if (directSymbols.length > 0) result[cat].symbols = directSymbols;
 						}
 					}
 					return result;
 				},
 			},
 			mounted() {
-				this.activeGroupNames = [this.categoryNames[0]];
+				this.activeGroupNames = this.categoryNames.slice(0, 3);
 				this.$nextTick(() => {
 					this.autoFocusFirst();
 				});
@@ -545,7 +552,7 @@
 					if (this.searchQuery) {
 						this.activeGroupNames = Object.keys(newVal);
 					} else {
-						this.activeGroupNames = [this.categoryNames[0]];
+						this.activeGroupNames = this.categoryNames.slice(0, 3);
 					}
 				}
 			}
