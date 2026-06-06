@@ -433,11 +433,11 @@
 	const help = createApp({
 		data() {
 			return {
-				descriptionVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname)
+				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname)
 			};
 		},
 		watch: {
-			descriptionVisible(newValue) {
+			introVisible(newValue) {
 				const storageKey = 'intro-hidden-' + window.location.pathname;
 				if (!newValue) {
 					localStorage.setItem(storageKey, 'true');
