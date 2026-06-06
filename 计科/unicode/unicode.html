@@ -4,140 +4,149 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>unicode</title>
-
-<link href="../../lib/element-plus/2.10.7/index.css" rel="stylesheet">
-<link href="../../resources/el-plus.css" rel="stylesheet">
-	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/common.css" rel="stylesheet"> -->
-	<link href="../../lib/css/common.css" rel="stylesheet">
-	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/layout.css" rel="stylesheet"> -->
-	<link href="../../lib/css/layout.css" rel="stylesheet">
+<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/common.css" rel="stylesheet"> -->
+<link href="../../lib/css/common.css" rel="stylesheet">
+<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/layout.css" rel="stylesheet"> -->
+<link href="../../lib/css/layout.css" rel="stylesheet">
 <link href="../../resources/biz.css?v=250821" rel="stylesheet">
-	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/花活.css" rel="stylesheet"> -->
-	<link href="../../lib/css/花活.css" rel="stylesheet">
+<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/花活.css" rel="stylesheet"> -->
+<link href="../../lib/css/花活.css" rel="stylesheet">
+<style>@import url("../../lib/element-plus/2.10.7/index.css") layer(el-plus);</style>
+<link href="../../resources/el-plus.css" rel="stylesheet">
 <style>
-	main > article > header > h2 {
-		margin-top: 2em;
-		margin-bottom: 1em;
-		font-size: 1.5em;
-		font-weight: bold;
-		border-bottom: 1px solid #ebeef5;
-		padding-bottom: 0.5em;
-	}
+	.unicode.catalog {
+		> article > header > h2 {
+			margin-top: 2em;
+			margin-bottom: 1em;
+			font-size: 1.5em;
+			font-weight: bold;
+			border-bottom: 1px solid #ebeef5;
+			padding-bottom: 0.5em;
+		}
 
-	.one.plane, .one.block {
-		margin-bottom: 1rem;
-	}
-	.one.plane {
-		overflow: visible; /* el-card 默认 overflow:hidden 会裁剪绝对定位的 character-display-wrapper */
-	}
+		/* ------ 平面/分区卡片 ------ */
+		& .one.plane, & .one.block {
+			margin-bottom: 1rem;
+		}
+		& .one.plane {
+			overflow: visible; /* el-card 默认 overflow:hidden 会裁剪绝对定位的字符展示面板 */
+		}
 
-	.unassigned h2 {
-		font-size: 1em;
-		color: #909399;
-	}
+		/* 未分配平面 */
+		& .unassigned {
+			& h2 {
+				font-size: 1em;
+				color: #909399;
+			}
+			&.plane p {
+				color: #c0c4cc;
+				margin-top: 4px;
+			}
+		}
 
-	.name > .en {
-		display: block;
-	}
+		& .name > .en {
+			display: block;
+		}
 
-	p.range {
-		font-size: 0.9em;
-	}
+		& .range {
+			font-size: 0.9em;
+		}
 
-	.unassigned.plane p {
-		color: #c0c4cc;
-		margin-top: 4px;
-	}
+		/* ------ 分区统计 ------ */
+		& .stats {
+			display: flex;
+			flex-direction: column;
+			gap: 0.25rem;
+			margin-top: 1em;
+			padding-top: 1em;
+			border-top: 1px solid #f0f0f0;
 
-	.stats {
-		margin-top: 1em;
-		padding-top: 1em;
-		border-top: 1px solid #f0f0f0;
-	}
+			& p {
+				margin: 0;
+				font-size: 0.9em;
+				color: #606266;
+			}
+		}
 
-	.stats p {
-		margin: 0;
-		font-size: 0.9em;
-		color: #606266;
-	}
+		/* ------ 可展开分区 ------ */
+		& .one.block.expandable {
+			cursor: pointer;
 
-	.one.block.expandable {
-		cursor: pointer;
-	}
+			&:hover {
+				box-shadow: var(--el-box-shadow-light);
+				border-color: var(--el-color-primary);
+			}
+		}
 
-	.one.block.expandable:hover {
-		box-shadow: var(--el-box-shadow-light);
-		border-color: var(--el-color-primary);
-	}
+		/* ------ 字符展示面板 ------ */
+		& .el-row.has-expanded-child {
+			position: relative;
+		}
 
-	.el-row.has-expanded-child {
-		position: relative;
-	}
+		& .character-display-wrapper {
+			position: absolute;
+			z-index: 10;
+			padding: 1rem 6px 0; /* 1rem 顶部分隔被展开的 block，6px 与 el-col padding 对齐 */
+			box-sizing: border-box;
+		}
 
-	.character-display-wrapper {
-		position: absolute;
-		z-index: 10;
-		padding: 1rem 6px 0; /* 1rem top to clear the block, 6px horizontal to match el-col padding */
-		box-sizing: border-box;
-		/* left and width will be set by JS */
-	}
+		& .character-display-container {
+			position: relative; /* 定位关闭按钮 */
+			background-color: #f5f7fa;
+			border: 1px solid var(--el-border-color-lighter);
+			border-radius: 4px;
+			padding: 1em;
+			box-shadow: var(--el-box-shadow-light);
+		}
 
-	.character-display-container {
-		position: relative; /* For close button positioning */
-		background-color: #f5f7fa;
-		border: 1px solid var(--el-border-color-lighter);
-		border-radius: 4px;
-		padding: 1em;
-		box-shadow: var(--el-box-shadow-light);
-	}
+		& .character-display {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0.5rem;
+		}
 
-	.character-display { /* This is the grid inside */
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-	}
+		& .char-cell {
+			width: 60px;
+			height: 60px;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			border: 1px solid var(--el-border-color);
+			border-radius: 4px;
+			font-size: 1.2em;
+			cursor: pointer;
 
-	.character-display .char-cell {
-		width: 60px;
-		height: 60px;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		border: 1px solid var(--el-border-color);
-		border-radius: 4px;
-		font-size: 1.2em;
-		cursor: pointer;
-	}
+			&:hover {
+				border-color: var(--el-color-primary);
+				background: #fff;
+			}
 
-	.character-display .char-cell:hover {
-		border-color: var(--el-color-primary);
-		background: #fff;
-	}
+			&.invisible {
+				background-color: #f8f8f8;
+				background-image: repeating-linear-gradient(45deg, #ddd, #ddd 1px, transparent 1px, transparent 6px);
+				cursor: not-allowed;
+				color: #aaa;
 
-	.char-display-close-btn {
-		position: absolute;
-		top: 1em;
-		right: 0.5em;
-		font-size: 1.2em;
-		cursor: pointer;
-		color: #909399;
-	}
+				&:hover {
+					border-color: var(--el-border-color);
+					background-color: #f8f8f8;
+					background-image: repeating-linear-gradient(45deg, #ddd, #ddd 1px, transparent 1px, transparent 6px);
+				}
+			}
+		}
 
-	.char-display-close-btn:hover {
-		color: var(--el-color-primary);
-	}
+		& .char-display-close-btn {
+			position: absolute;
+			top: 1em;
+			right: 0.5em;
+			font-size: 1.2em;
+			cursor: pointer;
+			color: #909399;
 
-	.character-display .char-cell.invisible {
-		background-color: #f8f8f8;
-		background-image: repeating-linear-gradient(45deg, #ddd, #ddd 1px, transparent 1px, transparent 6px);
-		cursor: not-allowed;
-		color: #aaa;
-	}
-
-	.character-display .char-cell.invisible:hover {
-		border-color: var(--el-border-color);
-		background-color: #f8f8f8;
-		background-image: repeating-linear-gradient(45deg, #ddd, #ddd 1px, transparent 1px, transparent 6px);
+			&:hover {
+				color: var(--el-color-primary);
+			}
+		}
 	}
 </style>
 </head>
@@ -168,7 +177,7 @@
 		</div>
 	</nav>
 </header>
-<main v-cloak>
+<main class="unicode catalog" v-cloak>
 	<article>
 		<header>
 			<h2 class="name">unicode平面（plane）和分区（block）</h2>
