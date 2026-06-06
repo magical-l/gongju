@@ -50,7 +50,6 @@
 	}
 
 	.stats {
-		gap: 0.5rem;
 		margin-top: 1em;
 		padding-top: 1em;
 		border-top: 1px solid #f0f0f0;
@@ -2701,7 +2700,7 @@
 
 	createApp({
 		mounted() {
-			let activeDisplay = {element: null, ownerCard: null, pushedElement: null, ownerRow: null};
+			let activeDisplay = {element: null, ownerCard: null, pushedElement: null, ownerRow: null, parentCol: null};
 
 			const documentClickHandler = (event) => {
 				// If the click is outside the display container AND not on an expandable card, clean up.
@@ -2710,12 +2709,17 @@
 				}
 			};
 
+			const keydownHandler = (event) => {
+				if (event.key === 'Escape') cleanup();
+			};
+
 			const cleanup = () => {
 				if (activeDisplay.element) activeDisplay.element.remove();
 				if (activeDisplay.pushedElement) activeDisplay.pushedElement.style.marginTop = '';
 				if (activeDisplay.ownerRow) activeDisplay.ownerRow.classList.remove('has-expanded-child');
-				activeDisplay = {element: null, ownerCard: null, pushedElement: null, ownerRow: null};
+				activeDisplay = {element: null, ownerCard: null, pushedElement: null, ownerRow: null, parentCol: null};
 				document.removeEventListener('click', documentClickHandler);
+				document.removeEventListener('keydown', keydownHandler);
 			}
 
 			const isAssigned = (char) => {
@@ -2844,17 +2848,31 @@
 								element: displayWrapper,
 								ownerCard: blockCard,
 								ownerRow: parentRow,
-								pushedElement: pushedElement
+								pushedElement: pushedElement,
+								parentCol: parentCol
 							};
 
 							// Add global listener, with a timeout to prevent the opening click from being caught.
 							setTimeout(() => document.addEventListener('click', documentClickHandler), 0);
+							setTimeout(() => document.addEventListener('keydown', keydownHandler), 0);
 						}
 					});
 				}
 			});
 
-			window.addEventListener('resize', cleanup);
+			const handleResize = () => {
+					if (!activeDisplay.element) return;
+					const { element, parentCol, pushedElement } = activeDisplay;
+					element.style.top = (parentCol.offsetTop + parentCol.offsetHeight - 16) + 'px';
+					if (pushedElement) {
+						pushedElement.style.marginTop = '';
+						requestAnimationFrame(() => {
+							const height = element.offsetHeight;
+							pushedElement.style.marginTop = height + 'px';
+						});
+					}
+				};
+				window.addEventListener('resize', handleResize);
 		}
 	}).use(ElementPlus).mount('main');
 </script>
