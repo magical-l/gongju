@@ -27,6 +27,9 @@
 	.one.plane, .one.block {
 		margin-bottom: 1rem;
 	}
+	.one.plane {
+		overflow: visible; /* el-card 默认 overflow:hidden 会裁剪绝对定位的 character-display-wrapper */
+	}
 
 	.unassigned h2 {
 		font-size: 1em;
@@ -46,22 +49,19 @@
 		margin-top: 4px;
 	}
 
-	.plane-stats, .stats {
-		display: flex;
-		flex-wrap: wrap;
+	.stats {
 		gap: 0.5rem;
 		margin-top: 1em;
 		padding-top: 1em;
 		border-top: 1px solid #f0f0f0;
 	}
 
-	.plane-stats p, .stats p {
+	.stats p {
 		margin: 0;
 		font-size: 0.9em;
 		color: #606266;
 	}
 
-	/* new styles */
 	.one.block.expandable {
 		cursor: pointer;
 	}
@@ -118,7 +118,7 @@
 	.char-display-close-btn {
 		position: absolute;
 		top: 1em;
-		right: 1em;
+		right: 0.5em;
 		font-size: 1.2em;
 		cursor: pointer;
 		color: #909399;
@@ -182,7 +182,7 @@
 					<small class="en">Basic Multilingual Plane (BMP)</small>
 				</h2>
 				<p class="intro">包含绝大多数现代语言的字符，以及大量符号。</p>
-				<div class="plane-stats">
+				<div class="stats">
 					<p class="range">U+0000 ~ U+FFFF</p>
 					<p class="block count">分区数：163</p>
 					<p class="assigned character count">已分配字符：63951</p>
@@ -590,7 +590,7 @@
 					<small class="en">Supplementary Multilingual Plane (SMP)</small>
 				</h2>
 				<p class="intro">包含历史文字、象形文字（如埃及圣书体）和各种符号。</p>
-				<div class="plane-stats">
+				<div class="stats">
 					<p class="range">U+10000 ~ U+1FFFF</p>
 					<p class="block count">分区数：134</p>
 					<p class="assigned character count">已分配字符：22279</p>
@@ -2350,7 +2350,7 @@
 					<small class="en">Supplementary Ideographic Plane (SIP)</small>
 				</h2>
 				<p class="intro">包含大量的罕见汉字。</p>
-				<div class="plane-stats">
+				<div class="stats">
 					<p class="range">U+20000 ~ U+2FFFF</p>
 					<p class="block count">分区数：6</p>
 					<p class="assigned character count">已分配字符：60866</p>
@@ -2446,7 +2446,7 @@
 					<small class="en">Tertiary Ideographic Plane (TIP)</small>
 				</h2>
 				<p class="intro">用于存储甲骨文、金文、小篆等古汉字。</p>
-				<div class="plane-stats">
+				<div class="stats">
 					<p class="range">U+30000 ~ U+3FFFF</p>
 					<p class="block count">分区数：1</p>
 					<p class="assigned character count">已分配字符：4939</p>
@@ -2581,7 +2581,7 @@
 					<small class="en">Supplementary Special-purpose Plane (SSP)</small>
 				</h2>
 				<p class="intro">包含一些非图形字符，如标签和变体选择符。</p>
-				<div class="plane-stats">
+				<div class="stats">
 					<p class="range">U+E0000 ~ U+EFFFF</p>
 					<p class="block count">分区数：2</p>
 					<p class="assigned character count">已分配字符：337</p>
@@ -2627,7 +2627,7 @@
 							<small class="en">Private Use Area-A (PUA-A)</small>
 						</h2>
 						<p class="intro">供用户自行定义和使用字符。</p>
-						<div class="plane-stats">
+						<div class="stats">
 							<p class="range">U+F0000 ~ U+FFFFF</p>
 							<p class="block count">分区数：1</p>
 							<p class="assigned character count">已分配字符：65534</p>
@@ -2658,7 +2658,7 @@
 							<small class="en">Private Use Area-B (PUA-B)</small>
 						</h2>
 						<p class="intro">供用户自行定义和使用字符。</p>
-						<div class="plane-stats">
+						<div class="stats">
 							<p class="range">U+100000 ~ U+10FFFF</p>
 							<p class="block count">分区数：1</p>
 							<p class="assigned character count">已分配字符：65534</p>
