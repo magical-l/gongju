@@ -52,6 +52,2197 @@ const CATEGORIES = {
 };
 
 const SYMBOLS = [
+		{
+		"char": "😀",
+		"name": "咧嘴笑脸",
+		"ename": "Grinning Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😃",
+		"name": "张嘴笑脸",
+		"ename": "Grinning Face With Big Eyes",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😄",
+		"name": "眯眼笑脸",
+		"ename": "Grinning Face With Smiling Eyes",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😁",
+		"name": "露齿笑脸",
+		"ename": "Beaming Face With Smiling Eyes",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😅",
+		"name": "冷汗笑脸",
+		"ename": "Grinning Face With Sweat",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😂",
+		"name": "笑哭",
+		"ename": "Face With Tears of Joy",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🤣",
+		"name": "笑滚",
+		"ename": "Rolling On The Floor Laughing",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😊",
+		"name": "羞笑脸",
+		"ename": "Smiling Face With Smiling Eyes",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😇",
+		"name": "天使",
+		"ename": "Smiling Face With Halo",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🙂",
+		"name": "浅笑",
+		"ename": "Slightly Smiling Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🙃",
+		"name": "倒脸",
+		"ename": "Upside-Down Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😉",
+		"name": "眨眼",
+		"ename": "Winking Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😌",
+		"name": "释然",
+		"ename": "Relieved Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😍",
+		"name": "花痴",
+		"ename": "Smiling Face With Heart-Eyes",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🥰",
+		"name": "心心眼",
+		"ename": "Smiling Face With Hearts",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😘",
+		"name": "飞吻",
+		"ename": "Face Blowing a Kiss",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😋",
+		"name": "馋嘴",
+		"ename": "Face Savoring Food",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😛",
+		"name": "吐舌",
+		"ename": "Face With Tongue",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😜",
+		"name": "眨眼吐舌",
+		"ename": "Winking Face With Tongue",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🤪",
+		"name": "疯脸",
+		"ename": "Zany Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🤨",
+		"name": "挑眉",
+		"ename": "Face With Raised Eyebrow",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🤓",
+		"name": "书呆",
+		"ename": "Nerd Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😎",
+		"name": "墨镜",
+		"ename": "Smiling Face With Sunglasses",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🤩",
+		"name": "星星眼",
+		"ename": "Star-Struck",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🥳",
+		"name": "派对",
+		"ename": "Partying Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😏",
+		"name": "坏笑",
+		"ename": "Smirking Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😒",
+		"name": "不爽",
+		"ename": "Unamused Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😞",
+		"name": "失望",
+		"ename": "Disappointed Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😔",
+		"name": "沮丧",
+		"ename": "Pensive Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😕",
+		"name": "困惑",
+		"ename": "Confused Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🙁",
+		"name": "微皱眉",
+		"ename": "Slightly Frowning Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😣",
+		"name": "坚持",
+		"ename": "Persevering Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😖",
+		"name": "难受",
+		"ename": "Confounded Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😫",
+		"name": "疲惫",
+		"ename": "Tired Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😩",
+		"name": "累趴",
+		"ename": "Weary Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🥺",
+		"name": "求人",
+		"ename": "Pleading Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😢",
+		"name": "哭泣",
+		"ename": "Crying Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😭",
+		"name": "大哭",
+		"ename": "Loudly Crying Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😤",
+		"name": "怒气",
+		"ename": "Face With Steam From Nose",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😠",
+		"name": "生气",
+		"ename": "Angry Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😡",
+		"name": "愤怒",
+		"ename": "Enraged Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🤬",
+		"name": "咒骂",
+		"ename": "Face With Symbols On Mouth",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😳",
+		"name": "脸红",
+		"ename": "Flushed Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🥵",
+		"name": "热脸",
+		"ename": "Hot Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🥶",
+		"name": "冷脸",
+		"ename": "Cold Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😱",
+		"name": "惊恐",
+		"ename": "Face Screaming In Fear",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😨",
+		"name": "害怕",
+		"ename": "Fearful Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😰",
+		"name": "焦虑",
+		"ename": "Anxious Face With Sweat",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🤗",
+		"name": "拥抱",
+		"ename": "Smiling Face With Open Hands",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🤔",
+		"name": "思考",
+		"ename": "Thinking Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🤭",
+		"name": "捂嘴",
+		"ename": "Face With Hand Over Mouth",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🤫",
+		"name": "嘘",
+		"ename": "Shushing Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😶",
+		"name": "无语",
+		"ename": "Face Without Mouth",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😐",
+		"name": "冷漠",
+		"ename": "Neutral Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😑",
+		"name": "面瘫",
+		"ename": "Expressionless Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😬",
+		"name": "尬笑",
+		"ename": "Grimacing Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🙄",
+		"name": "白眼",
+		"ename": "Face With Rolling Eyes",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😯",
+		"name": "惊讶",
+		"ename": "Hushed Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😮",
+		"name": "张口",
+		"ename": "Face With Open Mouth",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😲",
+		"name": "震惊",
+		"ename": "Astonished Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🥱",
+		"name": "打哈欠",
+		"ename": "Yawning Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😴",
+		"name": "睡着",
+		"ename": "Sleeping Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🤤",
+		"name": "流口水",
+		"ename": "Drooling Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😵",
+		"name": "晕",
+		"ename": "Face With Crossed-Out Eyes",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🤐",
+		"name": "闭嘴",
+		"ename": "Zipper-Mouth Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🤢",
+		"name": "恶心",
+		"ename": "Nauseated Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🤮",
+		"name": "呕吐",
+		"ename": "Face Vomiting",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😷",
+		"name": "口罩",
+		"ename": "Face With Medical Mask",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🤒",
+		"name": "发烧",
+		"ename": "Face With Thermometer",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🤕",
+		"name": "受伤",
+		"ename": "Face With Head-Bandage",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🤑",
+		"name": "暴富",
+		"ename": "Money-Mouth Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🤠",
+		"name": "牛仔",
+		"ename": "Cowboy Hat Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😈",
+		"name": "恶魔笑",
+		"ename": "Smiling Face With Horns",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "👿",
+		"name": "恶魔怒",
+		"ename": "Angry Face With Horns",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "👹",
+		"name": "鬼怪",
+		"ename": "Ogre",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "👺",
+		"name": "天狗",
+		"ename": "Goblin",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🤡",
+		"name": "小丑",
+		"ename": "Clown Face",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "💀",
+		"name": "骷髅",
+		"ename": "Skull",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "👻",
+		"name": "幽灵",
+		"ename": "Ghost",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "👽",
+		"name": "外星人",
+		"ename": "Alien",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "👾",
+		"name": "游戏怪物",
+		"ename": "Alien Monster",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🤖",
+		"name": "机器人",
+		"ename": "Robot",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🎃",
+		"name": "南瓜灯",
+		"ename": "Jack-O-Lantern",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😺",
+		"name": "眯眼猫",
+		"ename": "Grinning Cat",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😸",
+		"name": "咧嘴猫",
+		"ename": "Grinning Cat With Smiling Eyes",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😹",
+		"name": "笑哭猫",
+		"ename": "Cat With Tears of Joy",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😻",
+		"name": "花痴猫",
+		"ename": "Smiling Cat With Heart-Eyes",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😼",
+		"name": "坏笑猫",
+		"ename": "Cat With Wry Smile",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😽",
+		"name": "亲亲猫",
+		"ename": "Kissing Cat",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🙀",
+		"name": "惊恐猫",
+		"ename": "Weary Cat",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😿",
+		"name": "哭泣猫",
+		"ename": "Crying Cat",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "😾",
+		"name": "生气猫",
+		"ename": "Pouting Cat",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "💯",
+		"name": "一百分",
+		"ename": "Hundred Points Symbol",
+		"tags": [
+				"表情"
+		]
+},
+		{
+		"char": "🛑",
+		"name": "停止标志",
+		"ename": "Stop Sign",
+		"tags": [
+				"警告、危险"
+		]
+},
+		{
+		"char": "📵",
+		"name": "禁止手机",
+		"ename": "No Mobile Phones",
+		"tags": [
+				"警告、危险"
+		]
+},
+		{
+		"char": "🔞",
+		"name": "未成年人禁止",
+		"ename": "No One Under Eighteen",
+		"tags": [
+				"警告、危险"
+		]
+},
+		{
+		"char": "🍎",
+		"name": "红苹果",
+		"ename": "Red Apple",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍏",
+		"name": "青苹果",
+		"ename": "Green Apple",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍊",
+		"name": "橘子",
+		"ename": "Tangerine",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍋",
+		"name": "柠檬",
+		"ename": "Lemon",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍌",
+		"name": "香蕉",
+		"ename": "Banana",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍉",
+		"name": "西瓜",
+		"ename": "Watermelon",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍇",
+		"name": "葡萄",
+		"ename": "Grapes",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍓",
+		"name": "草莓",
+		"ename": "Strawberry",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍒",
+		"name": "樱桃",
+		"ename": "Cherries",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍑",
+		"name": "桃子",
+		"ename": "Peach",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍐",
+		"name": "梨",
+		"ename": "Pear",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🥝",
+		"name": "猕猴桃",
+		"ename": "Kiwifruit",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍅",
+		"name": "番茄",
+		"ename": "Tomato",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍆",
+		"name": "茄子",
+		"ename": "Eggplant",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🥑",
+		"name": "牛油果",
+		"ename": "Avocado",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🥦",
+		"name": "西兰花",
+		"ename": "Broccoli",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🥒",
+		"name": "黄瓜",
+		"ename": "Cucumber",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🌽",
+		"name": "玉米",
+		"ename": "Ear of Corn",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🥕",
+		"name": "胡萝卜",
+		"ename": "Carrot",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍄",
+		"name": "蘑菇",
+		"ename": "Mushroom",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍞",
+		"name": "面包",
+		"ename": "Bread",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🧀",
+		"name": "奶酪",
+		"ename": "Cheese Wedge",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍳",
+		"name": "煎蛋",
+		"ename": "Cooking",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🥓",
+		"name": "培根",
+		"ename": "Bacon",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍔",
+		"name": "汉堡",
+		"ename": "Hamburger",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍟",
+		"name": "薯条",
+		"ename": "French Fries",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍕",
+		"name": "披萨",
+		"ename": "Pizza",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🌭",
+		"name": "热狗",
+		"ename": "Hot Dog",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🌮",
+		"name": "墨西哥卷",
+		"ename": "Taco",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍩",
+		"name": "甜甜圈",
+		"ename": "Doughnut",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍪",
+		"name": "饼干",
+		"ename": "Cookie",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🎂",
+		"name": "生日蛋糕",
+		"ename": "Birthday Cake",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍰",
+		"name": "蛋糕",
+		"ename": "Shortcake",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍫",
+		"name": "巧克力",
+		"ename": "Chocolate Bar",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍬",
+		"name": "糖果",
+		"ename": "Candy",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍭",
+		"name": "棒棒糖",
+		"ename": "Lollipop",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍵",
+		"name": "茶",
+		"ename": "Teacup Without Handle",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍺",
+		"name": "啤酒",
+		"ename": "Beer Mug",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍻",
+		"name": "碰杯",
+		"ename": "Clinking Beer Mugs",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍷",
+		"name": "红酒",
+		"ename": "Wine Glass",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🍸",
+		"name": "鸡尾酒",
+		"ename": "Cocktail Glass",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🥂",
+		"name": "庆祝杯",
+		"ename": "Clinking Glasses",
+		"tags": [
+				"饮食"
+		]
+},
+		{
+		"char": "🏠",
+		"name": "房屋",
+		"ename": "House",
+		"tags": [
+				"建筑"
+		]
+},
+		{
+		"char": "🏡",
+		"name": "花园洋房",
+		"ename": "House With Garden",
+		"tags": [
+				"建筑"
+		]
+},
+		{
+		"char": "🏢",
+		"name": "办公楼",
+		"ename": "Office Building",
+		"tags": [
+				"建筑"
+		]
+},
+		{
+		"char": "🏥",
+		"name": "医院",
+		"ename": "Hospital",
+		"tags": [
+				"建筑"
+		]
+},
+		{
+		"char": "🏦",
+		"name": "银行",
+		"ename": "Bank",
+		"tags": [
+				"建筑"
+		]
+},
+		{
+		"char": "🏨",
+		"name": "酒店",
+		"ename": "Hotel",
+		"tags": [
+				"建筑"
+		]
+},
+		{
+		"char": "🏩",
+		"name": "情人酒店",
+		"ename": "Love Hotel",
+		"tags": [
+				"建筑"
+		]
+},
+		{
+		"char": "🏪",
+		"name": "便利店",
+		"ename": "Convenience Store",
+		"tags": [
+				"建筑"
+		]
+},
+		{
+		"char": "🏫",
+		"name": "学校",
+		"ename": "School",
+		"tags": [
+				"建筑"
+		]
+},
+		{
+		"char": "🏬",
+		"name": "百货商场",
+		"ename": "Department Store",
+		"tags": [
+				"建筑"
+		]
+},
+		{
+		"char": "🏭",
+		"name": "工厂",
+		"ename": "Factory",
+		"tags": [
+				"建筑"
+		]
+},
+		{
+		"char": "🏯",
+		"name": "日本城堡",
+		"ename": "Japanese Castle",
+		"tags": [
+				"建筑"
+		]
+},
+		{
+		"char": "🏰",
+		"name": "欧洲城堡",
+		"ename": "Castle",
+		"tags": [
+				"建筑"
+		]
+},
+		{
+		"char": "🗼",
+		"name": "东京塔",
+		"ename": "Tokyo Tower",
+		"tags": [
+				"建筑"
+		]
+},
+		{
+		"char": "🗽",
+		"name": "自由女神像",
+		"ename": "Statue of Liberty",
+		"tags": [
+				"建筑"
+		]
+},
+		{
+		"char": "🗿",
+		"name": "复活节岛石像",
+		"ename": "Moai",
+		"tags": [
+				"建筑"
+		]
+},
+		{
+		"char": "🏗",
+		"name": "施工中",
+		"ename": "Building Construction",
+		"tags": [
+				"建筑"
+		]
+},
+		{
+		"char": "🕌",
+		"name": "清真寺",
+		"ename": "Mosque",
+		"tags": [
+				"建筑"
+		]
+},
+		{
+		"char": "🕍",
+		"name": "犹太会堂",
+		"ename": "Synagogue",
+		"tags": [
+				"建筑"
+		]
+},
+		{
+		"char": "🕋",
+		"name": "克尔白",
+		"ename": "Kaaba",
+		"tags": [
+				"建筑"
+		]
+},
+		{
+		"char": "🧪",
+		"name": "试管",
+		"ename": "Test Tube",
+		"tags": [
+				"物理、化学"
+		]
+},
+		{
+		"char": "🧫",
+		"name": "培养皿",
+		"ename": "Petri Dish",
+		"tags": [
+				"物理、化学"
+		]
+},
+		{
+		"char": "🧬",
+		"name": "DNA",
+		"ename": "DNA Double Helix",
+		"tags": [
+				"物理、化学"
+		]
+},
+		{
+		"char": "🔬",
+		"name": "显微镜",
+		"ename": "Microscope",
+		"tags": [
+				"物理、化学"
+		]
+},
+		{
+		"char": "🔭",
+		"name": "望远镜",
+		"ename": "Telescope",
+		"tags": [
+				"物理、化学"
+		]
+},
+		{
+		"char": "📡",
+		"name": "卫星天线",
+		"ename": "Satellite Antenna",
+		"tags": [
+				"物理、化学"
+		]
+},
+		{
+		"char": "🔋",
+		"name": "电池",
+		"ename": "Battery",
+		"tags": [
+				"物理、化学"
+		]
+},
+		{
+		"char": "🌸",
+		"name": "樱花",
+		"ename": "Cherry Blossom",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🌻",
+		"name": "向日葵",
+		"ename": "Sunflower",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🌹",
+		"name": "玫瑰",
+		"ename": "Rose",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🌱",
+		"name": "幼苗",
+		"ename": "Seedling",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🌲",
+		"name": "松树",
+		"ename": "Evergreen Tree",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🌳",
+		"name": "落叶树",
+		"ename": "Deciduous Tree",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🌵",
+		"name": "仙人掌",
+		"ename": "Cactus",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🍀",
+		"name": "四叶草",
+		"ename": "Four Leaf Clover",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐶",
+		"name": "狗",
+		"ename": "Dog Face",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐱",
+		"name": "猫",
+		"ename": "Cat Face",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐰",
+		"name": "兔子",
+		"ename": "Rabbit Face",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🦊",
+		"name": "狐狸",
+		"ename": "Fox Face",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐻",
+		"name": "熊",
+		"ename": "Bear Face",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐼",
+		"name": "熊猫",
+		"ename": "Panda Face",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐨",
+		"name": "考拉",
+		"ename": "Koala",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐯",
+		"name": "老虎",
+		"ename": "Tiger Face",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🦁",
+		"name": "狮子",
+		"ename": "Lion Face",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐮",
+		"name": "牛",
+		"ename": "Cow Face",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐷",
+		"name": "猪",
+		"ename": "Pig Face",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐸",
+		"name": "青蛙",
+		"ename": "Frog Face",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐵",
+		"name": "猴子",
+		"ename": "Monkey Face",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐔",
+		"name": "鸡",
+		"ename": "Chicken",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐦",
+		"name": "鸟",
+		"ename": "Bird",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🦅",
+		"name": "鹰",
+		"ename": "Eagle",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🦉",
+		"name": "猫头鹰",
+		"ename": "Owl",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🦇",
+		"name": "蝙蝠",
+		"ename": "Bat",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐺",
+		"name": "狼",
+		"ename": "Wolf Face",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🦄",
+		"name": "独角兽",
+		"ename": "Unicorn Face",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐝",
+		"name": "蜜蜂",
+		"ename": "Honeybee",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐛",
+		"name": "毛虫",
+		"ename": "Bug",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🦋",
+		"name": "蝴蝶",
+		"ename": "Butterfly",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐞",
+		"name": "瓢虫",
+		"ename": "Lady Beetle",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐜",
+		"name": "蚂蚁",
+		"ename": "Ant",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🕷",
+		"name": "蜘蛛",
+		"ename": "Spider",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐢",
+		"name": "龟",
+		"ename": "Turtle",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐍",
+		"name": "蛇",
+		"ename": "Snake",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐙",
+		"name": "章鱼",
+		"ename": "Octopus",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐬",
+		"name": "海豚",
+		"ename": "Dolphin",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐳",
+		"name": "鲸鱼",
+		"ename": "Spouting Whale",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🦈",
+		"name": "鲨鱼",
+		"ename": "Shark",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐊",
+		"name": "鳄鱼",
+		"ename": "Crocodile",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐅",
+		"name": "虎",
+		"ename": "Tiger",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐆",
+		"name": "豹",
+		"ename": "Leopard",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🦓",
+		"name": "斑马",
+		"ename": "Zebra",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐘",
+		"name": "大象",
+		"ename": "Elephant",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🦏",
+		"name": "犀牛",
+		"ename": "Rhinoceros",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐪",
+		"name": "单峰骆驼",
+		"ename": "Dromedary Camel",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🐫",
+		"name": "双峰骆驼",
+		"ename": "Bactrian Camel",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🦒",
+		"name": "长颈鹿",
+		"ename": "Giraffe",
+		"tags": [
+				"生物"
+		]
+},
+		{
+		"char": "🌍",
+		"name": "欧洲非洲",
+		"ename": "Earth Globe Europe-Africa",
+		"tags": [
+				"地理"
+		]
+},
+		{
+		"char": "🌎",
+		"name": "美洲",
+		"ename": "Earth Globe Americas",
+		"tags": [
+				"地理"
+		]
+},
+		{
+		"char": "🌏",
+		"name": "亚洲澳洲",
+		"ename": "Earth Globe Asia-Australia",
+		"tags": [
+				"地理"
+		]
+},
+		{
+		"char": "🗺",
+		"name": "世界地图",
+		"ename": "World Map",
+		"tags": [
+				"地理"
+		]
+},
+		{
+		"char": "🏔",
+		"name": "雪山",
+		"ename": "Snow-Capped Mountain",
+		"tags": [
+				"地理"
+		]
+},
+		{
+		"char": "🌋",
+		"name": "火山",
+		"ename": "Volcano",
+		"tags": [
+				"地理"
+		]
+},
+		{
+		"char": "🗻",
+		"name": "富士山",
+		"ename": "Mount Fuji",
+		"tags": [
+				"地理"
+		]
+},
+		{
+		"char": "🏕",
+		"name": "露营",
+		"ename": "Camping",
+		"tags": [
+				"地理"
+		]
+},
+		{
+		"char": "🏖",
+		"name": "海滩",
+		"ename": "Beach With Umbrella",
+		"tags": [
+				"地理"
+		]
+},
+		{
+		"char": "🏜",
+		"name": "沙漠",
+		"ename": "Desert",
+		"tags": [
+				"地理"
+		]
+},
+		{
+		"char": "🏝",
+		"name": "荒岛",
+		"ename": "Desert Island",
+		"tags": [
+				"地理"
+		]
+},
+		{
+		"char": "🌈",
+		"name": "彩虹",
+		"ename": "Rainbow",
+		"tags": [
+				"自然现象"
+		]
+},
+		{
+		"char": "🌊",
+		"name": "海浪",
+		"ename": "Water Wave",
+		"tags": [
+				"自然现象"
+		]
+},
+		{
+		"char": "💧",
+		"name": "水滴",
+		"ename": "Droplet",
+		"tags": [
+				"自然现象"
+		]
+},
+		{
+		"char": "🌪",
+		"name": "龙卷风",
+		"ename": "Tornado",
+		"tags": [
+				"自然现象"
+		]
+},
+		{
+		"char": "🌫",
+		"name": "雾",
+		"ename": "Fog",
+		"tags": [
+				"自然现象"
+		]
+},
+		{
+		"char": "🌬",
+		"name": "风",
+		"ename": "Wind Face",
+		"tags": [
+				"自然现象"
+		]
+},
+		{
+		"char": "🌀",
+		"name": "旋风",
+		"ename": "Cyclone",
+		"tags": [
+				"自然现象"
+		]
+},
+		{
+		"char": "💨",
+		"name": "高速",
+		"ename": "Dashing Away",
+		"tags": [
+				"自然现象"
+		]
+},
+		{
+		"char": "△",
+		"name": "白三角",
+		"ename": "White Up-Pointing Triangle",
+		"tags": [
+				"几何图形"
+		]
+},
+		{
+		"char": "▲",
+		"name": "黑三角",
+		"ename": "Black Up-Pointing Triangle",
+		"tags": [
+				"几何图形"
+		]
+},
+		{
+		"char": "▽",
+		"name": "白倒三角",
+		"ename": "White Down-Pointing Triangle",
+		"tags": [
+				"几何图形"
+		]
+},
+		{
+		"char": "▼",
+		"name": "黑倒三角",
+		"ename": "Black Down-Pointing Triangle",
+		"tags": [
+				"几何图形"
+		]
+},
+		{
+		"char": "◁",
+		"name": "白左三角",
+		"ename": "White Left-Pointing Triangle",
+		"tags": [
+				"几何图形"
+		]
+},
+		{
+		"char": "◀",
+		"name": "黑左三角",
+		"ename": "Black Left-Pointing Triangle",
+		"tags": [
+				"几何图形"
+		]
+},
+		{
+		"char": "▷",
+		"name": "白右三角",
+		"ename": "White Right-Pointing Triangle",
+		"tags": [
+				"几何图形"
+		]
+},
+		{
+		"char": "▶",
+		"name": "黑右三角",
+		"ename": "Black Right-Pointing Triangle",
+		"tags": [
+				"几何图形"
+		]
+},
+		{
+		"char": "◻",
+		"name": "白中方",
+		"ename": "White Medium Square",
+		"tags": [
+				"几何图形"
+		]
+},
+		{
+		"char": "◼",
+		"name": "黑中方",
+		"ename": "Black Medium Square",
+		"tags": [
+				"几何图形"
+		]
+},
+		{
+		"char": "◽",
+		"name": "白中小方",
+		"ename": "White Medium Small Square",
+		"tags": [
+				"几何图形"
+		]
+},
+		{
+		"char": "◾",
+		"name": "黑中小方",
+		"ename": "Black Medium Small Square",
+		"tags": [
+				"几何图形"
+		]
+},
+		{
+		"char": "⬠",
+		"name": "白五边形",
+		"ename": "White Pentagon",
+		"tags": [
+				"几何图形"
+		]
+},
+		{
+		"char": "⬡",
+		"name": "白六边形",
+		"ename": "White Hexagon",
+		"tags": [
+				"几何图形"
+		]
+},
+		{
+		"char": "⬢",
+		"name": "黑六边形",
+		"ename": "Black Hexagon",
+		"tags": [
+				"几何图形"
+		]
+},
+		
+		{
+		"char": "🎨",
+		"name": "调色板",
+		"ename": "Artist Palette",
+		"tags": [
+				"艺术"
+		],
+		"alias": [
+				"绘画"
+		]
+},
+		{
+		"char": "🖌",
+		"name": "画笔",
+		"ename": "Paintbrush",
+		"tags": [
+				"艺术"
+		],
+		"alias": [
+				"绘画"
+		]
+},
+		{
+		"char": "🖍",
+		"name": "蜡笔",
+		"ename": "Crayon",
+		"tags": [
+				"艺术"
+		],
+		"alias": [
+				"绘画"
+		]
+},
+		{
+		"char": "✏",
+		"name": "铅笔",
+		"ename": "Pencil",
+		"tags": [
+				"艺术"
+		],
+		"alias": [
+				"文具",
+				"书写"
+		]
+},
+		{
+		"char": "✐",
+		"name": "右上铅笔",
+		"ename": "Upper Right Pencil",
+		"tags": [
+				"艺术"
+		],
+		"alias": [
+				"文具"
+		]
+},
+		{
+		"char": "✒",
+		"name": "钢笔尖",
+		"ename": "Black Nib",
+		"tags": [
+				"艺术"
+		],
+		"alias": [
+				"文具",
+				"书写"
+		]
+},
+		{
+		"char": "🖊",
+		"name": "钢笔",
+		"ename": "Pen",
+		"tags": [
+				"艺术"
+		],
+		"alias": [
+				"文具",
+				"书写"
+		]
+},
+		{
+		"char": "🖋",
+		"name": "左下钢笔",
+		"ename": "Lower Left Fountain Pen",
+		"tags": [
+				"艺术"
+		],
+		"alias": [
+				"文具",
+				"书写"
+		]
+},
+		{
+		"char": "✂",
+		"name": "剪刀",
+		"ename": "Black Scissors",
+		"tags": [
+				"艺术"
+		],
+		"alias": [
+				"文具",
+				"裁剪"
+		]
+},
+		{
+		"char": "🎭",
+		"name": "表演艺术",
+		"ename": "Performing Arts",
+		"tags": [
+				"艺术"
+		],
+		"alias": [
+				"戏剧",
+				"面具"
+		]
+},
+		{
+		"char": "🎬",
+		"name": "场记板",
+		"ename": "Clapper Board",
+		"tags": [
+				"艺术"
+		],
+		"alias": [
+				"电影"
+		]
+},
+		{
+		"char": "🎞",
+		"name": "胶片格",
+		"ename": "Film Frames",
+		"tags": [
+				"艺术"
+		],
+		"alias": [
+				"电影"
+		]
+},
+		{
+		"char": "🎟",
+		"name": "入场券",
+		"ename": "Admission Tickets",
+		"tags": [
+				"艺术"
+		],
+		"alias": [
+				"门票"
+		]
+},
+		{
+		"char": "🖼",
+		"name": "画框",
+		"ename": "Frame with Picture",
+		"tags": [
+				"艺术"
+		],
+		"alias": [
+				"绘画",
+				"相框"
+		]
+},
+		{
+		"char": "🎪",
+		"name": "马戏团帐篷",
+		"ename": "Circus Tent",
+		"tags": [
+				"艺术"
+		],
+		"alias": [
+				"马戏"
+		]
+},
+		{
+		"char": "🧵",
+		"name": "线轴",
+		"ename": "Spool of Thread",
+		"tags": [
+				"艺术"
+		],
+		"alias": [
+				"缝纫"
+		]
+},
+		{
+		"char": "🧶",
+		"name": "毛线球",
+		"ename": "Ball of Yarn",
+		"tags": [
+				"艺术"
+		],
+		"alias": [
+				"编织"
+		]
+},
+		{
+		"char": "🪡",
+		"name": "缝纫针",
+		"ename": "Sewing Needle",
+		"tags": [
+				"艺术"
+		],
+		"alias": [
+				"缝纫"
+		]
+},
+		
 	{
 		"char": "☺",
 		"name": "空心笑脸",

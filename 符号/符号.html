@@ -270,7 +270,7 @@
 	</header>
 	<main>
 		<header>
-			<h2 class="page-lv name">符号大全</h2>
+			<h2 class="page-lv name">符号</h2>
 			<div class="page-lv help area" v-cloak>
 				<el-button title="显示说明" class="page-lv help btn" size="small" circle @click="introVisible = true">?
 				</el-button>
@@ -318,7 +318,7 @@
 				<el-collapse v-model="activeGroupNames">
 					<el-collapse-item v-for="group in categoryNames" :key="group" :name="group">
 						<template #title="">
-							<h3 class="name">{{ group }}</h3>
+							<h3 class="name">{{ group }}（{{ symbolCount(group) }}）</h3>
 						</template>
 						<template v-if="filteredSymbolGroups[group]">
 							<div v-if="filteredSymbolGroups[group].symbols" class="symbols">
@@ -513,6 +513,14 @@
 					}).catch(err => {
 						ElementPlus.ElMessage.error('复制失败: ' + err);
 					});
+				},
+				symbolCount(groupName) {
+					const data = this.groupedSymbols[groupName];
+					if (!data) return 0;
+					let count = 0;
+					if (data.symbols) count += data.symbols.length;
+					if (data.groups) for (const g of data.groups) count += g.symbols?.length || 0;
+					return count;
 				},
 				autoFocusFirst() {
 					const firstGroup = this.groupedSymbols[this.categoryNames[0]];
