@@ -1,243 +1,253 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SVG转图标工具 - 在线SVG图标转换与优化</title>
-<meta name="description" content="在线将SVG文件转换为多种图标格式，并进行优化，方便网页设计和开发。">
-<meta name="keywords" content="SVG转图标, SVG工具, 图标转换, 在线工具, 网页设计, 开发工具">
-<meta name="author" content="工具兽">
-<meta property="og:title" content="SVG转图标工具 - 在线SVG图标转换与优化">
-<meta property="og:description" content="在线将SVG文件转换为多种图标格式，并进行优化，方便网页设计和开发。">
-<meta property="og:type" content="website">
-
-<link href="lib/element-plus/2.10.7/index.css" rel="stylesheet">
-<link href="resources/el-plus.css" rel="stylesheet">
-<link href="lib/toastr.min.css" rel="stylesheet">
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>SVG转图标工具 - 在线SVG图标转换与优化</title>
+	<meta name="description" content="在线将SVG文件转换为多种图标格式，并进行优化，方便网页设计和开发。">
+	<meta name="keywords" content="SVG转图标, SVG工具, 图标转换, 在线工具, 网页设计, 开发工具">
+	<meta name="author" content="工具兽">
+	<meta property="og:title" content="SVG转图标工具 - 在线SVG图标转换与优化">
+	<meta property="og:description" content="在线将SVG文件转换为多种图标格式，并进行优化，方便网页设计和开发。">
+	<meta property="og:type" content="website">
+	<link href="lib/element-plus/2.10.7/index.css" rel="stylesheet">
+	<link href="resources/el-plus.css" rel="stylesheet">
+	<link href="lib/toastr.min.css" rel="stylesheet">
 	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/common.css" rel="stylesheet"> -->
 	<link href="lib/css/common.css" rel="stylesheet">
 	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/layout.css" rel="stylesheet"> -->
 	<link href="lib/css/layout.css" rel="stylesheet">
-<link href="resources/biz.css?v=250821" rel="stylesheet">
+	<link href="resources/biz.css?v=250821" rel="stylesheet">
 	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/花活.css" rel="stylesheet"> -->
 	<link href="lib/css/花活.css" rel="stylesheet">
-<style>
-	main > header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: 1rem;
-	}
+	<style>
+		main > header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 1rem;
+		}
 
-	.input.area textarea {
-		height: 200px;
-		margin-bottom: 20px;
-	}
+		.input.area textarea {
+			height: 200px;
+			margin-bottom: 20px;
+		}
 
-	.result.area {
-		grid-template-columns: repeat(4, 1fr);
-	}
-</style>
+		.result.area {
+			grid-template-columns: repeat(4, 1fr);
+		}
+
+	</style>
 </head>
 <body class="反叵字形">
-<header>
-	<h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
-	<nav>
-		<div class="nav-row">
-			<a href="文本转化.html">文本转化</a>
-			<a href="数字转化.html">数字转化</a>
-			<a href="符号/符号.html">符号</a>
-			<a href="格子盘.html">格子盘</a>
-			<a href="svg转图标.html" class="active">SVG转图标</a>
-			<a href="化学/元素周期表.html">元素周期表</a>
-			<a href="拼音/拼音.html">拼音</a>
-		</div>
-		<div class="nav-row">
-			<a href="游戏/中国象棋/中国象棋.html">中国象棋</a>
-			<a href="游戏/五子棋/gobang.html">五子棋</a>
-			<a href="游戏/俄罗斯方块.html">俄罗斯方块</a>
-			<a href="游戏/贪吃蛇.html">贪吃蛇</a>
-			<a href="游戏/2048/2048.html">2048</a>
-			<a href="游戏/2048蛇/2048蛇.html">2048蛇</a>
-			<a href="游戏/2048方块/2048方块.html">2048方块</a>
-			<a href="游戏/点灯.html">点灯</a>
-			<a href="游戏/数字华容道.html">数字华容道</a>
-			<a href="游戏/星连星/星连星.html">星连星</a>
-		</div>
-	</nav>
-</header>
-<main>
 	<header>
-		<h2 class="page-lv name">SVG转图片</h2>
-		<div class="page-lv help area" v-cloak>
-			<el-button title="显示说明" class="page-lv help btn" size="small" circle @click="introVisible = true">?
-			</el-button>
-			<el-dialog title="页面说明" class="page-lv intro" v-model="introVisible" width="60%">
-				<p>
-					"SVG转图片"是一个便捷的在线应用，允许用户将SVG（可缩放矢量图形）代码快速转换为多种标准尺寸的PNG格式图标。对于需要在网站、移动应用或桌面程序中使用统一图标的开发者和设计师来说，这是一个非常高效的工具。</p>
-				<h2>核心功能</h2>
-				<ul>
-					<li><strong>实时预览：</strong>用户粘贴SVG代码后，页面会立即显示不同尺寸下的图标预览效果。</li>
-					<li><strong>多种尺寸：</strong>默认提供16x16, 32x32, 48x48, 128x128等常用图标尺寸。</li>
-					<li><strong>一键下载：</strong>用户可以一键下载所有尺寸的PNG格式图标。</li>
-				</ul>
-				<h2>如何使用</h2>
-				<p>将SVG代码粘贴到输入框中，工具会自动生成预览。确认无误后，点击"下载图标"按钮，即可将生成的PNG图标文件保存到电脑。</p>
-			</el-dialog>
-		</div>
+		<h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
+		<nav>
+			<div class="nav-row">
+				<a href="文本转化.html">文本转化</a>
+				<a href="数字转化.html">数字转化</a>
+				<a href="符号/符号.html">符号</a>
+				<a href="格子盘.html">格子盘</a>
+				<a href="svg转图标.html" class="active">SVG转图标</a>
+				<a href="化学/元素周期表.html">元素周期表</a>
+				<a href="拼音/拼音.html">拼音</a>
+			</div>
+			<div class="nav-row">
+				<a href="游戏/中国象棋/中国象棋.html">中国象棋</a>
+				<a href="游戏/五子棋/gobang.html">五子棋</a>
+				<a href="游戏/俄罗斯方块.html">俄罗斯方块</a>
+				<a href="游戏/贪吃蛇.html">贪吃蛇</a>
+				<a href="游戏/2048/2048.html">2048</a>
+				<a href="游戏/2048蛇/2048蛇.html">2048蛇</a>
+				<a href="游戏/2048方块/2048方块.html">2048方块</a>
+				<a href="游戏/点灯.html">点灯</a>
+				<a href="游戏/数字华容道.html">数字华容道</a>
+				<a href="游戏/星连星/星连星.html">星连星</a>
+			</div>
+		</nav>
 	</header>
+	<main>
+		<header>
+			<h2 class="page-lv name">SVG转图片</h2>
+			<div class="page-lv help area" v-cloak>
+				<el-button title="显示说明" class="page-lv help btn" size="small" circle @click="introVisible = true">?
+				</el-button>
+				<el-dialog title="页面说明" class="page-lv intro" v-model="introVisible" width="60%">
+					<p>
+						"SVG转图片"是一个便捷的在线应用，允许用户将SVG（可缩放矢量图形）代码快速转换为多种标准尺寸的PNG格式图标。对于需要在网站、移动应用或桌面程序中使用统一图标的开发者和设计师来说，这是一个非常高效的工具。</p>
+					<h2>核心功能</h2>
+					<ul>
+						<li><strong>实时预览：</strong>用户粘贴SVG代码后，页面会立即显示不同尺寸下的图标预览效果。</li>
+						<li><strong>多种尺寸：</strong>默认提供16x16, 32x32, 48x48, 128x128等常用图标尺寸。</li>
+						<li><strong>一键下载：</strong>用户可以一键下载所有尺寸的PNG格式图标。</li>
+					</ul>
+					<h2>如何使用</h2>
+					<p>将SVG代码粘贴到输入框中，工具会自动生成预览。确认无误后，点击"下载图标"按钮，即可将生成的PNG图标文件保存到电脑。</p>
+				</el-dialog>
+			</div>
+		</header>
+		<article v-cloak>
+			<section class="input area">
+				<el-input type="textarea" class="textarea-input" :rows="8" placeholder="粘贴SVG代码到这里" v-model="input"></el-input>
+			</section>
+			<section class="result area , grid" style="gap: 6px">
+				<el-card class="one result" v-for="size in sizes" :key="size" :header="size+'x'+size">
+					<template #header>
+						{{size}}x{{size}}（png）
+						<el-button class="near-right" type="primary" size="small" @click="downloadIcon(size)">下载</el-button>
+					</template>
+					<svg class="preview-icon" v-html="parsedSvg.inner" :width="size" :height="size" :view-box.camel="parsedSvg.viewBox"></svg>
+				</el-card>
+			</section>
+			<footer class="toolbar near-center" style="margin-top: 1.5rem;">
+				<el-button type="primary" size="large" @click="downloadIcons">全部下载</el-button>
+			</footer>
+		</article>
+	</main>
+	<aside class="sidebar near-right">
+		<article class="website info">
+			<section class="patronage area">
+				<img title="赞助一下" class="qr-code" alt="支付宝收款码" src="resources/支付宝收款码.jpg">
+				<p class="slogan">赞助一下</p>
+			</section>
+			<section class="copyright">
+				<p>&copy; 2026 工具兽版权所有copy; 2026 工具兽版权所有 All rights reserved.</p>
+			</section>
+			<section class="feedback">
+				<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+			</section>
+		</article>
+	</aside>
+	<div class="js container">
+		<script src="lib/vue/3.5.18/vue.global.js"></script>
+		<script src="lib/element-plus/2.10.7/index.full.js"></script>
+		<script src="lib/jquery-3.4.1.min.js"></script>
+		<script src="lib/toastr.min.js"></script>
+		<script src="resources/biz-util.js?v=250801"></script>
+	</div>
+	<script>
+		const {
+			createApp
+		} = Vue;
 
-	<article v-cloak>
-		<section class="input area">
-			<el-input type="textarea" class="textarea-input" :rows="8" placeholder="粘贴SVG代码到这里" v-model="input"></el-input>
-		</section>
-
-		<section class="result area , grid">
-			<el-card class="one result" v-for="size in sizes" :key="size" :header="size+'x'+size">
-				<svg class="preview-icon" v-html="parsedSvg.inner" :width="size" :height="size" :view-box.camel="parsedSvg.viewBox"></svg>
-			</el-card>
-		</section>
-
-		<footer class="toolbar near-center" style="margin-top: 1.5rem;">
-			<el-button type="primary" size="large" @click="downloadIcons">下载图标（png）</el-button>
-		</footer>
-	</article>
-</main>
-
-<aside class="sidebar near-right">
-	<article class="website info">
-		<section class="patronage area">
-			<img title="赞助一下" class="qr-code" alt="支付宝收款码" src="resources/支付宝收款码.jpg">
-			<p class="slogan">赞助一下</p>
-		</section>
-		<section class="copyright"><p>&copy; 2026 工具兽版权所有copy; 2026 工具兽版权所有 All rights reserved.</p></section>
-		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
-		</section>
-	</article>
-</aside>
-
-<div class="js container">
-	<script src="lib/vue/3.5.18/vue.global.js"></script>
-	<script src="lib/element-plus/2.10.7/index.full.js"></script>
-	<script src="lib/jquery-3.4.1.min.js"></script>
-	<script src="lib/toastr.min.js"></script>
-	<script src="resources/biz-util.js?v=250801"></script>
-</div>
-<script>
-	const {createApp} = Vue;
-
-	function download(svgDom, size) {
-		// 必须克隆，否则会修改同一个svgElement
-		const clonedSvgElement = svgDom.cloneNode(true);
-		clonedSvgElement.setAttribute('width', size);
-		clonedSvgElement.setAttribute('height', size);
-
-		const canvas = document.createElement('canvas');
-		canvas.width = size;
-		canvas.height = size;
-		const ctx = canvas.getContext('2d');
-
-		const img = new Image();
-		const svgBlob = new Blob([new XMLSerializer().serializeToString(clonedSvgElement)],
-				{type: 'image/svg+xml;charset=utf-8'});
-		const url = URL.createObjectURL(svgBlob);
-
-		img.onload = () => {
-			ctx.clearRect(0, 0, size, size);
-			ctx.drawImage(img, 0, 0, size, size);
-
-			const pngUrl = canvas.toDataURL('image/png');
-			const link = document.createElement('a');
-			link.download = `icon${size}.png`;
-			link.href = pngUrl;
-			document.body.appendChild(link);
-			link.click();
-			document.body.removeChild(link);
-
-			URL.revokeObjectURL(url);
-		};
-		img.onerror = e => {
-			toastr.error(`${size} 的图标生成失败`);
-			console.error(e);
-			URL.revokeObjectURL(url);
-		};
-		img.src = url;
-	}
-
-	const app = createApp({
-		data() {
-			return {
-				input: `<svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M9.77234 30.8573V11.7471H7.54573C5.50932 11.7471 3.85742 13.3931 3.85742 15.425V27.1794C3.85742 29.2112 5.50932 30.8573 7.54573 30.8573H9.77234ZM11.9902 30.8573V11.7054C14.9897 10.627 16.6942 7.8853 17.1055 3.33591C17.2666 1.55463 18.9633 0.814421 20.5803 1.59505C22.1847 2.36964 23.243 4.32583 23.243 6.93947C23.243 8.50265 23.0478 10.1054 22.6582 11.7471H29.7324C31.7739 11.7471 33.4289 13.402 33.4289 15.4435C33.4289 15.7416 33.3928 16.0386 33.3215 16.328L30.9883 25.7957C30.2558 28.7683 27.5894 30.8573 24.528 30.8573H11.9911H11.9902Z" fill="currentColor"></path></svg>`,
-				sizes: [16, 32, 48, 128]
+		function download(svgDom, size) {
+			// 必须克隆，否则会修改同一个svgElement
+			const clonedSvgElement = svgDom.cloneNode(true);
+			clonedSvgElement.setAttribute('width', size);
+			clonedSvgElement.setAttribute('height', size);
+			const canvas = document.createElement('canvas');
+			canvas.width = size;
+			canvas.height = size;
+			const ctx = canvas.getContext('2d');
+			const img = new Image();
+			const svgBlob = new Blob([new XMLSerializer().serializeToString(clonedSvgElement)], {
+				type: 'image/svg+xml;charset=utf-8'
+			});
+			const url = URL.createObjectURL(svgBlob);
+			img.onload = () => {
+				ctx.clearRect(0, 0, size, size);
+				ctx.drawImage(img, 0, 0, size, size);
+				const pngUrl = canvas.toDataURL('image/png');
+				const link = document.createElement('a');
+				link.download = `icon${size}.png`;
+				link.href = pngUrl;
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+				URL.revokeObjectURL(url);
 			};
-		},
-		computed: {
-			parsedSvg() {
-				const tempDiv = document.createElement('div');
-				// 使用v-html有XSS风险，但这是一个本地工具，用户输入自己的代码，风险可控
-				tempDiv.innerHTML = this.input;
-				const svgElement = tempDiv.querySelector('svg');
-				if (!svgElement) {
-					return {viewBox: '0 0 100 100', inner: ''};
-				}
+			img.onerror = e => {
+				toastr.error(`${size} 的图标生成失败`);
+				console.error(e);
+				URL.revokeObjectURL(url);
+			};
+			img.src = url;
+		}
+		const app = createApp({
+			data() {
 				return {
-					viewBox: svgElement.getAttribute('viewBox') || '0 0 100 100',
-					inner: svgElement.innerHTML
+					input: `<svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M9.77234 30.8573V11.7471H7.54573C5.50932 11.7471 3.85742 13.3931 3.85742 15.425V27.1794C3.85742 29.2112 5.50932 30.8573 7.54573 30.8573H9.77234ZM11.9902 30.8573V11.7054C14.9897 10.627 16.6942 7.8853 17.1055 3.33591C17.2666 1.55463 18.9633 0.814421 20.5803 1.59505C22.1847 2.36964 23.243 4.32583 23.243 6.93947C23.243 8.50265 23.0478 10.1054 22.6582 11.7471H29.7324C31.7739 11.7471 33.4289 13.402 33.4289 15.4435C33.4289 15.7416 33.3928 16.0386 33.3215 16.328L30.9883 25.7957C30.2558 28.7683 27.5894 30.8573 24.528 30.8573H11.9911H11.9902Z" fill="currentColor"></path></svg>`,
+					sizes: [16, 32, 48, 128]
 				};
-			}
-		},
-		methods: {
-			downloadIcons() {
-				if (!this.input) {
-					toastr.warning('SVG代码不能为空');
-					return;
+			},
+			computed: {
+				parsedSvg() {
+					const tempDiv = document.createElement('div');
+					// 使用v-html有XSS风险，但这是一个本地工具，用户输入自己的代码，风险可控
+					tempDiv.innerHTML = this.input;
+					const svgElement = tempDiv.querySelector('svg');
+					if (!svgElement) {
+						return {
+							viewBox: '0 0 100 100',
+							inner: ''
+						};
+					}
+					return {
+						viewBox: svgElement.getAttribute('viewBox') || '0 0 100 100',
+						inner: svgElement.innerHTML
+					};
 				}
-
-				const parser = new DOMParser();
-				const svgDoc = parser.parseFromString(this.input, 'image/svg+xml');
-				const svgElement = svgDoc.documentElement;
-
-				if (svgElement.tagName.toLowerCase() !== 'svg' || svgDoc.querySelector('parsererror')) {
-					toastr.error('无效的SVG代码，请检查');
-					return;
+			},
+			methods: {
+				downloadIcons() {
+					if (!this.input) {
+						toastr.warning('SVG代码不能为空');
+						return;
+					}
+					const parser = new DOMParser();
+					const svgDoc = parser.parseFromString(this.input, 'image/svg+xml');
+					const svgElement = svgDoc.documentElement;
+					if (svgElement.tagName.toLowerCase() !== 'svg' || svgDoc.querySelector('parsererror')) {
+						toastr.error('无效的SVG代码，请检查');
+						return;
+					}
+					toastr.success('即将开始下载，请稍候');
+					this.sizes.forEach(size => download(svgElement, size));
+				},
+				downloadIcon(size) {
+					if (!this.input) {
+						toastr.warning('SVG代码不能为空');
+						return;
+					}
+					const parser = new DOMParser();
+					const svgDoc = parser.parseFromString(this.input, 'image/svg+xml');
+					const svgElement = svgDoc.documentElement;
+					if (svgElement.tagName.toLowerCase() !== 'svg' || svgDoc.querySelector('parsererror')) {
+						toastr.error('无效的SVG代码，请检查');
+						return;
+					}
+					download(svgElement, size);
 				}
-
-				toastr.success('即将开始下载，请稍候');
-				this.sizes.forEach(size => download(svgElement, size));
 			}
-		}
-	})
-	.use(ElementPlus)
-	.mount('main>article');
-
-	const help = createApp({
-		data() {
-			return {
-				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname)
-			};
-		},
-		watch: {
-			introVisible(newValue) {
-				const storageKey = 'intro-hidden-' + window.location.pathname;
-				if (!newValue) {
-					localStorage.setItem(storageKey, 'true');
-				} else {
-					localStorage.removeItem(storageKey);
+		}).use(ElementPlus).mount('main>article');
+		const help = createApp({
+			data() {
+				return {
+					introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname)
+				};
+			},
+			watch: {
+				introVisible(newValue) {
+					const storageKey = 'intro-hidden-' + window.location.pathname;
+					if (!newValue) {
+						localStorage.setItem(storageKey, 'true');
+					} else {
+						localStorage.removeItem(storageKey);
+					}
 				}
 			}
-		}
-	})
-	.use(ElementPlus)
-	.mount('.help.area');
-</script>
+		}).use(ElementPlus).mount('.help.area');
 
-<div>
-	<!-- 谷歌广告联盟 -->
-	<script async crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"></script>
-	<!-- 展示广告1 -->
-	<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true"
-			 data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
-	<script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-</div>
+	</script>
+	<div>
+		<!-- 谷歌广告联盟 -->
+		<script async crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"></script>
+		<!-- 展示广告1 -->
+		<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true" data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
+		<script>
+			(adsbygoogle = window.adsbygoogle || []).push({});
+
+		</script>
+	</div>
 </body>
 </html>
