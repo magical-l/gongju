@@ -134,7 +134,7 @@ const 汉字系统 = {
 				},
 				{name: '算筹数码', from: 0x1D360, to: 0x1D371}//Counting Rod Numerals>Counting rod units
 			]
-		},
+		},//计数计量
 		{
 			name: '汉字变体符号',
 			intro: '由汉字产生的符号化变体',
@@ -179,7 +179,7 @@ const 汉字系统 = {
 					]
 				}
 			]
-		},
+		},//变体符号
 		{
 			name: '偏旁部首',
 			parts: [
@@ -250,7 +250,7 @@ const 汉字系统 = {
 					]
 				}
 			]
-		},
+		},//标点
 		{name: '中古汉语声调符号', intro: '平上去入四声的标调符，需要结合另一个字符来用', from: 0x302A, to: 0x302D},
 		{
 			name: '生僻字',
@@ -265,7 +265,7 @@ const 汉字系统 = {
 				{from: 0x31350, to: 0x323AF},//扩展H
 				{from: 0x2EBF0, to: 0x2EE5F}//扩展I
 			]
-		},
+		},//生僻字
 		{
 			name: 'unicode兼容汉字',
 			intro: '逻辑上unicode已收录该字，但又收录了一些变体字符，可能字形略有不同。',
@@ -290,7 +290,7 @@ const 汉语拼音 = {
 	name: '汉语拼音',
 	parts: [
 		{
-			name: '声母',
+			name: '声母字符',
 			parts: [
 				'b',//62
 				'p',//70
@@ -315,7 +315,7 @@ const 汉语拼音 = {
 			]
 		},
 		{
-			name: '韵母',
+			name: '韵母字符',
 			parts: [
 				'a',//61
 				'o',//6F
@@ -505,7 +505,8 @@ const 谚文系统 = {
 			name: '谚文变体符号',
 			parts: [
 				{from: 0x3200, to: 0x321E},//带括号谚文字母
-				{from: 0x3260, to: 0x327F}//带圈谚文字母
+				{from: 0x3260, to: 0x327F},//带圈谚文字母
+				'㉾',//327E：CIRCLED HANGUL IEUNG U，postal code mark，韩国邮政标志
 			]
 		},
 		{
@@ -528,8 +529,7 @@ const 谚文系统 = {
 	]
 };//谚文系统
 
-'㉾',//327E：CIRCLED HANGUL IEUNG U，postal code mark，韩国邮政标志
-	'㉿';//327F：KOREAN STANDARD SYMBOL，韩国标准标志
+	// '㉿';//327F：KOREAN STANDARD SYMBOL，韩国标准标志
 
 //================================西文
 const 希腊文字系统 = {
