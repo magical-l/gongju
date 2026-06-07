@@ -395,7 +395,7 @@
 						<div class="kpi">
 							<div class="title">月供合计</div>
 							<div class="value" style="color:#e6a23c">{{ (fundMonthly + commercialMonthly).toFixed(0) }}</div>
-							<div class="sub highlight">利息 {{ totalInterest.toFixed(1) }}万</div>
+							<div class="sub highlight">利息 {{ (totalInterest / 10000).toFixed(1) }}万</div>
 						</div>
 					</div>
 
@@ -545,8 +545,8 @@
 				}
 
 				items.push(
-					{name: '增值税', value: this.vat, exempt: this.houseType === 'second' && this.exemptVat},
-					{name: '个人所得税', value: this.pit, exempt: this.houseType === 'second' && (this.exemptPit || !this.buyerPayPit)},
+					{name: '增值税', value: this.vat, exempt: this.houseType === 'second' && this.exemptVat, zeroMeansNA: this.houseType !== 'second'},
+					{name: '个人所得税', value: this.pit, exempt: this.houseType === 'second' && (this.exemptPit || !this.buyerPayPit), zeroMeansNA: this.houseType !== 'second'},
 				);
 
 				if (this.houseType === 'new') {
@@ -572,18 +572,63 @@
 
 			fundLoanAmount() {
 				if (this.loanType === 'commercial') return 0;
-				if (this.loanType === 'fund') return Math.min(this.fundAmount, this.loanPrincipal());
-				return Math.min(this.fundAmount, this.loanPrincipal());
+				if (this.loanType === 'fund') return Math.min(this.fundAmount, this.loanPrincipal);
+				return Math.min(this.fundAmount, this.loanPrincipal);
 			},
 
 			commercialLoanAmount() {
 				if (this.loanType === 'fund') return 0;
 				if (this.loanType === 'combo') {
-					return this.loanPrincipal() - this.fundLoanAmount;
+					return this.loanPrincipal - this.fundLoanAmount;
 				}
-				return this.loanPrincipal();
+				return this.loanPrincipal;
 			},
 
+			// 月供
+			fundMonthly() {
+				if (this.repaymentMode === 'equal') {
+					return this.equalInstallment(this.fundLoanAmount, this.fundRate, this.loanYears);
+				}
+				return this.equalPrincipalFirstMonth(this.fundLoanAmount, this.fundRate, this.loanYears);
+			},
+
+			commercialMonthly() {
+				if (this.repaymentMode === 'equal') {
+					return this.equalInstallment(this.commercialLoanAmount, this.commercialRate, this.loanYears);
+				}
+				return this.equalPrincipalFirstMonth(this.commercialLoanAmount, this.commercialRate, this.loanYears);
+			},
+
+			totalInterest() {
+				let interest = 0;
+				if (this.repaymentMode === 'equal') {
+					interest += this.equalInstallmentTotalInterest(this.fundLoanAmount, this.fundRate, this.loanYears);
+					interest += this.equalInstallmentTotalInterest(this.commercialLoanAmount, this.commercialRate, this.loanYears);
+				} else {
+					interest += this.equalPrincipalTotalInterest(this.fundLoanAmount, this.fundRate, this.loanYears);
+					interest += this.equalPrincipalTotalInterest(this.commercialLoanAmount, this.commercialRate, this.loanYears);
+				}
+				return interest;
+			},
+
+			totalRepayment() {
+				return this.loanPrincipal * 10000 + this.totalInterest;
+			},
+
+			// 提示文本
+			hintText() {
+				const parts = [];
+				const dpPct = (this.downPaymentRatio * 100).toFixed(0);
+				parts.push(`首付 ${dpPct}%`);
+				const dtPct = (this.deedTaxRate * 100).toFixed(1);
+				parts.push(`契税 ${dtPct}%`);
+				if (this.houseType === 'second') {
+					parts.push('中介费 2%');
+				}
+				return parts.join(' · ');
+			},
+		},
+		methods: {
 			// 等额本息月供
 			equalInstallment(principal, annualRate, years) {
 				if (principal <= 0 || annualRate <= 0 || years <= 0) return 0;
@@ -618,49 +663,6 @@
 				return (firstInterest + lastInterest) * periods / 2;
 			},
 
-			// 月供
-			fundMonthly() {
-				if (this.repaymentMode === 'equal') {
-					return this.equalInstallment(this.fundLoanAmount, this.fundRate, this.loanYears);
-				}
-				return this.equalPrincipalFirstMonth(this.fundLoanAmount, this.fundRate, this.loanYears);
-			},
-
-			commercialMonthly() {
-				if (this.repaymentMode === 'equal') {
-					return this.equalInstallment(this.commercialLoanAmount, this.commercialRate, this.loanYears);
-				}
-				return this.equalPrincipalFirstMonth(this.commercialLoanAmount, this.commercialRate, this.loanYears);
-			},
-
-			totalInterest() {
-				let interest = 0;
-				if (this.repaymentMode === 'equal') {
-					interest += this.equalInstallmentTotalInterest(this.fundLoanAmount, this.fundRate, this.loanYears);
-					interest += this.equalInstallmentTotalInterest(this.commercialLoanAmount, this.commercialRate, this.loanYears);
-				} else {
-					interest += this.equalPrincipalTotalInterest(this.fundLoanAmount, this.fundRate, this.loanYears);
-					interest += this.equalPrincipalTotalInterest(this.commercialLoanAmount, this.commercialRate, this.loanYears);
-				}
-				return interest;
-			},
-
-			totalRepayment() {
-				return this.loanPrincipal() * 10000 + this.totalInterest();
-			},
-
-			// 提示文本
-			hintText() {
-				const parts = [];
-				const dpPct = (this.downPaymentRatio * 100).toFixed(0);
-				parts.push(`首付 ${dpPct}%`);
-				const dtPct = (this.deedTaxRate * 100).toFixed(1);
-				parts.push(`契税 ${dtPct}%`);
-				if (this.houseType === 'second') {
-					parts.push('中介费 2%');
-				}
-				return parts.join(' · ');
-			},
 		},
 	})
 	.use(ElementPlus)
