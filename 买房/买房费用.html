@@ -216,116 +216,120 @@
 		</div>
 	</header>
 	<article class="朋字形" style="gap: 20px;" v-cloak>
-		<!-- 左栏：输入区 -->
-		<section class="input area">
-			<div class="param card">
-				<!-- 新房/二手房 -->
-				<div class="form row">
-					<div class="field" style="flex:auto">
-						<el-radio-group v-model="houseType" size="default">
-							<el-radio-button label="new">新房</el-radio-button>
-							<el-radio-button label="second">二手房</el-radio-button>
-						</el-radio-group>
+			<!-- 左栏：输入区 -->
+			<section class="input area">
+				<div class="param card">
+					<!-- 总价 -->
+					<div class="form row">
+						<div class="field" style="flex:auto">
+							<div class="label">总价（万元）</div>
+							<el-input-number v-model="totalPrice" :min="1" :step="10" :controls="false" size="default" style="width:100%"></el-input-number>
+						</div>
 					</div>
-				</div>
 
-				<!-- 总价 + 面积 -->
-				<div class="form row">
-					<div class="field">
-						<div class="label">总价（万元）</div>
-						<el-input-number v-model="totalPrice" :min="1" :step="10" :controls="false" size="default" style="width:100%"></el-input-number>
+					<!-- 面积 + 位置 -->
+					<div class="form row">
+						<div class="field">
+							<div class="label">面积（㎡）</div>
+							<el-input-number v-model="area" :min="1" :step="5" :controls="false" size="default" style="width:100%"></el-input-number>
+						</div>
+						<div class="field">
+							<el-radio-group v-model="location" size="small">
+								<el-radio-button label="outer">外环外</el-radio-button>
+								<el-radio-button label="inner">外环内</el-radio-button>
+							</el-radio-group>
+						</div>
 					</div>
-					<div class="field">
-						<div class="label">面积（㎡）</div>
-						<el-input-number v-model="area" :min="1" :step="5" :controls="false" size="default" style="width:100%"></el-input-number>
-					</div>
-				</div>
 
-				<!-- 套数 + 位置 -->
-				<div class="form row">
-					<div class="field">
-						<el-radio-group v-model="homeCount" size="small">
-							<el-radio-button label="first">首套</el-radio-button>
-							<el-radio-button label="second">二套</el-radio-button>
-						</el-radio-group>
+					<!-- 房源 -->
+					<div class="form row">
+						<div class="field" style="flex:auto">
+							<el-radio-group v-model="houseType" size="default">
+								<el-radio-button label="new">新房</el-radio-button>
+								<el-radio-button label="second">二手房</el-radio-button>
+							</el-radio-group>
+						</div>
 					</div>
-					<div class="field">
-						<el-radio-group v-model="location" size="small">
-							<el-radio-button label="outer">外环外</el-radio-button>
-							<el-radio-button label="inner">外环内</el-radio-button>
-						</el-radio-group>
-					</div>
-				</div>
 
-				<!-- 二手房税费条件 -->
-				<div class="form row" v-if="houseType === 'second'">
-					<div class="field" style="flex:auto">
-						<div class="tax checks">
-							<el-checkbox v-model="useAgent" size="small">走中介</el-checkbox>
-							<el-checkbox v-model="exemptVat" size="small">满2年免征增值税</el-checkbox>
-							<el-checkbox v-model="exemptPit" size="small" style="margin-left:8px">满五唯一免征个税</el-checkbox>
-							<el-checkbox v-model="buyerPayPit" size="small" :disabled="exemptPit" style="margin-left:8px">买方承担个税</el-checkbox>
+					<!-- 二手房税费条件 -->
+					<div class="form row" v-if="houseType === 'second'">
+						<div class="field" style="flex:auto">
+							<div class="tax checks">
+								<el-checkbox v-model="useAgent" size="small">走中介</el-checkbox>
+								<el-checkbox v-model="exemptVat" size="small" style="margin-left:8px">满2年免征增值税</el-checkbox>
+								<el-checkbox v-model="exemptPit" size="small" style="margin-left:8px">满五唯一免征个税</el-checkbox>
+								<el-checkbox v-model="buyerPayPit" size="small" :disabled="exemptPit" style="margin-left:8px">买方承担个税</el-checkbox>
+							</div>
+						</div>
+					</div>
+
+					<!-- 资格 -->
+					<div class="form row">
+						<div class="field" style="flex:auto">
+							<el-radio-group v-model="homeCount" size="small">
+								<el-radio-button label="first">首套</el-radio-button>
+								<el-radio-button label="second">二套</el-radio-button>
+							</el-radio-group>
+						</div>
+					</div>
+
+					<!-- 小结 -->
+					<div class="hint bar">💡 {{ hintText }}</div>
+
+					<!-- 贷款类型 -->
+					<div class="form row">
+						<div class="field" style="flex:auto">
+							<div class="label">贷款类型</div>
+							<el-radio-group v-model="loanType" size="small">
+								<el-radio-button label="combo">组合贷</el-radio-button>
+								<el-radio-button label="commercial">纯商贷</el-radio-button>
+								<el-radio-button label="fund">纯公积金</el-radio-button>
+							</el-radio-group>
+						</div>
+					</div>
+
+					<!-- 公积金参数（组合贷或纯公积金时显示） -->
+					<div class="form row" v-if="loanType !== 'commercial'">
+						<div class="field">
+							<div class="label">公积金贷款（万元）</div>
+							<el-input-number v-model="fundAmount" :min="0" :step="5" :controls="false" size="default" style="width:100%"></el-input-number>
+						</div>
+						<div class="field">
+							<div class="label">公积金利率（%）</div>
+							<el-input-number v-model="fundRate" :min="0" :step="0.01" :precision="2" :controls="false" size="default" style="width:100%"></el-input-number>
+						</div>
+					</div>
+
+					<!-- 商贷利率 + 年限 -->
+					<div class="form row">
+						<div class="field" v-if="loanType !== 'fund'">
+							<div class="label">商贷利率（%）</div>
+							<el-input-number v-model="commercialRate" :min="0" :step="0.01" :precision="2" :controls="false" size="default" style="width:100%"></el-input-number>
+						</div>
+						<div class="field" :style="{flex: loanType === 'fund' ? 'auto' : '1'}">
+							<div class="label">贷款年限</div>
+							<el-radio-group v-model="loanYears" size="small">
+								<el-radio-button :label="30">30年</el-radio-button>
+								<el-radio-button :label="20">20年</el-radio-button>
+								<el-radio-button :label="10">10年</el-radio-button>
+							</el-radio-group>
+						</div>
+					</div>
+
+					<!-- 还款方式 -->
+					<div class="form row">
+						<div class="field" style="flex:auto">
+							<div class="label">还款方式</div>
+							<el-radio-group v-model="repaymentMode" size="small">
+								<el-radio-button label="equal">等额本息</el-radio-button>
+								<el-radio-button label="principal">等额本金</el-radio-button>
+							</el-radio-group>
 						</div>
 					</div>
 				</div>
+			</section>
 
-				<!-- 提示 -->
-				<div class="hint bar">💡 {{ hintText }}</div>
-
-				<!-- 贷款类型 -->
-				<div class="form row">
-					<div class="field" style="flex:auto">
-						<div class="label">贷款类型</div>
-						<el-radio-group v-model="loanType" size="small">
-							<el-radio-button label="combo">组合贷</el-radio-button>
-							<el-radio-button label="commercial">纯商贷</el-radio-button>
-							<el-radio-button label="fund">纯公积金</el-radio-button>
-						</el-radio-group>
-					</div>
-				</div>
-
-				<!-- 公积金参数（组合贷或纯公积金时显示） -->
-				<div class="form row" v-if="loanType !== 'commercial'">
-					<div class="field">
-						<div class="label">公积金贷款（万元）</div>
-						<el-input-number v-model="fundAmount" :min="0" :step="5" :controls="false" size="default" style="width:100%"></el-input-number>
-					</div>
-					<div class="field">
-						<div class="label">公积金利率（%）</div>
-						<el-input-number v-model="fundRate" :min="0" :step="0.01" :precision="2" :controls="false" size="default" style="width:100%"></el-input-number>
-					</div>
-				</div>
-
-				<!-- 商贷利率 + 年限 -->
-				<div class="form row">
-					<div class="field" v-if="loanType !== 'fund'">
-						<div class="label">商贷利率（%）</div>
-						<el-input-number v-model="commercialRate" :min="0" :step="0.01" :precision="2" :controls="false" size="default" style="width:100%"></el-input-number>
-					</div>
-					<div class="field" :style="{flex: loanType === 'fund' ? 'auto' : '1'}">
-						<div class="label">贷款年限</div>
-						<el-radio-group v-model="loanYears" size="small">
-							<el-radio-button :label="30">30年</el-radio-button>
-							<el-radio-button :label="20">20年</el-radio-button>
-							<el-radio-button :label="10">10年</el-radio-button>
-						</el-radio-group>
-					</div>
-				</div>
-
-				<!-- 还款方式 -->
-				<div class="form row">
-					<div class="field" style="flex:auto">
-						<div class="label">还款方式</div>
-						<el-radio-group v-model="repaymentMode" size="small">
-							<el-radio-button label="equal">等额本息</el-radio-button>
-							<el-radio-button label="principal">等额本金</el-radio-button>
-						</el-radio-group>
-					</div>
-				</div>
-			</div>
-		</section>
-
-		<!-- 右栏：结果区 -->
+					<!-- 右栏：结果区 -->
 		<section class="output area">
 			<!-- 费用明细 -->
 			<div class="fee card">
@@ -599,6 +603,8 @@
 
 			// 提示文本
 			hintText() {
+				const countText = this.homeCount === 'first' ? '首套' : '二套';
+				const locText = this.location === 'outer' ? '外环外' : '外环内';
 				const parts = [];
 				const dpPct = (this.downPaymentRatio * 100).toFixed(0);
 				parts.push(`首付 ${dpPct}%（${this.downPayment.toFixed(0)}万）`);
@@ -607,7 +613,7 @@
 				if (this.houseType === 'second' && this.useAgent) {
 					parts.push(`中介费 2%（${this.agencyFee.toFixed(1)}万）`);
 				}
-				return parts.join(' · ');
+				return `因为 ${countText}+${locText}，所以 ${parts.join(' · ')}`;
 			},
 		},
 		methods: {
