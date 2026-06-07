@@ -36,10 +36,16 @@
 		flex: 1;
 	}
 
-	.field & .label {
+	label.field {
+		display: flex;
+		align-items: center;
+		gap: 6px;
 		color: #909399;
 		font-size: 12px;
-		margin-bottom: 3px;
+	}
+
+	label.field .el-input-number {
+		flex: 1;
 	}
 
 	/* 税费条件 */
@@ -221,34 +227,30 @@
 				<div class="param card">
 					<!-- 总价 -->
 					<div class="form row">
-						<div class="field" style="flex:auto">
-							<div class="label">总价（万元）</div>
-							<el-input-number v-model="totalPrice" :min="1" :step="10" :controls="false" size="default" style="width:100%"></el-input-number>
-						</div>
+						<label class="field" style="flex:auto">总价
+							<el-input-number v-model="totalPrice" :min="1" :step="10" :controls="false" size="default"></el-input-number>
+							万元
+						</label>
 					</div>
 
 					<!-- 面积 + 位置 -->
 					<div class="form row">
-						<div class="field">
-							<div class="label">面积（㎡）</div>
-							<el-input-number v-model="area" :min="1" :step="5" :controls="false" size="default" style="width:100%"></el-input-number>
-						</div>
-						<div class="field">
-							<el-radio-group v-model="location" size="small">
-								<el-radio-button label="outer">外环外</el-radio-button>
-								<el-radio-button label="inner">外环内</el-radio-button>
-							</el-radio-group>
-						</div>
+						<label class="field">面积
+							<el-input-number v-model="area" :min="1" :step="5" :controls="false" size="default"></el-input-number>
+							㎡
+						</label>
+						<el-radio-group v-model="location" size="small">
+							<el-radio-button label="outer">外环外</el-radio-button>
+							<el-radio-button label="inner">外环内</el-radio-button>
+						</el-radio-group>
 					</div>
 
 					<!-- 房源 -->
 					<div class="form row">
-						<div class="field" style="flex:auto">
-							<el-radio-group v-model="houseType" size="default">
-								<el-radio-button label="new">新房</el-radio-button>
-								<el-radio-button label="second">二手房</el-radio-button>
-							</el-radio-group>
-						</div>
+						<el-radio-group v-model="houseType" size="default" style="flex:auto">
+							<el-radio-button label="new">新房</el-radio-button>
+							<el-radio-button label="second">二手房</el-radio-button>
+						</el-radio-group>
 					</div>
 
 					<!-- 二手房税费条件 -->
@@ -265,12 +267,10 @@
 
 					<!-- 资格 -->
 					<div class="form row">
-						<div class="field" style="flex:auto">
-							<el-radio-group v-model="homeCount" size="small">
-								<el-radio-button label="first">首套</el-radio-button>
-								<el-radio-button label="second">二套</el-radio-button>
-							</el-radio-group>
-						</div>
+						<el-radio-group v-model="homeCount" size="small" style="flex:auto">
+							<el-radio-button label="first">首套</el-radio-button>
+							<el-radio-button label="second">二套</el-radio-button>
+						</el-radio-group>
 					</div>
 
 					<!-- 小结 -->
@@ -278,53 +278,50 @@
 
 					<!-- 贷款类型 -->
 					<div class="form row">
-						<div class="field" style="flex:auto">
-							<div class="label">贷款类型</div>
+						<label class="field" style="flex:auto">贷款类型
 							<el-radio-group v-model="loanType" size="small">
 								<el-radio-button label="combo">组合贷</el-radio-button>
 								<el-radio-button label="commercial">纯商贷</el-radio-button>
 								<el-radio-button label="fund">纯公积金</el-radio-button>
 							</el-radio-group>
-						</div>
+						</label>
 					</div>
 
 					<!-- 公积金参数（组合贷或纯公积金时显示） -->
 					<div class="form row" v-if="loanType !== 'commercial'">
-						<div class="field">
-							<div class="label">公积金贷款（万元）</div>
-							<el-input-number v-model="fundAmount" :min="0" :step="5" :controls="false" size="default" style="width:100%"></el-input-number>
-						</div>
-						<div class="field">
-							<div class="label">公积金利率（%）</div>
-							<el-input-number v-model="fundRate" :min="0" :step="0.01" :precision="2" :controls="false" size="default" style="width:100%"></el-input-number>
-						</div>
+						<label class="field">公积金贷款
+							<el-input-number v-model="fundAmount" :min="0" :step="5" :controls="false" size="default"></el-input-number>
+							万元
+						</label>
+						<label class="field">公积金利率
+							<el-input-number v-model="fundRate" :min="0" :step="0.01" :precision="2" :controls="false" size="default"></el-input-number>
+							%
+						</label>
 					</div>
 
 					<!-- 商贷利率 + 年限 -->
 					<div class="form row">
-						<div class="field" v-if="loanType !== 'fund'">
-							<div class="label">商贷利率（%）</div>
-							<el-input-number v-model="commercialRate" :min="0" :step="0.01" :precision="2" :controls="false" size="default" style="width:100%"></el-input-number>
-						</div>
-						<div class="field" :style="{flex: loanType === 'fund' ? 'auto' : '1'}">
-							<div class="label">贷款年限</div>
+						<label class="field" v-if="loanType !== 'fund'">商贷利率
+							<el-input-number v-model="commercialRate" :min="0" :step="0.01" :precision="2" :controls="false" size="default"></el-input-number>
+							%
+						</label>
+						<label class="field" :style="{flex: loanType === 'fund' ? 'auto' : '1'}">贷款年限
 							<el-radio-group v-model="loanYears" size="small">
 								<el-radio-button :label="30">30年</el-radio-button>
 								<el-radio-button :label="20">20年</el-radio-button>
 								<el-radio-button :label="10">10年</el-radio-button>
 							</el-radio-group>
-						</div>
+						</label>
 					</div>
 
 					<!-- 还款方式 -->
 					<div class="form row">
-						<div class="field" style="flex:auto">
-							<div class="label">还款方式</div>
+						<label class="field" style="flex:auto">还款方式
 							<el-radio-group v-model="repaymentMode" size="small">
 								<el-radio-button label="equal">等额本息</el-radio-button>
 								<el-radio-button label="principal">等额本金</el-radio-button>
 							</el-radio-group>
-						</div>
+						</label>
 					</div>
 				</div>
 			</section>
