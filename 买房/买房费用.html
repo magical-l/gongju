@@ -54,6 +54,22 @@
 		margin: -4px 0 10px 0;
 	}
 
+	.info.icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 15px;
+		height: 15px;
+		border: 1px solid #909399;
+		border-radius: 50%;
+		font-size: 10px;
+		color: #909399;
+		cursor: help;
+		font-style: italic;
+		font-family: serif;
+		flex-shrink: 0;
+	}
+
 	/* 税费条件 */
 	.tax.checks {
 		display: flex;
@@ -231,59 +247,64 @@
 		<!-- 左栏：输入区 -->
 		<section class="input area">
 			<div class="param card">
-				<!-- 总价 -->
 				<div class="form row">
-					<label class="field" style="flex:auto">
+					<label class="field flexible">
+						<el-input-number v-model="area" :min="1" :step="5" :controls="false" size="default">
+							<template #prefix>面积</template>
+							<template #suffix>㎡</template>
+						</el-input-number>
+					</label>
+					<label class="field flexible">
 						<el-input-number v-model="totalPrice" :min="1" :step="10" :controls="false" size="default">
 							<template #prefix>总价</template>
 							<template #suffix>万元</template>
 						</el-input-number>
 					</label>
 				</div>
-
-				<!-- 面积 + 位置 -->
 				<div class="form row">
-					<label class="field">
-						<el-input-number v-model="area" :min="1" :step="5" :controls="false" size="default">
-							<template #prefix>面积</template>
-							<template #suffix>㎡</template>
-						</el-input-number>
-					</label>
-					<el-radio-group v-model="location" size="small">
+					<el-radio-group class="field" v-model="location">
 						<el-radio-button label="outer">外环外</el-radio-button>
 						<el-radio-button label="inner">外环内</el-radio-button>
+					</el-radio-group>
+					<el-tooltip content="内外环影响首付比例：外环外更低" placement="top">
+						<span class="info icon">i</span>
+					</el-tooltip>
+					<el-radio-group class="field" v-model="isStandardHouse" size="small">
+						<el-radio-button label="standard">普通住宅</el-radio-button>
+						<el-radio-button label="nonStandard">非普通住宅</el-radio-button>
+						<el-radio-button label="auto" checked>自动判断</el-radio-button>
 					</el-radio-group>
 				</div>
 				<div class="note row">
 					<span v-if="area <= 90">面积 ≤ 90㎡，普通住宅</span>
 					<span v-else-if="area <= 140">面积 90~140㎡，内外环决定普通/非普通</span>
 					<span v-else>面积 > 140㎡，非普通住宅</span>
-					· 内外环影响首付比例
+					
 				</div>
 
-				<!-- 房源 -->
-				<div class="form row">
-					<el-radio-group v-model="houseType" size="default" style="flex:auto">
+				<div class="form row , flex single-line items-go-x items-y-near-center">
+					<el-radio-group v-model="houseType" size="default">
 						<el-radio-button label="new">新房</el-radio-button>
 						<el-radio-button label="second">二手房</el-radio-button>
 					</el-radio-group>
-				</div>
-
-				<!-- 二手房税费条件 -->
-				<div class="form row" v-if="houseType === 'second'">
-					<div class="field" style="flex:auto">
-						<div class="tax checks">
+					<div class="flex items-go-y">
+						<div class="field">
+							<div class="tax checks">
+								<el-checkbox v-model="exemptVat" size="small" style="margin-left:8px">满2年免征增值税</el-checkbox>
+								<el-checkbox v-model="exemptPit" size="small" style="margin-left:8px">满五唯一免征个税</el-checkbox>
+								<el-checkbox v-model="buyerPayPit" size="small" :disabled="exemptPit" style="margin-left:8px">买方承担个税</el-checkbox>
+							</div>
+						</div>
+						<div class="field">
 							<el-checkbox v-model="useAgent" size="small">走中介</el-checkbox>
-							<el-checkbox v-model="exemptVat" size="small" style="margin-left:8px">满2年免征增值税</el-checkbox>
-							<el-checkbox v-model="exemptPit" size="small" style="margin-left:8px">满五唯一免征个税</el-checkbox>
-							<el-checkbox v-model="buyerPayPit" size="small" :disabled="exemptPit" style="margin-left:8px">买方承担个税</el-checkbox>
 						</div>
 					</div>
+						
 				</div>
 
 				<!-- 资格 -->
 				<div class="form row">
-					<el-radio-group v-model="homeCount" size="small" style="flex:auto">
+					<el-radio-group v-model="homeCount"style="flex:auto">
 						<el-radio-button label="first">首套</el-radio-button>
 						<el-radio-button label="second">二套</el-radio-button>
 					</el-radio-group>
@@ -453,6 +474,7 @@
 				// 资格
 				homeCount: 'first',    // 'first' | 'second'
 				location: 'outer',     // 'outer' (外环外) | 'inner' (外环内)
+				isStandardHouse: 'auto', // 'standard' | 'nonStandard' | 'auto'
 
 				// 二手房税费条件
 				useAgent: true,        // 走中介
@@ -473,6 +495,15 @@
 		computed: {
 			// --- 政策参数 ---
 
+			// 是否普通住宅
+			isStandard() {
+				if (this.isStandardHouse === 'standard') return true;
+				if (this.isStandardHouse === 'nonStandard') return false;
+				if (this.area <= 90) return true;
+				if (this.area <= 140) return this.location === 'outer';
+				return false;
+			},
+
 			// 首付比例
 			downPaymentRatio() {
 				if (this.homeCount === 'first') {
@@ -486,7 +517,7 @@
 				if (this.homeCount === 'first') {
 					return this.area <= 90 ? 0.01 : 0.015;
 				}
-				return this.area <= 140 ? 0.02 : 0.03;
+				return this.isStandard ? 0.02 : 0.03;
 			},
 
 			// 首付金额（万元）
@@ -531,7 +562,7 @@
 			// 个人所得税
 			pit() {
 				if (this.houseType === 'second' && !this.exemptPit && this.buyerPayPit) {
-					const rate = this.area <= 144 ? 0.01 : 0.02;
+					const rate = this.isStandard ? 0.01 : 0.02;
 					return this.totalPrice * rate;
 				}
 				return 0;
