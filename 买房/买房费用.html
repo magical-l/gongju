@@ -282,7 +282,7 @@
 							<el-radio-button label="outer">外环外</el-radio-button>
 							<el-radio-button label="inner">外环内</el-radio-button>
 						</el-radio-group>
-						<span>内外环影响首付比例：外环外更低</span>
+						<span>影响：首付比例</span>
 					</div>
 				</div>
 				<div class="form row">
@@ -292,7 +292,7 @@
 							<el-radio-button label="nonStandard">非普通住宅</el-radio-button>
 							<el-radio-button label="auto" checked>自动判断</el-radio-button>
 						</el-radio-group>
-						<span>是否普通住宅影响契税、个税税率</span>
+						<span>影响：契税、个税税率</span>
 						<el-tooltip placement="top">
 							<span class="info icon">i</span>
 							<template #content>
@@ -370,7 +370,7 @@
 					</div>
 				</div>
 
-												<!-- 资格 -->
+				<!-- 资格 -->
 				<div class="form row">
 					<el-radio-group v-model="homeCount"style="flex:auto">
 						<el-radio-button label="first">首套</el-radio-button>
@@ -380,14 +380,13 @@
 
 				<hr class="section divider">
 
-				<div class="section label">可主观调整的因素</div>
-
 				<div class="form row">
 					<label>首付比例</label>
 					<el-radio-group v-model="downPaymentMode" size="small">
+						todo：“自动”也是按比例，是没有必要的选项，还隐藏了信息。
 						<el-radio-button label="auto">自动</el-radio-button>
-						<el-radio-button label="percent">按比例</el-radio-button>
-						<el-radio-button label="fixed">按定额</el-radio-button>
+						<el-radio-button label="percent">比例</el-radio-button>
+						<el-radio-button label="fixed">定额</el-radio-button>
 					</el-radio-group>
 					<label v-if="downPaymentMode === 'percent'">
 						<el-input-number v-model="downPaymentRate" :min="0" :step="1" :precision="0" :controls="false" size="small">
@@ -569,7 +568,7 @@
 				isStandardHouse: 'auto', // 'standard' | 'nonStandard' | 'auto'
 
 				// 首付
-				downPaymentMode: 'auto',  // 'auto' | 'percent' | 'fixed'
+				downPaymentMode: 'percent', // 'percent' | 'fixed'
 				downPaymentRate: 20,       // 手动比例（%）
 				downPaymentAmount: 0,      // 手动定额（万元）
 
@@ -610,14 +609,25 @@
 				return false;
 			},
 
+			// 首付政策最低比例
+			policyDownPaymentRate() {
+				if (this.homeCount === 'first') {
+					return this.location === 'outer' ? 20 : 25;
+				}
+				return this.location === 'outer' ? 30 : 35;
+			},
+
+			// 首付比例原因
+			dpReason() {
+				const countText = this.homeCount === 'first' ? '首套' : '二套';
+				const locText = this.location === 'outer' ? '外环外' : '外环内';
+				return `${countText}+${locText}`;
+			},
+
 			// 首付比例
 			downPaymentRatio() {
-				if (this.downPaymentMode === 'percent') return this.downPaymentRate / 100;
 				if (this.downPaymentMode === 'fixed') return 0;
-				if (this.homeCount === 'first') {
-					return this.location === 'outer' ? 0.20 : 0.25;
-				}
-				return this.location === 'outer' ? 0.30 : 0.35;
+				return this.downPaymentRate / 100;
 			},
 
 			// 契税税率
@@ -832,9 +842,8 @@
 			isStandard(val) {
 				if (this.pitMode === 'percent') this.pitRate = val ? 1 : 2;
 			},
-			downPaymentMode(val) {
-				if (val === 'percent') this.resetDownPaymentRate();
-			},
+			homeCount() { this.resetDownPaymentRate(); },
+			location() { this.resetDownPaymentRate(); },
 		},
 
 	})
