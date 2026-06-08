@@ -335,8 +335,7 @@
 									<el-radio-button label="fixed">定额</el-radio-button>
 								</el-radio-group>
 								<label v-if="downPaymentMode === 'percent'">
-									<el-input-number v-model="downPaymentRate" :min="0" :step="1" :precision="0" :controls="false" size="small" style="width:70px"><template #suffix>%</template></el-input-number>
-									<span @click="resetDownPaymentRate" title="重置为政策最低" style="cursor:pointer;font-size:11px">↺</span>
+									<el-input-number v-model="downPaymentRate" :min="0" :step="1" :precision="0" :controls="false" size="small" style="width:70px"><template #suffix>% <span @click="resetDownPaymentRate" title="重置" style="cursor:pointer;font-size:11px">↺</span></template></el-input-number> title="重置为政策最低" style="cursor:pointer;font-size:11px">↺</span>
 								</label>
 								<label v-if="downPaymentMode === 'fixed'">
 									<el-input-number v-model="downPaymentAmount" :min="0" :step="1" :precision="2" :controls="false" size="small" style="width:100px"><template #suffix>万元</template></el-input-number>
@@ -355,8 +354,7 @@
 									<el-radio-button label="fixed">定额</el-radio-button>
 								</el-radio-group>
 								<label v-if="deedTaxMode !== 'fixed'">
-									<el-input-number v-model="deedTaxPct" :min="0" :step="0.1" :precision="1" :controls="false" size="small" style="width:70px" :disabled="deedTaxMode === 'auto'"><template #suffix>%</template></el-input-number>
-									<span v-if="deedTaxMode === 'percent'" @click="resetDeedTaxRate" title="重置为政策默认" style="cursor:pointer;font-size:11px">↺</span>
+									<el-input-number v-model="deedTaxPct" :min="0" :step="0.1" :precision="1" :controls="false" size="small" style="width:70px"><template #suffix>% <span v-if="deedTaxMode === 'percent'" @click="resetDeedTaxRate" title="重置为政策默认" style="cursor:pointer;font-size:11px">↺</span></template></el-input-number>
 								</label>
 								<label v-if="deedTaxMode === 'fixed'">
 									<el-input-number v-model="deedTaxAmount" :min="0" :step="1" :precision="2" :controls="false" size="small" style="width:100px"><template #suffix>万元</template></el-input-number>
@@ -375,8 +373,7 @@
 									<el-radio-button label="fixed">定额</el-radio-button>
 								</el-radio-group>
 								<label v-if="agencyMode === 'percent'">
-									<el-input-number v-model="agencyRate" :min="0" :step="0.1" :precision="1" :controls="false" size="small" style="width:70px"><template #suffix>%</template></el-input-number>
-									<span @click="resetAgencyRate" title="重置为默认" style="cursor:pointer;font-size:11px">↺</span>
+									<el-input-number v-model="agencyRate" :min="0" :step="0.1" :precision="1" :controls="false" size="small" style="width:70px"><template #suffix>% <span @click="resetAgencyRate" title="重置" style="cursor:pointer;font-size:11px">↺</span></template></el-input-number> title="重置为默认" style="cursor:pointer;font-size:11px">↺</span>
 								</label>
 								<label v-if="agencyMode === 'fixed'">
 									<el-input-number v-model="agencyAmount" :min="0" :step="1" :precision="2" :controls="false" size="small" style="width:100px"><template #suffix>万元</template></el-input-number>
@@ -395,8 +392,7 @@
 									<el-radio-button label="fixed">定额</el-radio-button>
 								</el-radio-group>
 								<label v-if="vatMode === 'percent'">
-									<el-input-number v-model="vatRate" :min="0" :step="0.1" :precision="1" :controls="false" size="small" style="width:70px"><template #suffix>%</template></el-input-number>
-									<span @click="resetVatRate" title="重置为默认" style="cursor:pointer;font-size:11px">↺</span>
+									<el-input-number v-model="vatRate" :min="0" :step="0.1" :precision="1" :controls="false" size="small" style="width:70px"><template #suffix>% <span @click="resetVatRate" title="重置" style="cursor:pointer;font-size:11px">↺</span></template></el-input-number> title="重置为默认" style="cursor:pointer;font-size:11px">↺</span>
 								</label>
 								<label v-if="vatMode === 'fixed'">
 									<el-input-number v-model="vatAmount" :min="0" :step="1" :precision="2" :controls="false" size="small" style="width:100px"><template #suffix>万元</template></el-input-number>
@@ -415,8 +411,7 @@
 									<el-radio-button label="fixed">定额</el-radio-button>
 								</el-radio-group>
 								<label v-if="pitMode === 'percent'">
-									<el-input-number v-model="pitRate" :min="0" :step="0.1" :precision="1" :controls="false" size="small" style="width:70px"><template #suffix>%</template></el-input-number>
-									<span @click="resetPitRate" title="重置为默认" style="cursor:pointer;font-size:11px">↺</span>
+									<el-input-number v-model="pitRate" :min="0" :step="0.1" :precision="1" :controls="false" size="small" style="width:70px"><template #suffix>% <span @click="resetPitRate" title="重置" style="cursor:pointer;font-size:11px">↺</span></template></el-input-number> title="重置为默认" style="cursor:pointer;font-size:11px">↺</span>
 								</label>
 								<label v-if="pitMode === 'fixed'">
 									<el-input-number v-model="pitAmount" :min="0" :step="1" :precision="2" :controls="false" size="small" style="width:100px"><template #suffix>万元</template></el-input-number>
@@ -434,8 +429,7 @@
 									<el-radio-button label="fixed">定额</el-radio-button>
 								</el-radio-group>
 								<label v-if="fundMode === 'percent'">
-									<el-input-number v-model="fundUnitPrice" :min="0" :step="1" :precision="0" :controls="false" size="small" style="width:70px"><template #suffix>元/㎡</template></el-input-number>
-									<span @click="resetFundPrice" title="重置为默认" style="cursor:pointer;font-size:11px">↺</span>
+									<el-input-number v-model="fundUnitPrice" :min="0" :step="1" :precision="0" :controls="false" size="small" style="width:70px"><template #suffix>元/㎡ <span @click="resetFundPrice" title="重置" style="cursor:pointer;font-size:11px">↺</span></template></el-input-number> title="重置为默认" style="cursor:pointer;font-size:11px">↺</span>
 								</label>
 								<label v-if="fundMode === 'fixed'">
 									<el-input-number v-model="fundAmount" :min="0" :step="1" :precision="2" :controls="false" size="small" style="width:100px"><template #suffix>万元</template></el-input-number>
@@ -448,8 +442,7 @@
 							<td>登记费</td>
 							<td style="font-size:11px;color:#909399">固定</td>
 							<td class="flex items-go-x items-y-near-center" style="gap:6px">
-								<el-input-number v-model="regFeeAmount" :min="0" :step="0.001" :precision="3" :controls="false" size="small" style="width:90px"><template #suffix>万元</template></el-input-number>
-								<span @click="resetRegFee" title="重置为默认" style="cursor:pointer;font-size:11px">↺</span>
+								<el-input-number v-model="regFeeAmount" :min="0" :step="0.001" :precision="3" :controls="false" size="small" style="width:90px"><template #suffix>万元 <span @click="resetRegFee" title="重置为默认" style="cursor:pointer;font-size:11px">↺</span></template></el-input-number>
 							</td>
 							<td style="text-align:right;font-weight:500">= {{ regFeeAmount.toFixed(3) }}万</td>
 							<td style="text-align:right;color:#909399;font-size:11px">{{ (regFeeAmount / totalCash * 100).toFixed(2) }}%</td>
@@ -625,7 +618,7 @@
 				fundAmount: 0,             // 定额（万元）
 
 				// 契税
-				deedTaxMode: 'auto',     // 'auto' | 'percent' | 'fixed'
+				deedTaxMode: 'percent',  // 'percent' | 'fixed'
 				deedTaxPct: 1.5,         // 手动比例（%）
 				deedTaxAmount: 0,        // 手动定额（万元）
 
@@ -703,9 +696,8 @@
 
 			// 契税税率（有效值）
 			deedTaxRate() {
-				if (this.deedTaxMode === 'percent') return this.deedTaxPct / 100;
 				if (this.deedTaxMode === 'fixed') return 0;
-				return this.deedTaxPolicyRate;
+				return this.deedTaxPct / 100;
 			},
 
 			// 首付金额（万元）
