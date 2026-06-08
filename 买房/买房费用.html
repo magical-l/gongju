@@ -332,15 +332,15 @@
 						<col>
 						<col style="width:170px">
 						<col style="width:100px">
-						<col style="width:50px">
+						<col>
 					</colgroup>
 					<thead>
 						<tr>
 							<th>费用项</th>
 							<th>说明</th>
-							<th>控件</th>
+							<th></th>
 							<th style="text-align:right">金额</th>
-							<th style="text-align:right;width:50px">占比</th>
+							<th style="text-align:right">占比</th>
 						</tr>
 					</thead>
 					<tbody style="vertical-align:top">
@@ -381,7 +381,7 @@
 								</label>
 							</td>
 							<td style="text-align:right;font-weight:500">= {{ deedTax.toFixed(2) }}万</td>
-							<td style="text-align:right;color:#909399;font-size:11px">{{ (deedTax / totalCash * 100).toFixed(1) }}%</td>
+							<td style="text-align: right;color:#909399;font-size:11px">{{ (deedTax / totalCash * 100).toFixed(1) }}%</td>
 						</tr>
 						<tr v-if="houseType === 'second'" class="dp row">
 							<td>中介费</td>
