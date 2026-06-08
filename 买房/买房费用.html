@@ -335,7 +335,7 @@
 									<el-radio-button label="fixed">定额</el-radio-button>
 								</el-radio-group>
 								<label v-if="downPaymentMode === 'percent'">
-									<el-input-number v-model="downPaymentRate" :min="0" :step="1" :precision="0" :controls="false" size="small" style="width:70px"><template #suffix>% <span @click="resetDownPaymentRate" title="重置" style="cursor:pointer;font-size:11px">↺</span></template></el-input-number> title="重置为政策最低" style="cursor:pointer;font-size:11px">↺</span>
+									<el-input-number v-model="downPaymentRate" :min="0" :step="1" :precision="0" :controls="false" size="small" style="width:70px"><template #suffix>% <span @click="resetDownPaymentRate" title="重置" style="cursor:pointer;font-size:11px">↺</span></template></el-input-number>
 								</label>
 								<label v-if="downPaymentMode === 'fixed'">
 									<el-input-number v-model="downPaymentAmount" :min="0" :step="1" :precision="2" :controls="false" size="small" style="width:100px"><template #suffix>万元</template></el-input-number>
@@ -349,7 +349,6 @@
 							<td style="font-size:11px;color:#909399">政策 {{ (deedTaxPolicyRate * 100).toFixed(1) }}%</td>
 							<td class="flex items-go-x items-y-near-center" style="gap:6px">
 								<el-radio-group v-model="deedTaxMode" size="small">
-									<el-radio-button label="auto">自动</el-radio-button>
 									<el-radio-button label="percent">比例</el-radio-button>
 									<el-radio-button label="fixed">定额</el-radio-button>
 								</el-radio-group>
@@ -373,7 +372,7 @@
 									<el-radio-button label="fixed">定额</el-radio-button>
 								</el-radio-group>
 								<label v-if="agencyMode === 'percent'">
-									<el-input-number v-model="agencyRate" :min="0" :step="0.1" :precision="1" :controls="false" size="small" style="width:70px"><template #suffix>% <span @click="resetAgencyRate" title="重置" style="cursor:pointer;font-size:11px">↺</span></template></el-input-number> title="重置为默认" style="cursor:pointer;font-size:11px">↺</span>
+									<el-input-number v-model="agencyRate" :min="0" :step="0.1" :precision="1" :controls="false" size="small" style="width:70px"><template #suffix>% <span @click="resetAgencyRate" title="重置" style="cursor:pointer;font-size:11px">↺</span></template></el-input-number>
 								</label>
 								<label v-if="agencyMode === 'fixed'">
 									<el-input-number v-model="agencyAmount" :min="0" :step="1" :precision="2" :controls="false" size="small" style="width:100px"><template #suffix>万元</template></el-input-number>
@@ -392,7 +391,7 @@
 									<el-radio-button label="fixed">定额</el-radio-button>
 								</el-radio-group>
 								<label v-if="vatMode === 'percent'">
-									<el-input-number v-model="vatRate" :min="0" :step="0.1" :precision="1" :controls="false" size="small" style="width:70px"><template #suffix>% <span @click="resetVatRate" title="重置" style="cursor:pointer;font-size:11px">↺</span></template></el-input-number> title="重置为默认" style="cursor:pointer;font-size:11px">↺</span>
+									<el-input-number v-model="vatRate" :min="0" :step="0.1" :precision="1" :controls="false" size="small" style="width:70px"><template #suffix>% <span @click="resetVatRate" title="重置" style="cursor:pointer;font-size:11px">↺</span></template></el-input-number>
 								</label>
 								<label v-if="vatMode === 'fixed'">
 									<el-input-number v-model="vatAmount" :min="0" :step="1" :precision="2" :controls="false" size="small" style="width:100px"><template #suffix>万元</template></el-input-number>
@@ -411,7 +410,7 @@
 									<el-radio-button label="fixed">定额</el-radio-button>
 								</el-radio-group>
 								<label v-if="pitMode === 'percent'">
-									<el-input-number v-model="pitRate" :min="0" :step="0.1" :precision="1" :controls="false" size="small" style="width:70px"><template #suffix>% <span @click="resetPitRate" title="重置" style="cursor:pointer;font-size:11px">↺</span></template></el-input-number> title="重置为默认" style="cursor:pointer;font-size:11px">↺</span>
+									<el-input-number v-model="pitRate" :min="0" :step="0.1" :precision="1" :controls="false" size="small" style="width:70px"><template #suffix>% <span @click="resetPitRate" title="重置" style="cursor:pointer;font-size:11px">↺</span></template></el-input-number>
 								</label>
 								<label v-if="pitMode === 'fixed'">
 									<el-input-number v-model="pitAmount" :min="0" :step="1" :precision="2" :controls="false" size="small" style="width:100px"><template #suffix>万元</template></el-input-number>
@@ -429,7 +428,7 @@
 									<el-radio-button label="fixed">定额</el-radio-button>
 								</el-radio-group>
 								<label v-if="fundMode === 'percent'">
-									<el-input-number v-model="fundUnitPrice" :min="0" :step="1" :precision="0" :controls="false" size="small" style="width:70px"><template #suffix>元/㎡ <span @click="resetFundPrice" title="重置" style="cursor:pointer;font-size:11px">↺</span></template></el-input-number> title="重置为默认" style="cursor:pointer;font-size:11px">↺</span>
+									<el-input-number v-model="fundUnitPrice" :min="0" :step="1" :precision="0" :controls="false" size="small" style="width:70px"><template #suffix>元/㎡ <span @click="resetFundPrice" title="重置" style="cursor:pointer;font-size:11px">↺</span></template></el-input-number>
 								</label>
 								<label v-if="fundMode === 'fixed'">
 									<el-input-number v-model="fundAmount" :min="0" :step="1" :precision="2" :controls="false" size="small" style="width:100px"><template #suffix>万元</template></el-input-number>
@@ -457,9 +456,8 @@
 								</el-radio-group>
 								<label v-if="stampMode === 'percent'">
 									<el-input-number v-model="stampRate" :min="0" :step="0.01" :precision="2" :controls="false" size="small" style="width:80px">
-										<template #suffix>%</template>
+										<template #suffix>% <span @click="resetStampRate" title="重置为默认" style="cursor:pointer;font-size:11px">↺</span></template>
 									</el-input-number>
-									<span @click="resetStampRate" title="重置为默认" style="cursor:pointer;font-size:11px">↺</span>
 								</label>
 								<label v-if="stampMode === 'fixed'">
 									<el-input-number v-model="stampAmount" :min="0" :step="0.01" :precision="2" :controls="false" size="small" style="width:100px">
