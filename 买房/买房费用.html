@@ -378,30 +378,7 @@
 					</el-radio-group>
 				</div>
 
-				<hr class="section divider">
-
-				<div class="form row">
-					<label>首付比例</label>
-					<el-radio-group v-model="downPaymentMode" size="small">
-						todo：“自动”也是按比例，是没有必要的选项，还隐藏了信息。
-						<el-radio-button label="auto">自动</el-radio-button>
-						<el-radio-button label="percent">比例</el-radio-button>
-						<el-radio-button label="fixed">定额</el-radio-button>
-					</el-radio-group>
-					<label v-if="downPaymentMode === 'percent'">
-						<el-input-number v-model="downPaymentRate" :min="0" :step="1" :precision="0" :controls="false" size="small">
-							<template #suffix>% <span @click="resetDownPaymentRate" title="重置为政策默认" style="cursor:pointer">↺</span></template>
-						</el-input-number>
-						<span class="fee result">= {{ (totalPrice * downPaymentRate / 100).toFixed(2) }}万</span>
-					</label>
-					<label v-if="downPaymentMode === 'fixed'">
-						<el-input-number v-model="downPaymentAmount" :min="0" :step="1" :precision="2" :controls="false" size="small">
-							<template #suffix>万元</template>
-						</el-input-number>
-					</label>
-				</div>
-
-				<!-- 小结 -->
+				<!-- 小结 --> -->
 				<div class="hint bar">💡 {{ hintText }}</div>
 
 							</div>
@@ -416,6 +393,33 @@
 						</tr>
 					</thead>
 					<tbody>
+						<tr class="dp row">
+							<td>
+								首付
+								<div style="font-size:11px;color:#909399">最低 {{ policyDownPaymentRate }}%（{{ dpReason }}）</div>
+							</td>
+							<td style="text-align:right">
+								<el-radio-group v-model="downPaymentMode" size="small">
+									<el-radio-button label="percent">比例</el-radio-button>
+									<el-radio-button label="fixed">定额</el-radio-button>
+								</el-radio-group>
+								<label v-if="downPaymentMode === 'percent'">
+									<el-input-number v-model="downPaymentRate" :min="0" :step="1" :precision="0" :controls="false" size="small" style="width:70px">
+										<template #suffix>%</template>
+									</el-input-number>
+									<span @click="resetDownPaymentRate" title="重置为政策最低" style="cursor:pointer;font-size:11px">↺</span>
+									<span class="fee result">= {{ (totalPrice * downPaymentRate / 100).toFixed(2) }}万</span>
+								</label>
+								<label v-if="downPaymentMode === 'fixed'">
+									<el-input-number v-model="downPaymentAmount" :min="0" :step="1" :precision="2" :controls="false" size="small" style="width:100px">
+										<template #suffix>万元</template>
+									</el-input-number>
+								</label>
+							</td>
+							<td style="text-align:right;color:#909399;font-size:11px">
+								{{ (downPayment / totalCash * 100).toFixed(1) }}%
+							</td>
+						</tr>
 						<tr v-for="item in feeItems" :key="item.name">
 							<td>{{ item.name }}</td>
 							<td style="text-align:right">
@@ -694,7 +698,6 @@
 
 			feeItems() {
 				const items = [
-					{name: '首付', value: this.downPayment},
 					{name: '契税', value: this.deedTax},
 				];
 
@@ -719,7 +722,7 @@
 			},
 
 			totalCash() {
-				return this.feeItems.reduce((sum, item) => sum + item.value, 0);
+				return this.downPayment + this.feeItems.reduce((sum, item) => sum + item.value, 0);
 			},
 
 			// --- 贷款计算 ---
