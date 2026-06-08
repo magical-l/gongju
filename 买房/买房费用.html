@@ -287,31 +287,23 @@
 					</div>
 				</div>
 
-				<div class="form row , flex single-line items-go-x items-y-near-center">
-					<div class="field">
-						<el-radio-group v-model="houseType">
-							<el-radio-button label="new">新房</el-radio-button>
-							<el-radio-button label="second">二手房</el-radio-button>
-						</el-radio-group>
-					</div>
-					<div class="flex items-go-y" v-if="houseType === 'second'">
+				<div class="form row">
+					<el-radio-group v-model="houseType">
+						<el-radio-button label="new">新房</el-radio-button>
+						<el-radio-button label="second">二手房</el-radio-button>
+					</el-radio-group>
+					<template v-if="houseType === 'second'">
 						<div class="field">
-							<span>个税</span>
 							<el-radio-group v-model="pitMode" size="small">
-								<el-radio-button label="exempt">免付</el-radio-button>
+								<el-radio-button label="exempt">个税免付</el-radio-button>
 								<el-radio-button label="percent">比例</el-radio-button>
 								<el-radio-button label="fixed">定额</el-radio-button>
 							</el-radio-group>
 							<label v-if="pitMode === 'percent'">
 								<el-input-number v-model="pitRate" :min="0" :step="0.1" :precision="1" :controls="false" size="small">
-									<template #suffix>%</template>
+									<template #suffix>% <span @click="resetPitRate" title="重置为政策默认" style="cursor:pointer">↺</span></template>
 								</el-input-number>
-								<el-button size="small" @click="resetPitRate" title="重置为政策默认">↺</el-button>
-							</label>
-							<label v-if="pitMode === 'percent'">
-								<el-input-number :model-value="totalPrice * pitRate / 100" :precision="2" disabled size="small">
-									<template #suffix>万元</template>
-								</el-input-number>
+								<span class="fee result">= {{ (totalPrice * pitRate / 100).toFixed(2) }}万</span>
 							</label>
 							<label v-if="pitMode === 'fixed'">
 								<el-input-number v-model="pitAmount" :min="0" :step="1" :precision="2" :controls="false" size="small">
@@ -320,22 +312,16 @@
 							</label>
 						</div>
 						<div class="field">
-							<span>增值税</span>
 							<el-radio-group v-model="vatMode" size="small">
-								<el-radio-button label="exempt">免付</el-radio-button>
+								<el-radio-button label="exempt">增值税免付</el-radio-button>
 								<el-radio-button label="percent">比例</el-radio-button>
 								<el-radio-button label="fixed">定额</el-radio-button>
 							</el-radio-group>
 							<label v-if="vatMode === 'percent'">
 								<el-input-number v-model="vatRate" :min="0" :step="0.1" :precision="1" :controls="false" size="small">
-									<template #suffix>%</template>
+									<template #suffix>% <span @click="resetVatRate" title="重置为政策默认" style="cursor:pointer">↺</span></template>
 								</el-input-number>
-								<el-button size="small" @click="resetVatRate" title="重置为政策默认">↺</el-button>
-							</label>
-							<label v-if="vatMode === 'percent'">
-								<el-input-number :model-value="totalPrice * vatRate / 100" :precision="2" disabled size="small">
-									<template #suffix>万元</template>
-								</el-input-number>
+								<span class="fee result">= {{ (totalPrice * vatRate / 100).toFixed(2) }}万</span>
 							</label>
 							<label v-if="vatMode === 'fixed'">
 								<el-input-number v-model="vatAmount" :min="0" :step="1" :precision="2" :controls="false" size="small">
@@ -344,22 +330,16 @@
 							</label>
 						</div>
 						<div class="field">
-							<span>中介费</span>
 							<el-radio-group v-model="agencyMode" size="small">
-								<el-radio-button label="exempt">免付</el-radio-button>
+								<el-radio-button label="exempt">中介免付</el-radio-button>
 								<el-radio-button label="percent">比例</el-radio-button>
 								<el-radio-button label="fixed">定额</el-radio-button>
 							</el-radio-group>
 							<label v-if="agencyMode === 'percent'">
 								<el-input-number v-model="agencyRate" :min="0" :step="0.1" :precision="1" :controls="false" size="small">
-									<template #suffix>%</template>
+									<template #suffix>% <span @click="resetAgencyRate" title="重置为政策默认" style="cursor:pointer">↺</span></template>
 								</el-input-number>
-								<el-button size="small" @click="resetAgencyRate" title="重置为政策默认">↺</el-button>
-							</label>
-							<label v-if="agencyMode === 'percent'">
-								<el-input-number :model-value="totalPrice * agencyRate / 100" :precision="2" disabled size="small">
-									<template #suffix>万元</template>
-								</el-input-number>
+								<span class="fee result">= {{ (totalPrice * agencyRate / 100).toFixed(2) }}万</span>
 							</label>
 							<label v-if="agencyMode === 'fixed'">
 								<el-input-number v-model="agencyAmount" :min="0" :step="1" :precision="2" :controls="false" size="small">
@@ -367,10 +347,10 @@
 								</el-input-number>
 							</label>
 						</div>
-					</div>
+					</template>
 				</div>
 
-								<!-- 资格 -->
+												<!-- 资格 -->
 				<div class="form row">
 					<el-radio-group v-model="homeCount"style="flex:auto">
 						<el-radio-button label="first">首套</el-radio-button>
@@ -545,12 +525,12 @@
 				isStandardHouse: 'auto', // 'standard' | 'nonStandard' | 'auto'
 
 				// 二手房税费 — 个税
-				pitMode: 'exempt',      // 'exempt' | 'percent' | 'fixed'
+				pitMode: 'percent',     // 'exempt' | 'percent' | 'fixed'
 				pitRate: 1,             // 比例模式下的默认税率（%），普通1非普通2
 				pitAmount: 0,           // 定额模式下的金额（万元）
 
 				// 二手房税费 — 增值税
-				vatMode: 'exempt',      // 'exempt' | 'percent' | 'fixed'
+				vatMode: 'percent',     // 'exempt' | 'percent' | 'fixed'
 				vatRate: 5.3,           // 比例模式下的默认税率（%）
 				vatAmount: 0,           // 定额模式下的金额（万元）
 
