@@ -404,7 +404,47 @@
 				<!-- 小结 -->
 				<div class="hint bar">💡 {{ hintText }}</div>
 
-				<!-- 贷款类型 -->
+							</div>
+<!-- 费用明细 -->
+			<div class="fee card">
+				<table>
+					<thead>
+						<tr>
+							<th>费用项</th>
+							<th style="text-align:right">金额</th>
+							<th style="text-align:right;width:60px">占比</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="item in feeItems" :key="item.name">
+							<td>{{ item.name }}</td>
+							<td style="text-align:right">
+								<span v-if="item.exempt" style="color:#67c23a">免征</span>
+								<span v-else-if="item.value === 0 && item.zeroMeansNA" style="color:#c0c4cc">不适用</span>
+								<span v-else>{{ item.value.toFixed(2) }}万</span>
+							</td>
+							<td style="text-align:right;color:#909399;font-size:11px">
+								<span v-if="!item.exempt && item.value > 0">{{ (item.value / totalCash * 100).toFixed(1) }}%</span>
+								<span v-else>—</span>
+							</td>
+						</tr>
+					</tbody>
+					<tfoot>
+						<tr class="total row">
+							<td style="font-weight:600">💰 现金支出合计</td>
+							<td class="amount" style="text-align:right">{{ totalCash.toFixed(2) }}万</td>
+							<td></td>
+						</tr>
+					</tfoot>
+				</table>
+			</div>
+
+						</section>
+
+			<!-- 右栏：贷款区 -->
+			<section class="output area">
+				<div class="param card">
+<!-- 贷款类型 -->
 				<div class="form row">
 					<label class="field" style="flex:auto">贷款类型
 						<el-radio-group v-model="loanType" size="small">
@@ -457,46 +497,8 @@
 						</el-radio-group>
 					</label>
 				</div>
-			</div>
-		</section>
-
-		<!-- 右栏：结果区 -->
-		<section class="output area">
-			<!-- 费用明细 -->
-			<div class="fee card">
-				<table>
-					<thead>
-						<tr>
-							<th>费用项</th>
-							<th style="text-align:right">金额</th>
-							<th style="text-align:right;width:60px">占比</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr v-for="item in feeItems" :key="item.name">
-							<td>{{ item.name }}</td>
-							<td style="text-align:right">
-								<span v-if="item.exempt" style="color:#67c23a">免征</span>
-								<span v-else-if="item.value === 0 && item.zeroMeansNA" style="color:#c0c4cc">不适用</span>
-								<span v-else>{{ item.value.toFixed(2) }}万</span>
-							</td>
-							<td style="text-align:right;color:#909399;font-size:11px">
-								<span v-if="!item.exempt && item.value > 0">{{ (item.value / totalCash * 100).toFixed(1) }}%</span>
-								<span v-else>—</span>
-							</td>
-						</tr>
-					</tbody>
-					<tfoot>
-						<tr class="total row">
-							<td style="font-weight:600">💰 现金支出合计</td>
-							<td class="amount" style="text-align:right">{{ totalCash.toFixed(2) }}万</td>
-							<td></td>
-						</tr>
-					</tfoot>
-				</table>
-			</div>
-
-			<!-- 贷款结果 -->
+				</div>
+<!-- 贷款结果 -->
 			<div class="loan card">
 				<div class="kpi row">
 					<div class="kpi" v-if="fundLoanAmount > 0">
@@ -531,7 +533,8 @@
 					</div>
 				</div>
 			</div>
-		</section>
+					</section>
+
 	</article>
 </main>
 
