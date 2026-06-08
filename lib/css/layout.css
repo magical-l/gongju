@@ -126,15 +126,18 @@
 		&.items-near-left	{ justify-content: flex-end; }
 		&.items-near-bottom	{ align-content: flex-end; align-items: flex-end; }
 	}
-
-	/* ------ 贪婪：要求占满一行 ------ */
-	> .monopoly-x, &:is(.items-go-y, .items-from-top, .items-from-bottom) > .monopoly-y { flex-basis: 100%; }
-
-	/* ------ 吝啬：不压缩 ------ */
-	& .no-shrink { flex-shrink: 0; }
-
-	& .flexible { flex: 1 1 auto; align-self: stretch; min-width: 0; min-height: 0; }
+	
 }
+
+/* ------ 贪婪：要求占满一行 ------ */
+.monopoly-x,
+:is(.items-go-y, .items-from-top, .items-from-bottom) > .monopoly-y
+{ flex-basis: 100%; }
+
+.flexible { flex: 1 1 auto; align-self: stretch; min-width: 0; min-height: 0; }
+
+/* ------ 吝啬：不压缩 ------ */
+.no-shrink { flex-shrink: 0; }
 
 /* ------ 确保子元素组居中。（flex/grid）通用 ------ */
 .groups-near-center { align-content: center; }

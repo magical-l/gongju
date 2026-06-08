@@ -36,16 +36,16 @@
 		flex: 1;
 	}
 
-	label.field {
+	.field {
 		display: flex;
 		align-items: center;
 		gap: 6px;
 		color: #909399;
 		font-size: 12px;
-	}
 
-	label.field .el-input-number {
-		flex: 1;
+		& .el-input-number {
+			flex: 1;
+		}
 	}
 
 	.note.row {
@@ -65,8 +65,6 @@
 		font-size: 10px;
 		color: #909399;
 		cursor: help;
-		font-style: italic;
-		font-family: serif;
 		flex-shrink: 0;
 	}
 
@@ -249,13 +247,13 @@
 			<div class="param card">
 				<div class="form row">
 					<label class="field flexible">
-						<el-input-number v-model="area" :min="1" :step="5" :controls="false" size="default">
+						<el-input-number v-model="area" :min="1" :step="5" :controls="false">
 							<template #prefix>面积</template>
 							<template #suffix>㎡</template>
 						</el-input-number>
 					</label>
 					<label class="field flexible">
-						<el-input-number v-model="totalPrice" :min="1" :step="10" :controls="false" size="default">
+						<el-input-number v-model="totalPrice" :min="1" :step="10" :controls="false">
 							<template #prefix>总价</template>
 							<template #suffix>万元</template>
 						</el-input-number>
@@ -327,13 +325,13 @@
 				<!-- 公积金参数（组合贷或纯公积金时显示） -->
 				<div class="form row" v-if="loanType !== 'commercial'">
 					<label class="field">
-						<el-input-number v-model="fundAmount" :min="0" :step="5" :controls="false" size="default">
+						<el-input-number v-model="fundAmount" :min="0" :step="5" :controls="false">
 							<template #prefix>公积金贷款</template>
 							<template #suffix>万元</template>
 						</el-input-number>
 					</label>
 					<label class="field">
-						<el-input-number v-model="fundRate" :min="0" :step="0.01" :precision="2" :controls="false" size="default">
+						<el-input-number v-model="fundRate" :min="0" :step="0.01" :precision="2" :controls="false">
 							<template #prefix>公积金利率</template>
 							<template #suffix>%</template>
 						</el-input-number>
@@ -343,7 +341,7 @@
 				<!-- 商贷利率 + 年限 -->
 				<div class="form row">
 					<label class="field" v-if="loanType !== 'fund'">
-						<el-input-number v-model="commercialRate" :min="0" :step="0.01" :precision="2" :controls="false" size="default">
+						<el-input-number v-model="commercialRate" :min="0" :step="0.01" :precision="2" :controls="false">
 							<template #prefix>商贷利率</template>
 							<template #suffix>%</template>
 						</el-input-number>
