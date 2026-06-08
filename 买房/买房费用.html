@@ -321,19 +321,17 @@
 							<th>费用项</th>
 							<th>说明</th>
 							<th></th>
+							<th></th>
 							<th style="text-align:right">金额</th>
 							<th style="text-align:right">占比</th>
 						</tr>
 					</thead>
-					<tbody style="vertical-align:top">
+					<tbody class="items-y-near-center">
 						<tr class="dp row">
 							<td>首付</td>
 							<td style="font-size:11px;color:#909399">最低 {{ policyDownPaymentRate }}%（{{ dpReason }}）</td>
-							<td class="flex items-go-x items-y-near-center" style="gap:6px">
-								<el-radio-group v-model="downPaymentMode" size="small">
-									<el-radio-button label="percent">比例</el-radio-button>
-									<el-radio-button label="fixed">定额</el-radio-button>
-								</el-radio-group>
+							<td><el-radio-group v-model="downPaymentMode" size="small"><el-radio-button label="percent">比例</el-radio-button><el-radio-button label="fixed">定额</el-radio-button></el-radio-group></td>
+							<td>
 								<label v-if="downPaymentMode === 'percent'">
 									<el-input-number v-model="downPaymentRate" :min="0" :step="1" :precision="0" :controls="false" size="small">
 										<template #suffix>%
@@ -353,15 +351,12 @@
 						<tr class="dp row">
 							<td>契税</td>
 							<td style="font-size:11px;color:#909399">政策 {{ (deedTaxPolicyRate * 100).toFixed(1) }}%</td>
-							<td class="flex items-go-x items-y-near-center" style="gap:6px">
-								<el-radio-group v-model="deedTaxMode" size="small">
-									<el-radio-button label="percent">比例</el-radio-button>
-									<el-radio-button label="fixed">定额</el-radio-button>
-								</el-radio-group>
+							<td><el-radio-group v-model="deedTaxMode" size="small"><el-radio-button label="percent">比例</el-radio-button><el-radio-button label="fixed">定额</el-radio-button></el-radio-group></td>
+							<td>
 								<label v-if="deedTaxMode !== 'fixed'">
 									<el-input-number v-model="deedTaxPct" :min="0" :step="0.1" :precision="1" :controls="false" size="small">
 										<template #suffix>%
-											<span v-if="deedTaxMode === 'percent'" @click="resetDeedTaxRate" title="重置为政策默认" style="cursor:pointer;font-size:11px">↺</span>
+											<span @click="resetDeedTaxRate" title="重置为政策默认" style="cursor:pointer;font-size:11px">↺</span>
 										</template>
 									</el-input-number>
 								</label>
@@ -372,17 +367,13 @@
 								</label>
 							</td>
 							<td style="text-align:right;font-weight:500">= {{ deedTax.toFixed(2) }}万</td>
-							<td style="text-align: right;color:#909399;font-size:11px">{{ (deedTax / totalCash * 100).toFixed(1) }}%</td>
+							<td style="text-align:right;color:#909399;font-size:11px">{{ (deedTax / totalCash * 100).toFixed(1) }}%</td>
 						</tr>
 						<tr v-if="houseType === 'second'" class="dp row">
 							<td>中介费</td>
 							<td style="font-size:11px;color:#909399">总价 × 费率</td>
-							<td class="flex items-go-x items-y-near-center" style="gap:6px">
-								<el-radio-group v-model="agencyMode" size="small">
-									<el-radio-button label="exempt">免付</el-radio-button>
-									<el-radio-button label="percent">比例</el-radio-button>
-									<el-radio-button label="fixed">定额</el-radio-button>
-								</el-radio-group>
+							<td><el-radio-group v-model="agencyMode" size="small"><el-radio-button label="exempt">免付</el-radio-button><el-radio-button label="percent">比例</el-radio-button><el-radio-button label="fixed">定额</el-radio-button></el-radio-group></td>
+							<td>
 								<label v-if="agencyMode === 'percent'">
 									<el-input-number v-model="agencyRate" :min="0" :step="0.1" :precision="1" :controls="false" size="small">
 										<template #suffix>%
@@ -402,12 +393,8 @@
 						<tr v-if="houseType === 'second'" class="dp row">
 							<td>增值税</td>
 							<td style="font-size:11px;color:#909399">总价 × 费率</td>
-							<td class="flex items-go-x items-y-near-center" style="gap:6px">
-								<el-radio-group v-model="vatMode" size="small">
-									<el-radio-button label="exempt">免付</el-radio-button>
-									<el-radio-button label="percent">比例</el-radio-button>
-									<el-radio-button label="fixed">定额</el-radio-button>
-								</el-radio-group>
+							<td><el-radio-group v-model="vatMode" size="small"><el-radio-button label="exempt">免付</el-radio-button><el-radio-button label="percent">比例</el-radio-button><el-radio-button label="fixed">定额</el-radio-button></el-radio-group></td>
+							<td>
 								<label v-if="vatMode === 'percent'">
 									<el-input-number v-model="vatRate" :min="0" :step="0.1" :precision="1" :controls="false" size="small">
 										<template #suffix>%
@@ -427,12 +414,8 @@
 						<tr v-if="houseType === 'second'" class="dp row">
 							<td>个税</td>
 							<td style="font-size:11px;color:#909399">总价 × 费率</td>
-							<td class="flex items-go-x items-y-near-center" style="gap:6px">
-								<el-radio-group v-model="pitMode" size="small">
-									<el-radio-button label="exempt">免付</el-radio-button>
-									<el-radio-button label="percent">比例</el-radio-button>
-									<el-radio-button label="fixed">定额</el-radio-button>
-								</el-radio-group>
+							<td><el-radio-group v-model="pitMode" size="small"><el-radio-button label="exempt">免付</el-radio-button><el-radio-button label="percent">比例</el-radio-button><el-radio-button label="fixed">定额</el-radio-button></el-radio-group></td>
+							<td>
 								<label v-if="pitMode === 'percent'">
 									<el-input-number v-model="pitRate" :min="0" :step="0.1" :precision="1" :controls="false" size="small">
 										<template #suffix>%
@@ -452,11 +435,8 @@
 						<tr v-if="houseType === 'new'" class="dp row">
 							<td>维修基金</td>
 							<td style="font-size:11px;color:#909399">面积 × 单价</td>
-							<td class="flex items-go-x items-y-near-center" style="gap:6px">
-								<el-radio-group v-model="fundMode" size="small">
-									<el-radio-button label="percent">比例</el-radio-button>
-									<el-radio-button label="fixed">定额</el-radio-button>
-								</el-radio-group>
+							<td><el-radio-group v-model="fundMode" size="small"><el-radio-button label="percent">比例</el-radio-button><el-radio-button label="fixed">定额</el-radio-button></el-radio-group></td>
+							<td>
 								<label v-if="fundMode === 'percent'">
 									<el-input-number v-model="fundUnitPrice" :min="0" :step="1" :precision="0" :controls="false" size="small">
 										<template #suffix>元/㎡
@@ -475,13 +455,28 @@
 						</tr>
 						<tr class="dp row">
 							<td>登记费</td>
-							<td style="font-size:11px;color:#909399">固定</td>
-							<td class="flex items-go-x items-y-near-center" style="gap:6px">
-								<el-input-number v-model="regFeeAmount" :min="0" :step="0.001" :precision="3" :controls="false" size="small">
-									<template #suffix>万元
-										<span @click="resetRegFee" title="重置为默认" style="cursor:pointer;font-size:11px">↺</span>
-									</template>
-								</el-input-number>
+							<td style="font-size:11px;color:#909399">固定 80元</td>
+							<td>
+								<el-radio-group v-model="regFeeMode" size="small">
+									<el-radio-button label="percent">比例</el-radio-button>
+									<el-radio-button label="fixed">定额</el-radio-button>
+								</el-radio-group>
+							</td>
+							<td>
+								<label v-if="regFeeMode === 'fixed'">
+									<el-input-number v-model="regFeeAmount" :min="0" :step="0.001" :precision="3" :controls="false" size="small">
+										<template #suffix>万元
+											<span @click="resetRegFee" title="重置" style="cursor:pointer;font-size:11px">↺</span>
+										</template>
+									</el-input-number>
+								</label>
+								<label v-if="regFeeMode === 'percent'">
+									<el-input-number v-model="regFeeRate" :min="0" :step="0.001" :precision="3" :controls="false" size="small">
+										<template #suffix>%
+											<span @click="resetRegFee" title="重置" style="cursor:pointer;font-size:11px">↺</span>
+										</template>
+									</el-input-number>
+								</label>
 							</td>
 							<td style="text-align:right;font-weight:500">= {{ regFeeAmount.toFixed(3) }}万</td>
 							<td style="text-align:right;color:#909399;font-size:11px">{{ (regFeeAmount / totalCash * 100).toFixed(2) }}%</td>
@@ -489,15 +484,12 @@
 						<tr class="dp row">
 							<td>印花税</td>
 							<td style="font-size:11px;color:#909399">总价 × 费率</td>
-							<td class="flex items-go-x items-y-near-center" style="gap:6px">
-								<el-radio-group v-model="stampMode" size="small">
-									<el-radio-button label="percent">比例</el-radio-button>
-									<el-radio-button label="fixed">定额</el-radio-button>
-								</el-radio-group>
+							<td><el-radio-group v-model="stampMode" size="small"><el-radio-button label="percent">比例</el-radio-button><el-radio-button label="fixed">定额</el-radio-button></el-radio-group></td>
+							<td>
 								<label v-if="stampMode === 'percent'">
 									<el-input-number v-model="stampRate" :min="0" :step="0.01" :precision="2" :controls="false" size="small">
 										<template #suffix>%
-											<span @click="resetStampRate" title="重置为默认" style="cursor:pointer;font-size:11px">↺</span>
+											<span @click="resetStampRate" title="重置" style="cursor:pointer;font-size:11px">↺</span>
 										</template>
 									</el-input-number>
 								</label>
@@ -513,7 +505,7 @@
 					</tbody>
 					<tfoot>
 						<tr class="total row">
-							<td style="font-weight:600" colspan="3">💰 现金支出合计</td>
+							<td style="font-weight:600" colspan="4">💰 现金支出合计</td>
 							<td class="amount" style="text-align:right;font-weight:700;font-size:16px;color:#409eff">= {{ totalCash.toFixed(2) }}万</td>
 							<td></td>
 						</tr>
@@ -645,7 +637,9 @@
 				isStandardHouse: 'auto', // 'standard' | 'nonStandard' | 'auto'
 
 				// 登记费（万元）
-				regFeeAmount: 0.008,      // 固定 80元
+				regFeeMode: 'fixed',      // 'fixed' | 'percent'
+				regFeeRate: 0.001,       // 比例模式（%）
+				regFeeAmount: 0.008,      // 定额模式（万元）
 
 				// 印花税
 				stampMode: 'percent',     // 'percent' | 'fixed'
@@ -761,7 +755,8 @@
 
 			// 登记费（万元）
 			registrationFee() {
-				return 80 / 10000;
+				if (this.regFeeMode === 'percent') return this.totalPrice * this.regFeeRate / 100;
+				return this.regFeeAmount;
 			},
 
 			// 印花税（万元）
@@ -804,7 +799,7 @@
 			},
 
 			totalCash() {
-				return this.downPayment + this.deedTax + this.agencyFee + this.vat + this.pit + this.maintenanceFund + this.regFeeAmount + this.stampDuty + this.feeItems.reduce((sum, item) => sum + item.value, 0);
+				return this.downPayment + this.deedTax + this.agencyFee + this.vat + this.pit + this.maintenanceFund + this.registrationFee + this.stampDuty + this.feeItems.reduce((sum, item) => sum + item.value, 0);
 			},
 
 			// --- 贷款计算 ---
@@ -913,7 +908,7 @@
 			resetDeedTaxRate() { this.deedTaxPct = this.deedTaxPolicyRate * 100; },
 			resetFundPrice() { this.fundUnitPrice = 80; },
 			resetStampRate() { this.stampRate = 0.05; },
-			resetRegFee() { this.regFeeAmount = 0.008; },
+			resetRegFee() { this.regFeeAmount = 0.008; this.regFeeRate = 0.001; },
 		},
 
 		watch: {
