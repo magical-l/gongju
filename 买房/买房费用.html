@@ -292,7 +292,7 @@
 						<el-radio-button label="new">新房</el-radio-button>
 						<el-radio-button label="second">二手房</el-radio-button>
 					</el-radio-group>
-					<template v-if="houseType === 'second'">
+					<div class="flex items-go-y" v-if="houseType === 'second'">
 						<div class="field">
 							<el-radio-group v-model="pitMode" size="small">
 								<el-radio-button label="exempt">个税免付</el-radio-button>
@@ -347,7 +347,7 @@
 								</el-input-number>
 							</label>
 						</div>
-					</template>
+					</div>
 				</div>
 
 												<!-- 资格 -->
