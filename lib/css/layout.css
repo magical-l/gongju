@@ -8,6 +8,8 @@
 	--left-sidebar-max-width: var(--sidebar-max-width);
 	--right-sidebar-min-width: var(--sidebar-min-width);
 	--right-sidebar-max-width: var(--sidebar-max-width);
+	--peng-left-col: 1fr;
+	--peng-right-col: 1fr;
 }
 
 /* ============================== 布局 ============================== */
@@ -441,7 +443,7 @@
 /* ------ "朋字形"布局，无顶部底部，只有左右两栏均分。 ------ */
 .朋字形 {
 	display: grid;
-	grid-template-columns: 1fr 1fr;
+	grid-template-columns: var(--peng-left-col) var(--peng-right-col);
 	grid-template-areas: 'left right';
 	> .near-left { grid-area: left; margin: 0; justify-self: auto; }
 	> .near-right { grid-area: right; margin: 0; justify-self: auto; }
