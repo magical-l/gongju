@@ -290,50 +290,32 @@
 						<el-radio-group v-model="isStandardHouse">
 							<el-radio-button label="standard">普通住宅</el-radio-button>
 							<el-radio-button label="nonStandard">非普通住宅</el-radio-button>
-							<el-radio-button label="auto" checked>自动判断</el-radio-button>
+							<el-tooltip placement="top">
+								<template #content>
+									<span v-if="area <= 90">面积 ≤ 90㎡，普通住宅</span>
+									<span v-else-if="area <= 140">面积 90~140㎡，内外环决定普通/非普通</span>
+									<span v-else>面积 > 140㎡，非普通住宅</span>
+								</template>
+								<el-radio-button label="auto" checked>自动判断</el-radio-button>
+							</el-tooltip>
 						</el-radio-group>
 						<span>影响：契税、个税税率</span>
-						<el-tooltip placement="top">
-							<span class="info icon">i</span>
-							<template #content>
-								<span v-if="area <= 90">面积 ≤ 90㎡，普通住宅</span>
-								<span v-else-if="area <= 140">面积 90~140㎡，内外环决定普通/非普通</span>
-								<span v-else>面积 > 140㎡，非普通住宅</span>
-							</template>
-						</el-tooltip>
 					</div>
 				</div>
-
 				<div class="form row">
 					<el-radio-group v-model="houseType">
 						<el-radio-button label="new">新房</el-radio-button>
 						<el-radio-button label="second">二手房</el-radio-button>
 					</el-radio-group>
-					
-				</div>
-
-				<!-- 资格 -->
-				<div class="form row">
-					<el-radio-group v-model="homeCount"style="flex:auto">
+					<el-radio-group v-model="homeCount">
 						<el-radio-button label="first">首套</el-radio-button>
 						<el-radio-button label="second">二套</el-radio-button>
 					</el-radio-group>
 				</div>
-
-				<!-- 小结 --> -->
-				<div class="hint bar">💡 {{ hintText }}</div>
-
-							</div>
-<!-- 费用明细 -->
+			</div>
+			<!-- 费用明细 -->
 			<div class="fee card">
-				<table>
-					<colgroup>
-						<col style="width:50px">
-						<col>
-						<col style="width:170px">
-						<col style="width:100px">
-						<col>
-					</colgroup>
+				<table style="width: 100%;">
 					<thead>
 						<tr>
 							<th>费用项</th>
@@ -501,15 +483,14 @@
 					</tfoot>
 				</table>
 			</div>
+		</section>
 
-						</section>
-
-			<!-- 右栏：贷款区 -->
-			<section class="output area">
-				<div class="param card">
-<!-- 贷款类型 -->
+		<!-- 右栏：贷款区 -->
+		<section class="output area">
+			<div class="param card">
+				<!-- 贷款类型 -->
 				<div class="form row">
-					<label class="field" style="flex:auto">贷款类型
+					<label class="field">贷款类型
 						<el-radio-group v-model="loanType" size="small">
 							<el-radio-button label="combo">组合贷</el-radio-button>
 							<el-radio-button label="commercial">纯商贷</el-radio-button>
@@ -560,8 +541,8 @@
 						</el-radio-group>
 					</label>
 				</div>
-				</div>
-<!-- 贷款结果 -->
+			</div>
+			<!-- 贷款结果 -->
 			<div class="loan card">
 				<div class="kpi row">
 					<div class="kpi" v-if="fundLoanAmount > 0">
@@ -596,8 +577,7 @@
 					</div>
 				</div>
 			</div>
-					</section>
-
+		</section>
 	</article>
 </main>
 
