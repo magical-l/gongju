@@ -365,6 +365,26 @@
 					</el-radio-group>
 				</div>
 
+				<div class="form row">
+					<label>首付比例</label>
+					<el-radio-group v-model="downPaymentMode" size="small">
+						<el-radio-button label="auto">自动</el-radio-button>
+						<el-radio-button label="percent">按比例</el-radio-button>
+						<el-radio-button label="fixed">按定额</el-radio-button>
+					</el-radio-group>
+					<label v-if="downPaymentMode === 'percent'">
+						<el-input-number v-model="downPaymentRate" :min="0" :step="1" :precision="0" :controls="false" size="small">
+							<template #suffix>% <span @click="resetDownPaymentRate" title="重置为政策默认" style="cursor:pointer">↺</span></template>
+						</el-input-number>
+						<span class="fee result">= {{ (totalPrice * downPaymentRate / 100).toFixed(2) }}万</span>
+					</label>
+					<label v-if="downPaymentMode === 'fixed'">
+						<el-input-number v-model="downPaymentAmount" :min="0" :step="1" :precision="2" :controls="false" size="small">
+							<template #suffix>万元</template>
+						</el-input-number>
+					</label>
+				</div>
+
 				<!-- 小结 -->
 				<div class="hint bar">💡 {{ hintText }}</div>
 
@@ -531,6 +551,11 @@
 				location: 'outer',     // 'outer' (外环外) | 'inner' (外环内)
 				isStandardHouse: 'auto', // 'standard' | 'nonStandard' | 'auto'
 
+				// 首付
+				downPaymentMode: 'auto',  // 'auto' | 'percent' | 'fixed'
+				downPaymentRate: 20,       // 手动比例（%）
+				downPaymentAmount: 0,      // 手动定额（万元）
+
 				// 二手房税费 — 个税（买方承担）
 				pitMode: 'percent',     // 'exempt' | 'percent' | 'fixed'
 				pitRate: 1,             // 比例模式下的默认税率（%），普通1非普通2
@@ -570,6 +595,8 @@
 
 			// 首付比例
 			downPaymentRatio() {
+				if (this.downPaymentMode === 'percent') return this.downPaymentRate / 100;
+				if (this.downPaymentMode === 'fixed') return 0;
 				if (this.homeCount === 'first') {
 					return this.location === 'outer' ? 0.20 : 0.25;
 				}
@@ -586,6 +613,7 @@
 
 			// 首付金额（万元）
 			downPayment() {
+				if (this.downPaymentMode === 'fixed') return this.downPaymentAmount;
 				return this.totalPrice * this.downPaymentRatio;
 			},
 
@@ -769,6 +797,7 @@
 			resetPitRate() { this.pitRate = this.isStandard ? 1 : 2; },
 			resetVatRate() { this.vatRate = 5.3; },
 			resetAgencyRate() { this.agencyRate = 2; },
+			resetDownPaymentRate() { this.downPaymentRate = this.homeCount === 'first' ? (this.location === 'outer' ? 20 : 25) : (this.location === 'outer' ? 30 : 35); },
 		},
 
 		watch: {
@@ -785,6 +814,9 @@
 			// 普通/非普通切换时，若个税为比例模式则更新默认税率
 			isStandard(val) {
 				if (this.pitMode === 'percent') this.pitRate = val ? 1 : 2;
+			},
+			downPaymentMode(val) {
+				if (val === 'percent') this.resetDownPaymentRate();
 			},
 		},
 
