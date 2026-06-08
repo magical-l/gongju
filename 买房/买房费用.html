@@ -19,8 +19,8 @@
 <link href="../lib/css/花活.css" rel="stylesheet">
 <style>
 		:root {
-			--left-col-max-width: 3fr;
-			--right-col-max-width: 2fr;
+			--left-col-max-width: 240px;
+			--right-col-max-width: 1fr;
 		}
 	/* 输入卡片 */
 	.param.card {
@@ -290,7 +290,7 @@
 		</div>
 	</header>
 	<article class="朋字形" style="gap: 20px;" v-cloak>
-		<!-- 左栏：输入区 -->
+		<!-- 左栏：输入参数 -->
 		<section class="input area">
 			<div class="param card">
 				<div class="form row">
@@ -345,6 +345,11 @@
 					</el-radio-group>
 				</div>
 			</div>
+
+		</section>
+
+		<!-- 主栏：费用+贷款 -->
+		<section class="output area">
 			<!-- 费用明细 -->
 			<div class="fee card">
 				<table style="width: 100%;">
@@ -599,10 +604,7 @@
 					</tfoot>
 				</table>
 			</div>
-		</section>
 
-		<!-- 右栏：贷款区 -->
-		<section class="output area">
 			<div class="param card">
 				<!-- 年限 + 还款 -->
 				<div class="form row">
