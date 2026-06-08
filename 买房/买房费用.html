@@ -662,7 +662,7 @@
 						<tr class="total dp row">
 							<td style="font-weight:600">综合</td>
 							<td style="text-align:right;font-weight:700">{{ (fundLoanAmount + commercialLoanAmount).toFixed(0) }}</td>
-							<td style="text-align:right">todo：平均利率</td>
+							<td style="text-align:right;font-weight:500">{{ blendedRate.toFixed(2) }}%</td>
 							<td style="text-align:right;font-weight:700">{{ (totalInterest / 10000).toFixed(2) }}</td>
 							<td style="text-align:right;font-weight:700">{{ (totalRepayment / 10000).toFixed(2) }}</td>
 						</tr>
@@ -921,6 +921,12 @@
 					return this.equalInstallment(this.commercialLoanAmount, this.commercialRate, this.loanYears);
 				}
 				return this.equalPrincipalFirstMonth(this.commercialLoanAmount, this.commercialRate, this.loanYears);
+			},
+
+			blendedRate() {
+				const total = this.fundLoanAmount + this.commercialLoanAmount;
+				if (total <= 0) return 0;
+				return (this.fundLoanAmount * this.fundRate + this.commercialLoanAmount * this.commercialRate) / total;
 			},
 
 			totalInterest() {
