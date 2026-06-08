@@ -759,6 +759,7 @@
 
 			// 登记费（万元）
 			registrationFee() {
+				if (this.regFeeMode === 'exempt') return 0;
 				if (this.regFeeMode === 'percent') return this.totalPrice * this.regFeeRate / 100;
 				return this.regFeeAmount;
 			},
