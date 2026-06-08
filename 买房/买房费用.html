@@ -196,6 +196,21 @@
 	.summary & .row & .val {
 		color: #303133;
 	}
+
+	@media (max-width: 800px) {
+		.反叵字形 {
+			grid-template-columns: 1fr;
+			grid-template-areas:
+				'header'
+				'main'
+				'right-sidebar'
+				'footer';
+		}
+
+		.反叵字形 > .sidebar.near-right {
+			max-width: none;
+		}
+	}
 </style>
 </head>
 <body class="反叵字形">
