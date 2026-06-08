@@ -243,16 +243,39 @@
 }
 
 /* ======================== Table 修饰 ======================== */
-.table {
+/* table级 */
+table, .table {
 	&.items-near-left	{ & td, & th { text-align: left; } }
-	&.items-near-right { & td, & th { text-align: right; } }
-	&.items-near-top	 { & td, & th { vertical-align: top; } }
-	&.items-near-bottom{ & td, & th { vertical-align: bottom; } }
+	&.items-near-right	{ & td, & th { text-align: right; } }
+	&.items-near-top	{ & td, & th { vertical-align: top; } }
+	&.items-near-bottom	{ & td, & th { vertical-align: bottom; } }
 
 	&.items-from-right {
 		direction: rtl;
 		& td, & th { direction: ltr; }
 	}
+}
+
+/* 行/组级 —— 作用于子单元格 */
+tr, thead, tbody, tfoot {
+	&.items-near-left	{ > td, > th { text-align: left; } }
+	&.items-near-right	{ > td, > th { text-align: right; } }
+	&.items-near-top	{ > td, > th { vertical-align: top; } }
+	&.items-near-bottom	{ > td, > th { vertical-align: bottom; } }
+
+	&.items-from-right {
+		direction: rtl;
+		& > td, & > th { direction: ltr; }
+	}
+}
+
+/* 单元格级 */
+td, th {
+	&.items-near-left	{ text-align: left; }
+	&.items-near-right { text-align: right; }
+	&.items-near-top	 { vertical-align: top; }
+	&.items-near-bottom{ vertical-align: bottom; }
+	&.items-from-right	{ direction: rtl; }
 }
 
 /* ======================== 书写模式 ======================== */
