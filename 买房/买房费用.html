@@ -294,10 +294,11 @@
 					</el-radio-group>
 					<div class="flex items-go-y" v-if="houseType === 'second'">
 						<div class="field">
+							<label>个税</label>
 							<el-radio-group v-model="pitMode" size="small">
-								<el-radio-button label="exempt">个税免付</el-radio-button>
-								<el-radio-button label="percent">比例</el-radio-button>
-								<el-radio-button label="fixed">定额</el-radio-button>
+								<el-radio-button label="exempt">买方免付</el-radio-button>
+								<el-radio-button label="percent">买方按比例</el-radio-button>
+								<el-radio-button label="fixed">买方按定额</el-radio-button>
 							</el-radio-group>
 							<label v-if="pitMode === 'percent'">
 								<el-input-number v-model="pitRate" :min="0" :step="0.1" :precision="1" :controls="false" size="small">
@@ -312,10 +313,11 @@
 							</label>
 						</div>
 						<div class="field">
+							<label>增值税</label>
 							<el-radio-group v-model="vatMode" size="small">
-								<el-radio-button label="exempt">增值税免付</el-radio-button>
-								<el-radio-button label="percent">比例</el-radio-button>
-								<el-radio-button label="fixed">定额</el-radio-button>
+								<el-radio-button label="exempt">买方免付</el-radio-button>
+								<el-radio-button label="percent">买方按比例</el-radio-button>
+								<el-radio-button label="fixed">买方按定额</el-radio-button>
 							</el-radio-group>
 							<label v-if="vatMode === 'percent'">
 								<el-input-number v-model="vatRate" :min="0" :step="0.1" :precision="1" :controls="false" size="small">
@@ -330,10 +332,11 @@
 							</label>
 						</div>
 						<div class="field">
+							<label>中介费</label>
 							<el-radio-group v-model="agencyMode" size="small">
-								<el-radio-button label="exempt">中介免付</el-radio-button>
-								<el-radio-button label="percent">比例</el-radio-button>
-								<el-radio-button label="fixed">定额</el-radio-button>
+								<el-radio-button label="exempt">买方免付</el-radio-button>
+								<el-radio-button label="percent">买方按比例</el-radio-button>
+								<el-radio-button label="fixed">买方按定额</el-radio-button>
 							</el-radio-group>
 							<label v-if="agencyMode === 'percent'">
 								<el-input-number v-model="agencyRate" :min="0" :step="0.1" :precision="1" :controls="false" size="small">
@@ -524,17 +527,17 @@
 				location: 'outer',     // 'outer' (外环外) | 'inner' (外环内)
 				isStandardHouse: 'auto', // 'standard' | 'nonStandard' | 'auto'
 
-				// 二手房税费 — 个税
+				// 二手房税费 — 个税（买方承担）
 				pitMode: 'percent',     // 'exempt' | 'percent' | 'fixed'
 				pitRate: 1,             // 比例模式下的默认税率（%），普通1非普通2
 				pitAmount: 0,           // 定额模式下的金额（万元）
 
-				// 二手房税费 — 增值税
+				// 二手房税费 — 增值税（买方承担）
 				vatMode: 'percent',     // 'exempt' | 'percent' | 'fixed'
 				vatRate: 5.3,           // 比例模式下的默认税率（%）
 				vatAmount: 0,           // 定额模式下的金额（万元）
 
-				// 二手房税费 — 中介费
+				// 二手房税费 — 中介费（买方承担）
 				agencyMode: 'percent',  // 'exempt' | 'percent' | 'fixed'
 				agencyRate: 2,          // 比例模式下的默认费率（%）
 				agencyAmount: 0,
