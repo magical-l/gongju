@@ -209,6 +209,37 @@
 		color: #303133;
 	}
 
+
+	.loan.card & table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 13px;
+	}
+
+	.loan.card & thead th {
+		text-align: left;
+		padding: 6px 0;
+		font-weight: 500;
+		color: #909399;
+	}
+
+	.loan.card & thead th:not(:first-child) {
+		text-align: right;
+	}
+
+	.loan.card & tbody td {
+		padding: 6px 0;
+		color: #303133;
+	}
+
+	.loan.card & .total.row {
+		border-top: 2px solid #303133;
+	}
+
+	.loan.card & .total.row td {
+		padding-top: 10px;
+	}
+
 </style>
 </head>
 <body class="反叵字形">
@@ -275,7 +306,7 @@
 							<template #suffix>万元</template>
 						</el-input-number>
 					</label>
-					<span>（均价：TODO）</span>
+					<span>（均价：{{ (totalPrice / area).toFixed(2) }}万元/㎡）</span>
 				</div>
 				<div class="form row">
 					<div class="field">
@@ -412,7 +443,9 @@
 						<tr v-if="houseType === 'second'" class="dp row">
 							<td>增值税</td>
 							<td style="font-size:11px;color:#909399">
-								通常 5.3%。满5唯一免付。
+								通常 5.3%
+								<br>
+								<el-checkbox v-model="vatHeld2Years" size="small" style="font-size:11px">满2免征</el-checkbox>
 							</td>
 							<td>
 								<el-radio-group v-model="vatMode" size="small">
@@ -440,7 +473,11 @@
 						</tr>
 						<tr v-if="houseType === 'second'" class="dp row">
 							<td>个税</td>
-							<td style="font-size:11px;color:#909399">普通 1% / 非普通 2%</td>
+							<td style="font-size:11px;color:#909399">
+								普通 1% / 非普通 2%
+								<br>
+								<el-checkbox v-model="pitFullFiveUnique" size="small" style="font-size:11px">满五唯一免征</el-checkbox>
+							</td>
 							<td>
 								<el-radio-group v-model="pitMode" size="small">
 									<el-radio-button label="exempt">免付</el-radio-button>
@@ -554,6 +591,11 @@
 							<td class="amount" style="text-align:right;font-weight:700;font-size:16px;color:#409eff">= {{ totalCash.toFixed(2) }}万</td>
 							<td></td>
 						</tr>
+							<tr>
+								<td style="font-weight:600" colspan="4">🏦 需贷款额度</td>
+								<td style="text-align:right;font-weight:700;font-size:16px;color:#409eff">= {{ loanPrincipal.toFixed(0) }}万</td>
+								<td></td>
+							</tr>
 					</tfoot>
 				</table>
 			</div>
@@ -562,43 +604,9 @@
 		<!-- 右栏：贷款区 -->
 		<section class="output area">
 			<div class="param card">
-				<!-- 贷款类型 -->
-				<div class="form row">
-					<label class="field">贷款类型
-						<el-radio-group v-model="loanType" size="small">
-							<el-radio-button label="combo">组合贷</el-radio-button>
-							<el-radio-button label="commercial">纯商贷</el-radio-button>
-							<el-radio-button label="fund">纯公积金</el-radio-button>
-						</el-radio-group>
-					</label>
-				</div>
-
-				<!-- 公积金参数 -->
-				<div class="form row" v-if="loanType !== 'commercial'">
-					<el-input-number v-model="fundAmount" :min="0" :step="5" :controls="false" style="flex:1">
-						<template #prefix>公积金贷款</template>
-						<template #suffix>万元</template>
-					</el-input-number>
-					<el-input-number v-model="fundRate" :min="0" :step="0.01" :precision="2" :controls="false" style="flex:1">
-						<template #prefix>公积金利率</template>
-						<template #suffix>%</template>
-					</el-input-number>
-				</div>
-
-				<!-- 商贷参数 -->
-				<div class="form row" v-if="loanType !== 'fund'">
-					<el-input-number v-model="commercialAmount" :min="0" :step="5" :controls="false" style="flex:1">
-						<template #prefix>商贷额度</template>
-						<template #suffix>万元</template>
-					</el-input-number>
-					<el-input-number v-model="commercialRate" :min="0" :step="0.01" :precision="2" :controls="false" style="flex:1">
-						<template #prefix>商贷利率</template>
-						<template #suffix>%</template>
-					</el-input-number>
-				</div>
-
 				<!-- 年限 + 还款 -->
 				<div class="form row">
+					<span>还款</span>
 					<el-radio-group v-model="loanYears" size="small">
 						<el-radio-button :label="30">30年</el-radio-button>
 						<el-radio-button :label="20">20年</el-radio-button>
@@ -609,43 +617,58 @@
 						<el-radio-button label="principal">等额本金</el-radio-button>
 					</el-radio-group>
 				</div>
-			</div>			</div>
-			<!-- 贷款结果 -->
-			<div class="loan card">
-				<div class="kpi row">
-					<div class="kpi" v-if="fundLoanAmount > 0">
-						<div class="title">公积金贷款</div>
-						<div class="value">{{ fundLoanAmount.toFixed(0) }}万</div>
-						<div class="sub">月供 {{ fundMonthly.toFixed(0) }}</div>
-					</div>
-					<div class="kpi" v-if="commercialLoanAmount > 0">
-						<div class="title">商业贷款</div>
-						<div class="value">{{ commercialLoanAmount.toFixed(0) }}万</div>
-						<div class="sub">月供 {{ commercialMonthly.toFixed(0) }}</div>
-					</div>
-					<div class="kpi">
-						<div class="title">月供合计</div>
-						<div class="value" style="color:#e6a23c">{{ (fundMonthly + commercialMonthly).toFixed(0) }}</div>
-						<div class="sub highlight">利息 {{ (totalInterest / 10000).toFixed(1) }}万</div>
-					</div>
-				</div>
-
-				<div class="summary">
-					<div class="row">
-						<span class="key">还款总额（本息）</span>
-						<span class="val">{{ (totalRepayment / 10000).toFixed(2) }}万</span>
-					</div>
-					<div class="row">
-						<span class="key">贷款年限</span>
-						<span class="val">{{ loanYears }}年（{{ loanYears * 12 }}期）</span>
-					</div>
-					<div class="row">
-						<span class="key">还款方式</span>
-						<span class="val">{{ repaymentMode === 'equal' ? '等额本息' : '等额本金（首月）' }}</span>
-					</div>
-				</div>
 			</div>
-		</section>
+			<!-- 贷款明细 -->
+			<div class="loan card">
+				<table style="width:100%">
+					<thead>
+						<tr>
+							<th>贷款类型</th>
+							<th>额度（万元）</th>
+							<th>利率（万元）</th>
+							<th>利息（万元）</th>
+							<th>本息合计（万元）</th>
+						</tr>
+					</thead>
+					<tbody class="items-y-near-center">
+						<tr class="dp row">
+							<td>公积金贷款</td>
+							<td>
+								<el-input-number v-model="fundAmount" :min="0" :step="5" :controls="false" size="small" style="width:90px">
+								</el-input-number>
+							</td>
+							<td>
+								<el-input-number v-model="fundRate" :min="0" :step="0.01" :precision="2" :controls="false" size="small" style="width:70px">
+									<template #suffix>%</template>
+								</el-input-number>
+							</td>
+							<td style="text-align:right;font-weight:500">{{ fundLoanAmount > 0 ? (fundInterest / 10000).toFixed(2) : '—' }}</td>
+							<td style="text-align:right;font-weight:500">{{ fundLoanAmount > 0 ? ((fundLoanAmount * 10000 + fundInterest) / 10000).toFixed(2) : '—' }}</td>
+						</tr>
+						<tr class="dp row">
+							<td>商业贷款</td>
+							<td>
+								<el-input-number v-model="commercialAmount" :min="0" :step="5" :controls="false" size="small" style="width:90px">
+								</el-input-number>
+							</td>
+							<td>
+								<el-input-number v-model="commercialRate" :min="0" :step="0.01" :precision="2" :controls="false" size="small" style="width:70px">
+									<template #suffix>%</template>
+								</el-input-number>
+							</td>
+							<td style="text-align:right;font-weight:500">{{ commercialLoanAmount > 0 ? (commercialInterest / 10000).toFixed(2) : '—' }}</td>
+							<td style="text-align:right;font-weight:500">{{ commercialLoanAmount > 0 ? ((commercialLoanAmount * 10000 + commercialInterest) / 10000).toFixed(2) : '—' }}</td>
+						</tr>
+						<tr class="total dp row">
+							<td style="font-weight:600">综合</td>
+							<td style="text-align:right;font-weight:700">{{ (fundLoanAmount + commercialLoanAmount).toFixed(0) }}</td>
+							<td style="text-align:right">todo：平均利率</td>
+							<td style="text-align:right;font-weight:700">{{ (totalInterest / 10000).toFixed(2) }}</td>
+							<td style="text-align:right;font-weight:700">{{ (totalRepayment / 10000).toFixed(2) }}</td>
+						</tr>
+					</tbody>
+				</table>
+			</div></section>
 	</article>
 </main>
 
@@ -721,8 +744,10 @@
 				agencyRate: 2,          // 比例模式下的默认费率（%）
 				agencyAmount: 0,
 
+				vatHeld2Years: false,    // 满2年免征增值税
+				pitFullFiveUnique: false, // 满五唯一免征个税
+
 				// 贷款
-				loanType: 'combo',     // 'combo' (组合贷) | 'commercial' (纯商贷) | 'fund' (纯公积金)
 				fundAmount: 160,       // 公积金贷款额度（万元）
 				fundRate: 2.85,        // 公积金利率（%）
 				commercialRate: 3.3,   // 商贷利率（%）
@@ -860,14 +885,27 @@
 			},
 
 			fundLoanAmount() {
-				if (this.loanType === 'commercial') return 0;
-				if (this.loanType === 'fund') return Math.min(this.fundAmount, this.loanPrincipal);
 				return Math.min(this.fundAmount, this.loanPrincipal);
 			},
 
 			commercialLoanAmount() {
-				if (this.loanType === 'fund') return 0;
-				return this.commercialAmount;
+				return Math.min(this.commercialAmount, this.loanPrincipal - this.fundLoanAmount);
+			},
+
+			fundInterest() {
+				if (this.fundLoanAmount <= 0) return 0;
+				if (this.repaymentMode === 'equal') {
+					return this.equalInstallmentTotalInterest(this.fundLoanAmount, this.fundRate, this.loanYears);
+				}
+				return this.equalPrincipalTotalInterest(this.fundLoanAmount, this.fundRate, this.loanYears);
+			},
+
+			commercialInterest() {
+				if (this.commercialLoanAmount <= 0) return 0;
+				if (this.repaymentMode === 'equal') {
+					return this.equalInstallmentTotalInterest(this.commercialLoanAmount, this.commercialRate, this.loanYears);
+				}
+				return this.equalPrincipalTotalInterest(this.commercialLoanAmount, this.commercialRate, this.loanYears);
 			},
 
 			// 月供
@@ -886,19 +924,11 @@
 			},
 
 			totalInterest() {
-				let interest = 0;
-				if (this.repaymentMode === 'equal') {
-					interest += this.equalInstallmentTotalInterest(this.fundLoanAmount, this.fundRate, this.loanYears);
-					interest += this.equalInstallmentTotalInterest(this.commercialLoanAmount, this.commercialRate, this.loanYears);
-				} else {
-					interest += this.equalPrincipalTotalInterest(this.fundLoanAmount, this.fundRate, this.loanYears);
-					interest += this.equalPrincipalTotalInterest(this.commercialLoanAmount, this.commercialRate, this.loanYears);
-				}
-				return interest;
+				return this.fundInterest + this.commercialInterest;
 			},
 
 			totalRepayment() {
-				return this.loanPrincipal * 10000 + this.totalInterest;
+				return (this.fundLoanAmount + this.commercialLoanAmount) * 10000 + this.totalInterest;
 			},
 
 			// 提示文本
@@ -966,9 +996,11 @@
 			// 切换到比例模式时，设置政策默认税率
 			pitMode(val) {
 				if (val === 'percent') this.pitRate = this.isStandard ? 1 : 2;
+				this.pitFullFiveUnique = val === 'exempt';
 			},
 			vatMode(val) {
 				if (val === 'percent') this.vatRate = 5.3;
+				this.vatHeld2Years = val === 'exempt';
 			},
 			agencyMode(val) {
 				if (val === 'percent') this.agencyRate = 2;
@@ -982,6 +1014,29 @@
 			},
 			homeCount() { this.resetDownPaymentRate(); },
 			location() { this.resetDownPaymentRate(); },
+			vatHeld2Years(val) {
+				if (val) this.vatMode = 'exempt';
+				else if (this.vatMode === 'exempt') this.vatMode = 'percent';
+			},
+			pitFullFiveUnique(val) {
+				if (val) this.pitMode = 'exempt';
+				else if (this.pitMode === 'exempt') this.pitMode = 'percent';
+			},
+			fundAmount(val) {
+				const max = this.loanPrincipal;
+				if (val + this.commercialAmount > max) this.commercialAmount = Math.max(0, max - val);
+			},
+			commercialAmount(val) {
+				const max = this.loanPrincipal;
+				if (val + this.fundAmount > max) this.fundAmount = Math.max(0, max - val);
+			},
+			loanPrincipal(val) {
+				const total = this.fundAmount + this.commercialAmount;
+				if (total > val && total > 0) {
+					this.fundAmount = Math.round(this.fundAmount * val / total);
+					this.commercialAmount = Math.max(0, val - this.fundAmount);
+				}
+			},
 		},
 
 	})
