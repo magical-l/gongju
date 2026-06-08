@@ -429,7 +429,12 @@
 							</td>
 							<td style="text-align:right;color:#909399;font-size:11px">{{ pit > 0 ? (pit / totalCash * 100).toFixed(1) : '—' }}%</td>
 						</tr>
-												<tr v-for="item in feeItems" :key="item.name">
+												<tr v-if="houseType === 'new'" class="dp row">
+							<td>维修基金</td>
+							<td style="text-align:right"><span class="fee result">{{ maintenanceFund.toFixed(2) }}万</span></td>
+							<td style="text-align:right;color:#909399;font-size:11px">{{ maintenanceFund > 0 ? (maintenanceFund / totalCash * 100).toFixed(1) : '—' }}%</td>
+						</tr>
+						<tr v-for="item in feeItems" :key="item.name">
 							<td>{{ item.name }}</td>
 							<td style="text-align:right">
 								<span v-if="item.exempt" style="color:#67c23a">免征</span>
@@ -686,9 +691,14 @@
 				return 0;
 			},
 
-			// 登记费 + 印花税（万元）
+			// 登记费（万元）
 			registrationFee() {
-				return (80 + this.totalPrice * 10000 * 0.0005) / 10000;
+				return 80 / 10000;
+			},
+
+			// 印花税（万元）
+			stampDuty() {
+				return this.totalPrice * 0.0005;
 			},
 
 			// 中介费（万元）— 仅二手房
@@ -719,21 +729,16 @@
 			// --- 费用列表 ---
 
 			feeItems() {
-				const items = [];
-
-				if (this.houseType === 'new') {
-					items.push({name: '维修基金', value: this.maintenanceFund});
-				} else {
-					items.push({name: '维修基金', value: 0, zeroMeansNA: true});
-				}
-
-				items.push({name: '登记费 + 印花税', value: this.registrationFee});
+				const items = [
+					{name: '登记费', value: this.registrationFee},
+					{name: '印花税', value: this.stampDuty},
+				];
 
 				return items;
 			},
 
 			totalCash() {
-				return this.downPayment + this.deedTax + this.agencyFee + this.vat + this.pit + this.feeItems.reduce((sum, item) => sum + item.value, 0);
+				return this.downPayment + this.deedTax + this.agencyFee + this.vat + this.pit + this.maintenanceFund + this.feeItems.reduce((sum, item) => sum + item.value, 0);
 			},
 
 			// --- 贷款计算 ---
