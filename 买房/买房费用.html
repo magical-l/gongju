@@ -260,47 +260,117 @@
 					</label>
 				</div>
 				<div class="form row">
-					<el-radio-group class="field" v-model="location">
-						<el-radio-button label="outer">外环外</el-radio-button>
-						<el-radio-button label="inner">外环内</el-radio-button>
-					</el-radio-group>
-					<el-tooltip content="内外环影响首付比例：外环外更低" placement="top">
-						<span class="info icon">i</span>
-					</el-tooltip>
-					<el-radio-group class="field" v-model="isStandardHouse" size="small">
-						<el-radio-button label="standard">普通住宅</el-radio-button>
-						<el-radio-button label="nonStandard">非普通住宅</el-radio-button>
-						<el-radio-button label="auto" checked>自动判断</el-radio-button>
-					</el-radio-group>
+					<div class="field">
+						<el-radio-group v-model="location">
+							<el-radio-button label="outer">外环外</el-radio-button>
+							<el-radio-button label="inner">外环内</el-radio-button>
+						</el-radio-group>
+						<span>内外环影响首付比例：外环外更低</span>
+					</div>
 				</div>
-				<div class="note row">
-					<span v-if="area <= 90">面积 ≤ 90㎡，普通住宅</span>
-					<span v-else-if="area <= 140">面积 90~140㎡，内外环决定普通/非普通</span>
-					<span v-else>面积 > 140㎡，非普通住宅</span>
-					
+				<div class="form row">
+					<div class="field">
+						<el-radio-group v-model="isStandardHouse">
+							<el-radio-button label="standard">普通住宅</el-radio-button>
+							<el-radio-button label="nonStandard">非普通住宅</el-radio-button>
+							<el-radio-button label="auto" checked>自动判断</el-radio-button>
+						</el-radio-group>
+						<span>是否普通住宅影响契税、个税税率</span>
+						<el-tooltip placement="top">
+							<span class="info icon">i</span>
+							<template #content>
+								<span v-if="area <= 90">面积 ≤ 90㎡，普通住宅</span>
+								<span v-else-if="area <= 140">面积 90~140㎡，内外环决定普通/非普通</span>
+								<span v-else>面积 > 140㎡，非普通住宅</span>
+							</template>
+						</el-tooltip>
+					</div>
 				</div>
 
 				<div class="form row , flex single-line items-go-x items-y-near-center">
-					<el-radio-group v-model="houseType" size="default">
-						<el-radio-button label="new">新房</el-radio-button>
-						<el-radio-button label="second">二手房</el-radio-button>
-					</el-radio-group>
-					<div class="flex items-go-y">
+					<div class="field">
+						<el-radio-group v-model="houseType">
+							<el-radio-button label="new">新房</el-radio-button>
+							<el-radio-button label="second">二手房</el-radio-button>
+						</el-radio-group>
+					</div>
+					<div class="flex items-go-y" v-if="houseType === 'second'">
 						<div class="field">
-							<div class="tax checks">
-								<el-checkbox v-model="exemptVat" size="small" style="margin-left:8px">满2年免征增值税</el-checkbox>
-								<el-checkbox v-model="exemptPit" size="small" style="margin-left:8px">满五唯一免征个税</el-checkbox>
-								<el-checkbox v-model="buyerPayPit" size="small" :disabled="exemptPit" style="margin-left:8px">买方承担个税</el-checkbox>
-							</div>
+							<span>个税</span>
+							<el-radio-group v-model="pitMode" size="small">
+								<el-radio-button label="exempt">免付</el-radio-button>
+								<el-radio-button label="percent">比例</el-radio-button>
+								<el-radio-button label="fixed">定额</el-radio-button>
+							</el-radio-group>
+							<label v-if="pitMode === 'percent'">
+								<el-input-number v-model="pitRate" :min="0" :step="0.1" :precision="1" :controls="false" size="small">
+									<template #suffix>%</template>
+								</el-input-number>
+								<el-button size="small" @click="resetPitRate" title="重置为政策默认">↺</el-button>
+							</label>
+							<label v-if="pitMode === 'percent'">
+								<el-input-number :model-value="totalPrice * pitRate / 100" :precision="2" disabled size="small">
+									<template #suffix>万元</template>
+								</el-input-number>
+							</label>
+							<label v-if="pitMode === 'fixed'">
+								<el-input-number v-model="pitAmount" :min="0" :step="1" :precision="2" :controls="false" size="small">
+									<template #suffix>万元</template>
+								</el-input-number>
+							</label>
 						</div>
 						<div class="field">
-							<el-checkbox v-model="useAgent" size="small">走中介</el-checkbox>
+							<span>增值税</span>
+							<el-radio-group v-model="vatMode" size="small">
+								<el-radio-button label="exempt">免付</el-radio-button>
+								<el-radio-button label="percent">比例</el-radio-button>
+								<el-radio-button label="fixed">定额</el-radio-button>
+							</el-radio-group>
+							<label v-if="vatMode === 'percent'">
+								<el-input-number v-model="vatRate" :min="0" :step="0.1" :precision="1" :controls="false" size="small">
+									<template #suffix>%</template>
+								</el-input-number>
+								<el-button size="small" @click="resetVatRate" title="重置为政策默认">↺</el-button>
+							</label>
+							<label v-if="vatMode === 'percent'">
+								<el-input-number :model-value="totalPrice * vatRate / 100" :precision="2" disabled size="small">
+									<template #suffix>万元</template>
+								</el-input-number>
+							</label>
+							<label v-if="vatMode === 'fixed'">
+								<el-input-number v-model="vatAmount" :min="0" :step="1" :precision="2" :controls="false" size="small">
+									<template #suffix>万元</template>
+								</el-input-number>
+							</label>
+						</div>
+						<div class="field">
+							<span>中介费</span>
+							<el-radio-group v-model="agencyMode" size="small">
+								<el-radio-button label="exempt">免付</el-radio-button>
+								<el-radio-button label="percent">比例</el-radio-button>
+								<el-radio-button label="fixed">定额</el-radio-button>
+							</el-radio-group>
+							<label v-if="agencyMode === 'percent'">
+								<el-input-number v-model="agencyRate" :min="0" :step="0.1" :precision="1" :controls="false" size="small">
+									<template #suffix>%</template>
+								</el-input-number>
+								<el-button size="small" @click="resetAgencyRate" title="重置为政策默认">↺</el-button>
+							</label>
+							<label v-if="agencyMode === 'percent'">
+								<el-input-number :model-value="totalPrice * agencyRate / 100" :precision="2" disabled size="small">
+									<template #suffix>万元</template>
+								</el-input-number>
+							</label>
+							<label v-if="agencyMode === 'fixed'">
+								<el-input-number v-model="agencyAmount" :min="0" :step="1" :precision="2" :controls="false" size="small">
+									<template #suffix>万元</template>
+								</el-input-number>
+							</label>
 						</div>
 					</div>
-						
 				</div>
 
-				<!-- 资格 -->
+								<!-- 资格 -->
 				<div class="form row">
 					<el-radio-group v-model="homeCount"style="flex:auto">
 						<el-radio-button label="first">首套</el-radio-button>
@@ -474,11 +544,20 @@
 				location: 'outer',     // 'outer' (外环外) | 'inner' (外环内)
 				isStandardHouse: 'auto', // 'standard' | 'nonStandard' | 'auto'
 
-				// 二手房税费条件
-				useAgent: true,        // 走中介
-				exemptVat: true,       // 满2年免征增值税
-				exemptPit: false,      // 满五唯一免征个税
-				buyerPayPit: true,     // 买方承担个税
+				// 二手房税费 — 个税
+				pitMode: 'exempt',      // 'exempt' | 'percent' | 'fixed'
+				pitRate: 1,             // 比例模式下的默认税率（%），普通1非普通2
+				pitAmount: 0,           // 定额模式下的金额（万元）
+
+				// 二手房税费 — 增值税
+				vatMode: 'exempt',      // 'exempt' | 'percent' | 'fixed'
+				vatRate: 5.3,           // 比例模式下的默认税率（%）
+				vatAmount: 0,           // 定额模式下的金额（万元）
+
+				// 二手房税费 — 中介费
+				agencyMode: 'percent',  // 'exempt' | 'percent' | 'fixed'
+				agencyRate: 2,          // 比例模式下的默认费率（%）
+				agencyAmount: 0,
 
 				// 贷款
 				loanType: 'combo',     // 'combo' (组合贷) | 'commercial' (纯商贷) | 'fund' (纯公积金)
@@ -543,27 +622,27 @@
 
 			// 中介费（万元）— 仅二手房
 			agencyFee() {
-				if (this.houseType === 'second' && this.useAgent) {
-					return this.totalPrice * 0.02;
-				}
+				if (this.houseType !== 'second') return 0;
+					if (this.agencyMode === 'exempt') return 0;
+					if (this.agencyMode === 'percent') return this.totalPrice * this.agencyRate / 100;
+					return this.agencyAmount;
 				return 0;
 			},
 
 			// 增值税（万元）
 			vat() {
-				if (this.houseType === 'second' && !this.exemptVat) {
-					return this.totalPrice * 0.053;
-				}
-				return 0;
+				if (this.houseType !== 'second') return 0;
+					if (this.vatMode === 'exempt') return 0;
+					if (this.vatMode === 'percent') return this.totalPrice * this.vatRate / 100;
+					return this.vatAmount;
 			},
 
 			// 个人所得税
 			pit() {
-				if (this.houseType === 'second' && !this.exemptPit && this.buyerPayPit) {
-					const rate = this.isStandard ? 0.01 : 0.02;
-					return this.totalPrice * rate;
-				}
-				return 0;
+				if (this.houseType !== 'second') return 0;
+					if (this.pitMode === 'exempt') return 0;
+					if (this.pitMode === 'percent') return this.totalPrice * this.pitRate / 100;
+					return this.pitAmount;
 			},
 
 			// --- 费用列表 ---
@@ -575,12 +654,12 @@
 				];
 
 				if (this.houseType === 'second') {
-					items.push({name: '中介费', value: this.agencyFee, zeroMeansNA: !this.useAgent});
+					items.push({name: '中介费', value: this.agencyFee, exempt: this.agencyMode === 'exempt'});
 				}
 
 				items.push(
-					{name: '增值税', value: this.vat, exempt: this.houseType === 'second' && this.exemptVat, zeroMeansNA: this.houseType !== 'second'},
-					{name: '个人所得税', value: this.pit, exempt: this.houseType === 'second' && (this.exemptPit || !this.buyerPayPit), zeroMeansNA: this.houseType !== 'second'},
+					{name: '增值税', value: this.vat, exempt: this.vatMode === 'exempt', zeroMeansNA: this.houseType !== 'second'},
+					{name: '个人所得税', value: this.pit, exempt: this.pitMode === 'exempt', zeroMeansNA: this.houseType !== 'second'},
 				);
 
 				if (this.houseType === 'new') {
@@ -658,7 +737,7 @@
 				parts.push(`首付 ${dpPct}%（${this.downPayment.toFixed(0)}万）`);
 				const dtPct = (this.deedTaxRate * 100).toFixed(1);
 				parts.push(`契税 ${dtPct}%（${this.deedTax.toFixed(1)}万）`);
-				if (this.houseType === 'second' && this.useAgent) {
+				if (this.houseType === 'second' && this.agencyMode !== 'exempt') {
 					parts.push(`中介费 2%（${this.agencyFee.toFixed(1)}万）`);
 				}
 				return `因为 ${countText}+${locText}，所以 ${parts.join(' · ')}`;
@@ -699,7 +778,29 @@
 				return (firstInterest + lastInterest) * periods / 2;
 			},
 
+			// 重置费率到政策默认
+			resetPitRate() { this.pitRate = this.isStandard ? 1 : 2; },
+			resetVatRate() { this.vatRate = 5.3; },
+			resetAgencyRate() { this.agencyRate = 2; },
 		},
+
+		watch: {
+			// 切换到比例模式时，设置政策默认税率
+			pitMode(val) {
+				if (val === 'percent') this.pitRate = this.isStandard ? 1 : 2;
+			},
+			vatMode(val) {
+				if (val === 'percent') this.vatRate = 5.3;
+			},
+			agencyMode(val) {
+				if (val === 'percent') this.agencyRate = 2;
+			},
+			// 普通/非普通切换时，若个税为比例模式则更新默认税率
+			isStandard(val) {
+				if (this.pitMode === 'percent') this.pitRate = val ? 1 : 2;
+			},
+		},
+
 	})
 	.use(ElementPlus)
 	.mount('main > article');
