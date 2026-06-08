@@ -327,15 +327,21 @@
 <!-- 费用明细 -->
 			<div class="fee card">
 				<table>
+					<colgroup>
+						<col style="width:60px">
+						<col>
+						<col style="width:110px">
+						<col style="width:55px">
+					</colgroup>
 					<thead>
 						<tr>
 							<th>费用项</th>
-							<th style="text-align:right">公式</th>
+							<th>公式</th>
 							<th style="text-align:right">金额</th>
 							<th style="text-align:right;width:60px">占比</th>
 						</tr>
 					</thead>
-					<tbody>
+					<tbody style="vertical-align:top">
 						<tr class="dp row">
 							<td>首付</td>
 							<td style="font-size:11px;color:#909399">最低 {{ policyDownPaymentRate }}%（{{ dpReason }}）
