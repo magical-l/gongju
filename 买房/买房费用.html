@@ -72,6 +72,18 @@
 		flex-shrink: 0;
 	}
 
+	.section.divider {
+		border: none;
+		border-top: 1px solid #ebeef5;
+		margin: 10px 0 6px 0;
+	}
+
+	.section.label {
+		font-size: 11px;
+		color: #909399;
+		margin-bottom: 8px;
+	}
+
 	/* 税费条件 */
 	.tax.checks {
 		display: flex;
@@ -365,6 +377,10 @@
 						<el-radio-button label="second">二套</el-radio-button>
 					</el-radio-group>
 				</div>
+
+				<hr class="section divider">
+
+				<div class="section label">可主观调整的因素</div>
 
 				<div class="form row">
 					<label>首付比例</label>
