@@ -330,7 +330,7 @@
 						<tr class="dp row">
 							<td>首付</td>
 							<td style="font-size:11px;color:#909399">最低 {{ policyDownPaymentRate }}%（{{ dpReason }}）</td>
-							<td><el-radio-group v-model="downPaymentMode" size="small"><el-radio-button label="percent">比例</el-radio-button><el-radio-button label="fixed">定额</el-radio-button></el-radio-group></td>
+							<td><el-radio-group v-model="downPaymentMode" size="small"><el-radio-button label="exempt">免付</el-radio-button><el-radio-button label="percent">比例</el-radio-button><el-radio-button label="fixed">定额</el-radio-button></el-radio-group></td>
 							<td>
 								<label v-if="downPaymentMode === 'percent'">
 									<el-input-number v-model="downPaymentRate" :min="0" :step="1" :precision="0" :controls="false" size="small">
@@ -351,7 +351,7 @@
 						<tr class="dp row">
 							<td>契税</td>
 							<td style="font-size:11px;color:#909399">政策 {{ (deedTaxPolicyRate * 100).toFixed(1) }}%</td>
-							<td><el-radio-group v-model="deedTaxMode" size="small"><el-radio-button label="percent">比例</el-radio-button><el-radio-button label="fixed">定额</el-radio-button></el-radio-group></td>
+							<td><el-radio-group v-model="deedTaxMode" size="small"><el-radio-button label="exempt">免付</el-radio-button><el-radio-button label="percent">比例</el-radio-button><el-radio-button label="fixed">定额</el-radio-button></el-radio-group></td>
 							<td>
 								<label v-if="deedTaxMode !== 'fixed'">
 									<el-input-number v-model="deedTaxPct" :min="0" :step="0.1" :precision="1" :controls="false" size="small">
@@ -484,7 +484,7 @@
 						<tr class="dp row">
 							<td>印花税</td>
 							<td style="font-size:11px;color:#909399">总价 × 费率</td>
-							<td><el-radio-group v-model="stampMode" size="small"><el-radio-button label="percent">比例</el-radio-button><el-radio-button label="fixed">定额</el-radio-button></el-radio-group></td>
+							<td><el-radio-group v-model="stampMode" size="small"><el-radio-button label="exempt">免付</el-radio-button><el-radio-button label="percent">比例</el-radio-button><el-radio-button label="fixed">定额</el-radio-button></el-radio-group></td>
 							<td>
 								<label v-if="stampMode === 'percent'">
 									<el-input-number v-model="stampRate" :min="0" :step="0.01" :precision="2" :controls="false" size="small">
@@ -716,6 +716,7 @@
 
 			// 首付比例
 			downPaymentRatio() {
+				if (this.downPaymentMode === 'exempt') return 0;
 				if (this.downPaymentMode === 'fixed') return 0;
 				return this.downPaymentRate / 100;
 			},
@@ -730,18 +731,21 @@
 
 			// 契税税率（有效值）
 			deedTaxRate() {
+				if (this.deedTaxMode === 'exempt') return 0;
 				if (this.deedTaxMode === 'fixed') return 0;
 				return this.deedTaxPct / 100;
 			},
 
 			// 首付金额（万元）
 			downPayment() {
+				if (this.downPaymentMode === 'exempt') return 0;
 				if (this.downPaymentMode === 'fixed') return this.downPaymentAmount;
 				return this.totalPrice * this.downPaymentRatio;
 			},
 
 			// 契税（万元）
 			deedTax() {
+				if (this.deedTaxMode === 'exempt') return 0;
 				if (this.deedTaxMode === 'fixed') return this.deedTaxAmount;
 				return this.totalPrice * this.deedTaxRate;
 			},
@@ -761,6 +765,7 @@
 
 			// 印花税（万元）
 			stampDuty() {
+				if (this.stampMode === 'exempt') return 0;
 				if (this.stampMode === 'fixed') return this.stampAmount;
 				return this.totalPrice * this.stampRate / 100;
 			},
