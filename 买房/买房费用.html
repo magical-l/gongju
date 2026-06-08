@@ -18,228 +18,146 @@
 <link href="../resources/biz.css?v=250821" rel="stylesheet">
 <link href="../lib/css/花活.css" rel="stylesheet">
 <style>
-	:root {
-		--left-col-min-width: 1fr;
-		--right-col-max-width: 2fr;
-	}
-	/* 输入卡片 */
-	.param.card {
-		background: #fff;
-		border: 1px solid #dcdfe6;
-		border-radius: 6px;
-		padding: 16px 18px;
-	}
-
-	.form.row {
-		display: flex;
-		gap: 12px;
-		margin-bottom: 10px;
-	}
-
-	.form.row & .field {
-		flex: 1;
-	}
-
-	.field {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		color: #909399;
-		font-size: 12px;
-
-		& .el-input-number {
-			flex: 1;
+		:root {
+			--left-col-max-width: 240px;
+			--right-col-max-width: 1fr;
 		}
-	}
 
-	.note.row {
-		font-size: 11px;
-		color: #909399;
-		margin: -4px 0 10px 0;
-	}
+		/* 输入卡片 */
+		.param.card {
+			background: #fff;
+			border: 1px solid #dcdfe6;
+			border-radius: 6px;
+			padding: 16px 18px;
+		}
 
-	.info.icon {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: 15px;
-		height: 15px;
-		border: 1px solid #909399;
-		border-radius: 50%;
-		font-size: 10px;
-		color: #909399;
-		cursor: help;
-		flex-shrink: 0;
-	}
+		.form.row {
+			display: flex;
+			gap: 12px;
+			margin-bottom: 10px;
 
-	.section.divider {
-		border: none;
-		border-top: 1px solid #ebeef5;
-		margin: 10px 0 6px 0;
-	}
+			& .field {
+				flex: 1;
+			}
+		}
 
-	.section.label {
-		font-size: 11px;
-		color: #909399;
-		margin-bottom: 8px;
-	}
+		.field {
+			display: flex;
+			align-items: center;
+			gap: 6px;
+			color: #909399;
+			font-size: 12px;
 
-	/* 税费条件 */
-	.tax.checks {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0;
-	}
+			& .el-input-number {
+				flex: 1;
+			}
+		}
 
-	/* 提示条 */
-	.hint.bar {
-		background: #fdf6ec;
-		border: 1px solid #faecd8;
-		border-radius: 4px;
-		padding: 6px 10px;
-		font-size: 11px;
-		color: #b88230;
-		margin-bottom: 12px;
-	}
+		.note.row {
+			font-size: 11px;
+			color: #909399;
+			margin: -4px 0 10px 0;
+		}
 
-	/* 费用明细 */
-	.fee.card,
-	.loan.card {
-		background: #fff;
-		border: 1px solid #dcdfe6;
-		border-radius: 6px;
-		padding: 16px;
-		margin-bottom: 12px;
-	}
+		.info.icon {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 15px;
+			height: 15px;
+			border: 1px solid #909399;
+			border-radius: 50%;
+			font-size: 10px;
+			color: #909399;
+			cursor: help;
+			flex-shrink: 0;
+		}
 
-	.fee.card & table {
-		width: 100%;
-		border-collapse: collapse;
-		font-size: 13px;
-	}
+		.section.divider {
+			border: none;
+			border-top: 1px solid #ebeef5;
+			margin: 10px 0 6px 0;
+		}
 
-	.fee.card & thead th {
-		text-align: left;
-		padding: 6px 0;
-		font-weight: 500;
-		color: #909399;
-	}
+		.section.label {
+			font-size: 11px;
+			color: #909399;
+			margin-bottom: 8px;
+		}
 
-	.fee.card & thead th:not(:first-child) {
-		text-align: right;
-	}
+		/* 税费条件 */
+		.tax.checks {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0;
+		}
 
-	.fee.card & tbody td {
-		padding: 6px 0;
-		color: #303133;
-	}
+		/* 提示条 */
+		.hint.bar {
+			background: #fdf6ec;
+			border: 1px solid #faecd8;
+			border-radius: 4px;
+			padding: 6px 10px;
+			font-size: 11px;
+			color: #b88230;
+			margin-bottom: 12px;
+		}
 
-	.fee.card & tbody td:not(:first-child) {
-		text-align: right;
-		font-weight: 500;
-	}
+		/* 卡片容器（费用、贷款共用） */
+		.fee.card,
+		.loan.card {
+			background: #fff;
+			border: 1px solid #dcdfe6;
+			border-radius: 6px;
+			padding: 16px;
+			margin-bottom: 12px;
 
-	.fee.card & .total.row {
-		border-top: 2px solid #303133;
-	}
+			& table {
+				width: 100%;
+				border-collapse: collapse;
+				font-size: 13px;
+			}
 
-	.fee.card & .total.row td {
-		padding-top: 10px;
-	}
+			& thead th {
+				text-align: left;
+				padding: 6px 0;
+				font-weight: 500;
+				color: #909399;
 
-	.total.row & .amount {
-		font-weight: 700;
-		font-size: 16px;
-		color: #409eff;
-	}
+				&:not(:first-child) {
+					text-align: right;
+				}
+			}
 
-	/* 贷款 KPI */
-	.kpi.row {
-		display: flex;
-		gap: 10px;
-		margin-bottom: 14px;
-	}
+			& tbody td {
+				padding: 6px 0;
+				color: #303133;
+			}
 
-	.kpi.row & .kpi {
-		flex: 1;
-		background: #f5f7fa;
-		border-radius: 6px;
-		padding: 10px;
-		text-align: center;
-	}
+			& .total.row {
+				border-top: 2px solid #303133;
 
-	.kpi & .title {
-		color: #909399;
-		font-size: 11px;
-		margin-bottom: 3px;
-	}
+				& td {
+					padding-top: 10px;
+				}
+			}
+		}
 
-	.kpi & .value {
-		font-weight: 700;
-		font-size: 14px;
-		color: #303133;
-	}
+		/* 费用表：非首列右对齐加粗 */
+		.fee.card {
+			& tbody td:not(:first-child) {
+				text-align: right;
+				font-weight: 500;
+			}
+		}
 
-	.kpi & .sub {
-		color: #909399;
-		font-size: 10px;
-	}
-
-	.kpi & .sub.highlight {
-		color: #e6a23c;
-		font-weight: 500;
-	}
-
-	/* 贷款摘要 */
-	.loan.card & .summary {
-		font-size: 13px;
-	}
-
-	.summary & .row {
-		display: flex;
-		justify-content: space-between;
-		padding: 5px 0;
-	}
-
-	.summary & .row & .key {
-		color: #909399;
-	}
-
-	.summary & .row & .val {
-		color: #303133;
-	}
-
-
-	.loan.card & table {
-		width: 100%;
-		border-collapse: collapse;
-		font-size: 13px;
-	}
-
-	.loan.card & thead th {
-		text-align: left;
-		padding: 6px 0;
-		font-weight: 500;
-		color: #909399;
-	}
-
-	.loan.card & thead th:not(:first-child) {
-		text-align: right;
-	}
-
-	.loan.card & tbody td {
-		padding: 6px 0;
-		color: #303133;
-	}
-
-	.loan.card & .total.row {
-		border-top: 2px solid #303133;
-	}
-
-	.loan.card & .total.row td {
-		padding-top: 10px;
-	}
-
+		.total.row {
+			& .amount {
+				font-weight: 700;
+				font-size: 16px;
+				color: #409eff;
+			}
+		}
 </style>
 </head>
 <body class="反叵字形">
