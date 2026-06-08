@@ -570,3 +570,46 @@
 		grid-template-rows: auto 1fr auto;
 	}
 }
+
+/* ============================== 响应式 ============================== */
+@media (max-width: 800px) {
+	.叵字形 {
+		grid-template-columns: 1fr;
+		grid-template-areas:
+			'header'
+			'left-sidebar'
+			'main'
+			'footer';
+	}
+
+	.叵字形 > .sidebar.near-left {
+		max-width: none;
+	}
+
+	.反叵字形 {
+		grid-template-columns: 1fr;
+		grid-template-areas:
+			'header'
+			'main'
+			'right-sidebar'
+			'footer';
+	}
+
+	.反叵字形 > .sidebar.near-right {
+		max-width: none;
+	}
+
+	.亚字形 {
+		grid-template-columns: 1fr;
+		grid-template-areas:
+			'header'
+			'left-sidebar'
+			'main'
+			'right-sidebar'
+			'footer';
+	}
+
+	.亚字形 > .sidebar {
+		max-width: none;
+	}
+}
