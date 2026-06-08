@@ -1032,7 +1032,7 @@
 			},
 			loanPrincipal(val) {
 				const total = this.fundAmount + this.commercialAmount;
-				if (total > val && total > 0) {
+				if (total > 0 && total !== val) {
 					this.fundAmount = Math.round(this.fundAmount * val / total);
 					this.commercialAmount = Math.max(0, val - this.fundAmount);
 				}
