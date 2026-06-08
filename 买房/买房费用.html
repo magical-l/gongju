@@ -48,6 +48,12 @@
 		flex: 1;
 	}
 
+	.note.row {
+		font-size: 11px;
+		color: #909399;
+		margin: -4px 0 10px 0;
+	}
+
 	/* 税费条件 */
 	.tax.checks {
 		display: flex;
@@ -247,12 +253,12 @@
 						<el-radio-button label="outer">外环外</el-radio-button>
 						<el-radio-button label="inner">外环内</el-radio-button>
 					</el-radio-group>
-					<span class="note">
-						<i class="icon"></i>
-						<span v-if="area <= 90">面积 ≤ 90㎡，普通住宅</span>
-						<span v-else-if="area <= 140">面积 90~140㎡，内外环决定普通/非普通</span>
-						<span v-else>面积 > 140㎡，非普通住宅</span>
-					</span>
+				</div>
+				<div class="note row">
+					<span v-if="area <= 90">面积 ≤ 90㎡，普通住宅</span>
+					<span v-else-if="area <= 140">面积 90~140㎡，内外环决定普通/非普通</span>
+					<span v-else>面积 > 140㎡，非普通住宅</span>
+					· 内外环影响首付比例
 				</div>
 
 				<!-- 房源 -->
