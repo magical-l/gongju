@@ -31,7 +31,6 @@
 		border: 1px solid #dcdfe6;
 		border-radius: 6px;
 		padding: 16px;
-		margin-bottom: 12px;
 	}
 
 	.form.row {
@@ -103,7 +102,7 @@
 	}
 </style>
 </head>
-<body class="反叵字形">
+<body class="目字形">
 <header>
 	<h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
 	<nav>
@@ -151,13 +150,13 @@
 		</div>
 	</header>
 	<article class="朋字形" style="gap: 20px;" v-cloak>
-	<div class="toolbar card flex items-go-x items-y-near-center one-row" style="gap:8px 12px;margin-bottom:12px;padding:8px 16px">
+		<div class="toolbar card flex items-go-x items-y-near-center one-row" style="gap:8px 12px;">
 			<div class="form row">
-				<el-input-number v-model="area" :min="1" :step="5" :controls="false" size="large">
+				<el-input-number v-model="area" :min="1" :step="5" :controls="false">
 					<template #prefix>面积</template>
 					<template #suffix>㎡</template>
 				</el-input-number>
-				<el-input-number v-model="totalPrice" :min="1" :step="10" :controls="false" size="large">
+				<el-input-number v-model="totalPrice" :min="1" :step="10" :controls="false">
 					<template #prefix>总价</template>
 					<template #suffix>万元</template>
 				</el-input-number>
@@ -209,7 +208,7 @@
 					<span class="info icon">i</span>
 				</el-tooltip>
 			</div>
-			</div>
+		</div>
 		<!-- 左栏：一次性费用 -->
 		<section class="input area">
 			<div class="fee card">
@@ -487,7 +486,7 @@
 						</tr>
 					</tfoot>
 				</table>
-						</div>
+			</div>
 		</section>
 
 		<!-- 右栏：贷款 -->
@@ -553,11 +552,12 @@
 						</tr>
 					</tbody>
 				</table>
-						</div>
+			</div>
 		</section>
-	</article></main>
+	</article>
+</main>
 
-<aside class="sidebar near-right">
+<footer class="near-bottom">
 	<article class="website info">
 		<section class="patronage area">
 			<img title="赞助一下" class="qr-code" alt="支付宝收款码" src="../resources/支付宝收款码.jpg">
@@ -566,7 +566,7 @@
 		<section class="copyright"><p>&copy; 2026 工具兽版权所有 All rights reserved.</p></section>
 		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p></section>
 	</article>
-</aside>
+</footer>
 
 <div class="js container">
 	<script src="../lib/vue/3.5.18/vue.global.js"></script>
