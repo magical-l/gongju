@@ -150,7 +150,8 @@
 			</el-dialog>
 		</div>
 	</header>
-	<div class="toolbar card flex items-go-x items-y-near-center" style="gap:8px 12px;margin-bottom:12px;padding:8px 16px">
+	<article class="朋字形" style="gap: 20px;" v-cloak>
+	<div class="toolbar card flex items-go-x items-y-near-center one-row" style="gap:8px 12px;margin-bottom:12px;padding:8px 16px">
 			<div class="form row">
 				<el-input-number v-model="area" :min="1" :step="5" :controls="false" size="large">
 					<template #prefix>面积</template>
@@ -209,8 +210,6 @@
 				</el-tooltip>
 			</div>
 			</div>
-
-	<article class="朋字形" style="gap: 20px;" v-cloak>
 		<!-- 左栏：一次性费用 -->
 		<section class="input area">
 			<div class="fee card">
