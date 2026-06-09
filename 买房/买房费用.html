@@ -19,9 +19,10 @@
 <link href="../lib/css/花活.css" rel="stylesheet">
 <style>
 	:root {
-		--left-col-min-width: 280px;
-		--left-col-max-width: 380px;
+		--left-col-min-width: 380px;
+		--left-col-max-width: 2fr;
 		--right-col-min-width: 0;
+		--right-col-max-width: 1fr;
 	}
 
 	/* 卡片 */
@@ -149,9 +150,7 @@
 			</el-dialog>
 		</div>
 	</header>
-	<article class="朋字形" style="gap: 20px;" v-cloak>
-		<!-- 左栏：输入参数 -->
-		<section class="input area param card">
+	<div class="toolbar card flex items-go-x items-y-near-center" style="gap:8px 12px;margin-bottom:12px;padding:8px 16px">
 			<div class="form row">
 				<el-input-number v-model="area" :min="1" :step="5" :controls="false" size="large">
 					<template #prefix>面积</template>
@@ -209,11 +208,11 @@
 					<span class="info icon">i</span>
 				</el-tooltip>
 			</div>
-		</section>
+			</div>
 
-		<!-- 主栏：费用+贷款 -->
-		<section class="output area">
-			<!-- 费用明细 -->
+	<article class="朋字形" style="gap: 20px;" v-cloak>
+		<!-- 左栏：一次性费用 -->
+		<section class="input area">
 			<div class="fee card">
 				<header>一次性费用</header>
 				<table>
@@ -489,9 +488,11 @@
 						</tr>
 					</tfoot>
 				</table>
-			</div>
+						</div>
+		</section>
 
-			<!-- 贷款明细 -->
+		<!-- 右栏：贷款 -->
+		<section class="output area">
 			<div class="loan card">
 				<div class="form row">
 					贷款 （{{totalPrice}}-{{downPayment}}= <span style="font-weight:700;font-size:16px;color:#409eff">{{ loanPrincipal.toFixed(0) }}万</span>）还款
@@ -553,10 +554,9 @@
 						</tr>
 					</tbody>
 				</table>
-			</div>
+						</div>
 		</section>
-	</article>
-</main>
+	</article></main>
 
 <aside class="sidebar near-right">
 	<article class="website info">
