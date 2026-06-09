@@ -222,7 +222,19 @@
 					<tbody class="items-y-near-center">
 						<tr class="dp row">
 							<td>首付</td>
-							<td class="minor">最低 {{ policyDownPaymentRate }}%（{{ dpReason }}）</td>
+							<td class="minor">
+								<del v-if="homeCount !== 'first' || location !== 'outer'">首套外环外 20%</del>
+								<span v-else>首套外环外 20%</span>
+								<br>
+								<del v-if="homeCount !== 'first' || location !== 'inner'">首套外环内 25%</del>
+								<span v-else>首套外环内 25%</span>
+								<br>
+								<del v-if="homeCount !== 'second' || location !== 'outer'">二套外环外 30%</del>
+								<span v-else>二套外环外 30%</span>
+								<br>
+								<del v-if="homeCount !== 'second' || location !== 'inner'">二套外环内 35%</del>
+								<span v-else>二套外环内 35%</span>
+							</td>
 							<td>
 								<el-radio-group v-model="downPaymentMode" size="small">
 									<el-radio-button label="exempt">免付</el-radio-button>
@@ -245,11 +257,23 @@
 								</label>
 							</td>
 							<td class="items-near-right">= {{ downPayment.toFixed(2) }}万</td>
-							<td class="items-near-right" class="minor">{{ (downPayment / totalCash * 100).toFixed(1) }}%</td>
+							<td class="items-near-right minor">{{ (downPayment / totalCash * 100).toFixed(1) }}%</td>
 						</tr>
 						<tr class="dp row">
 							<td>契税</td>
-							<td class="minor">{{ deedTaxReason }} → 政策 {{ (deedTaxPolicyRate * 100).toFixed(1) }}%</td>
+							<td class="minor">
+								<del v-if="homeCount !== 'first' || area > 90">首套 ≤90㎡ 1%</del>
+								<span v-else>首套 ≤90㎡ 1%</span>
+								<br>
+								<del v-if="homeCount !== 'first' || area <= 90">首套 >90㎡ 1.5%</del>
+								<span v-else>首套 >90㎡ 1.5%</span>
+								<br>
+								<del v-if="homeCount !== 'second' || !isStandard">二套普通 2%</del>
+								<span v-else>二套普通 2%</span>
+								<br>
+								<del v-if="homeCount !== 'second' || isStandard">二套非普通 3%</del>
+								<span v-else>二套非普通 3%</span>
+							</td>
 							<td>
 								<el-radio-group v-model="deedTaxMode" size="small">
 									<el-radio-button label="exempt">免付</el-radio-button>
@@ -272,7 +296,7 @@
 								</label>
 							</td>
 							<td class="items-near-right">= {{ deedTax.toFixed(2) }}万</td>
-							<td class="items-near-right" class="minor">{{ (deedTax / totalCash * 100).toFixed(1) }}%</td>
+							<td class="items-near-right minor">{{ (deedTax / totalCash * 100).toFixed(1) }}%</td>
 						</tr>
 						<tr v-if="houseType === 'second'" class="dp row">
 							<td>中介费</td>
@@ -299,7 +323,7 @@
 								</label>
 							</td>
 							<td class="items-near-right">= {{ agencyFee.toFixed(2) }}万</td>
-							<td class="items-near-right" class="minor">{{ agencyFee > 0 ? (agencyFee / totalCash * 100).toFixed(1) : '—' }}%</td>
+							<td class="items-near-right minor">{{ agencyFee > 0 ? (agencyFee / totalCash * 100).toFixed(1) : '—' }}%</td>
 						</tr>
 						<tr v-if="houseType === 'second'" class="dp row">
 							<td>增值税</td>
@@ -330,12 +354,16 @@
 								</label>
 							</td>
 							<td class="items-near-right">= {{ vat.toFixed(2) }}万</td>
-							<td class="items-near-right" class="minor">{{ vat > 0 ? (vat / totalCash * 100).toFixed(1) : '—' }}%</td>
+							<td class="items-near-right minor">{{ vat > 0 ? (vat / totalCash * 100).toFixed(1) : '—' }}%</td>
 						</tr>
 						<tr v-if="houseType === 'second'" class="dp row">
 							<td>个税</td>
 							<td class="minor">
-								普通 1% / 非普通 2%
+								<del v-if="!isStandard">普通 1%</del>
+								<span v-else>普通 1%</span>
+								/
+								<del v-if="isStandard">非普通 2%</del>
+								<span v-else>非普通 2%</span>
 								<br>
 								<el-checkbox v-model="pitFullFiveUnique" size="small" style="font-size:11px">满五唯一免征</el-checkbox>
 							</td>
@@ -361,7 +389,7 @@
 								</label>
 							</td>
 							<td class="items-near-right">= {{ pit.toFixed(2) }}万</td>
-							<td class="items-near-right" class="minor">{{ pit > 0 ? (pit / totalCash * 100).toFixed(1) : '—' }}%</td>
+							<td class="items-near-right minor">{{ pit > 0 ? (pit / totalCash * 100).toFixed(1) : '—' }}%</td>
 						</tr>
 						<tr v-if="houseType === 'new'" class="dp row">
 							<td>维修基金</td>
@@ -387,7 +415,7 @@
 								</label>
 							</td>
 							<td class="items-near-right">= {{ maintenanceFund.toFixed(2) }}万</td>
-							<td class="items-near-right" class="minor">{{ maintenanceFund > 0 ? (maintenanceFund / totalCash * 100).toFixed(1) : '—' }}%</td>
+							<td class="items-near-right minor">{{ maintenanceFund > 0 ? (maintenanceFund / totalCash * 100).toFixed(1) : '—' }}%</td>
 						</tr>
 						<tr class="dp row">
 							<td>登记费</td>
@@ -416,7 +444,7 @@
 								</label>
 							</td>
 							<td class="items-near-right">= {{ regFeeAmount.toFixed(3) }}万</td>
-							<td class="items-near-right" class="minor">{{ (regFeeAmount / totalCash * 100).toFixed(2) }}%</td>
+							<td class="items-near-right minor">{{ (regFeeAmount / totalCash * 100).toFixed(2) }}%</td>
 						</tr>
 						<tr class="dp row">
 							<td>印花税</td>
@@ -443,7 +471,7 @@
 								</label>
 							</td>
 							<td class="items-near-right">= {{ stampDuty.toFixed(2) }}万</td>
-							<td class="items-near-right" class="minor">{{ stampDuty > 0 ? (stampDuty / totalCash * 100).toFixed(2) : '—' }}%</td>
+							<td class="items-near-right minor">{{ stampDuty > 0 ? (stampDuty / totalCash * 100).toFixed(2) : '—' }}%</td>
 						</tr>
 					</tbody>
 					<tfoot>
@@ -649,14 +677,7 @@
 			},
 
 			// 契税政策税率
-			deedTaxReason() {
-			if (this.homeCount === 'first') {
-				return this.area <= 90 ? '首套 ≤90㎡' : '首套 >90㎡';
-			}
-			return this.isStandard ? '二套 普通住宅' : '二套 非普通住宅';
-		},
-
-		deedTaxPolicyRate() {
+			deedTaxPolicyRate() {
 				if (this.homeCount === 'first') {
 					return this.area <= 90 ? 0.01 : 0.015;
 				}
