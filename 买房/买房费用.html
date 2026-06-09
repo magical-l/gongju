@@ -560,7 +560,41 @@
 					<el-button size="small" @click="downloadAmortization">下载每期明细 CSV</el-button>
 				</div>
 			</div>
+
+			<!-- 右栏：物业费 -->
+			<div class="property-fee card">
+				<header>物业费</header>
+				<div class="flex " style="gap:12px;align-items:center">
+					<span>单价</span>
+					<el-input-number v-model="propertyFeeUnitPrice" :min="0" :max="50" :step="0.5" :precision="1" :controls="false" size="small" style="width:100px">
+					</el-input-number>
+					<span>元/㎡/月</span>
+				</div>
+				<table>
+					<thead>
+						<tr>
+							<th class="items-near-left">项目</th>
+							<th class="items-near-right">金额</th>
+						</tr>
+					</thead>
+					<tbody class="items-y-near-center">
+						<tr>
+							<td>月物业费</td>
+							<td class="items-near-right">{{ propertyFeeMonthly.toFixed(0) }} 元</td>
+						</tr>
+						<tr>
+							<td>年物业费</td>
+							<td class="items-near-right">{{ (propertyFeeMonthly * 12).toFixed(0) }} 元</td>
+						</tr>
+						<tr class="total dp row">
+							<td>月供 + 物业费</td>
+							<td class="items-near-right" style="color:#e6a23c">{{ (fundMonthly + commercialMonthly + propertyFeeMonthly).toFixed(0) }} 元</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 		</section>
+
 	</article>
 </main>
 
@@ -646,6 +680,7 @@
 				commercialAmount: 320,  // 商贷额度（万元）
 				loanYears: 30,         // 贷款年限
 				repaymentMode: 'equal', // 'equal' (等额本息) | 'principal' (等额本金)
+				propertyFeeUnitPrice: 5,   // 物业费单价（元/㎡/月）
 			};
 		},
 
@@ -827,6 +862,10 @@
 
 			totalRepayment() {
 				return (this.fundLoanAmount + this.commercialLoanAmount) * 10000 + this.totalInterest;
+			},
+
+			propertyFeeMonthly() {
+				return this.area * this.propertyFeeUnitPrice;
 			},
 
 			// 提示文本
