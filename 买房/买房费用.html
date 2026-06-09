@@ -151,7 +151,7 @@
 			</el-dialog>
 		</div>
 	</header>
-	<article class="工字形" style="gap:20px;grid-template-columns:3fr 2fr" v-cloak>
+	<article class="工字形" style="gap:20px;grid-template-columns:13fr 11fr" v-cloak>
 		<header class="toolbar flex items-go-x items-y-near-center" style="gap:8px 12px;">
 			<el-input-number v-model="area" :min="1" :step="5" :controls="false">
 				<template #prefix>面积</template>
@@ -512,6 +512,7 @@
 							<th class="items-near-right">利率（%）</th>
 							<th class="items-near-right">利息（万元）</th>
 							<th class="items-near-right">本息合计（万元）</th>
+							<th class="items-near-right">每月应还（元）</th>
 						</tr>
 					</thead>
 					<tbody class="items-y-near-center">
@@ -528,6 +529,7 @@
 							</td>
 							<td class="items-near-right">{{ fundLoanAmount > 0 ? (fundInterest / 10000).toFixed(2) : '—' }}</td>
 							<td class="items-near-right">{{ fundLoanAmount > 0 ? ((fundLoanAmount * 10000 + fundInterest) / 10000).toFixed(2) : '—' }}</td>
+							<td class="items-near-right">{{ fundLoanAmount > 0 ? fundMonthly.toFixed(0) : '—' }}</td>
 						</tr>
 						<tr class="dp row">
 							<td>商业贷款</td>
@@ -542,6 +544,7 @@
 							</td>
 							<td class="items-near-right">{{ commercialLoanAmount > 0 ? (commercialInterest / 10000).toFixed(2) : '—' }}</td>
 							<td class="items-near-right">{{ commercialLoanAmount > 0 ? ((commercialLoanAmount * 10000 + commercialInterest) / 10000).toFixed(2) : '—' }}</td>
+							<td class="items-near-right">{{ commercialLoanAmount > 0 ? commercialMonthly.toFixed(0) : '—' }}</td>
 						</tr>
 						<tr class="total dp row">
 							<td>综合</td>
@@ -549,9 +552,13 @@
 							<td class="items-near-right">{{ blendedRate.toFixed(2) }}%</td>
 							<td class="items-near-right">{{ (totalInterest / 10000).toFixed(2) }}</td>
 							<td class="items-near-right">{{ (totalRepayment / 10000).toFixed(2) }}</td>
+							<td class="items-near-right" style="color:#e6a23c">{{ (fundMonthly + commercialMonthly).toFixed(0) }}</td>
 						</tr>
 					</tbody>
 				</table>
+				<div style="text-align:right;padding-top:8px">
+					<el-button size="small" @click="downloadAmortization">下载每期明细 CSV</el-button>
+				</div>
 			</div>
 		</section>
 	</article>
@@ -881,6 +888,59 @@
 			resetFundPrice() { this.fundUnitPrice = 80; },
 			resetStampRate() { this.stampRate = 0.05; },
 			resetRegFee() { this.regFeeAmount = 0.008; this.regFeeRate = 0.001; },
+
+			// 生成每期还款明细 CSV
+			downloadAmortization() {
+			const periods = this.loanYears * 12;
+			const rows = [['期数', '月供合计', '本金合计', '利息合计', '剩余总额']];
+			let fundRem = this.fundLoanAmount * 10000;
+			let comRem = this.commercialLoanAmount * 10000;
+			let totalRem = fundRem + comRem;
+			const fundMR = this.fundRate / 100 / 12;
+			const comMR = this.commercialRate / 100 / 12;
+
+			for (let i = 1; i <= periods; i++) {
+				let fPay = 0, fPri = 0, fInt = 0;
+				let cPay = 0, cPri = 0, cInt = 0;
+
+				if (this.fundLoanAmount > 0) {
+					if (this.repaymentMode === 'equal') {
+						fInt = fundRem * fundMR;
+						fPri = this.fundMonthly - fInt;
+						fPay = this.fundMonthly;
+					} else {
+						fPri = this.fundLoanAmount * 10000 / periods;
+						fInt = fundRem * fundMR;
+						fPay = fPri + fInt;
+					}
+					fundRem -= fPri;
+				}
+				if (this.commercialLoanAmount > 0) {
+					if (this.repaymentMode === 'equal') {
+						cInt = comRem * comMR;
+						cPri = this.commercialMonthly - cInt;
+						cPay = this.commercialMonthly;
+					} else {
+						cPri = this.commercialLoanAmount * 10000 / periods;
+						cInt = comRem * comMR;
+						cPay = cPri + cInt;
+					}
+					comRem -= cPri;
+				}
+
+				const tPri = fPri + cPri;
+				const tInt = fInt + cInt;
+				const tPay = fPay + cPay;
+				totalRem -= tPri;
+				rows.push([i, tPay.toFixed(2), tPri.toFixed(2), tInt.toFixed(2), Math.max(0, totalRem).toFixed(2)]);
+			}
+
+			const csv = rows.map(r => r.join(',')).join(String.fromCharCode(10));
+			const blob = new Blob(['﻿' + csv], {type: 'text/csv;charset=utf-8;'});
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a'); a.href = url; a.download = '还款明细.csv'; a.click();
+			URL.revokeObjectURL(url);
+		},
 		},
 
 		watch: {
