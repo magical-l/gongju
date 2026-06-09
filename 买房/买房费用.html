@@ -63,6 +63,10 @@
 		font-size: 11px;
 	}
 
+	.mute {
+		color: #c0c4cc;
+	}
+
 	/* 费用、贷款卡片表格 */
 	.fee.card, .loan.card {
 		& table {
@@ -71,15 +75,13 @@
 			font-size: 13px;
 		}
 
-		& thead th {
+		& th {
 			padding: 6px 0;
 			font-weight: 500;
-			color: #909399;
 		}
 
-		& tbody td {
+		& td {
 			padding: 6px 0;
-			color: #303133;
 		}
 
 		& .total.row {
@@ -151,13 +153,11 @@
 		<!-- 左栏：输入参数 -->
 		<section class="input area param card">
 			<div class="form row">
-				<el-input-number v-model="area" :min="1" :step="5" :controls="false" style="width:100%">
+				<el-input-number v-model="area" :min="1" :step="5" :controls="false" size="large">
 					<template #prefix>面积</template>
 					<template #suffix>㎡</template>
 				</el-input-number>
-			</div>
-			<div class="form row">
-				<el-input-number v-model="totalPrice" :min="1" :step="10" :controls="false" style="width:100%">
+				<el-input-number v-model="totalPrice" :min="1" :step="10" :controls="false" size="large">
 					<template #prefix>总价</template>
 					<template #suffix>万元</template>
 				</el-input-number>
@@ -223,16 +223,16 @@
 						<tr class="dp row">
 							<td>首付</td>
 							<td class="minor">
-								<del v-if="homeCount !== 'first' || location !== 'outer'">首套外环外 20%</del>
+								<span class="mute" v-if="homeCount !== 'first' || location !== 'outer'">首套外环外 20%</span>
 								<span v-else>首套外环外 20%</span>
 								<br>
-								<del v-if="homeCount !== 'first' || location !== 'inner'">首套外环内 25%</del>
+								<span class="mute" v-if="homeCount !== 'first' || location !== 'inner'">首套外环内 25%</span>
 								<span v-else>首套外环内 25%</span>
 								<br>
-								<del v-if="homeCount !== 'second' || location !== 'outer'">二套外环外 30%</del>
+								<span class="mute" v-if="homeCount !== 'second' || location !== 'outer'">二套外环外 30%</span>
 								<span v-else>二套外环外 30%</span>
 								<br>
-								<del v-if="homeCount !== 'second' || location !== 'inner'">二套外环内 35%</del>
+								<span class="mute" v-if="homeCount !== 'second' || location !== 'inner'">二套外环内 35%</span>
 								<span v-else>二套外环内 35%</span>
 							</td>
 							<td>
@@ -262,16 +262,16 @@
 						<tr class="dp row">
 							<td>契税</td>
 							<td class="minor">
-								<del v-if="homeCount !== 'first' || area > 90">首套 ≤90㎡ 1%</del>
+								<span class="mute" v-if="homeCount !== 'first' || area > 90">首套 ≤90㎡ 1%</span>
 								<span v-else>首套 ≤90㎡ 1%</span>
 								<br>
-								<del v-if="homeCount !== 'first' || area <= 90">首套 >90㎡ 1.5%</del>
+								<span class="mute" v-if="homeCount !== 'first' || area <= 90">首套 >90㎡ 1.5%</span>
 								<span v-else>首套 >90㎡ 1.5%</span>
 								<br>
-								<del v-if="homeCount !== 'second' || !isStandard">二套普通 2%</del>
+								<span class="mute" v-if="homeCount !== 'second' || !isStandard">二套普通 2%</span>
 								<span v-else>二套普通 2%</span>
 								<br>
-								<del v-if="homeCount !== 'second' || isStandard">二套非普通 3%</del>
+								<span class="mute" v-if="homeCount !== 'second' || isStandard">二套非普通 3%</span>
 								<span v-else>二套非普通 3%</span>
 							</td>
 							<td>
@@ -298,7 +298,7 @@
 							<td class="items-near-right">= {{ deedTax.toFixed(2) }}万</td>
 							<td class="items-near-right minor">{{ (deedTax / totalCash * 100).toFixed(1) }}%</td>
 						</tr>
-						<tr v-if="houseType === 'second'" class="dp row">
+						<tr class="dp row" :class="{ mute: houseType !== 'second' }">
 							<td>中介费</td>
 							<td class="minor">通常 2%</td>
 							<td>
@@ -325,7 +325,7 @@
 							<td class="items-near-right">= {{ agencyFee.toFixed(2) }}万</td>
 							<td class="items-near-right minor">{{ agencyFee > 0 ? (agencyFee / totalCash * 100).toFixed(1) : '—' }}%</td>
 						</tr>
-						<tr v-if="houseType === 'second'" class="dp row">
+						<tr class="dp row" :class="{ mute: houseType !== 'second' }">
 							<td>增值税</td>
 							<td class="minor">
 								通常 5.3%
@@ -356,13 +356,13 @@
 							<td class="items-near-right">= {{ vat.toFixed(2) }}万</td>
 							<td class="items-near-right minor">{{ vat > 0 ? (vat / totalCash * 100).toFixed(1) : '—' }}%</td>
 						</tr>
-						<tr v-if="houseType === 'second'" class="dp row">
+						<tr class="dp row" :class="{ mute: houseType !== 'second' }">
 							<td>个税</td>
 							<td class="minor">
-								<del v-if="!isStandard">普通 1%</del>
+								<span class="mute" v-if="!isStandard">普通 1%</span>
 								<span v-else>普通 1%</span>
 								/
-								<del v-if="isStandard">非普通 2%</del>
+								<span class="mute" v-if="isStandard">非普通 2%</span>
 								<span v-else>非普通 2%</span>
 								<br>
 								<el-checkbox v-model="pitFullFiveUnique" size="small" style="font-size:11px">满五唯一免征</el-checkbox>
@@ -391,7 +391,7 @@
 							<td class="items-near-right">= {{ pit.toFixed(2) }}万</td>
 							<td class="items-near-right minor">{{ pit > 0 ? (pit / totalCash * 100).toFixed(1) : '—' }}%</td>
 						</tr>
-						<tr v-if="houseType === 'new'" class="dp row">
+						<tr class="dp row" :class="{ mute: houseType !== 'new' }">
 							<td>维修基金</td>
 							<td class="minor">面积 × 单价</td>
 							<td>
