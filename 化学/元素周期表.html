@@ -7,12 +7,12 @@
 	<link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
 	<link href="../resources/el-plus.css" rel="stylesheet">
 	<link href="../lib/toastr.min.css" rel="stylesheet">
-	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/common.css" rel="stylesheet"> -->
-	<link href="../lib/css/common.css" rel="stylesheet">
-	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/花活.css" rel="stylesheet"> -->
-	<link href="../lib/css/花活.css" rel="stylesheet">
-	<!-- <link href="https://cdn.jsdelivr.net/gh/magical-l/css@1.0.0/css/layout.css" rel="stylesheet"> -->
-	<link href="../lib/css/layout.css" rel="stylesheet">
+	<link href="http://css.document.cool/common.css" rel="stylesheet">
+	<!-- <link href="../lib/css/common.css" rel="stylesheet"> -->
+	<link href="http://css.document.cool/花活.css" rel="stylesheet">
+	<!-- <link href="../lib/css/花活.css" rel="stylesheet"> -->
+	<link href="http://css.document.cool/layout.css" rel="stylesheet">
+	<!-- <link href="../lib/css/layout.css" rel="stylesheet"> -->
 	<link href="../resources/biz.css?v=250821" rel="stylesheet">
 	<style>
 		body > main {
@@ -42,11 +42,58 @@
 				}
 			}
 
-			& .toggle.btn > span {
-				font-size: 12px;
-				line-height: 1;
-				padding: 5px 11px;
-				border-radius: 3px;
+			& .toggle.btn {
+				display: inline-flex;
+				cursor: pointer;
+
+				> input {
+					position: absolute;
+					opacity: 0;
+					width: 0;
+					height: 0;
+					margin: 0;
+				}
+
+				> span {
+					display: inline-block;
+					padding: 5px 11px;
+					background: #e8e8e8;
+					color: #333;
+					border: 1px solid #bbb;
+					border-radius: 3px;
+					box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+					transition: all 0.2s ease;
+					font-size: 12px;
+					line-height: 1;
+
+					&:active {
+						transform: scale(0.98);
+					}
+				}
+
+				/* 第一个 span = 选中态（凹陷），默认隐藏 */
+				> span:first-of-type {
+					display: none;
+				}
+
+				&:has(> input:checked) {
+					> span:first-of-type {
+						display: inline-block;
+						background: #a0a0a0;
+						border-color: #888;
+						box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25);
+					}
+					> span:first-of-type ~ span {
+						display: none;
+					}
+				}
+
+				/* 禁用态 */
+				> input:disabled ~ span {
+					opacity: 0.5;
+					cursor: not-allowed;
+					transform: none;
+				}
 			}
 		}
 

@@ -220,7 +220,7 @@ template, .template, .hidden, [v-cloak], .js.container {display: none !important
 .sticky {
 	position: sticky;
 
-	&:is(nav) {top: 0;}
+	&:is(header) {top: 0;}
 	&:is(footer) {bottom: 0;}
 }
 
