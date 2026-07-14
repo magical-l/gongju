@@ -539,10 +539,20 @@
 				height: 16px;
 			}
 
-			& .icon::after {
-				font-style: normal;
-				font-size: 0.8em;
-				line-height: 1;
+			& .icon {
+				width: auto;
+				height: auto;
+				min-width: 0;
+				min-height: 0;
+				max-width: none;
+				max-height: none;
+				display: inline;
+
+				&::after {
+					font-style: normal;
+					font-size: 0.8em;
+					line-height: 1;
+				}
 			}
 		}
 
@@ -817,6 +827,16 @@
 					color: #606266;
 					white-space: nowrap;
 					user-select: none;
+				}
+
+				& .icon {
+					width: auto;
+					height: auto;
+					min-width: 0;
+					min-height: 0;
+					max-width: none;
+					max-height: none;
+					display: inline;
 				}
 			}
 
