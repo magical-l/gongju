@@ -63,10 +63,14 @@
 			padding-left: 8px;
 		}
 
+		main {
+			background: #eaeaea;
+		}
+
 		.symbols {
 			display: grid;
-			grid-template-columns: repeat(10, 1fr);
-			justify-items: center;
+			grid-template-columns: repeat(auto-fill, 90px);
+			justify-content: start;
 		}
 
 		.symbol {
@@ -101,6 +105,31 @@
 			align-items: center;
 			justify-content: center;
 		}
+
+		.symbol .char.has-variants {
+			gap: 2px;
+		}
+
+		/* 文字风格（font-variant-emoji:text）。表情风格用 common.css 的 .emoji */
+		.vs-text {
+			font-variant-emoji: text;
+		}
+
+		.symbol .char .variant {
+			border-radius: 3px;
+			padding: 0 3px;
+			cursor: pointer;
+			transition: background-color 0.15s;
+		}
+
+		.symbol .char .variant.text:hover {
+			background: var(--el-color-primary-light-9);
+		}
+
+		.symbol .char .variant.emoji:hover {
+			background: var(--el-color-warning-light-9);
+		}
+
 
 		.symbol .name, .symbol .ename {
 			text-align: center;
@@ -308,7 +337,14 @@
 				</div>
 				<div class="floater-title">效果预览</div>
 				<div class="char-preview">
-					<span class="placeholder-char">文</span><span class="symbol-char">{{ hoveredSymbol.char }}</span><span class="placeholder-char">字</span>
+					<template v-if="hoveredSymbol.mode === 'dual'">
+						<span class="placeholder-char">文</span><span class="symbol-char variant text vs-text" @click.stop="copyVariant(hoveredSymbol, 'text')" title="复制文本风格">{{ hoveredSymbol.char }}</span><span class="placeholder-char">字</span>
+						<br>
+						<span class="placeholder-char">文</span><span class="symbol-char variant emoji" @click.stop="copyVariant(hoveredSymbol, 'emoji')" title="复制表情风格">{{ hoveredSymbol.char }}</span><span class="placeholder-char">字</span>
+					</template>
+					<template v-else>
+						<span class="placeholder-char">文</span><span class="symbol-char">{{ hoveredSymbol.char }}</span><span class="placeholder-char">字</span>
+					</template>
 				</div>
 			</div>
 			<section class="search-bar">
@@ -323,7 +359,14 @@
 						<template v-if="filteredSymbolGroups[group]">
 							<div v-if="filteredSymbolGroups[group].symbols" class="symbols">
 								<div class="symbol" v-for="s in filteredSymbolGroups[group].symbols" :key="s.char" @click="copySymbol(s)" @mouseenter="setHoveredSymbol(s, s._g || group)" title="点击复制">
-									<span class="char">{{ s.char }}</span>
+									<span class="char" :class="{ 'has-variants': s.mode === 'dual' }">
+										<template v-if="s.mode === 'dual'">
+											<span class="variant text vs-text" @click.stop="copyVariant(s, 'text')">{{ s.char }}</span>
+
+											<span class="variant emoji" @click.stop="copyVariant(s, 'emoji')">{{ s.char }}</span>
+										</template>
+										<span v-else>{{ s.char }}</span>
+									</span>
 									<span class="name">{{ s.groups[s._g].name }}</span>
 									<span class="ename">{{ s.groups[s._g].ename }}</span>
 								</div>
@@ -332,8 +375,15 @@
 								<div v-for="subgroup in filteredSymbolGroups[group].groups" :key="subgroup.name" class="subgroup">
 									<h4 class="subgroup-name">{{ subgroup.name }}</h4>
 									<div class="symbols">
-										<div class="symbol" v-for="s in subgroup.symbols" :key="s.char" @click="copySymbol(s)" title="点击复制" @mouseenter="setHoveredSymbol(s, s._g || subgroup.name)">
-											<span class="char">{{ s.char }}</span>
+										<div class="symbol" v-for="s in subgroup.symbols" :key="s.char" @click="copySymbol(s)" @mouseenter="setHoveredSymbol(s, s._g || subgroup.name)" title="点击复制">
+											<span class="char" :class="{ 'has-variants': s.mode === 'dual' }">
+												<template v-if="s.mode === 'dual'">
+													<span class="variant text vs-text" @click.stop="copyVariant(s, 'text')">{{ s.char }}</span>
+		
+													<span class="variant emoji" @click.stop="copyVariant(s, 'emoji')">{{ s.char }}</span>
+												</template>
+												<span v-else>{{ s.char }}</span>
+											</span>
 											<span class="name">{{ s.groups[s._g].name }}</span>
 											<span class="ename">{{ s.groups[s._g].ename }}</span>
 										</div>
@@ -494,15 +544,27 @@
 				});
 			},
 			methods: {
-				setHoveredSymbol(symbol, groupName) {
-					this.hoveredSymbol = {...symbol, _g: groupName};
-				},
 				clearHoveredSymbol() {
 					// 始终显示详情卡片
 				},
+				setHoveredSymbol(symbol, groupName) {
+					this.hoveredSymbol = {...symbol, _g: groupName};
+				},
 				copySymbol(symbol) {
-					navigator.clipboard.writeText(symbol.char).then(() => {
+					const text = symbol.mode === 'dual' ? symbol.char + '️' : symbol.char;
+					navigator.clipboard.writeText(text).then(() => {
 						ElementPlus.ElMessage.success(`"${symbol.groups?.[symbol._g]?.name || symbol.char}"已复制`);
+					}).catch(err => {
+						ElementPlus.ElMessage.error('复制失败: ' + err);
+					});
+				},
+				copyVariant(symbol, type) {
+					if (symbol.mode !== 'dual') return;
+					const vs = type === 'text' ? '︎' : '️';
+					const text = symbol.char + vs;
+					navigator.clipboard.writeText(text).then(() => {
+						const label = type === 'text' ? '文本风格' : '表情风格';
+						ElementPlus.ElMessage.success(`"${symbol.groups?.[symbol._g]?.name || symbol.char}"（${label}）已复制`);
 					}).catch(err => {
 						ElementPlus.ElMessage.error('复制失败: ' + err);
 					});
@@ -536,7 +598,7 @@
 					this.setHoveredSymbol(firstSymbol, firstSymbol._g);
 					const chars = document.querySelectorAll('.symbol .char');
 					for (const el of chars) {
-						if (el.textContent === firstSymbol.char) {
+						if (el.textContent.includes(firstSymbol.char)) {
 							const symbolEl = el.closest('.symbol');
 							if (symbolEl) {
 								symbolEl.classList.add('auto-focused');
