@@ -1,6 +1,0 @@
-I have the Unicode emoji variation sequences data from the official source. The data is large, so I'll write a script to process it. Since I downloaded both files successfully, let me explain what I got:
-
-1. **emoji-variation-sequences.txt** (Unicode 16.0) - contains 371 sequences total (each character appears twice: once with FE0E for text style, once with FE0F for emoji style)
-2. **emoji-data.txt** - contains the Emoji_Presentation property that determines default style
-
-I have all the raw data. Let me now manually extract and organize it since I can't run scripts.
