@@ -295,8 +295,8 @@
 		<article v-cloak>
 			<div class="symbol-detail-floater is-visible">
 				<div class="details">
-					<div class="name">{{ hoveredSymbol.name || hoveredSymbol.char }}</div>
-					<div v-if="hoveredSymbol.ename" class="ename">{{ hoveredSymbol.ename }}</div>
+					<div class="name">{{ hoveredSymbol.groups?.[hoveredSymbol._g]?.name || hoveredSymbol.char }}</div>
+					<div v-if="hoveredSymbol.groups?.[hoveredSymbol._g]?.ename" class="ename">{{ hoveredSymbol.groups?.[hoveredSymbol._g]?.ename }}</div>
 					<div class="code">
 						<span class="code-label">Unicode</span><span class="code-text">U+{{ hoveredSymbol.char.codePointAt(0).toString(16).toUpperCase() }}</span>
 						<span class="code-copy" @click.stop="copyCode" title="复制">⧉</span>
@@ -322,20 +322,20 @@
 						</template>
 						<template v-if="filteredSymbolGroups[group]">
 							<div v-if="filteredSymbolGroups[group].symbols" class="symbols">
-								<div class="symbol" v-for="s in filteredSymbolGroups[group].symbols" :key="s.char" @click="copySymbol(s)" @mouseenter="setHoveredSymbol(s)" title="点击复制">
+								<div class="symbol" v-for="s in filteredSymbolGroups[group].symbols" :key="s.char" @click="copySymbol(s)" @mouseenter="setHoveredSymbol(s, s._g || group)" title="点击复制">
 									<span class="char">{{ s.char }}</span>
-									<span class="name">{{ s.name }}</span>
-									<span class="ename">{{ s.ename }}</span>
+									<span class="name">{{ s.groups[s._g].name }}</span>
+									<span class="ename">{{ s.groups[s._g].ename }}</span>
 								</div>
 							</div>
 							<div v-if="filteredSymbolGroups[group].groups" class="subgroups">
 								<div v-for="subgroup in filteredSymbolGroups[group].groups" :key="subgroup.name" class="subgroup">
 									<h4 class="subgroup-name">{{ subgroup.name }}</h4>
 									<div class="symbols">
-										<div class="symbol" v-for="s in subgroup.symbols" :key="s.char" @click="copySymbol(s)" title="点击复制" @mouseenter="setHoveredSymbol(s)">
+										<div class="symbol" v-for="s in subgroup.symbols" :key="s.char" @click="copySymbol(s)" title="点击复制" @mouseenter="setHoveredSymbol(s, s._g || subgroup.name)">
 											<span class="char">{{ s.char }}</span>
-											<span class="name">{{ s.name }}</span>
-											<span class="ename">{{ s.ename }}</span>
+											<span class="name">{{ s.groups[s._g].name }}</span>
+											<span class="ename">{{ s.groups[s._g].ename }}</span>
 										</div>
 									</div>
 								</div>
@@ -378,7 +378,7 @@
 				return {
 					searchQuery: '',
 					activeGroupNames: [],
-					hoveredSymbol: SYMBOLS[0],
+					hoveredSymbol: {...SYMBOLS[0], _g: Object.keys(SYMBOLS[0].groups)[0]},
 				};
 			},
 			computed: {
@@ -390,7 +390,7 @@
 					for (const [cat, subs] of Object.entries(CATEGORIES)) {
 						if (subs.length === 0) {
 							// 叶子节点：符号直接在此标签下
-							const symbols = SYMBOLS.filter(s => s.tags.includes(cat));
+							const symbols = SYMBOLS.filter(s => s.groups[cat]).map(s => ({...s, _g: cat}));
 							if (symbols.length > 0) {
 								result[cat] = {
 									symbols
@@ -400,7 +400,7 @@
 							// 分支节点：符号可能在子组中，也可能直接在此标签下
 							const groups = [];
 							for (const sub of subs) {
-								const symbols = SYMBOLS.filter(s => s.tags.includes(sub));
+								const symbols = SYMBOLS.filter(s => s.groups[sub]).map(s => ({...s, _g: sub}));
 								if (symbols.length > 0) {
 									groups.push({
 										name: sub,
@@ -408,7 +408,7 @@
 									});
 								}
 							}
-							const direct = SYMBOLS.filter(s => s.tags.includes(cat) && !subs.some(sub => s.tags.includes(sub)));
+							const direct = SYMBOLS.filter(s => s.groups[cat] && !subs.some(sub => s.groups[sub])).map(s => ({...s, _g: cat}));
 							result[cat] = {};
 							if (groups.length > 0) result[cat].groups = groups;
 							if (direct.length > 0) result[cat].symbols = direct;
@@ -431,14 +431,14 @@
 						if (subs.length === 0) {
 							// 叶子节点：直接过滤符号
 							const symbols = SYMBOLS.filter(s => {
-								if (!s.tags.includes(cat)) return false;
+								if (!s.groups[cat]) return false;
 								const targets = [
 									s.char.toLowerCase(),
-									s.name.toLowerCase(),
-									s.ename.toLowerCase(), ...s.tags.map(t => t.toLowerCase()), ...(s.alias || []).map(a => a.toLowerCase())
+									...Object.values(s.groups).flatMap(g => [g.name?.toLowerCase(), g.ename?.toLowerCase(), ...(g.alias || []).map(a => a.toLowerCase())].filter(Boolean)),
+									...Object.keys(s.groups).map(k => k.toLowerCase())
 								];
 								return targets.some(t => t.includes(query));
-							});
+							}).map(s => ({...s, _g: cat}));
 							if (symbols.length > 0) {
 								result[cat] = {
 									symbols
@@ -454,14 +454,14 @@
 									continue;
 								}
 								const symbols = SYMBOLS.filter(s => {
-									if (!s.tags.includes(sub)) return false;
+									if (!s.groups[sub]) return false;
 									const targets = [
 										s.char.toLowerCase(),
-										s.name.toLowerCase(),
-										s.ename.toLowerCase(), ...s.tags.map(t => t.toLowerCase()), ...(s.alias || []).map(a => a.toLowerCase())
+										...Object.values(s.groups).flatMap(g => [g.name?.toLowerCase(), g.ename?.toLowerCase(), ...(g.alias || []).map(a => a.toLowerCase())].filter(Boolean)),
+										...Object.keys(s.groups).map(k => k.toLowerCase())
 									];
 									return targets.some(t => t.includes(query));
-								});
+								}).map(s => ({...s, _g: sub}));
 								if (symbols.length > 0) {
 									matchedSubs.push({
 										name: sub,
@@ -471,14 +471,14 @@
 							}
 							// 也搜索直接挂在此标签下的符号
 							const directSymbols = SYMBOLS.filter(s => {
-								if (!s.tags.includes(cat) || subs.some(sub => s.tags.includes(sub))) return false;
+								if (!s.groups[cat] || subs.some(sub => s.groups[sub])) return false;
 								const targets = [
 									s.char.toLowerCase(),
-									s.name.toLowerCase(),
-									s.ename.toLowerCase(), ...s.tags.map(t => t.toLowerCase()), ...(s.alias || []).map(a => a.toLowerCase())
+									...Object.values(s.groups).flatMap(g => [g.name?.toLowerCase(), g.ename?.toLowerCase(), ...(g.alias || []).map(a => a.toLowerCase())].filter(Boolean)),
+									...Object.keys(s.groups).map(k => k.toLowerCase())
 								];
 								return targets.some(t => t.includes(query));
-							});
+							}).map(s => ({...s, _g: cat}));
 							result[cat] = {};
 							if (matchedSubs.length > 0) result[cat].groups = matchedSubs;
 							if (directSymbols.length > 0) result[cat].symbols = directSymbols;
@@ -494,15 +494,15 @@
 				});
 			},
 			methods: {
-				setHoveredSymbol(symbol) {
-					this.hoveredSymbol = symbol;
+				setHoveredSymbol(symbol, groupName) {
+					this.hoveredSymbol = {...symbol, _g: groupName};
 				},
 				clearHoveredSymbol() {
 					// 始终显示详情卡片
 				},
 				copySymbol(symbol) {
 					navigator.clipboard.writeText(symbol.char).then(() => {
-						ElementPlus.ElMessage.success(`"${symbol.name || symbol.char}"已复制`);
+						ElementPlus.ElMessage.success(`"${symbol.groups?.[symbol._g]?.name || symbol.char}"已复制`);
 					}).catch(err => {
 						ElementPlus.ElMessage.error('复制失败: ' + err);
 					});
@@ -533,7 +533,7 @@
 						firstSymbol = firstGroup.groups[0].symbols[0];
 					}
 					if (!firstSymbol) return;
-					this.setHoveredSymbol(firstSymbol);
+					this.setHoveredSymbol(firstSymbol, firstSymbol._g);
 					const chars = document.querySelectorAll('.symbol .char');
 					for (const el of chars) {
 						if (el.textContent === firstSymbol.char) {
