@@ -1,0 +1,361 @@
+@font-face {
+	font-family: 'Noto Sans Symbols 2';
+	src: url('../lib/fonts/NotoSansSymbols2-Regular.ttf') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+/* ===== 文章三栏布局 ===== */
+.symbol-page {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+
+	& .panels {
+		display: flex;
+		align-items: flex-start;
+		gap: 1rem;
+
+		& .tree.panel {
+			width: 180px;
+			flex-shrink: 0;
+			background: #fff;
+			border-radius: 8px;
+			padding: 0.5rem;
+			align-self: flex-start;
+		}
+
+		& .content.panel {
+			flex: 1;
+			min-width: 0;
+		}
+
+		& .preview.panel {
+			width: 280px;
+			flex-shrink: 0;
+			align-self: flex-start;
+			position: sticky;
+			top: 1rem;
+		}
+	}
+}
+
+/* ===== 搜索栏 ===== */
+.search-bar {
+	margin-bottom: 0;
+}
+
+/* ===== 符号网格 ===== */
+.symbol-groups {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.symbols {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, 90px);
+	justify-content: start;
+}
+
+.symbol {
+	display: flex;
+	flex-direction: column;
+	justify-content: start;
+	align-items: center;
+	height: 120px;
+	width: 90px;
+	cursor: pointer;
+	border-radius: 4px;
+	padding: 4px;
+	box-sizing: border-box;
+	flex-shrink: 0;
+
+	&:hover {
+		background-color: var(--el-color-primary-light-9);
+	}
+
+	&.auto-focused {
+		background-color: var(--el-color-primary-light-9);
+		box-shadow: 0 0 0 2px var(--el-color-primary);
+	}
+
+	& .char {
+		font-family: 'Noto Sans Symbols 2', sans-serif;
+		font-size: 1.8rem;
+		flex-basis: 40px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+		&.has-variants {
+			gap: 2px;
+		}
+
+		& .variant {
+			border-radius: 3px;
+			padding: 0 3px;
+			cursor: pointer;
+			transition: background-color 0.15s;
+
+			&.text:hover {
+				background: var(--el-color-primary-light-9);
+			}
+
+			&.emoji:hover {
+				background: var(--el-color-warning-light-9);
+			}
+		}
+	}
+
+	& .name, & .ename {
+		text-align: center;
+		width: 100%;
+		white-space: normal;
+		line-height: 1.2;
+		overflow: hidden;
+	}
+
+	& .name {
+		font-size: 0.75rem;
+		color: var(--el-text-color-primary);
+	}
+
+	& .ename {
+		font-size: 0.65rem;
+		color: var(--el-text-color-placeholder);
+		text-transform: capitalize;
+	}
+}
+
+/* ===== 子类别 details/summary ===== */
+.subgroup {
+	margin-bottom: 1.5rem;
+
+	&[open] {
+		padding-bottom: 0.5rem;
+	}
+
+	& > summary {
+		cursor: pointer;
+		font-size: 1rem;
+		font-weight: 500;
+		color: var(--el-text-color-regular);
+		margin-bottom: 0.75rem;
+		padding: 4px 8px;
+		border-left: 3px solid var(--el-color-primary);
+		list-style: none;
+		display: flex;
+		align-items: center;
+		gap: 0.4em;
+
+		&::-webkit-details-marker {
+			display: none;
+		}
+
+		&::before {
+			content: '▶';
+			font-size: 0.7em;
+			color: var(--el-text-color-placeholder);
+			transition: transform 0.2s;
+		}
+	}
+
+	&[open] > summary::before {
+		transform: rotate(90deg);
+	}
+
+	& .symbols {
+		margin-top: 0.5rem;
+	}
+}
+
+/* ===== 加载占位 ===== */
+.loading-placeholder {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100px;
+	color: var(--el-text-color-placeholder);
+}
+
+/* ===== 右侧预览面板 ===== */
+.symbol-preview {
+	background: #fff;
+	border: 1px solid var(--el-border-color-light);
+	border-radius: 8px;
+	padding: 12px;
+	box-shadow: var(--el-box-shadow-light);
+
+	& .char-preview {
+		font-size: 5rem;
+		text-align: center;
+		font-family: 'Noto Sans Symbols 2', sans-serif;
+		line-height: 1;
+		margin-bottom: 12px;
+	}
+
+	& .align-row {
+		display: flex;
+		align-items: baseline;
+		justify-content: center;
+		gap: 6px;
+		font-family: sans-serif;
+		color: #666;
+		line-height: 1.6;
+		margin: 6px 0;
+		position: relative;
+		white-space: nowrap;
+		background:
+			linear-gradient(to bottom, rgba(0,0,0,0.12) 0, rgba(0,0,0,0.12) 1px, transparent 1px),
+			linear-gradient(to bottom,
+				transparent calc(50% - 0.5px),
+				rgba(0,0,0,0.12) calc(50% - 0.5px),
+				rgba(0,0,0,0.12) calc(50% + 0.5px),
+				transparent calc(50% + 0.5px)),
+			linear-gradient(to top, rgba(0,0,0,0.12) 0, rgba(0,0,0,0.12) 1px, transparent 1px);
+
+		&::before,
+		&::after {
+			content: '';
+			display: inline-block;
+			flex: 1;
+			height: 1px;
+			background: rgba(0,0,0,0.12);
+		}
+
+		& .align-sym {
+			background: rgba(220, 38, 38, 0.07);
+		}
+	}
+
+	& .details {
+		text-align: center;
+
+		& .name {
+			font-size: 1.2rem;
+			font-weight: 600;
+			color: var(--el-text-color-primary);
+		}
+
+		& .ename {
+			font-size: 0.9rem;
+			color: var(--el-text-color-placeholder);
+			text-transform: capitalize;
+			margin-top: 4px;
+		}
+	}
+
+	& .code {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5em;
+		font-family: monospace;
+		color: var(--el-text-color-secondary);
+		font-size: 0.9em;
+	}
+
+	& .code-copy {
+		cursor: pointer;
+		font-size: 1.1em;
+		opacity: 0.5;
+		transition: opacity 0.2s;
+
+		&:hover {
+			opacity: 1;
+		}
+	}
+
+	& .code-label {
+		font-size: 0.8em;
+		color: var(--el-text-color-placeholder);
+		margin-right: 0.25em;
+		font-family: sans-serif;
+	}
+
+	& .placeholder-char {
+		font-family: sans-serif;
+		color: #ccc;
+		user-select: none;
+	}
+
+	& .symbol-char {
+		font-family: 'Noto Sans Symbols 2', sans-serif;
+		margin: 0 2px;
+	}
+
+	& .panel-title {
+		font-size: 1rem;
+		font-weight: bold;
+		text-align: center;
+		margin-top: 8px;
+		margin-bottom: 8px;
+		color: var(--el-text-color-regular);
+	}
+}
+
+/* ===== 主区域 ===== */
+main {
+	background: #eaeaea;
+}
+
+.category-name {
+	font-size: 1.5rem;
+	border-bottom: 1px solid var(--el-border-color-light);
+	margin-top: 0;
+	margin-bottom: 1rem;
+	padding-bottom: 0.5rem;
+}
+
+/* ===== 分类目录树 ===== */
+.category.tree {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+
+	& .one.node {
+		line-height: 1.4;
+	}
+
+	& .node.name {
+		padding: 5px 10px;
+		cursor: pointer;
+		border-radius: 4px;
+		margin: 1px 0;
+		font-size: 0.9rem;
+		color: var(--el-text-color-primary);
+
+		&:hover {
+			background-color: var(--el-color-primary-light-9);
+		}
+
+		&.active {
+			background-color: var(--el-color-primary-light-8);
+			color: var(--el-color-primary);
+			font-weight: 600;
+		}
+	}
+
+	& .parent > .node.name {
+		font-weight: 600;
+		margin-top: 4px;
+	}
+
+	& .children.list {
+		list-style: none;
+		padding-left: 0.75rem;
+		margin: 0;
+	}
+
+	& .child > .node.name {
+		padding-left: 10px;
+		font-size: 0.85rem;
+	}
+}
+
+/* ===== 文字风格 ===== */
+.vs-text {
+	font-variant-emoji: text;
+}

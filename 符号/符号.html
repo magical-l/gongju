@@ -20,292 +20,9 @@
 	<link href="../resources/biz.css?v=250821" rel="stylesheet">
 	<link href="http://css.document.cool/花活.css" rel="stylesheet">
 	<!-- <link href="../lib/css/花活.css" rel="stylesheet"> -->
-	<style>
-		@font-face {
-			font-family: 'Noto Sans Symbols 2';
-			src: url('../lib/fonts/NotoSansSymbols2-Regular.ttf') format('truetype');
-			font-weight: normal;
-			font-style: normal;
-			font-display: swap;
-		}
-
-		.el-collapse-item__content {
-			padding: 10px 0;
-		}
-
-		.search-bar {
-			margin-bottom: 2rem;
-		}
-
-		.symbol-groups {
-			display: flex;
-			flex-direction: column;
-			gap: 0.5rem;
-
-			& .el-collapse,
-			& .el-collapse-item__header,
-			& .el-collapse-item__wrap {
-				background-color: transparent;
-			}
-		}
-
-		.symbol-group .name {
-			font-size: 1.5rem;
-			border-bottom: 1px solid var(--el-border-color-light);
-		}
-
-		.symbol-group h4.name {
-			font-size: 1.1rem;
-			font-weight: 600;
-			color: var(--el-text-color-regular);
-			margin-top: 1rem;
-			margin-bottom: 0.5rem;
-			padding-left: 8px;
-		}
-
-		main {
-			background: #eaeaea;
-		}
-
-		.symbols {
-			display: grid;
-			grid-template-columns: repeat(auto-fill, 90px);
-			justify-content: start;
-		}
-
-		.symbol {
-			display: flex;
-			flex-direction: column;
-			justify-content: start;
-			align-items: center;
-			height: 120px;
-			width: 90px;
-			cursor: pointer;
-			border-radius: 4px;
-			transition: background-color 0.3s;
-			padding: 4px;
-			box-sizing: border-box;
-			flex-shrink: 0;
-		}
-
-		.symbol:hover {
-			background-color: var(--el-color-primary-light-9);
-		}
-
-		.symbol.auto-focused {
-			background-color: var(--el-color-primary-light-9);
-			box-shadow: 0 0 0 2px var(--el-color-primary);
-		}
-
-		.symbol .char {
-			font-family: 'Noto Sans Symbols 2', sans-serif;
-			font-size: 1.8rem;
-			flex-basis: 40px;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-		}
-
-		.symbol .char.has-variants {
-			gap: 2px;
-		}
-
-		/* 文字风格（font-variant-emoji:text）。表情风格用 common.css 的 .emoji */
-		.vs-text {
-			font-variant-emoji: text;
-		}
-
-		.symbol .char .variant {
-			border-radius: 3px;
-			padding: 0 3px;
-			cursor: pointer;
-			transition: background-color 0.15s;
-		}
-
-		.symbol .char .variant.text:hover {
-			background: var(--el-color-primary-light-9);
-		}
-
-		.symbol .char .variant.emoji:hover {
-			background: var(--el-color-warning-light-9);
-		}
-
-
-		.symbol .name, .symbol .ename {
-			text-align: center;
-			width: 100%;
-			white-space: normal;
-			line-height: 1.2;
-			overflow: hidden;
-		}
-
-		.symbol .name {
-			font-size: 0.75rem;
-			color: var(--el-text-color-primary);
-		}
-
-		.symbol .ename {
-			font-size: 0.65rem;
-			color: var(--el-text-color-placeholder);
-			text-transform: capitalize;
-		}
-
-		.loading-placeholder {
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			height: 100px;
-			color: var(--el-text-color-placeholder);
-		}
-
-		.subgroup {
-			margin-bottom: 1.5rem;
-		}
-
-		.subgroup .subgroup-name {
-			font-size: 1rem;
-			font-weight: 500;
-			color: var(--el-text-color-regular);
-			margin-bottom: 0.75rem;
-			padding-left: 8px;
-			border-left: 3px solid var(--el-color-primary);
-		}
-
-		.symbol-detail-floater {
-			position: fixed;
-			bottom: 200px;
-			right: 10px;
-			z-index: 100;
-			width: 300px;
-			box-shadow: var(--el-box-shadow-light);
-			background-color: #fff;
-			border: 1px solid var(--el-border-color-light);
-			border-radius: 8px;
-			opacity: 0;
-			pointer-events: none;
-			transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
-			transform: translateX(10px);
-		}
-
-		.symbol-detail-floater.is-visible {
-			opacity: 0.8;
-			transform: translateX(0);
-			background: cornsilk;
-			pointer-events: auto;
-		}
-
-		.symbol-detail-floater .char-preview {
-			font-size: 5rem;
-			text-align: center;
-			font-family: 'Noto Sans Symbols 2', sans-serif;
-			line-height: 1;
-			margin-bottom: 12px;
-		}
-
-		/* 对齐参照面板 */
-		.symbol-detail-floater .align-row {
-			display: flex;
-			align-items: baseline;
-			justify-content: center;
-			gap: 6px;
-			font-family: sans-serif;
-			color: #666;
-			line-height: 1.6;
-			margin: 6px 0;
-			position: relative;
-			/* 顶、中、底 三条参考线 */
-			background:
-				linear-gradient(to bottom, rgba(0,0,0,0.12) 0, rgba(0,0,0,0.12) 1px, transparent 1px),
-				linear-gradient(to bottom,
-					transparent calc(50% - 0.5px),
-					rgba(0,0,0,0.12) calc(50% - 0.5px),
-					rgba(0,0,0,0.12) calc(50% + 0.5px),
-					transparent calc(50% + 0.5px)),
-				linear-gradient(to top, rgba(0,0,0,0.12) 0, rgba(0,0,0,0.12) 1px, transparent 1px);
-		}
-		/* 基线参考线：flex item，baseline 对齐即停在基线位置 */
-		.symbol-detail-floater .align-row::before,
-		.symbol-detail-floater .align-row::after {
-			content: '';
-			display: inline-block;
-			flex: 1;
-			height: 1px;
-			background: rgba(0,0,0,0.12);
-		}
-		.symbol-detail-floater .align-row .align-sym {
-			background: rgba(220, 38, 38, 0.07);
-		}
-
-		.symbol-detail-floater .details {
-			text-align: center;
-		}
-
-		.symbol-detail-floater .details .name {
-			font-size: 1.2rem;
-			font-weight: 600;
-			color: var(--el-text-color-primary);
-		}
-
-		.symbol-detail-floater .details .ename {
-			font-size: 0.9rem;
-			color: var(--el-text-color-placeholder);
-			text-transform: capitalize;
-			margin-top: 4px;
-		}
-
-		.symbol-detail-floater .details .code {
-			font-family: monospace;
-			color: var(--el-text-color-secondary);
-			font-size: 0.9em;
-		}
-
-		.symbol-detail-floater .code {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			gap: 0.5em;
-		}
-
-		.symbol-detail-floater .code-copy {
-			cursor: pointer;
-			font-size: 1.1em;
-			opacity: 0.5;
-			transition: opacity 0.2s;
-		}
-
-		.symbol-detail-floater .code-copy:hover {
-			opacity: 1;
-		}
-
-		.symbol-detail-floater .code-label {
-			font-size: 0.8em;
-			color: var(--el-text-color-placeholder);
-			margin-right: 0.25em;
-			font-family: sans-serif;
-		}
-
-		.symbol-detail-floater .placeholder-char {
-			font-family: sans-serif;
-			color: #ccc;
-			user-select: none;
-		}
-
-		.symbol-detail-floater .symbol-char {
-			font-family: 'Noto Sans Symbols 2', sans-serif;
-			margin: 0 2px;
-		}
-
-		.symbol-detail-floater .floater-title {
-			font-size: 1rem;
-			font-weight: bold;
-			text-align: center;
-			margin-top: 8px;
-			color: var(--el-text-color-regular);
-		}
-
-	</style>
+	<link href="符号.css" rel="stylesheet">
 </head>
-<body class="反叵字形">
+<body class="目字形">
 	<header>
 		<h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
 		<nav>
@@ -356,53 +73,37 @@
 				</el-dialog>
 			</div>
 		</header>
-		<article v-cloak>
-			<div class="symbol-detail-floater is-visible">
-				<div class="details">
-					<div class="name">{{ hoveredSymbol.groups?.[hoveredSymbol._g]?.name || hoveredSymbol.char }}</div>
-					<div v-if="hoveredSymbol.groups?.[hoveredSymbol._g]?.ename" class="ename">{{ hoveredSymbol.groups?.[hoveredSymbol._g]?.ename }}</div>
-					<div class="code">
-						<span class="code-label">Unicode</span><span class="code-text">U+{{ hoveredSymbol.char.codePointAt(0).toString(16).toUpperCase() }}</span>
-						<span class="code-copy" @click.stop="copyCode" title="复制">⧉</span>
-					</div>
-					<div class="code">
-						<span class="code-label">HTML转义</span><span class="code-text">&amp;#{{ hoveredSymbol.char.codePointAt(0) }};</span>
-						<span class="code-copy" @click.stop="copyCode" title="复制">⧉</span>
-					</div>
-				</div>
-				<div class="floater-title">效果预览</div>
-				<div class="char-preview">
-					<template v-if="hoveredSymbol.mode === 'dual'">
-						<div class="align-row" :style="previewStyle">
-							<span class="txt">gxhAyO<span class="align-sym variant text vs-text" @click.stop="copyVariant(hoveredSymbol, 'text')" title="复制文本风格">{{ hoveredSymbol.char }}</span>gxhAyO</span>
-						</div>
-						<div class="align-row" :style="previewStyle">
-							<span class="txt">gxhAyO<span class="align-sym variant emoji" @click.stop="copyVariant(hoveredSymbol, 'emoji')" title="复制表情风格">{{ hoveredSymbol.char }}</span>gxhAyO</span>
-						</div>
-					</template>
-					<template v-else>
-						<div class="align-row" :style="previewStyle">
-							<span class="txt">gxhAyO<span class="align-sym">{{ hoveredSymbol.char }}</span>gxhAyO</span>
-						</div>
-					</template>
-				</div>
-			</div>
+		<article class="symbol-page" v-cloak>
 			<section class="search-bar">
 				<el-input v-model="searchQuery" placeholder="输入中文/英文搜索组/符号..." clearable="" size="large"></el-input>
 			</section>
-			<div class="symbol-groups">
-				<el-collapse v-model="activeGroupNames">
-					<el-collapse-item v-for="group in categoryNames" :key="group" :name="group">
-						<template #title="">
-							<h3 class="name">{{ group }}（{{ symbolCount(group) }}）</h3>
-						</template>
-						<template v-if="filteredSymbolGroups[group]">
-							<div v-if="filteredSymbolGroups[group].symbols" class="symbols">
-								<div class="symbol" v-for="s in filteredSymbolGroups[group].symbols" :key="s.char" @click="copySymbol(s)" @mouseenter="setHoveredSymbol(s, s._g || group)" title="点击复制">
+			<div class="panels">
+				<section class="tree panel">
+					<ul class="category tree">
+						<li v-for="cat in categoryTree" :key="cat.name" class="one node parent">
+							<div class="node name" :class="{ active: selectedCategory === cat.name }" @click="selectedCategory = cat.name">
+								{{ cat.name }}
+							</div>
+							<ul v-if="cat.children.length" class="children list">
+								<li v-for="child in cat.children" :key="child.name" class="one node child">
+									<div class="node name" :class="{ active: selectedCategory === child.name }" @click="selectedCategory = child.name">
+										{{ child.name }}
+									</div>
+								</li>
+							</ul>
+						</li>
+					</ul>
+				</section>
+				<section class="content panel">
+					<div class="symbol-groups">
+					<template v-for="(data, cat) in filteredSymbolGroups" :key="cat">
+						<h3 class="category-name" v-if="Object.keys(filteredSymbolGroups).length > 1">{{ cat }}（{{ filteredItemCount(data) }} / {{ symbolCount(cat) }}）</h3>
+						<template v-if="data">
+							<div v-if="data.symbols" class="symbols">
+								<div class="symbol" v-for="s in data.symbols" :key="s.char" @click="copySymbol(s)" @mouseenter="setHoveredSymbol(s, s._g || cat)" title="点击复制">
 									<span class="char" :class="{ 'has-variants': s.mode === 'dual' }">
 										<template v-if="s.mode === 'dual'">
 											<span class="variant text vs-text" @click.stop="copyVariant(s, 'text')">{{ s.char }}</span>
-
 											<span class="variant emoji" @click.stop="copyVariant(s, 'emoji')">{{ s.char }}</span>
 										</template>
 										<span v-else>{{ s.char }}</span>
@@ -411,32 +112,62 @@
 									<span class="ename">{{ s.groups[s._g].ename }}</span>
 								</div>
 							</div>
-							<div v-if="filteredSymbolGroups[group].groups" class="subgroups">
-								<div v-for="subgroup in filteredSymbolGroups[group].groups" :key="subgroup.name" class="subgroup">
-									<h4 class="subgroup-name">{{ subgroup.name }}</h4>
-									<div class="symbols">
-										<div class="symbol" v-for="s in subgroup.symbols" :key="s.char" @click="copySymbol(s)" @mouseenter="setHoveredSymbol(s, s._g || subgroup.name)" title="点击复制">
-											<span class="char" :class="{ 'has-variants': s.mode === 'dual' }">
-												<template v-if="s.mode === 'dual'">
-													<span class="variant text vs-text" @click.stop="copyVariant(s, 'text')">{{ s.char }}</span>
-		
-													<span class="variant emoji" @click.stop="copyVariant(s, 'emoji')">{{ s.char }}</span>
-												</template>
-												<span v-else>{{ s.char }}</span>
-											</span>
-											<span class="name">{{ s.groups[s._g].name }}</span>
-											<span class="ename">{{ s.groups[s._g].ename }}</span>
-										</div>
+							<details v-for="subgroup in (data.groups || [])" :key="subgroup.name" open class="subgroup">
+								<summary class="subgroup-name">{{ subgroup.name }}</summary>
+								<div class="symbols">
+									<div class="symbol" v-for="s in subgroup.symbols" :key="s.char" @click="copySymbol(s)" @mouseenter="setHoveredSymbol(s, s._g || subgroup.name)" title="点击复制">
+										<span class="char" :class="{ 'has-variants': s.mode === 'dual' }">
+											<template v-if="s.mode === 'dual'">
+												<span class="variant text vs-text" @click.stop="copyVariant(s, 'text')">{{ s.char }}</span>
+												<span class="variant emoji" @click.stop="copyVariant(s, 'emoji')">{{ s.char }}</span>
+											</template>
+											<span v-else>{{ s.char }}</span>
+										</span>
+										<span class="name">{{ s.groups[s._g].name }}</span>
+										<span class="ename">{{ s.groups[s._g].ename }}</span>
 									</div>
 								</div>
+							</details>
+						</template>
+					</template>
+				</div>
+			</section>
+			<aside class="preview panel">
+				<div class="symbol-preview">
+					<div class="details">
+						<div class="name">{{ hoveredSymbol.groups?.[hoveredSymbol._g]?.name || hoveredSymbol.char }}</div>
+						<div v-if="hoveredSymbol.groups?.[hoveredSymbol._g]?.ename" class="ename">{{ hoveredSymbol.groups?.[hoveredSymbol._g]?.ename }}</div>
+						<div class="code">
+							<span class="code-label">Unicode</span><span class="code-text">U+{{ hoveredSymbol.char.codePointAt(0).toString(16).toUpperCase() }}</span>
+							<span class="code-copy" @click.stop="copyCode" title="复制">⧉</span>
+						</div>
+						<div class="code">
+							<span class="code-label">HTML转义</span><span class="code-text">&amp;#{{ hoveredSymbol.char.codePointAt(0) }};</span>
+							<span class="code-copy" @click.stop="copyCode" title="复制">⧉</span>
+						</div>
+					</div>
+					<div class="panel-title">效果预览</div>
+					<div class="char-preview">
+						<template v-if="hoveredSymbol.mode === 'dual'">
+							<div class="align-row" :style="previewStyle">
+								<span class="txt">gxhAyO<span class="align-sym variant text vs-text" @click.stop="copyVariant(hoveredSymbol, 'text')" title="复制文本风格">{{ hoveredSymbol.char }}</span>gxhAyO</span>
+							</div>
+							<div class="align-row" :style="previewStyle">
+								<span class="txt">gxhAyO<span class="align-sym variant emoji" @click.stop="copyVariant(hoveredSymbol, 'emoji')" title="复制表情风格">{{ hoveredSymbol.char }}</span>gxhAyO</span>
 							</div>
 						</template>
-					</el-collapse-item>
-				</el-collapse>
+						<template v-else>
+							<div class="align-row" :style="previewStyle">
+								<span class="txt">gxhAyO<span class="align-sym">{{ hoveredSymbol.char }}</span>gxhAyO</span>
+							</div>
+						</template>
+					</div>
+				</div>
+			</aside>
 			</div>
 		</article>
 	</main>
-	<aside class="sidebar near-right">
+	<footer>
 		<article class="website info">
 			<section class="patronage area">
 				<img title="赞助一下" class="qr-code" alt="支付宝收款码" src="../resources/支付宝收款码.jpg">
@@ -449,7 +180,7 @@
 				<p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
 			</section>
 		</article>
-	</aside>
+	</footer>
 	<div class="js container">
 		<script src="符号分组.js"></script>
 		<script src="符号数据.js"></script>
@@ -459,257 +190,7 @@
 		<script src="../lib/toastr.min.js"></script>
 		<script src="../resources/biz-util.js?v=250801"></script>
 	</div>
-	<script>
-		const {
-			createApp
-		} = Vue;
-		const app = createApp({
-			data() {
-				return {
-					searchQuery: '',
-					activeGroupNames: [],
-					hoveredSymbol: {...SYMBOLS[0], _g: Object.keys(SYMBOLS[0].groups)[0]},
-					previewFontSize: 2,
-				};
-			},
-			computed: {
-				previewStyle() {
-					return { fontSize: this.previewFontSize + 'rem' };
-				},
-				categoryNames() {
-					return Object.keys(CATEGORIES);
-				},
-				groupedSymbols() {
-					const result = {};
-					for (const [cat, subs] of Object.entries(CATEGORIES)) {
-						if (subs.length === 0) {
-							// 叶子节点：符号直接在此标签下
-							const symbols = SYMBOLS.filter(s => s.groups[cat]).map(s => ({...s, _g: cat}));
-							if (symbols.length > 0) {
-								result[cat] = {
-									symbols
-								};
-							}
-						} else {
-							// 分支节点：符号可能在子组中，也可能直接在此标签下
-							const groups = [];
-							for (const sub of subs) {
-								const symbols = SYMBOLS.filter(s => s.groups[sub]).map(s => ({...s, _g: sub}));
-								if (symbols.length > 0) {
-									groups.push({
-										name: sub,
-										symbols
-									});
-								}
-							}
-							const direct = SYMBOLS.filter(s => s.groups[cat] && !subs.some(sub => s.groups[sub])).map(s => ({...s, _g: cat}));
-							result[cat] = {};
-							if (groups.length > 0) result[cat].groups = groups;
-							if (direct.length > 0) result[cat].symbols = direct;
-						}
-					}
-					return result;
-				},
-				filteredSymbolGroups() {
-					if (!this.searchQuery) {
-						return this.groupedSymbols;
-					}
-					const query = this.searchQuery.toLowerCase();
-					const result = {};
-					for (const [cat, subs] of Object.entries(CATEGORIES)) {
-						// 标签名匹配 → 展示整组
-						if (cat.toLowerCase().includes(query)) {
-							result[cat] = this.groupedSymbols[cat];
-							continue;
-						}
-						if (subs.length === 0) {
-							// 叶子节点：直接过滤符号
-							const symbols = SYMBOLS.filter(s => {
-								if (!s.groups[cat]) return false;
-								const targets = [
-									s.char.toLowerCase(),
-									...Object.values(s.groups).flatMap(g => [g.name?.toLowerCase(), g.ename?.toLowerCase(), ...(g.alias || []).map(a => a.toLowerCase())].filter(Boolean)),
-									...Object.keys(s.groups).map(k => k.toLowerCase())
-								];
-								return targets.some(t => t.includes(query));
-							}).map(s => ({...s, _g: cat}));
-							if (symbols.length > 0) {
-								result[cat] = {
-									symbols
-								};
-							}
-						} else {
-							// 分支节点
-							const matchedSubs = [];
-							for (const sub of subs) {
-								if (sub.toLowerCase().includes(query)) {
-									const g = this.groupedSymbols[cat]?.groups?.find(x => x.name === sub);
-									if (g) matchedSubs.push(g);
-									continue;
-								}
-								const symbols = SYMBOLS.filter(s => {
-									if (!s.groups[sub]) return false;
-									const targets = [
-										s.char.toLowerCase(),
-										...Object.values(s.groups).flatMap(g => [g.name?.toLowerCase(), g.ename?.toLowerCase(), ...(g.alias || []).map(a => a.toLowerCase())].filter(Boolean)),
-										...Object.keys(s.groups).map(k => k.toLowerCase())
-									];
-									return targets.some(t => t.includes(query));
-								}).map(s => ({...s, _g: sub}));
-								if (symbols.length > 0) {
-									matchedSubs.push({
-										name: sub,
-										symbols
-									});
-								}
-							}
-							// 也搜索直接挂在此标签下的符号
-							const directSymbols = SYMBOLS.filter(s => {
-								if (!s.groups[cat] || subs.some(sub => s.groups[sub])) return false;
-								const targets = [
-									s.char.toLowerCase(),
-									...Object.values(s.groups).flatMap(g => [g.name?.toLowerCase(), g.ename?.toLowerCase(), ...(g.alias || []).map(a => a.toLowerCase())].filter(Boolean)),
-									...Object.keys(s.groups).map(k => k.toLowerCase())
-								];
-								return targets.some(t => t.includes(query));
-							}).map(s => ({...s, _g: cat}));
-							result[cat] = {};
-							if (matchedSubs.length > 0) result[cat].groups = matchedSubs;
-							if (directSymbols.length > 0) result[cat].symbols = directSymbols;
-						}
-					}
-					return result;
-				},
-			},
-			mounted() {
-				this.activeGroupNames = this.categoryNames.slice(0, 3);
-				this.$nextTick(() => {
-					this.autoFocusFirst();
-					this.adjustFontSize();
-				});
-			},
-			methods: {
-				clearHoveredSymbol() {
-					// 始终显示详情卡片
-				},
-				setHoveredSymbol(symbol, groupName) {
-					this.hoveredSymbol = {...symbol, _g: groupName};
-					this.adjustFontSize();
-				},
-				adjustFontSize() {
-					this.$nextTick(() => {
-						const rows = document.querySelectorAll('.symbol-detail-floater .align-row');
-						if (!rows.length) return;
-						let maxRatio = 1;
-						for (const row of rows) {
-							if (row.scrollWidth > row.clientWidth) {
-								maxRatio = Math.max(maxRatio, row.scrollWidth / row.clientWidth);
-							}
-						}
-						let newSize = Math.round((this.previewFontSize / maxRatio) * 10) / 10;
-						newSize = Math.max(0.9, Math.min(2, newSize));
-						if (newSize !== this.previewFontSize) {
-							this.previewFontSize = newSize;
-						}
-					});
-				},
-				copySymbol(symbol) {
-					const text = symbol.mode === 'dual' ? symbol.char + '️' : symbol.char;
-					navigator.clipboard.writeText(text).then(() => {
-						ElementPlus.ElMessage.success(`"${symbol.groups?.[symbol._g]?.name || symbol.char}"已复制`);
-					}).catch(err => {
-						ElementPlus.ElMessage.error('复制失败: ' + err);
-					});
-				},
-				copyVariant(symbol, type) {
-					if (symbol.mode !== 'dual') return;
-					const vs = type === 'text' ? '︎' : '️';
-					const text = symbol.char + vs;
-					navigator.clipboard.writeText(text).then(() => {
-						const label = type === 'text' ? '文本风格' : '表情风格';
-						ElementPlus.ElMessage.success(`"${symbol.groups?.[symbol._g]?.name || symbol.char}"（${label}）已复制`);
-					}).catch(err => {
-						ElementPlus.ElMessage.error('复制失败: ' + err);
-					});
-				},
-				copyCode(event) {
-					const codeText = event.target.closest('.code').querySelector('.code-text').textContent;
-					navigator.clipboard.writeText(codeText).then(() => {
-						ElementPlus.ElMessage.success(`"${codeText}"已复制`);
-					}).catch(err => {
-						ElementPlus.ElMessage.error('复制失败: ' + err);
-					});
-				},
-				symbolCount(groupName) {
-					const data = this.groupedSymbols[groupName];
-					if (!data) return 0;
-					let count = 0;
-					if (data.symbols) count += data.symbols.length;
-					if (data.groups) for (const g of data.groups) count += g.symbols?.length || 0;
-					return count;
-				},
-				autoFocusFirst() {
-					const firstGroup = this.groupedSymbols[this.categoryNames[0]];
-					if (!firstGroup) return;
-					let firstSymbol;
-					if (firstGroup.symbols) {
-						firstSymbol = firstGroup.symbols[0];
-					} else if (firstGroup.groups && firstGroup.groups.length > 0) {
-						firstSymbol = firstGroup.groups[0].symbols[0];
-					}
-					if (!firstSymbol) return;
-					this.setHoveredSymbol(firstSymbol, firstSymbol._g);
-					const chars = document.querySelectorAll('.symbol .char');
-					for (const el of chars) {
-						if (el.textContent.includes(firstSymbol.char)) {
-							const symbolEl = el.closest('.symbol');
-							if (symbolEl) {
-								symbolEl.classList.add('auto-focused');
-							}
-							document.addEventListener('mouseover', function handler(e) {
-								if (e.target.closest('.symbol')) {
-									document.querySelectorAll('.symbol.auto-focused').forEach(s => s.classList.remove('auto-focused'));
-									document.removeEventListener('mouseover', handler);
-								}
-							});
-							el.scrollIntoView({
-								behavior: 'smooth',
-								block: 'center'
-							});
-							break;
-						}
-					}
-				}
-			},
-			watch: {
-				filteredSymbolGroups(newVal) {
-					if (this.searchQuery) {
-						this.activeGroupNames = Object.keys(newVal);
-					} else {
-						this.activeGroupNames = this.categoryNames.slice(0, 3);
-					}
-				}
-			}
-		}).use(ElementPlus).mount('main>article');
-		const help = createApp({
-			data() {
-				return {
-					introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname)
-				};
-			},
-			watch: {
-				introVisible(newValue) {
-					const storageKey = 'intro-hidden-' + window.location.pathname;
-					if (!newValue) {
-						localStorage.setItem(storageKey, 'true');
-					} else {
-						localStorage.removeItem(storageKey);
-					}
-				}
-			}
-		}).use(ElementPlus).mount('.help.area');
-
-	</script>
+	<script src="符号.js"></script>
 	<div>
 		<!-- 谷歌广告联盟 -->
 		<script async crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"></script>
@@ -717,7 +198,6 @@
 		<ins class="adsbygoogle" data-ad-client="ca-pub-3376778290975789" data-full-width-responsive="true" data-ad-slot="7434043904" data-ad-format="auto" style="display:block"></ins>
 		<script>
 			(adsbygoogle = window.adsbygoogle || []).push({});
-
 		</script>
 	</div>
 </body>
