@@ -294,9 +294,39 @@
 		margin-bottom: 8px;
 		color: var(--el-text-color-regular);
 	}
+
+	& .font-selector {
+		margin-top: 8px;
+
+		& .el-select {
+			width: 100%;
+		}
+
+		& .font-affect-all {
+			margin-top: 8px;
+			width: 100%;
+		}
+		& .font-sample-char {
+			display: inline-block;
+			width: 1.6em;
+			text-align: center;
+			font-size: 1.2em;
+			margin-right: 6px;
+			vertical-align: middle;
+		}
+
+		& .font-option-name {
+			vertical-align: middle;
+		}
+
+	}
 }
 
-/* ===== 主区域 ===== */
+/* ===== 字体选择器下拉框 ===== */
+.font-popper {
+	max-height: 320px;
+}
+
 main {
 	background: #eaeaea;
 }

@@ -75,7 +75,7 @@
 		</header>
 		<article class="symbol-page" v-cloak>
 			<section class="search-bar">
-				<el-input v-model="searchQuery" placeholder="输入中文/英文搜索组/符号..." clearable="" size="large"></el-input>
+				<el-input v-model="searchQuery" placeholder="输入中文/英文搜索组/符号..." size="large"></el-input>
 			</section>
 			<div class="panels">
 				<section class="tree panel">
@@ -106,7 +106,7 @@
 											<span class="variant text vs-text" @click.stop="copyVariant(s, 'text')">{{ s.char }}</span>
 											<span class="variant emoji" @click.stop="copyVariant(s, 'emoji')">{{ s.char }}</span>
 										</template>
-										<span v-else>{{ s.char }}</span>
+									<span v-else>{{ s.char }}</span>
 									</span>
 									<span class="name">{{ s.groups[s._g].name }}</span>
 									<span class="ename">{{ s.groups[s._g].ename }}</span>
@@ -116,15 +116,15 @@
 								<summary class="subgroup-name">{{ subgroup.name }}</summary>
 								<div class="symbols">
 									<div class="symbol" v-for="s in subgroup.symbols" :key="s.char" @click="copySymbol(s)" @mouseenter="setHoveredSymbol(s, s._g || subgroup.name)" title="点击复制">
-										<span class="char" :class="{ 'has-variants': s.mode === 'dual' }">
+									<span class="char" :class="{ 'has-variants': s.mode === 'dual' }">
 											<template v-if="s.mode === 'dual'">
 												<span class="variant text vs-text" @click.stop="copyVariant(s, 'text')">{{ s.char }}</span>
 												<span class="variant emoji" @click.stop="copyVariant(s, 'emoji')">{{ s.char }}</span>
 											</template>
 											<span v-else>{{ s.char }}</span>
 										</span>
-										<span class="name">{{ s.groups[s._g].name }}</span>
-										<span class="ename">{{ s.groups[s._g].ename }}</span>
+									<span class="name">{{ s.groups[s._g].name }}</span>
+									<span class="ename">{{ s.groups[s._g].ename }}</span>
 									</div>
 								</div>
 							</details>
@@ -150,17 +150,39 @@
 					<div class="char-preview">
 						<template v-if="hoveredSymbol.mode === 'dual'">
 							<div class="align-row" :style="previewStyle">
-								<span class="txt">gxhAyO<span class="align-sym variant text vs-text" @click.stop="copyVariant(hoveredSymbol, 'text')" title="复制文本风格">{{ hoveredSymbol.char }}</span>gxhAyO</span>
+								<span class="txt">gxhAyO<span class="align-sym variant text vs-text" :style="symbolStyle" @click.stop="copyVariant(hoveredSymbol, 'text')" title="复制文本风格">{{ hoveredSymbol.char }}</span>gxhAyO</span>
 							</div>
 							<div class="align-row" :style="previewStyle">
-								<span class="txt">gxhAyO<span class="align-sym variant emoji" @click.stop="copyVariant(hoveredSymbol, 'emoji')" title="复制表情风格">{{ hoveredSymbol.char }}</span>gxhAyO</span>
+								<span class="txt">gxhAyO<span class="align-sym variant emoji" :style="symbolStyle" @click.stop="copyVariant(hoveredSymbol, 'emoji')" title="复制表情风格">{{ hoveredSymbol.char }}</span>gxhAyO</span>
 							</div>
 						</template>
 						<template v-else>
 							<div class="align-row" :style="previewStyle">
-								<span class="txt">gxhAyO<span class="align-sym">{{ hoveredSymbol.char }}</span>gxhAyO</span>
+								<span class="txt">gxhAyO<span class="align-sym" :style="symbolStyle">{{ hoveredSymbol.char }}</span>gxhAyO</span>
 							</div>
 						</template>
+					</div>
+					<div class="panel-title">字体切换</div>
+					<div class="font-selector">
+						<el-select
+							v-model="selectedPreviewFont"
+							filterable
+							placeholder="选择预览字体"
+							placement="bottom"
+							:fallback-placements="['bottom', 'bottom-start', 'bottom-end']"
+							popper-class="font-popper"
+							@visible-change="onFontDropdownVisible"
+						>
+							<el-option
+								v-for="font in fontList"
+								:key="font"
+								:label="font"
+								:value="font"
+									>
+									<span class="font-option-name">{{ font }}</span><span class="font-sample-char" :style="fontStyle(font)">{{ hoveredSymbol.char }}</span>
+							</el-option>
+						</el-select>
+						<el-checkbox v-model="fontAffectsAll" class="font-affect-all">参考文本使用相同字体</el-checkbox>
 					</div>
 				</div>
 			</aside>

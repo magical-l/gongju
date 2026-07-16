@@ -2,6 +2,75 @@ const {
 	createApp
 } = Vue;
 
+// ===== 字体相关 =====
+
+/** 回退字体列表：queryLocalFonts 不可用时的预定义备用字体（优先符号覆盖广的） */
+const FALLBACK_SYMBOL_FONTS = [
+	'Noto Sans Symbols 2',
+	'Segoe UI Symbol',
+	'Segoe UI Emoji',
+	'Arial Unicode MS',
+	'Arial',
+	'Microsoft Sans Serif',
+	'Lucida Sans Unicode',
+	'Consolas',
+	'Courier New',
+	'Microsoft YaHei',
+	'DengXian',
+	'SimSun-ExtB',
+	'NSimSun',
+	'Yu Gothic',
+	'Meiryo',
+	'Malgun Gothic',
+	'Noto Sans CJK SC',
+];
+
+/**
+ * 检测指定字体能否渲染指定字符（Canvas measureText 双重校验法）
+ * 与 serif、monospace 两个 fallback 都不同 → 判为能渲染
+ * 同时验证字体是否已安装 + 字符是否缺失（tofu）
+ */
+function canRender(char, fontName, cache) {
+	const key = `${fontName}::${char}`;
+	if (cache[key] !== undefined) return cache[key];
+
+	const canvas = document.createElement('canvas');
+	const ctx = canvas.getContext('2d');
+	const size = 72;
+
+	// 测两个 fallback 基准宽度
+	ctx.font = `${size}px serif`;
+	const wSerif = ctx.measureText(char).width;
+	ctx.font = `${size}px monospace`;
+	const wMono = ctx.measureText(char).width;
+	const fallbackDiff = Math.abs(wSerif - wMono);
+
+	// 测目标字体
+	ctx.font = `${size}px "${fontName}", "${fontName}", serif`;
+	const wTarget = ctx.measureText(char).width;
+
+	const threshold = Math.max(1, fallbackDiff * 0.2);
+	cache[key] = Math.abs(wTarget - wSerif) > threshold && Math.abs(wTarget - wMono) > threshold;
+	return cache[key];
+}
+
+/** 枚举本机所有可用字体 */
+async function enumerateFonts(fallbackList) {
+	// 优先 queryLocalFonts（Chrome 103+，需用户手势触发权限）
+	try {
+		if ('queryLocalFonts' in navigator) {
+			const raw = await navigator.queryLocalFonts();
+			const families = [...new Set(raw.map(f => f.family))];
+			return families.sort((a, b) => a.localeCompare(b));
+		}
+	} catch (e) {
+		// 权限拒绝或 API 不可用，静默降级
+	}
+
+	// 回退：用预定义列表
+	return fallbackList;
+}
+
 // 构建分类树结构
 function buildCategoryTree() {
 	return Object.entries(CATEGORIES).map(([name, children]) => ({
@@ -19,11 +88,25 @@ const app = createApp({
 			selectedCategory: '',
 			hoveredSymbol: { ...SYMBOLS[0], _g: Object.keys(SYMBOLS[0].groups)[0] },
 			previewFontSize: 2,
+
+			// 字体切换
+			fontList: [],
+			selectedPreviewFont: '',
+			fontAffectsAll: false,
 		};
 	},
 	computed: {
 		previewStyle() {
-			return { fontSize: this.previewFontSize + 'rem' };
+			const style = { fontSize: this.previewFontSize + 'rem' };
+			if (this.selectedPreviewFont && this.fontAffectsAll) {
+				style.fontFamily = `"${this.selectedPreviewFont}"`;
+			}
+			return style;
+		},
+		symbolStyle() {
+			if (!this.selectedPreviewFont) return {};
+			if (this.fontAffectsAll) return {}; // font 已通过 previewStyle 整行应用
+			return { fontFamily: `"${this.selectedPreviewFont}"` };
 		},
 		categoryTree() {
 			return buildCategoryTree();
@@ -163,6 +246,33 @@ const app = createApp({
 				}
 			});
 		},
+
+		// ===== 字体切换 =====
+
+			/** 初始化字体列表（先加载回退列表，dropdown 打开时再尝试 queryLocalFonts） */
+			async initFontList() {
+				this.fontList = FALLBACK_SYMBOL_FONTS;
+			},
+
+			/** 在 dropdown 可见时：尝试 queryLocalFonts 获取全量字体列表 */
+			async onFontDropdownVisible(visible) {
+				if (!visible) return;
+				try {
+					const families = await enumerateFonts([]);
+					if (families.length > 0) {
+						const set = new Set([...this.fontList, ...families]);
+						this.fontList = [...set].sort((a, b) => a.localeCompare(b));
+					}
+				} catch (e) {
+					// 保持已有列表
+				}
+			},
+
+			/** 获取字体的 style 对象，用于在选项内预览字符 */
+			fontStyle(fontName) {
+				return { fontFamily: `"${fontName}"` };
+			},
+
 		copySymbol(symbol) {
 			const text = symbol.mode === 'dual' ? symbol.char + '️' : symbol.char;
 			navigator.clipboard.writeText(text).then(() => {
@@ -238,6 +348,7 @@ const app = createApp({
 		if (firstKey) {
 			this.selectedCategory = firstKey;
 		}
+		this.initFontList();
 		this.$nextTick(() => {
 			this.autoFocusFirst();
 			this.adjustFontSize();
