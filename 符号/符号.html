@@ -162,26 +162,21 @@
 							</div>
 						</template>
 					</div>
+					<div class="font-size-controls">
+						<el-button size="small" circle @click="adjustFontSizeBy(-2)">−</el-button>
+						<span class="font-size-value">{{ previewFontPt }}pt</span>
+						<el-button size="small" circle @click="adjustFontSizeBy(2)">+</el-button>
+						<el-button v-if="!fontSizeAutoFit" size="small" circle @click="resetFontSize()" title="重置为自动适配">⟲</el-button>
+					</div>
 					<div class="panel-title">字体切换</div>
 					<div class="font-selector">
-						<el-select
-							v-model="selectedPreviewFont"
-							filterable
-							placeholder="选择预览字体"
-							placement="bottom"
-							:fallback-placements="['bottom', 'bottom-start', 'bottom-end']"
-							popper-class="font-popper"
-							@visible-change="onFontDropdownVisible"
-						>
-							<el-option
-								v-for="font in fontList"
-								:key="font"
-								:label="font"
-								:value="font"
-									>
-									<span class="font-option-name">{{ font }}</span><span class="font-sample-char" :style="fontStyle(font)">{{ hoveredSymbol.char }}</span>
-							</el-option>
-						</el-select>
+						<div class="font-radio-list">
+							<label class="font-radio-item" v-for="font in fontList" :key="font" :class="{ active: selectedPreviewFont === font }">
+								<input type="radio" name="preview-font" :value="font" v-model="selectedPreviewFont">
+								<span class="font-sample-char" :style="fontStyle(font)">{{ hoveredSymbol.char }}</span>
+								<span class="font-option-name">{{ font }}</span>
+							</label>
+						</div>
 						<el-checkbox v-model="fontAffectsAll" class="font-affect-all">参考文本使用相同字体</el-checkbox>
 					</div>
 				</div>

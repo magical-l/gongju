@@ -295,16 +295,79 @@
 		color: var(--el-text-color-regular);
 	}
 
+		& .font-size-controls {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 6px;
+			margin: 8px 0;
+
+			& .font-size-value {
+				font-size: 0.85rem;
+				color: var(--el-text-color-secondary);
+				min-width: 4em;
+				text-align: center;
+				font-variant-numeric: tabular-nums;
+			}
+		}
+
 	& .font-selector {
 		margin-top: 8px;
 
-		& .el-select {
-			width: 100%;
-		}
+		/* & .el-select { */
+		/* 	width: 100%; */
+		/* } */
 
 		& .font-affect-all {
 			margin-top: 8px;
 			width: 100%;
+		}
+		& .font-radio-list {
+			max-height: 200px;
+			overflow-y: auto;
+			border: 1px solid var(--el-border-color-light);
+			border-radius: 6px;
+			margin-bottom: 8px;
+		
+			& .font-radio-item {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				padding: 6px 10px;
+				cursor: pointer;
+				border-radius: 4px;
+				transition: background-color 0.15s;
+				user-select: none;
+			
+				&:hover {
+					background: var(--el-color-primary-light-9);
+				}
+			
+				&.active {
+					background: var(--el-color-primary-light-8);
+					color: var(--el-color-primary);
+				}
+			
+				& input[type="radio"] {
+					margin: 0;
+					accent-color: var(--el-color-primary);
+				}
+			
+				& .font-sample-char {
+					display: inline-block;
+					width: 1.6em;
+					text-align: center;
+					font-size: 1.2em;
+					flex-shrink: 0;
+				}
+			
+				& .font-option-name {
+					font-size: 0.85rem;
+					overflow: hidden;
+					text-overflow: ellipsis;
+					white-space: nowrap;
+				}
+			}
 		}
 		& .font-sample-char {
 			display: inline-block;
@@ -322,10 +385,6 @@
 	}
 }
 
-/* ===== 字体选择器下拉框 ===== */
-.font-popper {
-	max-height: 320px;
-}
 
 main {
 	background: #eaeaea;

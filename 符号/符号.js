@@ -88,11 +88,12 @@ const app = createApp({
 			selectedCategory: '',
 			hoveredSymbol: { ...SYMBOLS[0], _g: Object.keys(SYMBOLS[0].groups)[0] },
 			previewFontSize: 2,
+			fontSizeAutoFit: true,
 
 			// 字体切换
 			fontList: [],
 			selectedPreviewFont: '',
-			fontAffectsAll: false,
+				fontAffectsAll: true,
 		};
 	},
 	computed: {
@@ -107,6 +108,9 @@ const app = createApp({
 			if (!this.selectedPreviewFont) return {};
 			if (this.fontAffectsAll) return {}; // font 已通过 previewStyle 整行应用
 			return { fontFamily: `"${this.selectedPreviewFont}"` };
+		},
+		previewFontPt() {
+			return Math.round(this.previewFontSize * 12);
 		},
 		categoryTree() {
 			return buildCategoryTree();
@@ -227,46 +231,55 @@ const app = createApp({
 		},
 		setHoveredSymbol(symbol, groupName) {
 			this.hoveredSymbol = { ...symbol, _g: groupName };
-			this.adjustFontSize();
+			if (this.fontSizeAutoFit) this.adjustFontSize();
 		},
-		adjustFontSize() {
-			this.$nextTick(() => {
-				const rows = document.querySelectorAll('.symbol-preview .align-row');
-				if (!rows.length) return;
-				let maxRatio = 1;
-				for (const row of rows) {
-					if (row.scrollWidth > row.clientWidth) {
-						maxRatio = Math.max(maxRatio, row.scrollWidth / row.clientWidth);
+			adjustFontSize() {
+				this.$nextTick(() => {
+					// 只处理溢出缩小（同一个 align-row 上比 scrollWidth > clientWidth），
+					// 不做太小放大——窄符号天然窄，放大会破坏视觉效果。
+					// 用户需放大时通过手动 +/- 按钮。
+					const rows = document.querySelectorAll(".symbol-preview .align-row");
+					if (!rows.length) return;
+					let maxRatio = 1;
+					for (const row of rows) {
+						if (row.scrollWidth > row.clientWidth) {
+							maxRatio = Math.max(maxRatio, row.scrollWidth / row.clientWidth);
+						}
 					}
-				}
-				let newSize = Math.round((this.previewFontSize / maxRatio) * 10) / 10;
-				newSize = Math.max(0.9, Math.min(2, newSize));
-				if (newSize !== this.previewFontSize) {
-					this.previewFontSize = newSize;
-				}
-			});
+					if (maxRatio <= 1) return;
+
+					// 读 DOM 实际字号（px），避免多次  调用时用 stale 的 data 反复缩
+					const actualPx = parseFloat(getComputedStyle(rows[0]).fontSize);
+					const actualRem = actualPx / 16;
+					let newSize = Math.round((actualRem / maxRatio) * 10) / 10;
+					newSize = Math.max(0.3, Math.min(6, newSize));
+
+					if (Math.abs(newSize - this.previewFontSize) > 0.05) {
+						this.previewFontSize = newSize;
+					}
+				});
+			},
+
+			adjustFontSizeBy(deltaPt) {
+				this.fontSizeAutoFit = false;
+				let newSize = Math.round((this.previewFontSize + deltaPt / 12) * 10) / 10;
+				newSize = Math.max(0.3, Math.min(6, newSize));
+				this.previewFontSize = newSize;
+			},
+
+		resetFontSize() {
+		this.fontSizeAutoFit = true;
+		this.previewFontSize = 2;
+		this.$nextTick(() => this.adjustFontSize());
 		},
 
 		// ===== 字体切换 =====
 
-			/** 初始化字体列表（先加载回退列表，dropdown 打开时再尝试 queryLocalFonts） */
-			async initFontList() {
-				this.fontList = FALLBACK_SYMBOL_FONTS;
-			},
-
-			/** 在 dropdown 可见时：尝试 queryLocalFonts 获取全量字体列表 */
-			async onFontDropdownVisible(visible) {
-				if (!visible) return;
-				try {
-					const families = await enumerateFonts([]);
-					if (families.length > 0) {
-						const set = new Set([...this.fontList, ...families]);
-						this.fontList = [...set].sort((a, b) => a.localeCompare(b));
-					}
-				} catch (e) {
-					// 保持已有列表
-				}
-			},
+		/** 初始化字体列表（先加载回退列表，dropdown 打开时再尝试 queryLocalFonts） */
+		async initFontList() {
+			const families = await enumerateFonts(FALLBACK_SYMBOL_FONTS);
+			this.fontList = families.length > 0 ? families : FALLBACK_SYMBOL_FONTS;
+		},
 
 			/** 获取字体的 style 对象，用于在选项内预览字符 */
 			fontStyle(fontName) {
@@ -352,6 +365,7 @@ const app = createApp({
 		this.$nextTick(() => {
 			this.autoFocusFirst();
 			this.adjustFontSize();
+			window.addEventListener("resize", this.adjustFontSize);
 		});
 	},
 	watch: {
