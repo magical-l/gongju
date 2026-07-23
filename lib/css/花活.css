@@ -62,176 +62,142 @@
 	&.to-right::before, &.to-right::after { border-left-color: var(--triangle-color); border-right-width: 0; }
 }
 
-/* ======================== 静态光影效果 ======================== */
-.effect {
-	/* ------------ 彩虹渐变/防伪激光膜 ------------ */
-	--raser-degree: 135deg;
-	--raser-alpha: 0.618;
-	--raser-color1: rgba(255, 50, 50, var(--raser-alpha));
-	--raser-color2: rgba(200, 200, 0, var(--raser-alpha));
-	--raser-color3: rgba(50, 200, 50, var(--raser-alpha));
-	--raser-color4: rgba(50, 200, 200, var(--raser-alpha));
-	--raser-color5: rgba(50, 50, 200, var(--raser-alpha));
-	--raser-color6: rgba(200, 50, 200, var(--raser-alpha));
-	--raser: linear-gradient(var(--raser-degree),
-		var(--raser-color1),
-		var(--raser-color2),
-		var(--raser-color3),
-		var(--raser-color4),
-		var(--raser-color5),
-		var(--raser-color6));
-	&.raser {
-		&.on-bg {
-			background: var(--raser);
-			background-blend-mode: overlay;
-		}
+/* ======================== 动画 ======================== */
+/* ------------ 撒花 ------------ */
+/* 主体：8px彩纸，下落+控制整体opacity */
+.confetti-piece {
+	position: absolute;
+	top: -20px;
+	width: 8px;
+	height: 8px;
+	animation: confetti-fall 4s linear infinite;
 
-		&.on-overlay {
-			position: relative;
+	/* 伪元素：偏移到左右两侧，只旋转，跟随主体下落和opacity */
+	&::before, &::after {
+		content: '';
+		position: absolute;
+		width: 10px;
+		height: 10px;
+		animation: confetti-spin 4s linear infinite;
+	}
+	&::before { left: -400px; }
+	&::after { left: 400px; }
 
-			&::before {
-				position: absolute;
-				inset: 0;
-				z-index: 0;
-				background: var(--raser);
-				content: '';
-				pointer-events: none;/* 作为overlay，需要把点击事件穿透到下层 */
-			}
-		}
+	/* nth-child 设置位置、颜色、时长 */
+	&:nth-child(10n+1) {
+		left: 9%;
+		animation-duration: 5s;
+		background: #f44336;
+
+		&::before { background: #e91e63; animation-duration: 4s; }
+		&::after { background: #ff5722; animation-duration: 6s; animation-delay: -2s; }
+	}
+
+	&:nth-child(10n+2) {
+		left: 18%;
+		animation-duration: 4s;
+		animation-delay: -1s;
+		background: #9c27b0;
+
+		&::before { background: #673ab7; animation-duration: 3s; }
+		&::after { background: #3f51b5; animation-duration: 5s; animation-delay: -1.5s; }
+	}
+
+	&:nth-child(10n+3) {
+		left: 27%;
+		animation-duration: 5.5s;
+		animation-delay: -2s;
+		background: #3f51b5;
+
+		&::before { background: #2196f3; animation-duration: 4s; }
+		&::after { background: #03a9f4; animation-duration: 7s; animation-delay: -3s; }
+	}
+
+	&:nth-child(10n+4) {
+		left: 36%;
+		animation-duration: 4.5s;
+		animation-delay: -3s;
+		background: #03a9f4;
+
+		&::before { background: #00bcd4; animation-duration: 3.5s; }
+		&::after { background: #009688; animation-duration: 6s; animation-delay: -2s; }
+	}
+
+	&:nth-child(10n+5) {
+		left: 45%;
+		animation-duration: 4s;
+		animation-delay: -4s;
+		background: #009688;
+
+		&::before { background: #4caf50; animation-duration: 3s; }
+		&::after { background: #8bc34a; animation-duration: 5s; animation-delay: -1s; }
+	}
+
+	&:nth-child(10n+6) {
+		left: 54%;
+		animation-duration: 3.5s;
+		animation-delay: -5s;
+		background: #8bc34a;
+
+		&::before { background: #cddc39; animation-duration: 2.5s; }
+		&::after { background: #ffeb3b; animation-duration: 4.5s; animation-delay: -2s; }
+	}
+
+	&:nth-child(10n+7) {
+		left: 63%;
+		animation-duration: 3s;
+		animation-delay: -6s;
+		background: #ffeb3b;
+
+		&::before { background: #ffc107; animation-duration: 2s; }
+		&::after { background: #ff9800; animation-duration: 4s; animation-delay: -1s; }
+	}
+
+	&:nth-child(10n+8) {
+		left: 72%;
+		animation-duration: 5s;
+		animation-delay: -7s;
+		background: #ff9800;
+
+		&::before { background: #ff5722; animation-duration: 4s; }
+		&::after { background: #e91e63; animation-duration: 6s; animation-delay: -3s; }
+	}
+
+	&:nth-child(10n+9) {
+		left: 81%;
+		animation-duration: 5.5s;
+		animation-delay: -8s;
+		background: #795548;
+
+		&::before { background: #9e9e9e; animation-duration: 4s; }
+		&::after { background: #607d8b; animation-duration: 7s; animation-delay: -3s; }
+	}
+
+	&:nth-child(10n) {
+		left: 90%;
+		animation-duration: 4s;
+		animation-delay: -9s;
+		background: #607d8b;
+
+		&::before { background: #f44336; animation-duration: 3s; }
+		&::after { background: #e91e63; animation-duration: 5s; animation-delay: -2s; }
 	}
 }
 
-/* ======================== 动画 ======================== */
+@keyframes confetti-fall {
+	0% { opacity: 1; transform: translateY(0); }
+	85% { opacity: 1; }
+	100% { opacity: 0; transform: translateY(100vh); }
+}
+
+@keyframes confetti-spin {
+	from { transform: rotate(0deg); }
+	to { transform: rotate(720deg); }
+}
+
+/* ============ 动画 ============ */
 .animation {
-	/* ------------ 撒花 ------------ */
-	&.confetti {
-		position: absolute;
-		inset: 0;
-		width: 100%;
-		height: 100%;
-
-		/* 主体：8px彩纸，下落+控制整体opacity */
-		& .piece {
-			position: absolute;
-			top: -20px;
-			width: 8px;
-			height: 8px;
-			animation: confetti-fall 4s linear infinite;
-	
-			/* 伪元素：偏移到左右两侧，只旋转，跟随主体下落和opacity */
-			&::before, &::after {
-				content: '';
-				position: absolute;
-				width: 10px;
-				height: 10px;
-				animation: confetti-spin 4s linear infinite;
-			}
-			&::before { left: -400px; }
-			&::after { left: 400px; }
-	
-			/* nth-child 设置位置、颜色、时长 */
-			&:nth-child(10n+1) {
-				left: 9%;
-				animation-duration: 5s;
-				background: #f44336;
-	
-				&::before { background: #e91e63; animation-duration: 4s; }
-				&::after { background: #ff5722; animation-duration: 6s; animation-delay: -2s; }
-			}
-	
-			&:nth-child(10n+2) {
-				left: 18%;
-				animation-duration: 4s;
-				animation-delay: -1s;
-				background: #9c27b0;
-	
-				&::before { background: #673ab7; animation-duration: 3s; }
-				&::after { background: #3f51b5; animation-duration: 5s; animation-delay: -1.5s; }
-			}
-	
-			&:nth-child(10n+3) {
-				left: 27%;
-				animation-duration: 5.5s;
-				animation-delay: -2s;
-				background: #3f51b5;
-	
-				&::before { background: #2196f3; animation-duration: 4s; }
-				&::after { background: #03a9f4; animation-duration: 7s; animation-delay: -3s; }
-			}
-	
-			&:nth-child(10n+4) {
-				left: 36%;
-				animation-duration: 4.5s;
-				animation-delay: -3s;
-				background: #03a9f4;
-	
-				&::before { background: #00bcd4; animation-duration: 3.5s; }
-				&::after { background: #009688; animation-duration: 6s; animation-delay: -2s; }
-			}
-	
-			&:nth-child(10n+5) {
-				left: 45%;
-				animation-duration: 4s;
-				animation-delay: -4s;
-				background: #009688;
-	
-				&::before { background: #4caf50; animation-duration: 3s; }
-				&::after { background: #8bc34a; animation-duration: 5s; animation-delay: -1s; }
-			}
-	
-			&:nth-child(10n+6) {
-				left: 54%;
-				animation-duration: 3.5s;
-				animation-delay: -5s;
-				background: #8bc34a;
-	
-				&::before { background: #cddc39; animation-duration: 2.5s; }
-				&::after { background: #ffeb3b; animation-duration: 4.5s; animation-delay: -2s; }
-			}
-	
-			&:nth-child(10n+7) {
-				left: 63%;
-				animation-duration: 3s;
-				animation-delay: -6s;
-				background: #ffeb3b;
-	
-				&::before { background: #ffc107; animation-duration: 2s; }
-				&::after { background: #ff9800; animation-duration: 4s; animation-delay: -1s; }
-			}
-	
-			&:nth-child(10n+8) {
-				left: 72%;
-				animation-duration: 5s;
-				animation-delay: -7s;
-				background: #ff9800;
-	
-				&::before { background: #ff5722; animation-duration: 4s; }
-				&::after { background: #e91e63; animation-duration: 6s; animation-delay: -3s; }
-			}
-	
-			&:nth-child(10n+9) {
-				left: 81%;
-				animation-duration: 5.5s;
-				animation-delay: -8s;
-				background: #795548;
-	
-				&::before { background: #9e9e9e; animation-duration: 4s; }
-				&::after { background: #607d8b; animation-duration: 7s; animation-delay: -3s; }
-			}
-	
-			&:nth-child(10n) {
-				left: 90%;
-				animation-duration: 4s;
-				animation-delay: -9s;
-				background: #607d8b;
-	
-				&::before { background: #f44336; animation-duration: 3s; }
-				&::after { background: #e91e63; animation-duration: 5s; animation-delay: -2s; }
-			}
-		}
-	}
-
-	/* ------------ 光晕脉冲类 ------------ */
+	/* 光晕脉冲类 */
 	&.pulse {
 		--pulse-color: #3498db;
 		--pulse-time: 2s;
@@ -269,20 +235,6 @@
 	}
 }
 
-/* ------------ 动画的关键帧。不能嵌套，必须定义在顶层 ------------ */
-/* ------ 撒花 ------ */
-@keyframes confetti-fall {
-	0% { opacity: 1; transform: translateY(0); }
-	85% { opacity: 1; }
-	100% { opacity: 0; transform: translateY(100vh); }
-}
-
-@keyframes confetti-spin {
-	from { transform: rotate(0deg); }
-	to { transform: rotate(720deg); }
-}
-
-/* ------ 光晕 ------ */
 @keyframes shadow-pulse {
 	0% { box-shadow: 0 0 0 0 var(--pulse-color); }
 	70% { box-shadow: 0 0 0 10px transparent; }
