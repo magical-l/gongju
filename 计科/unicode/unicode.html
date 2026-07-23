@@ -4,13 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>unicode</title>
-<style>@import url("http://css.document.cool/common.css") layer(common);</style>
-<!-- <link href="../../lib/css/common.css" rel="stylesheet"> -->
-<style>@import url("http://css.document.cool/layout.css") layer(common);</style>
-<!-- <link href="../../lib/css/layout.css" rel="stylesheet"> -->
+<link href="../../lib/css/common.css" rel="stylesheet">
+<link href="../../lib/css/layout.css" rel="stylesheet">
 <link href="../../resources/biz.css?v=250821" rel="stylesheet">
-<style>@import url("http://css.document.cool/花活.css") layer(common);</style>
-<!-- <link href="../../lib/css/花活.css" rel="stylesheet"> -->
+<link href="../../lib/css/花活.css" rel="stylesheet">
 <style>@import url("../../lib/element-plus/2.10.7/index.css") layer(el-plus);</style>
 <link href="../../resources/el-plus.css" rel="stylesheet">
 <style>
@@ -257,8 +254,8 @@
 		</header>
 
 		<!-- 平面0：基本多文种平面 -->
-		<el-card class="one plane section, Basic Multilingual Plane (BMP)">
-			<template #header>
+		<div class="card one plane section, Basic Multilingual Plane (BMP)">
+			<header>
 				<h2 class="name">平面0：基本多文种平面
 					<small class="en">Basic Multilingual Plane (BMP)</small>
 				</h2>
@@ -269,10 +266,10 @@
 					<p class="assigned character count">已分配字符：63951</p>
 					<p class="defined character count">已定义字符：55503</p>
 				</div>
-			</template>
-			<el-row :gutter="12">
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+			</header>
+			<div class="card-grid">
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">基本拉丁文
 								<small class="en">Basic Latin</small>
@@ -282,10 +279,10 @@
 							<p class="range">U+0000 ~ U+007F</p>
 							<p class="character count">字符数：128</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">拉丁文-1补充
 								<small class="en">Latin-1 Supplement</small>
@@ -295,10 +292,10 @@
 							<p class="range">U+0080 ~ U+00FF</p>
 							<p class="character count">字符数：128</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">韩文字母扩展-A
 								<small class="en">Hangul Jamo Extended-A</small>
@@ -308,10 +305,10 @@
 							<p class="range">U+A960 ~ U+A97F</p>
 							<p class="character count">字符数：29</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">爪哇文
 								<small class="en">Javanese</small>
@@ -321,10 +318,10 @@
 							<p class="range">U+A980 ~ U+A9DF</p>
 							<p class="character count">字符数：91</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">缅甸文扩展-B
 								<small class="en">Myanmar Extended-B</small>
@@ -334,10 +331,10 @@
 							<p class="range">U+A9E0 ~ U+A9FF</p>
 							<p class="character count">字符数：31</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">占婆文
 								<small class="en">Cham</small>
@@ -347,10 +344,10 @@
 							<p class="range">U+AA00 ~ U+AA5F</p>
 							<p class="character count">字符数：83</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">缅甸文扩展-A
 								<small class="en">Myanmar Extended-A</small>
@@ -360,10 +357,10 @@
 							<p class="range">U+AA60 ~ U+AA7F</p>
 							<p class="character count">字符数：32</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">越南傣文
 								<small class="en">Tai Viet</small>
@@ -373,10 +370,10 @@
 							<p class="range">U+AA80 ~ U+AADF</p>
 							<p class="character count">字符数：72</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">曼尼普尔文扩展
 								<small class="en">Meetei Mayek Extensions</small>
@@ -386,10 +383,10 @@
 							<p class="range">U+AAE0 ~ U+AAFF</p>
 							<p class="character count">字符数：23</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">埃塞俄比亚文扩展-A
 								<small class="en">Ethiopic Extended-A</small>
@@ -399,10 +396,10 @@
 							<p class="range">U+AB00 ~ U+AB2F</p>
 							<p class="character count">字符数：32</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">拉丁文扩展-E
 								<small class="en">Latin Extended-E</small>
@@ -412,10 +409,10 @@
 							<p class="range">U+AB30 ~ U+AB6F</p>
 							<p class="character count">字符数：60</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">切罗基文补充
 								<small class="en">Cherokee Supplement</small>
@@ -425,10 +422,10 @@
 							<p class="range">U+AB70 ~ U+ABBF</p>
 							<p class="character count">字符数：80</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">曼尼普尔文
 								<small class="en">Meetei Mayek</small>
@@ -438,10 +435,10 @@
 							<p class="range">U+ABC0 ~ U+ABFF</p>
 							<p class="character count">字符数：56</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">韩文音节
 								<small class="en">Hangul Syllables</small>
@@ -451,10 +448,10 @@
 							<p class="range">U+AC00 ~ U+D7AF</p>
 							<p class="character count">字符数：11172</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">韩文字母扩展-B
 								<small class="en">Hangul Jamo Extended-B</small>
@@ -464,10 +461,10 @@
 							<p class="range">U+D7B0 ~ U+D7FF</p>
 							<p class="character count">字符数：72</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">高半代用区
 								<small class="en">High Surrogates</small>
@@ -477,10 +474,10 @@
 							<p class="range">U+D800 ~ U+DB7F</p>
 							<p class="character count">字符数：0</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">高半代用区私人使用区
 								<small class="en">High Private Use Surrogates</small>
@@ -490,10 +487,10 @@
 							<p class="range">U+DB80 ~ U+DBFF</p>
 							<p class="character count">字符数：0</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">低半代用区
 								<small class="en">Low Surrogates</small>
@@ -503,10 +500,10 @@
 							<p class="range">U+DC00 ~ U+DFFF</p>
 							<p class="character count">字符数：0</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">私人使用区
 								<small class="en">Private Use Area</small>
@@ -516,10 +513,10 @@
 							<p class="range">U+E000 ~ U+F8FF</p>
 							<p class="character count">字符数：0</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">CJK兼容表意文字
 								<small class="en">CJK Compatibility Ideographs</small>
@@ -529,10 +526,10 @@
 							<p class="range">U+F900 ~ U+FAFF</p>
 							<p class="character count">字符数：472</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">字母变体显现形式
 								<small class="en">Alphabetic Presentation Forms</small>
@@ -542,10 +539,10 @@
 							<p class="range">U+FB00 ~ U+FB4F</p>
 							<p class="character count">字符数：58</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">阿拉伯文变体显现形式-A
 								<small class="en">Arabic Presentation Forms-A</small>
@@ -555,10 +552,10 @@
 							<p class="range">U+FB50 ~ U+FDFF</p>
 							<p class="character count">字符数：611</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">异体字选择器
 								<small class="en">Variation Selectors</small>
@@ -568,10 +565,10 @@
 							<p class="range">U+FE00 ~ U+FE0F</p>
 							<p class="character count">字符数：16</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">竖排形式
 								<small class="en">Vertical Forms</small>
@@ -581,10 +578,10 @@
 							<p class="range">U+FE10 ~ U+FE1F</p>
 							<p class="character count">字符数：10</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">组合用半符号
 								<small class="en">Combining Half Marks</small>
@@ -594,10 +591,10 @@
 							<p class="range">U+FE20 ~ U+FE2F</p>
 							<p class="character count">字符数：16</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">CJK兼容形式
 								<small class="en">CJK Compatibility Forms</small>
@@ -607,10 +604,10 @@
 							<p class="range">U+FE30 ~ U+FE4F</p>
 							<p class="character count">字符数：32</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">小写变体
 								<small class="en">Small Form Variants</small>
@@ -620,10 +617,10 @@
 							<p class="range">U+FE50 ~ U+FE6F</p>
 							<p class="character count">字符数：26</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">阿拉伯文变体显现形式-B
 								<small class="en">Arabic Presentation Forms-B</small>
@@ -633,10 +630,10 @@
 							<p class="range">U+FE70 ~ U+FEFF</p>
 							<p class="character count">字符数：141</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">半角及全角形式
 								<small class="en">Halfwidth and Fullwidth Forms</small>
@@ -646,10 +643,10 @@
 							<p class="range">U+FF00 ~ U+FFEF</p>
 							<p class="character count">字符数：225</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">特殊
 								<small class="en">Specials</small>
@@ -659,14 +656,14 @@
 							<p class="range">U+FFF0 ~ U+FFFF</p>
 							<p class="character count">字符数：5</p>
 						</div>
-					</el-card>
-				</el-col>
-			</el-row>
-		</el-card>
+					</div>
+				
+			</div>
+		</div>
 
 		<!--平面1：辅助多文种平面 -->
-		<el-card class="one plane section, Supplementary Multilingual Plane (SMP)">
-			<template #header>
+		<div class="card one plane section, Supplementary Multilingual Plane (SMP)">
+			<header>
 				<h2 class="name">平面1：辅助多文种平面
 					<small class="en">Supplementary Multilingual Plane (SMP)</small>
 				</h2>
@@ -677,10 +674,10 @@
 					<p class="assigned character count">已分配字符：22279</p>
 					<p class="defined character count">已定义字符：22279</p>
 				</div>
-			</template>
-			<el-row :gutter="12">
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+			</header>
+			<div class="card-grid">
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">线性B音节文字
 								<small class="en">Linear B Syllabary</small>
@@ -690,10 +687,10 @@
 							<p class="range">U+10000 ~ U+1007F</p>
 							<p class="character count">字符数：88</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">线性B表意文字
 								<small class="en">Linear B Ideograms</small>
@@ -703,10 +700,10 @@
 							<p class="range">U+10080 ~ U+100FF</p>
 							<p class="character count">字符数：123</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">爱琴海数字
 								<small class="en">Aegean Numbers</small>
@@ -716,10 +713,10 @@
 							<p class="range">U+10100 ~ U+1013F</p>
 							<p class="character count">字符数：57</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">古希腊数字
 								<small class="en">Ancient Greek Numbers</small>
@@ -729,10 +726,10 @@
 							<p class="range">U+10140 ~ U+1018F</p>
 							<p class="character count">字符数：79</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">古代符号
 								<small class="en">Ancient Symbols</small>
@@ -742,10 +739,10 @@
 							<p class="range">U+10190 ~ U+101CF</p>
 							<p class="character count">字符数：14</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">费斯托斯圆盘
 								<small class="en">Phaistos Disc</small>
@@ -755,10 +752,10 @@
 							<p class="range">U+101D0 ~ U+101FF</p>
 							<p class="character count">字符数：46</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">吕基亚文
 								<small class="en">Lycian</small>
@@ -768,10 +765,10 @@
 							<p class="range">U+10280 ~ U+1029F</p>
 							<p class="character count">字符数：29</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">卡里亚文
 								<small class="en">Carian</small>
@@ -781,10 +778,10 @@
 							<p class="range">U+102A0 ~ U+102DF</p>
 							<p class="character count">字符数：49</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">科普特闰余数字
 								<small class="en">Coptic Epact Numbers</small>
@@ -794,10 +791,10 @@
 							<p class="range">U+102E0 ~ U+102FF</p>
 							<p class="character count">字符数：28</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">古意大利文
 								<small class="en">Old Italic</small>
@@ -807,10 +804,10 @@
 							<p class="range">U+10300 ~ U+1032F</p>
 							<p class="character count">字符数：39</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">哥特文
 								<small class="en">Gothic</small>
@@ -820,10 +817,10 @@
 							<p class="range">U+10330 ~ U+1034F</p>
 							<p class="character count">字符数：27</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">古彼尔姆文
 								<small class="en">Old Permic</small>
@@ -833,10 +830,10 @@
 							<p class="range">U+10350 ~ U+1037F</p>
 							<p class="character count">字符数：43</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">乌加里特文
 								<small class="en">Ugaritic</small>
@@ -846,10 +843,10 @@
 							<p class="range">U+10380 ~ U+1039F</p>
 							<p class="character count">字符数：31</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">古波斯文
 								<small class="en">Old Persian</small>
@@ -859,10 +856,10 @@
 							<p class="range">U+103A0 ~ U+103DF</p>
 							<p class="character count">字符数：50</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">德塞雷特文
 								<small class="en">Deseret</small>
@@ -872,10 +869,10 @@
 							<p class="range">U+10400 ~ U+1044F</p>
 							<p class="character count">字符数：80</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">萧伯纳字母
 								<small class="en">Shavian</small>
@@ -885,10 +882,10 @@
 							<p class="range">U+10450 ~ U+1047F</p>
 							<p class="character count">字符数：48</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">奥斯曼亚字母
 								<small class="en">Osmanya</small>
@@ -898,10 +895,10 @@
 							<p class="range">U+10480 ~ U+104AF</p>
 							<p class="character count">字符数：40</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">奥塞奇字母
 								<small class="en">Osage</small>
@@ -911,10 +908,10 @@
 							<p class="range">U+104B0 ~ U+104FF</p>
 							<p class="character count">字符数：72</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">爱尔巴桑字母
 								<small class="en">Elbasan</small>
@@ -924,10 +921,10 @@
 							<p class="range">U+10500 ~ U+1052F</p>
 							<p class="character count">字符数：40</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">高加索阿尔巴尼亚文
 								<small class="en">Caucasian Albanian</small>
@@ -937,10 +934,10 @@
 							<p class="range">U+10530 ~ U+1056F</p>
 							<p class="character count">字符数：53</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">线性A
 								<small class="en">Linear A</small>
@@ -950,10 +947,10 @@
 							<p class="range">U+10600 ~ U+1077F</p>
 							<p class="character count">字符数：341</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">塞浦路斯音节文字
 								<small class="en">Cypriot Syllabary</small>
@@ -963,10 +960,10 @@
 							<p class="range">U+10800 ~ U+1083F</p>
 							<p class="character count">字符数：55</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">帝国阿拉姆文
 								<small class="en">Imperial Aramaic</small>
@@ -976,10 +973,10 @@
 							<p class="range">U+10840 ~ U+1085F</p>
 							<p class="character count">字符数：31</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">巴尔米拉文
 								<small class="en">Palmyrene</small>
@@ -989,10 +986,10 @@
 							<p class="range">U+10860 ~ U+1087F</p>
 							<p class="character count">字符数：32</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">纳巴泰文
 								<small class="en">Nabataean</small>
@@ -1002,10 +999,10 @@
 							<p class="range">U+10880 ~ U+108AF</p>
 							<p class="character count">字符数：40</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">哈特拉文
 								<small class="en">Hatran</small>
@@ -1015,10 +1012,10 @@
 							<p class="range">U+108E0 ~ U+108FF</p>
 							<p class="character count">字符数：26</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">腓尼基文
 								<small class="en">Phoenician</small>
@@ -1028,10 +1025,10 @@
 							<p class="range">U+10900 ~ U+1091F</p>
 							<p class="character count">字符数：29</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">吕底亚文
 								<small class="en">Lydian</small>
@@ -1041,10 +1038,10 @@
 							<p class="range">U+10920 ~ U+1093F</p>
 							<p class="character count">字符数：27</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">麦罗埃圣书文
 								<small class="en">Meroitic Hieroglyphs</small>
@@ -1054,10 +1051,10 @@
 							<p class="range">U+10980 ~ U+1099F</p>
 							<p class="character count">字符数：32</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">麦罗埃草书
 								<small class="en">Meroitic Cursive</small>
@@ -1067,10 +1064,10 @@
 							<p class="range">U+109A0 ~ U+109FF</p>
 							<p class="character count">字符数：90</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">佉卢文
 								<small class="en">Kharoshthi</small>
@@ -1080,10 +1077,10 @@
 							<p class="range">U+10A00 ~ U+10A5F</p>
 							<p class="character count">字符数：68</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">古南阿拉伯文
 								<small class="en">Old South Arabian</small>
@@ -1093,10 +1090,10 @@
 							<p class="range">U+10A60 ~ U+10A7F</p>
 							<p class="character count">字符数：32</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">古北阿拉伯文
 								<small class="en">Old North Arabian</small>
@@ -1106,10 +1103,10 @@
 							<p class="range">U+10A80 ~ U+10A9F</p>
 							<p class="character count">字符数：32</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">摩尼教文
 								<small class="en">Manichaean</small>
@@ -1119,10 +1116,10 @@
 							<p class="range">U+10AC0 ~ U+10AFF</p>
 							<p class="character count">字符数：51</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">阿维斯塔文
 								<small class="en">Avestan</small>
@@ -1132,10 +1129,10 @@
 							<p class="range">U+10B00 ~ U+10B3F</p>
 							<p class="character count">字符数：61</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">碑铭帕提亚文
 								<small class="en">Inscriptional Parthian</small>
@@ -1145,10 +1142,10 @@
 							<p class="range">U+10B40 ~ U+10B5F</p>
 							<p class="character count">字符数：30</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">碑铭巴列维文
 								<small class="en">Inscriptional Pahlavi</small>
@@ -1158,10 +1155,10 @@
 							<p class="range">U+10B60 ~ U+10B7F</p>
 							<p class="character count">字符数：27</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">诗篇巴列维文
 								<small class="en">Psalter Pahlavi</small>
@@ -1171,10 +1168,10 @@
 							<p class="range">U+10B80 ~ U+10BAF</p>
 							<p class="character count">字符数：29</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">古突厥文
 								<small class="en">Old Turkic</small>
@@ -1184,10 +1181,10 @@
 							<p class="range">U+10C00 ~ U+10C4F</p>
 							<p class="character count">字符数：73</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">古匈牙利文
 								<small class="en">Old Hungarian</small>
@@ -1197,10 +1194,10 @@
 							<p class="range">U+10C80 ~ U+10CFF</p>
 							<p class="character count">字符数：108</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">哈乃斐罗兴亚文
 								<small class="en">Hanifi Rohingya</small>
@@ -1210,10 +1207,10 @@
 							<p class="range">U+10D00 ~ U+10D3F</p>
 							<p class="character count">字符数：50</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">鲁米数字符号
 								<small class="en">Rumi Numeral Symbols</small>
@@ -1223,10 +1220,10 @@
 							<p class="range">U+10E60 ~ U+10E7F</p>
 							<p class="character count">字符数：31</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">雅兹迪文
 								<small class="en">Yezidi</small>
@@ -1236,10 +1233,10 @@
 							<p class="range">U+10E80 ~ U+10EBF</p>
 							<p class="character count">字符数：47</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">古粟特文
 								<small class="en">Old Sogdian</small>
@@ -1249,10 +1246,10 @@
 							<p class="range">U+10F00 ~ U+10F2F</p>
 							<p class="character count">字符数：40</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">粟特文
 								<small class="en">Sogdian</small>
@@ -1262,10 +1259,10 @@
 							<p class="range">U+10F30 ~ U+10F6F</p>
 							<p class="character count">字符数：42</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">花剌子模文
 								<small class="en">Chorasmian</small>
@@ -1275,10 +1272,10 @@
 							<p class="range">U+10FB0 ~ U+10FDF</p>
 							<p class="character count">字符数：28</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">埃利迈斯文
 								<small class="en">Elymaic</small>
@@ -1288,10 +1285,10 @@
 							<p class="range">U+10FE0 ~ U+10FFF</p>
 							<p class="character count">字符数：23</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">婆罗米文
 								<small class="en">Brahmi</small>
@@ -1301,10 +1298,10 @@
 							<p class="range">U+11000 ~ U+1107F</p>
 							<p class="character count">字符数：109</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">凯提文
 								<small class="en">Kaithi</small>
@@ -1314,10 +1311,10 @@
 							<p class="range">U+11080 ~ U+110CF</p>
 							<p class="character count">字符数：67</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">索拉僧平文
 								<small class="en">Sora Sompeng</small>
@@ -1327,10 +1324,10 @@
 							<p class="range">U+110D0 ~ U+110FF</p>
 							<p class="character count">字符数：35</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">查克马文
 								<small class="en">Chakma</small>
@@ -1340,10 +1337,10 @@
 							<p class="range">U+11100 ~ U+1114F</p>
 							<p class="character count">字符数：71</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">马哈佳尼文
 								<small class="en">Mahajani</small>
@@ -1353,10 +1350,10 @@
 							<p class="range">U+11150 ~ U+1117F</p>
 							<p class="character count">字符数：39</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">夏拉达文
 								<small class="en">Sharada</small>
@@ -1366,10 +1363,10 @@
 							<p class="range">U+11180 ~ U+111DF</p>
 							<p class="character count">字符数：96</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">僧伽罗古数字
 								<small class="en">Sinhala Archaic Numbers</small>
@@ -1379,10 +1376,10 @@
 							<p class="range">U+111E0 ~ U+111FF</p>
 							<p class="character count">字符数：20</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">霍伊基文
 								<small class="en">Khojki</small>
@@ -1392,10 +1389,10 @@
 							<p class="range">U+11200 ~ U+1124F</p>
 							<p class="character count">字符数：62</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">穆尔塔尼文
 								<small class="en">Multani</small>
@@ -1405,10 +1402,10 @@
 							<p class="range">U+11280 ~ U+112AF</p>
 							<p class="character count">字符数：38</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">库达瓦迪文
 								<small class="en">Khudawadi</small>
@@ -1418,10 +1415,10 @@
 							<p class="range">U+112B0 ~ U+112FF</p>
 							<p class="character count">字符数：69</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">格兰塔文
 								<small class="en">Grantha</small>
@@ -1431,10 +1428,10 @@
 							<p class="range">U+11300 ~ U+1137F</p>
 							<p class="character count">字符数：86</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">尼瓦尔文
 								<small class="en">Newa</small>
@@ -1444,10 +1441,10 @@
 							<p class="range">U+11400 ~ U+1147F</p>
 							<p class="character count">字符数：97</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">提尔胡塔文
 								<small class="en">Tirhuta</small>
@@ -1457,10 +1454,10 @@
 							<p class="range">U+11480 ~ U+114DF</p>
 							<p class="character count">字符数：82</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">悉昙文
 								<small class="en">Siddham</small>
@@ -1470,10 +1467,10 @@
 							<p class="range">U+11580 ~ U+115FF</p>
 							<p class="character count">字符数：92</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">莫迪文
 								<small class="en">Modi</small>
@@ -1483,10 +1480,10 @@
 							<p class="range">U+11600 ~ U+1165F</p>
 							<p class="character count">字符数：79</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">蒙古文补充
 								<small class="en">Mongolian Supplement</small>
@@ -1496,10 +1493,10 @@
 							<p class="range">U+11660 ~ U+1167F</p>
 							<p class="character count">字符数：13</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">塔克里文
 								<small class="en">Takri</small>
@@ -1509,10 +1506,10 @@
 							<p class="range">U+11680 ~ U+116CF</p>
 							<p class="character count">字符数：67</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">阿洪姆文
 								<small class="en">Ahom</small>
@@ -1522,10 +1519,10 @@
 							<p class="range">U+11700 ~ U+1173F</p>
 							<p class="character count">字符数：58</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">多格拉文
 								<small class="en">Dogra</small>
@@ -1535,10 +1532,10 @@
 							<p class="range">U+11800 ~ U+1184F</p>
 							<p class="character count">字符数：60</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">瓦兰齐地文
 								<small class="en">Warang Citi</small>
@@ -1548,10 +1545,10 @@
 							<p class="range">U+118A0 ~ U+118FF</p>
 							<p class="character count">字符数：84</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">迪维希阿古鲁文
 								<small class="en">Dives Akuru</small>
@@ -1561,10 +1558,10 @@
 							<p class="range">U+11900 ~ U+1195F</p>
 							<p class="character count">字符数：72</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">南迪那嘎理文
 								<small class="en">Nandinagari</small>
@@ -1574,10 +1571,10 @@
 							<p class="range">U+119A0 ~ U+119FF</p>
 							<p class="character count">字符数：65</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">札那巴札尔方形字母
 								<small class="en">Zanabazar Square</small>
@@ -1587,10 +1584,10 @@
 							<p class="range">U+11A00 ~ U+11A4F</p>
 							<p class="character count">字符数：72</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">索永布字母
 								<small class="en">Soyombo</small>
@@ -1600,10 +1597,10 @@
 							<p class="range">U+11A50 ~ U+11AAF</p>
 							<p class="character count">字符数：83</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">包正豪文
 								<small class="en">Pau Cin Hau</small>
@@ -1613,10 +1610,10 @@
 							<p class="range">U+11AC0 ~ U+11AFF</p>
 							<p class="character count">字符数：57</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">拜克舒基文
 								<small class="en">Bhaiksuki</small>
@@ -1626,10 +1623,10 @@
 							<p class="range">U+11C00 ~ U+11C6F</p>
 							<p class="character count">字符数：97</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">马尔钦文
 								<small class="en">Marchen</small>
@@ -1639,10 +1636,10 @@
 							<p class="range">U+11C70 ~ U+11CBF</p>
 							<p class="character count">字符数：68</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">贡德文(Masaram)
 								<small class="en">Masaram Gondi</small>
@@ -1652,10 +1649,10 @@
 							<p class="range">U+11D00 ~ U+11D5F</p>
 							<p class="character count">字符数：75</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">贡德文(Gunjala)
 								<small class="en">Gunjala Gondi</small>
@@ -1665,10 +1662,10 @@
 							<p class="range">U+11D60 ~ U+11DAF</p>
 							<p class="character count">字符数：63</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">望加锡文
 								<small class="en">Makasar</small>
@@ -1678,10 +1675,10 @@
 							<p class="range">U+11EE0 ~ U+11EFF</p>
 							<p class="character count">字符数：25</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">傈僳文补充
 								<small class="en">Lisu Supplement</small>
@@ -1691,10 +1688,10 @@
 							<p class="range">U+11FB0 ~ U+11FBF</p>
 							<p class="character count">字符数：1</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">泰米尔文补充
 								<small class="en">Tamil Supplement</small>
@@ -1704,10 +1701,10 @@
 							<p class="range">U+11FC0 ~ U+11FFF</p>
 							<p class="character count">字符数：51</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">楔形文字
 								<small class="en">Cuneiform</small>
@@ -1717,10 +1714,10 @@
 							<p class="range">U+12000 ~ U+123FF</p>
 							<p class="character count">字符数：922</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">楔形文字数字和标点
 								<small class="en">Cuneiform Numbers and Punctuation</small>
@@ -1730,10 +1727,10 @@
 							<p class="range">U+12400 ~ U+1247F</p>
 							<p class="character count">字符数：116</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">早期王朝楔形文字
 								<small class="en">Early Dynastic Cuneiform</small>
@@ -1743,10 +1740,10 @@
 							<p class="range">U+12480 ~ U+1254F</p>
 							<p class="character count">字符数：196</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">埃及圣书文
 								<small class="en">Egyptian Hieroglyphs</small>
@@ -1756,10 +1753,10 @@
 							<p class="range">U+13000 ~ U+1342F</p>
 							<p class="character count">字符数：1071</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">埃及圣书文格式控制
 								<small class="en">Egyptian Hieroglyph Format Controls</small>
@@ -1769,10 +1766,10 @@
 							<p class="range">U+13430 ~ U+1343F</p>
 							<p class="character count">字符数：9</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">安纳托利亚象形文字
 								<small class="en">Anatolian Hieroglyphs</small>
@@ -1782,10 +1779,10 @@
 							<p class="range">U+14400 ~ U+1467F</p>
 							<p class="character count">字符数：583</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">巴姆穆文补充
 								<small class="en">Bamum Supplement</small>
@@ -1795,10 +1792,10 @@
 							<p class="range">U+16800 ~ U+16A3F</p>
 							<p class="character count">字符数：569</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">姆罗文
 								<small class="en">Mro</small>
@@ -1808,10 +1805,10 @@
 							<p class="range">U+16A40 ~ U+16A6F</p>
 							<p class="character count">字符数：43</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">巴萨瓦文
 								<small class="en">Bassa Vah</small>
@@ -1821,10 +1818,10 @@
 							<p class="range">U+16AD0 ~ U+16AFF</p>
 							<p class="character count">字符数：36</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">帕豪苗文
 								<small class="en">Pahawh Hmong</small>
@@ -1834,10 +1831,10 @@
 							<p class="range">U+16B00 ~ U+16B8F</p>
 							<p class="character count">字符数：127</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">梅德法伊德林文
 								<small class="en">Medefaidrin</small>
@@ -1847,10 +1844,10 @@
 							<p class="range">U+16E40 ~ U+16E9F</p>
 							<p class="character count">字符数：91</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">苗文
 								<small class="en">Miao</small>
@@ -1860,10 +1857,10 @@
 							<p class="range">U+16F00 ~ U+16F9F</p>
 							<p class="character count">字符数：149</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">表意符号和标点
 								<small class="en">Ideographic Symbols and Punctuation</small>
@@ -1873,10 +1870,10 @@
 							<p class="range">U+16FE0 ~ U+16FFF</p>
 							<p class="character count">字符数：7</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">西夏文
 								<small class="en">Tangut</small>
@@ -1886,10 +1883,10 @@
 							<p class="range">U+17000 ~ U+187FF</p>
 							<p class="character count">字符数：6136</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">西夏文部件
 								<small class="en">Tangut Components</small>
@@ -1899,10 +1896,10 @@
 							<p class="range">U+18800 ~ U+18AFF</p>
 							<p class="character count">字符数：768</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">契丹小字
 								<small class="en">Khitan Small Script</small>
@@ -1912,10 +1909,10 @@
 							<p class="range">U+18B00 ~ U+18CFF</p>
 							<p class="character count">字符数：470</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">西夏文补充
 								<small class="en">Tangut Supplement</small>
@@ -1925,10 +1922,10 @@
 							<p class="range">U+18D00 ~ U+18D8F</p>
 							<p class="character count">字符数：9</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">假名补充
 								<small class="en">Kana Supplement</small>
@@ -1938,10 +1935,10 @@
 							<p class="range">U+1B000 ~ U+1B0FF</p>
 							<p class="character count">字符数：256</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">假名扩展-A
 								<small class="en">Kana Extended-A</small>
@@ -1951,10 +1948,10 @@
 							<p class="range">U+1B100 ~ U+1B12F</p>
 							<p class="character count">字符数：31</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">小假名扩展
 								<small class="en">Small Kana Extension</small>
@@ -1964,10 +1961,10 @@
 							<p class="range">U+1B130 ~ U+1B16F</p>
 							<p class="character count">字符数：7</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">女书
 								<small class="en">Nushu</small>
@@ -1977,10 +1974,10 @@
 							<p class="range">U+1B170 ~ U+1B2FF</p>
 							<p class="character count">字符数：396</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">杜普雷速记
 								<small class="en">Duployan</small>
@@ -1990,10 +1987,10 @@
 							<p class="range">U+1BC00 ~ U+1BC9F</p>
 							<p class="character count">字符数：143</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">速记格式控制器
 								<small class="en">Shorthand Format Controls</small>
@@ -2003,10 +2000,10 @@
 							<p class="range">U+1BCA0 ~ U+1BCAF</p>
 							<p class="character count">字符数：4</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">拜占庭音乐符号
 								<small class="en">Byzantine Musical Symbols</small>
@@ -2016,10 +2013,10 @@
 							<p class="range">U+1D000 ~ U+1D0FF</p>
 							<p class="character count">字符数：246</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">音乐符号
 								<small class="en">Musical Symbols</small>
@@ -2029,10 +2026,10 @@
 							<p class="range">U+1D100 ~ U+1D1FF</p>
 							<p class="character count">字符数：231</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">古希腊音乐记谱法
 								<small class="en">Ancient Greek Musical Notation</small>
@@ -2042,10 +2039,10 @@
 							<p class="range">U+1D200 ~ U+1D24F</p>
 							<p class="character count">字符数：70</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">玛雅数字
 								<small class="en">Mayan Numerals</small>
@@ -2055,10 +2052,10 @@
 							<p class="range">U+1D2E0 ~ U+1D2FF</p>
 							<p class="character count">字符数：20</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">太玄经符号
 								<small class="en">Tai Xuan Jing Symbols</small>
@@ -2068,10 +2065,10 @@
 							<p class="range">U+1D300 ~ U+1D35F</p>
 							<p class="character count">字符数：87</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">算筹数字
 								<small class="en">Counting Rod Numerals</small>
@@ -2081,10 +2078,10 @@
 							<p class="range">U+1D360 ~ U+1D37F</p>
 							<p class="character count">字符数：25</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">数学字母数字符号
 								<small class="en">Mathematical Alphanumeric Symbols</small>
@@ -2094,10 +2091,10 @@
 							<p class="range">U+1D400 ~ U+1D7FF</p>
 							<p class="character count">字符数：996</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">萨顿书写符号
 								<small class="en">Sutton SignWriting</small>
@@ -2107,10 +2104,10 @@
 							<p class="range">U+1D800 ~ U+1DAAF</p>
 							<p class="character count">字符数：672</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">格拉哥里文补充
 								<small class="en">Glagolitic Supplement</small>
@@ -2120,10 +2117,10 @@
 							<p class="range">U+1E000 ~ U+1E02F</p>
 							<p class="character count">字符数：38</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">尼阿肯普亚赫蒙文
 								<small class="en">Nyiakeng Puachue Hmong</small>
@@ -2133,10 +2130,10 @@
 							<p class="range">U+1E100 ~ U+1E14F</p>
 							<p class="character count">字符数：71</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">万乔文
 								<small class="en">Wancho</small>
@@ -2146,10 +2143,10 @@
 							<p class="range">U+1E2C0 ~ U+1E2FF</p>
 							<p class="character count">字符数：59</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">门德基卡库文
 								<small class="en">Mende Kikakui</small>
@@ -2159,10 +2156,10 @@
 							<p class="range">U+1E800 ~ U+1E8DF</p>
 							<p class="character count">字符数：213</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">阿德拉姆字母
 								<small class="en">Adlam</small>
@@ -2172,10 +2169,10 @@
 							<p class="range">U+1E900 ~ U+1E95F</p>
 							<p class="character count">字符数：88</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">印度西亚克数字
 								<small class="en">Indic Siyaq Numbers</small>
@@ -2185,10 +2182,10 @@
 							<p class="range">U+1EC70 ~ U+1ECBF</p>
 							<p class="character count">字符数：68</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">奥斯曼西亚克数字
 								<small class="en">Ottoman Siyaq Numbers</small>
@@ -2198,10 +2195,10 @@
 							<p class="range">U+1ED00 ~ U+1ED4F</p>
 							<p class="character count">字符数：61</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">阿拉伯数学字母符号
 								<small class="en">Arabic Mathematical Alphabetic Symbols</small>
@@ -2211,10 +2208,10 @@
 							<p class="range">U+1EE00 ~ U+1EEFF</p>
 							<p class="character count">字符数：143</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">麻将牌
 								<small class="en">Mahjong Tiles</small>
@@ -2224,10 +2221,10 @@
 							<p class="range">U+1F000 ~ U+1F02F</p>
 							<p class="character count">字符数：44</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">多米诺骨牌
 								<small class="en">Domino Tiles</small>
@@ -2237,10 +2234,10 @@
 							<p class="range">U+1F030 ~ U+1F09F</p>
 							<p class="character count">字符数：100</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">扑克牌
 								<small class="en">Playing Cards</small>
@@ -2250,10 +2247,10 @@
 							<p class="range">U+1F0A0 ~ U+1F0FF</p>
 							<p class="character count">字符数：82</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">带圈字母数字补充
 								<small class="en">Enclosed Alphanumeric Supplement</small>
@@ -2263,10 +2260,10 @@
 							<p class="range">U+1F100 ~ U+1F1FF</p>
 							<p class="character count">字符数：200</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">带圈表意文字补充
 								<small class="en">Enclosed Ideographic Supplement</small>
@@ -2276,10 +2273,10 @@
 							<p class="range">U+1F200 ~ U+1F2FF</p>
 							<p class="character count">字符数：64</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">杂项符号和象形文字
 								<small class="en">Miscellaneous Symbols and Pictographs</small>
@@ -2289,10 +2286,10 @@
 							<p class="range">U+1F300 ~ U+1F5FF</p>
 							<p class="character count">字符数：768</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">表情符号
 								<small class="en">Emoticons</small>
@@ -2302,10 +2299,10 @@
 							<p class="range">U+1F600 ~ U+1F64F</p>
 							<p class="character count">字符数：80</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">装饰图案
 								<small class="en">Ornamental Dingbats</small>
@@ -2315,10 +2312,10 @@
 							<p class="range">U+1F650 ~ U+1F67F</p>
 							<p class="character count">字符数：48</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">交通和地图符号
 								<small class="en">Transport and Map Symbols</small>
@@ -2328,10 +2325,10 @@
 							<p class="range">U+1F680 ~ U+1F6FF</p>
 							<p class="character count">字符数：114</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">炼金术符号
 								<small class="en">Alchemical Symbols</small>
@@ -2341,10 +2338,10 @@
 							<p class="range">U+1F700 ~ U+1F77F</p>
 							<p class="character count">字符数：116</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">几何形状扩展
 								<small class="en">Geometric Shapes Extended</small>
@@ -2354,10 +2351,10 @@
 							<p class="range">U+1F780 ~ U+1F7FF</p>
 							<p class="character count">字符数：101</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">追加箭头-C
 								<small class="en">Supplemental Arrows-C</small>
@@ -2367,10 +2364,10 @@
 							<p class="range">U+1F800 ~ U+1F8FF</p>
 							<p class="character count">字符数：150</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">追加符号和象形文字
 								<small class="en">Supplemental Symbols and Pictographs</small>
@@ -2380,10 +2377,10 @@
 							<p class="range">U+1F900 ~ U+1F9FF</p>
 							<p class="character count">字符数：254</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">国际象棋符号
 								<small class="en">Chess Symbols</small>
@@ -2393,10 +2390,10 @@
 							<p class="range">U+1FA00 ~ U+1FA6F</p>
 							<p class="character count">字符数：98</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">符号和象形文字扩展-A
 								<small class="en">Symbols and Pictographs Extended-A</small>
@@ -2406,10 +2403,10 @@
 							<p class="range">U+1FA70 ~ U+1FAFF</p>
 							<p class="character count">字符数：57</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">旧式计算用符号
 								<small class="en">Symbols for Legacy Computing</small>
@@ -2419,14 +2416,14 @@
 							<p class="range">U+1FB00 ~ U+1FBFF</p>
 							<p class="character count">字符数：212</p>
 						</div>
-					</el-card>
-				</el-col>
-			</el-row>
-		</el-card>
+					</div>
+				
+			</div>
+		</div>
 
 		<!-- 平面2：辅助表意文字平面 -->
-		<el-card class="one plane section, Supplementary Ideographic Plane (SIP)">
-			<template #header>
+		<div class="card one plane section, Supplementary Ideographic Plane (SIP)">
+			<header>
 				<h2 class="name">平面2：辅助表意文字平面
 					<small class="en">Supplementary Ideographic Plane (SIP)</small>
 				</h2>
@@ -2437,10 +2434,10 @@
 					<p class="assigned character count">已分配字符：60866</p>
 					<p class="defined character count">已定义字符：60866</p>
 				</div>
-			</template>
-			<el-row :gutter="12">
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+			</header>
+			<div class="card-grid">
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">CJK统一表意文字扩展-B
 								<small class="en">CJK Unified Ideographs Extension B</small>
@@ -2450,10 +2447,10 @@
 							<p class="range">U+20000 ~ U+2A6DF</p>
 							<p class="character count">字符数：42718</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">CJK统一表意文字扩展-C
 								<small class="en">CJK Unified Ideographs Extension C</small>
@@ -2463,10 +2460,10 @@
 							<p class="range">U+2A700 ~ U+2B73F</p>
 							<p class="character count">字符数：4149</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">CJK统一表意文字扩展-D
 								<small class="en">CJK Unified Ideographs Extension D</small>
@@ -2476,10 +2473,10 @@
 							<p class="range">U+2B740 ~ U+2B81F</p>
 							<p class="character count">字符数：222</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">CJK统一表意文字扩展-E
 								<small class="en">CJK Unified Ideographs Extension E</small>
@@ -2489,10 +2486,10 @@
 							<p class="range">U+2B820 ~ U+2CEAF</p>
 							<p class="character count">字符数：5762</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">CJK统一表意文字扩展-F
 								<small class="en">CJK Unified Ideographs Extension F</small>
@@ -2502,10 +2499,10 @@
 							<p class="range">U+2CEB0 ~ U+2EBEF</p>
 							<p class="character count">字符数：7473</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">CJK兼容表意文字补充
 								<small class="en">CJK Compatibility Ideographs Supplement</small>
@@ -2515,14 +2512,14 @@
 							<p class="range">U+2F800 ~ U+2FA1F</p>
 							<p class="character count">字符数：542</p>
 						</div>
-					</el-card>
-				</el-col>
-			</el-row>
-		</el-card>
+					</div>
+				
+			</div>
+		</div>
 
 		<!-- 平面3：第三表意文字平面 -->
-		<el-card class="one plane section, Tertiary Ideographic Plane (TIP)">
-			<template #header>
+		<div class="card one plane section, Tertiary Ideographic Plane (TIP)">
+			<header>
 				<h2 class="name">平面3：第三表意文字平面
 					<small class="en">Tertiary Ideographic Plane (TIP)</small>
 				</h2>
@@ -2533,10 +2530,10 @@
 					<p class="assigned character count">已分配字符：4939</p>
 					<p class="defined character count">已定义字符：4939</p>
 				</div>
-			</template>
-			<el-row :gutter="12">
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+			</header>
+			<div class="card-grid">
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">CJK统一表意文字扩展-G
 								<small class="en">CJK Unified Ideographs Extension G</small>
@@ -2546,118 +2543,118 @@
 							<p class="range">U+30000 ~ U+3134F</p>
 							<p class="character count">字符数：4939</p>
 						</div>
-					</el-card>
-				</el-col>
-			</el-row>
-		</el-card>
+					</div>
+				
+			</div>
+		</div>
 
 		<!-- 平面4~13 -->
-		<el-row :gutter="12">
-			<el-col :xs="12" :sm="8" :md="6">
-				<el-card class="one plane section , unassigned">
-					<template #header>
+		<div class="card-grid">
+			
+				<div class="card one plane section, unassigned">
+					<header>
 						<h2 class="name">平面4（未分配）
 							<small class="en">Plane 4 (unassigned)</small>
 						</h2>
 						<p class="range">U+40000 ~ U+4FFFF</p>
-					</template>
-				</el-card>
-			</el-col>
-			<el-col :xs="12" :sm="8" :md="6">
-				<el-card class="one plane section , unassigned">
-					<template #header>
+					</header>
+				</div>
+			
+			
+				<div class="card one plane section, unassigned">
+					<header>
 						<h2 class="name">平面5（未分配）
 							<small class="en">Plane 5 (unassigned)</small>
 						</h2>
 						<p class="range">U+50000 ~ U+5FFFF</p>
-					</template>
-				</el-card>
-			</el-col>
-			<el-col :xs="12" :sm="8" :md="6">
-				<el-card class="one plane section , unassigned">
-					<template #header>
+					</header>
+				</div>
+			
+			
+				<div class="card one plane section, unassigned">
+					<header>
 						<h2 class="name">平面6（未分配）
 							<small class="en">Plane 6 (unassigned)</small>
 						</h2>
 						<p class="range">U+60000 ~ U+6FFFF</p>
-					</template>
-				</el-card>
-			</el-col>
-			<el-col :xs="12" :sm="8" :md="6">
-				<el-card class="one plane section , unassigned">
-					<template #header>
+					</header>
+				</div>
+			
+			
+				<div class="card one plane section, unassigned">
+					<header>
 						<h2 class="name">平面7（未分配）
 							<small class="en">Plane 7 (unassigned)</small>
 						</h2>
 						<p class="range">U+70000 ~ U+7FFFF</p>
-					</template>
-				</el-card>
-			</el-col>
-			<el-col :xs="12" :sm="8" :md="6">
-				<el-card class="one plane section , unassigned">
-					<template #header>
+					</header>
+				</div>
+			
+			
+				<div class="card one plane section, unassigned">
+					<header>
 						<h2 class="name">平面8（未分配）
 							<small class="en">Plane 8 (unassigned)</small>
 						</h2>
 						<p class="range">U+80000 ~ U+8FFFF</p>
-					</template>
-				</el-card>
-			</el-col>
-			<el-col :xs="12" :sm="8" :md="6">
-				<el-card class="one plane section , unassigned">
-					<template #header>
+					</header>
+				</div>
+			
+			
+				<div class="card one plane section, unassigned">
+					<header>
 						<h2 class="name">平面9（未分配）
 							<small class="en">Plane 9 (unassigned)</small>
 						</h2>
 						<p class="range">U+90000 ~ U+9FFFF</p>
-					</template>
-				</el-card>
-			</el-col>
-			<el-col :xs="12" :sm="8" :md="6">
-				<el-card class="one plane section , unassigned">
-					<template #header>
+					</header>
+				</div>
+			
+			
+				<div class="card one plane section, unassigned">
+					<header>
 						<h2 class="name">平面10（未分配）
 							<small class="en">Plane 10 (unassigned)</small>
 						</h2>
 						<p class="range">U+A0000 ~ U+AFFFF</p>
-					</template>
-				</el-card>
-			</el-col>
-			<el-col :xs="12" :sm="8" :md="6">
-				<el-card class="one plane section , unassigned">
-					<template #header>
+					</header>
+				</div>
+			
+			
+				<div class="card one plane section, unassigned">
+					<header>
 						<h2 class="name">平面11（未分配）
 							<small class="en">Plane 11 (unassigned)</small>
 						</h2>
 						<p class="range">U+B0000 ~ U+BFFFF</p>
-					</template>
-				</el-card>
-			</el-col>
-			<el-col :xs="12" :sm="8" :md="6">
-				<el-card class="one plane section , unassigned">
-					<template #header>
+					</header>
+				</div>
+			
+			
+				<div class="card one plane section, unassigned">
+					<header>
 						<h2 class="name">平面12（未分配）
 							<small class="en">Plane 12 (unassigned)</small>
 						</h2>
 						<p class="range">U+C0000 ~ U+CFFFF</p>
-					</template>
-				</el-card>
-			</el-col>
-			<el-col :xs="12" :sm="8" :md="6">
-				<el-card class="one plane section , unassigned">
-					<template #header>
+					</header>
+				</div>
+			
+			
+				<div class="card one plane section, unassigned">
+					<header>
 						<h2 class="name">平面13（未分配）
 							<small class="en">Plane 13 (unassigned)</small>
 						</h2>
 						<p class="range">U+D0000 ~ U+DFFFF</p>
-					</template>
-				</el-card>
-			</el-col>
-		</el-row>
+					</header>
+				</div>
+			
+		</div>
 
 		<!-- 平面14：辅助特殊用途平面 -->
-		<el-card class="one plane">
-			<template #header>
+		<div class="card one plane">
+			<header>
 				<h2 class="name">平面14：辅助特殊用途平面
 					<small class="en">Supplementary Special-purpose Plane (SSP)</small>
 				</h2>
@@ -2668,10 +2665,10 @@
 					<p class="assigned character count">已分配字符：337</p>
 					<p class="defined character count">已定义字符：337</p>
 				</div>
-			</template>
-			<el-row :gutter="12">
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+			</header>
+			<div class="card-grid">
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">标签
 								<small class="en">Tags</small>
@@ -2681,10 +2678,10 @@
 							<p class="range">U+E0000 ~ U+E007F</p>
 							<p class="character count">字符数：97</p>
 						</div>
-					</el-card>
-				</el-col>
-				<el-col :xs="12" :sm="8" :md="6">
-					<el-card class="one block">
+					</div>
+				
+				
+					<div class="card one block">
 						<header>
 							<h4 class="name">异体字选择器补充
 								<small class="en">Variation Selectors Supplement</small>
@@ -2694,16 +2691,16 @@
 							<p class="range">U+E0100 ~ U+E01EF</p>
 							<p class="character count">字符数：240</p>
 						</div>
-					</el-card>
-				</el-col>
-			</el-row>
-		</el-card>
+					</div>
+				
+			</div>
+		</div>
 
 		<!-- 平面15、16：私人使用区 -->
-		<el-row :gutter="12">
-			<el-col :span="12">
-				<el-card class="one plane">
-					<template #header>
+		<div class="card-grid">
+			
+				<div class="card one plane">
+					<header>
 						<h2 class="name">平面15：私人使用区A
 							<small class="en">Private Use Area-A (PUA-A)</small>
 						</h2>
@@ -2714,10 +2711,10 @@
 							<p class="assigned character count">已分配字符：65534</p>
 							<p class="defined character count">已定义字符：0</p>
 						</div>
-					</template>
-					<el-row :gutter="12">
-						<el-col :xs="12" :sm="12" :md="12">
-							<el-card class="one block">
+					</header>
+					<div class="card-grid">
+						
+							<div class="card one block">
 								<header>
 									<h4 class="name">
 										<small class="en">Supplementary Private Use Area-A</small>
@@ -2727,14 +2724,14 @@
 									<p class="range">U+F0000 ~ U+FFFFF</p>
 									<p class="character count">字符数：0</p>
 								</div>
-							</el-card>
-						</el-col>
-					</el-row>
-				</el-card>
-			</el-col>
-			<el-col :span="12">
-				<el-card class="one plane">
-					<template #header>
+							</div>
+						
+					</div>
+				</div>
+			
+			
+				<div class="card one plane">
+					<header>
 						<h2 class="name">平面16：私人使用区B
 							<small class="en">Private Use Area-B (PUA-B)</small>
 						</h2>
@@ -2745,10 +2742,10 @@
 							<p class="assigned character count">已分配字符：65534</p>
 							<p class="defined character count">已定义字符：0</p>
 						</div>
-					</template>
-					<el-row :gutter="12">
-						<el-col :xs="12" :sm="12" :md="12">
-							<el-card class="one block">
+					</header>
+					<div class="card-grid">
+						
+							<div class="card one block">
 								<header>
 									<h4 class="name">
 										<small class="en">Supplementary Private Use Area-B</small>
@@ -2758,12 +2755,12 @@
 									<p class="range">U+100000 ~ U+10FFFF</p>
 									<p class="character count">字符数：0</p>
 								</div>
-							</el-card>
-						</el-col>
-					</el-row>
-				</el-card>
-			</el-col>
-		</el-row>
+							</div>
+						
+					</div>
+				</div>
+			
+		</div>
 	</article>
 </main>
 

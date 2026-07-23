@@ -249,3 +249,76 @@ main {
 
 .overlay.top.right { position: absolute; top: 4px; right: 4px; }
 .push-right { margin-left: auto; }
+
+/* ======================== el-plus 替代样式 ======================== */
+
+/* --- card：基础卡片容器 --- */
+.card {
+	border: var(--el-border, 1px solid #dcdfe6);
+	border-radius: var(--el-border-radius-base, 4px);
+	background: #fff;
+	overflow: hidden;
+	box-shadow: var(--el-box-shadow-light, 0 1px 2px rgba(0, 0, 0, 0.06));
+}
+.card > header {
+	padding: calc(var(--el-card-padding, 16px) - 2px) var(--el-card-padding, 16px);
+	font-weight: 600;
+	border-bottom: 1px solid var(--el-border-color-light, #e4e7ed);
+}
+.card > footer {
+	padding: var(--el-card-padding, 16px);
+	border-top: 1px solid var(--el-border-color-light, #e4e7ed);
+}
+.card > :not(header):not(footer) {
+	padding: var(--el-card-padding, 16px);
+}
+.card.no-shadow {
+	box-shadow: none;
+}
+
+/* --- empty-info：空状态提示 --- */
+.empty-info {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 2rem;
+	color: var(--el-text-color-placeholder, #c0c4cc);
+	font-size: .9rem;
+	gap: .8rem;
+	user-select: none;
+}
+.empty-info::before {
+	content: '📭';
+	font-size: 2em;
+	opacity: .5;
+}
+
+/* --- card-grid：卡片网格，响应式自动填充列 --- */
+.card-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+	gap: 12px;
+}
+
+/* --- dl.grid 信息列表修饰：给 layout.css 的 dl.grid 加上边框和色块 --- */
+dl.grid.bordered {
+	border: 1px solid #dcdfe6;
+	border-radius: var(--el-border-radius-base, 4px);
+	overflow: hidden;
+}
+dl.grid.bordered > dt {
+	padding: 8px 12px;
+	background: #f5f7fa;
+	font-weight: 500;
+	color: #606266;
+	border-bottom: 1px solid #e4e7ed;
+}
+dl.grid.bordered > dd {
+	padding: 8px 12px;
+	border-bottom: 1px solid #e4e7ed;
+	margin: 0;
+}
+dl.grid.bordered > :last-child {
+	border-bottom: none;
+}

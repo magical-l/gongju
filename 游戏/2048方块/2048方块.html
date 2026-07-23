@@ -9,14 +9,11 @@
 <style>@layer common, el-plus;</style>
 <style>@import url("../../lib/element-plus/2.10.7/index.css") layer(el-plus);</style>
 <link href="../../resources/el-plus.css" rel="stylesheet">
-	<style>@import url("http://css.document.cool/common.css") layer(common);</style>
-	<!-- <link href="../../lib/css/common.css" rel="stylesheet"> -->
-	<style>@import url("http://css.document.cool/layout.css") layer(common);</style>
-	<!-- <link href="../../lib/css/layout.css" rel="stylesheet"> -->
+		<link href="../../lib/css/common.css" rel="stylesheet">
+		<link href="../../lib/css/layout.css" rel="stylesheet">
 <link href="../../resources/biz.css" rel="stylesheet">
 	<link href="../game.css" rel="stylesheet">
-	<style>@import url("http://css.document.cool/花活.css") layer(common);</style>
-	<!-- <link href="../../lib/css/花活.css" rel="stylesheet"> -->
+		<link href="../../lib/css/花活.css" rel="stylesheet">
 <link href="../2048/2048.css" rel="stylesheet">
 <link href="2048方块.css" rel="stylesheet">
 </head>
@@ -124,18 +121,17 @@
 			<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 				<summary>本局信息</summary>
 				<div class="items-go-y">
-					<el-card header="当前得分" class="one gaming info : scoreboard" body-class="score" shadow="never">
-						{{ score }}
-					</el-card>
-					<el-descriptions class="info list" :column="1" border="" :label-width="140">
-						<el-descriptions-item label="行" class="one gaming info">{{ gameBoardHeight }}</el-descriptions-item>
-						<el-descriptions-item label="列" class="one gaming info">{{ gameBoardWidth }}</el-descriptions-item>
-						<el-descriptions-item label="初始等级" class="one gaming info">{{ initialLevel }}</el-descriptions-item>
-						<el-descriptions-item label="当前等级" class="one gaming info">{{ displayCurrentLevel }}</el-descriptions-item>
-						<el-descriptions-item :label="gameBoardWidth &amp;&amp; gameBoardHeight ? '最高记录 (' + gameBoardWidth + '×' + gameBoardHeight + ')' : '最高记录'" class="one gaming info">
-							{{ highScore }}
-						</el-descriptions-item>
-					</el-descriptions>
+					<div class="card one gaming info : scoreboard no-shadow">
+						<header>当前得分</header>
+						<div class="score">{{ score }}</div>
+					</div>
+					<dl class="grid bordered info list">
+						<dt>行</dt><dd class="one gaming info">{{ gameBoardHeight }}</dd>
+						<dt>列</dt><dd class="one gaming info">{{ gameBoardWidth }}</dd>
+						<dt>初始等级</dt><dd class="one gaming info">{{ initialLevel }}</dd>
+						<dt>当前等级</dt><dd class="one gaming info">{{ displayCurrentLevel }}</dd>
+						<dt>{{ gameBoardWidth &amp;&amp; gameBoardHeight ? '最高记录 (' + gameBoardWidth + '×' + gameBoardHeight + ')' : '最高记录' }}</dt><dd class="one gaming info">{{ highScore }}</dd>
+					</dl>
 				</div>
 			</details>
 			<details class="shortcut list" data-panel="shortcuts" :open="panels.shortcuts" @toggle="onPanelToggle">
