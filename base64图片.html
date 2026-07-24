@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base64图片 - 在线查看与转换</title>
+<meta name="description" content="粘贴图片的base64编码，即时预览并转换为JPG、PNG、WebP等格式下载。">
+<meta name="keywords" content="base64, 图片转换, 在线工具, 图片预览, 图片下载, JPG, PNG, WebP">
+<meta name="author" content="工具兽">
+<meta property="og:title" content="Base64图片 - 在线查看与转换">
+<meta property="og:description" content="粘贴图片的base64编码，即时预览并转换为JPG、PNG、WebP等格式下载。">
+<meta property="og:type" content="website">
+
+<link href="lib/element-plus/2.10.7/index.css" rel="stylesheet">
+<link href="resources/el-plus.css" rel="stylesheet">
+	<link href="http://css.document.cool/common.css" rel="stylesheet">
+	<!-- <link href="lib/css/common.css" rel="stylesheet"> -->
+	<link href="http://css.document.cool/layout.css" rel="stylesheet">
+		<!-- <link href="lib/css/layout.css" rel="stylesheet"> -->
+<link href="resources/biz.css" rel="stylesheet">
+<style>
+	:root {
+		--input-min-h: 200px;
+		--preview-max-h: 60vh;
+	}
+
+	.app-layout {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 20px;
+		align-items: start;
+		max-width: 1200px;
+		margin: 0 auto;
+	}
+
+	.panel {
+		background: #fff;
+		border: 1px solid var(--border-default, #dee2e6);
+		border-radius: 8px;
+		padding: 16px;
+	}
+
+	.panel h3 {
+		margin: 0 0 12px;
+		font-size: 1rem;
+		color: #333;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.paste-area textarea {
+		width: 100%;
+		min-height: var(--input-min-h);
+		font-family: "Cascadia Code", "Fira Code", "JetBrains Mono", "Consolas", monospace;
+		font-size: 12px;
+		line-height: 1.5;
+		resize: vertical;
+		border: 1px solid #d0d5dd;
+		border-radius: 6px;
+		padding: 10px;
+		tab-size: 2;
+	}
+
+	.paste-area textarea:focus {
+		outline: none;
+		border-color: var(--el-color-primary, #409eff);
+		box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.15);
+	}
+
+	.preview-box {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 12px;
+	}
+
+	.preview-box .img-wrap {
+		width: 100%;
+		min-height: 100px;
+		border: 1px dashed #d0d5dd;
+		border-radius: 6px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		overflow: hidden;
+		background: repeating-conic-gradient(#f0f0f0 0% 25%, #fff 0% 50%) 0 0 / 20px 20px;
+		padding: 4px;
+	}
+
+	.preview-box .img-wrap img {
+		max-width: 100%;
+		max-height: var(--preview-max-h);
+		object-fit: contain;
+		border-radius: 4px;
+	}
+
+	.preview-box .placeholder {
+		color: #999;
+		font-size: 14px;
+		padding: 40px 20px;
+		text-align: center;
+	}
+
+	.info-row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 12px 24px;
+		font-size: 13px;
+		color: #666;
+		width: 100%;
+		margin-top: 4px;
+	}
+
+	.info-row .label { color: #999; }
+
+	.toolbar-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		margin-top: 12px;
+		align-items: center;
+		width: 100%;
+	}
+
+	.toolbar-actions .format-group {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		margin-left: auto;
+	}
+
+	.toolbar-actions .format-group .sep {
+		color: #d0d5dd;
+		user-select: none;
+	}
+
+	.msg-bar {
+		font-size: 12px;
+		padding: 4px 8px;
+		border-radius: 4px;
+		margin-top: 8px;
+		width: 100%;
+	}
+
+	.msg-bar.info { background: #e6f4ff; color: #1677ff; }
+	.msg-bar.warn { background: #fff7e6; color: #d46b08; }
+	.msg-bar.error { background: #fff1f0; color: #cf1322; }
+	.msg-bar.success { background: #f6ffed; color: #389e0d; }
+
+	/* 竖屏小屏适配 */
+	@media (max-width: 768px) {
+		.app-layout { grid-template-columns: 1fr; }
+	}
+</style>
+</head>
+<body class="反叵字形">
+<header>
+	<h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
+	<nav>
+		<div class="nav-row">
+			<a href="文本转化.html">文本转化</a>
+			<a href="数字转化.html">数字转化</a>
+			<a href="符号/符号.html">符号</a>
+			<a href="格子盘.html">格子盘</a>
+			<a href="base64图片.html" class="active">Base64图片</a>
+			<a href="svg转图标.html">SVG转图标</a>
+			<a href="化学/元素周期表.html">元素周期表</a>
+			<a href="拼音/拼音.html">拼音</a>
+		</div>
+		<div class="nav-row">
+			<a href="游戏/中国象棋/中国象棋.html">中国象棋</a>
+			<a href="游戏/五子棋/gobang.html">五子棋</a>
+			<a href="游戏/俄罗斯方块.html">俄罗斯方块</a>
+			<a href="游戏/贪吃蛇.html">贪吃蛇</a>
+			<a href="游戏/2048/2048.html">2048</a>
+			<a href="游戏/2048蛇/2048蛇.html">2048蛇</a>
+			<a href="游戏/2048方块/2048方块.html">2048方块</a>
+			<a href="游戏/点灯.html">点灯</a>
+			<a href="游戏/数字华容道.html">数字华容道</a>
+			<a href="游戏/星连星/星连星.html">星连星</a>
+		</div>
+	</nav>
+</header>
+<main>
+	<header>
+		<h2>Base64 图片</h2>
+		<div class="page-lv help area" v-cloak>
+			<el-button title="显示说明" class="page-lv help btn" size="small" circle @click="introVisible = true">?</el-button>
+			<el-dialog title="页面说明" class="page-lv intro" v-model="introVisible" width="60%">
+				<p>将图片的 Base64 编码粘贴到左侧文本框，即可即时预览并获取图片信息。</p>
+				<h2>使用方式</h2>
+				<ul>
+					<li><strong>粘贴 base64</strong> — 支持完整 data URI（<code>data:image/png;base64,iVBOR...</code>）和纯 base64 正文两种格式。</li>
+					<li><strong>预览</strong> — 图片自动显示在右侧，同时显示尺寸、原始格式、文件大小。</li>
+					<li><strong>格式转换</strong> — 选择目标格式（PNG / JPEG / WebP / BMP），JPEG 和 WebP 可调节质量。</li>
+					<li><strong>下载</strong> — 点击"下载"按钮以选定格式保存图片。</li>
+					<li><strong>复制 Base64</strong> — 可将转换后的图片 base64 复制到剪贴板。</li>
+				</ul>
+				<h2>常见使用场景</h2>
+				<ul>
+					<li>从 CSS / HTML / 后端日志中提取出 base64 图片查看实际内容</li>
+					<li>将 PNG 透明图转为 JPEG 以减小文件体积</li>
+					<li>将大图片转为 WebP 以获得更好的压缩比</li>
+				</ul>
+			</el-dialog>
+		</div>
+	</header>
+
+	<article v-cloak>
+		<div class="app-layout">
+			<!-- 左侧：输入区 -->
+			<section class="panel paste-area">
+				<h3>📋 Base64 编码</h3>
+				<textarea
+					v-model="rawInput"
+					placeholder="在此粘贴图片的 base64 编码，支持 data:image/... 完整 URI 或纯 base64 正文"
+					spellcheck="false"
+					@paste="onPaste"
+				></textarea>
+				<div class="toolbar-actions">
+					<el-button size="small" @click="clearInput">清空</el-button>
+					<el-button size="small" @click="pasteFromClipboard">从剪贴板粘贴</el-button>
+						<el-button size="small" @click="openFile">📂 打开文件</el-button>
+						<input ref="fileInput" type="file" accept=".txt,.b64,.base64" style="display:none" @change="onFileSelected">
+					<div class="format-group">
+						<el-select v-model="targetFormat" size="small" style="width:100px">
+							<el-option label="PNG" value="image/png" />
+							<el-option label="JPEG" value="image/jpeg" />
+							<el-option label="WebP" value="image/webp" />
+							<el-option label="BMP" value="image/bmp" />
+						</el-select>
+						<template v-if="targetFormat === 'image/jpeg' || targetFormat === 'image/webp'">
+							<span class="sep">|</span>
+							<span style="font-size:13px;color:#666">质量:</span>
+							<el-slider v-model="quality" :min="10" :max="100" style="width:100px" size="small" />
+							<span style="font-size:12px;color:#999;min-width:2.5em">{{ quality }}%</span>
+						</template>
+					</div>
+				</div>
+				<div v-if="message.text" class="msg-bar" :class="message.type">{{ message.text }}</div>
+			</section>
+
+			<!-- 右侧：预览区 -->
+			<section class="panel preview-box">
+				<h3>🖼️ 预览</h3>
+				<div class="img-wrap">
+					<img v-if="previewUrl" :src="previewUrl" alt="base64 图片预览" @load="onImgLoad" @error="onImgError" />
+					<div v-else class="placeholder">粘贴 base64 后图片将显示在此处</div>
+				</div>
+
+				<div v-if="imgInfo" class="info-row">
+					<span><span class="label">尺寸:</span> {{ imgInfo.width }} &times; {{ imgInfo.height }} px</span>
+					<span><span class="label">原始格式:</span> {{ imgInfo.origFormat }}</span>
+					<span><span class="label">原始大小:</span> {{ imgInfo.origSize }}</span>
+					<span v-if="imgInfo.convertedSize"><span class="label">转换后:</span> {{ imgInfo.convertedSize }}</span>
+				</div>
+
+				<div class="toolbar-actions" v-if="previewUrl">
+					<el-button type="primary" size="small" @click="download">下载</el-button>
+					<el-button size="small" @click="copyConvertedBase64">复制 Base64</el-button>
+				</div>
+			</section>
+		</div>
+	</article>
+</main>
+
+<aside class="sidebar near-right">
+	<article class="website info">
+		<section class="patronage area">
+			<img title="赞助一下" class="qr-code" alt="支付宝收款码" src="resources/支付宝收款码.jpg">
+			<p class="slogan">赞助一下</p>
+		</section>
+		<section class="copyright"><p>&copy; 2026 工具兽版权所有 All rights reserved.</p></section>
+		<section class="feedback"><p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p></section>
+	</article>
+</aside>
+
+<div class="js container">
+	<script src="lib/vue/3.5.18/vue.global.js"></script>
+	<script src="lib/element-plus/2.10.7/index.full.js"></script>
+	<script src="resources/biz-util.js"></script>
+</div>
+<script>
+	const { createApp } = Vue;
+
+	/** 把传入的字符串转成完整 data URI（如已是则原样返回） */
+	function normalizeBase64(str) {
+		let s = str.trim();
+		// 剥掉可能的 BOM / 零宽字符
+		s = s.replace(/[﻿​‌‍⁠]/g, '');
+
+		// 如果开头有 data: URI 前缀
+		const dataUriMatch = s.match(/^data:(\w+\/\w+);base64,/i);
+		if (dataUriMatch) {
+			// 把 body 部分也做一次清理（去掉嵌入的空白）
+			const [full, mime] = dataUriMatch;
+			const body = s.slice(full.length).replace(/\s/g, '');
+			return full + body;
+		}
+
+		// 纯 base64：去掉所有空白后检查
+		let pure = s.replace(/\s/g, '');
+		if (!pure) return null;
+
+		// 可能有前缀前缀标识（data:image/xxx;base64, 写成了小写或中间有空格）
+		const relaxedPrefix = pure.match(/^data:\w+\/\w+;base64,/i);
+		if (relaxedPrefix) {
+			pure = pure.slice(relaxedPrefix[0].length);
+		}
+
+		// 只保留标准 base64 字符（含 URL-safe 变体：- 和 _）
+		const cleaned = pure.replace(/[^A-Za-z0-9+/=_-]/g, '');
+		if (cleaned.length < 10) return null; // 太短不可能是图片
+
+		// 补回 = 使长度是 4 的倍数（某些工具会省略末尾 =）
+		const padded = cleaned.padEnd(cleaned.length + (4 - cleaned.length % 4) % 4, '=');
+		return 'data:image/png;base64,' + padded;
+	}
+
+	/** 格式化字节数 */
+	function fmtSize(bytes) {
+		if (bytes < 1024) return bytes + ' B';
+		if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+		return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+	}
+
+	/** 猜测原始格式 */
+	function guessFormat(dataUri) {
+		const m = dataUri.match(/^data:(\w+\/\w+);/);
+		return m ? m[1] : 'unknown';
+	}
+
+	const app = createApp({
+		data() {
+			return {
+				rawInput: '',
+				previewUrl: null,
+				imgInfo: null,
+				targetFormat: 'image/png',
+				quality: 92,
+				message: { text: '', type: 'info' },
+				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname),
+			};
+		},
+		watch: {
+			rawInput() { this.processInput(); },
+			introVisible(v) {
+				const k = 'intro-hidden-' + window.location.pathname;
+				if (!v) localStorage.setItem(k, 'true');
+				else localStorage.removeItem(k);
+			},
+		},
+		methods: {
+			processInput() {
+				this.previewUrl = null;
+				this.imgInfo = null;
+				this.message = { text: '', type: 'info' };
+
+				const s = this.rawInput.trim();
+				if (!s) return;
+
+				const uri = normalizeBase64(s);
+				if (!uri) {
+					this.message = { text: '无法识别的 base64 格式，请检查输入', type: 'error' };
+					return;
+				}
+				this.previewUrl = uri;
+			},
+
+			onImgLoad(e) {
+				const img = e.target;
+				const uri = this.previewUrl;
+				// base64 正文部分的字节数
+				const b64body = uri.includes(',') ? uri.split(',')[1] : uri;
+				const rawBytes = Math.ceil(b64body.length * 0.75);
+
+				this.imgInfo = {
+					width: img.naturalWidth,
+					height: img.naturalHeight,
+					origFormat: guessFormat(uri),
+					origSize: fmtSize(rawBytes),
+					convertedSize: null,
+				};
+				this.message = { text: '图片加载成功', type: 'success' };
+			},
+
+			onImgError() {
+				this.previewUrl = null;
+				this.imgInfo = null;
+				this.message = { text: '图片加载失败，请检查 base64 数据是否有效', type: 'error' };
+			},
+
+			async pasteFromClipboard() {
+				try {
+					const text = await navigator.clipboard.readText();
+					if (text) {
+						this.rawInput = text;
+						this.message = { text: '已从剪贴板读取', type: 'info' };
+					}
+				} catch {
+					this.message = { text: '无法读取剪贴板，请手动粘贴', type: 'warn' };
+				}
+			},
+
+			openFile() {
+				this.$refs.fileInput.click();
+			},
+
+			onFileSelected(e) {
+				const file = e.target.files[0];
+				if (!file) return;
+				const reader = new FileReader();
+				reader.onload = (ev) => {
+					this.rawInput = ev.target.result;
+					this.message = { text: `已读取文件: ${file.name} (${fmtSize(file.size)})`, type: 'info' };
+				};
+				reader.onerror = () => {
+					this.message = { text: '读取文件失败', type: 'error' };
+				};
+				reader.readAsText(file);
+				// 重置 input 以允许重复选同一文件
+				e.target.value = '';
+			},
+
+			onPaste() {
+				// 粘贴后自动处理（由 watch rawInput 触发）
+			},
+
+			clearInput() {
+				this.rawInput = '';
+				this.previewUrl = null;
+				this.imgInfo = null;
+				this.message = { text: '', type: 'info' };
+			},
+
+			/** 把当前预览图片按目标格式导出为 Blob */
+			exportBlob() {
+				return new Promise((resolve, reject) => {
+					const img = new Image();
+					img.onload = () => {
+						const canvas = document.createElement('canvas');
+						canvas.width = img.naturalWidth;
+						canvas.height = img.naturalHeight;
+						const ctx = canvas.getContext('2d');
+						// JPEG 不支持透明，用白色背景填充
+						if (this.targetFormat === 'image/jpeg') {
+							ctx.fillStyle = '#fff';
+							ctx.fillRect(0, 0, canvas.width, canvas.height);
+						}
+						ctx.drawImage(img, 0, 0);
+						const q = this.targetFormat === 'image/png' || this.targetFormat === 'image/bmp' ? undefined : this.quality / 100;
+						canvas.toBlob(blob => {
+							if (blob) resolve(blob);
+							else reject(new Error('导出失败'));
+						}, this.targetFormat, q);
+					};
+					img.onerror = () => reject(new Error('图片加载失败'));
+					img.src = this.previewUrl;
+				});
+			},
+
+			async download() {
+				if (!this.previewUrl) return;
+				try {
+					const blob = await this.exportBlob();
+					const ext = this.targetFormat.split('/')[1];
+					const url = URL.createObjectURL(blob);
+					const a = document.createElement('a');
+					a.href = url;
+					a.download = 'image.' + ext;
+					a.click();
+					URL.revokeObjectURL(url);
+
+					// 更新转换后大小
+					if (this.imgInfo) {
+						this.imgInfo.convertedSize = fmtSize(blob.size);
+					}
+					this.message = { text: '下载完成', type: 'success' };
+				} catch (e) {
+					this.message = { text: '下载失败: ' + e.message, type: 'error' };
+				}
+			},
+
+			async copyConvertedBase64() {
+				if (!this.previewUrl) return;
+				try {
+					const blob = await this.exportBlob();
+					const reader = new FileReader();
+					reader.onload = () => {
+						const b64 = reader.result;
+						navigator.clipboard.writeText(b64).then(() => {
+							this.message = { text: 'Base64 已复制到剪贴板', type: 'success' };
+						}).catch(() => {
+							this.message = { text: '复制失败，请手动复制', type: 'warn' };
+						});
+					};
+					reader.readAsDataURL(blob);
+				} catch (e) {
+					this.message = { text: '导出失败: ' + e.message, type: 'error' };
+				}
+			},
+		},
+	});
+
+	app.use(ElementPlus);
+	app.mount('main>article');
+
+	const help = createApp({
+		data() {
+			return {
+				introVisible: !localStorage.getItem('intro-hidden-' + window.location.pathname),
+			};
+		},
+		watch: {
+			introVisible(v) {
+				const k = 'intro-hidden-' + window.location.pathname;
+				if (!v) localStorage.setItem(k, 'true');
+				else localStorage.removeItem(k);
+			},
+		},
+	});
+	help.use(ElementPlus);
+	help.mount('.help.area');
+</script>
+</body>
+</html>
