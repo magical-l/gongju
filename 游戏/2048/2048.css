@@ -36,7 +36,7 @@
 	}
 
 	/* 自定义数字显示 */
-	& .customize.unit.display.area {
+	& .customize.tile-panel.display.area {
 		& .list {
 			display: grid;
 			grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
@@ -54,7 +54,7 @@
 			min-height: 48px;
 			flex-shrink: 0;
 
-			& .unit.preview {
+			& .tile.preview {
 				width: var(--cell-size, 80px);
 				height: var(--cell-size, 80px);
 				min-width: 48px;

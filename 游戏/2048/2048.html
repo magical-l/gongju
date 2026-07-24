@@ -177,17 +177,17 @@
 				<div class="piece" v-for="i in 150" :key="i"></div>
 			</div>
 
-			<el-dialog title="自定义数字显示" class="customize unit display area" v-model="customTilesDialogVisible" width="90%" align-center @opened="onCustomTilesDialogOpened">
+			<el-dialog title="自定义数字显示" class="customize tile-panel display area" v-model="customTilesDialogVisible" width="90%" align-center @opened="onCustomTilesDialogOpened">
 				<p class="tip">
 					可为每个数字设置自定义显示文字、图片 URL 或本地选图（图片优先）；留空则显示原数字。修改后失焦或选图即生效。
 					<el-button type="danger" size="small" @click="clearAllCustom">清除全部</el-button>
 				</p>
 				<input ref="unitFileInput" type="file" accept="image/*" class="hidden" @change="onUnitFileChange">
-				<div class="unit list">
-					<el-card :header="`数字 ${pu.key}`" class="one unit area" v-for="pu in previewUnits" :key="pu.key" shadow="never">
+				<div class="list">
+					<el-card :header="`数字 ${pu.key}`" class="one area" v-for="pu in previewUnits" :key="pu.key" shadow="never">
 						<div class="flex items-stretch">
 							<div class="cell">
-								<div class="unit preview" :class="['unit-' + pu.key, { 'preview-error': previewImageErrors[pu.key] }]">
+								<div class="tile preview" :class="['unit-' + pu.key, { 'preview-error': previewImageErrors[pu.key] }]">
 									<img v-if="pu.image" :src="pu.image" :alt="pu.text" loading="lazy" @error="previewImageErrors[pu.key]=true">
 									<template v-else>{{ pu.text }}</template>
 								</div>
@@ -208,7 +208,7 @@
 							</div>
 						</div>
 					</el-card>
-					<el-card header="更大的数字" class="one unit area" body-class="flex" shadow="never">
+					<el-card header="更大的数字" class="one area" body-class="flex" shadow="never">
 						<div class="flexible , flex near-center">
 							<el-button :title="canAddNextCustomTile ? '添加下一个数字' : '已达上限'" circle class="lg circle btn" :disabled="!canAddNextCustomTile" @click="addNextCustomTile">+
 							</el-button>
