@@ -10,17 +10,21 @@
 	<meta property="og:title" content="点灯/熄灯游戏 - Lights On/Out | 在线益智点灯/熄灯游戏">
 	<meta property="og:description" content="在线玩经典的点灯/熄灯（Lights On/Out）益智游戏。挑战不同大小的棋盘，通过点击格子和相邻格子来点亮/熄灭所有灯光。提供提示和答案功能。">
 	<meta property="og:type" content="game">
-		<style>@layer common, el-plus;</style>
-	<style>@import url("../lib/element-plus/2.10.7/index.css") layer(el-plus);</style>
-	<link href="../resources/el-plus.css" rel="stylesheet">
-<style>@import url("http://css.document.cool/common.css") layer(common);</style>
-	<!-- <link href="../lib/css/common.css" rel="stylesheet"> -->
-<style>@import url("http://css.document.cool/layout.css") layer(common);</style>
-	<!-- <link href="../lib/css/layout.css" rel="stylesheet"> -->
+	<style>
+		@layer common, el-plus;
+		@import url("../lib/element-plus/2.10.7/index.css") layer(el-plus);
+		@import url("../resources/el-plus.css") layer(el-plus);
+		@import url("http://css.document.cool/common.css") layer(common);
+		@import url("http://css.document.cool/layout.css") layer(common);
+		@import url("http://css.document.cool/花活.css") layer(common);
+		/* 
+		@import url("../lib/css/common.css") layer(common);
+		@import url("../lib/css/layout.css") layer(common);
+		@import url("../lib/css/花活.css") layer(common);
+		*/
+	</style>
 	<link href="../resources/biz.css?v=250821" rel="stylesheet">
 	<link href="game.css" rel="stylesheet">
-<style>@import url("http://css.document.cool/花活.css") layer(common);</style>
-	<!-- <link href="../lib/css/花活.css" rel="stylesheet"> -->
 	<style>
 		.game {
 			& .board.map {

@@ -23,19 +23,21 @@
 	<!-- 预加载关键资源 -->
 	<link rel="preload" href="../lib/jquery-3.4.1.min.js" as="script">
 	<link rel="preload" href="../resources/util.js" as="script">
-	<style>@layer common, el-plus;</style>
 	<style>
+		@layer common, el-plus;
 		@import url("../lib/element-plus/2.10.7/index.css") layer(el-plus);
+		@import url("../resources/el-plus.css") layer(el-plus);
+		@import url("http://css.document.cool/common.css") layer(common);
+		@import url("http://css.document.cool/layout.css") layer(common);
+		@import url("http://css.document.cool/花活.css") layer(common);
+		/* 
+		@import url("../lib/css/common.css") layer(common);
+		@import url("../lib/css/layout.css") layer(common);
+		@import url("../lib/css/花活.css") layer(common);
+		*/
 	</style>
-	<link href="../resources/el-plus.css" rel="stylesheet">
-	<style>@import url("http://css.document.cool/common.css") layer(common);</style>
-	<!-- <link href="../lib/css/common.css" rel="stylesheet"> -->
-	<style>@import url("http://css.document.cool/layout.css") layer(common);</style>
-	<!-- <link href="../lib/css/layout.css" rel="stylesheet"> -->
 	<link href="../resources/biz.css?v=250821" rel="stylesheet">
 	<link href="game.css" rel="stylesheet">
-	<style>@import url("http://css.document.cool/花活.css") layer(common);</style>
-	<!-- <link href="../lib/css/花活.css" rel="stylesheet"> -->
 	<style>
 		.game {
 			& .gaming.area {
