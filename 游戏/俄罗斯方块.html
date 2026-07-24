@@ -28,11 +28,14 @@
 		@import url("../lib/element-plus/2.10.7/index.css") layer(el-plus);
 	</style>
 	<link href="../resources/el-plus.css" rel="stylesheet">
-		<link href="../lib/css/common.css" rel="stylesheet">
-		<link href="../lib/css/layout.css" rel="stylesheet">
+	<style>@import url("http://css.document.cool/common.css") layer(common);</style>
+	<!-- <link href="../lib/css/common.css" rel="stylesheet"> -->
+	<style>@import url("http://css.document.cool/layout.css") layer(common);</style>
+	<!-- <link href="../lib/css/layout.css" rel="stylesheet"> -->
 	<link href="../resources/biz.css?v=250821" rel="stylesheet">
 	<link href="game.css" rel="stylesheet">
-		<link href="../lib/css/花活.css" rel="stylesheet">
+	<style>@import url("http://css.document.cool/花活.css") layer(common);</style>
+	<!-- <link href="../lib/css/花活.css" rel="stylesheet"> -->
 	<style>
 		.game {
 			& .gaming.area {
@@ -222,15 +225,14 @@
 				</details>
 				<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 					<summary>本局信息</summary>
-					<div class="card one gaming info : scoreboard no-shadow">
-						<header>分数</header>
-						<div class="score">{{ score }}</div>
-						<footer>最高记录：{{ highScore }}</footer>
-					</div>
-					<dl class="grid bordered info list">
-						<dt>行数</dt><dd class="one gaming info">{{ lines }}</dd>
-						<dt>等级</dt><dd class="one gaming info">{{ level }}</dd>
-					</dl>
+					<el-card header="分数" class="one gaming info : scoreboard" body-class="score" shadow="never">
+						{{ score }}
+						<template #footerstarAt>最高记录：{{ highScore }}</template>
+					</el-card>
+					<el-descriptions class="info list" :column="1" borderstarAt>
+						<el-descriptions-item label="行数" class="one gaming info">{{ lines }}</el-descriptions-item>
+						<el-descriptions-item label="等级" class="one gaming info">{{ level }}</el-descriptions-item>
+					</el-descriptions>
 				</details>
 				<details class="shortcut list" data-panel="shortcuts" :open="panels.shortcuts" @toggle="onPanelToggle">
 					<summary>快捷键</summary>

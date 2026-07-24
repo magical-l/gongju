@@ -5,11 +5,14 @@
 			<style>@layer common, el-plus;</style>
 			<style>@import url("../../lib/element-plus/2.10.7/index.css") layer(el-plus);</style>
 		<link href="../../resources/el-plus.css" rel="stylesheet">
-			<link href="../../lib/css/common.css" rel="stylesheet">
-			<link href="../../lib/css/layout.css" rel="stylesheet">
+	<style>@import url("http://css.document.cool/common.css") layer(common);</style>
+		<!-- <link href="../../lib/css/common.css" rel="stylesheet"> -->
+	<style>@import url("http://css.document.cool/layout.css") layer(common);</style>
+		<!-- <link href="../../lib/css/layout.css" rel="stylesheet"> -->
 		<link href="../../resources/biz.css?v=250821" rel="stylesheet">
 		<link href="../game.css" rel="stylesheet">
-			<link href="../../lib/css/花活.css" rel="stylesheet">
+	<style>@import url("http://css.document.cool/花活.css") layer(common);</style>
+		<!-- <link href="../../lib/css/花活.css" rel="stylesheet"> -->
 		<link href="xiangqi.css" rel="stylesheet">
 	</head>
 	<body class="目字形">
@@ -198,7 +201,7 @@
 							<header class="op area">
 								<el-button icon="Download" size="small" :disabled="!turnHistory.length" @click="downloadNotation">导出 </el-button>
 							</header>
-							<div v-if="!turnHistory.length" class="empty-info">尚未走棋</div>
+							<el-empty v-if="!turnHistory.length" description="尚未走棋"></el-empty>
 							<ol v-else class="round list">
 								<li class="one round" v-for="turn in turnHistory" :key="turn.id">
 									<span class="朋字形">

@@ -14,11 +14,14 @@
 
 	</style>
 	<link href="../../resources/el-plus.css" rel="stylesheet">
-	<link href="../../lib/css/common.css" rel="stylesheet">
-	<link href="../../lib/css/layout.css" rel="stylesheet">
+<style>@import url("http://css.document.cool/common.css") layer(common);</style>
+	<!-- <link href="../../lib/css/common.css" rel="stylesheet"> -->
+<style>@import url("http://css.document.cool/layout.css") layer(common);</style>
+	<!-- <link href="../../lib/css/layout.css" rel="stylesheet"> -->
 	<link href="../../resources/biz.css?v=250821" rel="stylesheet">
 	<link href="../game.css" rel="stylesheet">
-	<link href="../../lib/css/花活.css" rel="stylesheet">
+<style>@import url("http://css.document.cool/花活.css") layer(common);</style>
+	<!-- <link href="../../lib/css/花活.css" rel="stylesheet"> -->
 	<style>
 		.game {
 			--left-sidebar-min-width: 280px;
@@ -109,21 +112,6 @@
 			to {
 				opacity: 1;
 			}
-		}
-		.progress-bar {
-			height: 6px;
-			background: #e4e7ed;
-			border-radius: 3px;
-			overflow: hidden;
-		}
-		.progress-bar > .fill {
-			height: 100%;
-			background: var(--el-color-primary, #409eff);
-			border-radius: 3px;
-			transition: width .3s ease;
-		}
-		.progress-bar.success > .fill {
-			background: var(--el-color-success, #67c23a);
 		}
 	</style>
 </head>
@@ -237,9 +225,7 @@
 				<details class="gaming info" data-panel="info" :open="panels.info" @toggle="onPanelToggle">
 					<summary>本局信息</summary>
 					<div class="one gaming info : progress">
-						<div class="progress-bar" :class="{ success: gameWin }">
-							<div class="fill" :style="{ width: completionPercentage + '%' }"></div>
-						</div>
+						<el-progress :percentage="completionPercentage" :status="gameWin ? 'success' : ''"></el-progress>
 						<div style="margin-top: 5px; font-size: 0.9rem; color: var(--lv-3-color);">
 							已填充: {{ filledCells }} / {{ totalCells }}
 						</div>

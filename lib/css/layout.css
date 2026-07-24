@@ -546,13 +546,3 @@
 		grid-area: footer;
 	}
 }
-
-
-/* dl.grid: 描述列表栅格，dt=标签 dd=值，两列对齐 */
-dl.grid {
-	grid-template-columns: auto 1fr;
-	margin: 0;
-
-	> dt { grid-column: 1; }
-	> dd { grid-column: 2; margin: 0; }
-}

@@ -16,11 +16,14 @@
 		<style>@layer common, el-plus;</style>
 		<style>@import url("../../lib/element-plus/2.10.7/index.css") layer(el-plus);</style>
 		<link href="../../resources/el-plus.css" rel="stylesheet">
-				<link href="../../lib/css/common.css" rel="stylesheet">
-				<link href="../../lib/css/layout.css" rel="stylesheet">
+		<style>@import url("http://css.document.cool/common.css") layer(common);</style>
+		<!-- <link href="../../lib/css/common.css" rel="stylesheet"> -->
+		<style>@import url("http://css.document.cool/layout.css") layer(common);</style>
+		<!-- <link href="../../lib/css/layout.css" rel="stylesheet"> -->
 		<link href="../../resources/biz.css?v=250821" rel="stylesheet">
 		<link href="../game.css" rel="stylesheet">
-				<link href="../../lib/css/花活.css" rel="stylesheet">
+		<style>@import url("http://css.document.cool/花活.css") layer(common);</style>
+		<!-- <link href="../../lib/css/花活.css" rel="stylesheet"> -->
 		<link href="gobang.css" rel="stylesheet">
 	</head>
 	<body class="反叵字形">
@@ -106,7 +109,7 @@
 							<el-button :disabled="!turnHistory.length" icon="Download" size="small" @click="exportMoves">导出 </el-button>
 						</header>
 						<ol class="round list">
-							<div v-if="!turnHistory.length" class="empty-info">尚未落子</div>
+							<el-empty v-if="!turnHistory.length" description="尚未落子"></el-empty>
 							<li v-else class="one round" v-for="turn in turnHistory" :key="turn.id">
 								<span class="朋字形">
 									<span class="player action">

@@ -3,23 +3,23 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>符号大全</title>
+	<title>符号大全 - CoolSymbol在线复制</title>
 	<meta name="description" content="在线复制各种酷炫的Unicode符号、表情符号和特殊字符，方便在社交媒体、聊天和文档中使用。">
 	<meta name="keywords" content="符号, 特殊字符, Unicode, 表情符号, 在线工具">
 	<meta name="author" content="工具兽">
-	<meta property="og:title" content="符号大全">
+	<meta property="og:title" content="符号大全 - CoolSymbol在线复制">
 	<meta property="og:description" content="在线复制各种酷炫的Unicode符号、表情符号和特殊字符。">
 	<meta property="og:type" content="website">
 	<link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
 	<link href="../resources/el-plus.css" rel="stylesheet">
 	<link href="../lib/toastr.min.css" rel="stylesheet">
-	<!-- <link href="http://css.document.cool/common.css" rel="stylesheet"> -->
-	<link href="../lib/css/common.css" rel="stylesheet">
-	<!-- <link href="http://css.document.cool/layout.css" rel="stylesheet"> -->
-	<link href="../lib/css/layout.css" rel="stylesheet">
+	<link href="http://css.document.cool/common.css" rel="stylesheet">
+	<!-- <link href="../lib/css/common.css" rel="stylesheet"> -->
+	<link href="http://css.document.cool/layout.css" rel="stylesheet">
+	<!-- <link href="../lib/css/layout.css" rel="stylesheet"> -->
 	<link href="../resources/biz.css?v=250821" rel="stylesheet">
-	<!-- <link href="http://css.document.cool/花活.css" rel="stylesheet"> -->
-	<link href="../lib/css/花活.css" rel="stylesheet">
+	<link href="http://css.document.cool/花活.css" rel="stylesheet">
+	<!-- <link href="../lib/css/花活.css" rel="stylesheet"> -->
 	<link href="符号.css" rel="stylesheet">
 </head>
 <body class="目字形">
@@ -164,7 +164,7 @@
 					</div>
 					<div class="font-size-controls">
 						<el-button size="small" circle @click="adjustFontSizeBy(-2)">−</el-button>
-						<span class="font-size-value">{{ previewFontPx }}px</span>
+						<span class="font-size-value">{{ previewFontPt }}pt</span>
 						<el-button size="small" circle @click="adjustFontSizeBy(2)">+</el-button>
 						<el-button v-if="!fontSizeAutoFit" size="small" circle @click="resetFontSize()" title="重置为自动适配">⟲</el-button>
 					</div>
@@ -181,39 +181,6 @@
 					</div>
 				</div>
 			</aside>
-			</div>
-
-			<!-- 效果详情 -->
-			<div class="preview-drawer" v-if="drawerExpanded" :style="drawerStyle">
-				<div class="drawer-inner">
-					<div class="drawer-header">
-						<span>效果详情 — {{ hoveredSymbol.groups?.[hoveredSymbol._g]?.name || hoveredSymbol.char }}</span>
-						<button class="drawer-close" @click="closeDrawer">✕</button>
-					</div>
-					<div class="drawer-controls">
-						<div class="drawer-fontsize-row">
-							<el-button size="small" circle @click="adjustFontSizeBy(-2)">−</el-button>
-							<span class="font-size-value">{{ previewFontPx }}px</span>
-							<el-button size="small" circle @click="adjustFontSizeBy(2)">+</el-button>
-							<el-button v-if="!fontSizeAutoFit" size="small" circle @click="resetFontSize()" title="重置为自动适配">⟲</el-button>
-						</div>
-						<el-checkbox v-model="fontAffectsAll" class="drawer-affect-all">参考文本使用相同字体</el-checkbox>
-					</div>
-					<div class="drawer-body">
-						<div class="drawer-sample-row" v-for="(line, idx) in sampleLines" :key="idx">
-							<div class="sample-font-row">
-								<span class="sample-font-name">{{ line.font }}</span>
-								<button class="copy-btn" @click.stop="copyFontName(line.font)" title="复制字体名">⧉</button>
-							</div>
-							<div class="sample-text-block">
-								<span class="sample-text-cn" :style="[fontStyle(line.font), { fontSize: previewFontSize + 'rem' }]">{{ line.cnBefore }}<span class="sym-name">{{ line.cnName }}<button class="copy-btn" @click.stop="copySymbolName(line.cnName)" title="复制名称">⧉</button></span>{{ line.cnAfter }}</span>
-								</div>
-							<div class="sample-text-block">
-								<span class="sample-text-en" :style="[fontStyle(line.font), { fontSize: previewFontSize + 'rem' }]">{{ line.enBefore }}<span class="sym-name">{{ line.enName }}<button class="copy-btn" @click.stop="copySymbolName(line.enName)" title="复制名称">⧉</button></span>{{ line.enAfter }}</span>
-								</div>
-						</div>
-					</div>
-				</div>
 			</div>
 		</article>
 	</main>
