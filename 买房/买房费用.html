@@ -145,7 +145,7 @@
 				<ul>
 					<li><strong>新房/二手房切换：</strong>费用项自动调整，二手房增加中介费、增值税、个税等项目。</li>
 					<li><strong>政策参数联动：</strong>契税按面积(140㎡)+套数(首/二/三套及以上)分档、增值税满2免征/不满2年3%价税分离、个税核定1%，首付比例按套数和位置自动适用上海现行政策。</li>
-					<li><strong>三种贷款模式：</strong>纯商贷、纯公积金贷、组合贷，支持等额本息和等额本金。</li>
+					<li><strong>三种贷款模式：</strong>用「公积金贷款 / 商贷」两个开关组合，可只公积金、只商贷或组合贷；首付比例随贷款方式联动（首套公积金20%/商贷15%）。</li>
 					<li><strong>实时计算：</strong>修改任意参数，费用明细和贷款结果立刻更新。</li>
 				</ul>
 				<h2>注意</h2>
@@ -195,6 +195,13 @@
 					<i class="info icon">i</i>
 				</el-tooltip>
 			</div>
+			<div class="flex" style="gap:8px">
+				<el-switch v-model="useFund" size="small" active-text="公积金贷款" inactive-text="公积金贷款"></el-switch>
+				<el-switch v-model="useCommercial" size="small" active-text="商贷" inactive-text="商贷"></el-switch>
+				<el-tooltip placement="top" content="影响首付比例、贷款区可用性">
+					<i class="info icon">i</i>
+				</el-tooltip>
+			</div>
 		</header>
 		<!-- 左栏：一次性费用 -->
 		<section class="input area fee card sidebar near-left">
@@ -213,22 +220,13 @@
 					<tr class="dp row">
 						<td>首付</td>
 						<td class="minor">
-							<span class="mute" v-if="homeCount !== 'first' || location !== 'outer'">首套外环外 20%</span>
-							<span v-else>首套外环外 20%</span>
+							首套：公积金/组合贷 20% · 纯商贷 15%
 							<br>
-							<span class="mute" v-if="homeCount !== 'first' || location !== 'inner'">首套外环内 20%</span>
-							<span v-else>首套外环内 20%</span>
+							二套：外环外(差异化区域) 20% · 外环内 25%
 							<br>
-							<span class="mute" v-if="homeCount !== 'second' || location !== 'outer'">二套外环外 20%</span>
-							<span v-else>二套外环外 20%</span>
+							三套及以上：100%（参考全款）
 							<br>
-							<span class="mute" v-if="homeCount !== 'second' || location !== 'inner'">二套外环内 25%</span>
-							<span v-else>二套外环内 25%</span>
-							<br>
-							<span class="mute" v-if="homeCount !== 'third'">三套及以上 100%（参考全款）</span>
-							<span v-else>三套及以上 100%（参考全款）</span>
-							<br>
-							首付比例均为组合贷口径；二套差异化区域（临港+嘉定青浦松江奉贤宝山金山6区）按外环外近似
+							二套差异化区域=临港+嘉定青浦松江奉贤宝山金山6区，按外环外近似
 						</td>
 						<td>
 							<el-radio-group v-model="downPaymentMode" size="small">
@@ -512,11 +510,11 @@
 						<tr class="dp row">
 							<td>公积金贷款</td>
 							<td class="items-near-right">
-								<el-input-number v-model="fundAmount" :min="0" :step="5" :controls="false" size="small">
+								<el-input-number v-model="fundAmount" :disabled="!useFund" :min="0" :step="5" :controls="false" size="small">
 								</el-input-number>
 							</td>
 							<td class="items-near-right">
-								<el-input-number v-model="fundRate" :min="0" :step="0.01" :precision="2" :controls="false" size="small">
+								<el-input-number v-model="fundRate" :disabled="!useFund" :min="0" :step="0.01" :precision="2" :controls="false" size="small">
 									<template #suffix>%</template>
 								</el-input-number>
 							</td>
@@ -527,11 +525,11 @@
 						<tr class="dp row">
 							<td>商业贷款</td>
 							<td class="items-near-right">
-								<el-input-number v-model="commercialAmount" :min="0" :step="5" :controls="false" size="small">
+								<el-input-number v-model="commercialAmount" :disabled="!useCommercial" :min="0" :step="5" :controls="false" size="small">
 								</el-input-number>
 							</td>
 							<td class="items-near-right">
-								<el-input-number v-model="commercialRate" :min="0" :step="0.01" :precision="2" :controls="false" size="small">
+								<el-input-number v-model="commercialRate" :disabled="!useCommercial" :min="0" :step="0.01" :precision="2" :controls="false" size="small">
 									<template #suffix>%</template>
 								</el-input-number>
 							</td>
@@ -667,6 +665,8 @@
 				pitFullFiveUnique: false, // 满五唯一免征个税
 
 				// 贷款
+				useFund: true,      // 使用公积金贷款
+				useCommercial: true, // 使用商贷
 				fundAmount: 240,       // 公积金贷款额度（万元，首套家庭最高240万）
 				fundRate: 2.85,        // 公积金利率（%）
 				commercialRate: 3.3,   // 商贷利率（%）
@@ -695,8 +695,9 @@
 			// 首付政策最低比例
 			policyDownPaymentRate() {
 				if (this.homeCount === 'third') return 100;
-				if (this.homeCount === 'first') return 20;
-				return this.location === 'outer' ? 20 : 25;
+				if (!this.useFund && !this.useCommercial) return 100;  // 无贷款=全款
+				if (this.homeCount === 'second') return this.location === 'outer' ? 20 : 25;
+				return this.useFund ? 20 : 15;  // 首套：公积金20/纯商贷15
 			},
 
 			// 首付比例原因
@@ -811,11 +812,11 @@
 			},
 
 			fundLoanAmount() {
-				return Math.min(this.fundAmount, this.loanPrincipal);
+				return this.useFund ? Math.min(this.fundAmount, this.loanPrincipal) : 0;
 			},
 
 			commercialLoanAmount() {
-				return Math.min(this.commercialAmount, this.loanPrincipal - this.fundLoanAmount);
+				return this.useCommercial ? Math.min(this.commercialAmount, this.loanPrincipal - this.fundLoanAmount) : 0;
 			},
 
 			fundInterest() {
@@ -922,7 +923,7 @@
 			resetPitRate() { this.pitRate = 1; },
 			resetVatRate() { this.vatRate = 3; },
 			resetAgencyRate() { this.agencyRate = 2; },
-			resetDownPaymentRate() { if (this.homeCount === 'third') { this.downPaymentRate = 100; return; } this.downPaymentRate = this.homeCount === 'first' ? 20 : (this.location === 'outer' ? 20 : 25); },
+			resetDownPaymentRate() { if (this.homeCount === 'third' || (!this.useFund && !this.useCommercial)) { this.downPaymentRate = 100; return; } if (this.homeCount === 'second') { this.downPaymentRate = this.location === 'outer' ? 20 : 25; return; } this.downPaymentRate = this.useFund ? 20 : 15; },
 			resetDeedTaxRate() { this.deedTaxPct = this.deedTaxPolicyRate * 100; },
 			resetFundPrice() { this.fundUnitPrice = 80; },
 			resetStampRate() { this.stampRate = 0.05; },
@@ -1000,6 +1001,8 @@
 			},
 			homeCount() { this.resetDownPaymentRate(); if (this.deedTaxMode === 'percent') this.resetDeedTaxRate(); },
 			location() { this.resetDownPaymentRate(); },
+			useFund(val) { if (!val && this.fundAmount > 0) this.fundAmount = 0; this.resetDownPaymentRate(); },
+			useCommercial(val) { if (!val && this.commercialAmount > 0) this.commercialAmount = 0; this.resetDownPaymentRate(); },
 			area() { if (this.deedTaxMode === 'percent') this.resetDeedTaxRate(); },
 			vatHeld2Years(val) {
 				if (val) this.vatMode = 'exempt';
