@@ -216,17 +216,19 @@
 							<span class="mute" v-if="homeCount !== 'first' || location !== 'outer'">首套外环外 20%</span>
 							<span v-else>首套外环外 20%</span>
 							<br>
-							<span class="mute" v-if="homeCount !== 'first' || location !== 'inner'">首套外环内 25%</span>
-							<span v-else>首套外环内 25%</span>
+							<span class="mute" v-if="homeCount !== 'first' || location !== 'inner'">首套外环内 20%</span>
+							<span v-else>首套外环内 20%</span>
 							<br>
-							<span class="mute" v-if="homeCount !== 'second' || location !== 'outer'">二套外环外 30%</span>
-							<span v-else>二套外环外 30%</span>
+							<span class="mute" v-if="homeCount !== 'second' || location !== 'outer'">二套外环外 20%</span>
+							<span v-else>二套外环外 20%</span>
 							<br>
-							<span class="mute" v-if="homeCount !== 'second' || location !== 'inner'">二套外环内 35%</span>
-							<span v-else>二套外环内 35%</span>
+							<span class="mute" v-if="homeCount !== 'second' || location !== 'inner'">二套外环内 25%</span>
+							<span v-else>二套外环内 25%</span>
 							<br>
 							<span class="mute" v-if="homeCount !== 'third'">三套及以上 100%（参考全款）</span>
 							<span v-else>三套及以上 100%（参考全款）</span>
+							<br>
+							首付比例均为组合贷口径；二套差异化区域（临港+嘉定青浦松江奉贤宝山金山6区）按外环外近似
 						</td>
 						<td>
 							<el-radio-group v-model="downPaymentMode" size="small">
@@ -607,7 +609,7 @@
 </div>
 <script>
 	const {createApp} = Vue;
-	const STORAGE_KEY = 'calc-state-2026v2-' + window.location.pathname.replace(/\//g, '_');
+	const STORAGE_KEY = 'calc-state-2026v3-' + window.location.pathname.replace(/\//g, '_');
 
 	const app = createApp({
 		data() {
@@ -665,10 +667,10 @@
 				pitFullFiveUnique: false, // 满五唯一免征个税
 
 				// 贷款
-				fundAmount: 160,       // 公积金贷款额度（万元）
+				fundAmount: 240,       // 公积金贷款额度（万元，首套家庭最高240万）
 				fundRate: 2.85,        // 公积金利率（%）
 				commercialRate: 3.3,   // 商贷利率（%）
-				commercialAmount: 320,  // 商贷额度（万元）
+				commercialAmount: 240,  // 商贷额度（万元）
 				loanYears: 30,         // 贷款年限
 				repaymentMode: 'equal', // 'equal' (等额本息) | 'principal' (等额本金)
 				propertyFeeUnitPrice: 5,   // 物业费单价（元/㎡/月）
@@ -693,10 +695,8 @@
 			// 首付政策最低比例
 			policyDownPaymentRate() {
 				if (this.homeCount === 'third') return 100;
-				if (this.homeCount === 'first') {
-					return this.location === 'outer' ? 20 : 25;
-				}
-				return this.location === 'outer' ? 30 : 35;
+				if (this.homeCount === 'first') return 20;
+				return this.location === 'outer' ? 20 : 25;
 			},
 
 			// 首付比例原因
@@ -922,7 +922,7 @@
 			resetPitRate() { this.pitRate = 1; },
 			resetVatRate() { this.vatRate = 3; },
 			resetAgencyRate() { this.agencyRate = 2; },
-			resetDownPaymentRate() { if (this.homeCount === 'third') { this.downPaymentRate = 100; return; } this.downPaymentRate = this.homeCount === 'first' ? (this.location === 'outer' ? 20 : 25) : (this.location === 'outer' ? 30 : 35); },
+			resetDownPaymentRate() { if (this.homeCount === 'third') { this.downPaymentRate = 100; return; } this.downPaymentRate = this.homeCount === 'first' ? 20 : (this.location === 'outer' ? 20 : 25); },
 			resetDeedTaxRate() { this.deedTaxPct = this.deedTaxPolicyRate * 100; },
 			resetFundPrice() { this.fundUnitPrice = 80; },
 			resetStampRate() { this.stampRate = 0.05; },
