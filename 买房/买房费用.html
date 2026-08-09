@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <title>买房费用计算器 - 2026上海</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="2026年上海买房费用计算器，支持新房/二手房交易费用、公积金组合贷款计算。">
+<meta name="description" content="2026年上海买房费用计算器，支持首/二/三套新房二手房交易费用、公积金组合贷款计算。">
 <meta name="keywords" content="买房计算器, 上海买房, 房贷计算, 契税, 公积金贷款, 2026">
 <meta name="author" content="工具兽">
 <meta property="og:title" content="买房费用计算器 - 2026上海">
-<meta property="og:description" content="2026年上海买房费用计算器，支持新房/二手房交易费用、公积金组合贷款计算。">
+<meta property="og:description" content="2026年上海买房费用计算器，支持首/二/三套新房二手房交易费用、公积金组合贷款计算。">
 <meta property="og:type" content="website">
 
 <link href="../lib/element-plus/2.10.7/index.css" rel="stylesheet">
@@ -144,7 +144,7 @@
 				<h2>功能</h2>
 				<ul>
 					<li><strong>新房/二手房切换：</strong>费用项自动调整，二手房增加中介费、增值税、个税等项目。</li>
-					<li><strong>政策参数联动：</strong>首付比例、契税税率根据首套/二套、面积、位置自动适用上海现行政策。</li>
+					<li><strong>政策参数联动：</strong>契税按面积(140㎡)+套数(首/二/三套及以上)分档、增值税满2免征/不满2年3%价税分离、个税核定1%，首付比例按套数和位置自动适用上海现行政策。</li>
 					<li><strong>三种贷款模式：</strong>纯商贷、纯公积金贷、组合贷，支持等额本息和等额本金。</li>
 					<li><strong>实时计算：</strong>修改任意参数，费用明细和贷款结果立刻更新。</li>
 				</ul>
@@ -177,23 +177,6 @@
 				</el-tooltip>
 			</div>
 			<div class="flex" style="gap:2px">
-				<el-radio-group v-model="isStandardHouse">
-					<el-radio-button label="standard">普通住宅</el-radio-button>
-					<el-radio-button label="nonStandard">非普</el-radio-button>
-					<el-tooltip placement="top">
-						<template #content>
-							<span v-if="area <= 90">面积 ≤ 90㎡，普通住宅</span>
-							<span v-else-if="area <= 140">面积 90~140㎡，内外环决定普通/非普通</span>
-							<span v-else>面积 > 140㎡，非普通住宅</span>
-						</template>
-						<el-radio-button label="auto" checked>自动判断（={{ isStandard ? '普通' : '非普通' }}）</el-radio-button>
-					</el-tooltip>
-				</el-radio-group>
-				<el-tooltip placement="top" content="影响契税、个税">
-					<i class="info icon">i</i>
-				</el-tooltip>
-			</div>
-			<div class="flex" style="gap:2px">
 				<el-radio-group v-model="houseType">
 					<el-radio-button label="new">新房</el-radio-button>
 					<el-radio-button label="second">二手房</el-radio-button>
@@ -206,6 +189,7 @@
 				<el-radio-group v-model="homeCount">
 					<el-radio-button label="first">首套</el-radio-button>
 					<el-radio-button label="second">二套</el-radio-button>
+					<el-radio-button label="third">三套+</el-radio-button>
 				</el-radio-group>
 				<el-tooltip placement="top" content="影响首付、契税">
 					<i class="info icon">i</i>
@@ -240,6 +224,9 @@
 							<br>
 							<span class="mute" v-if="homeCount !== 'second' || location !== 'inner'">二套外环内 35%</span>
 							<span v-else>二套外环内 35%</span>
+							<br>
+							<span class="mute" v-if="homeCount !== 'third'">三套及以上 100%（参考全款）</span>
+							<span v-else>三套及以上 100%（参考全款）</span>
 						</td>
 						<td>
 							<el-radio-group v-model="downPaymentMode" size="small">
@@ -268,7 +255,7 @@
 					<tr class="dp row" :class="{ mute: houseType !== 'second' }">
 						<td>增值税</td>
 						<td class="minor">
-							通常 5.3%
+							满2年免征 / 不满2年 3%（价税分离）
 							<br>
 							<el-checkbox v-model="vatHeld2Years" size="small" style="font-size:11px">满2免征</el-checkbox>
 						</td>
@@ -299,11 +286,9 @@
 					<tr class="dp row" :class="{ mute: houseType !== 'second' }">
 						<td>个税</td>
 						<td class="minor">
-							<span class="mute" v-if="!isStandard">普通 1%</span>
-							<span v-else>普通 1%</span>
+							核定征收 1%（默认）
 							/
-							<span class="mute" v-if="isStandard">非普通 2%</span>
-							<span v-else>非普通 2%</span>
+							据实征收差额 20%
 							<br>
 							<el-checkbox v-model="pitFullFiveUnique" size="small" style="font-size:11px">满五唯一免征</el-checkbox>
 						</td>
@@ -334,17 +319,20 @@
 					<tr class="dp row">
 						<td>契税</td>
 						<td class="minor">
-							<span class="mute" v-if="homeCount !== 'first' || area > 90">首套 ≤90㎡ 1%</span>
-							<span v-else>首套 ≤90㎡ 1%</span>
+							<span class="mute" v-if="homeCount !== 'first' || area > 140">首套 ≤140㎡ 1%</span>
+							<span v-else>首套 ≤140㎡ 1%</span>
 							<br>
-							<span class="mute" v-if="homeCount !== 'first' || area <= 90">首套 >90㎡ 1.5%</span>
-							<span v-else>首套 >90㎡ 1.5%</span>
+							<span class="mute" v-if="homeCount !== 'first' || area <= 140">首套 >140㎡ 1.5%</span>
+							<span v-else>首套 >140㎡ 1.5%</span>
 							<br>
-							<span class="mute" v-if="homeCount !== 'second' || !isStandard">二套普通 2%</span>
-							<span v-else>二套普通 2%</span>
+							<span class="mute" v-if="homeCount !== 'second' || area > 140">二套 ≤140㎡ 1%</span>
+							<span v-else>二套 ≤140㎡ 1%</span>
 							<br>
-							<span class="mute" v-if="homeCount !== 'second' || isStandard">二套非普通 3%</span>
-							<span v-else>二套非普通 3%</span>
+							<span class="mute" v-if="homeCount !== 'second' || area <= 140">二套 >140㎡ 2%</span>
+							<span v-else>二套 >140㎡ 2%</span>
+							<br>
+							<span class="mute" v-if="homeCount !== 'third'">三套及以上 3%</span>
+							<span v-else>三套及以上 3%</span>
 						</td>
 						<td>
 							<el-radio-group v-model="deedTaxMode" size="small">
@@ -425,7 +413,7 @@
 					</tr>
 					<tr class="dp row">
 						<td>印花税</td>
-						<td class="minor">总价 × 0.05%</td>
+						<td class="minor">个人住房全额免征</td>
 						<td>
 							<el-radio-group v-model="stampMode" size="small">
 								<el-radio-button label="exempt">免付</el-radio-button>
@@ -619,7 +607,7 @@
 </div>
 <script>
 	const {createApp} = Vue;
-	const STORAGE_KEY = 'calc-state-' + window.location.pathname.replace(/\//g, '_');
+	const STORAGE_KEY = 'calc-state-2026v2-' + window.location.pathname.replace(/\//g, '_');
 
 	const app = createApp({
 		data() {
@@ -630,17 +618,16 @@
 				area: 100,             // ㎡
 
 				// 资格
-				homeCount: 'first',    // 'first' | 'second'
+				homeCount: 'first',    // 'first' | 'second' | 'third'
 				location: 'outer',     // 'outer' (外环外) | 'inner' (外环内)
-				isStandardHouse: 'auto', // 'standard' | 'nonStandard' | 'auto'
 
 				// 登记费（万元）
 				regFeeMode: 'fixed',      // 'fixed' | 'percent'
 				regFeeRate: 0.001,       // 比例模式（%）
 				regFeeAmount: 0.008,      // 定额模式（万元）
 
-				// 印花税
-				stampMode: 'percent',     // 'percent' | 'fixed'
+				// 印花税（个人住房全额免征）
+				stampMode: 'exempt',      // 'percent' | 'fixed'
 				stampRate: 0.05,          // 比例模式默认（%）
 				stampAmount: 0,            // 定额（万元）
 
@@ -651,7 +638,7 @@
 
 				// 契税
 				deedTaxMode: 'percent',  // 'percent' | 'fixed'
-				deedTaxPct: 1.5,         // 手动比例（%）
+				deedTaxPct: 1,           // 手动比例（%），默认跟随政策表
 				deedTaxAmount: 0,        // 手动定额（万元）
 
 				// 首付
@@ -661,12 +648,12 @@
 
 				// 二手房税费 — 个税（买方承担）
 				pitMode: 'percent',     // 'exempt' | 'percent' | 'fixed'
-				pitRate: 1,             // 比例模式下的默认税率（%），普通1非普通2
+				pitRate: 1,             // 比例模式下的默认税率（%），核定1%
 				pitAmount: 0,           // 定额模式下的金额（万元）
 
 				// 二手房税费 — 增值税（买方承担）
 				vatMode: 'percent',     // 'exempt' | 'percent' | 'fixed'
-				vatRate: 5.3,           // 比例模式下的默认税率（%）
+				vatRate: 3,             // 比例模式下的默认税率（%），满2免征/不满2年3%价税分离
 				vatAmount: 0,           // 定额模式下的金额（万元）
 
 				// 二手房税费 — 中介费（买方承担）
@@ -703,17 +690,9 @@
 		computed: {
 			// --- 政策参数 ---
 
-			// 是否普通住宅
-			isStandard() {
-				if (this.isStandardHouse === 'standard') return true;
-				if (this.isStandardHouse === 'nonStandard') return false;
-				if (this.area <= 90) return true;
-				if (this.area <= 140) return this.location === 'outer';
-				return false;
-			},
-
 			// 首付政策最低比例
 			policyDownPaymentRate() {
+				if (this.homeCount === 'third') return 100;
 				if (this.homeCount === 'first') {
 					return this.location === 'outer' ? 20 : 25;
 				}
@@ -722,7 +701,7 @@
 
 			// 首付比例原因
 			dpReason() {
-				const countText = this.homeCount === 'first' ? '首套' : '二套';
+				const countText = this.homeCount === 'first' ? '首套' : this.homeCount === 'second' ? '二套' : '三套及以上';
 				const locText = this.location === 'outer' ? '外环外' : '外环内';
 				return `${countText}+${locText}`;
 			},
@@ -736,10 +715,9 @@
 
 			// 契税政策税率
 			deedTaxPolicyRate() {
-				if (this.homeCount === 'first') {
-					return this.area <= 90 ? 0.01 : 0.015;
-				}
-				return this.isStandard ? 0.02 : 0.03;
+				if (this.homeCount === 'third') return 0.03;
+				if (this.area <= 140) return 0.01;
+				return this.homeCount === 'first' ? 0.015 : 0.02;
 			},
 
 			// 契税税率（有效值）
@@ -747,6 +725,11 @@
 				if (this.deedTaxMode === 'exempt') return 0;
 				if (this.deedTaxMode === 'fixed') return 0;
 				return this.deedTaxPct / 100;
+			},
+
+			// 契税/个税计税基数（不含增值税成交价）
+			taxBasis() {
+				return (this.houseType === 'second' && this.vat > 0) ? this.totalPrice - this.vat : this.totalPrice;
 			},
 
 			// 首付金额（万元）
@@ -760,7 +743,7 @@
 			deedTax() {
 				if (this.deedTaxMode === 'exempt') return 0;
 				if (this.deedTaxMode === 'fixed') return this.deedTaxAmount;
-				return this.totalPrice * this.deedTaxRate;
+				return this.taxBasis * this.deedTaxRate;
 			},
 
 			// 维修基金（万元）— 仅新房
@@ -797,7 +780,7 @@
 			vat() {
 				if (this.houseType !== 'second') return 0;
 					if (this.vatMode === 'exempt') return 0;
-					if (this.vatMode === 'percent') return this.totalPrice * this.vatRate / 100;
+					if (this.vatMode === 'percent') return this.totalPrice / (1 + this.vatRate / 100) * (this.vatRate / 100);
 					return this.vatAmount;
 			},
 
@@ -805,7 +788,7 @@
 			pit() {
 				if (this.houseType !== 'second') return 0;
 					if (this.pitMode === 'exempt') return 0;
-					if (this.pitMode === 'percent') return this.totalPrice * this.pitRate / 100;
+					if (this.pitMode === 'percent') return this.taxBasis * this.pitRate / 100;
 					return this.pitAmount;
 			},
 
@@ -886,13 +869,14 @@
 
 			// 提示文本
 			hintText() {
-				const countText = this.homeCount === 'first' ? '首套' : '二套';
+				const countText = this.homeCount === 'first' ? '首套' : this.homeCount === 'second' ? '二套' : '三套及以上';
 				const locText = this.location === 'outer' ? '外环外' : '外环内';
 				const parts = [];
 				const dpPct = (this.downPaymentRatio * 100).toFixed(0);
 				parts.push(`首付 ${dpPct}%（${this.downPayment.toFixed(0)}万）`);
 				const dtPct = (this.deedTaxRate * 100).toFixed(1);
-				parts.push(`契税 ${dtPct}%（${this.deedTax.toFixed(1)}万）`);
+				const dtPolicyPct = (this.deedTaxPolicyRate * 100).toFixed(1);
+				parts.push(`契税 ${dtPct}%（政策档 ${dtPolicyPct}%，${this.deedTax.toFixed(1)}万）`);
 				if (this.houseType === 'second' && this.agencyMode !== 'exempt') {
 					parts.push(`中介费 2%（${this.agencyFee.toFixed(1)}万）`);
 				}
@@ -935,10 +919,10 @@
 			},
 
 			// 重置费率到政策默认
-			resetPitRate() { this.pitRate = this.isStandard ? 1 : 2; },
-			resetVatRate() { this.vatRate = 5.3; },
+			resetPitRate() { this.pitRate = 1; },
+			resetVatRate() { this.vatRate = 3; },
 			resetAgencyRate() { this.agencyRate = 2; },
-			resetDownPaymentRate() { this.downPaymentRate = this.homeCount === 'first' ? (this.location === 'outer' ? 20 : 25) : (this.location === 'outer' ? 30 : 35); },
+			resetDownPaymentRate() { if (this.homeCount === 'third') { this.downPaymentRate = 100; return; } this.downPaymentRate = this.homeCount === 'first' ? (this.location === 'outer' ? 20 : 25) : (this.location === 'outer' ? 30 : 35); },
 			resetDeedTaxRate() { this.deedTaxPct = this.deedTaxPolicyRate * 100; },
 			resetFundPrice() { this.fundUnitPrice = 80; },
 			resetStampRate() { this.stampRate = 0.05; },
@@ -1001,11 +985,11 @@
 		watch: {
 			// 切换到比例模式时，设置政策默认税率
 			pitMode(val) {
-				if (val === 'percent') this.pitRate = this.isStandard ? 1 : 2;
+				if (val === 'percent') this.pitRate = 1;
 				this.pitFullFiveUnique = val === 'exempt';
 			},
 			vatMode(val) {
-				if (val === 'percent') this.vatRate = 5.3;
+				if (val === 'percent') this.vatRate = 3;
 				this.vatHeld2Years = val === 'exempt';
 			},
 			agencyMode(val) {
@@ -1014,13 +998,9 @@
 			deedTaxMode(val) {
 				if (val === 'percent') this.resetDeedTaxRate();
 			},
-			// 普通/非普通切换时，若个税为比例模式则更新默认税率
-			isStandard(val) {
-				if (this.pitMode === 'percent') this.pitRate = val ? 1 : 2;
-				if (this.deedTaxMode === 'percent') this.resetDeedTaxRate();
-			},
 			homeCount() { this.resetDownPaymentRate(); if (this.deedTaxMode === 'percent') this.resetDeedTaxRate(); },
 			location() { this.resetDownPaymentRate(); },
+			area() { if (this.deedTaxMode === 'percent') this.resetDeedTaxRate(); },
 			vatHeld2Years(val) {
 				if (val) this.vatMode = 'exempt';
 				else if (this.vatMode === 'exempt') this.vatMode = 'percent';
