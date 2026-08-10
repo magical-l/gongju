@@ -114,6 +114,13 @@
 			background: #f5f7fa;
 		}
 	}
+
+	/* 设定列输入框收窄 */
+	.fee.card {
+		& tbody td:nth-child(4) .el-input-number {
+			width: 96px;
+		}
+	}
 </style>
 </head>
 <body class="目字形">
@@ -456,8 +463,8 @@
 						</td>
 						<td>
 							<label v-if="regFeeMode === 'fixed'">
-								<el-input-number v-model="regFeeAmount" :min="0" :step="0.001" :precision="3" :controls="false" size="small">
-									<template #suffix>万元
+								<el-input-number v-model="regFeeAmount" :min="0" :step="1" :precision="0" :controls="false" size="small">
+									<template #suffix>元
 										<span @click="resetRegFee" title="重置" class="reset">↺</span>
 									</template>
 								</el-input-number>
@@ -470,7 +477,7 @@
 								</el-input-number>
 							</label>
 						</td>
-						<td class="items-near-right">= {{ regFeeAmount.toFixed(3) }}万</td>
+						<td class="items-near-right">= {{ (registrationFee * 10000).toFixed(0) }}元</td>
 						<td class="items-near-right minor">{{ !feeIgnored(registrationFee) ? (registrationFee / totalCash * 100).toFixed(2) + '%' : '—' }}</td>
 					</tr>
 				</tbody>
@@ -613,7 +620,7 @@
 </div>
 <script>
 	const {createApp} = Vue;
-	const STORAGE_KEY = 'calc-state-2026v3-' + window.location.pathname.replace(/\//g, '_');
+	const STORAGE_KEY = 'calc-state-2026v4-' + window.location.pathname.replace(/\//g, '_');
 	const FEE_IGNORE_WAN = 0.01; // 一次性费用 <100元（0.01万元）→ 忽略
 
 	const app = createApp({
@@ -627,10 +634,10 @@
 				// 资格
 				homeCount: 'first',    // 'first' | 'second' | 'third'
 
-				// 登记费（万元）
+				// 登记费（费率%，定额元）
 				regFeeMode: 'fixed',      // 'fixed' | 'percent'
 				regFeeRate: 0.001,       // 比例模式（%）
-				regFeeAmount: 0.008,      // 定额模式（万元）
+				regFeeAmount: 80,          // 定额模式（元）
 
 				// 印花税（个人住房全额免征）
 				stampMode: 'exempt',      // 'percent' | 'fixed'
@@ -763,7 +770,7 @@
 			registrationFee() {
 				if (this.regFeeMode === 'exempt') return 0;
 				if (this.regFeeMode === 'percent') return this.totalPrice * this.regFeeRate / 100;
-				return this.regFeeAmount;
+				return this.regFeeAmount / 10000;
 			},
 
 			// 印花税（万元）
@@ -940,7 +947,7 @@
 			resetDeedTaxRate() { this.deedTaxPct = this.deedTaxPolicyRate * 100; },
 			resetFundPrice() { this.fundUnitPrice = 80; },
 			resetStampRate() { this.stampRate = 0.05; },
-			resetRegFee() { this.regFeeAmount = 0.008; this.regFeeRate = 0.001; },
+			resetRegFee() { this.regFeeAmount = 80; this.regFeeRate = 0.001; },
 
 			// 一次性费用不足 100 元 → 忽略（不计入合计，行灰显）
 			feeIgnored(wan) {
