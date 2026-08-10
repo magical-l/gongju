@@ -168,15 +168,6 @@
 				均价 {{ (totalPrice / area).toFixed(2) }}万元/㎡
 			</div>
 			<div class="flex" style="gap:2px">
-				<el-radio-group v-model="location">
-					<el-radio-button label="outer">外环外</el-radio-button>
-					<el-radio-button label="inner">外环内</el-radio-button>
-				</el-radio-group>
-				<el-tooltip placement="top" content="影响首付">
-					<i class="info icon">i</i>
-				</el-tooltip>
-			</div>
-			<div class="flex" style="gap:2px">
 				<el-radio-group v-model="houseType">
 					<el-radio-button label="new">新房</el-radio-button>
 					<el-radio-button label="second">二手房</el-radio-button>
@@ -195,9 +186,9 @@
 					<i class="info icon">i</i>
 				</el-tooltip>
 			</div>
-			<div class="flex" style="gap:8px">
-				<el-switch v-model="useFund" size="small" active-text="公积金贷款" inactive-text="公积金贷款"></el-switch>
-				<el-switch v-model="useCommercial" size="small" active-text="商贷" inactive-text="商贷"></el-switch>
+			<div class="flex" style="gap:2px">
+				<el-checkbox-button v-model="useFund" size="small">公积金贷款</el-checkbox-button>
+				<el-checkbox-button v-model="useCommercial" size="small">商贷</el-checkbox-button>
 				<el-tooltip placement="top" content="影响首付比例、贷款区可用性">
 					<i class="info icon">i</i>
 				</el-tooltip>
@@ -220,13 +211,19 @@
 					<tr class="dp row">
 						<td>首付</td>
 						<td class="minor">
-							首套：公积金/组合贷 20% · 纯商贷 15%
+							<span class="mute" v-if="homeCount !== 'first' || !useFund">首套 公积金/组合贷 20%</span>
+							<span v-else>首套 公积金/组合贷 20%</span>
 							<br>
-							二套：外环外(差异化区域) 20% · 外环内 25%
+							<span class="mute" v-if="homeCount !== 'first' || useFund">首套 纯商贷 15%</span>
+							<span v-else>首套 纯商贷 15%</span>
 							<br>
-							三套及以上：100%（参考全款）
+							<span class="mute" v-if="homeCount !== 'second'">二套 25%</span>
+							<span v-else>二套 25%</span>
 							<br>
-							二套差异化区域=临港+嘉定青浦松江奉贤宝山金山6区，按外环外近似
+							<span class="mute" v-if="homeCount !== 'third'">三套及以上 100%（参考全款）</span>
+							<span v-else>三套及以上 100%（参考全款）</span>
+							<br>
+							二套差异化区域规则暂不启用
 						</td>
 						<td>
 							<el-radio-group v-model="downPaymentMode" size="small">
@@ -481,7 +478,7 @@
 		<!-- 右栏：贷款 -->
 		<section class="output area sidebar near-right">
 			<div class="loan card">
-				<header>贷款 （{{totalPrice}}-{{downPayment}}= <span style="font-weight:700;font-size:16px;color:#409eff">{{ loanPrincipal.toFixed(0) }}万</span>）
+				<header>贷款 （{{ totalPrice.toFixed(2) }}-{{ downPayment.toFixed(2) }}= <span style="font-weight:700;font-size:16px;color:#409eff">{{ loanPrincipal.toFixed(0) }}万</span>）
 				</header>
 				<div class="flex " style="gap:12px">
 					还款
@@ -619,7 +616,6 @@
 
 				// 资格
 				homeCount: 'first',    // 'first' | 'second' | 'third'
-				location: 'outer',     // 'outer' (外环外) | 'inner' (外环内)
 
 				// 登记费（万元）
 				regFeeMode: 'fixed',      // 'fixed' | 'percent'
@@ -696,15 +692,14 @@
 			policyDownPaymentRate() {
 				if (this.homeCount === 'third') return 100;
 				if (!this.useFund && !this.useCommercial) return 100;  // 无贷款=全款
-				if (this.homeCount === 'second') return this.location === 'outer' ? 20 : 25;
+				if (this.homeCount === 'second') return 25;
 				return this.useFund ? 20 : 15;  // 首套：公积金20/纯商贷15
 			},
 
 			// 首付比例原因
 			dpReason() {
 				const countText = this.homeCount === 'first' ? '首套' : this.homeCount === 'second' ? '二套' : '三套及以上';
-				const locText = this.location === 'outer' ? '外环外' : '外环内';
-				return `${countText}+${locText}`;
+				return countText;
 			},
 
 			// 首付比例
@@ -871,7 +866,6 @@
 			// 提示文本
 			hintText() {
 				const countText = this.homeCount === 'first' ? '首套' : this.homeCount === 'second' ? '二套' : '三套及以上';
-				const locText = this.location === 'outer' ? '外环外' : '外环内';
 				const parts = [];
 				const dpPct = (this.downPaymentRatio * 100).toFixed(0);
 				parts.push(`首付 ${dpPct}%（${this.downPayment.toFixed(0)}万）`);
@@ -881,7 +875,7 @@
 				if (this.houseType === 'second' && this.agencyMode !== 'exempt') {
 					parts.push(`中介费 2%（${this.agencyFee.toFixed(1)}万）`);
 				}
-				return `因为 ${countText}+${locText}，所以 ${parts.join(' · ')}`;
+				return `因为 ${countText}，所以 ${parts.join(' · ')}`;
 			},
 		},
 		methods: {
@@ -923,7 +917,7 @@
 			resetPitRate() { this.pitRate = 1; },
 			resetVatRate() { this.vatRate = 3; },
 			resetAgencyRate() { this.agencyRate = 2; },
-			resetDownPaymentRate() { if (this.homeCount === 'third' || (!this.useFund && !this.useCommercial)) { this.downPaymentRate = 100; return; } if (this.homeCount === 'second') { this.downPaymentRate = this.location === 'outer' ? 20 : 25; return; } this.downPaymentRate = this.useFund ? 20 : 15; },
+			resetDownPaymentRate() { if (this.homeCount === 'third' || (!this.useFund && !this.useCommercial)) { this.downPaymentRate = 100; return; } if (this.homeCount === 'second') { this.downPaymentRate = 25; return; } this.downPaymentRate = this.useFund ? 20 : 15; },
 			resetDeedTaxRate() { this.deedTaxPct = this.deedTaxPolicyRate * 100; },
 			resetFundPrice() { this.fundUnitPrice = 80; },
 			resetStampRate() { this.stampRate = 0.05; },
@@ -1000,7 +994,6 @@
 				if (val === 'percent') this.resetDeedTaxRate();
 			},
 			homeCount() { this.resetDownPaymentRate(); if (this.deedTaxMode === 'percent') this.resetDeedTaxRate(); },
-			location() { this.resetDownPaymentRate(); },
 			useFund(val) { if (!val && this.fundAmount > 0) this.fundAmount = 0; this.resetDownPaymentRate(); },
 			useCommercial(val) { if (!val && this.commercialAmount > 0) this.commercialAmount = 0; this.resetDownPaymentRate(); },
 			area() { if (this.deedTaxMode === 'percent') this.resetDeedTaxRate(); },
@@ -1013,28 +1006,38 @@
 				else if (this.pitMode === 'exempt') this.pitMode = 'percent';
 			},
 			fundAmount(val, oldVal) {
+				if (!this.useCommercial) return;  // 商贷未启用，不联动
 				const max = this.loanPrincipal;
 				const total = val + this.commercialAmount;
 				if (total > max) {
-					this.commercialAmount = Math.max(0, max - val);
+					this.commercialAmount = Math.round(Math.max(0, max - val));
 				} else if (oldVal + this.commercialAmount >= max && total < max) {
-					this.commercialAmount = max - val;
+					this.commercialAmount = Math.round(max - val);
 				}
 			},
 			commercialAmount(val, oldVal) {
+				if (!this.useFund) return;  // 公积金未启用，不联动
 				const max = this.loanPrincipal;
 				const total = val + this.fundAmount;
 				if (total > max) {
-					this.fundAmount = Math.max(0, max - val);
+					this.fundAmount = Math.round(Math.max(0, max - val));
 				} else if (oldVal + this.fundAmount >= max && total < max) {
-					this.fundAmount = max - val;
+					this.fundAmount = Math.round(max - val);
 				}
 			},
 			loanPrincipal(val) {
-				const total = this.fundAmount + this.commercialAmount;
+				const fund = this.useFund ? this.fundAmount : 0;
+				const com = this.useCommercial ? this.commercialAmount : 0;
+				const total = fund + com;
 				if (total > 0 && total !== val) {
-					this.fundAmount = Math.round(this.fundAmount * val / total);
-					this.commercialAmount = Math.max(0, val - this.fundAmount);
+					if (this.useFund && this.useCommercial) {
+						this.fundAmount = Math.round(fund * val / total);
+						this.commercialAmount = Math.max(0, Math.round(val - this.fundAmount));
+					} else if (this.useFund) {
+						this.fundAmount = Math.max(0, Math.round(val));
+					} else if (this.useCommercial) {
+						this.commercialAmount = Math.max(0, Math.round(val));
+					}
 				}
 			},
 
