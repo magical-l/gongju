@@ -403,6 +403,7 @@
 						<td class="minor">面积 × 单价</td>
 						<td>
 							<el-radio-group v-model="fundMode" size="small">
+								<el-radio-button label="exempt">免付</el-radio-button>
 								<el-radio-button label="percent">比例</el-radio-button>
 								<el-radio-button label="fixed">定额</el-radio-button>
 							</el-radio-group>
@@ -494,7 +495,7 @@
 		<!-- 右栏：贷款 -->
 		<section class="output area sidebar near-right">
 			<div class="loan card">
-				<header>贷款 （{{ totalPrice.toFixed(2) }}-{{ downPayment.toFixed(2) }}= <span style="font-weight:700;font-size:16px;color:#409eff">{{ loanPrincipal.toFixed(0) }}万</span>）
+				<header>贷款 （{{ totalPrice.toFixed(2) }}-{{ downPayment.toFixed(2) }}= <span style="font-weight:700;font-size:16px;color:#409eff">{{ loanPrincipal.toFixed(2) }}万</span>）
 				</header>
 				<div class="flex " style="gap:12px">
 					还款
@@ -533,7 +534,7 @@
 							</td>
 							<td class="items-near-right">{{ fundLoanAmount > 0 ? (fundInterest / 10000).toFixed(2) : '—' }}</td>
 							<td class="items-near-right">{{ fundLoanAmount > 0 ? ((fundLoanAmount * 10000 + fundInterest) / 10000).toFixed(2) : '—' }}</td>
-							<td class="items-near-right">{{ fundLoanAmount > 0 ? fundMonthly.toFixed(0) : '—' }}</td>
+							<td class="items-near-right">{{ fundLoanAmount > 0 ? fundMonthly.toFixed(2) : '—' }}</td>
 						</tr>
 						<tr class="dp row">
 							<td>商业贷款</td>
@@ -548,15 +549,15 @@
 							</td>
 							<td class="items-near-right">{{ commercialLoanAmount > 0 ? (commercialInterest / 10000).toFixed(2) : '—' }}</td>
 							<td class="items-near-right">{{ commercialLoanAmount > 0 ? ((commercialLoanAmount * 10000 + commercialInterest) / 10000).toFixed(2) : '—' }}</td>
-							<td class="items-near-right">{{ commercialLoanAmount > 0 ? commercialMonthly.toFixed(0) : '—' }}</td>
+							<td class="items-near-right">{{ commercialLoanAmount > 0 ? commercialMonthly.toFixed(2) : '—' }}</td>
 						</tr>
 						<tr class="total dp row">
 							<td>综合</td>
-							<td class="items-near-right">{{ (fundLoanAmount + commercialLoanAmount).toFixed(0) }}</td>
+							<td class="items-near-right">{{ (fundLoanAmount + commercialLoanAmount).toFixed(2) }}</td>
 							<td class="items-near-right">{{ blendedRate.toFixed(2) }}%</td>
 							<td class="items-near-right">{{ (totalInterest / 10000).toFixed(2) }}</td>
 							<td class="items-near-right">{{ (totalRepayment / 10000).toFixed(2) }}</td>
-							<td class="items-near-right" style="color:#e6a23c">{{ (fundMonthly + commercialMonthly).toFixed(0) }}</td>
+							<td class="items-near-right" style="color:#e6a23c">{{ (fundMonthly + commercialMonthly).toFixed(2) }}</td>
 						</tr>
 					</tbody>
 				</table>
@@ -584,15 +585,15 @@
 					<tbody class="items-y-near-center">
 						<tr>
 							<td>月物业费</td>
-							<td class="items-near-right">{{ propertyFeeMonthly.toFixed(0) }} 元</td>
+							<td class="items-near-right">{{ propertyFeeMonthly.toFixed(2) }} 元</td>
 						</tr>
 						<tr>
 							<td>年物业费</td>
-							<td class="items-near-right">{{ (propertyFeeMonthly * 12).toFixed(0) }} 元</td>
+							<td class="items-near-right">{{ (propertyFeeMonthly * 12).toFixed(2) }} 元</td>
 						</tr>
 						<tr class="total dp row">
 							<td>月供 + 物业费</td>
-							<td class="items-near-right" style="color:#e6a23c">{{ (fundMonthly + commercialMonthly + propertyFeeMonthly).toFixed(0) }} 元</td>
+							<td class="items-near-right" style="color:#e6a23c">{{ (fundMonthly + commercialMonthly + propertyFeeMonthly).toFixed(2) }} 元</td>
 						</tr>
 					</tbody>
 				</table>
@@ -645,7 +646,7 @@
 				stampAmount: 0,            // 定额（万元）
 
 				// 维修基金
-				fundMode: 'percent',      // 'percent' | 'fixed'
+				fundMode: 'percent',      // 'exempt' | 'percent' | 'fixed'
 				fundUnitPrice: 80,        // 元/㎡
 				fundAmount: 0,             // 定额（万元）
 
@@ -762,6 +763,7 @@
 			// 维修基金（万元）— 仅新房
 			maintenanceFund() {
 				if (this.houseType !== 'new') return 0;
+				if (this.fundMode === 'exempt') return 0;
 				if (this.fundMode === 'fixed') return this.fundAmount;
 				return this.area * this.fundUnitPrice / 10000;
 			},
