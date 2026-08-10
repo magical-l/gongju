@@ -249,7 +249,7 @@
 						<td class="items-near-right">= {{ downPayment.toFixed(2) }}万</td>
 						<td class="items-near-right minor">{{ (downPayment / totalCash * 100).toFixed(1) }}%</td>
 					</tr>
-					<tr class="dp row" :class="{ mute: houseType !== 'second' }">
+					<tr class="dp row" :class="{ mute: houseType !== 'second' || feeIgnored(vat) }">
 						<td>增值税</td>
 						<td class="minor">
 							满2年免征 / 不满2年 3%（价税分离）
@@ -278,9 +278,9 @@
 							</label>
 						</td>
 						<td class="items-near-right">= {{ vat.toFixed(2) }}万</td>
-						<td class="items-near-right minor">{{ vat > 0 ? (vat / totalCash * 100).toFixed(1) : '—' }}%</td>
+						<td class="items-near-right minor">{{ !feeIgnored(vat) ? (vat / totalCash * 100).toFixed(1) + '%' : '—' }}</td>
 					</tr>
-					<tr class="dp row" :class="{ mute: houseType !== 'second' }">
+					<tr class="dp row" :class="{ mute: houseType !== 'second' || feeIgnored(pit) }">
 						<td>个税</td>
 						<td class="minor">
 							核定征收 1%（默认）
@@ -311,9 +311,9 @@
 							</label>
 						</td>
 						<td class="items-near-right">= {{ pit.toFixed(2) }}万</td>
-						<td class="items-near-right minor">{{ pit > 0 ? (pit / totalCash * 100).toFixed(1) : '—' }}%</td>
+						<td class="items-near-right minor">{{ !feeIgnored(pit) ? (pit / totalCash * 100).toFixed(1) + '%' : '—' }}</td>
 					</tr>
-					<tr class="dp row">
+					<tr class="dp row" :class="{ mute: feeIgnored(deedTax) }">
 						<td>契税</td>
 						<td class="minor">
 							<span class="mute" v-if="homeCount !== 'first' || area > 140">首套 ≤140㎡ 1%</span>
@@ -353,9 +353,9 @@
 							</label>
 						</td>
 						<td class="items-near-right">= {{ deedTax.toFixed(2) }}万</td>
-						<td class="items-near-right minor">{{ (deedTax / totalCash * 100).toFixed(1) }}%</td>
+						<td class="items-near-right minor">{{ !feeIgnored(deedTax) ? (deedTax / totalCash * 100).toFixed(1) + '%' : '—' }}</td>
 					</tr>
-					<tr class="dp row" :class="{ mute: houseType !== 'second' }">
+					<tr class="dp row" :class="{ mute: houseType !== 'second' || feeIgnored(agencyFee) }">
 						<td>中介费</td>
 						<td class="minor">通常 2%</td>
 						<td>
@@ -380,9 +380,9 @@
 							</label>
 						</td>
 						<td class="items-near-right">= {{ agencyFee.toFixed(2) }}万</td>
-						<td class="items-near-right minor">{{ agencyFee > 0 ? (agencyFee / totalCash * 100).toFixed(1) : '—' }}%</td>
+						<td class="items-near-right minor">{{ !feeIgnored(agencyFee) ? (agencyFee / totalCash * 100).toFixed(1) + '%' : '—' }}</td>
 					</tr>
-					<tr class="dp row" :class="{ mute: houseType !== 'new' }">
+					<tr class="dp row" :class="{ mute: houseType !== 'new' || feeIgnored(maintenanceFund) }">
 						<td>维修基金</td>
 						<td class="minor">面积 × 单价</td>
 						<td>
@@ -406,9 +406,9 @@
 							</label>
 						</td>
 						<td class="items-near-right">= {{ maintenanceFund.toFixed(2) }}万</td>
-						<td class="items-near-right minor">{{ maintenanceFund > 0 ? (maintenanceFund / totalCash * 100).toFixed(1) : '—' }}%</td>
+						<td class="items-near-right minor">{{ !feeIgnored(maintenanceFund) ? (maintenanceFund / totalCash * 100).toFixed(1) + '%' : '—' }}</td>
 					</tr>
-					<tr class="dp row">
+					<tr class="dp row" :class="{ mute: feeIgnored(stampDuty) }">
 						<td>印花税</td>
 						<td class="minor">个人住房全额免征</td>
 						<td>
@@ -433,9 +433,9 @@
 							</label>
 						</td>
 						<td class="items-near-right">= {{ stampDuty.toFixed(2) }}万</td>
-						<td class="items-near-right minor">{{ stampDuty > 0 ? (stampDuty / totalCash * 100).toFixed(2) : '—' }}%</td>
+						<td class="items-near-right minor">{{ !feeIgnored(stampDuty) ? (stampDuty / totalCash * 100).toFixed(2) + '%' : '—' }}</td>
 					</tr>
-					<tr class="dp row">
+					<tr class="dp row" :class="{ mute: feeIgnored(registrationFee) }">
 						<td>登记费</td>
 						<td class="minor">固定 80元</td>
 						<td>
@@ -462,7 +462,7 @@
 							</label>
 						</td>
 						<td class="items-near-right">= {{ regFeeAmount.toFixed(3) }}万</td>
-						<td class="items-near-right minor">{{ (regFeeAmount / totalCash * 100).toFixed(2) }}%</td>
+						<td class="items-near-right minor">{{ !feeIgnored(registrationFee) ? (registrationFee / totalCash * 100).toFixed(2) + '%' : '—' }}</td>
 					</tr>
 				</tbody>
 				<tfoot>
@@ -605,6 +605,7 @@
 <script>
 	const {createApp} = Vue;
 	const STORAGE_KEY = 'calc-state-2026v3-' + window.location.pathname.replace(/\//g, '_');
+	const FEE_IGNORE_WAN = 0.01; // 一次性费用 <100元（0.01万元）→ 忽略
 
 	const app = createApp({
 		data() {
@@ -797,7 +798,16 @@
 			},
 
 			totalCash() {
-				return this.downPayment + this.deedTax + this.agencyFee + this.vat + this.pit + this.maintenanceFund + this.registrationFee + this.stampDuty + this.feeItems.reduce((sum, item) => sum + item.value, 0);
+				const count = (wan) => this.feeIgnored(wan) ? 0 : wan;
+				return this.downPayment
+					+ count(this.deedTax)
+					+ count(this.agencyFee)
+					+ count(this.vat)
+					+ count(this.pit)
+					+ count(this.maintenanceFund)
+					+ count(this.registrationFee)
+					+ count(this.stampDuty)
+					+ this.feeItems.reduce((sum, item) => sum + item.value, 0);
 			},
 
 			// --- 贷款计算 ---
@@ -922,6 +932,11 @@
 			resetFundPrice() { this.fundUnitPrice = 80; },
 			resetStampRate() { this.stampRate = 0.05; },
 			resetRegFee() { this.regFeeAmount = 0.008; this.regFeeRate = 0.001; },
+
+			// 一次性费用不足 100 元 → 忽略（不计入合计，行灰显）
+			feeIgnored(wan) {
+				return wan < FEE_IGNORE_WAN;
+			},
 
 			// 生成每期还款明细 CSV
 			downloadAmortization() {
