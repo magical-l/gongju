@@ -361,6 +361,21 @@
         document.getElementById('closePropsBtn').onclick = () => selectElement(null);
     }
 
+    const ARROWS = { ArrowUp: [0,-1], ArrowDown: [0,1], ArrowLeft: [-1,0], ArrowRight: [1,0] };
+    let arrowHistoryDirty = false;
+
+    function moveSelectedBy(dx, dy) {
+        const targets = getSelectionTargets();
+        targets.forEach(t => {
+            t.style.left = (parseInt(t.style.left) || 0) + dx + 'px';
+            t.style.top = (parseInt(t.style.top) || 0) + dy + 'px';
+        });
+        if (currentSelected) {
+            document.querySelectorAll('.resize-handle').forEach(h => updateHandlePosition(h, currentSelected));
+        }
+    }
+    function getSelectionTargets() { return currentSelected ? [currentSelected] : []; }
+
     function handleBackspaceDelete(e) {
         if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) {
             e.preventDefault();
@@ -370,6 +385,13 @@
         if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || e.key === 'Y')) {
             e.preventDefault();
             redo();
+            return;
+        }
+        if (ARROWS[e.key] && currentSelected) {
+            e.preventDefault();
+            const step = e.shiftKey ? 10 : 1;
+            moveSelectedBy(ARROWS[e.key][0] * step, ARROWS[e.key][1] * step);
+            arrowHistoryDirty = true;
             return;
         }
         if (!currentSelected) return;
@@ -782,6 +804,9 @@
         initPaste();
         initPanelFloating();
         window.addEventListener('keydown', handleBackspaceDelete);
+        window.addEventListener('keyup', (e) => {
+            if (ARROWS[e.key] && arrowHistoryDirty) { pushHistory(); arrowHistoryDirty = false; }
+        });
         document.getElementById('undoBtn').onclick = undo;
         document.getElementById('redoBtn').onclick = redo;
         document.getElementById('saveSceneBtn').onclick = saveScene;
