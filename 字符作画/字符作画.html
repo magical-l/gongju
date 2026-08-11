@@ -2,78 +2,139 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>字符画板 · 优雅编辑器</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>字符作画 - 工具兽</title>
+    <meta name="description" content="字符作画工具：用 emoji 和符号字符在画布上自由创作，支持拖拽、缩放、图层与撤销重做。">
+    <meta name="keywords" content="字符作画, emoji 画布, 符号拼图, 在线工具, 工具兽">
+    <meta name="author" content="工具兽">
+    <meta property="og:title" content="字符作画 - 工具兽">
+    <meta property="og:description" content="用 emoji 和符号字符自由创作画作。">
+    <meta property="og:type" content="website">
+    <link href="../lib/toastr.min.css" rel="stylesheet">
+    <link href="http://css.document.cool/common.css" rel="stylesheet">
+    <!-- <link href="../lib/css/common.css" rel="stylesheet"> -->
+    <link href="http://css.document.cool/layout.css" rel="stylesheet">
+    <!-- <link href="../lib/css/layout.css" rel="stylesheet"> -->
+    <link href="../resources/biz.css?v=250821" rel="stylesheet">
     <link href="字符作画.css" rel="stylesheet">
 </head>
-<body>
-<div class="workspace">
-    <!-- 顶部工具栏 -->
-    <div class="top-toolbar">
-        <button id="newSceneBtn">✨ 新建</button>
-        <button id="saveSceneBtn">💾 保存</button>
-        <button id="loadSceneBtn">📂 打开</button>
-        <button id="canvasSettingsBtn">🖼️ 画布</button>
-        <button id="undoBtn" class="icon-only" title="撤销 (Ctrl+Z)">↩️</button>
-        <button id="redoBtn" class="icon-only" title="重做 (Ctrl+Y)">↪️</button>
-        <button id="clearCanvasBtn">🗑️ 清空</button>
-        <button id="helpBtn" class="icon-only" title="帮助">?</button>
-    </div>
-
-    <!-- 画布容器 -->
-    <div class="canvas-container" id="canvasContainer">
-        <div class="scene-canvas" id="sceneCanvas"></div>
-    </div>
-
-    <!-- 右侧动态面板：根据是否有选中元素切换内容 -->
-    <div class="right-panel" id="rightPanel">
-        <!-- 素材库内容 (默认显示) -->
-        <div id="libraryPanel">
-            <div class="panel-header">📚 字符素材库</div>
-            <div class="tab-bar">
-                <button class="tab-btn active" data-tab="emoji">😊 Emoji</button>
-                <button class="tab-btn" data-tab="normal">🔤 普通符号</button>
+<body class="目字形">
+    <header>
+        <h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
+        <nav>
+            <div class="nav-row">
+                <a href="../文本转化.html">文本转化</a>
+                <a href="../数字转化.html">数字转化</a>
+                <a href="../符号/符号.html">符号</a>
+                <a href="../格子盘.html">格子盘</a>
+                <a href="../svg转图标.html">SVG转图标</a>
+                <a href="../化学/元素周期表.html">元素周期表</a>
+                <a href="../拼音/拼音.html">拼音</a>
+                <a href="字符作画.html" class="active">字符作画</a>
             </div>
-            <div id="emojiSymbolsContainer" style="max-height: 500px; overflow-y: auto;"></div>
-            <div id="normalSymbolsContainer" style="max-height: 500px; overflow-y: auto; display: none;"></div>
+            <div class="nav-row">
+                <a href="../游戏/中国象棋/中国象棋.html">中国象棋</a>
+                <a href="../游戏/五子棋/gobang.html">五子棋</a>
+                <a href="../游戏/俄罗斯方块.html">俄罗斯方块</a>
+                <a href="../游戏/贪吃蛇.html">贪吃蛇</a>
+                <a href="../游戏/2048/2048.html">2048</a>
+                <a href="../游戏/2048蛇/2048蛇.html">2048蛇</a>
+                <a href="../游戏/2048方块/2048方块.html">2048方块</a>
+                <a href="../游戏/点灯.html">点灯</a>
+                <a href="../游戏/数字华容道.html">数字华容道</a>
+                <a href="../游戏/星连星/星连星.html">星连星</a>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <header>
+            <h2 class="page-lv name">字符作画</h2>
+            <div class="page-lv help area">
+                <button class="btn shape circle" id="helpBtn" title="显示说明">?</button>
+            </div>
+        </header>
+        <div class="toolbar" id="topToolbar">
+            <div class="one group">
+                <button class="btn" id="newSceneBtn">✨ 新建</button>
+                <button class="btn" id="saveSceneBtn">💾 保存</button>
+                <button class="btn" id="loadSceneBtn">📂 打开</button>
+                <button class="btn" id="canvasSettingsBtn">🖼️ 画布</button>
+            </div>
+            <div class="one group">
+                <button class="btn" id="undoBtn" title="撤销 (Ctrl+Z)">↩️</button>
+                <button class="btn" id="redoBtn" title="重做 (Ctrl+Y)">↪️</button>
+            </div>
+            <div class="one group">
+                <button class="btn danger" id="clearCanvasBtn">🗑️ 清空</button>
+            </div>
         </div>
-        <!-- 属性面板 (初始隐藏) -->
-        <div id="propsPanel" style="display: none;">
-            <div class="panel-header">
-                <span>✨ 选中元素</span>
-                <span style="cursor: pointer;" id="closePropsBtn">✕</span>
+        <section class="editor">
+            <div class="canvas-card canvas-container" id="canvasContainer">
+                <div class="scene-canvas" id="sceneCanvas"></div>
             </div>
-            <div id="selectionControls">
-                <div class="preview-card">
-                    <div class="preview-char" id="previewChar">🌟</div>
-                    <button class="copy-btn" id="copyCharBtn">📋 复制字符</button>
+            <aside class="side-panel" id="rightPanel">
+                <div id="libraryPanel">
+                    <div class="panel-header">📚 字符素材库</div>
+                    <div class="tab-bar">
+                        <button class="tab-btn active" data-tab="emoji">😊 Emoji</button>
+                        <button class="tab-btn" data-tab="normal">🔤 普通符号</button>
+                    </div>
+                    <div id="emojiSymbolsContainer" class="symbols-scroll"></div>
+                    <div id="normalSymbolsContainer" class="symbols-scroll" style="display:none;"></div>
                 </div>
-                <div class="slider-row">
-                    <span>字号 <span class="tooltip-icon" data-tooltip="可在元素四角拖拽缩放">?</span></span>
-                    <span id="sizeValueDisplay">48</span>
-                    <input type="range" id="sizeSlider" min="12" max="140" step="1">
-                </div>
-                <div class="slider-row">
-                    <span>重复 <span class="tooltip-icon" data-tooltip="退格键减少重复，Delete删除整个">?</span></span>
-                    <span id="repeatValueDisplay">1</span>
-                    <input type="range" id="repeatSlider" min="1" max="20" step="1">
-                </div>
-                <div id="colorControlArea" style="display:none;">
-                    <div class="slider-row">
-                        <span>颜色</span>
-                        <input type="color" id="charColorPicker" value="#2c5a2c">
+                <div id="propsPanel" style="display:none;">
+                    <div class="panel-header">
+                        <span>✨ 选中元素</span>
+                        <span style="cursor:pointer;" id="closePropsBtn">✕</span>
+                    </div>
+                    <div id="selectionControls">
+                        <div class="preview-card">
+                            <div class="preview-char" id="previewChar">🌟</div>
+                            <button class="btn copy-btn" id="copyCharBtn">📋 复制字符</button>
+                        </div>
+                        <div class="slider-row">
+                            <span>字号 <span class="tooltip-icon" data-tooltip="可在元素四角拖拽缩放">?</span></span>
+                            <span id="sizeValueDisplay">48</span>
+                            <input type="range" id="sizeSlider" min="12" max="140" step="1">
+                        </div>
+                        <div class="slider-row">
+                            <span>重复 <span class="tooltip-icon" data-tooltip="退格键减少重复，Delete删除整个">?</span></span>
+                            <span id="repeatValueDisplay">1</span>
+                            <input type="range" id="repeatSlider" min="1" max="20" step="1">
+                        </div>
+                        <div id="colorControlArea" style="display:none;">
+                            <div class="slider-row">
+                                <span>颜色</span>
+                                <input type="color" id="charColorPicker" value="#2c5a2c">
+                            </div>
+                        </div>
+                        <div class="layer-buttons">
+                            <button class="btn" id="raiseBtn">⬆️ 往前</button>
+                            <button class="btn" id="lowerBtn">⬇️ 退后</button>
+                            <button class="btn danger delete-btn" id="deleteItemBtn">🗑️ 删除</button>
+                        </div>
                     </div>
                 </div>
-                <div class="layer-buttons">
-                    <button id="raiseBtn">⬆️ 往前</button>
-                    <button id="lowerBtn">⬇️ 退后</button>
-                    <button id="deleteItemBtn" class="delete-btn">🗑️ 删除</button>
-                </div>
-            </div>
-        </div>
+            </aside>
+        </section>
+    </main>
+    <footer>
+        <article class="website info">
+            <section class="patronage area">
+                <img title="赞助一下" class="qr-code" alt="支付宝收款码" src="../resources/支付宝收款码.jpg">
+                <p class="slogan">赞助一下</p>
+            </section>
+            <section class="copyright">
+                <p>© 2026 工具兽版权所有 All rights reserved.</p>
+            </section>
+            <section class="feedback">
+                <p>反馈或建议请联系：<a href="mailto:gongjumonster@163.com">gongjumonster@163.com</a></p>
+            </section>
+        </article>
+    </footer>
+    <div class="js container">
+        <script src="../lib/toastr.min.js"></script>
     </div>
-</div>
-
-<script src="字符作画.js"></script>
+    <script src="字符作画.js"></script>
 </body>
 </html>
