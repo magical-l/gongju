@@ -516,8 +516,8 @@
     }
     function setZoom(z) {
         zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Math.round(z * 10) / 10));
-        clampTransform();
         applyViewTransform();
+        clampTransform();
         updateZoomUI();
     }
     function updateZoomUI() {
