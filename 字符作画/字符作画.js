@@ -37,7 +37,9 @@
                 left: el.style.left,
                 top: el.style.top,
                 zIndex: el.style.zIndex,
-                color: el.style.color || null
+                color: el.style.color || null,
+                rotation: parseFloat(el.getAttribute('data-rotation')) || 0,
+                opacity: parseFloat(el.getAttribute('data-opacity')) || 1
             });
         });
         const bgGradient = canvasElement.style.background;
@@ -57,6 +59,8 @@
         snapshot.elements.forEach(e => {
             const div = createCharacterDiv(e.char, e.fontSize, e.repeat, e.color, parseInt(e.zIndex), e.left, e.top);
             if (e.color && !isEmojiCharacter(e.char)) div.style.color = e.color;
+            if (e.rotation) { div.style.transform = `rotate(${e.rotation}deg)`; div.setAttribute('data-rotation', e.rotation); }
+            if (e.opacity != null && e.opacity !== 1) { div.style.opacity = e.opacity; div.setAttribute('data-opacity', e.opacity); }
             canvasElement.appendChild(div);
         });
         selectElement(null);
@@ -121,6 +125,9 @@
         const finalZ = customZ !== null ? customZ : getNewZIndex();
         div.style.zIndex = finalZ;
         div.setAttribute('data-zindex', finalZ);
+        div.style.opacity = 1;
+        div.setAttribute('data-opacity', 1);
+        div.setAttribute('data-rotation', 0);
         const isEmoji = isEmojiCharacter(character);
         if (!isEmoji && color) {
             div.style.color = color;
