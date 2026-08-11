@@ -121,6 +121,35 @@
 			width: 96px;
 		}
 	}
+
+	/* 贷款表：额度/利率列输入框收窄，宽度让给其他列 */
+	.loan.card {
+		& table {
+			width: 100%;
+		}
+		& tbody td:nth-child(2) .el-input-number,
+		& tbody td:nth-child(3) .el-input-number {
+			width: 76px;
+		}
+		/* 数值列（利息/本息合计/每月应还）右对齐（统一2位小数→小数点对齐） */
+		& thead th:nth-child(4),
+		& thead th:nth-child(5),
+		& thead th:nth-child(6),
+		& td:nth-child(4),
+		& td:nth-child(5),
+		& td:nth-child(6) {
+			text-align: right;
+			font-variant-numeric: tabular-nums;
+		}
+		/* 额度/利率列：输入框与综合行数值居中对齐 */
+		& tbody td:nth-child(2),
+		& tbody td:nth-child(3),
+		& tr.total td:nth-child(2),
+		& tr.total td:nth-child(3) {
+			text-align: center;
+		}
+	}
+
 </style>
 </head>
 <body class="目字形">
@@ -162,7 +191,7 @@
 					<li><strong>新房/二手房切换：</strong>费用项自动调整，二手房增加中介费、增值税、个税等项目。</li>
 					<li><strong>政策参数联动：</strong>契税按面积(140㎡)+套数(首/二/三套及以上)分档、增值税满2免征/不满2年3%价税分离、个税核定1%，首付比例按套数和位置自动适用上海现行政策。</li>
 					<li><strong>三种贷款模式：</strong>用「公积金贷款 / 商贷」两个开关组合，可只公积金、只商贷或组合贷；首付比例随贷款方式联动（首套公积金20%/商贷15%）。</li>
-					<li><strong>组合贷默认贷满公积金：</strong>组合贷下公积金默认贷满政策上限（首套240万/二套160万），商贷补足余额；点「贷满公积金上限」可一键恢复，额度输入框可自由调整。</li>
+					<li><strong>组合贷公积金锚定：</strong>组合贷下公积金默认贷满政策上限（首套240/二套160万）且保持不变，商贷与首付互变（改商贷→首付变，改首付→商贷变）；「贷满」按钮绿色=已贷满、红色=超上限，点击一键贷满；纯公积/纯商业下改贷款额度会改变首付。</li>
 					<li><strong>实时计算：</strong>修改任意参数，费用明细和贷款结果立刻更新。</li>
 				</ul>
 				<h2>注意</h2>
@@ -251,14 +280,14 @@
 						</td>
 						<td>
 							<label v-if="downPaymentMode === 'percent'">
-								<el-input-number v-model="downPaymentRate" :min="0" :max="100" :step="1" :precision="0" :controls="false" size="small">
+								<el-input-number v-model="downPaymentRate" :min="0" :max="100" :step="1" :precision="2" :controls="false" size="small">
 									<template #suffix>%
 										<span @click="resetDownPaymentRate" title="重置" class="reset">↺</span>
 									</template>
 								</el-input-number>
 							</label>
 							<label v-if="downPaymentMode === 'fixed'">
-								<el-input-number v-model="downPaymentAmount" :min="0" :max="downPayment" :step="1" :precision="2" :controls="false" size="small">
+								<el-input-number v-model="downPaymentAmount" :min="0" :max="totalPrice" :step="1" :precision="2" :controls="false" size="small">
 									<template #suffix>万元</template>
 								</el-input-number>
 							</label>
@@ -523,7 +552,10 @@
 					</thead>
 					<tbody class="items-y-near-center">
 						<tr class="dp row">
-							<td>公积金贷款</td>
+							<td class="flex items-y-near-center" style="gap:6px">
+								<span>公积金</span>
+								<el-button v-if="isCombined" size="small" :type="fundCapBtnType" @click="fillFundAtCap" title="贷满公积金政策上限">贷满</el-button>
+							</td>
 							<td class="items-near-right">
 								<el-input-number v-model="fundAmount" :disabled="!useFund" :min="0" :step="5" :controls="false" size="small" @change="fundManual = true">
 								</el-input-number>
@@ -538,7 +570,7 @@
 							<td class="items-near-right">{{ fundLoanAmount > 0 ? fundMonthly.toFixed(2) : '—' }}</td>
 						</tr>
 						<tr class="dp row">
-							<td>商业贷款</td>
+							<td>商贷</td>
 							<td class="items-near-right">
 								<el-input-number v-model="commercialAmount" :disabled="!useCommercial" :min="0" :step="5" :controls="false" size="small">
 								</el-input-number>
@@ -563,7 +595,6 @@
 					</tbody>
 				</table>
 				<div style="text-align:right;padding-top:8px">
-					<el-button v-if="isCombined" size="small" @click="fillFundAtCap">贷满公积金上限</el-button>
 					<el-button size="small" @click="downloadAmortization">下载每期明细</el-button>
 				</div>
 			</div>
@@ -689,7 +720,7 @@
 				commercialAmount: 240,  // 商贷额度（万元）
 				loanYears: 30,         // 贷款年限
 				repaymentMode: 'equal', // 'equal' (等额本息) | 'principal' (等额本金)
-				fundManual: false,   // 用户手动改过公积金额度→贷款总额变化时保留该值
+				fundManual: false,   // 用户手动改过公积金额度→套数切换时保留（默认则更新到新上限）
 				propertyFeeUnitPrice: 5,   // 物业费单价（元/㎡/月）
 			};
 		},
@@ -704,6 +735,7 @@
 					}
 				} catch(e) {}
 			}
+			this.syncLoanIdentity();
 		},
 
 		computed: {
@@ -849,6 +881,19 @@
 				return 0;
 			},
 
+			// 公积金贷满状态：'over' 超上限(红) | 'filled' 贷满(绿) | 'below' 未贷满
+			fundCapStatus() {
+				if (!this.useFund || this.fundCap <= 0) return 'below';
+				if (this.fundAmount > this.fundCap) return 'over';
+				const target = Math.min(this.fundCap, this.loanPrincipal);
+				return target > 0 && this.fundAmount >= target ? 'filled' : 'below';
+			},
+			fundCapBtnType() {
+				if (this.fundCapStatus === 'over') return 'danger';
+				if (this.fundCapStatus === 'filled') return 'success';
+				return '';
+			},
+
 			fundLoanAmount() {
 				return this.useFund ? Math.min(this.fundAmount, this.loanPrincipal) : 0;
 			},
@@ -969,6 +1014,30 @@
 				this.fundAmount = fund;
 				this.commercialAmount = Math.max(0, Math.round(this.loanPrincipal - fund));
 			},
+
+			// 首付金额回写：比例→rate / 定额→amount；免付固定0不回写
+			setDownPayment(wan) {
+				if (this.downPaymentMode === 'exempt') return;
+				wan = Math.max(0, Math.round(wan * 100) / 100);
+				if (this.downPaymentMode === 'fixed') {
+					this.downPaymentAmount = wan;
+				} else if (this.totalPrice > 0) {
+					this.downPaymentRate = Math.min(100, Math.round(wan / this.totalPrice * 10000) / 100);
+				}
+			},
+
+			// 加载后同步三角等式：公积金+商贷+首付=总价
+			syncLoanIdentity() {
+				if (this.useFund && this.useCommercial) {
+					const max = this.loanPrincipal;
+					if (this.fundAmount > max) this.fundAmount = max;
+					this.commercialAmount = Math.max(0, Math.round(max - this.fundAmount));
+				} else if (this.useFund) {
+					this.fundAmount = Math.max(0, Math.round(this.loanPrincipal));
+				} else if (this.useCommercial) {
+					this.commercialAmount = Math.max(0, Math.round(this.loanPrincipal));
+				}
+			},
 			resetDeedTaxRate() { this.deedTaxPct = this.deedTaxPolicyRate * 100; },
 			resetFundPrice() { this.fundUnitPrice = 80; },
 			resetStampRate() { this.stampRate = 0.05; },
@@ -1049,9 +1118,33 @@
 			deedTaxMode(val) {
 				if (val === 'percent') this.resetDeedTaxRate();
 			},
-			homeCount() { this.resetDownPaymentRate(); if (this.deedTaxMode === 'percent') this.resetDeedTaxRate(); },
-			useFund(val) { if (!val && this.fundAmount > 0) this.fundAmount = 0; this.resetDownPaymentRate(); if (val && this.isCombined) this.fillFundAtCap(); },
-			useCommercial(val) { if (!val && this.commercialAmount > 0) this.commercialAmount = 0; this.resetDownPaymentRate(); if (val && this.isCombined) this.fillFundAtCap(); },
+			homeCount() { this.resetDownPaymentRate(); if (this.deedTaxMode === 'percent') this.resetDeedTaxRate(); if (this.isCombined && !this.fundManual) this.fillFundAtCap(); },
+			useFund(val) {
+				if (!val && this.fundAmount > 0) this.fundAmount = 0;
+				if (val) {
+					this.resetDownPaymentRate();  // 开启：政策首付比例
+					if (this.isCombined) this.fillFundAtCap();  // 组合贷默认贷满公积金
+				} else {
+					if (this.useCommercial) {
+						this.setDownPayment(this.totalPrice - this.commercialAmount);  // 关公积→纯商业：商贷保持，首付补缺口
+					} else {
+						this.setDownPayment(this.totalPrice);  // 全关→全款
+					}
+				}
+			},
+			useCommercial(val) {
+				if (!val && this.commercialAmount > 0) this.commercialAmount = 0;
+				if (val) {
+					this.resetDownPaymentRate();  // 开启：政策首付比例
+					if (this.isCombined) this.fillFundAtCap();  // 组合贷默认贷满公积金
+				} else {
+					if (this.useFund) {
+						this.setDownPayment(this.totalPrice - this.fundAmount);  // 关商贷→纯公积：公积金保持，首付补缺口
+					} else {
+						this.setDownPayment(this.totalPrice);  // 全关→全款
+					}
+				}
+			},
 			area() { if (this.deedTaxMode === 'percent') this.resetDeedTaxRate(); },
 			vatHeld2Years(val) {
 				if (val) this.vatMode = 'exempt';
@@ -1062,24 +1155,52 @@
 				else if (this.pitMode === 'exempt') this.pitMode = 'percent';
 			},
 			fundAmount(val, oldVal) {
-				if (!this.useCommercial) return;  // 商贷未启用，不联动
+				if (!this.useFund) return;  // 公积金未启用
+				if (!this.useCommercial) {
+					// 纯公积：改公积金 → 首付变
+					if (this.downPaymentMode === 'exempt') {
+						this.fundAmount = this.totalPrice;  // 免付：公积金贷满全部
+						return;
+					}
+					if (val > this.totalPrice) {
+						this.fundAmount = this.totalPrice;
+						this.setDownPayment(0);
+					} else {
+						this.setDownPayment(this.totalPrice - val);
+					}
+					return;
+				}
+				// 组合贷：公积金锚定，改公积金 → 商贷补足
 				const max = this.loanPrincipal;
-				const total = val + this.commercialAmount;
-				if (total > max) {
-					this.commercialAmount = Math.round(Math.max(0, max - val));
-				} else if (oldVal + this.commercialAmount >= max && total < max) {
-					this.commercialAmount = Math.round(max - val);
+				if (val > max) {
+					this.fundAmount = max;
+					this.commercialAmount = 0;
+				} else {
+					this.commercialAmount = Math.max(0, Math.round(max - val));
 				}
 			},
 			commercialAmount(val, oldVal) {
-				if (!this.useFund) return;  // 公积金未启用，不联动
-				const max = this.loanPrincipal;
-				const total = val + this.fundAmount;
-				if (total > max) {
-					this.fundAmount = Math.round(Math.max(0, max - val));
-				} else if (oldVal + this.fundAmount >= max && total < max) {
-					this.fundAmount = Math.round(max - val);
+				if (!this.useCommercial) return;  // 商贷未启用
+				if (!this.useFund) {
+					// 纯商业：改商贷 → 首付变
+					if (this.downPaymentMode === 'exempt') {
+						this.commercialAmount = this.totalPrice;  // 免付：商贷贷满全部
+						return;
+					}
+					if (val > this.totalPrice) {
+						this.commercialAmount = this.totalPrice;
+						this.setDownPayment(0);
+					} else {
+						this.setDownPayment(this.totalPrice - val);
+					}
+					return;
 				}
+				// 组合贷：公积金锚定
+				if (this.downPaymentMode === 'exempt') {
+					this.fundAmount = Math.max(0, this.totalPrice - val);  // 免付：改商贷 → 公积金补足
+					return;
+				}
+				this.setDownPayment(this.totalPrice - val - this.fundAmount);  // 改商贷 → 首付补足
 			},
 			loanPrincipal(val) {
 				const fund = this.useFund ? this.fundAmount : 0;
@@ -1087,11 +1208,9 @@
 				const total = fund + com;
 				if (total > 0 && total !== val) {
 					if (this.useFund && this.useCommercial) {
-						if (this.fundManual) {
-							this.commercialAmount = Math.max(0, Math.round(val - this.fundAmount));  // 保留手动公积金额度，商贷补足
-						} else {
-							this.fillFundAtCap();  // 默认贷满公积金上限，商贷补足
-						}
+						// 组合贷：公积金锚定，商贷补足
+						if (this.fundAmount > val) this.fundAmount = val;
+						this.commercialAmount = Math.max(0, Math.round(val - this.fundAmount));
 					} else if (this.useFund) {
 						this.fundAmount = Math.max(0, Math.round(val));
 					} else if (this.useCommercial) {
