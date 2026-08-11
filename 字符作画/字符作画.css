@@ -18,17 +18,16 @@
 
         .canvas-card {
             flex: 1;
+            position: relative;
             cursor: grab;
             box-shadow: var(--shadow-sm);
             border-radius: var(--radius-lg);
             border: 1px solid var(--border-subtle);
             background: var(--bg-subtle);
-            justify-content: center;
-            align-items: center;
             display: flex;
             padding: 1.5rem;
             overflow: auto;
-            min-height: 420px;
+            min-height: 640px;
             height: calc(100vh - 300px);
             min-width: 0;
         }
@@ -37,18 +36,51 @@
             cursor: grabbing;
         }
 
-        .side-panel {
+        .float-panel {
+            position: absolute;
+            top: 12px;
+            left: 12px;
             width: 300px;
-            user-select: none;
-            box-shadow: var(--shadow-sm);
-            padding: 1rem;
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border-subtle);
-            background: var(--bg-base);
+            max-height: calc(100% - 24px);
             overflow-y: auto;
-            max-height: calc(100vh - 300px);
-            flex-shrink: 0;
+            background: var(--bg-base);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            z-index: 1000;
+            padding: 0.75rem;
+            user-select: none;
         }
+        .float-panel.collapsed { display: none; }
+        .panel-header { cursor: grab; }
+        .panel-collapse-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0 4px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            line-height: 1;
+        }
+        .header-actions { display: inline-flex; align-items: center; gap: 4px; }
+        .float-reopen {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            z-index: 999;
+            /* 复用共享按钮外观 */
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--bg-base);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+        }
+        .float-reopen:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
 
         .symbols-scroll {
             max-height: 500px;
@@ -66,7 +98,7 @@
             background: linear-gradient(145deg, #b2e0fa, #c5e0a4);
             transform-origin: 0 0;
             box-shadow: var(--shadow-md);
-            margin: 0;
+            margin: auto;
             transition: background 0.1s;
         }
 

@@ -71,10 +71,9 @@
         <section class="editor">
             <div class="canvas-card canvas-container" id="canvasContainer">
                 <div class="scene-canvas" id="sceneCanvas"></div>
-            </div>
-            <aside class="side-panel" id="rightPanel">
+                <div class="float-panel" id="rightPanel">
                 <div id="libraryPanel">
-                    <div class="panel-header">📚 字符素材库</div>
+                    <div class="panel-header">📚 字符素材库 <button class="panel-collapse-btn" title="收起面板">▁</button></div>
                     <div class="tab-bar">
                         <button class="tab-btn active" data-tab="emoji">😊 Emoji</button>
                         <button class="tab-btn" data-tab="normal">🔤 普通符号</button>
@@ -85,7 +84,10 @@
                 <div id="propsPanel" style="display:none;">
                     <div class="panel-header">
                         <span>✨ 选中元素</span>
-                        <span style="cursor:pointer;" id="closePropsBtn">✕</span>
+                        <span class="header-actions">
+                            <span style="cursor:pointer;" id="closePropsBtn">✕</span>
+                            <button class="panel-collapse-btn" title="收起面板">▁</button>
+                        </span>
                     </div>
                     <div id="selectionControls">
                         <div class="preview-card">
@@ -115,7 +117,9 @@
                         </div>
                     </div>
                 </div>
-            </aside>
+                </div>
+                <button class="float-reopen" id="reopenPanelBtn" style="display:none;" title="打开素材库">📚 素材</button>
+            </div>
         </section>
     </main>
     <footer>

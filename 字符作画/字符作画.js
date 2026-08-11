@@ -680,6 +680,43 @@
         pushHistory();
     }
 
+    function initPanelFloating() {
+        const panel = document.getElementById('rightPanel');
+        const reopenBtn = document.getElementById('reopenPanelBtn');
+        if (!panel || !reopenBtn) return;
+        // 拖标题栏移动面板
+        document.querySelectorAll('.panel-header').forEach(header => {
+            header.addEventListener('mousedown', (e) => {
+                if (e.target.closest('button, #closePropsBtn')) return;
+                e.preventDefault();
+                const rect = panel.getBoundingClientRect();
+                const startX = e.clientX, startY = e.clientY;
+                const baseLeft = rect.left, baseTop = rect.top;
+                const onMove = (ev) => {
+                    panel.style.left = (baseLeft + ev.clientX - startX) + 'px';
+                    panel.style.top = (baseTop + ev.clientY - startY) + 'px';
+                };
+                const onUp = () => {
+                    window.removeEventListener('mousemove', onMove);
+                    window.removeEventListener('mouseup', onUp);
+                };
+                window.addEventListener('mousemove', onMove);
+                window.addEventListener('mouseup', onUp);
+            });
+        });
+        // 收起/展开
+        document.querySelectorAll('.panel-collapse-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                panel.classList.add('collapsed');
+                reopenBtn.style.display = 'inline-flex';
+            });
+        });
+        reopenBtn.addEventListener('click', () => {
+            panel.classList.remove('collapsed');
+            reopenBtn.style.display = 'none';
+        });
+    }
+
     function init() {
         canvasElement.style.width = canvasWidth + 'px';
         canvasElement.style.height = canvasHeight + 'px';
@@ -690,6 +727,7 @@
         initDrop();
         initCanvasPan();
         initPaste();
+        initPanelFloating();
         window.addEventListener('keydown', handleBackspaceDelete);
         document.getElementById('undoBtn').onclick = undo;
         document.getElementById('redoBtn').onclick = redo;
