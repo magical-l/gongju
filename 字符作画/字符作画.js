@@ -39,7 +39,7 @@
                 zIndex: el.style.zIndex,
                 color: el.style.color || null,
                 rotation: parseFloat(el.getAttribute('data-rotation')) || 0,
-                opacity: parseFloat(el.getAttribute('data-opacity')) || 1
+                opacity: Number.isFinite(parseFloat(el.getAttribute('data-opacity'))) ? parseFloat(el.getAttribute('data-opacity')) : 1
             });
         });
         const bgGradient = canvasElement.style.background;
