@@ -191,7 +191,7 @@
 					<li><strong>新房/二手房切换：</strong>费用项自动调整，二手房增加中介费、增值税、个税等项目。</li>
 					<li><strong>政策参数联动：</strong>契税按面积(140㎡)+套数(首/二/三套及以上)分档、增值税满2免征/不满2年3%价税分离、个税核定1%，首付比例按套数和位置自动适用上海现行政策。</li>
 					<li><strong>三种贷款模式：</strong>用「公积金贷款 / 商贷」两个开关组合，可只公积金、只商贷或组合贷；首付比例随贷款方式联动（首套公积金20%/商贷15%）。</li>
-					<li><strong>组合贷公积金锚定：</strong>组合贷下公积金默认贷满政策上限（首套240/二套160万）且保持不变，商贷与首付互变（改商贷→首付变，改首付→商贷变）；「贷满」按钮绿色=已贷满、红色=超上限，点击一键贷满；纯公积/纯商业下改贷款额度会改变首付。</li>
+					<li><strong>组合贷公积金锚定：</strong>组合贷下公积金默认贷满政策上限（按套数×参贷人数×二孩联动）且保持不变，商贷与首付互变（改商贷→首付变，改首付→商贷变）；「贷满」按钮绿色=已贷满、红色=超上限，点击一键贷满；纯公积/纯商业下改贷款额度会改变首付。</li>
 					<li><strong>实时计算：</strong>修改任意参数，费用明细和贷款结果立刻更新。</li>
 				</ul>
 				<h2>注意</h2>
@@ -235,9 +235,29 @@
 			<div class="flex" style="gap:2px">
 				<el-checkbox-button v-model="useFund" size="small">公积金贷款</el-checkbox-button>
 				<el-checkbox-button v-model="useCommercial" size="small">商贷</el-checkbox-button>
-				<el-tooltip placement="top" content="影响首付比例、贷款区可用性">
+				<el-tooltip placement="top" content="影响首付比例">
 					<i class="info icon">i</i>
 				</el-tooltip>
+			</div>
+			<div class="flex monopoly-x" style="gap:12px">
+				<div class="flex" style="gap:2px">
+					<el-radio-group v-model="loanParticipants">
+						<el-radio-button label="one">1人参贷</el-radio-button>
+						<el-radio-button label="multi">≥2人参贷</el-radio-button>
+					</el-radio-group>
+					<el-tooltip placement="top" content="影响公积金贷款上限">
+						<i class="info icon">i</i>
+					</el-tooltip>
+				</div>
+				<div class="flex" style="gap:2px">
+					<el-radio-group v-model="childrenCount">
+						<el-radio-button label="below2">≤一孩</el-radio-button>
+						<el-radio-button label="ge2">≥二孩</el-radio-button>
+					</el-radio-group>
+					<el-tooltip placement="top" content="影响公积金贷款上限">
+						<i class="info icon">i</i>
+					</el-tooltip>
+				</div>
 			</div>
 		</header>
 		<!-- 左栏：一次性费用 -->
@@ -654,7 +674,7 @@
 </div>
 <script>
 	const {createApp} = Vue;
-	const STORAGE_KEY = 'calc-state-2026v4-' + window.location.pathname.replace(/\//g, '_');
+	const STORAGE_KEY = 'calc-state-2026v5-' + window.location.pathname.replace(/\//g, '_');
 	const FEE_IGNORE_WAN = 0.01; // 一次性费用 <100元（0.01万元）→ 忽略
 
 	const app = createApp({
@@ -667,6 +687,8 @@
 
 				// 资格
 				homeCount: 'first',    // 'first' | 'second' | 'third'
+				loanParticipants: 'multi',   // 'one' | 'multi'（1人参贷 / 2人及以上参贷）
+				childrenCount: 'below2',     // 'below2' | 'ge2'（二孩以下 / 二孩或以上）
 
 				// 登记费（费率%，定额元）
 				regFeeMode: 'fixed',      // 'fixed' | 'percent'
@@ -714,7 +736,7 @@
 				// 贷款
 				useFund: true,      // 使用公积金贷款
 				useCommercial: true, // 使用商贷
-				fundAmount: 240,       // 公积金贷款额度（万元，首套家庭最高240万）
+				fundAmount: 200,       // 公积金贷款额度（万元，默认 2人及以上参贷+二孩以下 首套上限200万）
 				fundRate: 2.85,        // 公积金利率（%）
 				commercialRate: 3.3,   // 商贷利率（%）
 				commercialAmount: 240,  // 商贷额度（万元）
@@ -874,11 +896,15 @@
 				return this.useFund && this.useCommercial;
 			},
 
-			// 公积金贷款政策上限（万元）：首套家庭240、二套160、三套起不可公积金贷款
+			// 公积金贷款政策上限（万元）：套数 × 参贷人数 × 二孩 三档联动
 			fundCap() {
-				if (this.homeCount === 'second') return 160;
-				if (this.homeCount === 'first') return 240;
-				return 0;
+				const tiers = {
+					'first-one-below2': 100, 'first-one-ge2': 120,
+					'first-multi-below2': 200, 'first-multi-ge2': 240,
+					'second-one-below2': 80, 'second-one-ge2': 96,
+					'second-multi-below2': 160, 'second-multi-ge2': 192,
+				};
+				return tiers[`${this.homeCount}-${this.loanParticipants}-${this.childrenCount}`] || 0;
 			},
 
 			// 公积金贷满状态：'over' 超上限(红) | 'filled' 贷满(绿) | 'below' 未贷满
@@ -1119,6 +1145,8 @@
 				if (val === 'percent') this.resetDeedTaxRate();
 			},
 			homeCount() { this.resetDownPaymentRate(); if (this.deedTaxMode === 'percent') this.resetDeedTaxRate(); if (this.isCombined && !this.fundManual) this.fillFundAtCap(); },
+			loanParticipants() { if (this.isCombined && !this.fundManual) this.fillFundAtCap(); },
+			childrenCount() { if (this.isCombined && !this.fundManual) this.fillFundAtCap(); },
 			useFund(val) {
 				if (!val && this.fundAmount > 0) this.fundAmount = 0;
 				if (val) {
