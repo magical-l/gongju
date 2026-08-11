@@ -227,12 +227,14 @@
     function updateHandlePosition(handle, element) {
         const rect = element.getBoundingClientRect();
         const canvasRect = canvasElement.getBoundingClientRect();
-        const leftRel = rect.left - canvasRect.left;
-        const topRel = rect.top - canvasRect.top;
+        const leftRel = (rect.left - canvasRect.left) / zoom;
+        const topRel = (rect.top - canvasRect.top) / zoom;
+        const w = rect.width / zoom;
+        const h = rect.height / zoom;
         if (handle.classList.contains('tl')) { handle.style.left = leftRel - 6 + 'px'; handle.style.top = topRel - 6 + 'px'; }
-        else if (handle.classList.contains('tr')) { handle.style.left = leftRel + rect.width - 6 + 'px'; handle.style.top = topRel - 6 + 'px'; }
-        else if (handle.classList.contains('bl')) { handle.style.left = leftRel - 6 + 'px'; handle.style.top = topRel + rect.height - 6 + 'px'; }
-        else if (handle.classList.contains('br')) { handle.style.left = leftRel + rect.width - 6 + 'px'; handle.style.top = topRel + rect.height - 6 + 'px'; }
+        else if (handle.classList.contains('tr')) { handle.style.left = leftRel + w - 6 + 'px'; handle.style.top = topRel - 6 + 'px'; }
+        else if (handle.classList.contains('bl')) { handle.style.left = leftRel - 6 + 'px'; handle.style.top = topRel + h - 6 + 'px'; }
+        else if (handle.classList.contains('br')) { handle.style.left = leftRel + w - 6 + 'px'; handle.style.top = topRel + h - 6 + 'px'; }
     }
     function hideResizeHandles() {
         document.querySelectorAll('.resize-handle').forEach(h => h.remove());
@@ -245,8 +247,8 @@
         let resizing = true;
         function onMouseMove(moveEv) {
             if (!resizing) return;
-            let deltaX = (moveEv.clientX - startX) * 0.6;
-            let deltaY = (moveEv.clientY - startY) * 0.6;
+            let deltaX = (moveEv.clientX - startX) * 0.6 / zoom;
+            let deltaY = (moveEv.clientY - startY) * 0.6 / zoom;
             let delta = (position === 'br' || position === 'tr') ? deltaX : -deltaX;
             if (position === 'bl' || position === 'br') delta = (deltaX + deltaY) / 2;
             else delta = (deltaX - deltaY) / 2;
@@ -395,7 +397,8 @@
             el.style.transform = v ? `rotate(${v}deg)` : '';
             pushHistory();
         };
-        const op = parseFloat(el.getAttribute('data-opacity')) || 1;
+        const opAttr = parseFloat(el.getAttribute('data-opacity'));
+        const op = Number.isFinite(opAttr) ? opAttr : 1;
         const opSlider = document.getElementById('opacitySlider');
         const opVal = document.getElementById('opacityValueDisplay');
         opSlider.value = Math.round(op * 100); opVal.textContent = Math.round(op * 100) + '%';
