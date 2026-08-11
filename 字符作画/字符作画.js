@@ -302,6 +302,28 @@
             previewDiv.innerText = originalChar;
             pushHistory();
         };
+        const rot = parseFloat(el.getAttribute('data-rotation')) || 0;
+        const rotSlider = document.getElementById('rotationSlider');
+        const rotVal = document.getElementById('rotationValueDisplay');
+        rotSlider.value = rot; rotVal.textContent = rot;
+        rotSlider.oninput = (e) => {
+            const v = parseInt(e.target.value);
+            rotVal.textContent = v;
+            el.setAttribute('data-rotation', v);
+            el.style.transform = v ? `rotate(${v}deg)` : '';
+            pushHistory();
+        };
+        const op = parseFloat(el.getAttribute('data-opacity')) || 1;
+        const opSlider = document.getElementById('opacitySlider');
+        const opVal = document.getElementById('opacityValueDisplay');
+        opSlider.value = Math.round(op * 100); opVal.textContent = Math.round(op * 100) + '%';
+        opSlider.oninput = (e) => {
+            const v = parseInt(e.target.value) / 100;
+            opVal.textContent = e.target.value + '%';
+            el.setAttribute('data-opacity', v);
+            el.style.opacity = v;
+            pushHistory();
+        };
         const colorArea = document.getElementById('colorControlArea');
         const colorPicker = document.getElementById('charColorPicker');
         if (!isEmoji) {

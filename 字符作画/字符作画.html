@@ -97,6 +97,16 @@
                             <input type="range" id="sizeSlider" min="12" max="140" step="1">
                         </div>
                         <div class="slider-row">
+                            <span>旋转 <span class="tooltip-icon" data-tooltip="旋转角度 -180~180">?</span></span>
+                            <span id="rotationValueDisplay">0</span>
+                            <input type="range" id="rotationSlider" min="-180" max="180" step="1">
+                        </div>
+                        <div class="slider-row">
+                            <span>透明度</span>
+                            <span id="opacityValueDisplay">100%</span>
+                            <input type="range" id="opacitySlider" min="0" max="100" step="1">
+                        </div>
+                        <div class="slider-row">
                             <span>重复 <span class="tooltip-icon" data-tooltip="退格键减少重复，Delete删除整个">?</span></span>
                             <span id="repeatValueDisplay">1</span>
                             <input type="range" id="repeatSlider" min="1" max="20" step="1">
