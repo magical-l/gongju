@@ -13,6 +13,7 @@
 
     let currentSelected = null;
     const selectedSet = new Set();
+    let suppressClickSelect = false;
     let sceneTransform = { x: 0, y: 0 };
     let zoom = 1;
     const MIN_ZOOM = 0.5, MAX_ZOOM = 2.5, ZOOM_STEP = 0.1;
@@ -141,6 +142,7 @@
         makeDraggable(div);
         div.addEventListener('click', (e) => {
             e.stopPropagation();
+            if (suppressClickSelect) { suppressClickSelect = false; return; }
             selectElement(div, { additive: e.ctrlKey || e.metaKey });
         });
         return div;
@@ -151,6 +153,7 @@
         let moved = false;
         let multiStarts = null;
         element.addEventListener('mousedown', (e) => {
+            suppressClickSelect = false;
             if (e.target === element || element.contains(e.target)) {
                 if (e.target.classList && e.target.classList.contains('resize-handle')) return;
                 e.preventDefault();
@@ -193,7 +196,7 @@
             }
         }
         function onMouseUp() {
-            if (dragging && moved) pushHistory();
+            if (dragging && moved) { pushHistory(); suppressClickSelect = true; }
             dragging = false;
             multiStarts = null;
             window.removeEventListener('mousemove', onMouseMove);
@@ -270,19 +273,17 @@
     }
 
     function selectElement(el, opts = {}) {
-        if (currentSelected) { currentSelected.classList.remove('selected'); hideResizeHandles(); }
+        if (currentSelected) hideResizeHandles();
         if (!el) { selectedSet.clear(); currentSelected = null; }
         else if (opts.additive) {
             // Ctrl+点击：切换
             if (selectedSet.has(el)) selectedSet.delete(el);
-            else { selectedSet.add(el); el.classList.add('selected'); }
+            else selectedSet.add(el);
             currentSelected = selectedSet.size ? [...selectedSet][selectedSet.size - 1] : null;
         } else {
-            selectedSet.clear(); selectedSet.add(el); currentSelected = el; el.classList.add('selected');
+            selectedSet.clear(); selectedSet.add(el); currentSelected = el;
         }
-        document.querySelectorAll('.scene-item').forEach(i => {
-            if (!selectedSet.has(i)) i.classList.remove('selected');
-        });
+        document.querySelectorAll('.scene-item').forEach(i => i.classList.toggle('selected', selectedSet.has(i)));
         // 面板
         const propsDiv = document.getElementById('propsPanel');
         const multiDiv = document.getElementById('multiSelectPanel');
@@ -868,6 +869,7 @@
         addDemoElements();
         selectElement(null);
         canvasElement.addEventListener('click', (e) => {
+            if (suppressClickSelect) { suppressClickSelect = false; return; }
             if (e.target === canvasElement) selectElement(null);
         });
         clampTransform();
