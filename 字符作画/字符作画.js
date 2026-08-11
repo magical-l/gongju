@@ -321,7 +321,8 @@
             const row = document.createElement('div');
             row.className = 'layer-item' + (selectedSet.has(el) ? ' active' : '');
             const ch = el.getAttribute('data-char') || '?';
-            row.innerHTML = `<span class="layer-char">${ch.slice(0,1)}</span>
+            const esc = String(ch).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+            row.innerHTML = `<span class="layer-char">${[...esc][0]}</span>
             <span class="layer-name">元素 ${items.length - i}</span>
             <button class="layer-up" title="上移一层">↑</button>
             <button class="layer-down" title="下移一层">↓</button>
@@ -330,8 +331,8 @@
                 if (e.target.closest('button')) return;
                 selectElement(el, { additive: e.ctrlKey || e.metaKey });
             });
-            row.querySelector('.layer-up').addEventListener('click', (e) => { e.stopPropagation(); swapLayerZ(el, -1); });
-            row.querySelector('.layer-down').addEventListener('click', (e) => { e.stopPropagation(); swapLayerZ(el, 1); });
+            row.querySelector('.layer-up').addEventListener('click', (e) => { e.stopPropagation(); swapLayerZ(el, 1); });
+            row.querySelector('.layer-down').addEventListener('click', (e) => { e.stopPropagation(); swapLayerZ(el, -1); });
             row.querySelector('.layer-del').addEventListener('click', (e) => { e.stopPropagation(); el.remove(); selectElement(null); pushHistory(); refreshLayers(); });
             list.appendChild(row);
         });
