@@ -296,7 +296,7 @@
         const multiDiv = document.getElementById('multiSelectPanel');
         const selDiv = document.getElementById('selectionControls');
         if (currentSelected) {
-            propsDiv.style.display = 'block';
+            propsDiv.open = true;
             if (selectedSet.size > 1) {
                 if (multiDiv) multiDiv.style.display = 'block';
                 selDiv.style.display = 'none';
@@ -308,7 +308,7 @@
                 updatePropsPanelWithElement(currentSelected);
             }
         } else {
-            propsDiv.style.display = 'none';
+            propsDiv.open = false;
         }
         if (typeof refreshLayers === 'function') refreshLayers();
     }
@@ -432,7 +432,8 @@
                 refreshLayers();
             }
         };
-        document.getElementById('closePropsBtn').onclick = () => selectElement(null);
+        const closePropsBtn = document.getElementById('closePropsBtn');
+        if (closePropsBtn) closePropsBtn.onclick = (e) => { e.stopPropagation(); selectElement(null); };
     }
 
     const ARROWS = { ArrowUp: [0,-1], ArrowDown: [0,1], ArrowLeft: [-1,0], ArrowRight: [1,0] };
@@ -830,18 +831,20 @@
         pushHistory();
     }
 
+    let panelDragMoved = false;
     function initPanelFloating() {
-        const panel = document.getElementById('rightPanel');
-        const reopenBtn = document.getElementById('reopenPanelBtn');
-        if (!panel || !reopenBtn) return;
-        // 拖标题栏移动面板
+        const panel = document.getElementById('floatPanel');
+        if (!panel) return;
+        // 拖标题栏（三个 summary）移动面板
         document.querySelectorAll('.panel-header').forEach(header => {
             header.addEventListener('mousedown', (e) => {
                 if (e.target.closest('button, #closePropsBtn')) return;
                 e.preventDefault();
+                panelDragMoved = false;
                 const startX = e.clientX, startY = e.clientY;
                 const baseLeft = panel.offsetLeft, baseTop = panel.offsetTop;
                 const onMove = (ev) => {
+                    if (Math.abs(ev.clientX - startX) > 3 || Math.abs(ev.clientY - startY) > 3) panelDragMoved = true;
                     panel.style.left = (baseLeft + ev.clientX - startX) + 'px';
                     panel.style.top = (baseTop + ev.clientY - startY) + 'px';
                 };
@@ -852,28 +855,13 @@
                 window.addEventListener('mousemove', onMove);
                 window.addEventListener('mouseup', onUp);
             });
-        });
-        // 收起/展开
-        document.querySelectorAll('.panel-collapse-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                panel.classList.add('collapsed');
-                reopenBtn.style.display = 'inline-flex';
+            // 拖完面板后抑制随后的 summary 折叠/展开（否则拖一下面板会误触发）
+            header.addEventListener('click', (e) => {
+                if (panelDragMoved) {
+                    panelDragMoved = false;
+                    e.preventDefault();
+                }
             });
-        });
-        reopenBtn.addEventListener('click', () => {
-            panel.classList.remove('collapsed');
-            reopenBtn.style.display = 'none';
-        });
-    }
-
-    function initLayerToggle() {
-        const btn = document.getElementById('layerToggleBtn');
-        const list = document.getElementById('layerList');
-        if (!btn || !list) return;
-        btn.addEventListener('click', () => {
-            const open = list.style.display !== 'none';
-            list.style.display = open ? 'none' : 'block';
-            btn.textContent = open ? '▶' : '▼';
         });
     }
 
@@ -895,7 +883,6 @@
         initCanvasPan();
         initPaste();
         initPanelFloating();
-        initLayerToggle();
         window.addEventListener('keydown', handleBackspaceDelete);
         window.addEventListener('keyup', (e) => {
             if (ARROWS[e.key] && arrowHistoryDirty) { pushHistory(); arrowHistoryDirty = false; }

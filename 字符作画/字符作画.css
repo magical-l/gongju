@@ -58,36 +58,8 @@
             font-size: 0.85rem;
             color: var(--text-secondary);
         }
-        .float-panel.collapsed { display: none; }
-        .panel-header { cursor: grab; }
-        .panel-collapse-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0 4px;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            line-height: 1;
-        }
-        .header-actions { display: inline-flex; align-items: center; gap: 4px; }
-        .float-reopen {
-            position: absolute;
-            top: 12px;
-            left: 12px;
-            z-index: 999;
-            /* 复用共享按钮外观 */
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: var(--bg-base);
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-md);
-            padding: 4px 10px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            box-shadow: var(--shadow-sm);
-        }
-        .float-reopen:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+        summary.panel-header { cursor: grab; }
+        .float-panel details + details { margin-top: 0.5rem; }
 
         .symbols-scroll {
             max-height: 500px;
@@ -247,14 +219,6 @@
             flex-wrap: wrap;
         }
         /* 图层面板（叠素材库下方，可折叠） */
-        .layer-toggle {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: var(--text-muted);
-            font-size: 0.8rem;
-            padding: 0 4px;
-        }
         .layer-list {
             margin-top: 0.5rem;
             max-height: 200px;
