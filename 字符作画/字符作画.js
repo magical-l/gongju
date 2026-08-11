@@ -689,9 +689,8 @@
             header.addEventListener('mousedown', (e) => {
                 if (e.target.closest('button, #closePropsBtn')) return;
                 e.preventDefault();
-                const rect = panel.getBoundingClientRect();
                 const startX = e.clientX, startY = e.clientY;
-                const baseLeft = rect.left, baseTop = rect.top;
+                const baseLeft = panel.offsetLeft, baseTop = panel.offsetTop;
                 const onMove = (ev) => {
                     panel.style.left = (baseLeft + ev.clientX - startX) + 'px';
                     panel.style.top = (baseTop + ev.clientY - startY) + 'px';
