@@ -13,6 +13,8 @@
 
     let currentSelected = null;
     let sceneTransform = { x: 0, y: 0 };
+    let zoom = 1;
+    const MIN_ZOOM = 0.5, MAX_ZOOM = 2.5, ZOOM_STEP = 0.1;
     let nextZIndex = 300;
     let isPanning = false;
     let panStart = { x: 0, y: 0 };
@@ -54,7 +56,7 @@
         canvasElement.style.width = canvasWidth + 'px';
         canvasElement.style.height = canvasHeight + 'px';
         sceneTransform = { x: snapshot.transform.x, y: snapshot.transform.y };
-        canvasElement.style.transform = `translate(${sceneTransform.x}px, ${sceneTransform.y}px)`;
+        applyViewTransform();
         clampTransform();
         snapshot.elements.forEach(e => {
             const div = createCharacterDiv(e.char, e.fontSize, e.repeat, e.color, parseInt(e.zIndex), e.left, e.top);
@@ -386,6 +388,23 @@
         return newDiv;
     }
 
+    function applyViewTransform() {
+        canvasElement.style.transform = `translate(${sceneTransform.x}px, ${sceneTransform.y}px) scale(${zoom})`;
+    }
+    function setZoom(z) {
+        zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Math.round(z * 10) / 10));
+        clampTransform();
+        applyViewTransform();
+        updateZoomUI();
+    }
+    function updateZoomUI() {
+        const d = document.getElementById('zoomDisplay');
+        if (d) d.textContent = Math.round(zoom * 100) + '%';
+        const o = document.getElementById('zoomOutBtn'), i = document.getElementById('zoomInBtn');
+        if (o) o.disabled = zoom <= MIN_ZOOM;
+        if (i) i.disabled = zoom >= MAX_ZOOM;
+    }
+
     function clampTransform() {
         const containerRect = container.getBoundingClientRect();
         const canvasRect = canvasElement.getBoundingClientRect();
@@ -402,7 +421,7 @@
         if (newX !== sceneTransform.x || newY !== sceneTransform.y) {
             sceneTransform.x = newX;
             sceneTransform.y = newY;
-            canvasElement.style.transform = `translate(${sceneTransform.x}px, ${sceneTransform.y}px)`;
+            applyViewTransform();
         }
     }
 
@@ -425,7 +444,7 @@
             sceneTransform.x = panStartTransform.x + dx;
             sceneTransform.y = panStartTransform.y + dy;
             clampTransform();
-            canvasElement.style.transform = `translate(${sceneTransform.x}px, ${sceneTransform.y}px)`;
+            applyViewTransform();
         });
         window.addEventListener('mouseup', () => {
             if (isPanning) pushHistory();
@@ -499,7 +518,7 @@
             const char = e.dataTransfer.getData('text/plain');
             if (char) {
                 const r = canvasElement.getBoundingClientRect();
-                addSymbolToCanvas(char, e.clientX - r.left, e.clientY - r.top, true);
+                addSymbolToCanvas(char, (e.clientX - r.left) / zoom, (e.clientY - r.top) / zoom, true);
             }
         });
     }
@@ -658,7 +677,9 @@
             while (canvasElement.firstChild) canvasElement.removeChild(canvasElement.firstChild);
             canvasElement.style.background = 'linear-gradient(145deg, #b2e0fa, #c5e0a4)';
             sceneTransform = { x: 0, y: 0 };
-            canvasElement.style.transform = `translate(0px, 0px)`;
+            zoom = 1;
+            applyViewTransform();
+            updateZoomUI();
             canvasWidth = 800;
             canvasHeight = 600;
             canvasElement.style.width = canvasWidth + 'px';
@@ -724,6 +745,13 @@
         canvasElement.style.width = canvasWidth + 'px';
         canvasElement.style.height = canvasHeight + 'px';
         canvasElement.style.background = 'linear-gradient(145deg, #b2e0fa, #c5e0a4)';
+        container.addEventListener('wheel', (e) => {
+            if (e.ctrlKey) { e.preventDefault(); setZoom(zoom + (e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP)); }
+        }, { passive: false });
+        document.getElementById('zoomInBtn').onclick = () => setZoom(zoom + ZOOM_STEP);
+        document.getElementById('zoomOutBtn').onclick = () => setZoom(zoom - ZOOM_STEP);
+        document.getElementById('zoomResetBtn').onclick = () => setZoom(1);
+        updateZoomUI();
         buildGroupedSymbols('emojiSymbolsContainer', emojiGroups);
         buildGroupedSymbols('normalSymbolsContainer', normalGroups);
         initTabs();
