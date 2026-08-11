@@ -2,6 +2,7 @@
 
         .modal {
             position: fixed;
+            z-index: 200000;
         }
 
         #helpBtn {
@@ -241,51 +242,44 @@
             margin-left: 6px;
             cursor: help;
         }
-        .dialog-overlay {
-            position: fixed;
-            justify-content: center;
-            align-items: center;
-            display: flex;
-            z-index: 200000;
-            backdrop-filter: blur(4px);
-            background: rgba(0,0,0,0.5);
-            height: 100%;
-            width: 100%;
-            left: 0;
-            top: 0;
-        }
-        .dialog-card {
-            background: var(--bg-base);
+        .modal > .body {
             text-align: left;
             color: var(--text-primary);
-            box-shadow: var(--shadow-lg);
-            max-width: 90vw;
-            width: 380px;
-            padding: 24px;
-            border-radius: var(--radius-lg);
         }
-        .dialog-card h3 {
-            margin: 0 0 12px;
+        .modal > .body h3 {
+            margin: 0 0 0.75rem;
+            color: var(--text-primary);
         }
-        .dialog-card ul {
-            margin: 0;
-            line-height: 1.8;
-            padding-left: 1.2em;
-        }
-        .dialog-card kbd {
-            background: var(--bg-muted);
-            font-size: 0.85em;
-            padding: 0 4px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border-subtle);
-        }
-        .dialog-card input, .dialog-card select {
+        .modal > .body input,
+        .modal > .body select {
             width: 100%;
             box-sizing: border-box;
             margin: 8px 0;
             border: 1px solid var(--border-default);
             border-radius: var(--radius-md);
             padding: 8px;
+        }
+        #canvasSettingsBody {
+            width: 420px;
+            max-width: 90vw;
+        }
+        .body.help-card {
+            width: 440px;
+            max-width: 90vw;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .body.help-card ul {
+            margin: 0;
+            line-height: 1.8;
+            padding-left: 1.2em;
+        }
+        .body.help-card kbd {
+            background: var(--bg-muted);
+            font-size: 0.85em;
+            padding: 0 4px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-subtle);
         }
         [data-tooltip] {
             position: relative;

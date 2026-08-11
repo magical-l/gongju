@@ -269,7 +269,7 @@
         const previewDiv = document.getElementById('previewChar');
         previewDiv.innerText = char;
         previewDiv.style.fontSize = Math.min(80, fontSize) + 'px';
-        document.getElementById('copyCharBtn').onclick = () => { navigator.clipboard.writeText(char); alert(`已复制: ${char}`); };
+        document.getElementById('copyCharBtn').onclick = () => { navigator.clipboard.writeText(char); toastr.success(`已复制: ${char}`); };
         const sizeSlider = document.getElementById('sizeSlider');
         const sizeVal = document.getElementById('sizeValueDisplay');
         sizeSlider.value = fontSize;
@@ -507,7 +507,7 @@
 
     function showCanvasSettings() {
         const dialog = document.createElement('div');
-        dialog.className = 'dialog-overlay';
+        dialog.className = 'modal';
         let currentGrad = canvasElement.style.background;
         let dir = '145deg';
         let col1 = '#b2e0fa', col2 = '#c5e0a4';
@@ -520,7 +520,7 @@
             }
         }
         dialog.innerHTML = `
-            <div class="dialog-card">
+            <div class="body" id="canvasSettingsBody">
                 <h3>🖌️ 画布设置</h3>
                 <div class="gradient-preview" id="gradientPreview" style="background: ${currentGrad};"></div>
                 <div class="gradient-controls">
@@ -601,9 +601,9 @@
 
     function showHelp() {
         const dialog = document.createElement('div');
-        dialog.className = 'dialog-overlay';
+        dialog.className = 'modal';
         dialog.innerHTML = `
-            <div class="dialog-card help-card">
+            <div class="body help-card">
                 <h3>📖 使用帮助</h3>
                 <ul>
                     <li>🖱️ 拖拽符号库中的字符到画布上添加</li>
@@ -628,15 +628,15 @@
     function saveScene() {
         const data = captureSnapshot();
         localStorage.setItem('char_scene_data', JSON.stringify(data));
-        alert('场景已保存');
+        toastr.success('场景已保存');
     }
     function loadScene() {
         const raw = localStorage.getItem('char_scene_data');
-        if (!raw) { alert('无保存数据'); return; }
+        if (!raw) { toastr.warning('无保存数据'); return; }
         const data = JSON.parse(raw);
         applySnapshot(data);
         pushHistory();
-        alert('加载完成');
+        toastr.success('加载完成');
     }
     function newScene() {
         if (confirm('新建将清除当前所有内容，是否继续？')) {
