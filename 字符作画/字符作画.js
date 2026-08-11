@@ -12,6 +12,7 @@
     };
 
     let currentSelected = null;
+    const selectedSet = new Set();
     let sceneTransform = { x: 0, y: 0 };
     let zoom = 1;
     const MIN_ZOOM = 0.5, MAX_ZOOM = 2.5, ZOOM_STEP = 0.1;
@@ -140,7 +141,7 @@
         makeDraggable(div);
         div.addEventListener('click', (e) => {
             e.stopPropagation();
-            selectElement(div);
+            selectElement(div, { additive: e.ctrlKey || e.metaKey });
         });
         return div;
     }
@@ -148,6 +149,7 @@
     function makeDraggable(element) {
         let startX = 0, startY = 0, startLeft = 0, startTop = 0, dragging = false;
         let moved = false;
+        let multiStarts = null;
         element.addEventListener('mousedown', (e) => {
             if (e.target === element || element.contains(e.target)) {
                 if (e.target.classList && e.target.classList.contains('resize-handle')) return;
@@ -157,6 +159,15 @@
                 startY = e.clientY;
                 startLeft = parseInt(element.style.left);
                 startTop = parseInt(element.style.top);
+                if (selectedSet.has(element) && selectedSet.size > 1) {
+                    multiStarts = [...selectedSet].map(sel => ({
+                        el: sel,
+                        left: parseInt(sel.style.left),
+                        top: parseInt(sel.style.top)
+                    }));
+                } else {
+                    multiStarts = null;
+                }
                 dragging = true;
                 moved = false;
                 window.addEventListener('mousemove', onMouseMove);
@@ -168,8 +179,15 @@
             moved = true;
             let dx = e.clientX - startX;
             let dy = e.clientY - startY;
-            element.style.left = (startLeft + dx) + 'px';
-            element.style.top = (startTop + dy) + 'px';
+            if (multiStarts) {
+                multiStarts.forEach(({ el, left, top }) => {
+                    el.style.left = (left + dx) + 'px';
+                    el.style.top = (top + dy) + 'px';
+                });
+            } else {
+                element.style.left = (startLeft + dx) + 'px';
+                element.style.top = (startTop + dy) + 'px';
+            }
             if (currentSelected === element) {
                 document.querySelectorAll('.resize-handle').forEach(h => updateHandlePosition(h, element));
             }
@@ -177,6 +195,7 @@
         function onMouseUp() {
             if (dragging && moved) pushHistory();
             dragging = false;
+            multiStarts = null;
             window.removeEventListener('mousemove', onMouseMove);
             window.removeEventListener('mouseup', onMouseUp);
         }
@@ -250,21 +269,40 @@
         window.addEventListener('mouseup', onMouseUp);
     }
 
-    function selectElement(el) {
-        if (currentSelected) {
-            currentSelected.classList.remove('selected');
-            hideResizeHandles();
+    function selectElement(el, opts = {}) {
+        if (currentSelected) { currentSelected.classList.remove('selected'); hideResizeHandles(); }
+        if (!el) { selectedSet.clear(); currentSelected = null; }
+        else if (opts.additive) {
+            // Ctrl+点击：切换
+            if (selectedSet.has(el)) selectedSet.delete(el);
+            else { selectedSet.add(el); el.classList.add('selected'); }
+            currentSelected = selectedSet.size ? [...selectedSet][selectedSet.size - 1] : null;
+        } else {
+            selectedSet.clear(); selectedSet.add(el); currentSelected = el; el.classList.add('selected');
         }
-        currentSelected = el;
+        document.querySelectorAll('.scene-item').forEach(i => {
+            if (!selectedSet.has(i)) i.classList.remove('selected');
+        });
+        // 面板
         const propsDiv = document.getElementById('propsPanel');
-        if (el) {
-            el.classList.add('selected');
-            showResizeHandles(el);
-            updatePropsPanelWithElement(el);
+        const multiDiv = document.getElementById('multiSelectPanel');
+        const selDiv = document.getElementById('selectionControls');
+        if (currentSelected) {
             propsDiv.style.display = 'block';
+            if (selectedSet.size > 1) {
+                if (multiDiv) multiDiv.style.display = 'block';
+                selDiv.style.display = 'none';
+                if (multiDiv) multiDiv.querySelector('#multiCount').textContent = selectedSet.size;
+            } else {
+                if (multiDiv) multiDiv.style.display = 'none';
+                selDiv.style.display = 'block';
+                showResizeHandles(currentSelected);
+                updatePropsPanelWithElement(currentSelected);
+            }
         } else {
             propsDiv.style.display = 'none';
         }
+        if (typeof refreshLayers === 'function') refreshLayers();
     }
 
     function updatePropsPanelWithElement(el) {
@@ -374,7 +412,10 @@
             document.querySelectorAll('.resize-handle').forEach(h => updateHandlePosition(h, currentSelected));
         }
     }
-    function getSelectionTargets() { return currentSelected ? [currentSelected] : []; }
+    function getSelectionTargets() {
+        if (selectedSet.size > 0) return [...selectedSet];
+        return currentSelected ? [currentSelected] : [];
+    }
 
     function handleBackspaceDelete(e) {
         if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) {
@@ -409,13 +450,13 @@
                 document.getElementById('repeatValueDisplay').innerText = repeat;
                 pushHistory();
             } else {
-                currentSelected.remove();
+                getSelectionTargets().forEach(t => t.remove());
                 selectElement(null);
                 pushHistory();
             }
         } else if (e.key === 'Delete') {
             e.preventDefault();
-            currentSelected.remove();
+            getSelectionTargets().forEach(t => t.remove());
             selectElement(null);
             pushHistory();
         }
@@ -810,6 +851,14 @@
         });
         document.getElementById('undoBtn').onclick = undo;
         document.getElementById('redoBtn').onclick = redo;
+        const multiDeleteBtn = document.getElementById('multiDeleteBtn');
+        if (multiDeleteBtn) multiDeleteBtn.onclick = () => {
+            getSelectionTargets().forEach(t => t.remove());
+            selectElement(null);
+            pushHistory();
+        };
+        const multiCancelBtn = document.getElementById('multiCancelBtn');
+        if (multiCancelBtn) multiCancelBtn.onclick = () => selectElement(null);
         document.getElementById('saveSceneBtn').onclick = saveScene;
         document.getElementById('loadSceneBtn').onclick = loadScene;
         document.getElementById('newSceneBtn').onclick = newScene;
