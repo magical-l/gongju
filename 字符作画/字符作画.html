@@ -125,8 +125,6 @@
                             </div>
                         </div>
                         <div class="layer-buttons">
-                            <button class="btn" id="raiseBtn">⬆️ 往前</button>
-                            <button class="btn" id="lowerBtn">⬇️ 退后</button>
                             <button class="btn danger delete-btn" id="deleteItemBtn">🗑️ 删除</button>
                         </div>
                     </div>
@@ -139,6 +137,13 @@
                     </div>
                     <div id="emojiSymbolsContainer" class="symbols-scroll"></div>
                     <div id="normalSymbolsContainer" class="symbols-scroll" style="display:none;"></div>
+                </div>
+                <div id="layerPanel">
+                    <div class="panel-header">
+                        <span>🎨 图层</span>
+                        <button class="layer-toggle" id="layerToggleBtn" title="展开/收起">▶</button>
+                    </div>
+                    <div id="layerList" class="layer-list" style="display:none;"></div>
                 </div>
                 </div>
                 <button class="float-reopen" id="reopenPanelBtn" style="display:none;" title="打开素材库">📚 素材</button>

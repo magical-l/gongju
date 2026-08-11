@@ -68,6 +68,7 @@
             canvasElement.appendChild(div);
         });
         selectElement(null);
+        refreshLayers();
     }
 
     function pushHistory() {
@@ -310,6 +311,43 @@
         if (typeof refreshLayers === 'function') refreshLayers();
     }
 
+    function refreshLayers() {
+        const list = document.getElementById('layerList');
+        if (!list) return;
+        list.innerHTML = '';
+        const items = [...document.querySelectorAll('#sceneCanvas .scene-item')]
+            .sort((a, b) => (parseInt(b.style.zIndex) || 0) - (parseInt(a.style.zIndex) || 0));
+        items.forEach((el, i) => {
+            const row = document.createElement('div');
+            row.className = 'layer-item' + (selectedSet.has(el) ? ' active' : '');
+            const ch = el.getAttribute('data-char') || '?';
+            row.innerHTML = `<span class="layer-char">${ch.slice(0,1)}</span>
+            <span class="layer-name">元素 ${items.length - i}</span>
+            <button class="layer-up" title="上移一层">↑</button>
+            <button class="layer-down" title="下移一层">↓</button>
+            <button class="layer-del" title="删除">🗑</button>`;
+            row.addEventListener('click', (e) => {
+                if (e.target.closest('button')) return;
+                selectElement(el, { additive: e.ctrlKey || e.metaKey });
+            });
+            row.querySelector('.layer-up').addEventListener('click', (e) => { e.stopPropagation(); swapLayerZ(el, -1); });
+            row.querySelector('.layer-down').addEventListener('click', (e) => { e.stopPropagation(); swapLayerZ(el, 1); });
+            row.querySelector('.layer-del').addEventListener('click', (e) => { e.stopPropagation(); el.remove(); selectElement(null); pushHistory(); refreshLayers(); });
+            list.appendChild(row);
+        });
+    }
+    function swapLayerZ(el, dir) {
+        const items = [...document.querySelectorAll('#sceneCanvas .scene-item')]
+            .sort((a, b) => (parseInt(a.style.zIndex) || 0) - (parseInt(b.style.zIndex) || 0));
+        const idx = items.indexOf(el);
+        const other = items[idx + dir];
+        if (!other) return;
+        const t = el.style.zIndex; el.style.zIndex = other.style.zIndex; other.style.zIndex = t;
+        el.setAttribute('data-zindex', el.style.zIndex);
+        other.setAttribute('data-zindex', other.style.zIndex);
+        pushHistory(); refreshLayers();
+    }
+
     function updatePropsPanelWithElement(el) {
         const char = el.getAttribute('data-char');
         let repeat = parseInt(el.getAttribute('data-repeat') || 1);
@@ -382,23 +420,12 @@
         } else {
             colorArea.style.display = 'none';
         }
-        document.getElementById('raiseBtn').onclick = () => {
-            let z = parseInt(el.style.zIndex) || parseInt(el.getAttribute('data-zindex')) || 100;
-            el.style.zIndex = z + 1;
-            el.setAttribute('data-zindex', z+1);
-            pushHistory();
-        };
-        document.getElementById('lowerBtn').onclick = () => {
-            let z = parseInt(el.style.zIndex) || parseInt(el.getAttribute('data-zindex')) || 100;
-            el.style.zIndex = z - 1;
-            el.setAttribute('data-zindex', z-1);
-            pushHistory();
-        };
         document.getElementById('deleteItemBtn').onclick = () => {
             if (currentSelected) {
                 currentSelected.remove();
                 selectElement(null);
                 pushHistory();
+                refreshLayers();
             }
         };
         document.getElementById('closePropsBtn').onclick = () => selectElement(null);
@@ -475,6 +502,7 @@
         const newDiv = createCharacterDiv(char, defaultSize, 1, defaultColor, null, left + 'px', top + 'px');
         canvasElement.appendChild(newDiv);
         selectElement(newDiv);
+        refreshLayers();
         if (record) pushHistory();
         return newDiv;
     }
@@ -777,12 +805,14 @@
             canvasElement.style.height = canvasHeight + 'px';
             selectElement(null);
             pushHistory();
+            refreshLayers();
         }
     }
     function clearCanvas() {
         while(canvasElement.firstChild) canvasElement.removeChild(canvasElement.firstChild);
         selectElement(null);
         pushHistory();
+        refreshLayers();
     }
 
     function addDemoElements() {
@@ -832,6 +862,17 @@
         });
     }
 
+    function initLayerToggle() {
+        const btn = document.getElementById('layerToggleBtn');
+        const list = document.getElementById('layerList');
+        if (!btn || !list) return;
+        btn.addEventListener('click', () => {
+            const open = list.style.display !== 'none';
+            list.style.display = open ? 'none' : 'block';
+            btn.textContent = open ? '▶' : '▼';
+        });
+    }
+
     function init() {
         canvasElement.style.width = canvasWidth + 'px';
         canvasElement.style.height = canvasHeight + 'px';
@@ -850,6 +891,7 @@
         initCanvasPan();
         initPaste();
         initPanelFloating();
+        initLayerToggle();
         window.addEventListener('keydown', handleBackspaceDelete);
         window.addEventListener('keyup', (e) => {
             if (ARROWS[e.key] && arrowHistoryDirty) { pushHistory(); arrowHistoryDirty = false; }
@@ -861,6 +903,7 @@
             getSelectionTargets().forEach(t => t.remove());
             selectElement(null);
             pushHistory();
+            refreshLayers();
         };
         const multiCancelBtn = document.getElementById('multiCancelBtn');
         if (multiCancelBtn) multiCancelBtn.onclick = () => selectElement(null);
@@ -878,5 +921,6 @@
         });
         clampTransform();
         pushHistory();
+        refreshLayers();
     }
     init();
