@@ -334,6 +334,16 @@
     }
 
     function handleBackspaceDelete(e) {
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) {
+            e.preventDefault();
+            if (e.shiftKey) redo(); else undo();
+            return;
+        }
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || e.key === 'Y')) {
+            e.preventDefault();
+            redo();
+            return;
+        }
         if (!currentSelected) return;
         if (e.key === 'Backspace') {
             e.preventDefault();
@@ -360,12 +370,9 @@
         }
     }
 
-    function addSymbolToCanvas(char, mouseX, mouseY, record = true) {
-        const canvasRect = canvasElement.getBoundingClientRect();
-        let left = mouseX - canvasRect.left;
-        let top = mouseY - canvasRect.top;
-        left = Math.min(Math.max(left, 10), canvasElement.clientWidth - 40);
-        top = Math.min(Math.max(top, 10), canvasElement.clientHeight - 40);
+    function addSymbolToCanvas(char, x, y, record = true) {
+        let left = Math.min(Math.max(x, 10), canvasElement.clientWidth - 40);
+        let top = Math.min(Math.max(y, 10), canvasElement.clientHeight - 40);
         const defaultSize = isEmojiCharacter(char) ? 52 : 44;
         const defaultColor = isEmojiCharacter(char) ? null : '#2b5a2b';
         const newDiv = createCharacterDiv(char, defaultSize, 1, defaultColor, null, left + 'px', top + 'px');
@@ -486,7 +493,10 @@
         canvasElement.addEventListener('drop', (e) => {
             e.preventDefault();
             const char = e.dataTransfer.getData('text/plain');
-            if (char) addSymbolToCanvas(char, e.clientX, e.clientY, true);
+            if (char) {
+                const r = canvasElement.getBoundingClientRect();
+                addSymbolToCanvas(char, e.clientX - r.left, e.clientY - r.top, true);
+            }
         });
     }
 
@@ -498,9 +508,9 @@
             if (text.length > 1) {
                 const ok = confirm(`剪贴板内容包含 ${text.length} 个字符。是否只取第一个字符“${text[0]}”添加到画布？`);
                 if (!ok) return;
-                addSymbolToCanvas(text[0], 200, 200, true);
+                addSymbolToCanvas(text[0], canvasWidth / 2, canvasHeight / 2, true);
             } else {
-                addSymbolToCanvas(text, 200, 200, true);
+                addSymbolToCanvas(text, canvasWidth / 2, canvasHeight / 2, true);
             }
         });
     }
@@ -530,6 +540,7 @@
                         <option value="to bottom">⬇️ 向下 (to bottom)</option>
                         <option value="to left">⬅️ 向左 (to left)</option>
                         <option value="135deg">↗️ 对角线 (135deg)</option>
+                        <option value="120deg">↗️ 对角 (120deg)</option>
                         <option value="145deg" selected>🌅 天空草地 (145deg)</option>
                     </select>
                 </div>
