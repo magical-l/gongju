@@ -51,6 +51,13 @@
             padding: 0.75rem;
             user-select: none;
         }
+        .zoom-display {
+            min-width: 3.5em;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
         .float-panel.collapsed { display: none; }
         .panel-header { cursor: grab; }
         .panel-collapse-btn {
