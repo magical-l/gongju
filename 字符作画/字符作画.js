@@ -152,6 +152,7 @@
         let startX = 0, startY = 0, startLeft = 0, startTop = 0, dragging = false;
         let moved = false;
         let multiStarts = null;
+        let multiDragActive = false;
         element.addEventListener('mousedown', (e) => {
             suppressClickSelect = false;
             if (e.target === element || element.contains(e.target)) {
@@ -168,8 +169,10 @@
                         left: parseInt(sel.style.left),
                         top: parseInt(sel.style.top)
                     }));
+                    multiDragActive = true;
                 } else {
                     multiStarts = null;
+                    multiDragActive = false;
                 }
                 dragging = true;
                 moved = false;
@@ -196,8 +199,9 @@
             }
         }
         function onMouseUp() {
-            if (dragging && moved) { pushHistory(); suppressClickSelect = true; }
+            if (dragging && moved) { pushHistory(); if (multiDragActive) suppressClickSelect = true; }
             dragging = false;
+            multiDragActive = false;
             multiStarts = null;
             window.removeEventListener('mousemove', onMouseMove);
             window.removeEventListener('mouseup', onMouseUp);
