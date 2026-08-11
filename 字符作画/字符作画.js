@@ -387,6 +387,7 @@
             redo();
             return;
         }
+        if (e.target && e.target.closest && e.target.closest('input, select, textarea, button, [contenteditable]')) return;
         if (ARROWS[e.key] && currentSelected) {
             e.preventDefault();
             const step = e.shiftKey ? 10 : 1;
