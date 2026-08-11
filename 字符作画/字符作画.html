@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>字符画板 · 优雅编辑器</title>
+    <link href="字符作画.css" rel="stylesheet">
+</head>
+<body>
+<div class="workspace">
+    <!-- 顶部工具栏 -->
+    <div class="top-toolbar">
+        <button id="newSceneBtn">✨ 新建</button>
+        <button id="saveSceneBtn">💾 保存</button>
+        <button id="loadSceneBtn">📂 打开</button>
+        <button id="canvasSettingsBtn">🖼️ 画布</button>
+        <button id="undoBtn" class="icon-only" title="撤销 (Ctrl+Z)">↩️</button>
+        <button id="redoBtn" class="icon-only" title="重做 (Ctrl+Y)">↪️</button>
+        <button id="clearCanvasBtn">🗑️ 清空</button>
+        <button id="helpBtn" class="icon-only" title="帮助">?</button>
+    </div>
+
+    <!-- 画布容器 -->
+    <div class="canvas-container" id="canvasContainer">
+        <div class="scene-canvas" id="sceneCanvas"></div>
+    </div>
+
+    <!-- 右侧动态面板：根据是否有选中元素切换内容 -->
+    <div class="right-panel" id="rightPanel">
+        <!-- 素材库内容 (默认显示) -->
+        <div id="libraryPanel">
+            <div class="panel-header">📚 字符素材库</div>
+            <div class="tab-bar">
+                <button class="tab-btn active" data-tab="emoji">😊 Emoji</button>
+                <button class="tab-btn" data-tab="normal">🔤 普通符号</button>
+            </div>
+            <div id="emojiSymbolsContainer" style="max-height: 500px; overflow-y: auto;"></div>
+            <div id="normalSymbolsContainer" style="max-height: 500px; overflow-y: auto; display: none;"></div>
+        </div>
+        <!-- 属性面板 (初始隐藏) -->
+        <div id="propsPanel" style="display: none;">
+            <div class="panel-header">
+                <span>✨ 选中元素</span>
+                <span style="cursor: pointer;" id="closePropsBtn">✕</span>
+            </div>
+            <div id="selectionControls">
+                <div class="preview-card">
+                    <div class="preview-char" id="previewChar">🌟</div>
+                    <button class="copy-btn" id="copyCharBtn">📋 复制字符</button>
+                </div>
+                <div class="slider-row">
+                    <span>字号 <span class="tooltip-icon" data-tooltip="可在元素四角拖拽缩放">?</span></span>
+                    <span id="sizeValueDisplay">48</span>
+                    <input type="range" id="sizeSlider" min="12" max="140" step="1">
+                </div>
+                <div class="slider-row">
+                    <span>重复 <span class="tooltip-icon" data-tooltip="退格键减少重复，Delete删除整个">?</span></span>
+                    <span id="repeatValueDisplay">1</span>
+                    <input type="range" id="repeatSlider" min="1" max="20" step="1">
+                </div>
+                <div id="colorControlArea" style="display:none;">
+                    <div class="slider-row">
+                        <span>颜色</span>
+                        <input type="color" id="charColorPicker" value="#2c5a2c">
+                    </div>
+                </div>
+                <div class="layer-buttons">
+                    <button id="raiseBtn">⬆️ 往前</button>
+                    <button id="lowerBtn">⬇️ 退后</button>
+                    <button id="deleteItemBtn" class="delete-btn">🗑️ 删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="字符作画.js"></script>
+</body>
+</html>

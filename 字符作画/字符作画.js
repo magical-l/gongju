@@ -1,0 +1,699 @@
+
+    // ---------- 符号库数据 ----------
+    const normalGroups = {
+        "🔣 装饰 & 符号": ["★", "☆", "☀", "☁", "⚡", "☾", "✿", "❀", "〰️", "➰", "✂️", "⚙️", "🌀", "◉", "◎", "▧", "▣", "▪️", "▫️", "☯", "♻️", "⚜️", "♩", "♪", "♫"],
+        "⬆️ 箭头 & 标点": ["⬆️", "⬇️", "⬅️", "➡️", "↗️", "↘️", "↙️", "↖️", "❌", "✔️", "❗", "❓", "‼️", "⁉️"]
+    };
+    const emojiGroups = {
+        "👥 人物角色": ["👩", "👨", "🧑", "👧", "👦", "👵", "👴", "👸", "🤴", "🧙", "🧚", "🧛", "🎅", "🤶", "💁", "🙋", "💂", "🕵️", "👩‍🌾", "👨‍🍳", "👩‍🎨", "🧑‍🚀"],
+        "🐾 动物伙伴": ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮", "🐷", "🐸", "🐒", "🐔", "🐧", "🐦", "🐴", "🐺", "🦋", "🐌", "🐞", "🐝", "🐑", "🐄", "🦆"],
+        "🌻 花草自然": ["🌸", "🌼", "🌻", "🌺", "🌹", "🥀", "🌿", "🍀", "🍃", "🍂", "🍁", "🌲", "🌳", "🌴", "🍎", "🍓", "🍊", "🥕", "🌽", "🍄"],
+        "🏠 建筑物品": ["🏠", "🏡", "🏢", "🏘️", "🏰", "🗼", "🚗", "🚜", "🚲", "🚛", "✈️", "⛵", "🚀", "🛸", "⌛", "⏳", "⚓", "🔔", "📷", "💡", "🔑", "🧺", "🪣", "🧹", "🚪"]
+    };
+
+    let currentSelected = null;
+    let sceneTransform = { x: 0, y: 0 };
+    let nextZIndex = 300;
+    let isPanning = false;
+    let panStart = { x: 0, y: 0 };
+    let panStartTransform = { x: 0, y: 0 };
+    const canvasElement = document.getElementById('sceneCanvas');
+    const container = document.getElementById('canvasContainer');
+    let canvasWidth = 800, canvasHeight = 600;
+
+    // 历史记录
+    let historyStack = [];
+    let historyIndex = -1;
+    const MAX_HISTORY = 50;
+
+    function captureSnapshot() {
+        const items = document.querySelectorAll('#sceneCanvas .scene-item');
+        const elements = [];
+        items.forEach(el => {
+            elements.push({
+                char: el.getAttribute('data-char'),
+                repeat: parseInt(el.getAttribute('data-repeat')),
+                fontSize: parseInt(el.getAttribute('data-fontsize')),
+                left: el.style.left,
+                top: el.style.top,
+                zIndex: el.style.zIndex,
+                color: el.style.color || null
+            });
+        });
+        const bgGradient = canvasElement.style.background;
+        return { bg: bgGradient, elements, transform: { x: sceneTransform.x, y: sceneTransform.y }, width: canvasWidth, height: canvasHeight };
+    }
+
+    function applySnapshot(snapshot) {
+        while (canvasElement.firstChild) canvasElement.removeChild(canvasElement.firstChild);
+        canvasElement.style.background = snapshot.bg;
+        canvasWidth = snapshot.width;
+        canvasHeight = snapshot.height;
+        canvasElement.style.width = canvasWidth + 'px';
+        canvasElement.style.height = canvasHeight + 'px';
+        sceneTransform = { x: snapshot.transform.x, y: snapshot.transform.y };
+        canvasElement.style.transform = `translate(${sceneTransform.x}px, ${sceneTransform.y}px)`;
+        clampTransform();
+        snapshot.elements.forEach(e => {
+            const div = createCharacterDiv(e.char, e.fontSize, e.repeat, e.color, parseInt(e.zIndex), e.left, e.top);
+            if (e.color && !isEmojiCharacter(e.char)) div.style.color = e.color;
+            canvasElement.appendChild(div);
+        });
+        selectElement(null);
+    }
+
+    function pushHistory() {
+        const snapshot = captureSnapshot();
+        if (historyIndex < historyStack.length - 1) {
+            historyStack = historyStack.slice(0, historyIndex + 1);
+        }
+        historyStack.push(snapshot);
+        if (historyStack.length > MAX_HISTORY) historyStack.shift();
+        historyIndex = historyStack.length - 1;
+        updateUndoRedoButtons();
+    }
+
+    function undo() {
+        if (historyIndex > 0) {
+            historyIndex--;
+            applySnapshot(historyStack[historyIndex]);
+            updateUndoRedoButtons();
+        }
+    }
+
+    function redo() {
+        if (historyIndex < historyStack.length - 1) {
+            historyIndex++;
+            applySnapshot(historyStack[historyIndex]);
+            updateUndoRedoButtons();
+        }
+    }
+
+    function updateUndoRedoButtons() {
+        const undoBtn = document.getElementById('undoBtn');
+        const redoBtn = document.getElementById('redoBtn');
+        if (undoBtn) undoBtn.disabled = (historyIndex <= 0);
+        if (redoBtn) redoBtn.disabled = (historyIndex >= historyStack.length - 1);
+    }
+
+    function isEmojiCharacter(charStr) {
+        if (!charStr) return false;
+        const code = charStr.codePointAt(0);
+        if (!code) return false;
+        if (code >= 0x1F300 && code <= 0x1F6FF) return true;
+        if (code >= 0x1F900 && code <= 0x1F9FF) return true;
+        if (code >= 0x2600 && code <= 0x26FF && /[\p{Emoji}]/u.test(charStr)) return true;
+        return /[\p{Emoji_Presentation}]/u.test(charStr);
+    }
+    function getNewZIndex() { return nextZIndex++; }
+
+    function createCharacterDiv(character, fontSize = 46, repeat = 1, color = null, customZ = null, left = '80px', top = '80px') {
+        const div = document.createElement('div');
+        div.className = 'scene-item';
+        div.innerText = character.repeat(repeat);
+        div.setAttribute('data-char', character);
+        div.setAttribute('data-repeat', repeat);
+        div.setAttribute('data-fontsize', fontSize);
+        div.style.fontSize = fontSize + 'px';
+        div.style.left = left;
+        div.style.top = top;
+        div.style.position = 'absolute';
+        const finalZ = customZ !== null ? customZ : getNewZIndex();
+        div.style.zIndex = finalZ;
+        div.setAttribute('data-zindex', finalZ);
+        const isEmoji = isEmojiCharacter(character);
+        if (!isEmoji && color) {
+            div.style.color = color;
+            div.setAttribute('data-color', color);
+        } else {
+            div.style.color = '';
+        }
+        makeDraggable(div);
+        div.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectElement(div);
+        });
+        return div;
+    }
+
+    function makeDraggable(element) {
+        let startX = 0, startY = 0, startLeft = 0, startTop = 0, dragging = false;
+        let moved = false;
+        element.addEventListener('mousedown', (e) => {
+            if (e.target === element || element.contains(e.target)) {
+                if (e.target.classList && e.target.classList.contains('resize-handle')) return;
+                e.preventDefault();
+                e.stopPropagation();
+                startX = e.clientX;
+                startY = e.clientY;
+                startLeft = parseInt(element.style.left);
+                startTop = parseInt(element.style.top);
+                dragging = true;
+                moved = false;
+                window.addEventListener('mousemove', onMouseMove);
+                window.addEventListener('mouseup', onMouseUp);
+            }
+        });
+        function onMouseMove(e) {
+            if (!dragging) return;
+            moved = true;
+            let dx = e.clientX - startX;
+            let dy = e.clientY - startY;
+            element.style.left = (startLeft + dx) + 'px';
+            element.style.top = (startTop + dy) + 'px';
+            if (currentSelected === element) {
+                document.querySelectorAll('.resize-handle').forEach(h => updateHandlePosition(h, element));
+            }
+        }
+        function onMouseUp() {
+            if (dragging && moved) pushHistory();
+            dragging = false;
+            window.removeEventListener('mousemove', onMouseMove);
+            window.removeEventListener('mouseup', onMouseUp);
+        }
+    }
+
+    // 缩放控制
+    function showResizeHandles(element) {
+        hideResizeHandles();
+        const positions = ['tl', 'tr', 'bl', 'br'];
+        positions.forEach(pos => {
+            const handle = document.createElement('div');
+            handle.className = `resize-handle ${pos}`;
+            handle.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                startResize(element, pos, e);
+            });
+            canvasElement.appendChild(handle);
+            updateHandlePosition(handle, element);
+        });
+    }
+    function updateHandlePosition(handle, element) {
+        const rect = element.getBoundingClientRect();
+        const canvasRect = canvasElement.getBoundingClientRect();
+        const leftRel = rect.left - canvasRect.left;
+        const topRel = rect.top - canvasRect.top;
+        if (handle.classList.contains('tl')) { handle.style.left = leftRel - 6 + 'px'; handle.style.top = topRel - 6 + 'px'; }
+        else if (handle.classList.contains('tr')) { handle.style.left = leftRel + rect.width - 6 + 'px'; handle.style.top = topRel - 6 + 'px'; }
+        else if (handle.classList.contains('bl')) { handle.style.left = leftRel - 6 + 'px'; handle.style.top = topRel + rect.height - 6 + 'px'; }
+        else if (handle.classList.contains('br')) { handle.style.left = leftRel + rect.width - 6 + 'px'; handle.style.top = topRel + rect.height - 6 + 'px'; }
+    }
+    function hideResizeHandles() {
+        document.querySelectorAll('.resize-handle').forEach(h => h.remove());
+    }
+    function startResize(element, position, e) {
+        e.preventDefault();
+        const startFontSize = parseInt(element.style.fontSize) || parseInt(element.getAttribute('data-fontsize')) || 40;
+        const startX = e.clientX;
+        const startY = e.clientY;
+        let resizing = true;
+        function onMouseMove(moveEv) {
+            if (!resizing) return;
+            let deltaX = (moveEv.clientX - startX) * 0.6;
+            let deltaY = (moveEv.clientY - startY) * 0.6;
+            let delta = (position === 'br' || position === 'tr') ? deltaX : -deltaX;
+            if (position === 'bl' || position === 'br') delta = (deltaX + deltaY) / 2;
+            else delta = (deltaX - deltaY) / 2;
+            let newSize = Math.max(12, Math.round(startFontSize + delta));
+            element.style.fontSize = newSize + 'px';
+            element.setAttribute('data-fontsize', newSize);
+            if (currentSelected === element) {
+                const preview = document.getElementById('previewChar');
+                if (preview) preview.style.fontSize = Math.min(80, newSize) + 'px';
+                const sizeSlider = document.getElementById('sizeSlider');
+                if (sizeSlider) sizeSlider.value = newSize;
+                document.getElementById('sizeValueDisplay').innerText = newSize;
+            }
+            document.querySelectorAll('.resize-handle').forEach(h => updateHandlePosition(h, element));
+        }
+        function onMouseUp() {
+            if (resizing) pushHistory();
+            resizing = false;
+            window.removeEventListener('mousemove', onMouseMove);
+            window.removeEventListener('mouseup', onMouseUp);
+            if (currentSelected !== element) selectElement(element);
+            else {
+                hideResizeHandles();
+                if (currentSelected) showResizeHandles(currentSelected);
+            }
+        }
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
+    }
+
+    function selectElement(el) {
+        if (currentSelected) {
+            currentSelected.classList.remove('selected');
+            hideResizeHandles();
+        }
+        currentSelected = el;
+        const libraryDiv = document.getElementById('libraryPanel');
+        const propsDiv = document.getElementById('propsPanel');
+        if (el) {
+            el.classList.add('selected');
+            showResizeHandles(el);
+            updatePropsPanelWithElement(el);
+            libraryDiv.style.display = 'none';
+            propsDiv.style.display = 'block';
+        } else {
+            libraryDiv.style.display = 'block';
+            propsDiv.style.display = 'none';
+        }
+    }
+
+    function updatePropsPanelWithElement(el) {
+        const char = el.getAttribute('data-char');
+        let repeat = parseInt(el.getAttribute('data-repeat') || 1);
+        const fontSize = parseInt(el.getAttribute('data-fontsize') || 42);
+        const isEmoji = isEmojiCharacter(char);
+        const previewDiv = document.getElementById('previewChar');
+        previewDiv.innerText = char;
+        previewDiv.style.fontSize = Math.min(80, fontSize) + 'px';
+        document.getElementById('copyCharBtn').onclick = () => { navigator.clipboard.writeText(char); alert(`已复制: ${char}`); };
+        const sizeSlider = document.getElementById('sizeSlider');
+        const sizeVal = document.getElementById('sizeValueDisplay');
+        sizeSlider.value = fontSize;
+        sizeVal.innerText = fontSize;
+        sizeSlider.oninput = (e) => {
+            let val = Math.round(parseFloat(e.target.value));
+            sizeVal.innerText = val;
+            el.style.fontSize = val + 'px';
+            el.setAttribute('data-fontsize', val);
+            previewDiv.style.fontSize = Math.min(80, val) + 'px';
+            if (currentSelected === el) showResizeHandles(el);
+            pushHistory();
+        };
+        const repSlider = document.getElementById('repeatSlider');
+        const repSpan = document.getElementById('repeatValueDisplay');
+        repSlider.value = repeat;
+        repSpan.innerText = repeat;
+        repSlider.oninput = (e) => {
+            const newRep = parseInt(e.target.value);
+            repSpan.innerText = newRep;
+            el.setAttribute('data-repeat', newRep);
+            const originalChar = el.getAttribute('data-char');
+            el.innerText = originalChar.repeat(newRep);
+            previewDiv.innerText = originalChar;
+            pushHistory();
+        };
+        const colorArea = document.getElementById('colorControlArea');
+        const colorPicker = document.getElementById('charColorPicker');
+        if (!isEmoji) {
+            colorArea.style.display = 'block';
+            let currentColor = el.style.color || '#2c5a2c';
+            if (currentColor === '') currentColor = '#2c5a2c';
+            colorPicker.value = currentColor;
+            colorPicker.oninput = (e) => {
+                el.style.color = e.target.value;
+                el.setAttribute('data-color', e.target.value);
+                pushHistory();
+            };
+        } else {
+            colorArea.style.display = 'none';
+        }
+        document.getElementById('raiseBtn').onclick = () => {
+            let z = parseInt(el.style.zIndex) || parseInt(el.getAttribute('data-zindex')) || 100;
+            el.style.zIndex = z + 1;
+            el.setAttribute('data-zindex', z+1);
+            pushHistory();
+        };
+        document.getElementById('lowerBtn').onclick = () => {
+            let z = parseInt(el.style.zIndex) || parseInt(el.getAttribute('data-zindex')) || 100;
+            el.style.zIndex = z - 1;
+            el.setAttribute('data-zindex', z-1);
+            pushHistory();
+        };
+        document.getElementById('deleteItemBtn').onclick = () => {
+            if (currentSelected) {
+                currentSelected.remove();
+                selectElement(null);
+                pushHistory();
+            }
+        };
+        document.getElementById('closePropsBtn').onclick = () => selectElement(null);
+    }
+
+    function handleBackspaceDelete(e) {
+        if (!currentSelected) return;
+        if (e.key === 'Backspace') {
+            e.preventDefault();
+            let repeat = parseInt(currentSelected.getAttribute('data-repeat') || 1);
+            if (repeat > 1) {
+                repeat--;
+                currentSelected.setAttribute('data-repeat', repeat);
+                const originalChar = currentSelected.getAttribute('data-char');
+                currentSelected.innerText = originalChar.repeat(repeat);
+                const repSlider = document.getElementById('repeatSlider');
+                if (repSlider) repSlider.value = repeat;
+                document.getElementById('repeatValueDisplay').innerText = repeat;
+                pushHistory();
+            } else {
+                currentSelected.remove();
+                selectElement(null);
+                pushHistory();
+            }
+        } else if (e.key === 'Delete') {
+            e.preventDefault();
+            currentSelected.remove();
+            selectElement(null);
+            pushHistory();
+        }
+    }
+
+    function addSymbolToCanvas(char, mouseX, mouseY, record = true) {
+        const canvasRect = canvasElement.getBoundingClientRect();
+        let left = mouseX - canvasRect.left;
+        let top = mouseY - canvasRect.top;
+        left = Math.min(Math.max(left, 10), canvasElement.clientWidth - 40);
+        top = Math.min(Math.max(top, 10), canvasElement.clientHeight - 40);
+        const defaultSize = isEmojiCharacter(char) ? 52 : 44;
+        const defaultColor = isEmojiCharacter(char) ? null : '#2b5a2b';
+        const newDiv = createCharacterDiv(char, defaultSize, 1, defaultColor, null, left + 'px', top + 'px');
+        canvasElement.appendChild(newDiv);
+        selectElement(newDiv);
+        if (record) pushHistory();
+        return newDiv;
+    }
+
+    function clampTransform() {
+        const containerRect = container.getBoundingClientRect();
+        const canvasRect = canvasElement.getBoundingClientRect();
+        const maxX = 0;
+        const maxY = 0;
+        const minX = Math.min(0, containerRect.width - canvasRect.width);
+        const minY = Math.min(0, containerRect.height - canvasRect.height);
+        let newX = sceneTransform.x;
+        let newY = sceneTransform.y;
+        if (newX > maxX) newX = maxX;
+        if (newX < minX) newX = minX;
+        if (newY > maxY) newY = maxY;
+        if (newY < minY) newY = minY;
+        if (newX !== sceneTransform.x || newY !== sceneTransform.y) {
+            sceneTransform.x = newX;
+            sceneTransform.y = newY;
+            canvasElement.style.transform = `translate(${sceneTransform.x}px, ${sceneTransform.y}px)`;
+        }
+    }
+
+    function initCanvasPan() {
+        container.addEventListener('mousedown', (e) => {
+            if (e.target === container || e.target === canvasElement || e.target.classList.contains('canvas-container')) {
+                isPanning = true;
+                panStart.x = e.clientX;
+                panStart.y = e.clientY;
+                panStartTransform.x = sceneTransform.x;
+                panStartTransform.y = sceneTransform.y;
+                container.style.cursor = 'grabbing';
+                e.preventDefault();
+            }
+        });
+        window.addEventListener('mousemove', (e) => {
+            if (!isPanning) return;
+            const dx = e.clientX - panStart.x;
+            const dy = e.clientY - panStart.y;
+            sceneTransform.x = panStartTransform.x + dx;
+            sceneTransform.y = panStartTransform.y + dy;
+            clampTransform();
+            canvasElement.style.transform = `translate(${sceneTransform.x}px, ${sceneTransform.y}px)`;
+        });
+        window.addEventListener('mouseup', () => {
+            if (isPanning) pushHistory();
+            isPanning = false;
+            container.style.cursor = 'grab';
+        });
+    }
+
+    function buildGroupedSymbols(containerId, groups) {
+        const containerElem = document.getElementById(containerId);
+        containerElem.innerHTML = '';
+        for (const [groupName, symbols] of Object.entries(groups)) {
+            const groupDiv = document.createElement('div');
+            groupDiv.className = 'symbol-group';
+            const header = document.createElement('div');
+            header.className = 'group-header';
+            header.innerHTML = `<span>${groupName}</span><span class="toggle-icon">▼</span>`;
+            const content = document.createElement('div');
+            content.className = 'group-content';
+            symbols.forEach(sym => {
+                const card = document.createElement('div');
+                card.className = 'symbol-card';
+                card.setAttribute('draggable', 'true');
+                card.innerHTML = `<span>${sym}</span><span class="symbol-label"></span>`;
+                card.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', sym);
+                    e.dataTransfer.effectAllowed = 'copy';
+                });
+                content.appendChild(card);
+            });
+            groupDiv.appendChild(header);
+            groupDiv.appendChild(content);
+            header.addEventListener('click', () => {
+                const isCollapsed = content.classList.contains('collapsed');
+                if (isCollapsed) {
+                    content.classList.remove('collapsed');
+                    header.querySelector('.toggle-icon').innerHTML = '▼';
+                } else {
+                    content.classList.add('collapsed');
+                    header.querySelector('.toggle-icon').innerHTML = '▶';
+                }
+            });
+            containerElem.appendChild(groupDiv);
+        }
+    }
+
+    function initTabs() {
+        const normalContainer = document.getElementById('normalSymbolsContainer');
+        const emojiContainer = document.getElementById('emojiSymbolsContainer');
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                tabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const tab = btn.getAttribute('data-tab');
+                if (tab === 'normal') {
+                    normalContainer.style.display = 'block';
+                    emojiContainer.style.display = 'none';
+                } else {
+                    normalContainer.style.display = 'none';
+                    emojiContainer.style.display = 'block';
+                }
+            });
+        });
+    }
+
+    function initDrop() {
+        canvasElement.addEventListener('dragover', (e) => e.preventDefault());
+        canvasElement.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const char = e.dataTransfer.getData('text/plain');
+            if (char) addSymbolToCanvas(char, e.clientX, e.clientY, true);
+        });
+    }
+
+    function initPaste() {
+        window.addEventListener('paste', async (e) => {
+            e.preventDefault();
+            const text = (e.clipboardData || window.clipboardData).getData('text');
+            if (!text) return;
+            if (text.length > 1) {
+                const ok = confirm(`剪贴板内容包含 ${text.length} 个字符。是否只取第一个字符“${text[0]}”添加到画布？`);
+                if (!ok) return;
+                addSymbolToCanvas(text[0], 200, 200, true);
+            } else {
+                addSymbolToCanvas(text, 200, 200, true);
+            }
+        });
+    }
+
+    function showCanvasSettings() {
+        const dialog = document.createElement('div');
+        dialog.className = 'dialog-overlay';
+        let currentGrad = canvasElement.style.background;
+        let dir = '145deg';
+        let col1 = '#b2e0fa', col2 = '#c5e0a4';
+        if (currentGrad && currentGrad.includes('linear-gradient')) {
+            const match = currentGrad.match(/linear-gradient\(([^,]+),([^,]+),([^,]+)\)/);
+            if (match) {
+                dir = match[1].trim();
+                col1 = match[2].trim();
+                col2 = match[3].trim();
+            }
+        }
+        dialog.innerHTML = `
+            <div class="dialog-card">
+                <h3>🖌️ 画布设置</h3>
+                <div class="gradient-preview" id="gradientPreview" style="background: ${currentGrad};"></div>
+                <div class="gradient-controls">
+                    <select id="gradientDir">
+                        <option value="to top">⬆️ 向上 (to top)</option>
+                        <option value="to right">➡️ 向右 (to right)</option>
+                        <option value="to bottom">⬇️ 向下 (to bottom)</option>
+                        <option value="to left">⬅️ 向左 (to left)</option>
+                        <option value="135deg">↗️ 对角线 (135deg)</option>
+                        <option value="145deg" selected>🌅 天空草地 (145deg)</option>
+                    </select>
+                </div>
+                <div class="gradient-controls">
+                    <input type="color" id="gradColor1" value="${col1}">
+                    <span>→</span>
+                    <input type="color" id="gradColor2" value="${col2}">
+                </div>
+                <div class="preset-gradients">
+                    <button class="preset-btn" data-dir="145deg" data-c1="#b2e0fa" data-c2="#c5e0a4">🌤️ 天空草地</button>
+                    <button class="preset-btn" data-dir="135deg" data-c1="#f5f7fa" data-c2="#c3cfe2">☁️ 淡灰</button>
+                    <button class="preset-btn" data-dir="120deg" data-c1="#f6d365" data-c2="#fda085">🌅 日落</button>
+                    <button class="preset-btn" data-dir="to bottom" data-c1="#a1c4fd" data-c2="#c2e9fb">💙 天空蓝</button>
+                    <button class="preset-btn" data-dir="to right" data-c1="#d4fc79" data-c2="#96e6a1">🍃 青草</button>
+                </div>
+                <label>宽度 (px)</label>
+                <input type="number" id="canvasWidthInput" value="${canvasWidth}" step="50">
+                <label>高度 (px)</label>
+                <input type="number" id="canvasHeightInput" value="${canvasHeight}" step="50">
+                <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px;">
+                    <button id="dialogCancel">取消</button>
+                    <button id="dialogConfirm">应用</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(dialog);
+        const confirmBtn = dialog.querySelector('#dialogConfirm');
+        const cancelBtn = dialog.querySelector('#dialogCancel');
+        const widthInput = dialog.querySelector('#canvasWidthInput');
+        const heightInput = dialog.querySelector('#canvasHeightInput');
+        const dirSelect = dialog.querySelector('#gradientDir');
+        const color1 = dialog.querySelector('#gradColor1');
+        const color2 = dialog.querySelector('#gradColor2');
+        const previewDiv = dialog.querySelector('#gradientPreview');
+        function updatePreview() {
+            const grad = `linear-gradient(${dirSelect.value}, ${color1.value}, ${color2.value})`;
+            previewDiv.style.background = grad;
+        }
+        dirSelect.addEventListener('input', updatePreview);
+        color1.addEventListener('input', updatePreview);
+        color2.addEventListener('input', updatePreview);
+        dialog.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                dirSelect.value = btn.getAttribute('data-dir');
+                color1.value = btn.getAttribute('data-c1');
+                color2.value = btn.getAttribute('data-c2');
+                updatePreview();
+            });
+        });
+        updatePreview();
+        const applySettings = () => {
+            let newW = parseInt(widthInput.value) || 800;
+            let newH = parseInt(heightInput.value) || 600;
+            if (newW < 400) newW = 400;
+            if (newH < 300) newH = 300;
+            canvasWidth = newW;
+            canvasHeight = newH;
+            canvasElement.style.width = canvasWidth + 'px';
+            canvasElement.style.height = canvasHeight + 'px';
+            const newGrad = `linear-gradient(${dirSelect.value}, ${color1.value}, ${color2.value})`;
+            canvasElement.style.background = newGrad;
+            clampTransform();
+            pushHistory();
+            dialog.remove();
+        };
+        confirmBtn.onclick = applySettings;
+        cancelBtn.onclick = () => dialog.remove();
+    }
+
+    function showHelp() {
+        const dialog = document.createElement('div');
+        dialog.className = 'dialog-overlay';
+        dialog.innerHTML = `
+            <div class="dialog-card help-card">
+                <h3>📖 使用帮助</h3>
+                <ul>
+                    <li>🖱️ 拖拽符号库中的字符到画布上添加</li>
+                    <li>✨ 单击字符选中，拖动可移动位置</li>
+                    <li>🔍 四角控制点拖拽缩放字符（字号）</li>
+                    <li>⌨️ 选中后按 <kbd>Delete</kbd> 删除整个字符</li>
+                    <li>⌨️ 选中后按 <kbd>Backspace</kbd> 减少重复次数（重复>1时）或删除</li>
+                    <li>📋 <kbd>Ctrl+V</kbd> 粘贴剪贴板字符（仅第一个）</li>
+                    <li>🎨 Emoji 表情不可染色，普通符号可自定义颜色</li>
+                    <li>🖼️ 画布背景支持渐变色，可在「画布」中调整</li>
+                    <li>📂 可保存/打开场景（本地存储）</li>
+                    <li>↩️↪️ 支持撤销/重做 (Ctrl+Z / Ctrl+Y)</li>
+                    <li>✨ 「新建」重置为空画布，「清空」仅清除字符</li>
+                </ul>
+                <div style="text-align:center; margin-top:16px;"><button id="closeHelpBtn">关闭</button></div>
+            </div>
+        `;
+        document.body.appendChild(dialog);
+        dialog.querySelector('#closeHelpBtn').onclick = () => dialog.remove();
+    }
+
+    function saveScene() {
+        const data = captureSnapshot();
+        localStorage.setItem('char_scene_data', JSON.stringify(data));
+        alert('场景已保存');
+    }
+    function loadScene() {
+        const raw = localStorage.getItem('char_scene_data');
+        if (!raw) { alert('无保存数据'); return; }
+        const data = JSON.parse(raw);
+        applySnapshot(data);
+        pushHistory();
+        alert('加载完成');
+    }
+    function newScene() {
+        if (confirm('新建将清除当前所有内容，是否继续？')) {
+            while (canvasElement.firstChild) canvasElement.removeChild(canvasElement.firstChild);
+            canvasElement.style.background = 'linear-gradient(145deg, #b2e0fa, #c5e0a4)';
+            sceneTransform = { x: 0, y: 0 };
+            canvasElement.style.transform = `translate(0px, 0px)`;
+            canvasWidth = 800;
+            canvasHeight = 600;
+            canvasElement.style.width = canvasWidth + 'px';
+            canvasElement.style.height = canvasHeight + 'px';
+            selectElement(null);
+            pushHistory();
+        }
+    }
+    function clearCanvas() {
+        while(canvasElement.firstChild) canvasElement.removeChild(canvasElement.firstChild);
+        selectElement(null);
+        pushHistory();
+    }
+
+    function addDemoElements() {
+        addSymbolToCanvas('🌞', 80, 70, false);
+        addSymbolToCanvas('🌳', 180, 180, false);
+        addSymbolToCanvas('🏡', 380, 300, false);
+        addSymbolToCanvas('👩‍🌾', 520, 380, false);
+        addSymbolToCanvas('🐕', 580, 440, false);
+        addSymbolToCanvas('🍎', 240, 150, false);
+        addSymbolToCanvas('〰️', 280, 520, false);
+        pushHistory();
+    }
+
+    function init() {
+        canvasElement.style.width = canvasWidth + 'px';
+        canvasElement.style.height = canvasHeight + 'px';
+        canvasElement.style.background = 'linear-gradient(145deg, #b2e0fa, #c5e0a4)';
+        buildGroupedSymbols('emojiSymbolsContainer', emojiGroups);
+        buildGroupedSymbols('normalSymbolsContainer', normalGroups);
+        initTabs();
+        initDrop();
+        initCanvasPan();
+        initPaste();
+        window.addEventListener('keydown', handleBackspaceDelete);
+        document.getElementById('undoBtn').onclick = undo;
+        document.getElementById('redoBtn').onclick = redo;
+        document.getElementById('saveSceneBtn').onclick = saveScene;
+        document.getElementById('loadSceneBtn').onclick = loadScene;
+        document.getElementById('newSceneBtn').onclick = newScene;
+        document.getElementById('clearCanvasBtn').onclick = clearCanvas;
+        document.getElementById('canvasSettingsBtn').onclick = showCanvasSettings;
+        document.getElementById('helpBtn').onclick = showHelp;
+        addDemoElements();
+        selectElement(null);
+        canvasElement.addEventListener('click', (e) => {
+            if (e.target === canvasElement) selectElement(null);
+        });
+        clampTransform();
+        pushHistory();
+    }
+    init();
