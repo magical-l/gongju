@@ -247,16 +247,13 @@
             hideResizeHandles();
         }
         currentSelected = el;
-        const libraryDiv = document.getElementById('libraryPanel');
         const propsDiv = document.getElementById('propsPanel');
         if (el) {
             el.classList.add('selected');
             showResizeHandles(el);
             updatePropsPanelWithElement(el);
-            libraryDiv.style.display = 'none';
             propsDiv.style.display = 'block';
         } else {
-            libraryDiv.style.display = 'block';
             propsDiv.style.display = 'none';
         }
     }
