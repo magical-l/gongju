@@ -58,7 +58,8 @@
             font-size: 0.85rem;
             color: var(--text-secondary);
         }
-        summary.panel-header { cursor: grab; }
+        summary.panel-header { display: list-item; cursor: grab; list-style-position: inside; }
+        .summary-flex { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
         .float-panel details + details { margin-top: 0.5rem; }
 
         .symbols-scroll {
@@ -175,14 +176,12 @@
             font-size: 0.8rem;
             color: var(--text-secondary);
         }
+        summary.group-header { display: list-item; cursor: pointer; list-style-position: inside; }
         .group-content {
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
             margin-top: 8px;
-        }
-        .group-content.collapsed {
-            display: none;
         }
         .symbol-card {
             background: var(--bg-base);

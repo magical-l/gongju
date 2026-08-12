@@ -581,11 +581,12 @@
         const containerElem = document.getElementById(containerId);
         containerElem.innerHTML = '';
         for (const [groupName, symbols] of Object.entries(groups)) {
-            const groupDiv = document.createElement('div');
+            const groupDiv = document.createElement('details');
             groupDiv.className = 'symbol-group';
-            const header = document.createElement('div');
+            groupDiv.open = true;
+            const header = document.createElement('summary');
             header.className = 'group-header';
-            header.innerHTML = `<span>${groupName}</span><span class="toggle-icon">▼</span>`;
+            header.textContent = groupName;
             const content = document.createElement('div');
             content.className = 'group-content';
             symbols.forEach(sym => {
@@ -601,16 +602,6 @@
             });
             groupDiv.appendChild(header);
             groupDiv.appendChild(content);
-            header.addEventListener('click', () => {
-                const isCollapsed = content.classList.contains('collapsed');
-                if (isCollapsed) {
-                    content.classList.remove('collapsed');
-                    header.querySelector('.toggle-icon').innerHTML = '▼';
-                } else {
-                    content.classList.add('collapsed');
-                    header.querySelector('.toggle-icon').innerHTML = '▶';
-                }
-            });
             containerElem.appendChild(groupDiv);
         }
     }
@@ -845,8 +836,12 @@
                 const baseLeft = panel.offsetLeft, baseTop = panel.offsetTop;
                 const onMove = (ev) => {
                     if (Math.abs(ev.clientX - startX) > 3 || Math.abs(ev.clientY - startY) > 3) panelDragMoved = true;
-                    panel.style.left = (baseLeft + ev.clientX - startX) + 'px';
-                    panel.style.top = (baseTop + ev.clientY - startY) + 'px';
+                    const dx = ev.clientX - startX, dy = ev.clientY - startY;
+                    const card = panel.offsetParent;
+                    const maxLeft = Math.max(0, card.clientWidth - panel.offsetWidth - 8);
+                    const maxTop = Math.max(0, card.clientHeight - panel.offsetHeight - 8);
+                    panel.style.left = Math.min(Math.max(0, baseLeft + dx), maxLeft) + 'px';
+                    panel.style.top = Math.min(Math.max(0, baseTop + dy), maxTop) + 'px';
                 };
                 const onUp = () => {
                     window.removeEventListener('mousemove', onMove);
