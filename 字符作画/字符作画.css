@@ -22,6 +22,8 @@
             align-items: stretch;
             flex-shrink: 0;
             width: 336px;
+            height: calc(100vh - 300px);
+            min-height: 660px;
         }
 
         .library-bar {
@@ -31,6 +33,7 @@
             border-radius: var(--radius-lg);
             background: var(--bg-base);
             padding: 0.75rem;
+            min-height: 0;
         }
 
         .layer-rail {
@@ -45,27 +48,48 @@
             gap: 2px;
             padding: 4px;
             flex-shrink: 0;
+            position: relative;
+        }
+
+        .layer-rail::before {
+            content: "";
+            position: absolute;
+            top: 12px;
+            bottom: 12px;
+            left: 50%;
+            width: 2px;
+            margin-left: -1px;
+            background: var(--border-subtle);
+            z-index: 0;
         }
 
         .layer-rail-item {
-            width: 100%;
-            aspect-ratio: 1;
+            width: 22px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
-            border-radius: var(--radius-md);
-            cursor: pointer;
+            font-size: 11px;
+            border-radius: 50%;
+            cursor: grab;
             user-select: none;
+            height: 22px;
+            border: 1px solid var(--border-subtle);
+            background: var(--bg-base);
+            position: relative;
+            z-index: 1;
+            margin: 3px 0;
+            flex-shrink: 0;
         }
 
         .layer-rail-item:hover {
             background: var(--bg-subtle);
+            border-color: var(--text-secondary);
         }
 
         .layer-rail-item.active {
             background: var(--accent-light);
             outline: 1px solid var(--accent-primary);
+            border: 1px solid var(--accent-primary);
         }
 
         .canvas-card {
@@ -415,3 +439,4 @@
             flex-direction: column;
         }
     
+
