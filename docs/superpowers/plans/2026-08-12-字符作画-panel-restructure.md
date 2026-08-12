@@ -1,6 +1,6 @@
 # 字符作画页 floatPanel 拆解 实现计划
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** 把 #floatPanel 管风琴拆成三个独立呈现：素材库→右侧固定栏、图层→瘦长条（素材库左沿）、已选元素→画布内浮层（贴元素可拖离），消除空间竞争，保留全部现有功能。
 
@@ -41,7 +41,7 @@
 - Consumes: 现有 `#emojiSymbolsContainer`、`#normalSymbolsContainer`、`.tab-bar`（id 保留，仅移动 DOM 位置）
 - Produces: `.library-bar` 容器（editor 右侧固定栏，内含 tab-bar + 两个 symbols-scroll 容器）；floatPanel 中不再有 `#libraryPanel`
 
-- [ ] **Step 1: HTML 重组 editor**
+- [x] **Step 1: HTML 重组 editor**
 
 将 `#topToolbar` 之后的 `<section class="editor">` 结构改为：
 ```html
@@ -67,7 +67,7 @@
 ```
 即：把 `.tab-bar` + 两个 `symbols-scroll` 从 `#libraryPanel` 移到 `.right-side` 内新 `.library-bar`；floatPanel 里删除整个 `<details id="libraryPanel">`；保留 `#propsPanel`（图层 details 也暂保留，Task 2 拆）。
 
-- [ ] **Step 2: CSS 双区布局 + library-bar**
+- [x] **Step 2: CSS 双区布局 + library-bar**
 
 `.editor` 保持 flex；新增：
 ```css
@@ -89,15 +89,15 @@
 ```
 删旧 `.float-panel details`/`.symbols-scroll` 的 max-height/overflow 约束（`.symbols-scroll` 现由 `.library-bar` 高度约束滚动）。floatPanel 不再 flex 管风琴。
 
-- [ ] **Step 3: 自闭环检查**
+- [x] **Step 3: 自闭环检查**
 
 html-editor 改完跑 node --check（js 未动可跳过）+ HTML 标签配对 + CSS 花括号平衡。确认 `#libraryPanel`、`#emojiSymbolsContainer`、`#normalSymbolsContainer` 各 id 唯一且 JS 引用不失效（buildGroupedSymbols/initTabs 用 getElementById，位置无关）。
 
-- [ ] **Step 4: 运行时验证（testing）**
+- [x] **Step 4: 运行时验证（testing）**
 
 Playwright：素材库在右侧固定栏渲染（tab 切换正常、符号拖入画布成功）；画布区变窄但 800px 画布完整可见；floatPanel 仅剩已选元素+图层 details；控制台无 error。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add 字符作画/
@@ -118,11 +118,11 @@ git commit -m "重构：字符作画页素材库拆到右侧固定栏"
 - Consumes: `selectElement(el, opts)`（现有）、`swapLayerZ(el, dir)`（改为拖拽驱动）、`getSelectionTargets()`
 - Produces: `refreshLayers()` 渲染 `#layerRail` 内 `.layer-rail-item`（字符小格）；拖拽项触发 z-index 交换 + `pushHistory()`
 
-- [ ] **Step 1: HTML 删 layerPanel**
+- [x] **Step 1: HTML 删 layerPanel**
 
 floatPanel 内删除 `<details id="layerPanel">`，floatPanel 只剩 `#propsPanel`。
 
-- [ ] **Step 2: CSS layer-rail 瘦长条**
+- [x] **Step 2: CSS layer-rail 瘦长条**
 
 ```css
 .layer-rail {
@@ -153,23 +153,23 @@ floatPanel 内删除 `<details id="layerPanel">`，floatPanel 只剩 `#propsPane
 .layer-rail-item.active { background: var(--accent-light); outline: 1px solid var(--accent-primary); }
 ```
 
-- [ ] **Step 3: JS 重写 refreshLayers 渲染字符列**
+- [x] **Step 3: JS 重写 refreshLayers 渲染字符列**
 
 `refreshLayers()` 改为：按 z-index 降序收集 `#sceneCanvas .scene-item`，为每个元素创建 `.layer-rail-item`（innerText 取字符首码点；active 高亮看 `selectedSet.has(el)`；`title` 存完整字符），点击调 `selectElement(el, {additive: ctrl})`。删除原 `.layer-item`/`.layer-up/down/del` 相关渲染与按钮事件。
 
-- [ ] **Step 4: JS 拖拽排序**
+- [x] **Step 4: JS 拖拽排序**
 
 给每个 `.layer-rail-item` 绑 pointer 拖拽：dragstart 记录源项 index → 拖过其他项时实时交换 z-index（复用 swapLayerZ 的交换语义）→ 拖放后 `pushHistory()` + `refreshLayers()`。注意与画布元素拖拽（makeDraggable，作用于 scene-item）区域不冲突。
 
-- [ ] **Step 5: 自闭环检查**
+- [x] **Step 5: 自闭环检查**
 
 node --check + 平衡；grep 确认无 `layer-list`/`layer-up`/`layer-down`/`layer-del` 残留引用。
 
-- [ ] **Step 6: 运行时验证（testing）**
+- [x] **Step 6: 运行时验证（testing）**
 
 瘦长条层级顺序正确（上=顶层）；点击项选中画布对应元素（高亮联动）；拖拽换位改变 z-index 且可撤销；Delete 删除选中元素后瘦长条同步；空画布瘦长条空。
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add 字符作画/
@@ -182,39 +182,39 @@ git commit -m "重构：字符作画页图层拆成瘦长条，拖拽排序"
 ### Task 3: 已选元素浮层（贴元素/拖离）
 
 **Files:**
-- Modify: `字符作画/字符作画.html`（floatPanel 移入 sceneCanvas 内）
-- Modify: `字符作画/字符作画.css`（浮层定位、隐藏态）
-- Modify: `字符作画/字符作画.js`（selectElement 定位浮层、拖离逻辑、多选批量贴最近）
+- Modify: `字符作画/字符作画.html`（floatPanel 留在 canvas-container 内，位置不动）
+- Modify: `字符作画/字符作画.css`（浮层隐藏态 .visible、去默认 top/left）
+- Modify: `字符作画/字符作画.js`（positionFloatPanel 定位、selectElement 调用、多选批量贴最近）
 
 **Interfaces:**
-- Consumes: `selectElement(el, opts)`、`currentSelected`、`selectedSet`、`showResizeHandles`
-- Produces: `positionFloatPanel(el)`（贴元素右上，画布相对坐标）；浮层拖离逻辑（复用原 initPanelFloating）
+- Consumes: `selectElement(el, opts)`、`currentSelected`、`selectedSet`、`container`（#canvasContainer）
+- Produces: `positionFloatPanel(el)`（贴元素右上，canvas-container 相对坐标，getBoundingClientRect 换算）；浮层拖离逻辑（复用原 initPanelFloating）
 
-- [ ] **Step 1: HTML 移 floatPanel 进 sceneCanvas**
+- [x] **Step 1: HTML 不动 + CSS 隐藏态**
 
-把 `<div class="float-panel" id="floatPanel">` 从 `.canvas-container` 直接子元素移入 `<div class="scene-canvas" id="sceneCanvas">` 内末尾（作为其 absolute 子元素，随 transform）。
+floatPanel 留在 `.canvas-container` 内（absolute 定位，不随 sceneCanvas 的 zoom/pan transform，避免浮层内容被缩放）。CSS：`.float-panel` 默认 `display:none`，新增 `.float-panel.visible { display:block; }`；去掉默认 `top:12px; left:12px`（改由 JS 定位，保留亦可作 fallback）。
 
-- [ ] **Step 2: CSS 浮层定位与隐藏**
+- [x] **Step 2: CSS 边界与滚动**
 
-`.float-panel` 改：`position:absolute; overflow:hidden; display:none;`（无选中隐藏）；`.float-panel.visible { display:block; }`。移入 sceneCanvas 后 top/left 由 JS 设画布相对坐标；删 flex column / details 管风琴相关规则（只剩 propsPanel）。
+`.float-panel` 保留 width/max-height/overflow（内容超高时 panel-body 内部滚，沿用现有 @supports 内 panel-body 规则）。
 
-- [ ] **Step 3: JS 定位浮层**
+- [x] **Step 3: JS 定位浮层**
 
-新增 `positionFloatPanel(el)`：取元素 `offsetLeft/offsetTop/offsetWidth`，浮层 `left = el.offsetLeft + el.offsetWidth + 8`、`top = el.offsetTop - 12`（贴右上，超出画布右缘则翻转贴左侧）。`selectElement` 中：有选中 → `floatPanel.classList.add('visible')` + `positionFloatPanel(currentSelected 或最近选中)`；无选中 → `remove('visible')`。多选批量模式时贴 `[...selectedSet].at(-1)`。
+新增 `positionFloatPanel(el)`：`const er = el.getBoundingClientRect(); const cr = container.getBoundingClientRect();` 浮层 `left = er.right - cr.left + 8`、`top = er.top - cr.top - 12`（贴元素右上）；若 `left + 浮层宽 > container.clientWidth` 则翻转贴左（`left = er.left - cr.left - 浮层宽 - 8`）。`selectElement` 中：有选中 → `floatPanel.classList.add('visible')` + `positionFloatPanel(锚点元素)`；无选中 → `remove('visible')`。多选批量模式贴 `[...selectedSet].at(-1)`。画布平移/缩放/拖动元素**不重贴**（仅 selectElement 时定位一次）。
 
-- [ ] **Step 4: JS 拖离跟随**
+- [x] **Step 4: JS 拖离确认**
 
-改造 `initPanelFloating`：拖浮层标题栏时正常移动，`mouseup` 后记录浮层已脱离（不再调用 positionFloatPanel，直到重新 selectElement）。拖动元素不重贴（selectElement 才定位）。多选切换仍重新贴。
+`initPanelFloating` 已有拖动能力（拖标题栏移动、松手停留），确认它不调用 positionFloatPanel（拖动元素/画布变换都不重贴）；重新 selectElement 时重贴。多选切换（selectElement 再次触发）仍重新贴。
 
-- [ ] **Step 5: 自闭环检查**
+- [x] **Step 5: 自闭环检查**
 
 node --check + 平衡；确认 floatPanel 不再引用 `#propsPanelTitle` 以外被删元素。
 
-- [ ] **Step 6: 运行时验证（testing）**
+- [x] **Step 6: 运行时验证（testing）**
 
 选中元素浮层贴右上浮现；画布平移缩放后浮层随画布（不重贴）；拖动元素后浮层不动；拖浮层标题可脱离且停留；Ctrl 多选切批量模式贴最近元素；点画布空白/取消选中浮层隐藏；滑块操作正常。
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add 字符作画/
@@ -234,19 +234,19 @@ git commit -m "重构：字符作画页已选元素拆成贴元素浮层"
 - Consumes: 前 3 个任务的产出
 - Produces: 无死代码、全功能通过的最终状态
 
-- [ ] **Step 1: 清理 CSS 死代码**
+- [x] **Step 1: 清理 CSS 死代码**
 
 删除不再使用的规则（由 html-editor 用 css-ast 事务工具删除：`.float-panel details`、`details::details-content`、`.panel-body`、`.layer-list`、`.layer-item` 等，注意含 `>` 的选择器用 ensure-rule/remove 流程处理）。grep 确认无死选择器。
 
-- [ ] **Step 2: 清理 JS 残留**
+- [x] **Step 2: 清理 JS 残留**
 
 grep 确认无 `layerPanel`/`layer-list`/`multiSelectPanel` 错误引用；`captureSnapshot`/`applySnapshot` 不含面板 DOM（本就只抓 scene-item，确认未破坏）。
 
-- [ ] **Step 3: 全功能回归（testing）**
+- [x] **Step 3: 全功能回归（testing）**
 
 完整回归：撤销/重做、自动保存（编辑后刷新恢复）、拖拽移动、缩放固定中心、多选移动/删除、画布平移缩放、新建/打开/清空、素材库拖入、复制字符、图层拖拽排序。控制台全程无 error。
 
-- [ ] **Step 4: 收尾（用户确认验收后）**
+- [x] **Step 4: 收尾（用户确认验收后）**
 
 更新决策文档 `docs/2026-08-11-字符作画-风格统一与功能增强.md` 追加本次重构章节 + commit。
 
