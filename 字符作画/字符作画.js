@@ -321,7 +321,7 @@
             .sort((a, b) => (parseInt(b.style.zIndex) || 0) - (parseInt(a.style.zIndex) || 0));
         items.forEach((el, i) => {
             const row = document.createElement('div');
-            row.className = 'layer-item' + (selectedSet.has(el) ? ' active' : '');
+            row.className = 'layer-item flex items-single-line items-y-near-center' + (selectedSet.has(el) ? ' active' : '');
             const ch = el.getAttribute('data-char') || '?';
             const esc = String(ch).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
             row.innerHTML = `<span class="layer-char">${[...esc][0]}</span>
@@ -588,10 +588,10 @@
             header.className = 'group-header';
             header.textContent = groupName;
             const content = document.createElement('div');
-            content.className = 'group-content';
+            content.className = 'group-content flex';
             symbols.forEach(sym => {
                 const card = document.createElement('div');
-                card.className = 'symbol-card';
+                card.className = 'symbol-card inline flex items-single-line items-y-near-center';
                 card.setAttribute('draggable', 'true');
                 card.innerHTML = `<span>${sym}</span><span class="symbol-label"></span>`;
                 card.addEventListener('dragstart', (e) => {

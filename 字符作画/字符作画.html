@@ -79,7 +79,7 @@
                 <div class="scene-canvas" id="sceneCanvas"></div>
                 <div class="float-panel" id="floatPanel">
                 <details id="propsPanel">
-                    <summary class="panel-header"><span class="summary-flex"><span>✨ 选中元素</span><span style="cursor:pointer;" id="closePropsBtn">✕</span></span></summary>
+                    <summary class="panel-header"><span class="inline flex items-single-line items-x-space-between items-y-near-center" style="gap:0.5rem;"><span>✨ 选中元素</span><span style="cursor:pointer;" id="closePropsBtn">✕</span></span></summary>
                     <div id="multiSelectPanel" style="display:none;">
                         <div class="preview-card">
                             <div class="preview-char" style="font-size:20px;" id="multiCount">已选 2 个</div>
@@ -90,15 +90,15 @@
                     <div id="selectionControls">
                         <div class="preview-card">
                             <div class="preview-char" id="previewChar">🌟</div>
-                            <button class="btn copy-btn" id="copyCharBtn">📋 复制字符</button>
+                            <button class="btn" id="copyCharBtn" style="margin-top:8px">📋 复制字符</button>
                         </div>
                         <div class="slider-row">
-                            <span>字号 <span class="tooltip-icon" data-tooltip="可在元素四角拖拽缩放">?</span></span>
+                            <span>字号 <span class="tooltip-icon inline flex items-x-near-center items-y-near-center" data-tooltip="可在元素四角拖拽缩放">?</span></span>
                             <span id="sizeValueDisplay">48</span>
                             <input type="range" id="sizeSlider" min="12" max="140" step="1">
                         </div>
                         <div class="slider-row">
-                            <span>旋转 <span class="tooltip-icon" data-tooltip="旋转角度 -180~180">?</span></span>
+                            <span>旋转 <span class="tooltip-icon inline flex items-x-near-center items-y-near-center" data-tooltip="旋转角度 -180~180">?</span></span>
                             <span id="rotationValueDisplay">0</span>
                             <input type="range" id="rotationSlider" min="-180" max="180" step="1">
                         </div>
@@ -108,7 +108,7 @@
                             <input type="range" id="opacitySlider" min="0" max="100" step="1">
                         </div>
                         <div class="slider-row">
-                            <span>重复 <span class="tooltip-icon" data-tooltip="退格键减少重复，Delete删除整个">?</span></span>
+                            <span>重复 <span class="tooltip-icon inline flex items-x-near-center items-y-near-center" data-tooltip="退格键减少重复，Delete删除整个">?</span></span>
                             <span id="repeatValueDisplay">1</span>
                             <input type="range" id="repeatSlider" min="1" max="20" step="1">
                         </div>
@@ -118,14 +118,14 @@
                                 <input type="color" id="charColorPicker" value="#2c5a2c">
                             </div>
                         </div>
-                        <div class="layer-buttons">
+                        <div class="layer-buttons flex" style="margin-top:12px">
                             <button class="btn danger delete-btn" id="deleteItemBtn">🗑️ 删除</button>
                         </div>
                     </div>
                 </details>
                 <details id="libraryPanel" open>
-                    <summary class="panel-header"><span class="summary-flex"><span>📚 字符素材库</span></span></summary>
-                    <div class="tab-bar">
+                    <summary class="panel-header">📚 字符素材库</summary>
+                    <div class="tab-bar flex items-single-line">
                         <button class="tab-btn active" data-tab="emoji">😊 Emoji</button>
                         <button class="tab-btn" data-tab="normal">🔤 普通符号</button>
                     </div>
@@ -133,7 +133,7 @@
                     <div id="normalSymbolsContainer" class="symbols-scroll" style="display:none;"></div>
                 </details>
                 <details id="layerPanel">
-                    <summary class="panel-header"><span class="summary-flex"><span>🎨 图层</span></span></summary>
+                    <summary class="panel-header">🎨 图层</summary>
                     <div id="layerList" class="layer-list"></div>
                 </details>
                 </div>

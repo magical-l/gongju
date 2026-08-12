@@ -58,8 +58,6 @@
             font-size: 0.85rem;
             color: var(--text-secondary);
         }
-        summary.panel-header { display: list-item; cursor: grab; list-style-position: inside; }
-        .summary-flex { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
         .float-panel details + details { margin-top: 0.5rem; }
 
         .symbols-scroll {
@@ -126,19 +124,18 @@
         .resize-handle.br { bottom: -6px; right: -6px; cursor: se-resize; }
 
         /* 右侧通用面板 (无选中时显示素材库，选中时显示属性) */
-        .panel-header {
+        summary.panel-header {
             font-weight: 600;
             margin-bottom: 12px;
             font-size: 1rem;
             border-bottom: 1px solid var(--border-subtle);
             padding-bottom: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            display: list-item;
+            cursor: grab;
+            list-style-position: inside;
         }
         /* 素材库样式 */
         .tab-bar {
-            display: flex;
             gap: 8px;
             margin-bottom: 12px;
             border-bottom: 1px solid var(--border-subtle);
@@ -167,19 +164,16 @@
             border-radius: var(--radius-md);
             padding: 6px 10px;
         }
-        .group-header {
-            display: flex;
-            justify-content: space-between;
-            cursor: pointer;
+        summary.group-header {
             font-weight: 500;
             padding: 4px 2px;
             font-size: 0.8rem;
             color: var(--text-secondary);
+            cursor: pointer;
+            display: list-item;
+            list-style-position: inside;
         }
-        summary.group-header { display: list-item; cursor: pointer; list-style-position: inside; }
         .group-content {
-            display: flex;
-            flex-wrap: wrap;
             gap: 6px;
             margin-top: 8px;
         }
@@ -189,8 +183,6 @@
             padding: 4px 10px;
             border-radius: var(--radius-md);
             cursor: grab;
-            display: inline-flex;
-            align-items: center;
             gap: 4px;
             box-shadow: var(--shadow-sm);
         }
@@ -212,10 +204,7 @@
             align-items: center;
         }
         .layer-buttons {
-            display: flex;
-            margin-top: 12px;
             gap: 6px;
-            flex-wrap: wrap;
         }
         /* 图层面板（叠素材库下方，可折叠） */
         .layer-list {
@@ -224,8 +213,6 @@
             overflow-y: auto;
         }
         .layer-item {
-            display: flex;
-            align-items: center;
             gap: 6px;
             padding: 4px 6px;
             border-radius: var(--radius-md);
@@ -268,9 +255,6 @@
             padding: 10px;
             text-align: center;
         }
-        .preview-card .copy-btn {
-            margin-top: 8px;
-        }
         .preview-char {
             font-size: 48px;
             background: var(--bg-base);
@@ -281,11 +265,8 @@
             font-family: 'Segoe UI Emoji', 'Apple Color Emoji', monospace;
         }
         .tooltip-icon {
-            display: inline-flex;
             color: var(--text-secondary);
             border: 1px solid var(--border-subtle);
-            align-items: center;
-            justify-content: center;
             width: 18px;
             height: 18px;
             background: var(--bg-muted);
