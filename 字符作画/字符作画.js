@@ -15,6 +15,8 @@
     let currentSelected = null;
     const selectedSet = new Set();
     let suppressClickSelect = false;
+    let layerDragEl = null;
+    let layerDragMoved = false;
     let sceneTransform = { x: 0, y: 0 };
     let zoom = 1;
     const MIN_ZOOM = 0.5, MAX_ZOOM = 2.5, ZOOM_STEP = 0.1;
@@ -332,29 +334,45 @@
     }
 
     function refreshLayers() {
-        const list = document.getElementById('layerList');
-        if (!list) return;
-        list.innerHTML = '';
+        const rail = document.getElementById('layerRail');
+        if (!rail) return;
+        rail.innerHTML = '';
         const items = [...document.querySelectorAll('#sceneCanvas .scene-item')]
             .sort((a, b) => (parseInt(b.style.zIndex) || 0) - (parseInt(a.style.zIndex) || 0));
-        items.forEach((el, i) => {
-            const row = document.createElement('div');
-            row.className = 'layer-item flex items-single-line items-y-near-center' + (selectedSet.has(el) ? ' active' : '');
+        items.forEach(el => {
             const ch = el.getAttribute('data-char') || '?';
-            const esc = String(ch).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-            row.innerHTML = `<span class="layer-char">${[...esc][0]}</span>
-            <span class="layer-name">元素 ${items.length - i}</span>
-            <button class="layer-up" title="上移一层">↑</button>
-            <button class="layer-down" title="下移一层">↓</button>
-            <button class="layer-del" title="删除">🗑</button>`;
-            row.addEventListener('click', (e) => {
-                if (e.target.closest('button')) return;
+            const cell = document.createElement('div');
+            cell.className = 'layer-rail-item' + (selectedSet.has(el) ? ' active' : '');
+            cell.innerText = [...ch][0];
+            cell.title = ch;
+            cell.setAttribute('draggable', 'true');
+            cell.addEventListener('click', (e) => {
+                if (layerDragMoved) { layerDragMoved = false; return; }
                 selectElement(el, { additive: e.ctrlKey || e.metaKey });
             });
-            row.querySelector('.layer-up').addEventListener('click', (e) => { e.stopPropagation(); swapLayerZ(el, 1); });
-            row.querySelector('.layer-down').addEventListener('click', (e) => { e.stopPropagation(); swapLayerZ(el, -1); });
-            row.querySelector('.layer-del').addEventListener('click', (e) => { e.stopPropagation(); el.remove(); selectElement(null); pushHistory(); refreshLayers(); });
-            list.appendChild(row);
+            cell.addEventListener('dragstart', (e) => {
+                layerDragEl = el;
+                layerDragMoved = true;
+                e.dataTransfer.effectAllowed = 'move';
+            });
+            cell.addEventListener('dragover', (e) => e.preventDefault());
+            cell.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (!layerDragEl || layerDragEl === el) { layerDragEl = null; return; }
+                const tmp = layerDragEl.style.zIndex;
+                layerDragEl.style.zIndex = el.style.zIndex;
+                el.style.zIndex = tmp;
+                layerDragEl.setAttribute('data-zindex', layerDragEl.style.zIndex);
+                el.setAttribute('data-zindex', el.style.zIndex);
+                layerDragEl = null;
+                pushHistory();
+                refreshLayers();
+            });
+            cell.addEventListener('dragend', () => {
+                layerDragEl = null;
+                layerDragMoved = false;
+            });
+            rail.appendChild(cell);
         });
     }
     function swapLayerZ(el, dir) {
