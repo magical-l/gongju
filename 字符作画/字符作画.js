@@ -1,4 +1,5 @@
 
+
     // ---------- 符号库数据 ----------
     const normalGroups = {
         "🔣 装饰 & 符号": ["★", "☆", "☀", "☁", "⚡", "☾", "✿", "❀", "〰️", "➰", "✂️", "⚙️", "🌀", "◉", "◎", "▧", "▣", "▪️", "▫️", "☯", "♻️", "⚜️", "♩", "♪", "♫"],
@@ -80,6 +81,7 @@
         if (historyStack.length > MAX_HISTORY) historyStack.shift();
         historyIndex = historyStack.length - 1;
         updateUndoRedoButtons();
+        autoSave();
     }
 
     function undo() {
@@ -87,6 +89,7 @@
             historyIndex--;
             applySnapshot(historyStack[historyIndex]);
             updateUndoRedoButtons();
+            autoSave();
         }
     }
 
@@ -95,6 +98,7 @@
             historyIndex++;
             applySnapshot(historyStack[historyIndex]);
             updateUndoRedoButtons();
+            autoSave();
         }
     }
 
@@ -771,7 +775,7 @@
                     <li>📋 <kbd>Ctrl+V</kbd> 粘贴剪贴板字符（仅第一个）</li>
                     <li>🎨 Emoji 表情不可染色，普通符号可自定义颜色</li>
                     <li>🖼️ 画布背景支持渐变色，可在「画布」中调整</li>
-                    <li>📂 可保存/打开场景（本地存储）</li>
+                    <li>💾 自动保存（本地存储）</li>
                     <li>↩️↪️ 支持撤销/重做 (Ctrl+Z / Ctrl+Y)</li>
                     <li>✨ 「新建」重置为空画布，「清空」仅清除字符</li>
                 </ul>
@@ -782,10 +786,9 @@
         dialog.querySelector('#closeHelpBtn').onclick = () => dialog.remove();
     }
 
-    function saveScene() {
+    function autoSave() {
         const data = captureSnapshot();
         localStorage.setItem('char_scene_data', JSON.stringify(data));
-        toastr.success('场景已保存');
     }
     function loadScene() {
         const raw = localStorage.getItem('char_scene_data');
@@ -901,13 +904,18 @@
         };
         const multiCancelBtn = document.getElementById('multiCancelBtn');
         if (multiCancelBtn) multiCancelBtn.onclick = () => selectElement(null);
-        document.getElementById('saveSceneBtn').onclick = saveScene;
         document.getElementById('loadSceneBtn').onclick = loadScene;
         document.getElementById('newSceneBtn').onclick = newScene;
         document.getElementById('clearCanvasBtn').onclick = clearCanvas;
         document.getElementById('canvasSettingsBtn').onclick = showCanvasSettings;
         document.getElementById('helpBtn').onclick = showHelp;
-        addDemoElements();
+        const savedRaw = localStorage.getItem('char_scene_data');
+        if (savedRaw) {
+            try { applySnapshot(JSON.parse(savedRaw)); }
+            catch (err) { addDemoElements(); }
+        } else {
+            addDemoElements();
+        }
         selectElement(null);
         canvasElement.addEventListener('click', (e) => {
             if (suppressClickSelect) { suppressClickSelect = false; return; }

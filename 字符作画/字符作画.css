@@ -60,9 +60,41 @@
         }
         .float-panel details + details { margin-top: 0.5rem; }
 
+        /* 不支持 ::details-content（Firefox/Safari）时，floatPanel 自身 overflow-y:auto 滚动，保证不裁切 */
+        @supports selector(details::details-content) {
+            .float-panel {
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+            .float-panel details {
+                display: flex;
+                flex-direction: column;
+                min-height: 0;
+                flex: 0 1 auto;
+            }
+            .float-panel details:not([open]) {
+                flex: 0 0 auto;
+            }
+            .float-panel details > summary {
+                flex: 0 0 auto;
+            }
+            /* ::details-content 是 details 的直接内容盒子，.panel-body 是其子元素，故用 > .panel-body */
+            .float-panel details::details-content {
+                display: flex;
+                flex-direction: column;
+                min-height: 0;
+                flex: 1 1 auto;
+            }
+            .float-panel details[open]::details-content > .panel-body {
+                flex: 1 1 auto;
+                min-height: 0;
+                overflow-y: auto;
+            }
+        }
+
         .symbols-scroll {
-            max-height: 500px;
-            overflow-y: auto;
+            /* 滚动已由 .float-panel details[open] > .panel-body 承担（Chromium 126+） */
         }
 
         /* 顶部工具栏 */
@@ -131,7 +163,7 @@
             border-bottom: 1px solid var(--border-subtle);
             padding-bottom: 6px;
             display: list-item;
-            cursor: grab;
+            cursor: pointer;
             list-style-position: inside;
         }
         /* 素材库样式 */
@@ -206,8 +238,6 @@
         /* 图层面板（叠素材库下方，可折叠） */
         .layer-list {
             margin-top: 0.5rem;
-            max-height: 200px;
-            overflow-y: auto;
         }
         .layer-item {
             gap: 6px;
@@ -357,5 +387,10 @@
             height: auto;
             padding: 2px 10px;
             border-radius: var(--radius-md);
+        }
+        .panel-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
         }
     
