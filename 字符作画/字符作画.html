@@ -125,17 +125,6 @@
                         </div>
                     </div>
                 </details>
-                <details id="libraryPanel" open>
-                    <summary class="panel-header">📚 字符素材库</summary>
-                    <div class="panel-body">
-                        <div class="tab-bar flex items-single-line">
-                            <button class="tab-btn active" data-tab="emoji">😊 Emoji</button>
-                            <button class="tab-btn" data-tab="normal">🔤 普通符号</button>
-                        </div>
-                        <div id="emojiSymbolsContainer" class="symbols-scroll"></div>
-                        <div id="normalSymbolsContainer" class="symbols-scroll" style="display:none;"></div>
-                    </div>
-                </details>
                 <details id="layerPanel">
                     <summary class="panel-header">🎨 图层</summary>
                     <div class="panel-body">
@@ -143,6 +132,17 @@
                     </div>
                 </details>
                 </div>
+            </div>
+            <div class="right-side">
+                <div class="layer-rail" id="layerRail"></div>
+                <aside class="library-bar">
+                    <div class="tab-bar flex items-single-line">
+                        <button class="tab-btn active" data-tab="emoji">😊 Emoji</button>
+                        <button class="tab-btn" data-tab="normal">🔤 普通符号</button>
+                    </div>
+                    <div id="emojiSymbolsContainer" class="symbols-scroll"></div>
+                    <div id="normalSymbolsContainer" class="symbols-scroll" style="display:none;"></div>
+                </aside>
             </div>
         </section>
     </main>

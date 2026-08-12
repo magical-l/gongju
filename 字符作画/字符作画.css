@@ -16,6 +16,23 @@
             gap: 1rem;
         }
 
+        .right-side {
+            display: flex;
+            flex-direction: row;
+            align-items: stretch;
+            flex-shrink: 0;
+            width: 336px;
+        }
+
+        .library-bar {
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            background: var(--bg-base);
+            padding: 0.75rem;
+        }
+
         .canvas-card {
             flex: 1;
             position: relative;
@@ -94,7 +111,7 @@
         }
 
         .symbols-scroll {
-            /* 滚动已由 .float-panel details[open] > .panel-body 承担（Chromium 126+） */
+            /* 滚动已由 .library-bar 高度约束承担（素材库拆到右侧固定栏） */
         }
 
         /* 顶部工具栏 */
