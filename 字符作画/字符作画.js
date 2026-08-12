@@ -246,6 +246,12 @@
     function startResize(element, position, e) {
         e.preventDefault();
         const startFontSize = parseInt(element.style.fontSize) || parseInt(element.getAttribute('data-fontsize')) || 40;
+        const startLeft = parseInt(element.style.left) || 0;
+        const startTop = parseInt(element.style.top) || 0;
+        const startWidth = element.offsetWidth;
+        const startHeight = element.offsetHeight;
+        const centerX = startLeft + startWidth / 2;
+        const centerY = startTop + startHeight / 2;
         const startX = e.clientX;
         const startY = e.clientY;
         let resizing = true;
@@ -259,9 +265,11 @@
             let newSize = Math.max(12, Math.round(startFontSize + delta));
             element.style.fontSize = newSize + 'px';
             element.setAttribute('data-fontsize', newSize);
+            const newWidth = element.offsetWidth;
+            const newHeight = element.offsetHeight;
+            element.style.left = (centerX - newWidth / 2) + 'px';
+            element.style.top = (centerY - newHeight / 2) + 'px';
             if (currentSelected === element) {
-                const preview = document.getElementById('previewChar');
-                if (preview) preview.style.fontSize = Math.min(80, newSize) + 'px';
                 const sizeSlider = document.getElementById('sizeSlider');
                 if (sizeSlider) sizeSlider.value = newSize;
                 document.getElementById('sizeValueDisplay').innerText = newSize;
@@ -368,7 +376,6 @@
         const isEmoji = isEmojiCharacter(char);
         const previewDiv = document.getElementById('previewChar');
         previewDiv.innerText = char;
-        previewDiv.style.fontSize = Math.min(80, fontSize) + 'px';
         document.getElementById('copyCharBtn').onclick = () => { navigator.clipboard.writeText(char); toastr.success(`已复制: ${char}`); };
         const sizeSlider = document.getElementById('sizeSlider');
         const sizeVal = document.getElementById('sizeValueDisplay');
@@ -379,7 +386,6 @@
             sizeVal.innerText = val;
             el.style.fontSize = val + 'px';
             el.setAttribute('data-fontsize', val);
-            previewDiv.style.fontSize = Math.min(80, val) + 'px';
             if (currentSelected === el) showResizeHandles(el);
             pushHistory();
         };
