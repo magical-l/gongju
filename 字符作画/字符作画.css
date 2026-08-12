@@ -288,44 +288,6 @@
             align-items: center;
         }
         /* 图层面板（叠素材库下方，可折叠） */
-        .layer-list {
-            margin-top: 0.5rem;
-        }
-        .layer-item {
-            gap: 6px;
-            padding: 4px 6px;
-            border-radius: var(--radius-md);
-            cursor: pointer;
-        }
-        .layer-item:hover {
-            background: var(--bg-subtle);
-        }
-        .layer-item.active {
-            background: var(--accent-light);
-            color: var(--accent-primary);
-        }
-        .layer-char {
-            font-size: 1.1rem;
-            width: 1.5em;
-            text-align: center;
-            font-family: 'Segoe UI Emoji', 'Apple Color Emoji', monospace;
-        }
-        .layer-name {
-            flex: 1;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-        .layer-item button {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0 2px;
-            color: var(--text-muted);
-            font-size: 0.75rem;
-        }
-        .layer-item button:hover {
-            color: var(--accent-primary);
-        }
         input[type="range"] { width: 140px; }
         .preview-card {
             background: var(--bg-subtle);

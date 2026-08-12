@@ -396,18 +396,6 @@
             rail.appendChild(cell);
         });
     }
-    function swapLayerZ(el, dir) {
-        const items = [...document.querySelectorAll('#sceneCanvas .scene-item')]
-            .sort((a, b) => (parseInt(a.style.zIndex) || 0) - (parseInt(b.style.zIndex) || 0));
-        const idx = items.indexOf(el);
-        const other = items[idx + dir];
-        if (!other) return;
-        const t = el.style.zIndex; el.style.zIndex = other.style.zIndex; other.style.zIndex = t;
-        el.setAttribute('data-zindex', el.style.zIndex);
-        other.setAttribute('data-zindex', other.style.zIndex);
-        pushHistory(); refreshLayers();
-    }
-
     function updatePropsPanelWithElement(el) {
         const char = el.getAttribute('data-char');
         let repeat = parseInt(el.getAttribute('data-repeat') || 1);
