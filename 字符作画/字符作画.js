@@ -206,7 +206,7 @@
             }
         }
         function onMouseUp() {
-            if (dragging && moved) { pushHistory(); if (multiDragActive) suppressClickSelect = true; }
+            if (dragging && moved) { pushHistory(); suppressClickSelect = true; }
             dragging = false;
             multiDragActive = false;
             multiStarts = null;
@@ -293,6 +293,20 @@
         window.addEventListener('mouseup', onMouseUp);
     }
 
+    function positionFloatPanel(el) {
+        const panel = document.getElementById('floatPanel');
+        if (!panel || !el) return;
+        const er = el.getBoundingClientRect();
+        const cr = container.getBoundingClientRect();
+        let left = er.right - cr.left + 8;
+        let top = er.top - cr.top - 12;
+        if (left + panel.offsetWidth > container.clientWidth) {
+            left = er.left - cr.left - panel.offsetWidth - 8;
+        }
+        panel.style.left = left + 'px';
+        panel.style.top = top + 'px';
+    }
+
     function selectElement(el, opts = {}) {
         if (currentSelected) hideResizeHandles();
         if (!el) { selectedSet.clear(); currentSelected = null; }
@@ -309,6 +323,7 @@
         const propsDiv = document.getElementById('propsPanel');
         const multiDiv = document.getElementById('multiSelectPanel');
         const selDiv = document.getElementById('selectionControls');
+        const floatPanel = document.getElementById('floatPanel');
         if (currentSelected) {
             propsDiv.open = true;
             if (selectedSet.size > 1) {
@@ -321,12 +336,18 @@
                 showResizeHandles(currentSelected);
                 updatePropsPanelWithElement(currentSelected);
             }
+            // 浮层显隐与定位：单选贴 currentSelected，多选贴最近点选元素
+            if (floatPanel) {
+                floatPanel.classList.add('visible');
+                positionFloatPanel(selectedSet.size > 1 ? [...selectedSet].at(-1) : currentSelected);
+            }
         } else {
             propsDiv.open = false;
             if (multiDiv) multiDiv.style.display = 'none';
             if (selDiv) selDiv.style.display = 'none';
             const previewDiv = document.getElementById('previewChar');
             if (previewDiv) previewDiv.innerText = '';
+            if (floatPanel) floatPanel.classList.remove('visible');
         }
         const title = document.getElementById('propsPanelTitle');
         if (title) title.textContent = currentSelected ? '✨ 已选元素' : '✨ 已选元素（无）';

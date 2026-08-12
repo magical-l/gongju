@@ -445,4 +445,11 @@
             min-height: 0;
             overflow-y: auto;
         }
+        .float-panel {
+            display: none;
+        }
+        .float-panel.visible {
+            display: flex;
+            flex-direction: column;
+        }
     
