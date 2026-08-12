@@ -309,7 +309,13 @@
             }
         } else {
             propsDiv.open = false;
+            if (multiDiv) multiDiv.style.display = 'none';
+            if (selDiv) selDiv.style.display = 'none';
+            const previewDiv = document.getElementById('previewChar');
+            if (previewDiv) previewDiv.innerText = '';
         }
+        const title = document.getElementById('propsPanelTitle');
+        if (title) title.textContent = currentSelected ? '✨ 已选元素' : '✨ 已选元素（无）';
         if (typeof refreshLayers === 'function') refreshLayers();
     }
 
@@ -401,12 +407,14 @@
         const op = Number.isFinite(opAttr) ? opAttr : 1;
         const opSlider = document.getElementById('opacitySlider');
         const opVal = document.getElementById('opacityValueDisplay');
-        opSlider.value = Math.round(op * 100); opVal.textContent = Math.round(op * 100) + '%';
+        const trans = Math.round((1 - op) * 100);
+        opSlider.value = trans; opVal.textContent = trans + '%';
         opSlider.oninput = (e) => {
             const v = parseInt(e.target.value) / 100;
             opVal.textContent = e.target.value + '%';
-            el.setAttribute('data-opacity', v);
-            el.style.opacity = v;
+            const opv = 1 - v;
+            el.setAttribute('data-opacity', opv);
+            el.style.opacity = opv;
             pushHistory();
         };
         const colorArea = document.getElementById('colorControlArea');
@@ -433,7 +441,7 @@
             }
         };
         const closePropsBtn = document.getElementById('closePropsBtn');
-        if (closePropsBtn) closePropsBtn.onclick = (e) => { e.stopPropagation(); selectElement(null); };
+        if (closePropsBtn) closePropsBtn.onclick = (e) => { e.preventDefault(); e.stopPropagation(); selectElement(null); };
     }
 
     const ARROWS = { ArrowUp: [0,-1], ArrowDown: [0,1], ArrowLeft: [-1,0], ArrowRight: [1,0] };

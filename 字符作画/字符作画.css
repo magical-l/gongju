@@ -203,9 +203,6 @@
             margin: 8px 0;
             align-items: center;
         }
-        .layer-buttons {
-            gap: 6px;
-        }
         /* 图层面板（叠素材库下方，可折叠） */
         .layer-list {
             margin-top: 0.5rem;

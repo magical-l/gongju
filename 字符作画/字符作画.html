@@ -79,7 +79,7 @@
                 <div class="scene-canvas" id="sceneCanvas"></div>
                 <div class="float-panel" id="floatPanel">
                 <details id="propsPanel">
-                    <summary class="panel-header"><span class="inline flex items-single-line items-x-space-between items-y-near-center" style="gap:0.5rem;"><span>✨ 选中元素</span><span style="cursor:pointer;" id="closePropsBtn">✕</span></span></summary>
+                    <summary class="panel-header"><span id="propsPanelTitle">✨ 已选元素（无）</span></summary>
                     <div id="multiSelectPanel" style="display:none;">
                         <div class="preview-card">
                             <div class="preview-char" style="font-size:20px;" id="multiCount">已选 2 个</div>
@@ -88,6 +88,10 @@
                         </div>
                     </div>
                     <div id="selectionControls">
+                        <div class="flex items-single-line items-x-space-between items-y-near-center" style="margin-bottom:8px;">
+                            <button class="btn" id="closePropsBtn" title="取消选中">✕ 取消选中</button>
+                            <button class="btn danger" id="deleteItemBtn" title="删除元素">🗑️ 删除</button>
+                        </div>
                         <div class="preview-card">
                             <div class="preview-char" id="previewChar">🌟</div>
                             <button class="btn" id="copyCharBtn" style="margin-top:8px">📋 复制字符</button>
@@ -104,7 +108,7 @@
                         </div>
                         <div class="slider-row">
                             <span>透明度</span>
-                            <span id="opacityValueDisplay">100%</span>
+                            <span id="opacityValueDisplay">0%</span>
                             <input type="range" id="opacitySlider" min="0" max="100" step="1">
                         </div>
                         <div class="slider-row">
@@ -117,9 +121,6 @@
                                 <span>颜色</span>
                                 <input type="color" id="charColorPicker" value="#2c5a2c">
                             </div>
-                        </div>
-                        <div class="layer-buttons flex" style="margin-top:12px">
-                            <button class="btn danger delete-btn" id="deleteItemBtn">🗑️ 删除</button>
                         </div>
                     </div>
                 </details>
