@@ -438,5 +438,17 @@
             display: flex;
             flex-direction: column;
         }
+
+#exportBody {
+            width: 340px;
+            max-width: 90vw;
+        }
+
+.export-option-btn {
+            width: 100%;
+            margin: 8px 0;
+            justify-content: center;
+            font-size: 0.95rem;
+        }
     
 

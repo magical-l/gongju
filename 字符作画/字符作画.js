@@ -811,6 +811,7 @@
                     <li>💾 自动保存（本地存储）</li>
                     <li>↩️↪️ 支持撤销/重做 (Ctrl+Z / Ctrl+Y)</li>
                     <li>✨ 「新建」重置为空画布，「清空」仅清除字符</li>
+                    <li>📂 「打开」可导入 JSON 文件，📤「导出」可导出 PNG / HTML / JSON</li>
                 </ul>
                 <div style="text-align:center; margin-top:16px;"><button id="closeHelpBtn">关闭</button></div>
             </div>
@@ -819,17 +820,164 @@
         dialog.querySelector('#closeHelpBtn').onclick = () => dialog.remove();
     }
 
+    // ---------- 导出 / 导入 ----------
+    function downloadBlob(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function showExportDialog() {
+        const dialog = document.createElement('div');
+        dialog.className = 'modal';
+        dialog.innerHTML = `
+            <div class="body" id="exportBody">
+                <h3>📤 导出</h3>
+                <button class="btn export-option-btn" id="exportPngBtn">🖼️ 导出 PNG 图片</button>
+                <button class="btn export-option-btn" id="exportHtmlBtn">📄 导出 HTML</button>
+                <button class="btn export-option-btn" id="exportJsonBtn">📦 导出 JSON 数据</button>
+                <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                    <button class="btn" id="dialogCancel">关闭</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(dialog);
+        dialog.querySelector('#exportPngBtn').onclick = () => { exportPng(); dialog.remove(); };
+        dialog.querySelector('#exportHtmlBtn').onclick = () => { exportHtml(); dialog.remove(); };
+        dialog.querySelector('#exportJsonBtn').onclick = () => { exportJson(); dialog.remove(); };
+        dialog.querySelector('#dialogCancel').onclick = () => dialog.remove();
+    }
+
+    function exportPng() {
+        // 用 SVG foreignObject 让浏览器自己渲染 DOM，再光栅化到 canvas——像素级还原（背景渐变、emoji 彩色、drop-shadow、旋转、透明度）
+        const clone = canvasElement.cloneNode(true);
+        clone.style.transform = '';            // 去掉平移/缩放
+        clone.style.position = 'relative';
+        clone.querySelectorAll('.scene-item.selected').forEach(el => el.classList.remove('selected'));
+        clone.querySelectorAll('.resize-handle').forEach(el => el.remove());
+        // 注入每个元素继承的真实字体，避免 foreignObject 用默认字体导致字形度量差异（emoji 不受影响，符号/CJK 会偏）
+        const liveItems = [...document.querySelectorAll('#sceneCanvas .scene-item')];
+        const cloneItems = [...clone.querySelectorAll('.scene-item')];
+        liveItems.forEach((live, i) => {
+            const c = cloneItems[i];
+            if (c) c.style.fontFamily = getComputedStyle(live).fontFamily;
+        });
+        const css = '.scene-item { position: absolute; line-height: 1; white-space: nowrap; user-select: none; filter: drop-shadow(1px 2px 3px rgba(0,0,0,0.15)); } .scene-canvas { position: relative; }';
+        const xmlns = 'http://www.w3.org/1999/xhtml';
+        const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + canvasWidth + '" height="' + canvasHeight + '"><foreignObject width="100%" height="100%"><div xmlns="' + xmlns + '"><style>' + css + '</style>' + clone.outerHTML + '</div></foreignObject></svg>';
+        const img = new Image();
+        img.onload = () => {
+            const c = document.createElement('canvas');
+            c.width = canvasWidth;
+            c.height = canvasHeight;
+            c.getContext('2d').drawImage(img, 0, 0);
+            c.toBlob(b => downloadBlob(b, '字符作画.png'), 'image/png');
+        };
+        img.onerror = () => { toastr.error('导出图片失败'); };
+        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    }
+
+    function exportHtml() {
+        const snapshot = captureSnapshot();
+        const dataJson = JSON.stringify(snapshot).replace(/</g, '\\u003c');
+        const html = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>字符作画 - 导出作品</title>
+    <style>
+        body { margin: 0; padding: 16px; font-family: system-ui, sans-serif; background: #f0f0f0; }
+        .scene-canvas { position: relative; overflow: hidden; margin: 0 auto; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,.15); }
+        .scene-item { position: absolute; line-height: 1; white-space: nowrap; user-select: none; filter: drop-shadow(1px 2px 3px rgba(0,0,0,.15)); }
+    </style>
+</head>
+<body>
+    <div class="scene-canvas" id="scene" style="width:${snapshot.width}px;height:${snapshot.height}px;background:${snapshot.bg}"></div>
+    <script>
+        var DATA = ${dataJson};
+        var scene = document.getElementById('scene');
+        DATA.elements.forEach(function (e) {
+            var div = document.createElement('div');
+            div.className = 'scene-item';
+            div.style.left = e.left;
+            div.style.top = e.top;
+            div.style.fontSize = e.fontSize + 'px';
+            div.style.zIndex = e.zIndex;
+            if (e.color) div.style.color = e.color;
+            if (e.rotation) div.style.transform = 'rotate(' + e.rotation + 'deg)';
+            div.style.opacity = e.opacity != null ? e.opacity : 1;
+            div.innerText = e.char.repeat(e.repeat);
+            scene.appendChild(div);
+        });
+    <\/script>
+</body>
+</html>`;
+        downloadBlob(new Blob([html], { type: 'text/html' }), '字符作画.html');
+    }
+
+    function exportJson() {
+        const data = captureSnapshot();
+        downloadBlob(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }), '字符作画.json');
+    }
+
+    function importJson() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json,application/json';
+        input.style.display = 'none';
+        document.body.appendChild(input);
+        input.onchange = (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    try {
+                        const raw = JSON.parse(ev.target.result);
+                        if (!raw || typeof raw !== 'object' || !Array.isArray(raw.elements)) throw new Error('bad');
+                        const snap = {
+                            bg: (typeof raw.bg === 'string' && raw.bg) ? raw.bg : 'linear-gradient(145deg, #b2e0fa, #c5e0a4)',
+                            width: (Number.isFinite(+raw.width) && +raw.width >= 400) ? +raw.width : 800,
+                            height: (Number.isFinite(+raw.height) && +raw.height >= 300) ? +raw.height : 600,
+                            transform: (raw.transform && Number.isFinite(+raw.transform.x) && Number.isFinite(+raw.transform.y))
+                                ? { x: +raw.transform.x, y: +raw.transform.y } : { x: 0, y: 0 },
+                            elements: raw.elements.map(el => {
+                                const char = String(el.char ?? '');
+                                if (!char) throw new Error('bad');
+                                return {
+                                    char,
+                                    repeat: Math.max(1, parseInt(el.repeat) || 1),
+                                    fontSize: Math.max(12, parseInt(el.fontSize) || 46),
+                                    left: /px$/.test(String(el.left)) ? String(el.left) : (Number.isFinite(+el.left) ? (+el.left) + 'px' : '0px'),
+                                    top: /px$/.test(String(el.top)) ? String(el.top) : (Number.isFinite(+el.top) ? (+el.top) + 'px' : '0px'),
+                                    zIndex: (el.zIndex != null) ? el.zIndex : 300,
+                                    color: (typeof el.color === 'string' && el.color) ? el.color : null,
+                                    rotation: Number.isFinite(+el.rotation) ? +el.rotation : 0,
+                                    opacity: Number.isFinite(+el.opacity) ? Math.min(1, Math.max(0, +el.opacity)) : 1,
+                                };
+                            }),
+                        };
+                        applySnapshot(snap);
+                        pushHistory();
+                        toastr.success('导入完成（' + snap.elements.length + ' 个元素）');
+                    } catch (err) {
+                        toastr.error('JSON 格式不正确或缺少必要字段');
+                    }
+                };
+                reader.readAsText(file);
+            }
+            input.remove();
+        };
+        input.click();
+    }
+
     function autoSave() {
         const data = captureSnapshot();
         localStorage.setItem('char_scene_data', JSON.stringify(data));
-    }
-    function loadScene() {
-        const raw = localStorage.getItem('char_scene_data');
-        if (!raw) { toastr.warning('无保存数据'); return; }
-        const data = JSON.parse(raw);
-        applySnapshot(data);
-        pushHistory();
-        toastr.success('加载完成');
     }
     function newScene() {
         if (confirm('新建将清除当前所有内容，是否继续？')) {
@@ -937,7 +1085,8 @@
         };
         const multiCancelBtn = document.getElementById('multiCancelBtn');
         if (multiCancelBtn) multiCancelBtn.onclick = () => selectElement(null);
-        document.getElementById('loadSceneBtn').onclick = loadScene;
+        document.getElementById('loadSceneBtn').onclick = importJson;
+        document.getElementById('exportBtn').onclick = showExportDialog;
         document.getElementById('newSceneBtn').onclick = newScene;
         document.getElementById('clearCanvasBtn').onclick = clearCanvas;
         document.getElementById('canvasSettingsBtn').onclick = showCanvasSettings;
