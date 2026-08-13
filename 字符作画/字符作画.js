@@ -675,26 +675,6 @@
         }
     }
 
-    function initTabs() {
-        const normalContainer = document.getElementById('normalSymbolsContainer');
-        const emojiContainer = document.getElementById('emojiSymbolsContainer');
-        const tabBtns = document.querySelectorAll('.tab-btn');
-        tabBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                tabBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                const tab = btn.getAttribute('data-tab');
-                if (tab === 'normal') {
-                    normalContainer.style.display = 'block';
-                    emojiContainer.style.display = 'none';
-                } else {
-                    normalContainer.style.display = 'none';
-                    emojiContainer.style.display = 'block';
-                }
-            });
-        });
-    }
-
     function initDrop() {
         canvasElement.addEventListener('dragover', (e) => e.preventDefault());
         canvasElement.addEventListener('drop', (e) => {
@@ -1090,7 +1070,6 @@
         updateZoomUI();
         buildGroupedSymbols('emojiSymbolsContainer', emojiGroups);
         buildGroupedSymbols('normalSymbolsContainer', normalGroups);
-        initTabs();
         initDrop();
         initCanvasPan();
         initPaste();
