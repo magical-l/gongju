@@ -81,7 +81,7 @@
                 <details id="propsPanel">
                     <summary class="panel-header"><span id="propsPanelTitle">✨ 已选元素（无）</span></summary>
                     <div class="panel-body">
-                        <div id="multiSelectPanel" style="display:none;">
+                        <div id="multiSelectPanel">
                             <div class="preview-card">
                                 <div class="preview-char" style="font-size:20px;" id="multiCount">已选 2 个</div>
                                 <button class="btn danger" id="multiDeleteBtn">🗑️ 批量删除</button>
@@ -89,36 +89,36 @@
                             </div>
                         </div>
                         <div id="selectionControls">
-                            <div class="flex items-single-line items-x-space-between items-y-near-center" style="margin-bottom:8px;">
+                            <div class="selection-actions flex items-single-line items-x-space-between items-y-near-center">
                                 <button class="btn" id="closePropsBtn" title="取消选中">✕ 取消选中</button>
                                 <button class="btn danger" id="deleteItemBtn" title="删除元素">🗑️ 删除</button>
                             </div>
                             <div class="preview-card">
                                 <div class="preview-char" id="previewChar">🌟</div>
-                                <button class="btn" id="copyCharBtn" style="margin-top:8px">📋 复制字符</button>
+                                <button class="btn" id="copyCharBtn">📋 复制字符</button>
                             </div>
-                            <div class="slider-row">
-                                <span>字号 <span class="tooltip-icon inline flex items-x-near-center items-y-near-center" data-tooltip="可在元素四角拖拽缩放">?</span></span>
+                            <div class="slider-row flex items-single-line items-x-space-between items-y-near-center">
+                                <span>字号 <i class="icon help char-style" data-tooltip="可在元素四角拖拽缩放"></i></span>
                                 <span id="sizeValueDisplay">48</span>
                                 <input type="range" id="sizeSlider" min="12" max="140" step="1">
                             </div>
-                            <div class="slider-row">
-                                <span>旋转 <span class="tooltip-icon inline flex items-x-near-center items-y-near-center" data-tooltip="旋转角度 -180~180">?</span></span>
+                            <div class="slider-row flex items-single-line items-x-space-between items-y-near-center">
+                                <span>旋转 <i class="icon help char-style" data-tooltip="旋转角度 -180~180"></i></span>
                                 <span id="rotationValueDisplay">0</span>
                                 <input type="range" id="rotationSlider" min="-180" max="180" step="1">
                             </div>
-                            <div class="slider-row">
+                            <div class="slider-row flex items-single-line items-x-space-between items-y-near-center">
                                 <span>透明度</span>
                                 <span id="opacityValueDisplay">0%</span>
                                 <input type="range" id="opacitySlider" min="0" max="100" step="1">
                             </div>
-                            <div class="slider-row">
-                                <span>重复 <span class="tooltip-icon inline flex items-x-near-center items-y-near-center" data-tooltip="退格键减少重复，Delete删除整个">?</span></span>
+                            <div class="slider-row flex items-single-line items-x-space-between items-y-near-center">
+                                <span>重复 <i class="icon help char-style" data-tooltip="退格键减少重复，Delete删除整个"></i></span>
                                 <span id="repeatValueDisplay">1</span>
                                 <input type="range" id="repeatSlider" min="1" max="20" step="1">
                             </div>
                             <div id="colorControlArea" style="display:none;">
-                                <div class="slider-row">
+                                <div class="slider-row flex items-single-line items-x-space-between items-y-near-center">
                                     <span>颜色</span>
                                     <input type="color" id="charColorPicker" value="#2c5a2c">
                                 </div>

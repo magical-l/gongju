@@ -1,8 +1,36 @@
 
 
-        .modal {
-            position: fixed;
-            z-index: 200000;
+        dialog {
+            border-radius: 15px;
+            border: none;
+            background: var(--bg-base);
+            padding: 0;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            transform: scale(0.7);
+            animation: zoomIn 0.5s forwards;
+        }
+
+        dialog::backdrop {
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        dialog > .body {
+            padding: 40px 50px;
+            text-align: left;
+            color: var(--text-primary);
+        }
+
+        dialog > .body h3 {
+            margin: 0 0 0.75rem;
+            color: var(--text-primary);
+        }
+
+        dialog > .body input, dialog > .body select {
+            width: 100%;
+            box-sizing: border-box;
+            margin: 8px 0;
+            border-radius: var(--radius-md);
+            padding: 8px;
         }
 
         #helpBtn {
@@ -309,15 +337,21 @@
         }
         .symbol-card:active { cursor: grabbing; }
         /* 属性面板样式 */
+        #multiSelectPanel {
+            display: none;
+        }
+        .selection-actions {
+            margin-bottom: 8px;
+        }
+        #copyCharBtn {
+            margin-top: 8px;
+        }
         .slider-row {
-            display: flex;
             gap: 8px;
-            justify-content: space-between;
             margin: 8px 0;
-            align-items: center;
         }
         /* 图层面板（叠素材库下方，可折叠） */
-        input[type="range"] { width: 140px; }
+        input[type="range"] { width: 140px; flex: none; }
         .preview-card {
             background: var(--bg-subtle);
             border: 1px solid var(--border-subtle);
@@ -334,34 +368,20 @@
             border-radius: var(--radius-md);
             font-family: 'Segoe UI Emoji', 'Apple Color Emoji', monospace;
         }
-        .tooltip-icon {
+        i.help.icon.char-style {
+            --icon-width: 18px;
+            --icon-height: 18px;
+            --icon-min-width: 18px;
+            --icon-min-height: 18px;
+            --icon-font-size: 12px;
             color: var(--text-secondary);
             border: 1px solid var(--border-subtle);
-            width: 18px;
-            height: 18px;
             background: var(--bg-muted);
             border-radius: 50%;
-            font-size: 12px;
             font-weight: bold;
             margin-left: 6px;
             cursor: help;
-        }
-        .modal > .body {
-            text-align: left;
-            color: var(--text-primary);
-        }
-        .modal > .body h3 {
-            margin: 0 0 0.75rem;
-            color: var(--text-primary);
-        }
-        .modal > .body input,
-        .modal > .body select {
-            width: 100%;
-            box-sizing: border-box;
-            margin: 8px 0;
-            border: 1px solid var(--border-default);
-            border-radius: var(--radius-md);
-            padding: 8px;
+            vertical-align: baseline;
         }
         #canvasSettingsBody {
             width: 420px;
@@ -388,7 +408,7 @@
         [data-tooltip] {
             position: relative;
         }
-        [data-tooltip]:hover::after {
+        [data-tooltip]:hover::after, i.icon[data-tooltip]:hover::after {
             content: attr(data-tooltip);
             position: absolute;
             bottom: 120%;
@@ -403,6 +423,9 @@
             z-index: 200000;
             pointer-events: none;
             font-weight: normal;
+            top: auto;
+            right: auto;
+            line-height: normal;
         }
         /* 弹窗 */
         .gradient-preview {
@@ -455,3 +478,6 @@
             justify-content: center;
             font-size: 0.95rem;
         }
+
+
+

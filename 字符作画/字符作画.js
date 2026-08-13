@@ -734,8 +734,7 @@
     }
 
     function showCanvasSettings() {
-        const dialog = document.createElement('div');
-        dialog.className = 'modal';
+        const dialog = document.createElement('dialog');
         let currentGrad = canvasElement.style.background;
         let dir = '145deg';
         let col1 = '#b2e0fa', col2 = '#c5e0a4';
@@ -785,6 +784,8 @@
             </div>
         `;
         document.body.appendChild(dialog);
+        dialog.addEventListener('cancel', () => dialog.remove());
+        dialog.showModal();
         const confirmBtn = dialog.querySelector('#dialogConfirm');
         const cancelBtn = dialog.querySelector('#dialogCancel');
         const widthInput = dialog.querySelector('#canvasWidthInput');
@@ -823,15 +824,14 @@
             canvasElement.style.background = newGrad;
             clampTransform();
             pushHistory();
-            dialog.remove();
+            dialog.close(); dialog.remove();
         };
         confirmBtn.onclick = applySettings;
-        cancelBtn.onclick = () => dialog.remove();
+        cancelBtn.onclick = () => { dialog.close(); dialog.remove(); };
     }
 
     function showHelp() {
-        const dialog = document.createElement('div');
-        dialog.className = 'modal';
+        const dialog = document.createElement('dialog');
         dialog.innerHTML = `
             <div class="body help-card">
                 <h3>📖 使用帮助</h3>
@@ -853,7 +853,9 @@
             </div>
         `;
         document.body.appendChild(dialog);
-        dialog.querySelector('#closeHelpBtn').onclick = () => dialog.remove();
+        dialog.addEventListener('cancel', () => dialog.remove());
+        dialog.showModal();
+        dialog.querySelector('#closeHelpBtn').onclick = () => { dialog.close(); dialog.remove(); };
     }
 
     // ---------- 导出 / 导入 ----------
@@ -869,8 +871,7 @@
     }
 
     function showExportDialog() {
-        const dialog = document.createElement('div');
-        dialog.className = 'modal';
+        const dialog = document.createElement('dialog');
         dialog.innerHTML = `
             <div class="body" id="exportBody">
                 <h3>📤 导出</h3>
@@ -883,10 +884,12 @@
             </div>
         `;
         document.body.appendChild(dialog);
-        dialog.querySelector('#exportPngBtn').onclick = () => { exportPng(); dialog.remove(); };
-        dialog.querySelector('#exportHtmlBtn').onclick = () => { exportHtml(); dialog.remove(); };
-        dialog.querySelector('#exportJsonBtn').onclick = () => { exportJson(); dialog.remove(); };
-        dialog.querySelector('#dialogCancel').onclick = () => dialog.remove();
+        dialog.addEventListener('cancel', () => dialog.remove());
+        dialog.showModal();
+        dialog.querySelector('#exportPngBtn').onclick = () => { exportPng(); dialog.close(); dialog.remove(); };
+        dialog.querySelector('#exportHtmlBtn').onclick = () => { exportHtml(); dialog.close(); dialog.remove(); };
+        dialog.querySelector('#exportJsonBtn').onclick = () => { exportJson(); dialog.close(); dialog.remove(); };
+        dialog.querySelector('#dialogCancel').onclick = () => { dialog.close(); dialog.remove(); };
     }
 
     function exportPng() {
