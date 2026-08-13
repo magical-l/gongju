@@ -662,7 +662,7 @@
                 const card = document.createElement('div');
                 card.className = 'symbol-card inline flex items-single-line items-y-near-center';
                 card.setAttribute('draggable', 'true');
-                card.innerHTML = `<span>${sym}</span><span class="symbol-label"></span>`;
+                card.innerHTML = `<span>${sym}</span>`;
                 card.addEventListener('dragstart', (e) => {
                     e.dataTransfer.setData('text/plain', sym);
                     e.dataTransfer.effectAllowed = 'copy';

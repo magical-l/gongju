@@ -32,7 +32,7 @@
             border: 1px solid var(--border-subtle);
             border-radius: var(--radius-lg);
             background: var(--bg-base);
-            padding: 0.75rem;
+            padding: 0.5rem;
             min-height: 0;
         }
 
@@ -248,10 +248,10 @@
         }
         /* 素材库样式 */
         .tab-bar {
-            gap: 8px;
-            margin-bottom: 12px;
+            gap: 6px;
+            margin-bottom: 8px;
             border-bottom: 1px solid var(--border-subtle);
-            padding-bottom: 6px;
+            padding-bottom: 4px;
         }
         .tab-btn {
             background: none;
@@ -271,14 +271,14 @@
             color: var(--accent-primary);
         }
         .symbol-group {
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             background: var(--bg-subtle);
             border-radius: var(--radius-md);
-            padding: 6px 10px;
+            padding: 4px 8px;
         }
         summary.group-header {
             font-weight: 500;
-            padding: 4px 2px;
+            padding: 2px 2px;
             font-size: 0.8rem;
             color: var(--text-secondary);
             cursor: pointer;
@@ -286,25 +286,20 @@
             list-style-position: inside;
         }
         .group-content {
-            gap: 6px;
-            margin-top: 8px;
+            gap: 4px;
+            margin-top: 6px;
         }
         .symbol-card {
             background: var(--bg-base);
             border: 1px solid var(--border-subtle);
-            padding: 4px 10px;
+            padding: 2px 7px;
             border-radius: var(--radius-md);
             cursor: grab;
-            gap: 4px;
             box-shadow: var(--shadow-sm);
         }
         .symbol-card span:first-child {
-            font-size: 24px;
+            font-size: 22px;
             font-family: 'Segoe UI Emoji', 'Apple Color Emoji', monospace;
-        }
-        .symbol-label {
-            font-size: 10px;
-            color: var(--text-muted);
         }
         .symbol-card:active { cursor: grabbing; }
         /* 属性面板样式 */
@@ -454,5 +449,3 @@
             justify-content: center;
             font-size: 0.95rem;
         }
-    
-
