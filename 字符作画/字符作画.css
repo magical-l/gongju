@@ -304,6 +304,9 @@
             font-size: 22px;
             font-family: 'Segoe UI Emoji', 'Apple Color Emoji', monospace;
         }
+        #normalSymbolsContainer .symbol-card span:first-child {
+            font-family: sans-serif;
+        }
         .symbol-card:active { cursor: grabbing; }
         /* 属性面板样式 */
         .slider-row {

@@ -2,14 +2,15 @@
 
     // ---------- 符号库数据 ----------
     const normalGroups = {
-        "🔣 装饰 & 符号": ["★", "☆", "☀", "☁", "⚡", "☾", "✿", "❀", "〰️", "➰", "✂️", "⚙️", "🌀", "◉", "◎", "▧", "▣", "▪️", "▫️", "☯", "♻️", "⚜️", "♩", "♪", "♫"],
-        "⬆️ 箭头 & 标点": ["⬆️", "⬇️", "⬅️", "➡️", "↗️", "↘️", "↙️", "↖️", "❌", "✔️", "❗", "❓", "‼️", "⁉️"]
+        "🔣 装饰 & 符号": ["★", "☆", "☀", "☁", "☾", "✿", "❀", "〰", "✂", "⚙", "◉", "◎", "▧", "▣", "▪", "▫", "☯", "♻", "⚜", "♩", "♪", "♫"],
+        "⬆️ 箭头 & 标点": ["⬆", "⬇", "⬅", "➡", "↗", "↘", "↙", "↖", "✔", "‼", "⁉"]
     };
     const emojiGroups = {
         "👥 人物角色": ["👩", "👨", "🧑", "👧", "👦", "👵", "👴", "👸", "🤴", "🧙", "🧚", "🧛", "🎅", "🤶", "💁", "🙋", "💂", "🕵️", "👩‍🌾", "👨‍🍳", "👩‍🎨", "🧑‍🚀"],
         "🐾 动物伙伴": ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮", "🐷", "🐸", "🐒", "🐔", "🐧", "🐦", "🐴", "🐺", "🦋", "🐌", "🐞", "🐝", "🐑", "🐄", "🦆"],
         "🌻 花草自然": ["🌸", "🌼", "🌻", "🌺", "🌹", "🥀", "🌿", "🍀", "🍃", "🍂", "🍁", "🌲", "🌳", "🌴", "🍎", "🍓", "🍊", "🥕", "🌽", "🍄"],
-        "🏠 建筑物品": ["🏠", "🏡", "🏢", "🏘️", "🏰", "🗼", "🚗", "🚜", "🚲", "🚛", "✈️", "⛵", "🚀", "🛸", "⌛", "⏳", "⚓", "🔔", "📷", "💡", "🔑", "🧺", "🪣", "🧹", "🚪"]
+        "🏠 建筑物品": ["🏠", "🏡", "🏢", "🏘️", "🏰", "🗼", "🚗", "🚜", "🚲", "🚛", "✈️", "⛵", "🚀", "🛸", "⌛", "⏳", "⚓", "🔔", "📷", "💡", "🔑", "🧺", "🪣", "🧹", "🚪"],
+        "✨ 符号 & 标记": ["⚡", "🌀", "➰", "❌", "❗", "❓"]
     };
 
     let currentSelected = null;
@@ -111,13 +112,29 @@
         if (redoBtn) redoBtn.disabled = (historyIndex >= historyStack.length - 1);
     }
 
+    // 把任意 CSS 颜色规范化为 #rrggbb（<input type=color> 只接受 hex）
+    function toHexColor(colorStr) {
+        if (!colorStr) return '#2c5a2c';
+        if (/^#[0-9a-fA-F]{3,8}$/.test(colorStr)) return colorStr;
+        const probe = document.createElement('span');
+        probe.style.color = colorStr;
+        probe.style.display = 'none';
+        document.body.appendChild(probe);
+        const rgb = getComputedStyle(probe).color;
+        document.body.removeChild(probe);
+        const m = rgb.match(/[\d.]+/g);
+        if (!m) return '#2c5a2c';
+        return '#' + m.slice(0, 3).map(v => (+v).toString(16).padStart(2, '0')).join('');
+    }
     function isEmojiCharacter(charStr) {
         if (!charStr) return false;
+        // U+FE0F (VS16) 变体选择符：明确要求按 emoji 呈现
+        if (charStr.includes('️')) return true;
+        // 主 emoji 区（这些字符只有 emoji 变体）
         const code = charStr.codePointAt(0);
         if (!code) return false;
-        if (code >= 0x1F300 && code <= 0x1F6FF) return true;
-        if (code >= 0x1F900 && code <= 0x1F9FF) return true;
-        if (code >= 0x2600 && code <= 0x26FF && /[\p{Emoji}]/u.test(charStr)) return true;
+        if (code >= 0x1F000 && code <= 0x1FAFF) return true;
+        // 默认以 emoji 呈现的字符（Emoji_Presentation=Yes）
         return /[\p{Emoji_Presentation}]/u.test(charStr);
     }
     function getNewZIndex() { return nextZIndex++; }
@@ -474,7 +491,7 @@
             colorArea.style.display = 'block';
             let currentColor = el.style.color || '#2c5a2c';
             if (currentColor === '') currentColor = '#2c5a2c';
-            colorPicker.value = currentColor;
+            colorPicker.value = toHexColor(currentColor);
             colorPicker.oninput = (e) => {
                 el.style.color = e.target.value;
                 el.setAttribute('data-color', e.target.value);
