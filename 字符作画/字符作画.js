@@ -380,11 +380,25 @@
             cell.addEventListener('drop', (e) => {
                 e.preventDefault();
                 if (!layerDragEl || layerDragEl === el) { layerDragEl = null; return; }
-                const tmp = layerDragEl.style.zIndex;
-                layerDragEl.style.zIndex = el.style.zIndex;
-                el.style.zIndex = tmp;
-                layerDragEl.setAttribute('data-zindex', layerDragEl.style.zIndex);
-                el.setAttribute('data-zindex', el.style.zIndex);
+                // 插入式排序：drop 在目标 cell 上半→插到目标上方，下半→插到目标下方
+                const rect = cell.getBoundingClientRect();
+                const insertBefore = e.clientY < rect.top + rect.height / 2;
+                // 当前所有 scene-item 按 zIndex 降序（视觉从顶到底）
+                const order = [...document.querySelectorAll('#sceneCanvas .scene-item')]
+                    .sort((a, b) => (parseInt(b.style.zIndex) || 0) - (parseInt(a.style.zIndex) || 0));
+                const fromIdx = order.indexOf(layerDragEl);
+                if (fromIdx === -1) { layerDragEl = null; return; }
+                order.splice(fromIdx, 1); // 取出拖拽元素
+                let toIdx = order.indexOf(el);
+                if (toIdx === -1) { layerDragEl = null; return; }
+                if (!insertBefore) toIdx += 1; // 插到目标下方
+                order.splice(toIdx, 0, layerDragEl); // 插入
+                // 重分配连续 zIndex：顺序首位（顶层）最大
+                order.forEach((item, i) => {
+                    const z = order.length - 1 - i;
+                    item.style.zIndex = z;
+                    item.setAttribute('data-zindex', z);
+                });
                 layerDragEl = null;
                 pushHistory();
                 refreshLayers();
