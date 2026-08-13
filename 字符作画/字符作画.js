@@ -565,6 +565,7 @@
         applyViewTransform();
         clampTransform();
         updateZoomUI();
+        updatePanCursor();
     }
     function updateZoomUI() {
         const d = document.getElementById('zoomDisplay');
@@ -575,12 +576,25 @@
     }
 
     function clampTransform() {
-        const containerRect = container.getBoundingClientRect();
-        const canvasRect = canvasElement.getBoundingClientRect();
-        const maxX = 0;
-        const maxY = 0;
-        const minX = Math.min(0, containerRect.width - canvasRect.width);
-        const minY = Math.min(0, containerRect.height - canvasRect.height);
+        // 画布无 translate 时的基准位置用 offsetLeft/Top（不受 transform 影响，拖拽过程中稳定）——clamp 必须基于它，否则放大后边缘内容不可达
+        const baseLeft = canvasElement.offsetLeft;
+        const baseTop = canvasElement.offsetTop;
+        const canvasVisualW = canvasElement.getBoundingClientRect().width;
+        const canvasVisualH = canvasElement.getBoundingClientRect().height;
+        const containerW = container.clientWidth;
+        const containerH = container.clientHeight;
+        // 画布居中（base>0），放大后从基准向右下扩展——即使尺寸小于容器，右侧/下侧也可能已溢出，必须按位置判断
+        const overflowX = baseLeft < 0 || baseLeft + canvasVisualW > containerW;
+        const overflowY = baseTop < 0 || baseTop + canvasVisualH > containerH;
+        let minX = 0, maxX = 0, minY = 0, maxY = 0;
+        if (overflowX) {
+            minX = Math.min(0, -baseLeft, containerW - canvasVisualW - baseLeft);
+            maxX = Math.max(0, -baseLeft, containerW - canvasVisualW - baseLeft);
+        }
+        if (overflowY) {
+            minY = Math.min(0, -baseTop, containerH - canvasVisualH - baseTop);
+            maxY = Math.max(0, -baseTop, containerH - canvasVisualH - baseTop);
+        }
         let newX = sceneTransform.x;
         let newY = sceneTransform.y;
         if (newX > maxX) newX = maxX;
@@ -594,15 +608,25 @@
         }
     }
 
+    function updatePanCursor() {
+        const cv = canvasElement.getBoundingClientRect();
+        const cr = container.getBoundingClientRect();
+        const canPan = cv.left < cr.left || cv.right > cr.right || cv.top < cr.top || cv.bottom > cr.bottom;
+        container.classList.toggle('pan-enabled', canPan);
+    }
+
     function initCanvasPan() {
         container.addEventListener('mousedown', (e) => {
             if (e.target === container || e.target === canvasElement || e.target.classList.contains('canvas-container')) {
+                const cv = canvasElement.getBoundingClientRect();
+                const cr = container.getBoundingClientRect();
+                const canPan = cv.left < cr.left || cv.right > cr.right || cv.top < cr.top || cv.bottom > cr.bottom;
+                if (!canPan) return;
                 isPanning = true;
                 panStart.x = e.clientX;
                 panStart.y = e.clientY;
                 panStartTransform.x = sceneTransform.x;
                 panStartTransform.y = sceneTransform.y;
-                container.style.cursor = 'grabbing';
                 e.preventDefault();
             }
         });
@@ -618,7 +642,7 @@
         window.addEventListener('mouseup', () => {
             if (isPanning) pushHistory();
             isPanning = false;
-            container.style.cursor = 'grab';
+            updatePanCursor();
         });
     }
 
@@ -783,6 +807,7 @@
             canvasHeight = newH;
             canvasElement.style.width = canvasWidth + 'px';
             canvasElement.style.height = canvasHeight + 'px';
+            updatePanCursor();
             const newGrad = `linear-gradient(${dirSelect.value}, ${color1.value}, ${color2.value})`;
             canvasElement.style.background = newGrad;
             clampTransform();
@@ -1104,6 +1129,8 @@
             if (e.target === canvasElement) selectElement(null);
         });
         clampTransform();
+        updatePanCursor();
+        window.addEventListener('resize', updatePanCursor);
         pushHistory();
         refreshLayers();
     }

@@ -95,25 +95,29 @@
         .canvas-card {
             flex: 1;
             position: relative;
-            cursor: grab;
             box-shadow: var(--shadow-sm);
             border-radius: var(--radius-lg);
             border: 1px solid var(--border-subtle);
             background: var(--bg-subtle);
             display: flex;
             padding: 1.5rem;
-            overflow: auto;
+            overflow: hidden;
             min-height: 660px;
             height: calc(100vh - 300px);
             min-width: 0;
         }
 
-        .canvas-card:active {
+        .canvas-card.pan-enabled:active {
             cursor: grabbing;
+        }
+
+        .canvas-card.pan-enabled {
+            cursor: grab;
         }
 
         .float-panel {
             position: absolute;
+            cursor: default;
             top: 12px;
             left: 12px;
             width: 300px;
