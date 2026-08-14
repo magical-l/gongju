@@ -16,6 +16,7 @@
     let currentSelected = null;
     const selectedSet = new Set();
     let suppressClickSelect = false;
+    let panelManuallyPositioned = false;  // 用户手动拖离过浮层 → 元素移动不再跟随
     let layerDragEl = null;
     let layerDragMoved = false;
     let sceneTransform = { x: 0, y: 0 };
@@ -221,6 +222,7 @@
             if (currentSelected === element) {
                 document.querySelectorAll('.resize-handle').forEach(h => updateHandlePosition(h, element));
             }
+            if (selectedSet.has(element)) followFloatPanel();
         }
         function onMouseUp() {
             if (dragging && moved) { pushHistory(); suppressClickSelect = true; }
@@ -294,6 +296,7 @@
                 document.querySelector('.size-value').innerText = newSize;
             }
             document.querySelectorAll('.resize-handle').forEach(h => updateHandlePosition(h, element));
+            followFloatPanel();
         }
         function onMouseUp() {
             if (resizing) pushHistory();
@@ -315,16 +318,31 @@
         if (!panel || !el) return;
         const er = el.getBoundingClientRect();
         const cr = container.getBoundingClientRect();
-        let left = er.right - cr.left + 8;
+        const margin = 8;
+        let left = er.right - cr.left + margin;
         let top = er.top - cr.top - 12;
-        if (left + panel.offsetWidth > container.clientWidth) {
-            left = er.left - cr.left - panel.offsetWidth - 8;
+        // 横向：右侧放不下则翻到元素左侧
+        if (left + panel.offsetWidth > container.clientWidth - margin) {
+            left = er.left - cr.left - panel.offsetWidth - margin;
         }
+        // 双向 clamp 进画布外框内，防止突破下沿
+        left = Math.max(margin, Math.min(left, container.clientWidth - panel.offsetWidth - margin));
+        top = Math.max(margin, Math.min(top, container.clientHeight - panel.offsetHeight - margin));
         panel.style.left = left + 'px';
         panel.style.top = top + 'px';
     }
 
+    // 移动选中元素时浮层跟随，除非用户手动拖离过浮层
+    function followFloatPanel() {
+        if (panelManuallyPositioned) return;
+        const panel = document.getElementById('floatPanel');
+        if (!panel || !panel.classList.contains('visible')) return;
+        if (!currentSelected) return;
+        positionFloatPanel(selectedSet.size > 1 ? [...selectedSet].at(-1) : currentSelected);
+    }
+
     function selectElement(el, opts = {}) {
+        const prevSelected = currentSelected;  // 记录当前锚点元素，用于判断是否换选
         if (currentSelected) hideResizeHandles();
         if (!el) { selectedSet.clear(); currentSelected = null; }
         else if (opts.additive) {
@@ -356,7 +374,12 @@
             // 浮层显隐与定位：单选贴 currentSelected，多选贴最近点选元素
             if (floatPanel) {
                 floatPanel.classList.add('visible');
-                positionFloatPanel(selectedSet.size > 1 ? [...selectedSet].at(-1) : currentSelected);
+                const anchor = selectedSet.size > 1 ? [...selectedSet].at(-1) : currentSelected;
+                // 手动拖离过且仍是同一锚点元素 → 保持停留；否则重新贴住
+                if (!panelManuallyPositioned || anchor !== prevSelected) {
+                    panelManuallyPositioned = false;
+                    positionFloatPanel(anchor);
+                }
             }
         } else {
             propsDiv.open = false;
@@ -524,6 +547,7 @@
         if (currentSelected) {
             document.querySelectorAll('.resize-handle').forEach(h => updateHandlePosition(h, currentSelected));
         }
+        followFloatPanel();
     }
     function getSelectionTargets() {
         if (selectedSet.size > 0) return [...selectedSet];
@@ -1088,7 +1112,10 @@
                 const startX = e.clientX, startY = e.clientY;
                 const baseLeft = panel.offsetLeft, baseTop = panel.offsetTop;
                 const onMove = (ev) => {
-                    if (Math.abs(ev.clientX - startX) > 3 || Math.abs(ev.clientY - startY) > 3) panelDragMoved = true;
+                    if (Math.abs(ev.clientX - startX) > 3 || Math.abs(ev.clientY - startY) > 3) {
+                        panelDragMoved = true;
+                        panelManuallyPositioned = true;
+                    }
                     const dx = ev.clientX - startX, dy = ev.clientY - startY;
                     const card = panel.offsetParent;
                     const maxLeft = Math.max(0, card.clientWidth - panel.offsetWidth - 8);
