@@ -106,8 +106,8 @@
     }
 
     function updateUndoRedoButtons() {
-        const undoBtn = document.getElementById('undoBtn');
-        const redoBtn = document.getElementById('redoBtn');
+        const undoBtn = document.querySelector('.undo');
+        const redoBtn = document.querySelector('.redo');
         if (undoBtn) undoBtn.disabled = (historyIndex <= 0);
         if (redoBtn) redoBtn.disabled = (historyIndex >= historyStack.length - 1);
     }
@@ -289,9 +289,9 @@
             element.style.left = (centerX - newWidth / 2) + 'px';
             element.style.top = (centerY - newHeight / 2) + 'px';
             if (currentSelected === element) {
-                const sizeSlider = document.getElementById('sizeSlider');
+                const sizeSlider = document.querySelector('.size-slider');
                 if (sizeSlider) sizeSlider.value = newSize;
-                document.getElementById('sizeValueDisplay').innerText = newSize;
+                document.querySelector('.size-value').innerText = newSize;
             }
             document.querySelectorAll('.resize-handle').forEach(h => updateHandlePosition(h, element));
         }
@@ -338,15 +338,15 @@
         document.querySelectorAll('.scene-item').forEach(i => i.classList.toggle('selected', selectedSet.has(i)));
         // 面板
         const propsDiv = document.getElementById('propsPanel');
-        const multiDiv = document.getElementById('multiSelectPanel');
-        const selDiv = document.getElementById('selectionControls');
+        const multiDiv = document.querySelector('.multi-select');
+        const selDiv = document.querySelector('.selection-controls');
         const floatPanel = document.getElementById('floatPanel');
         if (currentSelected) {
             propsDiv.open = true;
             if (selectedSet.size > 1) {
                 if (multiDiv) multiDiv.style.display = 'block';
                 selDiv.style.display = 'none';
-                if (multiDiv) multiDiv.querySelector('#multiCount').textContent = selectedSet.size;
+                if (multiDiv) multiDiv.querySelector('.multi-count').textContent = selectedSet.size;
             } else {
                 if (multiDiv) multiDiv.style.display = 'none';
                 selDiv.style.display = 'block';
@@ -362,11 +362,11 @@
             propsDiv.open = false;
             if (multiDiv) multiDiv.style.display = 'none';
             if (selDiv) selDiv.style.display = 'none';
-            const previewDiv = document.getElementById('previewChar');
+            const previewDiv = document.querySelector('.selection-controls .preview-char');
             if (previewDiv) previewDiv.innerText = '';
             if (floatPanel) floatPanel.classList.remove('visible');
         }
-        const title = document.getElementById('propsPanelTitle');
+        const title = document.querySelector('.panel-title');
         if (title) title.textContent = currentSelected ? '✨ 已选元素' : '✨ 已选元素（无）';
         if (typeof refreshLayers === 'function') refreshLayers();
     }
@@ -432,11 +432,11 @@
         let repeat = parseInt(el.getAttribute('data-repeat') || 1);
         const fontSize = parseInt(el.getAttribute('data-fontsize') || 42);
         const isEmoji = isEmojiCharacter(char);
-        const previewDiv = document.getElementById('previewChar');
+        const previewDiv = document.querySelector('.selection-controls .preview-char');
         previewDiv.innerText = char;
-        document.getElementById('copyCharBtn').onclick = () => { navigator.clipboard.writeText(char); toastr.success(`已复制: ${char}`); };
-        const sizeSlider = document.getElementById('sizeSlider');
-        const sizeVal = document.getElementById('sizeValueDisplay');
+        document.querySelector('.copy-char').onclick = () => { navigator.clipboard.writeText(char); toastr.success(`已复制: ${char}`); };
+        const sizeSlider = document.querySelector('.size-slider');
+        const sizeVal = document.querySelector('.size-value');
         sizeSlider.value = fontSize;
         sizeVal.innerText = fontSize;
         sizeSlider.oninput = (e) => {
@@ -447,8 +447,8 @@
             if (currentSelected === el) showResizeHandles(el);
             pushHistory();
         };
-        const repSlider = document.getElementById('repeatSlider');
-        const repSpan = document.getElementById('repeatValueDisplay');
+        const repSlider = document.querySelector('.repeat-slider');
+        const repSpan = document.querySelector('.repeat-value');
         repSlider.value = repeat;
         repSpan.innerText = repeat;
         repSlider.oninput = (e) => {
@@ -461,8 +461,8 @@
             pushHistory();
         };
         const rot = parseFloat(el.getAttribute('data-rotation')) || 0;
-        const rotSlider = document.getElementById('rotationSlider');
-        const rotVal = document.getElementById('rotationValueDisplay');
+        const rotSlider = document.querySelector('.rotation-slider');
+        const rotVal = document.querySelector('.rotation-value');
         rotSlider.value = rot; rotVal.textContent = rot;
         rotSlider.oninput = (e) => {
             const v = parseInt(e.target.value);
@@ -473,8 +473,8 @@
         };
         const opAttr = parseFloat(el.getAttribute('data-opacity'));
         const op = Number.isFinite(opAttr) ? opAttr : 1;
-        const opSlider = document.getElementById('opacitySlider');
-        const opVal = document.getElementById('opacityValueDisplay');
+        const opSlider = document.querySelector('.opacity-slider');
+        const opVal = document.querySelector('.opacity-value');
         const trans = Math.round((1 - op) * 100);
         opSlider.value = trans; opVal.textContent = trans + '%';
         opSlider.oninput = (e) => {
@@ -485,8 +485,8 @@
             el.style.opacity = opv;
             pushHistory();
         };
-        const colorArea = document.getElementById('colorControlArea');
-        const colorPicker = document.getElementById('charColorPicker');
+        const colorArea = document.querySelector('.color-control');
+        const colorPicker = document.querySelector('.color-picker');
         if (!isEmoji) {
             colorArea.style.display = 'block';
             let currentColor = el.style.color || '#2c5a2c';
@@ -500,7 +500,7 @@
         } else {
             colorArea.style.display = 'none';
         }
-        document.getElementById('deleteItemBtn').onclick = () => {
+        document.querySelector('.delete-item').onclick = () => {
             if (currentSelected) {
                 currentSelected.remove();
                 selectElement(null);
@@ -508,7 +508,7 @@
                 refreshLayers();
             }
         };
-        const closePropsBtn = document.getElementById('closePropsBtn');
+        const closePropsBtn = document.querySelector('.close-props');
         if (closePropsBtn) closePropsBtn.onclick = (e) => { e.preventDefault(); e.stopPropagation(); selectElement(null); };
     }
 
@@ -558,9 +558,9 @@
                 currentSelected.setAttribute('data-repeat', repeat);
                 const originalChar = currentSelected.getAttribute('data-char');
                 currentSelected.innerText = originalChar.repeat(repeat);
-                const repSlider = document.getElementById('repeatSlider');
+                const repSlider = document.querySelector('.repeat-slider');
                 if (repSlider) repSlider.value = repeat;
-                document.getElementById('repeatValueDisplay').innerText = repeat;
+                document.querySelector('.repeat-value').innerText = repeat;
                 pushHistory();
             } else {
                 getSelectionTargets().forEach(t => t.remove());
@@ -599,9 +599,9 @@
         updatePanCursor();
     }
     function updateZoomUI() {
-        const d = document.getElementById('zoomDisplay');
+        const d = document.querySelector('.zoom-display');
         if (d) d.textContent = Math.round(zoom * 100) + '%';
-        const o = document.getElementById('zoomOutBtn'), i = document.getElementById('zoomInBtn');
+        const o = document.querySelector('.zoom-out'), i = document.querySelector('.zoom-in');
         if (o) o.disabled = zoom <= MIN_ZOOM;
         if (i) i.disabled = zoom >= MAX_ZOOM;
     }
@@ -648,7 +648,7 @@
 
     function initCanvasPan() {
         container.addEventListener('mousedown', (e) => {
-            if (e.target === container || e.target === canvasElement || e.target.classList.contains('canvas-container')) {
+            if (e.target === container || e.target === canvasElement || e.target.classList.contains('canvas-card')) {
                 const cv = canvasElement.getBoundingClientRect();
                 const cr = container.getBoundingClientRect();
                 const canPan = cv.left < cr.left || cv.right > cr.right || cv.top < cr.top || cv.bottom > cr.bottom;
@@ -677,8 +677,8 @@
         });
     }
 
-    function buildGroupedSymbols(containerId, groups) {
-        const containerElem = document.getElementById(containerId);
+    function buildGroupedSymbols(containerSelector, groups) {
+        const containerElem = document.querySelector(containerSelector);
         containerElem.innerHTML = '';
         for (const [groupName, symbols] of Object.entries(groups)) {
             const groupDiv = document.createElement('details');
@@ -739,17 +739,17 @@
         const dialog = document.getElementById('canvasSettingsDialog');
         return {
             dialog,
-            body: dialog.querySelector('#canvasSettingsBody'),
+            body: dialog.querySelector('.settings-body'),
             solidRadio: dialog.querySelector('input[name="bgType"][value="solid"]'),
             gradientRadio: dialog.querySelector('input[name="bgType"][value="gradient"]'),
             solidRow: dialog.querySelector('.solid-row'),
             gradientRow: dialog.querySelector('.gradient-row'),
-            widthInput: dialog.querySelector('#canvasWidthInput'),
-            heightInput: dialog.querySelector('#canvasHeightInput'),
-            bgColor: dialog.querySelector('#bgColor'),
-            dirSelect: dialog.querySelector('#gradientDir'),
-            gradColor1: dialog.querySelector('#gradColor1'),
-            gradColor2: dialog.querySelector('#gradColor2'),
+            widthInput: dialog.querySelector('.canvas-width'),
+            heightInput: dialog.querySelector('.canvas-height'),
+            bgColor: dialog.querySelector('.bg-color'),
+            dirSelect: dialog.querySelector('.gradient-dir'),
+            gradColor1: dialog.querySelector('.grad-color-1'),
+            gradColor2: dialog.querySelector('.grad-color-2'),
         };
     }
 
@@ -832,7 +832,7 @@
                 updateCanvasSettingsDialogBg();
             });
         });
-        els.dialog.querySelector('#dialogConfirm').addEventListener('click', () => {
+        els.dialog.querySelector('.dialog-confirm').addEventListener('click', () => {
             let newW = parseInt(els.widthInput.value) || 800;
             let newH = parseInt(els.heightInput.value) || 600;
             if (newW < 400) newW = 400;
@@ -849,7 +849,7 @@
             pushHistory();
             els.dialog.close();
         });
-        els.dialog.querySelector('#dialogCancel').addEventListener('click', () => els.dialog.close());
+        els.dialog.querySelector('.dialog-cancel').addEventListener('click', () => els.dialog.close());
     }
 
     function showHelp() {
@@ -871,13 +871,13 @@
                     <li>✨ 「新建」重置为空画布，「清空」仅清除字符</li>
                     <li>📂 「打开」可导入 JSON 文件，📤「导出」可导出 PNG / HTML / JSON</li>
                 </ul>
-                <div style="text-align:center; margin-top:16px;"><button id="closeHelpBtn">关闭</button></div>
+                <div class="help-actions flex items-x-near-center"><button class="close-help">关闭</button></div>
             </div>
         `;
         document.body.appendChild(dialog);
         dialog.addEventListener('cancel', () => dialog.remove());
         dialog.showModal();
-        dialog.querySelector('#closeHelpBtn').onclick = () => { dialog.close(); dialog.remove(); };
+        dialog.querySelector('.close-help').onclick = () => { dialog.close(); dialog.remove(); };
     }
 
     // ---------- 导出 / 导入 ----------
@@ -895,23 +895,23 @@
     function showExportDialog() {
         const dialog = document.createElement('dialog');
         dialog.innerHTML = `
-            <div class="body" id="exportBody">
+            <div class="body export-body">
                 <h3>📤 导出</h3>
-                <button class="btn export-option-btn" id="exportPngBtn">🖼️ 导出 PNG 图片</button>
-                <button class="btn export-option-btn" id="exportHtmlBtn">📄 导出 HTML</button>
-                <button class="btn export-option-btn" id="exportJsonBtn">📦 导出 JSON 数据</button>
-                <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
-                    <button class="btn" id="dialogCancel">关闭</button>
+                <button class="btn export-option-btn export-png">🖼️ 导出 PNG 图片</button>
+                <button class="btn export-option-btn export-html">📄 导出 HTML</button>
+                <button class="btn export-option-btn export-json">📦 导出 JSON 数据</button>
+                <div class="dialog-actions flex items-go-x items-near-right">
+                    <button class="btn dialog-cancel">关闭</button>
                 </div>
             </div>
         `;
         document.body.appendChild(dialog);
         dialog.addEventListener('cancel', () => dialog.remove());
         dialog.showModal();
-        dialog.querySelector('#exportPngBtn').onclick = () => { exportPng(); dialog.close(); dialog.remove(); };
-        dialog.querySelector('#exportHtmlBtn').onclick = () => { exportHtml(); dialog.close(); dialog.remove(); };
-        dialog.querySelector('#exportJsonBtn').onclick = () => { exportJson(); dialog.close(); dialog.remove(); };
-        dialog.querySelector('#dialogCancel').onclick = () => { dialog.close(); dialog.remove(); };
+        dialog.querySelector('.export-png').onclick = () => { exportPng(); dialog.close(); dialog.remove(); };
+        dialog.querySelector('.export-html').onclick = () => { exportHtml(); dialog.close(); dialog.remove(); };
+        dialog.querySelector('.export-json').onclick = () => { exportJson(); dialog.close(); dialog.remove(); };
+        dialog.querySelector('.dialog-cancel').onclick = () => { dialog.close(); dialog.remove(); };
     }
 
     function exportPng() {
@@ -1082,7 +1082,7 @@
         // 拖标题栏（三个 summary）移动面板
         document.querySelectorAll('.panel-header').forEach(header => {
             header.addEventListener('mousedown', (e) => {
-                if (e.target.closest('button, #closePropsBtn')) return;
+                if (e.target.closest('button, .close-props')) return;
                 e.preventDefault();
                 panelDragMoved = false;
                 const startX = e.clientX, startY = e.clientY;
@@ -1120,12 +1120,12 @@
         container.addEventListener('wheel', (e) => {
             if (e.ctrlKey) { e.preventDefault(); setZoom(zoom + (e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP)); }
         }, { passive: false });
-        document.getElementById('zoomInBtn').onclick = () => setZoom(zoom + ZOOM_STEP);
-        document.getElementById('zoomOutBtn').onclick = () => setZoom(zoom - ZOOM_STEP);
-        document.getElementById('zoomResetBtn').onclick = () => setZoom(1);
+        document.querySelector('.zoom-in').onclick = () => setZoom(zoom + ZOOM_STEP);
+        document.querySelector('.zoom-out').onclick = () => setZoom(zoom - ZOOM_STEP);
+        document.querySelector('.zoom-reset').onclick = () => setZoom(1);
         updateZoomUI();
-        buildGroupedSymbols('emojiSymbolsContainer', emojiGroups);
-        buildGroupedSymbols('normalSymbolsContainer', normalGroups);
+        buildGroupedSymbols('.emoji-symbols', emojiGroups);
+        buildGroupedSymbols('.normal-symbols', normalGroups);
         initDrop();
         initCanvasPan();
         initPaste();
@@ -1134,24 +1134,24 @@
         window.addEventListener('keyup', (e) => {
             if (ARROWS[e.key] && arrowHistoryDirty) { pushHistory(); arrowHistoryDirty = false; }
         });
-        document.getElementById('undoBtn').onclick = undo;
-        document.getElementById('redoBtn').onclick = redo;
-        const multiDeleteBtn = document.getElementById('multiDeleteBtn');
+        document.querySelector('.undo').onclick = undo;
+        document.querySelector('.redo').onclick = redo;
+        const multiDeleteBtn = document.querySelector('.delete-multi');
         if (multiDeleteBtn) multiDeleteBtn.onclick = () => {
             getSelectionTargets().forEach(t => t.remove());
             selectElement(null);
             pushHistory();
             refreshLayers();
         };
-        const multiCancelBtn = document.getElementById('multiCancelBtn');
+        const multiCancelBtn = document.querySelector('.cancel-multi');
         if (multiCancelBtn) multiCancelBtn.onclick = () => selectElement(null);
-        document.getElementById('loadSceneBtn').onclick = importJson;
-        document.getElementById('exportBtn').onclick = showExportDialog;
-        document.getElementById('newSceneBtn').onclick = newScene;
-        document.getElementById('clearCanvasBtn').onclick = clearCanvas;
-        document.getElementById('canvasSettingsBtn').onclick = showCanvasSettings;
+        document.querySelector('.load-scene').onclick = importJson;
+        document.querySelector('.export').onclick = showExportDialog;
+        document.querySelector('.new-scene').onclick = newScene;
+        document.querySelector('.clear-canvas').onclick = clearCanvas;
+        document.querySelector('.canvas-settings').onclick = showCanvasSettings;
         initCanvasSettingsDialog();
-        document.getElementById('helpBtn').onclick = showHelp;
+        document.querySelector('.help-btn').onclick = showHelp;
         const savedRaw = localStorage.getItem('char_scene_data');
         if (savedRaw) {
             try { applySnapshot(JSON.parse(savedRaw)); }

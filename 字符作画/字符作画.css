@@ -43,10 +43,14 @@
         }
 
         dialog > .body .size-row {
-            display: flex;
-            align-items: center;
             gap: 8px;
             margin: 8px 0;
+        }
+
+        dialog > .body hr.separator {
+            border: none;
+            border-top: 1px solid var(--border-subtle);
+            margin: 12px 0;
         }
 
         dialog > .body .size-row input {
@@ -61,24 +65,20 @@
             margin: 0 0 4px;
         }
 
-        dialog > .body hr.divider {
-            border: none;
-            border-top: 1px solid var(--border-subtle);
-            margin: 12px 0;
-        }
-
         dialog > .body .dialog-actions {
-            display: flex;
             gap: 12px;
-            justify-content: flex-end;
             margin-top: 16px;
         }
 
-        #helpBtn {
+        .help-btn {
             --circle-size: 28px;
         }
 
-        .editor {
+        .help-actions {
+            margin-top: 16px;
+        }
+
+        .canvas-editor {
             display: flex;
             margin-top: 0.75rem;
             align-items: stretch;
@@ -86,19 +86,14 @@
         }
 
         .right-side {
-            display: flex;
-            flex-direction: row;
-            align-items: stretch;
-            flex-shrink: 0;
             width: 336px;
             height: calc(100vh - 300px);
             min-height: 660px;
+            flex-shrink: 0;
         }
 
         .library-bar {
             flex: 1;
-            display: flex;
-            flex-direction: column;
             overflow: hidden;
             border: 1px solid var(--border-subtle);
             border-radius: var(--radius-lg);
@@ -109,13 +104,9 @@
 
         .layer-rail {
             width: 36px;
-            overflow-y: auto;
             border: 1px solid var(--border-subtle);
             border-radius: var(--radius-lg);
             background: var(--bg-base);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             gap: 2px;
             padding: 4px;
             flex-shrink: 0;
@@ -244,21 +235,14 @@
             }
         }
 
-        .symbols-scroll {
-            /* 滚动已由 .library-bar 高度约束承担（素材库拆到右侧固定栏） */
-            flex: 1;
-            min-height: 0;
-            overflow-y: auto;
-        }
-
         /* tab 选中态驱动素材容器显隐（common.css label.btn 机制，替代 JS display 切换） */
-        #normalSymbolsContainer {
+        .normal-symbols {
             display: none;
         }
-        .library-bar:has(input[value="normal"]:checked) #normalSymbolsContainer {
+        .library-bar:has(input[value="normal"]:checked) .normal-symbols {
             display: block;
         }
-        .library-bar:has(input[value="normal"]:checked) #emojiSymbolsContainer {
+        .library-bar:has(input[value="normal"]:checked) .emoji-symbols {
             display: none;
         }
 
@@ -333,7 +317,6 @@
         }
         /* 素材库样式 */
         .tab-bar {
-            flex-shrink: 0;
             margin-bottom: 8px;
             border-bottom: 1px solid var(--border-subtle);
             padding-bottom: 4px;
@@ -373,18 +356,21 @@
             font-size: 22px;
             font-family: 'Segoe UI Emoji', 'Apple Color Emoji', monospace;
         }
-        #normalSymbolsContainer .symbol-card span:first-child {
+        .normal-symbols .symbol-card span:first-child {
             font-family: sans-serif;
         }
         .symbol-card:active { cursor: grabbing; }
         /* 属性面板样式 */
-        #multiSelectPanel {
+        .multi-select {
+            display: none;
+        }
+        .color-control {
             display: none;
         }
         .selection-actions {
             margin-bottom: 8px;
         }
-        #copyCharBtn {
+        .copy-char {
             margin-top: 8px;
         }
         .slider-row {
@@ -424,15 +410,15 @@
             cursor: help;
             vertical-align: baseline;
         }
-        #canvasSettingsBody {
+        .settings-body {
             width: 420px;
             border-radius: 15px;
             max-width: 90vw;
         }
-        #canvasSettingsBody .bg-type {
+        .settings-body .bg-type {
             margin: 0 0 8px;
         }
-        #canvasSettingsBody .solid-row {
+        .settings-body .solid-row {
             display: flex;
             align-items: center;
             margin: 8px 0;
@@ -479,16 +465,11 @@
         }
         /* 弹窗 */
         .gradient-controls {
-            display: flex;
             gap: 8px;
-            align-items: center;
-            flex-wrap: nowrap;
             margin: 8px 0;
         }
         .preset-gradients {
-            display: flex;
             gap: 6px;
-            flex-wrap: wrap;
             margin: 8px 0;
         }
         .preset-btn {
@@ -510,7 +491,7 @@
             flex-direction: column;
         }
 
-#exportBody {
+.export-body {
             width: 340px;
             max-width: 90vw;
         }
