@@ -15,7 +15,7 @@
         }
 
         dialog > .body {
-            padding: 40px 50px;
+            padding: 24px 28px;
             text-align: left;
             color: var(--text-primary);
         }
@@ -31,6 +31,47 @@
             margin: 8px 0;
             border-radius: var(--radius-md);
             padding: 8px;
+        }
+
+        dialog > .body input[type=color] {
+            width: 44px;
+            height: 32px;
+            padding: 2px;
+            box-sizing: border-box;
+            border-radius: var(--radius-md);
+            margin: 0;
+        }
+
+        dialog > .body .size-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 8px 0;
+        }
+
+        dialog > .body .size-row input {
+            width: 110px;
+            margin: 0;
+        }
+
+        dialog > .body .group-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin: 0 0 4px;
+        }
+
+        dialog > .body hr.divider {
+            border: none;
+            border-top: 1px solid var(--border-subtle);
+            margin: 12px 0;
+        }
+
+        dialog > .body .dialog-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 16px;
         }
 
         #helpBtn {
@@ -385,7 +426,16 @@
         }
         #canvasSettingsBody {
             width: 420px;
+            border-radius: 15px;
             max-width: 90vw;
+        }
+        #canvasSettingsBody .bg-type {
+            margin: 0 0 8px;
+        }
+        #canvasSettingsBody .solid-row {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
         }
         .body.help-card {
             width: 440px;
@@ -428,18 +478,11 @@
             line-height: normal;
         }
         /* 弹窗 */
-        .gradient-preview {
-            width: 100%;
-            height: 40px;
-            border-radius: var(--radius-md);
-            margin: 8px 0;
-            border: 1px solid var(--border-default);
-        }
         .gradient-controls {
             display: flex;
             gap: 8px;
             align-items: center;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             margin: 8px 0;
         }
         .preset-gradients {

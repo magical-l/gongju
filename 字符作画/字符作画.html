@@ -161,6 +161,52 @@
             </section>
         </article>
     </footer>
+    <dialog id="canvasSettingsDialog">
+        <div class="body" id="canvasSettingsBody">
+            <h3>🖌️ 画布设置</h3>
+            <div class="size-row">
+                <label>宽度 <input type="number" id="canvasWidthInput" step="50"></label>
+                <label>高度 <input type="number" id="canvasHeightInput" step="50"></label>
+            </div>
+            <hr class="divider">
+            <p class="group-title">背景</p>
+            <div class="bg-type btn-group items-go-x flex">
+                <label class="btn"><input type="radio" name="bgType" value="solid">纯色</label>
+                <label class="btn"><input type="radio" name="bgType" value="gradient" checked>渐变</label>
+            </div>
+            <div class="solid-row">
+                <input type="color" id="bgColor" value="#b2e0fa">
+            </div>
+            <div class="gradient-row">
+                <div class="gradient-controls">
+                    <select id="gradientDir">
+                        <option value="to top">⬆️ 向上</option>
+                        <option value="to right">➡️ 向右</option>
+                        <option value="to bottom">⬇️ 向下</option>
+                        <option value="to left">⬅️ 向左</option>
+                        <option value="135deg">↗️ 对角线</option>
+                    </select>
+                </div>
+                <div class="gradient-controls">
+                    <input type="color" id="gradColor1" value="#b2e0fa">
+                    <span>→</span>
+                    <input type="color" id="gradColor2" value="#c5e0a4">
+                </div>
+                <p class="group-title">预设背景色</p>
+                <div class="preset-gradients">
+                    <button class="preset-btn" data-dir="135deg" data-c1="#b2e0fa" data-c2="#c5e0a4" title="点击套用此配色">🌤️ 天空草地</button>
+                    <button class="preset-btn" data-dir="135deg" data-c1="#f5f7fa" data-c2="#c3cfe2" title="点击套用此配色">☁️ 淡灰</button>
+                    <button class="preset-btn" data-dir="135deg" data-c1="#f6d365" data-c2="#fda085" title="点击套用此配色">🌅 日落</button>
+                    <button class="preset-btn" data-dir="to bottom" data-c1="#a1c4fd" data-c2="#c2e9fb" title="点击套用此配色">💙 天空蓝</button>
+                    <button class="preset-btn" data-dir="to right" data-c1="#d4fc79" data-c2="#96e6a1" title="点击套用此配色">🍃 青草</button>
+                </div>
+            </div>
+            <div class="dialog-actions">
+                <button type="button" id="dialogCancel">取消</button>
+                <button type="button" id="dialogConfirm">应用</button>
+            </div>
+        </div>
+    </dialog>
     <div class="js container">
         <script src="../lib/jquery-3.4.1.min.js"></script>
         <script src="../lib/toastr.min.js"></script>

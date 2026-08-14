@@ -733,86 +733,108 @@
         });
     }
 
-    function showCanvasSettings() {
-        const dialog = document.createElement('dialog');
-        let currentGrad = canvasElement.style.background;
-        let dir = '145deg';
-        let col1 = '#b2e0fa', col2 = '#c5e0a4';
-        if (currentGrad && currentGrad.includes('linear-gradient')) {
-            const match = currentGrad.match(/linear-gradient\(([^,]+),([^,]+),([^,]+)\)/);
-            if (match) {
-                dir = match[1].trim();
-                col1 = match[2].trim();
-                col2 = match[3].trim();
+    const BG_DIRS = ['to top', 'to right', 'to bottom', 'to left', '135deg'];
+
+    function canvasSettingsEls() {
+        const dialog = document.getElementById('canvasSettingsDialog');
+        return {
+            dialog,
+            body: dialog.querySelector('#canvasSettingsBody'),
+            solidRadio: dialog.querySelector('input[name="bgType"][value="solid"]'),
+            gradientRadio: dialog.querySelector('input[name="bgType"][value="gradient"]'),
+            solidRow: dialog.querySelector('.solid-row'),
+            gradientRow: dialog.querySelector('.gradient-row'),
+            widthInput: dialog.querySelector('#canvasWidthInput'),
+            heightInput: dialog.querySelector('#canvasHeightInput'),
+            bgColor: dialog.querySelector('#bgColor'),
+            dirSelect: dialog.querySelector('#gradientDir'),
+            gradColor1: dialog.querySelector('#gradColor1'),
+            gradColor2: dialog.querySelector('#gradColor2'),
+        };
+    }
+
+    // 把 linear-gradient 拆成 dir/c1/c2（c1/c2 可能是 rgb(...)，统一走 toHexColor 归一）
+    function parseGradient(bg) {
+        const m = bg.match(/linear-gradient\(\s*([\s\S]*?)\s*\)$/i);
+        if (!m) return null;
+        const inner = m[1];
+        const parts = [];
+        let depth = 0, start = 0;
+        for (let i = 0; i < inner.length; i++) {
+            const ch = inner[i];
+            if (ch === '(') depth++;
+            else if (ch === ')') depth--;
+            else if (ch === ',' && depth === 0) {
+                parts.push(inner.slice(start, i));
+                start = i + 1;
             }
         }
-        dialog.innerHTML = `
-            <div class="body" id="canvasSettingsBody">
-                <h3>🖌️ 画布设置</h3>
-                <div class="gradient-preview" id="gradientPreview" style="background: ${currentGrad};"></div>
-                <div class="gradient-controls">
-                    <select id="gradientDir">
-                        <option value="to top">⬆️ 向上 (to top)</option>
-                        <option value="to right">➡️ 向右 (to right)</option>
-                        <option value="to bottom">⬇️ 向下 (to bottom)</option>
-                        <option value="to left">⬅️ 向左 (to left)</option>
-                        <option value="135deg">↗️ 对角线 (135deg)</option>
-                        <option value="120deg">↗️ 对角 (120deg)</option>
-                        <option value="145deg" selected>🌅 天空草地 (145deg)</option>
-                    </select>
-                </div>
-                <div class="gradient-controls">
-                    <input type="color" id="gradColor1" value="${col1}">
-                    <span>→</span>
-                    <input type="color" id="gradColor2" value="${col2}">
-                </div>
-                <div class="preset-gradients">
-                    <button class="preset-btn" data-dir="145deg" data-c1="#b2e0fa" data-c2="#c5e0a4">🌤️ 天空草地</button>
-                    <button class="preset-btn" data-dir="135deg" data-c1="#f5f7fa" data-c2="#c3cfe2">☁️ 淡灰</button>
-                    <button class="preset-btn" data-dir="120deg" data-c1="#f6d365" data-c2="#fda085">🌅 日落</button>
-                    <button class="preset-btn" data-dir="to bottom" data-c1="#a1c4fd" data-c2="#c2e9fb">💙 天空蓝</button>
-                    <button class="preset-btn" data-dir="to right" data-c1="#d4fc79" data-c2="#96e6a1">🍃 青草</button>
-                </div>
-                <label>宽度 (px)</label>
-                <input type="number" id="canvasWidthInput" value="${canvasWidth}" step="50">
-                <label>高度 (px)</label>
-                <input type="number" id="canvasHeightInput" value="${canvasHeight}" step="50">
-                <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px;">
-                    <button id="dialogCancel">取消</button>
-                    <button id="dialogConfirm">应用</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(dialog);
-        dialog.addEventListener('cancel', () => dialog.remove());
-        dialog.showModal();
-        const confirmBtn = dialog.querySelector('#dialogConfirm');
-        const cancelBtn = dialog.querySelector('#dialogCancel');
-        const widthInput = dialog.querySelector('#canvasWidthInput');
-        const heightInput = dialog.querySelector('#canvasHeightInput');
-        const dirSelect = dialog.querySelector('#gradientDir');
-        const color1 = dialog.querySelector('#gradColor1');
-        const color2 = dialog.querySelector('#gradColor2');
-        const previewDiv = dialog.querySelector('#gradientPreview');
-        function updatePreview() {
-            const grad = `linear-gradient(${dirSelect.value}, ${color1.value}, ${color2.value})`;
-            previewDiv.style.background = grad;
+        parts.push(inner.slice(start));
+        if (parts.length < 3) return null;
+        return {
+            dir: parts[0].trim(),
+            c1: parts[1].trim(),
+            c2: parts[2].trim(),
+        };
+    }
+
+    function updateCanvasSettingsMode() {
+        const els = canvasSettingsEls();
+        const solid = els.solidRadio.checked;
+        els.solidRow.style.display = solid ? 'flex' : 'none';
+        els.gradientRow.style.display = solid ? 'none' : 'block';
+    }
+
+    // 用画布设置面板 body 背景做实时预览（纯色/渐变）
+    function updateCanvasSettingsDialogBg() {
+        const els = canvasSettingsEls();
+        els.body.style.background = els.solidRadio.checked
+            ? els.bgColor.value
+            : `linear-gradient(${els.dirSelect.value}, ${els.gradColor1.value}, ${els.gradColor2.value})`;
+    }
+
+    function showCanvasSettings() {
+        const els = canvasSettingsEls();
+        els.widthInput.value = canvasWidth;
+        els.heightInput.value = canvasHeight;
+        const bg = (canvasElement.style.background || '').trim();
+        if (/^linear-gradient\b/i.test(bg)) {
+            els.gradientRadio.checked = true;
+            const parsed = parseGradient(bg);
+            const dir = parsed ? parsed.dir : '135deg';
+            els.dirSelect.value = BG_DIRS.includes(dir) ? dir : '135deg';
+            els.gradColor1.value = parsed ? toHexColor(parsed.c1) : '#b2e0fa';
+            els.gradColor2.value = parsed ? toHexColor(parsed.c2) : '#c5e0a4';
+        } else {
+            els.solidRadio.checked = true;
+            els.bgColor.value = bg ? toHexColor(bg) : '#b2e0fa';
         }
-        dirSelect.addEventListener('input', updatePreview);
-        color1.addEventListener('input', updatePreview);
-        color2.addEventListener('input', updatePreview);
-        dialog.querySelectorAll('.preset-btn').forEach(btn => {
+        updateCanvasSettingsMode();
+        updateCanvasSettingsDialogBg();
+        els.dialog.showModal();
+    }
+
+    function initCanvasSettingsDialog() {
+        const els = canvasSettingsEls();
+        els.solidRadio.addEventListener('change', () => { updateCanvasSettingsMode(); updateCanvasSettingsDialogBg(); });
+        els.gradientRadio.addEventListener('change', () => { updateCanvasSettingsMode(); updateCanvasSettingsDialogBg(); });
+        els.bgColor.addEventListener('input', updateCanvasSettingsDialogBg);
+        els.dirSelect.addEventListener('change', updateCanvasSettingsDialogBg);
+        els.gradColor1.addEventListener('input', updateCanvasSettingsDialogBg);
+        els.gradColor2.addEventListener('input', updateCanvasSettingsDialogBg);
+        els.dialog.querySelectorAll('.preset-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                dirSelect.value = btn.getAttribute('data-dir');
-                color1.value = btn.getAttribute('data-c1');
-                color2.value = btn.getAttribute('data-c2');
-                updatePreview();
+                els.gradientRadio.checked = true;
+                els.dirSelect.value = btn.getAttribute('data-dir');
+                els.gradColor1.value = btn.getAttribute('data-c1');
+                els.gradColor2.value = btn.getAttribute('data-c2');
+                updateCanvasSettingsMode();
+                updateCanvasSettingsDialogBg();
             });
         });
-        updatePreview();
-        const applySettings = () => {
-            let newW = parseInt(widthInput.value) || 800;
-            let newH = parseInt(heightInput.value) || 600;
+        els.dialog.querySelector('#dialogConfirm').addEventListener('click', () => {
+            let newW = parseInt(els.widthInput.value) || 800;
+            let newH = parseInt(els.heightInput.value) || 600;
             if (newW < 400) newW = 400;
             if (newH < 300) newH = 300;
             canvasWidth = newW;
@@ -820,14 +842,14 @@
             canvasElement.style.width = canvasWidth + 'px';
             canvasElement.style.height = canvasHeight + 'px';
             updatePanCursor();
-            const newGrad = `linear-gradient(${dirSelect.value}, ${color1.value}, ${color2.value})`;
-            canvasElement.style.background = newGrad;
+            canvasElement.style.background = els.solidRadio.checked
+                ? els.bgColor.value
+                : `linear-gradient(${els.dirSelect.value}, ${els.gradColor1.value}, ${els.gradColor2.value})`;
             clampTransform();
             pushHistory();
-            dialog.close(); dialog.remove();
-        };
-        confirmBtn.onclick = applySettings;
-        cancelBtn.onclick = () => { dialog.close(); dialog.remove(); };
+            els.dialog.close();
+        });
+        els.dialog.querySelector('#dialogCancel').addEventListener('click', () => els.dialog.close());
     }
 
     function showHelp() {
@@ -1128,6 +1150,7 @@
         document.getElementById('newSceneBtn').onclick = newScene;
         document.getElementById('clearCanvasBtn').onclick = clearCanvas;
         document.getElementById('canvasSettingsBtn').onclick = showCanvasSettings;
+        initCanvasSettingsDialog();
         document.getElementById('helpBtn').onclick = showHelp;
         const savedRaw = localStorage.getItem('char_scene_data');
         if (savedRaw) {
