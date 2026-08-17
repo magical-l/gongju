@@ -2,49 +2,121 @@ const {
 	createApp
 } = Vue;
 
-// ===== UCD 属性查询（Unicode 17.0.0）=====
-// 数据：ucd-17.0.0.json（码位区间）+ ucd-zh.json（汉化/介绍），使用前先 await loadUCD()
-// 注意：文字系统已含 Zzzz（未分配）补集，码位在 0..0x10FFFF 内必有值；类别始终有值（未分配为 Cn）
-let _ucdRanges = null;
-let _ucdZh = null;
+// ===== 标签数据（全局）=====
+// TAGS：标签.json 四轴树（文字系统/官方分类/区块/语义）；NAMES：名字.json（码位→官方英文名）
+// FLAT：展平后的有成员标签列表 {name,node,path,count}；SYMBOL_MAP：char → {names,enames,aliases,mode}
+let TAGS = null;
+let NAMES = null;
+let FLAT = [];
+const SYMBOL_MAP = new Map();
+const CAP = 500; // 单个标签最多渲染的字符数
+const SEQ_INDEX = new Map(); // 'cp1-cp2' → { zh, en }：旗序列（双码位）名映射，flatten 时构建
 
-/** 载入 UCD 范围数据 + 汉化数据（fetch 需要 HTTP 环境，file:// 直开不可用） */
-async function loadUCD() {
-	const [ranges, zh] = await Promise.all([
-		fetch('ucd-17.0.0.json').then(r => r.json()),
-		fetch('ucd-zh.json').then(r => r.json())
-	]);
-	_ucdRanges = ranges;
-	_ucdZh = zh;
+/** 区间列表含字符总数 */
+function rangeCount(ranges) {
+	let n = 0;
+	for (const [lo, hi] of ranges) n += hi - lo + 1;
+	return n;
 }
 
-/** 在 {值: [[起,止],...]} 中查码位 cp，返回命中的值；未命中返回 null */
-function ucdFind(map, cp) {
-	for (const [val, ranges] of Object.entries(map)) {
-		for (let i = 0; i < ranges.length; i++) {
-			if (cp >= ranges[i][0] && cp <= ranges[i][1]) return val;
+/** 码位是否落在任一区间 */
+function inRanges(ranges, cp) {
+	for (const [lo, hi] of ranges) if (cp >= lo && cp <= hi) return true;
+	return false;
+}
+
+/** 枚举区间列表的码位，最多 cap 个 */
+function enumerate(ranges, cap) {
+	const out = [];
+	for (const [lo, hi] of ranges) for (let cp = lo; cp <= hi && out.length < cap; cp++) out.push(cp);
+	return out;
+}
+
+/** 区间合并：按 lo 排序并合并重叠/相邻区间，返回无重叠的升序区间列表 */
+function mergeRanges(ranges) {
+	if (!ranges.length) return [];
+	const sorted = [...ranges].sort((a, b) => a[0] - b[0]);
+	const out = [];
+	let [curLo, curHi] = sorted[0];
+	for (let i = 1; i < sorted.length; i++) {
+		const [lo, hi] = sorted[i];
+		if (lo <= curHi + 1) {
+			curHi = Math.max(curHi, hi);
+		} else {
+			out.push([curLo, curHi]);
+			curLo = lo;
+			curHi = hi;
 		}
 	}
-	return null;
+	out.push([curLo, curHi]);
+	return out;
 }
 
-/** 码位 → 文字系统代码（未分配为 Zzzz） */
-function ucdScript(cp) { return ucdFind(_ucdRanges.scripts, cp); }
+/** 码位 → 官方英文名：先二分查 names（严格升序），未命中扫 patterns，都没有返回 '' */
+function nameOf(cp) {
+	if (!NAMES) return '';
+	let lo = 0, hi = NAMES.names.length - 1;
+	while (lo <= hi) {
+		const mid = (lo + hi) >> 1;
+		const c = NAMES.names[mid][0];
+		if (c === cp) return NAMES.names[mid][1];
+		if (c < cp) lo = mid + 1;
+		else hi = mid - 1;
+	}
+	for (const [a, b, prefix] of NAMES.patterns) {
+		if (cp >= a && cp <= b) return prefix + cp.toString(16).toUpperCase();
+	}
+	return '';
+}
 
-/** 码位 → 类别代码（始终有值） */
-function ucdCategory(cp) { return ucdFind(_ucdRanges.categories, cp); }
+/** 展平树：收集所有带 ranges 或 seqs 的节点，并构建旗序列名映射 */
+function flatten(name, node, path) {
+	if (node.ranges || node.seqs) FLAT.push({ name, node, path, count: (node.ranges ? rangeCount(node.ranges) : 0) + (node.seqs ? node.seqs.length : 0) });
+	if (node.seqs) for (const s of node.seqs) SEQ_INDEX.set(s[0] + '-' + s[1], { zh: s[2], en: s[3] });
+	if (node.children) for (const [k, v] of Object.entries(node.children)) flatten(k, v, path + '/' + k);
+}
 
-/** 文字系统代码 → 中文名（无则回退代码本身） */
-function ucdScriptLabel(code) { return _ucdZh.scripts[code]?.zh || code; }
+/** 构建 char → 元数据 映射（SYMBOLS 为旧数据富化源，first-wins） */
+function buildSymbolMap() {
+	for (const s of SYMBOLS) {
+		if (SYMBOL_MAP.has(s.char)) continue;
+		const names = [], enames = [], aliases = [];
+		const seen = new Set();
+		for (const g of Object.values(s.groups)) {
+			if (g.name && !seen.has('n:' + g.name)) { seen.add('n:' + g.name); names.push(g.name); }
+			if (g.ename && !seen.has('e:' + g.ename)) { seen.add('e:' + g.ename); enames.push(g.ename); }
+			for (const a of (g.alias || [])) {
+				if (!seen.has('a:' + a)) { seen.add('a:' + a); aliases.push(a); }
+			}
+		}
+		SYMBOL_MAP.set(s.char, { names, enames, aliases, mode: s.mode || '' });
+	}
+}
 
-/** 类别代码 → 中文名（无则回退代码本身） */
-function ucdCategoryLabel(code) { return _ucdZh.categories[code]?.zh || code; }
-
-/** 文字系统代码 → 简介 */
-function ucdScriptIntro(code) { return _ucdZh.scripts[code]?.intro || ''; }
-
-/** 类别代码 → 简介 */
-function ucdCategoryIntro(code) { return _ucdZh.categories[code]?.intro || ''; }
+/** 所属标签：入参为单码位或旗序列 [cp1,cp2]（同名同内容合并为一个，多分支 paths 聚合） */
+function tagsOf(cp) {
+	const byKey = new Map();
+	if (Array.isArray(cp)) {
+		const [a, b] = cp;
+		const seqKey = 'seq:' + a + '-' + b;
+		for (const t of FLAT) {
+			if (!t.node.seqs || !t.node.seqs.some(s => s[0] === a && s[1] === b)) continue;
+			const key = t.name + '\x00' + seqKey;
+			let g = byKey.get(key);
+			if (!g) { g = { name: t.name, node: t.node, paths: [], count: t.count, intro: t.node.intro || '' }; byKey.set(key, g); }
+			g.paths.push(t.path);
+		}
+		return [...byKey.values()];
+	}
+	for (const t of FLAT) {
+		if (!t.node.ranges || !inRanges(t.node.ranges, cp)) continue;
+		const key = t.name + '\x00' + JSON.stringify(t.node.ranges);
+		let g = byKey.get(key);
+		if (!g) { g = { name: t.name, node: t.node, paths: [], count: rangeCount(t.node.ranges), intro: t.node.intro || '' }; byKey.set(key, g); }
+		g.paths.push(t.path);
+	}
+	return [...byKey.values()];
+}
 
 // ===== 字体相关 =====
 
@@ -115,29 +187,21 @@ async function enumerateFonts(fallbackList) {
 	return fallbackList;
 }
 
-// 构建分类树结构
-function buildCategoryTree() {
-	return Object.entries(CATEGORIES).map(([name, children]) => ({
-		name,
-		children: children.length > 0
-			? children.map(childName => ({ name: childName, children: [] }))
-			: []
-	}));
-}
-
 const app = createApp({
 	data() {
 		return {
+			loading: true,
 			searchQuery: '',
-			selectedCategory: '',
-			hoveredSymbol: { ...SYMBOLS[0], _g: Object.keys(SYMBOLS[0].groups)[0] },
+			selectedTag: null,
+			selectedChar: null,
+			expanded: new Set(),
 			previewFontSize: 2,
 			fontSizeAutoFit: true,
 
 			// 字体切换
 			fontList: [],
 			selectedPreviewFont: '',
-				fontAffectsAll: true,
+			fontAffectsAll: true,
 		};
 	},
 	computed: {
@@ -149,202 +213,265 @@ const app = createApp({
 			return style;
 		},
 		symbolStyle() {
-			if (!this.selectedPreviewFont) return {};
-			if (this.fontAffectsAll) return {}; // font 已通过 previewStyle 整行应用
-			return { fontFamily: `"${this.selectedPreviewFont}"` };
+			if (!this.selectedPreviewFont) return {}; // 无字体时走 CSS 默认 Noto
+			return { fontFamily: '"' + this.selectedPreviewFont + '", "Noto Sans Symbols 2", sans-serif' };
 		},
 		previewFontPt() {
 			return Math.round(this.previewFontSize * 12);
 		},
-		categoryTree() {
-			return buildCategoryTree();
+		/** 扁平可见树节点：递归 TAGS.roots，expanded 命中才展开 children */
+		treeVisible() {
+			if (!TAGS) return [];
+			const out = [];
+			const walk = (node, name, path, depth) => {
+				const hasChild = !!(node.children && Object.keys(node.children).length > 0);
+				out.push({
+					name,
+					node,
+					path,
+					depth,
+					count: (node.ranges ? rangeCount(node.ranges) : 0) + (node.seqs ? node.seqs.length : 0) || null,
+					hasChild,
+					intro: node.intro || ''
+				});
+				if (hasChild && this.expanded.has(path)) {
+					for (const [k, v] of Object.entries(node.children)) walk(v, k, path + '/' + k, depth + 1);
+				}
+			};
+			for (const [name, node] of Object.entries(TAGS.roots)) walk(node, name, name, 0);
+			return out;
 		},
-		groupedSymbols() {
-			const result = {};
-			for (const [cat, subs] of Object.entries(CATEGORIES)) {
-				if (subs.length === 0) {
-					const symbols = SYMBOLS.filter(s => s.groups[cat]).map(s => ({ ...s, _g: cat }));
-					if (symbols.length > 0) {
-						result[cat] = { symbols };
-					}
-				} else {
-					const groups = [];
-					for (const sub of subs) {
-						const symbols = SYMBOLS.filter(s => s.groups[sub]).map(s => ({ ...s, _g: sub }));
-						if (symbols.length > 0) {
-							groups.push({ name: sub, symbols });
-						}
-					}
-					const direct = SYMBOLS.filter(s => s.groups[cat] && !subs.some(sub => s.groups[sub])).map(s => ({ ...s, _g: cat }));
-					result[cat] = {};
-					if (groups.length > 0) result[cat].groups = groups;
-					if (direct.length > 0) result[cat].symbols = direct;
+		/** 是否有搜索关键词 */
+		isSearching() {
+			return this.searchQuery.trim() !== '';
+		},
+		/** 当前选中标签聚合的下级成员：递归收集自身及所有子孙的 ranges/seqs */
+		selectedMembers() {
+			if (!this.selectedTag || !this.selectedTag.node) return { ranges: [], seqs: [] };
+			return this.collectNode(this.selectedTag.node);
+		},
+		/** 当前选中标签聚合后的成员总数（含子孙） */
+		selectedCount() {
+			return rangeCount(this.selectedMembers.ranges) + this.selectedMembers.seqs.length;
+		},
+		/** 当前选中标签的网格条目：ranges 枚举的单字符在前，seqs 旗序列在后（字符最多 CAP 个） */
+		gridItems() {
+			const m = this.selectedMembers;
+			if (!m.ranges.length && !m.seqs.length) return [];
+			const items = [];
+			items.push(...enumerate(m.ranges, CAP));
+			items.push(...m.seqs.map(s => [s[0], s[1]]));
+			return items;
+		},
+		/** 关键词命中的标签（name 或 path 包含，前 100） */
+		matchedTags() {
+			const q = this.searchQuery.trim().toLowerCase();
+			if (!q) return [];
+			const out = [];
+			for (const t of FLAT) {
+				if (t.name.toLowerCase().includes(q) || t.path.toLowerCase().includes(q)) {
+					out.push(t);
+					if (out.length >= 100) break;
 				}
 			}
-			return result;
+			return out;
 		},
-		filteredSymbolGroups() {
-			if (this.searchQuery) {
-				return this._searchAll();
+		/** 关键词命中的符号（char 完全匹配最前，其余搜中文名/别名/英文名，前 200；旗序列按中英名匹配） */
+		matchedChars() {
+			const q = this.searchQuery.trim().toLowerCase();
+			if (!q) return [];
+			const out = [];
+			const seen = new Set();
+			for (const [char, meta] of SYMBOL_MAP) {
+				if (char === q) {
+					const cp = char.codePointAt(0);
+					out.push({ char, cp, zhName: meta.names[0] || '', officialName: nameOf(cp) });
+					seen.add(cp);
+					break;
+				}
 			}
-			const selected = this.selectedCategory;
-			if (!selected) return {};
-
-			if (CATEGORIES[selected] !== undefined) {
-				const data = this.groupedSymbols[selected];
-				if (data) return { [selected]: data };
-				return {};
+			for (const [char, meta] of SYMBOL_MAP) {
+				if (out.length >= 200) break;
+				const hit = meta.names.some(n => n.toLowerCase().includes(q))
+					|| meta.enames.some(e => e.toLowerCase().includes(q))
+					|| meta.aliases.some(a => a.toLowerCase().includes(q));
+				if (!hit) continue;
+				const cp = char.codePointAt(0);
+				if (seen.has(cp)) continue;
+				seen.add(cp);
+				out.push({ char, cp, zhName: meta.names[0] || '', officialName: nameOf(cp) });
 			}
-
-			const symbols = SYMBOLS.filter(s => s.groups[selected]).map(s => ({ ...s, _g: selected }));
-			if (symbols.length > 0) {
-				return { [selected]: { symbols } };
+			// 旗序列（双码位）关键词匹配：扫 FLAT 中有 seqs 的节点
+			for (const t of FLAT) {
+				if (!t.node.seqs) continue;
+				for (const s of t.node.seqs) {
+					if (out.length >= 200) break;
+					if (!String(s[2] || '').toLowerCase().includes(q) && !String(s[3] || '').toLowerCase().includes(q)) continue;
+					const key = 'seq:' + s[0] + '-' + s[1];
+					if (seen.has(key)) continue;
+					seen.add(key);
+					out.push({ char: String.fromCodePoint(s[0], s[1]), cp: [s[0], s[1]], zhName: s[2] || '', officialName: s[3] || '' });
+				}
+				if (out.length >= 200) break;
 			}
-			return {};
+			return out;
 		},
 	},
 	methods: {
-		_searchAll() {
-			if (!this.searchQuery) return {};
-			const query = this.searchQuery.toLowerCase();
-			const result = {};
-			for (const [cat, subs] of Object.entries(CATEGORIES)) {
-				if (cat.toLowerCase().includes(query)) {
-					result[cat] = this.groupedSymbols[cat];
-					continue;
-				}
-				if (subs.length === 0) {
-					const symbols = SYMBOLS.filter(s => {
-						if (!s.groups[cat]) return false;
-						return this._matchSymbol(s, query);
-					}).map(s => ({ ...s, _g: cat }));
-					if (symbols.length > 0) {
-						result[cat] = { symbols };
-					}
-				} else {
-					const matchedSubs = [];
-					for (const sub of subs) {
-						if (sub.toLowerCase().includes(query)) {
-							const g = this.groupedSymbols[cat]?.groups?.find(x => x.name === sub);
-							if (g) matchedSubs.push(g);
-							continue;
-						}
-						const symbols = SYMBOLS.filter(s => {
-							if (!s.groups[sub]) return false;
-							return this._matchSymbol(s, query);
-						}).map(s => ({ ...s, _g: sub }));
-						if (symbols.length > 0) {
-							matchedSubs.push({ name: sub, symbols });
-						}
-					}
-					const directSymbols = SYMBOLS.filter(s => {
-						if (!s.groups[cat] || subs.some(sub => s.groups[sub])) return false;
-						return this._matchSymbol(s, query);
-					}).map(s => ({ ...s, _g: cat }));
-					result[cat] = {};
-					if (matchedSubs.length > 0) result[cat].groups = matchedSubs;
-					if (directSymbols.length > 0) result[cat].symbols = directSymbols;
-					// 无匹配内容时移除该分类
-					if (!Object.keys(result[cat]).length) {
-						delete result[cat];
-					}
-				}
+		/** 递归收集节点及所有子孙的 ranges 和 seqs */
+		collectNode(node) {
+			const ranges = [];
+			const seqs = [];
+			const walk = (n) => {
+				if (n.ranges) ranges.push(...n.ranges);
+				if (n.seqs) seqs.push(...n.seqs);
+				if (n.children) for (const [k, v] of Object.entries(n.children)) walk(v);
+			};
+			walk(node);
+			return { ranges: mergeRanges(ranges), seqs };
+		},
+		/** 选中标签：网格非空则自动选中第一个条目（保持预览有内容） */
+		selectTag(tag) {
+			this.selectedTag = tag;
+			if (this.gridItems.length) this.selectItem(this.gridItems[0]);
+		},
+		/** 网格条目分发：旗序列（数组）走 selectFlag，单码位走 selectChar */
+		selectItem(item) {
+			if (this.isFlag(item)) this.selectFlag(item);
+			else this.selectChar(item);
+		},
+		/** 树节点点击：展开/折叠，并选中（父节点聚合全部下级成员） */
+		onTreeClick(t) {
+			if (t.hasChild) this.toggleExpand(t.path);
+			this.selectTag(t);
+		},
+		/** 展开/折叠路径（Vue3 reactive Set 的 add/delete 即触发响应） */
+		toggleExpand(path) {
+			if (this.expanded.has(path)) {
+				this.expanded.delete(path);
+			} else {
+				this.expanded.add(path);
 			}
-			return result;
 		},
-		_matchSymbol(s, query) {
-			const targets = [
-				s.char.toLowerCase(),
-				...Object.values(s.groups).flatMap(g => [g.name?.toLowerCase(), g.ename?.toLowerCase(), ...(g.alias || []).map(a => a.toLowerCase())].filter(Boolean)),
-				...Object.keys(s.groups).map(k => k.toLowerCase())
-			];
-			return targets.some(t => t.includes(query));
-		},
-		selectCategory(name) {
-			this.selectedCategory = name;
-		},
-		filteredItemCount(data) {
-			if (!data) return 0;
-			let count = 0;
-			if (data.symbols) count += data.symbols.length;
-			if (data.groups) for (const g of data.groups) count += g.symbols?.length || 0;
-			return count;
-		},
-		clearHoveredSymbol() {
-			// 始终显示详情卡片
-		},
-		setHoveredSymbol(symbol, groupName) {
-			this.hoveredSymbol = { ...symbol, _g: groupName };
+		/** 选中单码位字符：算元数据 + 官方名 + 所属标签，并刷新预览 */
+		selectChar(cp) {
+			const char = String.fromCodePoint(cp);
+			const meta = SYMBOL_MAP.get(char);
+			this.selectedChar = {
+				cp,
+				char,
+				zhName: meta ? meta.names[0] : '',
+				mode: meta ? meta.mode : '',
+				aliases: meta ? meta.aliases : [],
+				officialName: nameOf(cp),
+				tags: tagsOf(cp),
+				codeStr: cp.toString(16).toUpperCase(),
+				htmlEntity: '&#' + cp + ';'
+			};
 			if (this.fontSizeAutoFit) this.adjustFontSize();
 		},
-			adjustFontSize() {
-				this.$nextTick(() => {
-					// 只处理溢出缩小（同一个 align-row 上比 scrollWidth > clientWidth），
-					// 不做太小放大——窄符号天然窄，放大会破坏视觉效果。
-					// 用户需放大时通过手动 +/- 按钮。
-					const rows = document.querySelectorAll(".symbol-preview .align-row");
-					if (!rows.length) return;
-					let maxRatio = 1;
-					for (const row of rows) {
-						if (row.scrollWidth > row.clientWidth) {
-							maxRatio = Math.max(maxRatio, row.scrollWidth / row.clientWidth);
-						}
-					}
-					if (maxRatio <= 1) return;
-
-					// 读 DOM 实际字号（px），避免多次  调用时用 stale 的 data 反复缩
-					const actualPx = parseFloat(getComputedStyle(rows[0]).fontSize);
-					const actualRem = actualPx / 16;
-					let newSize = Math.round((actualRem / maxRatio) * 10) / 10;
-					newSize = Math.max(0.3, Math.min(6, newSize));
-
-					if (Math.abs(newSize - this.previewFontSize) > 0.05) {
-						this.previewFontSize = newSize;
-					}
-				});
-			},
-
-			adjustFontSizeBy(deltaPt) {
-				this.fontSizeAutoFit = false;
-				let newSize = Math.round((this.previewFontSize + deltaPt / 12) * 10) / 10;
-				newSize = Math.max(0.3, Math.min(6, newSize));
-				this.previewFontSize = newSize;
-			},
-
-		resetFontSize() {
-		this.fontSizeAutoFit = true;
-		this.previewFontSize = 2;
-		this.$nextTick(() => this.adjustFontSize());
+		/** 选中旗序列 [cp1,cp2]：查 SEQ_INDEX 取名，tags 按双码位匹配 */
+		selectFlag(seq) {
+			const [cp1, cp2] = seq;
+			const meta = SEQ_INDEX.get(cp1 + '-' + cp2) || {};
+			this.selectedChar = {
+				cp: [cp1, cp2],
+				char: String.fromCodePoint(cp1, cp2),
+				zhName: meta.zh || '',
+				officialName: meta.en || '',
+				mode: '',
+				aliases: [],
+				tags: tagsOf([cp1, cp2]),
+				codeStr: cp1.toString(16).toUpperCase() + ' ' + cp2.toString(16).toUpperCase(),
+				htmlEntity: '&#' + cp1 + ';&#' + cp2 + ';'
+			};
+			if (this.fontSizeAutoFit) this.adjustFontSize();
 		},
-
-		// ===== 字体切换 =====
-
-		/** 初始化字体列表（先加载回退列表，dropdown 打开时再尝试 queryLocalFonts） */
-		async initFontList() {
-			const families = await enumerateFonts(FALLBACK_SYMBOL_FONTS);
-			this.fontList = families.length > 0 ? families : FALLBACK_SYMBOL_FONTS;
+		/** 按名字选标签（取 FLAT 第一个同名且有成员的） */
+		selectTagByName(name) {
+			// 与 searchSelectTag 一致：跳转时清空搜索态，保证中心栏切回该标签网格
+			this.searchQuery = '';
+			const t = FLAT.find(x => x.name === name && x.count > 0);
+			if (t) this.selectTag(t);
 		},
-
-			/** 获取字体的 style 对象，用于在选项内预览字符 */
-			fontStyle(fontName) {
-				return { fontFamily: `"${fontName}"` };
-			},
-
-		copySymbol(symbol) {
-			const text = symbol.mode === 'dual' ? symbol.char + '️' : symbol.char;
+		/** 从搜索结果选标签：清空搜索词并选中 */
+		searchSelectTag(t) {
+			this.searchQuery = '';
+			this.selectTag(t);
+		},
+		/** 字符格标题：U+ 码位 + 官方名 */
+		titleOf(cp) {
+			const nm = nameOf(cp);
+			return 'U+' + cp.toString(16).toUpperCase() + (nm ? '\n' + nm : '');
+		},
+		/** 是否为旗序列条目（双码位数组） */
+		isFlag(item) {
+			return Array.isArray(item);
+		},
+		/** 网格条目渲染文本 */
+		cellText(item) {
+			return this.isFlag(item) ? String.fromCodePoint(...item) : String.fromCodePoint(item);
+		},
+		/** 网格条目唯一 key（旗加 's' 前缀防与数字码位混淆） */
+		cellKey(item) {
+			return this.isFlag(item) ? 's' + item.join('-') : String(item);
+		},
+		/** 网格条目悬浮标题：旗显示中/英文名，单码位走 titleOf */
+		itemTitle(item) {
+			if (this.isFlag(item)) {
+				const meta = SEQ_INDEX.get(item[0] + '-' + item[1]) || {};
+				return (meta.zh || '') + '\n' + (meta.en || '');
+			}
+			return this.titleOf(item);
+		},
+		/** 网格条目是否为双模字符（文本/表情两种变体），旗序列恒为 false */
+		itemDual(item) {
+			if (this.isFlag(item)) return false;
+			return SYMBOL_MAP.get(this.cellText(item))?.mode === 'dual';
+		},
+		/** 网格条目是否当前选中 */
+		isSelected(item) {
+			if (!this.selectedChar) return false;
+			if (this.isFlag(item)) {
+				return Array.isArray(this.selectedChar.cp)
+					&& this.selectedChar.cp[0] === item[0]
+					&& this.selectedChar.cp[1] === item[1];
+			}
+			return item === this.selectedChar.cp;
+		},
+		/** 复制当前字符（双模按表情风格） */
+		copyChar() {
+			const sc = this.selectedChar;
+			if (!sc) return;
+			const text = sc.mode === 'dual' ? sc.char + '️' : sc.char;
 			navigator.clipboard.writeText(text).then(() => {
-				ElementPlus.ElMessage.success(`"${symbol.groups?.[symbol._g]?.name || symbol.char}"已复制`);
+				ElementPlus.ElMessage.success(`"${sc.zhName || sc.char}"已复制`);
 			}).catch(err => {
 				ElementPlus.ElMessage.error('复制失败: ' + err);
 			});
 		},
-		copyVariant(symbol, type) {
-			if (symbol.mode !== 'dual') return;
+		/** 复制双模变体（text/emoji） */
+		copyVariant(type) {
+			const sc = this.selectedChar;
+			if (!sc || sc.mode !== 'dual') return;
 			const vs = type === 'text' ? '︎' : '️';
-			const text = symbol.char + vs;
+			const text = sc.char + vs;
 			navigator.clipboard.writeText(text).then(() => {
 				const label = type === 'text' ? '文本风格' : '表情风格';
-				ElementPlus.ElMessage.success(`"${symbol.groups?.[symbol._g]?.name || symbol.char}"（${label}）已复制`);
+				ElementPlus.ElMessage.success(`"${sc.zhName || sc.char}"（${label}）已复制`);
+			}).catch(err => {
+				ElementPlus.ElMessage.error('复制失败: ' + err);
+			});
+		},
+		/** 复制网格条目的双模变体（text/emoji），item 为网格条目 */
+		copyGridVariant(item, type) {
+			const char = this.cellText(item);
+			const vs = type === 'text' ? '︎' : '️';
+			const text = char + vs;
+			const meta = SYMBOL_MAP.get(char);
+			navigator.clipboard.writeText(text).then(() => {
+				const label = type === 'text' ? '文本风格' : '表情风格';
+				ElementPlus.ElMessage.success(`"${meta ? (meta.names[0] || char) : char}"（${label}）已复制`);
 			}).catch(err => {
 				ElementPlus.ElMessage.error('复制失败: ' + err);
 			});
@@ -357,71 +484,102 @@ const app = createApp({
 				ElementPlus.ElMessage.error('复制失败: ' + err);
 			});
 		},
-		symbolCount(groupName) {
-			const data = this.groupedSymbols[groupName];
-			if (!data) return 0;
-			let count = 0;
-			if (data.symbols) count += data.symbols.length;
-			if (data.groups) for (const g of data.groups) count += g.symbols?.length || 0;
-			return count;
-		},
-		autoFocusFirst() {
-			const cats = Object.keys(this.filteredSymbolGroups);
-			if (!cats.length) return;
-			const data = this.filteredSymbolGroups[cats[0]];
-			if (!data) return;
-			let firstSymbol;
-			if (data.symbols) {
-				firstSymbol = data.symbols[0];
-			} else if (data.groups && data.groups.length > 0) {
-				firstSymbol = data.groups[0].symbols[0];
-			}
-			if (!firstSymbol) return;
-			this.setHoveredSymbol(firstSymbol, firstSymbol._g);
-			const chars = document.querySelectorAll('.symbol .char');
-			for (const el of chars) {
-				if (el.textContent.includes(firstSymbol.char)) {
-					const symbolEl = el.closest('.symbol');
-					if (symbolEl) {
-						symbolEl.classList.add('auto-focused');
+		adjustFontSize() {
+			this.$nextTick(() => {
+				// 只处理溢出缩小（同一个 align-row 上比 scrollWidth > clientWidth），
+				// 不做太小放大——窄符号天然窄，放大会破坏视觉效果。
+				// 用户需放大时通过手动 +/- 按钮。
+				const rows = document.querySelectorAll(".symbol-preview .align-row");
+				if (!rows.length) return;
+				let maxRatio = 1;
+				for (const row of rows) {
+					if (row.scrollWidth > row.clientWidth) {
+						maxRatio = Math.max(maxRatio, row.scrollWidth / row.clientWidth);
 					}
-					document.addEventListener('mouseover', function handler(e) {
-						if (e.target.closest('.symbol')) {
-							document.querySelectorAll('.symbol.auto-focused').forEach(s => s.classList.remove('auto-focused'));
-							document.removeEventListener('mouseover', handler);
-						}
-					});
-					el.scrollIntoView({
-						behavior: 'smooth',
-						block: 'center'
-					});
-					break;
 				}
-			}
-		}
+				if (maxRatio <= 1) return;
+
+				// 读 DOM 实际字号（px），避免多次  调用时用 stale 的 data 反复缩
+				const actualPx = parseFloat(getComputedStyle(rows[0]).fontSize);
+				const actualRem = actualPx / 16;
+				let newSize = Math.round((actualRem / maxRatio) * 10) / 10;
+				newSize = Math.max(0.3, Math.min(6, newSize));
+
+				if (Math.abs(newSize - this.previewFontSize) > 0.05) {
+					this.previewFontSize = newSize;
+				}
+			});
+		},
+		adjustFontSizeBy(deltaPt) {
+			this.fontSizeAutoFit = false;
+			let newSize = Math.round((this.previewFontSize + deltaPt / 12) * 10) / 10;
+			newSize = Math.max(0.3, Math.min(6, newSize));
+			this.previewFontSize = newSize;
+		},
+		resetFontSize() {
+			this.fontSizeAutoFit = true;
+			this.previewFontSize = 2;
+			this.$nextTick(() => this.adjustFontSize());
+		},
+
+		// ===== 字体切换 =====
+
+		/** 初始化字体列表（先加载回退列表，dropdown 打开时再尝试 queryLocalFonts） */
+		async initFontList() {
+			const families = await enumerateFonts(FALLBACK_SYMBOL_FONTS);
+			this.fontList = families.length > 0 ? families : FALLBACK_SYMBOL_FONTS;
+		},
+
+		/** 获取字体的 style 对象，用于在选项内预览字符；空字体回退 Noto */
+		fontStyle(fontName) {
+			if (!fontName) return {};
+			return { fontFamily: '"' + fontName + '", "Noto Sans Symbols 2", sans-serif' };
+		},
 	},
-	mounted() {
-		const firstKey = Object.keys(CATEGORIES)[0];
-		if (firstKey) {
-			this.selectedCategory = firstKey;
+	async mounted() {
+		try {
+			const [tags, names] = await Promise.all([
+				fetch('标签.json').then(r => r.json()),
+				fetch('名字.json').then(r => r.json())
+			]);
+			TAGS = tags;
+			NAMES = names;
+			for (const [name, node] of Object.entries(TAGS.roots)) flatten(name, node, name);
+			buildSymbolMap();
+			this.loading = false;
+			// 默认展开到第一层，方便浏览（三个机械轴默认折叠，只展开语义轴）
+			for (const name of Object.keys(TAGS.roots)) {
+				if (!['文字系统', '官方分类', '区块'].includes(name)) this.expanded.add(name);
+			}
+			// 默认标签：优先一个能看懂的脸部 emoji 标签
+			const def = FLAT.find(t => t.name === '表情、脸')
+				|| FLAT.find(t => t.name === '表情、情绪')
+				|| FLAT[0];
+			if (def) this.selectTag(def);
+		} catch (err) {
+			console.error('标签数据加载失败', err);
+			ElementPlus.ElMessage.error('标签数据加载失败：' + err);
+			this.loading = false;
 		}
 		this.initFontList();
 		this.$nextTick(() => {
-			this.autoFocusFirst();
 			this.adjustFontSize();
 			window.addEventListener("resize", this.adjustFontSize);
 		});
 	},
 	watch: {
-		selectedCategory() {
-			this.$nextTick(() => {
-				this.autoFocusFirst();
-			});
-		},
-		filteredSymbolGroups() {
-			this.$nextTick(() => {
-				this.autoFocusFirst();
-			});
+		searchQuery(nv) {
+			const s = nv.trim();
+			if (s === '') return;
+			const arr = Array.from(s);
+			if (arr.length === 1) {
+				const cp = arr[0].codePointAt(0);
+				if (cp !== undefined && cp !== null) this.selectChar(cp);
+			}
+			if (arr.length === 2) {
+				const key = arr[0].codePointAt(0) + '-' + arr[1].codePointAt(0);
+				if (SEQ_INDEX.has(key)) this.selectFlag(arr.map(x => x.codePointAt(0)));
+			}
 		}
 	}
 }).use(ElementPlus).mount('main>article');

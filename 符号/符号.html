@@ -59,14 +59,14 @@
 					<p>"符号大全"是一个方便用户查找和复制各种Unicode特殊字符的工具。</p>
 					<h2>核心功能</h2>
 					<ul>
-						<li><strong>搜索过滤：</strong> 输入关键字，实时过滤符号。</li>
-						<li><strong>分类浏览：</strong> 符号按类别进行组织，方便快速查找。</li>
-						<li><strong>双语名称：</strong> 提供中文和英文官方名称，便于理解和学习。</li>
-						<li><strong>一键复制：</strong> 点击任意符号即可将其复制到剪贴板。</li>
+						<li><strong>标签浏览：</strong> 从四个轴（文字系统 / 官方分类 / 区块 / 语义）浏览字符，选标签出字符。</li>
+						<li><strong>查看标签：</strong> 点击任意字符，查看它的全部所属标签，可点标签跳转浏览。</li>
+						<li><strong>双语名称：</strong> 提供官方英文名和中文名（emoji），便于理解和学习。</li>
+						<li><strong>一键复制：</strong> 点击"复制字符"按钮即可复制到剪贴板，双模字符支持文本 / 表情两种风格。</li>
 					</ul>
 					<h2>如何使用</h2>
 					<p>
-						直接在搜索框输入关键字，或者浏览不同类别的符号，找到你想要的，然后单击它。符号会自动复制到你的剪贴板，并有提示信息确认。然后你可以将其粘贴到任何需要的地方。</p>
+						在左侧选择一个标签，中间会列出该标签下的字符；点击字符可在右侧查看详情、所属标签与预览。在搜索框输入单个字符可查看它的全部标签，或输入关键词搜索符号和标签。</p>
 					<p style="color: #e6a23c; font-weight: bold;">
 						温馨提示：本页面已尽力确保符号显示完整，但复制到其他软件（如聊天工具、文档编辑器等）后，能否正常显示取决于该软件或操作系统的字体支持。如果目标环境缺少相应字体，符号可能显示为方框或乱码。
 					</p>
@@ -75,112 +75,127 @@
 		</header>
 		<article class="symbol-page" v-cloak>
 			<section class="search-bar">
-				<el-input v-model="searchQuery" placeholder="输入中文/英文搜索组/符号..." size="large"></el-input>
+				<el-input v-model="searchQuery" placeholder="输入一个字符看标签，或输入关键词搜符号/标签…" size="large"></el-input>
 			</section>
 			<div class="panels">
 				<section class="tree panel">
-					<ul class="category tree">
-						<li v-for="cat in categoryTree" :key="cat.name" class="one node parent">
-							<div class="node name" :class="{ active: selectedCategory === cat.name }" @click="selectedCategory = cat.name">
-								{{ cat.name }}
+					<div class="tag tree" v-if="!loading">
+						<div class="tnode" v-for="t in treeVisible" :key="t.path">
+							<div class="trow" :style="{ 'padding-left': (8 + t.depth * 16) + 'px' }" :class="{ selected: selectedTag && t.path === selectedTag.path }" @click="onTreeClick(t)">
+								<span class="tcaret" :class="{ leaf: !t.hasChild }" @click.stop="toggleExpand(t.path)">{{ t.hasChild ? (expanded.has(t.path) ? '▾' : '▸') : '' }}</span>
+								<span class="tname">{{ t.name }}</span>
+								<span class="tcount" v-if="t.count !== null">{{ t.count.toLocaleString() }}</span>
 							</div>
-							<ul v-if="cat.children.length" class="children list">
-								<li v-for="child in cat.children" :key="child.name" class="one node child">
-									<div class="node name" :class="{ active: selectedCategory === child.name }" @click="selectedCategory = child.name">
-										{{ child.name }}
-									</div>
-								</li>
-							</ul>
-						</li>
-					</ul>
+							<div class="tintro" v-if="t.intro">{{ t.intro }}</div>
+						</div>
+					</div>
+					<div v-else class="loading-placeholder">加载标签数据…</div>
 				</section>
 				<section class="content panel">
-					<div class="symbol-groups">
-					<template v-for="(data, cat) in filteredSymbolGroups" :key="cat">
-						<h3 class="category-name" v-if="Object.keys(filteredSymbolGroups).length > 1">{{ cat }}（{{ filteredItemCount(data) }} / {{ symbolCount(cat) }}）</h3>
-						<template v-if="data">
-							<div v-if="data.symbols" class="symbols">
-								<div class="symbol" v-for="s in data.symbols" :key="s.char" @click="copySymbol(s)" @mouseenter="setHoveredSymbol(s, s._g || cat)" title="点击复制">
-									<span class="char" :class="{ 'has-variants': s.mode === 'dual' }">
-										<template v-if="s.mode === 'dual'">
-											<span class="variant text vs-text" @click.stop="copyVariant(s, 'text')">{{ s.char }}</span>
-											<span class="variant emoji" @click.stop="copyVariant(s, 'emoji')">{{ s.char }}</span>
-										</template>
-									<span v-else>{{ s.char }}</span>
-									</span>
-									<span class="name">{{ s.groups[s._g].name }}</span>
-									<span class="ename">{{ s.groups[s._g].ename }}</span>
+					<div v-if="loading" class="loading-placeholder">加载数据…</div>
+					<template v-else>
+						<!-- 搜索视图 -->
+						<div v-if="isSearching" class="search-view">
+							<h3 class="category-name">标签匹配（{{ matchedTags.length }}）</h3>
+							<div class="matched-tags" v-if="matchedTags.length">
+								<span class="tag-chip" v-for="t in matchedTags" :key="t.path" @click="searchSelectTag(t)">{{ t.name }}<span class="path">{{ t.path }}</span></span>
+							</div>
+							<div class="none" v-else>无匹配标签</div>
+							<h3 class="category-name">符号匹配（{{ matchedChars.length }}）</h3>
+							<div class="char-grid" v-if="matchedChars.length">
+								<div class="char" v-for="mc in matchedChars" :key="cellKey(mc.cp)" :title="mc.zhName + '\n' + (mc.officialName || 'U+' + mc.cp.toString(16).toUpperCase())" @click="selectItem(mc.cp)">{{ mc.char }}</div>
+							</div>
+							<div class="none" v-else>无匹配符号（中文名/别名/英文名）</div>
+						</div>
+						<!-- 标签字符网格 -->
+						<template v-else>
+							<div class="gridhead" v-if="selectedTag"><span class="name">{{ selectedTag.name }}</span><span class="count">共 {{ selectedCount.toLocaleString() }} 个</span></div>
+							<div class="char-grid" v-if="selectedTag && gridItems.length">
+								<div class="char" v-for="item in gridItems" :key="cellKey(item)" :class="{ sel: isSelected(item), 'has-variants': itemDual(item) }" :title="itemTitle(item)" @click="selectItem(item)">
+									<template v-if="itemDual(item)">
+										<span class="variant text vs-text" @click.stop="copyGridVariant(item, 'text')">{{ cellText(item) }}</span>
+										<span class="variant emoji" @click.stop="copyGridVariant(item, 'emoji')">{{ cellText(item) }}</span>
+									</template>
+									<template v-else>{{ cellText(item) }}</template>
 								</div>
 							</div>
-							<details v-for="subgroup in (data.groups || [])" :key="subgroup.name" open class="subgroup">
-								<summary class="subgroup-name">{{ subgroup.name }}</summary>
-								<div class="symbols">
-									<div class="symbol" v-for="s in subgroup.symbols" :key="s.char" @click="copySymbol(s)" @mouseenter="setHoveredSymbol(s, s._g || subgroup.name)" title="点击复制">
-									<span class="char" :class="{ 'has-variants': s.mode === 'dual' }">
-											<template v-if="s.mode === 'dual'">
-												<span class="variant text vs-text" @click.stop="copyVariant(s, 'text')">{{ s.char }}</span>
-												<span class="variant emoji" @click.stop="copyVariant(s, 'emoji')">{{ s.char }}</span>
-											</template>
-											<span v-else>{{ s.char }}</span>
-										</span>
-									<span class="name">{{ s.groups[s._g].name }}</span>
-									<span class="ename">{{ s.groups[s._g].ename }}</span>
-									</div>
-								</div>
-							</details>
+							<div class="none" v-if="selectedTag && selectedCount > 500">（共 {{ selectedCount.toLocaleString() }} 个，仅显示前 500 个，输入搜索可缩小范围）</div>
+							<div class="none" v-if="selectedTag && gridItems.length === 0">该标签暂无成员</div>
+							<div class="none" v-if="!selectedTag && !loading">请选择一个标签</div>
 						</template>
 					</template>
-				</div>
-			</section>
-			<aside class="preview panel">
-				<div class="symbol-preview">
-					<div class="details">
-						<div class="name">{{ hoveredSymbol.groups?.[hoveredSymbol._g]?.name || hoveredSymbol.char }}</div>
-						<div v-if="hoveredSymbol.groups?.[hoveredSymbol._g]?.ename" class="ename">{{ hoveredSymbol.groups?.[hoveredSymbol._g]?.ename }}</div>
-						<div class="code">
-							<span class="code-label">Unicode</span><span class="code-text">U+{{ hoveredSymbol.char.codePointAt(0).toString(16).toUpperCase() }}</span>
-							<span class="code-copy" @click.stop="copyCode" title="复制">⧉</span>
-						</div>
-						<div class="code">
-							<span class="code-label">HTML转义</span><span class="code-text">&amp;#{{ hoveredSymbol.char.codePointAt(0) }};</span>
-							<span class="code-copy" @click.stop="copyCode" title="复制">⧉</span>
-						</div>
-					</div>
-					<div class="panel-title">效果预览</div>
-					<div class="char-preview">
-						<template v-if="hoveredSymbol.mode === 'dual'">
-							<div class="align-row" :style="previewStyle">
-								<span class="txt">gxhAyO<span class="align-sym variant text vs-text" :style="symbolStyle" @click.stop="copyVariant(hoveredSymbol, 'text')" title="复制文本风格">{{ hoveredSymbol.char }}</span>gxhAyO</span>
+				</section>
+				<aside class="preview panel">
+					<div class="symbol-preview">
+						<div v-if="selectedChar" class="details">
+							<div class="char-preview"><span class="symbol-char" :style="fontStyle(selectedPreviewFont)">{{ selectedChar.char }}</span></div>
+							<div class="name">{{ selectedChar.zhName || selectedChar.officialName || selectedChar.char }}</div>
+							<div v-if="selectedChar.officialName && selectedChar.officialName !== (selectedChar.zhName || selectedChar.officialName || selectedChar.char)" class="official-name">{{ selectedChar.officialName }}</div>
+							<div v-if="selectedChar.aliases.length" class="alias">{{ selectedChar.aliases.join('、') }}</div>
+							<div class="code">
+								<span class="code-label">Unicode</span><span class="code-text">U+{{ selectedChar.codeStr }}</span>
+								<span class="code-copy" @click.stop="copyCode" title="复制">⧉</span>
 							</div>
-							<div class="align-row" :style="previewStyle">
-								<span class="txt">gxhAyO<span class="align-sym variant emoji" :style="symbolStyle" @click.stop="copyVariant(hoveredSymbol, 'emoji')" title="复制表情风格">{{ hoveredSymbol.char }}</span>gxhAyO</span>
+							<div class="code">
+								<span class="code-label">HTML转义</span><span class="code-text">{{ selectedChar.htmlEntity }}</span>
+								<span class="code-copy" @click.stop="copyCode" title="复制">⧉</span>
 							</div>
-						</template>
-						<template v-else>
-							<div class="align-row" :style="previewStyle">
-								<span class="txt">gxhAyO<span class="align-sym" :style="symbolStyle">{{ hoveredSymbol.char }}</span>gxhAyO</span>
+							<div class="copy-char-btn">
+								<el-button type="primary" size="small" @click="copyChar">复制字符</el-button>
 							</div>
-						</template>
-					</div>
-					<div class="font-size-controls">
-						<el-button size="small" circle @click="adjustFontSizeBy(-2)">−</el-button>
-						<span class="font-size-value">{{ previewFontPt }}pt</span>
-						<el-button size="small" circle @click="adjustFontSizeBy(2)">+</el-button>
-						<el-button v-if="!fontSizeAutoFit" size="small" circle @click="resetFontSize()" title="重置为自动适配">⟲</el-button>
-					</div>
-					<div class="panel-title">字体切换</div>
-					<div class="font-selector">
-						<div class="font-radio-list">
-							<label class="font-radio-item" v-for="font in fontList" :key="font" :class="{ active: selectedPreviewFont === font }">
-								<input type="radio" name="preview-font" :value="font" v-model="selectedPreviewFont">
-								<span class="font-sample-char" :style="fontStyle(font)">{{ hoveredSymbol.char }}</span>
-								<span class="font-option-name">{{ font }}</span>
-							</label>
 						</div>
-						<el-checkbox v-model="fontAffectsAll" class="font-affect-all">参考文本使用相同字体</el-checkbox>
+						<div v-else class="details">
+							<div class="char-preview placeholder-char">？</div>
+							<div class="name">点击一个字符查看详情</div>
+						</div>
+						<div v-if="selectedChar && selectedChar.mode === 'dual'" class="dual-copy-btns">
+							<el-button size="small" @click="copyVariant('text')">复制文本风格</el-button>
+							<el-button size="small" @click="copyVariant('emoji')">复制表情风格</el-button>
+						</div>
+						<div class="panel-title">效果预览</div>
+						<div class="char-preview">
+							<template v-if="selectedChar">
+								<div v-if="selectedChar.mode === 'dual'">
+									<div class="align-row" :style="previewStyle">
+										<span class="txt">gxhAyO<span class="align-sym variant text vs-text" :style="symbolStyle" @click.stop="copyVariant('text')" title="复制文本风格">{{ selectedChar.char }}</span>gxhAyO</span>
+									</div>
+									<div class="align-row" :style="previewStyle">
+										<span class="txt">gxhAyO<span class="align-sym variant emoji" :style="symbolStyle" @click.stop="copyVariant('emoji')" title="复制表情风格">{{ selectedChar.char }}</span>gxhAyO</span>
+									</div>
+								</div>
+								<div v-else class="align-row" :style="previewStyle">
+									<span class="txt">gxhAyO<span class="align-sym" :style="symbolStyle">{{ selectedChar.char }}</span>gxhAyO</span>
+								</div>
+							</template>
+							<div v-else class="align-row" :style="previewStyle">
+								<span class="txt">gxhAyO<span class="align-sym placeholder-char">？</span>gxhAyO</span>
+							</div>
+						</div>
+						<div class="font-size-controls">
+							<el-button size="small" circle @click="adjustFontSizeBy(-2)">−</el-button>
+							<span class="font-size-value">{{ previewFontPt }}pt</span>
+							<el-button size="small" circle @click="adjustFontSizeBy(2)">+</el-button>
+							<el-button v-if="!fontSizeAutoFit" size="small" circle @click="resetFontSize()" title="重置为自动适配">⟲</el-button>
+						</div>
+						<div class="panel-title">所属标签</div>
+						<div class="tag-chips" v-if="selectedChar && selectedChar.tags.length">
+							<span class="tag-chip" v-for="g in selectedChar.tags" :key="g.name + ':' + g.paths[0]" :title="(g.intro || '') + '\n分支: ' + g.paths.join('、')" @click="selectTagByName(g.name)">{{ g.name }}<span class="path">{{ g.paths.join('、') }}</span></span>
+						</div>
+						<div class="none" v-else-if="selectedChar">未命中任何标签</div>
+						<div class="none" v-else>点击一个字符查看所属标签</div>
+						<div class="panel-title">字体切换</div>
+						<div class="font-selector">
+							<div class="font-radio-list">
+								<label class="font-radio-item" v-for="font in fontList" :key="font" :class="{ active: selectedPreviewFont === font }">
+									<input type="radio" name="preview-font" :value="font" v-model="selectedPreviewFont">
+									<span class="font-sample-char" :style="fontStyle(font)">{{ selectedChar ? selectedChar.char : '？' }}</span>
+									<span class="font-option-name">{{ font }}</span>
+								</label>
+							</div>
+							<el-checkbox v-model="fontAffectsAll" class="font-affect-all">参考文本使用相同字体</el-checkbox>
+						</div>
 					</div>
-				</div>
-			</aside>
+				</aside>
 			</div>
 		</article>
 	</main>
@@ -199,7 +214,6 @@
 		</article>
 	</footer>
 	<div class="js container">
-		<script src="符号分组.js"></script>
 		<script src="符号数据.js"></script>
 		<script src="../lib/vue/3.5.18/vue.global.js"></script>
 		<script src="../lib/element-plus/2.10.7/index.full.js"></script>

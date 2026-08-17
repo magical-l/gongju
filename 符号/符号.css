@@ -18,7 +18,11 @@
 		gap: 1rem;
 
 		& .tree.panel {
-			width: 180px;
+			width: 200px;
+			position: sticky;
+			top: 1rem;
+			max-height: calc(100vh - 8rem);
+			overflow-y: auto;
 			flex-shrink: 0;
 			background: #fff;
 			border-radius: 8px;
@@ -32,7 +36,7 @@
 		}
 
 		& .preview.panel {
-			width: 280px;
+			width: 260px;
 			flex-shrink: 0;
 			align-self: flex-start;
 			position: sticky;
@@ -180,6 +184,128 @@
 	color: var(--el-text-color-placeholder);
 }
 
+.tag.tree .trow {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 4px 8px;
+	cursor: pointer;
+	white-space: nowrap;
+	border-radius: 4px;
+}
+
+.tag.tree .trow:hover {
+	background: rgba(64, 158, 255, 0.15);
+}
+
+.tag.tree .trow.selected {
+	background: rgba(64, 158, 255, 0.18);
+	font-weight: 600;
+}
+
+.tag.tree .tcaret {
+	width: 14px;
+	flex: 0 0 14px;
+	text-align: center;
+	font-size: 12px;
+	color: var(--el-text-color-secondary);
+}
+
+.tag.tree .tcaret.leaf {
+	visibility: hidden;
+}
+
+.tag.tree .tname {
+	font-size: 14px;
+	color: var(--el-text-color-primary);
+}
+
+.tag.tree .tcount {
+	margin-left: auto;
+	padding-left: 8px;
+	font-size: 12px;
+	color: var(--el-text-color-placeholder);
+}
+
+.tag.tree .tintro {
+	padding: 2px 8px 4px 26px;
+	font-size: 12px;
+	color: var(--el-text-color-placeholder);
+}
+
+.gridhead {
+	display: flex;
+	align-items: baseline;
+	gap: 12px;
+	margin-bottom: 8px;
+}
+
+.gridhead .name {
+	font-size: 15px;
+	font-weight: bold;
+	color: var(--el-text-color-primary);
+}
+
+.gridhead .count {
+	font-size: 12px;
+	color: var(--el-text-color-placeholder);
+}
+
+.char-grid {
+	display: grid;
+	grid-template-columns: repeat(10, minmax(44px, 72px));
+	justify-content: center;
+	gap: 6px;
+	margin-top: 0.5rem;
+}
+
+.char-grid .char {
+	aspect-ratio: 1 / 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 28px;
+	font-family: 'Noto Sans Symbols 2',sans-serif;
+	background: #fff;
+	border: 1px solid #e0e0e0;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.char-grid .char:hover {
+	outline: 2px solid #4a90d9;
+	background: rgba(74, 144, 217, 0.15);
+}
+
+.char-grid .char.sel {
+	outline: 2px solid #4a90d9;
+	background: rgba(74, 144, 217, 0.18);
+}
+
+.char-grid .char.has-variants {
+	gap: 2px;
+	font-size: 24px;
+}
+
+.char-grid .char .variant {
+	border-radius: 3px;
+	padding: 0 2px;
+	cursor: pointer;
+	transition: background-color 0.15s;
+}
+
+.char-grid .char .variant.text {
+	font-variant-emoji: text;
+}
+
+.char-grid .char .variant.text:hover {
+	background: rgba(74, 144, 217, 0.22);
+}
+
+.char-grid .char .variant.emoji:hover {
+	background: rgba(230, 162, 60, 0.28);
+}
+
 /* ===== 右侧预览面板 ===== */
 .symbol-preview {
 	background: #fff;
@@ -226,6 +352,7 @@
 		}
 
 		& .align-sym {
+			font-family: 'Noto Sans Symbols 2', sans-serif;
 			background: rgba(220, 38, 38, 0.07);
 		}
 	}
@@ -245,10 +372,39 @@
 			text-transform: capitalize;
 			margin-top: 4px;
 		}
+		& .official-name {
+			font-size: 12px;
+			color: var(--el-text-color-placeholder);
+			margin-top: 4px;
+		}
+		& .alias {
+			font-size: 12px;
+			color: var(--el-text-color-secondary);
+			margin-top: 4px;
+		}
+		& .copy-char-btn {
+			margin-top: 8px;
+		}
+	}
+
+	& .dual-copy-btns {
+		display: flex;
+		justify-content: center;
+		gap: 8px;
+		margin: 8px 0;
+	}
+
+	& .tag-chips {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 4px;
+		margin: 8px 0;
 	}
 
 	& .code {
 		display: flex;
+		margin-top: 4px;
 		align-items: center;
 		justify-content: center;
 		gap: 0.5em;
@@ -396,6 +552,49 @@ main {
 	margin-top: 0;
 	margin-bottom: 1rem;
 	padding-bottom: 0.5rem;
+}
+
+.search-view .category-name {
+	font-size: 1.15rem;
+	border-bottom: 1px solid var(--el-border-color-light);
+	margin-top: 0;
+	margin-bottom: 0.75rem;
+	padding-bottom: 0.5rem;
+}
+
+.search-view .matched-tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-bottom: 1.5rem;
+}
+
+.tag-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 2px 8px;
+	border: 1px solid rgba(64, 158, 255, 0.3);
+	border-radius: 4px;
+	background: rgba(64, 158, 255, 0.08);
+	font-size: 14px;
+	color: var(--el-text-color-primary);
+	cursor: pointer;
+}
+
+.tag-chip:hover {
+	background: rgba(64, 158, 255, 0.18);
+}
+
+.tag-chip .path {
+	font-size: 12px;
+	color: var(--el-text-color-placeholder);
+}
+
+.none {
+	padding: 0.75rem 0;
+	font-size: 14px;
+	color: var(--el-text-color-placeholder);
 }
 
 /* ===== 分类目录树 ===== */
