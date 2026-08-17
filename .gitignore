@@ -270,3 +270,6 @@ temp/
 
 # CodeBuddy
 .codebuddy/
+
+# 符号页交接文档（不入 git，交接完成后删除）
+符号/交接文档.md
