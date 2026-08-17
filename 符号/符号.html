@@ -103,7 +103,13 @@
 							<div class="none" v-else>无匹配标签</div>
 							<h3 class="category-name">符号匹配（{{ matchedChars.length }}）</h3>
 							<div class="char-grid" v-if="matchedChars.length">
-								<div class="char" v-for="mc in matchedChars" :key="cellKey(mc.cp)" :title="mc.zhName + '\n' + (mc.officialName || 'U+' + mc.cp.toString(16).toUpperCase())" @click="selectItem(mc.cp)">{{ mc.char }}</div>
+								<div class="char" v-for="mc in matchedChars" :key="cellKey(mc.cp)" :class="{ sel: isSelected(mc.cp), 'has-variants': itemDual(mc.cp) }" :title="searchTitle(mc)" @click="selectItem(mc.cp)">
+									<template v-if="itemDual(mc.cp)">
+										<span class="variant text vs-text" @click.stop="copyGridVariant(mc.cp, 'text')">{{ cellText(mc.cp) }}</span>
+										<span class="variant emoji" @click.stop="copyGridVariant(mc.cp, 'emoji')">{{ cellText(mc.cp) }}</span>
+									</template>
+									<template v-else>{{ cellText(mc.cp) }}</template>
+								</div>
 							</div>
 							<div class="none" v-else>无匹配符号（中文名/别名/英文名）</div>
 						</div>

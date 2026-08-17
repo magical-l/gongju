@@ -404,6 +404,13 @@ const app = createApp({
 			const nm = nameOf(cp);
 			return 'U+' + cp.toString(16).toUpperCase() + (nm ? '\n' + nm : '');
 		},
+		/** 搜索网格条目标题：中文名 + 官方名（无官方名时回退 U+ 码点，旗序列双码位） */
+		searchTitle(mc) {
+			const code = Array.isArray(mc.cp)
+				? 'U+' + mc.cp.map(c => c.toString(16).toUpperCase()).join(' ')
+				: 'U+' + mc.cp.toString(16).toUpperCase();
+			return mc.zhName + '\n' + (mc.officialName || code);
+		},
 		/** 是否为旗序列条目（双码位数组） */
 		isFlag(item) {
 			return Array.isArray(item);
