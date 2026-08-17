@@ -2,6 +2,50 @@ const {
 	createApp
 } = Vue;
 
+// ===== UCD 属性查询（Unicode 17.0.0）=====
+// 数据：ucd-17.0.0.json（码位区间）+ ucd-zh.json（汉化/介绍），使用前先 await loadUCD()
+// 注意：文字系统已含 Zzzz（未分配）补集，码位在 0..0x10FFFF 内必有值；类别始终有值（未分配为 Cn）
+let _ucdRanges = null;
+let _ucdZh = null;
+
+/** 载入 UCD 范围数据 + 汉化数据（fetch 需要 HTTP 环境，file:// 直开不可用） */
+async function loadUCD() {
+	const [ranges, zh] = await Promise.all([
+		fetch('ucd-17.0.0.json').then(r => r.json()),
+		fetch('ucd-zh.json').then(r => r.json())
+	]);
+	_ucdRanges = ranges;
+	_ucdZh = zh;
+}
+
+/** 在 {值: [[起,止],...]} 中查码位 cp，返回命中的值；未命中返回 null */
+function ucdFind(map, cp) {
+	for (const [val, ranges] of Object.entries(map)) {
+		for (let i = 0; i < ranges.length; i++) {
+			if (cp >= ranges[i][0] && cp <= ranges[i][1]) return val;
+		}
+	}
+	return null;
+}
+
+/** 码位 → 文字系统代码（未分配为 Zzzz） */
+function ucdScript(cp) { return ucdFind(_ucdRanges.scripts, cp); }
+
+/** 码位 → 类别代码（始终有值） */
+function ucdCategory(cp) { return ucdFind(_ucdRanges.categories, cp); }
+
+/** 文字系统代码 → 中文名（无则回退代码本身） */
+function ucdScriptLabel(code) { return _ucdZh.scripts[code]?.zh || code; }
+
+/** 类别代码 → 中文名（无则回退代码本身） */
+function ucdCategoryLabel(code) { return _ucdZh.categories[code]?.zh || code; }
+
+/** 文字系统代码 → 简介 */
+function ucdScriptIntro(code) { return _ucdZh.scripts[code]?.intro || ''; }
+
+/** 类别代码 → 简介 */
+function ucdCategoryIntro(code) { return _ucdZh.categories[code]?.intro || ''; }
+
 // ===== 字体相关 =====
 
 /** 回退字体列表：queryLocalFonts 不可用时的预定义备用字体（优先符号覆盖广的） */
