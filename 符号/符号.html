@@ -80,14 +80,7 @@
 			<div class="panels">
 				<section class="tree panel">
 					<div class="tag tree" v-if="!loading">
-						<div class="tnode" v-for="t in treeVisible" :key="t.path">
-							<div class="trow" :style="{ 'padding-left': (8 + t.depth * 16) + 'px' }" :class="{ selected: selectedTag && t.path === selectedTag.path }" @click="onTreeClick(t)">
-								<span class="tcaret" :class="{ leaf: !t.hasChild }" @click.stop="toggleExpand(t.path)">{{ t.hasChild ? (expanded.has(t.path) ? '▾' : '▸') : '' }}</span>
-								<span class="tname">{{ t.name }}</span>
-								<span class="tcount">{{ t.count }}</span>
-							</div>
-							<div class="tintro" v-if="t.intro">{{ t.intro }}</div>
-						</div>
+						<tag-tree-node v-for="[name, node] in treeRoots" :key="name" :name="name" :node="node" :path="name" :selected-path="selectedTag ? selectedTag.path : ''" :default-open="!isFormalAxis(name)" @select="onTreeSelect"></tag-tree-node>
 					</div>
 					<div v-else class="loading-placeholder">加载标签数据…</div>
 				</section>
@@ -116,6 +109,7 @@
 						<!-- 标签字符网格 -->
 						<template v-else>
 							<div class="gridhead" v-if="selectedTag"><span class="name">{{ selectedTag.name }}</span><span class="count">共 {{ selectedCount }} 个</span></div>
+							<div class="grid-intro" v-if="selectedTag && selectedTag.node && selectedTag.node.intro">{{ selectedTag.node.intro }}</div>
 							<div class="char-grid" v-if="selectedTag && gridItems.length">
 								<div class="char" v-for="item in gridItems" :key="cellKey(item)" :class="{ sel: isSelected(item), 'has-variants': itemDual(item) }" :title="itemTitle(item)" @click="selectItem(item)">
 									<template v-if="itemDual(item)">

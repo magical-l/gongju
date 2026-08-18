@@ -1,5 +1,6 @@
 const {
-	createApp
+	createApp,
+	h
 } = Vue;
 
 // ===== 标签数据（全局）=====
@@ -11,6 +12,7 @@ let ZH_NAMES = null; // 中文名.json（码位→中文名），空则回退英
 let FLAT = [];
 const SYMBOL_MAP = new Map();
 const CAP = 500; // 网格每页字符数
+const AXIS_ORDER = ['文字系统', '官方分类', '区块']; // 三大机械轴，树末尾固定顺序
 const SEQ_INDEX = new Map(); // 'cp1-cp2' → { zh, en }：旗序列（双码位）名映射，flatten 时构建
 
 /** 区间列表含字符总数 */
@@ -63,6 +65,18 @@ function mergeRanges(ranges) {
 	}
 	out.push([curLo, curHi]);
 	return out;
+}
+
+/** 聚合节点及所有子孙的 ranges/seqs（并集去重），树计数与选中标签共用 */
+function collectNodeMembers(node) {
+	const ranges = [], seqs = [];
+	const walk = (n) => {
+		if (n.ranges) ranges.push(...n.ranges);
+		if (n.seqs) seqs.push(...n.seqs);
+		for (const c of Object.values(n.children || {})) walk(c);
+	};
+	walk(node);
+	return { ranges: mergeRanges(ranges), seqs };
 }
 
 /** 码位 → 官方英文名：先二分查 names（严格升序），未命中扫 patterns，都没有返回 '' */
@@ -219,7 +233,59 @@ async function enumerateFonts(fallbackList) {
 	return fallbackList;
 }
 
+/** 左侧标签树节点：原生 details/summary 递归组件（展开/折叠交给浏览器原生，点击选中由 select 事件上抛） */
+const TagTreeNode = {
+	name: 'TagTreeNode',
+	props: {
+		name: { type: String, required: true },
+		node: { type: Object, required: true },
+		path: { type: String, required: true },
+		selectedPath: { type: String, default: '' },
+		defaultOpen: { type: Boolean, default: false }
+	},
+	data() {
+		return { open: this.defaultOpen };
+	},
+	computed: {
+		count() {
+			const m = collectNodeMembers(this.node);
+			return rangeCount(m.ranges) + m.seqs.length;
+		}
+	},
+	methods: {
+		onToggle(e) { this.open = e.target.open; },
+		onSelect() {
+			this.$emit('select', { name: this.name, node: this.node, path: this.path, count: this.count });
+		}
+	},
+	render() {
+		const kids = Object.entries(this.node.children || {});
+		const hasChild = kids.length > 0;
+		const selectedCls = { selected: this.selectedPath === this.path };
+		const rowInner = () => [
+			h('span', { class: 'tname' }, this.name),
+			h('span', { class: 'tcount' }, String(this.count))
+		];
+		const children = kids.map(([k, c]) => h(TagTreeNode, {
+			key: this.path + '/' + k,
+			name: k,
+			node: c,
+			path: this.path + '/' + k,
+			selectedPath: this.selectedPath,
+			onSelect: (t) => this.$emit('select', t)
+		}));
+		if (!hasChild) {
+			return h('div', { class: ['trow', 'trow-leaf', selectedCls], onClick: this.onSelect }, rowInner());
+		}
+		return h('details', { class: 'tnode', open: this.open, onToggle: this.onToggle }, [
+			h('summary', { class: ['trow', selectedCls], onClick: this.onSelect }, rowInner()),
+			children
+		]);
+	}
+};
+
 const app = createApp({
+	components: { TagTreeNode },
 	data() {
 		return {
 			loading: true,
@@ -228,7 +294,6 @@ const app = createApp({
 			selectedChar: null,
 			gridPage: 1, // 网格当前页码
 			gridPageSize: CAP, // 网格每页大小
-			expanded: new Set(),
 			previewFontSize: 2,
 			fontSizeAutoFit: true,
 
@@ -253,29 +318,13 @@ const app = createApp({
 		previewFontPt() {
 			return Math.round(this.previewFontSize * 12);
 		},
-		/** 扁平可见树节点：递归 TAGS.roots，expanded 命中才展开 children */
-		treeVisible() {
+		/** 树根重排：语义轴在前，文字系统/官方分类/区块末尾（区块最后） */
+		treeRoots() {
 			if (!TAGS) return [];
-			const out = [];
-			const walk = (node, name, path, depth) => {
-				const hasChild = !!(node.children && Object.keys(node.children).length > 0);
-				const m = this.collectNode(node);
-				const count = rangeCount(m.ranges) + m.seqs.length;
-				out.push({
-					name,
-					node,
-					path,
-					depth,
-					count,
-					hasChild,
-					intro: node.intro || ''
-				});
-				if (hasChild && this.expanded.has(path)) {
-					for (const [k, v] of Object.entries(node.children)) walk(v, k, path + '/' + k, depth + 1);
-				}
-			};
-			for (const [name, node] of Object.entries(TAGS.roots)) walk(node, name, name, 0);
-			return out;
+			const entries = Object.entries(TAGS.roots);
+			const others = entries.filter(([k]) => !AXIS_ORDER.includes(k));
+			const formal = AXIS_ORDER.map(k => [k, TAGS.roots[k]]).filter(([, v]) => v);
+			return [...others, ...formal];
 		},
 		/** 是否有搜索关键词 */
 		isSearching() {
@@ -380,15 +429,7 @@ const app = createApp({
 	methods: {
 		/** 递归收集节点及所有子孙的 ranges 和 seqs */
 		collectNode(node) {
-			const ranges = [];
-			const seqs = [];
-			const walk = (n) => {
-				if (n.ranges) ranges.push(...n.ranges);
-				if (n.seqs) seqs.push(...n.seqs);
-				if (n.children) for (const [k, v] of Object.entries(n.children)) walk(v);
-			};
-			walk(node);
-			return { ranges: mergeRanges(ranges), seqs };
+			return collectNodeMembers(node);
 		},
 		/** 选中标签：重置到第一页；网格非空则自动选中第一个条目（保持预览有内容） */
 		selectTag(tag) {
@@ -410,18 +451,13 @@ const app = createApp({
 			if (this.isFlag(item)) this.selectFlag(item);
 			else this.selectChar(item);
 		},
-		/** 树节点点击：展开/折叠，并选中（父节点聚合全部下级成员） */
-		onTreeClick(t) {
-			if (t.hasChild) this.toggleExpand(t.path);
+		/** 树节点选中：details/summary 原生展开折叠，这里只负责选中标签 */
+		onTreeSelect(t) {
 			this.selectTag(t);
 		},
-		/** 展开/折叠路径（Vue3 reactive Set 的 add/delete 即触发响应） */
-		toggleExpand(path) {
-			if (this.expanded.has(path)) {
-				this.expanded.delete(path);
-			} else {
-				this.expanded.add(path);
-			}
+		/** 是否三大机械轴（文字系统/官方分类/区块）——语义轴默认展开 */
+		isFormalAxis(name) {
+			return AXIS_ORDER.includes(name);
 		},
 		/** 选中单码位字符：算元数据 + 官方名 + 所属标签，并刷新预览 */
 		selectChar(cp) {
@@ -627,10 +663,6 @@ const app = createApp({
 			for (const [name, node] of Object.entries(TAGS.roots)) flatten(name, node, name);
 			buildSymbolMap();
 			this.loading = false;
-			// 默认展开到第一层，方便浏览（三个机械轴默认折叠，只展开语义轴）
-			for (const name of Object.keys(TAGS.roots)) {
-				if (!['文字系统', '官方分类', '区块'].includes(name)) this.expanded.add(name);
-			}
 			// 默认标签：优先一个能看懂的脸部 emoji 标签
 			const def = FLAT.find(t => t.name === '表情、脸')
 				|| FLAT.find(t => t.name === '表情、情绪')

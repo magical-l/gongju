@@ -18,7 +18,9 @@
 		gap: 1rem;
 
 		& .tree.panel {
-			width: 200px;
+			width: max-content;
+			min-width: 220px;
+			max-width: 340px;
 			position: sticky;
 			top: 1rem;
 			max-height: calc(100vh - 8rem);
@@ -185,13 +187,8 @@
 }
 
 .tag.tree .trow {
-	display: flex;
-	align-items: center;
-	gap: 4px;
 	padding: 4px 8px;
 	cursor: pointer;
-	white-space: nowrap;
-	border-radius: 4px;
 }
 
 .tag.tree .trow:hover {
@@ -203,32 +200,32 @@
 	font-weight: 600;
 }
 
-.tag.tree .tcaret {
-	width: 14px;
-	flex: 0 0 14px;
-	text-align: center;
-	font-size: 12px;
-	color: var(--el-text-color-secondary);
-}
-
-.tag.tree .tcaret.leaf {
-	visibility: hidden;
-}
-
 .tag.tree .tname {
 	font-size: 14px;
+	white-space: nowrap;
 	color: var(--el-text-color-primary);
 }
 
 .tag.tree .tcount {
-	margin-left: auto;
-	padding-left: 8px;
+	margin-left: 4px;
 	font-size: 12px;
 	color: var(--el-text-color-placeholder);
 }
 
-.tag.tree .tintro {
-	padding: 2px 8px 4px 26px;
+.tag.tree details.tnode {
+	margin-left: 0;
+}
+
+.tag.tree details details.tnode {
+	margin-left: 10px;
+}
+
+.tag.tree details.tnode > .trow-leaf {
+	margin-left: 10px;
+}
+
+.grid-intro {
+	margin-bottom: 8px;
 	font-size: 12px;
 	color: var(--el-text-color-placeholder);
 }
