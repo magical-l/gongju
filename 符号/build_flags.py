@@ -249,7 +249,7 @@ ZH = {
 	'Türkiye': '土耳其',
 	'Trinidad & Tobago': '特立尼达和多巴哥',
 	'Tuvalu': '图瓦卢',
-	'Taiwan': '台湾',
+	'Taiwan': '中国台湾',
 	'Tanzania': '坦桑尼亚',
 	'Ukraine': '乌克兰',
 	'Uganda': '乌干达',
