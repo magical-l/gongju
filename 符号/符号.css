@@ -250,23 +250,43 @@
 
 .char-grid {
 	display: grid;
-	grid-template-columns: repeat(10, minmax(44px, 72px));
-	justify-content: center;
+	grid-template-columns: repeat(10, minmax(44px, 1fr));
 	gap: 6px;
 	margin-top: 0.5rem;
 }
 
 .char-grid .char {
-	aspect-ratio: 1 / 1;
 	display: flex;
+	flex-direction: column;
 	align-items: center;
-	justify-content: center;
-	font-size: 28px;
-	font-family: 'Noto Sans Symbols 2',sans-serif;
+	justify-content: flex-start;
+	gap: 2px;
+	padding: 4px 2px;
 	background: #fff;
 	border: 1px solid #e0e0e0;
 	border-radius: 4px;
 	cursor: pointer;
+}
+
+.char-grid .char .char-symbol {
+	font-size: 28px;
+	line-height: 1.2;
+	font-family: 'Noto Sans Symbols 2',sans-serif;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 2px;
+	height: 36px;
+}
+
+.char-grid .char .char-name {
+	max-width: 100%;
+	font-size: 11px;
+	line-height: 1.3;
+	color: var(--el-text-color-placeholder);
+	white-space: normal;
+	overflow-wrap: anywhere;
+	text-align: center;
 }
 
 .char-grid .char:hover {
@@ -279,8 +299,7 @@
 	background: rgba(74, 144, 217, 0.18);
 }
 
-.char-grid .char.has-variants {
-	gap: 2px;
+.char-grid .char.has-variants .char-symbol {
 	font-size: 24px;
 }
 
@@ -289,6 +308,7 @@
 	padding: 0 2px;
 	cursor: pointer;
 	transition: background-color 0.15s;
+	flex: 0 0 auto;
 }
 
 .char-grid .char .variant.text {
@@ -305,8 +325,15 @@
 
 .grid-pager {
 	display: flex;
+	align-items: center;
 	justify-content: center;
+	gap: 8px;
 	margin-top: 12px;
+}
+
+.grid-pager-total {
+	font-size: 12px;
+	color: var(--el-text-color-placeholder);
 }
 
 /* ===== 右侧预览面板 ===== */

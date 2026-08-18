@@ -539,6 +539,14 @@ const app = createApp({
 			}
 			return this.titleOf(item);
 		},
+		/** 网格卡片显示名：单码位中文名优先英文名兜底；旗序列中/英文名 */
+		gridItemName(item) {
+			if (this.isFlag(item)) {
+				const meta = SEQ_INDEX.get(item[0] + '-' + item[1]) || {};
+				return meta.zh || meta.en || '';
+			}
+			return zhNameOf(item) || nameOf(item) || '';
+		},
 		/** 网格条目是否为双模字符（文本/表情两种变体），旗序列恒为 false */
 		itemDual(item) {
 			if (this.isFlag(item)) return false;

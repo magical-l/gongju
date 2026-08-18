@@ -97,11 +97,14 @@
 							<h3 class="category-name">符号匹配（{{ matchedChars.length }}）</h3>
 							<div class="char-grid" v-if="matchedChars.length">
 								<div class="char" v-for="mc in matchedChars" :key="cellKey(mc.cp)" :class="{ sel: isSelected(mc.cp), 'has-variants': itemDual(mc.cp) }" :title="searchTitle(mc)" @click="selectItem(mc.cp)">
-									<template v-if="itemDual(mc.cp)">
-										<span class="variant text vs-text" @click.stop="copyGridVariant(mc.cp, 'text')">{{ cellText(mc.cp) }}</span>
-										<span class="variant emoji" @click.stop="copyGridVariant(mc.cp, 'emoji')">{{ cellText(mc.cp) }}</span>
-									</template>
-									<template v-else>{{ cellText(mc.cp) }}</template>
+									<span class="char-symbol">
+										<template v-if="itemDual(mc.cp)">
+											<span class="variant text vs-text" @click.stop="copyGridVariant(mc.cp, 'text')">{{ cellText(mc.cp) }}</span>
+											<span class="variant emoji" @click.stop="copyGridVariant(mc.cp, 'emoji')">{{ cellText(mc.cp) }}</span>
+										</template>
+										<template v-else>{{ cellText(mc.cp) }}</template>
+									</span>
+									<span class="char-name">{{ mc.zhName || mc.officialName || '' }}</span>
 								</div>
 							</div>
 							<div class="none" v-else>无匹配符号（中文名/别名/英文名）</div>
@@ -112,14 +115,20 @@
 							<div class="grid-intro" v-if="selectedTag && selectedTag.node && selectedTag.node.intro">{{ selectedTag.node.intro }}</div>
 							<div class="char-grid" v-if="selectedTag && gridItems.length">
 								<div class="char" v-for="item in gridItems" :key="cellKey(item)" :class="{ sel: isSelected(item), 'has-variants': itemDual(item) }" :title="itemTitle(item)" @click="selectItem(item)">
-									<template v-if="itemDual(item)">
-										<span class="variant text vs-text" @click.stop="copyGridVariant(item, 'text')">{{ cellText(item) }}</span>
-										<span class="variant emoji" @click.stop="copyGridVariant(item, 'emoji')">{{ cellText(item) }}</span>
-									</template>
-									<template v-else>{{ cellText(item) }}</template>
+									<span class="char-symbol">
+										<template v-if="itemDual(item)">
+											<span class="variant text vs-text" @click.stop="copyGridVariant(item, 'text')">{{ cellText(item) }}</span>
+											<span class="variant emoji" @click.stop="copyGridVariant(item, 'emoji')">{{ cellText(item) }}</span>
+										</template>
+										<template v-else>{{ cellText(item) }}</template>
+									</span>
+									<span class="char-name">{{ gridItemName(item) }}</span>
 								</div>
 							</div>
-							<el-pagination v-if="selectedTag && gridPageCount > 1" class="grid-pager" layout="total, prev, pager, next" :total="selectedCount" :page-size="gridPageSize" :current-page="gridPage" @current-change="onGridPageChange"></el-pagination>
+							<div class="grid-pager" v-if="selectedTag && gridPageCount > 1">
+								<span class="grid-pager-total">共 {{ selectedCount }} 个</span>
+								<el-pagination layout="prev, pager, next" :total="selectedCount" :page-size="gridPageSize" :current-page="gridPage" @current-change="onGridPageChange"></el-pagination>
+							</div>
 							<div class="none" v-if="selectedTag && gridItems.length === 0">该标签暂无成员</div>
 							<div class="none" v-if="!selectedTag && !loading">请选择一个标签</div>
 						</template>
