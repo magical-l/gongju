@@ -91,12 +91,15 @@
 						<div v-if="isSearching" class="search-view">
 							<h3 class="category-name">标签匹配（{{ matchedTags.length }}）</h3>
 							<div class="matched-tags" v-if="matchedTags.length">
-								<span class="tag-chip" v-for="t in matchedTags" :key="t.path" @click="searchSelectTag(t)">{{ t.name }}<span class="path">{{ t.path }}</span></span>
+								<div class="tag-match" v-for="t in matchedTags" :key="t.path" @click="searchSelectTag(t)">
+									<span class="tag-chip">{{ t.name }}<span class="path">{{ t.path }}</span></span>
+									<div class="tag-intro" v-if="t.node && t.node.intro">{{ t.node.intro }}</div>
+								</div>
 							</div>
 							<div class="none" v-else>无匹配标签</div>
 							<h3 class="category-name">符号匹配（{{ matchedChars.length }}）</h3>
 							<div class="char-grid" v-if="matchedChars.length">
-								<div class="char" v-for="mc in matchedChars" :key="cellKey(mc.cp)" :class="{ sel: isSelected(mc.cp), 'has-variants': itemDual(mc.cp) }" :title="searchTitle(mc)" @click="selectItem(mc.cp)">
+								<div class="char" v-for="mc in searchChars" :key="cellKey(mc.cp)" :class="{ sel: isSelected(mc.cp), 'has-variants': itemDual(mc.cp) }" :title="searchTitle(mc)" @click="selectItem(mc.cp)">
 									<span class="char-symbol">
 										<template v-if="itemDual(mc.cp)">
 											<span class="variant text vs-text" @click.stop="copyGridVariant(mc.cp, 'text')">{{ cellText(mc.cp) }}</span>
@@ -107,7 +110,8 @@
 									<span class="char-name">{{ mc.zhName || mc.officialName || '' }}</span>
 								</div>
 							</div>
-							<div class="none" v-else>无匹配符号（中文名/别名/英文名）</div>
+							<el-pagination v-if="searchPageCount > 1" class="grid-pager" layout="prev, pager, next" :total="matchedChars.length" :page-size="gridPageSize" :current-page="searchPage" @current-change="onSearchPageChange"></el-pagination>
+							<div class="none" v-if="matchedChars.length === 0">无匹配符号（中文名/别名/英文名）</div>
 						</div>
 						<!-- 标签字符网格 -->
 						<template v-else>

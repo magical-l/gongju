@@ -294,6 +294,7 @@ const app = createApp({
 			selectedChar: null,
 			gridPage: 1, // 网格当前页码
 			gridPageSize: CAP, // 网格每页大小
+			searchPage: 1, // 搜索视图页码
 			previewFontSize: 2,
 			fontSizeAutoFit: true,
 
@@ -361,20 +362,20 @@ const app = createApp({
 		gridPageCount() {
 			return Math.max(1, Math.ceil(this.selectedCount / this.gridPageSize));
 		},
-		/** 关键词命中的标签（name 或 path 包含，前 100） */
+		/** 关键词命中的标签（name、path 或简介包含，前 100） */
 		matchedTags() {
 			const q = this.searchQuery.trim().toLowerCase();
 			if (!q) return [];
 			const out = [];
 			for (const t of FLAT) {
-				if (t.name.toLowerCase().includes(q) || t.path.toLowerCase().includes(q)) {
+				if (t.name.toLowerCase().includes(q) || t.path.toLowerCase().includes(q) || (t.node.intro && t.node.intro.toLowerCase().includes(q))) {
 					out.push(t);
 					if (out.length >= 100) break;
 				}
 			}
 			return out;
 		},
-		/** 关键词命中的符号（char 完全匹配最前，其余搜中文名/别名/英文名，前 200；旗序列按中英名匹配） */
+		/** 关键词命中的符号（char 完全匹配最前，其余搜中文名/别名/英文名，返回全部命中；旗序列按中英名匹配；所属标签简介含关键词也命中） */
 		matchedChars() {
 			const q = this.searchQuery.trim().toLowerCase();
 			if (!q) return [];
@@ -389,7 +390,6 @@ const app = createApp({
 				}
 			}
 			for (const [char, meta] of SYMBOL_MAP) {
-				if (out.length >= 200) break;
 				const hit = meta.names.some(n => n.toLowerCase().includes(q))
 					|| meta.enames.some(e => e.toLowerCase().includes(q))
 					|| meta.aliases.some(a => a.toLowerCase().includes(q));
@@ -402,7 +402,6 @@ const app = createApp({
 			// 中文名.json 关键词匹配（CLDR emoji/词表/规则产出的中文名，搜"逗号"可找到 ,）
 			if (ZH_NAMES) {
 				for (const [cp, zh] of ZH_NAMES.names) {
-					if (out.length >= 200) break;
 					if (seen.has(cp)) continue;
 					if (zh.toLowerCase().includes(q)) {
 						seen.add(cp);
@@ -414,16 +413,42 @@ const app = createApp({
 			for (const t of FLAT) {
 				if (!t.node.seqs) continue;
 				for (const s of t.node.seqs) {
-					if (out.length >= 200) break;
 					if (!String(s[2] || '').toLowerCase().includes(q) && !String(s[3] || '').toLowerCase().includes(q)) continue;
 					const key = 'seq:' + s[0] + '-' + s[1];
 					if (seen.has(key)) continue;
 					seen.add(key);
 					out.push({ char: String.fromCodePoint(s[0], s[1]), cp: [s[0], s[1]], zhName: s[2] || '', officialName: s[3] || '' });
 				}
-				if (out.length >= 200) break;
+			}
+			// 所属标签简介关键词匹配：标签简介含关键词的字符也命中（枚举该标签全部成员）
+			for (const t of FLAT) {
+				if (!t.node.intro || !t.node.intro.toLowerCase().includes(q)) continue;
+				const m = collectNodeMembers(t.node);
+				for (const [lo, hi] of m.ranges) {
+					for (let cp = lo; cp <= hi; cp++) {
+						if (seen.has(cp)) continue;
+						seen.add(cp);
+						out.push({ char: String.fromCodePoint(cp), cp, zhName: zhNameOf(cp), officialName: nameOf(cp) });
+					}
+				}
+				for (const s of m.seqs) {
+					const key = 'seq:' + s[0] + '-' + s[1];
+					if (seen.has(key)) continue;
+					seen.add(key);
+					out.push({ char: String.fromCodePoint(s[0], s[1]), cp: [s[0], s[1]], zhName: s[2] || '', officialName: s[3] || '' });
+				}
 			}
 			return out;
+		},
+		/** 搜索符号匹配：按页切片（每页最多 gridPageSize 个） */
+		searchChars() {
+			if (!this.matchedChars.length) return [];
+			const start = (this.searchPage - 1) * this.gridPageSize;
+			return this.matchedChars.slice(start, start + this.gridPageSize);
+		},
+		/** 搜索符号匹配总页数 */
+		searchPageCount() {
+			return Math.max(1, Math.ceil(this.matchedChars.length / this.gridPageSize));
 		},
 	},
 	methods: {
@@ -445,6 +470,10 @@ const app = createApp({
 			if (!this.gridItems.some(item => this.cellKey(item) === curKey) && this.gridItems.length) {
 				this.selectItem(this.gridItems[0]);
 			}
+		},
+		/** 搜索符号匹配翻页 */
+		onSearchPageChange(page) {
+			this.searchPage = page;
 		},
 		/** 网格条目分发：旗序列（数组）走 selectFlag，单码位走 selectChar */
 		selectItem(item) {
@@ -689,6 +718,7 @@ const app = createApp({
 	},
 	watch: {
 		searchQuery(nv) {
+			this.searchPage = 1;
 			const s = nv.trim();
 			if (s === '') return;
 			const arr = Array.from(s);
