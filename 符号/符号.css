@@ -640,6 +640,12 @@ main {
 	color: var(--el-text-color-placeholder);
 }
 
+.tag-match .tag-alias {
+	font-size: 12px;
+	line-height: 1.4;
+	color: var(--el-text-color-secondary);
+}
+
 .tag-chip {
 	display: inline-flex;
 	align-items: center;

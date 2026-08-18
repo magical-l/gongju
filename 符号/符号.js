@@ -115,9 +115,10 @@ function zhNameOf(cp) {
 	return '';
 }
 
-/** 展平树：收集所有带 ranges 或 seqs 的节点，并构建旗序列名映射 */
+/** 展平树：收集所有带 ranges/seqs 的节点及纯组节点（有子节点），并构建旗序列名映射 */
 function flatten(name, node, path) {
-	if (node.ranges || node.seqs) FLAT.push({ name, node, path, count: (node.ranges ? rangeCount(node.ranges) : 0) + (node.seqs ? node.seqs.length : 0) });
+	const hasChildren = !!(node.children && Object.keys(node.children).length > 0);
+	if (node.ranges || node.seqs || hasChildren) FLAT.push({ name, node, path, count: (node.ranges ? rangeCount(node.ranges) : 0) + (node.seqs ? node.seqs.length : 0) });
 	if (node.seqs) for (const s of node.seqs) SEQ_INDEX.set(s[0] + '-' + s[1], { zh: s[2], en: s[3] });
 	if (node.children) for (const [k, v] of Object.entries(node.children)) flatten(k, v, path + '/' + k);
 }
@@ -275,10 +276,14 @@ const TagTreeNode = {
 			onSelect: (t) => this.$emit('select', t)
 		}));
 		if (!hasChild) {
-			return h('div', { class: ['trow', 'trow-leaf', selectedCls], onClick: this.onSelect }, rowInner());
+			return h('div', { class: ['trow', 'trow-leaf', selectedCls], onClick: this.onSelect, title: this.node.alias && this.node.alias.length ? this.name + '\n别名：' + this.node.alias.join('、') : this.name }, rowInner());
 		}
 		return h('details', { class: 'tnode', open: this.open, onToggle: this.onToggle }, [
-			h('summary', { class: ['trow', selectedCls], onClick: this.onSelect }, rowInner()),
+			h('summary', {
+				class: ['trow', selectedCls],
+				onClick: this.onSelect,
+				title: this.node.alias && this.node.alias.length ? this.name + '\n别名：' + this.node.alias.join('、') : this.name
+			}, rowInner()),
 			children
 		]);
 	}
@@ -368,7 +373,7 @@ const app = createApp({
 			if (!q) return [];
 			const out = [];
 			for (const t of FLAT) {
-				if (t.name.toLowerCase().includes(q) || t.path.toLowerCase().includes(q) || (t.node.intro && t.node.intro.toLowerCase().includes(q))) {
+				if (t.name.toLowerCase().includes(q) || t.path.toLowerCase().includes(q) || (t.node.intro && t.node.intro.toLowerCase().includes(q)) || (t.node.alias && t.node.alias.some(a => a.toLowerCase().includes(q)))) {
 					out.push(t);
 					if (out.length >= 100) break;
 				}

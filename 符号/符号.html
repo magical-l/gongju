@@ -93,6 +93,7 @@
 							<div class="matched-tags" v-if="matchedTags.length">
 								<div class="tag-match" v-for="t in matchedTags" :key="t.path" @click="searchSelectTag(t)">
 									<span class="tag-chip">{{ t.name }}<span class="path">{{ t.path }}</span></span>
+									<div class="tag-alias" v-if="t.node && t.node.alias && t.node.alias.length">别名：{{ t.node.alias.join('、') }}</div>
 									<div class="tag-intro" v-if="t.node && t.node.intro">{{ t.node.intro }}</div>
 								</div>
 							</div>
