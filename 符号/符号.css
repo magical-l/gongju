@@ -306,6 +306,12 @@
 	background: rgba(230, 162, 60, 0.28);
 }
 
+.grid-pager {
+	display: flex;
+	justify-content: center;
+	margin-top: 12px;
+}
+
 /* ===== 右侧预览面板 ===== */
 .symbol-preview {
 	background: #fff;

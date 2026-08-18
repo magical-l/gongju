@@ -10,7 +10,7 @@ let NAMES = null;
 let ZH_NAMES = null; // 中文名.json（码位→中文名），空则回退英文名
 let FLAT = [];
 const SYMBOL_MAP = new Map();
-const CAP = 500; // 单个标签最多渲染的字符数
+const CAP = 500; // 网格每页字符数
 const SEQ_INDEX = new Map(); // 'cp1-cp2' → { zh, en }：旗序列（双码位）名映射，flatten 时构建
 
 /** 区间列表含字符总数 */
@@ -26,10 +26,22 @@ function inRanges(ranges, cp) {
 	return false;
 }
 
-/** 枚举区间列表的码位，最多 cap 个 */
-function enumerate(ranges, cap) {
+/** 从合并区间列表取第 [start, start+count) 个码位（跨区间顺序枚举，不物化全量） */
+function enumerateWindow(ranges, start, count) {
 	const out = [];
-	for (const [lo, hi] of ranges) for (let cp = lo; cp <= hi && out.length < cap; cp++) out.push(cp);
+	let remaining = count;
+	let skip = start;
+	for (const [lo, hi] of ranges) {
+		const len = hi - lo + 1;
+		if (skip >= len) { skip -= len; continue; }
+		const from = lo + skip;
+		const avail = len - skip;
+		const take = Math.min(avail, remaining);
+		for (let cp = from; cp < from + take; cp++) out.push(cp);
+		remaining -= take;
+		skip = 0;
+		if (remaining <= 0) break;
+	}
 	return out;
 }
 
@@ -214,6 +226,8 @@ const app = createApp({
 			searchQuery: '',
 			selectedTag: null,
 			selectedChar: null,
+			gridPage: 1, // 网格当前页码
+			gridPageSize: CAP, // 网格每页大小
 			expanded: new Set(),
 			previewFontSize: 2,
 			fontSizeAutoFit: true,
@@ -274,14 +288,27 @@ const app = createApp({
 		selectedCount() {
 			return rangeCount(this.selectedMembers.ranges) + this.selectedMembers.seqs.length;
 		},
-		/** 当前选中标签的网格条目：ranges 枚举的单字符在前，seqs 旗序列在后（字符最多 CAP 个） */
+		/** 当前选中标签的网格条目：按页窗口切片（单码位在前，旗序列衔接其后，每页最多 CAP 个） */
 		gridItems() {
 			const m = this.selectedMembers;
 			if (!m.ranges.length && !m.seqs.length) return [];
+			const start = (this.gridPage - 1) * this.gridPageSize;
+			const size = this.gridPageSize;
+			const singleTotal = rangeCount(m.ranges);
 			const items = [];
-			items.push(...enumerate(m.ranges, CAP));
-			items.push(...m.seqs.map(s => [s[0], s[1]]));
+			if (start < singleTotal) {
+				items.push(...enumerateWindow(m.ranges, start, size));
+			}
+			if (items.length < size) {
+				const seqStart = Math.max(0, start - singleTotal);
+				const seqEnd = Math.min(m.seqs.length, seqStart + (size - items.length));
+				for (let i = seqStart; i < seqEnd; i++) items.push([m.seqs[i][0], m.seqs[i][1]]);
+			}
 			return items;
+		},
+		/** 当前选中标签的总页数 */
+		gridPageCount() {
+			return Math.max(1, Math.ceil(this.selectedCount / this.gridPageSize));
 		},
 		/** 关键词命中的标签（name 或 path 包含，前 100） */
 		matchedTags() {
@@ -361,10 +388,20 @@ const app = createApp({
 			walk(node);
 			return { ranges: mergeRanges(ranges), seqs };
 		},
-		/** 选中标签：网格非空则自动选中第一个条目（保持预览有内容） */
+		/** 选中标签：重置到第一页；网格非空则自动选中第一个条目（保持预览有内容） */
 		selectTag(tag) {
+			this.gridPage = 1;
 			this.selectedTag = tag;
 			if (this.gridItems.length) this.selectItem(this.gridItems[0]);
+		},
+		/** 翻页：更新页码；若当前选中项不在新页，自动选中新页第一个（保持预览与列表一致） */
+		onGridPageChange(page) {
+			this.gridPage = page;
+			if (!this.selectedChar) return;
+			const curKey = this.cellKey(this.selectedChar.cp);
+			if (!this.gridItems.some(item => this.cellKey(item) === curKey) && this.gridItems.length) {
+				this.selectItem(this.gridItems[0]);
+			}
 		},
 		/** 网格条目分发：旗序列（数组）走 selectFlag，单码位走 selectChar */
 		selectItem(item) {

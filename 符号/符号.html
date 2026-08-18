@@ -125,7 +125,7 @@
 									<template v-else>{{ cellText(item) }}</template>
 								</div>
 							</div>
-							<div class="none" v-if="selectedTag && selectedCount > 500">（共 {{ selectedCount.toLocaleString() }} 个，仅显示前 500 个，输入搜索可缩小范围）</div>
+							<el-pagination v-if="selectedTag && gridPageCount > 1" class="grid-pager" layout="total, prev, pager, next" :total="selectedCount" :page-size="gridPageSize" :current-page="gridPage" @current-change="onGridPageChange"></el-pagination>
 							<div class="none" v-if="selectedTag && gridItems.length === 0">该标签暂无成员</div>
 							<div class="none" v-if="!selectedTag && !loading">请选择一个标签</div>
 						</template>
