@@ -7,6 +7,7 @@ const {
 // FLAT：展平后的有成员标签列表 {name,node,path,count}；SYMBOL_MAP：char → {names,enames,aliases,mode}
 let TAGS = null;
 let NAMES = null;
+let ZH_NAMES = null; // 中文名.json（码位→中文名），空则回退英文名
 let FLAT = [];
 const SYMBOL_MAP = new Map();
 const CAP = 500; // 单个标签最多渲染的字符数
@@ -65,6 +66,25 @@ function nameOf(cp) {
 	}
 	for (const [a, b, prefix] of NAMES.patterns) {
 		if (cp >= a && cp <= b) return prefix + cp.toString(16).toUpperCase();
+	}
+	return '';
+}
+
+/** 码位 → 中文名：SYMBOL_MAP 人工名优先，未命中二分查 中文名.json，都没有返回 '' */
+function zhNameOf(cp) {
+	const sc = SYMBOL_MAP.get(String.fromCodePoint(cp));
+	if (sc && sc.names[0]) return sc.names[0];
+	if (!ZH_NAMES) return '';
+	let lo = 0, hi = ZH_NAMES.names.length - 1;
+	while (lo <= hi) {
+		const mid = (lo + hi) >> 1;
+		const c = ZH_NAMES.names[mid][0];
+		if (c === cp) return ZH_NAMES.names[mid][1];
+		if (c < cp) lo = mid + 1;
+		else hi = mid - 1;
+	}
+	for (const [a, b, prefix] of ZH_NAMES.patterns) {
+		if (cp >= a && cp <= b) return prefix;
 	}
 	return '';
 }
@@ -285,7 +305,7 @@ const app = createApp({
 			for (const [char, meta] of SYMBOL_MAP) {
 				if (char === q) {
 					const cp = char.codePointAt(0);
-					out.push({ char, cp, zhName: meta.names[0] || '', officialName: nameOf(cp) });
+					out.push({ char, cp, zhName: zhNameOf(cp), officialName: nameOf(cp) });
 					seen.add(cp);
 					break;
 				}
@@ -299,7 +319,18 @@ const app = createApp({
 				const cp = char.codePointAt(0);
 				if (seen.has(cp)) continue;
 				seen.add(cp);
-				out.push({ char, cp, zhName: meta.names[0] || '', officialName: nameOf(cp) });
+				out.push({ char, cp, zhName: zhNameOf(cp), officialName: nameOf(cp) });
+			}
+			// 中文名.json 关键词匹配（CLDR emoji/词表/规则产出的中文名，搜"逗号"可找到 ,）
+			if (ZH_NAMES) {
+				for (const [cp, zh] of ZH_NAMES.names) {
+					if (out.length >= 200) break;
+					if (seen.has(cp)) continue;
+					if (zh.toLowerCase().includes(q)) {
+						seen.add(cp);
+						out.push({ char: String.fromCodePoint(cp), cp, zhName: zh, officialName: nameOf(cp) });
+					}
+				}
 			}
 			// 旗序列（双码位）关键词匹配：扫 FLAT 中有 seqs 的节点
 			for (const t of FLAT) {
@@ -360,7 +391,7 @@ const app = createApp({
 			this.selectedChar = {
 				cp,
 				char,
-				zhName: meta ? meta.names[0] : '',
+				zhName: zhNameOf(cp),
 				mode: meta ? meta.mode : '',
 				aliases: meta ? meta.aliases : [],
 				officialName: nameOf(cp),
@@ -399,8 +430,10 @@ const app = createApp({
 			this.searchQuery = '';
 			this.selectTag(t);
 		},
-		/** 字符格标题：U+ 码位 + 官方名 */
+		/** 字符格标题：中文名优先，英文名兜底 */
 		titleOf(cp) {
+			const zh = zhNameOf(cp);
+			if (zh) return zh + '\nU+' + cp.toString(16).toUpperCase();
 			const nm = nameOf(cp);
 			return 'U+' + cp.toString(16).toUpperCase() + (nm ? '\n' + nm : '');
 		},
@@ -475,10 +508,9 @@ const app = createApp({
 			const char = this.cellText(item);
 			const vs = type === 'text' ? '︎' : '️';
 			const text = char + vs;
-			const meta = SYMBOL_MAP.get(char);
 			navigator.clipboard.writeText(text).then(() => {
 				const label = type === 'text' ? '文本风格' : '表情风格';
-				ElementPlus.ElMessage.success(`"${meta ? (meta.names[0] || char) : char}"（${label}）已复制`);
+				ElementPlus.ElMessage.success(`"${zhNameOf(item) || char}"（${label}）已复制`);
 			}).catch(err => {
 				ElementPlus.ElMessage.error('复制失败: ' + err);
 			});
@@ -545,12 +577,14 @@ const app = createApp({
 	},
 	async mounted() {
 		try {
-			const [tags, names] = await Promise.all([
+			const [tags, names, zhnames] = await Promise.all([
 				fetch('标签.json').then(r => r.json()),
-				fetch('名字.json').then(r => r.json())
+				fetch('名字.json').then(r => r.json()),
+				fetch('中文名.json').then(r => r.json())
 			]);
 			TAGS = tags;
 			NAMES = names;
+			ZH_NAMES = zhnames;
 			for (const [name, node] of Object.entries(TAGS.roots)) flatten(name, node, name);
 			buildSymbolMap();
 			this.loading = false;
