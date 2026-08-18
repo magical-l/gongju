@@ -259,12 +259,14 @@ const app = createApp({
 			const out = [];
 			const walk = (node, name, path, depth) => {
 				const hasChild = !!(node.children && Object.keys(node.children).length > 0);
+				const m = this.collectNode(node);
+				const count = rangeCount(m.ranges) + m.seqs.length;
 				out.push({
 					name,
 					node,
 					path,
 					depth,
-					count: (node.ranges ? rangeCount(node.ranges) : 0) + (node.seqs ? node.seqs.length : 0) || null,
+					count,
 					hasChild,
 					intro: node.intro || ''
 				});
