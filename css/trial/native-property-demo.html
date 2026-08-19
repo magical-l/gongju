@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>原生属性验证 - justify/align-content/items</title>
+    <style>
+        body { padding: 20px; font-family: sans-serif; font-size: 14px; }
+        h1 { border-bottom: 2px solid #333; }
+        h2 { margin-top: 30px; color: #555; border-bottom: 1px solid #999; }
+        .section { margin: 15px 0; display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-start; }
+
+        .case {
+            border: 1px solid #999;
+            padding: 10px;
+            background: #fafafa;
+        }
+        .case-title { font-weight: bold; margin-bottom: 5px; }
+        .case-code { font-family: monospace; font-size: 12px; color: #555; margin-bottom: 8px; }
+        .case-num { color: #ff6b6b; }
+
+        /* 容器 */
+        .container {
+            border: 3px solid #333;
+            background: #f0f0f0;
+        }
+
+        /* Grid 容器 */
+        .grid-box {
+            display: grid;
+            gap: 0;
+        }
+        /* Z/S 横排：格子 70x50，容器 200x150 */
+        .grid-box.h {
+            grid-template-columns: 70px 70px;
+            grid-template-rows: 50px 50px;
+            width: 200px;
+            height: 150px;
+        }
+        /* N/И 竖排：格子 50x70，容器 150x200 */
+        .grid-box.v {
+            grid-template-columns: 50px 50px;
+            grid-template-rows: 70px 70px;
+            width: 150px;
+            height: 200px;
+        }
+
+        /* Flex 容器 */
+        .flex-box {
+            display: flex;
+            gap: 0;
+        }
+        .flex-box.go-x { flex-direction: row; }
+        .flex-box.go-y { flex-direction: column; flex-wrap: nowrap; }
+
+        /* 项目基础 */
+        .item {
+            background: #a5d6a7;
+            border: 2px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #333;
+            box-sizing: border-box;
+        }
+
+        /* Grid 项目：默认填满格子 */
+        .grid-box .item {
+            width: 100%;
+            height: 100%;
+        }
+        .grid-box .item.small-w { width: 40px; }
+        .grid-box .item.small-h { height: 35px; }
+
+        /* Flex 项目 */
+        .flex-box.go-x .item { width: 60px; height: 50px; }
+        .flex-box.go-y .item { width: 70px; height: 60px; }
+
+        /* 书写模式 */
+        .Z { writing-mode: horizontal-tb; direction: ltr; }
+        .S { writing-mode: horizontal-tb; direction: rtl; }
+        .N { writing-mode: vertical-rl; }
+        .И { writing-mode: vertical-lr; }
+
+        .note { font-size: 12px; margin-top: 5px; }
+        .ok { color: #2e7d32; }
+    </style>
+</head>
+<body>
+
+<h1>原生属性验证</h1>
+
+<h2>一、Grid + justify-content（控制列轨道位置）</h2>
+<div class="section">
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例1</span> Z + justify-content: start</div>
+        <div class="container grid-box h Z" style="justify-content: start;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div><div class="item">4</div>
+        </div>
+        <div class="note ok">✓ 列轨道靠左</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例2</span> Z + justify-content: end</div>
+        <div class="container grid-box h Z" style="justify-content: end;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div><div class="item">4</div>
+        </div>
+        <div class="note ok">✓ 列轨道靠右</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例3</span> S + justify-content: start</div>
+        <div class="container grid-box h S" style="justify-content: start;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div><div class="item">4</div>
+        </div>
+        <div class="note ok">✓ 列轨道靠右（RTL）</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例4</span> S + justify-content: end</div>
+        <div class="container grid-box h S" style="justify-content: end;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div><div class="item">4</div>
+        </div>
+        <div class="note ok">✓ 列轨道靠左（RTL）</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例5</span> N + justify-content: start</div>
+        <div class="container grid-box v N" style="justify-content: start;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div><div class="item">4</div>
+        </div>
+        <div class="note ok">✓ 行轨道靠顶</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例6</span> N + justify-content: end</div>
+        <div class="container grid-box v N" style="justify-content: end;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div><div class="item">4</div>
+        </div>
+        <div class="note ok">✓ 行轨道靠底</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例7</span> И + justify-content: start</div>
+        <div class="container grid-box v И" style="justify-content: start;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div><div class="item">4</div>
+        </div>
+        <div class="note ok">✓ 行轨道靠顶</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例8</span> И + justify-content: end</div>
+        <div class="container grid-box v И" style="justify-content: end;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div><div class="item">4</div>
+        </div>
+        <div class="note ok">✓ 行轨道靠底</div>
+    </div>
+</div>
+
+<h2>二、Grid + align-content（控制行轨道位置）</h2>
+<div class="section">
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例9</span> Z + align-content: start</div>
+        <div class="container grid-box h Z" style="align-content: start;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div><div class="item">4</div>
+        </div>
+        <div class="note ok">✓ 行轨道靠顶</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例10</span> Z + align-content: end</div>
+        <div class="container grid-box h Z" style="align-content: end;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div><div class="item">4</div>
+        </div>
+        <div class="note ok">✓ 行轨道靠底</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例11</span> S + align-content: start</div>
+        <div class="container grid-box h S" style="align-content: start;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div><div class="item">4</div>
+        </div>
+        <div class="note ok">✓ 行轨道靠顶</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例12</span> S + align-content: end</div>
+        <div class="container grid-box h S" style="align-content: end;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div><div class="item">4</div>
+        </div>
+        <div class="note ok">✓ 行轨道靠底</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例13</span> N + align-content: start</div>
+        <div class="container grid-box v N" style="align-content: start;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div><div class="item">4</div>
+        </div>
+        <div class="note ok">✓ 列轨道靠右</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例14</span> N + align-content: end</div>
+        <div class="container grid-box v N" style="align-content: end;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div><div class="item">4</div>
+        </div>
+        <div class="note ok">✓ 列轨道靠左</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例15</span> И + align-content: start</div>
+        <div class="container grid-box v И" style="align-content: start;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div><div class="item">4</div>
+        </div>
+        <div class="note ok">✓ 列轨道靠左</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例16</span> И + align-content: end</div>
+        <div class="container grid-box v И" style="align-content: end;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div><div class="item">4</div>
+        </div>
+        <div class="note ok">✓ 列轨道靠右</div>
+    </div>
+</div>
+
+<h2>三、Grid + justify-items（项目在格子内水平/垂直位置）</h2>
+<div class="section">
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例17</span> Z + justify-items: start</div>
+        <div class="container grid-box h Z" style="justify-items: start;">
+            <div class="item small-w">1</div><div class="item small-w">2</div><div class="item small-w">3</div><div class="item small-w">4</div>
+        </div>
+        <div class="note ok">✓ 项目靠左</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例18</span> Z + justify-items: end</div>
+        <div class="container grid-box h Z" style="justify-items: end;">
+            <div class="item small-w">1</div><div class="item small-w">2</div><div class="item small-w">3</div><div class="item small-w">4</div>
+        </div>
+        <div class="note ok">✓ 项目靠右</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例19</span> S + justify-items: start</div>
+        <div class="container grid-box h S" style="justify-items: start;">
+            <div class="item small-w">1</div><div class="item small-w">2</div><div class="item small-w">3</div><div class="item small-w">4</div>
+        </div>
+        <div class="note ok">✓ 项目靠右（RTL）</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例20</span> S + justify-items: end</div>
+        <div class="container grid-box h S" style="justify-items: end;">
+            <div class="item small-w">1</div><div class="item small-w">2</div><div class="item small-w">3</div><div class="item small-w">4</div>
+        </div>
+        <div class="note ok">✓ 项目靠左（RTL）</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例21</span> N + justify-items: start</div>
+        <div class="container grid-box v N" style="justify-items: start;">
+            <div class="item small-h">1</div><div class="item small-h">2</div><div class="item small-h">3</div><div class="item small-h">4</div>
+        </div>
+        <div class="note ok">✓ 项目靠顶</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例22</span> N + justify-items: end</div>
+        <div class="container grid-box v N" style="justify-items: end;">
+            <div class="item small-h">1</div><div class="item small-h">2</div><div class="item small-h">3</div><div class="item small-h">4</div>
+        </div>
+        <div class="note ok">✓ 项目靠底</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例23</span> И + justify-items: start</div>
+        <div class="container grid-box v И" style="justify-items: start;">
+            <div class="item small-h">1</div><div class="item small-h">2</div><div class="item small-h">3</div><div class="item small-h">4</div>
+        </div>
+        <div class="note ok">✓ 项目靠顶</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例24</span> И + justify-items: end</div>
+        <div class="container grid-box v И" style="justify-items: end;">
+            <div class="item small-h">1</div><div class="item small-h">2</div><div class="item small-h">3</div><div class="item small-h">4</div>
+        </div>
+        <div class="note ok">✓ 项目靠底</div>
+    </div>
+</div>
+
+<h2>四、Grid + align-items（项目在格子内垂直/水平位置）</h2>
+<div class="section">
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例25</span> Z + align-items: start</div>
+        <div class="container grid-box h Z" style="align-items: start;">
+            <div class="item small-h">1</div><div class="item small-h">2</div><div class="item small-h">3</div><div class="item small-h">4</div>
+        </div>
+        <div class="note ok">✓ 项目靠顶</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例26</span> Z + align-items: end</div>
+        <div class="container grid-box h Z" style="align-items: end;">
+            <div class="item small-h">1</div><div class="item small-h">2</div><div class="item small-h">3</div><div class="item small-h">4</div>
+        </div>
+        <div class="note ok">✓ 项目靠底</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例27</span> S + align-items: start</div>
+        <div class="container grid-box h S" style="align-items: start;">
+            <div class="item small-h">1</div><div class="item small-h">2</div><div class="item small-h">3</div><div class="item small-h">4</div>
+        </div>
+        <div class="note ok">✓ 项目靠顶</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例28</span> S + align-items: end</div>
+        <div class="container grid-box h S" style="align-items: end;">
+            <div class="item small-h">1</div><div class="item small-h">2</div><div class="item small-h">3</div><div class="item small-h">4</div>
+        </div>
+        <div class="note ok">✓ 项目靠底</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例29</span> N + align-items: start</div>
+        <div class="container grid-box v N" style="align-items: start;">
+            <div class="item small-w">1</div><div class="item small-w">2</div><div class="item small-w">3</div><div class="item small-w">4</div>
+        </div>
+        <div class="note ok">✓ 项目靠右</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例30</span> N + align-items: end</div>
+        <div class="container grid-box v N" style="align-items: end;">
+            <div class="item small-w">1</div><div class="item small-w">2</div><div class="item small-w">3</div><div class="item small-w">4</div>
+        </div>
+        <div class="note ok">✓ 项目靠左</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例31</span> И + align-items: start</div>
+        <div class="container grid-box v И" style="align-items: start;">
+            <div class="item small-w">1</div><div class="item small-w">2</div><div class="item small-w">3</div><div class="item small-w">4</div>
+        </div>
+        <div class="note ok">✓ 项目靠左</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例32</span> И + align-items: end</div>
+        <div class="container grid-box v И" style="align-items: end;">
+            <div class="item small-w">1</div><div class="item small-w">2</div><div class="item small-w">3</div><div class="item small-w">4</div>
+        </div>
+        <div class="note ok">✓ 项目靠右</div>
+    </div>
+</div>
+
+<h2>五、Flex go-x + justify-content（项目主轴位置）</h2>
+<div class="section">
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例33</span> Z go-x + justify-content: start</div>
+        <div class="container flex-box go-x Z" style="width: 200px; justify-content: start;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠左</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例34</span> Z go-x + justify-content: end</div>
+        <div class="container flex-box go-x Z" style="width: 200px; justify-content: end;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠右</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例35</span> S go-x + justify-content: start</div>
+        <div class="container flex-box go-x S" style="width: 200px; justify-content: start;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠右（RTL）</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例36</span> S go-x + justify-content: end</div>
+        <div class="container flex-box go-x S" style="width: 200px; justify-content: end;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠左（RTL）</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例37</span> N go-x + justify-content: start</div>
+        <div class="container flex-box go-x N" style="width: 150px; height: 200px; justify-content: start;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠顶</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例38</span> N go-x + justify-content: end</div>
+        <div class="container flex-box go-x N" style="width: 150px; height: 200px; justify-content: end;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠底</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例39</span> И go-x + justify-content: start</div>
+        <div class="container flex-box go-x И" style="width: 150px; height: 200px; justify-content: start;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠顶</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例40</span> И go-x + justify-content: end</div>
+        <div class="container flex-box go-x И" style="width: 150px; height: 200px; justify-content: end;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠底</div>
+    </div>
+</div>
+
+<h2>六、Flex go-x + align-items（项目交叉轴位置）</h2>
+<div class="section">
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例41</span> Z go-x + align-items: start</div>
+        <div class="container flex-box go-x Z" style="height: 120px; align-items: start;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠顶</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例42</span> Z go-x + align-items: end</div>
+        <div class="container flex-box go-x Z" style="height: 120px; align-items: end;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠底</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例43</span> S go-x + align-items: start</div>
+        <div class="container flex-box go-x S" style="height: 120px; align-items: start;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠顶</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例44</span> S go-x + align-items: end</div>
+        <div class="container flex-box go-x S" style="height: 120px; align-items: end;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠底</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例45</span> N go-x + align-items: start</div>
+        <div class="container flex-box go-x N" style="width: 120px; height: 200px; align-items: start;">
+            <div class="item" style="width: 50px;">1</div><div class="item" style="width: 50px;">2</div><div class="item" style="width: 50px;">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠右</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例46</span> N go-x + align-items: end</div>
+        <div class="container flex-box go-x N" style="width: 120px; height: 200px; align-items: end;">
+            <div class="item" style="width: 50px;">1</div><div class="item" style="width: 50px;">2</div><div class="item" style="width: 50px;">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠左</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例47</span> И go-x + align-items: start</div>
+        <div class="container flex-box go-x И" style="width: 120px; height: 200px; align-items: start;">
+            <div class="item" style="width: 50px;">1</div><div class="item" style="width: 50px;">2</div><div class="item" style="width: 50px;">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠左</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例48</span> И go-x + align-items: end</div>
+        <div class="container flex-box go-x И" style="width: 120px; height: 200px; align-items: end;">
+            <div class="item" style="width: 50px;">1</div><div class="item" style="width: 50px;">2</div><div class="item" style="width: 50px;">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠右</div>
+    </div>
+</div>
+
+<h2>七、Flex go-y + justify-content（项目主轴位置）</h2>
+<div class="section">
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例49</span> Z go-y + justify-content: start</div>
+        <div class="container flex-box go-y Z" style="height: 200px; justify-content: start;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠顶</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例50</span> Z go-y + justify-content: end</div>
+        <div class="container flex-box go-y Z" style="height: 200px; justify-content: end;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠底</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例51</span> S go-y + justify-content: start</div>
+        <div class="container flex-box go-y S" style="height: 200px; justify-content: start;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠顶</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例52</span> S go-y + justify-content: end</div>
+        <div class="container flex-box go-y S" style="height: 200px; justify-content: end;">
+            <div class="item">1</div><div class="item">2</div><div class="item">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠底</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例53</span> N go-y + justify-content: start</div>
+        <div class="container flex-box go-y N" style="width: 200px; height: 150px; justify-content: start;">
+            <div class="item" style="width: 60px; height: 50px;">1</div>
+            <div class="item" style="width: 60px; height: 50px;">2</div>
+            <div class="item" style="width: 60px; height: 50px;">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠右</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例54</span> N go-y + justify-content: end</div>
+        <div class="container flex-box go-y N" style="width: 200px; height: 150px; justify-content: end;">
+            <div class="item" style="width: 60px; height: 50px;">1</div>
+            <div class="item" style="width: 60px; height: 50px;">2</div>
+            <div class="item" style="width: 60px; height: 50px;">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠左</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例55</span> И go-y + justify-content: start</div>
+        <div class="container flex-box go-y И" style="width: 200px; height: 150px; justify-content: start;">
+            <div class="item" style="width: 60px; height: 50px;">1</div>
+            <div class="item" style="width: 60px; height: 50px;">2</div>
+            <div class="item" style="width: 60px; height: 50px;">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠左</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例56</span> И go-y + justify-content: end</div>
+        <div class="container flex-box go-y И" style="width: 200px; height: 150px; justify-content: end;">
+            <div class="item" style="width: 60px; height: 50px;">1</div>
+            <div class="item" style="width: 60px; height: 50px;">2</div>
+            <div class="item" style="width: 60px; height: 50px;">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠右</div>
+    </div>
+</div>
+
+<h2>八、Flex go-y + align-items（项目交叉轴位置）</h2>
+<div class="section">
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例57</span> Z go-y + align-items: start</div>
+        <div class="container flex-box go-y Z" style="width: 200px; align-items: start;">
+            <div class="item" style="width: 50px;">1</div><div class="item" style="width: 50px;">2</div><div class="item" style="width: 50px;">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠左</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例58</span> Z go-y + align-items: end</div>
+        <div class="container flex-box go-y Z" style="width: 200px; align-items: end;">
+            <div class="item" style="width: 50px;">1</div><div class="item" style="width: 50px;">2</div><div class="item" style="width: 50px;">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠右</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例59</span> S go-y + align-items: start</div>
+        <div class="container flex-box go-y S" style="width: 200px; align-items: start;">
+            <div class="item" style="width: 50px;">1</div><div class="item" style="width: 50px;">2</div><div class="item" style="width: 50px;">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠右（RTL）</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例60</span> S go-y + align-items: end</div>
+        <div class="container flex-box go-y S" style="width: 200px; align-items: end;">
+            <div class="item" style="width: 50px;">1</div><div class="item" style="width: 50px;">2</div><div class="item" style="width: 50px;">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠左（RTL）</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例61</span> N go-y + align-items: start</div>
+        <div class="container flex-box go-y N" style="width: 200px; height: 150px; align-items: start;">
+            <div class="item" style="width: 60px; height: 40px;">1</div>
+            <div class="item" style="width: 60px; height: 40px;">2</div>
+            <div class="item" style="width: 60px; height: 40px;">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠顶</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例62</span> N go-y + align-items: end</div>
+        <div class="container flex-box go-y N" style="width: 200px; height: 150px; align-items: end;">
+            <div class="item" style="width: 60px; height: 40px;">1</div>
+            <div class="item" style="width: 60px; height: 40px;">2</div>
+            <div class="item" style="width: 60px; height: 40px;">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠底</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例63</span> И go-y + align-items: start</div>
+        <div class="container flex-box go-y И" style="width: 200px; height: 150px; align-items: start;">
+            <div class="item" style="width: 60px; height: 40px;">1</div>
+            <div class="item" style="width: 60px; height: 40px;">2</div>
+            <div class="item" style="width: 60px; height: 40px;">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠顶</div>
+    </div>
+    <div class="case">
+        <div class="case-title"><span class="case-num">用例64</span> И go-y + align-items: end</div>
+        <div class="container flex-box go-y И" style="width: 200px; height: 150px; align-items: end;">
+            <div class="item" style="width: 60px; height: 40px;">1</div>
+            <div class="item" style="width: 60px; height: 40px;">2</div>
+            <div class="item" style="width: 60px; height: 40px;">3</div>
+        </div>
+        <div class="note ok">✓ 项目靠底</div>
+    </div>
+</div>
+
+</body>
+</html>

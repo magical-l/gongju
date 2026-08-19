@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>⧖ 沙漏 Demo</title>
+<link rel="stylesheet" href="../layout.css">
+<link rel="stylesheet" href="../common.css">
+<style>
+.demo-bar { --btn-h: 120px; position: relative; }
+/* 辅助线 */
+.demo-bar::before {
+	content: ''; position: absolute; inset: 0;
+	pointer-events: none;
+	border: 1px dashed rgba(255,0,0,.3);
+}
+.demo-bar::after {
+	content: ''; position: absolute;
+	left: 0; right: 0; top: 50%; height: 0;
+	border-top: 1px dashed rgba(0,100,255,.3);
+	pointer-events: none;
+}
+label { cursor: pointer; user-select: none; }
+</style>
+</head>
+<body class="flex items-near-center">
+	<div class="flex items-go-y">
+		<div class="demo-bar">
+			<button class="btn : x , square shape">
+				<span class="char-style icon : link"></span>
+			</button>
+			<span class="status icon : wait , hourglass animation , char-style"></span>
+		</div>
+		<label><input type="checkbox" id="toggle"> 沙漏</label>
+	</div>
+<script>
+document.getElementById('toggle').addEventListener('change', function() {
+	document.querySelector('.x.btn').classList.toggle('busy', this.checked);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CSS 布局类探索器</title>
+<link rel="stylesheet" href="../common.css">
+<link rel="stylesheet" href="../layout.css">
+<style>
+/* ===== 页面布局 ===== */
+body {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 20px;
+	gap: 16px;
+	font-family: system-ui, sans-serif;
+}
+header h1 { margin: 0; font-size: 22px; }
+
+main {
+	display: flex;
+	flex-direction: row;
+	align-items: flex-start;
+	gap: 20px;
+	width: 100%;
+	max-width: 960px;
+}
+
+/* ===== 预览区 ===== */
+.preview {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 12px;
+}
+
+.preview-content {
+	width: min(500px, 90vw);
+	max-width: 100%;
+}
+
+/* ===== 预览容器 ===== */
+#container {
+	height: 280px;
+	border: 3px dashed #555;
+	background: #f5f5f5;
+	min-height: 80px;
+	min-width: 120px;
+	resize: both;
+	overflow: hidden;
+
+	&.grid {
+		grid-template-columns: 1fr 1fr;
+		grid-template-rows: 1fr 1fr;
+	}
+}
+
+/* ===== 子项目 ===== */
+.item {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	/* font-weight: bold; */
+	/* font-size: 32px; */
+	color: #fff;
+	/* border-radius: 6px; */
+	/* padding: 2px 4px; */
+
+	&:nth-child(1) { background: #e74c3c; min-width: 35px; min-height: 40px; }
+	&:nth-child(2) { background: #27ae60; min-width: 70px; min-height: 70px; }
+	&:nth-child(3) { background: #2980b9; min-width: 26px; min-height: 30px; }
+	&:nth-child(4) { background: #e67e22; min-width: 65px; min-height: 65px; }
+	&:nth-child(5) { background: #9b59b6; min-width: 55px; min-height: 35px; }
+	&:nth-child(6) { background: #1abc9c; min-width: 22px; min-height: 18px; }
+}
+
+/* 固定尺寸（用于演示对齐效果） */
+.demo-fixed > .item {
+	flex: none;
+	&:nth-child(1) { width: 100px; height: 70px; }
+	&:nth-child(2) { width: 140px; height: 90px; }
+	&:nth-child(3) { width: 80px;  height: 110px; }
+	&:nth-child(4) { width: 120px; height: 80px; }
+	&:nth-child(5) { width: 160px; height: 60px; }
+	&:nth-child(6) { width: 70px;  height: 130px; }
+}
+
+/* ===== 尺寸指示器 ===== */
+.size-indicator {
+	font-family: monospace;
+	font-size: 12px;
+	color: #666;
+	background: #f0f0f0;
+	padding: 3px 12px;
+	border-radius: 4px;
+	user-select: none;
+}
+
+/* ===== 信息区 ===== */
+.info-box {
+	font-family: monospace;
+	font-size: 13px;
+	background: #eef;
+	padding: 8px 14px;
+	border-radius: 6px;
+	width: 100%;
+	box-sizing: border-box;
+	line-height: 1.5;
+
+	& .classes {
+		color: #c7254e;
+		word-break: break-all;
+	}
+	& table {
+		width: 100%;
+		border-collapse: collapse;
+		margin-top: 4px;
+	}
+	& td {
+		padding: 1px 8px;
+		font-size: 12px;
+	}
+	& td:first-child {
+		color: #888;
+		width: 130px;
+	}
+}
+
+/* ===== 控制面板 ===== */
+.controls {
+	width: 380px;
+	flex-shrink: 0;
+	max-height: calc(100vh - 100px);
+	overflow-y: auto;
+
+	& form {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 8px;
+	}
+}
+
+fieldset {
+	border: 1px solid #ccc;
+	border-radius: 6px;
+	padding: 8px 12px;
+	margin: 0;
+}
+legend {
+	font-weight: 600;
+	font-size: 13px;
+	padding: 0 6px;
+	color: #555;
+}
+
+.ctrl-row {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+
+	& label {
+		display: inline-flex;
+		align-items: center;
+		gap: 2px;
+		font-size: 13px;
+		cursor: pointer;
+		padding: 2px 5px;
+		border-radius: 3px;
+	}
+	& label:hover { background: #e8e8e8; }
+	& input { margin: 0; cursor: pointer; }
+}
+
+/* ===== 尺寸输入控件 ===== */
+.size-input {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 13px;
+	padding: 2px 5px;
+
+	& input[type="number"] {
+		width: 64px;
+		padding: 2px 4px;
+		font-size: 12px;
+		border: 1px solid #bbb;
+		border-radius: 3px;
+		margin: 0;
+		cursor: text;
+	}
+	& span {
+		color: #888;
+		font-size: 11px;
+	}
+}
+</style>
+</head>
+<body>
+<main>
+	<section class="preview">
+		<div class="preview-content">
+			<div id="container" class="flex items-go-x">
+				<div class="item"></div>
+				<div class="item"></div>
+				<div class="item"></div>
+				<div class="item"></div>
+				<div class="item"></div>
+				<div class="item"></div>
+			</div>
+			<div class="size-indicator" id="sizeIndicator">W: &ndash;  H: &ndash;</div>
+			<div class="info-box" id="info">
+				<div>classes: <span class="classes" id="classDisplay">flex items-go-x</span></div>
+				<div id="styleDisplay"></div>
+			</div>
+		</div>
+	</section>
+	<aside class="controls">
+		<form id="controlsForm">
+			<fieldset>
+				<legend>容器尺寸</legend>
+				<div class="ctrl-row">
+					<label class="size-input">宽度 <input type="number" id="containerW" value="500" min="120" max="1200" step="10"><span>px</span></label>
+					<label class="size-input">高度 <input type="number" id="containerH" value="280" min="80" max="800" step="10"><span>px</span></label>
+				</div>
+			</fieldset>
+			<fieldset>
+				<legend>布局类型</legend>
+				<div class="ctrl-row">
+					<label><input type="radio" name="layout" value="flex" checked> flex</label>
+					<label><input type="radio" name="layout" value="grid"> grid</label>
+				</div>
+			</fieldset>
+			<fieldset>
+				<legend>方向</legend>
+				<div class="ctrl-row">
+					<label><input type="radio" name="direction" value=""> 无</label>
+					<label><input type="radio" name="direction" value="items-go-x" checked> go-x</label>
+					<label><input type="radio" name="direction" value="items-go-y"> go-y</label>
+					<label><input type="radio" name="direction" value="items-from-left"> from-left</label>
+					<label><input type="radio" name="direction" value="items-from-right"> from-right</label>
+					<label><input type="radio" name="direction" value="items-from-top"> from-top</label>
+					<label><input type="radio" name="direction" value="items-from-bottom"> from-bottom</label>
+					<label><input type="checkbox" name="single-line"> single-line (nowrap)</label>
+				</div>
+			</fieldset>
+			<fieldset>
+				<legend>X轴对齐 <span style="font-weight:normal;font-size:12px;color:#999">(justify-*)</span></legend>
+				<div class="ctrl-row">
+					<label><input type="radio" name="x-axis" value="" checked> 无</label>
+					<label><input type="radio" name="x-axis" value="items-near-left"> x-near-left</label>
+					<label><input type="radio" name="x-axis" value="items-x-near-center"> x-near-center</label>
+					<label><input type="radio" name="x-axis" value="items-near-right"> x-near-right</label>
+					<label><input type="radio" name="x-axis" value="items-x-space-between"> x-space-between</label>
+					<label><input type="radio" name="x-axis" value="items-x-space-evenly"> x-space-evenly</label>
+					<label><input type="radio" name="x-axis" value="items-x-space-around"> x-space-around</label>
+					<label><input type="radio" name="x-axis" value="items-x-stretch"> x-stretch</label>
+				</div>
+			</fieldset>
+			<fieldset>
+				<legend>Y轴对齐 <span style="font-weight:normal;font-size:12px;color:#999">(align-*)</span></legend>
+				<div class="ctrl-row">
+					<label><input type="radio" name="y-axis" value="" checked> 无</label>
+					<label><input type="radio" name="y-axis" value="items-near-top"> y-near-top</label>
+					<label><input type="radio" name="y-axis" value="items-y-near-center"> y-near-center</label>
+					<label><input type="radio" name="y-axis" value="items-near-bottom"> y-near-bottom</label>
+					<label><input type="radio" name="y-axis" value="items-y-space-between"> y-space-between</label>
+					<label><input type="radio" name="y-axis" value="items-y-space-evenly"> y-space-evenly</label>
+					<label><input type="radio" name="y-axis" value="items-y-space-around"> y-space-around</label>
+					<label><input type="radio" name="y-axis" value="items-y-stretch"> y-stretch</label>
+				</div>
+			</fieldset>
+			<fieldset>
+				<legend>双轴对齐 <span style="font-weight:normal;font-size:12px;color:#999">(place-*)</span></legend>
+				<div class="ctrl-row">
+					<label><input type="radio" name="both-axes" value="" checked> 无</label>
+					<label><input type="radio" name="both-axes" value="items-near-center"> near-center</label>
+					<label><input type="radio" name="both-axes" value="items-space-between"> space-between</label>
+					<label><input type="radio" name="both-axes" value="items-space-evenly"> space-evenly</label>
+					<label><input type="radio" name="both-axes" value="items-space-around"> space-around</label>
+					<label><input type="radio" name="both-axes" value="items-stretch"> stretch</label>
+				</div>
+			</fieldset>
+			<fieldset>
+				<legend>选项</legend>
+				<div class="ctrl-row">
+					<label><input type="checkbox" name="fixed-size"> 固定尺寸（观察对齐效果）</label>
+				</div>
+			</fieldset>
+		</form>
+	</aside>
+</main>
+<div class="js container">
+<script>
+(function() {
+	const container = document.getElementById('container');
+	const form = document.getElementById('controlsForm');
+	const classDisplay = document.getElementById('classDisplay');
+	const styleDisplay = document.getElementById('styleDisplay');
+	const sizeIndicator = document.getElementById('sizeIndicator');
+
+	const containerW = document.getElementById('containerW');
+	const containerH = document.getElementById('containerH');
+
+	function applyContainerSize() {
+		container.style.width = containerW.value + 'px';
+		container.style.height = containerH.value + 'px';
+	}
+
+	function updateSizeIndicator() {
+		const rect = container.getBoundingClientRect();
+		sizeIndicator.textContent = 'W: ' + Math.round(rect.width) + 'px  H: ' + Math.round(rect.height) + 'px';
+	}
+
+	function update() {
+		const classes = [];
+
+		const layout = form.querySelector('[name=layout]:checked');
+		if (layout && layout.value) classes.push(layout.value);
+
+		const dir = form.querySelector('[name=direction]:checked');
+		if (dir && dir.value) classes.push(dir.value);
+
+		const xa = form.querySelector('[name=x-axis]:checked');
+		if (xa && xa.value) classes.push(xa.value);
+
+		const ya = form.querySelector('[name=y-axis]:checked');
+		if (ya && ya.value) classes.push(ya.value);
+
+		const ba = form.querySelector('[name=both-axes]:checked');
+		if (ba && ba.value) classes.push(ba.value);
+
+		if (form.querySelector('[name=single-line]').checked) classes.push('items-single-line');
+		if (form.querySelector('[name=fixed-size]').checked) classes.push('demo-fixed');
+
+		container.className = classes.join(' ');
+		classDisplay.textContent = container.className || '(none)';
+
+		updateSizeIndicator();
+		showStyles();
+	}
+
+	function showStyles() {
+		const cs = getComputedStyle(container);
+		const display = cs.display;
+		const isFlex = display === 'flex' || display === 'inline-flex';
+		const isGrid = display === 'grid' || display === 'inline-grid';
+
+		let html = '<div style="display:flex;flex-wrap:wrap;">';
+		html += '<span style="display:inline-block;margin:0 12px 0 0"><b>display</b>: ' + display + '</span>';
+		if (isFlex) {
+			html += '<span style="display:inline-block;margin:0 12px 0 0"><b>flex-direction</b>: ' + cs.flexDirection + '</span>';
+			html += '<span style="display:inline-block;margin:0 12px 0 0"><b>flex-wrap</b>: ' + cs.flexWrap + '</span>';
+		}
+		if (isGrid) {
+			html += '<span style="display:inline-block;margin:0 12px 0 0"><b>grid-auto-flow</b>: ' + cs.gridAutoFlow + '</span>';
+		}
+		if (isFlex || isGrid) {
+			html += '<span style="display:inline-block;margin:0 12px 0 0"><b>justify-content</b>: ' + cs.justifyContent + '</span>';
+			html += '<span style="display:inline-block;margin:0 12px 0 0"><b>align-content</b>: ' + cs.alignContent + '</span>';
+			html += '<span style="display:inline-block;margin:0 12px 0 0"><b>align-items</b>: ' + cs.alignItems + '</span>';
+			html += '<span style="display:inline-block;margin:0 12px 0 0"><b>gap</b>: ' + cs.gap + '</span>';
+		}
+		html += '</div>';
+		styleDisplay.innerHTML = html;
+	}
+
+	// 互斥：选双轴时清 X/Y，选 X/Y 时清双轴
+	form.addEventListener('change', function(e) {
+		if (e.target.name === 'x-axis' || e.target.name === 'y-axis') {
+			if (e.target.checked && e.target.value) {
+				form.querySelectorAll('[name=both-axes]').forEach(function(r) { r.checked = false; });
+			}
+		}
+		if (e.target.name === 'both-axes') {
+			if (e.target.checked && e.target.value) {
+				form.querySelectorAll('[name=x-axis]').forEach(function(r) { r.checked = false; });
+				form.querySelectorAll('[name=y-axis]').forEach(function(r) { r.checked = false; });
+				var noneX = form.querySelector('[name=x-axis][value=""]');
+				var noneY = form.querySelector('[name=y-axis][value=""]');
+				if (noneX) noneX.checked = true;
+				if (noneY) noneY.checked = true;
+			}
+		}
+		update();
+	});
+
+	// 容器尺寸输入
+	containerW.addEventListener('input', applyContainerSize);
+	containerH.addEventListener('input', applyContainerSize);
+
+		// 用 ResizeObserver 实时更新尺寸指示器
+		var ro = new ResizeObserver(updateSizeIndicator);
+		ro.observe(container);
+
+		// 输入框初始值匹配计算后尺寸
+		containerW.value = container.offsetWidth;
+	containerH.value = container.offsetHeight;
+	update();
+})();
+</script>
+</div>
+</body>
+</html>

@@ -1,0 +1,501 @@
+<!DOCTYPE html><html lang="zh-CN"><head>
+		<meta charset="utf-8">
+		<title>layout.css 基础测试</title>
+		<link rel="stylesheet" href="../layout.css">
+		<style>
+			body {
+				padding: 20px;
+				font-family: sans-serif;
+				font-size: 14px;
+			}
+
+			h1 {
+				border-bottom: 2px solid #333;
+			}
+
+			h2 {
+				margin-top: 30px;
+				color: #555;
+				border-bottom: 1px solid #999;
+			}
+
+			#summary {
+				position: sticky;
+				top: 0;
+				z-index: 100;
+				padding: 8px 16px;
+				font-size: 14px;
+				font-weight: bold;
+				margin-bottom: 10px;
+			}
+
+			.section {
+				margin: 15px 0;
+				display: flex;
+				gap: 15px;
+				flex-wrap: wrap;
+				align-items: flex-start;
+			}
+
+			.case {
+				border: 1px solid #999;
+				padding: 10px;
+				background: #fafafa;
+			}
+
+			.case.pass {
+				background: #e8f5e9;
+				border-color: #4caf50;
+			}
+
+			.case.fail {
+				background: #ffebee;
+				border-color: #f44336;
+			}
+
+			.case .label {
+				font-weight: bold;
+				margin-bottom: 3px;
+				font-size: 12px;
+			}
+
+			.case .classes {
+				font-family: monospace;
+				font-size: 11px;
+				color: #555;
+				margin-bottom: 6px;
+			}
+
+			.case .actual {
+				font-family: monospace;
+				font-size: 10px;
+				color: #c62828;
+				display: none;
+			}
+
+			.case.fail .actual {
+				display: block;
+			}
+
+			.container {
+				border: 3px solid #333;
+				background: #f0f0f0;
+			}
+
+			.item {
+				background: #a5d6a7;
+				border: 2px solid #333;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-weight: bold;
+				color: #333;
+			}
+
+		</style>
+	</head>
+	<body>
+		<div id="summary"></div>
+		<h1>layout.css 基础测试</h1>
+		<h2>display 类型</h2>
+		<div class="section">
+			<div class="case" data-id="1" data-expect="display:inline">
+				<div class="label">1. .inline</div>
+				<div class="classes">inline</div>
+				<div class="container inline" style="width:100px;height:40px"><span class="item">A</span><span class="item">B</span><span class="item">C</span></div>
+				<div class="actual"></div>
+			</div>
+			<div class="case" data-id="2" data-expect="display:block">
+				<div class="label">2. .block</div>
+				<div class="classes">block</div>
+				<div class="container block" style="width:100px;height:60px">
+					<div class="item">A</div>
+					<div class="item">B</div>
+				</div>
+				<div class="actual"></div>
+			</div>
+			<div class="case" data-id="3" data-expect="display:inline-block" data-target=".block.inline">
+				<div class="label">3. .block.inline</div>
+				<div class="classes">block inline</div>
+				<div class="container" style="width:300px;height:55px">
+					<span class="block inline" style="width:80px;height:40px;background:#a5d6a7;border:2px solid #333;font-weight:bold;color:#333;text-align:center;line-height:36px;margin:2px">A</span>
+					<span class="block inline" style="width:80px;height:40px;background:#a5d6a7;border:2px solid #333;font-weight:bold;color:#333;text-align:center;line-height:36px;margin:2px">B</span>
+					<span class="block inline" style="width:80px;height:40px;background:#a5d6a7;border:2px solid #333;font-weight:bold;color:#333;text-align:center;line-height:36px;margin:2px">C</span>
+				</div>
+				<div class="actual"></div>
+			</div>
+			<div class="case" data-id="4" data-expect="display:table">
+				<div class="label">4. .table</div>
+				<div class="classes">table</div>
+				<table class="container table" style="width:200px;height:80px;border-collapse:collapse">
+					<tbody><tr>
+						<td style="background:#a5d6a7;border:2px solid #333;text-align:center;font-weight:bold;color:#333">1</td>
+						<td style="background:#a5d6a7;border:2px solid #333;text-align:center;font-weight:bold;color:#333">2</td>
+					</tr>
+					<tr>
+						<td style="background:#a5d6a7;border:2px solid #333;text-align:center;font-weight:bold;color:#333">3</td>
+						<td style="background:#a5d6a7;border:2px solid #333;text-align:center;font-weight:bold;color:#333">4</td>
+					</tr>
+				</tbody></table>
+				<div class="actual"></div>
+			</div>
+			<div class="case" data-id="5" data-expect="display:inline-table" data-target=".container.table.inline">
+				<div class="label">5. .table.inline</div>
+				<div class="classes">table inline</div>
+				<div class="container" style="width:450px;height:80px">前面文字<table class="container table inline" style="width:140px;height:70px;border-collapse:collapse">
+						<tbody><tr>
+							<td style="background:#a5d6a7;border:2px solid #333;text-align:center;font-weight:bold;color:#333">1</td>
+							<td style="background:#a5d6a7;border:2px solid #333;text-align:center;font-weight:bold;color:#333">2</td>
+						</tr>
+						<tr>
+							<td style="background:#a5d6a7;border:2px solid #333;text-align:center;font-weight:bold;color:#333">3</td>
+							<td style="background:#a5d6a7;border:2px solid #333;text-align:center;font-weight:bold;color:#333">4</td>
+						</tr>
+					</tbody></table>后面文字</div>
+				<div class="actual"></div>
+			</div>
+			<div class="case" data-id="6" data-expect="display:flex" data-target=".container.flex">
+				<div class="label">6. .flex</div>
+				<div class="classes">flex</div>
+				<div class="container" style="width:450px;line-height:2">前面文字<div class="container flex" style="width:160px;height:50px"><div class="item" style="width:50px;height:35px">A</div><div class="item" style="width:50px;height:35px">B</div><div class="item" style="width:50px;height:35px">C</div></div>后面文字</div>
+				<div class="actual"></div>
+			</div>
+			<div class="case" data-id="7" data-expect="">
+				<div class="label">7. .flex.inline</div>
+				<div class="classes">flex inline</div>
+				<div class="container" style="width:450px;line-height:2">前面文字
+					<div class="container flex inline" style="width:110px;height:50px;vertical-align:middle">
+						<div class="item" style="width:45px;height:35px">A</div>
+						<div class="item" style="width:45px;height:35px">B</div>
+					</div>
+					中间文字
+					<div class="container flex inline" style="width:110px;height:50px;vertical-align:middle">
+						<div class="item" style="width:45px;height:35px">C</div>
+						<div class="item" style="width:45px;height:35px">D</div>
+					</div>
+					后面文字
+				</div>
+				<div class="actual"></div>
+			</div>
+			<div class="case" data-id="8" data-expect="display:grid" data-target=".container.grid">
+				<div class="label">8. .grid</div>
+				<div class="classes">grid</div>
+				<div class="container" style="width:450px;line-height:2">前面文字<div class="container grid" style="grid-template-columns:60px 60px;grid-template-rows:30px 30px;width:130px;height:70px"><div class="item">1</div><div class="item">2</div><div class="item">3</div><div class="item">4</div></div>后面文字</div>
+				<div class="actual"></div>
+			</div>
+			<div class="case" data-id="9" data-expect="">
+				<div class="label">9. .grid.inline</div>
+				<div class="classes">grid inline</div>
+				<div class="container" style="width:450px;line-height:2">前面文字
+					<div class="container grid inline" style="grid-template-columns:50px 50px;grid-template-rows:25px 25px;width:110px;height:60px;vertical-align:middle">
+						<div class="item">1</div>
+						<div class="item">2</div>
+						<div class="item">3</div>
+						<div class="item">4</div>
+					</div>
+					中间文字
+					<div class="container grid inline" style="grid-template-columns:50px 50px;grid-template-rows:25px 25px;width:110px;height:60px;vertical-align:middle">
+						<div class="item">A</div>
+						<div class="item">B</div>
+						<div class="item">C</div>
+						<div class="item">D</div>
+					</div>
+					后面文字
+				</div>
+				<div class="actual"></div>
+			</div>
+		</div>
+		<h2>换行 / 间隙</h2>
+		<div class="section">
+			<div class="case" data-id="10" data-expect="flex-wrap:nowrap">
+				<div class="label">10. .items-single-line (flex)</div>
+				<div class="classes">flex items-single-line</div>
+				<div class="container flex items-single-line" style="width:120px">
+					<div class="item" style="width:50px;height:30px">1</div>
+					<div class="item" style="width:50px;height:30px">2</div>
+					<div class="item" style="width:50px;height:30px">3</div>
+				</div>
+				<div class="actual"></div><input type="range" min="80" max="200" value="120" style="width:120px;margin-top:4px" oninput="this.parentElement.querySelector('.container').style.width=this.value+'px'">
+			</div>
+			<div class="case" data-id="11" data-expect="flex-wrap:wrap">
+				<div class="label">11. .items-multi-line (flex)</div>
+				<div class="classes">flex items-multi-line</div>
+				<div class="container flex items-multi-line" style="width:120px">
+					<div class="item" style="width:50px;height:30px">1</div>
+					<div class="item" style="width:50px;height:30px">2</div>
+					<div class="item" style="width:50px;height:30px">3</div>
+				</div>
+				<div class="actual"></div><input type="range" min="80" max="200" value="120" style="width:120px;margin-top:4px" oninput="this.parentElement.querySelector('.container').style.width=this.value+'px'">
+			</div>
+			<div class="case" data-id="12" data-expect="gap:0px">
+				<div class="label">12. .items-no-gap</div>
+				<div class="classes">flex items-no-gap</div>
+				<div class="container flex items-no-gap" style="width:200px;height:40px">
+					<div class="item" style="width:50px;height:30px">1</div>
+					<div class="item" style="width:50px;height:30px">2</div>
+				</div>
+				<div class="actual"></div>
+			</div>
+		</div>
+		<h2>near-* 元素定位（横向 flex）</h2>
+		<div class="section">
+			<div class="case" data-id="13" data-expect="justify-self:start left:0px right:auto" data-target=".item">
+				<div class="label">13. .near-left</div>
+				<div class="classes">flex → .near-left</div>
+				<div class="container flex" style="width:300px;height:60px">
+					<div class="item near-left" style="width:60px;height:40px">L</div>
+				</div>
+				<div class="actual"></div>
+			</div>
+			<div class="case" data-id="14" data-expect="justify-self:end left:auto right:0px" data-target=".item">
+				<div class="label">14. .near-right</div>
+				<div class="classes">flex → .near-right</div>
+				<div class="container flex" style="width:300px;height:60px">
+					<div class="item near-right" style="width:60px;height:40px">R</div>
+				</div>
+				<div class="actual"></div>
+			</div>
+			<div class="case" data-id="15" data-expect="align-self:start vertical-align:top top:0px bottom:auto" data-target=".item">
+				<div class="label">15. .near-top</div>
+				<div class="classes">flex → .near-top</div>
+				<div class="container flex" style="width:300px;height:80px">
+					<div class="item near-top" style="width:60px;height:40px">T</div>
+				</div>
+				<div class="actual"></div>
+			</div>
+			<div class="case" data-id="16" data-expect="align-self:end vertical-align:bottom top:auto bottom:0px" data-target=".item">
+				<div class="label">16. .near-bottom</div>
+				<div class="classes">flex → .near-bottom</div>
+				<div class="container flex" style="width:300px;height:80px">
+					<div class="item near-bottom" style="width:60px;height:40px">B</div>
+				</div>
+				<div class="actual"></div>
+			</div>
+			<div class="case" data-id="17" data-expect="justify-self:center left:0px right:0px" data-target=".item">
+				<div class="label">17. .near-x-center</div>
+				<div class="classes">flex → .near-x-center</div>
+				<div class="container flex" style="width:300px;height:60px">
+					<div class="item near-x-center" style="width:60px;height:40px">X</div>
+				</div>
+				<div class="actual"></div>
+			</div>
+			<div class="case" data-id="18" data-expect="align-self:center vertical-align:middle top:0px bottom:0px" data-target=".item">
+				<div class="label">18. .near-y-center</div>
+				<div class="classes">flex → .near-y-center</div>
+				<div class="container flex" style="width:300px;height:80px">
+					<div class="item near-y-center" style="width:60px;height:40px">Y</div>
+				</div>
+				<div class="actual"></div>
+			</div>
+			<div class="case" data-id="19" data-expect="justify-self:center align-self:center vertical-align:middle" data-target=".item">
+				<div class="label">19. .near-center</div>
+				<div class="classes">flex → .near-center</div>
+				<div class="container flex" style="width:300px;height:80px">
+					<div class="item near-center" style="width:60px;height:40px">C</div>
+				</div>
+				<div class="actual"></div>
+			</div>
+		</div>
+		<h2>items-go-y 下 near-* 轴交换</h2>
+		<div class="section">
+			<div class="case" data-id="20" data-expect="justify-self:flex-start align-self:start" data-target=".item">
+				<div class="label">20. .items-go-y &gt; .near-left</div>
+				<div class="classes">flex items-go-y → .near-left</div>
+				<div class="container flex items-go-y" style="width:200px;height:120px">
+					<div class="item near-left" style="width:60px;height:30px">L</div>
+				</div>
+				<div class="actual"></div>
+			</div>
+			<div class="case" data-id="21" data-expect="justify-self:flex-start align-self:end" data-target=".item">
+				<div class="label">21. .items-go-y &gt; .near-right</div>
+				<div class="classes">flex items-go-y → .near-right</div>
+				<div class="container flex items-go-y" style="width:200px;height:120px">
+					<div class="item near-right" style="width:60px;height:30px">R</div>
+				</div>
+				<div class="actual"></div>
+			</div>
+			<div class="case" data-id="22" data-expect="align-self:flex-start justify-self:start" data-target=".item">
+				<div class="label">22. .items-go-y &gt; .near-top</div>
+				<div class="classes">flex items-go-y → .near-top</div>
+				<div class="container flex items-go-y" style="width:200px;height:120px">
+					<div class="item near-top" style="width:60px;height:30px">T</div>
+				</div>
+				<div class="actual"></div>
+			</div>
+			<div class="case" data-id="23" data-expect="align-self:flex-start justify-self:end" data-target=".item">
+				<div class="label">23. .items-go-y &gt; .near-bottom</div>
+				<div class="classes">flex items-go-y → .near-bottom</div>
+				<div class="container flex items-go-y" style="width:200px;height:120px">
+					<div class="item near-bottom" style="width:60px;height:30px">B</div>
+				</div>
+				<div class="actual"></div>
+			</div>
+		</div>
+		<h2>flex 专属</h2>
+		<div class="section">
+			<div class="case" data-id="24" data-target=".item" data-expect="flex-basis:100%">
+				<div class="label">24. .monopoly-x</div>
+				<div class="classes">flex items-multi-line items-go-x → .monopoly-x</div>
+				<div class="container flex items-multi-line items-go-x" style="width:200px;height:80px">
+					<div class="item monopoly-x" style="height:30px">X</div>
+					<div class="item" style="width:50px;height:30px">A</div>
+				</div>
+				<div class="actual"></div>
+			</div>
+			<div class="case" data-id="25" data-target=".item" data-expect="flex-basis:100%">
+				<div class="label">25. .monopoly-y</div>
+				<div class="classes">flex items-multi-line items-go-y → .monopoly-y</div>
+				<div class="container flex items-multi-line items-go-y" style="width:200px;height:120px">
+					<div class="item monopoly-y" style="width:50px">Y</div>
+					<div class="item" style="width:50px;height:30px">A</div>
+				</div>
+				<div class="actual"></div>
+			</div>
+			<div class="case" data-id="26" data-target=".item" data-expect="flex-shrink:0">
+				<div class="label">26. .no-shrink</div>
+				<div class="classes">flex → .no-shrink</div>
+				<div class="container flex" style="width:280px;height:40px"><div class="item no-shrink" style="width:100px;height:30px">NO</div><div class="item" style="width:100px;height:30px">S</div><div class="item" style="width:80px;height:30px">T</div></div>
+				<div class="actual"></div><input type="range" min="50" max="350" value="150" style="width:150px;margin-top:4px" oninput="this.parentElement.querySelector('.container').style.width=this.value+'px'">
+			</div>
+			<div class="case" data-id="27" data-target=".item" data-expect="flex-grow:1 flex-shrink:1 flex-basis:auto align-self:stretch min-width:0px min-height:0px">
+				<div class="label">27. .flexible</div>
+				<div class="classes">flex → .flexible</div>
+				<div class="container flex" style="width:200px;height:80px">
+					<div class="item flexible">FILL</div>
+				</div>
+				<div class="actual"></div><div style="margin-top:4px;font-size:10px">宽度 <input type="range" min="80" max="400" value="200" style="width:100px;vertical-align:middle" oninput="this.parentElement.parentElement.querySelector('.container').style.width=this.value+'px'"> 高度 <input type="range" min="40" max="200" value="80" style="width:100px;vertical-align:middle" oninput="this.parentElement.parentElement.querySelector('.container').style.height=this.value+'px'"></div>
+			</div>
+		</div>
+		<h2>grid 专属</h2>
+		<div class="section">
+			<div class="case" data-id="28" data-target=".item" data-expect="grid-column-start:1 grid-column-end:-1">
+				<div class="label">28. .one-row</div>
+				<div class="classes">grid → .one-row</div>
+				<div class="container grid" style="grid-template-columns:1fr 1fr 1fr;grid-template-rows:40px 40px;width:260px;height:100px;gap:4px">
+					<div class="item one-row" style="height:30px">占满一行</div>
+					<div class="item">2</div>
+					<div class="item">3</div>
+					<div class="item">4</div>
+				</div>
+				<div class="actual"></div>
+			</div>
+			<div class="case" data-id="29" data-target=".item" data-expect="grid-row-start:1 grid-row-end:-1">
+				<div class="label">29. .one-column</div>
+				<div class="classes">grid → .one-column</div>
+				<div class="container grid" style="grid-template-columns:1fr 1fr 1fr;grid-template-rows:40px 40px;width:260px;height:100px;gap:4px">
+					<div class="item one-column" style="width:30px">占满一列</div>
+					<div class="item">2</div>
+					<div class="item">3</div>
+				</div>
+				<div class="actual"></div>
+			</div>
+		</div>
+		<h2>预设布局</h2>
+		<div class="section">
+			<div class="case" data-id="30" data-expect="display:grid">
+				<div class="label">30. .工字形</div>
+				<div class="classes">工字形</div>
+				<div class="container 工字形" style="width:500px;height:150px">
+					<header class="item">H</header>
+					<div class="item sidebar near-left" style="min-width:60px">L</div>
+					<div class="item sidebar near-right" style="min-width:60px">R</div>
+					<footer class="item">F</footer>
+				</div>
+				<div class="actual"></div>
+			</div>
+			<div class="case" data-id="31" data-expect="display:grid">
+				<div class="label">31. .朋字形</div>
+				<div class="classes">朋字形</div>
+				<div class="container 朋字形" style="width:500px;height:100px">
+					<div class="item near-left">L</div>
+					<div class="item near-right">R</div>
+				</div>
+				<div class="actual"></div>
+			</div>
+			<div class="case" data-id="32" data-expect="display:grid">
+				<div class="label">32. .亚字形</div>
+				<div class="classes">亚字形</div>
+				<div class="container 亚字形" style="width:500px;height:300px">
+					<header class="item">H</header>
+					<div class="item sidebar near-left" style="min-width:60px">L</div>
+					<main class="item main">M</main>
+					<div class="item sidebar near-right" style="min-width:60px">R</div>
+					<footer class="item">F</footer>
+				</div>
+				<div class="actual"></div>
+			</div>
+			<div class="case" data-id="33" data-expect="display:grid">
+				<div class="label">33. .叵字形</div>
+				<div class="classes">叵字形</div>
+				<div class="container 叵字形" style="width:500px;height:300px">
+					<header class="item">H</header>
+					<div class="item sidebar near-left" style="min-width:60px">L</div>
+					<main class="item main">M</main>
+					<footer class="item">F</footer>
+				</div>
+				<div class="actual"></div>
+			</div>
+			<div class="case" data-id="34" data-expect="display:grid">
+				<div class="label">34. .反叵字形</div>
+				<div class="classes">反叵字形</div>
+				<div class="container 反叵字形" style="width:500px;height:300px">
+					<header class="item">H</header>
+					<main class="item main">M</main>
+					<div class="item sidebar near-right" style="min-width:60px">R</div>
+					<footer class="item">F</footer>
+				</div>
+				<div class="actual"></div>
+			</div>
+			<div class="case" data-id="35" data-expect="display:grid">
+				<div class="label">35. .目字形 / .三字形</div>
+				<div class="classes">目字形</div>
+				<div class="container 目字形" style="width:500px;height:300px">
+					<header class="item">H</header>
+					<main class="item main">M</main>
+					<footer class="item">F</footer>
+				</div>
+				<div class="actual"></div>
+			</div>
+		</div>
+		<script>
+			function verify() {
+				let pass = 0,
+					fail = 0;
+				document.querySelectorAll('.case').forEach(c => {
+					const expectStr = c.dataset.expect || '';
+					const expect = {};
+					expectStr.split(/\s+/).filter(Boolean).forEach(pair => {
+						const [prop, val] = pair.split(':');
+						if (prop && val) expect[prop] = val;
+					});
+					const target = c.querySelector(c.dataset.target || '.container');
+					const cs = getComputedStyle(target);
+					let ok = true,
+						actuals = [];
+					for (const [prop, val] of Object.entries(expect)) {
+						const actual = cs[prop];
+						if (actual !== val) {
+							ok = false;
+							actuals.push(prop + ':' + actual + '≠' + val);
+						}
+					}
+					c.classList.add(ok ? 'pass' : 'fail');
+					if (!ok) {
+						const el = c.querySelector('.actual');
+						if (el) el.textContent = actuals.join(' ');
+					}
+					if (ok) pass++;
+					else fail++;
+				});
+				const s = document.getElementById('summary');
+				const allPass = fail === 0;
+				s.style.background = allPass ? '#e8f5e9' : '#ffebee';
+				s.style.color = allPass ? '#2e7d32' : '#c62828';
+				s.textContent = pass + ' 通过 / ' + fail + ' 失败 / ' + (pass + fail) + ' 总计' + (allPass ? ' ✓' : ' ✗');
+			}
+			window.addEventListener('DOMContentLoaded', verify);
+
+		</script>
+
+
+	</body></html>

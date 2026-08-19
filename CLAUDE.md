@@ -13,6 +13,7 @@
 ├── 拼音/                  # 拼音工具（数据在 JSON 文件中）
 ├── 符号/                  # 符号工具
 ├── 计科/unicode/          # Unicode 工具
+├── css/                   # CSS 布局实验室（子项目，含自己的 CLAUDE.md / docs / demo / test）
 ├── 游戏/                  # 所有游戏
 │   ├── 2048/ 2048方块/ 2048蛇/  # 2048 系列
 │   ├── 五子棋/
@@ -31,7 +32,6 @@
 ├── lib/                   # 第三方库（全部 vendored，无 CDN 强依赖）
 │   ├── vue/3.5.18/        # Vue 3 global build
 │   ├── element-plus/2.10.7/ # Element Plus
-│   ├── css/               # 共享 CSS（common.css, layout.css, 花活.css）
 │   ├── fonts/             # 字体文件
 │   └── ...                # jquery, js-base64, js-md5, js-sha1, pako, toastr
 ├── resources/             # 项目自有资源
@@ -63,7 +63,8 @@
 
 ## CSS 约定
 
-- **全局样式**：`lib/css/common.css`（基础重置、CSS 变量、组件）、`layout.css`（布局系统）、`花活.css`（花式效果）
+- **全局样式**：`css/common.css`（基础重置、CSS 变量、组件）、`css/layout.css`（布局系统）、`css/花活.css`（花式效果）——全本地加载，无远程 CDN 依赖
+- **CSS 布局实验室子项目**（`css/`）：模块文档 `css/docs/modules/`（common/layout/花活），页面分 `demo/`（使用范式）、`test/`（正确性）、`trial/`（试效果）；版本号在 `common.css` 头部 `/* vX.Y.Z */`；改 css 后同步对应模块文档（追加决策日志 + 更新 last_updated）
 - **业务样式**：`resources/biz.css`（Element Plus 弹窗、卡片覆盖等）
 - **游戏样式**：`游戏/game.css`（游戏共享变量和组件）
 - **Element Plus 覆盖**：`resources/el-plus.css`

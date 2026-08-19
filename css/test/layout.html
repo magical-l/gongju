@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="utf-8">
+	<title>layout.css 布局组合测试</title>
+	<link rel="stylesheet" href="../layout.css">
+	<style>
+		body {
+			padding: 20px;
+			font-family: sans-serif;
+			font-size: 14px;
+		}
+
+		h1 {
+			border-bottom: 2px solid #333;
+		}
+
+		h2 {
+			margin-top: 30px;
+			color: #555;
+			border-bottom: 1px solid #999;
+		}
+
+		#summary {
+			position: sticky;
+			top: 0;
+			z-index: 100;
+			padding: 8px 16px;
+			font-size: 14px;
+			font-weight: bold;
+			margin-bottom: 10px;
+		}
+
+		.section {
+			margin: 15px 0;
+			display: flex;
+			gap: 12px;
+			flex-wrap: wrap;
+			align-items: flex-start;
+		}
+
+		.case {
+			border: 1px solid #999;
+			padding: 8px;
+			background: #fafafa;
+			font-size: 11px;
+		}
+
+		.case.pass {
+			background: #e8f5e9;
+			border-color: #4caf50;
+		}
+
+		.case.fail {
+			background: #ffebee;
+			border-color: #f44336;
+		}
+
+		.case .label {
+			font-weight: bold;
+			margin-bottom: 2px;
+		}
+
+		.classes {
+			display: flex;
+			gap: 8px;
+			align-items: flex-start;
+			font-size: 13px;
+			line-height: 1.6;
+			margin-bottom: 4px;
+		}
+		.cls-names {
+			flex: 1;
+		}
+		.cls-names .cls-line {
+			display: block;
+			font-family: monospace;
+			color: #555;
+		}
+		.cls-btns {
+			display: flex;
+			flex-direction: column;
+			gap: 4px;
+			flex-shrink: 0;
+		}
+		.copy-btn {
+			cursor: pointer;
+			border: 1px solid #999;
+			background: #fff;
+			border-radius: 3px;
+			padding: 1px 5px;
+			font-size: 11px;
+			line-height: 1.4;
+			white-space: nowrap;
+		}
+		.copy-btn:hover {
+			background: #e0e0e0;
+		}
+
+		.case .actual {
+			font-family: monospace;
+			color: #c62828;
+			display: none;
+			font-size: 10px;
+		}
+
+		.case.fail .actual {
+			display: block;
+		}
+
+		.container {
+			border: 2px solid #333;
+			background: #f5f5f5;
+		}
+
+		.item {
+			background: #a5d6a7;
+			border: 1px solid #333;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-weight: bold;
+			color: #333;
+		}
+
+		.container.grid {
+			grid-template-columns: 70px 70px 70px;
+			grid-template-rows: 50px 50px;
+			width: 250px;
+			height: 130px;
+			gap: 0;
+
+		}
+
+		:where(.container.grid) { place-items: start; }
+
+
+		.container.flex {
+			gap: 0;
+		}
+		.container.flex.test-container {
+			width: 200px;
+			height: 200px;
+		}
+
+		.container.flex .item {
+			min-width: 40px;
+			min-height: 25px;
+		}
+
+		.item.td-cell {
+			display: table-cell;
+			border: 2px solid #333;
+		}
+
+		.section-wrapper {
+			margin-bottom: 20px;
+			position: relative;
+		}
+		.section-wrapper .cases-area {
+			flex: 1;
+			min-width: 0;
+		}
+		.ref-panel {
+			position: sticky;
+			top: 50px;
+			width: 300px;
+			flex-shrink: 0;
+			border: 2px dashed #999;
+			background: #fafafa;
+			padding: 8px;
+			font-size: 11px;
+			z-index: 10;
+		}
+		.ref-panel .ref-label {
+			font-weight: bold;
+			margin-bottom: 4px;
+			color: #888;
+		}
+		.ref-panel .item {
+			background: #a5d6a7;
+			border: 1px solid #333;
+			font-weight: bold;
+			color: #333;
+			text-align: center;
+			line-height: 1.5;
+		}
+
+
+
+		</style>
+	</head>
+	<body>
+		<h1>layout.css 布局组合测试</h1>
+		<div id="summary"></div>
+		<script>
+			function verify() {
+				const TOL = 2; // px tolerance
+				let pass = 0,
+					fail = 0;
+				document.querySelectorAll('.case').forEach(c => {
+					const container = c.querySelector('.container');
+					if (!container) return;
+					const cr = container.getBoundingClientRect();
+					const targetEl = c.dataset.target ? c.querySelector(c.dataset.target) : null;
+					const cs = getComputedStyle(targetEl || container);
+					const borderL = parseFloat(cs.borderLeftWidth) || 0;
+					const borderR = parseFloat(cs.borderRightWidth) || 0;
+					const borderT = parseFloat(cs.borderTopWidth) || 0;
+					const borderB = parseFloat(cs.borderBottomWidth) || 0;
+					const items = [...container.querySelectorAll('.item')];
+					if (items.length === 0) {
+						pass++;
+						c.classList.add('pass');
+						return;
+					}
+					const expectStr = c.dataset.expect || '';
+					if (!expectStr) {
+						pass++;
+						c.classList.add('pass');
+						return;
+					}
+					const expects = expectStr.split(/\s+/).filter(Boolean);
+					let ok = true,
+						actuals = [];
+					for (const exp of expects) {
+						// CSS 属性值检查（非 semantic: 前缀）
+						if (!exp.startsWith('semantic:')) {
+							const [prop, val] = exp.split(':');
+							if (prop && val && cs[prop] !== val) {
+								ok = false;
+								actuals.push(prop + ':' + cs[prop] + '≠' + val);
+							}
+							continue;
+						}
+						const s = exp.substring(9);
+						const itemRects = items.map(el => el.getBoundingClientRect());
+						switch (s) {
+							case 'left': {
+								const minLeft = Math.min(...itemRects.map(r => r.left - cr.left));
+								if (Math.abs(minLeft - borderL) > TOL) {
+									ok = false;
+									actuals.push('leftmost:' + minLeft + '≠' + borderL);
+								}
+								break;
+							}
+							case 'right': {
+								const minRightDist = Math.min(...itemRects.map(r => cr.right - r.right));
+								if (Math.abs(minRightDist - borderR) > TOL) {
+									ok = false;
+									actuals.push('rightmostDist:' + minRightDist + '≠' + borderR);
+								}
+								break;
+							}
+							case 'top': {
+								const minTop = Math.min(...itemRects.map(r => r.top - cr.top));
+								if (Math.abs(minTop - borderT) > TOL) {
+									ok = false;
+									actuals.push('topmost:' + minTop + '≠' + borderT);
+								}
+								break;
+							}
+							case 'bottom': {
+								const minBottomDist = Math.min(...itemRects.map(r => cr.bottom - r.bottom));
+								if (Math.abs(minBottomDist - borderB) > TOL) {
+									ok = false;
+									actuals.push('bottommostDist:' + minBottomDist + '≠' + borderB);
+								}
+								break;
+							}
+							case 'x-stretch': {
+								const isGrid = container.classList.contains('grid');
+								if (isGrid) {
+									itemRects.forEach((r, i) => {
+										if (r.width < 66) {
+											ok = false;
+											actuals.push('item[' + i + '].width:' + r.width + '<66');
+										}
+									});
+								} else {
+									const cw = cr.width - borderL - borderR;
+									itemRects.forEach((r, i) => {
+										if (Math.abs(r.width - cw) > 5) {
+											ok = false;
+											actuals.push('item[' + i + '].width:' + r.width + '≠' + cw);
+										}
+									});
+								}
+								break;
+							}
+							case 'y-stretch': {
+								const isGrid = container.classList.contains('grid');
+								if (isGrid) {
+									itemRects.forEach((r, i) => {
+										if (r.height < 46) {
+											ok = false;
+											actuals.push('item[' + i + '].height:' + r.height + '<46');
+										}
+									});
+								} else {
+									const ch = cr.height - borderT - borderB;
+									itemRects.forEach((r, i) => {
+										if (Math.abs(r.height - ch) > 5) {
+											ok = false;
+											actuals.push('item[' + i + '].height:' + r.height + '≠' + ch);
+										}
+									});
+								}
+								break;
+							}
+							case 'x-center': {
+								const isGrid = container.classList.contains('grid');
+								if (isGrid) {
+									const firstItem = itemRects[0];
+									const cellCenter = 35 + borderL;
+									const itemCenter = firstItem.left - cr.left + firstItem.width / 2;
+									if (Math.abs(itemCenter - cellCenter) > 5) {
+										ok = false;
+										actuals.push('x-center:grid cell center mismatch');
+									}
+								} else {
+									const center = cr.width / 2;
+									itemRects.forEach((r, i) => {
+										const itemCenter = r.left - cr.left + r.width / 2;
+										if (Math.abs(itemCenter - center) > TOL) {
+											ok = false;
+											actuals.push('item[' + i + '].centerX mismatch');
+										}
+									});
+								}
+								break;
+							}
+							case 'y-center': {
+								const isGrid = container.classList.contains('grid');
+								if (isGrid) {
+									const firstItem = itemRects[0];
+									const cellCenter = 25 + borderT;
+									const itemCenter = firstItem.top - cr.top + firstItem.height / 2;
+									if (Math.abs(itemCenter - cellCenter) > 5) {
+										ok = false;
+										actuals.push('y-center:grid cell center mismatch');
+									}
+								} else {
+									const center = cr.height / 2;
+									itemRects.forEach((r, i) => {
+										const itemCenter = r.top - cr.top + r.height / 2;
+										if (Math.abs(itemCenter - center) > TOL) {
+											ok = false;
+											actuals.push('item[' + i + '].centerY mismatch');
+										}
+									});
+								}
+								break;
+							}
+							case 'space-between-x': {
+								const firstL = itemRects[0].left - cr.left;
+								const lastR = cr.right - itemRects[itemRects.length - 1].right;
+								if (Math.abs(firstL - borderL) > TOL) {
+									ok = false;
+									actuals.push('space-between-x:firstLeft≠edge');
+								}
+								if (Math.abs(lastR - borderR) > TOL) {
+									ok = false;
+									actuals.push('space-between-x:lastRight≠edge');
+								}
+								if (items.length >= 3) {
+									const gap1 = itemRects[1].left - itemRects[0].right;
+									for (let i = 2; i < items.length; i++) {
+										const g = itemRects[i].left - itemRects[i - 1].right;
+										if (Math.abs(g - gap1) > TOL) {
+											ok = false;
+											actuals.push('space-between-x:gaps≠equal');
+											break;
+										}
+									}
+								}
+								break;
+							}
+							case 'space-between-y': {
+								const firstT = itemRects[0].top - cr.top;
+								const lastB = cr.bottom - itemRects[itemRects.length - 1].bottom;
+								if (Math.abs(firstT - borderT) > TOL) {
+									ok = false;
+									actuals.push('space-between-y:firstTop≠edge');
+								}
+								if (Math.abs(lastB - borderB) > TOL) {
+									ok = false;
+									actuals.push('space-between-y:lastBottom≠edge');
+								}
+								if (items.length >= 3) {
+									const gap1 = itemRects[1].top - itemRects[0].bottom;
+									for (let i = 2; i < items.length; i++) {
+										const g = itemRects[i].top - itemRects[i - 1].bottom;
+										if (Math.abs(g - gap1) > TOL) {
+											ok = false;
+											actuals.push('space-between-y:gaps≠equal');
+											break;
+										}
+									}
+								}
+								break;
+							}
+							case 'space-evenly-x': {
+								const firstGap = itemRects[0].left - cr.left - borderL;
+								const lastGap = cr.right - borderR - itemRects[itemRects.length - 1].right;
+								if (items.length >= 2) {
+									const midGap = itemRects[1].left - itemRects[0].right;
+									if (Math.abs(firstGap - midGap) > TOL || Math.abs(lastGap - midGap) > TOL) {
+										ok = false;
+										actuals.push('space-evenly-x:gaps≠equal');
+									}
+								}
+								break;
+							}
+							case 'space-evenly-y': {
+								const firstGap = itemRects[0].top - cr.top - borderT;
+								const lastGap = cr.bottom - borderB - itemRects[itemRects.length - 1].bottom;
+								if (items.length >= 2) {
+									const midGap = itemRects[1].top - itemRects[0].bottom;
+									if (Math.abs(firstGap - midGap) > TOL || Math.abs(lastGap - midGap) > TOL) {
+										ok = false;
+										actuals.push('space-evenly-y:gaps≠equal');
+									}
+								}
+								break;
+							}
+							case 'space-around-x': {
+								const firstGap = itemRects[0].left - cr.left - borderL;
+								const lastGap = cr.right - borderR - itemRects[itemRects.length - 1].right;
+								if (items.length >= 2) {
+									const midGap = itemRects[1].left - itemRects[0].right;
+									if (Math.abs(firstGap * 2 - midGap) > TOL || Math.abs(lastGap * 2 - midGap) > TOL) {
+										ok = false;
+										actuals.push('space-around-x:ratios≠2');
+									}
+								}
+								break;
+							}
+							case 'space-around-y': {
+								const firstGap = itemRects[0].top - cr.top - borderT;
+								const lastGap = cr.bottom - borderB - itemRects[itemRects.length - 1].bottom;
+								if (items.length >= 2) {
+									const midGap = itemRects[1].top - itemRects[0].bottom;
+									if (Math.abs(firstGap * 2 - midGap) > TOL || Math.abs(lastGap * 2 - midGap) > TOL) {
+										ok = false;
+										actuals.push('space-around-y:ratios≠2');
+									}
+								}
+								break;
+							}
+						}
+					}
+					c.classList.add(ok ? 'pass' : 'fail');
+					let el = c.querySelector('.actual');
+					if (!ok) {
+						if (!el) {
+							el = document.createElement('div');
+							el.className = 'actual';
+							c.appendChild(el);
+						}
+						el.style.display = 'block';
+						el.textContent = actuals.join('; ');
+					}
+					if (ok) pass++;
+					else fail++;
+			});
+				const summary = document.getElementById('summary');
+				const allPass = fail === 0;
+				summary.style.background = allPass ? '#e8f5e9' : '#ffebee';
+				summary.style.color = allPass ? '#2e7d32' : '#c62828';
+				summary.textContent = pass + ' 通过 / ' + fail + ' 失败 / ' + (pass + fail) + ' 总计' + (allPass ? ' ✓' : ' ✗');
+			}
+			// ========== 用例生成 ==========
+			let caseId = 1;
+
+			function makeItems(n) {
+				let s = '';
+				for (let i = 1; i <= n; i++) s += '<div class="item">' + i + '</div>';
+				return s;
+			}
+
+			function makeItemsVariant(n) {
+				const wSizes = [35, 70, 26, 65, 55, 22];
+					const hSizes = [40, 70, 30, 65, 35, 18];
+				let s = '';
+				for (let i = 0; i < n; i++) {
+					const w = wSizes[i % wSizes.length];
+					const h = hSizes[i % hSizes.length];
+					s += '<div class="item" style="min-width:' + w + 'px;min-height:' + h + 'px">' + (i + 1) + '</div>';
+			}
+				return s;
+			}
+
+
+			function makeItemsGrid(n) {
+				const sizes = [[35,25], [65,45], [30,22], [22,18]];
+				let s = '';
+				for (let i = 0; i < n; i++) {
+					const [w, h] = sizes[i % sizes.length];
+					s += '<div class="item" style="min-width:' + w + 'px;min-height:' + h + 'px">' + (i + 1) + '</div>';
+				}
+				return s;
+			}
+			function makeCase(containerClass, itemCount, expect, label, gridItems) {
+				const div = document.createElement('div');
+				div.className = 'case';
+				div.dataset.id = caseId;
+				div.dataset.expect = expect;
+				const clsSplit = containerClass.split(' ').map(c => '<span class="cls-line">' + c + '</span>').join('');
+				const dotCls = '.' + containerClass.replace(/\s+/g, '.');
+				div.innerHTML = '<div class="label">' + caseId + '. ' + label + '</div>'
+						+ '<div class="classes"><span class="cls-names">' + clsSplit + '</span><span class="cls-btns"><button class="copy-btn" data-copy="' + containerClass + '" onclick="navigator.clipboard.writeText(this.dataset.copy)">复制DOM类名</button><button class="copy-btn" data-copy="' + dotCls + '" onclick="navigator.clipboard.writeText(this.dataset.copy)">复制CSS选择器</button></span></div>'
+						+ '<div class="container ' + containerClass + '">' + (gridItems ? makeItemsGrid(itemCount) : makeItemsVariant(itemCount)) + '</div><div class="actual"></div>';
+				document.getElementById('cases').appendChild(div);
+				caseId++;
+			}
+			function makeChineseLabel(cls, containerType, goClass, fromClass) {
+				const ct = containerType || '';
+				let axisWord;
+				if (goClass === 'items-go-y') axisWord = '竖向';
+				else if (goClass === 'items-go-x') axisWord = '横向';
+				else axisWord = '横竖默认';
+				let arrow;
+				if (fromClass === 'items-from-left') arrow = '从左到右';
+				else if (fromClass === 'items-from-right') arrow = '从右到左';
+				else if (fromClass === 'items-from-top') arrow = '从上到下';
+				else if (fromClass === 'items-from-bottom') arrow = '从下到上';
+				else if (goClass === 'items-go-y') arrow = '方向默认（=从上到下）';
+				else arrow = '方向默认（=从左到右）';
+				// 分布词
+				const parts = [];
+				for (const w of cls.split(' ')) {
+					const map = {
+						'items-near-left': '靠左', 'items-near-right': '靠右',
+						'items-near-top': '靠上', 'items-near-bottom': '靠下',
+						'items-x-stretch': '横拉伸', 'items-y-stretch': '竖拉伸',
+						'items-stretch': '双向拉伸',
+						'items-x-near-center': '横居中', 'items-y-near-center': '竖居中',
+						'items-near-center': '双向居中',
+						'items-x-space-between': '横互斥', 'items-y-space-between': '竖互斥',
+						'items-space-between': '双向互斥',
+						'items-x-space-evenly': '横友好', 'items-y-space-evenly': '竖友好',
+						'items-space-evenly': '双向友好',
+						'items-x-space-around': '横不熟', 'items-y-space-around': '竖不熟',
+						'items-space-around': '双向不熟',
+					};
+					if (map[w]) { parts.push(map[w]); }
+				}
+				const dist = parts[0] || '';
+				return ct + ' ' + axisWord + ' ' + arrow + ' ' + dist;
+			}
+			// ========== 分布期望（语义位置） ==========
+			function distExpect(goClass, dist, isGrid) {
+				if (isGrid) {
+					const gridMap = {
+						'items-near-left': 'semantic:left',
+						'items-near-top': 'semantic:top',
+						'items-near-bottom': 'semantic:bottom',
+					};
+					return gridMap[dist] || '';
+			}
+				const y = goClass && goClass.includes('items-go-y');
+				// 边缘位置：语义验证
+				const edgeSemantics = {
+					'items-near-left': 'semantic:left',
+					'items-near-right': 'semantic:right',
+					'items-near-top': 'semantic:top',
+					'items-near-bottom': 'semantic:bottom',
+			};
+				if (edgeSemantics[dist]) return edgeSemantics[dist];
+				// stretch/center/space-*：CSS 属性值检查（当前屏幕尺寸下剩余空间不足以展现分布效果）
+				if (!y) {
+					const map = {
+						'items-x-stretch': 'justify-content:stretch',
+						'items-y-stretch': 'align-content:stretch align-items:stretch',
+						'items-stretch': 'place-content:stretch place-items:stretch',
+						'items-x-near-center': 'justify-content:center',
+						'items-y-near-center': 'align-content:center align-items:center',
+						'items-near-center': 'place-content:center place-items:center',
+						'items-x-space-between': 'justify-content:space-between',
+						'items-y-space-between': 'align-content:space-between',
+						'items-space-between': 'place-content:space-between',
+						'items-x-space-evenly': 'justify-content:space-evenly',
+						'items-y-space-evenly': 'align-content:space-evenly',
+						'items-space-evenly': 'place-content:space-evenly',
+						'items-x-space-around': 'justify-content:space-around',
+						'items-y-space-around': 'align-content:space-around',
+						'items-space-around': 'place-content:space-around',
+					};
+					return map[dist] || '';
+			}
+				// flex go-y: 轴交换后的属性值
+				const map = {
+					'items-x-stretch': 'align-content:stretch align-items:stretch',
+					'items-y-stretch': 'justify-content:stretch',
+					'items-stretch': 'place-content:stretch place-items:stretch',
+					'items-x-near-center': 'align-content:center',
+					'items-y-near-center': 'justify-content:center',
+					'items-near-center': 'place-content:center place-items:center',
+					'items-x-space-between': 'align-content:space-between',
+					'items-y-space-between': 'justify-content:space-between',
+					'items-space-between': 'place-content:space-between',
+					'items-x-space-evenly': 'align-content:space-evenly',
+					'items-y-space-evenly': 'justify-content:space-evenly',
+					'items-space-evenly': 'place-content:space-evenly',
+					'items-x-space-around': 'align-content:space-around',
+					'items-y-space-around': 'justify-content:space-around',
+					'items-space-around': 'place-content:space-around',
+			};
+				return map[dist] || '';
+			}
+
+			function flipExpectForFrom(expect, from) {
+				if (from === 'items-from-right') {
+					expect = expect.replace(/justify-content:flex-start/g, 'justify-content:__T1__');
+					expect = expect.replace(/justify-content:flex-end/g, 'justify-content:flex-start');
+					expect = expect.replace(/justify-content:__T1__/g, 'justify-content:flex-end');
+					expect = expect.replace(/justify-items:start/g, 'justify-items:__T2__');
+					expect = expect.replace(/justify-items:end/g, 'justify-items:start');
+					expect = expect.replace(/justify-items:__T2__/g, 'justify-items:end');
+			} else if (from === 'items-from-bottom') {
+					expect = expect.replace(/align-content:flex-start/g, 'align-content:__T1__');
+					expect = expect.replace(/align-content:flex-end/g, 'align-content:flex-start');
+					expect = expect.replace(/align-content:__T1__/g, 'align-content:flex-end');
+					expect = expect.replace(/align-items:flex-start/g, 'align-items:__T2__');
+					expect = expect.replace(/align-items:flex-end/g, 'align-items:flex-start');
+					expect = expect.replace(/align-items:__T2__/g, 'align-items:flex-end');
+			}
+				return expect;
+			}
+			const allDists = ['items-near-left', 'items-near-right', 'items-near-top', 'items-near-bottom', 'items-x-near-center', 'items-y-near-center', 'items-near-center', 'items-x-space-evenly', 'items-y-space-evenly', 'items-space-evenly', 'items-x-space-around', 'items-y-space-around', 'items-space-around', 'items-x-space-between', 'items-y-space-between', 'items-space-between', 'items-x-stretch', 'items-y-stretch', 'items-stretch', ];
+
+			function attachReference(sectionId, refContent) {
+				const section = document.getElementById(sectionId);
+				const h2 = section.previousElementSibling;
+				const wrapper = document.createElement('div');
+				wrapper.className = 'section-wrapper';
+				const innerWrapper = document.createElement('div');
+				innerWrapper.style.cssText = 'display:flex;gap:12px;align-items:flex-start';
+				const casesArea = document.createElement('div');
+				casesArea.className = 'cases-area';
+				const refDiv = document.createElement('div');
+				refDiv.className = 'ref-panel';
+				refDiv.innerHTML = '<div class="ref-label">原始模样</div>' + refContent;
+				h2.parentNode.insertBefore(wrapper, h2);
+				wrapper.appendChild(h2);
+				wrapper.appendChild(innerWrapper);
+				innerWrapper.appendChild(casesArea);
+				innerWrapper.appendChild(refDiv);
+				casesArea.appendChild(section);
+			}
+							// ========== Flex 用例 ==========
+				(function() {
+					document.write('<h2>Flex</h2><div id="flex-cases" class="section"></div>');
+					const flexCombos = [
+						[null, null],
+						[null, 'items-from-left'],
+						[null, 'items-from-right'],
+						[null, 'items-from-top'],
+						[null, 'items-from-bottom'],
+						['items-go-x', null],
+						['items-go-x', 'items-from-left'],
+						['items-go-x', 'items-from-right'],
+						['items-go-x', 'items-from-top'],
+						['items-go-x', 'items-from-bottom'],
+						['items-go-y', null],
+						['items-go-y', 'items-from-left'],
+						['items-go-y', 'items-from-right'],
+						['items-go-y', 'items-from-top'],
+						['items-go-y', 'items-from-bottom'],
+					];				flexCombos.forEach(([go, from]) => {
+						allDists.forEach(dist => {
+							if (dist === 'items-near-left' || dist === 'items-x-stretch' || dist === 'items-x-near-center' || dist === 'items-x-space-between' || dist === 'items-x-space-evenly' || dist === 'items-x-space-around') {
+								const br = document.createElement('div');
+								br.style.cssText = 'flex-basis:100%;height:0';
+								document.getElementById('flex-cases').appendChild(br);
+							}
+							const parts = ['flex']; if (go) parts.push(go);
+							if (from) parts.push(from);
+							parts.push(dist);
+							const cls = parts.join(' ');
+							const effDir = from === 'items-from-bottom' ? 'column-reverse' : from === 'items-from-top' ? 'column' : from === 'items-from-right' ? 'row-reverse' : from === 'items-from-left' ? 'row' : go === 'items-go-y' ? 'column' : 'row';
+							const dir = 'flex-direction:' + effDir;
+							const effGo = (go === 'items-go-y' || from === 'items-from-top' || from === 'items-from-bottom') ? 'items-go-y' : null;
+							const casesEl = document.getElementById('flex-cases');
+							const div = document.createElement('div');
+							div.className = 'case';
+							div.dataset.id = caseId;
+							let distE = distExpect(effGo, dist, false);
+							if (from) distE = flipExpectForFrom(distE, from);
+							div.dataset.expect = dir + ' ' + distE;
+							const count = 6;
+							const clsSplit = cls.split(' ').map(c => '<span class="cls-line">' + c + '</span>').join('');
+							const dotCls = '.' + cls.replace(/\s+/g, '.');
+							div.innerHTML = '<div class="label">' + caseId + '. ' + makeChineseLabel(cls, 'flex', go, from) + '</div>'
+							+ '<div class="classes"><span class="cls-names">' + clsSplit + '</span><span class="cls-btns"><button class="copy-btn" data-copy="' + cls + '" onclick="navigator.clipboard.writeText(this.dataset.copy)">复制DOM类名</button><button class="copy-btn" data-copy="' + dotCls + '" onclick="navigator.clipboard.writeText(this.dataset.copy)">复制CSS选择器</button></span></div>'
+							+ '<div class="container test-container ' + cls + '">' + makeItemsVariant(count) + '</div><div class="actual"></div>';
+							casesEl.appendChild(div);
+							caseId++;
+						});
+					});
+					attachReference('flex-cases', '<div class="container flex test-container">' + makeItemsVariant(6) + '</div>');
+				})();
+			// ========== Grid 用例 ==========
+			document.write('<h2>Grid</h2><div id="cases" class="section"></div>');
+			// 1. Grid 无 go（默认 row）
+			allDists.forEach(dist => {
+				if (dist === 'items-near-left' || dist === 'items-x-stretch' || dist === 'items-x-near-center' || dist === 'items-x-space-between' || dist === 'items-x-space-evenly' || dist === 'items-x-space-around') {
+					const br = document.createElement('div');
+					br.style.cssText = 'flex-basis:100%;height:0';
+					document.getElementById('cases').appendChild(br);
+				}
+				const cls = 'grid ' + dist;
+				makeCase(cls, 4, 'grid-auto-flow:row ' + distExpect('items-go-x', dist, true), makeChineseLabel(cls, 'grid', 'items-go-x', null));
+			});
+			// 2-3. Grid 组合 (go-x, go-y)
+			['items-go-x', 'items-go-y'].forEach(go => {
+				allDists.forEach(dist => {
+					if (dist === 'items-near-left' || dist === 'items-x-stretch' || dist === 'items-x-near-center' || dist === 'items-x-space-between' || dist === 'items-x-space-evenly' || dist === 'items-x-space-around') {
+						const br = document.createElement('div');
+						br.style.cssText = 'flex-basis:100%;height:0';
+						document.getElementById('cases').appendChild(br);
+					}
+					const cls = 'grid ' + go + ' ' + dist;
+					const flow = go === 'items-go-y' ? 'grid-auto-flow:column' : 'grid-auto-flow:row';
+					makeCase(cls, 4, flow + ' ' + distExpect(go, dist, true), makeChineseLabel(cls, 'grid', go, null), true);
+			});
+			});
+			attachReference('cases', '<div class="container" style="width:250px;height:130px;display:grid;grid-template-columns:70px 70px 70px;grid-template-rows:50px 50px;gap:0;place-items:start">' + makeItemsGrid(4) + '</div>');
+			// ========== Table 用例 ==========
+			(function() {
+				document.write('<h2>Table</h2><div id="table-cases" class="section"></div>');
+				const el = document.getElementById('table-cases');
+
+				function addTableCase(cls, expect, label, target) {
+					let html = '<table class="container table ' + cls + '" style="border-collapse:collapse;table-layout:fixed;width:300px;height:80px;background:#f5f5f5">';
+					for (let r = 0; r < 2; r++) {
+						html += '<tr>';
+						for (let c = 0; c < 3; c++) {
+							const id = r * 3 + c + 1;
+							html += '<td class="item td-cell">item ' + id + '</td>';
+						}
+						html += '</tr>';
+					}
+					html += '</table>';
+					const div = document.createElement('div');
+					div.className = 'case';
+					div.dataset.id = caseId;
+					div.dataset.expect = expect;
+					if (target) div.dataset.target = target;
+					const clsSplit = ('table ' + cls).split(' ').map(c => '<span class="cls-line">' + c + '</span>').join('');
+					const dotCls = '.table' + (cls ? '.' + cls.replace(/\s+/g, '.') : '');
+					div.innerHTML = '<div class="label">' + caseId + '. ' + label + '</div>'
+						+ '<div class="classes"><span class="cls-names">' + clsSplit + '</span><span class="cls-btns"><button class="copy-btn" data-copy="table ' + cls + '" onclick="navigator.clipboard.writeText(this.dataset.copy)">复制DOM类名</button><button class="copy-btn" data-copy="' + dotCls + '" onclick="navigator.clipboard.writeText(this.dataset.copy)">复制CSS选择器</button></span></div>'
+						+ html
+						+ '<div class="actual"></div>';
+					el.appendChild(div);
+					caseId++;
+				}
+
+				addTableCase('', 'display:table', 'table（默认）');
+				addTableCase('items-near-left', 'text-align:left', 'items-near-left', 'td');
+				addTableCase('items-near-right', 'text-align:right', 'items-near-right', 'td');
+				addTableCase('items-near-top', 'vertical-align:top', 'items-near-top', 'td');
+				addTableCase('items-near-bottom', 'vertical-align:bottom', 'items-near-bottom', 'td');
+				addTableCase('items-from-right', 'direction:rtl', 'items-from-right（表→rtl）');
+				addTableCase('items-from-right items-near-left', 'text-align:left direction:ltr', 'items-from-right + near-left', 'td');
+				addTableCase('items-from-right items-near-right', 'text-align:right direction:ltr', 'items-from-right + near-right', 'td');
+				addTableCase('items-from-right items-near-top', 'vertical-align:top direction:ltr', 'items-from-right + near-top', 'td');
+				addTableCase('items-from-right items-near-bottom', 'vertical-align:bottom direction:ltr', 'items-from-right + near-bottom', 'td');
+				attachReference('table-cases', '<table class="container" style="border-collapse:collapse;table-layout:fixed;width:300px;height:80px;background:#f5f5f5"><tr><td style="border:2px solid #333;background:#a5d6a7;font-weight:bold;color:#333">item 1</td><td style="border:2px solid #333;background:#a5d6a7;font-weight:bold;color:#333">item 2</td><td style="border:2px solid #333;background:#a5d6a7;font-weight:bold;color:#333">item 3</td></tr><tr><td style="border:2px solid #333;background:#a5d6a7;font-weight:bold;color:#333">item 4</td><td style="border:2px solid #333;background:#a5d6a7;font-weight:bold;color:#333">item 5</td><td style="border:2px solid #333;background:#a5d6a7;font-weight:bold;color:#333">item 6</td></tr></table>');
+			})();
+			// ========== 边界用例 ==========
+			document.write('<h2>边界用例</h2><div id="edge-cases" class="section"></div>');
+			setTimeout(() => {
+				const edgeCases = [{
+					cls: 'flex items-go-x items-from-right items-near-left',
+					expect: 'flex-direction:row-reverse semantic:left',
+					label: 'from-right + near-left（从右向左，靠左）'
+			}, {
+					cls: 'flex items-go-x items-from-right items-near-right',
+					expect: 'flex-direction:row-reverse semantic:right',
+					label: 'from-right + near-right（从右向左，靠右）'
+			}, {
+					cls: 'flex items-go-y items-from-bottom items-near-top',
+					expect: 'flex-direction:column-reverse semantic:top',
+					label: 'from-bottom + near-top（从下向上，靠上）'
+			}, {
+					cls: 'flex items-go-y items-from-bottom items-near-bottom',
+					expect: 'flex-direction:column-reverse semantic:bottom',
+					label: 'from-bottom + near-bottom（从下向上，靠下）'
+			}, ];
+				edgeCases.forEach(({
+					cls,
+					expect,
+					label
+			}) => {
+				const el = document.getElementById('edge-cases');
+				const div = document.createElement('div');
+				div.className = 'case';
+				div.dataset.id = caseId;
+				div.dataset.expect = expect;
+				const clsSplit = cls.split(' ').map(c => '<span class="cls-line">' + c + '</span>').join('');
+				const dotCls = '.' + cls.replace(/\s+/g, '.');
+			div.innerHTML = '<div class="label">' + caseId + '. ' + label + '</div>' + '<div class="classes"><span class="cls-names">' + clsSplit + '</span><span class="cls-btns"><button class="copy-btn" data-copy="' + cls + '" onclick="navigator.clipboard.writeText(this.dataset.copy)">复制DOM类名</button><button class="copy-btn" data-copy="' + dotCls + '" onclick="navigator.clipboard.writeText(this.dataset.copy)">复制CSS选择器</button></span></div>' + '<div class="container ' + cls + '" style="' + (cls.includes('items-go-y') ? 'flex-wrap:wrap;height:150px' : 'flex-wrap:wrap;width:130px;min-height:60px') + '">' + makeItemsVariant(4) + '</div><div class="actual"></div>';
+				el.appendChild(div);
+				caseId++;
+			});
+				verify();
+			}, 50);
+			// 首次验证（Grid + Flex 批量生成后）
+			window.addEventListener('DOMContentLoaded', () => setTimeout(verify, 100));
+
+		</script>
+	</body>
+</html>

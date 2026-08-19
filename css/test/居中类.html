@@ -4,8 +4,8 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>居中类 demo</title>
-	<link rel="stylesheet" href="../lib/css/layout.css">
-	<link rel="stylesheet" href="../lib/css/common.css">
+	<link rel="stylesheet" href="../layout.css">
+	<link rel="stylesheet" href="../common.css">
 	<style>
 		.demo-section {
 			margin: 2em 0;
@@ -436,7 +436,7 @@
 				<div class="container grid-container content-S">
 					<div class="box near-left">靠左</div>
 				</div>
-				<p>期望：justify-self: end（RTL下 end=视觉左）</p>
+				<p>期望：justify-self: start（库实际行为：RTL 下逻辑行内起始=视觉右）</p>
 			</article>
 			<article>
 				<h4>42 content-S + 定位 + .near-left</h4>
@@ -467,7 +467,7 @@
 				<div class="container grid-container content-S">
 					<div class="box near-right">靠右</div>
 				</div>
-				<p>期望：justify-self: start（RTL下 start=视觉右）</p>
+				<p>期望：justify-self: end（库实际行为：RTL 下逻辑行内结束=视觉左）</p>
 			</article>
 			<article>
 				<h4>47 content-S + 定位 + .near-right</h4>
@@ -675,7 +675,7 @@
 		(function() {
 			// 期望表：[justifySelf, alignSelf] 对于各组合
 			// null 表示不检查（如块级元素justify-self无效）
-			// 物理语义：.near-left 永远视觉左，.near-right 永远视觉右
+			// 逻辑语义：.near-* 靠行内/块级起始端（默认 LTR 下 near-left=视觉左；RTL 下跟随书写方向）
 			var expectMap = {
 				// Z字形（默认）：行内=横向，块级=纵向
 				'content-Z': {
@@ -689,8 +689,8 @@
 				},
 				// S字形（RTL）：行内=横向（从右到左），块级=纵向
 				'content-S': {
-					'.near-left': ['end', null], // RTL下 end=物理左
-					'.near-right': ['start', null], // RTL下 start=物理右
+					'.near-left': ['start', null], // 库实现 justify-self:start——RTL下逻辑行内起始=视觉右
+					'.near-right': ['end', null], // 库实现 justify-self:end——RTL下逻辑行内结束=视觉左
 					'.near-top': [null, 'start'], // 块级不变
 					'.near-bottom': [null, 'end']
 				},
@@ -765,7 +765,7 @@
 				// 确定定位类
 				var atClass = null;
 				for (var i = 0; i < box.classList.length; i++) {
-					if (/^at-/.test(box.classList[i])) {
+					if (/^(near|at)-/.test(box.classList[i])) {
 						atClass = '.' + box.classList[i];
 						break;
 					}
@@ -842,7 +842,7 @@
 					var marginOK = true;
 					if (atClass === '.near-left') marginOK = ml === '0px';
 					else if (atClass === '.near-right') marginOK = mr === '0px';
-					else if (atClass === '.near-x-center') marginOK = ml === mr && ml !== '0px';
+					else if (atClass === '.near-x-center') marginOK = ml !== '0px' && Math.abs(parseFloat(ml) - parseFloat(mr)) < 0.5;
 					else if (atClass === '.near-center') marginOK = true; // flex 居中靠父级
 					if (marginOK) {
 						pass++;

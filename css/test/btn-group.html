@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>.btn-group 方向组合测试</title>
+<style>
+    @import url(../common.css) layer(base);
+    @import url(../layout.css) layer(base);
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: sans-serif; padding: 40px; background: #f5f5f5; }
+
+    .section { margin-bottom: 40px; }
+    .section-title { font-size: 18px; font-weight: 700; margin-bottom: 12px; color: #333; border-left: 4px solid #4a9; padding-left: 12px; }
+
+    .test-row { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; margin-bottom: 16px; }
+    .test-card { display: flex; flex-direction: column; gap: 4px; border: 2px solid #ddd; border-radius: 8px; padding: 10px; background: #fff; }
+    .test-card.pass { border-color: #4a9; }
+    .test-card.fail { border-color: #e55; background: #fff5f5; }
+    .cls-label { font-size: 12px; font-family: monospace; color: #555; background: #eee; padding: 2px 6px; border-radius: 4px; align-self: flex-start; }
+    .result { font-size: 11px; font-family: monospace; line-height: 1.6; }
+    .ok { color: #090; }
+    .ng { color: #c00; }
+
+    .btn-group .btn.demo { padding: 6px 16px; font-size: 14px; background: #7ab; color: #fff; border: none; cursor: default; }
+    .btn-group .btn.demo:nth-child(2) { background: #7ba; }
+    .btn-group .btn.demo:nth-child(3) { background: #ba7; }
+    .btn-group .btn.demo:nth-child(4) { background: #a7b; }
+
+    #summary { font-size: 16px; font-weight: 700; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; display: inline-block; }
+    #summary.all-pass { background: #e8f8e8; color: #090; }
+    #summary.has-fail { background: #fff0f0; color: #c00; }
+</style>
+</head>
+<body>
+
+<h2 style="margin-bottom:16px">.btn-group 方向组合测试</h2>
+<div id="summary" class="all-pass">—</div>
+<div id="container"></div>
+
+<script>
+(function() {
+  var c = document.getElementById('container');
+  var s = document.getElementById('summary');
+  var passed = 0, failed = 0, total = 0;
+  var R = '6px', Z = '0px';
+
+  function makeCase(label, cls, expDir, expFirst, expLast) {
+    total++;
+    var card = document.createElement('div');
+    card.className = 'test-card';
+
+    var labelEl = document.createElement('div');
+    labelEl.className = 'cls-label';
+    labelEl.textContent = label;
+    card.appendChild(labelEl);
+
+    var group = document.createElement('div');
+    group.className = 'btn-group ' + cls;
+    for (var i = 0; i < 3; i++) {
+      var btn = document.createElement('button');
+      btn.className = 'btn demo';
+      btn.textContent = String.fromCharCode(65 + i);
+      group.appendChild(btn);
+    }
+    card.appendChild(group);
+    c.appendChild(card);
+
+    setTimeout(function() {
+      var btns = group.querySelectorAll('.btn:not(.hidden)');
+      var firstRadius = btns.length > 0 ? getComputedStyle(btns[0]).borderRadius : null;
+      var lastRadius = btns.length > 0 ? getComputedStyle(btns[btns.length-1]).borderRadius : null;
+      var dir = getComputedStyle(group).flexDirection;
+
+      var dirOk = dir === expDir;
+      var firstOk = firstRadius === expFirst || (!expFirst && !firstRadius);
+      var lastOk = lastRadius === expLast || (!expLast && !lastRadius);
+      var ok = dirOk && firstOk && lastOk;
+
+      var res = document.createElement('div');
+      res.className = 'result';
+      res.innerHTML = '<span class="' + (ok ? 'ok' : 'ng') + '">' + (ok ? 'PASS' : 'FAIL') + '</span><br>'
+        + 'flex-direction: ' + dir + (dirOk ? '' : ' (期望 ' + expDir + ')') + '<br>'
+        + '首项 radius: ' + (firstRadius || '-') + (firstOk ? '' : ' (期望 ' + (expFirst || '-') + ')') + '<br>'
+        + '末项 radius: ' + (lastRadius || '-') + (lastOk ? '' : ' (期望 ' + (expLast || '-') + ')');
+      card.appendChild(res);
+      card.classList.add(ok ? 'pass' : 'fail');
+      if (ok) passed++; else failed++;
+      updateSummary();
+    }, 50);
+  }
+
+  function updateSummary() {
+    s.textContent = passed + '/' + total + ' 通过';
+    s.className = failed === 0 ? 'all-pass' : 'has-fail';
+  }
+
+  // === 默认（水平从左到右：首项左圆角 末项右圆角）===
+  makeCase('无 class',                     'flex',                          'row',            R+' '+Z+' '+Z+' '+R, Z+' '+R+' '+R+' '+Z);
+  makeCase('.items-go-x',                  'flex items-go-x',               'row',            R+' '+Z+' '+Z+' '+R, Z+' '+R+' '+R+' '+Z);
+  makeCase('.items-from-left',             'flex items-from-left',          'row',            R+' '+Z+' '+Z+' '+R, Z+' '+R+' '+R+' '+Z);
+  makeCase('.items-go-x.items-from-left',  'flex items-go-x items-from-left','row',           R+' '+Z+' '+Z+' '+R, Z+' '+R+' '+R+' '+Z);
+
+  // === 横排从右到左：首项右圆角 末项左圆角 ===
+  makeCase('.items-from-right',            'flex items-from-right',         'row-reverse',    Z+' '+R+' '+R+' '+Z, R+' '+Z+' '+Z+' '+R);
+  makeCase('.items-go-x.items-from-right', 'flex items-go-x items-from-right','row-reverse', Z+' '+R+' '+R+' '+Z, R+' '+Z+' '+Z+' '+R);
+
+  // === 竖排从上到下：首项上圆角 末项下圆角 ===
+  makeCase('.items-from-top',              'flex items-from-top',           'column',         R+' '+R+' '+Z+' '+Z, Z+' '+Z+' '+R+' '+R);
+  makeCase('.items-go-y.items-from-top',   'flex items-go-y items-from-top','column',         R+' '+R+' '+Z+' '+Z, Z+' '+Z+' '+R+' '+R);
+
+  // === 竖排从下到上：首项下圆角 末项上圆角 ===
+  makeCase('.items-from-bottom',           'flex items-from-bottom',        'column-reverse', Z+' '+Z+' '+R+' '+R, R+' '+R+' '+Z+' '+Z);
+  makeCase('.items-go-y.items-from-bottom','flex items-go-y items-from-bottom','column-reverse',Z+' '+Z+' '+R+' '+R, R+' '+R+' '+Z+' '+Z);
+
+  // === hidden 按钮（不参与圆角计算）===
+  // hidden 测试需要定制按钮，用独立的 card
+  function makeHiddenCase(label, cls, hideIndices, expDir, expFirst, expLast) {
+    total++;
+    var card = document.createElement('div');
+    card.className = 'test-card';
+
+    var labelEl = document.createElement('div');
+    labelEl.className = 'cls-label';
+    labelEl.textContent = label;
+    card.appendChild(labelEl);
+
+    var group = document.createElement('div');
+    group.className = 'btn-group ' + cls;
+    var labels = ['A','B','C','D'];
+    var count = Math.max(3, hideIndices.length > 0 ? Math.max.apply(null, hideIndices) + 1 : 3);
+    for (var i = 0; i < count; i++) {
+      var btn = document.createElement('button');
+      var hidden = hideIndices.indexOf(i) >= 0;
+      btn.className = 'btn demo' + (hidden ? ' hidden' : '');
+      btn.textContent = labels[i] + (hidden ? '(H)' : '');
+      group.appendChild(btn);
+    }
+    card.appendChild(group);
+    c.appendChild(card);
+
+    setTimeout(function() {
+      var btns = group.querySelectorAll('.btn:not(.hidden)');
+      var firstRadius = btns.length > 0 ? getComputedStyle(btns[0]).borderRadius : null;
+      var lastRadius = btns.length > 0 ? getComputedStyle(btns[btns.length-1]).borderRadius : null;
+      var dir = getComputedStyle(group).flexDirection;
+
+      var dirOk = dir === expDir;
+      var firstOk = firstRadius === expFirst || (!expFirst && !firstRadius);
+      var lastOk = lastRadius === expLast || (!expLast && !lastRadius);
+      var ok = dirOk && firstOk && lastOk;
+
+      var res = document.createElement('div');
+      res.className = 'result';
+      res.innerHTML = '<span class="' + (ok ? 'ok' : 'ng') + '">' + (ok ? 'PASS' : 'FAIL') + '</span><br>'
+        + 'flex-direction: ' + dir + (dirOk ? '' : ' (期望 ' + expDir + ')') + '<br>'
+        + '首项 radius: ' + (firstRadius || '-') + (firstOk ? '' : ' (期望 ' + (expFirst || '-') + ')') + '<br>'
+        + '末项 radius: ' + (lastRadius || '-') + (lastOk ? '' : ' (期望 ' + (expLast || '-') + ')');
+      card.appendChild(res);
+      card.classList.add(ok ? 'pass' : 'fail');
+      if (ok) passed++; else failed++;
+      updateSummary();
+    }, 50);
+  }
+
+  makeHiddenCase('中间 hidden',              'flex',                    [1],      'row',            R+' '+Z+' '+Z+' '+R, Z+' '+R+' '+R+' '+Z);
+  makeHiddenCase('.items-from-right + 首 hidden','flex items-from-right',[0],    'row-reverse',    Z+' '+R+' '+R+' '+Z, R+' '+Z+' '+Z+' '+R);
+  makeHiddenCase('.items-from-top + 末 hidden','flex items-go-y items-from-top',[2],'column',       R+' '+R+' '+Z+' '+Z, Z+' '+Z+' '+R+' '+R);
+  makeHiddenCase('首末 hidden',              'flex',                    [0,2],    'row',            R,                   R);
+})();
+</script>
+
+</body>
+</html>

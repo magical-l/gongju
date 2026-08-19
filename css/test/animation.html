@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <title>动画效果测试</title>
+    <link rel="stylesheet" href="../花活.css">
+    <link rel="stylesheet" href="../common.css">
+    <style>
+        body {
+            padding: 20px;
+            font-family: sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        h1 {
+            color: #2196f3;
+        }
+
+        h2 {
+            margin-top: 30px;
+            color: #9c27b0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            background: #fff;
+        }
+
+        .box {
+            width: 80px;
+            height: 80px;
+            background: #e3f2fd;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px;
+            border-radius: 8px;
+            border: 1px solid #90caf9;
+        }
+
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            background: #e94560;
+            border: none;
+            color: #fff;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .case-num {
+            font-weight: bold;
+            color: #ffab91;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>动画效果测试</h1>
+
+    <h2>撒花 <code>.confetti-piece</code></h2>
+    <div class="section">
+        <p><span class="case-num">用例1</span> 点击按钮触发撒花，点击遮罩关闭（伪元素位置、速度分散）</p>
+        <button id="openConfetti">撒花</button>
+    </div>
+
+    <!-- 撒花容器（20个元素，覆盖10n模式的两个循环） -->
+    <div class="fullscreen" id="confetti-container" style="display:none;pointer-events:none;overflow:hidden;">
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+        <div class="confetti-piece"></div>
+    </div>
+
+    <!-- 关闭撒花的遮罩 -->
+    <div class="fullscreen" id="confetti-close" style="display:none;z-index:1001;"></div>
+
+    <script>
+        document.getElementById('openConfetti').onclick = () => {
+            document.getElementById('confetti-container').style.display = 'block';
+            document.getElementById('confetti-close').style.display = 'block';
+        };
+        document.getElementById('confetti-close').onclick = () => {
+            document.getElementById('confetti-container').style.display = 'none';
+            document.getElementById('confetti-close').style.display = 'none';
+        };
+    </script>
+
+    <h2>脉动动画 <code>.animation.pulse</code></h2>
+    <div class="section">
+        <p><span class="case-num">用例2</span> <code>.animation.shadow.pulse</code> 阴影脉动</p>
+        <div class="box animation shadow pulse" style="border:2px solid var(--pulse-color);">阴影脉动</div>
+    </div>
+
+    <div class="section">
+        <p><span class="case-num">用例3</span> <code>.animation.color.pulse</code> 颜色脉动</p>
+        <span class="animation color pulse" style="font-size:24px;">文字脉动</span>
+    </div>
+
+    <div class="section">
+        <p><span class="case-num">用例4</span>
+            自定义脉动参数（<code>--pulse-color</code>、<code>--pulse-time</code>、<code>--pulse-count</code>）</p>
+        <div class="box animation shadow pulse"
+            style="--pulse-color:#e94560;--pulse-time:0.5s;border:2px solid var(--pulse-color);">红色0.5秒</div>
+        <span class="animation color pulse" style="--pulse-color:#4caf50;--pulse-time:3s;font-size:20px;">绿色3秒</span>
+        <p style="margin-top:10px;color:#666;">注意：<code>--pulse-count</code>为数字时播放完会停止，默认infinite持续播放</p>
+    </div>
+
+    <h2>边框光晕脉冲 <code>.animation.shadow-breathing.on-hover</code></h2>
+    <div class="section">
+        <p><span class="case-num">用例5</span> hover时触发光晕</p>
+        <div class="box animation shadow-breathing on-hover">方块1</div>
+        <div class="box animation shadow-breathing on-hover">方块2</div>
+        <button class="animation shadow-breathing on-hover" style="background:#e94560;">按钮</button>
+    </div>
+
+    <div class="section">
+        <p><span class="case-num">用例6</span> <code>.animation.golden-glow</code> 金色光晕（配合基础类使用）</p>
+        <div class="box animation shadow-breathing on-hover golden-glow" style="background:#fff8e1;border-color:#ffc107;">金元宝</div>
+        <button class="animation shadow-breathing on-hover golden-glow" style="background:#ffc107;color:#333;">黄金按钮</button>
+    </div>
+
+    <div class="section">
+        <p><span class="case-num">用例7</span> 自定义光晕参数</p>
+        <div class="box animation shadow-breathing on-hover"
+            style="--pulse-glow-color-1:rgba(255,100,0,0.8);--pulse-glow-color-2:rgba(255,50,0,0.5);--pulse-glow-duration:2s;">
+            橙色光晕</div>
+    </div>
+
+</body>
+
+</html>

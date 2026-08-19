@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>Grid 原生属性与 writing-mode 关系演示</title>
+    <style>
+        body { padding: 20px; font-family: sans-serif; }
+        h2 { margin-top: 30px; border-bottom: 2px solid #333; }
+        h3 { margin-top: 20px; color: #666; }
+        .section { margin: 15px 0; }
+
+        .box {
+            width: 80px;
+            height: 80px;
+            background: #a5d6a7;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            border: 2px dashed #333;
+            box-sizing: border-box;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 80px);
+            grid-template-rows: repeat(2, 80px);
+            gap: 10px;
+            border: 3px solid #ffab91;
+            width: 280px;
+            height: 180px;
+            background: #f0f0f0;
+        }
+
+        .label { font-size: 14px; margin-bottom: 8px; }
+        .props { font-family: monospace; background: #ddd; padding: 2px 6px; }
+        .case-num { font-weight: bold; color: #ffab91; }
+    </style>
+</head>
+<body>
+
+<h1>Grid 原生属性与 writing-mode 关系演示</h1>
+
+<h2>grid-auto-flow（填充方向）</h2>
+
+<h3>writing-mode: horizontal-tb; direction: ltr</h3>
+<div class="section">
+    <p class="label"><span class="case-num">用例1</span> <span class="props">grid-auto-flow: row</span> = 横向填充</p>
+    <div class="grid-container" style="writing-mode: horizontal-tb; direction: ltr; grid-auto-flow: row;">
+        <div class="box">甲</div><div class="box">乙</div><div class="box">丙</div>
+        <div class="box">丁</div><div class="box">戊</div><div class="box">己</div>
+    </div>
+</div>
+<div class="section">
+    <p class="label"><span class="case-num">用例2</span> <span class="props">grid-auto-flow: column</span> = 纵向填充</p>
+    <div class="grid-container" style="writing-mode: horizontal-tb; direction: ltr; grid-auto-flow: column;">
+        <div class="box">甲</div><div class="box">乙</div><div class="box">丙</div>
+        <div class="box">丁</div><div class="box">戊</div><div class="box">己</div>
+    </div>
+</div>
+
+<h3>writing-mode: horizontal-tb; direction: rtl</h3>
+<div class="section">
+    <p class="label"><span class="case-num">用例3</span> <span class="props">grid-auto-flow: row</span> + rtl = 横向填充（从右到左）</p>
+    <div class="grid-container" style="writing-mode: horizontal-tb; direction: rtl; grid-auto-flow: row;">
+        <div class="box">甲</div><div class="box">乙</div><div class="box">丙</div>
+        <div class="box">丁</div><div class="box">戊</div><div class="box">己</div>
+    </div>
+</div>
+<div class="section">
+    <p class="label"><span class="case-num">用例4</span> <span class="props">grid-auto-flow: column</span> + rtl = 纵向填充（列从右到左）</p>
+    <div class="grid-container" style="writing-mode: horizontal-tb; direction: rtl; grid-auto-flow: column;">
+        <div class="box">甲</div><div class="box">乙</div><div class="box">丙</div>
+        <div class="box">丁</div><div class="box">戊</div><div class="box">己</div>
+    </div>
+</div>
+
+<h3>writing-mode: vertical-rl; direction: ltr</h3>
+<div class="section">
+    <p class="label"><span class="case-num">用例5</span> <span class="props">grid-auto-flow: row</span> = 纵向填充（竖排下 row=纵）</p>
+    <div class="grid-container" style="writing-mode: vertical-rl; direction: ltr; grid-auto-flow: row;">
+        <div class="box">甲</div><div class="box">乙</div><div class="box">丙</div>
+        <div class="box">丁</div><div class="box">戊</div><div class="box">己</div>
+    </div>
+</div>
+<div class="section">
+    <p class="label"><span class="case-num">用例6</span> <span class="props">grid-auto-flow: column</span> = 横向填充（竖排下 column=横）</p>
+    <div class="grid-container" style="writing-mode: vertical-rl; direction: ltr; grid-auto-flow: column;">
+        <div class="box">A</div><div class="box">B</div><div class="box">丙</div>
+        <div class="box">D</div><div class="box">E</div><div class="box">己</div>
+    </div>
+</div>
+
+<h3>writing-mode: vertical-lr; direction: ltr</h3>
+<div class="section">
+    <p class="label"><span class="case-num">用例7</span> <span class="props">grid-auto-flow: row</span> = 纵向填充</p>
+    <div class="grid-container" style="writing-mode: vertical-lr; direction: ltr; grid-auto-flow: row;">
+        <div class="box">甲</div><div class="box">乙</div><div class="box">丙</div>
+        <div class="box">丁</div><div class="box">戊</div><div class="box">己</div>
+    </div>
+</div>
+<div class="section">
+    <p class="label"><span class="case-num">用例8</span> <span class="props">grid-auto-flow: column</span> = 横向填充</p>
+    <div class="grid-container" style="writing-mode: vertical-lr; direction: ltr; grid-auto-flow: column;">
+        <div class="box">A</div><div class="box">B</div><div class="box">丙</div>
+        <div class="box">D</div><div class="box">E</div><div class="box">己</div>
+    </div>
+</div>
+
+<h2>justify-content（主轴位置）</h2>
+
+<h3>writing-mode: horizontal-tb</h3>
+<div class="section">
+    <p class="label"><span class="case-num">用例9</span> <span class="props">justify-content: start</span> = 网格靠左</p>
+    <div class="grid-container" style="writing-mode: horizontal-tb; direction: ltr; justify-content: start;">
+        <div class="box">甲</div><div class="box">乙</div>
+    </div>
+</div>
+<div class="section">
+    <p class="label"><span class="case-num">用例10</span> <span class="props">justify-content: end</span> = 网格靠右</p>
+    <div class="grid-container" style="writing-mode: horizontal-tb; direction: ltr; justify-content: end;">
+        <div class="box">甲</div><div class="box">乙</div>
+    </div>
+</div>
+
+<h3>writing-mode: vertical-rl</h3>
+<div class="section">
+    <p class="label"><span class="case-num">用例11</span> <span class="props">justify-content: start</span> = 网格靠顶（主轴纵向）</p>
+    <div class="grid-container" style="writing-mode: vertical-rl; direction: ltr; justify-content: start;">
+        <div class="box">甲</div><div class="box">乙</div>
+    </div>
+</div>
+<div class="section">
+    <p class="label"><span class="case-num">用例12</span> <span class="props">justify-content: end</span> = 网格靠底</p>
+    <div class="grid-container" style="writing-mode: vertical-rl; direction: ltr; justify-content: end;">
+        <div class="box">甲</div><div class="box">乙</div>
+    </div>
+</div>
+
+<h2>align-items（交叉轴位置）</h2>
+
+<h3>writing-mode: horizontal-tb</h3>
+<div class="section">
+    <p class="label"><span class="case-num">用例13</span> <span class="props">align-items: start</span> = 项目靠顶</p>
+    <div class="grid-container" style="writing-mode: horizontal-tb; direction: ltr; align-items: start; height: 200px;">
+        <div class="box">甲</div><div class="box">乙</div><div class="box">丙</div>
+    </div>
+</div>
+<div class="section">
+    <p class="label"><span class="case-num">用例14</span> <span class="props">align-items: end</span> = 项目靠底</p>
+    <div class="grid-container" style="writing-mode: horizontal-tb; direction: ltr; align-items: end; height: 200px;">
+        <div class="box">甲</div><div class="box">乙</div><div class="box">丙</div>
+    </div>
+</div>
+
+<h3>writing-mode: vertical-rl</h3>
+<div class="section">
+    <p class="label"><span class="case-num">用例15</span> <span class="props">align-items: start</span> = 项目靠右</p>
+    <div class="grid-container" style="writing-mode: vertical-rl; direction: ltr; align-items: start;">
+        <div class="box">A</div><div class="box">乙</div><div class="box">丙</div>
+    </div>
+</div>
+<div class="section">
+    <p class="label"><span class="case-num">用例16</span> <span class="props">align-items: end</span> = 项目靠左</p>
+    <div class="grid-container" style="writing-mode: vertical-rl; direction: ltr; align-items: end;">
+        <div class="box">A</div><div class="box">乙</div><div class="box">丙</div>
+    </div>
+</div>
+
+<h2>规律归纳</h2>
+
+<table border="1" cellpadding="8" style="border-collapse: collapse;">
+    <tr style="background: #f0f0f0;">
+        <th>writing-mode</th>
+        <th>inline轴</th>
+        <th>block轴</th>
+        <th>grid-auto-flow: row</th>
+        <th>grid-auto-flow: column</th>
+    </tr>
+    <tr>
+        <td>horizontal-tb</td>
+        <td>横向</td>
+        <td>纵向</td>
+        <td>横向填充</td>
+        <td>纵向填充</td>
+    </tr>
+    <tr>
+        <td>vertical-rl/lr</td>
+        <td>纵向</td>
+        <td>横向</td>
+        <td>纵向填充</td>
+        <td>横向填充</td>
+    </tr>
+</table>
+
+<p style="margin-top: 20px;">
+    <strong>核心规律：</strong><br>
+    grid-auto-flow: row = 先沿 inline 轴填充<br>
+    grid-auto-flow: column = 先沿 block 轴填充<br>
+    writing-mode 决定 inline/block 轴的物理方向<br>
+    justify-content 控制主轴（inline轴方向）<br>
+    align-items 控制交叉轴（block轴方向）
+</p>
+
+</body>
+</html>

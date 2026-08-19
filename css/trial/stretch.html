@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>stretch 规律探索</title>
+<style>
+body { padding: 20px; font-family: sans-serif; font-size: 14px; }
+h1 { border-bottom: 2px solid #333; }
+h2 { margin-top: 30px; color: #555; border-bottom: 1px solid #999; }
+h3 { margin-top: 16px; color: #777; }
+.section { margin: 12px 0; display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; }
+.case { border: 1px solid #999; padding: 7px; background: #fafafa; }
+.case-num { color: #ff6b6b; font-weight: bold; }
+.case-css { font-family: monospace; font-size: 11px; color: #2e7d32; }
+.container { border: 3px solid #333; background: #f0f0f0; }
+
+/* Grid 基底：列/行 1fr，项目无固定宽高，ji/ai:start 缩到内容大小 */
+.grid-box { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; width: 200px; height: 200px; justify-items: start; align-items: start; }
+.grid-box .item { background: #a5d6a7; border: 2px solid #333; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #333; }
+.grid-box.v { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; width: 200px; height: 200px; justify-items: start; align-items: start; }
+
+/* Flex 基底 */
+.flex-box { display: flex; width: 200px; height: 200px; align-items: start; }
+.flex-box .item { background: #a5d6a7; border: 2px solid #333; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #333; }
+
+.content-Z { writing-mode: horizontal-tb; direction: ltr; }
+.content-N { writing-mode: vertical-rl; direction: ltr; }
+.content-И { writing-mode: vertical-lr; direction: ltr; }
+.go-x { flex-direction: row; }
+.content-N.go-x, .content-И.go-x { flex-direction: column; }
+.go-y { flex-direction: column; }
+.content-N.go-y, .content-И.go-y { flex-direction: row; }
+</style>
+</head>
+<body>
+
+<h1>目标：物理横向拉伸项目</h1>
+
+<h2>Grid Z（行内轴=水平）</h2>
+<div class="section">
+    <div class="case"><div class="case-num">1</div><div class="case-css">基底（ji:start ai:start）</div><div class="container grid-box content-Z"><div class="item">1</div><div class="item">2</div><div class="item">3</div><div class="item">4</div></div></div>
+    <div class="case"><div class="case-num">2</div><div class="case-css">ji:stretch</div><div class="container grid-box content-Z" style="justify-items:stretch"><div class="item">1</div><div class="item">2</div><div class="item">3</div><div class="item">4</div></div></div>
+</div>
+
+<h2>Grid N（块轴=水平）</h2>
+<div class="section">
+    <div class="case"><div class="case-num">3</div><div class="case-css">基底（ji:start ai:start）</div><div class="container grid-box v content-N"><div class="item">1</div><div class="item">2</div><div class="item">3</div><div class="item">4</div></div></div>
+    <div class="case"><div class="case-num">4</div><div class="case-css">ai:stretch</div><div class="container grid-box v content-N" style="align-items:stretch"><div class="item">1</div><div class="item">2</div><div class="item">3</div><div class="item">4</div></div></div>
+</div>
+
+<h2>Flex Z go-y（交=水平）</h2>
+<div class="section">
+    <div class="case"><div class="case-num">5</div><div class="case-css">基底（ai:start）</div><div class="container flex-box content-Z go-y"><div class="item">1</div><div class="item">2</div><div class="item">3</div></div></div>
+    <div class="case"><div class="case-num">6</div><div class="case-css">ai:stretch</div><div class="container flex-box content-Z go-y" style="align-items:stretch"><div class="item">1</div><div class="item">2</div><div class="item">3</div></div></div>
+</div>
+
+<h2>Flex Z go-x（交=垂直→横向拉伸无效？）</h2>
+<div class="section">
+    <div class="case"><div class="case-num">7</div><div class="case-css">基底（ai:start）</div><div class="container flex-box content-Z go-x"><div class="item">1</div><div class="item">2</div><div class="item">3</div></div></div>
+    <div class="case"><div class="case-num">8</div><div class="case-css">ai:stretch（无效，拉高非拉宽）</div><div class="container flex-box content-Z go-x" style="align-items:stretch"><div class="item">1</div><div class="item">2</div><div class="item">3</div></div></div>
+</div>
+
+<h1>目标：物理纵向拉伸项目</h1>
+
+<h2>Grid Z（块轴=垂直）</h2>
+<div class="section">
+    <div class="case"><div class="case-num">9</div><div class="case-css">基底（ji:start ai:start）</div><div class="container grid-box content-Z"><div class="item">1</div><div class="item">2</div><div class="item">3</div><div class="item">4</div></div></div>
+    <div class="case"><div class="case-num">10</div><div class="case-css">ai:stretch</div><div class="container grid-box content-Z" style="align-items:stretch"><div class="item">1</div><div class="item">2</div><div class="item">3</div><div class="item">4</div></div></div>
+</div>
+
+<h2>Grid N（行内轴=垂直）</h2>
+<div class="section">
+    <div class="case"><div class="case-num">11</div><div class="case-css">基底（ji:start ai:start）</div><div class="container grid-box v content-N"><div class="item">1</div><div class="item">2</div><div class="item">3</div><div class="item">4</div></div></div>
+    <div class="case"><div class="case-num">12</div><div class="case-css">ji:stretch</div><div class="container grid-box v content-N" style="justify-items:stretch"><div class="item">1</div><div class="item">2</div><div class="item">3</div><div class="item">4</div></div></div>
+</div>
+
+<h2>Flex Z go-x（交=垂直）</h2>
+<div class="section">
+    <div class="case"><div class="case-num">13</div><div class="case-css">基底（ai:start）</div><div class="container flex-box content-Z go-x"><div class="item">1</div><div class="item">2</div><div class="item">3</div></div></div>
+    <div class="case"><div class="case-num">14</div><div class="case-css">ai:stretch</div><div class="container flex-box content-Z go-x" style="align-items:stretch"><div class="item">1</div><div class="item">2</div><div class="item">3</div></div></div>
+</div>
+
+<h2>Flex Z go-y（交=水平→纵向拉伸无效？）</h2>
+<div class="section">
+    <div class="case"><div class="case-num">15</div><div class="case-css">基底（ai:start）</div><div class="container flex-box content-Z go-y"><div class="item">1</div><div class="item">2</div><div class="item">3</div></div></div>
+    <div class="case"><div class="case-num">16</div><div class="case-css">ai:stretch（无效，拉宽非拉高）</div><div class="container flex-box content-Z go-y" style="align-items:stretch"><div class="item">1</div><div class="item">2</div><div class="item">3</div></div></div>
+</div>
+
+<h1>规律</h1>
+<table border="1" cellpadding="4" cellspacing="0" style="font-size:13px;border-collapse:collapse;">
+<tr><th>目标</th><th>Grid Z</th><th>Grid N</th><th>Flex go-x</th><th>Flex go-y</th></tr>
+<tr><td>横向拉伸</td><td>ji:stretch ✓</td><td>ai:stretch ✓</td><td>✗（交=垂直）</td><td>ai:stretch ✓</td></tr>
+<tr><td>纵向拉伸</td><td>ai:stretch ✓</td><td>ji:stretch ✓</td><td>ai:stretch ✓</td><td>✗（交=水平）</td></tr>
+</table>
+
+</body>
+</html>

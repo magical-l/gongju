@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>模态框测试</title>
+    <link rel="stylesheet" href="../common.css">
+    <link rel="stylesheet" href="../花活.css">
+    <style>
+        body { padding: 20px; font-family: sans-serif; background: #f5f5f5; color: #333; }
+        h1 { color: #2196f3; }
+        h2 { margin-top: 30px; color: #9c27b0; border-bottom: 1px solid #ddd; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; background: #fff; position: relative; }
+        button { margin: 10px; padding: 10px 20px; background: #e94560; border: none; color: #fff; border-radius: 6px; cursor: pointer; }
+        .case-num { font-weight: bold; color: #ffab91; }
+        .modal-content { background: white; padding: 30px; border-radius: 10px; text-align: center; }
+    </style>
+</head>
+<body>
+
+<h1>模态框测试</h1>
+
+<p style="color:#666;">注意：模态框要覆盖视口，必须放在 <code>&lt;body&gt;</code> 下并加 <code>.fullscreen</code> 类。放在其他容器内只会覆盖该容器。</p>
+
+<h2>基础模态框 <code>.modal</code></h2>
+<div class="section" style="min-height:200px;">
+    <p><span class="case-num">用例1</span> 覆盖父容器（非fullscreen）</p>
+    <button id="openModal1">打开模态框</button>
+
+    <div class="modal" id="modal1" style="display:none;">
+        <div class="modal-content">
+            <h3>提示</h3>
+            <p>这是一个覆盖父容器的模态框</p>
+            <button id="closeModal1">关闭</button>
+        </div>
+    </div>
+</div>
+
+<div class="section">
+    <p><span class="case-num">用例2</span> 全屏模态框 <code>.modal.fullscreen</code></p>
+    <button id="openModal2">打开全屏模态框</button>
+</div>
+
+<!-- 全屏模态框 -->
+<div class="modal fullscreen" id="modal2" style="display:none;">
+    <div class="modal-content">
+        <h3>成功!</h3>
+        <p>这是一个全屏模态框</p>
+        <button id="closeModal2">关闭</button>
+    </div>
+</div>
+
+<h2>自定义遮罩颜色</h2>
+<div class="section" style="min-height:200px;">
+    <p><span class="case-num">用例3</span> <code>--modal-overlay-color</code></p>
+    <button id="openModal3">深色遮罩</button>
+    <button id="openModal4">透明遮罩</button>
+
+    <div class="modal" id="modal3" style="display:none;--modal-overlay-color:rgba(0,0,0,0.8);">
+        <div class="modal-content">
+            <h3>深色遮罩</h3>
+            <p>遮罩透明度80%</p>
+            <button id="closeModal3">关闭</button>
+        </div>
+    </div>
+
+    <div class="modal" id="modal4" style="display:none;--modal-overlay-color:transparent;">
+        <div class="modal-content" style="box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+            <h3>透明遮罩</h3>
+            <p>无遮罩背景，内容有阴影</p>
+            <button id="closeModal4">关闭</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// 模态框1
+document.getElementById('openModal1').onclick = () => document.getElementById('modal1').style.display = 'flex';
+document.getElementById('closeModal1').onclick = () => document.getElementById('modal1').style.display = 'none';
+
+// 模态框2
+document.getElementById('openModal2').onclick = () => document.getElementById('modal2').style.display = 'flex';
+document.getElementById('closeModal2').onclick = () => document.getElementById('modal2').style.display = 'none';
+document.getElementById('modal2').onclick = e => { if (e.target.id === 'modal2') e.target.style.display = 'none'; };
+
+// 模态框3
+document.getElementById('openModal3').onclick = () => document.getElementById('modal3').style.display = 'flex';
+document.getElementById('closeModal3').onclick = () => document.getElementById('modal3').style.display = 'none';
+
+// 模态框4
+document.getElementById('openModal4').onclick = () => document.getElementById('modal4').style.display = 'flex';
+document.getElementById('closeModal4').onclick = () => document.getElementById('modal4').style.display = 'none';
+</script>
+
+</body>
+</html>

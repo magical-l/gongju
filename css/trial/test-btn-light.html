@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>按钮 light 透明度对比</title>
+<link href="../common.css" rel="stylesheet">
+<style>
+:root {
+	--bg-base: #FFFFFF;
+	--bg-muted: #F3F4F6;
+	--bg-active: #E5E7EB;
+	--border-subtle: #E5E7EB;
+	--text-primary: #111827;
+	--text-muted: #6B7280;
+	--accent-primary: #5B8DEF;
+	--accent-primary-hover: #4A7BDE;
+	--accent-light: rgba(91, 141, 239, 0.08);
+	--danger: #DC2626;
+	--danger-light: rgba(220, 38, 38, 0.15);
+	--success: #059669;
+	--success-light: rgba(5, 150, 105, 0.1);
+	--warning: #D97706;
+	--warning-light: rgba(217, 119, 6, 0.1);
+
+	--radius-sm: 6px;
+	--radius-md: 8px;
+	--space-1: 4px;
+	--btn-h: 32px;
+	--btn-p: 12px;
+	--font-sans: system-ui, sans-serif;
+}
+body {
+	font-family: var(--font-sans);
+	background: var(--bg-base);
+	color: var(--text-primary);
+	margin: 0;
+	padding: 0;
+}
+/* 测试页面样式 */
+.hero { padding: 32px; display: flex; flex-direction: column; gap: 24px; }
+h1 { font-size: 20px; font-weight: 600; margin: 0; }
+h2 { font-size: 14px; font-weight: 500; margin: 0 0 4px; color: var(--text-muted); }
+.section { display: flex; flex-direction: column; gap: 6px; }
+.row { display: flex; align-items: center; gap: 6px; }
+.label { font-size: 11px; color: var(--text-muted); width: 44px; flex-shrink: 0; text-align: right; }
+/* 当前实际值标注 */
+.cur { outline: 2px solid var(--accent-primary); outline-offset: 1px; border-radius: var(--radius-md); }
+
+/* 让按钮样式依赖自己的 --*-light，不改 common.css */
+.btn.test { --hover-bg: var(--test-hover-bg); }
+</style>
+
+<div class="hero">
+	<h1>语义色 light 透明度对比</h1>
+	<p style="color:var(--text-muted);font-size:13px;margin:0">蓝框 = 当前项目的实际值</p>
+
+	<div class="section">
+		<h2>🔴 红 danger — #DC2626</h2>
+		<div id="r"></div>
+	</div>
+
+	<div class="section">
+		<h2>🔵 蓝 accent — #5B8DEF</h2>
+		<div id="b"></div>
+	</div>
+
+	<div class="section">
+		<h2>🟢 绿 success — #059669</h2>
+		<div id="g"></div>
+	</div>
+
+	<div class="section">
+		<h2>🟠 橙 warning — #D97706</h2>
+		<div id="o"></div>
+	</div>
+</div>
+
+<script>
+// 当前项目的实际值（用作标注）
+const CURR = {
+	red:    0.15,
+	blue:   0.08,
+	green:  0.10,
+	orange: 0.10,
+};
+
+const OPAS = [0.06, 0.08, 0.10, 0.12, 0.15, 0.18, 0.20, 0.25, 0.30];
+const COLORS = {
+	r: {hex:'#DC2626', name:'red',    text:'删除'},
+	b: {hex:'#5B8DEF', name:'blue',   text:'新建会话'},
+	g: {hex:'#059669', name:'green',  text:'确认'},
+	o: {hex:'#D97706', name:'orange', text:'警告'},
+};
+
+for (const [id, c] of Object.entries(COLORS)) {
+	const container = document.getElementById(id);
+	const R = parseInt(c.hex.slice(1,3), 16);
+	const G = parseInt(c.hex.slice(3,5), 16);
+	const B = parseInt(c.hex.slice(5,7), 16);
+
+	OPAS.forEach(op => {
+		const row = document.createElement('div');
+		row.className = 'row';
+
+		const lb = document.createElement('span');
+		lb.className = 'label';
+		lb.textContent = (op * 100).toFixed(0) + '%';
+		row.appendChild(lb);
+
+		// 浅底 + 文字色（.danger 风格）
+		const btn = document.createElement('button');
+		btn.className = 'btn test danger';
+		btn.style.setProperty('--btn-bg', `rgba(${R},${G},${B},${op})`);
+		btn.style.setProperty('--hover-bg', `rgba(${R},${G},${B},${Math.min(op + 0.08, 0.35)})`);
+		btn.textContent = c.text;
+
+		if (Math.abs(op - CURR[c.name]) < 0.005) {
+			btn.classList.add('cur');
+		}
+		row.appendChild(btn);
+
+		// 文字色（不加背景）
+		const textBtn = document.createElement('button');
+		textBtn.className = 'btn test';
+		textBtn.style.setProperty('--btn-bg', 'transparent');
+		textBtn.style.setProperty('--btn-color', c.hex);
+		textBtn.style.setProperty('--hover-bg', `rgba(${R},${G},${B},${op})`);
+		textBtn.style.setProperty('--hover-color', c.hex);
+		textBtn.textContent = c.text;
+		row.appendChild(textBtn);
+
+		// 文字 + 淡底（.option.btn / 无边框 style）
+		const textBgBtn = document.createElement('button');
+		textBgBtn.className = 'btn test';
+		textBgBtn.style.setProperty('--btn-bg', `rgba(${R},${G},${B},${op * 0.5})`);
+		textBgBtn.style.setProperty('--btn-color', c.hex);
+		textBgBtn.style.setProperty('--hover-bg', `rgba(${R},${G},${B},${op})`);
+		textBgBtn.style.setProperty('--hover-color', c.hex);
+		textBgBtn.textContent = c.text;
+		row.appendChild(textBgBtn);
+
+		container.appendChild(row);
+	});
+}
+</script>
+</html>

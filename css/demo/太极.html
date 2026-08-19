@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>太极图</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #eef2f5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 太极容器 */
+        .taiji {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            overflow: hidden;
+            background-color: #ffffff;
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+        }
+
+        /* 统一所有阴部分为黑色 */
+        .taiji .yin {
+            background-color: #000000;
+        }
+
+        /* 统一所有阳部分为白色 */
+        .taiji .yang {
+            background-color: #ffffff;
+        }
+
+        /* 阴鱼（左半圆）与阳鱼（右半圆）布局 */
+        .taiji > .yin,
+        .taiji > .yang {
+            position: absolute;
+            width: 50%;
+            height: 100%;
+            top: 0;
+        }
+
+        .taiji > .yin {
+            left: 0;
+            border-radius: 50% 0 0 50% / 100% 100% 100% 100%;
+        }
+
+        .taiji > .yang {
+            right: 0;
+            border-radius: 0 50% 50% 0 / 100% 100% 100% 100%;
+        }
+
+        /* S形鱼身曲线 */
+        /* 黑鱼中的白色凸起（位于下半圆） → 黑鱼头朝上 */
+        .taiji > .yin::after {
+            content: "";
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            background-color: #ffffff;
+            border-radius: 50%;
+            left: 100%;
+            top: 75%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* 白鱼中的黑色凸起（位于上半圆） → 白鱼头朝下 */
+        .taiji > .yang::after {
+            content: "";
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            background-color: #000000;
+            border-radius: 50%;
+            left: 0;
+            top: 25%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* 阴阳鱼眼 */
+        /* 黑鱼中的白眼睛 */
+        .taiji > .yin > .yang {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            top: 25%;
+            right: 10%;
+            transform: translate(50%, -50%);
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+            z-index: 2;
+        }
+
+        /* 白鱼中的黑眼睛 */
+        .taiji > .yang > .yin {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            top: 75%;
+            left: 10%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2);
+            z-index: 2;
+        }
+    </style>
+</head>
+<body>
+<div style="display: flex; flex-direction: column; align-items: center;">
+    <div class="taiji">
+        <!-- 阴鱼（黑）头朝上，白色眼睛 -->
+        <div class="yin">
+			<!-- 阳眼 -->
+            <div class="yang"></div>
+        </div>
+        <!-- 阳鱼（白）头朝下，黑色眼睛 -->
+        <div class="yang">
+			<!-- 阴眼 -->
+            <div class="yin"></div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
