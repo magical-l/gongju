@@ -96,6 +96,28 @@ function nameOf(cp) {
 	return '';
 }
 
+/** 把搜索词解析为 unicode 码点；不支持或不合法返回 null
+ *  支持：U+1F600 / 0x1F600 / &#128512; / &#x1F600;，也支持裸码点（如 1F600、4E2D、face）
+ *  裸码点为纯 hex 2-6 位（含纯字母单词，接受英文词误触发——关键词搜索仍会继续并集）；纯数字先按十六进制、越界回退十进制（如 128512） */
+function parseCodePointQuery(q) {
+	let m = /^(?:u\+|0x)([0-9a-f]{1,6})$/i.exec(q)
+		|| /^&#(?:x([0-9a-f]{1,6})|([0-9]{1,7}));?$/i.exec(q);
+	let cp;
+	if (m) {
+		cp = m[1] !== undefined ? parseInt(m[1], 16) : parseInt(m[2], 10);
+	} else {
+		if (!/^[0-9a-f]{2,6}$/i.test(q)) return null;
+		cp = parseInt(q, 16);
+		if (cp > 0x10FFFF) {
+			if (!/^[0-9]+$/.test(q)) return null; // 混合字母且 hex 越界 → 无效
+			cp = parseInt(q, 10); // 十六进制越界回退十进制
+		}
+	}
+	// 越界或落在 UTF-16 代理区（无实际字符，fromCodePoint 会抛错）判为无效
+	if (cp > 0x10FFFF || (cp >= 0xD800 && cp <= 0xDFFF)) return null;
+	return { cp };
+}
+
 /** 码位 → 中文名：SYMBOL_MAP 人工名优先，未命中二分查 中文名.json，都没有返回 '' */
 function zhNameOf(cp) {
 	const sc = SYMBOL_MAP.get(String.fromCodePoint(cp));
@@ -478,6 +500,13 @@ const app = createApp({
 			if (!q) return [];
 			const out = [];
 			const seen = new Set();
+			// unicode 码 / HTML 数字转义 / 裸码点：解析到码点则加入结果开头，但不阻断后续关键词匹配（并集，多搜点）
+			const cpq = parseCodePointQuery(q);
+			if (cpq) {
+				const cp = cpq.cp;
+				out.push({ char: String.fromCodePoint(cp), cp, zhName: zhNameOf(cp), officialName: nameOf(cp) });
+				seen.add(cp);
+			}
 			for (const [char, meta] of SYMBOL_MAP) {
 				if (char === q) {
 					const cp = char.codePointAt(0);
@@ -907,6 +936,9 @@ const app = createApp({
 				const key = arr[0].codePointAt(0) + '-' + arr[1].codePointAt(0);
 				if (SEQ_INDEX.has(key)) this.selectFlag(arr.map(x => x.codePointAt(0)));
 			}
+			// unicode 码 / HTML 转义：解析到码点直接选中详情，与输入单字符一致
+			const cpq = parseCodePointQuery(s);
+			if (cpq) this.selectChar(cpq.cp);
 		}
 	}
 }).use(ElementPlus).mount('main>article');
