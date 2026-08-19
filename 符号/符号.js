@@ -494,7 +494,7 @@ const app = createApp({
 			}
 			return out;
 		},
-		/** 关键词命中的符号（char 完全匹配最前，其余搜中文名/别名/英文名，返回全部命中；旗序列按中英名匹配；所属标签简介含关键词也命中） */
+		/** 关键词命中的符号（char 完全匹配最前，其余搜中文名/别名/英文名，返回全部命中；旗序列按中英名匹配） */
 		matchedChars() {
 			const raw = this.searchQuery.trim();
 			const q = raw.toLowerCase();
@@ -549,24 +549,6 @@ const app = createApp({
 				if (!t.node.seqs) continue;
 				for (const s of t.node.seqs) {
 					if (!String(s[2] || '').toLowerCase().includes(q) && !String(s[3] || '').toLowerCase().includes(q)) continue;
-					const key = 'seq:' + s[0] + '-' + s[1];
-					if (seen.has(key)) continue;
-					seen.add(key);
-					out.push({ char: String.fromCodePoint(s[0], s[1]), cp: [s[0], s[1]], zhName: s[2] || '', officialName: s[3] || '' });
-				}
-			}
-			// 所属标签简介关键词匹配：标签简介含关键词的字符也命中（枚举该标签全部成员）
-			for (const t of FLAT) {
-				if (!t.node.intro || !t.node.intro.toLowerCase().includes(q)) continue;
-				const m = collectNodeMembers(t.node);
-				for (const [lo, hi] of m.ranges) {
-					for (let cp = lo; cp <= hi; cp++) {
-						if (seen.has(cp)) continue;
-						seen.add(cp);
-						out.push({ char: String.fromCodePoint(cp), cp, zhName: zhNameOf(cp), officialName: nameOf(cp) });
-					}
-				}
-				for (const s of m.seqs) {
 					const key = 'seq:' + s[0] + '-' + s[1];
 					if (seen.has(key)) continue;
 					seen.add(key);
