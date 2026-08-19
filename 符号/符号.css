@@ -7,6 +7,9 @@
 }
 
 /* ===== 文章三栏布局 ===== */
+:root {
+	--sym-font-stack: sans-serif, "Noto Sans Symbols 2";
+}
 .symbol-page {
 	display: flex;
 	flex-direction: column;
@@ -271,12 +274,21 @@
 .char-grid .char .char-symbol {
 	font-size: 28px;
 	line-height: 1.2;
-	font-family: 'Noto Sans Symbols 2',sans-serif;
+	font-family: var(--sym-font-stack);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	gap: 2px;
 	height: 36px;
+}
+
+.char-grid .char .char-symbol.tofu {
+	font-size: 11px;
+	line-height: 1.35;
+	color: #bbb;
+	font-family: sans-serif;
+	white-space: normal;
+	text-align: center;
 }
 
 .char-grid .char .char-name {
@@ -470,6 +482,12 @@
 	& .symbol-char {
 		font-family: 'Noto Sans Symbols 2', sans-serif;
 		margin: 0 2px;
+	}
+
+	& .tofu-tip {
+		margin-top: 4px;
+		font-size: 12px;
+		color: #e6a23c;
 	}
 
 	& .panel-title {

@@ -170,8 +170,8 @@ function tagsOf(cp) {
 /** 回退字体列表：queryLocalFonts 不可用时的预定义备用字体（优先符号覆盖广的） */
 const FALLBACK_SYMBOL_FONTS = [
 	'Noto Sans Symbols 2',
-	'Segoe UI Symbol',
 	'Segoe UI Emoji',
+	'Segoe UI Symbol',
 	'Arial Unicode MS',
 	'Arial',
 	'Microsoft Sans Serif',
@@ -188,33 +188,122 @@ const FALLBACK_SYMBOL_FONTS = [
 	'Noto Sans CJK SC',
 ];
 
-/**
- * 检测指定字体能否渲染指定字符（Canvas measureText 双重校验法）
- * 与 serif、monospace 两个 fallback 都不同 → 判为能渲染
- * 同时验证字体是否已安装 + 字符是否缺失（tofu）
- */
-function canRender(char, fontName, cache) {
-	const key = `${fontName}::${char}`;
-	if (cache[key] !== undefined) return cache[key];
+/** 构建渲染栈：系统默认优先（sans-serif 触发系统回退链）+ families 居中 + 内嵌 Noto 兜底 */
+function buildFontStack(families) {
+	const seen = new Set();
+	const quoted = ['sans-serif'];
+	for (const f of families) {
+		if (!f || seen.has(f)) continue;
+		seen.add(f);
+		quoted.push('"' + String(f).replace(/"/g, '') + '"');
+	}
+	quoted.push('"Noto Sans Symbols 2"');
+	return quoted.join(', ');
+}
 
-	const canvas = document.createElement('canvas');
-	const ctx = canvas.getContext('2d');
-	const size = 72;
+/** 全量渲染栈（含内嵌 Noto） */
+let FULL_FONT_STACK = buildFontStack(FALLBACK_SYMBOL_FONTS);
 
-	// 测两个 fallback 基准宽度
-	ctx.font = `${size}px serif`;
-	const wSerif = ctx.measureText(char).width;
-	ctx.font = `${size}px monospace`;
-	const wMono = ctx.measureText(char).width;
-	const fallbackDiff = Math.abs(wSerif - wMono);
+/** 更新显示字体栈 + CSS 变量。families 为完整字体名列表（Task 5 动态枚举后调用）。
+ *  注意：不清渲染缓存——检测结果与显示栈解耦（豆腐块检测走硬编码空栈），清缓存会使已判豆腐块的字符丢标记。 */
+function setFontStacks(families) {
+	FULL_FONT_STACK = buildFontStack(families);
+	document.documentElement.style.setProperty('--sym-font-stack', FULL_FONT_STACK);
+}
 
-	// 测目标字体
-	ctx.font = `${size}px "${fontName}", "${fontName}", serif`;
-	const wTarget = ctx.measureText(char).width;
+/** noto-cmap.json：Noto 覆盖的码位区间（升序、相邻合并） */
+let TOFU_NOTO = null;
+/** 豆腐块模板像素（空栈渲染私有区所得）及其有效性 */
+let TOFU_TEMPLATE = null;
+let TOFU_TEMPLATE_OK = false;
+/** 模板候选私有区（相邻中性 PUA：几乎不被任何系统字体映射 → 必画 .notdef；不用 F8FF——macOS 映射 Apple logo） */
+const TOFU_CANDIDATES = [0xE000, 0xE001, 0xE002];
 
-	const threshold = Math.max(1, fallbackDiff * 0.2);
-	cache[key] = Math.abs(wTarget - wSerif) > threshold && Math.abs(wTarget - wMono) > threshold;
-	return cache[key];
+/** 正向白名单·系统必含（跳过检测，直接判能渲染） */
+const ALWAYS_RENDERABLE = [
+	[0x0000, 0x024f], [0x0370, 0x04ff], [0x1e00, 0x1eff],
+	[0x2000, 0x22ff], [0x2500, 0x26ff], [0x3000, 0x303f],
+	[0x4e00, 0x9fff], [0xac00, 0xd7af], [0xf900, 0xfaff], [0xff00, 0xffef],
+	[0x1f000, 0x1faff],
+];
+/** 反向白名单·肯定豆腐块（跳过检测，直接判不支持） */
+const ALWAYS_TOFU = [
+	[0xe000, 0xf8ff], [0xf0000, 0xffffd], [0x100000, 0x10fffd],
+];
+
+/** 完整渲染能力缓存（Noto 或 本机） / 本机渲染能力缓存（不含 Noto） */
+const FULL_CACHE = new Map();
+const LOCAL_CACHE = new Map();
+
+/** 升序区间列表二分查询 */
+function inRangesList(ranges, cp) {
+	if (!ranges || !ranges.length) return false;
+	let lo = 0, hi = ranges.length - 1;
+	while (lo <= hi) {
+		const mid = (lo + hi) >> 1;
+		const [a, b] = ranges[mid];
+		if (cp < a) hi = mid - 1;
+		else if (cp > b) lo = mid + 1;
+		else return true;
+	}
+	return false;
+}
+/** Noto 是否含此码位（离线精确） */
+function notoHas(cp) {
+	return !!TOFU_NOTO && inRangesList(TOFU_NOTO.ranges, cp);
+}
+
+/** 空栈渲染到像素数组（__nonexistent__ + serif → 系统默认字体回退链） */
+const _tofuCanvas = (() => { const c = document.createElement('canvas'); c.width = 200; c.height = 100; return c; })();
+function _emptyStackData(char) {
+	const ctx = _tofuCanvas.getContext('2d');
+	ctx.clearRect(0, 0, 200, 100);
+	ctx.fillStyle = '#000';
+	ctx.font = '72px "__nonexistent__", serif';
+	ctx.fillText(char, 30, 60);
+	return ctx.getImageData(0, 0, 200, 100).data;
+}
+function _samePixels(a, b) {
+	for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+	return true;
+}
+
+/** 生成豆腐块模板：多个私有区渲染一致才启用（防用户装了私有字体致模板失真） */
+function initTofuTemplate() {
+	const first = _emptyStackData(String.fromCodePoint(TOFU_CANDIDATES[0]));
+	let ok = true;
+	for (let i = 1; i < TOFU_CANDIDATES.length; i++) {
+		if (!_samePixels(first, _emptyStackData(String.fromCodePoint(TOFU_CANDIDATES[i])))) { ok = false; break; }
+	}
+	if (ok) { TOFU_TEMPLATE = first; TOFU_TEMPLATE_OK = true; }
+}
+
+/** 本机（系统默认，不含 Noto）能否渲染单码位：白名单优先，否则豆腐块模板比对 */
+function _localCan(cp) {
+	if (inRangesList(ALWAYS_RENDERABLE, cp)) return true;
+	if (inRangesList(ALWAYS_TOFU, cp)) return false;
+	if (!TOFU_TEMPLATE_OK) return true; // 模板无效保守判能渲染
+	try {
+		return !_samePixels(_emptyStackData(String.fromCodePoint(cp)), TOFU_TEMPLATE);
+	} catch (e) { return true; }
+}
+
+/** 完整渲染能力（Noto 或 本机）能否渲染：目的1 替代显示用 */
+async function checkRenderable(cp) {
+	const char = String.fromCodePoint(cp);
+	if (FULL_CACHE.has(char)) return FULL_CACHE.get(char);
+	const ok = notoHas(cp) ? true : _localCan(cp);
+	FULL_CACHE.set(char, ok);
+	return ok;
+}
+
+/** 本机（不含 Noto）能否渲染：目的2 四象限"本机含"用 */
+async function checkLocalRenderable(cp) {
+	const char = String.fromCodePoint(cp);
+	if (LOCAL_CACHE.has(char)) return LOCAL_CACHE.get(char);
+	const ok = _localCan(cp);
+	LOCAL_CACHE.set(char, ok);
+	return ok;
 }
 
 /** 枚举本机所有可用字体 */
@@ -297,6 +386,8 @@ const app = createApp({
 			searchQuery: '',
 			selectedTag: null,
 			selectedChar: null,
+			detailTofu: false, // 选中字符是否渲染不出（详情替代显示）
+			detailAdvice: '', // 详情区四象限建议（Noto 含 + 本机不含 → 提示装 Noto）
 			gridPage: 1, // 网格当前页码
 			gridPageSize: CAP, // 网格每页大小
 			searchPage: 1, // 搜索视图页码
@@ -307,6 +398,7 @@ const app = createApp({
 			fontList: [],
 			selectedPreviewFont: '',
 			fontAffectsAll: true,
+			fontPermDone: false,
 		};
 	},
 	computed: {
@@ -466,10 +558,12 @@ const app = createApp({
 			this.gridPage = 1;
 			this.selectedTag = tag;
 			if (this.gridItems.length) this.selectItem(this.gridItems[0]);
+			if (this.gridItems.length) this.refreshRenderability(this.gridItems);
 		},
 		/** 翻页：更新页码；若当前选中项不在新页，自动选中新页第一个（保持预览与列表一致） */
 		onGridPageChange(page) {
 			this.gridPage = page;
+			if (this.gridItems.length) this.refreshRenderability(this.gridItems);
 			if (!this.selectedChar) return;
 			const curKey = this.cellKey(this.selectedChar.cp);
 			if (!this.gridItems.some(item => this.cellKey(item) === curKey) && this.gridItems.length) {
@@ -479,6 +573,7 @@ const app = createApp({
 		/** 搜索符号匹配翻页 */
 		onSearchPageChange(page) {
 			this.searchPage = page;
+			if (this.searchChars.length) this.refreshRenderability(this.searchChars.map(mc => mc.cp));
 		},
 		/** 网格条目分发：旗序列（数组）走 selectFlag，单码位走 selectChar */
 		selectItem(item) {
@@ -508,7 +603,26 @@ const app = createApp({
 				codeStr: cp.toString(16).toUpperCase(),
 				htmlEntity: '&#' + cp + ';'
 			};
+			// 详情替代显示检测：旗序列跳过；异步结果回来时用 JSON.stringify 比对防竞态
+			this.detailTofu = false;
+			if (!Array.isArray(cp)) {
+				checkRenderable(cp).then(ok => {
+					if (this.selectedChar && JSON.stringify(this.selectedChar.cp) === JSON.stringify(cp)) this.detailTofu = !ok;
+				});
+			}
+			// 详情区四象限建议：Noto 含 + 本机不含 → 提示装 Noto（旗序列跳过）
+			this.detailAdvice = '';
+			this.refreshDetailAdvice(cp);
 			if (this.fontSizeAutoFit) this.adjustFontSize();
+		},
+		/** 详情区四象限建议：Noto 含 + 本机不含 → 提示装 Noto（旗序列跳过；异步结果回来时用 JSON.stringify 比对防竞态） */
+		async refreshDetailAdvice(cp) {
+			if (Array.isArray(cp)) { this.detailAdvice = ''; return; } // 旗序列不做建议
+			if (!notoHas(cp)) { this.detailAdvice = ''; return; }      // Noto 不含：本机有则 v1 不提示，都无则替代显示已提示
+			const localOk = await checkLocalRenderable(cp);
+			if (this.selectedChar && JSON.stringify(this.selectedChar.cp) === JSON.stringify(cp)) {
+				this.detailAdvice = localOk ? '' : '此字符需 Noto Sans Symbols 2 字体，装它才能在别处显示';
+			}
 		},
 		/** 选中旗序列 [cp1,cp2]：查 SEQ_INDEX 取名，tags 按双码位匹配 */
 		selectFlag(seq) {
@@ -525,6 +639,9 @@ const app = createApp({
 				codeStr: cp1.toString(16).toUpperCase() + ' ' + cp2.toString(16).toUpperCase(),
 				htmlEntity: '&#' + cp1 + ';&#' + cp2 + ';'
 			};
+			// 旗序列恒可渲染：仅重置详情替代态与建议，不触发检测
+			this.detailTofu = false;
+			this.detailAdvice = '';
 			if (this.fontSizeAutoFit) this.adjustFontSize();
 		},
 		/** 按名字选标签（取 FLAT 第一个同名且有成员的） */
@@ -560,6 +677,30 @@ const app = createApp({
 		/** 网格条目渲染文本 */
 		cellText(item) {
 			return this.isFlag(item) ? String.fromCodePoint(...item) : String.fromCodePoint(item);
+		},
+		/** 网格条目能否渲染：旗序列恒 true；单码位查 FULL_CACHE（未检测/能渲染 → true） */
+		renderable(item) {
+			if (this.isFlag(item)) return true;
+			const v = FULL_CACHE.get(this.cellText(item));
+			return v !== false;
+		},
+		/** 对条目列表批量发起可渲染性检测（仅未缓存单码位），完成后重渲染 */
+		async refreshRenderability(items) {
+			const singles = [];
+			for (const it of items) {
+				if (this.isFlag(it)) continue;
+				const cp = it;
+				if (FULL_CACHE.has(this.cellText(it))) continue;
+				singles.push(cp);
+			}
+			// 分批检测：每 50 个让出事件循环（setTimeout 为宏任务，渲染/输入可在批间处理），
+			// 避免 500 字符单次同步跑满（每字符 200×100 getImageData + 逐字节比对）
+			for (let i = 0; i < singles.length; i += 50) {
+				const batch = singles.slice(i, i + 50);
+				await Promise.all(batch.map(cp => checkRenderable(cp)));
+				await new Promise(r => setTimeout(r, 0));
+			}
+			this.$forceUpdate();
 		},
 		/** 网格条目唯一 key（旗加 's' 前缀防与数字码位混淆） */
 		cellKey(item) {
@@ -686,6 +827,32 @@ const app = createApp({
 			this.fontList = families.length > 0 ? families : FALLBACK_SYMBOL_FONTS;
 		},
 
+		/** 字体选择器区域用户交互时申请 queryLocalFonts 授权：更新显示渲染栈 + 字体列表 */
+		async requestFontPerm() {
+			if (this.fontPermDone) return;
+			try {
+				// Chrome 151+ 挂 window，旧版挂 navigator。WebIDL 方法对 this 有品牌检查，
+				// 须先判断挂在谁身上、以正确的 receiver 调用，避免 Illegal invocation 被吞
+				let raw;
+				if (typeof window.queryLocalFonts === 'function') {
+					raw = await window.queryLocalFonts();
+				} else if (typeof navigator.queryLocalFonts === 'function') {
+					raw = await navigator.queryLocalFonts();
+				} else {
+					return; // API 不可用
+				}
+				const families = [...new Set(raw.map(f => f.family))].sort((a, b) => a.localeCompare(b));
+				// 仅成功枚举到字体才置完成标记；拒绝/失败保持 false 可重试
+				if (families.length) {
+					setFontStacks(families);
+					this.fontList = families;
+					this.fontPermDone = true;
+				}
+			} catch (e) {
+				// 用户拒绝授权或 API 不可用 → 保持当前（静态降级）栈，静默；fontPermDone 仍为 false 可重试
+			}
+		},
+
 		/** 获取字体的 style 对象，用于在选项内预览字符；空字体回退 Noto */
 		fontStyle(fontName) {
 			if (!fontName) return {};
@@ -697,7 +864,8 @@ const app = createApp({
 			const [tags, names, zhnames] = await Promise.all([
 				fetch('标签.json').then(r => r.json()),
 				fetch('名字.json').then(r => r.json()),
-				fetch('中文名.json').then(r => r.json())
+				fetch('中文名.json').then(r => r.json()),
+				fetch('noto-cmap.json').then(r => r.json()).then(d => { TOFU_NOTO = d; }).catch(() => {})
 			]);
 			TAGS = tags;
 			NAMES = names;
@@ -705,6 +873,9 @@ const app = createApp({
 			for (const [name, node] of Object.entries(TAGS.roots)) flatten(name, node, name);
 			buildSymbolMap();
 			this.loading = false;
+			// 豆腐块模板须在首次 selectTag（触发 refreshRenderability 检测）之前生成，
+			// 否则模板未就绪时白名单外全判能渲染并缓存，后续不复检
+			initTofuTemplate();
 			// 默认标签：优先一个能看懂的脸部 emoji 标签
 			const def = FLAT.find(t => t.name === '表情、脸')
 				|| FLAT.find(t => t.name === '表情、情绪')
@@ -715,6 +886,7 @@ const app = createApp({
 			ElementPlus.ElMessage.error('标签数据加载失败：' + err);
 			this.loading = false;
 		}
+		setFontStacks(FALLBACK_SYMBOL_FONTS);
 		this.initFontList();
 		this.$nextTick(() => {
 			this.adjustFontSize();
