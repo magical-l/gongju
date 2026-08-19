@@ -303,6 +303,11 @@
 	white-space: normal;
 	overflow-wrap: anywhere;
 	text-align: center;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	overflow: hidden;
+	min-height: 28.6px;
 }
 
 .char-grid .char:hover {
