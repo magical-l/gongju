@@ -291,6 +291,10 @@
 	text-align: center;
 }
 
+.char-grid .char .char-symbol .tofu-pending {
+	visibility: hidden;
+}
+
 .char-grid .char .char-name {
 	max-width: 100%;
 	font-size: 11px;

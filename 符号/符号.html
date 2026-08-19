@@ -98,15 +98,16 @@
 							<h3 class="category-name">符号匹配（{{ matchedChars.length }}）</h3>
 							<div class="char-grid" v-if="matchedChars.length">
 								<div class="char" v-for="mc in searchChars" :key="cellKey(mc.cp)" :class="{ sel: isSelected(mc.cp), 'has-variants': itemDual(mc.cp) }" :title="searchTitle(mc)" @click="selectItem(mc.cp)">
-									<span class="char-symbol" :class="{ tofu: !renderable(mc.cp) }">
-										<template v-if="renderable(mc.cp)">
+									<span class="char-symbol" :class="{ tofu: renderState(mc.cp) === false }">
+										<template v-if="renderState(mc.cp) === true">
 											<template v-if="itemDual(mc.cp)">
 												<span class="variant text vs-text" @click.stop="copyGridVariant(mc.cp, 'text')">{{ cellText(mc.cp) }}</span>
 												<span class="variant emoji" @click.stop="copyGridVariant(mc.cp, 'emoji')">{{ cellText(mc.cp) }}</span>
 											</template>
 											<template v-else>{{ cellText(mc.cp) }}</template>
 										</template>
-										<span v-else class="tofu-hint">当前字体不支持</span>
+										<span v-else-if="renderState(mc.cp) === false" class="tofu-hint">当前字体不支持</span>
+										<span v-else class="tofu-pending" aria-hidden="true"></span>
 									</span>
 									<span class="char-name">{{ mc.zhName || mc.officialName || '' }}</span>
 								</div>
@@ -120,15 +121,16 @@
 							<div class="grid-intro" v-if="selectedTag && selectedTag.node && selectedTag.node.intro">{{ selectedTag.node.intro }}</div>
 							<div class="char-grid" v-if="selectedTag && gridItems.length">
 								<div class="char" v-for="item in gridItems" :key="cellKey(item)" :class="{ sel: isSelected(item), 'has-variants': itemDual(item) }" :title="itemTitle(item)" @click="selectItem(item)">
-									<span class="char-symbol" :class="{ tofu: !renderable(item) }">
-										<template v-if="renderable(item)">
+									<span class="char-symbol" :class="{ tofu: renderState(item) === false }">
+										<template v-if="renderState(item) === true">
 											<template v-if="itemDual(item)">
 												<span class="variant text vs-text" @click.stop="copyGridVariant(item, 'text')">{{ cellText(item) }}</span>
 												<span class="variant emoji" @click.stop="copyGridVariant(item, 'emoji')">{{ cellText(item) }}</span>
 											</template>
 											<template v-else>{{ cellText(item) }}</template>
 										</template>
-										<span v-else class="tofu-hint">当前字体不支持</span>
+										<span v-else-if="renderState(item) === false" class="tofu-hint">当前字体不支持</span>
+										<span v-else class="tofu-pending" aria-hidden="true"></span>
 									</span>
 									<span class="char-name">{{ gridItemName(item) }}</span>
 								</div>

@@ -707,11 +707,11 @@ const app = createApp({
 		cellText(item) {
 			return this.isFlag(item) ? String.fromCodePoint(...item) : String.fromCodePoint(item);
 		},
-		/** 网格条目能否渲染：旗序列恒 true；单码位查 FULL_CACHE（未检测/能渲染 → true） */
-		renderable(item) {
+		/** 渲染态：true=能渲染, false=当前字体不支持, null=检测中（占位，不显示豆腐块） */
+		renderState(item) {
 			if (this.isFlag(item)) return true;
 			const v = FULL_CACHE.get(this.cellText(item));
-			return v !== false;
+			return v === undefined ? null : v;
 		},
 		/** 对条目列表批量发起可渲染性检测（仅未缓存单码位），完成后重渲染 */
 		async refreshRenderability(items) {
@@ -939,6 +939,10 @@ const app = createApp({
 			// unicode 码 / HTML 转义：解析到码点直接选中详情，与输入单字符一致
 			const cpq = parseCodePointQuery(s);
 			if (cpq) this.selectChar(cpq.cp);
+		},
+		// 搜索符号匹配变化 → 预检测渲染能力（未检测字符置占位，不闪豆腐块）
+		searchChars(nv) {
+			if (nv.length) this.refreshRenderability(nv.map(mc => mc.cp));
 		}
 	}
 }).use(ElementPlus).mount('main>article');
