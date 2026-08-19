@@ -496,7 +496,8 @@ const app = createApp({
 		},
 		/** 关键词命中的符号（char 完全匹配最前，其余搜中文名/别名/英文名，返回全部命中；旗序列按中英名匹配；所属标签简介含关键词也命中） */
 		matchedChars() {
-			const q = this.searchQuery.trim().toLowerCase();
+			const raw = this.searchQuery.trim();
+			const q = raw.toLowerCase();
 			if (!q) return [];
 			const out = [];
 			const seen = new Set();
@@ -507,12 +508,20 @@ const app = createApp({
 				out.push({ char: String.fromCodePoint(cp), cp, zhName: zhNameOf(cp), officialName: nameOf(cp) });
 				seen.add(cp);
 			}
-			for (const [char, meta] of SYMBOL_MAP) {
-				if (char === q) {
-					const cp = char.codePointAt(0);
-					out.push({ char, cp, zhName: zhNameOf(cp), officialName: nameOf(cp) });
-					seen.add(cp);
-					break;
+			// 单字符输入：该字符本身直接置顶（不经 SYMBOL_MAP，覆盖普通字母/符号如 a、A、😀，且保留原大小写）
+			const single = Array.from(raw);
+			if (single.length === 1) {
+				const cp = single[0].codePointAt(0);
+				out.push({ char: single[0], cp, zhName: zhNameOf(cp), officialName: nameOf(cp) });
+				seen.add(cp);
+			} else {
+				for (const [char, meta] of SYMBOL_MAP) {
+					if (char === q) {
+						const cp = char.codePointAt(0);
+						out.push({ char, cp, zhName: zhNameOf(cp), officialName: nameOf(cp) });
+						seen.add(cp);
+						break;
+					}
 				}
 			}
 			for (const [char, meta] of SYMBOL_MAP) {
