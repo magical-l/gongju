@@ -194,20 +194,8 @@ const FALLBACK_SYMBOL_FONTS = [
 	'Noto Sans Symbols 2',
 	'Segoe UI Emoji',
 	'Segoe UI Symbol',
-	'Arial Unicode MS',
-	'Arial',
-	'Microsoft Sans Serif',
-	'Lucida Sans Unicode',
 	'Consolas',
-	'Courier New',
-	'Microsoft YaHei',
-	'DengXian',
-	'SimSun-ExtB',
-	'NSimSun',
-	'Yu Gothic',
-	'Meiryo',
-	'Malgun Gothic',
-	'Noto Sans CJK SC',
+	'Lucida Sans Unicode',
 ];
 
 /** 构建渲染栈：系统默认优先（sans-serif 触发系统回退链）+ families 居中 + 内嵌 Noto 兜底 */
@@ -328,23 +316,6 @@ async function checkLocalRenderable(cp) {
 	return ok;
 }
 
-/** 枚举本机所有可用字体 */
-async function enumerateFonts(fallbackList) {
-	// 优先 queryLocalFonts（Chrome 103+，需用户手势触发权限）
-	try {
-		if ('queryLocalFonts' in navigator) {
-			const raw = await navigator.queryLocalFonts();
-			const families = [...new Set(raw.map(f => f.family))];
-			return families.sort((a, b) => a.localeCompare(b));
-		}
-	} catch (e) {
-		// 权限拒绝或 API 不可用，静默降级
-	}
-
-	// 回退：用预定义列表
-	return fallbackList;
-}
-
 /** 左侧标签树节点：原生 details/summary 递归组件（展开/折叠交给浏览器原生，点击选中由 select 事件上抛） */
 const TagTreeNode = {
 	name: 'TagTreeNode',
@@ -420,7 +391,6 @@ const app = createApp({
 			fontList: [],
 			selectedPreviewFont: '',
 			fontAffectsAll: true,
-			fontPermDone: false,
 		};
 	},
 	computed: {
@@ -433,7 +403,7 @@ const app = createApp({
 		},
 		symbolStyle() {
 			if (!this.selectedPreviewFont) return {}; // 无字体时走 CSS 默认 Noto
-			return { fontFamily: '"' + this.selectedPreviewFont + '", "Noto Sans Symbols 2", sans-serif' };
+			return { fontFamily: '"' + this.selectedPreviewFont + '"' }; // 显式选字体：只用该字体渲染，不覆盖则显示豆腐块
 		},
 		previewFontPt() {
 			return Math.round(this.previewFontSize * 12);
@@ -841,42 +811,36 @@ const app = createApp({
 
 		// ===== 字体切换 =====
 
-		/** 初始化字体列表（先加载回退列表，dropdown 打开时再尝试 queryLocalFonts） */
 		async initFontList() {
-			const families = await enumerateFonts(FALLBACK_SYMBOL_FONTS);
-			this.fontList = families.length > 0 ? families : FALLBACK_SYMBOL_FONTS;
+			this.fontList = FALLBACK_SYMBOL_FONTS;
 		},
 
-		/** 字体选择器区域用户交互时申请 queryLocalFonts 授权：更新显示渲染栈 + 字体列表 */
-		async requestFontPerm() {
-			if (this.fontPermDone) return;
+		/** 加载本机所有字体到切换列表（只改列表，不改渲染栈） */
+		async loadLocalFonts() {
 			try {
-				// Chrome 151+ 挂 window，旧版挂 navigator。WebIDL 方法对 this 有品牌检查，
-				// 须先判断挂在谁身上、以正确的 receiver 调用，避免 Illegal invocation 被吞
 				let raw;
 				if (typeof window.queryLocalFonts === 'function') {
 					raw = await window.queryLocalFonts();
 				} else if (typeof navigator.queryLocalFonts === 'function') {
 					raw = await navigator.queryLocalFonts();
 				} else {
-					return; // API 不可用
+					ElementPlus.ElMessage.warning('当前浏览器不支持枚举本机字体');
+					return;
 				}
 				const families = [...new Set(raw.map(f => f.family))].sort((a, b) => a.localeCompare(b));
-				// 仅成功枚举到字体才置完成标记；拒绝/失败保持 false 可重试
 				if (families.length) {
-					setFontStacks(families);
 					this.fontList = families;
-					this.fontPermDone = true;
+					ElementPlus.ElMessage.success('已加载 ' + families.length + ' 个本机字体');
 				}
 			} catch (e) {
-				// 用户拒绝授权或 API 不可用 → 保持当前（静态降级）栈，静默；fontPermDone 仍为 false 可重试
+				ElementPlus.ElMessage.warning('加载本机字体需要授权，已取消');
 			}
 		},
 
 		/** 获取字体的 style 对象，用于在选项内预览字符；空字体回退 Noto */
 		fontStyle(fontName) {
 			if (!fontName) return {};
-			return { fontFamily: '"' + fontName + '", "Noto Sans Symbols 2", sans-serif' };
+			return { fontFamily: '"' + fontName + '"' };
 		},
 	},
 	async mounted() {

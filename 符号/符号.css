@@ -8,7 +8,7 @@
 
 /* ===== 文章三栏布局 ===== */
 :root {
-	--sym-font-stack: sans-serif, "Noto Sans Symbols 2";
+	--sym-font-stack: sans-serif, "Noto Sans Symbols 2", "Segoe UI Emoji", "Segoe UI Symbol", "Consolas", "Lucida Sans Unicode";
 }
 .symbol-page {
 	display: flex;
@@ -91,7 +91,7 @@
 	}
 
 	& .char {
-		font-family: 'Noto Sans Symbols 2', sans-serif;
+		font-family: var(--sym-font-stack);
 		font-size: 1.8rem;
 		flex-basis: 40px;
 		display: flex;
@@ -368,7 +368,7 @@
 	& .char-preview {
 		font-size: 5rem;
 		text-align: center;
-		font-family: 'Noto Sans Symbols 2', sans-serif;
+		font-family: var(--sym-font-stack);
 		line-height: 1;
 		margin-bottom: 12px;
 	}
@@ -403,7 +403,7 @@
 		}
 
 		& .align-sym {
-			font-family: 'Noto Sans Symbols 2', sans-serif;
+			font-family: var(--sym-font-stack);
 			background: rgba(220, 38, 38, 0.07);
 		}
 	}
@@ -489,7 +489,7 @@
 	}
 
 	& .symbol-char {
-		font-family: 'Noto Sans Symbols 2', sans-serif;
+		font-family: var(--sym-font-stack);
 		margin: 0 2px;
 	}
 

@@ -216,13 +216,16 @@
 						<div class="none" v-else-if="selectedChar">未命中任何标签</div>
 						<div class="none" v-else>点击一个字符查看所属标签</div>
 						<div class="panel-title">字体切换</div>
-						<div class="font-selector" @click="requestFontPerm">
+						<div class="font-selector">
 							<div class="font-radio-list">
 								<label class="font-radio-item" v-for="font in fontList" :key="font" :class="{ active: selectedPreviewFont === font }">
 									<input type="radio" name="preview-font" :value="font" v-model="selectedPreviewFont">
 									<span class="font-sample-char" :style="fontStyle(font)">{{ selectedChar ? selectedChar.char : '？' }}</span>
 									<span class="font-option-name">{{ font }}</span>
 								</label>
+							</div>
+							<div class="font-local-load">
+								<el-button size="small" @click="loadLocalFonts">加载本机字体</el-button>
 							</div>
 							<el-checkbox v-model="fontAffectsAll" class="font-affect-all">参考文本使用相同字体</el-checkbox>
 						</div>
