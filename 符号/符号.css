@@ -557,6 +557,10 @@
 			margin-top: 8px;
 			width: 100%;
 		}
+		& .font-local-load {
+			display: flex;
+			gap: 8px;
+		}
 		& .font-radio-list {
 			max-height: 200px;
 			overflow-y: auto;

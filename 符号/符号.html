@@ -229,6 +229,7 @@
 							</div>
 							<div class="font-local-load">
 								<el-button size="small" @click="loadLocalFonts">加载本机字体</el-button>
+								<el-button size="small" :disabled="!selectedPreviewFont" @click="clearPreviewFont" title="清除选中的字体，回归默认字体栈">恢复默认字体</el-button>
 							</div>
 							<el-checkbox v-model="fontAffectsAll" class="font-affect-all">参考文本使用相同字体</el-checkbox>
 						</div>

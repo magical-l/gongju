@@ -867,6 +867,10 @@ const app = createApp({
 			if (!fontName) return {};
 			return { fontFamily: '"' + fontName + '"' };
 		},
+		/** 清除选中字体，回归默认字体栈 */
+		clearPreviewFont() {
+			this.selectedPreviewFont = '';
+		},
 	},
 	async mounted() {
 		try {
