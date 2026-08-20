@@ -79,21 +79,38 @@ function collectNodeMembers(node) {
 	return { ranges: mergeRanges(ranges), seqs };
 }
 
-/** 码位 → 官方英文名：先二分查 names（严格升序），未命中扫 patterns，都没有返回 '' */
+/** 是否 C0/C1 控制码（不可见；与 官方分类/控制字符 标签的 ranges 同源） */
+function isControlCode(cp) {
+	return cp < 0x20 || (cp >= 0x7F && cp <= 0x9F);
+}
+
+/** 无名字码点分类：C0/C1 控制字符 / 私用区（含补充平面）/ 其余（未分配、非字符等） */
+function unnamedKind(cp) {
+	if (isControlCode(cp)) return 'control';
+	if ((cp >= 0xE000 && cp <= 0xF8FF) || (cp >= 0xF0000 && cp <= 0xFFFFD) || (cp >= 0x100000 && cp <= 0x10FFFD)) return 'private';
+	return 'unassigned';
+}
+
+/** 码位 → 官方英文名：先二分查 names（严格升序），未命中扫 patterns；数据层无名的码点按分类给标签名兜底 */
 function nameOf(cp) {
-	if (!NAMES) return '';
-	let lo = 0, hi = NAMES.names.length - 1;
-	while (lo <= hi) {
-		const mid = (lo + hi) >> 1;
-		const c = NAMES.names[mid][0];
-		if (c === cp) return NAMES.names[mid][1];
-		if (c < cp) lo = mid + 1;
-		else hi = mid - 1;
+	if (NAMES) {
+		let lo = 0, hi = NAMES.names.length - 1;
+		while (lo <= hi) {
+			const mid = (lo + hi) >> 1;
+			const c = NAMES.names[mid][0];
+			if (c === cp) return NAMES.names[mid][1];
+			if (c < cp) lo = mid + 1;
+			else hi = mid - 1;
+		}
+		for (const [a, b, prefix] of NAMES.patterns) {
+			if (cp >= a && cp <= b) return prefix + cp.toString(16).toUpperCase();
+		}
 	}
-	for (const [a, b, prefix] of NAMES.patterns) {
-		if (cp >= a && cp <= b) return prefix + cp.toString(16).toUpperCase();
-	}
-	return '';
+	const h = cp.toString(16).toUpperCase();
+	const kind = unnamedKind(cp);
+	if (kind === 'control') return '<control-' + h + '>';
+	if (kind === 'private') return '<private-use-' + h + '>';
+	return '<unassigned-' + h + '>';
 }
 
 /** 把搜索词解析为 unicode 码点；不支持或不合法返回 null
@@ -118,23 +135,27 @@ function parseCodePointQuery(q) {
 	return { cp };
 }
 
-/** 码位 → 中文名：SYMBOL_MAP 人工名优先，未命中二分查 中文名.json，都没有返回 '' */
+/** 码位 → 中文名：SYMBOL_MAP 人工名优先，未命中二分查 中文名.json；数据层无中文名的码点按分类给中文名兜底 */
 function zhNameOf(cp) {
 	const sc = SYMBOL_MAP.get(String.fromCodePoint(cp));
 	if (sc && sc.names[0]) return sc.names[0];
-	if (!ZH_NAMES) return '';
-	let lo = 0, hi = ZH_NAMES.names.length - 1;
-	while (lo <= hi) {
-		const mid = (lo + hi) >> 1;
-		const c = ZH_NAMES.names[mid][0];
-		if (c === cp) return ZH_NAMES.names[mid][1];
-		if (c < cp) lo = mid + 1;
-		else hi = mid - 1;
+	if (ZH_NAMES) {
+		let lo = 0, hi = ZH_NAMES.names.length - 1;
+		while (lo <= hi) {
+			const mid = (lo + hi) >> 1;
+			const c = ZH_NAMES.names[mid][0];
+			if (c === cp) return ZH_NAMES.names[mid][1];
+			if (c < cp) lo = mid + 1;
+			else hi = mid - 1;
+		}
+		for (const [a, b, prefix] of ZH_NAMES.patterns) {
+			if (cp >= a && cp <= b) return prefix;
+		}
 	}
-	for (const [a, b, prefix] of ZH_NAMES.patterns) {
-		if (cp >= a && cp <= b) return prefix;
-	}
-	return '';
+	const kind = unnamedKind(cp);
+	if (kind === 'control') return '控制字符';
+	if (kind === 'private') return '私用区码点';
+	return '未分配码点';
 }
 
 /** 展平树：收集所有带 ranges/seqs 的节点及纯组节点（有子节点），并构建旗序列名映射 */
@@ -543,6 +564,10 @@ const app = createApp({
 		collectNode(node) {
 			return collectNodeMembers(node);
 		},
+		/** 是否 C0/C1 控制码（模板用，委托顶层同名函数） */
+		isControlCode(cp) {
+			return isControlCode(cp);
+		},
 		/** 选中标签：重置到第一页；网格非空则自动选中第一个条目（保持预览有内容） */
 		selectTag(tag) {
 			this.gridPage = 1;
@@ -646,19 +671,19 @@ const app = createApp({
 			this.searchQuery = '';
 			this.selectTag(t);
 		},
-		/** 字符格标题：中文名优先，英文名兜底 */
+		/** 字符格标题：中文名优先，英文名兜底；控制码前置标识 */
 		titleOf(cp) {
 			const zh = zhNameOf(cp);
-			if (zh) return zh + '\nU+' + cp.toString(16).toUpperCase();
+			if (zh) return (isControlCode(cp) ? '控制码 ' : '') + zh + '\nU+' + cp.toString(16).toUpperCase();
 			const nm = nameOf(cp);
 			return 'U+' + cp.toString(16).toUpperCase() + (nm ? '\n' + nm : '');
 		},
-		/** 搜索网格条目标题：中文名 + 官方名（无官方名时回退 U+ 码点，旗序列双码位） */
+		/** 搜索网格条目标题：中文名 + 官方名（无官方名时回退 U+ 码点，旗序列双码位）；控制码前置标识 */
 		searchTitle(mc) {
 			const code = Array.isArray(mc.cp)
 				? 'U+' + mc.cp.map(c => c.toString(16).toUpperCase()).join(' ')
 				: 'U+' + mc.cp.toString(16).toUpperCase();
-			return mc.zhName + '\n' + (mc.officialName || code);
+			return (isControlCode(mc.cp) ? '控制码 ' : '') + mc.zhName + '\n' + (mc.officialName || code);
 		},
 		/** 是否为旗序列条目（双码位数组） */
 		isFlag(item) {

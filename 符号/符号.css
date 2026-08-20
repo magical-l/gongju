@@ -309,6 +309,23 @@
 	overflow: hidden;
 	min-height: 28.6px;
 }
+.char-grid .char.is-ctrl {
+	border-style: dashed;
+	border-color: #a8bccb;
+	background: #f7fafc;
+}
+
+.char-grid .char .ctrl-badge {
+	font-size: 9px;
+	line-height: 1;
+	padding: 2px 4px;
+	border: 1px dashed #a8bccb;
+	border-radius: 3px;
+	color: #5f7a8d;
+	background: #f2f7fa;
+	white-space: nowrap;
+	margin-top: 2px;
+}
 
 .char-grid .char:hover {
 	outline: 2px solid #4a90d9;
@@ -426,6 +443,11 @@
 		& .official-name {
 			font-size: 12px;
 			color: var(--el-text-color-placeholder);
+			margin-top: 4px;
+		}
+		& .ctrl-tip {
+			font-size: 12px;
+			color: #7d93a5;
 			margin-top: 4px;
 		}
 		& .alias {

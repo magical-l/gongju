@@ -34,6 +34,9 @@ _L_JAMO = ['G', 'GG', 'N', 'D', 'DD', 'R', 'M', 'B', 'BB', 'S', 'SS', '',
 
 # UnicodeData 的 First/Last 标记名是缩写，官方名前缀要展开：
 # <CJK Ideograph> 实际前缀是 CJK UNIFIED IDEOGRAPH-（标记里没有 UNIFIED）。
+# field 10（Unicode 1.0 名）缺失的控制字符，补 ISO 6429 缩写
+CONTROL_ALIAS = {0x84: 'IND'}
+
 _IDEO_PREFIX = {
 	'CJK Ideograph': 'CJK UNIFIED IDEOGRAPH-',
 	'Tangut Ideograph': 'TANGUT IDEOGRAPH-',
@@ -73,9 +76,11 @@ def main():
 			if m:
 				key, edge = m.group(1), m.group(2)
 				if key == 'control':
-					# 控制字符：官方名在 field 10，空则无名
+					# 控制字符：官方名在 field 10，空则查 CONTROL_ALIAS（field 10 缺失的 ISO 6429 缩写），再空则无名
 					if parts[10]:
 						names[cp] = parts[10]
+					elif cp in CONTROL_ALIAS:
+						names[cp] = CONTROL_ALIAS[cp]
 				elif key == 'Hangul Syllable' and edge == 'First':
 					# 整段算法展开
 					for c in range(cp, cp + _SCOUNT):

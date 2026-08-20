@@ -97,7 +97,7 @@
 							<div class="none" v-else>无匹配标签</div>
 							<h3 class="category-name">符号匹配（{{ matchedChars.length }}）</h3>
 							<div class="char-grid" v-if="matchedChars.length">
-								<div class="char" v-for="mc in searchChars" :key="cellKey(mc.cp)" :class="{ sel: isSelected(mc.cp), 'has-variants': itemDual(mc.cp) }" :title="searchTitle(mc)" @click="selectItem(mc.cp)">
+								<div class="char" v-for="mc in searchChars" :key="cellKey(mc.cp)" :class="{ sel: isSelected(mc.cp), 'has-variants': itemDual(mc.cp), 'is-ctrl': isControlCode(mc.cp) }" :title="searchTitle(mc)" @click="selectItem(mc.cp)">
 									<span class="char-symbol" :class="{ tofu: renderState(mc.cp) === false }">
 										<template v-if="renderState(mc.cp) === true">
 											<template v-if="itemDual(mc.cp)">
@@ -110,6 +110,7 @@
 										<span v-else class="tofu-pending" aria-hidden="true"></span>
 									</span>
 									<span class="char-name">{{ mc.zhName || mc.officialName || '' }}</span>
+									<span v-if="isControlCode(mc.cp)" class="ctrl-badge">控制码</span>
 								</div>
 							</div>
 							<el-pagination v-if="searchPageCount > 1" class="grid-pager" layout="prev, pager, next" :total="matchedChars.length" :page-size="gridPageSize" :current-page="searchPage" @current-change="onSearchPageChange"></el-pagination>
@@ -120,7 +121,7 @@
 							<div class="gridhead" v-if="selectedTag"><span class="name">{{ selectedTag.name }}</span><span class="count">共 {{ selectedCount }} 个</span></div>
 							<div class="grid-intro" v-if="selectedTag && selectedTag.node && selectedTag.node.intro">{{ selectedTag.node.intro }}</div>
 							<div class="char-grid" v-if="selectedTag && gridItems.length">
-								<div class="char" v-for="item in gridItems" :key="cellKey(item)" :class="{ sel: isSelected(item), 'has-variants': itemDual(item) }" :title="itemTitle(item)" @click="selectItem(item)">
+								<div class="char" v-for="item in gridItems" :key="cellKey(item)" :class="{ sel: isSelected(item), 'has-variants': itemDual(item), 'is-ctrl': isControlCode(item) }" :title="itemTitle(item)" @click="selectItem(item)">
 									<span class="char-symbol" :class="{ tofu: renderState(item) === false }">
 										<template v-if="renderState(item) === true">
 											<template v-if="itemDual(item)">
@@ -133,6 +134,7 @@
 										<span v-else class="tofu-pending" aria-hidden="true"></span>
 									</span>
 									<span class="char-name">{{ gridItemName(item) }}</span>
+									<span v-if="isControlCode(item)" class="ctrl-badge">控制码</span>
 								</div>
 							</div>
 							<div class="grid-pager" v-if="selectedTag && gridPageCount > 1">
@@ -153,6 +155,7 @@
 								<span v-else class="symbol-char placeholder-char">？</span>
 							</div>
 							<div class="name">{{ selectedChar.zhName || selectedChar.officialName || selectedChar.char }}</div>
+							<div v-if="selectedChar && isControlCode(selectedChar.cp)" class="ctrl-tip">不可见控制码</div>
 							<div v-if="selectedChar && detailTofu" class="tofu-tip">当前字体不支持</div>
 							<div v-if="selectedChar && detailAdvice" class="tofu-tip">{{ detailAdvice }}</div>
 							<div v-if="selectedChar.officialName && selectedChar.officialName !== (selectedChar.zhName || selectedChar.officialName || selectedChar.char)" class="official-name">{{ selectedChar.officialName }}</div>
