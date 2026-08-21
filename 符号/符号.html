@@ -17,7 +17,7 @@
 	<link href="../css/layout.css" rel="stylesheet">
 	<link href="../resources/biz.css?v=250821" rel="stylesheet">
 	<link href="../css/花活.css" rel="stylesheet">
-	<link href="符号.css?v=260821" rel="stylesheet">
+	<link href="符号.css?v=260822" rel="stylesheet">
 </head>
 <body class="目字形">
 	<header>
@@ -119,6 +119,7 @@
 						<!-- 标签字符网格 -->
 						<template v-else>
 							<div class="gridhead" v-if="selectedTag"><span class="name">{{ selectedTag.name }}</span><span class="count">共 {{ selectedCount }} 个</span></div>
+							<div class="grid-alias" v-if="selectedTag && selectedTag.node && selectedTag.node.alias && selectedTag.node.alias.length">别名：{{ selectedTag.node.alias.join('、') }}</div>
 							<div class="grid-intro" v-if="selectedTag && selectedTag.node && selectedTag.node.intro">{{ selectedTag.node.intro }}</div>
 							<div class="char-grid" v-if="selectedTag && gridItems.length">
 								<div class="char" v-for="item in gridItems" :key="cellKey(item)" draggable="true" :class="{ sel: isSelected(item), 'has-variants': itemDual(item), 'is-ctrl': isControlCode(item) }" :title="itemTitle(item)" @click="selectItem(item)" @dragstart="onDragStart(item, $event)" @dragend="onDragEnd">
