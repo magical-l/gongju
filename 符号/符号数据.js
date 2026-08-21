@@ -2023,5 +2023,6 @@ const SYMBOLS = [
 	{"char":"⁋","groups":{"标记符号":{"name":"参照符号","ename":"Reversed Pilcrow Sign","alias":[]}}},
 	{"char":"⁌","groups":{"标记符号":{"name":"黑点标记","ename":"Black Leftwards Bullet","alias":[]}}},
 	{"char":"⁍","groups":{"标记符号":{"name":"白点标记","ename":"Black Rightwards Bullet","alias":[]}}},
-	{"char":"‽","groups":{"标记符号":{"name":"感叹问号","ename":"Interrobang","alias":["interrobang","?!"]}}}
+	{"char":"‽","groups":{"标记符号":{"name":"感叹问号","ename":"Interrobang","alias":["interrobang","?!"]}}},
+	{"char":"🪠","groups":{"生活用品":{"name":"马桶塞","ename":"Plunger","alias":["搋子","皮搋子"]}}}
 ];
