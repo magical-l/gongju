@@ -2024,5 +2024,7 @@ const SYMBOLS = [
 	{"char":"⁌","groups":{"标记符号":{"name":"黑点标记","ename":"Black Leftwards Bullet","alias":[]}}},
 	{"char":"⁍","groups":{"标记符号":{"name":"白点标记","ename":"Black Rightwards Bullet","alias":[]}}},
 	{"char":"‽","groups":{"标记符号":{"name":"感叹问号","ename":"Interrobang","alias":["interrobang","?!"]}}},
-	{"char":"🪠","groups":{"生活用品":{"name":"马桶塞","ename":"Plunger","alias":["搋子","皮搋子"]}}}
+	{"char":"🪠","groups":{"生活用品":{"name":"马桶塞","ename":"Plunger","alias":["搋子","皮搋子"]}}},
+	{"char":"🦕","groups":{"爬行动物":{"name":"蜥脚龙类","ename":"Sauropod","alias":["蜥脚类","蜥脚恐龙","梁龙","雷龙","腕龙","超龙","阿根廷龙","地震龙"]}}},
+	{"char":"🦖","groups":{"爬行动物":{"name":"霸王龙","ename":"T-Rex","alias":["暴龙","兽脚龙类","兽脚恐龙"]}}}
 ];
