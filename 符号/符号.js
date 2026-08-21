@@ -11,6 +11,7 @@ let NAMES = null;
 let ZH_NAMES = null; // 中文名.json（码位→中文名），空则回退英文名
 let FLAT = [];
 const SYMBOL_MAP = new Map();
+let DUAL_SET = new Set(); // 双模（文本/表情两变体）码位集合：mounted 时从 标签.json 的 emoji > emoji-text双模 ranges 构建（权威集合，207 码位）
 const CAP = 500; // 网格每页字符数
 const AXIS_ORDER = ['文字系统', '官方分类', '区块']; // 三大机械轴，树末尾固定顺序
 const SEQ_INDEX = new Map(); // 'cp1-cp2' → { zh, en }：旗序列（双码位）名映射，flatten 时构建
@@ -208,11 +209,91 @@ function tagsOf(cp) {
 	return [...byKey.values()];
 }
 
+// ===== 临时数据修正：内存级 TAGS 操作（不写盘）=====
+
+/** 从路径定位标签节点：TAGS.roots 起逐级走 children；找不到返回 null */
+function nodeAtPath(path) {
+	if (!TAGS) return null;
+	const parts = path.split('/');
+	let node = TAGS.roots[parts[0]];
+	if (!node) return null;
+	for (let i = 1; i < parts.length; i++) {
+		node = node.children && node.children[parts[i]];
+		if (!node) return null;
+	}
+	return node;
+}
+
+/** 节点自身是否直接持有某成员（单码位查 ranges，旗序列查 seqs） */
+function nodeHasMember(node, cp) {
+	if (Array.isArray(cp)) {
+		return !!(node.seqs && node.seqs.some(s => s[0] === cp[0] && s[1] === cp[1]));
+	}
+	return !!(node.ranges && inRanges(node.ranges, cp));
+}
+
+/** 节点聚合（含子孙）是否已含某成员——与网格显示一致 */
+function nodeAggregatesMember(node, cp) {
+	const m = collectNodeMembers(node);
+	if (Array.isArray(cp)) return m.seqs.some(s => s[0] === cp[0] && s[1] === cp[1]);
+	return inRanges(m.ranges, cp);
+}
+
+/** 区间加单码位：并入 [cp,cp] 后合并（原地） */
+function rangesAdd(node, cp) {
+	node.ranges = mergeRanges([...(node.ranges || []), [cp, cp]]);
+}
+
+/** 区间删单码位：拆开含 cp 的区间（原地） */
+function rangesRemove(node, cp) {
+	if (!node.ranges) return;
+	const out = [];
+	for (const [lo, hi] of node.ranges) {
+		if (cp < lo || cp > hi) { out.push([lo, hi]); continue; }
+		if (lo <= cp - 1) out.push([lo, cp - 1]);
+		if (cp + 1 <= hi) out.push([cp + 1, hi]);
+	}
+	node.ranges = mergeRanges(out);
+}
+
+/** 旗序列加：去重后 push [cp1,cp2,zh,en]（原地） */
+function seqsAdd(node, seq, zh, en) {
+	if (!node.seqs) node.seqs = [];
+	const [a, b] = seq;
+	if (!node.seqs.some(s => s[0] === a && s[1] === b)) node.seqs.push([a, b, zh || '', en || '']);
+}
+
+/** 旗序列删：按双码位过滤（原地） */
+function seqsRemove(node, seq) {
+	if (!node.seqs) return;
+	const [a, b] = seq;
+	node.seqs = node.seqs.filter(s => !(s[0] === a && s[1] === b));
+}
+
+/** 在 node 子树内找到真正持有 cp 的节点并删除（单码位拆区间/旗序列过滤），返回是否找到 */
+function removeFromSubtree(node, cp) {
+	if (nodeHasMember(node, cp)) {
+		if (Array.isArray(cp)) seqsRemove(node, cp);
+		else rangesRemove(node, cp);
+		return true;
+	}
+	for (const c of Object.values(node.children || {})) {
+		if (removeFromSubtree(c, cp)) return true;
+	}
+	return false;
+}
+
+/** 重建 FLAT 与 SEQ_INDEX（TAGS 被内存改动后调用；flatten 是增量追加，须先清空） */
+function rebuildFlat() {
+	FLAT = [];
+	SEQ_INDEX.clear();
+	for (const [name, node] of Object.entries(TAGS.roots)) flatten(name, node, name);
+}
+
 // ===== 字体相关 =====
 
 /** 回退字体列表：queryLocalFonts 不可用时的预定义备用字体（优先符号覆盖广的） */
 const FALLBACK_SYMBOL_FONTS = [
-	'Noto Sans Symbols 2',
 	'Segoe UI Emoji',
 	'Segoe UI Symbol',
 	'Consolas',
@@ -340,12 +421,14 @@ async function checkLocalRenderable(cp) {
 /** 左侧标签树节点：原生 details/summary 递归组件（展开/折叠交给浏览器原生，点击选中由 select 事件上抛） */
 const TagTreeNode = {
 	name: 'TagTreeNode',
+	emits: ['select', 'drag-over', 'drag-leave', 'drop'],
 	props: {
 		name: { type: String, required: true },
 		node: { type: Object, required: true },
 		path: { type: String, required: true },
 		selectedPath: { type: String, default: '' },
-		defaultOpen: { type: Boolean, default: false }
+		defaultOpen: { type: Boolean, default: false },
+		dragOverPath: { type: String, default: '' }
 	},
 	data() {
 		return { open: this.defaultOpen };
@@ -354,12 +437,31 @@ const TagTreeNode = {
 		count() {
 			const m = collectNodeMembers(this.node);
 			return rangeCount(m.ranges) + m.seqs.length;
+		},
+		/** 拖拽悬浮高亮：父级传入的悬浮路径 === 本节点路径 */
+		isDragOver() {
+			return this.dragOverPath === this.path;
 		}
 	},
 	methods: {
 		onToggle(e) { this.open = e.target.open; },
 		onSelect() {
 			this.$emit('select', { name: this.name, node: this.node, path: this.path, count: this.count });
+		},
+		onDragOver(e) {
+			e.preventDefault(); // 允许 drop
+			e.stopPropagation(); // 阻断原生 dragover 冒泡到祖先 summary（避免路径被覆盖）
+			this.$emit('drag-over', this.path, e);
+			if (e.dataTransfer) e.dataTransfer.dropEffect = e.ctrlKey ? 'copy' : 'move';
+		},
+		onDragLeave(e) {
+			if (e && e.stopPropagation) e.stopPropagation();
+			this.$emit('drag-leave');
+		},
+		onDrop(e) {
+			e.preventDefault();
+			e.stopPropagation();
+			this.$emit('drop', this.path, e);
 		}
 	},
 	render() {
@@ -376,15 +478,22 @@ const TagTreeNode = {
 			node: c,
 			path: this.path + '/' + k,
 			selectedPath: this.selectedPath,
-			onSelect: (t) => this.$emit('select', t)
+			dragOverPath: this.dragOverPath,
+			onSelect: (t) => this.$emit('select', t),
+			onDragOver: (p, e) => this.$emit('drag-over', p, e),
+			onDragLeave: () => this.$emit('drag-leave'),
+			onDrop: (p, e) => this.$emit('drop', p, e)
 		}));
 		if (!hasChild) {
-			return h('div', { class: ['trow', 'trow-leaf', selectedCls], onClick: this.onSelect, title: this.node.alias && this.node.alias.length ? this.name + '\n别名：' + this.node.alias.join('、') : this.name }, rowInner());
+			return h('div', { class: ['trow', 'trow-leaf', selectedCls, { 'drag-over': this.isDragOver }], onClick: this.onSelect, onDragover: this.onDragOver, onDragleave: this.onDragLeave, onDrop: this.onDrop, title: this.node.alias && this.node.alias.length ? this.name + '\n别名：' + this.node.alias.join('、') : this.name }, rowInner());
 		}
 		return h('details', { class: 'tnode', open: this.open, onToggle: this.onToggle }, [
 			h('summary', {
-				class: ['trow', selectedCls],
+				class: ['trow', selectedCls, { 'drag-over': this.isDragOver }],
 				onClick: this.onSelect,
+				onDragover: this.onDragOver,
+				onDragleave: this.onDragLeave,
+				onDrop: this.onDrop,
 				title: this.node.alias && this.node.alias.length ? this.name + '\n别名：' + this.node.alias.join('、') : this.name
 			}, rowInner()),
 			children
@@ -412,6 +521,14 @@ const app = createApp({
 			fontList: [],
 			selectedPreviewFont: '',
 			fontAffectsAll: true,
+
+			// 临时数据修正（仅内存，不写盘）
+			tagEditorVisible: false,
+			tagEditorChar: null,   // {char, cp, zhName}：当前待修正字符
+			tagEditorTarget: '',   // 编辑对话框选中的目标标签 path
+			ops: [],               // 操作记录 [{action, cps, sourcePath, targetPath, char, zhName}]
+			dragChar: null,        // 拖拽中的网格条目（数字=单码位，数组=旗序列）
+			dragOverPath: '',      // 拖拽悬浮的树节点 path（高亮）
 		};
 	},
 	computed: {
@@ -558,6 +675,27 @@ const app = createApp({
 		searchPageCount() {
 			return Math.max(1, Math.ceil(this.matchedChars.length / this.gridPageSize));
 		},
+		/** 编辑对话框语义轴标签树（排除三大机械轴）：roots children 字典转 el-tree 数组，节点带完整 path */
+		editableTree() {
+			if (!TAGS) return [];
+			const toNodes = (dict, path) => {
+				const arr = [];
+				for (const [k, v] of Object.entries(dict)) {
+					const n = { name: k, path: path + '/' + k };
+					if (v.children && Object.keys(v.children).length) n.children = toNodes(v.children, n.path);
+					arr.push(n);
+				}
+				return arr;
+			};
+			const out = [];
+			for (const [k, v] of Object.entries(TAGS.roots)) {
+				if (AXIS_ORDER.includes(k)) continue; // 排除三大机械轴
+				const n = { name: k, path: k };
+				if (v.children && Object.keys(v.children).length) n.children = toNodes(v.children, k);
+				out.push(n);
+			}
+			return out;
+		},
 	},
 	methods: {
 		/** 递归收集节点及所有子孙的 ranges 和 seqs */
@@ -611,7 +749,7 @@ const app = createApp({
 				cp,
 				char,
 				zhName: zhNameOf(cp),
-				mode: meta ? meta.mode : '',
+				mode: this.isDualCp(cp) ? 'dual' : '',
 				aliases: meta ? meta.aliases : [],
 				officialName: nameOf(cp),
 				tags: tagsOf(cp),
@@ -737,10 +875,14 @@ const app = createApp({
 			}
 			return zhNameOf(item) || nameOf(item) || '';
 		},
+		/** 单码位是否双模（文本/表情两变体）：权威集合来自 标签.json emoji > emoji-text双模 ranges */
+		isDualCp(cp) {
+			return DUAL_SET.has(cp);
+		},
 		/** 网格条目是否为双模字符（文本/表情两种变体），旗序列恒为 false */
 		itemDual(item) {
 			if (this.isFlag(item)) return false;
-			return SYMBOL_MAP.get(this.cellText(item))?.mode === 'dual';
+			return this.isDualCp(item);
 		},
 		/** 网格条目是否当前选中 */
 		isSelected(item) {
@@ -837,7 +979,7 @@ const app = createApp({
 		// ===== 字体切换 =====
 
 		async initFontList() {
-			this.fontList = FALLBACK_SYMBOL_FONTS;
+			this.fontList = ['Noto Sans Symbols 2', ...FALLBACK_SYMBOL_FONTS];
 		},
 
 		/** 加载本机所有字体到切换列表（只改列表，不改渲染栈） */
@@ -871,6 +1013,216 @@ const app = createApp({
 		clearPreviewFont() {
 			this.selectedPreviewFont = '';
 		},
+
+		// ===== 临时数据修正 =====
+
+		// ----- 拖拽移动/添加（卡片 → 标签树）-----
+
+		/** 卡片拖拽开始：记录条目并允许 copyMove；部分浏览器必须 setData 才允许拖（旗序列取首码位） */
+		onDragStart(item, e) {
+			this.dragChar = item;
+			e.dataTransfer.effectAllowed = 'copyMove';
+			e.dataTransfer.setData('text/plain', String(this.isFlag(item) ? item[0] : item));
+		},
+		/** 拖拽结束（含 drop 之后）：清拖拽状态 */
+		onDragEnd() {
+			this.dragChar = null;
+			this.dragOverPath = '';
+		},
+		/** 树节点 dragover：允许 drop，按 Ctrl 区分 copy/move，并记录高亮路径 */
+		onTreeDragOver(path, e) {
+			if (this.dragChar === null) return;
+			e.preventDefault();
+			if (e.dataTransfer) e.dataTransfer.dropEffect = e.ctrlKey ? 'copy' : 'move';
+			this.dragOverPath = path;
+		},
+		/** 树节点 dragleave：清高亮 */
+		onTreeDragLeave() {
+			this.dragOverPath = '';
+		},
+		/** 树节点 drop：构造 tagEditorChar/Target 后复用 opAdd/opMove；机械轴目标拦截；搜索态或 Ctrl=添加 */
+		onTreeDrop(path, e) {
+			e.preventDefault();
+			if (this.dragChar === null) return;
+			this.dragOverPath = '';
+			if (AXIS_ORDER.includes(path.split('/')[0])) {
+				ElementPlus.ElMessage.warning('不能拖到机械轴标签');
+				this.dragChar = null;
+				return;
+			}
+			const item = this.dragChar;
+			let cp, char, zhName = '';
+			if (this.isFlag(item)) {
+				cp = item;
+				char = String.fromCodePoint(item[0], item[1]);
+				const meta = SEQ_INDEX.get(item[0] + '-' + item[1]) || {};
+				zhName = meta.zh || '';
+			} else {
+				cp = item;
+				char = String.fromCodePoint(item);
+				zhName = zhNameOf(item);
+			}
+			this.tagEditorChar = { char, cp, zhName };
+			this.tagEditorTarget = path;
+			if (this.isSearching || e.ctrlKey) this.opAdd();
+			else this.opMove();
+			this.dragChar = null;
+		},
+
+		/** 打开编辑对话框：item 为网格条目（数字=单码位，数组=旗序列） */
+		openTagEditor(item) {
+			let cp, char, zhName = '';
+			if (this.isFlag(item)) {
+				cp = item;
+				char = String.fromCodePoint(item[0], item[1]);
+				const meta = SEQ_INDEX.get(item[0] + '-' + item[1]) || {};
+				zhName = meta.zh || '';
+			} else {
+				cp = item;
+				char = String.fromCodePoint(item);
+				zhName = zhNameOf(item);
+			}
+			this.tagEditorChar = { char, cp, zhName };
+			this.tagEditorTarget = '';
+			this.tagEditorVisible = true;
+		},
+		/** 编辑对话框树节点点击：记录目标标签 path */
+		onTreePickNode(data) {
+			this.tagEditorTarget = data.path;
+		},
+		/** 添加：字符已在目标标签（含子孙）则静默关闭，否则记录并应用 */
+		opAdd() {
+			const tc = this.tagEditorChar;
+			const target = this.tagEditorTarget;
+			if (!tc) return;
+			if (!target) { ElementPlus.ElMessage.warning('请先在左侧树选择目标标签'); return; }
+			const dst = nodeAtPath(target);
+			if (!dst) {
+				ElementPlus.ElMessage.error('目标标签不存在，无法添加');
+				return;
+			}
+			if (nodeAggregatesMember(dst, tc.cp)) { this.tagEditorVisible = false; return; } // 已存在→静默
+			const op = { action: 'add', cps: tc.cp, targetPath: target, char: tc.char, zhName: tc.zhName };
+			if (this.applyOp(op)) {
+				this.ops.push(op);
+				this.tagEditorVisible = false;
+				ElementPlus.ElMessage.success('已添加');
+			}
+		},
+		/** 移动：源=当前选中标签，目标=树选中；源===目标或字符不在源标签则静默/提示不记录 */
+		opMove() {
+			const tc = this.tagEditorChar;
+			const target = this.tagEditorTarget;
+			const src = this.selectedTag;
+			if (!tc || !src) return;
+			if (!target) { ElementPlus.ElMessage.warning('请先在左侧树选择目标标签'); return; }
+			if (target === src.path) { this.tagEditorVisible = false; return; } // 同标签→静默
+			if (!nodeAggregatesMember(src.node, tc.cp)) {
+				ElementPlus.ElMessage.warning('该字符不在当前标签中，无法移动');
+				return;
+			}
+			const dst = nodeAtPath(target);
+			if (!dst) {
+				ElementPlus.ElMessage.error('目标标签不存在，无法移动');
+				return;
+			}
+			const op = { action: 'move', cps: tc.cp, sourcePath: src.path, targetPath: target, char: tc.char, zhName: tc.zhName };
+			if (this.applyOp(op)) {
+				this.ops.push(op);
+				this.tagEditorVisible = false;
+				ElementPlus.ElMessage.success('已移动');
+			}
+		},
+		/** 应用操作到内存 TAGS：add→目标加；move→源子树删+目标加；节点缺失则报错不记录 */
+		applyOp(op) {
+			if (op.action === 'move') {
+				const src = nodeAtPath(op.sourcePath);
+				const dst = nodeAtPath(op.targetPath);
+				if (!src || !dst) {
+					ElementPlus.ElMessage.error('移动失败：源或目标标签不存在');
+					return false;
+				}
+				removeFromSubtree(src, op.cps);
+				this._applyAddToNode(dst, op.cps);
+			} else {
+				const dst = nodeAtPath(op.targetPath);
+				if (!dst) {
+					ElementPlus.ElMessage.error('添加失败：目标标签不存在');
+					return false;
+				}
+				this._applyAddToNode(dst, op.cps);
+			}
+			this.refreshAfterOp();
+			return true;
+		},
+		/** 把成员加到节点自身（单码位入 ranges，旗序列入 seqs 并补名） */
+		_applyAddToNode(node, cp) {
+			if (Array.isArray(cp)) {
+				const meta = SEQ_INDEX.get(cp[0] + '-' + cp[1]) || {};
+				seqsAdd(node, cp, meta.zh, meta.en);
+			} else {
+				rangesAdd(node, cp);
+			}
+		},
+		/** 重建 FLAT/SEQ_INDEX 并刷新当前网格（保持页码与选中字符；字符已不在聚合内则回退选第一项） */
+		refreshAfterOp() {
+			rebuildFlat();
+			if (!this.selectedTag) return;
+			const tag = this.selectedTag;
+			const page = this.gridPage;
+			const curCp = this.selectedChar ? this.selectedChar.cp : null;
+			// 重新赋值 selectedTag 触发 gridItems 重算（TAGS 节点为内存引用，值已变）
+			this.selectedTag = null;
+			this.selectedTag = tag;
+			this.gridPage = Math.min(page, this.gridPageCount); // 网格缩页后钳制页码
+			if (curCp !== null) {
+				const still = this.gridItems.some(item => this.cellKey(item) === this.cellKey(curCp));
+				if (still) this.selectItem(curCp);
+				else if (this.gridItems.length) this.selectItem(this.gridItems[0]);
+				else this.selectedChar = null;
+			}
+			if (this.selectedChar) this.selectedChar.tags = tagsOf(this.selectedChar.cp);
+			if (this.gridItems.length) this.refreshRenderability(this.gridItems);
+		},
+		/** 码位十六进制串：单码位 "1F600"，旗序列 "1F1E8-1F1F3" */
+		cpsHex(cp) {
+			if (Array.isArray(cp)) return cp.map(c => c.toString(16).toUpperCase()).join('-');
+			return cp.toString(16).toUpperCase();
+		},
+		/** 码位显示串（空格分隔，同详情区）：单码位 "1F600"，旗序列 "1F1E8 1F1F3" */
+		codeStrOf(cp) {
+			if (Array.isArray(cp)) return cp.map(c => c.toString(16).toUpperCase()).join(' ');
+			return cp.toString(16).toUpperCase();
+		},
+		/** 操作记录显示字符 */
+		opChar(op) {
+			if (Array.isArray(op.cps)) return String.fromCodePoint(op.cps[0], op.cps[1]);
+			return String.fromCodePoint(op.cps);
+		},
+		/** 删除单条操作记录（只移记录不改数据） */
+		removeOp(index) {
+			this.ops.splice(index, 1);
+		},
+		/** 清空操作记录 */
+		clearOps() {
+			this.ops = [];
+		},
+		/** 复制操作记录为文本，每行一条：添加 <cps hex> <targetPath> / 移动 <cps hex> <sourcePath> <targetPath> */
+		async copyOps() {
+			if (!this.ops.length) return;
+			const lines = this.ops.map(op => {
+				const hex = this.cpsHex(op.cps);
+				return op.action === 'move'
+					? `移动 ${hex} ${op.sourcePath} ${op.targetPath}`
+					: `添加 ${hex} ${op.targetPath}`;
+			});
+			try {
+				await navigator.clipboard.writeText(lines.join('\n'));
+				ElementPlus.ElMessage.success('已复制 ' + this.ops.length + ' 条操作记录');
+			} catch (err) {
+				ElementPlus.ElMessage.error('复制失败: ' + err);
+			}
+		},
 	},
 	async mounted() {
 		try {
@@ -883,6 +1235,13 @@ const app = createApp({
 			TAGS = tags;
 			NAMES = names;
 			ZH_NAMES = zhnames;
+			// 构建双模集合：标签.json 权威（emoji > emoji-text双模 节点 ranges，207 码位）；节点缺失则留空集
+			const dualNode = TAGS.roots['emoji']?.children?.['emoji-text双模'];
+			if (dualNode && dualNode.ranges) {
+				for (const [lo, hi] of dualNode.ranges) {
+					for (let cp = lo; cp <= hi; cp++) DUAL_SET.add(cp);
+				}
+			}
 			for (const [name, node] of Object.entries(TAGS.roots)) flatten(name, node, name);
 			buildSymbolMap();
 			this.loading = false;

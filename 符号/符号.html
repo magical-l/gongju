@@ -17,7 +17,7 @@
 	<link href="../css/layout.css" rel="stylesheet">
 	<link href="../resources/biz.css?v=250821" rel="stylesheet">
 	<link href="../css/花活.css" rel="stylesheet">
-	<link href="符号.css" rel="stylesheet">
+	<link href="符号.css?v=260821" rel="stylesheet">
 </head>
 <body class="目字形">
 	<header>
@@ -77,7 +77,7 @@
 			<div class="panels">
 				<section class="tree panel">
 					<div class="tag tree" v-if="!loading">
-						<tag-tree-node v-for="[name, node] in treeRoots" :key="name" :name="name" :node="node" :path="name" :selected-path="selectedTag ? selectedTag.path : ''" :default-open="!isFormalAxis(name)" @select="onTreeSelect"></tag-tree-node>
+						<tag-tree-node v-for="[name, node] in treeRoots" :key="name" :name="name" :node="node" :path="name" :selected-path="selectedTag ? selectedTag.path : ''" :default-open="!isFormalAxis(name)" :drag-over-path="dragOverPath" @select="onTreeSelect" @drop="onTreeDrop" @drag-over="onTreeDragOver" @drag-leave="onTreeDragLeave"></tag-tree-node>
 					</div>
 					<div v-else class="loading-placeholder">加载标签数据…</div>
 				</section>
@@ -97,7 +97,7 @@
 							<div class="none" v-else>无匹配标签</div>
 							<h3 class="category-name">符号匹配（{{ matchedChars.length }}）</h3>
 							<div class="char-grid" v-if="matchedChars.length">
-								<div class="char" v-for="mc in searchChars" :key="cellKey(mc.cp)" :class="{ sel: isSelected(mc.cp), 'has-variants': itemDual(mc.cp), 'is-ctrl': isControlCode(mc.cp) }" :title="searchTitle(mc)" @click="selectItem(mc.cp)">
+								<div class="char" v-for="mc in searchChars" :key="cellKey(mc.cp)" draggable="true" :class="{ sel: isSelected(mc.cp), 'has-variants': itemDual(mc.cp), 'is-ctrl': isControlCode(mc.cp) }" :title="searchTitle(mc)" @click="selectItem(mc.cp)" @dragstart="onDragStart(mc.cp, $event)" @dragend="onDragEnd">
 									<span class="char-symbol" :class="{ tofu: renderState(mc.cp) === false }">
 										<template v-if="renderState(mc.cp) === true">
 											<template v-if="itemDual(mc.cp)">
@@ -121,7 +121,8 @@
 							<div class="gridhead" v-if="selectedTag"><span class="name">{{ selectedTag.name }}</span><span class="count">共 {{ selectedCount }} 个</span></div>
 							<div class="grid-intro" v-if="selectedTag && selectedTag.node && selectedTag.node.intro">{{ selectedTag.node.intro }}</div>
 							<div class="char-grid" v-if="selectedTag && gridItems.length">
-								<div class="char" v-for="item in gridItems" :key="cellKey(item)" :class="{ sel: isSelected(item), 'has-variants': itemDual(item), 'is-ctrl': isControlCode(item) }" :title="itemTitle(item)" @click="selectItem(item)">
+								<div class="char" v-for="item in gridItems" :key="cellKey(item)" draggable="true" :class="{ sel: isSelected(item), 'has-variants': itemDual(item), 'is-ctrl': isControlCode(item) }" :title="itemTitle(item)" @click="selectItem(item)" @dragstart="onDragStart(item, $event)" @dragend="onDragEnd">
+									<button class="tag-edit-btn" @click.stop="openTagEditor(item)" title="移动/添加到其他标签">✎</button>
 									<span class="char-symbol" :class="{ tofu: renderState(item) === false }">
 										<template v-if="renderState(item) === true">
 											<template v-if="itemDual(item)">
@@ -143,6 +144,26 @@
 							</div>
 							<div class="none" v-if="selectedTag && gridItems.length === 0">该标签暂无成员</div>
 							<div class="none" v-if="!selectedTag && !loading">请选择一个标签</div>
+							<div class="ops-panel">
+								<div class="ops-head">
+									<span class="ops-title">操作记录（{{ ops.length }}）</span>
+									<el-button size="small" :disabled="!ops.length" @click="copyOps">复制</el-button>
+									<el-button size="small" :disabled="!ops.length" @click="clearOps">清空</el-button>
+								</div>
+								<div class="ops-list" v-if="ops.length">
+									<div class="op-row" v-for="(op, i) in ops" :key="i">
+										<span class="op-char" :title="op.zhName || ''">{{ opChar(op) }}</span>
+										<span class="op-cp">U+{{ cpsHex(op.cps) }}</span>
+										<span class="op-action" :class="op.action">{{ op.action === 'add' ? '添加' : '移动' }}</span>
+										<span class="op-path">
+											<template v-if="op.action === 'move'">{{ op.sourcePath }}<span class="op-arrow">→</span>{{ op.targetPath }}</template>
+											<template v-else>{{ op.targetPath }}</template>
+										</span>
+										<button class="op-del" @click="removeOp(i)" title="删除此记录">✕</button>
+									</div>
+								</div>
+								<div class="ops-empty" v-else>暂无操作记录</div>
+							</div>
 						</template>
 					</template>
 				</section>
@@ -236,6 +257,23 @@
 					</div>
 				</aside>
 			</div>
+			<el-dialog title="移动 / 添加标签" v-model="tagEditorVisible" width="50%" class="tag-editor-dialog" destroy-on-close>
+				<div v-if="tagEditorChar" class="te-header">
+					<span class="te-char">{{ tagEditorChar.char }}</span>
+					<div class="te-meta">
+						<span class="te-cp">U+{{ codeStrOf(tagEditorChar.cp) }}</span>
+						<span class="te-name">{{ tagEditorChar.zhName || '' }}</span>
+					</div>
+				</div>
+				<div class="tag-editor-tree">
+					<el-tree :data="editableTree" :props="{ label: 'name', children: 'children' }" node-key="path" default-expand-all highlight-current :expand-on-click-node="false" @node-click="onTreePickNode"></el-tree>
+				</div>
+				<div class="tag-editor-actions">
+					<el-button type="primary" @click="opMove">移动</el-button>
+					<el-button type="success" @click="opAdd">添加</el-button>
+					<el-button @click="tagEditorVisible = false">取消</el-button>
+				</div>
+			</el-dialog>
 		</article>
 	</main>
 	<footer>
@@ -260,7 +298,7 @@
 		<script src="../lib/toastr.min.js"></script>
 		<script src="../resources/biz-util.js?v=250801"></script>
 	</div>
-	<script src="符号.js"></script>
+	<script src="符号.js?v=260822"></script>
 	<div>
 		<!-- 谷歌广告联盟 -->
 		<script async crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"></script>
