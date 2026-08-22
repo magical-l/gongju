@@ -220,6 +220,42 @@
 	color: var(--el-text-color-placeholder);
 }
 
+.tag.tree details.tnode > summary.trow {
+	padding: 0;
+	list-style: none;
+	display: flex;
+	align-items: stretch;
+
+	&::-webkit-details-marker {
+		display: none;
+	}
+}
+
+.tag.tree details.tnode > summary.trow > .ttoggle {
+	flex: 0 0 26px;
+	width: 26px;
+	padding: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: var(--el-text-color-placeholder);
+	font-size: 11px;
+	transition: transform 0.2s;
+}
+
+.tag.tree details.tnode[open] > summary.trow > .ttoggle {
+	transform: rotate(90deg);
+}
+
+.tag.tree details.tnode > summary.trow > .tnav {
+	flex: 1;
+	padding: 4px 8px;
+	cursor: pointer;
+}
+
 .tag.tree details.tnode {
 	margin-left: 0;
 }

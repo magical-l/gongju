@@ -448,6 +448,16 @@ const TagTreeNode = {
 		onSelect() {
 			this.$emit('select', { name: this.name, node: this.node, path: this.path, count: this.count });
 		},
+		onSummaryClick(e) {
+			e.preventDefault(); // 阻止原生 toggle：导航时不要收展
+			if (e.target.closest('.ttoggle')) return; // 三角按钮已自行处理
+			this.onSelect();
+		},
+		onToggleBtn(e) {
+			e.preventDefault();
+			e.stopPropagation(); // 只收展，不导航
+			this.open = !this.open;
+		},
 		onDragOver(e) {
 			e.preventDefault(); // 允许 drop
 			e.stopPropagation(); // 阻断原生 dragover 冒泡到祖先 summary（避免路径被覆盖）
@@ -490,12 +500,15 @@ const TagTreeNode = {
 		return h('details', { class: 'tnode', open: this.open, onToggle: this.onToggle }, [
 			h('summary', {
 				class: ['trow', selectedCls, { 'drag-over': this.isDragOver }],
-				onClick: this.onSelect,
+				onClick: this.onSummaryClick,
 				onDragover: this.onDragOver,
 				onDragleave: this.onDragLeave,
 				onDrop: this.onDrop,
 				title: this.node.alias && this.node.alias.length ? this.name + '\n别名：' + this.node.alias.join('、') : this.name
-			}, rowInner()),
+			}, [
+				h('button', { class: 'ttoggle btn , icon-only', type: 'button', onClick: this.onToggleBtn, 'aria-label': this.open ? '折叠' : '展开' }, '▶'),
+				h('div', { class: 'tnav' }, rowInner())
+			]),
 			children
 		]);
 	}
