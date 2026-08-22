@@ -950,3 +950,123 @@ main {
 	gap: 8px;
 	margin-top: 14px;
 }
+
+.meta-edit-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 18px;
+	height: 18px;
+	margin-left: 6px;
+	padding: 0;
+	border: none;
+	border-radius: 4px;
+	background: transparent;
+	color: var(--el-text-color-placeholder);
+	font-size: 12px;
+	line-height: 1;
+	cursor: pointer;
+	vertical-align: middle;
+	opacity: 0.5;
+	flex: 0 0 auto;
+	transition: opacity 0.15s, background-color 0.15s, color 0.15s;
+}
+
+.meta-edit-btn:hover {
+	opacity: 1;
+	background: rgba(64, 158, 255, 0.15);
+	color: var(--el-color-primary);
+}
+
+.meta-editor-dialog .me-path {
+	font-size: 13px;
+	color: var(--el-text-color-secondary);
+	margin-bottom: 12px;
+	word-break: break-all;
+}
+
+.meta-editor-dialog .me-header {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	margin-bottom: 12px;
+}
+
+.meta-editor-dialog .me-char {
+	font-family: var(--sym-font-stack);
+	font-size: 3rem;
+	line-height: 1.1;
+	flex: 0 0 auto;
+}
+
+.meta-editor-dialog .me-meta {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.meta-editor-dialog .me-cp {
+	font-family: monospace;
+	font-size: 13px;
+	color: var(--el-text-color-secondary);
+}
+
+.meta-editor-dialog .me-name {
+	font-size: 14px;
+	color: var(--el-text-color-primary);
+}
+
+.meta-editor-dialog .me-field {
+	margin-bottom: 12px;
+}
+
+.meta-editor-dialog .me-label {
+	display: block;
+	font-size: 13px;
+	color: var(--el-text-color-regular);
+	margin-bottom: 6px;
+}
+
+.meta-editor-dialog .me-alias-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-bottom: 6px;
+}
+
+.meta-editor-dialog .me-alias-row .el-input {
+	flex: 1;
+}
+
+.meta-editor-dialog .me-alias-del {
+	flex: 0 0 auto;
+	width: 24px;
+	height: 24px;
+	line-height: 1;
+	padding: 0;
+	border: none;
+	border-radius: 50%;
+	background: transparent;
+	color: var(--el-text-color-placeholder);
+	font-size: 12px;
+	cursor: pointer;
+	opacity: 0.6;
+	transition: opacity 0.15s, background-color 0.15s, color 0.15s;
+}
+
+.meta-editor-dialog .me-alias-del:hover {
+	opacity: 1;
+	color: #f56c6c;
+	background: rgba(245, 108, 108, 0.1);
+}
+
+.meta-editor-dialog .me-alias-add {
+	margin-top: 2px;
+}
+
+.meta-editor-dialog .meta-editor-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	margin-top: 14px;
+}

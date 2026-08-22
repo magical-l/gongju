@@ -17,7 +17,7 @@
 	<link href="../css/layout.css" rel="stylesheet">
 	<link href="../resources/biz.css?v=250821" rel="stylesheet">
 	<link href="../css/花活.css" rel="stylesheet">
-	<link href="符号.css?v=260822" rel="stylesheet">
+	<link href="符号.css?v=260824" rel="stylesheet">
 </head>
 <body class="目字形">
 	<header>
@@ -97,7 +97,7 @@
 							<div class="none" v-else>无匹配标签</div>
 							<h3 class="category-name">符号匹配（{{ matchedChars.length }}）</h3>
 							<div class="char-grid" v-if="matchedChars.length">
-								<div class="char" v-for="mc in searchChars" :key="cellKey(mc.cp)" draggable="true" :class="{ sel: isSelected(mc.cp), 'has-variants': itemDual(mc.cp), 'is-ctrl': isControlCode(mc.cp) }" :title="searchTitle(mc)" @click="selectItem(mc.cp)" @dragstart="onDragStart(mc.cp, $event)" @dragend="onDragEnd">
+								<div class="char" v-for="mc in searchChars" :key="cellKey(mc.cp)" :draggable="editEnabled" :class="{ sel: isSelected(mc.cp), 'has-variants': itemDual(mc.cp), 'is-ctrl': isControlCode(mc.cp) }" :title="searchTitle(mc)" @click="selectItem(mc.cp)" @dragstart="onDragStart(mc.cp, $event)" @dragend="onDragEnd">
 									<span class="char-symbol" :class="{ tofu: renderState(mc.cp) === false }">
 										<template v-if="renderState(mc.cp) === true">
 											<template v-if="itemDual(mc.cp)">
@@ -118,12 +118,12 @@
 						</div>
 						<!-- 标签字符网格 -->
 						<template v-else>
-							<div class="gridhead" v-if="selectedTag"><span class="name">{{ selectedTag.name }}</span><span class="count">共 {{ selectedCount }} 个</span></div>
+							<div class="gridhead" v-if="selectedTag"><span class="name">{{ selectedTag.name }}</span><button v-if="editEnabled && !isFormalAxis(selectedTag.path.split('/')[0])" class="meta-edit-btn" @click.stop="editSelectedTagMeta" title="修改标签名/别名">✎</button><span class="count">共 {{ selectedCount }} 个</span></div>
 							<div class="grid-alias" v-if="selectedTag && selectedTag.node && selectedTag.node.alias && selectedTag.node.alias.length">别名：{{ selectedTag.node.alias.join('、') }}</div>
 							<div class="grid-intro" v-if="selectedTag && selectedTag.node && selectedTag.node.intro">{{ selectedTag.node.intro }}</div>
 							<div class="char-grid" v-if="selectedTag && gridItems.length">
-								<div class="char" v-for="item in gridItems" :key="cellKey(item)" draggable="true" :class="{ sel: isSelected(item), 'has-variants': itemDual(item), 'is-ctrl': isControlCode(item) }" :title="itemTitle(item)" @click="selectItem(item)" @dragstart="onDragStart(item, $event)" @dragend="onDragEnd">
-									<button class="tag-edit-btn" @click.stop="openTagEditor(item)" title="移动/添加到其他标签">✎</button>
+								<div class="char" v-for="item in gridItems" :key="cellKey(item)" :draggable="editEnabled" :class="{ sel: isSelected(item), 'has-variants': itemDual(item), 'is-ctrl': isControlCode(item) }" :title="itemTitle(item)" @click="selectItem(item)" @dragstart="onDragStart(item, $event)" @dragend="onDragEnd">
+									<button v-if="editEnabled" class="tag-edit-btn" @click.stop="openTagEditor(item)" title="移动/添加到其他标签">✎</button>
 									<span class="char-symbol" :class="{ tofu: renderState(item) === false }">
 										<template v-if="renderState(item) === true">
 											<template v-if="itemDual(item)">
@@ -176,7 +176,7 @@
 								<span v-else-if="selectedChar" class="symbol-char" :style="fontStyle(selectedPreviewFont)">{{ selectedChar.char }}</span>
 								<span v-else class="symbol-char placeholder-char">？</span>
 							</div>
-							<div class="name">{{ selectedChar.zhName || selectedChar.officialName || selectedChar.char }}</div>
+							<div class="name">{{ selectedChar.zhName || selectedChar.officialName || selectedChar.char }}<button v-if="editEnabled && !isFlag(selectedChar.cp)" class="meta-edit-btn" @click.stop="editSelectedSymbol" title="修改符号名/别名">✎</button></div>
 							<div v-if="selectedChar && isControlCode(selectedChar.cp)" class="ctrl-tip">不可见控制码</div>
 							<div v-if="selectedChar && detailTofu" class="tofu-tip">当前字体不支持</div>
 							<div v-if="selectedChar && detailAdvice" class="tofu-tip">{{ detailAdvice }}</div>
@@ -275,6 +275,32 @@
 					<el-button @click="tagEditorVisible = false">取消</el-button>
 				</div>
 			</el-dialog>
+			<el-dialog :title="metaEditorKind === 'tag' ? '编辑标签' : '编辑符号'" v-model="metaEditorVisible" width="60%" class="meta-editor-dialog" destroy-on-close>
+				<div v-if="metaEditorKind === 'tag'" class="me-path">路径：{{ metaEditorPath }}</div>
+				<div v-else class="me-header">
+					<span class="me-char">{{ metaEditorChar ? metaEditorChar.char : '' }}</span>
+					<div class="me-meta">
+						<span class="me-cp">U+{{ metaEditorCpStr }}</span>
+						<span class="me-name">{{ metaEditorChar ? metaEditorChar.zhName : '' }}</span>
+					</div>
+				</div>
+				<div class="me-field">
+					<label class="me-label">名字</label>
+					<el-input v-model="metaEditorName" placeholder="名字"></el-input>
+				</div>
+				<div class="me-field">
+					<label class="me-label">别名</label>
+					<div class="me-alias-row" v-for="(a, i) in metaEditorAliases" :key="i">
+						<el-input v-model="metaEditorAliases[i]" placeholder="别名"></el-input>
+						<button class="me-alias-del" @click="removeMetaAlias(i)" title="删除此别名">✕</button>
+					</div>
+					<el-button size="small" class="me-alias-add" @click="metaEditorAliases.push('')">+ 添加别名</el-button>
+				</div>
+				<div class="meta-editor-actions">
+					<el-button type="primary" @click="metaEditorKind === 'tag' ? saveTagMeta() : saveSymbolMeta()">保存</el-button>
+					<el-button @click="metaEditorVisible = false">取消</el-button>
+				</div>
+			</el-dialog>
 		</article>
 	</main>
 	<footer>
@@ -299,7 +325,7 @@
 		<script src="../lib/toastr.min.js"></script>
 		<script src="../resources/biz-util.js?v=250801"></script>
 	</div>
-	<script src="符号.js?v=260822"></script>
+	<script src="符号.js?v=260824"></script>
 	<div>
 		<!-- 谷歌广告联盟 -->
 		<script async crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"></script>

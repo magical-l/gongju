@@ -529,6 +529,18 @@ const app = createApp({
 			ops: [],               // 操作记录 [{action, cps, sourcePath, targetPath, char, zhName}]
 			dragChar: null,        // 拖拽中的网格条目（数字=单码位，数组=旗序列）
 			dragOverPath: '',      // 拖拽悬浮的树节点 path（高亮）
+
+			// 服务器直写（dev_server.py）：编辑可用性与元数据编辑弹窗
+			editEnabled: false,          // 服务器可用性（mounted 探测 /symbol-api/health）
+			treeVersion: 0,              // 树结构变更计数（改名等非响应式改动后 bump，触发 treeRoots 重算）
+			metaEditorVisible: false,    // 元数据编辑弹窗开关
+			metaEditorKind: 'tag',       // 'tag' 标签 | 'symbol' 符号
+			metaEditorPath: '',          // 标签模式：当前编辑的标签路径
+			metaEditorName: '',          // 名字输入
+			metaEditorAliases: [],       // 别名输入数组
+			metaEditorChar: null,        // 符号模式：当前编辑的字符对象
+			metaEditorCpStr: '',         // 符号模式：码位串显示
+			metaEditorOldAliases: [],    // 打开弹窗时的旧别名（比对变更用）
 		};
 	},
 	computed: {
@@ -549,6 +561,7 @@ const app = createApp({
 		/** 树根重排：语义轴在前，文字系统/官方分类/区块末尾（区块最后） */
 		treeRoots() {
 			if (!TAGS) return [];
+			void this.treeVersion; // TAGS 结构变更（改名）后 bump，强制本计算属性重算
 			const entries = Object.entries(TAGS.roots);
 			const others = entries.filter(([k]) => !AXIS_ORDER.includes(k));
 			const formal = AXIS_ORDER.map(k => [k, TAGS.roots[k]]).filter(([, v]) => v);
@@ -1090,8 +1103,8 @@ const app = createApp({
 		onTreePickNode(data) {
 			this.tagEditorTarget = data.path;
 		},
-		/** 添加：字符已在目标标签（含子孙）则静默关闭，否则记录并应用 */
-		opAdd() {
+		/** 添加：校验不变（目标空/不存在/已存在）；先写服务器，成功后再应用内存+记录 */
+		async opAdd() {
 			const tc = this.tagEditorChar;
 			const target = this.tagEditorTarget;
 			if (!tc) return;
@@ -1102,6 +1115,12 @@ const app = createApp({
 				return;
 			}
 			if (nodeAggregatesMember(dst, tc.cp)) { this.tagEditorVisible = false; return; } // 已存在→静默
+			try {
+				await this.serverSave({ action: 'add', cps: this.toCpsArray(tc.cp), targetPath: target });
+			} catch (e) {
+				ElementPlus.ElMessage.error('添加失败：' + e.message);
+				return;
+			}
 			const op = { action: 'add', cps: tc.cp, targetPath: target, char: tc.char, zhName: tc.zhName };
 			if (this.applyOp(op)) {
 				this.ops.push(op);
@@ -1109,8 +1128,8 @@ const app = createApp({
 				ElementPlus.ElMessage.success('已添加');
 			}
 		},
-		/** 移动：源=当前选中标签，目标=树选中；源===目标或字符不在源标签则静默/提示不记录 */
-		opMove() {
+		/** 移动：源=当前选中标签，目标=树选中；先写服务器，成功后再应用内存+记录 */
+		async opMove() {
 			const tc = this.tagEditorChar;
 			const target = this.tagEditorTarget;
 			const src = this.selectedTag;
@@ -1124,6 +1143,12 @@ const app = createApp({
 			const dst = nodeAtPath(target);
 			if (!dst) {
 				ElementPlus.ElMessage.error('目标标签不存在，无法移动');
+				return;
+			}
+			try {
+				await this.serverSave({ action: 'move', cps: this.toCpsArray(tc.cp), sourcePath: src.path, targetPath: target });
+			} catch (e) {
+				ElementPlus.ElMessage.error('移动失败：' + e.message);
 				return;
 			}
 			const op = { action: 'move', cps: tc.cp, sourcePath: src.path, targetPath: target, char: tc.char, zhName: tc.zhName };
@@ -1167,6 +1192,7 @@ const app = createApp({
 		/** 重建 FLAT/SEQ_INDEX 并刷新当前网格（保持页码与选中字符；字符已不在聚合内则回退选第一项） */
 		refreshAfterOp() {
 			rebuildFlat();
+			this.treeVersion++; // 触发左树重算（TAGS 非响应式，成员增删后计数/结构需刷新）
 			if (!this.selectedTag) return;
 			const tag = this.selectedTag;
 			const page = this.gridPage;
@@ -1223,6 +1249,226 @@ const app = createApp({
 				ElementPlus.ElMessage.error('复制失败: ' + err);
 			}
 		},
+
+		// ===== 元数据编辑（服务器直写）=====
+
+		/** 码位转数组：单码位包一层、旗序列原样（服务器 cps 恒为数组） */
+		toCpsArray(cp) {
+			return Array.isArray(cp) ? cp : [cp];
+		},
+		/** 保存到服务器：POST /symbol-api/save；网络错误或服务器返回失败抛异常，成功返回 {ok,message} */
+		async serverSave(payload) {
+			let r;
+			try {
+				r = await fetch('/symbol-api/save', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(payload)
+				});
+			} catch (e) {
+				throw new Error('无法连接保存服务器（请先运行 python 符号/dev_server.py）');
+			}
+			let d;
+			try {
+				d = await r.json();
+			} catch (e) {
+				throw new Error('服务器返回异常');
+			}
+			if (!r.ok || !d.ok) throw new Error(d.message || d.error || '保存失败');
+			return d;
+		},
+
+		/** 打开标签元数据编辑弹窗：从 selectedTag 取名字/别名初始化 */
+		editSelectedTagMeta() {
+			const t = this.selectedTag;
+			if (!t) return;
+			if (this.isFormalAxis(t.path.split('/')[0])) return; // 机械轴按钮已隐藏，双保险
+			this.metaEditorKind = 'tag';
+			this.metaEditorPath = t.path;
+			this.metaEditorName = t.name;
+			this.metaEditorAliases = (t.node && t.node.alias && t.node.alias.length) ? [...t.node.alias] : [];
+			this.metaEditorOldAliases = [...this.metaEditorAliases];
+			this.metaEditorChar = null;
+			this.metaEditorVisible = true;
+		},
+		/** 兄弟节点重名检测：根或父 children 已有同名标签则冲突（newName 等于旧名不算） */
+		tagRenameConflict(path, newName) {
+			const parts = path.split('/');
+			const oldName = parts[parts.length - 1];
+			if (newName === oldName) return false;
+			const dict = parts.length > 1
+				? (nodeAtPath(parts.slice(0, -1).join('/')) || {}).children || {}
+				: (TAGS.roots || {});
+			return Object.prototype.hasOwnProperty.call(dict, newName);
+		},
+		/** 保存标签元数据：只把变更字段发服务器（先查兄弟重名）；成功后再改内存 */
+		async saveTagMeta() {
+			const path = this.metaEditorPath;
+			const oldName = path.split('/').pop();
+			const newName = (this.metaEditorName || '').trim();
+			const aliases = [...new Set(this.metaEditorAliases.map(a => (a || '').trim()).filter(a => a !== ''))];
+			const nameChanged = newName !== oldName;
+			const aliasChanged = JSON.stringify(aliases) !== JSON.stringify(this.metaEditorOldAliases);
+			if (!nameChanged && !aliasChanged) { this.metaEditorVisible = false; return; }
+			if (nameChanged) {
+				if (!newName) { ElementPlus.ElMessage.error('标签名不能为空'); return; }
+				if (newName.includes('/')) { ElementPlus.ElMessage.error('标签名不能包含斜杠 /'); return; }
+				if (this.isFormalAxis(path.split('/')[0])) { ElementPlus.ElMessage.error('机械轴标签禁止修改'); return; }
+				if (this.tagRenameConflict(path, newName)) { ElementPlus.ElMessage.error('目标标签名已存在：' + newName); return; }
+			}
+			const payload = { action: 'tag', path };
+			if (nameChanged) payload.newName = newName;
+			if (aliasChanged) payload.aliases = aliases;
+			try {
+				await this.serverSave(payload);
+			} catch (e) {
+				ElementPlus.ElMessage.error('保存失败：' + e.message);
+				return;
+			}
+			// 成功 → 改内存
+			const node = nodeAtPath(path);
+			if (!node) { ElementPlus.ElMessage.error('标签不存在：' + path); return; }
+			let newPath = path;
+			if (nameChanged) {
+				const parts = path.split('/');
+				const lastName = parts[parts.length - 1];
+				if (parts.length > 1) {
+					const parent = nodeAtPath(parts.slice(0, -1).join('/'));
+					if (parent && parent.children && parent.children[lastName]) {
+						parent.children[newName] = parent.children[lastName];
+						delete parent.children[lastName];
+					}
+				} else if (TAGS.roots[lastName]) {
+					TAGS.roots[newName] = TAGS.roots[lastName];
+					delete TAGS.roots[lastName];
+				}
+				newPath = parts.length > 1 ? parts.slice(0, -1).join('/') + '/' + newName : newName;
+			}
+			if (aliasChanged) node.alias = aliases;
+			rebuildFlat();
+			this.treeVersion++;
+			const st = this.selectedTag;
+			if (st && st.path === path) {
+				this.selectedTag = { name: nameChanged ? newName : st.name, node, path: newPath, count: st.count };
+			}
+			this.$forceUpdate();
+			this.metaEditorVisible = false;
+			ElementPlus.ElMessage.success('已保存');
+		},
+
+		/** 打开符号元数据编辑弹窗：从 selectedChar 取名字/别名初始化 */
+		editSelectedSymbol() {
+			const sc = this.selectedChar;
+			if (!sc) return;
+			this.metaEditorKind = 'symbol';
+			this.metaEditorChar = sc;
+			this.metaEditorName = sc.zhName || '';
+			this.metaEditorAliases = (sc.aliases && sc.aliases.length) ? [...sc.aliases] : [];
+			this.metaEditorOldAliases = [...this.metaEditorAliases];
+			this.metaEditorCpStr = sc.codeStr || this.cpsHex(sc.cp);
+			this.metaEditorPath = '';
+			this.metaEditorVisible = true;
+		},
+		/** 保存符号元数据：按路由（SYMBOLS entry / 中文名.json）先写服务器，成功后再改内存 */
+		async saveSymbolMeta() {
+			const sc = this.metaEditorChar;
+			if (!sc) return;
+			const isSeq = Array.isArray(sc.cp);
+			const oldName = sc.zhName || '';
+			const newName = (this.metaEditorName || '').trim();
+			const aliases = [...new Set(this.metaEditorAliases.map(a => (a || '').trim()).filter(a => a !== ''))];
+			const nameChanged = newName !== oldName;
+			const aliasChanged = JSON.stringify(aliases) !== JSON.stringify(this.metaEditorOldAliases);
+			if (!nameChanged && !aliasChanged) { this.metaEditorVisible = false; return; }
+			if (nameChanged && !newName) { ElementPlus.ElMessage.error('名字不能为空'); return; }
+			// 路由决策：
+			//   旗序列 / 字符在 SYMBOLS / 需加别名（可同时改名）→ entry 路线（写 符号数据.js）
+			//   不在 SYMBOLS 且仅改名 → name 路线（写 中文名.json，只对单码位有意义）
+			const inSymbols = !isSeq && SYMBOLS.some(s => s.char === sc.char);
+			const useNameRoute = !isSeq && !inSymbols && nameChanged && !aliasChanged;
+			const payload = { action: 'sym', cps: this.toCpsArray(sc.cp) };
+			// entry 路线需在 serverSave 前改内存 entry（要发出去），失败必须回滚，否则页面与文件不一致
+			let entry = null;
+			let snapshot = null;
+			if (useNameRoute) {
+				if (!ZH_NAMES) { ElementPlus.ElMessage.error('中文名数据未加载'); return; }
+				payload.name = newName;
+			} else {
+				entry = SYMBOLS.find(s => s.char === sc.char);
+				snapshot = entry ? JSON.parse(JSON.stringify(entry)) : null;
+				if (entry) {
+					// 改名：改第一个有 name 的 group 的 name；都没有则给第一个 group 补 name
+					if (nameChanged) {
+						const g = Object.values(entry.groups).find(g => g && g.name) || Object.values(entry.groups)[0];
+						if (g) g.name = newName;
+						else entry.groups['编辑'] = { name: newName };
+					}
+					// 改别名：第一个 group 的 alias 数组（清空则删 alias 字段）
+					if (aliasChanged) {
+						const g2 = Object.values(entry.groups)[0];
+						if (g2) {
+							if (aliases.length) g2.alias = aliases;
+							else delete g2.alias;
+						} else {
+							entry.groups['编辑'] = { alias: aliases };
+						}
+					}
+				} else {
+					// 新建最小条目：组键用字符第一个所属标签名，没有则用「编辑」
+					const groupKey = (sc.tags && sc.tags.length && sc.tags[0].name) || '编辑';
+					const gg = {};
+					if (nameChanged) gg.name = newName;
+					if (aliasChanged && aliases.length) gg.alias = aliases;
+					entry = { char: sc.char, groups: { [groupKey]: gg } };
+					SYMBOLS.push(entry);
+				}
+				payload.entry = entry;
+			}
+			try {
+				await this.serverSave(payload);
+			} catch (e) {
+				// 服务器保存失败 → 回滚内存：已有条目还原快照，新建条目从 SYMBOLS 移除
+				if (entry) {
+					if (snapshot) Object.assign(entry, snapshot);
+					else {
+						const i = SYMBOLS.indexOf(entry);
+						if (i >= 0) SYMBOLS.splice(i, 1);
+					}
+				}
+				ElementPlus.ElMessage.error('保存失败：' + e.message);
+				return;
+			}
+			// 成功 → 改内存
+			if (useNameRoute) {
+				const cp = sc.cp;
+				const arr = ZH_NAMES.names;
+				let i = arr.findIndex(p => p[0] === cp);
+				if (i >= 0) {
+					arr[i][1] = newName;
+				} else {
+					let lo = 0, hi = arr.length;
+					while (lo < hi) {
+						const mid = (lo + hi) >> 1;
+						if (arr[mid][0] < cp) lo = mid + 1;
+						else hi = mid;
+					}
+					arr.splice(lo, 0, [cp, newName]);
+				}
+				sc.zhName = newName;
+			} else {
+				SYMBOL_MAP.clear();
+				buildSymbolMap();
+				if (nameChanged) sc.zhName = newName;
+				if (aliasChanged) sc.aliases = aliases;
+			}
+			this.$forceUpdate();
+			this.metaEditorVisible = false;
+			ElementPlus.ElMessage.success('已保存');
+		},
+		/** 删除别名编辑行 */
+		removeMetaAlias(i) {
+			this.metaEditorAliases.splice(i, 1);
+		},
 	},
 	async mounted() {
 		try {
@@ -1258,6 +1504,11 @@ const app = createApp({
 			ElementPlus.ElMessage.error('标签数据加载失败：' + err);
 			this.loading = false;
 		}
+		// 服务器直写可用性探测：dev_server.py 启动时编辑可用；失败保持 false（只读浏览不受影响）
+		fetch('/symbol-api/health', { cache: 'no-store' })
+			.then(r => r.json())
+			.then(d => { if (d && d.ok) this.editEnabled = true; })
+			.catch(() => {});
 		setFontStacks(FALLBACK_SYMBOL_FONTS);
 		this.initFontList();
 		this.$nextTick(() => {
