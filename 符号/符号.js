@@ -290,6 +290,30 @@ function rebuildFlat() {
 	for (const [name, node] of Object.entries(TAGS.roots)) flatten(name, node, name);
 }
 
+/** 从 TAGS 移除路径节点（含子树），返回是否成功 */
+function removeNodeAtPath(path) {
+	const parts = path.split('/');
+	if (parts.length > 1) {
+		const parent = nodeAtPath(parts.slice(0, -1).join('/'));
+		if (parent && parent.children && parent.children[parts[parts.length - 1]]) {
+			delete parent.children[parts[parts.length - 1]];
+			return true;
+		}
+	} else if (TAGS && TAGS.roots && TAGS.roots[parts[0]]) {
+		delete TAGS.roots[parts[0]];
+		return true;
+	}
+	return false;
+}
+
+/** 子树内节点总数（不含自身），用于删除确认提示 */
+function countSubtreeNodes(node) {
+	const kids = node.children ? Object.values(node.children) : [];
+	let n = 0;
+	for (const c of kids) n += 1 + countSubtreeNodes(c);
+	return n;
+}
+
 // ===== 字体相关 =====
 
 /** 回退字体列表：queryLocalFonts 不可用时的预定义备用字体（优先符号覆盖广的） */
@@ -428,7 +452,8 @@ const TagTreeNode = {
 		path: { type: String, required: true },
 		selectedPath: { type: String, default: '' },
 		defaultOpen: { type: Boolean, default: false },
-		dragOverPath: { type: String, default: '' }
+		dragOverPath: { type: String, default: '' },
+		version: { type: Number, default: 0 } // 树结构版本：bump 时 props 变化强制重渲染（TAGS 非响应式，节点对象引用不变时 Vue 会跳过）
 	},
 	data() {
 		return { open: this.defaultOpen };
@@ -489,6 +514,7 @@ const TagTreeNode = {
 			path: this.path + '/' + k,
 			selectedPath: this.selectedPath,
 			dragOverPath: this.dragOverPath,
+			version: this.version,
 			onSelect: (t) => this.$emit('select', t),
 			onDragOver: (p, e) => this.$emit('drag-over', p, e),
 			onDragLeave: () => this.$emit('drag-leave'),
@@ -547,13 +573,14 @@ const app = createApp({
 			editEnabled: false,          // 服务器可用性（mounted 探测 /symbol-api/health）
 			treeVersion: 0,              // 树结构变更计数（改名等非响应式改动后 bump，触发 treeRoots 重算）
 			metaEditorVisible: false,    // 元数据编辑弹窗开关
-			metaEditorKind: 'tag',       // 'tag' 标签 | 'symbol' 符号
+			metaEditorKind: 'tag',       // 'tag' 标签 | 'symbol' 符号 | 'root' 新增根
 			metaEditorPath: '',          // 标签模式：当前编辑的标签路径
 			metaEditorName: '',          // 名字输入
 			metaEditorAliases: [],       // 别名输入数组
 			metaEditorChar: null,        // 符号模式：当前编辑的字符对象
 			metaEditorCpStr: '',         // 符号模式：码位串显示
 			metaEditorOldAliases: [],    // 打开弹窗时的旧别名（比对变更用）
+			metaNewChild: '',            // 标签模式：新增子标签的名字输入
 		};
 	},
 	computed: {
@@ -1481,6 +1508,94 @@ const app = createApp({
 		/** 删除别名编辑行 */
 		removeMetaAlias(i) {
 			this.metaEditorAliases.splice(i, 1);
+		},
+
+		// ===== 新增/删除标签树节点（服务器直写）=====
+
+		/** 打开「新增根标签」弹窗（root 模式：名字 + 可选别名） */
+		openNewRoot() {
+			this.metaEditorKind = 'root';
+			this.metaEditorPath = '';
+			this.metaEditorName = '';
+			this.metaEditorAliases = [];
+			this.metaEditorOldAliases = [];
+			this.metaNewChild = '';
+			this.metaEditorVisible = true;
+		},
+		/** 按弹窗模式分发保存：root→新增根；tag→改标签名/别名；symbol→改符号名/别名 */
+		async saveMetaEditor() {
+			if (this.metaEditorKind === 'root') await this.saveRootMeta();
+			else if (this.metaEditorKind === 'tag') await this.saveTagMeta();
+			else await this.saveSymbolMeta();
+		},
+		/** 新增语义根：服务器 tag-new parentPath=''，成功后再改内存 */
+		async saveRootMeta() {
+			const name = (this.metaEditorName || '').trim();
+			const aliases = [...new Set(this.metaEditorAliases.map(a => (a || '').trim()).filter(a => a !== ''))];
+			if (!name) { ElementPlus.ElMessage.error('根标签名不能为空'); return; }
+			if (name.includes('/')) { ElementPlus.ElMessage.error('根标签名不能包含斜杠 /'); return; }
+			if (TAGS.roots && TAGS.roots[name]) { ElementPlus.ElMessage.error('根标签名已存在：' + name); return; }
+			try {
+				await this.serverSave({ action: 'tag-new', parentPath: '', name, aliases: aliases.length ? aliases : undefined });
+			} catch (e) { ElementPlus.ElMessage.error('新增失败：' + e.message); return; }
+			TAGS.roots[name] = { children: {} };
+			if (aliases.length) TAGS.roots[name].alias = aliases;
+			rebuildFlat();
+			this.treeVersion++;
+			this.metaEditorVisible = false;
+			this.$forceUpdate();
+			ElementPlus.ElMessage.success('已新增根标签');
+		},
+		/** 新增子标签：服务器 tag-new parentPath=当前编辑标签路径，成功后再改内存 */
+		async addChildTag() {
+			const name = (this.metaNewChild || '').trim();
+			if (!name) { ElementPlus.ElMessage.warning('请输入子标签名'); return; }
+			if (name.includes('/')) { ElementPlus.ElMessage.error('子标签名不能包含斜杠 /'); return; }
+			const parent = this.metaEditorPath;
+			const pnode = nodeAtPath(parent);
+			if (!pnode) { ElementPlus.ElMessage.error('父标签不存在'); return; }
+			if (pnode.children && pnode.children[name]) { ElementPlus.ElMessage.error('标签名已存在：' + name); return; }
+			try {
+				await this.serverSave({ action: 'tag-new', parentPath: parent, name });
+			} catch (e) { ElementPlus.ElMessage.error('新增失败：' + e.message); return; }
+			if (!pnode.children) pnode.children = {};
+			pnode.children[name] = { children: {} };
+			rebuildFlat();
+			this.treeVersion++;
+			this.metaNewChild = '';
+			this.$forceUpdate();
+			ElementPlus.ElMessage.success('已新增子标签');
+		},
+		/** 删除当前编辑标签（含子树）：先确认影响，再服务器直写 */
+		async deleteTagConfirm() {
+			const path = this.metaEditorPath;
+			const node = nodeAtPath(path);
+			if (!node) return;
+			const name = this.metaEditorName || path.split('/').pop();
+			const m = collectNodeMembers(node);
+			const chars = rangeCount(m.ranges) + m.seqs.length;
+			const kids = countSubtreeNodes(node);
+			const detail = [];
+			if (chars) detail.push(chars + ' 个字符的归属');
+			if (kids) detail.push(kids + ' 个子标签');
+			const msg = '删除「' + name + '」将移除' + (detail.length ? ' ' + detail.join(' 和 ') : '（空标签）')
+				+ '。\n这些字符若仅在此标签下将变为未打标。此操作不可撤销，确认删除？';
+			try {
+				await ElementPlus.ElMessageBox.confirm(msg, '确认删除标签', { type: 'warning', confirmButtonText: '删除', cancelButtonText: '取消' });
+			} catch (e) { return; } // 用户取消
+			try {
+				await this.serverSave({ action: 'tag-del', path });
+			} catch (e) { ElementPlus.ElMessage.error('删除失败：' + e.message); return; }
+			removeNodeAtPath(path);
+			rebuildFlat();
+			this.treeVersion++;
+			this.metaEditorVisible = false;
+			if (this.selectedTag && this.selectedTag.path === path) {
+				this.selectedTag = null;
+				this.selectedChar = null;
+			}
+			this.$forceUpdate();
+			ElementPlus.ElMessage.success('已删除');
 		},
 	},
 	async mounted() {

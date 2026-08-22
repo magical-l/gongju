@@ -17,7 +17,7 @@
 	<link href="../css/layout.css" rel="stylesheet">
 	<link href="../resources/biz.css?v=250821" rel="stylesheet">
 	<link href="../css/花活.css" rel="stylesheet">
-	<link href="符号.css?v=260822" rel="stylesheet">
+	<link href="符号.css?v=260826" rel="stylesheet">
 </head>
 <body class="目字形">
 	<header>
@@ -76,8 +76,11 @@
 			</section>
 			<div class="panels">
 				<section class="tree panel">
+					<div class="tree-head" v-if="editEnabled && !loading">
+						<el-button size="small" @click="openNewRoot">+ 新增根标签</el-button>
+					</div>
 					<div class="tag tree" v-if="!loading">
-						<tag-tree-node v-for="[name, node] in treeRoots" :key="name" :name="name" :node="node" :path="name" :selected-path="selectedTag ? selectedTag.path : ''" :default-open="!isFormalAxis(name)" :drag-over-path="dragOverPath" @select="onTreeSelect" @drop="onTreeDrop" @drag-over="onTreeDragOver" @drag-leave="onTreeDragLeave"></tag-tree-node>
+						<tag-tree-node v-for="[name, node] in treeRoots" :key="name" :name="name" :node="node" :path="name" :selected-path="selectedTag ? selectedTag.path : ''" :default-open="!isFormalAxis(name)" :drag-over-path="dragOverPath" :version="treeVersion" @select="onTreeSelect" @drop="onTreeDrop" @drag-over="onTreeDragOver" @drag-leave="onTreeDragLeave"></tag-tree-node>
 					</div>
 					<div v-else class="loading-placeholder">加载标签数据…</div>
 				</section>
@@ -275,9 +278,9 @@
 					<el-button @click="tagEditorVisible = false">取消</el-button>
 				</div>
 			</el-dialog>
-			<el-dialog :title="metaEditorKind === 'tag' ? '编辑标签' : '编辑符号'" v-model="metaEditorVisible" width="60%" class="meta-editor-dialog" destroy-on-close>
+			<el-dialog :title="metaEditorKind === 'root' ? '新增根标签' : (metaEditorKind === 'tag' ? '编辑标签' : '编辑符号')" v-model="metaEditorVisible" width="60%" class="meta-editor-dialog" destroy-on-close>
 				<div v-if="metaEditorKind === 'tag'" class="me-path">路径：{{ metaEditorPath }}</div>
-				<div v-else class="me-header">
+				<div v-else-if="metaEditorKind === 'symbol'" class="me-header">
 					<span class="me-char">{{ metaEditorChar ? metaEditorChar.char : '' }}</span>
 					<div class="me-meta">
 						<span class="me-cp">U+{{ metaEditorCpStr }}</span>
@@ -296,8 +299,21 @@
 					</div>
 					<el-button size="small" class="me-alias-add" @click="metaEditorAliases.push('')">+ 添加别名</el-button>
 				</div>
+				<template v-if="metaEditorKind === 'tag'">
+					<div class="me-section">
+						<div class="me-sep">新增子标签</div>
+						<div class="me-row">
+							<el-input v-model="metaNewChild" placeholder="子标签名" size="small" @keyup.enter="addChildTag"></el-input>
+							<el-button size="small" type="primary" plain @click="addChildTag">新增</el-button>
+						</div>
+					</div>
+					<div class="me-section">
+						<div class="me-sep">危险区</div>
+						<el-button size="small" type="danger" plain @click="deleteTagConfirm">删除此标签</el-button>
+					</div>
+				</template>
 				<div class="meta-editor-actions">
-					<el-button type="primary" @click="metaEditorKind === 'tag' ? saveTagMeta() : saveSymbolMeta()">保存</el-button>
+					<el-button type="primary" @click="saveMetaEditor">保存</el-button>
 					<el-button @click="metaEditorVisible = false">取消</el-button>
 				</div>
 			</el-dialog>
@@ -325,7 +341,7 @@
 		<script src="../lib/toastr.min.js"></script>
 		<script src="../resources/biz-util.js?v=250801"></script>
 	</div>
-	<script src="符号.js?v=260822"></script>
+	<script src="符号.js?v=260826"></script>
 	<div>
 		<!-- 谷歌广告联盟 -->
 		<script async crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"></script>

@@ -12,6 +12,9 @@ dev_server.py — 符号页编辑保存服务器（临时功能）。
   add       {"action":"add",  "cps":[1F600],      "targetPath":"语义/..."}
   move      {"action":"move", "cps":[1F600],      "sourcePath":"...", "targetPath":"..."}
   tag       {"action":"tag",  "path":"...",        "newName":"新名"|null, "aliases":[...]|null}
+  tag-new   {"action":"tag-new","parentPath":"父路径或空", "name":"新标签", "aliases":[...]?}
+              parentPath 空 → 新增语义根；否则新增子节点
+  tag-del   {"action":"tag-del","path":"要删的路径"}（含子树）
   sym       {"action":"sym",  "cps":[1F600],       "entry":{char,groups}|null, "name":"新名"|null}
               entry 提供 → 写 符号数据.js（页面已路由好：字符在 SYMBOLS 或加了别名）
               name 提供  → 写 中文名.json（仅非 SYMBOLS 字符的改名）
@@ -20,6 +23,8 @@ dev_server.py — 符号页编辑保存服务器（临时功能）。
   add/move        → 标签.json（成员移动/添加，不影响 标签.txt）
   tag-rename      → 标签.json（改 children key）+ 同步 标签.txt
   tag-alias       → 标签.json（alias 整体替换）+ 同步 标签.txt
+  tag-new         → 标签.json（新增空节点）+ 同步 标签.txt（插父子树末 / 追加新根）
+  tag-del         → 标签.json（删节点+子树）+ 同步 标签.txt（删行+子孙行）
   sym-name        → 字符在 符号数据.js → 改它；否则 → 中文名.json
   sym-alias       → 符号数据.js alias（不在 → 新建条目）
   机械轴（文字系统/官方分类/区块）禁止修改
@@ -153,6 +158,57 @@ def sync_txt(path, new_name=None, aliases=None):
     return (True, '')
 
 
+def sync_txt_insert_child(parent, name, aliases):
+    """在父节点的子树末尾插入新子标签行（tab 缩进对齐）。父节点不在 标签.txt 时 best-effort 跳过。"""
+    lines, nl = _read_lines(TAGS_TXT)
+    segs = parent.split('/')
+    idx = _txt_find(lines, segs)
+    if idx is None:
+        return (False, '标签.txt 未找到父节点 ' + parent + '（已跳过，重跑 build_tags 可能丢失本次新增）')
+    parent_depth = len(segs) - 1
+    # 父子树结束位置 = 第一个 depth <= parent_depth 的行（或文件末尾）
+    end = len(lines)
+    for j in range(idx + 1, len(lines)):
+        m = re.match(r'^(\t*)([^\t]*?)$', lines[j])
+        if m and m.group(2).strip() and not m.group(2).startswith('……'):
+            if len(m.group(1)) <= parent_depth:
+                end = j
+                break
+    lines.insert(end, '\t' * (parent_depth + 1) + _txt_fmt(name, False, aliases))
+    _write_lines(TAGS_TXT, lines, nl)
+    return (True, '')
+
+
+def sync_txt_append_root(name, aliases):
+    """在 标签.txt 末尾追加新语义根行。"""
+    lines, nl = _read_lines(TAGS_TXT)
+    while lines and not lines[-1].strip():
+        lines.pop()
+    lines.append(_txt_fmt(name, False, aliases))
+    _write_lines(TAGS_TXT, lines, nl)
+    return (True, '')
+
+
+def sync_txt_delete(path):
+    """从 标签.txt 删除节点行及其全部子孙行（depth 更深者）。节点不在时 best-effort 跳过。"""
+    lines, nl = _read_lines(TAGS_TXT)
+    segs = path.split('/')
+    idx = _txt_find(lines, segs)
+    if idx is None:
+        return (False, '标签.txt 未找到 ' + path + '（已跳过）')
+    depth = len(segs) - 1
+    end = idx + 1
+    while end < len(lines):
+        m = re.match(r'^(\t*)([^\t]*?)$', lines[end])
+        if m and m.group(2).strip() and not m.group(2).startswith('……'):
+            if len(m.group(1)) <= depth:
+                break
+        end += 1
+    del lines[idx:end]
+    _write_lines(TAGS_TXT, lines, nl)
+    return (True, '')
+
+
 # ===== 标签.json 操作 =====
 
 def tag_add(p):
@@ -242,6 +298,64 @@ def tag_meta(p):
     return True, '已保存' + ('（' + note + '）' if note else '')
 
 
+def tag_new(p):
+    """新增语义标签节点：parentPath 为空 → 新增语义根；否则作为父节点的子节点。"""
+    parent = p.get('parentPath') or ''
+    name = (p.get('name') or '').strip()
+    aliases = p.get('aliases')
+    if not name:
+        return False, '节点名不能为空'
+    if '/' in name:
+        return False, '节点名不能包含斜杠 /'
+
+    data = load_tags()
+    roots = data['roots']
+    if parent:
+        if parent.split('/')[0] in MECHANICAL:
+            return False, '机械轴禁止修改'
+        pnode = get_node(roots, parent)
+        if pnode is None:
+            return False, '父标签不存在: ' + parent
+        if name in pnode.setdefault('children', {}):
+            return False, '标签名已存在: ' + name
+        node = {'children': {}}
+        if aliases:
+            node['alias'] = aliases
+        pnode['children'][name] = node
+        save_tags(data)
+        ok, note = sync_txt_insert_child(parent, name, aliases)
+    else:
+        if name in roots:
+            return False, '标签名已存在: ' + name
+        node = {'children': {}}
+        if aliases:
+            node['alias'] = aliases
+        roots[name] = node
+        save_tags(data)
+        ok, note = sync_txt_append_root(name, aliases)
+    return True, '已新增' + ('（' + note + '）' if note else '')
+
+
+def tag_del(p):
+    """删除语义标签节点（含子树）。机械轴禁止。"""
+    path = p['path']
+    if path.split('/')[0] in MECHANICAL:
+        return False, '机械轴禁止修改'
+    data = load_tags()
+    roots = data['roots']
+    if get_node(roots, path) is None:
+        return False, '标签不存在: ' + path
+    parts = path.split('/')
+    if len(parts) > 1:
+        parent = get_node(roots, '/'.join(parts[:-1]))
+        del parent['children'][parts[-1]]
+    else:
+        del roots[parts[0]]
+    save_tags(data)
+    ok, note = sync_txt_delete(path)
+    return True, '已删除' + ('（' + note + '）' if note else '')
+
+
 # ===== 符号编辑 =====
 
 def sym_upsert(entry):
@@ -327,6 +441,10 @@ def handle_save(payload):
             return tag_move(payload)
         if action == 'tag':
             return tag_meta(payload)
+        if action == 'tag-new':
+            return tag_new(payload)
+        if action == 'tag-del':
+            return tag_del(payload)
         if action == 'sym':
             return sym_save(payload)
     return False, '未知动作: ' + str(action)
