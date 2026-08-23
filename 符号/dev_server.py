@@ -11,20 +11,24 @@ dev_server.py — 符号页编辑保存服务器（临时功能）。
 接口动作（页面发 JSON body，action 字段）：
   add       {"action":"add",  "cps":[1F600],      "targetPath":"语义/..."}
   move      {"action":"move", "cps":[1F600],      "sourcePath":"...", "targetPath":"..."}
+  remove    {"action":"remove","cps":[1F600],     "sourcePath":"..."}（取消打标：从源标签子树全部移除）
   tag       {"action":"tag",  "path":"...",        "newName":"新名"|null, "aliases":[...]|null}
   tag-new   {"action":"tag-new","parentPath":"父路径或空", "name":"新标签", "aliases":[...]?}
               parentPath 空 → 新增语义根；否则新增子节点
   tag-del   {"action":"tag-del","path":"要删的路径"}（含子树）
+  tag-sort  {"action":"tag-sort","path":"...",     "dir":"up"|"down"}
+              同级内上移/下移一位（根级只在非机械轴根之间排）
   sym       {"action":"sym",  "cps":[1F600],       "entry":{char,groups}|null, "name":"新名"|null}
               entry 提供 → 写 符号数据.js（页面已路由好：字符在 SYMBOLS 或加了别名）
               name 提供  → 写 中文名.json（仅非 SYMBOLS 字符的改名）
 
-落盘规则：
-  add/move        → 标签.json（成员移动/添加，不影响 标签.txt）
-  tag-rename      → 标签.json（改 children key）+ 同步 标签.txt
-  tag-alias       → 标签.json（alias 整体替换）+ 同步 标签.txt
-  tag-new         → 标签.json（新增空节点）+ 同步 标签.txt（插父子树末 / 追加新根）
-  tag-del         → 标签.json（删节点+子树）+ 同步 标签.txt（删行+子孙行）
+落盘规则（标签.json 为唯一权威，标签.txt / build_tags 等已清理）：
+  add/move/remove → 标签.json（成员添加/移动/取消打标）
+  tag-rename      → 标签.json（改 children key）
+  tag-alias       → 标签.json（alias 整体替换）
+  tag-new         → 标签.json（新增空节点）
+  tag-del         → 标签.json（删节点+子树）
+  tag-sort        → 标签.json（同级键换序）
   sym-name        → 字符在 符号数据.js → 改它；否则 → 中文名.json
   sym-alias       → 符号数据.js alias（不在 → 新建条目）
   机械轴（文字系统/官方分类/区块）禁止修改
@@ -40,12 +44,9 @@ import traceback
 import urllib.parse
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
-from apply_ops import MECHANICAL, get_node, ranges_add, ranges_remove, seqs_add, seqs_remove
-
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(HERE)  # 项目根
 TAGS_JSON = os.path.join(HERE, '标签.json')
-TAGS_TXT = os.path.join(HERE, '标签.txt')
 ZH_JSON = os.path.join(HERE, '中文名.json')
 SYMBOL_JS = os.path.join(HERE, '符号数据.js')
 
@@ -94,119 +95,109 @@ def norm_cps(cps):
     return list(cps)
 
 
-# ===== 标签.txt 同步（结构性改名/别名，保 pending 挂起标记）=====
+# ===== 标签树操作（原 apply_ops.py 内联，apply_ops.py 已清理；json 唯一权威）=====
 
-def _txt_find(lines, segs):
-    """按路径段逐级匹配 tab 缩进树，返回行索引；找不到返回 None。"""
-    seg_idx = 0
-    want_depth = 0
-    for i, raw in enumerate(lines):
-        m = re.match(r'^(\t*)([^\t]*?)$', raw)
-        if not m or not m.group(2).strip():
-            continue
-        content = m.group(2)
-        if content.startswith('……'):
-            continue
-        d = len(m.group(1))
-        if seg_idx > 0 and d < want_depth:
-            return None  # 已离开目标根子树
-        if d == want_depth and content.split('：')[0].strip() == segs[seg_idx]:
-            seg_idx += 1
-            if seg_idx == len(segs):
-                return i
-            want_depth += 1
-    return None
+MECHANICAL = ('文字系统', '官方分类', '区块')
 
 
-def _txt_parse(content):
-    """解析行内容 → (name, pending, aliases|None)。"""
-    name, _, rest = content.partition('：')
-    pending = '留校察看' in rest
-    aliases = None
-    m = re.search(r'别名（(.*?)）', rest)
-    if m:
-        aliases = [a.strip() for a in m.group(1).split('、') if a.strip()]
-    return name.strip(), pending, aliases
+def get_node(roots, path):
+    parts = path.split('/')
+    node = roots.get(parts[0])
+    if node is None:
+        return None
+    for p in parts[1:]:
+        node = node.get('children', {}).get(p)
+        if node is None:
+            return None
+    return node
 
 
-def _txt_fmt(name, pending, aliases):
-    parts = []
-    if pending:
-        parts.append('留校察看')
-    if aliases:
-        parts.append('别名（' + '、'.join(aliases) + '）')
-    return name + ('：' + '，'.join(parts) if parts else '')
+def ranges_add(node, cp):
+    """给节点加单码位并合并区间，返回是否真的新增。"""
+    ranges = node.get('ranges')
+    if ranges is None:
+        node['ranges'] = [[cp, cp]]
+        return True
+    if any(lo <= cp <= hi for lo, hi in ranges):
+        return False
+    ranges.append([cp, cp])
+    ranges.sort(key=lambda r: r[0])
+    merged = [ranges[0]]
+    for lo, hi in ranges[1:]:
+        _, phi = merged[-1]
+        if lo <= phi + 1:
+            merged[-1][1] = max(phi, hi)
+        else:
+            merged.append([lo, hi])
+    ranges[:] = merged
+    return True
 
 
-def sync_txt(path, new_name=None, aliases=None):
-    """把标签改名/别名同步到 标签.txt。节点不在 标签.txt 时 best-effort 跳过。"""
-    segs = path.split('/')
-    lines, nl = _read_lines(TAGS_TXT)
-    idx = _txt_find(lines, segs)
-    if idx is None:
-        return (False, '标签.txt 未找到 ' + path + '（已跳过，重跑 build_tags 可能丢失本次改名）')
-    raw = lines[idx]
-    m = re.match(r'^(\t*)(.*)$', raw)
-    indent = m.group(1)
-    name, pending, old_aliases = _txt_parse(m.group(2))
-    if new_name is not None:
-        name = new_name
-    if aliases is not None:
-        old_aliases = aliases
-    lines[idx] = indent + _txt_fmt(name, pending, old_aliases)
-    _write_lines(TAGS_TXT, lines, nl)
-    return (True, '')
+def ranges_remove(node, cp):
+    """从节点删单码位并拆分区间，返回是否真的删除。"""
+    ranges = node.get('ranges')
+    if not ranges:
+        return False
+    for i, (lo, hi) in enumerate(ranges):
+        if lo <= cp <= hi:
+            ranges.pop(i)
+            if lo < cp:
+                ranges.insert(i, [lo, cp - 1])
+                i += 1
+            if cp < hi:
+                ranges.insert(i, [cp + 1, hi])
+            return True
+    return False
 
 
-def sync_txt_insert_child(parent, name, aliases):
-    """在父节点的子树末尾插入新子标签行（tab 缩进对齐）。父节点不在 标签.txt 时 best-effort 跳过。"""
-    lines, nl = _read_lines(TAGS_TXT)
-    segs = parent.split('/')
-    idx = _txt_find(lines, segs)
-    if idx is None:
-        return (False, '标签.txt 未找到父节点 ' + parent + '（已跳过，重跑 build_tags 可能丢失本次新增）')
-    parent_depth = len(segs) - 1
-    # 父子树结束位置 = 第一个 depth <= parent_depth 的行（或文件末尾）
-    end = len(lines)
-    for j in range(idx + 1, len(lines)):
-        m = re.match(r'^(\t*)([^\t]*?)$', lines[j])
-        if m and m.group(2).strip() and not m.group(2).startswith('……'):
-            if len(m.group(1)) <= parent_depth:
-                end = j
-                break
-    lines.insert(end, '\t' * (parent_depth + 1) + _txt_fmt(name, False, aliases))
-    _write_lines(TAGS_TXT, lines, nl)
-    return (True, '')
+def seqs_contains(seqs, cps):
+    return any(s[:len(cps)] == cps for s in seqs)
 
 
-def sync_txt_append_root(name, aliases):
-    """在 标签.txt 末尾追加新语义根行。"""
-    lines, nl = _read_lines(TAGS_TXT)
-    while lines and not lines[-1].strip():
-        lines.pop()
-    lines.append(_txt_fmt(name, False, aliases))
-    _write_lines(TAGS_TXT, lines, nl)
-    return (True, '')
+def seqs_add(node, cps):
+    if seqs_contains(node.get('seqs', []), cps):
+        return False
+    node.setdefault('seqs', []).append(list(cps))
+    node['seqs'].sort(key=lambda s: tuple(s[:2]))
+    return True
 
 
-def sync_txt_delete(path):
-    """从 标签.txt 删除节点行及其全部子孙行（depth 更深者）。节点不在时 best-effort 跳过。"""
-    lines, nl = _read_lines(TAGS_TXT)
-    segs = path.split('/')
-    idx = _txt_find(lines, segs)
-    if idx is None:
-        return (False, '标签.txt 未找到 ' + path + '（已跳过）')
-    depth = len(segs) - 1
-    end = idx + 1
-    while end < len(lines):
-        m = re.match(r'^(\t*)([^\t]*?)$', lines[end])
-        if m and m.group(2).strip() and not m.group(2).startswith('……'):
-            if len(m.group(1)) <= depth:
-                break
-        end += 1
-    del lines[idx:end]
-    _write_lines(TAGS_TXT, lines, nl)
-    return (True, '')
+def seqs_remove(node, cps):
+    seqs = node.get('seqs', [])
+    for i, s in enumerate(seqs):
+        if s[:len(cps)] == cps:
+            seqs.pop(i)
+            return True
+    return False
+
+
+def remove_from_subtree(node, cps):
+    """从 node 子树删除成员（实际持有处，含子孙），返回是否删到。移动用。"""
+    if len(cps) > 1:
+        if seqs_remove(node, cps):
+            return True
+    else:
+        if ranges_remove(node, cps[0]):
+            return True
+    for c in (node.get('children') or {}).values():
+        if remove_from_subtree(c, cps):
+            return True
+    return False
+
+
+def remove_all_from_subtree(node, cps):
+    """从 node 子树删除成员的全部持有（含子孙），返回是否删到至少一处。取消打标用。"""
+    found = False
+    if len(cps) > 1:
+        if seqs_remove(node, cps):
+            found = True
+    else:
+        if ranges_remove(node, cps[0]):
+            found = True
+    for c in (node.get('children') or {}).values():
+        if remove_all_from_subtree(c, cps):
+            found = True
+    return found
 
 
 # ===== 标签.json 操作 =====
@@ -240,14 +231,59 @@ def tag_move(p):
     if src is None or dst is None:
         return False, '源或目标标签不存在'
     cps = norm_cps(p['cps'])
+    # 从源标签子树移除（与客户端 removeFromSubtree 一致；直接删源节点会在父标签视图下漏删子标签持有）
+    remove_from_subtree(src, cps)
     if len(cps) > 1:
-        seqs_remove(src, cps)
         seqs_add(dst, cps)
     else:
-        ranges_remove(src, cps[0])
         ranges_add(dst, cps[0])
     save_tags(data)
     return True, '已移动'
+
+
+def tag_remove(p):
+    """取消打标：把成员从源标签子树中全部移除（机械轴禁止）。"""
+    path = p['sourcePath']
+    if path.split('/')[0] in MECHANICAL:
+        return False, '机械轴禁止修改'
+    data = load_tags()
+    roots = data['roots']
+    src = get_node(roots, path)
+    if src is None:
+        return False, '标签不存在: ' + path
+    cps = norm_cps(p['cps'])
+    if not remove_all_from_subtree(src, cps):
+        return False, '该字符不在标签中: ' + path
+    save_tags(data)
+    return True, '已取消打标'
+
+
+def rename_dict_key(d, old, new):
+    """dict 键改名并保持键顺序：d[new]=d.pop(old) 会把新键排到末尾。"""
+    if old == new:
+        return
+    items = [(new if k == old else k, v) for k, v in d.items()]
+    d.clear()
+    d.update(items)
+
+
+def move_key_order(d, key, direction, sortable=None):
+    """把 d 的键 key 上移/下移一位（限 sortable 键集内，None=全部键）。
+    返回 (是否移动, 消息)；边界不移动也不报错。"""
+    keys = list(d.keys())
+    block = [k for k in keys if k in sortable] if sortable is not None else keys
+    i = block.index(key)
+    j = i - 1 if direction == 'up' else i + 1
+    if j < 0 or j >= len(block):
+        return False, '已在最' + ('前' if direction == 'up' else '后')
+    a, b = block[i], block[j]
+    new_keys = list(keys)
+    ai, bi = new_keys.index(a), new_keys.index(b)
+    new_keys[ai], new_keys[bi] = new_keys[bi], new_keys[ai]
+    items = [(k, d[k]) for k in new_keys]
+    d.clear()
+    d.update(items)
+    return True, ''
 
 
 def tag_meta(p):
@@ -270,12 +306,12 @@ def tag_meta(p):
                 return False, '父标签不存在: ' + '/'.join(parts[:-1])
             if new_name in parent['children'] and new_name != parts[-1]:
                 return False, '目标标签名已存在: ' + new_name
-            parent['children'][new_name] = parent['children'].pop(parts[-1])
+            rename_dict_key(parent['children'], parts[-1], new_name)
             new_path = '/'.join(parts[:-1] + [new_name])
         else:
             if new_name in roots and new_name != parts[0]:
                 return False, '目标标签名已存在: ' + new_name
-            roots[new_name] = roots.pop(parts[0])
+            rename_dict_key(roots, parts[0], new_name)
             new_path = new_name
 
     node = get_node(roots, new_path)
@@ -285,17 +321,7 @@ def tag_meta(p):
         node['alias'] = aliases
     save_tags(data)
 
-    # 同步 标签.txt（best-effort）：先按旧路径改名，再按新路径改别名
-    note = ''
-    if new_name is not None:
-        ok, n = sync_txt(path, new_name=new_name)
-        if not ok:
-            note = n
-    if aliases is not None:
-        ok, n = sync_txt(new_path, aliases=aliases)
-        if not ok:
-            note = n
-    return True, '已保存' + ('（' + note + '）' if note else '')
+    return True, '已保存'
 
 
 def tag_new(p):
@@ -323,7 +349,6 @@ def tag_new(p):
             node['alias'] = aliases
         pnode['children'][name] = node
         save_tags(data)
-        ok, note = sync_txt_insert_child(parent, name, aliases)
     else:
         if name in roots:
             return False, '标签名已存在: ' + name
@@ -332,8 +357,7 @@ def tag_new(p):
             node['alias'] = aliases
         roots[name] = node
         save_tags(data)
-        ok, note = sync_txt_append_root(name, aliases)
-    return True, '已新增' + ('（' + note + '）' if note else '')
+    return True, '已新增'
 
 
 def tag_del(p):
@@ -352,8 +376,36 @@ def tag_del(p):
     else:
         del roots[parts[0]]
     save_tags(data)
-    ok, note = sync_txt_delete(path)
-    return True, '已删除' + ('（' + note + '）' if note else '')
+    return True, '已删除'
+
+
+def tag_sort(p):
+    """调节标签顺序：同级可排序块内上移/下移一位。根级块=非机械轴根。"""
+    path = p['path']
+    direction = p.get('dir')
+    if direction not in ('up', 'down'):
+        return False, '未知方向: ' + str(direction)
+    if path.split('/')[0] in MECHANICAL:
+        return False, '机械轴禁止修改'
+    data = load_tags()
+    roots = data['roots']
+    parts = path.split('/')
+    if len(parts) > 1:
+        parent = get_node(roots, '/'.join(parts[:-1]))
+        if parent is None:
+            return False, '父标签不存在: ' + '/'.join(parts[:-1])
+        d = parent['children']
+        sortable = None  # 子级全部键可排（父必为语义轴）
+    else:
+        d = roots
+        sortable = [k for k in roots.keys() if k not in MECHANICAL]
+    if parts[-1] not in d:
+        return False, '标签不存在: ' + path
+    moved, note = move_key_order(d, parts[-1], direction, sortable)
+    if not moved:
+        return True, note  # 边界（已在最前/最后）不报错
+    save_tags(data)
+    return True, '已排序'
 
 
 # ===== 符号编辑 =====
@@ -439,12 +491,16 @@ def handle_save(payload):
             return tag_add(payload)
         if action == 'move':
             return tag_move(payload)
+        if action == 'remove':
+            return tag_remove(payload)
         if action == 'tag':
             return tag_meta(payload)
         if action == 'tag-new':
             return tag_new(payload)
         if action == 'tag-del':
             return tag_del(payload)
+        if action == 'tag-sort':
+            return tag_sort(payload)
         if action == 'sym':
             return sym_save(payload)
     return False, '未知动作: ' + str(action)

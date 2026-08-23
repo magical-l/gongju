@@ -17,7 +17,7 @@
 	<link href="../css/layout.css" rel="stylesheet">
 	<link href="../resources/biz.css?v=250821" rel="stylesheet">
 	<link href="../css/花活.css" rel="stylesheet">
-	<link href="符号.css?v=260826" rel="stylesheet">
+	<link href="符号.css?v=260828" rel="stylesheet">
 </head>
 <body class="目字形">
 	<header>
@@ -80,7 +80,7 @@
 						<el-button size="small" @click="openNewRoot">+ 新增根标签</el-button>
 					</div>
 					<div class="tag tree" v-if="!loading">
-						<tag-tree-node v-for="[name, node] in treeRoots" :key="name" :name="name" :node="node" :path="name" :selected-path="selectedTag ? selectedTag.path : ''" :default-open="!isFormalAxis(name)" :drag-over-path="dragOverPath" :version="treeVersion" @select="onTreeSelect" @drop="onTreeDrop" @drag-over="onTreeDragOver" @drag-leave="onTreeDragLeave"></tag-tree-node>
+						<tag-tree-node v-for="[name, node] in treeRoots" :key="name" :name="name" :node="node" :path="name" :selected-path="selectedTag ? selectedTag.path : ''" :default-open="!isFormalAxis(name)" :drag-over-path="dragOverPath" :version="treeVersion" :editing="editEnabled && !isFormalAxis(name)" @select="onTreeSelect" @drop="onTreeDrop" @drag-over="onTreeDragOver" @drag-leave="onTreeDragLeave" @sort="onTreeSort"></tag-tree-node>
 					</div>
 					<div v-else class="loading-placeholder">加载标签数据…</div>
 				</section>
@@ -127,6 +127,7 @@
 							<div class="char-grid" v-if="selectedTag && gridItems.length">
 								<div class="char" v-for="item in gridItems" :key="cellKey(item)" :draggable="editEnabled" :class="{ sel: isSelected(item), 'has-variants': itemDual(item), 'is-ctrl': isControlCode(item) }" :title="itemTitle(item)" @click="selectItem(item)" @dragstart="onDragStart(item, $event)" @dragend="onDragEnd">
 									<button v-if="editEnabled" class="tag-edit-btn" @click.stop="openTagEditor(item)" title="移动/添加到其他标签">✎</button>
+									<button v-if="editEnabled" class="tag-untag-btn" @click.stop="removeFromGrid(item)" title="取消打标（移出当前标签）">✕</button>
 									<span class="char-symbol" :class="{ tofu: renderState(item) === false }">
 										<template v-if="renderState(item) === true">
 											<template v-if="itemDual(item)">
@@ -158,9 +159,10 @@
 									<div class="op-row" v-for="(op, i) in ops" :key="i">
 										<span class="op-char" :title="op.zhName || ''">{{ opChar(op) }}</span>
 										<span class="op-cp">U+{{ cpsHex(op.cps) }}</span>
-										<span class="op-action" :class="op.action">{{ op.action === 'add' ? '添加' : '移动' }}</span>
+										<span class="op-action" :class="op.action">{{ op.action === 'add' ? '添加' : (op.action === 'remove' ? '取消打标' : '移动') }}</span>
 										<span class="op-path">
 											<template v-if="op.action === 'move'">{{ op.sourcePath }}<span class="op-arrow">→</span>{{ op.targetPath }}</template>
+											<template v-else-if="op.action === 'remove'">{{ op.sourcePath }}</template>
 											<template v-else>{{ op.targetPath }}</template>
 										</span>
 										<button class="op-del" @click="removeOp(i)" title="删除此记录">✕</button>
@@ -341,7 +343,7 @@
 		<script src="../lib/toastr.min.js"></script>
 		<script src="../resources/biz-util.js?v=250801"></script>
 	</div>
-	<script src="符号.js?v=260826"></script>
+	<script src="符号.js?v=260828"></script>
 	<div>
 		<!-- 谷歌广告联盟 -->
 		<script async crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"></script>

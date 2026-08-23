@@ -224,6 +224,34 @@ function nodeAtPath(path) {
 	return node;
 }
 
+/** 对象内键改名：保持键顺序原地重排（obj[new]=obj[old]; delete obj[old] 会把新键排到末尾） */
+function renameKey(obj, oldKey, newKey) {
+	if (oldKey === newKey) return;
+	const newObj = {};
+	for (const k of Object.keys(obj)) newObj[k === oldKey ? newKey : k] = obj[k];
+	Object.keys(obj).forEach(k => delete obj[k]);
+	Object.assign(obj, newObj);
+}
+
+/** 对象内把键与相邻键交换一位（可排序块：传入 formalKeys 时=非机械轴键，否则=全部键）；边界返回 false */
+function moveKeyInBlock(dict, key, dir, formalKeys) {
+	const keys = Object.keys(dict);
+	const block = formalKeys ? keys.filter(k => !formalKeys.includes(k)) : keys;
+	const i = block.indexOf(key);
+	if (i < 0) return false;
+	const j = dir === 'up' ? i - 1 : i + 1;
+	if (j < 0 || j >= block.length) return false;
+	const a = block[i], b = block[j];
+	const newKeys = keys.slice();
+	const ai = newKeys.indexOf(a), bi = newKeys.indexOf(b);
+	[newKeys[ai], newKeys[bi]] = [newKeys[bi], newKeys[ai]];
+	const newObj = {};
+	for (const k of newKeys) newObj[k] = dict[k];
+	Object.keys(dict).forEach(k => delete dict[k]);
+	Object.assign(dict, newObj);
+	return true;
+}
+
 /** 节点自身是否直接持有某成员（单码位查 ranges，旗序列查 seqs） */
 function nodeHasMember(node, cp) {
 	if (Array.isArray(cp)) {
@@ -281,6 +309,20 @@ function removeFromSubtree(node, cp) {
 		if (removeFromSubtree(c, cp)) return true;
 	}
 	return false;
+}
+
+/** 从 node 子树删除成员的全部持有（含子孙），返回是否删到至少一处。取消打标用。 */
+function removeAllFromSubtree(node, cp) {
+	let found = false;
+	if (nodeHasMember(node, cp)) {
+		if (Array.isArray(cp)) seqsRemove(node, cp);
+		else rangesRemove(node, cp);
+		found = true;
+	}
+	for (const c of Object.values(node.children || {})) {
+		if (removeAllFromSubtree(c, cp)) found = true;
+	}
+	return found;
 }
 
 /** 重建 FLAT 与 SEQ_INDEX（TAGS 被内存改动后调用；flatten 是增量追加，须先清空） */
@@ -445,7 +487,7 @@ async function checkLocalRenderable(cp) {
 /** 左侧标签树节点：原生 details/summary 递归组件（展开/折叠交给浏览器原生，点击选中由 select 事件上抛） */
 const TagTreeNode = {
 	name: 'TagTreeNode',
-	emits: ['select', 'drag-over', 'drag-leave', 'drop'],
+	emits: ['select', 'drag-over', 'drag-leave', 'drop', 'sort'],
 	props: {
 		name: { type: String, required: true },
 		node: { type: Object, required: true },
@@ -453,7 +495,8 @@ const TagTreeNode = {
 		selectedPath: { type: String, default: '' },
 		defaultOpen: { type: Boolean, default: false },
 		dragOverPath: { type: String, default: '' },
-		version: { type: Number, default: 0 } // 树结构版本：bump 时 props 变化强制重渲染（TAGS 非响应式，节点对象引用不变时 Vue 会跳过）
+		version: { type: Number, default: 0 }, // 树结构版本：bump 时 props 变化强制重渲染（TAGS 非响应式，节点对象引用不变时 Vue 会跳过）
+		editing: { type: Boolean, default: false } // 编辑模式：显示 ▲▼ 排序按钮
 	},
 	data() {
 		return { open: this.defaultOpen };
@@ -497,15 +540,25 @@ const TagTreeNode = {
 			e.preventDefault();
 			e.stopPropagation();
 			this.$emit('drop', this.path, e);
-		}
+		},
+		onSort(e, dir) {
+			e.preventDefault();
+			e.stopPropagation(); // 只排序，不导航/不选中
+			this.$emit('sort', this.path, dir);
+		},
 	},
 	render() {
 		const kids = Object.entries(this.node.children || {});
 		const hasChild = kids.length > 0;
 		const selectedCls = { selected: this.selectedPath === this.path };
+		const reorder = this.editing ? [
+			h('button', { class: 'treorder treorder-up btn , icon-only', type: 'button', onClick: (e) => this.onSort(e, 'up'), title: '上移' }, '▲'),
+			h('button', { class: 'treorder treorder-down btn , icon-only', type: 'button', onClick: (e) => this.onSort(e, 'down'), title: '下移' }, '▼')
+		] : [];
 		const rowInner = () => [
 			h('span', { class: 'tname' }, this.name),
-			h('span', { class: 'tcount' }, String(this.count))
+			h('span', { class: 'tcount' }, String(this.count)),
+			...reorder
 		];
 		const children = kids.map(([k, c]) => h(TagTreeNode, {
 			key: this.path + '/' + k,
@@ -515,13 +568,18 @@ const TagTreeNode = {
 			selectedPath: this.selectedPath,
 			dragOverPath: this.dragOverPath,
 			version: this.version,
+			editing: this.editing,
 			onSelect: (t) => this.$emit('select', t),
+			onSort: (p, dir) => this.$emit('sort', p, dir),
 			onDragOver: (p, e) => this.$emit('drag-over', p, e),
 			onDragLeave: () => this.$emit('drag-leave'),
 			onDrop: (p, e) => this.$emit('drop', p, e)
 		}));
 		if (!hasChild) {
-			return h('div', { class: ['trow', 'trow-leaf', selectedCls, { 'drag-over': this.isDragOver }], onClick: this.onSelect, onDragover: this.onDragOver, onDragleave: this.onDragLeave, onDrop: this.onDrop, title: this.node.alias && this.node.alias.length ? this.name + '\n别名：' + this.node.alias.join('、') : this.name }, rowInner());
+			return h('div', { class: ['trow', 'trow-leaf', selectedCls, { 'drag-over': this.isDragOver }], onClick: this.onSelect, onDragover: this.onDragOver, onDragleave: this.onDragLeave, onDrop: this.onDrop, title: this.node.alias && this.node.alias.length ? this.name + '\n别名：' + this.node.alias.join('、') : this.name }, [
+				h('span', { class: 'ttoggle' }, ''), // 优化18：预留三角标记位置，与有子节点行对齐
+				h('div', { class: 'tnav' }, rowInner())
+			]);
 		}
 		return h('details', { class: 'tnode', open: this.open, onToggle: this.onToggle }, [
 			h('summary', {
@@ -1139,6 +1197,22 @@ const app = createApp({
 			this.tagEditorTarget = '';
 			this.tagEditorVisible = true;
 		},
+		/** 网格条目直接取消打标：移出当前选中标签 */
+		async removeFromGrid(item) {
+			let cp, char, zhName = '';
+			if (this.isFlag(item)) {
+				cp = item;
+				char = String.fromCodePoint(item[0], item[1]);
+				const meta = SEQ_INDEX.get(item[0] + '-' + item[1]) || {};
+				zhName = meta.zh || '';
+			} else {
+				cp = item;
+				char = String.fromCodePoint(item);
+				zhName = zhNameOf(item);
+			}
+			this.tagEditorChar = { char, cp, zhName };
+			await this.opRemove();
+		},
 		/** 编辑对话框树节点点击：记录目标标签 path */
 		onTreePickNode(data) {
 			this.tagEditorTarget = data.path;
@@ -1198,9 +1272,41 @@ const app = createApp({
 				ElementPlus.ElMessage.success('已移动');
 			}
 		},
+		/** 取消打标：把字符从当前选中标签子树全部移除；先写服务器，成功后再改内存+记录 */
+		async opRemove() {
+			const src = this.selectedTag;
+			const tc = this.tagEditorChar;
+			if (!src || !tc) return;
+			if (!nodeAggregatesMember(src.node, tc.cp)) {
+				ElementPlus.ElMessage.warning('该字符不在当前标签中');
+				return;
+			}
+			try {
+				await this.serverSave({ action: 'remove', cps: this.toCpsArray(tc.cp), sourcePath: src.path });
+			} catch (e) {
+				ElementPlus.ElMessage.error('取消打标失败：' + e.message);
+				return;
+			}
+			const op = { action: 'remove', cps: tc.cp, sourcePath: src.path, targetPath: '', char: tc.char, zhName: tc.zhName };
+			if (this.applyOp(op)) {
+				this.ops.push(op);
+				this.tagEditorVisible = false;
+				ElementPlus.ElMessage.success('已取消打标');
+			}
+		},
 		/** 应用操作到内存 TAGS：add→目标加；move→源子树删+目标加；节点缺失则报错不记录 */
 		applyOp(op) {
-			if (op.action === 'move') {
+			if (op.action === 'remove') {
+				const src = nodeAtPath(op.sourcePath);
+				if (!src) {
+					ElementPlus.ElMessage.error('取消打标失败：标签不存在');
+					return false;
+				}
+				if (!removeAllFromSubtree(src, op.cps)) {
+					ElementPlus.ElMessage.error('该字符不在标签中');
+					return false;
+				}
+			} else if (op.action === 'move') {
 				const src = nodeAtPath(op.sourcePath);
 				const dst = nodeAtPath(op.targetPath);
 				if (!src || !dst) {
@@ -1375,12 +1481,10 @@ const app = createApp({
 				if (parts.length > 1) {
 					const parent = nodeAtPath(parts.slice(0, -1).join('/'));
 					if (parent && parent.children && parent.children[lastName]) {
-						parent.children[newName] = parent.children[lastName];
-						delete parent.children[lastName];
+						renameKey(parent.children, lastName, newName);
 					}
 				} else if (TAGS.roots[lastName]) {
-					TAGS.roots[newName] = TAGS.roots[lastName];
-					delete TAGS.roots[lastName];
+					renameKey(TAGS.roots, lastName, newName);
 				}
 				newPath = parts.length > 1 ? parts.slice(0, -1).join('/') + '/' + newName : newName;
 			}
@@ -1596,6 +1700,28 @@ const app = createApp({
 			}
 			this.$forceUpdate();
 			ElementPlus.ElMessage.success('已删除');
+		},
+
+		/** 调节标签顺序：服务器 tag-sort 直写，成功后再改内存（根级只在非机械轴块内移动） */
+		async onTreeSort(path, dir) {
+			const parts = path.split('/');
+			const key = parts[parts.length - 1];
+			const isRoot = parts.length === 1;
+			const dict = isRoot ? TAGS.roots : ((nodeAtPath(parts.slice(0, -1).join('/')) || {}).children || {});
+			if (!dict || !Object.prototype.hasOwnProperty.call(dict, key)) return;
+			try {
+				await this.serverSave({ action: 'tag-sort', path, dir });
+			} catch (e) {
+				ElementPlus.ElMessage.error('排序失败：' + e.message);
+				return;
+			}
+			if (!moveKeyInBlock(dict, key, dir, isRoot ? AXIS_ORDER : null)) {
+				ElementPlus.ElMessage.info(dir === 'up' ? '已在最前' : '已在最后');
+				return;
+			}
+			rebuildFlat();
+			this.treeVersion++;
+			this.$forceUpdate();
 		},
 	},
 	async mounted() {
