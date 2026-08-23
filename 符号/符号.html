@@ -104,8 +104,8 @@
 									<span class="char-symbol" :class="{ tofu: renderState(mc.cp) === false }">
 										<template v-if="renderState(mc.cp) === true">
 											<template v-if="itemDual(mc.cp)">
-												<span class="variant text vs-text" @click.stop="copyGridVariant(mc.cp, 'text')">{{ cellText(mc.cp) }}</span>
-												<span class="variant emoji" @click.stop="copyGridVariant(mc.cp, 'emoji')">{{ cellText(mc.cp) }}</span>
+												<span class="variant text vs-text" @click.stop="copyGridVariant(mc.cp, 'text')">{{ variantText(cellText(mc.cp), 'text') }}</span>
+												<span class="variant emoji" @click.stop="copyGridVariant(mc.cp, 'emoji')">{{ variantText(cellText(mc.cp), 'emoji') }}</span>
 											</template>
 											<template v-else>{{ cellText(mc.cp) }}</template>
 										</template>
@@ -131,8 +131,8 @@
 									<span class="char-symbol" :class="{ tofu: renderState(item) === false }">
 										<template v-if="renderState(item) === true">
 											<template v-if="itemDual(item)">
-												<span class="variant text vs-text" @click.stop="copyGridVariant(item, 'text')">{{ cellText(item) }}</span>
-												<span class="variant emoji" @click.stop="copyGridVariant(item, 'emoji')">{{ cellText(item) }}</span>
+												<span class="variant text vs-text" @click.stop="copyGridVariant(item, 'text')">{{ variantText(cellText(item), 'text') }}</span>
+												<span class="variant emoji" @click.stop="copyGridVariant(item, 'emoji')">{{ variantText(cellText(item), 'emoji') }}</span>
 											</template>
 											<template v-else>{{ cellText(item) }}</template>
 										</template>
@@ -212,10 +212,10 @@
 							<template v-if="selectedChar">
 								<div v-if="selectedChar.mode === 'dual'">
 									<div class="align-row" :style="previewStyle">
-										<span class="txt">gxhAyO<span class="align-sym variant text vs-text" :style="symbolStyle" @click.stop="copyVariant('text')" title="复制文本风格">{{ selectedChar.char }}</span>gxhAyO</span>
+										<span class="txt">gxhAyO<span class="align-sym variant text vs-text" :style="symbolStyle" @click.stop="copyVariant('text')" title="复制文本风格">{{ variantText(selectedChar.char, 'text') }}</span>gxhAyO</span>
 									</div>
 									<div class="align-row" :style="previewStyle">
-										<span class="txt">gxhAyO<span class="align-sym variant emoji" :style="symbolStyle" @click.stop="copyVariant('emoji')" title="复制表情风格">{{ selectedChar.char }}</span>gxhAyO</span>
+										<span class="txt">gxhAyO<span class="align-sym variant emoji" :style="symbolStyle" @click.stop="copyVariant('emoji')" title="复制表情风格">{{ variantText(selectedChar.char, 'emoji') }}</span>gxhAyO</span>
 									</div>
 								</div>
 								<template v-else-if="!detailTofu">
@@ -343,7 +343,7 @@
 		<script src="../lib/toastr.min.js"></script>
 		<script src="../resources/biz-util.js?v=250801"></script>
 	</div>
-	<script src="符号.js?v=260828"></script>
+	<script src="符号.js?v=260823"></script>
 	<div>
 		<!-- 谷歌广告联盟 -->
 		<script async crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"></script>

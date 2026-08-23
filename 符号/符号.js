@@ -942,6 +942,11 @@ const app = createApp({
 		cellText(item) {
 			return this.isFlag(item) ? String.fromCodePoint(...item) : String.fromCodePoint(item);
 		},
+		/** 双模变体渲染文本：text=追加VS15(U+FE0E)强制文本呈现，emoji=追加VS16(U+FE0F)强制表情呈现
+		 *  （font-variant-emoji: emoji 在 Chrome 对文本默认类字符不生效，须用变体选择符可靠呈现） */
+		variantText(char, type) {
+			return char + (type === 'text' ? '︎' : '️');
+		},
 		/** 渲染态：true=能渲染, false=当前字体不支持, null=检测中（占位，不显示豆腐块） */
 		renderState(item) {
 			if (this.isFlag(item)) return true;
