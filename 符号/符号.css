@@ -285,19 +285,22 @@
 	margin-left: 10px;
 }
 
-.tag.tree details.tnode > .trow-leaf {
+.tag.tree .trow-leaf {
 	display: flex;
 	align-items: stretch;
-	margin-left: 10px;
 	padding: 0;
 }
 
-.tag.tree details.tnode > .trow-leaf > .ttoggle {
+.tag.tree details.tnode > .trow-leaf {
+	margin-left: 10px;
+}
+
+.tag.tree .trow-leaf > .ttoggle {
 	flex: 0 0 26px;
 	width: 26px;
 }
 
-.tag.tree details.tnode > .trow-leaf > .tnav {
+.tag.tree .trow-leaf > .tnav {
 	flex: 1;
 	padding: 4px 8px;
 	cursor: pointer;
