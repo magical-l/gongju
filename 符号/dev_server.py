@@ -12,12 +12,14 @@ dev_server.py — 符号页编辑保存服务器（临时功能）。
   add       {"action":"add",  "cps":[1F600],      "targetPath":"语义/..."}
   move      {"action":"move", "cps":[1F600],      "sourcePath":"...", "targetPath":"..."}
   remove    {"action":"remove","cps":[1F600],     "sourcePath":"..."}（取消打标：从源标签子树全部移除）
-  tag       {"action":"tag",  "path":"...",        "newName":"新名"|null, "aliases":[...]|null}
+  tag       {"action":"tag",  "path":"...",        "newName":"新名"|null, "aliases":[...]|null, "intro":"简介"|null}
   tag-new   {"action":"tag-new","parentPath":"父路径或空", "name":"新标签", "aliases":[...]?}
               parentPath 空 → 新增语义根；否则新增子节点
   tag-del   {"action":"tag-del","path":"要删的路径"}（含子树）
   tag-sort  {"action":"tag-sort","path":"...",     "dir":"up"|"down"}
               同级内上移/下移一位（根级只在非机械轴根之间排）
+  tag-reparent {"action":"tag-reparent","path":"源完整路径", "targetPath":"目标父路径或空"}
+              targetPath 空 → 提升为语义根；否则把节点（含子树）移到目标父下
   sym       {"action":"sym",  "cps":[1F600],       "entry":{char,groups}|null, "name":"新名"|null}
               entry 提供 → 写 符号数据.js（页面已路由好：字符在 SYMBOLS 或加了别名）
               name 提供  → 写 中文名.json（仅非 SYMBOLS 字符的改名）
@@ -242,7 +244,8 @@ def tag_move(p):
 
 
 def tag_remove(p):
-    """取消打标：把成员从源标签子树中全部移除（机械轴禁止）。"""
+    """取消打标：从源标签移除成员。scope='node' 只删该标签自身直接持有（详情区 chip 用）；
+    缺省删整棵子树（网格 ✕ 用，避免父视图聚合子节点导致字符"复活"）。机械轴禁止。"""
     path = p['sourcePath']
     if path.split('/')[0] in MECHANICAL:
         return False, '机械轴禁止修改'
@@ -252,7 +255,11 @@ def tag_remove(p):
     if src is None:
         return False, '标签不存在: ' + path
     cps = norm_cps(p['cps'])
-    if not remove_all_from_subtree(src, cps):
+    if p.get('scope') == 'node':
+        found = seqs_remove(src, cps) if len(cps) > 1 else ranges_remove(src, cps[0])
+    else:
+        found = remove_all_from_subtree(src, cps)
+    if not found:
         return False, '该字符不在标签中: ' + path
     save_tags(data)
     return True, '已取消打标'
@@ -290,7 +297,8 @@ def tag_meta(p):
     path = p['path']
     new_name = p.get('newName')
     aliases = p.get('aliases')
-    if new_name is None and aliases is None:
+    intro = p.get('intro')
+    if new_name is None and aliases is None and intro is None:
         return False, '无变更'
     if path.split('/')[0] in MECHANICAL:
         return False, '机械轴禁止修改'
@@ -319,6 +327,11 @@ def tag_meta(p):
         return False, '标签不存在: ' + path
     if aliases is not None:
         node['alias'] = aliases
+    if intro is not None:
+        if intro:
+            node['intro'] = intro
+        else:
+            node.pop('intro', None)  # 空串=清空简介字段，保持 json 干净
     save_tags(data)
 
     return True, '已保存'
@@ -406,6 +419,55 @@ def tag_sort(p):
         return True, note  # 边界（已在最前/最后）不报错
     save_tags(data)
     return True, '已排序'
+
+
+def tag_reparent(p):
+    """移动标签节点（含子树）到另一父级，targetPath 空 = 提升为语义根。
+
+    校验：机械轴（源/目标）禁改、目标父存在、不能移到自身或自身子级、
+    目标父下无同名键、源父与目标父相同视为无变化。
+    """
+    path = p['path']
+    target = p.get('targetPath') or ''
+    if path.split('/')[0] in MECHANICAL:
+        return False, '机械轴禁止修改'
+    if target and target.split('/')[0] in MECHANICAL:
+        return False, '目标父为机械轴，禁止修改'
+    data = load_tags()
+    roots = data['roots']
+    parts = path.split('/')
+    name = parts[-1]
+    old_parent = '/'.join(parts[:-1]) if len(parts) > 1 else ''
+    if target == old_parent:
+        return False, '标签已在该父级下'
+    node = get_node(roots, path)
+    if node is None:
+        return False, '标签不存在: ' + path
+    if target:
+        dst = get_node(roots, target)
+        if dst is None:
+            return False, '目标父标签不存在: ' + target
+        if target == path or target.startswith(path + '/'):
+            return False, '不能移动到自身或自身子级'
+        if name in dst.get('children', {}):
+            return False, '目标父下已有同名标签: ' + name
+    else:
+        if name in roots:
+            return False, '根级已有同名标签: ' + name
+    # 摘除源
+    if old_parent:
+        parent = get_node(roots, old_parent)
+        del parent['children'][name]
+    else:
+        del roots[name]
+    # 挂载到目标
+    if target:
+        dst = get_node(roots, target)
+        dst.setdefault('children', {})[name] = node
+    else:
+        roots[name] = node
+    save_tags(data)
+    return True, '已移动'
 
 
 # ===== 符号编辑 =====
@@ -501,6 +563,8 @@ def handle_save(payload):
             return tag_del(payload)
         if action == 'tag-sort':
             return tag_sort(payload)
+        if action == 'tag-reparent':
+            return tag_reparent(payload)
         if action == 'sym':
             return sym_save(payload)
     return False, '未知动作: ' + str(action)

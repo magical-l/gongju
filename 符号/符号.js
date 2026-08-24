@@ -638,6 +638,9 @@ const app = createApp({
 			metaEditorChar: null,        // 符号模式：当前编辑的字符对象
 			metaEditorCpStr: '',         // 符号模式：码位串显示
 			metaEditorOldAliases: [],    // 打开弹窗时的旧别名（比对变更用）
+			metaEditorIntro: '',      // 编辑弹窗标签简介
+			metaEditorOldIntro: '',   // 打开弹窗时的简介（判断是否变更）
+			reparentTarget: '',       // 父级归属：选中的目标父 path（''=提升为根）
 			metaNewChild: '',            // 标签模式：新增子标签的名字输入
 		};
 	},
@@ -803,6 +806,46 @@ const app = createApp({
 				if (AXIS_ORDER.includes(k)) continue; // 排除三大机械轴
 				const n = { name: k, path: k };
 				if (v.children && Object.keys(v.children).length) n.children = toNodes(v.children, k);
+				out.push(n);
+			}
+			return out;
+		},
+		/** 编辑标签的当前父级路径（tag 模式用；根=空串） */
+		metaEditorParentPath() {
+			const p = this.metaEditorPath;
+			if (!p) return '';
+			const parts = p.split('/');
+			return parts.length > 1 ? parts.slice(0, -1).join('/') : '';
+		},
+		/** 父级归属选择树：排除自身/子孙/三大机械轴（目标父只能是语义轴节点） */
+		reparentTree() {
+			if (!TAGS) return [];
+			void this.treeVersion;
+			const exclude = this.metaEditorPath;
+			const skip = (full) => exclude && (full === exclude || full.startsWith(exclude + '/'));
+			const walk = (dict, prefix) => {
+				const arr = [];
+				for (const [k, v] of Object.entries(dict)) {
+					const full = prefix ? prefix + '/' + k : k;
+					if (skip(full)) continue; // 排除自身/子孙
+					const n = { name: k, path: full };
+					if (v.children && Object.keys(v.children).length) {
+						const kids = walk(v.children, full);
+						if (kids.length) n.children = kids;
+					}
+					arr.push(n);
+				}
+				return arr;
+			};
+			const out = [];
+			for (const [k, v] of Object.entries(TAGS.roots)) {
+				if (AXIS_ORDER.includes(k)) continue; // 机械轴不可作目标父
+				if (skip(k)) continue;
+				const n = { name: k, path: k };
+				if (v.children && Object.keys(v.children).length) {
+					const kids = walk(v.children, k);
+					if (kids.length) n.children = kids;
+				}
 				out.push(n);
 			}
 			return out;
@@ -1218,6 +1261,38 @@ const app = createApp({
 			this.tagEditorChar = { char, cp, zhName };
 			await this.opRemove();
 		},
+		/** 该标签是否允许取消打标：任一分支属机械轴则禁改（按钮已隐藏，双保险） */
+		canUntagTag(g) {
+			return !g.paths.some(p => this.isFormalAxis(p.split('/')[0]));
+		},
+		/** 详情区标签取消打标：只删该标签自身直接持有，不级联子标签（同名多分支各自移除） */
+		async removeFromTag(g) {
+			const cp = this.selectedChar && this.selectedChar.cp;
+			if (cp === null || cp === undefined) return;
+			const isFlag = Array.isArray(cp);
+			const char = isFlag ? String.fromCodePoint(cp[0], cp[1]) : String.fromCodePoint(cp);
+			const zhName = isFlag ? ((SEQ_INDEX.get(cp[0] + '-' + cp[1]) || {}).zh || '') : zhNameOf(cp);
+			this.tagEditorChar = { char, cp, zhName };
+			const paths = g.paths.filter(path => {
+				const src = nodeAtPath(path);
+				return src && nodeHasMember(src, cp);
+			});
+			if (!paths.length) {
+				ElementPlus.ElMessage.warning('该字符不在标签中');
+				return;
+			}
+			for (const path of paths) {
+				try {
+					await this.serverSave({ action: 'remove', cps: this.toCpsArray(cp), sourcePath: path, scope: 'node' });
+				} catch (e) {
+					ElementPlus.ElMessage.error('取消打标失败：' + e.message);
+					return;
+				}
+				const op = { action: 'remove', cps: cp, sourcePath: path, targetPath: '', char, zhName, scope: 'node' };
+				if (this.applyOp(op)) this.ops.push(op);
+			}
+			ElementPlus.ElMessage.success('已取消打标');
+		},
 		/** 编辑对话框树节点点击：记录目标标签 path */
 		onTreePickNode(data) {
 			this.tagEditorTarget = data.path;
@@ -1307,7 +1382,17 @@ const app = createApp({
 					ElementPlus.ElMessage.error('取消打标失败：标签不存在');
 					return false;
 				}
-				if (!removeAllFromSubtree(src, op.cps)) {
+				let ok;
+				if (op.scope === 'node') {
+					ok = nodeHasMember(src, op.cps);
+					if (ok) {
+						if (Array.isArray(op.cps)) seqsRemove(src, op.cps);
+						else rangesRemove(src, op.cps);
+					}
+				} else {
+					ok = removeAllFromSubtree(src, op.cps);
+				}
+				if (!ok) {
 					ElementPlus.ElMessage.error('该字符不在标签中');
 					return false;
 				}
@@ -1344,6 +1429,7 @@ const app = createApp({
 		refreshAfterOp() {
 			rebuildFlat();
 			this.treeVersion++; // 触发左树重算（TAGS 非响应式，成员增删后计数/结构需刷新）
+			if (this.selectedChar) this.selectedChar.tags = tagsOf(this.selectedChar.cp);
 			if (!this.selectedTag) return;
 			const tag = this.selectedTag;
 			const page = this.gridPage;
@@ -1439,7 +1525,10 @@ const app = createApp({
 			this.metaEditorName = t.name;
 			this.metaEditorAliases = (t.node && t.node.alias && t.node.alias.length) ? [...t.node.alias] : [];
 			this.metaEditorOldAliases = [...this.metaEditorAliases];
+			this.metaEditorIntro = (t.node && t.node.intro) ? t.node.intro : '';
+			this.metaEditorOldIntro = this.metaEditorIntro;
 			this.metaEditorChar = null;
+			this.reparentTarget = '';
 			this.metaEditorVisible = true;
 		},
 		/** 兄弟节点重名检测：根或父 children 已有同名标签则冲突（newName 等于旧名不算） */
@@ -1460,7 +1549,9 @@ const app = createApp({
 			const aliases = [...new Set(this.metaEditorAliases.map(a => (a || '').trim()).filter(a => a !== ''))];
 			const nameChanged = newName !== oldName;
 			const aliasChanged = JSON.stringify(aliases) !== JSON.stringify(this.metaEditorOldAliases);
-			if (!nameChanged && !aliasChanged) { this.metaEditorVisible = false; return; }
+			const intro = (this.metaEditorIntro || '').trim();
+			const introChanged = intro !== this.metaEditorOldIntro;
+			if (!nameChanged && !aliasChanged && !introChanged) { this.metaEditorVisible = false; return; }
 			if (nameChanged) {
 				if (!newName) { ElementPlus.ElMessage.error('标签名不能为空'); return; }
 				if (newName.includes('/')) { ElementPlus.ElMessage.error('标签名不能包含斜杠 /'); return; }
@@ -1470,6 +1561,7 @@ const app = createApp({
 			const payload = { action: 'tag', path };
 			if (nameChanged) payload.newName = newName;
 			if (aliasChanged) payload.aliases = aliases;
+			if (introChanged) payload.intro = intro;
 			try {
 				await this.serverSave(payload);
 			} catch (e) {
@@ -1494,6 +1586,10 @@ const app = createApp({
 				newPath = parts.length > 1 ? parts.slice(0, -1).join('/') + '/' + newName : newName;
 			}
 			if (aliasChanged) node.alias = aliases;
+			if (introChanged) {
+				if (intro) node.intro = intro;
+				else delete node.intro;
+			}
 			rebuildFlat();
 			this.treeVersion++;
 			const st = this.selectedTag;
@@ -1514,6 +1610,7 @@ const app = createApp({
 			this.metaEditorName = sc.zhName || '';
 			this.metaEditorAliases = (sc.aliases && sc.aliases.length) ? [...sc.aliases] : [];
 			this.metaEditorOldAliases = [...this.metaEditorAliases];
+			this.metaEditorIntro = ''; this.metaEditorOldIntro = ''; this.reparentTarget = '';
 			this.metaEditorCpStr = sc.codeStr || this.cpsHex(sc.cp);
 			this.metaEditorPath = '';
 			this.metaEditorVisible = true;
@@ -1618,6 +1715,58 @@ const app = createApp({
 		removeMetaAlias(i) {
 			this.metaEditorAliases.splice(i, 1);
 		},
+		/** 父级归属树节点点击：记录目标父 path */
+		onReparentPick(data) {
+			this.reparentTarget = data.path;
+		},
+		/** 调整父级归属：promote=true 提升为根，否则移动到 reparentTarget 下；服务器直写成功后再改内存 */
+		async saveTagReparent(promote) {
+			const path = this.metaEditorPath;
+			if (!path) return;
+			const parts = path.split('/');
+			const name = parts[parts.length - 1];
+			const oldParent = parts.length > 1 ? parts.slice(0, -1).join('/') : '';
+			const target = promote ? '' : this.reparentTarget;
+			if (!promote && !target) { ElementPlus.ElMessage.warning('请先选择目标父级'); return; }
+			if (target === oldParent) { ElementPlus.ElMessage.info('标签已在该父级下'); return; }
+			if (target) {
+				if (target === path) { ElementPlus.ElMessage.error('不能移动到自身'); return; }
+				if (target.startsWith(path + '/')) { ElementPlus.ElMessage.error('不能移动到自身子级'); return; }
+				const dst = nodeAtPath(target);
+				if (!dst) { ElementPlus.ElMessage.error('目标父标签不存在'); return; }
+				if (dst.children && dst.children[name]) { ElementPlus.ElMessage.error('目标父下已有同名标签：' + name); return; }
+			} else if (TAGS.roots[name]) {
+				ElementPlus.ElMessage.error('根级已有同名标签：' + name);
+				return;
+			}
+			try {
+				await this.serverSave({ action: 'tag-reparent', path, targetPath: target });
+			} catch (e) { ElementPlus.ElMessage.error('移动失败：' + e.message); return; }
+			// 成功 → 改内存：先取节点引用，再摘除挂载
+			const node = nodeAtPath(path);
+			if (parts.length > 1) {
+				const p = nodeAtPath(oldParent);
+				if (p && p.children) delete p.children[name];
+			} else {
+				delete TAGS.roots[name];
+			}
+			const newPath = target ? target + '/' + name : name;
+			if (target) {
+				const dst = nodeAtPath(target);
+				if (!dst.children) dst.children = {};
+				dst.children[name] = node;
+			} else {
+				TAGS.roots[name] = node;
+			}
+			rebuildFlat();
+			this.treeVersion++;
+			this.reparentTarget = '';
+			const st = this.selectedTag;
+			if (st && st.path === path) this.selectedTag = { ...st, path: newPath };
+			this.metaEditorPath = newPath;
+			this.$forceUpdate();
+			ElementPlus.ElMessage.success('已移动');
+		},
 
 		// ===== 新增/删除标签树节点（服务器直写）=====
 
@@ -1628,6 +1777,9 @@ const app = createApp({
 			this.metaEditorName = '';
 			this.metaEditorAliases = [];
 			this.metaEditorOldAliases = [];
+			this.metaEditorIntro = '';
+			this.metaEditorOldIntro = '';
+			this.reparentTarget = '';
 			this.metaNewChild = '';
 			this.metaEditorVisible = true;
 		},

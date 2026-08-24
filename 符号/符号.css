@@ -815,6 +815,29 @@ main {
 	color: var(--el-text-color-placeholder);
 }
 
+.tag-chip .tag-untag {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 16px;
+	height: 16px;
+	padding: 0;
+	margin-left: 2px;
+	border: none;
+	border-radius: 50%;
+	background: transparent;
+	color: var(--el-text-color-placeholder);
+	font-size: 10px;
+	line-height: 1;
+	cursor: pointer;
+	flex-shrink: 0;
+}
+
+.tag-chip .tag-untag:hover {
+	background: #d94a4a;
+	color: #fff;
+}
+
 .none {
 	padding: 0.75rem 0;
 	font-size: 14px;
@@ -1199,4 +1222,11 @@ main {
 
 .meta-editor-dialog .me-row .el-input {
 	flex: 1;
+}
+.meta-editor-dialog .me-section .el-tree {
+	height: 220px;
+	overflow-y: auto;
+	border: 1px solid var(--el-border-color-lighter);
+	border-radius: 4px;
+	padding: 4px;
 }

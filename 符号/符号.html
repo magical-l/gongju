@@ -17,7 +17,7 @@
 	<link href="../css/layout.css" rel="stylesheet">
 	<link href="../resources/biz.css?v=250821" rel="stylesheet">
 	<link href="../css/花活.css" rel="stylesheet">
-	<link href="符号.css?v=260824" rel="stylesheet">
+	<link href="符号.css?v=260825" rel="stylesheet">
 </head>
 <body class="目字形">
 	<header>
@@ -241,7 +241,7 @@
 						</div>
 						<div class="panel-title">所属标签</div>
 						<div class="tag-chips" v-if="selectedChar && selectedChar.tags.length">
-							<span class="tag-chip" v-for="g in selectedChar.tags" :key="g.name + ':' + g.paths[0]" :title="(g.intro || '') + '\n分支: ' + g.paths.join('、')" @click="selectTagByName(g.name)">{{ g.name }}<span class="path">{{ g.paths.join('、') }}</span></span>
+							<span class="tag-chip" v-for="g in selectedChar.tags" :key="g.name + ':' + g.paths[0]" :title="(g.intro || '') + '\n分支: ' + g.paths.join('、')" @click="selectTagByName(g.name)">{{ g.name }}<span class="path">{{ g.paths.join('、') }}</span><button v-if="editEnabled && canUntagTag(g)" class="tag-untag" @click.stop="removeFromTag(g)" title="取消打标">✕</button></span>
 						</div>
 						<div class="none" v-else-if="selectedChar">未命中任何标签</div>
 						<div class="none" v-else>点击一个字符查看所属标签</div>
@@ -302,6 +302,20 @@
 					<el-button size="small" class="me-alias-add" @click="metaEditorAliases.push('')">+ 添加别名</el-button>
 				</div>
 				<template v-if="metaEditorKind === 'tag'">
+					<div class="me-field">
+						<label class="me-label">简介</label>
+						<el-input v-model="metaEditorIntro" type="textarea" :rows="3" placeholder="标签简介（中部符号区上方显示），留空可清除"></el-input>
+					</div>
+					<div class="me-section">
+						<div class="me-sep">父级归属</div>
+						<div class="me-path">当前父级：{{ metaEditorParentPath || '（根标签）' }}</div>
+						<el-tree :data="reparentTree" :props="{ label: 'name', children: 'children' }" node-key="path" default-expand-all highlight-current :expand-on-click-node="false" @node-click="onReparentPick"></el-tree>
+						<div class="me-row" style="margin-top: 8px;">
+							<el-button size="small" type="primary" plain :disabled="!reparentTarget" @click="saveTagReparent(false)">移动到此父级</el-button>
+							<el-button size="small" plain :disabled="!metaEditorParentPath" @click="saveTagReparent(true)">提升为根标签</el-button>
+						</div>
+						<div class="me-reparent-tip" v-if="reparentTarget">目标父：{{ reparentTarget }}</div>
+					</div>
 					<div class="me-section">
 						<div class="me-sep">新增子标签</div>
 						<div class="me-row">
@@ -343,7 +357,7 @@
 		<script src="../lib/toastr.min.js"></script>
 		<script src="../resources/biz-util.js?v=250801"></script>
 	</div>
-	<script src="符号.js?v=260824"></script>
+	<script src="符号.js?v=260826"></script>
 	<div>
 		<!-- 谷歌广告联盟 -->
 		<script async crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"></script>
