@@ -709,7 +709,7 @@ const app = createApp({
 			const ownRanges = mergeRanges(node.ranges || []);
 			const ownSeqs = node.seqs || [];
 			if (ownRanges.length || ownSeqs.length) {
-				segs.push({ name: '本级', path: this.selectedTag.path, node, count: rangeCount(ownRanges) + ownSeqs.length, preview: this.previewItems(ownRanges, ownSeqs) });
+				segs.push({ name: '本级', path: this.selectedTag.path, node, count: rangeCount(ownRanges) + ownSeqs.length, preview: this.previewItems(ownRanges, ownSeqs, Infinity), full: true });
 			}
 			for (const [name, child] of Object.entries(node.children || {})) {
 				const m = collectNodeMembers(child);
@@ -904,7 +904,7 @@ const app = createApp({
 			}
 			return this.gridItems.length ? this.gridItems[0] : null;
 		},
-		/** 段预览：取前 n 个条目（单码位经 enumerateWindow 跨区间枚举，余量补旗序列） */
+		/** 段预览：取前 n 个条目，n=Infinity 时返回全部（单码位经 enumerateWindow 跨区间枚举，余量补旗序列） */
 		previewItems(ranges, seqs, n = PREVIEW_N) {
 			const items = [];
 			items.push(...enumerateWindow(ranges, 0, n));
@@ -914,16 +914,8 @@ const app = createApp({
 			}
 			return items;
 		},
-		/** 段"查看更多"：本级段切当前标签完整网格视图；子节点段选中该标签（自动判定叶子/非叶子） */
+		/** 段"查看更多"：选中该子标签（自动判定叶子/非叶子） */
 		viewSegment(seg) {
-			if (seg.path === this.selectedTag.path) {
-				this.gridOverview = false;
-				this.gridPage = 1;
-				const items = this.gridItems;
-				if (items.length) this.selectItem(items[0]);
-				if (items.length) this.refreshRenderability(items);
-				return;
-			}
 			this.selectTag({ name: seg.name, node: seg.node, path: seg.path });
 		},
 		/** 翻页：更新页码；若当前选中项不在新页，自动选中新页第一个（保持预览与列表一致） */

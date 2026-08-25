@@ -350,7 +350,7 @@
 
 .seg-head {
 	display: flex;
-	align-items: baseline;
+	align-items: center;
 	gap: 8px;
 	margin: 0 0 0.5rem;
 	padding-bottom: 4px;
@@ -366,15 +366,9 @@
 	color: var(--el-text-color-placeholder);
 }
 
-.seg-more {
-	margin-top: 0.5rem;
+.seg-head .seg-more {
 	font-size: 12px;
 	color: var(--el-text-color-secondary);
-	cursor: pointer;
-}
-
-.seg-more:hover {
-	color: var(--el-color-primary);
 }
 
 .char-grid .char {
