@@ -11,7 +11,7 @@ let NAMES = null;
 let ZH_NAMES = null; // 中文名.json（码位→中文名），空则回退英文名
 let FLAT = [];
 const SYMBOL_MAP = new Map();
-let DUAL_SET = new Set(); // 双模（文本/表情两变体）码位集合：mounted 时从 标签.json 的 emoji > emoji-text双模 ranges 构建（权威集合，207 码位）
+let DUAL_SET = new Set(); // 双模（文本/表情两变体）码位集合：mounted 时从 标签.json 的 emoji（绘文字）> emoji-text双模 ranges 构建（权威集合，207 码位）
 const CAP = 500; // 网格每页字符数
 const PREVIEW_N = 30; // 概览视图每段预览字符数（网格 10 列 × 3 行）
 const AXIS_ORDER = ['文字系统', '官方分类', '区块']; // 三大机械轴，树末尾固定顺序
@@ -1952,8 +1952,8 @@ const app = createApp({
 			TAGS = tags;
 			NAMES = names;
 			ZH_NAMES = zhnames;
-			// 构建双模集合：标签.json 权威（emoji > emoji-text双模 节点 ranges，207 码位）；节点缺失则留空集
-			const dualNode = TAGS.roots['emoji']?.children?.['emoji-text双模'];
+			// 构建双模集合：标签.json 权威（emoji（绘文字）> emoji-text双模 节点 ranges，207 码位）；节点缺失则留空集
+			const dualNode = TAGS.roots['emoji（绘文字）']?.children?.['emoji-text双模'];
 			if (dualNode && dualNode.ranges) {
 				for (const [lo, hi] of dualNode.ranges) {
 					for (let cp = lo; cp <= hi; cp++) DUAL_SET.add(cp);
