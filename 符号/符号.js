@@ -180,7 +180,7 @@ function buildSymbolMap() {
 				if (!seen.has('a:' + a)) { seen.add('a:' + a); aliases.push(a); }
 			}
 		}
-		SYMBOL_MAP.set(s.char, { names, enames, aliases, mode: s.mode || '' });
+		SYMBOL_MAP.set(s.char, { names, enames, aliases, mode: s.mode || '', intro: s.intro || '' });
 	}
 }
 
@@ -905,6 +905,7 @@ const app = createApp({
 				zhName: zhNameOf(cp),
 				mode: this.isDualCp(cp) ? 'dual' : '',
 				aliases: meta ? meta.aliases : [],
+				intro: meta ? (meta.intro || '') : '',
 				officialName: nameOf(cp),
 				tags: tagsOf(cp),
 				codeStr: cp.toString(16).toUpperCase(),
@@ -1610,7 +1611,7 @@ const app = createApp({
 			this.metaEditorName = sc.zhName || '';
 			this.metaEditorAliases = (sc.aliases && sc.aliases.length) ? [...sc.aliases] : [];
 			this.metaEditorOldAliases = [...this.metaEditorAliases];
-			this.metaEditorIntro = ''; this.metaEditorOldIntro = ''; this.reparentTarget = '';
+			this.metaEditorIntro = sc.intro || ''; this.metaEditorOldIntro = this.metaEditorIntro; this.reparentTarget = '';
 			this.metaEditorCpStr = sc.codeStr || this.cpsHex(sc.cp);
 			this.metaEditorPath = '';
 			this.metaEditorVisible = true;
@@ -1625,7 +1626,9 @@ const app = createApp({
 			const aliases = [...new Set(this.metaEditorAliases.map(a => (a || '').trim()).filter(a => a !== ''))];
 			const nameChanged = newName !== oldName;
 			const aliasChanged = JSON.stringify(aliases) !== JSON.stringify(this.metaEditorOldAliases);
-			if (!nameChanged && !aliasChanged) { this.metaEditorVisible = false; return; }
+			const intro = (this.metaEditorIntro || '').trim();
+			const introChanged = intro !== this.metaEditorOldIntro;
+			if (!nameChanged && !aliasChanged && !introChanged) { this.metaEditorVisible = false; return; }
 			if (nameChanged && !newName) { ElementPlus.ElMessage.error('名字不能为空'); return; }
 			// 路由决策：
 			//   旗序列 / 字符在 SYMBOLS / 需加别名（可同时改名）→ entry 路线（写 符号数据.js）
@@ -1659,6 +1662,10 @@ const app = createApp({
 							entry.groups['编辑'] = { alias: aliases };
 						}
 					}
+					if (introChanged) {
+						if (intro) entry.intro = intro;
+						else delete entry.intro;
+					}
 				} else {
 					// 新建最小条目：组键用字符第一个所属标签名，没有则用「编辑」
 					const groupKey = (sc.tags && sc.tags.length && sc.tags[0].name) || '编辑';
@@ -1666,6 +1673,7 @@ const app = createApp({
 					if (nameChanged) gg.name = newName;
 					if (aliasChanged && aliases.length) gg.alias = aliases;
 					entry = { char: sc.char, groups: { [groupKey]: gg } };
+					if (introChanged && intro) entry.intro = intro;
 					SYMBOLS.push(entry);
 				}
 				payload.entry = entry;
@@ -1706,6 +1714,7 @@ const app = createApp({
 				buildSymbolMap();
 				if (nameChanged) sc.zhName = newName;
 				if (aliasChanged) sc.aliases = aliases;
+				if (introChanged) sc.intro = intro;
 			}
 			this.$forceUpdate();
 			this.metaEditorVisible = false;

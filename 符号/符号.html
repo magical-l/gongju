@@ -17,7 +17,7 @@
 	<link href="../css/layout.css" rel="stylesheet">
 	<link href="../resources/biz.css?v=250821" rel="stylesheet">
 	<link href="../css/花活.css" rel="stylesheet">
-	<link href="符号.css?v=260825" rel="stylesheet">
+	<link href="符号.css?v=260826" rel="stylesheet">
 </head>
 <body class="目字形">
 	<header>
@@ -187,6 +187,7 @@
 							<div v-if="selectedChar && detailAdvice" class="tofu-tip">{{ detailAdvice }}</div>
 							<div v-if="selectedChar.officialName && selectedChar.officialName !== (selectedChar.zhName || selectedChar.officialName || selectedChar.char)" class="official-name">{{ selectedChar.officialName }}</div>
 							<div v-if="selectedChar.aliases.length" class="alias">{{ selectedChar.aliases.join('、') }}</div>
+							<div v-if="selectedChar.intro" class="intro">{{ selectedChar.intro }}</div>
 							<div class="code">
 								<span class="code-label">Unicode</span><span class="code-text">U+{{ selectedChar.codeStr }}</span>
 								<span class="code-copy" @click.stop="copyCode" title="复制">⧉</span>
@@ -301,11 +302,11 @@
 					</div>
 					<el-button size="small" class="me-alias-add" @click="metaEditorAliases.push('')">+ 添加别名</el-button>
 				</div>
+				<div class="me-field">
+					<label class="me-label">简介</label>
+					<el-input v-model="metaEditorIntro" type="textarea" :rows="3" :placeholder="metaEditorKind === 'tag' ? '标签简介（中部符号区上方显示），留空可清除' : '符号简介（详情区显示），留空可清除'"></el-input>
+				</div>
 				<template v-if="metaEditorKind === 'tag'">
-					<div class="me-field">
-						<label class="me-label">简介</label>
-						<el-input v-model="metaEditorIntro" type="textarea" :rows="3" placeholder="标签简介（中部符号区上方显示），留空可清除"></el-input>
-					</div>
 					<div class="me-section">
 						<div class="me-sep">父级归属</div>
 						<div class="me-path">当前父级：{{ metaEditorParentPath || '（根标签）' }}</div>
@@ -357,7 +358,7 @@
 		<script src="../lib/toastr.min.js"></script>
 		<script src="../resources/biz-util.js?v=250801"></script>
 	</div>
-	<script src="符号.js?v=260826"></script>
+	<script src="符号.js?v=260827"></script>
 	<div>
 		<!-- 谷歌广告联盟 -->
 		<script async crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"></script>
