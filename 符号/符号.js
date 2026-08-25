@@ -1973,7 +1973,7 @@ const app = createApp({
 			// 豆腐块模板须在首次 selectTag（触发 refreshRenderability 检测）之前生成，
 			// 否则模板未就绪时白名单外全判能渲染并缓存，后续不复检
 			initTofuTemplate();
-			// 默认标签：整个标签树展示序的第一个元素（语义轴在前，当前为「人与身体」）
+			// 默认标签：整个标签树展示序的第一个元素（语义轴在前，当前为「人」）
 			const firstRoot = this.treeRoots[0];
 			if (firstRoot) this.selectTag({ name: firstRoot[0], node: firstRoot[1], path: firstRoot[0] });
 		} catch (err) {
