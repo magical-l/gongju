@@ -964,7 +964,7 @@ const app = createApp({
 			};
 			// 详情替代显示检测：旗序列跳过；异步结果回来时用 JSON.stringify 比对防竞态
 			this.detailTofu = false;
-			if (!Array.isArray(cp)) {
+			if (!Array.isArray(cp) && !this.isDualCp(cp)) {
 				checkRenderable(cp).then(ok => {
 					if (this.selectedChar && JSON.stringify(this.selectedChar.cp) === JSON.stringify(cp)) this.detailTofu = !ok;
 				});
@@ -976,7 +976,7 @@ const app = createApp({
 		},
 		/** 详情区四象限建议：Noto 含 + 本机不含 → 提示装 Noto（旗序列跳过；异步结果回来时用 JSON.stringify 比对防竞态） */
 		async refreshDetailAdvice(cp) {
-			if (Array.isArray(cp)) { this.detailAdvice = ''; return; } // 旗序列不做建议
+			if (Array.isArray(cp) || this.isDualCp(cp)) { this.detailAdvice = ''; return; } // 旗序列/双模不做建议（双模顶部用 emoji 变体，不依赖 Noto）
 			if (!notoHas(cp)) { this.detailAdvice = ''; return; }      // Noto 不含：本机有则 v1 不提示，都无则替代显示已提示
 			const localOk = await checkLocalRenderable(cp);
 			if (this.selectedChar && JSON.stringify(this.selectedChar.cp) === JSON.stringify(cp)) {

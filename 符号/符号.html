@@ -201,7 +201,12 @@
 					<div class="symbol-preview">
 						<div v-if="selectedChar" class="details">
 							<div class="char-preview">
-								<span v-if="selectedChar && !detailTofu" class="symbol-char" :style="fontStyle(selectedPreviewFont)">{{ selectedChar.char }}</span>
+								<template v-if="selectedChar && selectedChar.mode === 'dual'">
+									<div class="dual-preview">
+										<span class="symbol-char vs-text" :style="fontStyle(selectedPreviewFont)" title="文本风格" @click.stop="copyVariant('text')">{{ variantText(selectedChar.char, 'text') }}</span>
+										<span class="symbol-char" :style="fontStyle(selectedPreviewFont)" title="表情风格" @click.stop="copyVariant('emoji')">{{ variantText(selectedChar.char, 'emoji') }}</span>
+									</div>
+								</template>
 								<span v-else-if="selectedChar" class="symbol-char" :style="fontStyle(selectedPreviewFont)">{{ selectedChar.char }}</span>
 								<span v-else class="symbol-char placeholder-char">？</span>
 							</div>
