@@ -13,6 +13,7 @@ let FLAT = [];
 const SYMBOL_MAP = new Map();
 let DUAL_SET = new Set(); // 双模（文本/表情两变体）码位集合：mounted 时从 标签.json 的 emoji > emoji-text双模 ranges 构建（权威集合，207 码位）
 const CAP = 500; // 网格每页字符数
+const PREVIEW_N = 30; // 概览视图每段预览字符数（网格 10 列 × 3 行）
 const AXIS_ORDER = ['文字系统', '官方分类', '区块']; // 三大机械轴，树末尾固定顺序
 const SEQ_INDEX = new Map(); // 'cp1-cp2' → { zh, en }：旗序列（双码位）名映射，flatten 时构建
 
@@ -610,6 +611,7 @@ const app = createApp({
 			detailAdvice: '', // 详情区四象限建议（Noto 含 + 本机不含 → 提示装 Noto）
 			gridPage: 1, // 网格当前页码
 			gridPageSize: CAP, // 网格每页大小
+			gridOverview: true, // true=概览分段视图（选中非叶子节点）；false=完整网格视图（聚合+分页）
 			searchPage: 1, // 搜索视图页码
 			previewFontSize: 2,
 			fontSizeAutoFit: true,
@@ -698,6 +700,23 @@ const app = createApp({
 				for (let i = seqStart; i < seqEnd; i++) items.push([m.seqs[i][0], m.seqs[i][1]]);
 			}
 			return items;
+		},
+		/** 概览视图的分段：本级 + 各直接子节点（各段只取前 PREVIEW_N 个预览） */
+		overviewSegments() {
+			const node = this.selectedTag && this.selectedTag.node;
+			if (!node) return [];
+			const segs = [];
+			const ownRanges = mergeRanges(node.ranges || []);
+			const ownSeqs = node.seqs || [];
+			if (ownRanges.length || ownSeqs.length) {
+				segs.push({ name: '本级', path: this.selectedTag.path, node, count: rangeCount(ownRanges) + ownSeqs.length, preview: this.previewItems(ownRanges, ownSeqs) });
+			}
+			for (const [name, child] of Object.entries(node.children || {})) {
+				const m = collectNodeMembers(child);
+				if (!m.ranges.length && !m.seqs.length) continue;
+				segs.push({ name, path: this.selectedTag.path + '/' + name, node: child, count: rangeCount(m.ranges) + m.seqs.length, preview: this.previewItems(m.ranges, m.seqs) });
+			}
+			return segs;
 		},
 		/** 当前选中标签的总页数 */
 		gridPageCount() {
@@ -860,12 +879,52 @@ const app = createApp({
 		isControlCode(cp) {
 			return isControlCode(cp);
 		},
-		/** 选中标签：重置到第一页；网格非空则自动选中第一个条目（保持预览有内容） */
+		/** 选中标签：重置到第一页；非叶子→概览分段视图，叶子→完整网格；自动选中首条（保持预览有内容） */
 		selectTag(tag) {
 			this.gridPage = 1;
 			this.selectedTag = tag;
-			if (this.gridItems.length) this.selectItem(this.gridItems[0]);
-			if (this.gridItems.length) this.refreshRenderability(this.gridItems);
+			const node = tag.node;
+			this.gridOverview = !!(node.children && Object.keys(node.children).length > 0); // 非叶子→概览
+			const first = this.viewFirstItem();
+			if (first != null) {
+				this.selectItem(first);
+				this.refreshRenderability(this.viewItems());
+			}
+		},
+		/** 当前视图全部条目（概览=各段预览；完整=分页窗口） */
+		viewItems() {
+			if (this.gridOverview) return this.overviewSegments.flatMap(s => s.preview);
+			return this.gridItems;
+		},
+		/** 当前视图首条（用于自动选中） */
+		viewFirstItem() {
+			if (this.gridOverview) {
+				const s = this.overviewSegments[0];
+				return (s && s.preview.length) ? s.preview[0] : null;
+			}
+			return this.gridItems.length ? this.gridItems[0] : null;
+		},
+		/** 段预览：取前 n 个条目（单码位经 enumerateWindow 跨区间枚举，余量补旗序列） */
+		previewItems(ranges, seqs, n = PREVIEW_N) {
+			const items = [];
+			items.push(...enumerateWindow(ranges, 0, n));
+			if (items.length < n && seqs.length) {
+				const take = Math.min(seqs.length, n - items.length);
+				for (let i = 0; i < take; i++) items.push([seqs[i][0], seqs[i][1]]);
+			}
+			return items;
+		},
+		/** 段"查看更多"：本级段切当前标签完整网格视图；子节点段选中该标签（自动判定叶子/非叶子） */
+		viewSegment(seg) {
+			if (seg.path === this.selectedTag.path) {
+				this.gridOverview = false;
+				this.gridPage = 1;
+				const items = this.gridItems;
+				if (items.length) this.selectItem(items[0]);
+				if (items.length) this.refreshRenderability(items);
+				return;
+			}
+			this.selectTag({ name: seg.name, node: seg.node, path: seg.path });
 		},
 		/** 翻页：更新页码；若当前选中项不在新页，自动选中新页第一个（保持预览与列表一致） */
 		onGridPageChange(page) {

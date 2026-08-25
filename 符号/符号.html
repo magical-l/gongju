@@ -17,7 +17,7 @@
 	<link href="../css/layout.css" rel="stylesheet">
 	<link href="../resources/biz.css?v=250821" rel="stylesheet">
 	<link href="../css/花活.css" rel="stylesheet">
-	<link href="符号.css?v=260826" rel="stylesheet">
+	<link href="符号.css?v=260825" rel="stylesheet">
 </head>
 <body class="目字形">
 	<header>
@@ -124,7 +124,32 @@
 							<div class="gridhead" v-if="selectedTag"><span class="name">{{ selectedTag.name }}</span><button v-if="editEnabled && !isFormalAxis(selectedTag.path.split('/')[0])" class="meta-edit-btn" @click.stop="editSelectedTagMeta" title="修改标签名/别名">✎</button><span class="count">共 {{ selectedCount }} 个</span></div>
 							<div class="grid-alias" v-if="selectedTag && selectedTag.node && selectedTag.node.alias && selectedTag.node.alias.length">别名：{{ selectedTag.node.alias.join('、') }}</div>
 							<div class="grid-intro" v-if="selectedTag && selectedTag.node && selectedTag.node.intro">{{ selectedTag.node.intro }}</div>
-							<div class="char-grid" v-if="selectedTag && gridItems.length">
+							<div class="char-grid" v-if="selectedTag && gridOverview && overviewSegments.length">
+								<section class="seg" v-for="seg in overviewSegments" :key="seg.path">
+									<h4 class="seg-head"><span class="seg-name">{{ seg.name }}</span><span class="seg-count">共 {{ seg.count }} 个</span></h4>
+									<div class="char-grid">
+										<div class="char" v-for="item in seg.preview" :key="'o' + cellKey(item)" :draggable="editEnabled" :class="{ sel: isSelected(item), 'has-variants': itemDual(item), 'is-ctrl': isControlCode(item) }" :title="itemTitle(item)" @click="selectItem(item)" @dragstart="onDragStart(item, $event)" @dragend="onDragEnd">
+											<button v-if="editEnabled" class="tag-edit-btn" @click.stop="openTagEditor(item)" title="移动/添加到其他标签">✎</button>
+											<button v-if="editEnabled" class="tag-untag-btn" @click.stop="removeFromGrid(item)" title="取消打标（移出当前标签）">✕</button>
+											<span class="char-symbol" :class="{ tofu: renderState(item) === false }">
+												<template v-if="renderState(item) === true">
+													<template v-if="itemDual(item)">
+														<span class="variant text vs-text" @click.stop="copyGridVariant(item, 'text')">{{ variantText(cellText(item), 'text') }}</span>
+														<span class="variant emoji" @click.stop="copyGridVariant(item, 'emoji')">{{ variantText(cellText(item), 'emoji') }}</span>
+													</template>
+													<template v-else>{{ cellText(item) }}</template>
+												</template>
+												<span v-else-if="renderState(item) === false" class="tofu-hint">当前字体不支持</span>
+												<span v-else class="tofu-pending" aria-hidden="true"></span>
+											</span>
+											<span class="char-name">{{ gridItemName(item) }}</span>
+											<span v-if="isControlCode(item)" class="ctrl-badge">控制码</span>
+										</div>
+									</div>
+									<button class="seg-more btn" @click="viewSegment(seg)">查看更多 <span class="seg-more-arrow">→</span></button>
+								</section>
+							</div>
+							<div class="char-grid" v-else-if="selectedTag && gridItems.length">
 								<div class="char" v-for="item in gridItems" :key="cellKey(item)" :draggable="editEnabled" :class="{ sel: isSelected(item), 'has-variants': itemDual(item), 'is-ctrl': isControlCode(item) }" :title="itemTitle(item)" @click="selectItem(item)" @dragstart="onDragStart(item, $event)" @dragend="onDragEnd">
 									<button v-if="editEnabled" class="tag-edit-btn" @click.stop="openTagEditor(item)" title="移动/添加到其他标签">✎</button>
 									<button v-if="editEnabled" class="tag-untag-btn" @click.stop="removeFromGrid(item)" title="取消打标（移出当前标签）">✕</button>
@@ -143,7 +168,7 @@
 									<span v-if="isControlCode(item)" class="ctrl-badge">控制码</span>
 								</div>
 							</div>
-							<div class="grid-pager" v-if="selectedTag && gridPageCount > 1">
+							<div class="grid-pager" v-if="selectedTag && !gridOverview && gridPageCount > 1">
 								<span class="grid-pager-total">共 {{ selectedCount }} 个</span>
 								<el-pagination layout="prev, pager, next" :total="selectedCount" :page-size="gridPageSize" :current-page="gridPage" @current-change="onGridPageChange"></el-pagination>
 							</div>
@@ -358,7 +383,7 @@
 		<script src="../lib/toastr.min.js"></script>
 		<script src="../resources/biz-util.js?v=250801"></script>
 	</div>
-	<script src="符号.js?v=260827"></script>
+	<script src="符号.js?v=260825"></script>
 	<div>
 		<!-- 谷歌广告联盟 -->
 		<script async crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"></script>
