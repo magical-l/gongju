@@ -733,7 +733,7 @@ const app = createApp({
 		},
 		/** 每个 token 的搜索结果（标签命中 + 字符集） */
 		tokenResults() {
-			return this.searchTokens().map(t => this.computeTokenResult(t));
+			return this.searchTokens.map(t => this.computeTokenResult(t));
 		},
 		/** 标签匹配：按 token 分组（仅保留有标签命中的 token） */
 		searchTagGroups() {
