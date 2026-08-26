@@ -89,35 +89,44 @@
 					<template v-else>
 						<!-- 搜索视图 -->
 						<div v-if="isSearching" class="search-view">
-							<h3 class="category-name">标签匹配（{{ matchedTags.length }}）</h3>
-							<div class="matched-tags" v-if="matchedTags.length">
-								<div class="tag-match" v-for="t in matchedTags" :key="t.path" @click="searchSelectTag(t)">
-									<span class="tag-chip">{{ t.name }}<span class="path">{{ t.path }}</span></span>
-									<div class="tag-alias" v-if="t.node && t.node.alias && t.node.alias.length">别名：{{ t.node.alias.join('、') }}</div>
-									<div class="tag-intro" v-if="t.node && t.node.intro">{{ t.node.intro }}</div>
+							<!-- 标签匹配：按 token 分组 -->
+							<template v-if="searchTagGroups.length">
+								<h3 class="category-name">标签匹配</h3>
+								<div class="tag-group" v-for="g in searchTagGroups" :key="g.token">
+									<h4 class="tag-group-head">{{ g.token }}（{{ g.tagHits.length }}）</h4>
+									<div class="matched-tags">
+										<div class="tag-match" v-for="t in g.tagHits" :key="t.path" @click="searchSelectTag(t)">
+											<span class="tag-chip">{{ t.name }}<span class="path">{{ t.path }}</span></span>
+											<div class="tag-alias" v-if="t.node && t.node.alias && t.node.alias.length">别名：{{ t.node.alias.join('、') }}</div>
+											<div class="tag-intro" v-if="t.node && t.node.intro">{{ t.node.intro }}</div>
+										</div>
+									</div>
 								</div>
-							</div>
+							</template>
 							<div class="none" v-else>无匹配标签</div>
-							<h3 class="category-name">符号匹配（{{ matchedChars.length }}）</h3>
-							<div class="char-grid" v-if="matchedChars.length">
-								<div class="char" v-for="mc in searchChars" :key="cellKey(mc.cp)" :draggable="editEnabled" :class="{ sel: isSelected(mc.cp), 'has-variants': itemDual(mc.cp), 'is-ctrl': isControlCode(mc.cp) }" :title="searchTitle(mc)" @click="selectItem(mc.cp)" @dragstart="onDragStart(mc.cp, $event)" @dragend="onDragEnd">
-									<span class="char-symbol" :class="{ tofu: renderState(mc.cp) === false }">
-										<template v-if="renderState(mc.cp) === true">
-											<template v-if="itemDual(mc.cp)">
-												<span class="variant text vs-text" @click.stop="copyGridVariant(mc.cp, 'text')">{{ variantText(cellText(mc.cp), 'text') }}</span>
-												<span class="variant emoji" @click.stop="copyGridVariant(mc.cp, 'emoji')">{{ variantText(cellText(mc.cp), 'emoji') }}</span>
+							<!-- 字符结果：交集节 + 每 token 一节，各节独立分页 -->
+							<template v-for="sec in searchSections" :key="sec.key">
+								<h3 class="category-name">{{ sec.title }}（{{ sec.total }}）</h3>
+								<div class="char-grid" v-if="sec.items.length">
+									<div class="char" v-for="mc in sec.items" :key="cellKey(mc.cp)" :draggable="editEnabled" :class="{ sel: isSelected(mc.cp), 'has-variants': itemDual(mc.cp), 'is-ctrl': isControlCode(mc.cp) }" :title="searchTitle(mc)" @click="selectItem(mc.cp)" @dragstart="onDragStart(mc.cp, $event)" @dragend="onDragEnd">
+										<span class="char-symbol" :class="{ tofu: renderState(mc.cp) === false }">
+											<template v-if="renderState(mc.cp) === true">
+												<template v-if="itemDual(mc.cp)">
+													<span class="variant text vs-text" @click.stop="copyGridVariant(mc.cp, 'text')">{{ variantText(cellText(mc.cp), 'text') }}</span>
+													<span class="variant emoji" @click.stop="copyGridVariant(mc.cp, 'emoji')">{{ variantText(cellText(mc.cp), 'emoji') }}</span>
+												</template>
+												<template v-else>{{ cellText(mc.cp) }}</template>
 											</template>
-											<template v-else>{{ cellText(mc.cp) }}</template>
-										</template>
-										<span v-else-if="renderState(mc.cp) === false" class="tofu-hint">当前字体不支持</span>
-										<span v-else class="tofu-pending" aria-hidden="true"></span>
-									</span>
-									<span class="char-name">{{ mc.zhName || mc.officialName || '' }}</span>
-									<span v-if="isControlCode(mc.cp)" class="ctrl-badge">控制码</span>
+											<span v-else-if="renderState(mc.cp) === false" class="tofu-hint">当前字体不支持</span>
+											<span v-else class="tofu-pending" aria-hidden="true"></span>
+										</span>
+										<span class="char-name">{{ mc.zhName || mc.officialName || '' }}</span>
+										<span v-if="isControlCode(mc.cp)" class="ctrl-badge">控制码</span>
+									</div>
 								</div>
-							</div>
-							<el-pagination v-if="searchPageCount > 1" class="grid-pager" layout="prev, pager, next" :total="matchedChars.length" :page-size="gridPageSize" :current-page="searchPage" @current-change="onSearchPageChange"></el-pagination>
-							<div class="none" v-if="matchedChars.length === 0">无匹配符号（中文名/别名/英文名）</div>
+								<el-pagination v-if="sec.pageCount > 1" class="grid-pager" layout="prev, pager, next" :total="sec.total" :page-size="gridPageSize" :current-page="sec.page" @current-change="(p) => onSearchSectionPageChange(sec.key, p)"></el-pagination>
+								<div class="none" v-if="sec.total === 0">{{ sec.emptyHint }}</div>
+							</template>
 						</div>
 						<!-- 标签字符网格 -->
 						<template v-else>

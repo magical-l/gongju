@@ -617,7 +617,6 @@ const app = createApp({
 			gridPage: 1, // 网格当前页码
 			gridPageSize: CAP, // 网格每页大小
 			gridOverview: true, // true=概览分段视图（选中非叶子节点）；false=完整网格视图（聚合+分页）
-			searchPage: 1, // 搜索视图页码（Task 2 清理）
 			searchSectionPages: {}, // 搜索分节页码（分节 key → 页码）
 			previewFontSize: 2,
 			fontSizeAutoFit: true,
@@ -777,92 +776,6 @@ const app = createApp({
 			if (results.length >= 2) addSection('__inter__', '多标签交集', this.intersectionKeys, this.intersectionHint);
 			results.forEach((r, i) => addSection('tok' + i, r.token, r.memberSet, '「' + r.token + '」无匹配（标签或字符）'));
 			return sections;
-		},
-		/** 关键词命中的标签（name、path 或简介包含，前 100） */
-		matchedTags() {
-			const q = this.searchQuery.trim().toLowerCase();
-			if (!q) return [];
-			const out = [];
-			for (const t of FLAT) {
-				if (t.name.toLowerCase().includes(q) || t.path.toLowerCase().includes(q) || (t.node.intro && t.node.intro.toLowerCase().includes(q)) || (t.node.alias && t.node.alias.some(a => a.toLowerCase().includes(q)))) {
-					out.push(t);
-					if (out.length >= 100) break;
-				}
-			}
-			return out;
-		},
-		/** 关键词命中的符号（char 完全匹配最前，其余搜中文名/别名/英文名，返回全部命中；旗序列按中英名匹配） */
-		matchedChars() {
-			const raw = this.searchQuery.trim();
-			const q = raw.toLowerCase();
-			if (!q) return [];
-			const out = [];
-			const seen = new Set();
-			// unicode 码 / HTML 数字转义 / 裸码点：解析到码点则加入结果开头，但不阻断后续关键词匹配（并集，多搜点）
-			const cpq = parseCodePointQuery(q);
-			if (cpq) {
-				const cp = cpq.cp;
-				out.push({ char: String.fromCodePoint(cp), cp, zhName: zhNameOf(cp), officialName: nameOf(cp) });
-				seen.add(cp);
-			}
-			// 单字符输入：该字符本身直接置顶（不经 SYMBOL_MAP，覆盖普通字母/符号如 a、A、😀，且保留原大小写）
-			const single = Array.from(raw);
-			if (single.length === 1) {
-				const cp = single[0].codePointAt(0);
-				out.push({ char: single[0], cp, zhName: zhNameOf(cp), officialName: nameOf(cp) });
-				seen.add(cp);
-			} else {
-				for (const [char, meta] of SYMBOL_MAP) {
-					if (char === q) {
-						const cp = char.codePointAt(0);
-						out.push({ char, cp, zhName: zhNameOf(cp), officialName: nameOf(cp) });
-						seen.add(cp);
-						break;
-					}
-				}
-			}
-			for (const [char, meta] of SYMBOL_MAP) {
-				const hit = meta.names.some(n => n.toLowerCase().includes(q))
-					|| meta.enames.some(e => e.toLowerCase().includes(q))
-					|| meta.aliases.some(a => a.toLowerCase().includes(q));
-				if (!hit) continue;
-				const cp = char.codePointAt(0);
-				if (seen.has(cp)) continue;
-				seen.add(cp);
-				out.push({ char, cp, zhName: zhNameOf(cp), officialName: nameOf(cp) });
-			}
-			// 中文名.json 关键词匹配（CLDR emoji/词表/规则产出的中文名，搜"逗号"可找到 ,）
-			if (ZH_NAMES) {
-				for (const [cp, zh] of ZH_NAMES.names) {
-					if (seen.has(cp)) continue;
-					if (zh.toLowerCase().includes(q)) {
-						seen.add(cp);
-						out.push({ char: String.fromCodePoint(cp), cp, zhName: zh, officialName: nameOf(cp) });
-					}
-				}
-			}
-			// 旗序列（双码位）关键词匹配：扫 FLAT 中有 seqs 的节点
-			for (const t of FLAT) {
-				if (!t.node.seqs) continue;
-				for (const s of t.node.seqs) {
-					if (!String(s[2] || '').toLowerCase().includes(q) && !String(s[3] || '').toLowerCase().includes(q)) continue;
-					const key = 'seq:' + s[0] + '-' + s[1];
-					if (seen.has(key)) continue;
-					seen.add(key);
-					out.push({ char: String.fromCodePoint(s[0], s[1]), cp: [s[0], s[1]], zhName: s[2] || '', officialName: s[3] || '' });
-				}
-			}
-			return out;
-		},
-		/** 搜索符号匹配：按页切片（每页最多 gridPageSize 个） */
-		searchChars() {
-			if (!this.matchedChars.length) return [];
-			const start = (this.searchPage - 1) * this.gridPageSize;
-			return this.matchedChars.slice(start, start + this.gridPageSize);
-		},
-		/** 搜索符号匹配总页数 */
-		searchPageCount() {
-			return Math.max(1, Math.ceil(this.matchedChars.length / this.gridPageSize));
 		},
 		/** 编辑对话框语义轴标签树（排除三大机械轴）：roots children 字典转 el-tree 数组，节点带完整 path */
 		editableTree() {
@@ -2144,7 +2057,6 @@ const app = createApp({
 	watch: {
 		searchQuery(nv) {
 			this.searchSectionPages = {}; // 新搜索 → 所有分节回到第 1 页
-			this.searchPage = 1; // 旧逻辑仍依赖，Task 2 清理
 			const s = nv.trim();
 			if (s === '') return;
 			const arr = Array.from(s);
@@ -2160,9 +2072,10 @@ const app = createApp({
 			const cpq = parseCodePointQuery(s);
 			if (cpq) this.selectChar(cpq.cp);
 		},
-		// 搜索符号匹配变化 → 预检测渲染能力（未检测字符置占位，不闪豆腐块）
-		searchChars(nv) {
-			if (nv.length) this.refreshRenderability(nv.map(mc => mc.cp));
+		// 搜索关键词变化 → 预检测渲染能力（未检测字符置占位，不闪豆腐块）
+		searchTokens(nv) {
+			const sec = this.searchSections;
+			for (const s of sec) if (s.items.length) this.refreshRenderability(s.items.map(mc => mc.cp));
 		}
 	}
 }).use(ElementPlus).mount('main>article');

@@ -780,6 +780,16 @@ main {
 	padding-bottom: 0.5rem;
 }
 
+.search-view .tag-group {
+	margin-bottom: 1.5rem;
+}
+
+.search-view .tag-group-head {
+	font-size: 1.05rem;
+	font-weight: 600;
+	margin: 0 0 0.5rem;
+}
+
 .search-view .matched-tags {
 	display: flex;
 	flex-direction: column;
