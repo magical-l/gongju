@@ -81,6 +81,11 @@ function collectNodeMembers(node) {
 	return { ranges: mergeRanges(ranges), seqs };
 }
 
+/** 成员 Set 键：单码位=码位数字；旗序列='sX-Y'（字符串，与数字不撞型） */
+function memberKey(member) {
+	return Array.isArray(member) ? 's' + member[0] + '-' + member[1] : member;
+}
+
 /** 是否 C0/C1 控制码（不可见；与 官方分类/控制字符 标签的 ranges 同源） */
 function isControlCode(cp) {
 	return cp < 0x20 || (cp >= 0x7F && cp <= 0x9F);
@@ -612,7 +617,7 @@ const app = createApp({
 			gridPage: 1, // 网格当前页码
 			gridPageSize: CAP, // 网格每页大小
 			gridOverview: true, // true=概览分段视图（选中非叶子节点）；false=完整网格视图（聚合+分页）
-			searchPage: 1, // 搜索视图页码
+			searchSectionPages: {}, // 搜索分节页码（分节 key → 页码）
 			previewFontSize: 2,
 			fontSizeAutoFit: true,
 
@@ -721,6 +726,56 @@ const app = createApp({
 		/** 当前选中标签的总页数 */
 		gridPageCount() {
 			return Math.max(1, Math.ceil(this.selectedCount / this.gridPageSize));
+		},
+		/** 搜索词拆分为 token（空白分隔，去空） */
+		searchTokens() {
+			return this.searchQuery.trim().split(/\s+/).filter(Boolean);
+		},
+		/** 每个 token 的搜索结果（标签命中 + 字符集） */
+		tokenResults() {
+			return this.searchTokens().map(t => this.computeTokenResult(t));
+		},
+		/** 标签匹配：按 token 分组（仅保留有标签命中的 token） */
+		searchTagGroups() {
+			return this.tokenResults.filter(r => r.tagHits.length).map(r => ({ token: r.token, tagHits: r.tagHits }));
+		},
+		/** 多 token 交集（Set<memberKey>）；正向 token 不足 2 个返回 null */
+		intersectionKeys() {
+			const results = this.tokenResults;
+			if (results.length < 2) return null;
+			let inter = null;
+			for (const r of results) {
+				if (!r.memberSet.size) return new Set();
+				if (inter === null) inter = new Set(r.memberSet);
+				else for (const k of inter) if (!r.memberSet.has(k)) inter.delete(k);
+			}
+			return inter || new Set();
+		},
+		/** 交集空提示：指出无匹配的 token */
+		intersectionHint() {
+			const empty = this.tokenResults.filter(r => !r.memberSet.size).map(r => '「' + r.token + '」');
+			const base = '没有同时满足所有关键词的字符';
+			return empty.length ? base + '（' + empty.join('、') + ' 无匹配）' : base;
+		},
+		/** 字符结果分节：第一节=交集（≥2 token 时），其后每 token 一节；每节独立分页 */
+		searchSections() {
+			const results = this.tokenResults;
+			const sections = [];
+			const pageSize = this.gridPageSize;
+			const pages = this.searchSectionPages;
+			const addSection = (key, title, keys, emptyHint) => {
+				const total = keys.size;
+				const page = pages[key] || 1;
+				const start = (page - 1) * pageSize;
+				sections.push({
+					key, title, total, emptyHint, page,
+					pageCount: Math.max(1, Math.ceil(total / pageSize)),
+					items: [...keys].slice(start, start + pageSize).map(k => this.mcFromKey(k))
+				});
+			};
+			if (results.length >= 2) addSection('__inter__', '多标签交集', this.intersectionKeys, this.intersectionHint);
+			results.forEach((r, i) => addSection('tok' + i, r.token, r.memberSet, '「' + r.token + '」无匹配（标签或字符）'));
+			return sections;
 		},
 		/** 关键词命中的标签（name、path 或简介包含，前 100） */
 		matchedTags() {
@@ -928,10 +983,11 @@ const app = createApp({
 				this.selectItem(this.gridItems[0]);
 			}
 		},
-		/** 搜索符号匹配翻页 */
-		onSearchPageChange(page) {
-			this.searchPage = page;
-			if (this.searchChars.length) this.refreshRenderability(this.searchChars.map(mc => mc.cp));
+		/** 搜索分节翻页：更新该节页码并刷新渲染能力 */
+		onSearchSectionPageChange(key, page) {
+			this.searchSectionPages[key] = page;
+			const sec = this.searchSections.find(s => s.key === key);
+			if (sec && sec.items.length) this.refreshRenderability(sec.items.map(mc => mc.cp));
 		},
 		/** 网格条目分发：旗序列（数组）走 selectFlag，单码位走 selectChar */
 		selectItem(item) {
@@ -1021,6 +1077,105 @@ const app = createApp({
 			if (zh) return (isControlCode(cp) ? '控制码 ' : '') + zh + '\nU+' + cp.toString(16).toUpperCase();
 			const nm = nameOf(cp);
 			return 'U+' + cp.toString(16).toUpperCase() + (nm ? '\n' + nm : '');
+		},
+		/** 关键词命中的标签（name/path/intro/alias 子串匹配，最多 100；逻辑同旧 matchedTags，抽成 per-token） */
+		matchTagsForToken(token) {
+			const q = token.toLowerCase();
+			const out = [];
+			for (const t of FLAT) {
+				if (t.name.toLowerCase().includes(q) || t.path.toLowerCase().includes(q) || (t.node.intro && t.node.intro.toLowerCase().includes(q)) || (t.node.alias && t.node.alias.some(a => a.toLowerCase().includes(q)))) {
+					out.push(t);
+					if (out.length >= 100) break;
+				}
+			}
+			return out;
+		},
+		/** 一组标签的成员并集 → Set<memberKey>（ranges 物化为码位，seqs 物化为 'sX-Y' 键） */
+		memberSetOfTags(tags) {
+			const set = new Set();
+			for (const t of tags) {
+				const m = collectNodeMembers(t.node);
+				for (const [lo, hi] of m.ranges) for (let cp = lo; cp <= hi; cp++) set.add(cp);
+				for (const s of m.seqs) set.add(memberKey(s));
+			}
+			return set;
+		},
+		/** 关键词命中的符号：逻辑与旧 matchedChars 一致，抽成 per-token（码点/单字符/名匹配/中文名/旗序列） */
+		matchCharsForToken(token) {
+			const q = token.toLowerCase();
+			const out = [];
+			const seen = new Set();
+			const cpq = parseCodePointQuery(q);
+			if (cpq) {
+				const cp = cpq.cp;
+				out.push({ char: String.fromCodePoint(cp), cp, zhName: zhNameOf(cp), officialName: nameOf(cp) });
+				seen.add(cp);
+			}
+			const single = Array.from(token);
+			if (single.length === 1) {
+				const cp = single[0].codePointAt(0);
+				out.push({ char: single[0], cp, zhName: zhNameOf(cp), officialName: nameOf(cp) });
+				seen.add(cp);
+			} else {
+				for (const [char, meta] of SYMBOL_MAP) {
+					if (char === q) {
+						const cp = char.codePointAt(0);
+						out.push({ char, cp, zhName: zhNameOf(cp), officialName: nameOf(cp) });
+						seen.add(cp);
+						break;
+					}
+				}
+			}
+			for (const [char, meta] of SYMBOL_MAP) {
+				const hit = meta.names.some(n => n.toLowerCase().includes(q))
+					|| meta.enames.some(e => e.toLowerCase().includes(q))
+					|| meta.aliases.some(a => a.toLowerCase().includes(q));
+				if (!hit) continue;
+				const cp = char.codePointAt(0);
+				if (seen.has(cp)) continue;
+				seen.add(cp);
+				out.push({ char, cp, zhName: zhNameOf(cp), officialName: nameOf(cp) });
+			}
+			if (ZH_NAMES) {
+				for (const [cp, zh] of ZH_NAMES.names) {
+					if (seen.has(cp)) continue;
+					if (zh.toLowerCase().includes(q)) {
+						seen.add(cp);
+						out.push({ char: String.fromCodePoint(cp), cp, zhName: zh, officialName: nameOf(cp) });
+					}
+				}
+			}
+			for (const t of FLAT) {
+				if (!t.node.seqs) continue;
+				for (const s of t.node.seqs) {
+					if (!String(s[2] || '').toLowerCase().includes(q) && !String(s[3] || '').toLowerCase().includes(q)) continue;
+					const key = 'seq:' + s[0] + '-' + s[1];
+					if (seen.has(key)) continue;
+					seen.add(key);
+					out.push({ char: String.fromCodePoint(s[0], s[1]), cp: [s[0], s[1]], zhName: s[2] || '', officialName: s[3] || '' });
+				}
+			}
+			return out;
+		},
+		/** 单个 token 结果：标签命中优先（字符集=命中标签成员并集），否则回退字符命中 */
+		computeTokenResult(token) {
+			const tagHits = this.matchTagsForToken(token);
+			if (tagHits.length) {
+				return { token, tagHits, memberSet: this.memberSetOfTags(tagHits) };
+			}
+			const charHits = this.matchCharsForToken(token);
+			const memberSet = new Set();
+			for (const hit of charHits) memberSet.add(memberKey(hit.cp));
+			return { token, tagHits: [], charHits, memberSet };
+		},
+		/** memberKey → 网格条目对象 {char, cp, zhName, officialName}（供分节网格渲染） */
+		mcFromKey(key) {
+			if (typeof key === 'number') {
+				return { char: String.fromCodePoint(key), cp: key, zhName: zhNameOf(key), officialName: nameOf(key) };
+			}
+			const [cp1, cp2] = key.slice(1).split('-').map(Number);
+			const meta = SEQ_INDEX.get(cp1 + '-' + cp2) || {};
+			return { char: String.fromCodePoint(cp1, cp2), cp: [cp1, cp2], zhName: meta.zh || '', officialName: meta.en || '' };
 		},
 		/** 搜索网格条目标题：中文名 + 官方名（无官方名时回退 U+ 码点，旗序列双码位）；控制码前置标识 */
 		searchTitle(mc) {
@@ -1987,7 +2142,7 @@ const app = createApp({
 	},
 	watch: {
 		searchQuery(nv) {
-			this.searchPage = 1;
+			this.searchSectionPages = {}; // 新搜索 → 所有分节回到第 1 页
 			const s = nv.trim();
 			if (s === '') return;
 			const arr = Array.from(s);
