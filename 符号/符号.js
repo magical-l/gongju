@@ -1071,16 +1071,13 @@ const app = createApp({
 			}
 			return out;
 		},
-		/** 单个 token 结果：标签命中优先（字符集=命中标签成员并集），否则回退字符命中 */
+		/** 单个 token 结果：标签成员 ∪ 字符名匹配（两条匹配通道独立，标签命中不压制字符名搜索） */
 		computeTokenResult(token) {
 			const tagHits = this.matchTagsForToken(token);
-			if (tagHits.length) {
-				return { token, tagHits, memberSet: this.memberSetOfTags(tagHits) };
-			}
 			const charHits = this.matchCharsForToken(token);
-			const memberSet = new Set();
+			const memberSet = this.memberSetOfTags(tagHits);
 			for (const hit of charHits) memberSet.add(memberKey(hit.cp));
-			return { token, tagHits: [], charHits, memberSet };
+			return { token, tagHits, charHits, memberSet };
 		},
 		/** memberKey → 网格条目对象 {char, cp, zhName, officialName}（供分节网格渲染） */
 		mcFromKey(key) {
