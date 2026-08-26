@@ -80,7 +80,7 @@
 						<el-button size="small" @click="openNewRoot">+ 新增根标签</el-button>
 					</div>
 					<div class="tag tree" v-if="!loading">
-						<tag-tree-node v-for="[name, node] in treeRoots" :key="name" :name="name" :node="node" :path="name" :selected-path="selectedTag ? selectedTag.path : ''" :default-open="!isFormalAxis(name)" :drag-over-path="dragOverPath" :version="treeVersion" :editing="editEnabled && !isFormalAxis(name)" @select="onTreeSelect" @drop="onTreeDrop" @drag-over="onTreeDragOver" @drag-leave="onTreeDragLeave" @sort="onTreeSort"></tag-tree-node>
+						<tag-tree-node v-for="[name, node] in treeRoots" :key="name" :name="name" :node="node" :path="name" :selected-path="selectedTag ? selectedTag.path : ''" :drag-over-path="dragOverPath" :version="treeVersion" :editing="editEnabled && !isFormalAxis(name)" @select="onTreeSelect" @drop="onTreeDrop" @drag-over="onTreeDragOver" @drag-leave="onTreeDragLeave" @sort="onTreeSort"></tag-tree-node>
 					</div>
 					<div v-else class="loading-placeholder">加载标签数据…</div>
 				</section>
@@ -135,7 +135,7 @@
 							<div class="grid-intro" v-if="selectedTag && selectedTag.node && selectedTag.node.intro">{{ selectedTag.node.intro }}</div>
 							<div class="char-grid" v-if="selectedTag && gridOverview && overviewSegments.length">
 								<section class="seg" v-for="seg in overviewSegments" :key="seg.path">
-									<h4 class="seg-head"><span class="seg-name">{{ seg.name }}</span><button v-if="!seg.full" class="seg-more btn" @click="viewSegment(seg)">查看更多 <span class="seg-more-arrow">→</span></button><span class="seg-count">共 {{ seg.count }} 个</span></h4>
+									<h4 class="seg-head"><span class="seg-name">{{ seg.name }}</span><button v-if="!seg.full" class="seg-more btn" @click="viewSegment(seg)">{{ seg.hasMore ? '查看更多' : '去往' }} <span class="seg-more-arrow">→</span></button><span class="seg-count">共 {{ seg.count }} 个</span></h4>
 									<div class="char-grid">
 										<div class="char" v-for="item in seg.preview" :key="'o' + cellKey(item)" :draggable="editEnabled" :class="{ sel: isSelected(item), 'has-variants': itemDual(item), 'is-ctrl': isControlCode(item) }" :title="itemTitle(item)" @click="selectItem(item)" @dragstart="onDragStart(item, $event)" @dragend="onDragEnd">
 											<button v-if="editEnabled" class="tag-edit-btn" @click.stop="openTagEditor(item)" title="移动/添加到其他标签">✎</button>

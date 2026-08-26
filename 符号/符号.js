@@ -719,7 +719,9 @@ const app = createApp({
 			for (const [name, child] of Object.entries(node.children || {})) {
 				const m = collectNodeMembers(child);
 				if (!m.ranges.length && !m.seqs.length) continue;
-				segs.push({ name, path: this.selectedTag.path + '/' + name, node: child, count: rangeCount(m.ranges) + m.seqs.length, preview: this.previewItems(m.ranges, m.seqs) });
+				const count = rangeCount(m.ranges) + m.seqs.length;
+				const preview = this.previewItems(m.ranges, m.seqs);
+				segs.push({ name, path: this.selectedTag.path + '/' + name, node: child, count, preview, hasMore: preview.length < count });
 			}
 			return segs;
 		},
