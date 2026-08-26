@@ -727,9 +727,9 @@ const app = createApp({
 		gridPageCount() {
 			return Math.max(1, Math.ceil(this.selectedCount / this.gridPageSize));
 		},
-		/** 搜索词拆分为 token（空白分隔，去空） */
+		/** 搜索词拆分为 token（空白分隔，去空、去重） */
 		searchTokens() {
-			return this.searchQuery.trim().split(/\s+/).filter(Boolean);
+			return [...new Set(this.searchQuery.trim().split(/\s+/).filter(Boolean))];
 		},
 		/** 每个 token 的搜索结果（标签命中 + 字符集） */
 		tokenResults() {
