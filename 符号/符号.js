@@ -617,6 +617,7 @@ const app = createApp({
 			gridPage: 1, // 网格当前页码
 			gridPageSize: CAP, // 网格每页大小
 			gridOverview: true, // true=概览分段视图（选中非叶子节点）；false=完整网格视图（聚合+分页）
+			searchPage: 1, // 搜索视图页码（Task 2 清理）
 			searchSectionPages: {}, // 搜索分节页码（分节 key → 页码）
 			previewFontSize: 2,
 			fontSizeAutoFit: true,
@@ -2143,6 +2144,7 @@ const app = createApp({
 	watch: {
 		searchQuery(nv) {
 			this.searchSectionPages = {}; // 新搜索 → 所有分节回到第 1 页
+			this.searchPage = 1; // 旧逻辑仍依赖，Task 2 清理
 			const s = nv.trim();
 			if (s === '') return;
 			const arr = Array.from(s);
