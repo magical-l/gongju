@@ -1073,12 +1073,24 @@ const app = createApp({
 			const nm = nameOf(cp);
 			return 'U+' + cp.toString(16).toUpperCase() + (nm ? '\n' + nm : '');
 		},
-		/** 关键词命中的标签（name/path/intro/alias 子串匹配，最多 100；逻辑同旧 matchedTags，抽成 per-token） */
+		/** 关键词命中的标签（name/path/intro/alias 子串匹配，最多 100；含简介命中，用于"标签匹配"导航列表） */
 		matchTagsForToken(token) {
 			const q = token.toLowerCase();
 			const out = [];
 			for (const t of FLAT) {
 				if (t.name.toLowerCase().includes(q) || t.path.toLowerCase().includes(q) || (t.node.intro && t.node.intro.toLowerCase().includes(q)) || (t.node.alias && t.node.alias.some(a => a.toLowerCase().includes(q)))) {
+					out.push(t);
+					if (out.length >= 100) break;
+				}
+			}
+			return out;
+		},
+		/** 关键词强命中的标签（仅 name/path/alias 子串匹配，不含 intro，最多 100；用于成员物化，避免简介提词拉进整桶） */
+		matchTagsStrong(token) {
+			const q = token.toLowerCase();
+			const out = [];
+			for (const t of FLAT) {
+				if (t.name.toLowerCase().includes(q) || t.path.toLowerCase().includes(q) || (t.node.alias && t.node.alias.some(a => a.toLowerCase().includes(q)))) {
 					out.push(t);
 					if (out.length >= 100) break;
 				}
@@ -1154,11 +1166,11 @@ const app = createApp({
 			}
 			return out;
 		},
-		/** 单个 token 结果：标签成员 ∪ 字符名匹配（两条匹配通道独立，标签命中不压制字符名搜索） */
+		/** 单个 token 结果：标签成员 ∪ 字符名匹配（两条匹配通道独立，标签命中不压制字符名搜索；成员集只物化强命中标签，简介命中仅进导航列表） */
 		computeTokenResult(token) {
 			const tagHits = this.matchTagsForToken(token);
 			const charHits = this.matchCharsForToken(token);
-			const memberSet = this.memberSetOfTags(tagHits);
+			const memberSet = this.memberSetOfTags(this.matchTagsStrong(token));
 			for (const hit of charHits) memberSet.add(memberKey(hit.cp));
 			return { token, tagHits, charHits, memberSet };
 		},
