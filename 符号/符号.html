@@ -17,7 +17,7 @@
 	<link href="../css/layout.css" rel="stylesheet">
 	<link href="../resources/biz.css?v=250821" rel="stylesheet">
 	<link href="../css/花活.css" rel="stylesheet">
-	<link href="符号.css?v=260825" rel="stylesheet">
+	<link href="符号.css?v=260836" rel="stylesheet">
 </head>
 <body class="目字形">
 	<header>
@@ -135,11 +135,10 @@
 							<div class="grid-intro" v-if="selectedTag && selectedTag.node && selectedTag.node.intro">{{ selectedTag.node.intro }}</div>
 							<div class="char-grid" v-if="selectedTag && gridOverview && overviewSegments.length">
 								<section class="seg" v-for="seg in overviewSegments" :key="seg.path">
-									<h4 class="seg-head"><span class="seg-name">{{ seg.name }}</span><button v-if="!seg.full" class="seg-more btn" @click="viewSegment(seg)">{{ seg.hasMore ? '查看更多' : '去往' }} <span class="seg-more-arrow">→</span></button><span class="seg-count">共 {{ seg.count }} 个</span></h4>
+									<h4 class="seg-head"><span class="seg-name">{{ seg.name }}</span><button v-if="!seg.full && !seg.local" class="seg-more btn" @click="viewSegment(seg)">{{ seg.hasMore ? '查看更多' : '去往' }} <span class="seg-more-arrow">→</span></button><span class="seg-count">共 {{ seg.count }} 个</span></h4>
 									<div class="char-grid">
 										<div class="char" v-for="item in seg.preview" :key="'o' + cellKey(item)" :draggable="editEnabled" :class="{ sel: isSelected(item), 'has-variants': itemDual(item), 'is-ctrl': isControlCode(item) }" :title="itemTitle(item)" @click="selectItem(item)" @dragstart="onDragStart(item, $event)" @dragend="onDragEnd">
 											<button v-if="editEnabled" class="tag-edit-btn" @click.stop="openTagEditor(item)" title="移动/添加到其他标签">✎</button>
-											<button v-if="editEnabled" class="tag-untag-btn" @click.stop="removeFromGrid(item)" title="取消打标（移出当前标签）">✕</button>
 											<span class="char-symbol" :class="{ tofu: renderState(item) === false }">
 												<template v-if="renderState(item) === true">
 													<template v-if="itemDual(item)">
@@ -155,12 +154,12 @@
 											<span v-if="isControlCode(item)" class="ctrl-badge">控制码</span>
 										</div>
 									</div>
+									<el-pagination v-if="seg.local && seg.pageCount > 1" class="grid-pager" layout="prev, pager, next" :total="seg.count" :page-size="gridPageSize" :current-page="seg.page" @current-change="(p) => onOverviewLocalPageChange(p)"></el-pagination>
 								</section>
 							</div>
 							<div class="char-grid" v-else-if="selectedTag && gridItems.length">
 								<div class="char" v-for="item in gridItems" :key="cellKey(item)" :draggable="editEnabled" :class="{ sel: isSelected(item), 'has-variants': itemDual(item), 'is-ctrl': isControlCode(item) }" :title="itemTitle(item)" @click="selectItem(item)" @dragstart="onDragStart(item, $event)" @dragend="onDragEnd">
 									<button v-if="editEnabled" class="tag-edit-btn" @click.stop="openTagEditor(item)" title="移动/添加到其他标签">✎</button>
-									<button v-if="editEnabled" class="tag-untag-btn" @click.stop="removeFromGrid(item)" title="取消打标（移出当前标签）">✕</button>
 									<span class="char-symbol" :class="{ tofu: renderState(item) === false }">
 										<template v-if="renderState(item) === true">
 											<template v-if="itemDual(item)">
@@ -216,7 +215,8 @@
 										<span class="symbol-char" :style="fontStyle(selectedPreviewFont)" title="表情风格" @click.stop="copyVariant('emoji')">{{ variantText(selectedChar.char, 'emoji') }}</span>
 									</div>
 								</template>
-								<span v-else-if="selectedChar" class="symbol-char" :style="fontStyle(selectedPreviewFont)">{{ selectedChar.char }}</span>
+								<span v-else-if="selectedChar && !detailTofu" class="symbol-char" :style="fontStyle(selectedPreviewFont)">{{ selectedChar.char }}</span>
+								<span v-else-if="selectedChar && detailTofu" class="symbol-char tofu-hint" :style="fontStyle(selectedPreviewFont)">当前字体不支持</span>
 								<span v-else class="symbol-char placeholder-char">？</span>
 							</div>
 							<div class="name">{{ selectedChar.zhName || selectedChar.officialName || selectedChar.char }}<button v-if="editEnabled && !isFlag(selectedChar.cp)" class="meta-edit-btn" @click.stop="editSelectedSymbol" title="修改符号名/别名">✎</button></div>
@@ -396,7 +396,7 @@
 		<script src="../lib/toastr.min.js"></script>
 		<script src="../resources/biz-util.js?v=250801"></script>
 	</div>
-	<script src="符号.js?v=260826"></script>
+	<script src="符号.js?v=260833"></script>
 	<div>
 		<!-- 谷歌广告联盟 -->
 		<script async crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"></script>

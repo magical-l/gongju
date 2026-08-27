@@ -12,7 +12,7 @@ let ZH_NAMES = null; // 中文名.json（码位→中文名），空则回退英
 let FLAT = [];
 const SYMBOL_MAP = new Map();
 let DUAL_SET = new Set(); // 双模（文本/表情两变体）码位集合：mounted 时从 标签.json 的 emoji（绘文字）> emoji-text双模 ranges 构建（权威集合，207 码位）
-const CAP = 500; // 网格每页字符数
+const CAP = 100; // 网格每页字符数
 const PREVIEW_N = 30; // 概览视图每段预览字符数（网格 10 列 × 3 行）
 const AXIS_ORDER = ['文字系统', '官方分类', '区块']; // 三大机械轴，树末尾固定顺序
 const SEQ_INDEX = new Map(); // 'cp1-cp2' → { zh, en }：旗序列（双码位）名映射，flatten 时构建
@@ -81,9 +81,21 @@ function collectNodeMembers(node) {
 	return { ranges: mergeRanges(ranges), seqs };
 }
 
-/** 成员 Set 键：单码位=码位数字；旗序列='sX-Y'（字符串，与数字不撞型） */
+/** 从 seqs 条目剥离尾部 zh/en 字符串 → 纯码位数组（旗帜 [cp1,cp2,zh,en] 与 ZWJ [cp1..cpN,zh,en] 同构） */
+function seqCps(s) {
+	let end = s.length;
+	while (end > 0 && typeof s[end - 1] === 'string') end--;
+	return s.slice(0, end);
+}
+/** seqs 条目 → {zh, en}（末尾字符串；纯码位条目返回空串） */
+function seqMeta(s) {
+	const cps = seqCps(s);
+	return { zh: s[cps.length] || '', en: s[cps.length + 1] || '' };
+}
+
+/** 成员 Set 键：单码位=码位数字；序列='s' + 整串码位（字符串，与数字不撞型） */
 function memberKey(member) {
-	return Array.isArray(member) ? 's' + member[0] + '-' + member[1] : member;
+	return Array.isArray(member) ? 's' + seqCps(member).join('-') : member;
 }
 
 /** 是否 C0/C1 控制码（不可见；与 官方分类/控制字符 标签的 ranges 同源） */
@@ -169,7 +181,7 @@ function zhNameOf(cp) {
 function flatten(name, node, path) {
 	const hasChildren = !!(node.children && Object.keys(node.children).length > 0);
 	if (node.ranges || node.seqs || hasChildren) FLAT.push({ name, node, path, count: (node.ranges ? rangeCount(node.ranges) : 0) + (node.seqs ? node.seqs.length : 0) });
-	if (node.seqs) for (const s of node.seqs) SEQ_INDEX.set(s[0] + '-' + s[1], { zh: s[2], en: s[3] });
+	if (node.seqs) for (const s of node.seqs) SEQ_INDEX.set(seqCps(s).join('-'), seqMeta(s));
 	if (node.children) for (const [k, v] of Object.entries(node.children)) flatten(k, v, path + '/' + k);
 }
 
@@ -190,14 +202,13 @@ function buildSymbolMap() {
 	}
 }
 
-/** 所属标签：入参为单码位或旗序列 [cp1,cp2]（同名同内容合并为一个，多分支 paths 聚合） */
+/** 所属标签：入参为单码位或序列码位数组（同名同内容合并为一个，多分支 paths 聚合） */
 function tagsOf(cp) {
 	const byKey = new Map();
 	if (Array.isArray(cp)) {
-		const [a, b] = cp;
-		const seqKey = 'seq:' + a + '-' + b;
+		const seqKey = 'seq:' + cp.join('-');
 		for (const t of FLAT) {
-			if (!t.node.seqs || !t.node.seqs.some(s => s[0] === a && s[1] === b)) continue;
+			if (!t.node.seqs || !t.node.seqs.some(s => seqCps(s).join('-') === cp.join('-'))) continue;
 			const key = t.name + '\x00' + seqKey;
 			let g = byKey.get(key);
 			if (!g) { g = { name: t.name, node: t.node, paths: [], count: t.count, intro: t.node.intro || '' }; byKey.set(key, g); }
@@ -258,10 +269,11 @@ function moveKeyInBlock(dict, key, dir, formalKeys) {
 	return true;
 }
 
-/** 节点自身是否直接持有某成员（单码位查 ranges，旗序列查 seqs） */
+/** 节点自身是否直接持有某成员（单码位查 ranges，序列查 seqs） */
 function nodeHasMember(node, cp) {
 	if (Array.isArray(cp)) {
-		return !!(node.seqs && node.seqs.some(s => s[0] === cp[0] && s[1] === cp[1]));
+		const key = cp.join('-');
+		return !!(node.seqs && node.seqs.some(s => seqCps(s).join('-') === key));
 	}
 	return !!(node.ranges && inRanges(node.ranges, cp));
 }
@@ -269,7 +281,7 @@ function nodeHasMember(node, cp) {
 /** 节点聚合（含子孙）是否已含某成员——与网格显示一致 */
 function nodeAggregatesMember(node, cp) {
 	const m = collectNodeMembers(node);
-	if (Array.isArray(cp)) return m.seqs.some(s => s[0] === cp[0] && s[1] === cp[1]);
+	if (Array.isArray(cp)) { const key = cp.join('-'); return m.seqs.some(s => seqCps(s).join('-') === key); }
 	return inRanges(m.ranges, cp);
 }
 
@@ -290,18 +302,18 @@ function rangesRemove(node, cp) {
 	node.ranges = mergeRanges(out);
 }
 
-/** 旗序列加：去重后 push [cp1,cp2,zh,en]（原地） */
+/** 序列加：去重后 push [...seq, zh, en]（原地） */
 function seqsAdd(node, seq, zh, en) {
 	if (!node.seqs) node.seqs = [];
-	const [a, b] = seq;
-	if (!node.seqs.some(s => s[0] === a && s[1] === b)) node.seqs.push([a, b, zh || '', en || '']);
+	const key = seq.join('-');
+	if (!node.seqs.some(s => seqCps(s).join('-') === key)) node.seqs.push([...seq, zh || '', en || '']);
 }
 
-/** 旗序列删：按双码位过滤（原地） */
+/** 序列删：按整串码位过滤（原地） */
 function seqsRemove(node, seq) {
 	if (!node.seqs) return;
-	const [a, b] = seq;
-	node.seqs = node.seqs.filter(s => !(s[0] === a && s[1] === b));
+	const key = seq.join('-');
+	node.seqs = node.seqs.filter(s => seqCps(s).join('-') !== key);
 }
 
 /** 在 node 子树内找到真正持有 cp 的节点并删除（单码位拆区间/旗序列过滤），返回是否找到 */
@@ -419,6 +431,36 @@ const ALWAYS_TOFU = [
 const FULL_CACHE = new Map();
 const LOCAL_CACHE = new Map();
 
+/** ZWJ 序列连字渲染缓存（'1F9D1-200D-1F430' → 是否连字） */
+const SEQ_RENDER_CACHE = new Map();
+/** 序列连字检测专用 canvas（400px 宽容纳 3-5 字符，避免溢出截断干扰像素对比） */
+const _seqCanvas = (() => { const c = document.createElement('canvas'); c.width = 400; c.height = 100; return c; })();
+function _seqData(char) {
+	const ctx = _seqCanvas.getContext('2d');
+	ctx.clearRect(0, 0, 400, 100);
+	ctx.fillStyle = '#000';
+	ctx.font = '60px "__nonexistent__", serif';
+	ctx.fillText(char, 20, 65);
+	return ctx.getImageData(0, 0, 400, 100).data;
+}
+/** ZWJ 序列是否可渲染：①任一码位单字符豆腐块（系统字体缺失，如 U+1FAEF）→ 不支持；②渲染序列 vs 去 ZWJ 分离形式像素相同（无连字）→ 不支持 */
+async function checkSeqRenderable(cps) {
+	const key = cps.join('-');
+	if (SEQ_RENDER_CACHE.has(key)) return SEQ_RENDER_CACHE.get(key);
+	for (const cp of cps) {
+		if (cp === 0x200D || cp === 0xFE0F || cp === 0xFE0E) continue; // 零宽连接符/变体选择符不检测
+		if (!_strictLocalCan(cp)) { SEQ_RENDER_CACHE.set(key, false); return false; }
+	}
+	const joined = String.fromCodePoint(...cps);
+	const separated = String.fromCodePoint(...cps.filter(c => c !== 0x200D));
+	let ok;
+	try {
+		ok = !_samePixels(_seqData(joined), _seqData(separated));
+	} catch (e) { ok = true; }
+	SEQ_RENDER_CACHE.set(key, ok);
+	return ok;
+}
+
 /** 升序区间列表二分查询 */
 function inRangesList(ranges, cp) {
 	if (!ranges || !ranges.length) return false;
@@ -464,7 +506,20 @@ function initTofuTemplate() {
 
 /** 本机（系统默认，不含 Noto）能否渲染单码位：白名单优先，否则豆腐块模板比对 */
 function _localCan(cp) {
-	if (inRangesList(ALWAYS_RENDERABLE, cp)) return true;
+	if (inRangesList(ALWAYS_TOFU, cp)) return false;
+	if (inRangesList(ALWAYS_RENDERABLE, cp)) {
+		// emoji 区（1F000-1FAFF）可能含 Unicode 15/16 新增字符（老系统字体缺失），模板验证兜底
+		if (cp >= 0x1F000 && cp <= 0x1FAFF) return _strictLocalCan(cp);
+		return true;
+	}
+	if (!TOFU_TEMPLATE_OK) return true; // 模板无效保守判能渲染
+	try {
+		return !_samePixels(_emptyStackData(String.fromCodePoint(cp)), TOFU_TEMPLATE);
+	} catch (e) { return true; }
+}
+
+/** 严格单码位渲染检测（不用白名单乐观假设，豆腐块模板精确判定）——序列成员用 */
+function _strictLocalCan(cp) {
 	if (inRangesList(ALWAYS_TOFU, cp)) return false;
 	if (!TOFU_TEMPLATE_OK) return true; // 模板无效保守判能渲染
 	try {
@@ -616,6 +671,7 @@ const app = createApp({
 			detailAdvice: '', // 详情区四象限建议（Noto 含 + 本机不含 → 提示装 Noto）
 			gridPage: 1, // 网格当前页码
 			gridPageSize: CAP, // 网格每页大小
+			overviewLocalPage: 1, // 概览视图"本级"段页码
 			gridOverview: true, // true=概览分段视图（选中非叶子节点）；false=完整网格视图（聚合+分页）
 			searchSectionPages: {}, // 搜索分节页码（分节 key → 页码）
 			previewFontSize: 2,
@@ -702,7 +758,7 @@ const app = createApp({
 			if (items.length < size) {
 				const seqStart = Math.max(0, start - singleTotal);
 				const seqEnd = Math.min(m.seqs.length, seqStart + (size - items.length));
-				for (let i = seqStart; i < seqEnd; i++) items.push([m.seqs[i][0], m.seqs[i][1]]);
+				for (let i = seqStart; i < seqEnd; i++) items.push(seqCps(m.seqs[i]));
 			}
 			return items;
 		},
@@ -714,7 +770,18 @@ const app = createApp({
 			const ownRanges = mergeRanges(node.ranges || []);
 			const ownSeqs = node.seqs || [];
 			if (ownRanges.length || ownSeqs.length) {
-				segs.push({ name: '本级', path: this.selectedTag.path, node, count: rangeCount(ownRanges) + ownSeqs.length, preview: this.previewItems(ownRanges, ownSeqs, Infinity), full: true });
+				const total = rangeCount(ownRanges) + ownSeqs.length;
+				const size = this.gridPageSize;
+				const start = (this.overviewLocalPage - 1) * size;
+				const items = [];
+				const singleTotal = rangeCount(ownRanges);
+				if (start < singleTotal) items.push(...enumerateWindow(ownRanges, start, size));
+				if (items.length < size) {
+					const seqStart = Math.max(0, start - singleTotal);
+					const seqEnd = Math.min(ownSeqs.length, seqStart + (size - items.length));
+					for (let i = seqStart; i < seqEnd; i++) items.push(seqCps(ownSeqs[i]));
+				}
+				segs.push({ name: '本级', path: this.selectedTag.path, node, count: total, preview: items, page: this.overviewLocalPage, pageCount: Math.max(1, Math.ceil(total / size)), local: true });
 			}
 			for (const [name, child] of Object.entries(node.children || {})) {
 				const m = collectNodeMembers(child);
@@ -853,6 +920,7 @@ const app = createApp({
 		/** 选中标签：重置到第一页；非叶子→概览分段视图，叶子→完整网格；自动选中首条（保持预览有内容） */
 		selectTag(tag) {
 			this.gridPage = 1;
+			this.overviewLocalPage = 1;
 			this.selectedTag = tag;
 			const node = tag.node;
 			this.gridOverview = !!(node.children && Object.keys(node.children).length > 0); // 非叶子→概览
@@ -881,7 +949,7 @@ const app = createApp({
 			items.push(...enumerateWindow(ranges, 0, n));
 			if (items.length < n && seqs.length) {
 				const take = Math.min(seqs.length, n - items.length);
-				for (let i = 0; i < take; i++) items.push([seqs[i][0], seqs[i][1]]);
+				for (let i = 0; i < take; i++) items.push(seqCps(seqs[i]));
 			}
 			return items;
 		},
@@ -898,6 +966,12 @@ const app = createApp({
 			if (!this.gridItems.some(item => this.cellKey(item) === curKey) && this.gridItems.length) {
 				this.selectItem(this.gridItems[0]);
 			}
+		},
+		/** 概览本级段翻页：更新页码并刷新渲染能力 */
+		onOverviewLocalPageChange(page) {
+			this.overviewLocalPage = page;
+			const seg = this.overviewSegments.find(s => s.local);
+			if (seg && seg.preview.length) this.refreshRenderability(seg.preview);
 		},
 		/** 搜索分节翻页：更新该节页码并刷新渲染能力 */
 		onSearchSectionPageChange(key, page) {
@@ -955,24 +1029,29 @@ const app = createApp({
 				this.detailAdvice = localOk ? '' : '此字符需 Noto Sans Symbols 2 字体，装它才能在别处显示';
 			}
 		},
-		/** 选中旗序列 [cp1,cp2]：查 SEQ_INDEX 取名，tags 按双码位匹配 */
+		/** 选中序列（任意长度码位数组）：查 SEQ_INDEX 取名，tags 按整串匹配 */
 		selectFlag(seq) {
-			const [cp1, cp2] = seq;
-			const meta = SEQ_INDEX.get(cp1 + '-' + cp2) || {};
+			const cps = seqCps(seq);
+			const meta = SEQ_INDEX.get(cps.join('-')) || {};
 			this.selectedChar = {
-				cp: [cp1, cp2],
-				char: String.fromCodePoint(cp1, cp2),
+				cp: cps,
+				char: String.fromCodePoint(...cps),
 				zhName: meta.zh || '',
 				officialName: meta.en || '',
 				mode: '',
 				aliases: [],
-				tags: tagsOf([cp1, cp2]),
-				codeStr: cp1.toString(16).toUpperCase() + ' ' + cp2.toString(16).toUpperCase(),
-				htmlEntity: '&#' + cp1 + ';&#' + cp2 + ';'
+				tags: tagsOf(cps),
+				codeStr: cps.map(c => c.toString(16).toUpperCase()).join(' '),
+				htmlEntity: cps.map(c => '&#' + c + ';').join('')
 			};
-			// 旗序列恒可渲染：仅重置详情替代态与建议，不触发检测
+			// ZWJ 序列检测连字（不连字的详情提示）；旗帜（非 ZWJ）恒可渲染
 			this.detailTofu = false;
 			this.detailAdvice = '';
+			if (cps.includes(0x200D)) {
+				checkSeqRenderable(cps).then(ok => {
+					if (this.selectedChar && JSON.stringify(this.selectedChar.cp) === JSON.stringify(cps)) this.detailTofu = !ok;
+				});
+			}
 			if (this.fontSizeAutoFit) this.adjustFontSize();
 		},
 		/** 按名字选标签（取 FLAT 第一个同名且有成员的） */
@@ -1064,11 +1143,13 @@ const app = createApp({
 			for (const t of FLAT) {
 				if (!t.node.seqs) continue;
 				for (const s of t.node.seqs) {
-					if (!String(s[2] || '').toLowerCase().includes(q) && !String(s[3] || '').toLowerCase().includes(q)) continue;
-					const key = 'seq:' + s[0] + '-' + s[1];
+					const meta = seqMeta(s);
+					if (!String(meta.zh).toLowerCase().includes(q) && !String(meta.en).toLowerCase().includes(q)) continue;
+					const cps = seqCps(s);
+					const key = 'seq:' + cps.join('-');
 					if (seen.has(key)) continue;
 					seen.add(key);
-					out.push({ char: String.fromCodePoint(s[0], s[1]), cp: [s[0], s[1]], zhName: s[2] || '', officialName: s[3] || '' });
+					out.push({ char: String.fromCodePoint(...cps), cp: cps, zhName: meta.zh, officialName: meta.en });
 				}
 			}
 			return out;
@@ -1086,9 +1167,9 @@ const app = createApp({
 			if (typeof key === 'number') {
 				return { char: String.fromCodePoint(key), cp: key, zhName: zhNameOf(key), officialName: nameOf(key) };
 			}
-			const [cp1, cp2] = key.slice(1).split('-').map(Number);
-			const meta = SEQ_INDEX.get(cp1 + '-' + cp2) || {};
-			return { char: String.fromCodePoint(cp1, cp2), cp: [cp1, cp2], zhName: meta.zh || '', officialName: meta.en || '' };
+			const cps = key.slice(1).split('-').map(Number);
+			const meta = SEQ_INDEX.get(cps.join('-')) || {};
+			return { char: String.fromCodePoint(...cps), cp: cps, zhName: meta.zh || '', officialName: meta.en || '' };
 		},
 		/** 搜索网格条目标题：中文名 + 官方名（无官方名时回退 U+ 码点，旗序列双码位）；控制码前置标识 */
 		searchTitle(mc) {
@@ -1112,15 +1193,23 @@ const app = createApp({
 		},
 		/** 渲染态：true=能渲染, false=当前字体不支持, null=检测中（占位，不显示豆腐块） */
 		renderState(item) {
-			if (this.isFlag(item)) return true;
+			if (this.isFlag(item)) {
+				if (!item.includes(0x200D)) return true; // 非 ZWJ 序列（旗帜等）恒可渲染
+				const v = SEQ_RENDER_CACHE.get(item.join('-'));
+				return v === undefined ? null : v;
+			}
 			const v = FULL_CACHE.get(this.cellText(item));
 			return v === undefined ? null : v;
 		},
 		/** 对条目列表批量发起可渲染性检测（仅未缓存单码位），完成后重渲染 */
 		async refreshRenderability(items) {
+			const seqs = [];
 			const singles = [];
 			for (const it of items) {
-				if (this.isFlag(it)) continue;
+				if (this.isFlag(it)) {
+					if (it.includes(0x200D) && !SEQ_RENDER_CACHE.has(it.join('-'))) seqs.push(it);
+					continue;
+				}
 				const cp = it;
 				if (FULL_CACHE.has(this.cellText(it))) continue;
 				singles.push(cp);
@@ -1132,6 +1221,11 @@ const app = createApp({
 				await Promise.all(batch.map(cp => checkRenderable(cp)));
 				await new Promise(r => setTimeout(r, 0));
 			}
+			for (let i = 0; i < seqs.length; i += 50) {
+				const batch = seqs.slice(i, i + 50);
+				await Promise.all(batch.map(it => checkSeqRenderable(it)));
+				await new Promise(r => setTimeout(r, 0));
+			}
 			this.$forceUpdate();
 		},
 		/** 网格条目唯一 key（旗加 's' 前缀防与数字码位混淆） */
@@ -1141,15 +1235,15 @@ const app = createApp({
 		/** 网格条目悬浮标题：旗显示中/英文名，单码位走 titleOf */
 		itemTitle(item) {
 			if (this.isFlag(item)) {
-				const meta = SEQ_INDEX.get(item[0] + '-' + item[1]) || {};
+				const meta = SEQ_INDEX.get(item.join('-')) || {};
 				return (meta.zh || '') + '\n' + (meta.en || '');
 			}
 			return this.titleOf(item);
 		},
-		/** 网格卡片显示名：单码位中文名优先英文名兜底；旗序列中/英文名 */
+		/** 网格卡片显示名：单码位中文名优先英文名兜底；序列中/英文名 */
 		gridItemName(item) {
 			if (this.isFlag(item)) {
-				const meta = SEQ_INDEX.get(item[0] + '-' + item[1]) || {};
+				const meta = SEQ_INDEX.get(item.join('-')) || {};
 				return meta.zh || meta.en || '';
 			}
 			return zhNameOf(item) || nameOf(item) || '';
@@ -1167,9 +1261,7 @@ const app = createApp({
 		isSelected(item) {
 			if (!this.selectedChar) return false;
 			if (this.isFlag(item)) {
-				return Array.isArray(this.selectedChar.cp)
-					&& this.selectedChar.cp[0] === item[0]
-					&& this.selectedChar.cp[1] === item[1];
+				return Array.isArray(this.selectedChar.cp) && this.selectedChar.cp.join('-') === item.join('-');
 			}
 			return item === this.selectedChar.cp;
 		},
@@ -1333,8 +1425,8 @@ const app = createApp({
 			let cp, char, zhName = '';
 			if (this.isFlag(item)) {
 				cp = item;
-				char = String.fromCodePoint(item[0], item[1]);
-				const meta = SEQ_INDEX.get(item[0] + '-' + item[1]) || {};
+				char = String.fromCodePoint(...item);
+				const meta = SEQ_INDEX.get(item.join('-')) || {};
 				zhName = meta.zh || '';
 			} else {
 				cp = item;
@@ -1353,8 +1445,8 @@ const app = createApp({
 			let cp, char, zhName = '';
 			if (this.isFlag(item)) {
 				cp = item;
-				char = String.fromCodePoint(item[0], item[1]);
-				const meta = SEQ_INDEX.get(item[0] + '-' + item[1]) || {};
+				char = String.fromCodePoint(...item);
+				const meta = SEQ_INDEX.get(item.join('-')) || {};
 				zhName = meta.zh || '';
 			} else {
 				cp = item;
@@ -1370,8 +1462,8 @@ const app = createApp({
 			let cp, char, zhName = '';
 			if (this.isFlag(item)) {
 				cp = item;
-				char = String.fromCodePoint(item[0], item[1]);
-				const meta = SEQ_INDEX.get(item[0] + '-' + item[1]) || {};
+				char = String.fromCodePoint(...item);
+				const meta = SEQ_INDEX.get(item.join('-')) || {};
 				zhName = meta.zh || '';
 			} else {
 				cp = item;
@@ -1390,8 +1482,8 @@ const app = createApp({
 			const cp = this.selectedChar && this.selectedChar.cp;
 			if (cp === null || cp === undefined) return;
 			const isFlag = Array.isArray(cp);
-			const char = isFlag ? String.fromCodePoint(cp[0], cp[1]) : String.fromCodePoint(cp);
-			const zhName = isFlag ? ((SEQ_INDEX.get(cp[0] + '-' + cp[1]) || {}).zh || '') : zhNameOf(cp);
+			const char = isFlag ? String.fromCodePoint(...cp) : String.fromCodePoint(cp);
+			const zhName = isFlag ? ((SEQ_INDEX.get(cp.join('-')) || {}).zh || '') : zhNameOf(cp);
 			this.tagEditorChar = { char, cp, zhName };
 			const paths = g.paths.filter(path => {
 				const src = nodeAtPath(path);
@@ -1430,7 +1522,13 @@ const app = createApp({
 			}
 			if (nodeAggregatesMember(dst, tc.cp)) { this.tagEditorVisible = false; return; } // 已存在→静默
 			try {
-				await this.serverSave({ action: 'add', cps: this.toCpsArray(tc.cp), targetPath: target });
+				const payload = { action: 'add', cps: this.toCpsArray(tc.cp), targetPath: target };
+				if (Array.isArray(tc.cp)) {
+					const meta = SEQ_INDEX.get(tc.cp.join('-')) || {};
+					payload.zh = meta.zh || '';
+					payload.en = meta.en || '';
+				}
+				await this.serverSave(payload);
 			} catch (e) {
 				ElementPlus.ElMessage.error('添加失败：' + e.message);
 				return;
@@ -1460,7 +1558,13 @@ const app = createApp({
 				return;
 			}
 			try {
-				await this.serverSave({ action: 'move', cps: this.toCpsArray(tc.cp), sourcePath: src.path, targetPath: target });
+				const payload = { action: 'move', cps: this.toCpsArray(tc.cp), sourcePath: src.path, targetPath: target };
+				if (Array.isArray(tc.cp)) {
+					const meta = SEQ_INDEX.get(tc.cp.join('-')) || {};
+					payload.zh = meta.zh || '';
+					payload.en = meta.en || '';
+				}
+				await this.serverSave(payload);
 			} catch (e) {
 				ElementPlus.ElMessage.error('移动失败：' + e.message);
 				return;
@@ -1539,7 +1643,7 @@ const app = createApp({
 		/** 把成员加到节点自身（单码位入 ranges，旗序列入 seqs 并补名） */
 		_applyAddToNode(node, cp) {
 			if (Array.isArray(cp)) {
-				const meta = SEQ_INDEX.get(cp[0] + '-' + cp[1]) || {};
+				const meta = SEQ_INDEX.get(cp.join('-')) || {};
 				seqsAdd(node, cp, meta.zh, meta.en);
 			} else {
 				rangesAdd(node, cp);
@@ -1579,7 +1683,7 @@ const app = createApp({
 		},
 		/** 操作记录显示字符 */
 		opChar(op) {
-			if (Array.isArray(op.cps)) return String.fromCodePoint(op.cps[0], op.cps[1]);
+			if (Array.isArray(op.cps)) return String.fromCodePoint(...op.cps);
 			return String.fromCodePoint(op.cps);
 		},
 		/** 删除单条操作记录（只移记录不改数据） */
@@ -2063,8 +2167,8 @@ const app = createApp({
 				const cp = arr[0].codePointAt(0);
 				if (cp !== undefined && cp !== null) this.selectChar(cp);
 			}
-			if (arr.length === 2) {
-				const key = arr[0].codePointAt(0) + '-' + arr[1].codePointAt(0);
+			if (arr.length >= 2) {
+				const key = arr.map(x => x.codePointAt(0)).join('-');
 				if (SEQ_INDEX.has(key)) this.selectFlag(arr.map(x => x.codePointAt(0)));
 			}
 			// unicode 码 / HTML 转义：解析到码点直接选中详情，与输入单字符一致

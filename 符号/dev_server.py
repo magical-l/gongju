@@ -152,14 +152,22 @@ def ranges_remove(node, cp):
     return False
 
 
+def seq_cps(s):
+    """seqs 条目 → 纯码位数组（剥离末尾 zh/en 字符串）。旗帜 [a,b,zh,en] 与 ZWJ [a..n,zh,en] 同构。"""
+    i = len(s)
+    while i > 0 and isinstance(s[i - 1], str):
+        i -= 1
+    return s[:i]
+
+
 def seqs_contains(seqs, cps):
-    return any(s[:len(cps)] == cps for s in seqs)
+    return any(seq_cps(s) == cps for s in seqs)
 
 
-def seqs_add(node, cps):
+def seqs_add(node, cps, zh='', en=''):
     if seqs_contains(node.get('seqs', []), cps):
         return False
-    node.setdefault('seqs', []).append(list(cps))
+    node.setdefault('seqs', []).append(list(cps) + [zh, en])
     node['seqs'].sort(key=lambda s: tuple(s[:2]))
     return True
 
@@ -167,7 +175,7 @@ def seqs_add(node, cps):
 def seqs_remove(node, cps):
     seqs = node.get('seqs', [])
     for i, s in enumerate(seqs):
-        if s[:len(cps)] == cps:
+        if seq_cps(s) == cps:
             seqs.pop(i)
             return True
     return False
@@ -215,7 +223,7 @@ def tag_add(p):
         return False, '目标标签不存在: ' + target
     cps = norm_cps(p['cps'])
     if len(cps) > 1:
-        seqs_add(dst, cps)
+        seqs_add(dst, cps, p.get('zh', ''), p.get('en', ''))
     else:
         ranges_add(dst, cps[0])
     save_tags(data)
@@ -236,7 +244,7 @@ def tag_move(p):
     # 从源标签子树移除（与客户端 removeFromSubtree 一致；直接删源节点会在父标签视图下漏删子标签持有）
     remove_from_subtree(src, cps)
     if len(cps) > 1:
-        seqs_add(dst, cps)
+        seqs_add(dst, cps, p.get('zh', ''), p.get('en', ''))
     else:
         ranges_add(dst, cps[0])
     save_tags(data)
