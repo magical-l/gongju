@@ -1475,7 +1475,7 @@ const SYMBOLS = [
 	{"char":"䷽","groups":{"《易经》符号（八卦、六十四卦）":{"name":"六十四卦·小过卦","ename":"Xiao Guo Hexagram"}}},
 	{"char":"䷾","groups":{"《易经》符号（八卦、六十四卦）":{"name":"六十四卦·既济卦","ename":"Ji Ji Hexagram"}}},
 	{"char":"䷿","groups":{"《易经》符号（八卦、六十四卦）":{"name":"六十四卦·未济卦","ename":"Wei Ji Hexagram"}}},
-	{"char":"𝌀","groups":{"《太玄经》符号（八十一首）":{"name":"人（太玄经）","ename":"Monogram for Earth","alias":[]}}},
+	{"char":"𝌀","groups":{"《太玄经》符号（八十一首）":{"name":"人（太玄经）","ename":"Monogram for Earth","alias":[]}},"intro":"太玄经「人」符号。Unicode 官方英文名 Monogram for Earth为误命名，应该是「Monogram for Human」。"},
 	{"char":"𝌁","groups":{"《太玄经》符号（八十一首）":{"name":"双爻（天地区）","ename":"Digram for Heavenly Earth","alias":[]}}},
 	{"char":"𝌂","groups":{"《太玄经》符号（八十一首）":{"name":"双爻（人地区）","ename":"Digram for Human Earth","alias":[]}}},
 	{"char":"𝌃","groups":{"《太玄经》符号（八十一首）":{"name":"双爻（地天区）","ename":"Digram for Earthly Heaven","alias":[]}}},
