@@ -17,7 +17,7 @@
 	<link href="../css/layout.css" rel="stylesheet">
 	<link href="../resources/biz.css?v=250821" rel="stylesheet">
 	<link href="../css/花活.css" rel="stylesheet">
-	<link href="符号.css?v=260836" rel="stylesheet">
+	<link href="符号.css?v=260843" rel="stylesheet">
 </head>
 <body class="目字形">
 	<header>
@@ -108,20 +108,27 @@
 							<template v-for="sec in searchSections" :key="sec.key">
 								<h3 class="category-name">{{ sec.title }}（{{ sec.total }}）</h3>
 								<div class="char-grid" v-if="sec.items.length">
-									<div class="char" v-for="mc in sec.items" :key="cellKey(mc.cp)" :draggable="editEnabled" :class="{ sel: isSelected(mc.cp), 'has-variants': itemDual(mc.cp), 'is-ctrl': isControlCode(mc.cp) }" :title="searchTitle(mc)" @click="selectItem(mc.cp)" @dragstart="onDragStart(mc.cp, $event)" @dragend="onDragEnd">
-										<span class="char-symbol" :class="{ tofu: renderState(mc.cp) === false }">
-											<template v-if="renderState(mc.cp) === true">
-												<template v-if="itemDual(mc.cp)">
-													<span class="variant text vs-text" @click.stop="copyGridVariant(mc.cp, 'text')">{{ variantText(cellText(mc.cp), 'text') }}</span>
-													<span class="variant emoji" @click.stop="copyGridVariant(mc.cp, 'emoji')">{{ variantText(cellText(mc.cp), 'emoji') }}</span>
+									<div class="char" v-for="card in sec.items" :key="cellKey(card.main)" :draggable="editEnabled" :class="{ sel: isSelected(card.main), 'has-variants': itemDual(card.main), 'is-ctrl': isControlCode(card.main) }" :title="itemTitle(card.main)" @click="selectItem(card.main)" @dragstart="onDragStart(card.main, $event)" @dragend="onDragEnd">
+										<span class="char-symbol" :class="{ tofu: renderState(card.main) === false }">
+											<template v-if="renderState(card.main) === true">
+												<template v-if="itemDual(card.main)">
+													<span class="variant text vs-text" @click.stop="copyGridVariant(card.main, 'text')">{{ variantText(cellText(card.main), 'text') }}</span>
+													<span class="variant emoji" @click.stop="copyGridVariant(card.main, 'emoji')">{{ variantText(cellText(card.main), 'emoji') }}</span>
 												</template>
-												<template v-else>{{ cellText(mc.cp) }}</template>
+												<template v-else>{{ cellText(card.main) }}</template>
 											</template>
-											<span v-else-if="renderState(mc.cp) === false" class="tofu-hint">当前字体不支持</span>
+											<span v-else-if="renderState(card.main) === false" class="tofu-hint">当前字体不支持</span>
 											<span v-else class="tofu-pending" aria-hidden="true"></span>
 										</span>
-										<span class="char-name">{{ mc.zhName || mc.officialName || '' }}</span>
-										<span v-if="isControlCode(mc.cp)" class="ctrl-badge">控制码</span>
+										<span class="char-name">{{ gridItemName(card.main) }}</span>
+										<button v-if="card.dots.length" class="variant-btn" @click.stop="toggleVariantMenu(card)">肤色变体▾ <span class="variant-count">{{ card.dots.length }}</span></button>
+										<div v-if="variantOpenKey === cellKey(card.main)" class="variant-drop" @click.stop>
+											<div v-for="d in card.dots" :key="cellKey(d)" class="variant-item" :class="{ sel: isSelected(d) }" :title="itemTitle(d)" @click="selectItem(d); variantOpenKey = null">
+												<span class="variant-item-char">{{ cellText(d) }}</span>
+												<span class="variant-item-name">{{ gridItemName(d) }}</span>
+											</div>
+										</div>
+										<span v-if="isControlCode(card.main)" class="ctrl-badge">控制码</span>
 									</div>
 								</div>
 								<el-pagination v-if="sec.pageCount > 1" class="grid-pager" layout="prev, pager, next" :total="sec.total" :page-size="gridPageSize" :current-page="sec.page" @current-change="(p) => onSearchSectionPageChange(sec.key, p)"></el-pagination>
@@ -137,49 +144,63 @@
 								<section class="seg" v-for="seg in overviewSegments" :key="seg.path">
 									<h4 class="seg-head"><span class="seg-name">{{ seg.name }}</span><button v-if="!seg.full && !seg.local" class="seg-more btn" @click="viewSegment(seg)">{{ seg.hasMore ? '查看更多' : '去往' }} <span class="seg-more-arrow">→</span></button><span class="seg-count">共 {{ seg.count }} 个</span></h4>
 									<div class="char-grid">
-										<div class="char" v-for="item in seg.preview" :key="'o' + cellKey(item)" :draggable="editEnabled" :class="{ sel: isSelected(item), 'has-variants': itemDual(item), 'is-ctrl': isControlCode(item) }" :title="itemTitle(item)" @click="selectItem(item)" @dragstart="onDragStart(item, $event)" @dragend="onDragEnd">
-											<button v-if="editEnabled" class="tag-edit-btn" @click.stop="openTagEditor(item)" title="移动/添加到其他标签">✎</button>
-											<span class="char-symbol" :class="{ tofu: renderState(item) === false }">
-												<template v-if="renderState(item) === true">
-													<template v-if="itemDual(item)">
-														<span class="variant text vs-text" @click.stop="copyGridVariant(item, 'text')">{{ variantText(cellText(item), 'text') }}</span>
-														<span class="variant emoji" @click.stop="copyGridVariant(item, 'emoji')">{{ variantText(cellText(item), 'emoji') }}</span>
+										<div class="char" v-for="card in seg.preview" :key="'o' + cellKey(card.main)" :draggable="editEnabled" :class="{ sel: isSelected(card.main), 'has-variants': itemDual(card.main), 'is-ctrl': isControlCode(card.main) }" :title="itemTitle(card.main)" @click="selectItem(card.main)" @dragstart="onDragStart(card.main, $event)" @dragend="onDragEnd">
+											<button v-if="editEnabled" class="tag-edit-btn" @click.stop="openTagEditor(card.main)" title="移动/添加到其他标签">✎</button>
+											<span class="char-symbol" :class="{ tofu: renderState(card.main) === false }">
+												<template v-if="renderState(card.main) === true">
+													<template v-if="itemDual(card.main)">
+														<span class="variant text vs-text" @click.stop="copyGridVariant(card.main, 'text')">{{ variantText(cellText(card.main), 'text') }}</span>
+														<span class="variant emoji" @click.stop="copyGridVariant(card.main, 'emoji')">{{ variantText(cellText(card.main), 'emoji') }}</span>
 													</template>
-													<template v-else>{{ cellText(item) }}</template>
+													<template v-else>{{ cellText(card.main) }}</template>
 												</template>
-												<span v-else-if="renderState(item) === false" class="tofu-hint">当前字体不支持</span>
+												<span v-else-if="renderState(card.main) === false" class="tofu-hint">当前字体不支持</span>
 												<span v-else class="tofu-pending" aria-hidden="true"></span>
 											</span>
-											<span class="char-name">{{ gridItemName(item) }}</span>
-											<span v-if="isControlCode(item)" class="ctrl-badge">控制码</span>
+											<span class="char-name">{{ gridItemName(card.main) }}</span>
+											<button v-if="card.dots.length" class="variant-btn" @click.stop="toggleVariantMenu(card)">肤色变体▾ <span class="variant-count">{{ card.dots.length }}</span></button>
+											<div v-if="variantOpenKey === cellKey(card.main)" class="variant-drop" @click.stop>
+												<div v-for="d in card.dots" :key="cellKey(d)" class="variant-item" :class="{ sel: isSelected(d) }" :title="itemTitle(d)" @click="selectItem(d); variantOpenKey = null">
+													<span class="variant-item-char">{{ cellText(d) }}</span>
+													<span class="variant-item-name">{{ gridItemName(d) }}</span>
+												</div>
+											</div>
+											<span v-if="isControlCode(card.main)" class="ctrl-badge">控制码</span>
 										</div>
 									</div>
 									<el-pagination v-if="seg.local && seg.pageCount > 1" class="grid-pager" layout="prev, pager, next" :total="seg.count" :page-size="gridPageSize" :current-page="seg.page" @current-change="(p) => onOverviewLocalPageChange(p)"></el-pagination>
 								</section>
 							</div>
-							<div class="char-grid" v-else-if="selectedTag && gridItems.length">
-								<div class="char" v-for="item in gridItems" :key="cellKey(item)" :draggable="editEnabled" :class="{ sel: isSelected(item), 'has-variants': itemDual(item), 'is-ctrl': isControlCode(item) }" :title="itemTitle(item)" @click="selectItem(item)" @dragstart="onDragStart(item, $event)" @dragend="onDragEnd">
-									<button v-if="editEnabled" class="tag-edit-btn" @click.stop="openTagEditor(item)" title="移动/添加到其他标签">✎</button>
-									<span class="char-symbol" :class="{ tofu: renderState(item) === false }">
-										<template v-if="renderState(item) === true">
-											<template v-if="itemDual(item)">
-												<span class="variant text vs-text" @click.stop="copyGridVariant(item, 'text')">{{ variantText(cellText(item), 'text') }}</span>
-												<span class="variant emoji" @click.stop="copyGridVariant(item, 'emoji')">{{ variantText(cellText(item), 'emoji') }}</span>
+							<div class="char-grid" v-else-if="selectedTag && gridCards.length">
+								<div class="char" v-for="card in gridCards" :key="cellKey(card.main)" :draggable="editEnabled" :class="{ sel: isSelected(card.main), 'has-variants': itemDual(card.main), 'is-ctrl': isControlCode(card.main) }" :title="itemTitle(card.main)" @click="selectItem(card.main)" @dragstart="onDragStart(card.main, $event)" @dragend="onDragEnd">
+									<button v-if="editEnabled" class="tag-edit-btn" @click.stop="openTagEditor(card.main)" title="移动/添加到其他标签">✎</button>
+									<span class="char-symbol" :class="{ tofu: renderState(card.main) === false }">
+										<template v-if="renderState(card.main) === true">
+											<template v-if="itemDual(card.main)">
+												<span class="variant text vs-text" @click.stop="copyGridVariant(card.main, 'text')">{{ variantText(cellText(card.main), 'text') }}</span>
+												<span class="variant emoji" @click.stop="copyGridVariant(card.main, 'emoji')">{{ variantText(cellText(card.main), 'emoji') }}</span>
 											</template>
-											<template v-else>{{ cellText(item) }}</template>
+											<template v-else>{{ cellText(card.main) }}</template>
 										</template>
-										<span v-else-if="renderState(item) === false" class="tofu-hint">当前字体不支持</span>
+										<span v-else-if="renderState(card.main) === false" class="tofu-hint">当前字体不支持</span>
 										<span v-else class="tofu-pending" aria-hidden="true"></span>
 									</span>
-									<span class="char-name">{{ gridItemName(item) }}</span>
-									<span v-if="isControlCode(item)" class="ctrl-badge">控制码</span>
+									<span class="char-name">{{ gridItemName(card.main) }}</span>
+									<button v-if="card.dots.length" class="variant-btn" @click.stop="toggleVariantMenu(card)">肤色变体▾ <span class="variant-count">{{ card.dots.length }}</span></button>
+									<div v-if="variantOpenKey === cellKey(card.main)" class="variant-drop" @click.stop>
+										<div v-for="d in card.dots" :key="cellKey(d)" class="variant-item" :class="{ sel: isSelected(d) }" :title="itemTitle(d)" @click="selectItem(d); variantOpenKey = null">
+											<span class="variant-item-char">{{ cellText(d) }}</span>
+											<span class="variant-item-name">{{ gridItemName(d) }}</span>
+										</div>
+									</div>
+									<span v-if="isControlCode(card.main)" class="ctrl-badge">控制码</span>
 								</div>
 							</div>
 							<div class="grid-pager" v-if="selectedTag && !gridOverview && gridPageCount > 1">
 								<span class="grid-pager-total">共 {{ selectedCount }} 个</span>
 								<el-pagination layout="prev, pager, next" :total="selectedCount" :page-size="gridPageSize" :current-page="gridPage" @current-change="onGridPageChange"></el-pagination>
 							</div>
-							<div class="none" v-if="selectedTag && gridItems.length === 0">该标签暂无成员</div>
+							<div class="none" v-if="selectedTag && gridCards.length === 0">该标签暂无成员</div>
 							<div class="none" v-if="!selectedTag && !loading">请选择一个标签</div>
 							<div class="ops-panel">
 								<div class="ops-head">
@@ -396,7 +417,7 @@
 		<script src="../lib/toastr.min.js"></script>
 		<script src="../resources/biz-util.js?v=250801"></script>
 	</div>
-	<script src="符号.js?v=260833"></script>
+	<script src="符号.js?v=260840"></script>
 	<div>
 		<!-- 谷歌广告联盟 -->
 		<script async crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"></script>

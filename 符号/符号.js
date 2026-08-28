@@ -92,6 +92,61 @@ function seqMeta(s) {
 	const cps = seqCps(s);
 	return { zh: s[cps.length] || '', en: s[cps.length + 1] || '' };
 }
+// ---- 变体折叠（v1.13.0）----
+/** 肤色修饰符码位（U+1F3FB–1F3FF）：变体折叠的分组依据 */
+const SKIN_CPS = new Set([0x1F3FB, 0x1F3FC, 0x1F3FD, 0x1F3FE, 0x1F3FF]);
+
+/** 序列变体分组键：去掉肤色码位后的整串（同款不同肤色同组） */
+function variantGroupKey(cps) {
+	return cps.filter(c => !SKIN_CPS.has(c)).join('-');
+}
+
+/** seqs → 变体组：Map<组键, 纯码位数组[]>（组内保持 seqs 原序） */
+function groupSeqsByBase(seqs) {
+	const groups = new Map();
+	for (const s of seqs) {
+		const cps = seqCps(s);
+		const key = variantGroupKey(cps);
+		if (!groups.has(key)) groups.set(key, []);
+		groups.get(key).push(cps);
+	}
+	return groups;
+}
+
+/** 组内成员 → 卡片 { main, dots, overflow }：main=无肤色优先（无则第一个），dots=其余全部（原序），overflow=超 8 计数 */
+function makeCard(members) {
+	if (members.length === 1) return { main: members[0], dots: [], overflow: 0 };
+	let main = members.find(cps => !cps.some(c => SKIN_CPS.has(c)));
+	if (main === undefined) main = members[0];
+	const dots = members.filter(cps => cps !== main);
+	return { main, dots, overflow: Math.max(0, dots.length - 8) };
+}
+
+/** 网格卡片窗口：单码位逐码位成卡（前），seqs 变体组折叠成卡（后）；取 [start, start+size) 张卡 */
+function cardWindow(ranges, seqs, start, size) {
+	const singleTotal = rangeCount(ranges);
+	const cards = [];
+	if (start < singleTotal) {
+		for (const cp of enumerateWindow(ranges, start, size)) cards.push({ main: cp, dots: [], overflow: 0 });
+	}
+	if (cards.length < size) {
+		const groups = [...groupSeqsByBase(seqs).values()];
+		const seqStart = Math.max(0, start - singleTotal);
+		const seqEnd = Math.min(groups.length, seqStart + (size - cards.length));
+		for (let i = seqStart; i < seqEnd; i++) cards.push(makeCard(groups[i]));
+	}
+	return cards;
+}
+
+/** 卡片列表 → 平铺成员（主符号 + 全部变体；供渲染能力检测 / 选中检测 / 拖拽） */
+function cardsToMembers(cards) {
+	const out = [];
+	for (const c of cards) {
+		out.push(c.main);
+		for (const d of c.dots) out.push(d);
+	}
+	return out;
+}
 
 /** 成员 Set 键：单码位=码位数字；序列='s' + 整串码位（字符串，与数字不撞型） */
 function memberKey(member) {
@@ -674,6 +729,7 @@ const app = createApp({
 			overviewLocalPage: 1, // 概览视图"本级"段页码
 			gridOverview: true, // true=概览分段视图（选中非叶子节点）；false=完整网格视图（聚合+分页）
 			searchSectionPages: {}, // 搜索分节页码（分节 key → 页码）
+			variantOpenKey: null,         // 变体下拉展开的卡片 key（cellKey(card.main)），null=收起
 			previewFontSize: 2,
 			fontSizeAutoFit: true,
 
@@ -740,29 +796,23 @@ const app = createApp({
 			if (!this.selectedTag || !this.selectedTag.node) return { ranges: [], seqs: [] };
 			return this.collectNode(this.selectedTag.node);
 		},
-		/** 当前选中标签聚合后的成员总数（含子孙） */
+		/** 当前选中标签聚合后的卡片总数（单码位逐码位 + seqs 变体组折叠） */
 		selectedCount() {
-			return rangeCount(this.selectedMembers.ranges) + this.selectedMembers.seqs.length;
+			const m = this.selectedMembers;
+			return rangeCount(m.ranges) + groupSeqsByBase(m.seqs).size;
 		},
-		/** 当前选中标签的网格条目：按页窗口切片（单码位在前，旗序列衔接其后，每页最多 CAP 个） */
-		gridItems() {
+		/** 当前选中标签的网格卡片：按页窗口切片（单码位在前，变体组衔接其后，每页最多 CAP 张卡） */
+		gridCards() {
 			const m = this.selectedMembers;
 			if (!m.ranges.length && !m.seqs.length) return [];
 			const start = (this.gridPage - 1) * this.gridPageSize;
-			const size = this.gridPageSize;
-			const singleTotal = rangeCount(m.ranges);
-			const items = [];
-			if (start < singleTotal) {
-				items.push(...enumerateWindow(m.ranges, start, size));
-			}
-			if (items.length < size) {
-				const seqStart = Math.max(0, start - singleTotal);
-				const seqEnd = Math.min(m.seqs.length, seqStart + (size - items.length));
-				for (let i = seqStart; i < seqEnd; i++) items.push(seqCps(m.seqs[i]));
-			}
-			return items;
+			return cardWindow(m.ranges, m.seqs, start, this.gridPageSize);
 		},
-		/** 概览视图的分段：本级 + 各直接子节点（各段只取前 PREVIEW_N 个预览） */
+		/** 当前页卡片的平铺成员（主符号+全部变体；渲染检测/选中检测用，保持 gridItems 语义） */
+		gridItems() {
+			return cardsToMembers(this.gridCards);
+		},
+		/** 概览视图的分段：本级 + 各直接子节点（各段 preview=卡片，count=卡片数；本级按卡分页，子段前 PREVIEW_N 张卡） */
 		overviewSegments() {
 			const node = this.selectedTag && this.selectedTag.node;
 			if (!node) return [];
@@ -770,24 +820,17 @@ const app = createApp({
 			const ownRanges = mergeRanges(node.ranges || []);
 			const ownSeqs = node.seqs || [];
 			if (ownRanges.length || ownSeqs.length) {
-				const total = rangeCount(ownRanges) + ownSeqs.length;
+				const total = rangeCount(ownRanges) + groupSeqsByBase(ownSeqs).size;
 				const size = this.gridPageSize;
 				const start = (this.overviewLocalPage - 1) * size;
-				const items = [];
-				const singleTotal = rangeCount(ownRanges);
-				if (start < singleTotal) items.push(...enumerateWindow(ownRanges, start, size));
-				if (items.length < size) {
-					const seqStart = Math.max(0, start - singleTotal);
-					const seqEnd = Math.min(ownSeqs.length, seqStart + (size - items.length));
-					for (let i = seqStart; i < seqEnd; i++) items.push(seqCps(ownSeqs[i]));
-				}
-				segs.push({ name: '本级', path: this.selectedTag.path, node, count: total, preview: items, page: this.overviewLocalPage, pageCount: Math.max(1, Math.ceil(total / size)), local: true });
+				const preview = cardWindow(ownRanges, ownSeqs, start, size);
+				segs.push({ name: '本级', path: this.selectedTag.path, node, count: total, preview, page: this.overviewLocalPage, pageCount: Math.max(1, Math.ceil(total / size)), local: true });
 			}
 			for (const [name, child] of Object.entries(node.children || {})) {
 				const m = collectNodeMembers(child);
 				if (!m.ranges.length && !m.seqs.length) continue;
-				const count = rangeCount(m.ranges) + m.seqs.length;
-				const preview = this.previewItems(m.ranges, m.seqs);
+				const count = rangeCount(m.ranges) + groupSeqsByBase(m.seqs).size;
+				const preview = cardWindow(m.ranges, m.seqs, 0, PREVIEW_N);
 				segs.push({ name, path: this.selectedTag.path + '/' + name, node: child, count, preview, hasMore: preview.length < count });
 			}
 			return segs;
@@ -826,24 +869,25 @@ const app = createApp({
 			const base = '没有同时满足所有关键词的字符';
 			return empty.length ? base + '（' + empty.join('、') + ' 无匹配）' : base;
 		},
-		/** 字符结果分节：第一节=交集（≥2 token 时），其后每 token 一节；每节独立分页 */
+		/** 字符结果分节：第一节=交集（≥2 token 时），其后每 token 一节；每节独立分页、按卡折叠 */
 		searchSections() {
 			const results = this.tokenResults;
 			const sections = [];
 			const pageSize = this.gridPageSize;
 			const pages = this.searchSectionPages;
-			const addSection = (key, title, keys, emptyHint) => {
-				const total = keys.size;
+			const addSection = (key, title, keys, emptyHint, preferKeys) => {
+				const cards = this.searchCardsFromKeys(keys, preferKeys);
+				const total = cards.length;
 				const page = pages[key] || 1;
 				const start = (page - 1) * pageSize;
 				sections.push({
 					key, title, total, emptyHint, page,
 					pageCount: Math.max(1, Math.ceil(total / pageSize)),
-					items: [...keys].slice(start, start + pageSize).map(k => this.mcFromKey(k))
+					items: cards.slice(start, start + pageSize)
 				});
 			};
 			if (results.length >= 2) addSection('__inter__', '多标签交集', this.intersectionKeys, this.intersectionHint);
-			results.forEach((r, i) => addSection('tok' + i, r.token, r.memberSet, '「' + r.token + '」无匹配（标签或字符）'));
+			results.forEach((r, i) => addSection('tok' + i, r.token, r.memberSet, '「' + r.token + '」无匹配（标签或字符）', new Set(r.charHits.map(h => memberKey(h.cp)))));
 			return sections;
 		},
 		/** 编辑对话框语义轴标签树（排除三大机械轴）：roots children 字典转 el-tree 数组，节点带完整 path */
@@ -909,6 +953,31 @@ const app = createApp({
 		},
 	},
 	methods: {
+		/** memberKey 集 → 搜索卡片：单码位逐码位 + seqs 按肤色分组折叠；main=搜索命中变体优先（preferKeys），无则无肤色优先，再无则第一个 */
+		searchCardsFromKeys(keys, preferKeys) {
+			const singles = [];
+			const groups = new Map();
+			for (const k of keys) {
+				if (typeof k === 'number') { singles.push(k); continue; }
+				const cps = k.slice(1).split('-').map(Number);
+				const gk = variantGroupKey(cps);
+				if (!groups.has(gk)) groups.set(gk, []);
+				groups.get(gk).push(cps);
+			}
+			const cards = singles.map(cp => ({ main: cp, dots: [], overflow: 0 }));
+			for (const members of groups.values()) {
+				if (members.length === 1) { cards.push({ main: members[0], dots: [], overflow: 0 }); continue; }
+				let main;
+				if (preferKeys && preferKeys.size) {
+					main = members.find(cps => preferKeys.has('s' + cps.join('-')));
+				}
+				if (main === undefined) main = members.find(cps => !cps.some(c => SKIN_CPS.has(c)));
+				if (main === undefined) main = members[0];
+				const dots = members.filter(cps => cps !== main);
+				cards.push({ main, dots, overflow: Math.max(0, dots.length - 8) });
+			}
+			return cards;
+		},
 		/** 递归收集节点及所有子孙的 ranges 和 seqs */
 		collectNode(node) {
 			return collectNodeMembers(node);
@@ -930,32 +999,31 @@ const app = createApp({
 				this.refreshRenderability(this.viewItems());
 			}
 		},
-		/** 当前视图全部条目（概览=各段预览；完整=分页窗口） */
+		/** 当前视图全部成员（概览=各段卡片平铺；完整=当前页卡片平铺；渲染检测/自动选中用） */
 		viewItems() {
-			if (this.gridOverview) return this.overviewSegments.flatMap(s => s.preview);
+			if (this.gridOverview) return cardsToMembers(this.overviewSegments.flatMap(s => s.preview));
 			return this.gridItems;
 		},
-		/** 当前视图首条（用于自动选中） */
+		/** 当前视图首条成员（自动选中用；概览取首段首卡 main） */
 		viewFirstItem() {
 			if (this.gridOverview) {
 				const s = this.overviewSegments[0];
-				return (s && s.preview.length) ? s.preview[0] : null;
+				return (s && s.preview.length) ? s.preview[0].main : null;
 			}
 			return this.gridItems.length ? this.gridItems[0] : null;
-		},
-		/** 段预览：取前 n 个条目，n=Infinity 时返回全部（单码位经 enumerateWindow 跨区间枚举，余量补旗序列） */
-		previewItems(ranges, seqs, n = PREVIEW_N) {
-			const items = [];
-			items.push(...enumerateWindow(ranges, 0, n));
-			if (items.length < n && seqs.length) {
-				const take = Math.min(seqs.length, n - items.length);
-				for (let i = 0; i < take; i++) items.push(seqCps(seqs[i]));
-			}
-			return items;
 		},
 		/** 段"查看更多"：选中该子标签（自动判定叶子/非叶子） */
 		viewSegment(seg) {
 			this.selectTag({ name: seg.name, node: seg.node, path: seg.path });
+		},
+		/** 展开/收起变体下拉：key 为卡片主符号 cellKey，再点同卡收起 */
+		toggleVariantMenu(card) {
+			const key = this.cellKey(card.main);
+			this.variantOpenKey = this.variantOpenKey === key ? null : key;
+		},
+		/** 点击变体下拉外部关闭（mounted 注册 document 监听） */
+		onVariantDocClick(e) {
+			if (!e.target.closest('.variant-btn, .variant-drop')) this.variantOpenKey = null;
 		},
 		/** 翻页：更新页码；若当前选中项不在新页，自动选中新页第一个（保持预览与列表一致） */
 		onGridPageChange(page) {
@@ -971,13 +1039,13 @@ const app = createApp({
 		onOverviewLocalPageChange(page) {
 			this.overviewLocalPage = page;
 			const seg = this.overviewSegments.find(s => s.local);
-			if (seg && seg.preview.length) this.refreshRenderability(seg.preview);
+			if (seg && seg.preview.length) this.refreshRenderability(cardsToMembers(seg.preview));
 		},
 		/** 搜索分节翻页：更新该节页码并刷新渲染能力 */
 		onSearchSectionPageChange(key, page) {
 			this.searchSectionPages[key] = page;
 			const sec = this.searchSections.find(s => s.key === key);
-			if (sec && sec.items.length) this.refreshRenderability(sec.items.map(mc => mc.cp));
+			if (sec && sec.items.length) this.refreshRenderability(cardsToMembers(sec.items));
 		},
 		/** 网格条目分发：旗序列（数组）走 selectFlag，单码位走 selectChar */
 		selectItem(item) {
@@ -2126,6 +2194,7 @@ const app = createApp({
 		},
 	},
 	async mounted() {
+		document.addEventListener('click', this.onVariantDocClick);
 		try {
 			const [tags, names, zhnames] = await Promise.all([
 				fetch('标签.json').then(r => r.json()),
@@ -2169,6 +2238,9 @@ const app = createApp({
 			window.addEventListener("resize", this.adjustFontSize);
 		});
 	},
+	unmounted() {
+		document.removeEventListener('click', this.onVariantDocClick);
+	},
 	watch: {
 		searchQuery(nv) {
 			this.searchSectionPages = {}; // 新搜索 → 所有分节回到第 1 页
@@ -2190,7 +2262,7 @@ const app = createApp({
 		// 搜索关键词变化 → 预检测渲染能力（未检测字符置占位，不闪豆腐块）
 		searchTokens(nv) {
 			const sec = this.searchSections;
-			for (const s of sec) if (s.items.length) this.refreshRenderability(s.items.map(mc => mc.cp));
+			for (const s of sec) if (s.items.length) this.refreshRenderability(cardsToMembers(s.items));
 		}
 	}
 }).use(ElementPlus).mount('main>article');

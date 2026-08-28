@@ -431,6 +431,74 @@
 	overflow: hidden;
 	min-height: 28.6px;
 }
+.char-grid .char .variant-btn {
+	display: inline-flex;
+	align-items: center;
+	font-size: 10px;
+	line-height: 1;
+	white-space: nowrap;
+	min-height: 0;
+	height: 16px;
+	padding: 0 5px;
+	border: 1px solid #c8d4e0;
+	border-radius: 3px;
+	color: #5f7a8d;
+	background: #f2f7fa;
+	cursor: pointer;
+	margin-top: 1px;
+}
+.char-grid .char .variant-count {
+	margin-left: 2px;
+	opacity: 0.8;
+}
+.char-grid .char .variant-btn:hover {
+	border-color: #4a90d9;
+	color: #4a90d9;
+}
+.char-grid .char .variant-drop {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	z-index: 100;
+	background: #fff;
+	border: 1px solid #e0e0e0;
+	border-radius: 6px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	padding: 6px;
+	min-width: 96px;
+	max-height: 300px;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+.char-grid .char .variant-item {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 3px 6px;
+	border-radius: 4px;
+	cursor: pointer;
+	white-space: nowrap;
+}
+.char-grid .char .variant-item:hover {
+	background: #e8f1fb;
+}
+.char-grid .char .variant-item.sel {
+	background: #dbe9f8;
+}
+.char-grid .char .variant-item-char {
+	font-size: 20px;
+	line-height: 1.2;
+	font-family: var(--sym-font-stack);
+}
+.char-grid .char .variant-item-name {
+	font-size: 11px;
+	color: var(--el-text-color-secondary);
+}
+.char-grid .char:has(.variant-drop) {
+	z-index: 100;
+}
 .char-grid .char.is-ctrl {
 	border-style: dashed;
 	border-color: #a8bccb;
