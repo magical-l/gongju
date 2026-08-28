@@ -236,6 +236,15 @@ function zhNameOf(cp) {
 	return '未分配码点';
 }
 
+/** 树根重排：语义轴在前，文字系统/官方分类/区块末尾（区块最后） */
+function rootEntries() {
+	if (!TAGS) return [];
+	const entries = Object.entries(TAGS.roots);
+	const others = entries.filter(([k]) => !AXIS_ORDER.includes(k));
+	const formal = AXIS_ORDER.map(k => [k, TAGS.roots[k]]).filter(([, v]) => v);
+	return [...others, ...formal];
+}
+
 /** 展平树：收集所有带 ranges/seqs 的节点及纯组节点（有子节点），并构建旗序列名映射 */
 function flatten(name, node, path) {
 	const hasChildren = !!(node.children && Object.keys(node.children).length > 0);
@@ -406,7 +415,7 @@ function removeAllFromSubtree(node, cp) {
 function rebuildFlat() {
 	FLAT = [];
 	SEQ_INDEX.clear();
-	for (const [name, node] of Object.entries(TAGS.roots)) flatten(name, node, name);
+	for (const [name, node] of rootEntries()) flatten(name, node, name);
 }
 
 /** 从 TAGS 移除路径节点（含子树），返回是否成功 */
@@ -782,14 +791,9 @@ const app = createApp({
 		previewFontPt() {
 			return Math.round(this.previewFontSize * 12);
 		},
-		/** 树根重排：语义轴在前，文字系统/官方分类/区块末尾（区块最后） */
 		treeRoots() {
-			if (!TAGS) return [];
 			void this.treeVersion; // TAGS 结构变更（改名）后 bump，强制本计算属性重算
-			const entries = Object.entries(TAGS.roots);
-			const others = entries.filter(([k]) => !AXIS_ORDER.includes(k));
-			const formal = AXIS_ORDER.map(k => [k, TAGS.roots[k]]).filter(([, v]) => v);
-			return [...others, ...formal];
+			return rootEntries();
 		},
 		/** 是否有搜索关键词 */
 		isSearching() {
@@ -2294,7 +2298,7 @@ const app = createApp({
 					for (let cp = lo; cp <= hi; cp++) DUAL_SET.add(cp);
 				}
 			}
-			for (const [name, node] of Object.entries(TAGS.roots)) flatten(name, node, name);
+			for (const [name, node] of rootEntries()) flatten(name, node, name);
 			buildSymbolMap();
 			this.loading = false;
 			// 豆腐块模板须在首次 selectTag（触发 refreshRenderability 检测）之前生成，
