@@ -108,7 +108,7 @@
 							<template v-for="sec in searchSections" :key="sec.key">
 								<h3 class="category-name">{{ sec.title }}（{{ sec.total }}）</h3>
 								<div class="char-grid" v-if="sec.items.length">
-									<div class="char" v-for="card in sec.items" :key="cellKey(card.main)" :draggable="editEnabled" :class="{ sel: isSelected(card.main), 'has-variants': itemDual(card.main), 'is-ctrl': isControlCode(card.main) }" :title="itemTitle(card.main)" @click="selectItem(card.main)" @dragstart="onDragStart(card.main, $event)" @dragend="onDragEnd">
+									<div class="char" v-for="card in sec.items" :key="cellKey(card.main)" :draggable="editEnabled" :class="{ sel: isSelected(card.main), 'has-variants': itemDual(card.main), 'is-ctrl': isControlCode(card.main) }" :title="itemTitle(card.main)" @click="selectItem(card.main)" @dragstart="onDragStart(card, $event)" @dragend="onDragEnd">
 										<span class="char-symbol" :class="{ tofu: renderState(card.main) === false }">
 											<template v-if="renderState(card.main) === true">
 												<template v-if="itemDual(card.main)">
@@ -144,8 +144,8 @@
 								<section class="seg" v-for="seg in overviewSegments" :key="seg.path">
 									<h4 class="seg-head"><span class="seg-name">{{ seg.name }}</span><button v-if="!seg.full && !seg.local" class="seg-more btn" @click="viewSegment(seg)">{{ seg.hasMore ? '查看更多' : '去往' }} <span class="seg-more-arrow">→</span></button><span class="seg-count">共 {{ seg.count }} 个</span></h4>
 									<div class="char-grid">
-										<div class="char" v-for="card in seg.preview" :key="'o' + cellKey(card.main)" :draggable="editEnabled" :class="{ sel: isSelected(card.main), 'has-variants': itemDual(card.main), 'is-ctrl': isControlCode(card.main) }" :title="itemTitle(card.main)" @click="selectItem(card.main)" @dragstart="onDragStart(card.main, $event)" @dragend="onDragEnd">
-											<button v-if="editEnabled" class="tag-edit-btn" @click.stop="openTagEditor(card.main)" title="移动/添加到其他标签">✎</button>
+										<div class="char" v-for="card in seg.preview" :key="'o' + cellKey(card.main)" :draggable="editEnabled" :class="{ sel: isSelected(card.main), 'has-variants': itemDual(card.main), 'is-ctrl': isControlCode(card.main) }" :title="itemTitle(card.main)" @click="selectItem(card.main)" @dragstart="onDragStart(card, $event)" @dragend="onDragEnd">
+											<button v-if="editEnabled" class="tag-edit-btn" @click.stop="openTagEditor(card)" title="移动/添加到其他标签">✎</button>
 											<span class="char-symbol" :class="{ tofu: renderState(card.main) === false }">
 												<template v-if="renderState(card.main) === true">
 													<template v-if="itemDual(card.main)">
@@ -172,8 +172,8 @@
 								</section>
 							</div>
 							<div class="char-grid" v-else-if="selectedTag && gridCards.length">
-								<div class="char" v-for="card in gridCards" :key="cellKey(card.main)" :draggable="editEnabled" :class="{ sel: isSelected(card.main), 'has-variants': itemDual(card.main), 'is-ctrl': isControlCode(card.main) }" :title="itemTitle(card.main)" @click="selectItem(card.main)" @dragstart="onDragStart(card.main, $event)" @dragend="onDragEnd">
-									<button v-if="editEnabled" class="tag-edit-btn" @click.stop="openTagEditor(card.main)" title="移动/添加到其他标签">✎</button>
+								<div class="char" v-for="card in gridCards" :key="cellKey(card.main)" :draggable="editEnabled" :class="{ sel: isSelected(card.main), 'has-variants': itemDual(card.main), 'is-ctrl': isControlCode(card.main) }" :title="itemTitle(card.main)" @click="selectItem(card.main)" @dragstart="onDragStart(card, $event)" @dragend="onDragEnd">
+									<button v-if="editEnabled" class="tag-edit-btn" @click.stop="openTagEditor(card)" title="移动/添加到其他标签">✎</button>
 									<span class="char-symbol" :class="{ tofu: renderState(card.main) === false }">
 										<template v-if="renderState(card.main) === true">
 											<template v-if="itemDual(card.main)">
@@ -288,6 +288,7 @@
 										<span class="txt">gxhAyO<span class="align-sym" :style="symbolStyle">{{ selectedChar.char }}</span>gxhAyO</span>
 									</div>
 								</template>
+								<div v-if="detailTofu" class="tofu-tip">当前字体不支持，显示为豆腐块</div>
 							</template>
 							<div v-else class="align-row" :style="previewStyle">
 								<span class="txt">gxhAyO<span class="align-sym placeholder-char">？</span>gxhAyO</span>
@@ -417,7 +418,7 @@
 		<script src="../lib/toastr.min.js"></script>
 		<script src="../resources/biz-util.js?v=250801"></script>
 	</div>
-	<script src="符号.js?v=260840"></script>
+	<script src="符号.js?v=260842"></script>
 	<div>
 		<!-- 谷歌广告联盟 -->
 		<script async crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"></script>

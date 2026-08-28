@@ -97,6 +97,31 @@ def norm_cps(cps):
     return list(cps)
 
 
+def is_member_list(cps):
+    """cps 是成员列表（对象数组 [{cps,zh,en}...]）则 True；单成员（int 或 [cps]）False。"""
+    return isinstance(cps, list) and len(cps) > 0 and isinstance(cps[0], dict)
+
+
+def _add_member(node, member):
+    """把单成员加到节点：member 为 dict {cps,zh,en}（成员列表元素）、裸 cps（单成员，int 或 [cps]）
+    或数组的数组（[[cps],...] 旧协议成员列表）。数组的数组逐个递归处理。"""
+    if isinstance(member, dict):
+        cps = norm_cps(member['cps'])
+        zh = member.get('zh', '')
+        en = member.get('en', '')
+    elif isinstance(member, list) and len(member) > 0 and isinstance(member[0], list):
+        for sub in member:
+            _add_member(node, sub)
+        return
+    else:
+        cps = norm_cps(member)
+        zh = en = ''
+    if len(cps) > 1:
+        seqs_add(node, cps, zh, en)
+    else:
+        ranges_add(node, cps[0])
+
+
 # ===== 标签树操作（原 apply_ops.py 内联，apply_ops.py 已清理；json 唯一权威）=====
 
 MECHANICAL = ('文字系统', '官方分类', '区块')
@@ -168,7 +193,8 @@ def seqs_add(node, cps, zh='', en=''):
     if seqs_contains(node.get('seqs', []), cps):
         return False
     node.setdefault('seqs', []).append(list(cps) + [zh, en])
-    node['seqs'].sort(key=lambda s: tuple(s[:2]))
+    # 防御性排序：仅取首元素为 int 的条目 key，坏数据（dict/list 首元素）用 0 兜底，避免比较崩溃
+    node['seqs'].sort(key=lambda s: (s[0], s[1]) if isinstance(s, list) and len(s) > 1 and isinstance(s[0], int) and isinstance(s[1], int) else (0, 0))
     return True
 
 
@@ -221,11 +247,11 @@ def tag_add(p):
     dst = get_node(roots, target)
     if dst is None:
         return False, '目标标签不存在: ' + target
-    cps = norm_cps(p['cps'])
-    if len(cps) > 1:
-        seqs_add(dst, cps, p.get('zh', ''), p.get('en', ''))
+    if is_member_list(p.get('cps')):
+        for m in p['cps']:
+            _add_member(dst, m)
     else:
-        ranges_add(dst, cps[0])
+        _add_member(dst, p.get('cps'))
     save_tags(data)
     return True, '已添加'
 
@@ -240,13 +266,15 @@ def tag_move(p):
     dst = get_node(roots, p['targetPath'])
     if src is None or dst is None:
         return False, '源或目标标签不存在'
-    cps = norm_cps(p['cps'])
-    # 从源标签子树移除（与客户端 removeFromSubtree 一致；直接删源节点会在父标签视图下漏删子标签持有）
-    remove_from_subtree(src, cps)
-    if len(cps) > 1:
-        seqs_add(dst, cps, p.get('zh', ''), p.get('en', ''))
+    if is_member_list(p.get('cps')):
+        members = p['cps']
     else:
-        ranges_add(dst, cps[0])
+        members = [p.get('cps')]
+    # 从源标签子树移除（与客户端 removeFromSubtree 一致；直接删源节点会在父标签视图下漏删子标签持有）
+    for m in members:
+        cps = m['cps'] if isinstance(m, dict) else m
+        remove_from_subtree(src, cps)
+        _add_member(dst, m)
     save_tags(data)
     return True, '已移动'
 
@@ -262,13 +290,20 @@ def tag_remove(p):
     src = get_node(roots, path)
     if src is None:
         return False, '标签不存在: ' + path
-    cps = norm_cps(p['cps'])
-    if p.get('scope') == 'node':
-        found = seqs_remove(src, cps) if len(cps) > 1 else ranges_remove(src, cps[0])
+    if is_member_list(p.get('cps')):
+        members = [m['cps'] for m in p['cps']]
     else:
-        found = remove_all_from_subtree(src, cps)
-    if not found:
-        return False, '该字符不在标签中: ' + path
+        members = [norm_cps(p.get('cps'))]
+    if p.get('scope') == 'node':
+        for cps in members:
+            found = seqs_remove(src, cps) if len(cps) > 1 else ranges_remove(src, cps[0])
+            if not found:
+                return False, '该字符不在标签中: ' + path
+    else:
+        for cps in members:
+            found = remove_all_from_subtree(src, cps)
+            if not found:
+                return False, '该字符不在标签中: ' + path
     save_tags(data)
     return True, '已取消打标'
 

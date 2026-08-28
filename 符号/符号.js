@@ -96,16 +96,20 @@ function seqMeta(s) {
 /** 肤色修饰符码位（U+1F3FB–1F3FF）：变体折叠的分组依据 */
 const SKIN_CPS = new Set([0x1F3FB, 0x1F3FC, 0x1F3FD, 0x1F3FE, 0x1F3FF]);
 
-/** 序列变体分组键：去掉肤色码位后的整串（同款不同肤色同组） */
+/** 序列变体分组键：去掉肤色码位后的整串（同款不同肤色同组）；异常条目（嵌套/dict）跳过 */
 function variantGroupKey(cps) {
+	if (!Array.isArray(cps)) return '';
+	if (!cps.every(c => typeof c === 'number')) return '';
 	return cps.filter(c => !SKIN_CPS.has(c)).join('-');
 }
 
-/** seqs → 变体组：Map<组键, 纯码位数组[]>（组内保持 seqs 原序） */
+/** seqs → 变体组：Map<组键, 纯码位数组[]>（组内保持 seqs 原序；嵌套/dict 条目跳过） */
 function groupSeqsByBase(seqs) {
 	const groups = new Map();
 	for (const s of seqs) {
 		const cps = seqCps(s);
+		if (!Array.isArray(cps) || cps.length === 0) continue;
+		if (!cps.every(c => typeof c === 'number')) continue;
 		const key = variantGroupKey(cps);
 		if (!groups.has(key)) groups.set(key, []);
 		groups.get(key).push(cps);
@@ -1262,8 +1266,9 @@ const app = createApp({
 		isFlag(item) {
 			return Array.isArray(item);
 		},
-		/** 网格条目渲染文本 */
+		/** 网格条目渲染文本（嵌套数组=异常数据时安全返回空） */
 		cellText(item) {
+			if (Array.isArray(item) && item.length > 0 && Array.isArray(item[0])) return '';
 			return this.isFlag(item) ? String.fromCodePoint(...item) : String.fromCodePoint(item);
 		},
 		/** 双模变体渲染文本：text=追加VS15(U+FE0E)强制文本呈现，emoji=追加VS16(U+FE0F)强制表情呈现
@@ -1469,8 +1474,15 @@ const app = createApp({
 
 		// ----- 拖拽移动/添加（卡片 → 标签树）-----
 
-		/** 卡片拖拽开始：记录条目并允许 copyMove；部分浏览器必须 setData 才允许拖（旗序列取首码位） */
+		/** 卡片拖拽开始：记录条目（折叠卡记整组成员列表）；部分浏览器必须 setData 才允许拖（旗序列取首码位） */
 		onDragStart(item, e) {
+			if (item && item.main !== undefined) {
+				this.dragChar = { group: [item.main, ...item.dots] };
+				const main = item.main;
+				e.dataTransfer.effectAllowed = 'copyMove';
+				e.dataTransfer.setData('text/plain', String(this.isFlag(main) ? main[0] : main));
+				return;
+			}
 			this.dragChar = item;
 			e.dataTransfer.effectAllowed = 'copyMove';
 			e.dataTransfer.setData('text/plain', String(this.isFlag(item) ? item[0] : item));
@@ -1502,6 +1514,25 @@ const app = createApp({
 				return;
 			}
 			const item = this.dragChar;
+			if (item && item.group) {
+				const members = item.group;
+				const main = members[0];
+				let char = '', zhName = '';
+				if (this.isFlag(main)) {
+					char = String.fromCodePoint(...main);
+					const meta = SEQ_INDEX.get(main.join('-')) || {};
+					zhName = meta.zh || '';
+				} else {
+					char = String.fromCodePoint(main);
+					zhName = zhNameOf(main);
+				}
+				this.tagEditorChar = { char, cp: main, zhName, members };
+				this.tagEditorTarget = path;
+				if (this.isSearching || e.ctrlKey) this.opAdd();
+				else this.opMove();
+				this.dragChar = null;
+				return;
+			}
 			let cp, char, zhName = '';
 			if (this.isFlag(item)) {
 				cp = item;
@@ -1520,8 +1551,24 @@ const app = createApp({
 			this.dragChar = null;
 		},
 
-		/** 打开编辑对话框：item 为网格条目（数字=单码位，数组=旗序列） */
+		/** 打开编辑对话框：item 为网格条目（数字=单码位，数组=旗序列）或折叠卡对象 {main, dots} */
 		openTagEditor(item) {
+			if (item && item.main !== undefined) {
+				const main = item.main;
+				let char, zhName = '';
+				if (this.isFlag(main)) {
+					char = String.fromCodePoint(...main);
+					const meta = SEQ_INDEX.get(main.join('-')) || {};
+					zhName = meta.zh || '';
+				} else {
+					char = String.fromCodePoint(main);
+					zhName = zhNameOf(main);
+				}
+				this.tagEditorChar = { char, cp: main, zhName, members: [main, ...item.dots] };
+				this.tagEditorTarget = '';
+				this.tagEditorVisible = true;
+				return;
+			}
 			let cp, char, zhName = '';
 			if (this.isFlag(item)) {
 				cp = item;
@@ -1600,20 +1647,35 @@ const app = createApp({
 				ElementPlus.ElMessage.error('目标标签不存在，无法添加');
 				return;
 			}
-			if (nodeAggregatesMember(dst, tc.cp)) { this.tagEditorVisible = false; return; } // 已存在→静默
+			const members = tc.members || [tc.cp];
+			// 已全部存在→静默
+			if (members.every(m => nodeAggregatesMember(dst, m))) { this.tagEditorVisible = false; return; }
 			try {
-				const payload = { action: 'add', cps: this.toCpsArray(tc.cp), targetPath: target };
-				if (Array.isArray(tc.cp)) {
-					const meta = SEQ_INDEX.get(tc.cp.join('-')) || {};
-					payload.zh = meta.zh || '';
-					payload.en = meta.en || '';
+				const payload = { action: 'add', targetPath: target };
+				if (tc.members && tc.members.length > 1) {
+					payload.cps = members.map(m => {
+						const obj = { cps: this.toCpsArray(m) };
+						if (Array.isArray(m)) {
+							const meta = SEQ_INDEX.get(m.join('-')) || {};
+							obj.zh = meta.zh || '';
+							obj.en = meta.en || '';
+						}
+						return obj;
+					});
+				} else {
+					payload.cps = this.toCpsArray(members[0]);
+					if (Array.isArray(members[0])) {
+						const meta = SEQ_INDEX.get(members[0].join('-')) || {};
+						payload.zh = meta.zh || '';
+						payload.en = meta.en || '';
+					}
 				}
 				await this.serverSave(payload);
 			} catch (e) {
 				ElementPlus.ElMessage.error('添加失败：' + e.message);
 				return;
 			}
-			const op = { action: 'add', cps: tc.cp, targetPath: target, char: tc.char, zhName: tc.zhName };
+			const op = { action: 'add', cps: tc.members && tc.members.length > 1 ? members : tc.cp, targetPath: target, char: tc.char, zhName: tc.zhName };
 			if (this.applyOp(op)) {
 				this.ops.push(op);
 				this.tagEditorVisible = false;
@@ -1628,8 +1690,9 @@ const app = createApp({
 			if (!tc || !src) return;
 			if (!target) { ElementPlus.ElMessage.warning('请先在左侧树选择目标标签'); return; }
 			if (target === src.path) { this.tagEditorVisible = false; return; } // 同标签→静默
-			if (!nodeAggregatesMember(src.node, tc.cp)) {
-				ElementPlus.ElMessage.warning('该字符不在当前标签中，无法移动');
+			const members = tc.members || [tc.cp];
+			if (!members.every(m => nodeAggregatesMember(src.node, m))) {
+				ElementPlus.ElMessage.warning('有成员不在当前标签中，无法移动');
 				return;
 			}
 			const dst = nodeAtPath(target);
@@ -1638,18 +1701,31 @@ const app = createApp({
 				return;
 			}
 			try {
-				const payload = { action: 'move', cps: this.toCpsArray(tc.cp), sourcePath: src.path, targetPath: target };
-				if (Array.isArray(tc.cp)) {
-					const meta = SEQ_INDEX.get(tc.cp.join('-')) || {};
-					payload.zh = meta.zh || '';
-					payload.en = meta.en || '';
+				const payload = { action: 'move', sourcePath: src.path, targetPath: target };
+				if (tc.members && tc.members.length > 1) {
+					payload.cps = members.map(m => {
+						const obj = { cps: this.toCpsArray(m) };
+						if (Array.isArray(m)) {
+							const meta = SEQ_INDEX.get(m.join('-')) || {};
+							obj.zh = meta.zh || '';
+							obj.en = meta.en || '';
+						}
+						return obj;
+					});
+				} else {
+					payload.cps = this.toCpsArray(members[0]);
+					if (Array.isArray(members[0])) {
+						const meta = SEQ_INDEX.get(members[0].join('-')) || {};
+						payload.zh = meta.zh || '';
+						payload.en = meta.en || '';
+					}
 				}
 				await this.serverSave(payload);
 			} catch (e) {
 				ElementPlus.ElMessage.error('移动失败：' + e.message);
 				return;
 			}
-			const op = { action: 'move', cps: tc.cp, sourcePath: src.path, targetPath: target, char: tc.char, zhName: tc.zhName };
+			const op = { action: 'move', cps: tc.members && tc.members.length > 1 ? members : tc.cp, sourcePath: src.path, targetPath: target, char: tc.char, zhName: tc.zhName };
 			if (this.applyOp(op)) {
 				this.ops.push(op);
 				this.tagEditorVisible = false;
@@ -1661,44 +1737,46 @@ const app = createApp({
 			const src = this.selectedTag;
 			const tc = this.tagEditorChar;
 			if (!src || !tc) return;
-			if (!nodeAggregatesMember(src.node, tc.cp)) {
-				ElementPlus.ElMessage.warning('该字符不在当前标签中');
+			const members = tc.members || [tc.cp];
+			if (!members.every(m => nodeAggregatesMember(src.node, m))) {
+				ElementPlus.ElMessage.warning('有成员不在当前标签中');
 				return;
 			}
 			try {
-				await this.serverSave({ action: 'remove', cps: this.toCpsArray(tc.cp), sourcePath: src.path });
+				await this.serverSave({ action: 'remove', cps: members.map(m => this.toCpsArray(m)), sourcePath: src.path });
 			} catch (e) {
 				ElementPlus.ElMessage.error('取消打标失败：' + e.message);
 				return;
 			}
-			const op = { action: 'remove', cps: tc.cp, sourcePath: src.path, targetPath: '', char: tc.char, zhName: tc.zhName };
+			const op = { action: 'remove', cps: tc.members && tc.members.length > 1 ? members : tc.cp, sourcePath: src.path, targetPath: '', char: tc.char, zhName: tc.zhName };
 			if (this.applyOp(op)) {
 				this.ops.push(op);
 				this.tagEditorVisible = false;
 				ElementPlus.ElMessage.success('已取消打标');
 			}
 		},
-		/** 应用操作到内存 TAGS：add→目标加；move→源子树删+目标加；节点缺失则报错不记录 */
+		/** 应用操作到内存 TAGS：add→目标加；move→源子树删+目标加；节点缺失则报错不记录；op.cps 支持成员列表 */
 		applyOp(op) {
+			const isGroup = Array.isArray(op.cps) && op.cps.length > 0 && Array.isArray(op.cps[0]);
+			const members = isGroup ? op.cps : [op.cps];
 			if (op.action === 'remove') {
 				const src = nodeAtPath(op.sourcePath);
 				if (!src) {
 					ElementPlus.ElMessage.error('取消打标失败：标签不存在');
 					return false;
 				}
-				let ok;
 				if (op.scope === 'node') {
-					ok = nodeHasMember(src, op.cps);
-					if (ok) {
-						if (Array.isArray(op.cps)) seqsRemove(src, op.cps);
-						else rangesRemove(src, op.cps);
+					for (const m of members) {
+						const ok = nodeHasMember(src, m);
+						if (!ok) { ElementPlus.ElMessage.error('该字符不在标签中'); return false; }
+						if (Array.isArray(m)) seqsRemove(src, m);
+						else rangesRemove(src, m);
 					}
 				} else {
-					ok = removeAllFromSubtree(src, op.cps);
-				}
-				if (!ok) {
-					ElementPlus.ElMessage.error('该字符不在标签中');
-					return false;
+					for (const m of members) {
+						const ok = removeAllFromSubtree(src, m);
+						if (!ok) { ElementPlus.ElMessage.error('该字符不在标签中'); return false; }
+					}
 				}
 			} else if (op.action === 'move') {
 				const src = nodeAtPath(op.sourcePath);
@@ -1707,15 +1785,17 @@ const app = createApp({
 					ElementPlus.ElMessage.error('移动失败：源或目标标签不存在');
 					return false;
 				}
-				removeFromSubtree(src, op.cps);
-				this._applyAddToNode(dst, op.cps);
+				for (const m of members) {
+					removeFromSubtree(src, m);
+					this._applyAddToNode(dst, m);
+				}
 			} else {
 				const dst = nodeAtPath(op.targetPath);
 				if (!dst) {
 					ElementPlus.ElMessage.error('添加失败：目标标签不存在');
 					return false;
 				}
-				this._applyAddToNode(dst, op.cps);
+				for (const m of members) this._applyAddToNode(dst, m);
 			}
 			this.refreshAfterOp();
 			return true;
@@ -1751,8 +1831,9 @@ const app = createApp({
 			if (this.selectedChar) this.selectedChar.tags = tagsOf(this.selectedChar.cp);
 			if (this.gridItems.length) this.refreshRenderability(this.gridItems);
 		},
-		/** 码位十六进制串：单码位 "1F600"，旗序列 "1F1E8-1F1F3" */
+		/** 码位十六进制串：单码位 "1F600"，旗序列 "1F1E8-1F1F3"；成员列表取第一个（主符号） */
 		cpsHex(cp) {
+			if (Array.isArray(cp) && cp.length > 0 && Array.isArray(cp[0])) cp = cp[0];
 			if (Array.isArray(cp)) return cp.map(c => c.toString(16).toUpperCase()).join('-');
 			return cp.toString(16).toUpperCase();
 		},
@@ -1763,8 +1844,9 @@ const app = createApp({
 		},
 		/** 操作记录显示字符 */
 		opChar(op) {
-			if (Array.isArray(op.cps)) return String.fromCodePoint(...op.cps);
-			return String.fromCodePoint(op.cps);
+			const cps = (Array.isArray(op.cps) && op.cps.length > 0 && Array.isArray(op.cps[0])) ? op.cps[0] : op.cps;
+			if (Array.isArray(cps)) return String.fromCodePoint(...cps);
+			return String.fromCodePoint(cps);
 		},
 		/** 删除单条操作记录（只移记录不改数据） */
 		removeOp(index) {

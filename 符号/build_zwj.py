@@ -79,8 +79,12 @@ def action_zh(en):
                 return zh + '女人'
             if en.startswith('person '):
                 return zh + '人'
-            if en.startswith('men ') or en.startswith('women ') or en.startswith('people '):
+            if en.startswith('people '):
                 return zh + '的人'
+            if en.startswith('men '):
+                return zh + '男人'
+            if en.startswith('women '):
+                return zh + '女人'
             return zh + '的人'
     return None
 

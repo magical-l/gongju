@@ -35365,7 +35365,7 @@
                   8205,
                   9794,
                   65039,
-                  "浅肤色戴兔耳的人",
+                  "浅肤色戴兔耳男人",
                   "men with bunny ears: light skin tone"
                 ],
                 [
@@ -35374,7 +35374,7 @@
                   8205,
                   9792,
                   65039,
-                  "浅肤色戴兔耳的人",
+                  "浅肤色戴兔耳女人",
                   "women with bunny ears: light skin tone"
                 ],
                 [
@@ -35848,7 +35848,7 @@
                   8205,
                   9794,
                   65039,
-                  "浅肤色摔跤的人",
+                  "浅肤色摔跤男人",
                   "men wrestling: light skin tone"
                 ],
                 [
@@ -35857,7 +35857,7 @@
                   8205,
                   9792,
                   65039,
-                  "浅肤色摔跤的人",
+                  "浅肤色摔跤女人",
                   "women wrestling: light skin tone"
                 ],
                 [
@@ -38930,7 +38930,7 @@
                   8205,
                   9794,
                   65039,
-                  "中浅肤色戴兔耳的人",
+                  "中浅肤色戴兔耳男人",
                   "men with bunny ears: medium-light skin tone"
                 ],
                 [
@@ -38939,7 +38939,7 @@
                   8205,
                   9792,
                   65039,
-                  "中浅肤色戴兔耳的人",
+                  "中浅肤色戴兔耳女人",
                   "women with bunny ears: medium-light skin tone"
                 ],
                 [
@@ -39413,7 +39413,7 @@
                   8205,
                   9794,
                   65039,
-                  "中浅肤色摔跤的人",
+                  "中浅肤色摔跤男人",
                   "men wrestling: medium-light skin tone"
                 ],
                 [
@@ -39422,7 +39422,7 @@
                   8205,
                   9792,
                   65039,
-                  "中浅肤色摔跤的人",
+                  "中浅肤色摔跤女人",
                   "women wrestling: medium-light skin tone"
                 ],
                 [
@@ -42495,7 +42495,7 @@
                   8205,
                   9794,
                   65039,
-                  "中肤色戴兔耳的人",
+                  "中肤色戴兔耳男人",
                   "men with bunny ears: medium skin tone"
                 ],
                 [
@@ -42504,7 +42504,7 @@
                   8205,
                   9792,
                   65039,
-                  "中肤色戴兔耳的人",
+                  "中肤色戴兔耳女人",
                   "women with bunny ears: medium skin tone"
                 ],
                 [
@@ -42978,7 +42978,7 @@
                   8205,
                   9794,
                   65039,
-                  "中肤色摔跤的人",
+                  "中肤色摔跤男人",
                   "men wrestling: medium skin tone"
                 ],
                 [
@@ -42987,7 +42987,7 @@
                   8205,
                   9792,
                   65039,
-                  "中肤色摔跤的人",
+                  "中肤色摔跤女人",
                   "women wrestling: medium skin tone"
                 ],
                 [
@@ -46060,7 +46060,7 @@
                   8205,
                   9794,
                   65039,
-                  "中深肤色戴兔耳的人",
+                  "中深肤色戴兔耳男人",
                   "men with bunny ears: medium-dark skin tone"
                 ],
                 [
@@ -46069,7 +46069,7 @@
                   8205,
                   9792,
                   65039,
-                  "中深肤色戴兔耳的人",
+                  "中深肤色戴兔耳女人",
                   "women with bunny ears: medium-dark skin tone"
                 ],
                 [
@@ -46543,7 +46543,7 @@
                   8205,
                   9794,
                   65039,
-                  "中深肤色摔跤的人",
+                  "中深肤色摔跤男人",
                   "men wrestling: medium-dark skin tone"
                 ],
                 [
@@ -46552,7 +46552,7 @@
                   8205,
                   9792,
                   65039,
-                  "中深肤色摔跤的人",
+                  "中深肤色摔跤女人",
                   "women wrestling: medium-dark skin tone"
                 ],
                 [
@@ -49625,7 +49625,7 @@
                   8205,
                   9794,
                   65039,
-                  "深肤色戴兔耳的人",
+                  "深肤色戴兔耳男人",
                   "men with bunny ears: dark skin tone"
                 ],
                 [
@@ -49634,7 +49634,7 @@
                   8205,
                   9792,
                   65039,
-                  "深肤色戴兔耳的人",
+                  "深肤色戴兔耳女人",
                   "women with bunny ears: dark skin tone"
                 ],
                 [
@@ -50108,7 +50108,7 @@
                   8205,
                   9794,
                   65039,
-                  "深肤色摔跤的人",
+                  "深肤色摔跤男人",
                   "men wrestling: dark skin tone"
                 ],
                 [
@@ -50117,7 +50117,7 @@
                   8205,
                   9792,
                   65039,
-                  "深肤色摔跤的人",
+                  "深肤色摔跤女人",
                   "women wrestling: dark skin tone"
                 ],
                 [
@@ -59962,6 +59962,1016 @@
             "医学",
             "护理",
             "治疗"
+          ],
+          "seqs": [
+            [
+              128104,
+              8205,
+              129455,
+              "拿白杖的男人",
+              "man with white cane"
+            ],
+            [
+              128104,
+              8205,
+              129455,
+              8205,
+              10145,
+              65039,
+              "拿白杖的男人朝右",
+              "man with white cane facing right"
+            ],
+            [
+              128104,
+              8205,
+              129468,
+              "坐电动轮椅的男人",
+              "man in motorized wheelchair"
+            ],
+            [
+              128104,
+              8205,
+              129468,
+              8205,
+              10145,
+              65039,
+              "坐电动轮椅的男人朝右",
+              "man in motorized wheelchair facing right"
+            ],
+            [
+              128104,
+              8205,
+              129469,
+              "坐手动轮椅的男人",
+              "man in manual wheelchair"
+            ],
+            [
+              128104,
+              8205,
+              129469,
+              8205,
+              10145,
+              65039,
+              "坐手动轮椅的男人朝右",
+              "man in manual wheelchair facing right"
+            ],
+            [
+              128104,
+              127995,
+              8205,
+              129455,
+              "浅肤色拿白杖的男人",
+              "man with white cane: light skin tone"
+            ],
+            [
+              128104,
+              127995,
+              8205,
+              129455,
+              8205,
+              10145,
+              65039,
+              "浅肤色拿白杖的男人朝右",
+              "man with white cane facing right: light skin tone"
+            ],
+            [
+              128104,
+              127995,
+              8205,
+              129468,
+              "浅肤色坐电动轮椅的男人",
+              "man in motorized wheelchair: light skin tone"
+            ],
+            [
+              128104,
+              127995,
+              8205,
+              129468,
+              8205,
+              10145,
+              65039,
+              "浅肤色坐电动轮椅的男人朝右",
+              "man in motorized wheelchair facing right: light skin tone"
+            ],
+            [
+              128104,
+              127995,
+              8205,
+              129469,
+              "浅肤色坐手动轮椅的男人",
+              "man in manual wheelchair: light skin tone"
+            ],
+            [
+              128104,
+              127995,
+              8205,
+              129469,
+              8205,
+              10145,
+              65039,
+              "浅肤色坐手动轮椅的男人朝右",
+              "man in manual wheelchair facing right: light skin tone"
+            ],
+            [
+              128104,
+              127996,
+              8205,
+              129455,
+              "中浅肤色拿白杖的男人",
+              "man with white cane: medium-light skin tone"
+            ],
+            [
+              128104,
+              127996,
+              8205,
+              129455,
+              8205,
+              10145,
+              65039,
+              "中浅肤色拿白杖的男人朝右",
+              "man with white cane facing right: medium-light skin tone"
+            ],
+            [
+              128104,
+              127996,
+              8205,
+              129468,
+              "中浅肤色坐电动轮椅的男人",
+              "man in motorized wheelchair: medium-light skin tone"
+            ],
+            [
+              128104,
+              127996,
+              8205,
+              129468,
+              8205,
+              10145,
+              65039,
+              "中浅肤色坐电动轮椅的男人朝右",
+              "man in motorized wheelchair facing right: medium-light skin tone"
+            ],
+            [
+              128104,
+              127996,
+              8205,
+              129469,
+              "中浅肤色坐手动轮椅的男人",
+              "man in manual wheelchair: medium-light skin tone"
+            ],
+            [
+              128104,
+              127996,
+              8205,
+              129469,
+              8205,
+              10145,
+              65039,
+              "中浅肤色坐手动轮椅的男人朝右",
+              "man in manual wheelchair facing right: medium-light skin tone"
+            ],
+            [
+              128104,
+              127997,
+              8205,
+              129455,
+              "中肤色拿白杖的男人",
+              "man with white cane: medium skin tone"
+            ],
+            [
+              128104,
+              127997,
+              8205,
+              129455,
+              8205,
+              10145,
+              65039,
+              "中肤色拿白杖的男人朝右",
+              "man with white cane facing right: medium skin tone"
+            ],
+            [
+              128104,
+              127997,
+              8205,
+              129468,
+              "中肤色坐电动轮椅的男人",
+              "man in motorized wheelchair: medium skin tone"
+            ],
+            [
+              128104,
+              127997,
+              8205,
+              129468,
+              8205,
+              10145,
+              65039,
+              "中肤色坐电动轮椅的男人朝右",
+              "man in motorized wheelchair facing right: medium skin tone"
+            ],
+            [
+              128104,
+              127997,
+              8205,
+              129469,
+              "中肤色坐手动轮椅的男人",
+              "man in manual wheelchair: medium skin tone"
+            ],
+            [
+              128104,
+              127997,
+              8205,
+              129469,
+              8205,
+              10145,
+              65039,
+              "中肤色坐手动轮椅的男人朝右",
+              "man in manual wheelchair facing right: medium skin tone"
+            ],
+            [
+              128104,
+              127998,
+              8205,
+              129455,
+              "中深肤色拿白杖的男人",
+              "man with white cane: medium-dark skin tone"
+            ],
+            [
+              128104,
+              127998,
+              8205,
+              129455,
+              8205,
+              10145,
+              65039,
+              "中深肤色拿白杖的男人朝右",
+              "man with white cane facing right: medium-dark skin tone"
+            ],
+            [
+              128104,
+              127998,
+              8205,
+              129468,
+              "中深肤色坐电动轮椅的男人",
+              "man in motorized wheelchair: medium-dark skin tone"
+            ],
+            [
+              128104,
+              127998,
+              8205,
+              129468,
+              8205,
+              10145,
+              65039,
+              "中深肤色坐电动轮椅的男人朝右",
+              "man in motorized wheelchair facing right: medium-dark skin tone"
+            ],
+            [
+              128104,
+              127998,
+              8205,
+              129469,
+              "中深肤色坐手动轮椅的男人",
+              "man in manual wheelchair: medium-dark skin tone"
+            ],
+            [
+              128104,
+              127998,
+              8205,
+              129469,
+              8205,
+              10145,
+              65039,
+              "中深肤色坐手动轮椅的男人朝右",
+              "man in manual wheelchair facing right: medium-dark skin tone"
+            ],
+            [
+              128104,
+              127999,
+              8205,
+              129455,
+              "深肤色拿白杖的男人",
+              "man with white cane: dark skin tone"
+            ],
+            [
+              128104,
+              127999,
+              8205,
+              129455,
+              8205,
+              10145,
+              65039,
+              "深肤色拿白杖的男人朝右",
+              "man with white cane facing right: dark skin tone"
+            ],
+            [
+              128104,
+              127999,
+              8205,
+              129468,
+              "深肤色坐电动轮椅的男人",
+              "man in motorized wheelchair: dark skin tone"
+            ],
+            [
+              128104,
+              127999,
+              8205,
+              129468,
+              8205,
+              10145,
+              65039,
+              "深肤色坐电动轮椅的男人朝右",
+              "man in motorized wheelchair facing right: dark skin tone"
+            ],
+            [
+              128104,
+              127999,
+              8205,
+              129469,
+              "深肤色坐手动轮椅的男人",
+              "man in manual wheelchair: dark skin tone"
+            ],
+            [
+              128104,
+              127999,
+              8205,
+              129469,
+              8205,
+              10145,
+              65039,
+              "深肤色坐手动轮椅的男人朝右",
+              "man in manual wheelchair facing right: dark skin tone"
+            ],
+            [
+              128105,
+              8205,
+              129455,
+              "拿白杖的女人",
+              "woman with white cane"
+            ],
+            [
+              128105,
+              8205,
+              129455,
+              8205,
+              10145,
+              65039,
+              "拿白杖的女人朝右",
+              "woman with white cane facing right"
+            ],
+            [
+              128105,
+              8205,
+              129468,
+              "坐电动轮椅的女人",
+              "woman in motorized wheelchair"
+            ],
+            [
+              128105,
+              8205,
+              129468,
+              8205,
+              10145,
+              65039,
+              "坐电动轮椅的女人朝右",
+              "woman in motorized wheelchair facing right"
+            ],
+            [
+              128105,
+              8205,
+              129469,
+              "坐手动轮椅的女人",
+              "woman in manual wheelchair"
+            ],
+            [
+              128105,
+              8205,
+              129469,
+              8205,
+              10145,
+              65039,
+              "坐手动轮椅的女人朝右",
+              "woman in manual wheelchair facing right"
+            ],
+            [
+              128105,
+              127995,
+              8205,
+              129455,
+              "浅肤色拿白杖的女人",
+              "woman with white cane: light skin tone"
+            ],
+            [
+              128105,
+              127995,
+              8205,
+              129455,
+              8205,
+              10145,
+              65039,
+              "浅肤色拿白杖的女人朝右",
+              "woman with white cane facing right: light skin tone"
+            ],
+            [
+              128105,
+              127995,
+              8205,
+              129468,
+              "浅肤色坐电动轮椅的女人",
+              "woman in motorized wheelchair: light skin tone"
+            ],
+            [
+              128105,
+              127995,
+              8205,
+              129468,
+              8205,
+              10145,
+              65039,
+              "浅肤色坐电动轮椅的女人朝右",
+              "woman in motorized wheelchair facing right: light skin tone"
+            ],
+            [
+              128105,
+              127995,
+              8205,
+              129469,
+              "浅肤色坐手动轮椅的女人",
+              "woman in manual wheelchair: light skin tone"
+            ],
+            [
+              128105,
+              127995,
+              8205,
+              129469,
+              8205,
+              10145,
+              65039,
+              "浅肤色坐手动轮椅的女人朝右",
+              "woman in manual wheelchair facing right: light skin tone"
+            ],
+            [
+              128105,
+              127996,
+              8205,
+              129455,
+              "中浅肤色拿白杖的女人",
+              "woman with white cane: medium-light skin tone"
+            ],
+            [
+              128105,
+              127996,
+              8205,
+              129455,
+              8205,
+              10145,
+              65039,
+              "中浅肤色拿白杖的女人朝右",
+              "woman with white cane facing right: medium-light skin tone"
+            ],
+            [
+              128105,
+              127996,
+              8205,
+              129468,
+              "中浅肤色坐电动轮椅的女人",
+              "woman in motorized wheelchair: medium-light skin tone"
+            ],
+            [
+              128105,
+              127996,
+              8205,
+              129468,
+              8205,
+              10145,
+              65039,
+              "中浅肤色坐电动轮椅的女人朝右",
+              "woman in motorized wheelchair facing right: medium-light skin tone"
+            ],
+            [
+              128105,
+              127996,
+              8205,
+              129469,
+              "中浅肤色坐手动轮椅的女人",
+              "woman in manual wheelchair: medium-light skin tone"
+            ],
+            [
+              128105,
+              127996,
+              8205,
+              129469,
+              8205,
+              10145,
+              65039,
+              "中浅肤色坐手动轮椅的女人朝右",
+              "woman in manual wheelchair facing right: medium-light skin tone"
+            ],
+            [
+              128105,
+              127997,
+              8205,
+              129455,
+              "中肤色拿白杖的女人",
+              "woman with white cane: medium skin tone"
+            ],
+            [
+              128105,
+              127997,
+              8205,
+              129455,
+              8205,
+              10145,
+              65039,
+              "中肤色拿白杖的女人朝右",
+              "woman with white cane facing right: medium skin tone"
+            ],
+            [
+              128105,
+              127997,
+              8205,
+              129468,
+              "中肤色坐电动轮椅的女人",
+              "woman in motorized wheelchair: medium skin tone"
+            ],
+            [
+              128105,
+              127997,
+              8205,
+              129468,
+              8205,
+              10145,
+              65039,
+              "中肤色坐电动轮椅的女人朝右",
+              "woman in motorized wheelchair facing right: medium skin tone"
+            ],
+            [
+              128105,
+              127997,
+              8205,
+              129469,
+              "中肤色坐手动轮椅的女人",
+              "woman in manual wheelchair: medium skin tone"
+            ],
+            [
+              128105,
+              127997,
+              8205,
+              129469,
+              8205,
+              10145,
+              65039,
+              "中肤色坐手动轮椅的女人朝右",
+              "woman in manual wheelchair facing right: medium skin tone"
+            ],
+            [
+              128105,
+              127998,
+              8205,
+              129455,
+              "中深肤色拿白杖的女人",
+              "woman with white cane: medium-dark skin tone"
+            ],
+            [
+              128105,
+              127998,
+              8205,
+              129455,
+              8205,
+              10145,
+              65039,
+              "中深肤色拿白杖的女人朝右",
+              "woman with white cane facing right: medium-dark skin tone"
+            ],
+            [
+              128105,
+              127998,
+              8205,
+              129468,
+              "中深肤色坐电动轮椅的女人",
+              "woman in motorized wheelchair: medium-dark skin tone"
+            ],
+            [
+              128105,
+              127998,
+              8205,
+              129468,
+              8205,
+              10145,
+              65039,
+              "中深肤色坐电动轮椅的女人朝右",
+              "woman in motorized wheelchair facing right: medium-dark skin tone"
+            ],
+            [
+              128105,
+              127998,
+              8205,
+              129469,
+              "中深肤色坐手动轮椅的女人",
+              "woman in manual wheelchair: medium-dark skin tone"
+            ],
+            [
+              128105,
+              127998,
+              8205,
+              129469,
+              8205,
+              10145,
+              65039,
+              "中深肤色坐手动轮椅的女人朝右",
+              "woman in manual wheelchair facing right: medium-dark skin tone"
+            ],
+            [
+              128105,
+              127999,
+              8205,
+              129455,
+              "深肤色拿白杖的女人",
+              "woman with white cane: dark skin tone"
+            ],
+            [
+              128105,
+              127999,
+              8205,
+              129455,
+              8205,
+              10145,
+              65039,
+              "深肤色拿白杖的女人朝右",
+              "woman with white cane facing right: dark skin tone"
+            ],
+            [
+              128105,
+              127999,
+              8205,
+              129468,
+              "深肤色坐电动轮椅的女人",
+              "woman in motorized wheelchair: dark skin tone"
+            ],
+            [
+              128105,
+              127999,
+              8205,
+              129468,
+              8205,
+              10145,
+              65039,
+              "深肤色坐电动轮椅的女人朝右",
+              "woman in motorized wheelchair facing right: dark skin tone"
+            ],
+            [
+              128105,
+              127999,
+              8205,
+              129469,
+              "深肤色坐手动轮椅的女人",
+              "woman in manual wheelchair: dark skin tone"
+            ],
+            [
+              128105,
+              127999,
+              8205,
+              129469,
+              8205,
+              10145,
+              65039,
+              "深肤色坐手动轮椅的女人朝右",
+              "woman in manual wheelchair facing right: dark skin tone"
+            ],
+            [
+              129489,
+              8205,
+              129468,
+              "坐电动轮椅的人",
+              "person in motorized wheelchair"
+            ],
+            [
+              129489,
+              8205,
+              129468,
+              8205,
+              10145,
+              65039,
+              "坐电动轮椅的人朝右",
+              "person in motorized wheelchair facing right"
+            ],
+            [
+              129489,
+              8205,
+              129469,
+              "坐手动轮椅的人",
+              "person in manual wheelchair"
+            ],
+            [
+              129489,
+              8205,
+              129469,
+              8205,
+              10145,
+              65039,
+              "坐手动轮椅的人朝右",
+              "person in manual wheelchair facing right"
+            ],
+            [
+              129489,
+              8205,
+              129455,
+              "拄白手杖的人",
+              "person with white cane"
+            ],
+            [
+              129489,
+              8205,
+              129455,
+              8205,
+              10145,
+              65039,
+              "拄白手杖的人朝右",
+              "person with white cane facing right"
+            ],
+            [
+              129489,
+              127995,
+              8205,
+              129468,
+              "浅肤色坐电动轮椅的人",
+              "person in motorized wheelchair: light skin tone"
+            ],
+            [
+              129489,
+              127995,
+              8205,
+              129468,
+              8205,
+              10145,
+              65039,
+              "浅肤色坐电动轮椅的人朝右",
+              "person in motorized wheelchair facing right: light skin tone"
+            ],
+            [
+              129489,
+              127995,
+              8205,
+              129469,
+              "浅肤色坐手动轮椅的人",
+              "person in manual wheelchair: light skin tone"
+            ],
+            [
+              129489,
+              127995,
+              8205,
+              129469,
+              8205,
+              10145,
+              65039,
+              "浅肤色坐手动轮椅的人朝右",
+              "person in manual wheelchair facing right: light skin tone"
+            ],
+            [
+              129489,
+              127995,
+              8205,
+              129455,
+              "浅肤色拄白手杖的人",
+              "person with white cane: light skin tone"
+            ],
+            [
+              129489,
+              127995,
+              8205,
+              129455,
+              8205,
+              10145,
+              65039,
+              "浅肤色拄白手杖的人朝右",
+              "person with white cane facing right: light skin tone"
+            ],
+            [
+              129489,
+              127996,
+              8205,
+              129468,
+              "中浅肤色坐电动轮椅的人",
+              "person in motorized wheelchair: medium-light skin tone"
+            ],
+            [
+              129489,
+              127996,
+              8205,
+              129468,
+              8205,
+              10145,
+              65039,
+              "中浅肤色坐电动轮椅的人朝右",
+              "person in motorized wheelchair facing right: medium-light skin tone"
+            ],
+            [
+              129489,
+              127996,
+              8205,
+              129469,
+              "中浅肤色坐手动轮椅的人",
+              "person in manual wheelchair: medium-light skin tone"
+            ],
+            [
+              129489,
+              127996,
+              8205,
+              129469,
+              8205,
+              10145,
+              65039,
+              "中浅肤色坐手动轮椅的人朝右",
+              "person in manual wheelchair facing right: medium-light skin tone"
+            ],
+            [
+              129489,
+              127996,
+              8205,
+              129455,
+              "中浅肤色拄白手杖的人",
+              "person with white cane: medium-light skin tone"
+            ],
+            [
+              129489,
+              127996,
+              8205,
+              129455,
+              8205,
+              10145,
+              65039,
+              "中浅肤色拄白手杖的人朝右",
+              "person with white cane facing right: medium-light skin tone"
+            ],
+            [
+              129489,
+              127997,
+              8205,
+              129468,
+              "中肤色坐电动轮椅的人",
+              "person in motorized wheelchair: medium skin tone"
+            ],
+            [
+              129489,
+              127997,
+              8205,
+              129468,
+              8205,
+              10145,
+              65039,
+              "中肤色坐电动轮椅的人朝右",
+              "person in motorized wheelchair facing right: medium skin tone"
+            ],
+            [
+              129489,
+              127997,
+              8205,
+              129469,
+              "中肤色坐手动轮椅的人",
+              "person in manual wheelchair: medium skin tone"
+            ],
+            [
+              129489,
+              127997,
+              8205,
+              129469,
+              8205,
+              10145,
+              65039,
+              "中肤色坐手动轮椅的人朝右",
+              "person in manual wheelchair facing right: medium skin tone"
+            ],
+            [
+              129489,
+              127997,
+              8205,
+              129455,
+              "中肤色拄白手杖的人",
+              "person with white cane: medium skin tone"
+            ],
+            [
+              129489,
+              127997,
+              8205,
+              129455,
+              8205,
+              10145,
+              65039,
+              "中肤色拄白手杖的人朝右",
+              "person with white cane facing right: medium skin tone"
+            ],
+            [
+              129489,
+              127998,
+              8205,
+              129468,
+              "中深肤色坐电动轮椅的人",
+              "person in motorized wheelchair: medium-dark skin tone"
+            ],
+            [
+              129489,
+              127998,
+              8205,
+              129468,
+              8205,
+              10145,
+              65039,
+              "中深肤色坐电动轮椅的人朝右",
+              "person in motorized wheelchair facing right: medium-dark skin tone"
+            ],
+            [
+              129489,
+              127998,
+              8205,
+              129469,
+              "中深肤色坐手动轮椅的人",
+              "person in manual wheelchair: medium-dark skin tone"
+            ],
+            [
+              129489,
+              127998,
+              8205,
+              129469,
+              8205,
+              10145,
+              65039,
+              "中深肤色坐手动轮椅的人朝右",
+              "person in manual wheelchair facing right: medium-dark skin tone"
+            ],
+            [
+              129489,
+              127998,
+              8205,
+              129455,
+              "中深肤色拄白手杖的人",
+              "person with white cane: medium-dark skin tone"
+            ],
+            [
+              129489,
+              127998,
+              8205,
+              129455,
+              8205,
+              10145,
+              65039,
+              "中深肤色拄白手杖的人朝右",
+              "person with white cane facing right: medium-dark skin tone"
+            ],
+            [
+              129489,
+              127999,
+              8205,
+              129468,
+              "深肤色坐电动轮椅的人",
+              "person in motorized wheelchair: dark skin tone"
+            ],
+            [
+              129489,
+              127999,
+              8205,
+              129468,
+              8205,
+              10145,
+              65039,
+              "深肤色坐电动轮椅的人朝右",
+              "person in motorized wheelchair facing right: dark skin tone"
+            ],
+            [
+              129489,
+              127999,
+              8205,
+              129469,
+              "深肤色坐手动轮椅的人",
+              "person in manual wheelchair: dark skin tone"
+            ],
+            [
+              129489,
+              127999,
+              8205,
+              129469,
+              8205,
+              10145,
+              65039,
+              "深肤色坐手动轮椅的人朝右",
+              "person in manual wheelchair facing right: dark skin tone"
+            ],
+            [
+              129489,
+              127999,
+              8205,
+              129455,
+              "深肤色拄白手杖的人",
+              "person with white cane: dark skin tone"
+            ],
+            [
+              129489,
+              127999,
+              8205,
+              129455,
+              8205,
+              10145,
+              65039,
+              "深肤色拄白手杖的人朝右",
+              "person with white cane facing right: dark skin tone"
+            ]
           ]
         },
         "法律、秩序": {
@@ -63902,7 +64912,7 @@
               8205,
               9794,
               65039,
-              "摔跤的人",
+              "摔跤男人",
               "men wrestling"
             ],
             [
@@ -63910,7 +64920,7 @@
               8205,
               9792,
               65039,
-              "摔跤的人",
+              "摔跤女人",
               "women wrestling"
             ],
             [
@@ -63919,7 +64929,7 @@
               8205,
               9794,
               65039,
-              "浅肤色摔跤的人",
+              "浅肤色摔跤男人",
               "men wrestling: light skin tone"
             ],
             [
@@ -63928,7 +64938,7 @@
               8205,
               9792,
               65039,
-              "浅肤色摔跤的人",
+              "浅肤色摔跤女人",
               "women wrestling: light skin tone"
             ],
             [
@@ -63937,7 +64947,7 @@
               8205,
               9794,
               65039,
-              "中浅肤色摔跤的人",
+              "中浅肤色摔跤男人",
               "men wrestling: medium-light skin tone"
             ],
             [
@@ -63946,7 +64956,7 @@
               8205,
               9792,
               65039,
-              "中浅肤色摔跤的人",
+              "中浅肤色摔跤女人",
               "women wrestling: medium-light skin tone"
             ],
             [
@@ -63955,7 +64965,7 @@
               8205,
               9794,
               65039,
-              "中肤色摔跤的人",
+              "中肤色摔跤男人",
               "men wrestling: medium skin tone"
             ],
             [
@@ -63964,7 +64974,7 @@
               8205,
               9792,
               65039,
-              "中肤色摔跤的人",
+              "中肤色摔跤女人",
               "women wrestling: medium skin tone"
             ],
             [
@@ -63973,7 +64983,7 @@
               8205,
               9794,
               65039,
-              "中深肤色摔跤的人",
+              "中深肤色摔跤男人",
               "men wrestling: medium-dark skin tone"
             ],
             [
@@ -63982,7 +64992,7 @@
               8205,
               9792,
               65039,
-              "中深肤色摔跤的人",
+              "中深肤色摔跤女人",
               "women wrestling: medium-dark skin tone"
             ],
             [
@@ -63991,7 +65001,7 @@
               8205,
               9794,
               65039,
-              "深肤色摔跤的人",
+              "深肤色摔跤男人",
               "men wrestling: dark skin tone"
             ],
             [
@@ -64000,7 +65010,7 @@
               8205,
               9792,
               65039,
-              "深肤色摔跤的人",
+              "深肤色摔跤女人",
               "women wrestling: dark skin tone"
             ],
             [
@@ -64895,7 +65905,7 @@
               8205,
               9794,
               65039,
-              "戴兔耳的人",
+              "戴兔耳男人",
               "men with bunny ears"
             ],
             [
@@ -64903,7 +65913,7 @@
               8205,
               9792,
               65039,
-              "戴兔耳的人",
+              "戴兔耳女人",
               "women with bunny ears"
             ],
             [
@@ -64912,7 +65922,7 @@
               8205,
               9794,
               65039,
-              "浅肤色戴兔耳的人",
+              "浅肤色戴兔耳男人",
               "men with bunny ears: light skin tone"
             ],
             [
@@ -64921,7 +65931,7 @@
               8205,
               9792,
               65039,
-              "浅肤色戴兔耳的人",
+              "浅肤色戴兔耳女人",
               "women with bunny ears: light skin tone"
             ],
             [
@@ -64930,7 +65940,7 @@
               8205,
               9794,
               65039,
-              "中浅肤色戴兔耳的人",
+              "中浅肤色戴兔耳男人",
               "men with bunny ears: medium-light skin tone"
             ],
             [
@@ -64939,7 +65949,7 @@
               8205,
               9792,
               65039,
-              "中浅肤色戴兔耳的人",
+              "中浅肤色戴兔耳女人",
               "women with bunny ears: medium-light skin tone"
             ],
             [
@@ -64948,7 +65958,7 @@
               8205,
               9794,
               65039,
-              "中肤色戴兔耳的人",
+              "中肤色戴兔耳男人",
               "men with bunny ears: medium skin tone"
             ],
             [
@@ -64957,7 +65967,7 @@
               8205,
               9792,
               65039,
-              "中肤色戴兔耳的人",
+              "中肤色戴兔耳女人",
               "women with bunny ears: medium skin tone"
             ],
             [
@@ -64966,7 +65976,7 @@
               8205,
               9794,
               65039,
-              "中深肤色戴兔耳的人",
+              "中深肤色戴兔耳男人",
               "men with bunny ears: medium-dark skin tone"
             ],
             [
@@ -64975,7 +65985,7 @@
               8205,
               9792,
               65039,
-              "中深肤色戴兔耳的人",
+              "中深肤色戴兔耳女人",
               "women with bunny ears: medium-dark skin tone"
             ],
             [
@@ -64984,7 +65994,7 @@
               8205,
               9794,
               65039,
-              "深肤色戴兔耳的人",
+              "深肤色戴兔耳男人",
               "men with bunny ears: dark skin tone"
             ],
             [
@@ -64993,7 +66003,7 @@
               8205,
               9792,
               65039,
-              "深肤色戴兔耳的人",
+              "深肤色戴兔耳女人",
               "women with bunny ears: dark skin tone"
             ],
             [
@@ -81850,7 +82860,7 @@
           8205,
           9794,
           65039,
-          "戴兔耳的人",
+          "戴兔耳男人",
           "men with bunny ears"
         ],
         [
@@ -81858,7 +82868,7 @@
           8205,
           9792,
           65039,
-          "戴兔耳的人",
+          "戴兔耳女人",
           "women with bunny ears"
         ],
         [
@@ -81867,7 +82877,7 @@
           8205,
           9794,
           65039,
-          "浅肤色戴兔耳的人",
+          "浅肤色戴兔耳男人",
           "men with bunny ears: light skin tone"
         ],
         [
@@ -81876,7 +82886,7 @@
           8205,
           9792,
           65039,
-          "浅肤色戴兔耳的人",
+          "浅肤色戴兔耳女人",
           "women with bunny ears: light skin tone"
         ],
         [
@@ -81885,7 +82895,7 @@
           8205,
           9794,
           65039,
-          "中浅肤色戴兔耳的人",
+          "中浅肤色戴兔耳男人",
           "men with bunny ears: medium-light skin tone"
         ],
         [
@@ -81894,7 +82904,7 @@
           8205,
           9792,
           65039,
-          "中浅肤色戴兔耳的人",
+          "中浅肤色戴兔耳女人",
           "women with bunny ears: medium-light skin tone"
         ],
         [
@@ -81903,7 +82913,7 @@
           8205,
           9794,
           65039,
-          "中肤色戴兔耳的人",
+          "中肤色戴兔耳男人",
           "men with bunny ears: medium skin tone"
         ],
         [
@@ -81912,7 +82922,7 @@
           8205,
           9792,
           65039,
-          "中肤色戴兔耳的人",
+          "中肤色戴兔耳女人",
           "women with bunny ears: medium skin tone"
         ],
         [
@@ -81921,7 +82931,7 @@
           8205,
           9794,
           65039,
-          "中深肤色戴兔耳的人",
+          "中深肤色戴兔耳男人",
           "men with bunny ears: medium-dark skin tone"
         ],
         [
@@ -81930,7 +82940,7 @@
           8205,
           9792,
           65039,
-          "中深肤色戴兔耳的人",
+          "中深肤色戴兔耳女人",
           "women with bunny ears: medium-dark skin tone"
         ],
         [
@@ -81939,7 +82949,7 @@
           8205,
           9794,
           65039,
-          "深肤色戴兔耳的人",
+          "深肤色戴兔耳男人",
           "men with bunny ears: dark skin tone"
         ],
         [
@@ -81948,7 +82958,7 @@
           8205,
           9792,
           65039,
-          "深肤色戴兔耳的人",
+          "深肤色戴兔耳女人",
           "women with bunny ears: dark skin tone"
         ],
         [
@@ -84735,7 +85745,7 @@
           8205,
           9794,
           65039,
-          "摔跤的人",
+          "摔跤男人",
           "men wrestling"
         ],
         [
@@ -84743,7 +85753,7 @@
           8205,
           9792,
           65039,
-          "摔跤的人",
+          "摔跤女人",
           "women wrestling"
         ],
         [
@@ -84752,7 +85762,7 @@
           8205,
           9794,
           65039,
-          "浅肤色摔跤的人",
+          "浅肤色摔跤男人",
           "men wrestling: light skin tone"
         ],
         [
@@ -84761,7 +85771,7 @@
           8205,
           9792,
           65039,
-          "浅肤色摔跤的人",
+          "浅肤色摔跤女人",
           "women wrestling: light skin tone"
         ],
         [
@@ -84770,7 +85780,7 @@
           8205,
           9794,
           65039,
-          "中浅肤色摔跤的人",
+          "中浅肤色摔跤男人",
           "men wrestling: medium-light skin tone"
         ],
         [
@@ -84779,7 +85789,7 @@
           8205,
           9792,
           65039,
-          "中浅肤色摔跤的人",
+          "中浅肤色摔跤女人",
           "women wrestling: medium-light skin tone"
         ],
         [
@@ -84788,7 +85798,7 @@
           8205,
           9794,
           65039,
-          "中肤色摔跤的人",
+          "中肤色摔跤男人",
           "men wrestling: medium skin tone"
         ],
         [
@@ -84797,7 +85807,7 @@
           8205,
           9792,
           65039,
-          "中肤色摔跤的人",
+          "中肤色摔跤女人",
           "women wrestling: medium skin tone"
         ],
         [
@@ -84806,7 +85816,7 @@
           8205,
           9794,
           65039,
-          "中深肤色摔跤的人",
+          "中深肤色摔跤男人",
           "men wrestling: medium-dark skin tone"
         ],
         [
@@ -84815,7 +85825,7 @@
           8205,
           9792,
           65039,
-          "中深肤色摔跤的人",
+          "中深肤色摔跤女人",
           "women wrestling: medium-dark skin tone"
         ],
         [
@@ -84824,7 +85834,7 @@
           8205,
           9794,
           65039,
-          "深肤色摔跤的人",
+          "深肤色摔跤男人",
           "men wrestling: dark skin tone"
         ],
         [
@@ -84833,7 +85843,7 @@
           8205,
           9792,
           65039,
-          "深肤色摔跤的人",
+          "深肤色摔跤女人",
           "women wrestling: dark skin tone"
         ],
         [
