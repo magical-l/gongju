@@ -658,6 +658,30 @@
 			margin-top: 6px;
 			line-height: 1.5;
 		}
+		& .zwj-compose {
+			margin-top: 10px;
+		}
+		& .zwj-compose-row {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			gap: 6px;
+			margin-top: 6px;
+		}
+		& .zwj-part {
+			font-family: var(--sym-font-stack);
+			font-size: 1.1rem;
+			line-height: 1.4;
+			padding: 2px 8px;
+			border: 1px solid var(--el-border-color-light);
+			border-radius: 4px;
+			cursor: pointer;
+			transition: background 0.2s, border-color 0.2s;
+		}
+		& .zwj-part:hover {
+			background: var(--el-color-primary-light-9);
+			border-color: var(--el-color-primary);
+		}
 		& .copy-char-btn {
 			margin-top: 8px;
 		}

@@ -17,7 +17,7 @@
 	<link href="../css/layout.css" rel="stylesheet">
 	<link href="../resources/biz.css?v=250821" rel="stylesheet">
 	<link href="../css/花活.css" rel="stylesheet">
-	<link href="符号.css?v=260843" rel="stylesheet">
+	<link href="符号.css?v=260844" rel="stylesheet">
 </head>
 <body class="目字形">
 	<header>
@@ -246,7 +246,16 @@
 							<div v-if="selectedChar && detailAdvice" class="tofu-tip">{{ detailAdvice }}</div>
 							<div v-if="selectedChar.officialName && selectedChar.officialName !== (selectedChar.zhName || selectedChar.officialName || selectedChar.char)" class="official-name">{{ selectedChar.officialName }}</div>
 							<div v-if="selectedChar.aliases.length" class="alias">{{ selectedChar.aliases.join('、') }}</div>
+							<div class="copy-char-btn">
+								<el-button type="primary" size="small" @click="copyChar">复制字符</el-button>
+							</div>
 							<div v-if="selectedChar.intro" class="intro">{{ selectedChar.intro }}</div>
+							<div v-if="zwjComponents.length" class="zwj-compose">
+								<div class="panel-title">组成</div>
+								<div class="zwj-compose-row">
+									<span class="zwj-part" v-for="part in zwjComponents" :key="part.cp" :title="part.name + '\nU+' + part.cp.toString(16).toUpperCase()" @click="selectChar(part.cp)">{{ part.char }}</span>
+								</div>
+							</div>
 							<div class="code">
 								<span class="code-label">Unicode</span><span class="code-text">U+{{ selectedChar.codeStr }}</span>
 								<span class="code-copy" @click.stop="copyCode" title="复制">⧉</span>
@@ -254,9 +263,6 @@
 							<div class="code">
 								<span class="code-label">HTML转义</span><span class="code-text">{{ selectedChar.htmlEntity }}</span>
 								<span class="code-copy" @click.stop="copyCode" title="复制">⧉</span>
-							</div>
-							<div class="copy-char-btn">
-								<el-button type="primary" size="small" @click="copyChar">复制字符</el-button>
 							</div>
 						</div>
 						<div v-else class="details">
@@ -418,7 +424,7 @@
 		<script src="../lib/toastr.min.js"></script>
 		<script src="../resources/biz-util.js?v=250801"></script>
 	</div>
-	<script src="符号.js?v=260844"></script>
+	<script src="符号.js?v=260847"></script>
 	<div>
 		<!-- 谷歌广告联盟 -->
 		<script async crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"></script>

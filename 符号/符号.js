@@ -16,6 +16,7 @@ const CAP = 100; // 网格每页字符数
 const PREVIEW_N = 30; // 概览视图每段预览字符数（网格 10 列 × 3 行）
 const AXIS_ORDER = ['文字系统', '官方分类', '区块']; // 三大机械轴，树末尾固定顺序
 const SEQ_INDEX = new Map(); // 'cp1-cp2' → { zh, en }：旗序列（双码位）名映射，flatten 时构建
+let SEQ_ALIASES = new Map(); // 'cp1-cp2…'（去肤色基础键）→ string[]：序列别名，mounted 时从 序列别名.json 加载
 
 /** 区间列表含字符总数 */
 function rangeCount(ranges) {
@@ -91,6 +92,20 @@ function seqCps(s) {
 function seqMeta(s) {
 	const cps = seqCps(s);
 	return { zh: s[cps.length] || '', en: s[cps.length + 1] || '' };
+}
+/** 码位数组 → 已收录序列的规范码位（容忍 VS16/VS15（FE0F/FE0E）有无；找不到返回 null） */
+function resolveSeq(cps) {
+	const exact = cps.join('-');
+	if (SEQ_INDEX.has(exact)) return cps;
+	const noVS = cps.filter(c => c !== 0xFE0F && c !== 0xFE0E).join('-');
+	for (const t of FLAT) {
+		if (!t.node.seqs) continue;
+		for (const s of t.node.seqs) {
+			const sc = seqCps(s);
+			if (sc.filter(c => c !== 0xFE0F && c !== 0xFE0E).join('-') === noVS) return sc;
+		}
+	}
+	return null;
 }
 // ---- 变体折叠（v1.13.0）----
 /** 肤色修饰符码位（U+1F3FB–1F3FF）：变体折叠的分组依据 */
@@ -784,6 +799,16 @@ const app = createApp({
 			}
 			return style;
 		},
+		/** 选中序列的组成符号（去掉 ZWJ 连接符/变体选择符）：右侧详情"组成符号"行 */
+		zwjComponents() {
+			const cps = this.selectedChar && this.selectedChar.cp;
+			if (!Array.isArray(cps) || cps.length < 2) return [];
+			return cps.filter(c => c !== 0x200D && c !== 0xFE0F).map(c => ({
+				cp: c,
+				char: String.fromCodePoint(c),
+				name: zhNameOf(c) || nameOf(c) || 'U+' + c.toString(16).toUpperCase()
+			}));
+		},
 		symbolStyle() {
 			if (!this.selectedPreviewFont) return {}; // 无字体时走 CSS 默认 Noto
 			return { fontFamily: '"' + this.selectedPreviewFont + '"' }; // 显式选字体：只用该字体渲染，不覆盖则显示豆腐块
@@ -1115,7 +1140,7 @@ const app = createApp({
 				zhName: meta.zh || '',
 				officialName: meta.en || '',
 				mode: '',
-				aliases: [],
+				aliases: SEQ_ALIASES.get(variantGroupKey(cps)) || [],
 				tags: tagsOf(cps),
 				codeStr: cps.map(c => c.toString(16).toUpperCase()).join(' '),
 				htmlEntity: cps.map(c => '&#' + c + ';').join('')
@@ -1231,13 +1256,24 @@ const app = createApp({
 			for (const t of FLAT) {
 				if (!t.node.seqs) continue;
 				for (const s of t.node.seqs) {
-					const meta = seqMeta(s);
-					if (!String(meta.zh).toLowerCase().includes(q) && !String(meta.en).toLowerCase().includes(q)) continue;
 					const cps = seqCps(s);
+					const meta = seqMeta(s);
+					const aliases = SEQ_ALIASES.get(variantGroupKey(cps)) || [];
+					if (!String(meta.zh).toLowerCase().includes(q) && !String(meta.en).toLowerCase().includes(q) && !aliases.some(a => a.toLowerCase().includes(q))) continue;
 					const key = 'seq:' + cps.join('-');
 					if (seen.has(key)) continue;
 					seen.add(key);
 					out.push({ char: String.fromCodePoint(...cps), cp: cps, zhName: meta.zh, officialName: meta.en });
+				}
+			}
+			// token 本身是已收录序列（直接输入 👨⚕️ 等）：中心栏直接出结果
+			const resolved = resolveSeq([...token].map(c => c.codePointAt(0)));
+			if (resolved) {
+				const meta = SEQ_INDEX.get(resolved.join('-')) || {};
+				const k = 'seq:' + resolved.join('-');
+				if (!seen.has(k)) {
+					seen.add(k);
+					out.push({ char: String.fromCodePoint(...resolved), cp: resolved, zhName: meta.zh || '', officialName: meta.en || '' });
 				}
 			}
 			return out;
@@ -2307,6 +2343,8 @@ const app = createApp({
 			// 默认标签：整个标签树展示序的第一个元素（语义轴在前，当前为「人」）
 			const firstRoot = this.treeRoots[0];
 			if (firstRoot) this.selectTag({ name: firstRoot[0], node: firstRoot[1], path: firstRoot[0] });
+			// 序列别名（异步加载，失败静默；详情/搜索按需查 SEQ_ALIASES）
+			fetch('序列别名.json').then(r => r.json()).then(d => { SEQ_ALIASES = new Map(Object.entries(d)); }).catch(() => {});
 		} catch (err) {
 			console.error('标签数据加载失败', err);
 			ElementPlus.ElMessage.error('标签数据加载失败：' + err);
@@ -2338,8 +2376,9 @@ const app = createApp({
 				if (cp !== undefined && cp !== null) this.selectChar(cp);
 			}
 			if (arr.length >= 2) {
-				const key = arr.map(x => x.codePointAt(0)).join('-');
-				if (SEQ_INDEX.has(key)) this.selectFlag(arr.map(x => x.codePointAt(0)));
+				const cps = arr.map(x => x.codePointAt(0));
+				const resolved = resolveSeq(cps);
+				if (resolved) this.selectFlag(resolved);
 			}
 			// unicode 码 / HTML 转义：解析到码点直接选中详情，与输入单字符一致
 			const cpq = parseCodePointQuery(s);

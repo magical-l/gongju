@@ -52,8 +52,8 @@ TAGS_JSON = os.path.join(HERE, '标签.json')
 ZH_JSON = os.path.join(HERE, '中文名.json')
 SYMBOL_JS = os.path.join(HERE, '符号数据.js')
 
-# 页面 fetch 的这些文件加 no-cache，改完刷新即新
-NO_CACHE_FILES = ('标签.json', '中文名.json', '名字.json', '符号数据.js', 'noto-cmap.json')
+# 页面 fetch 的这些文件加 no-cache，改完刷新即新（符号.html 也禁缓存——否则浏览器缓存旧 ?v= 链接导致一直加载旧 JS）
+NO_CACHE_FILES = ('标签.json', '中文名.json', '名字.json', '符号数据.js', 'noto-cmap.json', '符号.html', '序列别名.json')
 
 # 单写锁：读-改-写串行化（ThreadingHTTPServer 下防并发写坏文件）
 LOCK = threading.Lock()
