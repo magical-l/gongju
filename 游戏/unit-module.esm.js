@@ -1,5 +1,5 @@
 import {addCfgProps, aopMethod, compareWithId} from './kit.esm.js';
-import {Command, Module, Player, SkillHolder} from './turn-based-game.esm.js';
+import {Command, Module, Player, SkillHolder} from './turn-based-game.js';
 
 export {
 	Unit, UnitModule, SelectUnitCommand,

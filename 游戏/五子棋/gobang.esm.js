@@ -1,4 +1,4 @@
-import {Player, Rule, TurnBasedGame} from './../turn-based-game.esm.js';
+import {Player, Rule, TurnBasedGame} from './../turn-based-game.js';
 import {BattlefieldBasedGaming, BattlefieldModule, Board, 棋盘点位} from './../battlefield-module.esm.js';
 import {Unit, UnitModule} from './../unit-module.esm.js';
 import {notice} from '../kit.esm.js';

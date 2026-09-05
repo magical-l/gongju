@@ -1,5 +1,5 @@
 import {compareWithId, notice, watch} from './../kit.esm.js';
-import {Player, Rule, Situation, Skill, TurnBasedGame} from './../turn-based-game.esm.js';
+import {Player, Rule, Situation, Skill, TurnBasedGame} from './../turn-based-game.js';
 import {Unit, UnitModule} from './../unit-module.esm.js';
 import {Attack, BattlefieldBasedGaming, BattlefieldModule, Board, Move, 棋盘点位} from '../battlefield-module.esm.js';
 
