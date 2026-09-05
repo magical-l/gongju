@@ -636,6 +636,42 @@
 		/* input默认有自己的 font-family，需显式继承才能使用到.game等处定义的字体 */
 		font-family: inherit;
 	}
+
+	& .touch.pad {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10px;
+		justify-content: center;
+		margin-top: 12px;
+	}
+
+	& .touch.key {
+		--touch-key-size: 52px;
+		width: var(--touch-key-size);
+		height: var(--touch-key-size);
+		box-sizing: border-box;
+		display: grid;
+		place-items: center;
+		border: none;
+		border-radius: 12px;
+		background: rgba(0, 0, 0, 0.06);
+		font-size: 24px;
+		line-height: 1;
+		color: var(--lv-1-color);
+		cursor: pointer;
+		user-select: none;
+		-webkit-user-select: none;
+		touch-action: manipulation;
+
+		&.action {
+			--touch-key-size: 60px;
+			border: 1px solid rgba(0, 0, 0, 0.15);
+		}
+
+		&:active {
+			background: rgba(0, 0, 0, 0.18);
+		}
+	}
 }/* .game */
 
 /* ====== 棋盘类游戏特需 ====== */

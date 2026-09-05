@@ -210,7 +210,7 @@
 				</section>
 			</header>
 
-			<article class="main board map" :style="{ '--board-cols': gridSize, '--board-rows': gridSize }" @mouseup="mouseUp" @mouseleave="mouseUp" @touchend="touchEnd" @touchcancel="touchEnd">
+			<article class="main board map" :style="{ '--board-cols': gridSize, '--board-rows': gridSize }" @mouseup="mouseUp" @mouseleave="mouseUp" @touchend="touchEnd" @touchcancel="touchEnd" @touchmove="touchMove">
 				<div class="cell" v-for="cell in gridCells" :key="'cell-'+cell.row+'-'+cell.col" :data-row="cell.row" :data-col="cell.col" @mousedown="mouseDown(cell)" @mouseenter="mouseEnter(cell)" @touchstart="touchStart($event, cell)">
 					<div v-if="starAt(cell)" class="unit star" :style="{ backgroundColor: COLORS[starAt(cell).color] }">★</div>
 					<div :class="unitClass(cell)" :style="unitStyle(cell)" v-else=""></div>
@@ -583,11 +583,36 @@
 				/** 触摸开始 */
 				touchStart(e, cell) {
 					e.preventDefault();
+					this._lastTouchCellKey = null; // 新一笔确保首格必触发（触摸场景）
 					this.handleCellPress(cell);
 				},
 				/** 触摸结束 */
 				touchEnd() {
 					this.handleCellRelease();
+				},
+				/** 触摸点坐标 → 所在格子 {row,col} 或 null */
+				cellFromPoint(clientX, clientY) {
+					const el = document.elementFromPoint(clientX, clientY);
+					const cell = el && el.closest ? el.closest('.cell') : null;
+					if (!cell) return null;
+					const row = parseInt(cell.dataset.row, 10);
+					const col = parseInt(cell.dataset.col, 10);
+					if (isNaN(row) || isNaN(col)) return null;
+					return { row, col };
+				},
+				/** 触摸滑动：逐格判定并喂给 mouseEnter */
+				touchMove(e) {
+					e.preventDefault();
+					const t = e.changedTouches && e.changedTouches[0];
+					if (!t) return;
+					const cell = this.cellFromPoint(t.clientX, t.clientY);
+					if (!cell) return;
+					const key = cell.row + '-' + cell.col;
+					if (this._lastTouchCellKey === key) return; // 同格跳过，避免同一格反复触发
+					this._lastTouchCellKey = key;
+					if (this.isDrawing) {
+						this.mouseEnter(cell);
+					}
 				},
 				/** 处理格子按下 */
 				handleCellPress(cell) {

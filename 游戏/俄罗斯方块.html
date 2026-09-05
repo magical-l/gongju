@@ -43,6 +43,7 @@
 				--board-cols: 10;
 				--board-rows: 20;
 				--cell-size-max: 30px; /* 俄罗斯方块格子需要更小 */
+				touch-action: none; /* 平板触控：棋盘内禁用浏览器滚动/缩放手势，交给滑动控制 */
 
 				&.preview {
 					--board-cols: 4;
@@ -200,9 +201,14 @@
 							<el-switch v-model="settings.showGhost"></el-switch>
 						</el-form-item>
 					</div>
+					<div class="one tool group">
+						<el-form-item label="触屏键" class="one tool : touch-controls">
+							<el-switch v-model="settings.touchControls"></el-switch>
+						</el-form-item>
+					</div>
 				</section>
 			</header>
-			<section class="board map" :style="boardStyle" style="grid-row:2" @click="togglePause">
+			<section class="board map" :style="boardStyle" style="grid-row:2" @click="togglePause" @touchstart="onBoardTouchStart" @touchmove="onBoardTouchMove" @touchend="onBoardTouchEnd" @touchcancel="onBoardTouchEnd">
 				<div v-for="(cell, index) in displayGrid" :key="index" class="cell">
 					<div v-if="cell" class="unit" :class="cell"></div>
 				</div>
@@ -210,6 +216,14 @@
 					<div class="title">{{ score === 0 ? '准备就绪' : '已暂停' }}</div>
 					<p class="tip">按空格或点击以开始/继续</p>
 				</div>
+			</section>
+			<section class="touch pad" v-if="settings.touchControls" aria-label="触屏操作键" style="grid-row:3;grid-column:1 / -1;justify-self:center">
+				<button class="touch key action" @touchstart.prevent="startActionRepeat('left')" @touchend="stopActionRepeat" @touchcancel="stopActionRepeat" @mousedown.prevent="startActionRepeat('left')" @mouseup="stopActionRepeat" @mouseleave="stopActionRepeat">←</button>
+				<button class="touch key action" @touchstart.prevent="startActionRepeat('rotate')" @touchend="stopActionRepeat" @touchcancel="stopActionRepeat" @mousedown.prevent="startActionRepeat('rotate')" @mouseup="stopActionRepeat" @mouseleave="stopActionRepeat">↻</button>
+				<button class="touch key action" @touchstart.prevent="startActionRepeat('right')" @touchend="stopActionRepeat" @touchcancel="stopActionRepeat" @mousedown.prevent="startActionRepeat('right')" @mouseup="stopActionRepeat" @mouseleave="stopActionRepeat">→</button>
+				<button class="touch key action" @touchstart.prevent="startActionRepeat('drop')" @touchend="stopActionRepeat" @touchcancel="stopActionRepeat" @mousedown.prevent="startActionRepeat('drop')" @mouseup="stopActionRepeat" @mouseleave="stopActionRepeat">↓</button>
+				<button class="touch key action" @touchstart.prevent="startActionRepeat('hardDrop')" @touchend="stopActionRepeat" @touchcancel="stopActionRepeat" @mousedown.prevent="startActionRepeat('hardDrop')" @mouseup="stopActionRepeat" @mouseleave="stopActionRepeat">⤓</button>
+				<button class="touch key action" @click="togglePause">⏸</button>
 			</section>
 			<aside class="sidebar near-left">
 				<details data-panel="next" :open="panels.next" @toggle="onPanelToggle">
@@ -343,6 +357,9 @@
 			},
 		};
 		const TETROMINO_KEYS = 'IOTSZJL';
+		const TOUCH_SLOP = 12; // 滑动手势判定阈值(px)：越过才算滑动而非点击
+		const TOUCH_STEP = 40; // 手势每跨约一格(px)触发一次同向动作：向下越多→drop 越多，左右同向连续移动
+		const TOUCH_REPEAT_MS = 90; // 触屏键长按 auto-repeat 间隔
 		const app = createApp({
 			data() {
 				const panelKey = 'tetris-panels';
@@ -382,6 +399,7 @@
 						difficulty: 'gentle',
 						startLevel: 1,
 						showGhost: true,
+						touchControls: 'ontouchstart' in window || navigator.maxTouchPoints > 0,
 					},
 					difficultyOptions: [{
 						name: '柔和',
@@ -404,6 +422,18 @@
 					lastTime: 0,
 					animationFrameId: null,
 					panels: saved || defaultPanels,
+					// 触屏手势暂存（不进模板，仅状态存储）
+					gesture: {
+						start: null,
+						anchor: null,
+						axis: null,
+						swiping: false,
+						rotated: false,
+					},
+					actionRepeat: {
+						timer: null,
+						action: null,
+					},
 					_panelKey: panelKey,
 					_defaultPanels: {
 						...defaultPanels
@@ -691,6 +721,125 @@
 					this.settings.cols = 10;
 					this.settings.rows = 20;
 					this.startGame();
+				},
+				setTouchAction(action) {
+					// 触屏动作统一入口：与键盘同守卫（暂停/结束时不动作）
+					if (this.isPaused || this.isGameOver) {
+						return;
+					}
+					switch (action) {
+						case 'left':
+							this.move(-1);
+							break;
+						case 'right':
+							this.move(1);
+							break;
+						case 'rotate':
+							this.rotate();
+							break;
+						case 'drop':
+							this.drop();
+							break;
+						case 'hardDrop':
+							this.hardDrop();
+							break;
+					}
+				},
+				startActionRepeat(action) {
+					// 触屏键长按 auto-repeat：立即执行一次，按住期间定时重复
+					this.stopActionRepeat();
+					this.setTouchAction(action);
+					this.actionRepeat.action = action;
+					this.actionRepeat.timer = setInterval(() => {
+						if (this.isPaused || this.isGameOver) {
+							this.stopActionRepeat();
+							return;
+						}
+						this.setTouchAction(this.actionRepeat.action);
+					}, TOUCH_REPEAT_MS);
+				},
+				stopActionRepeat() {
+					if (this.actionRepeat.timer) {
+						clearInterval(this.actionRepeat.timer);
+						this.actionRepeat.timer = null;
+					}
+					this.actionRepeat.action = null;
+				},
+				onBoardTouchStart(e) {
+					const t = e.touches && e.touches[0];
+					if (!t) {
+						return;
+					}
+					// 触点起点作激活判定与轴锁定的基准
+					this.gesture.start = {
+						x: t.clientX,
+						y: t.clientY
+					};
+					this.gesture.anchor = {
+						x: t.clientX,
+						y: t.clientY
+					}; // 位移触发基准：每次触发后沿动作方向前进整数格
+					this.gesture.swiping = false;
+					this.gesture.axis = null; // 'x' | 'y'，激活瞬间按主轴锁定
+					this.gesture.rotated = false; // 上滑 rotate 每手势只触发一次
+				},
+				onBoardTouchMove(e) {
+					const t = e.touches && e.touches[0];
+					if (!t || !this.gesture.start) {
+						return;
+					}
+					// 暂停/结束时棋盘只保留点击（= 暂停开关），不响应滑动
+					if (this.isPaused || this.isGameOver) {
+						return;
+					}
+					const px = t.clientX - this.gesture.start.x;
+					const py = t.clientY - this.gesture.start.y;
+					if (!this.gesture.swiping) {
+						if (Math.hypot(px, py) < TOUCH_SLOP) {
+							return; // 阈值内当点击，不 preventDefault → 交由 @click=togglePause
+						}
+						this.gesture.swiping = true;
+						e.preventDefault(); // 抑制随之而来的 click
+						// 激活后按起始位移主轴锁定，避免横向拖动误触发纵向动作
+						this.gesture.axis = Math.abs(px) >= Math.abs(py) ? 'x' : 'y';
+					}
+					if (this.gesture.axis === 'x') {
+						// 左右连续：每跨 TOUCH_STEP 触发一次同向 move，并前进基准（余量不丢）
+						const travelX = t.clientX - this.gesture.anchor.x;
+						const steps = Math.floor(Math.abs(travelX) / TOUCH_STEP);
+						if (steps > 0) {
+							const dir = travelX > 0 ? 'right' : 'left';
+							for (let i = 0; i < steps; i++) {
+								this.setTouchAction(dir);
+							}
+							this.gesture.anchor.x += Math.sign(travelX) * steps * TOUCH_STEP;
+						}
+					} else {
+						// 向下软降：滑得越多→drop 越多（持续软降）
+						const travelY = t.clientY - this.gesture.anchor.y;
+						if (travelY >= TOUCH_STEP) {
+							const steps = Math.floor(travelY / TOUCH_STEP);
+							for (let i = 0; i < steps; i++) {
+								this.setTouchAction('drop');
+							}
+							this.gesture.anchor.y += steps * TOUCH_STEP;
+						}
+						// 向上 rotate：以越过触点 TOUCH_STEP 判定，每手势一次
+						if (!this.gesture.rotated && this.gesture.start.y - t.clientY >= TOUCH_STEP) {
+							this.setTouchAction('rotate');
+							this.gesture.rotated = true;
+						}
+					}
+				},
+				onBoardTouchEnd(e) {
+					if (this.gesture.swiping) {
+						e.preventDefault(); // 滑动结束仍抑制 click，避免误触发暂停
+					}
+					this.gesture.start = null;
+					this.gesture.anchor = null;
+					this.gesture.swiping = false;
+					this.gesture.axis = null;
+					this.gesture.rotated = false;
 				},
 				handleKeydown(event) {
 					if (event.key === ' ') {

@@ -13,6 +13,14 @@ const SnakeGame = {
 				const defaultPanels = { info: true, shortcuts: false };
 				let saved;
 				try { saved = JSON.parse(localStorage.getItem(panelKey) || 'null'); } catch (_) { saved = null; }
+				const touchKey = 'snake-touch-controls';
+				let touchControls;
+				try {
+					const savedTouch = localStorage.getItem(touchKey);
+					touchControls = savedTouch !== null ? savedTouch === '1' : ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+				} catch (_) {
+					touchControls = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+				}
 				return {
 					speedLevel: 5,
 					gridWidth: 20,
@@ -33,6 +41,7 @@ const SnakeGame = {
 					isPaused: true,
 					gameInterval: null,
 					panels: saved || defaultPanels,
+					touchControls,
 					_panelKey: panelKey,
 					_defaultPanels: { ...defaultPanels },
 				};
@@ -71,6 +80,9 @@ const SnakeGame = {
 						this.highScore = newScore;
 						localStorage.setItem('snake-high-score', newScore);
 					}
+				},
+				touchControls(val) {
+					localStorage.setItem('snake-touch-controls', val ? '1' : '0');
 				},
 			},
 			methods: {
@@ -230,18 +242,53 @@ const SnakeGame = {
 					}
 					switch (e.key) {
 						case 'ArrowLeft':
-							if (this.direction !== 'right') { this.nextDirection = 'left'; }
+							this.setDirection('left');
 							break;
 						case 'ArrowUp':
-							if (this.direction !== 'down') { this.nextDirection = 'up'; }
+							this.setDirection('up');
 							break;
 						case 'ArrowRight':
-							if (this.direction !== 'left') { this.nextDirection = 'right'; }
+							this.setDirection('right');
 							break;
 						case 'ArrowDown':
-							if (this.direction !== 'up') { this.nextDirection = 'down'; }
+							this.setDirection('down');
 							break;
 					}
+				},
+				setDirection(dir) { // dir ∈ 'up'|'down'|'left'|'right'
+					if (this.isPaused || this.gameOver) { return; }
+					const opposite = { up: 'down', down: 'up', left: 'right', right: 'left' };
+					if (this.direction !== opposite[dir]) { this.nextDirection = dir; }
+				},
+				onBoardTouchStart(e) {
+					const t = e.touches && e.touches[0];
+					if (!t) return;
+					this._touchStart = { x: t.clientX, y: t.clientY };
+					this._swiping = false;
+				},
+				onBoardTouchMove(e) {
+					const t = e.touches && e.touches[0];
+					if (!t || !this._touchStart) return;
+					const dx = t.clientX - this._touchStart.x;
+					const dy = t.clientY - this._touchStart.y;
+					if (!this._swiping && Math.hypot(dx, dy) < 12) return; // 阈值
+					this._swiping = true;
+					e.preventDefault();
+					// 首次越过阈值时按主轴方向转一次
+					if (!this._dirSent) {
+						this._dirSent = true;
+						if (Math.abs(dx) > Math.abs(dy)) {
+							this.setDirection(dx > 0 ? 'right' : 'left');
+						} else {
+							this.setDirection(dy > 0 ? 'down' : 'up');
+						}
+					}
+				},
+				onBoardTouchEnd(e) {
+					if (this._swiping) { e.preventDefault(); } // 抑制 click
+					this._touchStart = null;
+					this._swiping = false;
+					this._dirSent = false;
 				},
 			},
 			mounted() {

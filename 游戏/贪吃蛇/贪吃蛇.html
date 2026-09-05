@@ -96,10 +96,15 @@
 							{{ isPaused ? (gameOver ? '新局' : (score === 0 ? '开始' : '继续')) : '暂停' }}
 						</el-button>
 					</div>
+					<div class="one controller group">
+						<el-form-item label="触屏键" class="one controller : touch-controls">
+							<el-switch v-model="touchControls"></el-switch>
+						</el-form-item>
+					</div>
 				</section>
 			</header>
 
-			<section class="board map" :class="{ paused: isPaused && !gameOver }" :style="boardStyle" @click="togglePause">
+			<section class="board map" :class="{ paused: isPaused && !gameOver }" :style="boardStyle" @click="togglePause" @touchstart="onBoardTouchStart" @touchmove="onBoardTouchMove" @touchend="onBoardTouchEnd">
 				<div v-for="(cell, index) in cells" :key="index" class="cell">
 					<div v-if="cell.unit" class="unit" :class="cell.unit"></div>
 				</div>
@@ -107,6 +112,13 @@
 					<div class="title">{{ score === 0 ? '准备就绪' : '已暂停' }}</div>
 					<p class="tip">按空格或点击以开始/继续</p>
 				</div>
+			</section>
+
+			<section class="touch pad" v-if="touchControls" aria-label="触屏方向键">
+				<button class="touch key up" @click="setDirection('up')">↑</button>
+				<button class="touch key left" @click="setDirection('left')">←</button>
+				<button class="touch key down" @click="setDirection('down')">↓</button>
+				<button class="touch key right" @click="setDirection('right')">→</button>
 			</section>
 
 			<aside class="sidebar near-left">
