@@ -39,6 +39,7 @@
 		& .main.board {
 			/* 只覆盖固定预留值，继承game.css的响应式公式 */
 			overflow: hidden;
+			touch-action: none;
 
 			& .cell .unit > .shape.triangle { position: absolute; inset: 0; }
 		}
@@ -175,7 +176,7 @@
 				</div>
 			</section>
 		</header>
-		<section class="board , main map , grid" :style="boardStyle" :class="{ 'non-interactive': isWin && !showWinModal }">
+		<section class="board , main map , grid" :style="boardStyle" :class="{ 'non-interactive': isWin && !showWinModal }" @touchstart="onBoardTouchStart" @touchmove="onBoardTouchMove" @touchend="onBoardTouchEnd" @touchcancel="onBoardTouchEnd">
 			<div v-for="(val, index) in board" :key="index" class="cell" :class="{ empty: val === 0 }"
 				@dragover.prevent @drop="onLayoutDrop($event, index)">
 				<div v-if="val !== 0" class="unit" :class="cellStateClass(index)" @click="onCellClick(index)"
@@ -941,6 +942,21 @@
 				this.board[index] = v;
 				this.layoutDragSourceIndex = -1;
 			},
+			slideByDirection(dir) {
+				// dir 属于 up/down/left/right，语义=空位朝该方向走一步
+				if (this.layoutMode || this.isWin) return;
+				const emptyIdx = this.board.indexOf(0);
+				const w = this.gameGridWidth;
+				const h = this.gameGridHeight;
+				const row = Math.floor(emptyIdx / w);
+				const col = emptyIdx % w;
+				let tileIndex = -1;
+				if (dir === 'up' && row < h - 1) tileIndex = emptyIdx + w;
+				else if (dir === 'down' && row > 0) tileIndex = emptyIdx - w;
+				else if (dir === 'left' && col < w - 1) tileIndex = emptyIdx + 1;
+				else if (dir === 'right' && col > 0) tileIndex = emptyIdx - 1;
+				if (tileIndex >= 0) this.slideTile(tileIndex, false);
+			},
 			onKeydown(e) {
 				if (this.layoutMode || this.isWin) {
 					return;
@@ -951,27 +967,35 @@
 					return;
 				}
 				e.preventDefault();
-				const emptyIdx = this.board.indexOf(0);
-				const w = this.gameGridWidth;
-				const h = this.gameGridHeight;
-				const row = Math.floor(emptyIdx / w);
-				const col = emptyIdx % w;
-				let tileIndex = -1;
-				if (dir === 'up' && row < h - 1) {
-					tileIndex = emptyIdx + w;
-				}
-				if (dir === 'down' && row > 0) {
-					tileIndex = emptyIdx - w;
-				}
-				if (dir === 'left' && col < w - 1) {
-					tileIndex = emptyIdx + 1;
-				}
-				if (dir === 'right' && col > 0) {
-					tileIndex = emptyIdx - 1;
-				}
-				if (tileIndex >= 0) {
-					this.slideTile(tileIndex, false);
-				}
+				this.slideByDirection(dir);
+			},
+			onBoardTouchStart(e) {
+				const t = e.touches && e.touches[0];
+				if (!t) return;
+				this._touchStart = { x: t.clientX, y: t.clientY };
+				this._swiping = false;
+				this._swipeSent = false;
+			},
+			onBoardTouchMove(e) {
+				const t = e.touches && e.touches[0];
+				if (!t || !this._touchStart) return;
+				const dx = t.clientX - this._touchStart.x;
+				const dy = t.clientY - this._touchStart.y;
+				if (!this._swiping && Math.hypot(dx, dy) < 14) return; // 阈值，避免与 tap 冲突
+				this._swiping = true;
+				e.preventDefault();
+				if (this._swipeSent) return;
+				this._swipeSent = true;
+				const dir = Math.abs(dx) > Math.abs(dy)
+					? (dx > 0 ? 'right' : 'left')
+					: (dy > 0 ? 'down' : 'up');
+				this.slideByDirection(dir);
+			},
+			onBoardTouchEnd(e) {
+				if (this._swiping) e.preventDefault(); // 抑制随后的 click
+				this._touchStart = null;
+				this._swiping = false;
+				this._swipeSent = false;
 			},
 			exportRounds() {
 				if (this.stepsDone.length === 0) {
