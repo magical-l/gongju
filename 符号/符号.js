@@ -16,7 +16,7 @@ const CAP = 100; // 网格每页字符数
 const PREVIEW_N = 30; // 概览视图每段预览字符数（网格 10 列 × 3 行）
 const AXIS_ORDER = ['文字系统', '官方分类', '区块']; // 三大机械轴，树末尾固定顺序
 const SEQ_INDEX = new Map(); // 'cp1-cp2' → { zh, en }：旗序列（双码位）名映射，flatten 时构建
-let SEQ_ALIASES = new Map(); // 'cp1-cp2…'（去肤色基础键）→ string[]：序列别名，mounted 时从 序列别名.json 加载
+let SEQ_ALIASES = new Map(); // 去肤色基础键 → { aliases[], intro:'' }：序列 legacy 别名层（只读默认，源 序列别名.json 为别名数组，加载时 normalize）；登记过 SYMBOLS 富化别名的序列不再用它
 
 /** 区间列表含字符总数 */
 function rangeCount(ranges) {
@@ -116,6 +116,39 @@ function variantGroupKey(cps) {
 	if (!Array.isArray(cps)) return '';
 	if (!cps.every(c => typeof c === 'number')) return '';
 	return cps.filter(c => !SKIN_CPS.has(c)).join('-');
+}
+
+/** 序列富化元数据：SYMBOL_MAP(char=整串，人工登记)优先 → SEQ_INDEX(标签 seqs 默认名)兜底 → SEQ_ALIASES(旧别名)；
+ *  与单码点 zhNameOf 同构——富化层优先、默认层兜底。未登记序列返回纯默认。 */
+function seqSymbolMeta(cps) {
+	const char = String.fromCodePoint(...cps);
+	const rich = SYMBOL_MAP.get(char);
+	const def = SEQ_INDEX.get(cps.join('-')) || {};
+	const legacy = SEQ_ALIASES.get(variantGroupKey(cps)) || {};
+	return {
+		char,
+		zhName: (rich && rich.names[0]) || def.zh || '',
+		officialName: (rich && rich.enames[0]) || def.en || '',
+		aliases: (rich && rich.aliases.length) ? rich.aliases : (legacy.aliases || []),
+		intro: (rich && rich.intro) || ''
+	};
+}
+
+/** cps 的同款成员(含自身)：去肤色基础相同 且 肤色配置为同一肤色(或全无肤色)——即"单色替换"变体。
+ *  双人异色组合(浅+中深…肤色值>1 种)各自名字不同，是独立符号不并入。无同款时返回 [自身]。 */
+function seqSiblingsOf(cps) {
+	const base = variantGroupKey(cps);
+	const mySkin = new Set(cps.filter(c => SKIN_CPS.has(c)));
+	if (mySkin.size > 1) return [cps]; // 自身已是异色组合：独立符号
+	const out = [];
+	for (const key of SEQ_INDEX.keys()) {
+		const sib = key.split('-').map(Number);
+		if (variantGroupKey(sib) !== base) continue;
+		const sibSkin = new Set(sib.filter(c => SKIN_CPS.has(c)));
+		if (sibSkin.size > 1) continue; // 异色组合是独立符号
+		out.push(sib);
+	}
+	return out.length ? out : [cps];
 }
 
 /** seqs → 变体组：Map<组键, 纯码位数组[]>（组内保持 seqs 原序；嵌套/dict 条目跳过） */
@@ -1133,14 +1166,15 @@ const app = createApp({
 		/** 选中序列（任意长度码位数组）：查 SEQ_INDEX 取名，tags 按整串匹配 */
 		selectFlag(seq) {
 			const cps = seqCps(seq);
-			const meta = SEQ_INDEX.get(cps.join('-')) || {};
+			const m = seqSymbolMeta(cps);
 			this.selectedChar = {
 				cp: cps,
-				char: String.fromCodePoint(...cps),
-				zhName: meta.zh || '',
-				officialName: meta.en || '',
+				char: m.char,
+				zhName: m.zhName,
+				officialName: m.officialName,
 				mode: '',
-				aliases: SEQ_ALIASES.get(variantGroupKey(cps)) || [],
+				aliases: m.aliases,
+				intro: m.intro,
 				tags: tagsOf(cps),
 				codeStr: cps.map(c => c.toString(16).toUpperCase()).join(' '),
 				htmlEntity: cps.map(c => '&#' + c + ';').join('')
@@ -1227,14 +1261,21 @@ const app = createApp({
 			} else {
 				for (const [char, meta] of SYMBOL_MAP) {
 					if (char === q) {
-						const cp = char.codePointAt(0);
-						out.push({ char, cp, zhName: zhNameOf(cp), officialName: nameOf(cp) });
-						seen.add(cp);
+						const cps = [...char].map(c => c.codePointAt(0));
+						if (cps.length === 1) {
+							out.push({ char, cp: cps[0], zhName: zhNameOf(cps[0]), officialName: nameOf(cps[0]) });
+							seen.add(cps[0]);
+						} else {
+							const m = seqSymbolMeta(cps);
+							const key = 'seq:' + cps.join('-');
+							if (!seen.has(key)) { seen.add(key); out.push({ char, cp: cps, zhName: m.zhName, officialName: m.officialName }); }
+						}
 						break;
 					}
 				}
 			}
 			for (const [char, meta] of SYMBOL_MAP) {
+				if ([...char].length > 1) continue; // 序列(多码)由下方 seqs 通道统一匹配，避免按单码错分
 				const hit = meta.names.some(n => n.toLowerCase().includes(q))
 					|| meta.enames.some(e => e.toLowerCase().includes(q))
 					|| meta.aliases.some(a => a.toLowerCase().includes(q));
@@ -1257,23 +1298,22 @@ const app = createApp({
 				if (!t.node.seqs) continue;
 				for (const s of t.node.seqs) {
 					const cps = seqCps(s);
-					const meta = seqMeta(s);
-					const aliases = SEQ_ALIASES.get(variantGroupKey(cps)) || [];
-					if (!String(meta.zh).toLowerCase().includes(q) && !String(meta.en).toLowerCase().includes(q) && !aliases.some(a => a.toLowerCase().includes(q))) continue;
+					const m = seqSymbolMeta(cps);
+					if (!m.zhName.toLowerCase().includes(q) && !m.officialName.toLowerCase().includes(q) && !m.aliases.some(a => a.toLowerCase().includes(q)) && !m.intro.toLowerCase().includes(q)) continue;
 					const key = 'seq:' + cps.join('-');
 					if (seen.has(key)) continue;
 					seen.add(key);
-					out.push({ char: String.fromCodePoint(...cps), cp: cps, zhName: meta.zh, officialName: meta.en });
+					out.push({ char: m.char, cp: cps, zhName: m.zhName, officialName: m.officialName });
 				}
 			}
 			// token 本身是已收录序列（直接输入 👨⚕️ 等）：中心栏直接出结果
 			const resolved = resolveSeq([...token].map(c => c.codePointAt(0)));
 			if (resolved) {
-				const meta = SEQ_INDEX.get(resolved.join('-')) || {};
+				const m = seqSymbolMeta(resolved);
 				const k = 'seq:' + resolved.join('-');
 				if (!seen.has(k)) {
 					seen.add(k);
-					out.push({ char: String.fromCodePoint(...resolved), cp: resolved, zhName: meta.zh || '', officialName: meta.en || '' });
+					out.push({ char: m.char, cp: resolved, zhName: m.zhName, officialName: m.officialName });
 				}
 			}
 			return out;
@@ -1360,16 +1400,16 @@ const app = createApp({
 		/** 网格条目悬浮标题：旗显示中/英文名，单码位走 titleOf */
 		itemTitle(item) {
 			if (this.isFlag(item)) {
-				const meta = SEQ_INDEX.get(item.join('-')) || {};
-				return (meta.zh || '') + '\n' + (meta.en || '');
+				const m = seqSymbolMeta(item);
+				return (m.zhName || '') + '\n' + (m.officialName || '');
 			}
 			return this.titleOf(item);
 		},
 		/** 网格卡片显示名：单码位中文名优先英文名兜底；序列中/英文名 */
 		gridItemName(item) {
 			if (this.isFlag(item)) {
-				const meta = SEQ_INDEX.get(item.join('-')) || {};
-				return meta.zh || meta.en || '';
+				const m = seqSymbolMeta(item);
+				return m.zhName || m.officialName || '';
 			}
 			return zhNameOf(item) || nameOf(item) || '';
 		},
@@ -1624,21 +1664,35 @@ const app = createApp({
 			this.tagEditorTarget = '';
 			this.tagEditorVisible = true;
 		},
-		/** 网格条目直接取消打标：移出当前选中标签 */
-		async removeFromGrid(item) {
-			let cp, char, zhName = '';
-			if (this.isFlag(item)) {
-				cp = item;
-				char = String.fromCodePoint(...item);
-				const meta = SEQ_INDEX.get(item.join('-')) || {};
+		/** 网格卡片/折叠卡取消打标：只删指定标签自己（节点级，不碰其子标签）。折叠卡（dots>0）整组移除，先确认（不可逆） */
+		async removeFromGrid(item, srcPath) {
+			srcPath = srcPath || (this.selectedTag && this.selectedTag.path);
+			if (!srcPath) return;
+			const isCard = !!(item && item.main !== undefined);
+			const cp = isCard ? item.main : item;
+			const members = isCard && item.dots.length ? [item.main, ...item.dots] : null;
+			if (members) {
+				const n = members.length;
+				const msg = '只从「' + srcPath.split('/').pop() + '」自己取消打标 ' + n + ' 个肤色变体？\n它的子标签及其他标签的归属都不受影响。此操作不可撤销。';
+				try {
+					await ElementPlus.ElMessageBox.confirm(msg, '取消打标', { type: 'warning', confirmButtonText: '取消打标', cancelButtonText: '暂不' });
+				} catch (e) { return; } // 用户取消
+			}
+			let char, zhName = '';
+			if (Array.isArray(cp)) {
+				char = String.fromCodePoint(...cp);
+				const meta = SEQ_INDEX.get(cp.join('-')) || {};
 				zhName = meta.zh || '';
 			} else {
-				cp = item;
-				char = String.fromCodePoint(item);
-				zhName = zhNameOf(item);
+				char = String.fromCodePoint(cp);
+				zhName = zhNameOf(cp);
 			}
-			this.tagEditorChar = { char, cp, zhName };
+			this.tagEditorChar = { char, cp, zhName, members, _srcPath: srcPath };
 			await this.opRemove();
+		},
+		/** 折叠卡能否从该节点取消：组成员全部直接在该节点自身（不含子孙聚合），否则隐藏 ✕ */
+		canUntagCard(card, node) {
+			return !!(node && [card.main, ...card.dots].every(m => nodeHasMember(node, m)));
 		},
 		/** 该标签是否允许取消打标：任一分支属机械轴则禁改（按钮已隐藏，双保险） */
 		canUntagTag(g) {
@@ -1772,23 +1826,39 @@ const app = createApp({
 				ElementPlus.ElMessage.success('已移动');
 			}
 		},
-		/** 取消打标：把字符从当前选中标签子树全部移除；先写服务器，成功后再改内存+记录 */
+		/** 取消打标：只删源标签（默认当前选中标签，可用 _srcPath 覆盖）自身直接持有，不级联子标签；先写服务器，成功后再改内存+记录 */
 		async opRemove() {
-			const src = this.selectedTag;
 			const tc = this.tagEditorChar;
-			if (!src || !tc) return;
+			const srcPath = (tc && tc._srcPath) || (this.selectedTag && this.selectedTag.path);
+			if (!srcPath || !tc) return;
+			const src = nodeAtPath(srcPath);
+			if (!src) return;
 			const members = tc.members || [tc.cp];
-			if (!members.every(m => nodeAggregatesMember(src.node, m))) {
-				ElementPlus.ElMessage.warning('有成员不在当前标签中');
+			if (!members.every(m => nodeHasMember(src, m))) {
+				ElementPlus.ElMessage.warning('有成员不在该标签自身');
 				return;
 			}
 			try {
-				await this.serverSave({ action: 'remove', cps: members.map(m => this.toCpsArray(m)), sourcePath: src.path });
+				const payload = { action: 'remove', sourcePath: srcPath, scope: 'node' };
+				if (tc.members && tc.members.length > 1) {
+					payload.cps = tc.members.map(m => {
+						const obj = { cps: this.toCpsArray(m) };
+						if (Array.isArray(m)) {
+							const meta = SEQ_INDEX.get(m.join('-')) || {};
+							obj.zh = meta.zh || '';
+							obj.en = meta.en || '';
+						}
+						return obj;
+					});
+				} else {
+					payload.cps = this.toCpsArray(members[0]);
+				}
+				await this.serverSave(payload);
 			} catch (e) {
 				ElementPlus.ElMessage.error('取消打标失败：' + e.message);
 				return;
 			}
-			const op = { action: 'remove', cps: tc.members && tc.members.length > 1 ? members : tc.cp, sourcePath: src.path, targetPath: '', char: tc.char, zhName: tc.zhName };
+			const op = { action: 'remove', scope: 'node', cps: tc.members && tc.members.length > 1 ? members : tc.cp, sourcePath: srcPath, targetPath: '', char: tc.char, zhName: tc.zhName };
 			if (this.applyOp(op)) {
 				this.ops.push(op);
 				this.tagEditorVisible = false;
@@ -2055,6 +2125,8 @@ const app = createApp({
 			const introChanged = intro !== this.metaEditorOldIntro;
 			if (!nameChanged && !aliasChanged && !introChanged) { this.metaEditorVisible = false; return; }
 			if (nameChanged && !newName) { ElementPlus.ElMessage.error('名字不能为空'); return; }
+			// 序列与单码点同构，一律走下方 entry 路线：编辑 = 登记/更新该符号在 SYMBOLS 的元素
+			// （序列 useNameRoute 恒 false，序列名不在 中文名.json；富化优先、标签 seqs 默认名兜底）
 			// 路由决策：
 			//   旗序列 / 字符在 SYMBOLS / 需加别名（可同时改名）→ entry 路线（写 符号数据.js）
 			//   不在 SYMBOLS 且仅改名 → name 路线（写 中文名.json，只对单码位有意义）
@@ -2144,6 +2216,62 @@ const app = createApp({
 			this.$forceUpdate();
 			this.metaEditorVisible = false;
 			ElementPlus.ElMessage.success('已保存');
+			// 序列：同款肤色扩散是分支逻辑——主符号已落盘，兄弟成员后台一并同步（syncSeqSiblings 内自管错误）
+			// 名字：同款里当前名相同的才联动（如无肤色差别的整组同名一起改）；名不同(如带肤色前缀)不联动
+			if (isSeq && (nameChanged || aliasChanged || introChanged)) this.syncSeqSiblings(sc, entry, { nameChanged, aliasChanged, introChanged, oldName, newName });
+		},
+		/** 序列同款肤色扩散（分支逻辑）：把主符号的共享字段同步到同款（单色替换）兄弟成员。
+		 *  名字：同款里当前名==旧名(改名前的名字)的兄弟才联动改新名——本身名字不同(如带肤色前缀)不动。
+		 *  别名/简介：同款整组共享。
+		 *  双人异色组合（多肤色值）是独立符号，不在此扩散（seqSiblingsOf 已排除）。 */
+		async syncSeqSiblings(sc, entry, flags) {
+			const sibs = seqSiblingsOf(sc.cp);
+			if (sibs.length <= 1 || !entry) return;
+			const f = flags || {};
+			const gk = Object.keys(entry.groups)[0];
+			const gVal = gk ? entry.groups[gk] : null;
+			const alias = gVal && Array.isArray(gVal.alias) ? [...gVal.alias] : null; // null=清
+			const intro = entry.intro !== undefined ? entry.intro : null;             // null=清
+			if (!f.nameChanged && !f.aliasChanged && !f.introChanged) return;
+			try {
+				for (const sib of sibs) {
+					const sibChar = String.fromCodePoint(...sib);
+					if (sibChar === sc.char) continue;
+					// 名字联动仅当兄弟当前名与旧名相同（改名前的名字）；富化或默认名任一来源皆可
+					const nameApply = !!f.nameChanged && seqSymbolMeta(sib).zhName === f.oldName;
+					const aliasApply = !!f.aliasChanged;
+					const introApply = !!f.introChanged;
+					let se = SYMBOLS.find(x => x.char === sibChar);
+					// 兄弟未登记且本次对它无实际内容可写(清空无意义)→跳过，不制造空元素
+					if (!se && !nameApply && !(aliasApply && alias) && !(introApply && intro)) continue;
+					const snap = se ? JSON.parse(JSON.stringify(se)) : null;
+					if (!se) { se = { char: sibChar, groups: {} }; SYMBOLS.push(se); }
+					if (gk) {
+						const sg = se.groups[gk] || (se.groups[gk] = {});
+						if (nameApply) sg.name = f.newName;
+						if (aliasApply) { if (alias) sg.alias = [...alias]; else delete sg.alias; }
+						if (!Object.keys(sg).length) delete se.groups[gk];
+					}
+					if (introApply) { if (intro) se.intro = intro; else delete se.intro; }
+					// 建了空元素(没实际落到任何字段)→回滚移除
+					if (!se.groups || !Object.keys(se.groups).length && !se.intro && !snap) {
+						SYMBOLS.splice(SYMBOLS.indexOf(se), 1);
+						continue;
+					}
+					try {
+						await this.serverSave({ action: 'sym', cps: this.toCpsArray(sib), entry: se });
+					} catch (e) {
+						if (snap) Object.assign(se, snap);
+						else SYMBOLS.splice(SYMBOLS.indexOf(se), 1);
+						throw e;
+					}
+				}
+				SYMBOL_MAP.clear();
+				buildSymbolMap();
+				this.$forceUpdate();
+			} catch (e) {
+				ElementPlus.ElMessage.warning('同款肤色同步部分失败：' + e.message + '（当前符号已保存）');
+			}
 		},
 		/** 删除别名编辑行 */
 		removeMetaAlias(i) {
@@ -2343,8 +2471,11 @@ const app = createApp({
 			// 默认标签：整个标签树展示序的第一个元素（语义轴在前，当前为「人」）
 			const firstRoot = this.treeRoots[0];
 			if (firstRoot) this.selectTag({ name: firstRoot[0], node: firstRoot[1], path: firstRoot[0] });
-			// 序列别名（异步加载，失败静默；详情/搜索按需查 SEQ_ALIASES）
-			fetch('序列别名.json').then(r => r.json()).then(d => { SEQ_ALIASES = new Map(Object.entries(d)); }).catch(() => {});
+			// 序列组元数据（异步加载，失败静默；详情/搜索按需查 SEQ_ALIASES）
+			//   normalize：兼容旧 schema（string[]）与新 schema（{ aliases:[], intro:'' }），旧数组按空简介包成对象
+			fetch('序列别名.json').then(r => r.json()).then(d => {
+				SEQ_ALIASES = new Map(Object.entries(d).map(([k, v]) => [k, Array.isArray(v) ? { aliases: v, intro: '' } : { aliases: v.aliases || [], intro: v.intro || '' }]));
+			}).catch(() => {});
 		} catch (err) {
 			console.error('标签数据加载失败', err);
 			ElementPlus.ElMessage.error('标签数据加载失败：' + err);

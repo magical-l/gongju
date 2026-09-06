@@ -146,6 +146,7 @@
 									<div class="char-grid">
 										<div class="char" v-for="card in seg.preview" :key="'o' + cellKey(card.main)" :draggable="editEnabled" :class="{ sel: isSelected(card.main), 'has-variants': itemDual(card.main), 'is-ctrl': isControlCode(card.main) }" :title="itemTitle(card.main)" @click="selectItem(card.main)" @dragstart="onDragStart(card, $event)" @dragend="onDragEnd">
 											<button v-if="editEnabled" class="tag-edit-btn" @click.stop="openTagEditor(card)" title="移动/添加到其他标签">✎</button>
+											<button v-if="editEnabled && selectedTag && !isFormalAxis(seg.path.split('/')[0]) && card.dots.length && canUntagCard(card, seg.node)" class="tag-untag-btn" @click.stop="removeFromGrid(card, seg.path)" title="从本标签取消打标整组（只删本标签）">✕</button>
 											<span class="char-symbol" :class="{ tofu: renderState(card.main) === false }">
 												<template v-if="renderState(card.main) === true">
 													<template v-if="itemDual(card.main)">
@@ -174,6 +175,7 @@
 							<div class="char-grid" v-else-if="selectedTag && gridCards.length">
 								<div class="char" v-for="card in gridCards" :key="cellKey(card.main)" :draggable="editEnabled" :class="{ sel: isSelected(card.main), 'has-variants': itemDual(card.main), 'is-ctrl': isControlCode(card.main) }" :title="itemTitle(card.main)" @click="selectItem(card.main)" @dragstart="onDragStart(card, $event)" @dragend="onDragEnd">
 									<button v-if="editEnabled" class="tag-edit-btn" @click.stop="openTagEditor(card)" title="移动/添加到其他标签">✎</button>
+									<button v-if="editEnabled && selectedTag && !isFormalAxis(selectedTag.path.split('/')[0]) && card.dots.length && canUntagCard(card, selectedTag.node)" class="tag-untag-btn" @click.stop="removeFromGrid(card, selectedTag.path)" title="从本标签取消打标整组（只删本标签）">✕</button>
 									<span class="char-symbol" :class="{ tofu: renderState(card.main) === false }">
 										<template v-if="renderState(card.main) === true">
 											<template v-if="itemDual(card.main)">
@@ -240,7 +242,7 @@
 								<span v-else-if="selectedChar && detailTofu" class="symbol-char tofu-hint" :style="fontStyle(selectedPreviewFont)">当前字体不支持</span>
 								<span v-else class="symbol-char placeholder-char">？</span>
 							</div>
-							<div class="name">{{ selectedChar.zhName || selectedChar.officialName || selectedChar.char }}<button v-if="editEnabled && !isFlag(selectedChar.cp)" class="meta-edit-btn" @click.stop="editSelectedSymbol" title="修改符号名/别名">✎</button></div>
+							<div class="name">{{ selectedChar.zhName || selectedChar.officialName || selectedChar.char }}<button v-if="editEnabled" class="meta-edit-btn" @click.stop="editSelectedSymbol" title="修改符号名/别名">✎</button></div>
 							<div v-if="selectedChar && isControlCode(selectedChar.cp)" class="ctrl-tip">不可见控制码</div>
 							<div v-if="selectedChar && detailTofu" class="tofu-tip">当前字体不支持</div>
 							<div v-if="selectedChar && detailAdvice" class="tofu-tip">{{ detailAdvice }}</div>
@@ -424,7 +426,7 @@
 		<script src="../lib/toastr.min.js"></script>
 		<script src="../resources/biz-util.js?v=250801"></script>
 	</div>
-	<script src="符号.js?v=260847"></script>
+	<script src="符号.js?v=260849"></script>
 	<div>
 		<!-- 谷歌广告联盟 -->
 		<script async crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"></script>

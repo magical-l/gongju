@@ -102,6 +102,17 @@ def is_member_list(cps):
     return isinstance(cps, list) and len(cps) > 0 and isinstance(cps[0], dict)
 
 
+def members_of(p):
+    """把负载的 cps 归一成成员码位数组列表。认三种形态：
+    dict 列表 [{cps,zh,en}...]、数组的数组（旧协议成员列表）、裸 cps（int 或 [cps]，单成员）。"""
+    cps = p.get('cps')
+    if is_member_list(cps):
+        return [m['cps'] for m in cps]
+    if isinstance(cps, list) and len(cps) > 0 and isinstance(cps[0], list):
+        return cps  # 数组的数组：逐成员处理（镜像 _add_member 容错）
+    return [norm_cps(cps)]
+
+
 def _add_member(node, member):
     """把单成员加到节点：member 为 dict {cps,zh,en}（成员列表元素）、裸 cps（单成员，int 或 [cps]）
     或数组的数组（[[cps],...] 旧协议成员列表）。数组的数组逐个递归处理。"""
@@ -290,10 +301,7 @@ def tag_remove(p):
     src = get_node(roots, path)
     if src is None:
         return False, '标签不存在: ' + path
-    if is_member_list(p.get('cps')):
-        members = [m['cps'] for m in p['cps']]
-    else:
-        members = [norm_cps(p.get('cps'))]
+    members = members_of(p)
     if p.get('scope') == 'node':
         for cps in members:
             found = seqs_remove(src, cps) if len(cps) > 1 else ranges_remove(src, cps[0])
