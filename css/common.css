@@ -400,6 +400,7 @@ i.icon {
 	--char-mic: '🎤';
 	--char-music: '♫';
 	--char-video: '🎬';
+	--char-camera: '📷'  /* U+1F4F7 */;
 }
 /* ------ 状态图标（可放在 .icon 上或 .icon 的祖先上）------ */
 .ok, .checked, .done, .correct, .success, .completed {
@@ -496,6 +497,9 @@ i.icon {
 }
 .fork { --icon-char: var(--char-fork); }
 .mic { --icon-char: var(--char-mic); }
+.camera {
+	--icon-char: var(--char-camera);
+}
 .video { --icon-char: var(--char-video); }
 .audio { --icon-char: var(--char-music); }
 
