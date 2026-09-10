@@ -26,7 +26,7 @@ dev_server.py — 符号页编辑保存服务器（临时功能）。
 
 落盘规则（标签.json 为唯一权威，标签.txt / build_tags 等已清理）：
   add/move/remove → 标签.json（成员添加/移动/取消打标）
-  tag-rename      → 标签.json（改 children key）
+  tag-rename      → 标签.json（改 children key）+ 符号数据.js（同步同名组键）
   tag-alias       → 标签.json（alias 整体替换）
   tag-new         → 标签.json（新增空节点）
   tag-del         → 标签.json（删节点+子树）
@@ -344,6 +344,55 @@ def move_key_order(d, key, direction, sortable=None):
     return True, ''
 
 
+def sync_symbol_group_keys(old, new):
+    """标签改名后，同步 符号数据.js 中以旧标签名为键的 group。
+
+    组键必须是标签名：页面渲染会按组键=当前标签名取该符号在该标签下的语境名
+    （buildSymbolMap 把 groups 的键作为 byKey），键不同步就取不到语境名。
+    dedupe 等脚本也按组键取数据；不同步就会留下历史脏键。返回改动条目数。
+    撞键时合并：alias 取并集，其余字段以先出现者为准。
+    """
+    if not old or not new or old == new:
+        return 0
+    lines, nl = _read_lines(SYMBOL_JS)
+    changed = 0
+    for i, ln in enumerate(lines):
+        if '"char"' not in ln:
+            continue
+        had_comma = ln.rstrip().endswith(',')
+        try:
+            o = json.loads(ln.rstrip().rstrip(','))
+        except Exception:
+            continue
+        groups = o.get('groups')
+        if not isinstance(groups, dict) or old not in groups:
+            continue
+        new_groups = {}
+        for k, v in groups.items():
+            nk = new if k == old else k
+            if nk in new_groups:
+                tgt = new_groups[nk]
+                if isinstance(tgt, dict) and isinstance(v, dict):
+                    for kk, vv in v.items():
+                        if kk == 'alias':
+                            al = list(tgt.get('alias') or [])
+                            for a in (vv or []):
+                                if a not in al:
+                                    al.append(a)
+                            if al:
+                                tgt['alias'] = al
+                        elif kk not in tgt:
+                            tgt[kk] = vv
+            else:
+                new_groups[nk] = v
+        o['groups'] = new_groups
+        lines[i] = '\t' + json.dumps(o, ensure_ascii=False, separators=(',', ':')) + (',' if had_comma else '')
+        changed += 1
+    if changed:
+        _write_lines(SYMBOL_JS, lines, nl)
+    return changed
+
+
 def tag_meta(p):
     path = p['path']
     new_name = p.get('newName')
@@ -385,7 +434,14 @@ def tag_meta(p):
             node.pop('intro', None)  # 空串=清空简介字段，保持 json 干净
     save_tags(data)
 
-    return True, '已保存'
+    # 标签改名 → 同步 符号数据.js 里的同名组键（否则留下历史脏键）
+    msg = '已保存'
+    if new_name is not None and new_name != parts[-1]:
+        n = sync_symbol_group_keys(parts[-1], new_name)
+        if n:
+            msg = '已保存（同步 %d 条符号的组键）' % n
+
+    return True, msg
 
 
 def tag_new(p):
