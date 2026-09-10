@@ -5,7 +5,7 @@ const {
 
 // ===== 标签数据（全局）=====
 // TAGS：标签.json 四轴树（文字系统/官方分类/区块/语义）；NAMES：名字.json（码位→官方英文名）
-// FLAT：展平后的有成员标签列表 {name,node,path,count}；SYMBOL_MAP：char → {names,enames,aliases,mode}
+// FLAT：展平后的有成员标签列表 {name,node,path,count}；SYMBOL_MAP：char → {names,globalName,aliases,byKey,mode,intro}
 let TAGS = null;
 let NAMES = null;
 let ZH_NAMES = null; // 中文名.json（码位→中文名），空则回退英文名
@@ -127,8 +127,8 @@ function seqSymbolMeta(cps) {
 	const legacy = SEQ_ALIASES.get(variantGroupKey(cps)) || {};
 	return {
 		char,
-		zhName: (rich && rich.names[0]) || def.zh || '',
-		officialName: (rich && rich.enames[0]) || def.en || '',
+		zhName: (rich && rich.globalName) || def.zh || '',
+		officialName: def.en || '',
 		aliases: (rich && rich.aliases.length) ? rich.aliases : (legacy.aliases || []),
 		intro: (rich && rich.intro) || ''
 	};
@@ -278,10 +278,10 @@ function lookupZhName(cp) {
 	return null;
 }
 
-/** 码位 → 全球中文名：SYMBOL_MAP 人工名优先，未命中查数据层中文名；仍无则按分类给兜底（全局视图权威名） */
+/** 码位 → 全球中文名：SYMBOL_MAP 人工名（= 各组语境名按组序去重拼接）优先，未命中查数据层中文名；仍无则按分类给兜底（全局视图权威名） */
 function zhNameOf(cp) {
 	const sc = SYMBOL_MAP.get(String.fromCodePoint(cp));
-	if (sc && sc.names[0]) return sc.names[0];
+	if (sc && sc.globalName) return sc.globalName;
 	const zn = lookupZhName(cp);
 	if (zn) return zn;
 	const kind = unnamedKind(cp);
@@ -314,21 +314,25 @@ function flatten(name, node, path) {
 	if (node.children) for (const [k, v] of Object.entries(node.children)) flatten(k, v, path + '/' + k);
 }
 
+/** 全局名 = 各组语境名按组序去重拼接（拆语境名后全局名自动跟随，无需另存） */
+function joinGroupNames(names) {
+	return [...new Set(names.filter(Boolean))].join('、');
+}
+
 /** 构建 char → 元数据 映射（SYMBOLS 为旧数据富化源，first-wins） */
 function buildSymbolMap() {
 	for (const s of SYMBOLS) {
 		if (SYMBOL_MAP.has(s.char)) continue;
-		const names = [], enames = [], aliases = [];
+		const names = [], aliases = [];
 		const seen = new Set();
 		for (const g of Object.values(s.groups || {})) {
 			if (g.name && !seen.has('n:' + g.name)) { seen.add('n:' + g.name); names.push(g.name); }
-			if (g.ename && !seen.has('e:' + g.ename)) { seen.add('e:' + g.ename); enames.push(g.ename); }
 			for (const a of (g.alias || [])) {
 				if (!seen.has('a:' + a)) { seen.add('a:' + a); aliases.push(a); }
 			}
 		}
 		// byKey=组键(标签名)→组对象引用（供语境取名/别名合并）
-		SYMBOL_MAP.set(s.char, { names, enames, aliases, byKey: s.groups || {}, mode: s.mode || '', intro: s.intro || '' });
+		SYMBOL_MAP.set(s.char, { names, globalName: joinGroupNames(names), aliases, byKey: s.groups || {}, mode: s.mode || '', intro: s.intro || '' });
 	}
 }
 
@@ -1333,7 +1337,7 @@ const app = createApp({
 			for (const [char, meta] of SYMBOL_MAP) {
 				if ([...char].length > 1) continue; // 序列(多码)由下方 seqs 通道统一匹配，避免按单码错分
 				const hit = meta.names.some(n => n.toLowerCase().includes(q))
-					|| meta.enames.some(e => e.toLowerCase().includes(q))
+					|| nameOf(char.codePointAt(0)).toLowerCase().includes(q)
 					|| meta.aliases.some(a => a.toLowerCase().includes(q));
 				if (!hit) continue;
 				const cp = char.codePointAt(0);
