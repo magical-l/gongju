@@ -325,27 +325,11 @@ def seq_cps(s):
 
 
 def zhname_set(cp, name):
-    """写 中文名.json 显式条目（有则改，无则升序插入）。保留原换行风格。"""
+    """写 中文名.json 显式条目（names 是 {码点:名字} 映射，直接赋值）。保留原换行风格。"""
     text = open(ZH_FILE, encoding='utf-8', newline='').read()
     nl = '\r\n' if '\r\n' in text else '\n'
     d = json.loads(text)
-    names = d['names']
-    lo, hi = 0, len(names) - 1
-    idx = None
-    while lo <= hi:
-        mid = (lo + hi) // 2
-        c = names[mid][0]
-        if c == cp:
-            idx = mid
-            break
-        if c < cp:
-            lo = mid + 1
-        else:
-            hi = mid - 1
-    if idx is not None:
-        names[idx][1] = name
-    else:
-        names.insert(lo, [cp, name])
+    d['names'][str(cp)] = name
     body = json.dumps(d, ensure_ascii=False, indent=2).replace('\n', nl)
     open(ZH_FILE, 'w', encoding='utf-8', newline='').write(body)
 

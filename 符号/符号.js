@@ -10,6 +10,7 @@ let TAGS = null;
 let NAMES = null;
 let ZH_NAMES = null; // 中文名.json（码位→中文名），空则回退英文名
 let FLAT = [];
+let NAME_PATHS = new Map(); // 节点名 → 路径数组（同名节点可在多处，如根「箭头」与区块「箭头」）
 const SYMBOL_MAP = new Map();
 let DUAL_SET = new Set(); // 双模（文本/表情两变体）码位集合：mounted 时从 标签.json 的 emoji（绘文字）> emoji-text双模 ranges 构建（权威集合，207 码位）
 const CAP = 100; // 网格每页字符数
@@ -261,17 +262,11 @@ function parseCodePointQuery(q) {
 	return { cp };
 }
 
-/** 码位 → 数据层中文名：中文名.json 二分查 + patterns 前缀兜底；未命中返回 null（供 zhNameOf/zhNameIn 复用） */
+/** 码位 → 数据层中文名：中文名.json 的 names 是 {码点: 名字} 映射，直接取键；未命中扫 patterns 前缀；仍无返回 null（供 zhNameOf/zhNameIn 复用） */
 function lookupZhName(cp) {
 	if (!ZH_NAMES) return null;
-	let lo = 0, hi = ZH_NAMES.names.length - 1;
-	while (lo <= hi) {
-		const mid = (lo + hi) >> 1;
-		const c = ZH_NAMES.names[mid][0];
-		if (c === cp) return ZH_NAMES.names[mid][1];
-		if (c < cp) lo = mid + 1;
-		else hi = mid - 1;
-	}
+	const n = ZH_NAMES.names[cp];
+	if (n) return n;
 	for (const [a, b, prefix] of ZH_NAMES.patterns) {
 		if (cp >= a && cp <= b) return prefix;
 	}
@@ -309,7 +304,11 @@ function rootEntries() {
 /** 展平树：收集所有带 ranges/seqs 的节点及纯组节点（有子节点），并构建旗序列名映射 */
 function flatten(name, node, path) {
 	const hasChildren = !!(node.children && Object.keys(node.children).length > 0);
-	if (node.ranges || node.seqs || hasChildren) FLAT.push({ name, node, path, count: (node.ranges ? rangeCount(node.ranges) : 0) + (node.seqs ? node.seqs.length : 0) });
+	if (node.ranges || node.seqs || hasChildren) {
+		FLAT.push({ name, node, path, count: (node.ranges ? rangeCount(node.ranges) : 0) + (node.seqs ? node.seqs.length : 0) });
+		if (!NAME_PATHS.has(name)) NAME_PATHS.set(name, []);
+		NAME_PATHS.get(name).push(path);
+	}
 	if (node.seqs) for (const s of node.seqs) SEQ_INDEX.set(seqCps(s).join('-'), seqMeta(s));
 	if (node.children) for (const [k, v] of Object.entries(node.children)) flatten(k, v, path + '/' + k);
 }
@@ -331,8 +330,10 @@ function buildSymbolMap() {
 				if (!seen.has('a:' + a)) { seen.add('a:' + a); aliases.push(a); }
 			}
 		}
+		// 别名与任何组主名相同则滤掉（防止别名与主名相同的第二道闸）
+		const aliases2 = aliases.filter(a => !seen.has('n:' + a));
 		// byKey=组键(标签名)→组对象引用（供语境取名/别名合并）
-		SYMBOL_MAP.set(s.char, { names, globalName: joinGroupNames(names), aliases, byKey: s.groups || {}, mode: s.mode || '', intro: s.intro || '' });
+		SYMBOL_MAP.set(s.char, { names, globalName: joinGroupNames(names), aliases: aliases2, byKey: s.groups || {}, mode: s.mode || '', intro: s.intro || '' });
 	}
 }
 
@@ -480,6 +481,7 @@ function removeAllFromSubtree(node, cp) {
 /** 重建 FLAT 与 SEQ_INDEX（TAGS 被内存改动后调用；flatten 是增量追加，须先清空） */
 function rebuildFlat() {
 	FLAT = [];
+	NAME_PATHS = new Map();
 	SEQ_INDEX.clear();
 	for (const [name, node] of rootEntries()) flatten(name, node, name);
 }
@@ -1223,29 +1225,54 @@ const app = createApp({
 		ctxTagName() {
 			return (!this.isSearching && this.selectedTag && this.selectedTag.name) ? this.selectedTag.name : '';
 		},
-		/** 视图取名：有语境标签 → 该标签下语境名，否则全局名；旗序列走序列元数据（不做语境取名） */
+		/** 当前语境生效的组键：选中节点子树里"最深的已建组节点"优先（父节点浏览时取子节点的组名）；都不命中再按名字精确兜底；无返回 '' */
+		ctxGroupKey(cp) {
+			const tag = this.ctxTagName();
+			if (!tag || Array.isArray(cp)) return '';
+			const meta = SYMBOL_MAP.get(String.fromCodePoint(cp));
+			const bk = meta && meta.byKey;
+			if (!bk) return '';
+			const sel = this.selectedTag;
+			const prefix = sel.path + '/';
+			let best = '', depth = -1;
+			for (const k of Object.keys(bk)) {
+				if (!bk[k] || !bk[k].name) continue;
+				for (const p of (NAME_PATHS.get(k) || [])) {
+					if (p !== sel.path && !p.startsWith(prefix)) continue;
+					const d = p.split('/').length;
+					if (d > depth) { depth = d; best = k; }
+				}
+			}
+			if (best) return best;
+			return bk[tag] ? tag : '';   // 兜底：键不在 FLAT（陈旧键等）时按名字精确命中
+		},
+		/** 视图取名：有语境标签 → 该标签子树里最深组名；否则全局名；旗序列走序列元数据（不做语境取名） */
 		ctxZhName(cp) {
 			if (Array.isArray(cp)) {
 				const m = seqSymbolMeta(cp);
 				return m.zhName || m.officialName || '';
 			}
-			const tag = this.ctxTagName();
-			return tag ? zhNameIn(cp, tag) : zhNameOf(cp);
+			const key = this.ctxGroupKey(cp);
+			if (!key) return zhNameOf(cp);
+			return SYMBOL_MAP.get(String.fromCodePoint(cp)).byKey[key].name;
 		},
-		/** 详情别名（虚拟合并）：有语境 → 本组 alias ∪ 其他组 name（去重，只读展示）；无语境/序列 → 聚合别名 */
+		/** 详情别名（虚拟合并）：有语境 → 本组 alias ∪ 其他组 name，且一律排除"当前显示的主名"；无语境/序列 → 聚合别名 */
 		ctxAliases(cp) {
 			const meta = SYMBOL_MAP.get(Array.isArray(cp) ? String.fromCodePoint(...cp) : String.fromCodePoint(cp));
 			if (!meta) return [];
 			const tag = this.ctxTagName();
 			if (Array.isArray(cp) || !tag || !meta.byKey) return meta.aliases;
-			const cur = meta.byKey[tag];
+			const key = this.ctxGroupKey(cp);
+			const cur = key ? meta.byKey[key] : null;
 			const out = [];
 			const seen = new Set();
+			const shown = cur ? cur.name : zhNameOf(cp);
+			if (shown) seen.add(shown);
 			for (const a of (cur && cur.alias) || []) {
 				if (a && !seen.has(a)) { seen.add(a); out.push(a); }
 			}
 			for (const [k, g] of Object.entries(meta.byKey)) {
-				if (k === tag || !g || !g.name || seen.has(g.name)) continue;
+				if (k === key || !g || !g.name || seen.has(g.name)) continue;
 				seen.add(g.name);
 				out.push(g.name);
 			}
@@ -1346,7 +1373,8 @@ const app = createApp({
 				out.push({ char, cp, zhName: zhNameOf(cp), officialName: nameOf(cp) });
 			}
 			if (ZH_NAMES) {
-				for (const [cp, zh] of ZH_NAMES.names) {
+				for (const [k, zh] of Object.entries(ZH_NAMES.names)) {
+					const cp = +k;
 					if (seen.has(cp)) continue;
 					if (zh.toLowerCase().includes(q)) {
 						seen.add(cp);
@@ -2266,20 +2294,7 @@ const app = createApp({
 			}
 			// 成功 → 改内存
 			if (useNameRoute) {
-				const cp = sc.cp;
-				const arr = ZH_NAMES.names;
-				let i = arr.findIndex(p => p[0] === cp);
-				if (i >= 0) {
-					arr[i][1] = newName;
-				} else {
-					let lo = 0, hi = arr.length;
-					while (lo < hi) {
-						const mid = (lo + hi) >> 1;
-						if (arr[mid][0] < cp) lo = mid + 1;
-						else hi = mid;
-					}
-					arr.splice(lo, 0, [cp, newName]);
-				}
+				ZH_NAMES.names[sc.cp] = newName;
 				sc.zhName = newName;
 			} else {
 				SYMBOL_MAP.clear();

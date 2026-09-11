@@ -615,27 +615,11 @@ def sym_upsert(entry):
 
 
 def zhname_set(cp, name):
-    """写 中文名.json：有显式条目改它，否则按升序插入（覆盖 pattern 范围）。保留原换行风格。"""
+    """写 中文名.json：names 是 {码点:名字} 映射，直接赋值。保留原换行风格。"""
     text = open(ZH_JSON, encoding='utf-8', newline='').read()
     nl = '\r\n' if '\r\n' in text else '\n'
     d = json.loads(text)
-    names = d['names']
-    lo, hi = 0, len(names) - 1
-    idx = None
-    while lo <= hi:
-        mid = (lo + hi) // 2
-        c = names[mid][0]
-        if c == cp:
-            idx = mid
-            break
-        if c < cp:
-            lo = mid + 1
-        else:
-            hi = mid - 1
-    if idx is not None:
-        names[idx][1] = name
-    else:
-        names.insert(lo, [cp, name])
+    d['names'][str(cp)] = name
     body = json.dumps(d, ensure_ascii=False, indent=2).replace('\n', nl)
     open(ZH_JSON, 'w', encoding='utf-8', newline='').write(body)
 

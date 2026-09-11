@@ -7,7 +7,7 @@
 - 参考资料/annotations-zh.json —— CLDR 官方 emoji 中文名
 - zh-*.json              —— 子代理翻译产物（符号/标点/数字/组合词表），结构 [[cp, "中文名"], ...]
 
-输出：中文名.json {_v, names:[[cp,zh]...]升序, patterns:[[lo,hi,prefix]...]}，
+输出：中文名.json {_v, names:{码点:中文名}, patterns:[[lo,hi,prefix]...]}，
 结构同 名字.json，页面用相同二分查询。幂等可重跑。
 
 覆盖分层（优先级从高到低）：
@@ -254,7 +254,7 @@ def main():
         print(f'  CLDR emoji: {cldr_n} 条')
 
     # 4. 输出 names + patterns
-    names_out = sorted(([cp, zh] for cp, zh in zh_map.items()), key=lambda x: x[0])
+    names_out = {str(cp): zh for cp, zh in sorted(zh_map.items())}
     patterns_out = [[lo, hi, prefix] for lo, hi, prefix in ALGORITHMIC]
 
     out = {
