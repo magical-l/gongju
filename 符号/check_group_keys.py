@@ -11,17 +11,16 @@
   因此某组键 K 对 cp 可达 ⇔ K 是"含 cp 的节点名"或"这些节点的祖先名"之一。
 
 用法： python 符号/check_group_keys.py
-  退出码 0 = 无问题；1 = 存在不可达组键（`编辑` 属兜底键，单列为提示）。
+  退出码 0 = 无问题；1 = 存在不可达组键。
 """
 import json
 import os
 import sys
-from collections import Counter, defaultdict
+from collections import defaultdict
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TAGS = os.path.join(HERE, '标签.json')
 SYMBOLS = os.path.join(HERE, '符号数据.js')
-FALLBACK_KEY = '编辑'   # 新建条目无可用标签名时的兜底容器键
 
 
 def collect_nodes(d, trail=()):
@@ -35,24 +34,55 @@ def collect_nodes(d, trail=()):
     return out
 
 
+def seq_cps(s):
+    """seqs 条目 → 纯码位数组（尾部 zh/en 字符串剥掉，与 符号.js 的 seqCps 同构）。"""
+    end = len(s)
+    while end > 0 and isinstance(s[end - 1], str):
+        end -= 1
+    return s[:end]
+
+
+def norm_seq(cps):
+    """序列规范化：去掉 VS16/VS15（U+FE0F/U+FE0E）。与 符号.js 的 resolveSeq 口径一致。"""
+    return tuple(c for c in cps if c not in (0xFE0F, 0xFE0E))
+
+
 def main():
     tag = json.load(open(TAGS, encoding='utf-8'))
     nodes = []
     for rk, rv in tag['roots'].items():
         nodes.extend(collect_nodes(rv, (rk,)))
 
-    def reachable_names(cp):
-        """选中该字符时可能出现的 selectedTag.name 集合。"""
+    # 序列（ZWJ / 旗帜）归属：整串码位精确比对（容忍 VS 有无）→ 持有它的节点 trail 列表
+    seq_trails = defaultdict(list)
+
+    def collect_seqs(d, trail=()):
+        for k, v in (d.get('children') or {}).items():
+            for s in (v.get('seqs') or []):
+                seq_trails[norm_seq(seq_cps(s))].append(trail + (k,))
+            collect_seqs(v, trail + (k,))
+    for rk, rv in tag['roots'].items():
+        for s in (rv.get('seqs') or []):
+            seq_trails[norm_seq(seq_cps(s))].append((rk,))
+        collect_seqs(rv, (rk,))
+
+    def reachable_names(member):
+        """选中该成员时可能出现的 selectedTag.name 集合。
+        member 为 int（单码位）或码位元组（序列）。"""
         res = set()
-        for trail, node in nodes:
-            for a, b in node['ranges']:
-                if a <= cp <= b:
-                    res |= set(trail)      # 节点自身名 + 全部祖先名
-                    break
+        if isinstance(member, int):
+            for trail, node in nodes:
+                for a, b in node['ranges']:
+                    if a <= member <= b:
+                        res |= set(trail)      # 节点自身名 + 全部祖先名
+                        break
+        else:
+            for trail in seq_trails.get(norm_seq(member), []):
+                res |= set(trail)              # 持有该序列的节点名 + 全部祖先名
         return res
 
     bad = defaultdict(list)
-    fallback = Counter()
+
     total = 0
     for ln in open(SYMBOLS, encoding='utf-8'):
         s = ln.strip()
@@ -63,23 +93,16 @@ def main():
         except Exception:
             continue
         ch = o.get('char', '')
-        if len(ch) != 1:          # 多码位序列（ZWJ/旗帜）另论，此处不检查
+        if not ch:
             continue
         total += 1
-        ok = reachable_names(ord(ch))
+        ok = reachable_names(ord(ch) if len(ch) == 1 else tuple(map(ord, ch)))
         for k in (o.get('groups') or {}):
             if k in ok:
                 continue
-            if k == FALLBACK_KEY:
-                fallback[ch] += 1
-            else:
-                bad[k].append(ch)
+            bad[k].append(ch)
 
     print('检查条目 %d 条' % total)
-    if fallback:
-        print('\n[提示] 兜底键「%s」：%d 条（该字符无任何语义标签，语境名本就不适用，无需处理）'
-              % (FALLBACK_KEY, sum(fallback.values())))
-        print('      例：' + ' '.join(sorted(fallback)[:12]))
     if not bad:
         print('\n[OK] 无可达性问题：所有组键都能命中标签语境。')
         return 0

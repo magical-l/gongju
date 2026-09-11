@@ -16,8 +16,7 @@ let DUAL_SET = new Set(); // 双模（文本/表情两变体）码位集合：mo
 const CAP = 100; // 网格每页字符数
 const PREVIEW_N = 30; // 概览视图每段预览字符数（网格 10 列 × 3 行）
 const AXIS_ORDER = ['文字系统', '官方分类', '区块']; // 三大机械轴，树末尾固定顺序
-const SEQ_INDEX = new Map(); // 'cp1-cp2' → { zh, en }：旗序列（双码位）名映射，flatten 时构建
-let SEQ_ALIASES = new Map(); // 去肤色基础键 → { aliases[], intro:'' }：序列 legacy 别名层（只读默认，源 序列别名.json 为别名数组，加载时 normalize）；登记过 SYMBOLS 富化别名的序列不再用它
+const SEQ_INDEX = new Map(); // 'cp1-cp2' → { zh, en }：序列（双码位及以上）名映射，flatten 时从名字层构建
 
 /** 区间列表含字符总数 */
 function rangeCount(ranges) {
@@ -83,16 +82,11 @@ function collectNodeMembers(node) {
 	return { ranges: mergeRanges(ranges), seqs };
 }
 
-/** 从 seqs 条目剥离尾部 zh/en 字符串 → 纯码位数组（旗帜 [cp1,cp2,zh,en] 与 ZWJ [cp1..cpN,zh,en] 同构） */
+/** seqs 条目 → 纯码位数组（正常情况就是纯码位数组；容错历史数据里残留的尾部 zh/en 字符串，一并剥离） */
 function seqCps(s) {
 	let end = s.length;
 	while (end > 0 && typeof s[end - 1] === 'string') end--;
 	return s.slice(0, end);
-}
-/** seqs 条目 → {zh, en}（末尾字符串；纯码位条目返回空串） */
-function seqMeta(s) {
-	const cps = seqCps(s);
-	return { zh: s[cps.length] || '', en: s[cps.length + 1] || '' };
 }
 /** 码位数组 → 已收录序列的规范码位（容忍 VS16/VS15（FE0F/FE0E）有无；找不到返回 null） */
 function resolveSeq(cps) {
@@ -119,18 +113,17 @@ function variantGroupKey(cps) {
 	return cps.filter(c => !SKIN_CPS.has(c)).join('-');
 }
 
-/** 序列富化元数据：SYMBOL_MAP(char=整串，人工登记)优先 → SEQ_INDEX(标签 seqs 默认名)兜底 → SEQ_ALIASES(旧别名)；
+/** 序列富化元数据：SYMBOL_MAP(char=整串，人工登记)优先 → SEQ_INDEX(名字层默认名)兜底；
  *  与单码点 zhNameOf 同构——富化层优先、默认层兜底。未登记序列返回纯默认。 */
 function seqSymbolMeta(cps) {
 	const char = String.fromCodePoint(...cps);
 	const rich = SYMBOL_MAP.get(char);
 	const def = SEQ_INDEX.get(cps.join('-')) || {};
-	const legacy = SEQ_ALIASES.get(variantGroupKey(cps)) || {};
 	return {
 		char,
 		zhName: (rich && rich.globalName) || def.zh || '',
 		officialName: def.en || '',
-		aliases: (rich && rich.aliases.length) ? rich.aliases : (legacy.aliases || []),
+		aliases: (rich && rich.aliases) ? rich.aliases : [],
 		intro: (rich && rich.intro) || ''
 	};
 }
@@ -218,17 +211,11 @@ function unnamedKind(cp) {
 	return 'unassigned';
 }
 
-/** 码位 → 官方英文名：先二分查 names（严格升序），未命中扫 patterns；数据层无名的码点按分类给标签名兜底 */
+/** 码位 → 官方英文名：查 names 映射（键为十进制码点字符串），未命中扫 patterns；数据层无名的码点按分类给标签名兜底 */
 function nameOf(cp) {
 	if (NAMES) {
-		let lo = 0, hi = NAMES.names.length - 1;
-		while (lo <= hi) {
-			const mid = (lo + hi) >> 1;
-			const c = NAMES.names[mid][0];
-			if (c === cp) return NAMES.names[mid][1];
-			if (c < cp) lo = mid + 1;
-			else hi = mid - 1;
-		}
+		const hit = NAMES.names[cp];
+		if (hit !== undefined) return hit;
 		for (const [a, b, prefix] of NAMES.patterns) {
 			if (cp >= a && cp <= b) return prefix + cp.toString(16).toUpperCase();
 		}
@@ -309,7 +296,13 @@ function flatten(name, node, path) {
 		if (!NAME_PATHS.has(name)) NAME_PATHS.set(name, []);
 		NAME_PATHS.get(name).push(path);
 	}
-	if (node.seqs) for (const s of node.seqs) SEQ_INDEX.set(seqCps(s).join('-'), seqMeta(s));
+	if (node.seqs) for (const s of node.seqs) {
+		const key = seqCps(s).join('-');
+		SEQ_INDEX.set(key, {
+			zh: (ZH_NAMES && ZH_NAMES.names[key]) || '',
+			en: (NAMES && NAMES.names[key]) || ''
+		});
+	}
 	if (node.children) for (const [k, v] of Object.entries(node.children)) flatten(k, v, path + '/' + k);
 }
 
@@ -324,6 +317,11 @@ function buildSymbolMap() {
 		if (SYMBOL_MAP.has(s.char)) continue;
 		const names = [], aliases = [];
 		const seen = new Set();
+		// 条目级 name/alias 先收（无任何标签的字符直接写在条目上），排在拼接结果最前
+		if (s.name && !seen.has('n:' + s.name)) { seen.add('n:' + s.name); names.push(s.name); }
+		for (const a of (s.alias || [])) {
+			if (!seen.has('a:' + a)) { seen.add('a:' + a); aliases.push(a); }
+		}
 		for (const g of Object.values(s.groups || {})) {
 			if (g.name && !seen.has('n:' + g.name)) { seen.add('n:' + g.name); names.push(g.name); }
 			for (const a of (g.alias || [])) {
@@ -1263,6 +1261,8 @@ const app = createApp({
 			const tag = this.ctxTagName();
 			if (Array.isArray(cp) || !tag || !meta.byKey) return meta.aliases;
 			const key = this.ctxGroupKey(cp);
+			// 有语境但条目一个组都没有（条目级字段字符）→ 走聚合别名（含条目级别名）
+			if (!key && !Object.keys(meta.byKey).length) return meta.aliases;
 			const cur = key ? meta.byKey[key] : null;
 			const out = [];
 			const seen = new Set();
@@ -1285,7 +1285,7 @@ const app = createApp({
 			if (!meta) return [];
 			const tag = this.ctxTagName();
 			if (tag && meta.byKey && meta.byKey[tag]) return (meta.byKey[tag].alias || []).slice();
-			if (tag) return [];
+			if (tag && meta.byKey && Object.keys(meta.byKey).length) return [];
 			return (meta.aliases || []).slice();
 		},
 		/** 字符格标题：语境名优先，英文名兜底；控制码前置标识 */
@@ -1365,7 +1365,8 @@ const app = createApp({
 				if ([...char].length > 1) continue; // 序列(多码)由下方 seqs 通道统一匹配，避免按单码错分
 				const hit = meta.names.some(n => n.toLowerCase().includes(q))
 					|| nameOf(char.codePointAt(0)).toLowerCase().includes(q)
-					|| meta.aliases.some(a => a.toLowerCase().includes(q));
+					|| meta.aliases.some(a => a.toLowerCase().includes(q))
+					|| meta.intro.toLowerCase().includes(q);
 				if (!hit) continue;
 				const cp = char.codePointAt(0);
 				if (seen.has(cp)) continue;
@@ -1374,6 +1375,7 @@ const app = createApp({
 			}
 			if (ZH_NAMES) {
 				for (const [k, zh] of Object.entries(ZH_NAMES.names)) {
+					if (k.includes('-')) continue; // 序列键（连字符码位串）由下方 seqs 通道处理
 					const cp = +k;
 					if (seen.has(cp)) continue;
 					if (zh.toLowerCase().includes(q)) {
@@ -2233,24 +2235,31 @@ const app = createApp({
 				entry = SYMBOLS.find(s => s.char === sc.char);
 				snapshot = entry ? JSON.parse(JSON.stringify(entry)) : null;
 				if (entry) {
-					// 无语境时 name 与 alias 统一落同一组：targetGroup = 第一个有 name 的组 || 第一个组（都没有则新建「编辑」）
+					// 无语境时 name 与 alias 统一落同一组：targetGroup = 第一个有 name 的组 || 第一个组
+					// 一个组都没有（无标签字符）→ 直接写条目级 name/alias，不新建任何组
 					if (nameChanged || aliasChanged) {
-						let targetGroup, gk;
+						let targetGroup = null, gk = null;
 						if (tagCtx) {
 							gk = tagCtx;
+							entry.groups = entry.groups || {};
 							targetGroup = entry.groups[tagCtx] || (entry.groups[tagCtx] = {});
 						} else {
-							targetGroup = Object.values(entry.groups).find(g => g && g.name) || Object.values(entry.groups)[0];
-							if (!targetGroup) targetGroup = entry.groups['编辑'] = {};
-							gk = Object.keys(entry.groups).find(k => entry.groups[k] === targetGroup);
+							targetGroup = Object.values(entry.groups || {}).find(g => g && g.name) || Object.values(entry.groups || {})[0] || null;
+							if (targetGroup) gk = Object.keys(entry.groups).find(k => entry.groups[k] === targetGroup);
 						}
-						// 改名：写语境组（无则新建键，追加保序）或无语境的 targetGroup
-						if (nameChanged) targetGroup.name = newName;
-						// 改别名：写该组 alias；组对象清空则删掉整个组键，避免残留 `"标签名":{}`
-						if (aliasChanged) {
-							if (aliases.length) targetGroup.alias = aliases;
-							else delete targetGroup.alias;
-							if (!Object.keys(targetGroup).length && gk) delete entry.groups[gk];
+						if (targetGroup) {
+							// 改名：写语境组（无则新建键，追加保序）或无语境的 targetGroup
+							if (nameChanged) targetGroup.name = newName;
+							// 改别名：写该组 alias；组对象清空则删掉整个组键，避免残留 `"标签名":{}`
+							if (aliasChanged) {
+								if (aliases.length) targetGroup.alias = aliases;
+								else delete targetGroup.alias;
+								if (!Object.keys(targetGroup).length && gk) delete entry.groups[gk];
+							}
+						} else {
+							// 无任何组 → 条目级字段（空则删，不残留空值）
+							if (nameChanged) { if (newName) entry.name = newName; else delete entry.name; }
+							if (aliasChanged) { if (aliases.length) entry.alias = aliases; else delete entry.alias; }
 						}
 					}
 					if (introChanged) {
@@ -2258,18 +2267,24 @@ const app = createApp({
 						else delete entry.intro;
 					}
 				} else {
-					// 新建最小条目：有语境优先用当前标签名（组键=标签名）；无语境取字符第一个非机械轴标签名，
-					// 全被跳过（或没有标签）时用「编辑」
+					// 新建最小条目：有语境优先用当前标签名（组键=标签名）；无语境取字符第一个非机械轴标签名。
+					// 没有可用标签时不建 groups，name/alias 直接写条目级。
 					const SKIP_KEY_ROOTS = ['文字系统', '官方分类', '区块', 'emoji（绘文字）'];
 					let groupKey = tagCtx;
 					if (!groupKey) {
 						const pickTag = (sc.tags || []).find(t => !SKIP_KEY_ROOTS.includes(((t.paths && t.paths[0]) || '').split('/')[0]));
-						groupKey = (pickTag && pickTag.name) || '编辑';
+						groupKey = pickTag && pickTag.name;
 					}
-					const gg = {};
-					if (nameChanged) gg.name = newName;
-					if (aliasChanged && aliases.length) gg.alias = aliases;
-					entry = { char: sc.char, groups: { [groupKey]: gg } };
+					entry = { char: sc.char };
+					if (groupKey) {
+						const gg = {};
+						if (nameChanged) gg.name = newName;
+						if (aliasChanged && aliases.length) gg.alias = aliases;
+						entry.groups = { [groupKey]: gg };
+					} else {
+						if (nameChanged && newName) entry.name = newName;
+						if (aliasChanged && aliases.length) entry.alias = aliases;
+					}
 					if (introChanged && intro) entry.intro = intro;
 					SYMBOLS.push(entry);
 				}
@@ -2321,9 +2336,12 @@ const app = createApp({
 			const f = flags || {};
 			// 组键：语境存在且源条目含该组键 → 用语境组键，否则沿用首个组键
 			const tagCtx = this.ctxTagName();
-			const gk = (tagCtx && entry.groups[tagCtx]) ? tagCtx : Object.keys(entry.groups)[0];
+			const gk = (tagCtx && (entry.groups || {})[tagCtx]) ? tagCtx : Object.keys(entry.groups || {})[0];
 			const gVal = gk ? entry.groups[gk] : null;
-			const alias = gVal && Array.isArray(gVal.alias) ? [...gVal.alias] : null; // null=清
+			// 源条目无组（条目级字段）时，别名从条目级取
+			const alias = gk
+				? (gVal && Array.isArray(gVal.alias) ? [...gVal.alias] : null)
+				: (Array.isArray(entry.alias) ? [...entry.alias] : null); // null=清
 			const intro = entry.intro !== undefined ? entry.intro : null;             // null=清
 			if (!f.nameChanged && !f.aliasChanged && !f.introChanged) return;
 			try {
@@ -2338,16 +2356,21 @@ const app = createApp({
 					// 兄弟未登记且本次对它无实际内容可写(清空无意义)→跳过，不制造空元素
 					if (!se && !nameApply && !(aliasApply && alias) && !(introApply && intro)) continue;
 					const snap = se ? JSON.parse(JSON.stringify(se)) : null;
-					if (!se) { se = { char: sibChar, groups: {} }; SYMBOLS.push(se); }
+					if (!se) { se = { char: sibChar }; SYMBOLS.push(se); }
 					if (gk) {
+						se.groups = se.groups || {};
 						const sg = se.groups[gk] || (se.groups[gk] = {});
 						if (nameApply) sg.name = f.newName;
 						if (aliasApply) { if (alias) sg.alias = [...alias]; else delete sg.alias; }
 						if (!Object.keys(sg).length) delete se.groups[gk];
+					} else {
+						// 源条目只有条目级字段 → 同步到兄弟条目级
+						if (nameApply) { if (f.newName) se.name = f.newName; else delete se.name; }
+						if (aliasApply) { if (alias) se.alias = [...alias]; else delete se.alias; }
 					}
 					if (introApply) { if (intro) se.intro = intro; else delete se.intro; }
-					// 建了空元素(没实际落到任何字段)→回滚移除
-					if (!se.groups || !Object.keys(se.groups).length && !se.intro && !snap) {
+					// 建了空元素(没实际落到任何字段)→回滚移除（条目级 name/alias 也算有内容）
+					if (!(se.groups && Object.keys(se.groups).length) && !se.name && !se.alias && !se.intro && !snap) {
 						SYMBOLS.splice(SYMBOLS.indexOf(se), 1);
 						continue;
 					}
@@ -2564,11 +2587,6 @@ const app = createApp({
 			// 默认标签：整个标签树展示序的第一个元素（语义轴在前，当前为「人」）
 			const firstRoot = this.treeRoots[0];
 			if (firstRoot) this.selectTag({ name: firstRoot[0], node: firstRoot[1], path: firstRoot[0] });
-			// 序列组元数据（异步加载，失败静默；详情/搜索按需查 SEQ_ALIASES）
-			//   normalize：兼容旧 schema（string[]）与新 schema（{ aliases:[], intro:'' }），旧数组按空简介包成对象
-			fetch('序列别名.json').then(r => r.json()).then(d => {
-				SEQ_ALIASES = new Map(Object.entries(d).map(([k, v]) => [k, Array.isArray(v) ? { aliases: v, intro: '' } : { aliases: v.aliases || [], intro: v.intro || '' }]));
-			}).catch(() => {});
 		} catch (err) {
 			console.error('标签数据加载失败', err);
 			ElementPlus.ElMessage.error('标签数据加载失败：' + err);

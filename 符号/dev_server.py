@@ -41,19 +41,22 @@ import json
 import os
 import re
 import socket
+import sys
 import threading
 import traceback
 import urllib.parse
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+from datatool import dump_tags   # 标签.json 的唯一写法：ranges/seqs 一行一条
 PROJECT_ROOT = os.path.dirname(HERE)  # 项目根
 TAGS_JSON = os.path.join(HERE, '标签.json')
 ZH_JSON = os.path.join(HERE, '中文名.json')
 SYMBOL_JS = os.path.join(HERE, '符号数据.js')
 
 # 页面 fetch 的这些文件加 no-cache，改完刷新即新（符号.html 也禁缓存——否则浏览器缓存旧 ?v= 链接导致一直加载旧 JS）
-NO_CACHE_FILES = ('标签.json', '中文名.json', '名字.json', '符号数据.js', 'noto-cmap.json', '符号.html', '序列别名.json')
+NO_CACHE_FILES = ('标签.json', '中文名.json', '名字.json', '符号数据.js', 'noto-cmap.json', '符号.html')
 
 # 单写锁：读-改-写串行化（ThreadingHTTPServer 下防并发写坏文件）
 LOCK = threading.Lock()
@@ -87,7 +90,7 @@ def load_tags():
 
 
 def save_tags(data):
-    body = json.dumps(data, ensure_ascii=False, indent=2).replace('\n', _JSON_NL)
+    body = dump_tags(data).replace('\n', _JSON_NL)
     open(TAGS_JSON, 'w', encoding='utf-8', newline='').write(body)
 
 
@@ -118,17 +121,14 @@ def _add_member(node, member):
     或数组的数组（[[cps],...] 旧协议成员列表）。数组的数组逐个递归处理。"""
     if isinstance(member, dict):
         cps = norm_cps(member['cps'])
-        zh = member.get('zh', '')
-        en = member.get('en', '')
     elif isinstance(member, list) and len(member) > 0 and isinstance(member[0], list):
         for sub in member:
             _add_member(node, sub)
         return
     else:
         cps = norm_cps(member)
-        zh = en = ''
     if len(cps) > 1:
-        seqs_add(node, cps, zh, en)
+        seqs_add(node, cps)
     else:
         ranges_add(node, cps[0])
 
@@ -189,7 +189,11 @@ def ranges_remove(node, cp):
 
 
 def seq_cps(s):
-    """seqs 条目 → 纯码位数组（剥离末尾 zh/en 字符串）。旗帜 [a,b,zh,en] 与 ZWJ [a..n,zh,en] 同构。"""
+    """seqs 条目 → 纯码位数组。
+
+    seqs 条目现在**只存码位**（序列名在名字层：中文名.json / 名字.json，键为连字符码位串）。
+    仍剥离末尾字符串，只为容忍历史数据，不做依赖。
+    """
     i = len(s)
     while i > 0 and isinstance(s[i - 1], str):
         i -= 1
@@ -200,10 +204,11 @@ def seqs_contains(seqs, cps):
     return any(seq_cps(s) == cps for s in seqs)
 
 
-def seqs_add(node, cps, zh='', en=''):
+def seqs_add(node, cps):
+    """只写码位 —— 序列名归名字层，不在这里存"""
     if seqs_contains(node.get('seqs', []), cps):
         return False
-    node.setdefault('seqs', []).append(list(cps) + [zh, en])
+    node.setdefault('seqs', []).append(list(cps))
     # 防御性排序：仅取首元素为 int 的条目 key，坏数据（dict/list 首元素）用 0 兜底，避免比较崩溃
     node['seqs'].sort(key=lambda s: (s[0], s[1]) if isinstance(s, list) and len(s) > 1 and isinstance(s[0], int) and isinstance(s[1], int) else (0, 0))
     return True

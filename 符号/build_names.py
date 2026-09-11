@@ -110,25 +110,25 @@ def main():
 				by_key[prefix] = [by_key[prefix], int(parts[0], 16)]
 	patterns = [[lo, hi, prefix] for prefix, (lo, hi) in sorted(by_key.items())]
 
-	names_list = sorted(names.items())
+	# names 是 {键: 名} 映射，键为十进制码点字符串；与 中文名.json 同构。
+	# 已有的「序列键」（含 '-'，由 build_zwj.py 写入 emoji-test 序列名）原样保留，本脚本不碰。
+	names_out = {str(cp): name for cp, name in sorted(names.items())}
+	if os.path.exists(OUT):
+		try:
+			old = json.load(open(OUT, encoding='utf-8'))['names']
+			if isinstance(old, dict):
+				for k, v in old.items():
+					if '-' in k:
+						names_out[k] = v
+		except Exception:
+			pass
 
-	data = {'_v': '17.0.0', 'names': names_list, 'patterns': patterns}
+	data = {'_v': '17.0.0', 'names': names_out, 'patterns': patterns}
 	with open(OUT, 'w', encoding='utf-8', newline='\n') as f:
-		f.write('{\n')
-		f.write('  "_v": "%s",\n' % data['_v'])
-		f.write('  "names": [\n')
-		for i, (cp, name) in enumerate(data['names']):
-			f.write('%s[%d, %s]%s\n' % (
-				'  ',
-				cp,
-				json.dumps(name),
-				',' if i < len(data['names']) - 1 else ''))
-		f.write('  ],\n')
-		f.write('  "patterns": %s\n' % json.dumps(patterns))
-		f.write('}\n')
+		f.write(json.dumps(data, ensure_ascii=False, indent=2) + '\n')
 
 	print('写入 %s' % OUT)
-	print('显式名条目: %d' % len(names_list))
+	print('显式名条目: %d' % len(names_out))
 	print('范围模式: %d' % len(patterns))
 	bytes_size = os.path.getsize(OUT)
 	print('文件大小: %.1f KB' % (bytes_size / 1024))

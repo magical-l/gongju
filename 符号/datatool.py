@@ -58,8 +58,13 @@ def load_symbols():
     return out
 
 
+_CTRL = re.compile(r'[\x7f-\x9f]')   # DEL + C1：json.dumps 不转义，必须自己转，否则裸控制字符进源码
+
+
 def _entry_line(o):
-    return '\t' + json.dumps(o, ensure_ascii=False, separators=(',', ':')) + ','
+    s = json.dumps(o, ensure_ascii=False, separators=(',', ':'))
+    s = _CTRL.sub(lambda m: '\\u%04x' % ord(m.group(0)), s)
+    return '\t' + s + ','
 
 
 def _normalize(lines):
@@ -143,8 +148,33 @@ def load_tags():
     return json.load(open(TAGS, encoding='utf-8'))
 
 
+def dump_tags(d):
+    """标签.json 的紧凑写法：ranges/seqs 这种「列表的列表」**一行一条**，其余按 indent=2。
+
+    不这么写的话，`indent=2` 会把 [128104, 8205, 9877] 拆成 6 行 —— 十万行里八成是数字行和括号行。
+    """
+    def enc(v, ind):
+        pad = '  ' * ind
+        if isinstance(v, dict):
+            if not v:
+                return '{}'
+            items = ['%s  %s: %s' % (pad, json.dumps(k, ensure_ascii=False), enc(x, ind + 1))
+                     for k, x in v.items()]
+            return '{\n' + ',\n'.join(items) + '\n' + pad + '}'
+        if isinstance(v, list):
+            if not v:
+                return '[]'
+            if all(isinstance(x, list) for x in v):        # ranges / seqs
+                items = ['%s  %s' % (pad, json.dumps(x, ensure_ascii=False, separators=(',', ':')))
+                         for x in v]
+                return '[\n' + ',\n'.join(items) + '\n' + pad + ']'
+            return json.dumps(v, ensure_ascii=False, separators=(', ', ': '))
+        return json.dumps(v, ensure_ascii=False)
+    return enc(d, 0) + '\n'
+
+
 def save_tags(d):
-    _write(TAGS, json.dumps(d, ensure_ascii=False, indent=2))
+    _write(TAGS, dump_tags(d))
 
 
 def walk_tags(d, trail=()):
@@ -201,7 +231,12 @@ def check_all(verbose=True):
         if n > 1:
             bad.append('char 重复：%r × %d' % (c, n))
 
-    # ④ 组里空名字 / 顿号异常
+    # ④ 空壳条目（只剩 char，什么内容都没有）——历史上名字被删重复后留下的残骸
+    for o in load_symbols():
+        if not (set(o) - {'char'}):
+            bad.append('%s 是空壳条目：除 char 外没有任何字段' % o['char'])
+
+    # ④b 组里空名字 / 顿号异常
     for o in load_symbols():
         for k, v in (o.get('groups') or {}).items():
             nm = v.get('name')
@@ -210,13 +245,15 @@ def check_all(verbose=True):
             if nm and (nm.startswith('、') or nm.endswith('、') or '、、' in nm):
                 bad.append('%s 的组 %r 名字顿号异常：%r' % (o['char'], k, nm))
 
-    # ⑤ 中文名.json 可解析 + 键都是数字
-    try:
-        d = load_zh()
-        for k in d['names']:
-            int(k)
-    except Exception as e:
-        bad.append('中文名.json：%s' % e)
+    # ⑤ 名字层两个文件：可解析，且键都是「十进制码点」或「连字符码位串」
+    for fname, path in (('中文名.json', ZH), ('名字.json', os.path.join(HERE, '名字.json'))):
+        try:
+            d = json.load(open(path, encoding='utf-8'))
+            for k in d['names']:
+                for part in k.split('-'):
+                    int(part)
+        except Exception as e:
+            bad.append('%s：%s' % (fname, e))
 
     # ⑥ 标签.json 可解析
     try:

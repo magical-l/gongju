@@ -3,12 +3,16 @@
 """从 emoji-test.txt 生成 ZWJ 序列数据并注入 标签.json（build_zwj.py，一次性脚本，跑完可删或保留）。
 
 ZWJ 序列（含 U+200D，3+ 码位）塞不进单码位 ranges，节点用 seqs（同旗帜机制）:
-  seqs: [[cp1, ..., cpN, zh, en], ...]  码位在前 + 中英文名
+  seqs: [[cp1, ..., cpN], ...]  **只存码位（归属）**
+
+序列名**不进 标签.json**，写在名字层（键 = 连字符码位串 "128104-8205-9877-65039"）：
+  中文名 → 中文名.json   英文 → 名字.json
+  本脚本**独占这些键**，直接覆盖（页面改序列名走符号条目，从不写名字层）。
 
 中文名：
   基础序列（无肤色）→ CLDR zh 注解优先（剥 VS16 匹配），未命中程序化兜底（家庭/发型/爱情/面向右）
   肤色变体 → 肤色词 + 基础名（用户裁定：肤色前置、词简化）
-归属：按 emoji-test 英文名规则映射到语义标签（肤色变体与基础同节点）
+归属：按 emoji-test 英文名规则映射到语义标签（肤色变体与基础节点同挂）
 """
 import json
 import os
@@ -19,6 +23,7 @@ EMOJI_TEST = os.path.join(BASE, '参考资料', 'emoji-test.txt')
 ANNOTATIONS = os.path.join(BASE, '参考资料', 'annotations-zh.json')
 TAG_FILE = os.path.join(BASE, '标签.json')
 ZH_FILE = os.path.join(BASE, '中文名.json')
+NM_FILE = os.path.join(BASE, '名字.json')
 
 # 肤色词（用户裁定简化版；拼接肤色在前）
 SKIN_ZH = {0x1F3FB: '浅肤色', 0x1F3FC: '中浅肤色', 0x1F3FD: '中肤色', 0x1F3FE: '中深肤色', 0x1F3FF: '深肤色'}
@@ -324,14 +329,34 @@ def seq_cps(s):
     return s[:i]
 
 
-def zhname_set(cp, name):
-    """写 中文名.json 显式条目（names 是 {码点:名字} 映射，直接赋值）。保留原换行风格。"""
-    text = open(ZH_FILE, encoding='utf-8', newline='').read()
-    nl = '\r\n' if '\r\n' in text else '\n'
-    d = json.loads(text)
-    d['names'][str(cp)] = name
-    body = json.dumps(d, ensure_ascii=False, indent=2).replace('\n', nl)
-    open(ZH_FILE, 'w', encoding='utf-8', newline='').write(body)
+def seqs_contains(seqs, cps):
+    return any(seq_cps(s) == cps for s in seqs)
+
+
+def _sortkey(k):
+    """码点键按数值升序在前，序列键（'-'）在后"""
+    return ('-' in k, int(k) if '-' not in k else 0, k)
+
+
+def write_name_layer(zh_pairs, en_pairs):
+    """把序列名/单码点名写入名字层。
+
+    ⚠️ 这些键由本脚本**独占**，直接覆盖：页面编辑序列名走的是符号条目（语境名/别名），
+       从不写名字层，所以这里覆盖不会冲突人工改动。
+    zh_pairs / en_pairs：{键: 名}，键为十进制码点或连字符码位串。
+    """
+    for path, pairs in ((ZH_FILE, zh_pairs), (NM_FILE, en_pairs)):
+        if not pairs:
+            continue
+        text = open(path, encoding='utf-8', newline='').read()
+        nl = '\r\n' if '\r\n' in text else '\n'
+        d = json.loads(text)
+        for k, v in pairs.items():
+            if v:
+                d['names'][k] = v
+        d['names'] = dict(sorted(d['names'].items(), key=lambda kv: _sortkey(kv[0])))
+        body = json.dumps(d, ensure_ascii=False, indent=2).replace('\n', nl)
+        open(path, 'w', encoding='utf-8', newline='').write(body)
 
 
 def main():
@@ -348,6 +373,7 @@ def main():
     missing_zh = []
     unclassified = []
     no_node = []
+    seq_zh, seq_en = {}, {}          # 序列名 → 名字层（seqs 只留码位）
     for cps, en in seqs:
         en = en_clean(en)
         zh = zh_of(cps, en, cldr)
@@ -357,19 +383,20 @@ def main():
         if not paths:
             unclassified.append(en)
             continue
+        key = '-'.join(map(str, cps))
+        if zh:
+            seq_zh[key] = zh
+        if en:
+            seq_en[key] = en
         for path in paths:
             node = get_node(roots, path)
             if node is None:
                 no_node.append(path)
                 continue
             node.setdefault('seqs', [])
-            entry = cps + [zh, en]
-            idx = next((i for i, s in enumerate(node['seqs']) if seq_cps(s) == cps), None)
-            if idx is None:
-                node['seqs'].append(entry)
+            if not seqs_contains(node['seqs'], cps):
+                node['seqs'].append(list(cps))
                 added[path] = added.get(path, 0) + 1
-            else:
-                node['seqs'][idx] = entry  # 重跑幂等：同码位更新名字
 
     for path in added:
         node = get_node(roots, path)
@@ -397,13 +424,9 @@ def main():
         for sk in set(skins):  # 双肤色（握手）多挂
             node = skin_root[SKIN_SUB[sk]]
             node.setdefault('seqs', [])
-            entry = cps + [zh, en]
-            idx = next((i for i, s in enumerate(node['seqs']) if seq_cps(s) == cps), None)
-            if idx is None:
-                node['seqs'].append(entry)
+            if not seqs_contains(node['seqs'], cps):
+                node['seqs'].append(list(cps))
                 skin_added[SKIN_SUB[sk]] = skin_added.get(SKIN_SUB[sk], 0) + 1
-            else:
-                node['seqs'][idx] = entry
     for node in skin_root.values():
         node['seqs'].sort(key=lambda s: tuple(s[:2]))
     # 修饰符单码位（🏻🏼🏽🏾🏿）挂对应肤色节点 ranges + 中文名.json 显式条目
@@ -413,24 +436,22 @@ def main():
         if not any(lo <= cp <= hi for lo, hi in ranges):
             ranges.append([cp, cp])
             ranges.sort()
-        zhname_set(cp, name)
+        seq_zh[str(cp)] = name
 
     # ===== emoji 标签挂载（ZWJ 序列是 emoji）=====
     emojinode = roots['emoji（绘文字）']
     emojinode.setdefault('seqs', [])
     emoji_added = 0
     for cps, en in seqs:
-        en = en_clean(en)
-        zh = zh_of(cps, en, cldr)
-        entry = cps + [zh, en]
-        idx = next((i for i, s in enumerate(emojinode['seqs']) if seq_cps(s) == cps), None)
-        if idx is None:
-            emojinode['seqs'].append(entry)
+        if not seqs_contains(emojinode['seqs'], cps):
+            emojinode['seqs'].append(list(cps))
             emoji_added += 1
-        else:
-            emojinode['seqs'][idx] = entry
     emojinode['seqs'].sort(key=lambda s: tuple(s[:2]))
     print(f'emoji（绘文字）挂载: 共 {len(emojinode["seqs"])} 条 ZWJ 序列')
+
+    # ===== 序列名写入名字层（seqs 只留归属，名字不进 标签.json）=====
+    write_name_layer(seq_zh, seq_en)
+    print(f'名字层写入序列名: 中文 {len(seq_zh)} 条 / 英文 {len(seq_en)} 条')
 
     body = json.dumps(data, ensure_ascii=False, indent=2).replace('\n', nl)
     open(TAG_FILE, 'w', encoding='utf-8', newline='').write(body)

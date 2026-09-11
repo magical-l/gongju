@@ -1,20 +1,26 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""build_zhnames.py — 生成 中文名.json（码位 → 中文名）
+"""build_zhnames.py — 给 中文名.json（成员 → 中文名）**补空缺**
+
+⚠️ 语义是 **merge，不是重算**：已有的键一律不动，只写没有的。
+   中文名.json 是权威，本脚本只负责"新码位自动补译"（Unicode 升级时用）。
+   历史上它是全量生成器，跑一次会抹掉后来所有人工改动（实测差过 8963 条），
+   故改为 merge。真要全量重算，得先把现有文件挪走。
 
 数据源（全部在 符号/ 下）：
 - 名字.json              —— 英文名权威（读取字母类/韩文等做规则翻译）
 - 参考资料/annotations-zh.json —— CLDR 官方 emoji 中文名
-- zh-*.json              —— 子代理翻译产物（符号/标点/数字/组合词表），结构 [[cp, "中文名"], ...]
+- zh-*.json              —— 翻译词表，结构 [[cp, "中文名"], ...]（仅对"没有的键"生效）
 
-输出：中文名.json {_v, names:{码点:中文名}, patterns:[[lo,hi,prefix]...]}，
-结构同 名字.json，页面用相同二分查询。幂等可重跑。
+输出：中文名.json {_v, names:{键:中文名}, patterns:[[lo,hi,prefix]...]}
+  - 键为十进制码点字符串；含 '-' 的是序列键（由 build_zwj.py / 人工维护，本脚本不生成也不动）
+  - 与 名字.json 同构
 
-覆盖分层（优先级从高到低）：
-1. 翻译词表 zh-*.json（子代理人工翻译）
+补缺来源（优先级从高到低）：
+1. 翻译词表 zh-*.json
 2. 字母类规则翻译（SCRIPT_ZH 结构翻译）
-3. CLDR emoji 中文名（只补空缺，不覆盖已有）
-4. patterns 算法块：汉字 / 西夏文 / 谚文音节（页面按范围前缀生成）
+3. CLDR emoji 中文名
+4. patterns 算法块：汉字 / 西夏文 / 谚文音节（页面按范围前缀生成；本脚本整体重写该段）
 """
 
 import json
@@ -215,10 +221,14 @@ def _join(zh, tail):
 def main():
     names_en = json.load(open(os.path.join(HERE, '名字.json'), encoding='utf-8'))['names']
 
-    zh_map = {}  # cp → 中文名
+    zh_map = {}  # cp(int) → 中文名
 
     # 1. 字母类规则翻译（含韩文字母，跳过谚文音节交给 patterns）
-    for cp, en in names_en:
+    #    names 是 {键: 名} 映射；含 '-' 的序列键不归本脚本（由 build_zwj.py 写），跳过
+    for k, en in names_en.items():
+        if '-' in k:
+            continue
+        cp = int(k)
         if en.startswith(SKIP_PREFIXES):
             continue
         zh = letter_zh(en)
@@ -253,8 +263,30 @@ def main():
             cldr_n += 1
         print(f'  CLDR emoji: {cldr_n} 条')
 
-    # 4. 输出 names + patterns
-    names_out = {str(cp): zh for cp, zh in sorted(zh_map.items())}
+    # 4. 输出：以现有文件为权威，**只补没有的键**（merge，不重算）
+    #    已有的键一律不动 —— 含人工改过的名字、以及序列键（'-'，由 build_zwj.py 维护）
+    out_path = os.path.join(HERE, '中文名.json')
+    existing = {}
+    if os.path.exists(out_path):
+        try:
+            d = json.load(open(out_path, encoding='utf-8'))
+            if isinstance(d.get('names'), dict):
+                existing = d['names']
+        except Exception:
+            pass
+
+    names_out = dict(existing)
+    added = 0
+    for cp, zh in zh_map.items():
+        k = str(cp)
+        if k in names_out:
+            continue
+        names_out[k] = zh
+        added += 1
+    # 排序：码点键按数值升序在前，序列键在后
+    names_out = dict(sorted(names_out.items(), key=lambda kv: (
+        '-' in kv[0], int(kv[0]) if '-' not in kv[0] else 0, kv[0])))
+
     patterns_out = [[lo, hi, prefix] for lo, hi, prefix in ALGORITHMIC]
 
     out = {
@@ -262,10 +294,10 @@ def main():
         'names': names_out,
         'patterns': patterns_out,
     }
-    out_path = os.path.join(HERE, '中文名.json')
-    with open(out_path, 'w', encoding='utf-8') as f:
+    with open(out_path, 'w', encoding='utf-8', newline='\n') as f:
         json.dump(out, f, ensure_ascii=False, indent=2)
-    print(f'已生成 中文名.json: {len(names_out)} 条显式 + {len(patterns_out)} 个范围模式')
+    print(f'中文名.json: 已有 {len(existing)} 条保持不变，新补 {added} 条 '
+          f'→ 共 {len(names_out)} 条 + {len(patterns_out)} 个范围模式')
 
 
 if __name__ == '__main__':
