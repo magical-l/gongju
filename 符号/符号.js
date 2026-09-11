@@ -306,6 +306,11 @@ function flatten(name, node, path) {
 	if (node.children) for (const [k, v] of Object.entries(node.children)) flatten(k, v, path + '/' + k);
 }
 
+/** 组是否「有效」（有名字或非空别名）；空组 {} / {"alias":[]} 一律视为不存在 */
+function groupAlive(g) {
+	return !!g && !!(g.name || (g.alias && g.alias.length));
+}
+
 /** 全局名 = 各组语境名按组序去重拼接（拆语境名后全局名自动跟随，无需另存） */
 function joinGroupNames(names) {
 	return [...new Set(names.filter(Boolean))].join('、');
@@ -1234,7 +1239,7 @@ const app = createApp({
 			const prefix = sel.path + '/';
 			let best = '', depth = -1;
 			for (const k of Object.keys(bk)) {
-				if (!bk[k] || !bk[k].name) continue;
+				if (!groupAlive(bk[k]) || !bk[k].name) continue;
 				for (const p of (NAME_PATHS.get(k) || [])) {
 					if (p !== sel.path && !p.startsWith(prefix)) continue;
 					const d = p.split('/').length;
@@ -1242,7 +1247,7 @@ const app = createApp({
 				}
 			}
 			if (best) return best;
-			return bk[tag] ? tag : '';   // 兜底：键不在 FLAT（陈旧键等）时按名字精确命中
+			return (bk[tag] && bk[tag].name) ? tag : '';   // 兜底：键不在 FLAT（陈旧键等）时按名字精确命中，且该组必须有名字
 		},
 		/** 视图取名：有语境标签 → 该标签子树里最深组名；否则全局名；旗序列走序列元数据（不做语境取名） */
 		ctxZhName(cp) {
@@ -1284,8 +1289,8 @@ const app = createApp({
 			const meta = SYMBOL_MAP.get(String.fromCodePoint(cp));
 			if (!meta) return [];
 			const tag = this.ctxTagName();
-			if (tag && meta.byKey && meta.byKey[tag]) return (meta.byKey[tag].alias || []).slice();
-			if (tag && meta.byKey && Object.keys(meta.byKey).length) return [];
+			if (tag && meta.byKey && meta.byKey[tag] && groupAlive(meta.byKey[tag])) return (meta.byKey[tag].alias || []).slice();
+			if (tag && meta.byKey && Object.values(meta.byKey).some(groupAlive)) return [];
 			return (meta.aliases || []).slice();
 		},
 		/** 字符格标题：语境名优先，英文名兜底；控制码前置标识 */

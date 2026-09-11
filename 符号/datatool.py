@@ -236,7 +236,14 @@ def check_all(verbose=True):
         if not (set(o) - {'char'}):
             bad.append('%s 是空壳条目：除 char 外没有任何字段' % o['char'])
 
-    # ④b 组里空名字 / 顿号异常
+    # ④b 空组（既无 name 也无 alias）：v1.27.0 删重复组名时留下的组壳，
+    #      会让 ctxGroupKey 返回一个没有名字的键，导致该标签下显示回落到英文名
+    for o in load_symbols():
+        for k, v in (o.get('groups') or {}).items():
+            if not v or (not v.get('name') and not v.get('alias')):
+                bad.append('%s 的组 %r 是空组（既无 name 也无 alias）' % (o['char'], k))
+
+    # ④c 组里空名字 / 顿号异常
     for o in load_symbols():
         for k, v in (o.get('groups') or {}).items():
             nm = v.get('name')
