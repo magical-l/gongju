@@ -34,6 +34,12 @@ PHRASE 里的词」也算已处理（当初是为了不让 WITH 尾巴挡路）�
     契丹小字字符-18BEE 切成 BEE，这些伪词撞进词表就会误判/漏报。
     只剥「带前导连字符」或「自身含数字」的；纯字母串（DEAD / BCAD / AEDA
     这类真字母名、真转写）原样保留，免得把真词当码位删掉。
+  · 再切「小写→大写」边界（CAMEL）：中文名里贴着汉字的小写拉丁是**译法残留**，
+    不是没译的 token。源名 'CYRILLIC CAPITAL LETTER IOTIFIED E' 译成
+    「西里尔大写字母带iotaE」（IOTIFIED→带iota），Latin 串 'iotaE' 把残留 'iota'
+    和未译的 'E' 粘成一个 token 'IOTAE'，白报一条（iotaA / iotaYAT 同理）。
+    切完 'iota' 命中 KEEP、'E' 只有 1 个字母按编号规则忽略。
+    只切小写→大写，全大写的字母名/转写不受影响。
   · 大小写不敏感（词表一律大写）
 
 用法：
@@ -61,6 +67,13 @@ if '--top' in sys.argv:
 
 TOKEN = re.compile(r'[A-Za-z]{2,}')
 HEX_SUFFIX = re.compile(r'(?i)-?[0-9A-F]{4,}\b')
+# 小写→大写 = 拉丁串内部的分词边界。名字层里，贴着汉字的那段小写拉丁是**中文
+# 译法的残留**，不是没译的 token：源名 'CYRILLIC CAPITAL LETTER IOTIFIED E'
+# 译成「西里尔大写字母带iotaE」（IOTIFIED→带iota），Latin 串 'iotaE' 于是把
+# 译法残留 'iota' 和未译的 'E' 粘成了一个 token 'IOTAE'，白报一条。
+# 只切 小写→大写：语料里的混合大小写串只有 iotaE/iotaA/iotaYAT（全是这类粘接）
+# 和 'Co.'（方块Co.，大写→小写，不动）；全大写的字母名/转写一律不受影响。
+CAMEL = re.compile(r'(?<=[a-z])(?=[A-Z])')
 
 # KEEP 里「像英文常用词」的存疑名单用：高频英文词（虚词 + 短实词）。
 # 只用来**筛出**要人工过目的 KEEP 词，不参与 a/b 判定，也不改词表。
@@ -117,8 +130,8 @@ def strip_code_suffixes(name):
 
 
 def tokens_of(name):
-    """分词：剥码位后缀 → 取长度 ≥2 的拉丁串 → 全大写去重"""
-    return sorted({t.upper() for t in TOKEN.findall(strip_code_suffixes(name))})
+    """分词：剥码位后缀 → 切小写→大写边界 → 取长度 ≥2 的拉丁串 → 全大写去重"""
+    return sorted({t.upper() for t in TOKEN.findall(CAMEL.sub(' ', strip_code_suffixes(name)))})
 
 
 def main():
