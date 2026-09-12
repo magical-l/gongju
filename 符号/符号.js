@@ -4,15 +4,15 @@ const {
 } = Vue;
 
 // ===== 标签数据（全局）=====
-// TAGS：标签.json 四轴树（文字系统/官方分类/区块/语义）；NAMES：名字.json（码位→官方英文名）
+// TAGS：标签.js 四轴树（文字系统/官方分类/区块/语义）；NAMES：名字.js（码位→官方英文名）
 // FLAT：展平后的有成员标签列表 {name,node,path,count}；SYMBOL_MAP：char → {names,globalName,aliases,byKey,mode,intro}
 let TAGS = null;
 let NAMES = null;
-let ZH_NAMES = null; // 中文名.json（码位→中文名），空则回退英文名
+let ZH_NAMES = null; // 中文名.js（码位→中文名），空则回退英文名
 let FLAT = [];
 let NAME_PATHS = new Map(); // 节点名 → 路径数组（同名节点可在多处，如根「箭头」与区块「箭头」）
 const SYMBOL_MAP = new Map();
-let DUAL_SET = new Set(); // 双模（文本/表情两变体）码位集合：mounted 时从 标签.json 的 emoji（绘文字）> emoji-text双模 ranges 构建（权威集合，207 码位）
+let DUAL_SET = new Set(); // 双模（文本/表情两变体）码位集合：mounted 时从 标签.js 的 emoji（绘文字）> emoji-text双模 ranges 构建（权威集合，207 码位）
 const CAP = 100; // 网格每页字符数
 const PREVIEW_N = 30; // 概览视图每段预览字符数（网格 10 列 × 3 行）
 const AXIS_ORDER = ['文字系统', '官方分类', '区块']; // 三大机械轴，树末尾固定顺序
@@ -249,7 +249,7 @@ function parseCodePointQuery(q) {
 	return { cp };
 }
 
-/** 码位 → 数据层中文名：中文名.json 的 names 是 {码点: 名字} 映射，直接取键；未命中扫 patterns 前缀；仍无返回 null（供 zhNameOf/zhNameIn 复用） */
+/** 码位 → 数据层中文名：中文名.js 的 names 是 {码点: 名字} 映射，直接取键；未命中扫 patterns 前缀；仍无返回 null（供 zhNameOf/zhNameIn 复用） */
 function lookupZhName(cp) {
 	if (!ZH_NAMES) return null;
 	const n = ZH_NAMES.names[cp];
@@ -523,16 +523,18 @@ const FALLBACK_SYMBOL_FONTS = [
 	'Lucida Sans Unicode',
 ];
 
-/** 构建渲染栈：系统默认优先（sans-serif 触发系统回退链）+ families 居中 + 内嵌 Noto 兜底 */
+/** 构建渲染栈：具体字体打头（泛型 sans-serif 会触发系统回退链，把 emoji 截胡给 Noto Sans SC 等文字字体）
+ *  + families 居中 + 内嵌 Noto 兜底 + sans-serif 末位兜底 */
 function buildFontStack(families) {
 	const seen = new Set();
-	const quoted = ['sans-serif'];
+	const quoted = ['"Arial"'];
 	for (const f of families) {
 		if (!f || seen.has(f)) continue;
 		seen.add(f);
 		quoted.push('"' + String(f).replace(/"/g, '') + '"');
 	}
 	quoted.push('"Noto Sans Symbols 2"');
+	quoted.push('sans-serif');
 	return quoted.join(', ');
 }
 
@@ -546,7 +548,7 @@ function setFontStacks(families) {
 	document.documentElement.style.setProperty('--sym-font-stack', FULL_FONT_STACK);
 }
 
-/** noto-cmap.json：Noto 覆盖的码位区间（升序、相邻合并） */
+/** noto-cmap.js：Noto 覆盖的码位区间（升序、相邻合并） */
 let TOFU_NOTO = null;
 /** 豆腐块模板像素（空栈渲染私有区所得）及其有效性 */
 let TOFU_TEMPLATE = null;
@@ -1508,7 +1510,7 @@ const app = createApp({
 			}
 			return this.ctxZhName(item) || nameOf(item) || '';
 		},
-		/** 单码位是否双模（文本/表情两变体）：权威集合来自 标签.json emoji > emoji-text双模 ranges */
+		/** 单码位是否双模（文本/表情两变体）：权威集合来自 标签.js emoji > emoji-text双模 ranges */
 		isDualCp(cp) {
 			return DUAL_SET.has(cp);
 		},
@@ -2207,7 +2209,7 @@ const app = createApp({
 			this.metaEditorPath = '';
 			this.metaEditorVisible = true;
 		},
-		/** 保存符号元数据：按路由（SYMBOLS entry / 中文名.json）先写服务器，成功后再改内存 */
+		/** 保存符号元数据：按路由（SYMBOLS entry / 中文名.js）先写服务器，成功后再改内存 */
 		async saveSymbolMeta() {
 			const sc = this.metaEditorChar;
 			if (!sc) return;
@@ -2222,10 +2224,10 @@ const app = createApp({
 			if (!nameChanged && !aliasChanged && !introChanged) { this.metaEditorVisible = false; return; }
 			if (nameChanged && !newName) { ElementPlus.ElMessage.error('名字不能为空'); return; }
 			// 序列与单码点同构，一律走下方 entry 路线：编辑 = 登记/更新该符号在 SYMBOLS 的元素
-			// （序列 useNameRoute 恒 false，序列名不在 中文名.json；富化优先、标签 seqs 默认名兜底）
+			// （序列 useNameRoute 恒 false，序列名不在 中文名.js；富化优先、标签 seqs 默认名兜底）
 			// 路由决策：
 			//   旗序列 / 字符在 SYMBOLS / 需加别名（可同时改名）/ 有语境标签 → entry 路线（写 符号数据.js）
-			//   不在 SYMBOLS、仅改名且无语境 → name 路线（写 中文名.json，只对单码位有意义）
+			//   不在 SYMBOLS、仅改名且无语境 → name 路线（写 中文名.js，只对单码位有意义）
 			const tagCtx = this.ctxTagName();
 			const inSymbols = !isSeq && SYMBOLS.some(s => s.char === sc.char);
 			const useNameRoute = !isSeq && !inSymbols && nameChanged && !aliasChanged && !tagCtx;
@@ -2567,16 +2569,15 @@ const app = createApp({
 	async mounted() {
 		document.addEventListener('click', this.onVariantDocClick);
 		try {
-			const [tags, names, zhnames] = await Promise.all([
-				fetch('标签.json').then(r => r.json()),
-				fetch('名字.json').then(r => r.json()),
-				fetch('中文名.json').then(r => r.json()),
-				fetch('noto-cmap.json').then(r => r.json()).then(d => { TOFU_NOTO = d; }).catch(() => {})
-			]);
-			TAGS = tags;
-			NAMES = names;
-			ZH_NAMES = zhnames;
-			// 构建双模集合：标签.json 权威（emoji（绘文字）> emoji-text双模 节点 ranges，207 码位）；节点缺失则留空集
+			// 数据由 <script src> 预置的全局变量提供（file:// 下 fetch 会被 CORS 拦，改全局后双击可直开）
+			TAGS = window.TAGS_DATA;
+			NAMES = window.NAMES_DATA;
+			ZH_NAMES = window.ZH_NAMES_DATA;
+			TOFU_NOTO = window.NOTO_CMAP_DATA || null; // 缺失则容错留 null
+			if (!TAGS) throw new Error('缺少数据文件 标签.js（window.TAGS_DATA 未定义）');
+			if (!NAMES) throw new Error('缺少数据文件 名字.js（window.NAMES_DATA 未定义）');
+			if (!ZH_NAMES) throw new Error('缺少数据文件 中文名.js（window.ZH_NAMES_DATA 未定义）');
+			// 构建双模集合：标签.js 权威（emoji（绘文字）> emoji-text双模 节点 ranges，207 码位）；节点缺失则留空集
 			const dualNode = TAGS.roots['emoji（绘文字）']?.children?.['emoji-text双模'];
 			if (dualNode && dualNode.ranges) {
 				for (const [lo, hi] of dualNode.ranges) {

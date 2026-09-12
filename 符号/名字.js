@@ -1,4 +1,4 @@
-{
+window.NAMES_DATA = {
   "_v": "17.0.0",
   "names": {
     "0": "NULL",
@@ -53646,4 +53646,4 @@
       "TANGUT IDEOGRAPH-"
     ]
   ]
-}
+};

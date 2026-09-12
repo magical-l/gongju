@@ -59,7 +59,10 @@ from collections import Counter
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 BASE = os.path.dirname(os.path.abspath(__file__))
-ZM = os.path.join(BASE, '中文名.json')
+sys.path.insert(0, BASE)
+from datatool import read_data
+
+ZM = os.path.join(BASE, '中文名.js')
 WL = os.path.join(BASE, '待译清单.json')
 TOP = 20
 if '--top' in sys.argv:
@@ -146,7 +149,7 @@ def main():
     ident = {k for k, v in w.WORD.items() if not re.search(r'[一-鿿]', v)}
     akey = set(w.WORD) - set(w.KEEP) - ident
 
-    d = json.load(open(ZM, encoding='utf-8'))['names']
+    d = read_data(ZM, 'ZH_NAMES_DATA')['names']
     prev = set()
     if os.path.exists(WL):
         old = json.load(open(WL, encoding='utf-8'))

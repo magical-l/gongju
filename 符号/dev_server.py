@@ -22,16 +22,16 @@ dev_server.py — 符号页编辑保存服务器（临时功能）。
               targetPath 空 → 提升为语义根；否则把节点（含子树）移到目标父下
   sym       {"action":"sym",  "cps":[1F600],       "entry":{char,groups}|null, "name":"新名"|null}
               entry 提供 → 写 符号数据.js（页面已路由好：字符在 SYMBOLS 或加了别名）
-              name 提供  → 写 中文名.json（仅非 SYMBOLS 字符的改名）
+              name 提供  → 写 中文名.js（仅非 SYMBOLS 字符的改名）
 
-落盘规则（标签.json 为唯一权威，标签.txt / build_tags 等已清理）：
-  add/move/remove → 标签.json（成员添加/移动/取消打标）
-  tag-rename      → 标签.json（改 children key）+ 符号数据.js（同步同名组键）
-  tag-alias       → 标签.json（alias 整体替换）
-  tag-new         → 标签.json（新增空节点）
-  tag-del         → 标签.json（删节点+子树）
-  tag-sort        → 标签.json（同级键换序）
-  sym-name        → 字符在 符号数据.js → 改它；否则 → 中文名.json
+落盘规则（标签.js 为唯一权威，标签.txt / build_tags 等已清理）：
+  add/move/remove → 标签.js（成员添加/移动/取消打标）
+  tag-rename      → 标签.js（改 children key）+ 符号数据.js（同步同名组键）
+  tag-alias       → 标签.js（alias 整体替换）
+  tag-new         → 标签.js（新增空节点）
+  tag-del         → 标签.js（删节点+子树）
+  tag-sort        → 标签.js（同级键换序）
+  sym-name        → 字符在 符号数据.js → 改它；否则 → 中文名.js
   sym-alias       → 符号数据.js alias（不在 → 新建条目）
   机械轴（文字系统/官方分类/区块）禁止修改
 
@@ -49,14 +49,13 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from datatool import dump_tags   # 标签.json 的唯一写法：ranges/seqs 一行一条
+# 标签.js / 中文名.js 的路径、包装、换行风格探测统一走 datatool（不再各自手写 open/json.loads）
+from datatool import (TAGS as TAGS_JS, ZH as ZH_JS, dump_data, dump_tags, read_data, wrap, write_text)
 PROJECT_ROOT = os.path.dirname(HERE)  # 项目根
-TAGS_JSON = os.path.join(HERE, '标签.json')
-ZH_JSON = os.path.join(HERE, '中文名.json')
 SYMBOL_JS = os.path.join(HERE, '符号数据.js')
 
 # 页面 fetch 的这些文件加 no-cache，改完刷新即新（符号.html 也禁缓存——否则浏览器缓存旧 ?v= 链接导致一直加载旧 JS）
-NO_CACHE_FILES = ('标签.json', '中文名.json', '名字.json', '符号数据.js', 'noto-cmap.json', '符号.html')
+NO_CACHE_FILES = ('标签.js', '中文名.js', '名字.js', '符号数据.js', 'noto-cmap.js', '符号.html')
 
 # 单写锁：读-改-写串行化（ThreadingHTTPServer 下防并发写坏文件）
 LOCK = threading.Lock()
@@ -78,20 +77,14 @@ def _write_lines(path, lines, nl):
     open(path, 'w', encoding='utf-8', newline='').write(nl.join(lines))
 
 
-_JSON_NL = '\n'
-
-
 def load_tags():
-    """读标签.json，并记住当前换行风格（CRLF/LF），写回时保持一致（git diff 才干净）。"""
-    global _JSON_NL
-    text = open(TAGS_JSON, encoding='utf-8', newline='').read()
-    _JSON_NL = '\r\n' if '\r\n' in text else '\n'
-    return json.loads(text)
+    """读标签.js。"""
+    return read_data(TAGS_JS, 'TAGS_DATA')
 
 
 def save_tags(data):
-    body = dump_tags(data).replace('\n', _JSON_NL)
-    open(TAGS_JSON, 'w', encoding='utf-8', newline='').write(body)
+    """写标签.js。ranges/seqs 一行一条用 dump_tags；换行风格与末尾换行由 write_text 探测保持。"""
+    write_text(TAGS_JS, wrap('TAGS_DATA', dump_tags(data)))
 
 
 def norm_cps(cps):
@@ -191,7 +184,7 @@ def ranges_remove(node, cp):
 def seq_cps(s):
     """seqs 条目 → 纯码位数组。
 
-    seqs 条目现在**只存码位**（序列名在名字层：中文名.json / 名字.json，键为连字符码位串）。
+    seqs 条目现在**只存码位**（序列名在名字层：中文名.js / 名字.js，键为连字符码位串）。
     仍剥离末尾字符串，只为容忍历史数据，不做依赖。
     """
     i = len(s)
@@ -252,7 +245,7 @@ def remove_all_from_subtree(node, cps):
     return found
 
 
-# ===== 标签.json 操作 =====
+# ===== 标签.js 操作 =====
 
 def tag_add(p):
     data = load_tags()
@@ -620,13 +613,10 @@ def sym_upsert(entry):
 
 
 def zhname_set(cp, name):
-    """写 中文名.json：names 是 {码点:名字} 映射，直接赋值。保留原换行风格。"""
-    text = open(ZH_JSON, encoding='utf-8', newline='').read()
-    nl = '\r\n' if '\r\n' in text else '\n'
-    d = json.loads(text)
+    """写 中文名.js：names 是 {码点:名字} 映射，直接赋值。换行风格由 write_text 探测保持。"""
+    d = read_data(ZH_JS, 'ZH_NAMES_DATA')
     d['names'][str(cp)] = name
-    body = json.dumps(d, ensure_ascii=False, indent=2).replace('\n', nl)
-    open(ZH_JSON, 'w', encoding='utf-8', newline='').write(body)
+    write_text(ZH_JS, dump_data(d, 'ZH_NAMES_DATA'))
 
 
 def sym_save(p):
@@ -638,7 +628,7 @@ def sym_save(p):
     if name is not None:
         cps = norm_cps(p['cps'])
         zhname_set(cps[0], name)
-        return True, '已保存到 中文名.json'
+        return True, '已保存到 中文名.js'
     return False, '无变更'
 
 

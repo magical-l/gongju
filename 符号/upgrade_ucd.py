@@ -4,7 +4,7 @@
 
 用法：
   python upgrade_ucd.py check   # 校验模式：重算 vs 现状，只报告不写入（默认）
-  python upgrade_ucd.py apply   # 应用模式：备份后更新 标签.json + 重生成 名字.json
+  python upgrade_ucd.py apply   # 应用模式：备份后更新 标签.js + 重生成 名字.js
 
 规则：
   - 文字系统：Scripts.txt 直接取各 script 范围；Zzzz（未知文字系统）= 全部码位减已分配 script 并集
@@ -13,13 +13,15 @@
   - 只按 code 更新现有节点的 ranges；新 code 只报告（需人工补中文名），已移除的 code 报告
 校验模式可用当前数据自证：Unicode 版本不变时重算应与现状一致（任何差异都是解析逻辑 bug）。
 """
-import json
 import os
 import sys
 
 BASE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, BASE)
+from datatool import dump_tags, read_data, wrap, write_text
+
 REF = os.path.join(BASE, '参考资料')
-TAG_FILE = os.path.join(BASE, '标签.json')
+TAG_FILE = os.path.join(BASE, '标签.js')
 MAX_CP = 0x10FFFF
 
 
@@ -96,8 +98,7 @@ def build_axes():
 
 def main():
 	mode = sys.argv[1] if len(sys.argv) > 1 else 'check'
-	with open(TAG_FILE, encoding='utf-8') as f:
-		data = json.load(f)
+	data = read_data(TAG_FILE, 'TAGS_DATA')
 	axes = build_axes()
 
 	total_nodes = 0
@@ -139,11 +140,9 @@ def main():
 			orig = f.read()
 		with open(bak, 'w', encoding='utf-8', newline='\n') as f:
 			f.write(orig)
-		with open(TAG_FILE, 'w', encoding='utf-8', newline='\n') as f:
-			json.dump(data, f, ensure_ascii=False, indent=2)
-			f.write('\n')
-		print(f'已备份 → {os.path.basename(bak)}，已写回 标签.json')
-		# 重生成 名字.json（名字层随 Unicode 升级一起重算）
+		write_text(TAG_FILE, wrap('TAGS_DATA', dump_tags(data)))
+		print(f'已备份 → {os.path.basename(bak)}，已写回 标签.js')
+		# 重生成 名字.js（名字层随 Unicode 升级一起重算）
 		import build_names
 		build_names.main()
 

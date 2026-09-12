@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""从 UnicodeData.txt 生成 名字.json（码位→官方名）。
+"""从 UnicodeData.txt 生成 名字.js（码位→官方名）。
 
 输出结构：
   {
@@ -16,15 +16,18 @@
   - <Hangul Syllable, First/Last>：算法名（HANGUL SYLLABLE xxx），展开进 names
   - 代理区 / 私用区：无名，跳过
 
-Unicode 升级时重跑本脚本即可，只产出名字层，不碰 标签.json。
+Unicode 升级时重跑本脚本即可，只产出名字层，不碰 标签.js。
 """
-import json
 import os
 import re
+import sys
 
 BASE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, BASE)
+from datatool import dump_data, read_data, write_text
+
 SRC = os.path.join(BASE, '参考资料', 'UnicodeData.txt')
-OUT = os.path.join(BASE, '名字.json')
+OUT = os.path.join(BASE, '名字.js')
 
 # ---- Hangul 音节算法 ----
 _SBASE, _LCOUNT, _VCOUNT, _TCOUNT = 0xAC00, 19, 21, 28
@@ -110,12 +113,12 @@ def main():
 				by_key[prefix] = [by_key[prefix], int(parts[0], 16)]
 	patterns = [[lo, hi, prefix] for prefix, (lo, hi) in sorted(by_key.items())]
 
-	# names 是 {键: 名} 映射，键为十进制码点字符串；与 中文名.json 同构。
+	# names 是 {键: 名} 映射，键为十进制码点字符串；与 中文名.js 同构。
 	# 已有的「序列键」（含 '-'，由 build_zwj.py 写入 emoji-test 序列名）原样保留，本脚本不碰。
 	names_out = {str(cp): name for cp, name in sorted(names.items())}
 	if os.path.exists(OUT):
 		try:
-			old = json.load(open(OUT, encoding='utf-8'))['names']
+			old = read_data(OUT, 'NAMES_DATA')['names']
 			if isinstance(old, dict):
 				for k, v in old.items():
 					if '-' in k:
@@ -124,8 +127,7 @@ def main():
 			pass
 
 	data = {'_v': '17.0.0', 'names': names_out, 'patterns': patterns}
-	with open(OUT, 'w', encoding='utf-8', newline='\n') as f:
-		f.write(json.dumps(data, ensure_ascii=False, indent=2) + '\n')
+	write_text(OUT, dump_data(data, 'NAMES_DATA'))
 
 	print('写入 %s' % OUT)
 	print('显式名条目: %d' % len(names_out))

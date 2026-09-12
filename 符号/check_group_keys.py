@@ -19,7 +19,10 @@ import sys
 from collections import defaultdict
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-TAGS = os.path.join(HERE, '标签.json')
+sys.path.insert(0, HERE)
+from datatool import read_data
+
+TAGS = os.path.join(HERE, '标签.js')
 SYMBOLS = os.path.join(HERE, '符号数据.js')
 
 
@@ -48,7 +51,7 @@ def norm_seq(cps):
 
 
 def main():
-    tag = json.load(open(TAGS, encoding='utf-8'))
+    tag = read_data(TAGS, 'TAGS_DATA')
     nodes = []
     for rk, rv in tag['roots'].items():
         nodes.extend(collect_nodes(rv, (rk,)))

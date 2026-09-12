@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
-"""生成 noto-cmap.json：Noto Sans Symbols 2 覆盖的码位区间列表（升序、相邻合并）"""
-import json
+"""生成 noto-cmap.js：Noto Sans Symbols 2 覆盖的码位区间列表（升序、相邻合并）"""
 import os
+import sys
 
 from fontTools.ttLib import TTFont
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+from datatool import dump_data, write_text
+
 FONT_PATH = os.path.join(HERE, '..', 'lib', 'fonts', 'NotoSansSymbols2-Regular.ttf')
-OUT_PATH = os.path.join(HERE, 'noto-cmap.json')
+OUT_PATH = os.path.join(HERE, 'noto-cmap.js')
 
 
 def build_ranges(cps):
@@ -32,8 +35,7 @@ def main():
     cps = sorted(cmap.keys())
     ranges = build_ranges(cps)
     data = {'_v': 1, 'count': len(cps), 'ranges': ranges}
-    with open(OUT_PATH, 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+    write_text(OUT_PATH, dump_data(data, 'NOTO_CMAP_DATA'))
     print(f'{len(cps)} 码位 -> {len(ranges)} 区间 -> {OUT_PATH}')
 
 

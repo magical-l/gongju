@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""从 emoji-test.txt 生成 ZWJ 序列数据并注入 标签.json（build_zwj.py，一次性脚本，跑完可删或保留）。
+"""从 emoji-test.txt 生成 ZWJ 序列数据并注入 标签.js（build_zwj.py，一次性脚本，跑完可删或保留）。
 
 ZWJ 序列（含 U+200D，3+ 码位）塞不进单码位 ranges，节点用 seqs（同旗帜机制）:
   seqs: [[cp1, ..., cpN], ...]  **只存码位（归属）**
 
-序列名**不进 标签.json**，写在名字层（键 = 连字符码位串 "128104-8205-9877-65039"）：
-  中文名 → 中文名.json   英文 → 名字.json
+序列名**不进 标签.js**，写在名字层（键 = 连字符码位串 "128104-8205-9877-65039"）：
+  中文名 → 中文名.js   英文 → 名字.js
   本脚本**独占这些键**，直接覆盖（页面改序列名走符号条目，从不写名字层）。
 
 中文名：
@@ -17,13 +17,17 @@ ZWJ 序列（含 U+200D，3+ 码位）塞不进单码位 ranges，节点用 seqs
 import json
 import os
 import re
+import sys
 
 BASE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, BASE)
+from datatool import dump_data, dump_tags, read_data, wrap, write_text
+
 EMOJI_TEST = os.path.join(BASE, '参考资料', 'emoji-test.txt')
 ANNOTATIONS = os.path.join(BASE, '参考资料', 'annotations-zh.json')
-TAG_FILE = os.path.join(BASE, '标签.json')
-ZH_FILE = os.path.join(BASE, '中文名.json')
-NM_FILE = os.path.join(BASE, '名字.json')
+TAG_FILE = os.path.join(BASE, '标签.js')
+ZH_FILE = os.path.join(BASE, '中文名.js')
+NM_FILE = os.path.join(BASE, '名字.js')
 
 # 肤色词（用户裁定简化版；拼接肤色在前）
 SKIN_ZH = {0x1F3FB: '浅肤色', 0x1F3FC: '中浅肤色', 0x1F3FD: '中肤色', 0x1F3FE: '中深肤色', 0x1F3FF: '深肤色'}
@@ -345,18 +349,16 @@ def write_name_layer(zh_pairs, en_pairs):
        从不写名字层，所以这里覆盖不会冲突人工改动。
     zh_pairs / en_pairs：{键: 名}，键为十进制码点或连字符码位串。
     """
-    for path, pairs in ((ZH_FILE, zh_pairs), (NM_FILE, en_pairs)):
+    for path, var, pairs in ((ZH_FILE, 'ZH_NAMES_DATA', zh_pairs),
+                             (NM_FILE, 'NAMES_DATA', en_pairs)):
         if not pairs:
             continue
-        text = open(path, encoding='utf-8', newline='').read()
-        nl = '\r\n' if '\r\n' in text else '\n'
-        d = json.loads(text)
+        d = read_data(path, var)
         for k, v in pairs.items():
             if v:
                 d['names'][k] = v
         d['names'] = dict(sorted(d['names'].items(), key=lambda kv: _sortkey(kv[0])))
-        body = json.dumps(d, ensure_ascii=False, indent=2).replace('\n', nl)
-        open(path, 'w', encoding='utf-8', newline='').write(body)
+        write_text(path, dump_data(d, var))
 
 
 def main():
@@ -364,9 +366,7 @@ def main():
     seqs = parse_emoji_test()
     print(f'ZWJ 序列总数: {len(seqs)}')
 
-    text = open(TAG_FILE, encoding='utf-8', newline='').read()
-    nl = '\r\n' if '\r\n' in text else '\n'
-    data = json.loads(text)
+    data = read_data(TAG_FILE, 'TAGS_DATA')
     roots = data['roots']
 
     added = {}
@@ -429,7 +429,7 @@ def main():
                 skin_added[SKIN_SUB[sk]] = skin_added.get(SKIN_SUB[sk], 0) + 1
     for node in skin_root.values():
         node['seqs'].sort(key=lambda s: tuple(s[:2]))
-    # 修饰符单码位（🏻🏼🏽🏾🏿）挂对应肤色节点 ranges + 中文名.json 显式条目
+    # 修饰符单码位（🏻🏼🏽🏾🏿）挂对应肤色节点 ranges + 中文名.js 显式条目
     for cp, name in SKIN_SUB.items():
         node = skin_root[name]
         ranges = node.setdefault('ranges', [])
@@ -449,12 +449,11 @@ def main():
     emojinode['seqs'].sort(key=lambda s: tuple(s[:2]))
     print(f'emoji（绘文字）挂载: 共 {len(emojinode["seqs"])} 条 ZWJ 序列')
 
-    # ===== 序列名写入名字层（seqs 只留归属，名字不进 标签.json）=====
+    # ===== 序列名写入名字层（seqs 只留归属，名字不进 标签.js）=====
     write_name_layer(seq_zh, seq_en)
     print(f'名字层写入序列名: 中文 {len(seq_zh)} 条 / 英文 {len(seq_en)} 条')
 
-    body = json.dumps(data, ensure_ascii=False, indent=2).replace('\n', nl)
-    open(TAG_FILE, 'w', encoding='utf-8', newline='').write(body)
+    write_text(TAG_FILE, wrap('TAGS_DATA', dump_tags(data)))
 
     print(f'注入完成: {sum(added.values())} 条 -> {len(added)} 个节点')
     for path, n in sorted(added.items()):

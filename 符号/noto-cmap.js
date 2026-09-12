@@ -1,4 +1,4 @@
-{
+window.NOTO_CMAP_DATA = {
   "_v": 1,
   "count": 2955,
   "ranges": [
@@ -855,4 +855,4 @@
       130041
     ]
   ]
-}
+};

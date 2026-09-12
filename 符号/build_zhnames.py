@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""build_zhnames.py — 给 中文名.json（成员 → 中文名）**补空缺**
+"""build_zhnames.py — 给 中文名.js（成员 → 中文名）**补空缺**
 
 ⚠️ 语义是 **merge，不是重算**：已有的键一律不动，只写没有的。
-   中文名.json 是权威，本脚本只负责"新码位自动补译"（Unicode 升级时用）。
+   中文名.js 是权威，本脚本只负责"新码位自动补译"（Unicode 升级时用）。
    历史上它是全量生成器，跑一次会抹掉后来所有人工改动（实测差过 8963 条），
    故改为 merge。真要全量重算，得先把现有文件挪走。
 
 数据源（全部在 符号/ 下）：
-- 名字.json              —— 英文名权威（读取字母类/韩文等做规则翻译）
+- 名字.js                —— 英文名权威（读取字母类/韩文等做规则翻译）
 - 参考资料/annotations-zh.json —— CLDR 官方 emoji 中文名
 - zh-*.json              —— 翻译词表，结构 [[cp, "中文名"], ...]（仅对"没有的键"生效）
 
-输出：中文名.json {_v, names:{键:中文名}, patterns:[[lo,hi,prefix]...]}
+输出：中文名.js {_v, names:{键:中文名}, patterns:[[lo,hi,prefix]...]}
   - 键为十进制码点字符串；含 '-' 的是序列键（由 build_zwj.py / 人工维护，本脚本不生成也不动）
-  - 与 名字.json 同构
+  - 与 名字.js 同构
 
 补缺来源（优先级从高到低）：
 1. 翻译词表 zh-*.json
@@ -27,8 +27,11 @@ import json
 import glob
 import os
 import re
+import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+from datatool import ZH, dump_data, read_data, write_text
 
 # ===== 174 种文字系统 → 中文名（Unicode Scripts.txt） =====
 SCRIPT_ZH = {
@@ -136,7 +139,7 @@ SKIP_PREFIXES = ('HANGUL SYLLABLE ',)
 
 # ===== 算法块：码位范围 → 中文前缀 =====
 ALGORITHMIC = [
-    # 汉字各段（与名字.json patterns 同源）
+    # 汉字各段（与名字.js patterns 同源）
     (0x4E00, 0x9FFF, '汉字'),
     (0x3400, 0x4DBF, '汉字（扩展A）'),
     (0x20000, 0x2A6DF, '汉字（扩展B）'),
@@ -219,7 +222,7 @@ def _join(zh, tail):
 
 
 def main():
-    names_en = json.load(open(os.path.join(HERE, '名字.json'), encoding='utf-8'))['names']
+    names_en = read_data(os.path.join(HERE, '名字.js'), 'NAMES_DATA')['names']
 
     zh_map = {}  # cp(int) → 中文名
 
@@ -265,11 +268,11 @@ def main():
 
     # 4. 输出：以现有文件为权威，**只补没有的键**（merge，不重算）
     #    已有的键一律不动 —— 含人工改过的名字、以及序列键（'-'，由 build_zwj.py 维护）
-    out_path = os.path.join(HERE, '中文名.json')
+    out_path = ZH
     existing = {}
     if os.path.exists(out_path):
         try:
-            d = json.load(open(out_path, encoding='utf-8'))
+            d = read_data(out_path, 'ZH_NAMES_DATA')
             if isinstance(d.get('names'), dict):
                 existing = d['names']
         except Exception:
@@ -294,9 +297,8 @@ def main():
         'names': names_out,
         'patterns': patterns_out,
     }
-    with open(out_path, 'w', encoding='utf-8', newline='\n') as f:
-        json.dump(out, f, ensure_ascii=False, indent=2)
-    print(f'中文名.json: 已有 {len(existing)} 条保持不变，新补 {added} 条 '
+    write_text(out_path, dump_data(out, 'ZH_NAMES_DATA'))
+    print(f'中文名.js: 已有 {len(existing)} 条保持不变，新补 {added} 条 '
           f'→ 共 {len(names_out)} 条 + {len(patterns_out)} 个范围模式')
 
 
