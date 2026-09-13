@@ -17,7 +17,7 @@
 	<link href="../css/layout.css" rel="stylesheet">
 	<link href="../resources/biz.css?v=250821" rel="stylesheet">
 	<link href="../css/花活.css" rel="stylesheet">
-	<link href="符号.css?v=260912" rel="stylesheet">
+	<link href="符号.css?v=260913" rel="stylesheet">
 </head>
 <body class="目字形">
 	<header>
@@ -242,10 +242,14 @@
 								<span v-else-if="selectedChar && detailTofu" class="symbol-char tofu-hint" :style="fontStyle(selectedPreviewFont)">当前字体不支持</span>
 								<span v-else class="symbol-char placeholder-char">？</span>
 							</div>
+							<div v-if="selectedChar && detailAdviceNeeded" class="tofu-tip above-name">
+								<p>你的系统字体不能显示这个字符</p>
+								<p>本页用自带的 Noto Sans Symbols 2 字体显示</p>
+								<p>在其他地方若想显示，也需安装和使用可显示的字体</p>
+							</div>
 							<div class="name">{{ selectedChar.zhName || selectedChar.officialName || selectedChar.char }}<button v-if="editEnabled" class="meta-edit-btn" @click.stop="editSelectedSymbol" title="修改符号名/别名">✎</button></div>
 							<div v-if="selectedChar && isControlCode(selectedChar.cp)" class="ctrl-tip">不可见控制码</div>
 							<div v-if="selectedChar && detailTofu" class="tofu-tip">当前字体不支持</div>
-							<div v-if="selectedChar && detailAdvice" class="tofu-tip">{{ detailAdvice }}</div>
 							<div v-if="selectedChar.officialName && selectedChar.officialName !== (selectedChar.zhName || selectedChar.officialName || selectedChar.char)" class="official-name">{{ selectedChar.officialName }}</div>
 							<div v-if="selectedChar.aliases.length" class="alias">{{ selectedChar.aliases.join('、') }}</div>
 							<div class="copy-char-btn">
@@ -430,7 +434,7 @@
 		<script src="../lib/toastr.min.js"></script>
 		<script src="../resources/biz-util.js?v=250801"></script>
 	</div>
-	<script src="符号.js?v=260914"></script>
+	<script src="符号.js?v=260913"></script>
 	<div>
 		<!-- 谷歌广告联盟 -->
 		<script async crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"></script>

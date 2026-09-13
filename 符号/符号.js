@@ -809,7 +809,7 @@ const app = createApp({
 			selectedTag: null,
 			selectedChar: null,
 			detailTofu: false, // 选中字符是否渲染不出（详情替代显示）
-			detailAdvice: '', // 详情区四象限建议（Noto 含 + 本机不含 → 提示装 Noto）
+			detailAdviceNeeded: false, // 详情区四象限建议（Noto 含 + 本机不含 → 提示本页用自带字体兜底）
 			gridPage: 1, // 网格当前页码
 			gridPageSize: CAP, // 网格每页大小
 			overviewLocalPage: 1, // 概览视图"本级"段页码
@@ -1174,18 +1174,18 @@ const app = createApp({
 					if (this.selectedChar && JSON.stringify(this.selectedChar.cp) === JSON.stringify(cp)) this.detailTofu = !ok;
 				});
 			}
-			// 详情区四象限建议：Noto 含 + 本机不含 → 提示装 Noto（旗序列跳过）
-			this.detailAdvice = '';
+			// 详情区四象限建议：Noto 含 + 本机不含 → 提示本页用自带字体兜底（旗序列跳过）
+			this.detailAdviceNeeded = false;
 			this.refreshDetailAdvice(cp);
 			if (this.fontSizeAutoFit) this.adjustFontSize();
 		},
-		/** 详情区四象限建议：Noto 含 + 本机不含 → 提示装 Noto（旗序列跳过；异步结果回来时用 JSON.stringify 比对防竞态） */
+		/** 详情区四象限建议：Noto 含 + 本机不含 → 提示本页用自带字体兜底（旗序列跳过；异步结果回来时用 JSON.stringify 比对防竞态） */
 		async refreshDetailAdvice(cp) {
-			if (Array.isArray(cp) || this.isDualCp(cp)) { this.detailAdvice = ''; return; } // 旗序列/双模不做建议（双模顶部用 emoji 变体，不依赖 Noto）
-			if (!notoHas(cp)) { this.detailAdvice = ''; return; }      // Noto 不含：本机有则 v1 不提示，都无则替代显示已提示
+			if (Array.isArray(cp) || this.isDualCp(cp)) { this.detailAdviceNeeded = false; return; } // 旗序列/双模不做建议（双模顶部用 emoji 变体，不依赖 Noto）
+			if (!notoHas(cp)) { this.detailAdviceNeeded = false; return; }      // Noto 不含：本机有则 v1 不提示，都无则替代显示已提示
 			const localOk = await checkLocalRenderable(cp);
 			if (this.selectedChar && JSON.stringify(this.selectedChar.cp) === JSON.stringify(cp)) {
-				this.detailAdvice = localOk ? '' : '此字符需 Noto Sans Symbols 2 字体，装它才能在别处显示';
+				this.detailAdviceNeeded = !localOk;
 			}
 		},
 		/** 选中序列（任意长度码位数组）：查 SEQ_INDEX 取名，tags 按整串匹配 */
@@ -1206,7 +1206,7 @@ const app = createApp({
 			};
 			// ZWJ 序列检测连字（不连字的详情提示）；旗帜（非 ZWJ）恒可渲染
 			this.detailTofu = false;
-			this.detailAdvice = '';
+			this.detailAdviceNeeded = false;
 			if (cps.includes(0x200D)) {
 				checkSeqRenderable(cps).then(ok => {
 					if (this.selectedChar && JSON.stringify(this.selectedChar.cp) === JSON.stringify(cps)) this.detailTofu = !ok;

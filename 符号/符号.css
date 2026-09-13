@@ -647,6 +647,14 @@
 			color: #7d93a5;
 			margin-top: 4px;
 		}
+		& .tofu-tip.above-name {
+			margin-top: 0;
+			margin-bottom: 6px;
+
+			& p {
+				margin: 0;
+			}
+		}
 		& .alias {
 			font-size: 12px;
 			color: var(--el-text-color-secondary);
