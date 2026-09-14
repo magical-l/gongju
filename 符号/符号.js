@@ -9,6 +9,8 @@ const {
 let TAGS = null;
 let UNICODE_NAMES = null;
 let ZH_TRANSLATION = null; // 官方名直译名.js（码位→中文名），空则回退英文名
+let ZH_VARIANTS = new Map();    // 繁简表.js：繁 → 简单字映射（单向）
+let SIMPLIFIED_TEXT = new Map(); // 预折叠「会被匹配的文本」：原文 → 简体，**只存折了才变的那几条**
 let FLAT = [];
 let NAME_PATHS = new Map(); // 节点名 → 路径数组（同名节点可在多处，如根「箭头」与区块「箭头」）
 const SYMBOL_MAP = new Map();
@@ -247,8 +249,41 @@ function toFullWidthChar(c) {
 /** 折叠路径只可能把全角变成 ASCII，故 q 不含 ASCII 时折叠侧恒无新命中（纯中文关键词走此快路径） */
 const Q_ASCII_RE = /[\x20-\x7E]/;
 
-/** 全角/半角兼容的子串包含；q 须已折叠并小写。hay 侧含全角时折叠后重试 */
+// ===== 简繁兼容（搜索）=====
+// 查询词与内容文本都折到简体后比较，一次覆盖「繁体查询搜简体内容」与「简体查询搜繁体内容」。
+// 表单向（繁→简）：反向简→繁一对多有歧义（干/乾/幹），按设计不做。
+/** 繁 → 简折叠；无变化返回原串 */
+function foldToSimplified(s) {
+	if (!s || !ZH_VARIANTS.size) return s;
+	let out = '', hit = false;
+	for (const c of s) {
+		const f = ZH_VARIANTS.get(c);
+		if (f !== undefined) { out += f; hit = true; } else out += c;
+	}
+	return hit ? out : s;
+}
+
+/** 预折叠内容侧文本：折成简体后只存「变了的」那些。
+ *  全表约 6.9 万条，实测只有约 70 条会变，故 SIMPLIFIED_TEXT 极小，widthIncludes 里一次 get 即可命中或快速落空。
+ *  来源 = SYMBOL_MAP 的名字/别名/简介（覆盖人工富化层）+ 官方名直译名.js 的名字。标签.js 实测零繁体，不收。 */
+function buildSimplifiedText() {
+	SIMPLIFIED_TEXT = new Map();
+	const add = s => {
+		if (typeof s !== 'string' || !s || SIMPLIFIED_TEXT.has(s)) return;
+		const f = foldToSimplified(s);
+		if (f !== s) SIMPLIFIED_TEXT.set(s, f);
+	};
+	for (const meta of SYMBOL_MAP.values()) {
+		for (const n of meta.names) add(n);
+		for (const a of meta.aliases) add(a);
+		add(meta.intro);
+	}
+	if (ZH_TRANSLATION) for (const v of Object.values(ZH_TRANSLATION.names)) add(v);
+}
+
+/** 全角/半角 + 简繁兼容的子串包含；q 须已折叠并小写。hay 侧含全角/繁体时折叠后重试 */
 function widthIncludes(hay, q) {
+	hay = SIMPLIFIED_TEXT.get(hay) || hay;   // 内容侧含繁体时先折简体（只有极少数条目在这张表里，miss 极快）
 	const lo = hay.toLowerCase();
 	if (lo.includes(q)) return true;
 	if (!Q_ASCII_RE.test(q)) return false;
@@ -1332,7 +1367,7 @@ const app = createApp({
 		},
 		/** 关键词命中的标签（name/path/intro/alias 子串匹配，全角/半角互通，最多 100；含简介命中，用于"标签匹配"导航列表） */
 		matchTagsForToken(token) {
-			const q = toHalfWidth(token).toLowerCase();
+			const q = foldToSimplified(toHalfWidth(token)).toLowerCase();
 			const out = [];
 			for (const t of FLAT) {
 				if (widthIncludes(t.name, q) || widthIncludes(t.path, q) || (t.node.intro && widthIncludes(t.node.intro, q)) || (t.node.alias && t.node.alias.some(a => widthIncludes(a, q)))) {
@@ -1344,7 +1379,7 @@ const app = createApp({
 		},
 		/** 关键词强命中的标签（仅 name/path/alias 子串匹配，不含 intro，全角/半角互通，最多 100；用于成员物化，避免简介提词拉进整桶） */
 		matchTagsStrong(token) {
-			const q = toHalfWidth(token).toLowerCase();
+			const q = foldToSimplified(toHalfWidth(token)).toLowerCase();
 			const out = [];
 			for (const t of FLAT) {
 				if (widthIncludes(t.name, q) || widthIncludes(t.path, q) || (t.node.alias && t.node.alias.some(a => widthIncludes(a, q)))) {
@@ -1366,7 +1401,7 @@ const app = createApp({
 		},
 		/** 关键词命中的符号：逻辑与旧 matchedChars 一致，抽成 per-token（码点/单字符/名匹配/中文名/旗序列）；全角/半角互通 */
 		matchCharsForToken(token) {
-			const q = toHalfWidth(token).toLowerCase();
+			const q = foldToSimplified(toHalfWidth(token)).toLowerCase();
 			const out = [];
 			const seen = new Set();
 			const cpq = parseCodePointQuery(q);
@@ -1447,12 +1482,13 @@ const app = createApp({
 			}
 			return out;
 		},
-		/** 单个 token 结果：标签成员 ∪ 字符名匹配（两条匹配通道独立，标签命中不压制字符名搜索；成员集只物化强命中标签，简介命中仅进导航列表） */
+		/** 单个 token 结果：字符命中 ∪ 标签成员（两条匹配通道独立，标签命中不压制字符名搜索；成员集只物化强命中标签，简介命中仅进导航列表）
+		 *  顺序有意义：渲染按 Set 插入顺序，charHits 先入才能让"你搜的那个字符"排在最前；否则标签子串命中会把它埋掉（搜 a 曾排到第 78039 位） */
 		computeTokenResult(token) {
 			const tagHits = this.matchTagsForToken(token);
 			const charHits = this.matchCharsForToken(token);
-			const memberSet = this.memberSetOfTags(this.matchTagsStrong(token));
-			for (const hit of charHits) memberSet.add(memberKey(hit.cp));
+			const memberSet = new Set(charHits.map(h => memberKey(h.cp)));
+			for (const k of this.memberSetOfTags(this.matchTagsStrong(token))) memberSet.add(k);
 			return { token, tagHits, charHits, memberSet };
 		},
 		/** memberKey → 网格条目对象 {char, cp, zhName, officialName}（供分节网格渲染） */
@@ -2605,6 +2641,8 @@ const app = createApp({
 			TAGS = window.TAGS_DATA;
 			UNICODE_NAMES = window.UNICODE_NAMES_DATA;
 			ZH_TRANSLATION = window.ZH_TRANSLATION_DATA;
+			ZH_VARIANTS = new Map(Object.entries(window.ZH_VARIANTS_DATA?.map || {}));
+			if (!ZH_VARIANTS.size) console.warn('繁简表.js 未加载或为空，简繁搜索兼容不生效');
 			TOFU_NOTO = window.NOTO_CMAP_DATA || null; // 缺失则容错留 null
 			if (!TAGS) throw new Error('缺少数据文件 标签.js（window.TAGS_DATA 未定义）');
 			if (!UNICODE_NAMES) throw new Error('缺少数据文件 unicode官方名.js（window.UNICODE_NAMES_DATA 未定义）');
@@ -2618,6 +2656,7 @@ const app = createApp({
 			}
 			for (const [name, node] of rootEntries()) flatten(name, node, name);
 			buildSymbolMap();
+			buildSimplifiedText();
 			this.loading = false;
 			// 豆腐块模板须在首次 selectTag（触发 refreshRenderability 检测）之前生成，
 			// 否则模板未就绪时白名单外全判能渲染并缓存，后续不复检
