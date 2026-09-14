@@ -28,6 +28,7 @@ html {
 	&.thin-scrollbar {
 		&::-webkit-scrollbar, & ::-webkit-scrollbar {
 			width: var(--scrollbar-width);
+			height: var(--scrollbar-width);
 		}
 		&::-webkit-scrollbar-thumb, & ::-webkit-scrollbar-thumb {
 			background: var(--border-default);
