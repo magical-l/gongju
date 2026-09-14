@@ -1107,7 +1107,7 @@ const app = createApp({
 		},
 	},
 	methods: {
-		/** memberKey 集 → 搜索卡片：单码位逐码位 + seqs 按肤色分组折叠；main=搜索命中变体优先（preferKeys），无则无肤色优先，再无则第一个 */
+		/** memberKey 集 → 搜索卡片：单码位逐码位 + seqs 按肤色分组折叠；main=命中变体优先（preferKeys，命中多个时其中无肤色者再优先），整体无命中则无肤色优先，再无则第一个 */
 		searchCardsFromKeys(keys, preferKeys) {
 			const singles = [];
 			const groups = new Map();
@@ -1123,7 +1123,9 @@ const app = createApp({
 				if (members.length === 1) { cards.push({ main: members[0], dots: [], overflow: 0 }); continue; }
 				let main;
 				if (preferKeys && preferKeys.size) {
-					main = members.find(cps => preferKeys.has('s' + cps.join('-')));
+					const hits = members.filter(cps => preferKeys.has('s' + cps.join('-')));
+					if (hits.length) main = hits.find(cps => !cps.some(c => SKIN_CPS.has(c)));
+					if (main === undefined && hits.length) main = hits[0];
 				}
 				if (main === undefined) main = members.find(cps => !cps.some(c => SKIN_CPS.has(c)));
 				if (main === undefined) main = members[0];
@@ -1342,7 +1344,7 @@ const app = createApp({
 				if (a && !seen.has(a)) { seen.add(a); out.push(a); }
 			}
 			for (const [k, g] of Object.entries(meta.byKey)) {
-				if (k === key || !g || !g.name || seen.has(g.name)) continue;
+				if (k === key || !g || !g.name || seen.has(g.name) || shown.includes(g.name)) continue;
 				seen.add(g.name);
 				out.push(g.name);
 			}
