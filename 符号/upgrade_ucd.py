@@ -4,7 +4,7 @@
 
 用法：
   python upgrade_ucd.py check   # 校验模式：重算 vs 现状，只报告不写入（默认）
-  python upgrade_ucd.py apply   # 应用模式：备份后更新 标签.js + 重生成 名字.js
+  python upgrade_ucd.py apply   # 应用模式：备份后更新 标签.js + 重生成 unicode官方名.js
 
 规则：
   - 文字系统：Scripts.txt 直接取各 script 范围；Zzzz（未知文字系统）= 全部码位减已分配 script 并集
@@ -142,9 +142,9 @@ def main():
 			f.write(orig)
 		write_text(TAG_FILE, wrap('TAGS_DATA', dump_tags(data)))
 		print(f'已备份 → {os.path.basename(bak)}，已写回 标签.js')
-		# 重生成 名字.js（名字层随 Unicode 升级一起重算）
-		import build_names
-		build_names.main()
+		# 重生成 unicode官方名.js（名字层随 Unicode 升级一起重算）
+		import build_unicode_names
+		build_unicode_names.main()
 
 
 if __name__ == '__main__':

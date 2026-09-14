@@ -1,4 +1,4 @@
-window.NAMES_DATA = {
+window.UNICODE_NAMES_DATA = {
   "_v": "17.0.0",
   "names": {
     "0": "NULL",

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""体检：SYMBOLS 里的「组键」是否仍可命中标签语境。
+"""体检：ENRICHED_SYMBOLS 里的「组键」是否仍可命中标签语境。
 
 背景（见 数据说明.md 第三节）：
   组键（groups 的键）必须是**现存标签名**。若某组键指向的标签并不包含该符号
@@ -23,7 +23,7 @@ sys.path.insert(0, HERE)
 from datatool import read_data
 
 TAGS = os.path.join(HERE, '标签.js')
-SYMBOLS = os.path.join(HERE, '符号数据.js')
+ENRICHED_SYMBOLS = os.path.join(HERE, '符号富化数据.js')
 
 
 def collect_nodes(d, trail=()):
@@ -87,7 +87,7 @@ def main():
     bad = defaultdict(list)
 
     total = 0
-    for ln in open(SYMBOLS, encoding='utf-8'):
+    for ln in open(ENRICHED_SYMBOLS, encoding='utf-8'):
         s = ln.strip()
         if not s.startswith('{'):
             continue

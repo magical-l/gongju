@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""去重 符号数据.js 的 SYMBOLS：107 个重复字符 → 每字符一条目，多组保留，组名冲突首名为主。
+"""去重 符号富化数据.js 的 ENRICHED_SYMBOLS：107 个重复字符 → 每字符一条目，多组保留，组名冲突首名为主。
 
 修复项：
   - ⛉⛊⛋（U+26C9-26CB）被误标为"雾"挂在天 气组——它们实为将棋/几何图形，从天气组剔除
@@ -15,7 +15,7 @@ import json
 import os
 
 BASE = os.path.dirname(os.path.abspath(__file__))
-SRC = os.path.join(BASE, '符号数据.js')
+SRC = os.path.join(BASE, '符号富化数据.js')
 
 # 从天气组剔除的字符（错标）
 _DROP_WEATHER = {'⛉', '⛊', '⛋'}
@@ -80,7 +80,7 @@ def main():
 		merged.append(entry)
 
 	with open(SRC, 'w', encoding='utf-8', newline='\n') as f:
-		f.write('const SYMBOLS = [\n')
+		f.write('const ENRICHED_SYMBOLS = [\n')
 		for i, e in enumerate(merged):
 			line = json.dumps(e, ensure_ascii=False, separators=(',', ':'))
 			f.write('\t' + line + (',' if i < len(merged) - 1 else '') + '\n')

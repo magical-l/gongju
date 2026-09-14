@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""build_zhnames.py — 给 中文名.js（成员 → 中文名）**补空缺**
+"""build_zh_translation.py — 给 官方名直译名.js（成员 → 中文名）**补空缺**
 
 ⚠️ 语义是 **merge，不是重算**：已有的键一律不动，只写没有的。
-   中文名.js 是权威，本脚本只负责"新码位自动补译"（Unicode 升级时用）。
+   官方名直译名.js 是权威，本脚本只负责"新码位自动补译"（Unicode 升级时用）。
    历史上它是全量生成器，跑一次会抹掉后来所有人工改动（实测差过 8963 条），
    故改为 merge。真要全量重算，得先把现有文件挪走。
 
 数据源（全部在 符号/ 下）：
-- 名字.js                —— 英文名权威（读取字母类/韩文等做规则翻译）
+- unicode官方名.js                —— 英文名权威（读取字母类/韩文等做规则翻译）
 - 参考资料/annotations-zh.json —— CLDR 官方 emoji 中文名
 - zh-*.json              —— 翻译词表，结构 [[cp, "中文名"], ...]（仅对"没有的键"生效）
 
-输出：中文名.js {_v, names:{键:中文名}, patterns:[[lo,hi,prefix]...]}
+输出：官方名直译名.js {_v, names:{键:中文名}, patterns:[[lo,hi,prefix]...]}
   - 键为十进制码点字符串；含 '-' 的是序列键（由 build_zwj.py / 人工维护，本脚本不生成也不动）
-  - 与 名字.js 同构
+  - 与 unicode官方名.js 同构
 
 补缺来源（优先级从高到低）：
 1. 翻译词表 zh-*.json
@@ -139,7 +139,7 @@ SKIP_PREFIXES = ('HANGUL SYLLABLE ',)
 
 # ===== 算法块：码位范围 → 中文前缀 =====
 ALGORITHMIC = [
-    # 汉字各段（与名字.js patterns 同源）
+    # 汉字各段（与unicode官方名.js patterns 同源）
     (0x4E00, 0x9FFF, '汉字'),
     (0x3400, 0x4DBF, '汉字（扩展A）'),
     (0x20000, 0x2A6DF, '汉字（扩展B）'),
@@ -222,7 +222,7 @@ def _join(zh, tail):
 
 
 def main():
-    names_en = read_data(os.path.join(HERE, '名字.js'), 'NAMES_DATA')['names']
+    names_en = read_data(os.path.join(HERE, 'unicode官方名.js'), 'UNICODE_NAMES_DATA')['names']
 
     zh_map = {}  # cp(int) → 中文名
 
@@ -272,7 +272,7 @@ def main():
     existing = {}
     if os.path.exists(out_path):
         try:
-            d = read_data(out_path, 'ZH_NAMES_DATA')
+            d = read_data(out_path, 'ZH_TRANSLATION_DATA')
             if isinstance(d.get('names'), dict):
                 existing = d['names']
         except Exception:
@@ -297,8 +297,8 @@ def main():
         'names': names_out,
         'patterns': patterns_out,
     }
-    write_text(out_path, dump_data(out, 'ZH_NAMES_DATA'))
-    print(f'中文名.js: 已有 {len(existing)} 条保持不变，新补 {added} 条 '
+    write_text(out_path, dump_data(out, 'ZH_TRANSLATION_DATA'))
+    print(f'官方名直译名.js: 已有 {len(existing)} 条保持不变，新补 {added} 条 '
           f'→ 共 {len(names_out)} 条 + {len(patterns_out)} 个范围模式')
 
 

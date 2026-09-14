@@ -21,18 +21,18 @@ dev_server.py — 符号页编辑保存服务器（临时功能）。
   tag-reparent {"action":"tag-reparent","path":"源完整路径", "targetPath":"目标父路径或空"}
               targetPath 空 → 提升为语义根；否则把节点（含子树）移到目标父下
   sym       {"action":"sym",  "cps":[1F600],       "entry":{char,groups}|null, "name":"新名"|null}
-              entry 提供 → 写 符号数据.js（页面已路由好：字符在 SYMBOLS 或加了别名）
-              name 提供  → 写 中文名.js（仅非 SYMBOLS 字符的改名）
+              entry 提供 → 写 符号富化数据.js（页面已路由好：字符在 ENRICHED_SYMBOLS 或加了别名）
+              name 提供  → 写 官方名直译名.js（仅非 ENRICHED_SYMBOLS 字符的改名）
 
 落盘规则（标签.js 为唯一权威，标签.txt / build_tags 等已清理）：
   add/move/remove → 标签.js（成员添加/移动/取消打标）
-  tag-rename      → 标签.js（改 children key）+ 符号数据.js（同步同名组键）
+  tag-rename      → 标签.js（改 children key）+ 符号富化数据.js（同步同名组键）
   tag-alias       → 标签.js（alias 整体替换）
   tag-new         → 标签.js（新增空节点）
   tag-del         → 标签.js（删节点+子树）
   tag-sort        → 标签.js（同级键换序）
-  sym-name        → 字符在 符号数据.js → 改它；否则 → 中文名.js
-  sym-alias       → 符号数据.js alias（不在 → 新建条目）
+  sym-name        → 字符在 符号富化数据.js → 改它；否则 → 官方名直译名.js
+  sym-alias       → 符号富化数据.js alias（不在 → 新建条目）
   机械轴（文字系统/官方分类/区块）禁止修改
 
 运行： python 符号/dev_server.py
@@ -49,13 +49,13 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-# 标签.js / 中文名.js 的路径、包装、换行风格探测统一走 datatool（不再各自手写 open/json.loads）
+# 标签.js / 官方名直译名.js 的路径、包装、换行风格探测统一走 datatool（不再各自手写 open/json.loads）
 from datatool import (TAGS as TAGS_JS, ZH as ZH_JS, dump_data, dump_tags, read_data, wrap, write_text)
 PROJECT_ROOT = os.path.dirname(HERE)  # 项目根
-SYMBOL_JS = os.path.join(HERE, '符号数据.js')
+SYMBOL_JS = os.path.join(HERE, '符号富化数据.js')
 
 # 页面 fetch 的这些文件加 no-cache，改完刷新即新（符号.html 也禁缓存——否则浏览器缓存旧 ?v= 链接导致一直加载旧 JS）
-NO_CACHE_FILES = ('标签.js', '中文名.js', '名字.js', '符号数据.js', 'noto-cmap.js', '符号.html')
+NO_CACHE_FILES = ('标签.js', '官方名直译名.js', 'unicode官方名.js', '符号富化数据.js', 'noto-cmap.js', '符号.html')
 
 # 单写锁：读-改-写串行化（ThreadingHTTPServer 下防并发写坏文件）
 LOCK = threading.Lock()
@@ -184,7 +184,7 @@ def ranges_remove(node, cp):
 def seq_cps(s):
     """seqs 条目 → 纯码位数组。
 
-    seqs 条目现在**只存码位**（序列名在名字层：中文名.js / 名字.js，键为连字符码位串）。
+    seqs 条目现在**只存码位**（序列名在名字层：官方名直译名.js / unicode官方名.js，键为连字符码位串）。
     仍剥离末尾字符串，只为容忍历史数据，不做依赖。
     """
     i = len(s)
@@ -343,7 +343,7 @@ def move_key_order(d, key, direction, sortable=None):
 
 
 def sync_symbol_group_keys(old, new):
-    """标签改名后，同步 符号数据.js 中以旧标签名为键的 group。
+    """标签改名后，同步 符号富化数据.js 中以旧标签名为键的 group。
 
     组键必须是标签名：页面渲染会按组键=当前标签名取该符号在该标签下的语境名
     （buildSymbolMap 把 groups 的键作为 byKey），键不同步就取不到语境名。
@@ -432,7 +432,7 @@ def tag_meta(p):
             node.pop('intro', None)  # 空串=清空简介字段，保持 json 干净
     save_tags(data)
 
-    # 标签改名 → 同步 符号数据.js 里的同名组键（否则留下历史脏键）
+    # 标签改名 → 同步 符号富化数据.js 里的同名组键（否则留下历史脏键）
     msg = '已保存'
     if new_name is not None and new_name != parts[-1]:
         n = sync_symbol_group_keys(parts[-1], new_name)
@@ -578,9 +578,9 @@ def tag_reparent(p):
 # ===== 符号编辑 =====
 
 def sym_upsert(entry):
-    """把条目写入 符号数据.js：有同 char 则替换行，否则追加到 ] 前。
+    """把条目写入 符号富化数据.js：有同 char 则替换行，否则追加到 ] 前。
 
-    文件格式：`const SYMBOLS = [` + 每条目一行 `\t{...},` + `];`，但最后一条不带逗号。
+    文件格式：`const ENRICHED_SYMBOLS = [` + 每条目一行 `\t{...},` + `];`，但最后一条不带逗号。
     追加时若原末条缺逗号须补上，否则非法 JSON。
     """
     char = entry['char']
@@ -613,10 +613,10 @@ def sym_upsert(entry):
 
 
 def zhname_set(cp, name):
-    """写 中文名.js：names 是 {码点:名字} 映射，直接赋值。换行风格由 write_text 探测保持。"""
-    d = read_data(ZH_JS, 'ZH_NAMES_DATA')
+    """写 官方名直译名.js：names 是 {码点:名字} 映射，直接赋值。换行风格由 write_text 探测保持。"""
+    d = read_data(ZH_JS, 'ZH_TRANSLATION_DATA')
     d['names'][str(cp)] = name
-    write_text(ZH_JS, dump_data(d, 'ZH_NAMES_DATA'))
+    write_text(ZH_JS, dump_data(d, 'ZH_TRANSLATION_DATA'))
 
 
 def sym_save(p):
@@ -624,11 +624,11 @@ def sym_save(p):
     name = p.get('name')
     if entry:
         sym_upsert(entry)
-        return True, '已保存到 符号数据.js'
+        return True, '已保存到 符号富化数据.js'
     if name is not None:
         cps = norm_cps(p['cps'])
         zhname_set(cps[0], name)
-        return True, '已保存到 中文名.js'
+        return True, '已保存到 官方名直译名.js'
     return False, '无变更'
 
 

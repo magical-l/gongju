@@ -6,7 +6,7 @@ ZWJ 序列（含 U+200D，3+ 码位）塞不进单码位 ranges，节点用 seqs
   seqs: [[cp1, ..., cpN], ...]  **只存码位（归属）**
 
 序列名**不进 标签.js**，写在名字层（键 = 连字符码位串 "128104-8205-9877-65039"）：
-  中文名 → 中文名.js   英文 → 名字.js
+  中文名 → 官方名直译名.js   英文 → unicode官方名.js
   本脚本**独占这些键**，直接覆盖（页面改序列名走符号条目，从不写名字层）。
 
 中文名：
@@ -26,8 +26,8 @@ from datatool import dump_data, dump_tags, read_data, wrap, write_text
 EMOJI_TEST = os.path.join(BASE, '参考资料', 'emoji-test.txt')
 ANNOTATIONS = os.path.join(BASE, '参考资料', 'annotations-zh.json')
 TAG_FILE = os.path.join(BASE, '标签.js')
-ZH_FILE = os.path.join(BASE, '中文名.js')
-NM_FILE = os.path.join(BASE, '名字.js')
+ZH_FILE = os.path.join(BASE, '官方名直译名.js')
+NM_FILE = os.path.join(BASE, 'unicode官方名.js')
 
 # 肤色词（用户裁定简化版；拼接肤色在前）
 SKIN_ZH = {0x1F3FB: '浅肤色', 0x1F3FC: '中浅肤色', 0x1F3FD: '中肤色', 0x1F3FE: '中深肤色', 0x1F3FF: '深肤色'}
@@ -349,8 +349,8 @@ def write_name_layer(zh_pairs, en_pairs):
        从不写名字层，所以这里覆盖不会冲突人工改动。
     zh_pairs / en_pairs：{键: 名}，键为十进制码点或连字符码位串。
     """
-    for path, var, pairs in ((ZH_FILE, 'ZH_NAMES_DATA', zh_pairs),
-                             (NM_FILE, 'NAMES_DATA', en_pairs)):
+    for path, var, pairs in ((ZH_FILE, 'ZH_TRANSLATION_DATA', zh_pairs),
+                             (NM_FILE, 'UNICODE_NAMES_DATA', en_pairs)):
         if not pairs:
             continue
         d = read_data(path, var)
@@ -429,7 +429,7 @@ def main():
                 skin_added[SKIN_SUB[sk]] = skin_added.get(SKIN_SUB[sk], 0) + 1
     for node in skin_root.values():
         node['seqs'].sort(key=lambda s: tuple(s[:2]))
-    # 修饰符单码位（🏻🏼🏽🏾🏿）挂对应肤色节点 ranges + 中文名.js 显式条目
+    # 修饰符单码位（🏻🏼🏽🏾🏿）挂对应肤色节点 ranges + 官方名直译名.js 显式条目
     for cp, name in SKIN_SUB.items():
         node = skin_root[name]
         ranges = node.setdefault('ranges', [])

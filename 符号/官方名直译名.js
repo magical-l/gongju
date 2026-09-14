@@ -1,4 +1,4 @@
-window.ZH_NAMES_DATA = {
+window.ZH_TRANSLATION_DATA = {
   "_v": "17.0.0",
   "names": {
     "0": "空字符",

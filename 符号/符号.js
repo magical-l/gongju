@@ -4,11 +4,11 @@ const {
 } = Vue;
 
 // ===== 标签数据（全局）=====
-// TAGS：标签.js 四轴树（文字系统/官方分类/区块/语义）；NAMES：名字.js（码位→官方英文名）
+// TAGS：标签.js 四轴树（文字系统/官方分类/区块/语义）；UNICODE_NAMES：unicode官方名.js（码位→官方英文名）
 // FLAT：展平后的有成员标签列表 {name,node,path,count}；SYMBOL_MAP：char → {names,globalName,aliases,byKey,mode,intro}
 let TAGS = null;
-let NAMES = null;
-let ZH_NAMES = null; // 中文名.js（码位→中文名），空则回退英文名
+let UNICODE_NAMES = null;
+let ZH_TRANSLATION = null; // 官方名直译名.js（码位→中文名），空则回退英文名
 let FLAT = [];
 let NAME_PATHS = new Map(); // 节点名 → 路径数组（同名节点可在多处，如根「箭头」与区块「箭头」）
 const SYMBOL_MAP = new Map();
@@ -213,10 +213,10 @@ function unnamedKind(cp) {
 
 /** 码位 → 官方英文名：查 names 映射（键为十进制码点字符串），未命中扫 patterns；数据层无名的码点按分类给标签名兜底 */
 function nameOf(cp) {
-	if (NAMES) {
-		const hit = NAMES.names[cp];
+	if (UNICODE_NAMES) {
+		const hit = UNICODE_NAMES.names[cp];
 		if (hit !== undefined) return hit;
-		for (const [a, b, prefix] of NAMES.patterns) {
+		for (const [a, b, prefix] of UNICODE_NAMES.patterns) {
 			if (cp >= a && cp <= b) return prefix + cp.toString(16).toUpperCase();
 		}
 	}
@@ -225,6 +225,34 @@ function nameOf(cp) {
 	if (kind === 'control') return '<control-' + h + '>';
 	if (kind === 'private') return '<private-use-' + h + '>';
 	return '<unassigned-' + h + '>';
+}
+
+// ===== 全角/半角兼容（搜索）=====
+// 只折叠「宽度」：全角 ASCII（U+FF01–FF5E）→ 半角、全角空格 U+3000 → 半角空格。
+// 刻意不用 NFKC：它会把 ①→1、Ⅻ→XII、ﬁ→fi，在符号工具里属于误折叠。
+const FW_RE = /[！-～　]/;
+
+/** 全角 → 半角（含全角空格）；不含全角字符时原样返回 */
+function toHalfWidth(s) {
+	if (!FW_RE.test(s)) return s;
+	return s.replace(/[！-～　]/g, c => (c === '　' ? ' ' : String.fromCharCode(c.charCodeAt(0) - 0xFEE0)));
+}
+
+/** 半角可打印 ASCII → 全角单字符（toHalfWidth 的逆，单字符用）；其余原样返回 */
+function toFullWidthChar(c) {
+	const n = c.charCodeAt(0);
+	return n >= 0x21 && n <= 0x7E ? String.fromCharCode(n + 0xFEE0) : c;
+}
+
+/** 折叠路径只可能把全角变成 ASCII，故 q 不含 ASCII 时折叠侧恒无新命中（纯中文关键词走此快路径） */
+const Q_ASCII_RE = /[\x20-\x7E]/;
+
+/** 全角/半角兼容的子串包含；q 须已折叠并小写。hay 侧含全角时折叠后重试 */
+function widthIncludes(hay, q) {
+	const lo = hay.toLowerCase();
+	if (lo.includes(q)) return true;
+	if (!Q_ASCII_RE.test(q)) return false;
+	return FW_RE.test(hay) && toHalfWidth(lo).includes(q);
 }
 
 /** 把搜索词解析为 unicode 码点；不支持或不合法返回 null
@@ -249,12 +277,12 @@ function parseCodePointQuery(q) {
 	return { cp };
 }
 
-/** 码位 → 数据层中文名：中文名.js 的 names 是 {码点: 名字} 映射，直接取键；未命中扫 patterns 前缀；仍无返回 null（供 zhNameOf/zhNameIn 复用） */
+/** 码位 → 数据层中文名：官方名直译名.js 的 names 是 {码点: 名字} 映射，直接取键；未命中扫 patterns 前缀；仍无返回 null（供 zhNameOf/zhNameIn 复用） */
 function lookupZhName(cp) {
-	if (!ZH_NAMES) return null;
-	const n = ZH_NAMES.names[cp];
+	if (!ZH_TRANSLATION) return null;
+	const n = ZH_TRANSLATION.names[cp];
 	if (n) return n;
-	for (const [a, b, prefix] of ZH_NAMES.patterns) {
+	for (const [a, b, prefix] of ZH_TRANSLATION.patterns) {
 		if (cp >= a && cp <= b) return prefix;
 	}
 	return null;
@@ -299,8 +327,8 @@ function flatten(name, node, path) {
 	if (node.seqs) for (const s of node.seqs) {
 		const key = seqCps(s).join('-');
 		SEQ_INDEX.set(key, {
-			zh: (ZH_NAMES && ZH_NAMES.names[key]) || '',
-			en: (NAMES && NAMES.names[key]) || ''
+			zh: (ZH_TRANSLATION && ZH_TRANSLATION.names[key]) || '',
+			en: (UNICODE_NAMES && UNICODE_NAMES.names[key]) || ''
 		});
 	}
 	if (node.children) for (const [k, v] of Object.entries(node.children)) flatten(k, v, path + '/' + k);
@@ -316,9 +344,9 @@ function joinGroupNames(names) {
 	return [...new Set(names.filter(Boolean))].join('、');
 }
 
-/** 构建 char → 元数据 映射（SYMBOLS 为旧数据富化源，first-wins） */
+/** 构建 char → 元数据 映射（ENRICHED_SYMBOLS 为旧数据富化源，first-wins） */
 function buildSymbolMap() {
-	for (const s of SYMBOLS) {
+	for (const s of ENRICHED_SYMBOLS) {
 		if (SYMBOL_MAP.has(s.char)) continue;
 		const names = [], aliases = [];
 		const seen = new Set();
@@ -1268,8 +1296,8 @@ const app = createApp({
 			const tag = this.ctxTagName();
 			if (Array.isArray(cp) || !tag || !meta.byKey) return meta.aliases;
 			const key = this.ctxGroupKey(cp);
-			// 有语境但条目一个组都没有（条目级字段字符）→ 走聚合别名（含条目级别名）
-			if (!key && !Object.keys(meta.byKey).length) return meta.aliases;
+			// 无语境键，且条目里没有任何组带 name（含"无组"和"只有 alias 的组"两种）→ 走聚合别名
+			if (!key && !Object.values(meta.byKey).some(g => g && g.name)) return meta.aliases;
 			const cur = key ? meta.byKey[key] : null;
 			const out = [];
 			const seen = new Set();
@@ -1302,24 +1330,24 @@ const app = createApp({
 			const nm = nameOf(cp);
 			return 'U+' + cp.toString(16).toUpperCase() + (nm ? '\n' + nm : '');
 		},
-		/** 关键词命中的标签（name/path/intro/alias 子串匹配，最多 100；含简介命中，用于"标签匹配"导航列表） */
+		/** 关键词命中的标签（name/path/intro/alias 子串匹配，全角/半角互通，最多 100；含简介命中，用于"标签匹配"导航列表） */
 		matchTagsForToken(token) {
-			const q = token.toLowerCase();
+			const q = toHalfWidth(token).toLowerCase();
 			const out = [];
 			for (const t of FLAT) {
-				if (t.name.toLowerCase().includes(q) || t.path.toLowerCase().includes(q) || (t.node.intro && t.node.intro.toLowerCase().includes(q)) || (t.node.alias && t.node.alias.some(a => a.toLowerCase().includes(q)))) {
+				if (widthIncludes(t.name, q) || widthIncludes(t.path, q) || (t.node.intro && widthIncludes(t.node.intro, q)) || (t.node.alias && t.node.alias.some(a => widthIncludes(a, q)))) {
 					out.push(t);
 					if (out.length >= 100) break;
 				}
 			}
 			return out;
 		},
-		/** 关键词强命中的标签（仅 name/path/alias 子串匹配，不含 intro，最多 100；用于成员物化，避免简介提词拉进整桶） */
+		/** 关键词强命中的标签（仅 name/path/alias 子串匹配，不含 intro，全角/半角互通，最多 100；用于成员物化，避免简介提词拉进整桶） */
 		matchTagsStrong(token) {
-			const q = token.toLowerCase();
+			const q = toHalfWidth(token).toLowerCase();
 			const out = [];
 			for (const t of FLAT) {
-				if (t.name.toLowerCase().includes(q) || t.path.toLowerCase().includes(q) || (t.node.alias && t.node.alias.some(a => a.toLowerCase().includes(q)))) {
+				if (widthIncludes(t.name, q) || widthIncludes(t.path, q) || (t.node.alias && t.node.alias.some(a => widthIncludes(a, q)))) {
 					out.push(t);
 					if (out.length >= 100) break;
 				}
@@ -1336,9 +1364,9 @@ const app = createApp({
 			}
 			return set;
 		},
-		/** 关键词命中的符号：逻辑与旧 matchedChars 一致，抽成 per-token（码点/单字符/名匹配/中文名/旗序列） */
+		/** 关键词命中的符号：逻辑与旧 matchedChars 一致，抽成 per-token（码点/单字符/名匹配/中文名/旗序列）；全角/半角互通 */
 		matchCharsForToken(token) {
-			const q = token.toLowerCase();
+			const q = toHalfWidth(token).toLowerCase();
 			const out = [];
 			const seen = new Set();
 			const cpq = parseCodePointQuery(q);
@@ -1349,9 +1377,13 @@ const app = createApp({
 			}
 			const single = Array.from(token);
 			if (single.length === 1) {
-				const cp = single[0].codePointAt(0);
-				out.push({ char: single[0], cp, zhName: zhNameOf(cp), officialName: nameOf(cp) });
-				seen.add(cp);
+				// 单字符：原始 / 全角化 / 半角化 三种形式都查（全角=半角互通）
+				for (const ch of new Set([single[0], toFullWidthChar(single[0]), toHalfWidth(single[0])])) {
+					const cp = ch.codePointAt(0);
+					if (seen.has(cp)) continue;
+					seen.add(cp);
+					out.push({ char: ch, cp, zhName: zhNameOf(cp), officialName: nameOf(cp) });
+				}
 			} else {
 				for (const [char, meta] of SYMBOL_MAP) {
 					if (char === q) {
@@ -1370,22 +1402,22 @@ const app = createApp({
 			}
 			for (const [char, meta] of SYMBOL_MAP) {
 				if ([...char].length > 1) continue; // 序列(多码)由下方 seqs 通道统一匹配，避免按单码错分
-				const hit = meta.names.some(n => n.toLowerCase().includes(q))
-					|| nameOf(char.codePointAt(0)).toLowerCase().includes(q)
-					|| meta.aliases.some(a => a.toLowerCase().includes(q))
-					|| meta.intro.toLowerCase().includes(q);
+				const hit = meta.names.some(n => widthIncludes(n, q))
+					|| widthIncludes(nameOf(char.codePointAt(0)), q)
+					|| meta.aliases.some(a => widthIncludes(a, q))
+					|| widthIncludes(meta.intro, q);
 				if (!hit) continue;
 				const cp = char.codePointAt(0);
 				if (seen.has(cp)) continue;
 				seen.add(cp);
 				out.push({ char, cp, zhName: zhNameOf(cp), officialName: nameOf(cp) });
 			}
-			if (ZH_NAMES) {
-				for (const [k, zh] of Object.entries(ZH_NAMES.names)) {
+			if (ZH_TRANSLATION) {
+				for (const [k, zh] of Object.entries(ZH_TRANSLATION.names)) {
 					if (k.includes('-')) continue; // 序列键（连字符码位串）由下方 seqs 通道处理
 					const cp = +k;
 					if (seen.has(cp)) continue;
-					if (zh.toLowerCase().includes(q)) {
+					if (widthIncludes(zh, q)) {
 						seen.add(cp);
 						out.push({ char: String.fromCodePoint(cp), cp, zhName: zh, officialName: nameOf(cp) });
 					}
@@ -1396,7 +1428,7 @@ const app = createApp({
 				for (const s of t.node.seqs) {
 					const cps = seqCps(s);
 					const m = seqSymbolMeta(cps);
-					if (!m.zhName.toLowerCase().includes(q) && !m.officialName.toLowerCase().includes(q) && !m.aliases.some(a => a.toLowerCase().includes(q)) && !m.intro.toLowerCase().includes(q)) continue;
+					if (!widthIncludes(m.zhName, q) && !widthIncludes(m.officialName, q) && !m.aliases.some(a => widthIncludes(a, q)) && !widthIncludes(m.intro, q)) continue;
 					const key = 'seq:' + cps.join('-');
 					if (seen.has(key)) continue;
 					seen.add(key);
@@ -2209,7 +2241,7 @@ const app = createApp({
 			this.metaEditorPath = '';
 			this.metaEditorVisible = true;
 		},
-		/** 保存符号元数据：按路由（SYMBOLS entry / 中文名.js）先写服务器，成功后再改内存 */
+		/** 保存符号元数据：按路由（ENRICHED_SYMBOLS entry / 官方名直译名.js）先写服务器，成功后再改内存 */
 		async saveSymbolMeta() {
 			const sc = this.metaEditorChar;
 			if (!sc) return;
@@ -2223,23 +2255,23 @@ const app = createApp({
 			const introChanged = intro !== this.metaEditorOldIntro;
 			if (!nameChanged && !aliasChanged && !introChanged) { this.metaEditorVisible = false; return; }
 			if (nameChanged && !newName) { ElementPlus.ElMessage.error('名字不能为空'); return; }
-			// 序列与单码点同构，一律走下方 entry 路线：编辑 = 登记/更新该符号在 SYMBOLS 的元素
-			// （序列 useNameRoute 恒 false，序列名不在 中文名.js；富化优先、标签 seqs 默认名兜底）
+			// 序列与单码点同构，一律走下方 entry 路线：编辑 = 登记/更新该符号在 ENRICHED_SYMBOLS 的元素
+			// （序列 useNameRoute 恒 false，序列名不在 官方名直译名.js；富化优先、标签 seqs 默认名兜底）
 			// 路由决策：
-			//   旗序列 / 字符在 SYMBOLS / 需加别名（可同时改名）/ 有语境标签 → entry 路线（写 符号数据.js）
-			//   不在 SYMBOLS、仅改名且无语境 → name 路线（写 中文名.js，只对单码位有意义）
+			//   旗序列 / 字符在 ENRICHED_SYMBOLS / 需加别名（可同时改名）/ 有语境标签 → entry 路线（写 符号富化数据.js）
+			//   不在 ENRICHED_SYMBOLS、仅改名且无语境 → name 路线（写 官方名直译名.js，只对单码位有意义）
 			const tagCtx = this.ctxTagName();
-			const inSymbols = !isSeq && SYMBOLS.some(s => s.char === sc.char);
+			const inSymbols = !isSeq && ENRICHED_SYMBOLS.some(s => s.char === sc.char);
 			const useNameRoute = !isSeq && !inSymbols && nameChanged && !aliasChanged && !tagCtx;
 			const payload = { action: 'sym', cps: this.toCpsArray(sc.cp) };
 			// entry 路线需在 serverSave 前改内存 entry（要发出去），失败必须回滚，否则页面与文件不一致
 			let entry = null;
 			let snapshot = null;
 			if (useNameRoute) {
-				if (!ZH_NAMES) { ElementPlus.ElMessage.error('中文名数据未加载'); return; }
+				if (!ZH_TRANSLATION) { ElementPlus.ElMessage.error('中文名数据未加载'); return; }
 				payload.name = newName;
 			} else {
-				entry = SYMBOLS.find(s => s.char === sc.char);
+				entry = ENRICHED_SYMBOLS.find(s => s.char === sc.char);
 				snapshot = entry ? JSON.parse(JSON.stringify(entry)) : null;
 				if (entry) {
 					// 无语境时 name 与 alias 统一落同一组：targetGroup = 第一个有 name 的组 || 第一个组
@@ -2293,19 +2325,19 @@ const app = createApp({
 						if (aliasChanged && aliases.length) entry.alias = aliases;
 					}
 					if (introChanged && intro) entry.intro = intro;
-					SYMBOLS.push(entry);
+					ENRICHED_SYMBOLS.push(entry);
 				}
 				payload.entry = entry;
 			}
 			try {
 				await this.serverSave(payload);
 			} catch (e) {
-				// 服务器保存失败 → 回滚内存：已有条目还原快照，新建条目从 SYMBOLS 移除
+				// 服务器保存失败 → 回滚内存：已有条目还原快照，新建条目从 ENRICHED_SYMBOLS 移除
 				if (entry) {
 					if (snapshot) Object.assign(entry, snapshot);
 					else {
-						const i = SYMBOLS.indexOf(entry);
-						if (i >= 0) SYMBOLS.splice(i, 1);
+						const i = ENRICHED_SYMBOLS.indexOf(entry);
+						if (i >= 0) ENRICHED_SYMBOLS.splice(i, 1);
 					}
 				}
 				// byKey 持有 groups 引用，回滚后重建映射保持一致
@@ -2316,7 +2348,7 @@ const app = createApp({
 			}
 			// 成功 → 改内存
 			if (useNameRoute) {
-				ZH_NAMES.names[sc.cp] = newName;
+				ZH_TRANSLATION.names[sc.cp] = newName;
 				sc.zhName = newName;
 			} else {
 				SYMBOL_MAP.clear();
@@ -2359,11 +2391,11 @@ const app = createApp({
 					const nameApply = !!f.nameChanged && seqSymbolMeta(sib).zhName === f.oldName;
 					const aliasApply = !!f.aliasChanged;
 					const introApply = !!f.introChanged;
-					let se = SYMBOLS.find(x => x.char === sibChar);
+					let se = ENRICHED_SYMBOLS.find(x => x.char === sibChar);
 					// 兄弟未登记且本次对它无实际内容可写(清空无意义)→跳过，不制造空元素
 					if (!se && !nameApply && !(aliasApply && alias) && !(introApply && intro)) continue;
 					const snap = se ? JSON.parse(JSON.stringify(se)) : null;
-					if (!se) { se = { char: sibChar }; SYMBOLS.push(se); }
+					if (!se) { se = { char: sibChar }; ENRICHED_SYMBOLS.push(se); }
 					if (gk) {
 						se.groups = se.groups || {};
 						const sg = se.groups[gk] || (se.groups[gk] = {});
@@ -2378,14 +2410,14 @@ const app = createApp({
 					if (introApply) { if (intro) se.intro = intro; else delete se.intro; }
 					// 建了空元素(没实际落到任何字段)→回滚移除（条目级 name/alias 也算有内容）
 					if (!(se.groups && Object.keys(se.groups).length) && !se.name && !se.alias && !se.intro && !snap) {
-						SYMBOLS.splice(SYMBOLS.indexOf(se), 1);
+						ENRICHED_SYMBOLS.splice(ENRICHED_SYMBOLS.indexOf(se), 1);
 						continue;
 					}
 					try {
 						await this.serverSave({ action: 'sym', cps: this.toCpsArray(sib), entry: se });
 					} catch (e) {
 						if (snap) Object.assign(se, snap);
-						else SYMBOLS.splice(SYMBOLS.indexOf(se), 1);
+						else ENRICHED_SYMBOLS.splice(ENRICHED_SYMBOLS.indexOf(se), 1);
 						throw e;
 					}
 				}
@@ -2571,12 +2603,12 @@ const app = createApp({
 		try {
 			// 数据由 <script src> 预置的全局变量提供（file:// 下 fetch 会被 CORS 拦，改全局后双击可直开）
 			TAGS = window.TAGS_DATA;
-			NAMES = window.NAMES_DATA;
-			ZH_NAMES = window.ZH_NAMES_DATA;
+			UNICODE_NAMES = window.UNICODE_NAMES_DATA;
+			ZH_TRANSLATION = window.ZH_TRANSLATION_DATA;
 			TOFU_NOTO = window.NOTO_CMAP_DATA || null; // 缺失则容错留 null
 			if (!TAGS) throw new Error('缺少数据文件 标签.js（window.TAGS_DATA 未定义）');
-			if (!NAMES) throw new Error('缺少数据文件 名字.js（window.NAMES_DATA 未定义）');
-			if (!ZH_NAMES) throw new Error('缺少数据文件 中文名.js（window.ZH_NAMES_DATA 未定义）');
+			if (!UNICODE_NAMES) throw new Error('缺少数据文件 unicode官方名.js（window.UNICODE_NAMES_DATA 未定义）');
+			if (!ZH_TRANSLATION) throw new Error('缺少数据文件 官方名直译名.js（window.ZH_TRANSLATION_DATA 未定义）');
 			// 构建双模集合：标签.js 权威（emoji（绘文字）> emoji-text双模 节点 ranges，207 码位）；节点缺失则留空集
 			const dualNode = TAGS.roots['emoji（绘文字）']?.children?.['emoji-text双模'];
 			if (dualNode && dualNode.ranges) {
@@ -2628,8 +2660,8 @@ const app = createApp({
 				const resolved = resolveSeq(cps);
 				if (resolved) this.selectFlag(resolved);
 			}
-			// unicode 码 / HTML 转义：解析到码点直接选中详情，与输入单字符一致
-			const cpq = parseCodePointQuery(s);
+			// unicode 码 / HTML 转义：解析到码点直接选中详情，与输入单字符一致；输入法全角模式下先折半角再解析
+			const cpq = parseCodePointQuery(s) || parseCodePointQuery(toHalfWidth(s));
 			if (cpq) this.selectChar(cpq.cp);
 		},
 		// 搜索关键词变化 → 预检测渲染能力（未检测字符置占位，不闪豆腐块）

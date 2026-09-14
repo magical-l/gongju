@@ -3,14 +3,14 @@
 
 **改数据的脚本一律用这里，别各自手写 JSON 解析 / 写回。**
 这里封掉的都是踩过的坑：逗号归一、`},,` 造成的稀疏空槽、写回格式选错、
-备份忘记清理、中文名.js 的映射格式。
+备份忘记清理、官方名直译名.js 的映射格式。
 
 用法::
 
     import sys; sys.path.insert(0, r'd:\\工具兽\\静态页面工具\\符号')
     from datatool import *
 
-    # 改 符号数据.js（只重写被改动的行，其余字节不动）
+    # 改 符号富化数据.js（只重写被改动的行，其余字节不动）
     def f(o):                      # o 是解析后的条目 dict，改它
         if o['char'] == '☭':
             o['groups'] = {...}
@@ -20,7 +20,7 @@
     # 加新条目
     append_symbols([{'char':'🆕','groups':{'某标签':{'name':'某名'}}}])
 
-    # 名字表（中文名.js，names 是 {码点:名字} 映射）
+    # 名字表（官方名直译名.js，names 是 {码点:名字} 映射）
     zh = load_zh(); zh['0x262D'] ...
     set_zh(0x262D, '镰刀锤子'); save_zh()
 
@@ -34,12 +34,12 @@ import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SYMS = os.path.join(HERE, '符号数据.js')
-ZH = os.path.join(HERE, '中文名.js')
-NAMES = os.path.join(HERE, '名字.js')
+SYMS = os.path.join(HERE, '符号富化数据.js')
+ZH = os.path.join(HERE, '官方名直译名.js')
+UNICODE_NAMES = os.path.join(HERE, 'unicode官方名.js')
 TAGS = os.path.join(HERE, '标签.js')
 NOTO = os.path.join(HERE, 'noto-cmap.js')
-HEAD = 'const SYMBOLS = ['
+HEAD = 'const ENRICHED_SYMBOLS = ['
 TAIL = '];'
 
 
@@ -125,7 +125,7 @@ def write_text(path, text, newline=None, trailing=None):
     open(path, 'w', encoding='utf-8', newline='').write(text + trailing)
 
 
-# ==================== 符号数据.js ====================
+# ==================== 符号富化数据.js ====================
 
 def _lines(path=SYMS):
     return open(path, encoding='utf-8').read().split('\n')
@@ -200,16 +200,16 @@ def _write(path, text):
     open(path, 'w', encoding='utf-8', newline='\n').write(text)
 
 
-# ==================== 中文名.js ====================
-# 格式：window.ZH_NAMES_DATA = {_v, names:{ "码点": "名字" }, patterns:[[lo,hi,前缀],...]};
+# ==================== 官方名直译名.js ====================
+# 格式：window.ZH_TRANSLATION_DATA = {_v, names:{ "码点": "名字" }, patterns:[[lo,hi,前缀],...]};
 # names 是映射，没有"必须升序"这回事。
 
 def load_zh():
-    return read_data(ZH, 'ZH_NAMES_DATA')
+    return read_data(ZH, 'ZH_TRANSLATION_DATA')
 
 
 def save_zh(d):
-    write_text(ZH, dump_data(d, 'ZH_NAMES_DATA'))
+    write_text(ZH, dump_data(d, 'ZH_TRANSLATION_DATA'))
 
 
 def set_zh(cp, name):
@@ -290,10 +290,10 @@ def check_all(verbose=True):
     """一次跑完所有不变量。返回 (ok, [问题描述])。"""
     bad = []
 
-    # ① 符号数据.js 语法
+    # ① 符号富化数据.js 语法
     r = subprocess.run(['node', '--check', SYMS], capture_output=True, text=True)
     if r.returncode:
-        bad.append('符号数据.js 语法错：' + r.stderr.strip().split('\n')[0])
+        bad.append('符号富化数据.js 语法错：' + r.stderr.strip().split('\n')[0])
 
     # ② 逐项校验（防 `},,` 造成的稀疏空槽：语法合法但数组里是 undefined）
     raw = [l.strip() for l in _lines() if l.strip().startswith('{')]
@@ -337,7 +337,7 @@ def check_all(verbose=True):
                 bad.append('%s 的组 %r 名字顿号异常：%r' % (o['char'], k, nm))
 
     # ⑤ 名字层两个文件：可解析，且键都是「十进制码点」或「连字符码位串」
-    for fname, path, var in (('中文名.js', ZH, 'ZH_NAMES_DATA'), ('名字.js', NAMES, 'NAMES_DATA')):
+    for fname, path, var in (('官方名直译名.js', ZH, 'ZH_TRANSLATION_DATA'), ('unicode官方名.js', UNICODE_NAMES, 'UNICODE_NAMES_DATA')):
         try:
             d = read_data(path, var)
             for k in d['names']:
@@ -373,8 +373,8 @@ def check_all(verbose=True):
 # (路径, 全局变量, 是否用 dump_tags 的紧凑写法)
 DATA_FILES = (
     (TAGS, 'TAGS_DATA', True),
-    (NAMES, 'NAMES_DATA', False),
-    (ZH, 'ZH_NAMES_DATA', False),
+    (UNICODE_NAMES, 'UNICODE_NAMES_DATA', False),
+    (ZH, 'ZH_TRANSLATION_DATA', False),
     (NOTO, 'NOTO_CMAP_DATA', False),
 )
 
