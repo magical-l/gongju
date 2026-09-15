@@ -5,7 +5,7 @@ const {
 
 // ===== 标签数据（全局）=====
 // TAGS：标签.js 四轴树（文字系统/官方分类/区块/语义）；UNICODE_NAMES：unicode官方名.js（码位→官方英文名）
-// FLAT：展平后的有成员标签列表 {name,node,path,count}；SYMBOL_MAP：char → {names,globalName,aliases,byKey,mode,intro}
+// FLAT：展平后的有成员标签列表 {name,node,path,count}；SYMBOL_MAP：char → {names,userName,joinedName,aliases,byKey,entryAlias,mode,intro}
 let TAGS = null;
 let UNICODE_NAMES = null;
 let ZH_TRANSLATION = null; // 官方名直译名.js（码位→中文名），空则回退英文名
@@ -116,14 +116,17 @@ function variantGroupKey(cps) {
 }
 
 /** 序列富化元数据：SYMBOL_MAP(char=整串，人工登记)优先 → SEQ_INDEX(名字层默认名)兜底；
- *  与单码点 zhNameOf 同构——富化层优先、默认层兜底。未登记序列返回纯默认。 */
+ *  与单码点 zhNameOf 同构——富化层优先、默认层兜底。未登记序列返回纯默认。
+ *  zhName 就是拼接名（只在无标签语境下当权威名，见 joinGroupNames）；baseName 只取名字层默认名，
+ *  供具体标签语境下的兜底取名用（见 ctxFallbackName）——不给拼接名留下越界顶掉本标签兜底名的机会。 */
 function seqSymbolMeta(cps) {
 	const char = String.fromCodePoint(...cps);
 	const rich = SYMBOL_MAP.get(char);
 	const def = SEQ_INDEX.get(cps.join('-')) || {};
 	return {
 		char,
-		zhName: (rich && rich.globalName) || def.zh || '',
+		zhName: (rich && rich.joinedName) || def.zh || '',
+		baseName: def.zh || '',
 		officialName: def.en || '',
 		aliases: (rich && rich.aliases) ? rich.aliases : [],
 		intro: (rich && rich.intro) || ''
@@ -312,7 +315,7 @@ function parseCodePointQuery(q) {
 	return { cp };
 }
 
-/** 码位 → 数据层中文名：官方名直译名.js 的 names 是 {码点: 名字} 映射，直接取键；未命中扫 patterns 前缀；仍无返回 null（供 zhNameOf/zhNameIn 复用） */
+/** 码位 → 数据层中文名：官方名直译名.js 的 names 是 {码点: 名字} 映射，直接取键；未命中扫 patterns 前缀；仍无返回 null（供 zhNameOf/ctxFallbackName 复用） */
 function lookupZhName(cp) {
 	if (!ZH_TRANSLATION) return null;
 	const n = ZH_TRANSLATION.names[cp];
@@ -323,23 +326,33 @@ function lookupZhName(cp) {
 	return null;
 }
 
-/** 码位 → 全球中文名：SYMBOL_MAP 人工名（= 各组语境名按组序去重拼接）优先，未命中查数据层中文名；仍无则按分类给兜底（全局视图权威名） */
-function zhNameOf(cp) {
-	const sc = SYMBOL_MAP.get(String.fromCodePoint(cp));
-	if (sc && sc.globalName) return sc.globalName;
-	const zn = lookupZhName(cp);
-	if (zn) return zn;
+/** 无名可用的分类占位名（未分配 / 私用区 / 控制字符三档）：zhNameOf 的兜底链与标签语境的兜底链共用，两处口径必须一致。
+ *  注意它**不参与拼接名**——占位不是名字（见 fallbackNameOf）。 */
+function unnamedPlaceholder(cp) {
 	const kind = unnamedKind(cp);
 	if (kind === 'control') return '控制字符';
 	if (kind === 'private') return '私用区码点';
 	return '未分配码点';
 }
 
-/** 码位 → 语境名：当前标签组名优先 → 其余一律走 zhNameOf 既有兜底链（人工名 → 数据层中文名 → 分类兜底） */
-function zhNameIn(cp, tagName) {
+/** 兜底名（原始层，不含占位名/英文名）：单码位取 官方名直译名.js 那条；序列取 SEQ_INDEX 的默认中文名；无名返回 ''。
+ *  入参形态与 ctxFallbackName 一致：单码位传码位数字，序列传码位数组。
+ *  「页面上本来就会显示的那个兜底中文名」以这里为唯一来源——标签语境兜底（ctxFallbackName）
+ *  与拼接名（buildSymbolMap）共用它，两处口径必须一致：拼接名要拼的正是"没配主名的标签下会显示的名字"。
+ *  刻意不含占位名（未分配 / 私用区 / 控制字符）与官方英文名：占位不是名字，英文不该混进中文名列表。 */
+function fallbackNameOf(cp) {
+	if (Array.isArray(cp)) return seqSymbolMeta(cp).baseName;   // baseName 只取名字层默认名，不含拼接
+	return lookupZhName(cp) || '';
+}
+
+/** 码位 → 无标签语境（搜索 / 无标签浏览）的中文名：拼接名优先，未命中查数据层中文名；仍无则按分类给占位。
+ *  ⚠️ 这是**搜索 / 无标签浏览**（无语境）的权威名；具体标签下取名走 ctxZhName / ctxFallbackName。 */
+function zhNameOf(cp) {
 	const sc = SYMBOL_MAP.get(String.fromCodePoint(cp));
-	if (sc && tagName && sc.byKey && sc.byKey[tagName] && sc.byKey[tagName].name) return sc.byKey[tagName].name;
-	return zhNameOf(cp);
+	if (sc && sc.joinedName) return sc.joinedName;
+	const zn = lookupZhName(cp);
+	if (zn) return zn;
+	return unnamedPlaceholder(cp);
 }
 
 /** 树根重排：语义轴在前，文字系统/官方分类/区块末尾（区块最后） */
@@ -374,7 +387,12 @@ function groupAlive(g) {
 	return !!g && !!(g.name || (g.alias && g.alias.length));
 }
 
-/** 全局名 = 各组语境名按组序去重拼接（拆语境名后全局名自动跟随，无需另存） */
+/** 拼接名 = 条目级名（没设则兜底名）打头 + 各组语境名，按组序去重以「、」连接（拆语境名后拼接名自动跟随，无需另存）。
+ *  ⚠️ 用途边界：只在**无标签语境**（搜索结果、无标签详情）下作权威名；落到具体标签下显示的是该标签的语境名
+ *  （ctxZhName → ctxFallbackName），此时拼接名越界会把别的标签的组名顶上来。
+ *  为什么没设条目级 name 时要把兜底名拼进来：那些没配主名的标签下本来显示的就是这个兜底名，
+ *  拼进来只是与页面显示一致，不是新增名字；反之设了条目级 name 时它已经"代表"了那些标签
+ *  （没配主名的标签下显示的就是条目级名），再拼兜底名只会得到同义重复。 */
 function joinGroupNames(names) {
 	return [...new Set(names.filter(Boolean))].join('、');
 }
@@ -385,7 +403,8 @@ function buildSymbolMap() {
 		if (SYMBOL_MAP.has(s.char)) continue;
 		const names = [], aliases = [];
 		const seen = new Set();
-		// 条目级 name/alias 先收（无任何标签的字符直接写在条目上），排在拼接结果最前
+		// 条目级 name/alias 先收（无任何标签的字符直接写在条目上），排在名字列表最前
+		// （拼接名的第一位另有兜底名打头，见下；两者相同或兜底名已在列表里时由 joinGroupNames 去重）
 		if (s.name && !seen.has('n:' + s.name)) { seen.add('n:' + s.name); names.push(s.name); }
 		for (const a of (s.alias || [])) {
 			if (!seen.has('a:' + a)) { seen.add('a:' + a); aliases.push(a); }
@@ -398,8 +417,16 @@ function buildSymbolMap() {
 		}
 		// 别名与任何组主名相同则滤掉（防止别名与主名相同的第二道闸）
 		const aliases2 = aliases.filter(a => !seen.has('n:' + a));
-		// byKey=组键(标签名)→组对象引用（供语境取名/别名合并）
-		SYMBOL_MAP.set(s.char, { names, globalName: joinGroupNames(names), aliases: aliases2, byKey: s.groups || {}, mode: s.mode || '', intro: s.intro || '' });
+		// 拼接名：打头的是条目级 name（用户显式指定的主名，压过标签名拼接）；没设则用兜底名打头——
+		// 没配主名的标签下显示的就是那个兜底名，拼进来与页面显示一致（理由详见 joinGroupNames）
+		const cps = [...s.char].map(c => c.codePointAt(0));
+		const head = s.name || fallbackNameOf(cps.length === 1 ? cps[0] : cps);   // 设了 name 时 head 与 names[0] 同值，去重后不重复
+		const joinedName = joinGroupNames([head, ...names]);
+		// byKey=组键(标签名)→组对象引用（供语境取名/别名合并）；entryAlias=条目级别名原文
+		// （语境别名合并要单列这层：meta.aliases 已把条目级与各组合并成一个列表，分不出来源）
+		// userName=条目级 name 原文：joinedName 里那份原始值取不出来（没设主名时它开头是兜底名），
+		// 而具体标签语境下的兜底取名要它（names[0] 虽然常等于它，但条目级没设名时 names[0] 是第一个组名，不可靠）——见 ctxFallbackName
+		SYMBOL_MAP.set(s.char, { names, userName: s.name || '', joinedName, aliases: aliases2, byKey: s.groups || {}, entryAlias: s.alias || [], mode: s.mode || '', intro: s.intro || '' });
 	}
 }
 
@@ -901,12 +928,12 @@ const app = createApp({
 			metaEditorVisible: false,    // 元数据编辑弹窗开关
 			metaEditorKind: 'tag',       // 'tag' 标签 | 'symbol' 符号 | 'root' 新增根
 			metaEditorPath: '',          // 标签模式：当前编辑的标签路径
-			metaEditorName: '',          // 名字输入
-			metaEditorNameLocked: false, // 符号模式：名字是否为多组拼接名（≥2 个命名组且无语境）——锁定时禁止在此改名
-			metaEditorAliases: [],       // 别名输入数组
+			metaEditorName: '',          // 名字输入（标签/根模式）
+			metaEditorAliases: [],       // 别名输入数组（标签/根模式）
+			metaEditorBlocks: [],        // 符号模式：编辑块数组，每项 {key,label,name,alias,placeholder,oldName,oldAliases}——key=null 是全局块（条目级），否则是组键
 			metaEditorChar: null,        // 符号模式：当前编辑的字符对象
-			metaEditorCpStr: '',         // 符号模式：码位串显示
-			metaEditorOldAliases: [],    // 打开弹窗时的旧别名（比对变更用）
+			metaEditorCpStr: '',         // 码位串显示
+			metaEditorOldAliases: [],    // 打开弹窗时的旧别名（标签模式比对变更用）
 			metaEditorIntro: '',      // 编辑弹窗标签简介
 			metaEditorOldIntro: '',   // 打开弹窗时的简介（判断是否变更）
 			reparentTarget: '',       // 父级归属：选中的目标父 path（''=提升为根）
@@ -1318,48 +1345,74 @@ const app = createApp({
 			if (best) return best;
 			return (bk[tag] && bk[tag].name) ? tag : '';   // 兜底：键不在 FLAT（陈旧键等）时按名字精确命中，且该组必须有名字
 		},
-		/** 视图取名：有语境标签 → 该标签子树里最深组名；否则全局名；序列走序列元数据（不做语境取名） */
+		/** 语境别名键：当前标签名下**有**组就用它（不要求该组有 name），取不到才退回 ctxGroupKey。
+		 *  ⚠️ 不能直接把 ctxGroupKey 当别名键：它要求组必须有 name，而 1500+ 个组只挂别名不设组名——
+		 *  那些组在 ctxGroupKey 里永远取不到键，别名在自己的标签下也会消失。 */
+		ctxAliasKey(cp) {
+			const tag = this.ctxTagName();
+			if (!tag) return '';
+			const char = Array.isArray(cp) ? String.fromCodePoint(...cp) : String.fromCodePoint(cp);   // 序列（多码位）取整串，与富化层的登记键一致
+			const meta = SYMBOL_MAP.get(char);
+			const bk = meta && meta.byKey;
+			if (bk && bk[tag] && groupAlive(bk[tag])) return tag;   // 空组 {} / {alias:[]} 视为不存在（groupAlive 同口径），没有键可圈
+			return this.ctxGroupKey(cp);
+		},
+		/** 具体标签语境下、本标签没有组名时的兜底名：**不含各标签组名的拼接**。
+		 *  为什么不能直接用 zhNameOf / seqSymbolMeta：它们的 joinedName 是无标签语境的权威名——把各标签的组名
+		 *  去重拼在一起。那套只在没有标签语境的场合（搜索 / 无标签浏览）成立；落到某个具体标签下就是越界：
+		 *  别的标签设的组名会顶掉本标签该显示的兜底直译。
+		 *  例：✊ 只在「手势、姿势」下设了主名「举起拳头」，到平级标签「手、手臂、手指头」下应显示直译
+		 *  「举起的拳头」，却被拼接名顶成了「举起拳头」。
+		 *  链：条目级 name（编辑器里「全局」块的主名，用户显式指定的）→ 兜底层（fallbackNameOf，与拼接名同源：
+		 *  单码位查直译名字表；序列查 SEQ_INDEX）→ 未分配 / 私用区 / 控制字符占位。 */
+		ctxFallbackName(cp) {
+			const meta = SYMBOL_MAP.get(Array.isArray(cp) ? String.fromCodePoint(...cp) : String.fromCodePoint(cp));
+			if (meta && meta.userName) return meta.userName;
+			if (Array.isArray(cp)) {
+				// 序列兜底层：名字层默认名（不含拼接），实在没有才退官方英文名——官方名只服务本标签的显示，
+				// 不参与拼接（拼接名是中文字名列表，混英文名会串味；见 fallbackNameOf）
+				return fallbackNameOf(cp) || seqSymbolMeta(cp).officialName || '';
+			}
+			return fallbackNameOf(cp) || unnamedPlaceholder(cp);
+		},
+		/** 视图取名：有语境标签 → 该标签子树里最深组名；有语境但本标签没组名 → 语境兜底名（跳过拼接）；
+		 *  无语境（搜索 / 无标签浏览）→ 拼接名 / 序列元数据——拼接是那两个视图的语义，保持不变。 */
 		ctxZhName(cp) {
 			const key = this.ctxGroupKey(cp);
 			if (key) return SYMBOL_MAP.get(Array.isArray(cp) ? String.fromCodePoint(...cp) : String.fromCodePoint(cp)).byKey[key].name;   // 单码位/序列同一路径，ctxGroupKey 已保证该组有 name
-			if (Array.isArray(cp)) {   // 序列无语境名 → 回退序列元数据（拼接全局名）
+			if (this.ctxTagName()) return this.ctxFallbackName(cp);
+			if (Array.isArray(cp)) {   // 无语境 → 序列元数据（拼接名）
 				const m = seqSymbolMeta(cp);
 				return m.zhName || m.officialName || '';
 			}
 			return zhNameOf(cp);
 		},
-		/** 详情别名（虚拟合并）：有语境 → 本组 alias ∪ 其他组 name，且一律排除"当前显示的主名"；无语境/序列 → 聚合别名 */
+		/** 详情别名（虚拟合并）：有语境 → 本组 alias（ctxAliasKey 圈定）∪ 条目级 alias ∪ 其他组组名，
+		 *  并一律排除"当前显示的主名"；无语境 → 聚合别名（meta.aliases = 各组合并 alias ∪ 条目级 alias）。
+		 *  这里没有"无语境键就退回聚合别名"的兜底了——那会把某个标签的别名泄到所有标签下（实测 1992 条）。 */
 		ctxAliases(cp) {
 			const meta = SYMBOL_MAP.get(Array.isArray(cp) ? String.fromCodePoint(...cp) : String.fromCodePoint(cp));
 			if (!meta) return [];
 			const tag = this.ctxTagName();
 			if (!tag || !meta.byKey) return meta.aliases;
-			const key = this.ctxGroupKey(cp);
-			// 无语境键，且条目里没有任何组带 name（含"无组"和"只有 alias 的组"两种）→ 走聚合别名
-			if (!key && !Object.values(meta.byKey).some(g => g && g.name)) return meta.aliases;
+			const key = this.ctxAliasKey(cp);
 			const cur = key ? meta.byKey[key] : null;
-			const out = [];
+			// 本组没设组名时显示的是别处来的主名（子树深层组名或拼接名），排除它用 ctxZhName 取真实值
+			const shown = (cur && cur.name) || this.ctxZhName(cp);   // 不可用 zhNameOf(cp)：序列传数组会 String.fromCodePoint(数组) 抛 RangeError
 			const seen = new Set();
-			const shown = cur ? cur.name : this.ctxZhName(cp);   // 不可用 zhNameOf(cp)：序列传数组会 String.fromCodePoint(数组) 抛 RangeError
 			if (shown) seen.add(shown);
-			for (const a of (cur && cur.alias) || []) {
+			const out = [];
+			// 本组真实 alias + 条目级别名（无标签字符的别名写在条目这层）
+			for (const a of [...((cur && cur.alias) || []), ...(meta.entryAlias || [])]) {
 				if (a && !seen.has(a)) { seen.add(a); out.push(a); }
 			}
+			// 其他组的组名（虚拟合并，不写回文件）
 			for (const [k, g] of Object.entries(meta.byKey)) {
 				if (k === key || !g || !g.name || seen.has(g.name) || shown.includes(g.name)) continue;
 				seen.add(g.name);
 				out.push(g.name);
 			}
 			return out;
-		},
-		/** 编辑弹窗初始别名：只取当前语境组的真实 alias（不含虚拟合并的其他组名）；无语境沿用聚合别名 */
-		editAliasesOf(cp) {
-			const meta = SYMBOL_MAP.get(Array.isArray(cp) ? String.fromCodePoint(...cp) : String.fromCodePoint(cp));
-			if (!meta) return [];
-			const tag = this.ctxTagName();
-			if (tag && meta.byKey && meta.byKey[tag] && groupAlive(meta.byKey[tag])) return (meta.byKey[tag].alias || []).slice();
-			if (tag && meta.byKey && Object.values(meta.byKey).some(groupAlive)) return [];
-			return (meta.aliases || []).slice();
 		},
 		/** 字符格标题：语境名优先，英文名兜底；控制码前置标识 */
 		titleOf(cp) {
@@ -1573,7 +1626,7 @@ const app = createApp({
 			}
 			return this.titleOf(item);
 		},
-		/** 网格卡片显示名：单码位语境名优先英文名兜底；序列走语境名（内含全局名回退） */
+		/** 网格卡片显示名：单码位语境名优先英文名兜底；序列走语境名（内含拼接名回退） */
 		gridItemName(item) {
 			if (this.isSeq(item)) return this.ctxZhName(item) || '';
 			return this.ctxZhName(item) || nameOf(item) || '';
@@ -2182,7 +2235,7 @@ const app = createApp({
 			if (!t) return;
 			if (this.isFormalAxis(t.path.split('/')[0])) return; // 机械轴按钮已隐藏，双保险
 			this.metaEditorKind = 'tag';
-			this.metaEditorNameLocked = false;   // 只有符号编辑可能锁定名字
+			this.metaEditorBlocks = [];          // 编辑块只属于符号编辑，清掉上次符号编辑的残值
 			this.metaEditorPath = t.path;
 			this.metaEditorName = t.name;
 			this.metaEditorAliases = (t.node && t.node.alias && t.node.alias.length) ? [...t.node.alias] : [];
@@ -2263,111 +2316,149 @@ const app = createApp({
 			ElementPlus.ElMessage.success('已保存');
 		},
 
-		/** 打开符号元数据编辑弹窗：从 selectedChar 取名字/别名初始化 */
+		/** 「全局」块主名的 placeholder：显示留空时的生效名——拼接名（兜底名打头 + 各标签语境名的拼接，
+		 *  与 buildSymbolMap 同一算法，否则提示的"当前"值会和清空后真正生效的名字对不上）；
+		 *  一个组名都没有时退到默认名（名字表/分类兜底）。
+		 *  placeholder 只是提示：拼接名不写进 value，否则保存会把拼接名当成条目级主名落盘。 */
+		symbolGlobalPlaceholder(sc) {
+			if (!sc) return '主名';
+			const char = Array.isArray(sc.cp) ? String.fromCodePoint(...sc.cp) : String.fromCodePoint(sc.cp);
+			const meta = SYMBOL_MAP.get(char);
+			const groupNames = meta ? Object.values(meta.byKey || {}).map(g => g && g.name).filter(Boolean) : [];
+			if (groupNames.length) {
+				const joined = joinGroupNames([fallbackNameOf(sc.cp), ...groupNames]);
+				return '留空则用各标签名的拼接（当前：' + joined + '）';
+			}
+			return '留空则用默认名（当前：' + this.ctxZhName(sc.cp) + '）';
+		},
+		/** 编辑块列表：全局块（key=null，恒在首位）+ 数据里已有的每个组（按 groups 原顺序）+ 当前标签还没建组时补的空块（供新建）。
+		 *  每块主名/别名各取各的落点现值，没有就留空——绝不填拼接名或名字层的值。 */
+		symbolEditorBlocks(sc) {
+			const entry = ENRICHED_SYMBOLS.find(s => s.char === sc.char);
+			const groups = (entry && entry.groups) || {};
+			// 组块留空时的生效名 = 标签语境下的兜底名（ctxZhName 无组名时走的那条链），与页面显示同源，
+			// 免得 placeholder 承诺一个和实际显示不一致的名字
+			const fallback = this.ctxFallbackName(sc.cp);
+			const blocks = [{
+				key: null,
+				label: '全局',
+				name: (entry && entry.name) || '',
+				alias: (entry && Array.isArray(entry.alias)) ? [...entry.alias] : [],
+				placeholder: this.symbolGlobalPlaceholder(sc)
+			}];
+			for (const [key, g] of Object.entries(groups)) {
+				blocks.push({
+					key,
+					label: key,
+					name: (g && g.name) || '',
+					alias: (g && Array.isArray(g.alias)) ? [...g.alias] : [],
+					placeholder: '留空则用当前生效名（当前：' + fallback + '）'
+				});
+			}
+			// 当前标签还没有对应组才补末尾的空块；有组的话上面那轮已经列出来了，不重复
+			const tagCtx = this.ctxTagName();
+			if (tagCtx && !Object.prototype.hasOwnProperty.call(groups, tagCtx)) {
+				blocks.push({ key: tagCtx, label: tagCtx, name: '', alias: [''], placeholder: '留空则用当前生效名（当前：' + fallback + '）' });
+			}
+			// 旧值快照：保存时逐块判脏（trim 后比对，源数据里带空白不算改动；空别名行不算改动）
+			for (const b of blocks) {
+				b.oldName = (b.name || '').trim();
+				b.oldAliases = this.aliasList(b.alias);
+			}
+			return blocks;
+		},
+		/** 别名行 → 提交值：去空白、去空行、去重（判脏与落盘同一口径，空行不会算成改动） */
+		aliasList(list) {
+			return [...new Set((list || []).map(a => (a || '').trim()).filter(a => a !== ''))];
+		},
+		/** 打开符号元数据编辑弹窗：按块预填（每块主名/别名各取各的落点现值，没有就留空） */
 		editSelectedSymbol() {
 			const sc = this.selectedChar;
 			if (!sc) return;
 			this.metaEditorKind = 'symbol';
 			this.metaEditorChar = sc;
-			this.metaEditorName = sc.zhName || '';
-			// 名字锁定：≥2 个命名组且当前无标签语境时，显示的是各组名的拼接串（用「、」连接），
-			// 在此改名会把整串写回顶层 name；有语境时显示的是该组单个名，改它写回该组是对的，不锁。
-			const metaChar = Array.isArray(sc.cp) ? String.fromCodePoint(...sc.cp) : String.fromCodePoint(sc.cp);
-			const meta = SYMBOL_MAP.get(metaChar);
-			const namedGroups = meta ? Object.values(meta.byKey || {}).filter(g => g && g.name).length : 0;
-			this.metaEditorNameLocked = namedGroups >= 2 && !this.ctxGroupKey(sc.cp);
-			// 只取真实别名（语境下=本组 alias），虚拟合并的其他组名不回填、不写回
-			this.metaEditorAliases = this.editAliasesOf(sc.cp);
-			this.metaEditorOldAliases = [...this.metaEditorAliases];
+			this.metaEditorBlocks = this.symbolEditorBlocks(sc);
 			this.metaEditorIntro = sc.intro || ''; this.metaEditorOldIntro = this.metaEditorIntro; this.reparentTarget = '';
 			this.metaEditorCpStr = sc.codeStr || this.cpsHex(sc.cp);
 			this.metaEditorPath = '';
 			this.metaEditorVisible = true;
 		},
-		/** 保存符号元数据：按路由（ENRICHED_SYMBOLS entry / 官方名直译名.js）先写服务器，成功后再改内存 */
+		/** 保存符号元数据：遍历编辑块、逐块判脏、逐块写——全局块落条目级 name/alias，组块落 groups[组键]；
+		 *  按路由（ENRICHED_SYMBOLS entry / 官方名直译名.js）先写服务器，成功后再改内存 */
 		async saveSymbolMeta() {
 			const sc = this.metaEditorChar;
 			if (!sc) return;
 			const isSeq = Array.isArray(sc.cp);
-			const oldName = sc.zhName || '';
-			const newName = (this.metaEditorName || '').trim();
-			const aliases = [...new Set(this.metaEditorAliases.map(a => (a || '').trim()).filter(a => a !== ''))];
-			// 拼接名锁定（≥2 命名组无语境）时禁改名字：输入框已 disabled，这里兜底防任何路径误写整串
-			const nameChanged = !this.metaEditorNameLocked && newName !== oldName;
-			const aliasChanged = JSON.stringify(aliases) !== JSON.stringify(this.metaEditorOldAliases);
+			// 拼接名比对基准必须在改内存/重建映射之前取（重建后 seqSymbolMeta 就是新名了）
+			const oldJoinedName = isSeq ? seqSymbolMeta(sc.cp).zhName : '';
 			const intro = (this.metaEditorIntro || '').trim();
 			const introChanged = intro !== this.metaEditorOldIntro;
-			if (!nameChanged && !aliasChanged && !introChanged) { this.metaEditorVisible = false; return; }
-			if (nameChanged && !newName) { ElementPlus.ElMessage.error('名字不能为空'); return; }
+			// 逐块判脏：各块跟打开弹窗时自己的快照比，互不牵连（某块没动就不会被别的块带着落盘）
+			const blocks = this.metaEditorBlocks.map(b => {
+				const name = (b.name || '').trim();
+				const alias = this.aliasList(b.alias);
+				return { block: b, key: b.key, name, alias, nameChanged: name !== b.oldName, aliasChanged: JSON.stringify(alias) !== JSON.stringify(b.oldAliases) };
+			});
+			const dirty = blocks.filter(x => x.nameChanged || x.aliasChanged);
+			if (!dirty.length && !introChanged) { this.metaEditorVisible = false; return; }
+			// 全局块可以清空主名：清掉 entry.name 后拼接名自动回退到「兜底名 + 各标签名」，不再拦「名字不能为空」
+			const globalBlock = blocks.find(x => x.key === null) || null;
+			const groupDirty = dirty.filter(x => x.key !== null);
+			const nameChanged = !!globalBlock && globalBlock.nameChanged;
+			const aliasChanged = !!globalBlock && globalBlock.aliasChanged;
 			// 序列与单码点同构，一律走下方 entry 路线：编辑 = 登记/更新该符号在 ENRICHED_SYMBOLS 的元素
 			// （序列 useNameRoute 恒 false，序列名不在 官方名直译名.js；富化优先、标签 seqs 默认名兜底）
 			// 路由决策：
-			//   序列 / 字符在 ENRICHED_SYMBOLS / 需加别名（可同时改名）/ 有语境标签 → entry 路线（写 符号富化数据.js）
-			//   不在 ENRICHED_SYMBOLS、仅改名且无语境 → name 路线（写 官方名直译名.js，只对单码位有意义）
-			const tagCtx = this.ctxTagName();
+			//   序列 / 字符在 ENRICHED_SYMBOLS / 涉及任何组块或全局别名的改动 / 简介改动 → entry 路线（写 符号富化数据.js）
+			//   仅改全局主名、单码位、不在 ENRICHED_SYMBOLS → name 路线（写 官方名直译名.js）
 			const inSymbols = !isSeq && ENRICHED_SYMBOLS.some(s => s.char === sc.char);
-			const useNameRoute = !isSeq && !inSymbols && nameChanged && !aliasChanged && !tagCtx;
+			const useNameRoute = !isSeq && !inSymbols && nameChanged && !aliasChanged && !groupDirty.length && !introChanged;
 			const payload = { action: 'sym', cps: this.toCpsArray(sc.cp) };
 			// entry 路线需在 serverSave 前改内存 entry（要发出去），失败必须回滚，否则页面与文件不一致
 			let entry = null;
 			let snapshot = null;
 			if (useNameRoute) {
 				if (!ZH_TRANSLATION) { ElementPlus.ElMessage.error('中文名数据未加载'); return; }
-				payload.name = newName;
+				payload.name = globalBlock.name;
 			} else {
 				entry = ENRICHED_SYMBOLS.find(s => s.char === sc.char);
 				snapshot = entry ? JSON.parse(JSON.stringify(entry)) : null;
 				if (entry) {
-					// 无语境时 name 与 alias 统一落同一组：targetGroup = 第一个有 name 的组 || 第一个组
-					// 一个组都没有（无标签字符）→ 直接写条目级 name/alias，不新建任何组
-					if (nameChanged || aliasChanged) {
-						let targetGroup = null, gk = null;
-						if (tagCtx) {
-							gk = tagCtx;
-							entry.groups = entry.groups || {};
-							targetGroup = entry.groups[tagCtx] || (entry.groups[tagCtx] = {});
-						} else {
-							targetGroup = Object.values(entry.groups || {}).find(g => g && g.name) || Object.values(entry.groups || {})[0] || null;
-							if (targetGroup) gk = Object.keys(entry.groups).find(k => entry.groups[k] === targetGroup);
+					for (const x of dirty) {
+						// 块与落点一一对应：全局块写条目级，组块写自己的组键；空值一律删键，不残留空值
+						if (x.key === null) {
+							if (x.nameChanged) { if (x.name) entry.name = x.name; else delete entry.name; }
+							if (x.aliasChanged) { if (x.alias.length) entry.alias = x.alias; else delete entry.alias; }
+							continue;
 						}
-						if (targetGroup) {
-							// 改名：写语境组（无则新建键，追加保序）或无语境的 targetGroup
-							if (nameChanged) targetGroup.name = newName;
-							// 改别名：写该组 alias；组对象清空则删掉整个组键，避免残留 `"标签名":{}`
-							if (aliasChanged) {
-								if (aliases.length) targetGroup.alias = aliases;
-								else delete targetGroup.alias;
-								if (!Object.keys(targetGroup).length && gk) delete entry.groups[gk];
-							}
-						} else {
-							// 无任何组 → 条目级字段（空则删，不残留空值）
-							if (nameChanged) { if (newName) entry.name = newName; else delete entry.name; }
-							if (aliasChanged) { if (aliases.length) entry.alias = aliases; else delete entry.alias; }
-						}
+						entry.groups = entry.groups || {};
+						const g = entry.groups[x.key] || (entry.groups[x.key] = {});
+						if (x.nameChanged) { if (x.name) g.name = x.name; else delete g.name; }
+						if (x.aliasChanged) { if (x.alias.length) g.alias = x.alias; else delete g.alias; }
+						// 组对象被清空则删掉整个组键，避免残留 空组
+						if (!Object.keys(g).length) delete entry.groups[x.key];
 					}
 					if (introChanged) {
 						if (intro) entry.intro = intro;
 						else delete entry.intro;
 					}
 				} else {
-					// 新建最小条目：有语境优先用当前标签名（组键=标签名）；无语境取字符第一个非机械轴标签名。
-					// 没有可用标签时不建 groups，name/alias 直接写条目级。
-					const SKIP_KEY_ROOTS = ['文字系统', '官方分类', '区块', 'emoji（绘文字）'];
-					let groupKey = tagCtx;
-					if (!groupKey) {
-						const pickTag = (sc.tags || []).find(t => !SKIP_KEY_ROOTS.includes(((t.paths && t.paths[0]) || '').split('/')[0]));
-						groupKey = pickTag && pickTag.name;
-					}
+					// 新建最小条目：只把真填了内容的块写进去，空块不建键（否则留下「标签名:{}」这种空壳）
 					entry = { char: sc.char };
-					if (groupKey) {
-						const gg = {};
-						if (nameChanged) gg.name = newName;
-						if (aliasChanged && aliases.length) gg.alias = aliases;
-						entry.groups = { [groupKey]: gg };
-					} else {
-						if (nameChanged && newName) entry.name = newName;
-						if (aliasChanged && aliases.length) entry.alias = aliases;
+					const groups = {};
+					for (const x of blocks) {
+						if (!x.name && !x.alias.length) continue;
+						if (x.key === null) {
+							if (x.name) entry.name = x.name;
+							if (x.alias.length) entry.alias = x.alias;
+							continue;
+						}
+						const g = {};
+						if (x.name) g.name = x.name;
+						if (x.alias.length) g.alias = x.alias;
+						groups[x.key] = g;
 					}
+					if (Object.keys(groups).length) entry.groups = groups;
 					if (introChanged && intro) entry.intro = intro;
 					ENRICHED_SYMBOLS.push(entry);
 				}
@@ -2378,7 +2469,8 @@ const app = createApp({
 			} catch (e) {
 				// 服务器保存失败 → 回滚内存：已有条目还原快照，新建条目从 ENRICHED_SYMBOLS 移除
 				if (entry) {
-					if (snapshot) Object.assign(entry, snapshot);
+					// 先清空自有键再赋值：本次新加的 name/groups 等键 Object.assign 不会删，留着等于没回滚
+					if (snapshot) { for (const k of Object.keys(entry)) delete entry[k]; Object.assign(entry, snapshot); }
 					else {
 						const i = ENRICHED_SYMBOLS.indexOf(entry);
 						if (i >= 0) ENRICHED_SYMBOLS.splice(i, 1);
@@ -2390,68 +2482,75 @@ const app = createApp({
 				ElementPlus.ElMessage.error('保存失败：' + e.message);
 				return;
 			}
-			// 成功 → 改内存
+			// 成功 → 改内存：映射重建后按新数据重算显示名，不直接套输入值——
+			// 只改全局主名而当前在本标签下时，显示的仍是该标签的语境名
 			if (useNameRoute) {
-				ZH_TRANSLATION.names[sc.cp] = newName;
-				sc.zhName = newName;
+				ZH_TRANSLATION.names[sc.cp] = globalBlock.name;
+				sc.zhName = globalBlock.name;
 			} else {
 				SYMBOL_MAP.clear();
 				buildSymbolMap();
-				if (nameChanged) sc.zhName = newName;
-				// 详情别名按语境重算（语境下=本组 alias ∪ 其他组 name 的虚拟合并）；序列沿用聚合别名
-				if (aliasChanged || nameChanged) sc.aliases = isSeq ? aliases : this.ctxAliases(sc.cp);
+				const nameEdited = blocks.some(x => x.nameChanged);
+				const aliasEdited = blocks.some(x => x.aliasChanged);
+				if (nameEdited) sc.zhName = this.ctxZhName(sc.cp);
+				// 详情别名按语境重算（语境下=本组 alias ∪ 条目级 alias ∪ 其他组组名）
+				if (nameEdited || aliasEdited) sc.aliases = this.ctxAliases(sc.cp);
 				if (introChanged) sc.intro = intro;
 			}
 			this.$forceUpdate();
 			this.metaEditorVisible = false;
 			ElementPlus.ElMessage.success('已保存');
 			// 序列：同款肤色扩散是分支逻辑——主符号已落盘，兄弟成员后台一并同步（syncSeqSiblings 内自管错误）
-			// 名字：同款里当前名相同的才联动（如无肤色差别的整组同名一起改）；名不同(如带肤色前缀)不联动
-			if (isSeq && (nameChanged || aliasChanged || introChanged)) this.syncSeqSiblings(sc, entry, { nameChanged, aliasChanged, introChanged, oldName, newName });
+			if (isSeq && (dirty.length || introChanged)) {
+				this.syncSeqSiblings(sc, entry, { blocks: dirty, introChanged, oldJoinedName });
+			}
 		},
-		/** 序列同款肤色扩散（分支逻辑）：把主符号的共享字段同步到同款（单色替换）兄弟成员。
-		 *  名字：同款里当前名==旧名(改名前的名字)的兄弟才联动改新名——本身名字不同(如带肤色前缀)不动。
+		/** 序列同款肤色扩散（分支逻辑）：把主符号的改动逐块同步到同款（单色替换）兄弟成员。
+		 *  块与落点一一对应：全局块 → 兄弟条目级；组块 key=X → 兄弟 groups[X]。
+		 *  名字：同款里该处当前名==编辑前旧名 的兄弟才联动改新名——本身名字不同(如带肤色前缀)不动。
 		 *  别名/简介：同款整组共享。
 		 *  双人异色组合（多肤色值）是独立符号，不在此扩散（seqSiblingsOf 已排除）。 */
 		async syncSeqSiblings(sc, entry, flags) {
 			const sibs = seqSiblingsOf(sc.cp);
 			if (sibs.length <= 1 || !entry) return;
 			const f = flags || {};
-			// 组键：语境存在且源条目含该组键 → 用语境组键，否则沿用首个组键
-			const tagCtx = this.ctxTagName();
-			const gk = (tagCtx && (entry.groups || {})[tagCtx]) ? tagCtx : Object.keys(entry.groups || {})[0];
-			const gVal = gk ? entry.groups[gk] : null;
-			// 源条目无组（条目级字段）时，别名从条目级取
-			const alias = gk
-				? (gVal && Array.isArray(gVal.alias) ? [...gVal.alias] : null)
-				: (Array.isArray(entry.alias) ? [...entry.alias] : null); // null=清
-			const intro = entry.intro !== undefined ? entry.intro : null;             // null=清
-			if (!f.nameChanged && !f.aliasChanged && !f.introChanged) return;
+			const dirty = f.blocks || [];
+			if (!dirty.length && !f.introChanged) return;
+			// 拼接名比对基准 = 编辑前的生效拼接名（调用方在重建映射前取好传来，这里取已经是新值了）
+			const oldJoined = f.oldJoinedName;
+			const intro = entry.intro !== undefined ? entry.intro : null;   // null=清
 			try {
 				for (const sib of sibs) {
 					const sibChar = String.fromCodePoint(...sib);
 					if (sibChar === sc.char) continue;
-					// 名字联动仅当兄弟当前名与旧名相同（改名前的名字）；富化或默认名任一来源皆可
-					const nameApply = !!f.nameChanged && seqSymbolMeta(sib).zhName === f.oldName;
-					const aliasApply = !!f.aliasChanged;
-					const introApply = !!f.introChanged;
 					let se = ENRICHED_SYMBOLS.find(x => x.char === sibChar);
+					// 先算清这次实际要写什么再动手：先写会给出「只有清空动作」的兄弟凭空建一条空元素
+					const writes = [];
+					for (const x of dirty) {
+						const key = x.key;
+						const sg = (key !== null && se && se.groups && se.groups[key]) || null;
+						// 名字联动仅当兄弟该处当前名与旧名相同（快照比对，不比显示名）；别名同款共享、不受名字判据限制
+						const nameHit = !x.nameChanged ? false
+							: (key === null ? seqSymbolMeta(sib).zhName === oldJoined : (((sg && sg.name) || '') === x.block.oldName));
+						if (x.aliasChanged) writes.push({ key, field: 'alias', value: x.alias.length ? [...x.alias] : null });
+						if (nameHit) writes.push({ key, field: 'name', value: x.name || null });
+					}
 					// 兄弟未登记且本次对它无实际内容可写(清空无意义)→跳过，不制造空元素
-					if (!se && !nameApply && !(aliasApply && alias) && !(introApply && intro)) continue;
+					if (!se && !writes.some(w => w.value !== null) && !(f.introChanged && intro)) continue;
 					const snap = se ? JSON.parse(JSON.stringify(se)) : null;
 					if (!se) { se = { char: sibChar }; ENRICHED_SYMBOLS.push(se); }
-					if (gk) {
-						se.groups = se.groups || {};
-						const sg = se.groups[gk] || (se.groups[gk] = {});
-						if (nameApply) sg.name = f.newName;
-						if (aliasApply) { if (alias) sg.alias = [...alias]; else delete sg.alias; }
-						if (!Object.keys(sg).length) delete se.groups[gk];
-					} else {
-						// 源条目只有条目级字段 → 同步到兄弟条目级
-						if (nameApply) { if (f.newName) se.name = f.newName; else delete se.name; }
-						if (aliasApply) { if (alias) se.alias = [...alias]; else delete se.alias; }
+					for (const w of writes) {
+						let target = se;
+						if (w.key !== null) {
+							se.groups = se.groups || {};
+							target = se.groups[w.key] || (se.groups[w.key] = {});
+						}
+						if (w.value === null) delete target[w.field];
+						else target[w.field] = w.value;
+						// 组对象被清空则删掉整个组键，避免残留空组
+						if (w.key !== null && !Object.keys(se.groups[w.key]).length) delete se.groups[w.key];
 					}
-					if (introApply) { if (intro) se.intro = intro; else delete se.intro; }
+					if (f.introChanged) { if (intro) se.intro = intro; else delete se.intro; }
 					// 建了空元素(没实际落到任何字段)→回滚移除（条目级 name/alias 也算有内容）
 					if (!(se.groups && Object.keys(se.groups).length) && !se.name && !se.alias && !se.intro && !snap) {
 						ENRICHED_SYMBOLS.splice(ENRICHED_SYMBOLS.indexOf(se), 1);
@@ -2460,7 +2559,8 @@ const app = createApp({
 					try {
 						await this.serverSave({ action: 'sym', cps: this.toCpsArray(sib), entry: se });
 					} catch (e) {
-						if (snap) Object.assign(se, snap);
+						// 先清空自有键再还原：本次新加的键 Object.assign 不会删，留着等于没回滚
+						if (snap) { for (const k of Object.keys(se)) delete se[k]; Object.assign(se, snap); }
 						else ENRICHED_SYMBOLS.splice(ENRICHED_SYMBOLS.indexOf(se), 1);
 						throw e;
 					}
@@ -2472,9 +2572,13 @@ const app = createApp({
 				ElementPlus.ElMessage.warning('同款肤色同步部分失败：' + e.message + '（当前符号已保存）');
 			}
 		},
-		/** 删除别名编辑行 */
+		/** 删除别名编辑行（全局别名） */
 		removeMetaAlias(i) {
 			this.metaEditorAliases.splice(i, 1);
+		},
+		/** 删除某个编辑块里的别名行 */
+		removeBlockAlias(block, i) {
+			block.alias.splice(i, 1);
 		},
 		/** 父级归属树节点点击：记录目标父 path */
 		onReparentPick(data) {
@@ -2534,7 +2638,7 @@ const app = createApp({
 		/** 打开「新增根标签」弹窗（root 模式：名字 + 可选别名） */
 		openNewRoot() {
 			this.metaEditorKind = 'root';
-			this.metaEditorNameLocked = false;   // 只有符号编辑可能锁定名字
+			this.metaEditorBlocks = [];          // 编辑块只属于符号编辑，清掉上次符号编辑的残值
 			this.metaEditorPath = '';
 			this.metaEditorName = '';
 			this.metaEditorAliases = [];

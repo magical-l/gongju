@@ -17,7 +17,7 @@
 	<link href="../css/layout.css" rel="stylesheet">
 	<link href="../resources/biz.css?v=250821" rel="stylesheet">
 	<link href="../css/花活.css" rel="stylesheet">
-	<link href="符号.css?v=260913" rel="stylesheet">
+	<link href="符号.css?v=260915" rel="stylesheet">
 </head>
 <body class="目字形">
 	<header>
@@ -362,23 +362,46 @@
 						<span class="me-name">{{ metaEditorChar ? metaEditorChar.zhName : '' }}</span>
 					</div>
 				</div>
-				<div class="me-field">
-					<label class="me-label">名字</label>
-					<el-input v-model="metaEditorName" placeholder="名字" :disabled="metaEditorNameLocked"></el-input>
-					<div class="me-name-locked" v-if="metaEditorKind === 'symbol' && metaEditorNameLocked">此符号在多个标签下各有一个名字，这里无法修改；请进入对应标签改名。</div>
-				</div>
-				<div class="me-field">
-					<label class="me-label">别名</label>
-					<div class="me-alias-row" v-for="(a, i) in metaEditorAliases" :key="i">
-						<el-input v-model="metaEditorAliases[i]" placeholder="别名"></el-input>
-						<button class="me-alias-del" @click="removeMetaAlias(i)" title="删除此别名">✕</button>
+				<template v-if="metaEditorKind === 'symbol'">
+					<!-- 每块一个落点：全局块（key=null）恒在首位，其后是数据里已有的组，末尾按需补当前标签的空块 -->
+					<div class="me-field" :class="{ 'me-section': bi > 0 }" v-for="(b, bi) in metaEditorBlocks" :key="b.key === null ? '__global__' : b.key">
+						<div class="me-sep">{{ b.label }}</div>
+						<div class="me-field">
+							<label class="me-label">主名</label>
+							<el-input v-model="b.name" :placeholder="b.placeholder"></el-input>
+						</div>
+						<div class="me-field">
+							<label class="me-label">别名</label>
+							<div class="me-alias-row" v-for="(a, i) in b.alias" :key="i">
+								<el-input v-model="b.alias[i]" placeholder="别名"></el-input>
+								<button class="me-alias-del" @click="removeBlockAlias(b, i)" title="删除此别名">✕</button>
+							</div>
+							<el-button size="small" class="me-alias-add" @click="b.alias.push('')">+ 添加别名</el-button>
+						</div>
 					</div>
-					<el-button size="small" class="me-alias-add" @click="metaEditorAliases.push('')">+ 添加别名</el-button>
-				</div>
-				<div class="me-field">
-					<label class="me-label">简介</label>
-					<el-input v-model="metaEditorIntro" type="textarea" :rows="3" :placeholder="metaEditorKind === 'tag' ? '标签简介（中部符号区上方显示），留空可清除' : '符号简介（详情区显示），留空可清除'"></el-input>
-				</div>
+					<div class="me-field">
+						<label class="me-label">简介</label>
+						<el-input v-model="metaEditorIntro" type="textarea" :rows="3" placeholder="符号简介（详情区显示），留空可清除"></el-input>
+					</div>
+				</template>
+				<template v-else>
+					<div class="me-field">
+						<label class="me-label">名字</label>
+						<el-input v-model="metaEditorName" placeholder="名字"></el-input>
+					</div>
+					<div class="me-field">
+						<label class="me-label">别名</label>
+						<div class="me-alias-row" v-for="(a, i) in metaEditorAliases" :key="i">
+							<el-input v-model="metaEditorAliases[i]" placeholder="别名"></el-input>
+							<button class="me-alias-del" @click="removeMetaAlias(i)" title="删除此别名">✕</button>
+						</div>
+						<el-button size="small" class="me-alias-add" @click="metaEditorAliases.push('')">+ 添加别名</el-button>
+					</div>
+					<div class="me-field">
+						<label class="me-label">简介</label>
+						<el-input v-model="metaEditorIntro" type="textarea" :rows="3" :placeholder="metaEditorKind === 'tag' ? '标签简介（中部符号区上方显示），留空可清除' : '符号简介（详情区显示），留空可清除'"></el-input>
+					</div>
+				</template>
 				<template v-if="metaEditorKind === 'tag'">
 					<div class="me-section">
 						<div class="me-sep">父级归属</div>
@@ -436,7 +459,7 @@
 		<script src="../lib/toastr.min.js"></script>
 		<script src="../resources/biz-util.js?v=250801"></script>
 	</div>
-	<script src="符号.js?v=260913"></script>
+	<script src="符号.js?v=260915"></script>
 	<div>
 		<!-- 谷歌广告联盟 -->
 		<script async crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"></script>

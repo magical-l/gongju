@@ -55,7 +55,10 @@ PROJECT_ROOT = os.path.dirname(HERE)  # 项目根
 SYMBOL_JS = os.path.join(HERE, '符号富化数据.js')
 
 # 页面 fetch 的这些文件加 no-cache，改完刷新即新（符号.html 也禁缓存——否则浏览器缓存旧 ?v= 链接导致一直加载旧 JS）
-NO_CACHE_FILES = ('标签.js', '官方名直译名.js', 'unicode官方名.js', '符号富化数据.js', 'noto-cmap.js', '符号.html')
+# 符号.js / 符号.css 也放进来：它们靠 `?v=YYMMDD` 断缓存，一天里改两次就断不掉了（同一天撞同一个值），
+# 于是本地开发会一直吃旧代码、误判成"改了没生效"。生产部署仍要走 ?v= bump，这里只管本地调试。
+NO_CACHE_FILES = ('标签.js', '官方名直译名.js', 'unicode官方名.js', '符号富化数据.js', 'noto-cmap.js', '符号.html',
+                  '符号.js', '符号.css')
 
 # 单写锁：读-改-写串行化（ThreadingHTTPServer 下防并发写坏文件）
 LOCK = threading.Lock()

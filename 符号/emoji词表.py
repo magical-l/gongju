@@ -746,6 +746,10 @@ EMOJI_PHRASE = {
     'HEART EXCLAMATION': '心形感叹号',
     'BOTH HANDS': '双手',
     'SAILBOAT': '帆船',
+    # VICTORY+ HAND 逐词拼成「胜利手」，中文里没这词；这个手势叫「胜利手势」。
+    # （`REVERSED VICTORY HAND` 早年被手工改成「反向胜利手势」就是这个道理，
+    #   但没回到引擎层修，于是那条一直冻在 find_scope 范围外。补了这条短语它自动回范围。）
+    'VICTORY HAND': '胜利手势',
 
     # ---- ZWJ 序列专用：要靠整块才翻得对的短语 ----
     # 单词分开拼会串味（`LIFTING WEIGHTS` 逐词是「举重物」，运动名该是「举重」），
