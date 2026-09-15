@@ -26,7 +26,7 @@
                                 再搬一份当 alias 只会让详情区的别名行跟主名重复。
    · 已有条目且俗名已在名/别名里 → 什么都不做（名字表换直译即可）
    · 已有条目但没收录         → 往该条第一个组补一个 alias
-   · 符号数据里完全没有       → 新建条目，alias 挂在**该字符所属最深语义标签**下
+   · 符号数据里完全没有       → 新建条目，alias 落**条目级**（= 全局别名）
 
 ⚠️ 顺带的行为变化（与待办 27 同源，已知并接受）：新建条目的字符，改名落盘从
 `官方名直译名.js` 改到 `符号富化数据.js`。
@@ -39,7 +39,7 @@ from collections import Counter
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BASE)
-from datatool import append_symbols, load_symbols, load_tags, load_zh, read_data, save_zh, update_symbols
+from datatool import append_symbols, load_symbols, load_zh, read_data, save_zh, update_symbols
 from emoji词表 import EMOJI_PHRASE, EMOJI_WORD, EXTRA_ALIASES, translate
 CLDR_ANNOTATIONS = os.path.join(BASE, '参考资料', 'annotations-zh.json')
 # 认定范围：这两段里「名字表的值 == CLDR 注解」的单码位名，必然是 CLDR 兜底灌进来的
@@ -136,39 +136,6 @@ def apply_to_name_table(translations):
     return changed
 
 
-def deepest_semantic_tag(cp, tags):
-    """→ 含该码位的**最深**非机械标签名；没有则 None。
-
-    组键必须是现存标签名，且该标签要真的含这个字符（数据说明 §三），
-    所以按 ranges 往下钻，钻到最深那一层。
-    """
-    def contains(node):
-        return any(lo <= cp <= hi for lo, hi in (node.get('ranges') or []))
-
-    def walk(name, node, depth):
-        """→ (深度, 该子树里含此码位的最深标签名)。不含则深度为 depth-1、名字 None。
-
-        `name` 必须传进来：早先的写法没带节点自己的名字，`best` 初值恒为 `(depth, None)`，
-        于是 `cand[1]` 永远是 None、子节点永远选不中，名字只能来自根节点那一层 ——
-        实测 460 条新建条目里 410 条拿不到标签、50 条拿到的是根标签。
-        """
-        best = (depth, name) if contains(node) else (depth - 1, None)
-        for child_name, child in (node.get('children') or {}).items():
-            cand = walk(child_name, child, depth + 1)
-            if cand[1] and cand[0] > best[0]:
-                best = cand
-        return best
-
-    best_depth, best_name = -1, None
-    for name, root in (tags.get('roots') or {}).items():
-        if name in MECHANICAL_TAGS:
-            continue
-        depth, found = walk(name, root, 1)
-        if found and depth > best_depth:
-            best_depth, best_name = depth, found
-    return best_name
-
-
 def entry_values(entry):
     """条目里现有的全部名字与别名（用来判断俗名是否已收录）。"""
     out = list(entry.get('alias') or [])
@@ -260,13 +227,22 @@ def plan_colloquial(scope, translations):
 
 def move_colloquial(patch, fresh, strip):
     """按计划把俗名搬进符号数据。→ (补 alias 数, 新建条目数)。"""
-    tags = load_tags()
 
     def fix_entry(entry):
         changed = False
         # 1) 删掉与被换掉的名字同字的既有别名（不删就没东西可删、也别删成空壳）
         clash = strip.get(entry['char'])
         if clash:
+            # 别名既可能挂在条目级、也可能挂在某个组里，两处都要查
+            # （v1.39.1 把无名组的别名搬到了条目级，只查组会漏掉）
+            at_entry = entry.get('alias') or []
+            if clash in at_entry:
+                kept = [a for a in at_entry if a != clash]
+                if kept:
+                    entry['alias'] = kept
+                else:
+                    entry.pop('alias', None)
+                changed = True
             groups = entry.get('groups') or {}
             for key in list(groups):
                 group = dict(groups[key])
@@ -289,33 +265,20 @@ def move_colloquial(patch, fresh, strip):
         # 2) 补别名（俗名 + 人工补充的）
         wanted = patch.get(entry['char'])
         if wanted:
-            groups = entry.get('groups') or {}
-            if groups:
-                first = next(iter(groups))
-                group = dict(groups[first])
-                have = group.get('alias') or []
-                add = [a for a in wanted if a not in have]
-                if add:
-                    group['alias'] = list(have) + add
-                    groups[first] = group
-                    changed = True
-            else:
-                have = entry.get('alias') or []
-                add = [a for a in wanted if a not in have]
-                if add:
-                    entry['alias'] = list(have) + add
-                    changed = True
+            # 别名一律落**条目级**（= 全局别名）。别名是搜索键，搜索本来就是全局的；
+            # 挂进某个组只会在别的标签下看不见它。组里只放**语境名**——
+            # 「有组 = 有语境名」是硬规则（v1.39.2 把 3804 条组内别名全提到了条目级）。
+            have = entry.get('alias') or []
+            add = [a for a in wanted if a not in have]
+            if add:
+                entry['alias'] = list(have) + add
+                changed = True
         return changed
 
     patched = update_symbols(fix_entry)
 
-    entries = []
-    for cp, aliases in fresh:
-        tag = deepest_semantic_tag(cp, tags)
-        if tag:
-            entries.append({'char': chr(cp), 'groups': {tag: {'alias': aliases}}})
-        else:
-            entries.append({'char': chr(cp), 'alias': aliases})
+    # 新建条目一律把别名写**条目级**（过去挂"最深语义标签"下，会建出只装别名的无名组）
+    entries = [{'char': chr(cp), 'alias': aliases} for cp, aliases in fresh]
     if entries:
         append_symbols(entries)
 
