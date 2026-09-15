@@ -351,7 +351,7 @@ function rootEntries() {
 	return [...others, ...formal];
 }
 
-/** 展平树：收集所有带 ranges/seqs 的节点及纯组节点（有子节点），并构建旗序列名映射 */
+/** 展平树：收集所有带 ranges/seqs 的节点及纯组节点（有子节点），并构建序列名映射 */
 function flatten(name, node, path) {
 	const hasChildren = !!(node.children && Object.keys(node.children).length > 0);
 	if (node.ranges || node.seqs || hasChildren) {
@@ -517,7 +517,7 @@ function seqsRemove(node, seq) {
 	node.seqs = node.seqs.filter(s => seqCps(s).join('-') !== key);
 }
 
-/** 在 node 子树内找到真正持有 cp 的节点并删除（单码位拆区间/旗序列过滤），返回是否找到 */
+/** 在 node 子树内找到真正持有 cp 的节点并删除（单码位拆区间/序列过滤），返回是否找到 */
 function removeFromSubtree(node, cp) {
 	if (nodeHasMember(node, cp)) {
 		if (Array.isArray(cp)) seqsRemove(node, cp);
@@ -892,7 +892,7 @@ const app = createApp({
 			tagEditorChar: null,   // {char, cp, zhName}：当前待修正字符
 			tagEditorTarget: '',   // 编辑对话框选中的目标标签 path
 			ops: [],               // 操作记录 [{action, cps, sourcePath, targetPath, char, zhName}]
-			dragChar: null,        // 拖拽中的网格条目（数字=单码位，数组=旗序列）
+			dragChar: null,        // 拖拽中的网格条目（数字=单码位，数组=序列）
 			dragOverPath: '',      // 拖拽悬浮的树节点 path（高亮）
 
 			// 服务器直写（dev_server.py）：编辑可用性与元数据编辑弹窗
@@ -902,6 +902,7 @@ const app = createApp({
 			metaEditorKind: 'tag',       // 'tag' 标签 | 'symbol' 符号 | 'root' 新增根
 			metaEditorPath: '',          // 标签模式：当前编辑的标签路径
 			metaEditorName: '',          // 名字输入
+			metaEditorNameLocked: false, // 符号模式：名字是否为多组拼接名（≥2 个命名组且无语境）——锁定时禁止在此改名
 			metaEditorAliases: [],       // 别名输入数组
 			metaEditorChar: null,        // 符号模式：当前编辑的字符对象
 			metaEditorCpStr: '',         // 符号模式：码位串显示
@@ -1203,9 +1204,9 @@ const app = createApp({
 			const sec = this.searchSections.find(s => s.key === key);
 			if (sec && sec.items.length) this.refreshRenderability(cardsToMembers(sec.items));
 		},
-		/** 网格条目分发：旗序列（数组）走 selectFlag，单码位走 selectChar */
+		/** 网格条目分发：序列（数组）走 selectFlag，单码位走 selectChar */
 		selectItem(item) {
-			if (this.isFlag(item)) this.selectFlag(item);
+			if (this.isSeq(item)) this.selectFlag(item);
 			else this.selectChar(item);
 		},
 		/** 树节点选中：details/summary 原生展开折叠，这里只负责选中标签 */
@@ -1232,21 +1233,21 @@ const app = createApp({
 				codeStr: cp.toString(16).toUpperCase(),
 				htmlEntity: '&#' + cp + ';'
 			};
-			// 详情替代显示检测：旗序列跳过；异步结果回来时用 JSON.stringify 比对防竞态
+			// 详情替代显示检测：序列跳过；异步结果回来时用 JSON.stringify 比对防竞态
 			this.detailTofu = false;
 			if (!Array.isArray(cp) && !this.isDualCp(cp)) {
 				checkRenderable(cp).then(ok => {
 					if (this.selectedChar && JSON.stringify(this.selectedChar.cp) === JSON.stringify(cp)) this.detailTofu = !ok;
 				});
 			}
-			// 详情区四象限建议：Noto 含 + 本机不含 → 提示本页用自带字体兜底（旗序列跳过）
+			// 详情区四象限建议：Noto 含 + 本机不含 → 提示本页用自带字体兜底（序列跳过）
 			this.detailAdviceNeeded = false;
 			this.refreshDetailAdvice(cp);
 			if (this.fontSizeAutoFit) this.adjustFontSize();
 		},
-		/** 详情区四象限建议：Noto 含 + 本机不含 → 提示本页用自带字体兜底（旗序列跳过；异步结果回来时用 JSON.stringify 比对防竞态） */
+		/** 详情区四象限建议：Noto 含 + 本机不含 → 提示本页用自带字体兜底（序列跳过；异步结果回来时用 JSON.stringify 比对防竞态） */
 		async refreshDetailAdvice(cp) {
-			if (Array.isArray(cp) || this.isDualCp(cp)) { this.detailAdviceNeeded = false; return; } // 旗序列/双模不做建议（双模顶部用 emoji 变体，不依赖 Noto）
+			if (Array.isArray(cp) || this.isDualCp(cp)) { this.detailAdviceNeeded = false; return; } // 序列/双模不做建议（双模顶部用 emoji 变体，不依赖 Noto）
 			if (!notoHas(cp)) { this.detailAdviceNeeded = false; return; }      // Noto 不含：本机有则 v1 不提示，都无则替代显示已提示
 			const localOk = await checkLocalRenderable(cp);
 			if (this.selectedChar && JSON.stringify(this.selectedChar.cp) === JSON.stringify(cp)) {
@@ -1260,10 +1261,10 @@ const app = createApp({
 			this.selectedChar = {
 				cp: cps,
 				char: m.char,
-				zhName: m.zhName,
+				zhName: this.ctxZhName(cps) || m.zhName,
 				officialName: m.officialName,
 				mode: '',
-				aliases: m.aliases,
+				aliases: this.ctxAliases(cps),
 				intro: m.intro,
 				tags: tagsOf(cps),
 				codeStr: cps.map(c => c.toString(16).toUpperCase()).join(' '),
@@ -1298,8 +1299,9 @@ const app = createApp({
 		/** 当前语境生效的组键：选中节点子树里"最深的已建组节点"优先（父节点浏览时取子节点的组名）；都不命中再按名字精确兜底；无返回 '' */
 		ctxGroupKey(cp) {
 			const tag = this.ctxTagName();
-			if (!tag || Array.isArray(cp)) return '';
-			const meta = SYMBOL_MAP.get(String.fromCodePoint(cp));
+			if (!tag) return '';
+			const char = Array.isArray(cp) ? String.fromCodePoint(...cp) : String.fromCodePoint(cp);   // 序列（多码位）取整串，与富化层的登记键一致
+			const meta = SYMBOL_MAP.get(char);
 			const bk = meta && meta.byKey;
 			if (!bk) return '';
 			const sel = this.selectedTag;
@@ -1316,29 +1318,29 @@ const app = createApp({
 			if (best) return best;
 			return (bk[tag] && bk[tag].name) ? tag : '';   // 兜底：键不在 FLAT（陈旧键等）时按名字精确命中，且该组必须有名字
 		},
-		/** 视图取名：有语境标签 → 该标签子树里最深组名；否则全局名；旗序列走序列元数据（不做语境取名） */
+		/** 视图取名：有语境标签 → 该标签子树里最深组名；否则全局名；序列走序列元数据（不做语境取名） */
 		ctxZhName(cp) {
-			if (Array.isArray(cp)) {
+			const key = this.ctxGroupKey(cp);
+			if (key) return SYMBOL_MAP.get(Array.isArray(cp) ? String.fromCodePoint(...cp) : String.fromCodePoint(cp)).byKey[key].name;   // 单码位/序列同一路径，ctxGroupKey 已保证该组有 name
+			if (Array.isArray(cp)) {   // 序列无语境名 → 回退序列元数据（拼接全局名）
 				const m = seqSymbolMeta(cp);
 				return m.zhName || m.officialName || '';
 			}
-			const key = this.ctxGroupKey(cp);
-			if (!key) return zhNameOf(cp);
-			return SYMBOL_MAP.get(String.fromCodePoint(cp)).byKey[key].name;
+			return zhNameOf(cp);
 		},
 		/** 详情别名（虚拟合并）：有语境 → 本组 alias ∪ 其他组 name，且一律排除"当前显示的主名"；无语境/序列 → 聚合别名 */
 		ctxAliases(cp) {
 			const meta = SYMBOL_MAP.get(Array.isArray(cp) ? String.fromCodePoint(...cp) : String.fromCodePoint(cp));
 			if (!meta) return [];
 			const tag = this.ctxTagName();
-			if (Array.isArray(cp) || !tag || !meta.byKey) return meta.aliases;
+			if (!tag || !meta.byKey) return meta.aliases;
 			const key = this.ctxGroupKey(cp);
 			// 无语境键，且条目里没有任何组带 name（含"无组"和"只有 alias 的组"两种）→ 走聚合别名
 			if (!key && !Object.values(meta.byKey).some(g => g && g.name)) return meta.aliases;
 			const cur = key ? meta.byKey[key] : null;
 			const out = [];
 			const seen = new Set();
-			const shown = cur ? cur.name : zhNameOf(cp);
+			const shown = cur ? cur.name : this.ctxZhName(cp);   // 不可用 zhNameOf(cp)：序列传数组会 String.fromCodePoint(数组) 抛 RangeError
 			if (shown) seen.add(shown);
 			for (const a of (cur && cur.alias) || []) {
 				if (a && !seen.has(a)) { seen.add(a); out.push(a); }
@@ -1350,10 +1352,9 @@ const app = createApp({
 			}
 			return out;
 		},
-		/** 编辑弹窗初始别名：只取当前语境组的真实 alias（不含虚拟合并的其他组名）；无语境沿用聚合别名（序列由调用方走 sc.aliases） */
+		/** 编辑弹窗初始别名：只取当前语境组的真实 alias（不含虚拟合并的其他组名）；无语境沿用聚合别名 */
 		editAliasesOf(cp) {
-			if (Array.isArray(cp)) return [];
-			const meta = SYMBOL_MAP.get(String.fromCodePoint(cp));
+			const meta = SYMBOL_MAP.get(Array.isArray(cp) ? String.fromCodePoint(...cp) : String.fromCodePoint(cp));
 			if (!meta) return [];
 			const tag = this.ctxTagName();
 			if (tag && meta.byKey && meta.byKey[tag] && groupAlive(meta.byKey[tag])) return (meta.byKey[tag].alias || []).slice();
@@ -1401,7 +1402,7 @@ const app = createApp({
 			}
 			return set;
 		},
-		/** 关键词命中的符号：逻辑与旧 matchedChars 一致，抽成 per-token（码点/单字符/名匹配/中文名/旗序列）；全角/半角互通 */
+		/** 关键词命中的符号：逻辑与旧 matchedChars 一致，抽成 per-token（码点/单字符/名匹配/中文名/序列）；全角/半角互通 */
 		matchCharsForToken(token) {
 			const q = foldToSimplified(toHalfWidth(token)).toLowerCase();
 			const out = [];
@@ -1502,21 +1503,21 @@ const app = createApp({
 			const meta = SEQ_INDEX.get(cps.join('-')) || {};
 			return { char: String.fromCodePoint(...cps), cp: cps, zhName: meta.zh || '', officialName: meta.en || '' };
 		},
-		/** 搜索网格条目标题：中文名 + 官方名（无官方名时回退 U+ 码点，旗序列双码位）；控制码前置标识 */
+		/** 搜索网格条目标题：中文名 + 官方名（无官方名时回退 U+ 码点，序列多码位）；控制码前置标识 */
 		searchTitle(mc) {
 			const code = Array.isArray(mc.cp)
 				? 'U+' + mc.cp.map(c => c.toString(16).toUpperCase()).join(' ')
 				: 'U+' + mc.cp.toString(16).toUpperCase();
 			return (isControlCode(mc.cp) ? '控制码 ' : '') + mc.zhName + '\n' + (mc.officialName || code);
 		},
-		/** 是否为旗序列条目（双码位数组） */
-		isFlag(item) {
+		/** 是否为序列条目（多码位数组；旗帜与 ZWJ 序列都是） */
+		isSeq(item) {
 			return Array.isArray(item);
 		},
 		/** 网格条目渲染文本（嵌套数组=异常数据时安全返回空） */
 		cellText(item) {
 			if (Array.isArray(item) && item.length > 0 && Array.isArray(item[0])) return '';
-			return this.isFlag(item) ? String.fromCodePoint(...item) : String.fromCodePoint(item);
+			return this.isSeq(item) ? String.fromCodePoint(...item) : String.fromCodePoint(item);
 		},
 		/** 双模变体渲染文本：text=追加VS15(U+FE0E)强制文本呈现，emoji=追加VS16(U+FE0F)强制表情呈现
 		 *  （font-variant-emoji: emoji 在 Chrome 对文本默认类字符不生效，须用变体选择符可靠呈现） */
@@ -1525,7 +1526,7 @@ const app = createApp({
 		},
 		/** 渲染态：true=能渲染, false=当前字体不支持, null=检测中（占位，不显示豆腐块） */
 		renderState(item) {
-			if (this.isFlag(item)) {
+			if (this.isSeq(item)) {
 				if (!item.includes(0x200D)) return true; // 非 ZWJ 序列（旗帜等）恒可渲染
 				const v = SEQ_RENDER_CACHE.get(item.join('-'));
 				return v === undefined ? null : v;
@@ -1538,7 +1539,7 @@ const app = createApp({
 			const seqs = [];
 			const singles = [];
 			for (const it of items) {
-				if (this.isFlag(it)) {
+				if (this.isSeq(it)) {
 					if (it.includes(0x200D) && !SEQ_RENDER_CACHE.has(it.join('-'))) seqs.push(it);
 					continue;
 				}
@@ -1560,24 +1561,21 @@ const app = createApp({
 			}
 			this.$forceUpdate();
 		},
-		/** 网格条目唯一 key（旗加 's' 前缀防与数字码位混淆） */
+		/** 网格条目唯一 key（序列加 's' 前缀防与数字码位混淆） */
 		cellKey(item) {
-			return this.isFlag(item) ? 's' + item.join('-') : String(item);
+			return this.isSeq(item) ? 's' + item.join('-') : String(item);
 		},
-		/** 网格条目悬浮标题：旗显示中/英文名，单码位走 titleOf */
+		/** 网格条目悬浮标题：序列显示中/英文名（中文名走语境名），单码位走 titleOf */
 		itemTitle(item) {
-			if (this.isFlag(item)) {
+			if (this.isSeq(item)) {
 				const m = seqSymbolMeta(item);
-				return (m.zhName || '') + '\n' + (m.officialName || '');
+				return (this.ctxZhName(item) || m.zhName || '') + '\n' + (m.officialName || '');
 			}
 			return this.titleOf(item);
 		},
-		/** 网格卡片显示名：单码位语境名优先英文名兜底；序列中/英文名 */
+		/** 网格卡片显示名：单码位语境名优先英文名兜底；序列走语境名（内含全局名回退） */
 		gridItemName(item) {
-			if (this.isFlag(item)) {
-				const m = seqSymbolMeta(item);
-				return m.zhName || m.officialName || '';
-			}
+			if (this.isSeq(item)) return this.ctxZhName(item) || '';
 			return this.ctxZhName(item) || nameOf(item) || '';
 		},
 		/** 单码位是否双模（文本/表情两变体）：权威集合来自 标签.js emoji > emoji-text双模 ranges */
@@ -1586,13 +1584,13 @@ const app = createApp({
 		},
 		/** 网格条目是否为双模字符（文本/表情两种变体），旗序列恒为 false */
 		itemDual(item) {
-			if (this.isFlag(item)) return false;
+			if (this.isSeq(item)) return false;
 			return this.isDualCp(item);
 		},
 		/** 网格条目是否当前选中 */
 		isSelected(item) {
 			if (!this.selectedChar) return false;
-			if (this.isFlag(item)) {
+			if (this.isSeq(item)) {
 				return Array.isArray(this.selectedChar.cp) && this.selectedChar.cp.join('-') === item.join('-');
 			}
 			return item === this.selectedChar.cp;
@@ -1721,18 +1719,18 @@ const app = createApp({
 
 		// ----- 拖拽移动/添加（卡片 → 标签树）-----
 
-		/** 卡片拖拽开始：记录条目（折叠卡记整组成员列表）；部分浏览器必须 setData 才允许拖（旗序列取首码位） */
+		/** 卡片拖拽开始：记录条目（折叠卡记整组成员列表）；部分浏览器必须 setData 才允许拖（序列取首码位） */
 		onDragStart(item, e) {
 			if (item && item.main !== undefined) {
 				this.dragChar = { group: [item.main, ...item.dots] };
 				const main = item.main;
 				e.dataTransfer.effectAllowed = 'copyMove';
-				e.dataTransfer.setData('text/plain', String(this.isFlag(main) ? main[0] : main));
+				e.dataTransfer.setData('text/plain', String(this.isSeq(main) ? main[0] : main));
 				return;
 			}
 			this.dragChar = item;
 			e.dataTransfer.effectAllowed = 'copyMove';
-			e.dataTransfer.setData('text/plain', String(this.isFlag(item) ? item[0] : item));
+			e.dataTransfer.setData('text/plain', String(this.isSeq(item) ? item[0] : item));
 		},
 		/** 拖拽结束（含 drop 之后）：清拖拽状态 */
 		onDragEnd() {
@@ -1765,7 +1763,7 @@ const app = createApp({
 				const members = item.group;
 				const main = members[0];
 				let char = '', zhName = '';
-				if (this.isFlag(main)) {
+				if (this.isSeq(main)) {
 					char = String.fromCodePoint(...main);
 					const meta = SEQ_INDEX.get(main.join('-')) || {};
 					zhName = meta.zh || '';
@@ -1781,7 +1779,7 @@ const app = createApp({
 				return;
 			}
 			let cp, char, zhName = '';
-			if (this.isFlag(item)) {
+			if (this.isSeq(item)) {
 				cp = item;
 				char = String.fromCodePoint(...item);
 				const meta = SEQ_INDEX.get(item.join('-')) || {};
@@ -1798,12 +1796,12 @@ const app = createApp({
 			this.dragChar = null;
 		},
 
-		/** 打开编辑对话框：item 为网格条目（数字=单码位，数组=旗序列）或折叠卡对象 {main, dots} */
+		/** 打开编辑对话框：item 为网格条目（数字=单码位，数组=序列）或折叠卡对象 {main, dots} */
 		openTagEditor(item) {
 			if (item && item.main !== undefined) {
 				const main = item.main;
 				let char, zhName = '';
-				if (this.isFlag(main)) {
+				if (this.isSeq(main)) {
 					char = String.fromCodePoint(...main);
 					const meta = SEQ_INDEX.get(main.join('-')) || {};
 					zhName = meta.zh || '';
@@ -1817,7 +1815,7 @@ const app = createApp({
 				return;
 			}
 			let cp, char, zhName = '';
-			if (this.isFlag(item)) {
+			if (this.isSeq(item)) {
 				cp = item;
 				char = String.fromCodePoint(...item);
 				const meta = SEQ_INDEX.get(item.join('-')) || {};
@@ -1869,9 +1867,9 @@ const app = createApp({
 		async removeFromTag(g) {
 			const cp = this.selectedChar && this.selectedChar.cp;
 			if (cp === null || cp === undefined) return;
-			const isFlag = Array.isArray(cp);
-			const char = isFlag ? String.fromCodePoint(...cp) : String.fromCodePoint(cp);
-			const zhName = isFlag ? ((SEQ_INDEX.get(cp.join('-')) || {}).zh || '') : zhNameOf(cp);
+			const isSeq = Array.isArray(cp);
+			const char = isSeq ? String.fromCodePoint(...cp) : String.fromCodePoint(cp);
+			const zhName = isSeq ? ((SEQ_INDEX.get(cp.join('-')) || {}).zh || '') : zhNameOf(cp);
 			this.tagEditorChar = { char, cp, zhName };
 			const paths = g.paths.filter(path => {
 				const src = nodeAtPath(path);
@@ -2077,7 +2075,7 @@ const app = createApp({
 			this.refreshAfterOp();
 			return true;
 		},
-		/** 把成员加到节点自身（单码位入 ranges，旗序列入 seqs 并补名） */
+		/** 把成员加到节点自身（单码位入 ranges，序列入 seqs 并补名） */
 		_applyAddToNode(node, cp) {
 			if (Array.isArray(cp)) {
 				const meta = SEQ_INDEX.get(cp.join('-')) || {};
@@ -2108,13 +2106,13 @@ const app = createApp({
 			if (this.selectedChar) this.selectedChar.tags = tagsOf(this.selectedChar.cp);
 			if (this.gridItems.length) this.refreshRenderability(this.gridItems);
 		},
-		/** 码位十六进制串：单码位 "1F600"，旗序列 "1F1E8-1F1F3"；成员列表取第一个（主符号） */
+		/** 码位十六进制串：单码位 "1F600"，序列 "1F1E8-1F1F3"；成员列表取第一个（主符号） */
 		cpsHex(cp) {
 			if (Array.isArray(cp) && cp.length > 0 && Array.isArray(cp[0])) cp = cp[0];
 			if (Array.isArray(cp)) return cp.map(c => c.toString(16).toUpperCase()).join('-');
 			return cp.toString(16).toUpperCase();
 		},
-		/** 码位显示串（空格分隔，同详情区）：单码位 "1F600"，旗序列 "1F1E8 1F1F3" */
+		/** 码位显示串（空格分隔，同详情区）：单码位 "1F600"，序列 "1F1E8 1F1F3" */
 		codeStrOf(cp) {
 			if (Array.isArray(cp)) return cp.map(c => c.toString(16).toUpperCase()).join(' ');
 			return cp.toString(16).toUpperCase();
@@ -2152,7 +2150,7 @@ const app = createApp({
 
 		// ===== 元数据编辑（服务器直写）=====
 
-		/** 码位转数组：单码位包一层、旗序列原样（服务器 cps 恒为数组） */
+		/** 码位转数组：单码位包一层、序列原样（服务器 cps 恒为数组） */
 		toCpsArray(cp) {
 			return Array.isArray(cp) ? cp : [cp];
 		},
@@ -2184,6 +2182,7 @@ const app = createApp({
 			if (!t) return;
 			if (this.isFormalAxis(t.path.split('/')[0])) return; // 机械轴按钮已隐藏，双保险
 			this.metaEditorKind = 'tag';
+			this.metaEditorNameLocked = false;   // 只有符号编辑可能锁定名字
 			this.metaEditorPath = t.path;
 			this.metaEditorName = t.name;
 			this.metaEditorAliases = (t.node && t.node.alias && t.node.alias.length) ? [...t.node.alias] : [];
@@ -2271,8 +2270,14 @@ const app = createApp({
 			this.metaEditorKind = 'symbol';
 			this.metaEditorChar = sc;
 			this.metaEditorName = sc.zhName || '';
-			// 只取真实别名（语境下=本组 alias），虚拟合并的其他组名不回填、不写回；序列沿用聚合别名
-			this.metaEditorAliases = Array.isArray(sc.cp) ? ((sc.aliases && sc.aliases.length) ? [...sc.aliases] : []) : this.editAliasesOf(sc.cp);
+			// 名字锁定：≥2 个命名组且当前无标签语境时，显示的是各组名的拼接串（用「、」连接），
+			// 在此改名会把整串写回顶层 name；有语境时显示的是该组单个名，改它写回该组是对的，不锁。
+			const metaChar = Array.isArray(sc.cp) ? String.fromCodePoint(...sc.cp) : String.fromCodePoint(sc.cp);
+			const meta = SYMBOL_MAP.get(metaChar);
+			const namedGroups = meta ? Object.values(meta.byKey || {}).filter(g => g && g.name).length : 0;
+			this.metaEditorNameLocked = namedGroups >= 2 && !this.ctxGroupKey(sc.cp);
+			// 只取真实别名（语境下=本组 alias），虚拟合并的其他组名不回填、不写回
+			this.metaEditorAliases = this.editAliasesOf(sc.cp);
 			this.metaEditorOldAliases = [...this.metaEditorAliases];
 			this.metaEditorIntro = sc.intro || ''; this.metaEditorOldIntro = this.metaEditorIntro; this.reparentTarget = '';
 			this.metaEditorCpStr = sc.codeStr || this.cpsHex(sc.cp);
@@ -2287,7 +2292,8 @@ const app = createApp({
 			const oldName = sc.zhName || '';
 			const newName = (this.metaEditorName || '').trim();
 			const aliases = [...new Set(this.metaEditorAliases.map(a => (a || '').trim()).filter(a => a !== ''))];
-			const nameChanged = newName !== oldName;
+			// 拼接名锁定（≥2 命名组无语境）时禁改名字：输入框已 disabled，这里兜底防任何路径误写整串
+			const nameChanged = !this.metaEditorNameLocked && newName !== oldName;
 			const aliasChanged = JSON.stringify(aliases) !== JSON.stringify(this.metaEditorOldAliases);
 			const intro = (this.metaEditorIntro || '').trim();
 			const introChanged = intro !== this.metaEditorOldIntro;
@@ -2296,7 +2302,7 @@ const app = createApp({
 			// 序列与单码点同构，一律走下方 entry 路线：编辑 = 登记/更新该符号在 ENRICHED_SYMBOLS 的元素
 			// （序列 useNameRoute 恒 false，序列名不在 官方名直译名.js；富化优先、标签 seqs 默认名兜底）
 			// 路由决策：
-			//   旗序列 / 字符在 ENRICHED_SYMBOLS / 需加别名（可同时改名）/ 有语境标签 → entry 路线（写 符号富化数据.js）
+			//   序列 / 字符在 ENRICHED_SYMBOLS / 需加别名（可同时改名）/ 有语境标签 → entry 路线（写 符号富化数据.js）
 			//   不在 ENRICHED_SYMBOLS、仅改名且无语境 → name 路线（写 官方名直译名.js，只对单码位有意义）
 			const tagCtx = this.ctxTagName();
 			const inSymbols = !isSeq && ENRICHED_SYMBOLS.some(s => s.char === sc.char);
@@ -2528,6 +2534,7 @@ const app = createApp({
 		/** 打开「新增根标签」弹窗（root 模式：名字 + 可选别名） */
 		openNewRoot() {
 			this.metaEditorKind = 'root';
+			this.metaEditorNameLocked = false;   // 只有符号编辑可能锁定名字
 			this.metaEditorPath = '';
 			this.metaEditorName = '';
 			this.metaEditorAliases = [];

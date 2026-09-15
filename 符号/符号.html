@@ -364,7 +364,8 @@
 				</div>
 				<div class="me-field">
 					<label class="me-label">名字</label>
-					<el-input v-model="metaEditorName" placeholder="名字"></el-input>
+					<el-input v-model="metaEditorName" placeholder="名字" :disabled="metaEditorNameLocked"></el-input>
+					<div class="me-name-locked" v-if="metaEditorKind === 'symbol' && metaEditorNameLocked">此符号在多个标签下各有一个名字，这里无法修改；请进入对应标签改名。</div>
 				</div>
 				<div class="me-field">
 					<label class="me-label">别名</label>

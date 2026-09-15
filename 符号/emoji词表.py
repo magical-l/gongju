@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
-"""emoji 官方英文名专用词表 —— 给 符号/build_emoji_zh.py 用。
+"""emoji 官方英文名专用词表 + 机械直译引擎 —— 给 符号/build_emoji_zh.py 与 符号/build_zwj.py 共用。
+
+两个消费者共用**同一份词表和同一个引擎**（`translate` / `segment` / `token_of`），
+只是取的语料不同：`build_emoji_zh.py` 翻**单码位**的官方英文名（`GRINNING FACE`），
+`build_zwj.py` 翻**序列**的（`man rowing boat`）。所以引擎放在这里而不是任一脚本里，
+两份语料的词条也**分块写在下面**（「ZWJ 序列专用」那块），免得各自维护、语义漂移。
 
 **为什么和 符号/译名词表.py 的 WORD 分开**
 
@@ -18,6 +23,12 @@
 
   EMOJI_WORD    单词 → 中文。emoji 名里该词的机械直译。
   EMOJI_PHRASE  整块短语 → 中文。优先于 EMOJI_WORD 命中（按最长匹配）。
+
+⚠️ **改词表会把之前脚本产出的名字变成孤儿**：`build_emoji_zh.find_scope` 的放行条件是
+「值 == CLDR 俗名」**或**「值 == 本脚本产出的直译」，第二条拿的是**当前引擎的输出**。
+一改词表，旧引擎产出的值就既不等于新输出、也不是 CLDR 值，于是被当成「人工改过的名字」
+永久冻结。实测（2026-09-14 加 `HOLDING HANDS` / `WITH BUNNY EARS` 等短语后）搁浅 6 条，
+判定与修法见 `符号/数据说明.md` §六。
 
 找不到的词走 符号/译名词表.py 的 WORD 兜底（只兜 WORD，**不兜 KEEP**：
 KEEP 是"原样保留"的记音/专名，emoji 名里没有这种词）。
@@ -504,6 +515,33 @@ EMOJI_WORD.update({
     'X': 'X',
 })
 
+# ============ ZWJ 序列专用：人称 + 动作 / 状态 / 身份 ============
+# build_zwj.py 拿这些词把 emoji-test 的**序列**英文名（`man rowing boat` 这种）直译成
+# 中文名。词形是 emoji-test 里的原形（动名词 / 名词短语），与单码位那份语料重叠不多，
+# 所以**另起一块**，不混进上面按语义分的那些块。
+#
+# 漏一个实词，整条序列名就会掉回英文原文（build_zwj 不再拿 CLDR 兜底，见该脚本 zh_of）。
+EMOJI_WORD.update({
+    # ---- 动作 / 运动 ----
+    'SWIMMING': '游泳', 'SURFING': '冲浪', 'ROWING': '划船', 'WRESTLING': '摔跤',
+    'GOLFING': '打高尔夫', 'BIKING': '骑自行车', 'CARTWHEELING': '侧手翻',
+    'SHRUGGING': '耸肩', 'FACEPALMING': '捂脸', 'WALKING': '走路',
+    'LIFTING': '举', 'WEIGHTS': '重物', 'BOUNCING': '拍', 'TIPPING': '倾斜',
+    'GETTING': '接受', 'FEEDING': '喂', 'WEARING': '戴', 'GESTURING': '做手势',
+    'MENDING': '修复', 'EXHALING': '呼气', 'HORIZONTALLY': '左右',
+    # ---- 职业 / 身份 ----
+    'COOK': '厨师', 'FARMER': '农民', 'STUDENT': '学生', 'TEACHER': '教师',
+    'JUDGE': '法官', 'MECHANIC': '机械师', 'TECHNOLOGIST': '技术员',
+    'SINGER': '歌手', 'ASTRONAUT': '宇航员', 'FIREFIGHTER': '消防员',
+    'DETECTIVE': '侦探', 'GUARD': '卫兵', 'HEALTH': '医务',
+    # ---- 神话 / 生物 ----
+    'FAIRY': '小仙子', 'MERMAID': '美人鱼', 'MERMAN': '男人鱼',
+    'PHOENIX': '凤凰', 'POLAR': '北极', 'LIME': '青柠', 'CHAIN': '链',
+    'TRANSGENDER': '跨性别', 'PIRATE': '海盗', 'CLAUS': '克劳斯', 'MX': 'Mx',
+    # ---- 属性 ----
+    'BEARD': '胡须',
+})
+
 # ---- 短语（优先于单词，按最长匹配） ----
 # 键是空格分隔的英文词；值是整块译法。用于：
 #   · 语序要倒装的（X OF Y → Y之X 已在引擎里，这里放固定搭配）
@@ -708,6 +746,57 @@ EMOJI_PHRASE = {
     'HEART EXCLAMATION': '心形感叹号',
     'BOTH HANDS': '双手',
     'SAILBOAT': '帆船',
+
+    # ---- ZWJ 序列专用：要靠整块才翻得对的短语 ----
+    # 单词分开拼会串味（`LIFTING WEIGHTS` 逐词是「举重物」，运动名该是「举重」），
+    # 或者中文里根本不是逐词结构（`IN LOTUS POSITION`）。
+    'LIFTING WEIGHTS': '举重',
+    'ROWING BOAT': '划船',
+    'MOUNTAIN BIKING': '骑山地车',
+    'BOUNCING BALL': '拍球',
+    'PLAYING WATER POLO': '玩水球',
+    'PLAYING HANDBALL': '玩手球',
+    'TIPPING HAND': '手心向上',
+    'GESTURING NO': '做“不”的手势',
+    'GESTURING OK': '做“好”的手势',
+    'GETTING MASSAGE': '做按摩',
+    'GETTING HAIRCUT': '理发',
+    'FEEDING BABY': '喂婴儿',
+    'IN STEAMY ROOM': '蒸桑拿',
+    'IN LOTUS POSITION': '莲花坐',
+    # 单码位那两条（🧖 🧘）英文名是 `person in …`。**别拿逐词拼的「人蒸桑拿」当名字**，
+    # 也别砍掉人称只留活动名——两种读法各有各的用：
+    #   `人在桑拿房` / `莲花坐的人` 是**完整直译**（一个说状态、一个说人），
+    #   `蒸桑拿` / `莲花坐` 是**活动侧写**（对应 🚣 的主题轴名「划船」）。
+    # 这里定的是直译值；活动侧写由 符号富化数据.js 的语境名/别名承担。
+    'PERSON IN STEAMY ROOM': '人在桑拿房',
+    'PERSON IN LOTUS POSITION': '莲花坐的人',
+    'IN MANUAL WHEELCHAIR': '坐手动轮椅',
+    'IN MOTORIZED WHEELCHAIR': '坐电动轮椅',
+    'WITH WHITE CANE': '拄白手杖',
+    'WITH BUNNY EARS': '戴兔耳',
+    'HOLDING HANDS': '牵手',
+    'HEAD SHAKING HORIZONTALLY': '左右摇头',
+    'HEAD SHAKING VERTICALLY': '上下点头',
+    'HEALTH WORKER': '医生',
+    'BALLET DANCER': '芭蕾舞者',
+    'MX CLAUS': '圣诞老人',
+    'SERVICE DOG': '服务犬',
+    'BLACK CAT': '黑猫',
+    'BROWN MUSHROOM': '褐蘑菇',
+    'POLAR BEAR': '北极熊',
+    'BROKEN CHAIN': '断链',
+    'MENDING HEART': '修复的心',
+    'FACE EXHALING': '呼气的脸',
+    'FACE IN CLOUDS': '云中的脸',
+    'RAINBOW FLAG': '彩虹旗',
+    'TRANSGENDER FLAG': '跨性别旗',
+    'PIRATE FLAG': '海盗旗',
+    'EYE IN SPEECH BUBBLE': '对话气泡里的眼睛',
+    # BLACK 在这块符号语料里是「实心」（BLACK SQUARE 实心方块），落到鸟身上会变「实心鸟」
+    'BLACK BIRD': '黑鸟',
+    'HEART ON FIRE': '着火的心',
+    'IN TUXEDO': '穿燕尾服',
 }
 
 # ---- 人工补充别名 ----
@@ -718,3 +807,92 @@ EXTRA_ALIASES = {
     # CROSSED SWORDS：直译取「交叉的剑」，另两种写法留作别名
     '⚔': ['剑交叉', '交叉剑'],
 }
+
+# ==================== 翻译引擎 ====================
+# 表在这儿，引擎也在这儿：单码位（build_emoji_zh）和 ZWJ 序列（build_zwj）共用同一份。
+# 两边词形不同、语料不同，但查表规则、短语切分、结构词处理完全一致，分成两套必然漂移。
+
+import re
+
+try:
+    from 译名词表 import WORD as FALLBACK_WORD       # 只借 WORD，**不借 KEEP**（见本文件开头）
+except ImportError:
+    FALLBACK_WORD = {}
+
+MAX_PHRASE = 8                          # 短语切分最长几个词
+
+# ==================== 翻译引擎 ====================
+
+IDEOGRAPH = re.compile(r'^IDEOGRAPH-([0-9A-F]{4,6})$')
+
+
+def token_of(word):
+    """单个 token → 中文；查不到返回 None。"""
+    m = IDEOGRAPH.match(word)
+    if m:
+        return '汉字' + chr(int(m.group(1), 16))     # IDEOGRAPH-6708 → 汉字月
+    if word in EMOJI_WORD:
+        return EMOJI_WORD[word]
+    if not re.search(r'[A-Za-z]', word):
+        return word                                  # 短语切分留下的中文，原样透传
+    return FALLBACK_WORD.get(word)
+
+
+def segment(tokens):
+    """把整块短语（任意位置）先切成一个中文 token，长短语优先。
+
+    只在**前缀位置**匹配是不够的：`HAND WITH INDEX AND MIDDLE FINGERS CROSSED`
+    里的 `MIDDLE FINGER` 在中间，前缀匹配够不着，会拼成「中手指」。
+    """
+    out, i = [], 0
+    while i < len(tokens):
+        for n in range(min(MAX_PHRASE, len(tokens) - i), 0, -1):
+            key = ' '.join(tokens[i:i + n])
+            if key in EMOJI_PHRASE:
+                out.append(EMOJI_PHRASE[key])
+                i += n
+                break
+        else:
+            out.append(tokens[i])
+            i += 1
+    return out
+
+
+def translate(tokens, unknown):
+    """词列表 → 中文。
+
+    规则顺序（越靠前越优先）：
+      1. 短语切分（`segment`，任意位置、长短语优先）
+      2. 结构词 WITH / AND / OF / FOR / BEHIND（取第一个）
+      3. 逐词拼接，查不到的原样保留并记进 unknown
+    """
+    tokens = segment(list(tokens))
+    if not tokens:
+        return ''
+
+    for kw in ('WITH', 'AND', 'OF', 'FOR', 'BEHIND'):
+        if kw not in tokens:
+            continue
+        i = tokens.index(kw)
+        head, tail = tokens[:i], tokens[i + 1:]
+        if not head or not tail:
+            continue
+        a, b = translate(head, unknown), translate(tail, unknown)
+        if kw == 'WITH':
+            return '带' + b + '的' + a
+        if kw == 'AND':
+            return a + '和' + b
+        if kw == 'OF':
+            return b + '之' + a
+        if kw == 'BEHIND':
+            return b + '后的' + a
+        return a + '（' + b + '）'                 # FOR：ALCHEMICAL SYMBOL FOR X → 炼金术符号（X）
+
+    out = []
+    for word in tokens:
+        zh = token_of(word)
+        if zh is None:
+            unknown.append(word)
+            zh = word
+        out.append(zh)
+    return ''.join(out)

@@ -10,9 +10,21 @@ ZWJ 序列（含 U+200D，3+ 码位）塞不进单码位 ranges，节点用 seqs
   本脚本**独占这些键**，直接覆盖（页面改序列名走符号条目，从不写名字层）。
 
 中文名：
-  基础序列（无肤色）→ CLDR zh 注解优先（剥 VS16 匹配），未命中程序化兜底（家庭/发型/爱情/面向右）
+  基础序列（无肤色）→ **官方英文名的机械直译**（词表见 emoji词表.py 的「ZWJ 序列专用」块，
+                        引擎借 build_emoji_zh.translate），未命中程序化兜底（家庭/发型/爱情/面向右）
   肤色变体 → 肤色词 + 基础名（用户裁定：肤色前置、词简化）
+
+  ⚠️ **名字层不取 CLDR**。CLDR 短名是俗名（`man rowing boat → 划船`），不含人称，
+     男/女/中性三条序列会撞成同一个名字。俗名按分层原则只能进人工层的 alias。
+
+序列别名（写 符号富化数据.js）：
+  人称打头的序列 → 人称同义词 × (动作词 + 动作同义词)，见 PERSON_SYN / ACTION_SYN。
+  只给**无肤色、不朝右**的基础序列（肤色变体是同一张折叠卡的下挂项）。
+  别名一律**不进名字层**，也不当显示名。
+
 归属：按 emoji-test 英文名规则映射到语义标签（肤色变体与基础节点同挂）
+  ⚠️ 体育类序列**双挂**：「体育、运动/<项>」是主题轴，「人/人物角色/运动的人」是角色轴，
+     两条轴正交，不是二选一（SPORTY 常量）。
 """
 import json
 import os
@@ -21,10 +33,14 @@ import sys
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BASE)
-from datatool import dump_data, dump_tags, read_data, wrap, write_text
+from datatool import (append_symbols, dump_data, dump_tags, load_symbols, read_data,
+                      update_symbols, wrap, write_text)
+# 直译引擎与单码位共用一份（词表和引擎都在 emoji词表.py）
+from emoji词表 import translate
+# 机械轴名单、条目取值函数与单码位那套共用（别名归属规则一致，别各写一份）
+from build_emoji_zh import MECHANICAL_TAGS, entry_values
 
 EMOJI_TEST = os.path.join(BASE, '参考资料', 'emoji-test.txt')
-ANNOTATIONS = os.path.join(BASE, '参考资料', 'annotations-zh.json')
 TAG_FILE = os.path.join(BASE, '标签.js')
 ZH_FILE = os.path.join(BASE, '官方名直译名.js')
 NM_FILE = os.path.join(BASE, 'unicode官方名.js')
@@ -34,6 +50,8 @@ SKIN_ZH = {0x1F3FB: '浅肤色', 0x1F3FC: '中浅肤色', 0x1F3FD: '中肤色', 
 SKIN_EN = re.compile(r'(light|medium-light|medium|medium-dark|dark) skin tone[, ]*')
 # 肤色维度节点：人 根下建「肤色」，子节点 = 各肤色（按用户裁定挂所有出现的肤色，多挂合法）
 SKIN_SUB = {0x1F3FB: '浅肤色', 0x1F3FC: '中浅肤色', 0x1F3FD: '中肤色', 0x1F3FE: '中深肤色', 0x1F3FF: '深肤色'}
+# 反过来：从中文名里剥肤色前缀用（长词在前，免得「中浅肤色」被「浅肤色」误伤）
+SKIN_PREFIX = ('中浅肤色', '中深肤色', '中肤色', '浅肤色', '深肤色')
 
 # 程序化兜底词表（CLDR 未命中的基础序列）
 FALLBACK = {
@@ -45,13 +63,14 @@ FALLBACK = {
 
 # 职业词表（CLDR 第一个注解常是泛词如'做饭'，fallback 优先）
 OCCUPATIONS = {
-    'health worker': '医务工作者', 'student': '学生', 'teacher': '教师', 'judge': '法官',
+    'health worker': '医生', 'student': '学生', 'teacher': '教师', 'judge': '法官',
     'farmer': '农民', 'cook': '厨师', 'mechanic': '机械师', 'factory worker': '工人',
     'office worker': '白领', 'scientist': '科学家', 'technologist': '技术员', 'singer': '歌手',
     'artist': '艺术家', 'pilot': '飞行员', 'astronaut': '宇航员', 'firefighter': '消防员',
     'police officer': '警察', 'detective': '侦探', 'guard': '卫兵', 'construction worker': '建筑工人',
-    'wearing turban': '戴头巾的人',
 }
+# 注：这里只放**职业**。`wearing turban` 曾混在这儿，会让 `man wearing turban` 拼成
+# 「男戴头巾的人」——它不是职业，交给直译（男人戴头巾）。
 
 
 def occ_zh(en):
@@ -66,56 +85,11 @@ def occ_zh(en):
     return None
 
 
-# 动作词（CLDR 第一个注解常是性别泛词如'男'/'女'，程序化兜底：动作+人）
-ACTION_ZH = {
-    'gesturing NO': '打叉', 'gesturing OK': '打勾', 'tipping hand': '托腮',
-    'facepalming': '捂脸', 'standing': '站立', 'running': '跑步', 'golfing': '打高尔夫',
-    'swimming': '游泳', 'playing water polo': '打水球', 'playing handball': '打手球',
-    'juggling': '玩杂耍', 'getting massage': '按摩', 'getting haircut': '理发',
-    'bouncing ball': '拍球', 'wrestling': '摔跤',
-    'with bunny ears': '戴兔耳', 'holding hands': '牵手',
-}
-
-
-def action_zh(en):
-    for action, zh in ACTION_ZH.items():
-        if action in en:
-            if en.startswith('woman and man ') or en.startswith('man and man ') or en.startswith('woman and woman '):
-                return zh + '的人'
-            if en.startswith('man '):
-                return zh + '男人'
-            if en.startswith('woman '):
-                return zh + '女人'
-            if en.startswith('person '):
-                return zh + '人'
-            if en.startswith('people '):
-                return zh + '的人'
-            if en.startswith('men '):
-                return zh + '男人'
-            if en.startswith('women '):
-                return zh + '女人'
-            return zh + '的人'
-    return None
-
-
-# 显式覆盖（CLDR 第一个注解是泛词/关联词，程序化兜底更精确）
-EXTRA_ZH = {
-    'heart on fire': '燃烧的心',
-    'mending heart': '修复的心',
-    'face with spiral eyes': '头晕眼花',
-    'man feeding baby': '哺乳的男人', 'woman feeding baby': '哺乳的女人', 'person feeding baby': '哺乳的人',
-    'man in tuxedo': '穿燕尾服的男士', 'woman in tuxedo': '穿燕尾服的女士',
-    'man with veil': '蒙头纱的男士', 'woman with veil': '蒙头纱的女士',
-    'Mx Claus': '圣诞老人',
-    'man with white cane': '拿白杖的男人', 'woman with white cane': '拿白杖的女人',
-    'person with white cane': '拄白手杖的人',
-    'man walking': '走路的人', 'woman walking': '走路的人', 'person walking': '走路的人',
-    'broken chain': '断链',
-    'polar bear': '北极熊', 'black bird': '黑鸟', 'phoenix': '凤凰',
-    'rainbow flag': '彩虹旗', 'transgender flag': '跨性别旗', 'pirate flag': '海盗旗',
-}
-
 # 归属规则（按顺序匹配；每条返回一个或多个标签路径）
+# 「运动的人」是**人物角色**轴，跟「体育、运动」那条**主题**轴正交：同一条序列两边都该在
+# （跑/骑那两个是早年手工加的，其余一直漏着，🚣‍♂️ 只在「水上运动」里、不在「运动的人」里）。
+SPORTY = '人/人物角色/运动的人'
+
 RULES = [
     (lambda b: 'family:' in b, ['人/家庭']),
     (lambda b: 'feeding baby' in b, ['人/家庭']),
@@ -133,12 +107,14 @@ RULES = [
     (lambda b: 'Mx Claus' in b, ['社会生活/节日、纪念日、庆祝/圣诞节']),
     (lambda b: 'getting massage' in b or 'getting haircut' in b, ['人/梳妆打扮']),
     (lambda b: any(k in b for k in ('walking', 'standing', 'kneeling', 'white cane', 'wheelchair')), ['人']),
-    (lambda b: 'running' in b, ['体育、运动/田径运动']),
-    (lambda b: 'ballet dancer' in b or 'bunny ears' in b, ['体育、运动/舞蹈']),
-    (lambda b: any(k in b for k in ('surfing', 'rowing', 'swimming', 'water polo')), ['体育、运动/水上运动']),
-    (lambda b: 'bouncing ball' in b or 'handball' in b, ['体育、运动/球类运动']),
+    (lambda b: 'running' in b, ['体育、运动/田径运动', SPORTY]),
+    (lambda b: 'ballet dancer' in b or 'bunny ears' in b, ['体育、运动/舞蹈', SPORTY]),
+    (lambda b: any(k in b for k in ('surfing', 'rowing', 'swimming', 'water polo')),
+     ['体育、运动/水上运动', SPORTY]),
+    (lambda b: 'bouncing ball' in b or 'handball' in b, ['体育、运动/球类运动', SPORTY]),
     (lambda b: any(k in b for k in ('golfing', 'lifting weights', 'biking', 'mountain biking', 'cartwheeling',
-                                    'wrestling', 'juggling', 'climbing', 'lotus position')), ['体育、运动/其他运动']),
+                                    'wrestling', 'juggling', 'climbing', 'lotus position')),
+     ['体育、运动/其他运动', SPORTY]),
     (lambda b: 'steamy room' in b, ['物品、用具/生活用品、生产用品']),
     (lambda b: 'service dog' in b or 'polar bear' in b or 'black cat' in b, ['自然、科学/生物/动物/哺乳动物']),
     (lambda b: 'black bird' in b, ['自然、科学/生物/动物/鸟类']),
@@ -170,10 +146,21 @@ def en_clean(en):
     return m.group(1) if m else en
 
 
-def load_cldr():
-    """CLDR zh 注解：剥 VS16 后的序列串 → 中文名列表"""
-    d = json.load(open(ANNOTATIONS, encoding='utf-8'))
-    return {strip_fe0f(k): v['default'] for k, v in d['annotations']['annotations'].items()}
+def direct_zh(en):
+    """官方英文名 → 机械直译。词表查不到的词原样留着，此时返回 '' 并记进 MISSING_WORDS。
+
+    返回空串而不是半英半中的串：漏词是**词表没补全**，要让它显式爆在 missing_zh 里，
+    不能静默产出「男人SURFING」这种名字。
+    """
+    unknown = []
+    out = translate(en.upper().split(), unknown)
+    if unknown:
+        MISSING_WORDS.update(unknown)
+        return ''
+    return out
+
+
+MISSING_WORDS = {}
 
 
 def parse_emoji_test():
@@ -197,17 +184,17 @@ def is_skin(cp):
 
 
 def fallback_zh(en):
-    """从 emoji-test 英文名翻译（发型/家庭/爱情/握手/职业/超级英雄：程序化名比 CLDR 第一个宽泛词更精确）。"""
+    """**句式**命名（直译引擎按「词 + 短语」翻，盖不住这些带冒号/逗号的结构）：
+
+    握手 / 职业 / 超级英雄 / 家庭 / 爱情 / 发型。
+    逐词拼会串味（`family: man, woman, girl` 会拼成「家庭男人女人女孩」），
+    所以在这儿按模式生成，剩下的才交给 direct_zh 逐词直译。
+    """
     if en.startswith('handshake'):
         return '握手'
-    if en in EXTRA_ZH:
-        return EXTRA_ZH[en]
     occ = occ_zh(en)
     if occ:
         return occ
-    act = action_zh(en)
-    if act:
-        return act
     if 'superhero' in en or 'supervillain' in en:
         zh = '超级英雄' if 'superhero' in en else '超级反派'
         if en.startswith('man '):
@@ -221,11 +208,11 @@ def fallback_zh(en):
     m = re.match(r'kiss: (.*)$', en)
     if m:
         pair = [FALLBACK.get(x.strip(), x.strip()) for x in m.group(1).split(',')]
-        return ''.join(pair) + '接吻'
+        return '和'.join(pair) + '接吻'
     m = re.match(r'couple with heart: (.*)$', en)
     if m:
         pair = [FALLBACK.get(x.strip(), x.strip()) for x in m.group(1).split(',')]
-        return ''.join(pair) + '情侣'
+        return '和'.join(pair) + '情侣'
     m = re.match(r'(man|woman|person): (red hair|curly hair|white hair|bald|beard|blond hair)$', en)
     if m:
         person, hair = m.groups()
@@ -276,8 +263,8 @@ def multi_skin_zh(skins, en):
     return None
 
 
-def zh_of(cps, en, cldr):
-    """一条序列的中文名：多肤色 = 肤色1人+动作+肤色2人；单肤色 = 肤色词+基础名；面向右 = 基础名+朝右；基础 = CLDR 优先"""
+def zh_of(cps, en):
+    """一条序列的中文名：多肤色 = 肤色1人+动作+肤色2人；单肤色 = 肤色词+基础名；面向右 = 基础名+朝右；基础 = 直译"""
     skin = [c for c in cps if is_skin(c)]
     if len(skin) >= 2:
         base_en = SKIN_EN.sub('', en).rstrip(': ').strip()
@@ -285,24 +272,21 @@ def zh_of(cps, en, cldr):
         if r:
             return r
         # 未命中动作词（罕见）→ 退单肤色逻辑（取第一个肤色）
-        return SKIN_ZH[skin[0]] + zh_of([c for c in cps if not is_skin(c)], base_en, cldr)
+        return SKIN_ZH[skin[0]] + zh_of([c for c in cps if not is_skin(c)], base_en)
     if skin:
         base_cps = [c for c in cps if not is_skin(c)]
         base_en = SKIN_EN.sub('', en).rstrip(': ').strip()  # 'cook: light skin tone'→'cook'
-        base = zh_of(base_cps, base_en, cldr)
+        base = zh_of(base_cps, base_en)
         return SKIN_ZH[skin[0]] + base
     m = re.match(r'^(.*) facing right$', en)
     if m:
         base_en = m.group(1)
-        base = zh_of(base_cps_of(cps), base_en, cldr)
+        base = zh_of(base_cps_of(cps), base_en)
         return base + '朝右' if base else ''
-    key = strip_fe0f(''.join(chr(c) for c in cps))
     fb = fallback_zh(en)
     if fb:
-        return fb  # 发型/家庭/爱情/握手：程序化名比 CLDR 第一个宽泛词更精确
-    if key in cldr:
-        return cldr[key][0]
-    return ''
+        return fb  # 句式（家庭/发型/爱情/握手/职业）
+    return direct_zh(en)
 
 
 def classify(en):
@@ -337,6 +321,195 @@ def seqs_contains(seqs, cps):
     return any(seq_cps(s) == cps for s in seqs)
 
 
+# ==================== 序列别名（供搜索） ====================
+# 「男人」这个人称在中文里有好几种写法：男人 / 男子 / 男生（女性同理）。搜索的人用哪种都可能，
+# 别名就得把这些写法全兜住 —— 所以按**人称同义词 × 动作同义词**做笛卡尔积，
+# 而不是把官方名换个说法了事。
+PERSON_SYN = {
+    'man': ['男人', '男子', '男生'], 'men': ['男人', '男子', '男生'],
+    'woman': ['女人', '女子', '女生'], 'women': ['女人', '女子', '女生'],
+    'person': ['人'], 'people': ['人'],
+}
+
+# 动作/身份的同义词。**只收真有第二种通行说法的**，没有就留空 —— 别为了凑数编一个
+# （「游泳」就没有同义词）。来源是 CLDR 里质量过关的那几条，联想词已筛掉：
+# `划船` 那组 CLDR 俗名里的 `河`/`湖`/`钓鱼`/`船` 是联想不是名字，`冲刺`/`训练` 同理。
+ACTION_SYN = {
+    'rowing boat': ['划艇', '泛舟'],
+}
+
+# CLDR `tts` 里逐条挑出来的俗名别名（2026-09-15 人工筛，共 30 条）。
+# **不要整批灌 CLDR** —— 它是半吊子翻译，同一组里混着联想词（`河`/`湖`/`钓鱼`/`船`
+# 之于「划船」、`冲刺`/`训练` 之于「跑步」），整批进来别名行就成垃圾场了。
+# 这里放的只是「确认比现有名字更好搜」的那些说法，按**官方英文名**做键（比码位可读、比中文名稳）。
+# 只增不改：脚本不会删任何已有别名。
+CLDR_PICKED_ALIAS = {
+    'face exhaling': '呼气',
+    'face with spiral eyes': '晕',
+    'man farmer': '农夫', 'woman farmer': '农妇',
+    'mechanic': '技工', 'man mechanic': '男技工', 'woman mechanic': '女技工',
+    'technologist': '程序员', 'man technologist': '男程序员', 'woman technologist': '女程序员',
+    'man feeding baby': '哺乳的男人', 'woman feeding baby': '哺乳的女人', 'person feeding baby': '哺乳的人',
+    'Mx Claus': '圣诞人',
+    'man with white cane': '拄盲杖的男人', 'woman with white cane': '拄盲杖的女人',
+    'person with white cane': '拄盲杖的人',
+    'man in motorized wheelchair': '坐电动轮椅的男人', 'woman in motorized wheelchair': '坐电动轮椅的女人',
+    'person in motorized wheelchair': '坐电动轮椅的人',
+    'man in manual wheelchair': '坐手动轮椅的男人', 'woman in manual wheelchair': '坐手动轮椅的女人',
+    'person in manual wheelchair': '坐手动轮椅的人',
+    'people holding hands': '手拉手的两个人',
+    'family: adult, adult, child': '一孩家庭',
+    'family: adult, adult, child, child': '二孩家庭',
+    'family: adult, child': '单亲一孩家庭',
+    'family: adult, child, child': '单亲二孩家庭',
+    'black bird': '黑色的鸟',
+    'brown mushroom': '褐色蘑菇',
+}
+
+
+def seq_aliases(en, zh):
+    """一条序列的搜索别名：人称同义词 × (动作词 + 动作同义词)。
+
+    `zh` 是已算好的显示名，要排除掉（别名不得与显示名同字，数据说明 §四）。
+    非人称打头的序列（国家、家庭、表情、旗帜…）返回空 —— 它们没有人称变体可展开。
+    """
+    m = re.match(r'^(man|woman|person|men|women|people)\s+(.*)$', en)
+    if not m:
+        return []
+    person, rest_en = m.groups()
+    rest_zh = direct_zh(rest_en)
+    if not rest_zh:
+        return []
+    out = []
+    for p in PERSON_SYN[person]:
+        for t in [rest_zh] + ACTION_SYN.get(rest_en, []):
+            a = p + t
+            if a != zh and a not in out:
+                out.append(a)
+    return out
+
+
+def seq_tag(cps, roots):
+    """含该序列的**最深**非机械标签的叶名（= 组键）。找不到返回 None。
+
+    组键必须是现存标签名，且该标签要真的含这个字符（数据说明 §三），所以按 seqs 往下钻；
+    钻到最深那层，跟单码位那边 `deepest_semantic_tag` 的判据一致。
+    """
+    target = list(cps)
+    best = [-1, None]
+
+    def walk(name, node, depth):
+        if name in MECHANICAL_TAGS:
+            return
+        if any(seq_cps(s) == target for s in (node.get('seqs') or [])) and depth > best[0]:
+            best[0], best[1] = depth, name
+        for child_name, child in (node.get('children') or {}).items():
+            walk(child_name, child, depth + 1)
+
+    for name, root in (roots or {}).items():
+        walk(name, root, 1)
+    return best[1]
+
+
+PERSON_WORDS = ('男人', '女人', '人')
+
+
+def split_person(zh):
+    """把显示名拆成 (肤色前缀, 人称词, 其余)。拆不出人称返回 None。
+
+    `浅肤色男人划船` → ('浅肤色', '男人', '划船')。
+    """
+    skin = ''
+    for p in SKIN_PREFIX:
+        if zh.startswith(p):
+            skin, zh = p, zh[len(p):]
+            break
+    for p in PERSON_WORDS:
+        if zh.startswith(p):
+            return skin, p, zh[len(p):]
+    return None
+
+
+def seq_group_names(zh, paths):
+    """运动类序列在两条轴上的**语境名**：主题轴「男人划船」/ 角色轴「划船男人」。
+
+    两条轴正交（见 SPORTY），同一条序列在两边该读成不同的短语：在「水上运动」里
+    是「男人划船」这件事，在「运动的人」里是「划船男人」这个人。
+
+    ⚠️ 全局名 = 各语境名拼接（`符号.js` 的 `joinGroupNames`），所以这条序列的全局名
+       会变成「男人划船、划船男人」。单码位 🚣 就是这个形态（「划船、划船的人」）。
+    """
+    topic = next((p for p in paths if p.startswith('体育、运动/')), None)
+    if not topic:
+        return {}                       # 不是运动类（职业/神仙/表情…），不适用双轴命名
+    sp = split_person(zh)
+    if not sp:
+        return {}
+    skin, person, rest = sp
+    if not rest:
+        return {}
+    # 多人组合（`浅肤色男人与中浅肤色男人戴兔耳`、`…人牵手中肤色人`）有**两个**人称，
+    # 句首那个搬不走：搬出来是「浅肤色与中浅肤色男人戴兔耳男人」。这种就不拆，只留主题名。
+    if '与' in rest or any(w in rest for w in PERSON_WORDS):
+        return {topic.split('/')[-1]: {'name': zh}}
+    return {topic.split('/')[-1]: {'name': skin + person + rest},
+            '运动的人': {'name': skin + rest + person}}
+
+
+def write_seq_meta(plan):
+    """把序列的组名/别名落进 符号富化数据.js。只增不改，可重跑。返回 (补名条数, 新建条数)。
+
+    plan: {字符: {组键: {'name': str|None, 'alias': [str, ...]}}}；
+    组键 None（取不到语义标签）时别名挂条目级，跟单码位那边的处理一致。
+    """
+    if not plan:
+        return 0, 0
+    by_char = {e['char']: e for e in load_symbols()}
+
+    todo = {}
+    for ch, groups in plan.items():
+        entry = by_char.get(ch)
+        if entry is None:
+            continue
+        have = set(entry_values(entry))
+        keep = {}
+        for tag, item in groups.items():
+            name = item.get('name')
+            # 名字已等于本条任何既有显示名就跳过（含组名/条目名，防自相重复）
+            if name and name not in have:
+                keep.setdefault(tag, {})['name'] = name
+            add = [a for a in (item.get('alias') or []) if a not in have]
+            if add:
+                keep.setdefault(tag, {})['alias'] = add
+        if keep:
+            todo[ch] = keep
+
+    def fix(entry):
+        groups = todo.get(entry['char'])
+        if not groups:
+            return False
+        for tag, item in groups.items():
+            bucket = entry.setdefault('groups', {}).setdefault(tag, {}) if tag else entry
+            if item.get('name'):
+                bucket['name'] = item['name']
+            if item.get('alias'):
+                cur = bucket.setdefault('alias', [])
+                cur += [a for a in item['alias'] if a not in cur]
+        return True
+
+    patched = update_symbols(fix) if todo else 0
+
+    fresh = []
+    for ch, groups in plan.items():
+        if ch in by_char:
+            continue
+        if None in groups:
+            fresh.append({'char': ch, 'alias': list(groups[None].get('alias') or [])})
+        else:
+            fresh.append({'char': ch, 'groups': groups})
+    return patched, append_symbols(fresh) if fresh else 0
+
+
 def _sortkey(k):
     """码点键按数值升序在前，序列键（'-'）在后"""
     return ('-' in k, int(k) if '-' not in k else 0, k)
@@ -362,7 +535,6 @@ def write_name_layer(zh_pairs, en_pairs):
 
 
 def main():
-    cldr = load_cldr()
     seqs = parse_emoji_test()
     print(f'ZWJ 序列总数: {len(seqs)}')
 
@@ -374,9 +546,10 @@ def main():
     unclassified = []
     no_node = []
     seq_zh, seq_en = {}, {}          # 序列名 → 名字层（seqs 只留码位）
+    seq_meta = {}                    # 字符 → {组键: {name/alias}}
     for cps, en in seqs:
         en = en_clean(en)
-        zh = zh_of(cps, en, cldr)
+        zh = zh_of(cps, en)
         paths = classify(en)
         if not zh:
             missing_zh.append(en)
@@ -388,6 +561,28 @@ def main():
             seq_zh[key] = zh
         if en:
             seq_en[key] = en
+        if zh and 0x27A1 not in cps:
+            ch = ''.join(chr(c) for c in cps)
+            slot = seq_meta.setdefault(ch, {})
+            # 语境名**先**写：组键的插入顺序决定全局名的拼接顺序（`符号.js` 的
+            # `joinGroupNames` 按组序取），主题轴的名该排在角色轴前面。
+            # 连肤色变体一起给：语境名是**按字符**取的，变体也得能在轴下读通。
+            for tag, item in seq_group_names(zh, paths).items():
+                slot.setdefault(tag, {}).update(item)
+            # 别名只给**无肤色**的基础序列：肤色变体是同一张折叠卡的下挂项，
+            # 给它挂「男生划船」只会把搜索引到浅肤色那条上（v1.37.0 修过同类坑）。
+            if not any(is_skin(c) for c in cps):
+                base_en = SKIN_EN.sub('', en).rstrip(': ').strip()
+                picked = CLDR_PICKED_ALIAS.get(base_en)
+                al = (seq_aliases(base_en, zh) or []) + ([picked] if picked else [])
+                al = [a for a in al if a != zh]      # 别名不得与显示名同字（数据说明 §四）
+                if al:
+                    # 别名**每个语境组都挂一份**：详情面板的语境别名 = 本组 alias ∪ 其他组名
+                    # （`符号.js` 的 ctxAliases），只挂一个组的话，在另一个标签下点开就看不到。
+                    for t in (list(seq_group_names(zh, paths)) or [seq_tag(cps, roots)]):
+                        slot.setdefault(t, {})['alias'] = al
+            if not slot:
+                seq_meta.pop(ch)
         for path in paths:
             node = get_node(roots, path)
             if node is None:
@@ -420,7 +615,7 @@ def main():
         skins = [c for c in cps if is_skin(c)]
         if not skins:
             continue
-        zh = zh_of(cps, en, cldr)
+        zh = zh_of(cps, en)
         for sk in set(skins):  # 双肤色（握手）多挂
             node = skin_root[SKIN_SUB[sk]]
             node.setdefault('seqs', [])
@@ -452,6 +647,9 @@ def main():
     # ===== 序列名写入名字层（seqs 只留归属，名字不进 标签.js）=====
     write_name_layer(seq_zh, seq_en)
     print(f'名字层写入序列名: 中文 {len(seq_zh)} 条 / 英文 {len(seq_en)} 条')
+
+    patched, fresh = write_seq_meta(seq_meta)
+    print(f'序列组名/别名: 补进已有条目 {patched} 条 / 新建条目 {fresh} 条（共 {len(seq_meta)} 组）')
 
     write_text(TAG_FILE, wrap('TAGS_DATA', dump_tags(data)))
 

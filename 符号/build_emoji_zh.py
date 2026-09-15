@@ -40,99 +40,17 @@ from collections import Counter
 BASE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BASE)
 from datatool import append_symbols, load_symbols, load_tags, load_zh, read_data, save_zh, update_symbols
-from emoji词表 import EMOJI_PHRASE, EMOJI_WORD, EXTRA_ALIASES
-
-try:
-    from 译名词表 import WORD as FALLBACK_WORD       # 只借 WORD，**不借 KEEP**（见 emoji词表.py）
-except ImportError:
-    FALLBACK_WORD = {}
-
+from emoji词表 import EMOJI_PHRASE, EMOJI_WORD, EXTRA_ALIASES, translate
 CLDR_ANNOTATIONS = os.path.join(BASE, '参考资料', 'annotations-zh.json')
 # 认定范围：这两段里「名字表的值 == CLDR 注解」的单码位名，必然是 CLDR 兜底灌进来的
 #   U+2600-27BF  杂项符号/装饰符号（☎ ☀ ♠ ♈ …）——混着标准中文名，靠下面的翻译质量把关
 #   U+1F000+     补充符号/表情区（😀 🍓 🚒 …）——基本全是俗名
 SCOPE_RANGES = ((0x2600, 0x27BF), (0x1F000, 0x1FFFF))
-MAX_PHRASE = 8                          # 短语切分最长几个词
 
 # 机械类标签不作组键（数据说明 §三）
 MECHANICAL_TAGS = {'文字系统', '官方分类', '区块', 'emoji（绘文字）'}
 
 
-# ==================== 翻译引擎 ====================
-
-IDEOGRAPH = re.compile(r'^IDEOGRAPH-([0-9A-F]{4,6})$')
-
-
-def token_of(word):
-    """单个 token → 中文；查不到返回 None。"""
-    m = IDEOGRAPH.match(word)
-    if m:
-        return '汉字' + chr(int(m.group(1), 16))     # IDEOGRAPH-6708 → 汉字月
-    if word in EMOJI_WORD:
-        return EMOJI_WORD[word]
-    if not re.search(r'[A-Za-z]', word):
-        return word                                  # 短语切分留下的中文，原样透传
-    return FALLBACK_WORD.get(word)
-
-
-def segment(tokens):
-    """把整块短语（任意位置）先切成一个中文 token，长短语优先。
-
-    只在**前缀位置**匹配是不够的：`HAND WITH INDEX AND MIDDLE FINGERS CROSSED`
-    里的 `MIDDLE FINGER` 在中间，前缀匹配够不着，会拼成「中手指」。
-    """
-    out, i = [], 0
-    while i < len(tokens):
-        for n in range(min(MAX_PHRASE, len(tokens) - i), 0, -1):
-            key = ' '.join(tokens[i:i + n])
-            if key in EMOJI_PHRASE:
-                out.append(EMOJI_PHRASE[key])
-                i += n
-                break
-        else:
-            out.append(tokens[i])
-            i += 1
-    return out
-
-
-def translate(tokens, unknown):
-    """词列表 → 中文。
-
-    规则顺序（越靠前越优先）：
-      1. 短语切分（`segment`，任意位置、长短语优先）
-      2. 结构词 WITH / AND / OF / FOR / BEHIND（取第一个）
-      3. 逐词拼接，查不到的原样保留并记进 unknown
-    """
-    tokens = segment(list(tokens))
-    if not tokens:
-        return ''
-
-    for kw in ('WITH', 'AND', 'OF', 'FOR', 'BEHIND'):
-        if kw not in tokens:
-            continue
-        i = tokens.index(kw)
-        head, tail = tokens[:i], tokens[i + 1:]
-        if not head or not tail:
-            continue
-        a, b = translate(head, unknown), translate(tail, unknown)
-        if kw == 'WITH':
-            return '带' + b + '的' + a
-        if kw == 'AND':
-            return a + '和' + b
-        if kw == 'OF':
-            return b + '之' + a
-        if kw == 'BEHIND':
-            return b + '后的' + a
-        return a + '（' + b + '）'                 # FOR：ALCHEMICAL SYMBOL FOR X → 炼金术符号（X）
-
-    out = []
-    for word in tokens:
-        zh = token_of(word)
-        if zh is None:
-            unknown.append(word)
-            zh = word
-        out.append(zh)
-    return ''.join(out)
 
 
 def cldr_single_codepoint(path=CLDR_ANNOTATIONS):
