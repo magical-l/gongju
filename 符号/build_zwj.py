@@ -372,7 +372,7 @@ CLDR_PICKED_ALIAS = {
 def seq_aliases(en, zh):
     """一条序列的搜索别名：人称同义词 × (动作词 + 动作同义词)。
 
-    `zh` 是已算好的显示名，要排除掉（别名不得与显示名同字，数据说明 §四）。
+    `zh` 是已算好的显示名，要排除掉（别名不得与显示名同字，符号/docs/设计/数据说明.md §四）。
     非人称打头的序列（国家、家庭、表情、旗帜…）返回空 —— 它们没有人称变体可展开。
     """
     m = re.match(r'^(man|woman|person|men|women|people)\s+(.*)$', en)
@@ -578,7 +578,7 @@ def main():
                 base_en = SKIN_EN.sub('', en).rstrip(': ').strip()
                 picked = CLDR_PICKED_ALIAS.get(base_en)
                 al = (seq_aliases(base_en, zh) or []) + ([picked] if picked else [])
-                al = [a for a in al if a != zh]      # 别名不得与显示名同字（数据说明 §四）
+                al = [a for a in al if a != zh]      # 别名不得与显示名同字（见 符号/docs/设计/数据说明.md §四）
                 if al:
                     # 别名一律落**条目级**（= 全局别名），组里只放**语境名**。
                     # 别名是搜索键，搜索本来就是全局的；挂到某个组里只会在别的标签下看不见它。

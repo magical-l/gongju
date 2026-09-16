@@ -47,7 +47,7 @@ CLDR_ANNOTATIONS = os.path.join(BASE, '参考资料', 'annotations-zh.json')
 #   U+1F000+     补充符号/表情区（😀 🍓 🚒 …）——基本全是俗名
 SCOPE_RANGES = ((0x2600, 0x27BF), (0x1F000, 0x1FFFF))
 
-# 机械类标签不作组键（数据说明 §三）
+# 机械类标签不作组键（见 符号/docs/设计/数据说明.md §三）
 MECHANICAL_TAGS = {'文字系统', '官方分类', '区块', 'emoji（绘文字）'}
 
 
