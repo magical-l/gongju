@@ -7,7 +7,7 @@
     python build_emoji_zh.py --dry-run      # 只出报告 + 抽样，不落盘
     python build_emoji_zh.py                # 落盘
 
-背景（`docs/2026-09-14-符号页-待办27与29的设计与交接.md` 第二节）：
+背景（`符号/docs/任务/20260914-待办27与29的设计与交接.md` 第二节）：
 
 `官方名直译名.js` 是**名字表**，只该装官方英文名的机械直译。但它里面混着
 一千多条 CLDR 俗名（`GRINNING FACE → 嘿嘿`、`FACE PALM → 捂脸`）——
