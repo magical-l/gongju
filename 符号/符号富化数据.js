@@ -74,7 +74,7 @@ const ENRICHED_SYMBOLS = [
 	{"char":"😈","groups":{"表情、表达":{"name":"小恶魔坏笑"}},"alias":["坏笑的小恶魔","恶魔微笑"]},
 	{"char":"👿","groups":{"表情、表达":{"name":"小恶魔发怒"}},"alias":["发怒的小恶魔","生气的小恶魔","小恶魔生气","Angry Face With Horns","生气的恶魔"]},
 	{"char":"👹","name":"日本妖怪"},
-	{"char":"👺","name":"天狗"},
+	{"char":"👺","name":"日本天狗"},
 	{"char":"🤡","groups":{"表情、表达":{"name":"小丑"}}},
 	{"char":"💀","groups":{"表情、表达":{"name":"骷髅"}},"alias":["头骨"]},
 	{"char":"👻","groups":{"表情、表达":{"name":"幽灵"}}},

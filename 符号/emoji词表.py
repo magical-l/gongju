@@ -896,6 +896,12 @@ EMOJI_PHRASE = {
     'WANING CRESCENT MOON SYMBOL': '残月',
     # CRESCENT MOON 原来叫「新月月亮」：既重复，又把新月（🌑）的名字安到了弯月头上
     'CRESCENT MOON': '弯月',
+    # 2026-09-18 修硬伤：官方名逐词拼出来不成立/多字的
+    # （`PILE OF POO` 走 OF 分支会倒装成「便便之堆」；`ALIEN MONSTER` 不是「外星**人**」）
+    'FATHER CHRISTMAS': '圣诞老人',
+    'ALIEN MONSTER': '外星怪物',
+    'PILE OF POO': '一堆便便',
+    'BLACK SMILING FACE': '实心微笑脸',
 }
 
 # ---- 人工补充别名 ----
