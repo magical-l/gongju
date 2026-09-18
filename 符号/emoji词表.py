@@ -902,6 +902,21 @@ EMOJI_PHRASE = {
     'ALIEN MONSTER': '外星怪物',
     'PILE OF POO': '一堆便便',
     'BLACK SMILING FACE': '实心微笑脸',
+    # 「A of B」的固定说法/量词表达：逐词倒装成「B之A」在中文里不成立
+    # ⚠️ 只收**中文里有固定叫法**的（自由女神像）或**量词表达**的（一块披萨）；
+    #    成语式的固定名不动：大卫之星 / 生命之水 / 阿斯克勒庇俄斯之杖
+    'STATUE OF LIBERTY': '自由女神像',
+    'SLICE OF PIZZA': '一块披萨',
+    'POT OF FOOD': '一锅食物',
+    'SILHOUETTE OF JAPAN': '日本列岛剪影',
+    'PLACE OF WORSHIP': '礼拜场所',
+    'SHALLOW PAN OF FOOD': '浅锅食物',
+    'GLASS OF MILK': '一杯牛奶',
+    'SPOOL OF THREAD': '线轴',
+    'BALL OF YARN': '毛线球',
+    'ROLL OF PAPER': '一卷纸',
+    'BAR OF SOAP': '一条肥皂',
+    'DROP OF BLOOD': '一滴血',
 }
 
 # ---- 人工补充别名 ----
