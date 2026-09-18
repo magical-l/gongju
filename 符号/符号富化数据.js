@@ -2765,7 +2765,7 @@ const ENRICHED_SYMBOLS = [
 	{"char":"㏟","alias":["A∕m"],"intro":"磁场强度单位安培每米（A/m）：SI 导出单位。"},
 	{"char":"⟶","groups":{"函数":{"name":"函数映射"},"集合":{"name":"函数映射"},"微积分、分析":{"name":"趋近极限"}}},
 	{"char":"⟼","groups":{"函数":{"name":"元素映射"},"集合":{"name":"元素映射"}}},
-	{"char":"↦","groups":{"函数":{"name":"元素映射"},"集合":{"name":"元素映射"}}},
+	{"char":"↦","groups":{"函数":{"name":"元素映射"},"集合":{"name":"元素映射"}},"name":"平尾右箭头"},
 	{"char":"↠","groups":{"函数":{"name":"满射"},"集合":{"name":"满射"}}},
 	{"char":"↣","groups":{"函数":{"name":"单射"},"集合":{"name":"单射"}}},
 	{"char":"⇒","groups":{"逻辑":{"name":"逻辑推出"}}},
@@ -7544,5 +7544,9 @@ const ENRICHED_SYMBOLS = [
 	{"char":"🥃","alias":["放有冰块的饮料"]},
 	{"char":"🧃","alias":["盒装饮料"]},
 	{"char":"🫜","alias":["红萝卜"]},
-	{"char":"🍼","groups":{"饮食":{"name":"奶"}}}
+	{"char":"🍼","groups":{"饮食":{"name":"奶"}}},
+	{"char":"↤","name":"平尾左箭头"},
+	{"char":"↥","name":"平尾上箭头"},
+	{"char":"↧","name":"平尾下箭头"},
+	{"char":"⬶","name":"平尾左双重箭头"}
 ];
