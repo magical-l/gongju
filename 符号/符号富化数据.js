@@ -14,7 +14,7 @@ const ENRICHED_SYMBOLS = [
 	{"char":"😌","groups":{"表情、表达":{"name":"释然"}},"alias":["如释重负","松了口气","松口气"]},
 	{"char":"😍","groups":{"表情、表达":{"name":"爱心眼笑脸"}},"alias":["红心","花痴","Smiling Face With Heart-Eyes"]},
 	{"char":"🥰","groups":{"表情、表达":{"name":"心心眼"}},"alias":["三颗爱心的笑脸","喜笑颜开","Smiling Face With Hearts"]},
-	{"char":"😘","alias":["亲亲","眨眼","Face Blowing a Kiss","飞吻"]},
+	{"char":"😘","alias":["亲亲","眨眼","Face Blowing a Kiss"],"name":"飞吻"},
 	{"char":"😋","groups":{"表情、表达":{"name":"馋"}},"alias":["馋嘴","哈喇子","流口水","Face Savoring Food","好吃"]},
 	{"char":"😛","alias":["Face With Tongue","吐舌头的脸"],"name":"吐舌"},
 	{"char":"😜","groups":{"表情、表达":{"name":"眨眼吐舌"}},"alias":["挤眉弄眼","Winking Face With Tongue"],"name":"单眼吐舌"},
@@ -6592,7 +6592,7 @@ const ENRICHED_SYMBOLS = [
 	{"char":"🗯","alias":["愤怒话语气泡"]},
 	{"char":"🗳","alias":["投票箱"]},
 	{"char":"🗾","alias":["日本地图"]},
-	{"char":"😗","alias":["亲亲"]},
+	{"char":"😗","name":"亲亲"},
 	{"char":"😙","alias":["微笑亲亲"]},
 	{"char":"😚","alias":["羞涩亲亲"]},
 	{"char":"😝","name":"眯眼吐舌"},
@@ -6602,7 +6602,7 @@ const ENRICHED_SYMBOLS = [
 	{"char":"😧","alias":["极度痛苦"]},
 	{"char":"🙅","alias":["禁止手势"],"name":"拒绝"},
 	{"char":"🙋","alias":["举手"]},
-	{"char":"🙌","alias":["举双手"]},
+	{"char":"🙌","name":"举双手"},
 	{"char":"🛌","alias":["躺在床上的人"]},
 	{"char":"🛎","alias":["服务铃"]},
 	{"char":"🛒","alias":["购物车"]},
@@ -6630,7 +6630,7 @@ const ENRICHED_SYMBOLS = [
 	{"char":"🟫","alias":["棕色方块"]},
 	{"char":"🤌","alias":["捏手指"]},
 	{"char":"🤏","alias":["捏合的手势"]},
-	{"char":"🤘","alias":["摇滚"]},
+	{"char":"🤘","name":"摇滚手势"},
 	{"char":"🤙","name":"给我打电话"},
 	{"char":"🤚","alias":["立起的手背"]},
 	{"char":"🤞","alias":["交叉的手指"],"name":"交叉手指"},
@@ -7537,5 +7537,6 @@ const ENRICHED_SYMBOLS = [
 	{"char":"✍","name":"写字"},
 	{"char":"🖕","name":"竖中指"},
 	{"char":"🫳","name":"掌心向下"},
-	{"char":"🫴","name":"掌心向上"}
+	{"char":"🫴","name":"掌心向上"},
+	{"char":"🙏","name":"双手合十"}
 ];
