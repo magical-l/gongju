@@ -915,8 +915,10 @@ EMOJI_PHRASE = {
     'SPOOL OF THREAD': '线轴',
     'BALL OF YARN': '毛线球',
     'ROLL OF PAPER': '一卷纸',
-    'BAR OF SOAP': '一条肥皂',
+    'BAR OF SOAP': '一块肥皂',
     'DROP OF BLOOD': '一滴血',
+    # 专名音译，口径同「阿斯克勒庇俄斯之杖」（HYGIEIA 是希腊健康女神）
+    'BOWL OF HYGIEIA': '许癸厄亚之碗',
 }
 
 # ---- 人工补充别名 ----

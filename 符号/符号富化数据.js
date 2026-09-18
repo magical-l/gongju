@@ -7535,5 +7535,6 @@ const ENRICHED_SYMBOLS = [
 	{"char":"🖕","name":"竖中指"},
 	{"char":"🫳","name":"掌心向下"},
 	{"char":"🫴","name":"掌心向上"},
-	{"char":"🙏","name":"双手合十"}
+	{"char":"🙏","name":"双手合十"},
+	{"char":"🕏","name":"药神之碗","alias":["健康之碗"]}
 ];
