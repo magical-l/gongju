@@ -921,6 +921,11 @@ EMOJI_PHRASE = {
     'BOWL OF HYGIEIA': '许癸厄亚之碗',
     # YEN 是日文「円」——不译成「人民币」（2026-09-18 用户）
     'BANKNOTE WITH YEN SIGN': '带円符号的钞票',
+    # YEN=円；MOTHER CHRISTMAS 逐词拼成「母亲圣诞」不成词（2026-09-18）
+    'MOTHER CHRISTMAS': '圣诞婆婆',
+    'YEN SIGN': '日元符号',
+    'FULLWIDTH YEN SIGN': '全角日元符号',
+    'CHART WITH UPWARDS TREND AND YEN SIGN': '带日元符号的上涨趋势图',
 }
 
 # ---- 人工补充别名 ----
