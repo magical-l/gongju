@@ -200,7 +200,7 @@ WORD = {
     'SMALL':                                       '小型',
     'SOUTH':                                       '南',
     'SQUARE':                                      '方形',
-    'STROKE':                                      '斜线',
+    'STROKE':                                      '划线',
     'SUBJOINED':                                   '下接',
     'SUBSCRIPT':                                   '下标',
     'SUPERSCRIPT':                                 '上标',

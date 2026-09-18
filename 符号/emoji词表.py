@@ -301,7 +301,7 @@ EMOJI_WORD.update({
     'EXCHANGE': '兑换', 'TRIDENT': '三叉戟', 'EMBLEM': '徽章',
     'NAME': '名称', 'BADGE': '徽章', 'BEGINNER': '新手', 'SPLATTER': '溅射',
     'SHAPE': '形状', 'INSIDE': '内', 'CHEQUERED': '方格', 'FLAG': '旗',
-    'FLAGS': '旗帜', 'CANCELLATION': '取消', 'STROKE': '斜线', 'SPIRAL': '螺旋',
+    'FLAGS': '旗帜', 'CANCELLATION': '取消', 'STROKE': '划线', 'SPIRAL': '螺旋',
     'CROSS': '十字', 'DOT': '点', 'BARS': '信号', 'WIRELESS': '无线',
     'VIBRATION': '振动', 'MODE': '模式', 'OFF': '关', 'FREE': '免费',
     'CLOCKWISE': '顺时针', 'ANTICLOCKWISE': '逆时针', 'REVOLVING': '旋转',
@@ -418,7 +418,7 @@ EMOJI_WORD.update({
     'BUT': '仅', 'OR': '或', 'THE': '', 'A': '', 'IN': '在', 'AT': '在',
     'FOR': '用于', 'OF': '之', 'WITH': '带', 'WITHOUT': '无', 'AND': '和',
     'ON': '上', 'OVER': '越过', 'INTO': '入', 'TO': '至',
-    'EMOJI': 'emoji', 'CJK': 'CJK', 'UNIFIED': '统一',
+    'EMOJI': 'emoji', 'CJK': '中日韩朝', 'UNIFIED': '统一',
     'DIGIT': '数字', 'LATIN': '拉丁', 'GREEK': '希腊',
     # ============ 补漏（2026-09 首轮跑出来没覆盖的 53 词）============
     'BALL': '球', 'FISH': '鱼', 'BOX': '盒', 'BUTTON': '按钮', 'BAR': '条',
