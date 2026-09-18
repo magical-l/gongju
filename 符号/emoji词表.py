@@ -284,7 +284,7 @@ EMOJI_WORD.update({
     'ELEVEN': '十一', 'TWELVE': '十二', 'THIRTY': '三十', 'EIGHTEEN': '十八',
     'HUNDRED': '百', 'QUARTER': '四分之一', 'NUMBERS': '数字',
     'SYMBOL': '符号', 'SYMBOLS': '符号', 'SIGN': '符号', 'MARK': '符号',
-    'SQUARED': '方形', 'SQUARE': '方形', 'NEGATIVE': '反白',
+    'SQUARED': '方框', 'SQUARE': '方形', 'NEGATIVE': '反白',
     'CIRCLED': '圆圈', 'CIRCLE': '圆圈', 'TRIANGLE': '三角',
     'TRIANGULAR': '三角形', 'DIAMOND': '菱形', 'STAR_': '星',
     'ARROW': '箭头', 'ARROWS': '箭头', 'RIGHTWARDS': '向右',
