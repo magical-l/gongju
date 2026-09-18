@@ -2780,7 +2780,7 @@ const ENRICHED_SYMBOLS = [
 	{"char":"㊎","groups":{"七曜历":{"name":"金曜日"}},"name":"带圈金字"},
 	{"char":"㊏","groups":{"七曜历":{"name":"土曜日"}},"name":"带圈土字"},
 	{"char":"㊐","groups":{"七曜历":{"name":"日曜日"}},"name":"带圈日字"},
-	{"char":"🏂","groups":{"运动的人":{"name":"滑雪者"}},"alias":["Skier"],"name":"滑雪板、滑雪"},
+	{"char":"🏂","groups":{"运动的人":{"name":"滑雪者"}},"alias":["Skier"],"name":"单板滑雪"},
 	{"char":"🏄","groups":{"运动的人":{"name":"冲浪者"}},"name":"冲浪"},
 	{"char":"🏇","groups":{"运动的人":{"name":"骑手"}},"name":"赛马"},
 	{"char":"🏋","groups":{"运动的人":{"name":"举重运动员"}},"mode":"dual","name":"举重"},
