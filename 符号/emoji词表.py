@@ -919,6 +919,8 @@ EMOJI_PHRASE = {
     'DROP OF BLOOD': '一滴血',
     # 专名音译，口径同「阿斯克勒庇俄斯之杖」（HYGIEIA 是希腊健康女神）
     'BOWL OF HYGIEIA': '许癸厄亚之碗',
+    # YEN 是日文「円」——不译成「人民币」（2026-09-18 用户）
+    'BANKNOTE WITH YEN SIGN': '带円符号的钞票',
 }
 
 # ---- 人工补充别名 ----

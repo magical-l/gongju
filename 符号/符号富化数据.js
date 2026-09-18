@@ -6593,7 +6593,7 @@ const ENRICHED_SYMBOLS = [
 	{"char":"😗","name":"亲亲"},
 	{"char":"😙","alias":["微笑亲亲"]},
 	{"char":"😚","alias":["羞涩亲亲"]},
-	{"char":"😝","name":"眯眼吐舌","alias":["紧闭眼睛的脸"]},
+	{"char":"😝","name":"眯眼吐舌"},
 	{"char":"😟","alias":["担心"]},
 	{"char":"😥","alias":["失望但如释重负"]},
 	{"char":"😦","alias":["啊"]},
@@ -7543,5 +7543,6 @@ const ENRICHED_SYMBOLS = [
 	{"char":"🥀","alias":["凋零"]},
 	{"char":"🥃","alias":["放有冰块的饮料"]},
 	{"char":"🧃","alias":["盒装饮料"]},
-	{"char":"🫜","alias":["红萝卜"]}
+	{"char":"🫜","alias":["红萝卜"]},
+	{"char":"🍼","groups":{"饮食":{"name":"奶"}}}
 ];
