@@ -8,7 +8,7 @@
     python build_equiv.py --dry-run     # 只打印统计，不落盘
 
 等价形式别名 = 「这个字符还能写成什么样」，只当**搜索键**用，不参与显示。
-它不是名字、也不是官方名的直译，所以不进名字表（名字表的值会当作显示名）。
+它不是名字、也不是官方名的直译，所以不进直译名（直译名的值会当作显示名）。
 
 两个来源：
 
@@ -298,7 +298,10 @@ def ordered(entry):
 
 
 def blocked(entry_char, entry, fallback_names):
-    """这条条目里「已经会当名字显示」的词（小写）。
+    """这条条目里「可被搜到的文本」的原文（小写）—— 名字、别名、直译名兜底。
+
+    ⚠️ 返回值拿去**做子串判断**（`f in t`），不是拿去做集合成员判断，
+    所以返回的必须是完整字符串、不能是先切好的词。
 
     三处都要算进去，漏一处就会造出「别名跟在名字后面重复显示」的条目
     （实测：漏掉第 3 处会多出 170 条，全是康熙部首 —— `⼀` 的名字就是 `一`，
@@ -306,7 +309,7 @@ def blocked(entry_char, entry, fallback_names):
 
     1. 符号数据里这条自己的名字（条目级 `name`、各组 `name`）
     2. 各组已有的别名（含条目级 `alias`）
-    3. **名字表兜底名**（`官方名直译名.js` 里这个字符的中文名）—— 条目没有名字时，
+    3. **直译名兜底名**（`官方名直译名.js` 里这个字符的中文名）—— 条目没有名字时，
        显示走的就是它
     """
     words = {a.lower() for a in (entry.get('alias') or [])}
@@ -324,12 +327,23 @@ def blocked(entry_char, entry, fallback_names):
 
 
 def fresh_forms(entry_char, entry, forms, fallback_names):
-    """这条条目真正需要追加的等价形式（滤掉会与显示名重复的）。"""
+    """这条条目真正需要追加的等价形式。
+
+    判据：**这条等价形式当查询词打进去，这个字符现在会不会被搜到？**
+    会，就不必挂——搜索的匹配方式是「可搜索文本包含查询词」，所以只要 `f` 是
+    任何一处显示名 / 已有别名的**子串**，打 `f` 本来就命中它。
+
+    ⚠️ 早先这里是**完全相同**（`f.lower() not in taken`），漏掉整整一类：
+    `¹` 的等价形式 `1` 落在直译名「上标1」里面、`㊀` 的 `一` 落在「带圈数字一」里面，
+    都不是相等，于是被当成"需要追加"灌了 1226 条纯冗余别名（2026-09-17 改成子串）。
+    ⚠️ `taken` 里装的是「可搜索文本」的**原文**（名字、别名），不是词——子串判断必须拿原文比。
+    """
     if not forms:
         return []
     taken = blocked(entry_char, entry, fallback_names)
     ch = entry_char.lower()
-    return [f for f in forms if f.lower() not in taken and f.lower() != ch]
+    return [f for f in forms
+            if f.lower() != ch and not any(f.lower() in t for t in taken)]
 
 
 def plan(equiv, fallback_names):

@@ -20,7 +20,7 @@
     # 加新条目
     append_symbols([{'char':'🆕','groups':{'某标签':{'name':'某名'}}}])
 
-    # 名字表（官方名直译名.js，names 是 {码点:名字} 映射）
+    # 直译名（官方名直译名.js，names 是 {码点:名字} 映射）
     zh = load_zh(); zh['0x262D'] ...
     set_zh(0x262D, '镰刀锤子'); save_zh()
 
@@ -187,6 +187,31 @@ def update_symbols(fn, path=SYMS):
     return n
 
 
+def drop_symbols(chars, path=SYMS):
+    """按 char 删条目（整行拿掉）。返回删除条数。
+
+    为什么要有它：别名删空后条目会只剩 `char`，那就是 `check_all` ④ 报的**空壳条目**
+    （历史上「名字与直译名重复被删」留下的残骸）。空壳留着是垃圾，只能删。
+    找不到的 char 静默跳过——调用方常常一次给一批，其中有些本来就没条目。
+    """
+    want = set(chars)
+    lines = _lines(path)
+    out, n = [], 0
+    for ln in lines:
+        s = ln.strip()
+        if not s.startswith('{'):
+            out.append(ln)
+            continue
+        o = json.loads(s.rstrip(','))
+        if o.get('char') in want:
+            n += 1
+            continue
+        out.append(ln)
+    if n:
+        _write(path, '\n'.join(_normalize(out)))
+    return n
+
+
 def append_symbols(entries, path=SYMS):
     """在 `];` 前追加条目。返回追加条数。"""
     lines = _lines(path)
@@ -219,6 +244,13 @@ def set_zh(cp, name):
     d['names'][str(cp)] = name
     save_zh(d)
     return old
+
+
+def data_key(char):
+    """字符 → 两份数据里的键：单码位是十进制码点，序列是连字符码位串。
+    ⚠️ 别写成 str(ord(char))——序列会直接抛 TypeError（踩过）。"""
+    cps = [ord(c) for c in char]
+    return str(cps[0]) if len(cps) == 1 else '-'.join(str(c) for c in cps)
 
 
 def zh_names():
@@ -320,6 +352,18 @@ def check_all(verbose=True):
         if not (set(o) - {'char'}):
             bad.append('%s 是空壳条目：除 char 外没有任何字段' % o['char'])
 
+    # ④a2 空的别名列表 —— 删别名删到一条不剩时，把键留下、值写成 `[]`。
+    #       `set(o) - {'char'}` 判空条目时会把 `alias` 算成一个字段，于是既不是空条目、
+    #       也搜不出任何东西，纯占位（2026-09-16 批量删别名时实测造出 2 条）。
+    #       组内同样要查：④b 只报「既无 name 也无 alias」的组，`{"name":X,"alias":[]}`
+    #       能溜过去（实测 534 条，2026-09-17 清掉后才补上这条）。
+    for o in load_symbols():
+        if o.get('alias') == []:
+            bad.append('%s 的 alias 是空列表（该删键）' % o['char'])
+        for k, v in (o.get('groups') or {}).items():
+            if isinstance(v, dict) and v.get('alias') == []:
+                bad.append('%s 的组 %r 里 alias 是空列表（该删键）' % (o['char'], k))
+
     # ④b 空组（既无 name 也无 alias）：v1.27.0 删重复组名时留下的组壳，
     #      会让 ctxGroupKey 返回一个没有名字的键，导致该标签下显示回落到英文名
     for o in load_symbols():
@@ -335,6 +379,28 @@ def check_all(verbose=True):
                 bad.append('%s 的组 %r 名字为空串' % (o['char'], k))
             if nm and (nm.startswith('、') or nm.endswith('、') or '、、' in nm):
                 bad.append('%s 的组 %r 名字顿号异常：%r' % (o['char'], k, nm))
+
+    # ④d 别名与「本条会显示出来的名字」同字 —— 详情区别名行会把主名再念一遍。
+    #     比对的三个来源缺一不可：条目级 name、组名、**直译名兜底**。
+    #     只比条目级 name 会漏掉一整类——没设人工主名的字符，页面显示的就是直译名，
+    #     别名跟它同字照样是重复（2026-09-16 改月相时实测 5 条溜过，才补上这条）。
+    zh_by_char = {k: v for k, v in load_zh()['names'].items()}
+    for o in load_symbols():
+        shown = set()
+        if o.get('name'):
+            shown.add(o['name'])
+        for v in (o.get('groups') or {}).values():
+            if v.get('name'):
+                shown.add(v['name'])
+        fb = zh_by_char.get(data_key(o['char']))
+        if fb:
+            shown.add(fb)
+        # 判据是**子串**不是相等：搜索的匹配方式是「可搜索文本包含查询词」，
+        # 所以只要别名落在某个显示名里面，打这个别名主名本身就命中，别名纯冗余。
+        # ⚠️ 别退回相等——相等只是子串的子集，会漏掉 `①` 的别名 `1` ⊂「圆圈数字1」这一整类。
+        for a in (o.get('alias') or []):
+            if a and any(a in s for s in shown):
+                bad.append('%s 的别名 %r 被显示名包含（打它主名本身就命中，纯冗余）' % (o['char'], a))
 
     # ⑤ 名字层两个文件：可解析，且键都是「十进制码点」或「连字符码位串」
     for fname, path, var in (('官方名直译名.js', ZH, 'ZH_TRANSLATION_DATA'), ('unicode官方名.js', UNICODE_NAMES, 'UNICODE_NAMES_DATA')):

@@ -15,7 +15,7 @@
     MAN   卢恩/其他文字系统里是字母本名，emoji 里是「男人」。
     PIN / BAG / CAR / COW / HAT / BOX / EAR … 同理。
 
-`译名词表.py` 的判据是「这个词在名字里的实际用法」，而它服务的名字表是
+`译名词表.py` 的判据是「这个词在名字里的实际用法」，而它服务的直译名是
 全局的、上下文无关的；emoji 名则是**独立语料**，自己的词频和义项都不同。
 所以两边各自成表，同名不同义由**调用方**决定用哪张，不靠合并去调和。
 
@@ -113,7 +113,8 @@ EMOJI_WORD = {
     'TROLL': '巨魔', 'HAIRY': '多毛', 'CREATURE': '生物', 'GENIE': '灯神',
     'BLOND': '金发', 'BEARDED': '有胡子', 'BALD': '秃顶', 'CURLY': '卷发',
     'HAIR': '头发', 'HAIRCUT': '理发', 'PREGNANT': '怀孕', 'BREAST-FEEDING': '哺乳',
-    'KNEELING': '跪', 'STANDING': '站立', 'RUNNER': '跑者', 'RUNNING': '跑步',
+    # KNEELING 是「下跪」不是「跪」：单用「跪」拼出的是「跪人」「男人跪」这种不成词的中文
+    'KNEELING': '下跪', 'STANDING': '站立', 'RUNNER': '跑者', 'RUNNING': '跑步',
     'DANCER': '舞者', 'DANCING': '跳舞', 'LEVITATING': '飘浮',
     'BUSINESS': '商务', 'SUIT': '西装', 'TUXEDO': '燕尾服', 'TURBAN': '头巾',
     'GUA': '瓜皮帽', 'PI': '便帽', 'MAO': '毛式', 'HEADSCARF': '头巾',
@@ -801,11 +802,105 @@ EMOJI_PHRASE = {
     'BLACK BIRD': '黑鸟',
     'HEART ON FIRE': '着火的心',
     'IN TUXEDO': '穿燕尾服',
+    # ============ person 一族：语序倒装（2026-09-16）============
+    # 英文把 PERSON 放句首（PERSON FROWNING），中文得把它挪到句尾说「…的人」。
+    # 引擎里已有一条**通用**规则（末词 PERSON → 「…的人」、首词 PEOPLE → 「人们…」，
+    # 见 translate），但盖不住这些带副词/介词/多重修饰的——副词 DEEPLY 后置、
+    # IN + 地点、AND 连接的两个定语，任何一条通用倒装规则都会被它们绕晕，只能逐条定死。
+    # ⚠️ 值要是**直译**（忠于英文），不是通俗别名；「举双手」「前台」那种短名走人工主名。
+    'PERSON BOWING DEEPLY': '深深鞠躬的人',
+    'PERSON RAISING BOTH HANDS IN CELEBRATION': '举起双手庆祝的人',
+    'PERSON FROWNING': '皱眉的人',
+    'PERSON DOING CARTWHEEL': '做侧手翻的人',
+    'PERSON IN STEAMY ROOM': '桑拿房里的人',
+    'PERSON WITH FOLDED HANDS': '双手合十的人',
+    'PERSON WITH BLOND HAIR': '金发的人',
+    'PERSON WITH POUTING FACE': '撅嘴的人',
+    'PERSON WITH HEADSCARF': '戴头巾的人',
+    'PERSON WITH CROWN': '戴王冠的人',
+    'HAPPY PERSON RAISING ONE HAND': '举起一只手的人',
+    'INFORMATION DESK PERSON': '服务台人员',
+    # ============ WITH 族：逐词拼读不通的（2026-09-16）============
+    # 通用规则把 WITH 译成「带X的Y」，语序对，但这两类读不通：
+    #   · 词义错/不地道：exploding head 不是爆炸头、bags under eyes 是眼袋、
+    #     no good gesture 是摆手拒绝、GUA PI MAO 是拼音词（逐字译成「瓜皮帽便帽毛式」）
+    #   · 专名没走专名：HEARING AID 是助听器不是「听力辅助」、MEDICAL MASK 是医用口罩、
+    #     WHITE CROSS 是白十字
+    # ⚠️ WHITE 在这份语料里**默认译「空心」**（Unicode 排版术语，WHITE SQUARE 空心方形，
+    #    与 BLACK 实心配对），⛑ 是**唯一**用成颜色词的例外，所以只有它单列。
+    # ⚠️ 这里只放**直译**。更好听的通名走人工主名/别名：
+    #    🖖 瓦肯举手礼、🔂 重复一次按钮、🔝 置顶 都已挂在富化的 alias 上，别搬来当直译。
+    'MAN WITH GUA PI MAO': '戴瓜皮帽的男人',
+    'SHOCKED FACE WITH EXPLODING HEAD': '震惊到脑袋爆炸的脸',
+    'FACE WITH NO GOOD GESTURE': '摆手拒绝的脸',
+    'FACE WITH BAGS UNDER EYES': '有眼袋的脸',
+    'FACE WITH OPEN EYES AND HAND OVER MOUTH': '捂嘴睁眼的脸',
+    'FACE WITH DIAGONAL MOUTH': '歪嘴的脸',
+    'FACE WITH PEEKING EYE': '偷看的脸',
+    'FACE WITH ONE EYEBROW RAISED': '挑眉的脸',
+    'FACE WITH THERMOMETER': '含温度计的脸',
+    'FACE WITH HEAD-BANDAGE': '缠绷带的脸',
+    'FACE WITH UNEVEN EYES AND WAVY MOUTH': '头晕目眩的脸',
+    'FACE WITH SPIRAL EYES': '晕头转向的脸',
+    'RAISED HAND WITH FINGERS SPLAYED': '张开手指的手',
+    'REVERSED HAND WITH MIDDLE FINGER EXTENDED': '竖中指的手',
+    'MOBILE PHONE WITH RIGHTWARDS ARROW AT LEFT': '左侧带右箭头的手机',
+    'DIAMOND SHAPE WITH A DOT INSIDE': '中间带点的菱形',
+    'EAR WITH HEARING AID': '戴助听器的耳朵',
+    'FACE WITH MEDICAL MASK': '戴医用口罩的脸',
+    # ============ WITH 族 · 第二批（2026-09-16）============
+    # OPEN CIRCLE ARROWS 的 OPEN 是「未填充」，但**这四条是 emoji**——画出来就是白箭头，
+    # 所以这儿取「白」不取「空心」（口径同 WHITE HEART 白心 / WHITE FLOWER 白花）。
+    # ⚠️ 只能按短语定死：通用 OPEN 在 FACE WITH OPEN MOUTH（张开嘴）里是对的。
+    'OPEN CIRCLE ARROWS': '白圆圈箭头',
+    # 图像里印着英文原文的按键，直译要把那个词带出来（口径同下面 🔝🔙🔚 三条）。
+    # 原名「写ON! 的箭头」是手写的，既没写「上方」也没交代箭头是左右两个。
+    'ON WITH EXCLAMATION MARK WITH LEFT RIGHT ARROW ABOVE': '上方带左右箭头的ON!',
+    # 这几条的图像里**真的印着英文单词**，直译必须把它带出来（口径同 🔛）。
+    # 逐词拼出来的是「带向上箭头上方的上」——把 TOP 译成「上」、还丢了那是箭头上的字这层信息。
+    'TOP WITH UPWARDS ARROW ABOVE': '上方带向上箭头的TOP',
+    'BACK WITH LEFTWARDS ARROW ABOVE': '上方带向左箭头的BACK',
+    'END WITH LEFTWARDS ARROW ABOVE': '上方带向左箭头的END',
+    # 9 个词，超过 MAX_PHRASE —— 已把它从 8 提到 10（见下方常量）
+    'RAISED HAND WITH PART BETWEEN MIDDLE AND RING FINGERS': '中指和无名指分开的举起的手',
+    # X WITH Y 里 Y 是**五官 / 肢体**时，中文说「Y的X」，不说「带Y的X」（那是「携带」的带）
+    'KISSING FACE WITH CLOSED EYES': '闭眼睛的亲吻脸',
+    'KISSING FACE WITH SMILING EYES': '微笑眼睛的亲吻脸',
+    'KISSING CAT FACE WITH CLOSED EYES': '闭眼睛的亲吻猫脸',
+    'FROWNING FACE WITH OPEN MOUTH': '张开嘴的皱眉脸',
+    'FACE WITH STUCK-OUT TONGUE': '伸出舌头的脸',
+    'FACE WITH STUCK-OUT TONGUE AND TIGHTLY-CLOSED EYES': '伸出舌头、紧闭眼睛的脸',
+    # ⚠️ 这条是上面那条的**前缀**：不一起定死，😜 会被切成「伸出舌头的脸 + 和眨眼眼睛」
+    'FACE WITH STUCK-OUT TONGUE AND WINKING EYE': '伸出舌头和眨眼眼睛的脸',
+    'FACE WITH OPEN MOUTH VOMITING': '张开嘴呕吐的脸',
+    'SMILING FACE WITH TEAR': '含泪的微笑脸',
+    'HAND WITH INDEX AND MIDDLE FINGERS CROSSED': '食指和中指交叉的手',
+    'HAND WITH INDEX FINGER AND THUMB CROSSED': '食指和拇指交叉的手',
+    # 月亮 / 太阳的「带脸」→「有脸」
+    'NEW MOON WITH FACE': '有脸的新月',
+    'FIRST QUARTER MOON WITH FACE': '有脸的上弦月',
+    'LAST QUARTER MOON WITH FACE': '有脸的下弦月',
+    'FULL MOON WITH FACE': '有脸的满月',
+    'SUN WITH FACE': '有脸的太阳',
+    # 月相一族：原名是逐词拼的「盈新月月亮符号」「第一四分之一月亮符号」——
+    # 前半截和「月亮」重复，FIRST/LAST QUARTER 也不是天文通用叫法。
+    # SYMBOL 后缀是 Unicode 为了跟 🌙 那个 emoji 区分才加的，中文里 🌙 叫弯月，不冲突，可以不要。
+    # ⚠️ 键必须比 'CRESCENT MOON' 长：segment 按最长匹配，短的会先把 🌒/🌘 切走。
+    'NEW MOON SYMBOL': '新月',
+    'WAXING CRESCENT MOON SYMBOL': '蛾眉月',
+    'FIRST QUARTER MOON SYMBOL': '上弦月',
+    'WAXING GIBBOUS MOON SYMBOL': '盈凸月',
+    'FULL MOON SYMBOL': '满月',
+    'WANING GIBBOUS MOON SYMBOL': '亏凸月',
+    'LAST QUARTER MOON SYMBOL': '下弦月',
+    'WANING CRESCENT MOON SYMBOL': '残月',
+    # CRESCENT MOON 原来叫「新月月亮」：既重复，又把新月（🌑）的名字安到了弯月头上
+    'CRESCENT MOON': '弯月',
 }
 
 # ---- 人工补充别名 ----
 # 脚本产出之外的别名，按字符给。用途：同一个官方英文名有几种都说得通的中文说法时，
-# 挑一个进名字表当直译，其余在这儿补成别名（搜索结果一样命中）。
+# 挑一个进直译名，其余在这儿补成别名（搜索结果一样命中）。
 # 键是字符，值是别名列表。脚本每次重跑都会把它们补回去，不会被覆盖掉。
 EXTRA_ALIASES = {
     # CROSSED SWORDS：直译取「交叉的剑」，另两种写法留作别名
@@ -823,11 +918,17 @@ try:
 except ImportError:
     FALLBACK_WORD = {}
 
-MAX_PHRASE = 8                          # 短语切分最长几个词
+MAX_PHRASE = 10                         # 短语切分最长几个词（原 8；🖖 那条要 9 个词才切得动）
 
 # ==================== 翻译引擎 ====================
 
 IDEOGRAPH = re.compile(r'^IDEOGRAPH-([0-9A-F]{4,6})$')
+
+
+# 短语表的**值**（切分后可能是带拉丁字母的中文，如「上方带向左箭头的BACK」）。
+# 判据不能写成「不含拉丁字母就透传」——那条在 🔛 那种「值里必须保留原文单词」的短语上会崩：
+# 值含 BACK/ON 就被当成未收录的英文词，掉进兜底表返回 None，整条名变空串（实测踩过）。
+PHRASE_VALUES = frozenset(EMOJI_PHRASE.values())
 
 
 def token_of(word):
@@ -837,8 +938,10 @@ def token_of(word):
         return '汉字' + chr(int(m.group(1), 16))     # IDEOGRAPH-6708 → 汉字月
     if word in EMOJI_WORD:
         return EMOJI_WORD[word]
+    if word in PHRASE_VALUES:
+        return word                                  # 短语切分的产物，已经是中文，原样透传
     if not re.search(r'[A-Za-z]', word):
-        return word                                  # 短语切分留下的中文，原样透传
+        return word                                  # 别的路径留下的中文，同样透传
     return FALLBACK_WORD.get(word)
 
 
@@ -862,6 +965,29 @@ def segment(tokens):
     return out
 
 
+# WITH 的中文动词：「戴」还是「带」取决于宾语是不是**穿戴物**。
+#   FACE WITH SUNGLASSES → 戴太阳镜的笑脸     （带太阳镜 = 把它拎在手里）
+#   HEART WITH RIBBON    → 带丝带的心          （丝带是系在心上的，不是「戴」）
+# 穿戴物是个**封闭类**，所以列成表；表里没有的一律「带」——宁可漏「戴」（读出「携带」味），
+# 也别把「带钥匙的锁」写成「戴钥匙的锁」。
+# ⚠️ 比对的是**未切分的英文宾语**（`raw`），不是切分后的中文：分块短语（COWBOY HAT）会
+#    把宾语并成一个中文 token，拿中文反查既脆弱又要多维护一份反向表。
+WORN_WITH = frozenset({
+    'SUNGLASSES', 'GLASSES', 'EYEGLASSES', 'GOGGLES', 'MONOCLE',
+    'MASK', 'MEDICAL MASK', 'CROWN', 'TURBAN', 'HEADSCARF', 'VEIL',
+    'COWBOY HAT', 'HEARING AID',
+})
+
+
+def with_verb(raw, kw):
+    """WITH 的中文动词。raw 是本层**未切分**的词列表，kw 是结构词（此处恒为 WITH）。"""
+    try:
+        tail = ' '.join(raw[raw.index(kw) + 1:])
+    except ValueError:
+        return '带'
+    return '戴' if tail in WORN_WITH else '带'
+
+
 def translate(tokens, unknown):
     """词列表 → 中文。
 
@@ -870,7 +996,8 @@ def translate(tokens, unknown):
       2. 结构词 WITH / AND / OF / FOR / BEHIND（取第一个）
       3. 逐词拼接，查不到的原样保留并记进 unknown
     """
-    tokens = segment(list(tokens))
+    raw = list(tokens)                      # 未切分的原始词：WITH 分支判「戴/带」要用它
+    tokens = segment(raw)
     if not tokens:
         return ''
 
@@ -883,7 +1010,7 @@ def translate(tokens, unknown):
             continue
         a, b = translate(head, unknown), translate(tail, unknown)
         if kw == 'WITH':
-            return '带' + b + '的' + a
+            return with_verb(raw, kw) + b + '的' + a
         if kw == 'AND':
             return a + '和' + b
         if kw == 'OF':
@@ -891,6 +1018,17 @@ def translate(tokens, unknown):
         if kw == 'BEHIND':
             return b + '后的' + a
         return a + '（' + b + '）'                 # FOR：ALCHEMICAL SYMBOL FOR X → 炼金术符号（X）
+
+    # 语序：PERSON / PEOPLE 是**中心语**，中文必须把它挪到后面
+    #   KNEELING PERSON  → 下跪的人   （逐词拼是「下跪人」）
+    #   PEOPLE HUGGING   → 人们拥抱   （逐词拼是「人拥抱」，读着像句子不是名字）
+    # ⚠️ 必须排在上面结构词之后：`… SIGN FOR PERSON` 要留给 FOR 分支，不能被这条截走。
+    # ⚠️ 只对**末词** PERSON / **首词** PEOPLE 生效，中间位置（HAPPY PERSON RAISING…、
+    #    PA PEOPLE）不动——那些是另一个语序问题，见 符号/docs/设计/数据说明.md。
+    if len(tokens) > 1 and tokens[-1] == 'PERSON':
+        return translate(tokens[:-1], unknown) + '的人'
+    if len(tokens) > 1 and tokens[0] == 'PEOPLE':
+        return '人们' + translate(tokens[1:], unknown)
 
     out = []
     for word in tokens:

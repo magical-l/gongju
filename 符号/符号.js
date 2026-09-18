@@ -1364,7 +1364,7 @@ const app = createApp({
 		 *  例：✊ 只在「手势、姿势」下设了主名「举起拳头」，到平级标签「手、手臂、手指头」下应显示直译
 		 *  「举起的拳头」，却被拼接名顶成了「举起拳头」。
 		 *  链：条目级 name（编辑器里「全局」块的主名，用户显式指定的）→ 兜底层（fallbackNameOf，与拼接名同源：
-		 *  单码位查直译名字表；序列查 SEQ_INDEX）→ 未分配 / 私用区 / 控制字符占位。 */
+		 *  单码位查直译直译名；序列查 SEQ_INDEX）→ 未分配 / 私用区 / 控制字符占位。 */
 		ctxFallbackName(cp) {
 			const meta = SYMBOL_MAP.get(Array.isArray(cp) ? String.fromCodePoint(...cp) : String.fromCodePoint(cp));
 			if (meta && meta.userName) return meta.userName;
@@ -2318,7 +2318,7 @@ const app = createApp({
 
 		/** 「全局」块主名的 placeholder：显示留空时的生效名——拼接名（兜底名打头 + 各标签语境名的拼接，
 		 *  与 buildSymbolMap 同一算法，否则提示的"当前"值会和清空后真正生效的名字对不上）；
-		 *  一个组名都没有时退到默认名（名字表/分类兜底）。
+		 *  一个组名都没有时退到默认名（直译名/分类兜底）。
 		 *  placeholder 只是提示：拼接名不写进 value，否则保存会把拼接名当成条目级主名落盘。 */
 		symbolGlobalPlaceholder(sc) {
 			if (!sc) return '主名';

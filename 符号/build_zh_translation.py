@@ -101,6 +101,73 @@ STRUCT_MAP = {
     'CAPITAL': '大写', 'SMALL': '小写', 'LETTER': '字母',
     'CHOSEONG': '初声', 'JUNGSEONG': '中声', 'JONGSEONG': '终声',
     'SYMBOL': '符号', 'SIGN': '符号', 'DIGIT': '数字',
+    # ===== 字母的修饰符（`LATIN CAPITAL LETTER A **WITH GRAVE**`）=====
+    # 缺这批时 `_rest_zh` 会把整段尾巴原样留成英文，产出「拉丁大写字母A WITH GRAVE」。
+    # 2026-09-17 补。验收标准：letter_zh 的输出与 官方名直译名.js 里已有的 703 条**逐字相同**，
+    # 这样全量重算不会把数据改回去。
+    'WITH': '带', 'AND': '与',
+    'GRAVE': '钝音符', 'ACUTE': '锐音符', 'CIRCUMFLEX': '抑扬符', 'TILDE': '波浪号',
+    'DIAERESIS': '分音符', 'MACRON': '长音符号', 'BREVE': '短音符', 'CARON': '倒折符',
+    'CEDILLA': '下加符', 'OGONEK': '尾钩',
+    # STROKE 是中性词「划线」——它本身不含横/斜，别替它加方向（2026-09-18 用户裁定）
+    'STROKE': '划线', 'HOOK': '钩',
+    'DOT': '点', 'RING': '圆圈', 'COMMA': '逗号', 'BAR': '横杠', 'LINE': '线',
+    # ⚠️ OGONEK 译「鼻化符」不是「尾钩」——这是数据里的既定说法（Ą 在波兰语里确实鼻化）
+    'OGONEK': '鼻化符', 'PALATAL': '硬腭', 'RETROFLEX': '卷舌', 'HORN': '角', 'MIDDLE': '中',
+    'SHARP': '锐', 'TURNED': '翻转', 'REVERSED': '反向', 'INVERTED': '倒置',
+    'TOPBAR': '顶横杠', 'DOTLESS': '无点', 'OPEN': '开口', 'TAIL': '尾',
+    # 长尾（2026-09-17 按「引擎输出 == 数据」逐轮抽出，见 §验收）
+    'DIAGONAL': '对角', 'INSULAR': '海岛体', 'OBLIQUE': '斜', 'CURL': '卷曲',
+    'DESCENDER': '下伸部', 'LEG': '腿', 'VOLAPUK': '沃拉普克', 'GLOTTAL': '声门', 'SQUAT': '矮',
+    'FLOURISH': '花饰', 'SCRIPT': '手写体', 'BELT': '束带', 'FISHHOOK': '鱼钩',
+    'LOOP': '环', 'EGYPTOLOGICAL': '埃及学', 'BARRED': '带横杠', 'SIDEWAYS': '侧向',
+    'HIGH': '高', 'LOW': '低', 'BLACKLETTER': '黑体', 'RAMS': '羊', 'BROKEN': '断',
+    'VEND': '文德', 'ANGLICANA': '安格利卡纳', 'SCOTS': '古苏格兰', 'SIGMOID': '乙状',
+    'AFRICAN': '非洲', 'DIGRAPH': '二合字母', 'SWASH': '卷尾', 'CLOSED': '闭',
+    'PHARYNGEAL': '咽音', 'VOICED': '浊', 'FRICATIVE': '擦音', 'STOP': '塞音',
+    # 下述三对是同词异写，取**多数派**为准，少数派已在数据里统一（2026-09-17）
+    'MID-HEIGHT': '中高', 'MIDDLE-WELSH': '中古威尔士', 'SERIF': '衬线',
+    'DIAERESIZED': '带分音符', 'STRIKETHROUGH': '删除线', 'TAILLESS': '无尾', 'OVERLAY': '叠加', 'INSIDE': '内部', 'SQUIRREL': '松鼠',
+    'HANDLE': '柄', 'TRILL': '颤音', 'WITHOUT': '无', 'OPEN-O': '开口-O',
+    'NOTCH': '缺口', 'HORIZONTAL': '横', 'LENIS': '弱', 'LAZY': '懒',
+    'STIRRUP': '马镫', 'BASELINE': '基线', 'SAKHA': '萨哈', 'IOTIFIED': '带iota',
+    # 希腊字母名 → 字形。官方名写 `LAMBDA`，中文名写字形 `λ`（「写本源字形」那条规则）
+    # ⚠️ 一律用**官方名里的写法**（大写）——数据里 `ᵹ` 是「拉丁小写字母海岛体G」，
+    #    G 大写；`Ɣ` 是「拉丁大写字母Γ」，Γ 大写。字符自身是小写不影响。
+    'ALPHA': 'Α', 'BETA': 'Β', 'GAMMA': 'Γ', 'DELTA': 'Δ', 'EPSILON': 'Ε',
+    'ZETA': 'Ζ', 'ETA': 'Η', 'THETA': 'Θ', 'IOTA': 'Ι', 'KAPPA': 'Κ',
+    'LAMBDA': 'Λ', 'MU': 'Μ', 'NU': 'Ν', 'XI': 'Ξ', 'OMICRON': 'Ο',
+    'PI': 'Π', 'RHO': 'Ρ', 'SIGMA': 'Σ', 'TAU': 'Τ', 'UPSILON': 'Υ',
+    'PHI': 'Φ', 'CHI': 'Χ', 'PSI': 'Ψ', 'OMEGA': 'Ω',
+    'LONG': '长', 'SHORT': '短', 'DOUBLE': '双',
+    'LEFT': '左', 'RIGHT': '右', 'TOP': '顶部', 'BOTTOM': '底部', 'HALF': '半',
+}
+
+# 需要**倒序**的修饰短语：英文后置、中文前置（`RING ABOVE` → 上方圆圈）。
+# `_rest_zh` 按最长匹配先整块吃掉，再做逐词拼接。
+STRUCT_PHRASE = {
+    'HOOK ABOVE': '上方钩', 'HORN ABOVE': '上方角',
+    'THROUGH DESCENDER': '穿下延',
+    # 整块短语：逐词拼会重复（`SWASH TAIL` 拼成「卷尾钩尾」、`HOOK TAIL` 拼成「钩钩尾」）
+    'PRECEDED BY APOSTROPHE': '带前置撇号', 'INVERTED BREVE': '倒短音符',
+    'SWASH TAIL': '卷尾', 'HOOK TAIL': '钩尾', 'WITH TAIL': '带尾',
+    'R ROTUNDA': 'R圆体',
+    'TONE SIX': '第六声', 'TONE TWO': '第二声', 'TONE FIVE': '第五声',
+    'GLOTTAL STOP': '声门塞音', 'OLD POLISH': '旧波兰', 'CLOSED INSULAR': '闭口海岛体',
+    'PHARYNGEAL VOICED FRICATIVE': '咽音浊擦音', 'CROSSED-TAIL': '交叉尾',
+    'OPEN E': '开口E', 'LONG STROKE OVERLAY': '叠加长划线',
+    'REVERSED-SCHWA': '反转-SCHWA',
+    'WITHOUT HANDLE': '无柄', 'LOW RING INSIDE': '内低圆圈',
+    'RUM ROTUNDA': 'RUM圆体',  'IOTIFIED E': '带iotaE', 'INVERTED ALPHA': '倒α',
+    'SHORT STROKE OVERLAY': '叠加短划线', 'HORIZONTAL STROKE': '横划线',
+    'SHARP S': '德语锐S', 'LONG S': '长S', 'DOTLESS J': '无点J', 'OPEN O': '开口O',
+    'RING ABOVE': '上方圆圈', 'DOT ABOVE': '上方点', 'MACRON ABOVE': '上方长音符号',
+    'LINE ABOVE': '上方线', 'COMMA ABOVE': '上方逗号', 'TILDE ABOVE': '上方波浪号',
+    'CIRCUMFLEX ABOVE': '上方抑扬符',
+    'CIRCUMFLEX BELOW': '下方抑扬符', 'TILDE BELOW': '下方波浪号',
+    'DIAERESIS BELOW': '下方分音符', 'HORN BELOW': '下方角',
+    'DOT BELOW': '下方点', 'LINE BELOW': '下方线', 'COMMA BELOW': '下方逗号',
+    'RING BELOW': '下方圆圈', 'MACRON BELOW': '下方长音符号', 'BREVE BELOW': '下方短音符',
 }
 
 # ===== 修饰前缀 → 中文（字母类前的数学/全角等） =====
@@ -173,14 +240,27 @@ ALGORITHMIC = [
 
 
 def _rest_zh(rest_words):
-    """结构词转中文紧贴拼接，英文词（字母名等）保留并以空格分隔。"""
-    out = ''
-    for r in rest_words:
-        z = STRUCT_MAP.get(r)
-        if z:
-            out += z
+    """结构词转中文紧贴拼接，英文词（字母名等）保留。
+
+    英文词**之间**空一格（`EN GHE`、`ZAQEF QATAN` 这种多词转写名要分开读），
+    但**中文之后紧贴**——中英文之间不空格（2026-09-17 用户裁定）。
+
+    查表时先按 `STRUCT_PHRASE` 做**最长匹配**——那批修饰语英文后置、中文前置
+    （`RING ABOVE` 是「上方圆圈」不是「圆圈上方」），逐词拼会反。
+    """
+    out, i = '', 0
+    while i < len(rest_words):
+        for n in (3, 2, 1):
+            key = ' '.join(rest_words[i:i + n])
+            z = STRUCT_PHRASE.get(key) if n > 1 else STRUCT_MAP.get(key)
+            if z:
+                out += z
+                i += n
+                break
         else:
-            out += (' ' if out else '') + r
+            r = rest_words[i]
+            out += (' ' + r) if (out and out[-1].isascii()) else r
+            i += 1
     return out
 
 
@@ -213,12 +293,17 @@ def letter_zh(en):
 
 
 def _join(zh, tail):
-    """中文词缀与尾部拼接：尾部以中文开头紧贴，以英文字母名开头则空一格。"""
+    """中文词缀与尾部拼接：一律紧贴。
+
+    ⚠️ 曾写成「尾部以英文字母名开头则空一格」，产出 `拉丁大写字母 A`、
+    `楔形文字符号 GA2` 这类中英夹空格的直译名。2026-09-17 用户裁定**中英文之间不空格**，
+    那个分支已删；同一批 1244 条历史数据也已清。
+    """
     if not tail:
         return zh
     if not zh:
         return tail
-    return zh + (' ' if tail[0].isascii() else '') + tail
+    return zh + tail
 
 
 def main():

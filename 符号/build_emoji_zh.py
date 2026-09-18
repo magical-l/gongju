@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""把 CLDR 俗名从名字表分层搬走，名字表补上官方英文名的**机械直译**。
+"""把 CLDR 俗名从直译名分层搬走，直译名补上官方英文名的**机械直译**。
 
 用法::
 
@@ -9,22 +9,22 @@
 
 背景（`符号/docs/任务/20260914-待办27与29的设计与交接.md` 第二节）：
 
-`官方名直译名.js` 是**名字表**，只该装官方英文名的机械直译。但它里面混着
+`官方名直译名.js` 是**直译名**，只该装官方英文名的机械直译。但它里面混着
 一千多条 CLDR 俗名（`GRINNING FACE → 嘿嘿`、`FACE PALM → 捂脸`）——
 那是**俗名**不是译名。按分层原则，俗名该回人工层（`符号富化数据.js`），
-名字表补直译。
+直译名补直译。
 
 做法：
 
 1. 认定范围（见 `find_scope`，**可重跑**）：`SCOPE_RANGES` 范围内所有有 CLDR 俗名的
-   单码位，且名字表当前值是「CLDR 兜底值」或「本脚本产出的直译」两种之一。
+   单码位，且直译名当前值是「CLDR 兜底值」或「本脚本产出的直译」两种之一。
    人工改过的名字不动。
-2. 给这些码位生成机械直译（`emoji词表.py` 的词 + `translate` 的结构规则），写回名字表。
+2. 给这些码位生成机械直译（`emoji词表.py` 的词 + `translate` 的结构规则），写回直译名。
 3. 把 CLDR 俗名搬进符号数据当 `alias`：
-   · **直译 == 俗名**          → 什么都不搬。这条留在名字表里就是对的（那个值
+   · **直译 == 俗名**          → 什么都不搬。这条留在直译名里就是对的（那个值
                                 既是俗名、也是正确的机械直译，两者恰好同字），
                                 再搬一份当 alias 只会让详情区的别名行跟主名重复。
-   · 已有条目且俗名已在名/别名里 → 什么都不做（名字表换直译即可）
+   · 已有条目且俗名已在名/别名里 → 什么都不做（直译名换直译即可）
    · 已有条目但没收录         → 往该条第一个组补一个 alias
    · 符号数据里完全没有       → 新建条目，alias 落**条目级**（= 全局别名）
 
@@ -42,7 +42,7 @@ sys.path.insert(0, BASE)
 from datatool import append_symbols, load_symbols, load_zh, read_data, save_zh, update_symbols
 from emoji词表 import EMOJI_PHRASE, EMOJI_WORD, EXTRA_ALIASES, translate
 CLDR_ANNOTATIONS = os.path.join(BASE, '参考资料', 'annotations-zh.json')
-# 认定范围：这两段里「名字表的值 == CLDR 注解」的单码位名，必然是 CLDR 兜底灌进来的
+# 认定范围：这两段里「直译名的值 == CLDR 注解」的单码位名，必然是 CLDR 兜底灌进来的
 #   U+2600-27BF  杂项符号/装饰符号（☎ ☀ ♠ ♈ …）——混着标准中文名，靠下面的翻译质量把关
 #   U+1F000+     补充符号/表情区（😀 🍓 🚒 …）——基本全是俗名
 SCOPE_RANGES = ((0x2600, 0x27BF), (0x1F000, 0x1FFFF))
@@ -73,7 +73,7 @@ def in_scope(cp):
 def find_scope():
     """→ [(码位, 官方英文名, CLDR 俗名)]。
 
-    候选 = 范围内所有**有 CLDR 俗名**的单码位；再按名字表当前值放行两类：
+    候选 = 范围内所有**有 CLDR 俗名**的单码位；再按直译名当前值放行两类：
 
       · `值 == CLDR 俗名`   —— 还是当年 CLDR 兜底灌进来的那个值，要换直译
       · `值 == 本脚本的直译` —— 已经换过了。**这一条是为了可重跑**：光看
@@ -102,7 +102,7 @@ def build_translations(scope):
     """→ ({码位: 直译}, 未收录词计数)。
 
     译出来是空串的话**保留 CLDR 值**：冠词 THE / A 在词表里映射成空串（去冠词用），
-    万一某个官方名整串只有冠词，直译就会是空的。名字表写空名是静默的数据损坏
+    万一某个官方名整串只有冠词，直译就会是空的。直译名写空名是静默的数据损坏
     （`datatool.check_all` 只校验键合法，不校验值非空），所以在这里兜住并计数。
     """
     translations = {}
@@ -159,19 +159,24 @@ def has_display_name(entry):
 
 
 def covered(colloquial, entry, new_name):
-    """俗名是不是已经被某个**会显示出来的**名字包含（子串）了。
+    """俗名是不是已经被某个**会显示出来的、或可被搜到的**名字包含（子串）了。
 
     包含就别再挂别名：搜索是子串匹配，打「融化」本来就能命中主名「融化脸」，
     再挂一条同名别名只会让详情区的别名行跟主名重复。（用户 2026-09-14 手工删掉
     🫠 的别名「融化」时给的理由，把它固化成规则。）
+
+    ⚠️ `new_name`（直译名）**必须无条件算进去**，不能只在上面三个来源都空时才兜。
+    它是这几项里唯一**始终可被搜到**的：搜索除了扫配置名，还全量扫一遍直译名
+    （见 符号.js 里 `ZH_TRANSLATION.names` 那条通道），跟当前浏览哪个标签无关。
+    早先写成 `if not names: names.append(new_name)`，于是**配了语境名的条目**全漏判——
+    😉 的组名是「眨一只眼」、直译名是「眨眼脸」，`眨眼` 只落在后者里，被判成
+    "没被包含"于是又挂一条别名（实测 14 条，见 2026-09-17）。
     """
-    names = []
+    names = [new_name] if new_name else []
     if entry:
         if entry.get('name'):
             names.append(entry['name'])
         names += [g['name'] for g in (entry.get('groups') or {}).values() if g.get('name')]
-    if not names:
-        names.append(new_name)
     return any(colloquial in name for name in names)
 
 
@@ -189,18 +194,18 @@ def plan_colloquial(scope, translations):
         entry = by_char.get(ch)
         new_name = translations.get(cp)
         extras = EXTRA_ALIASES.get(ch, [])
-        # 名字表的值被换成直译后，显示名就跟着换。若这个新显示名跟本条**既有**的
+        # 直译名的值被换成直译后，显示名就跟着换。若这个新显示名跟本条**既有**的
         # 某条别名同字，别名行会把主名再念一遍（上一轮 testing 抓到 8 例）。
-        # 别名本来是当搜索同义词的，如今它成了主名，名字表通道本来就搜得到，留着纯冗余。
+        # 别名本来是当搜索同义词的，如今它成了主名，直译名通道本来就搜得到，留着纯冗余。
         if entry is not None and not has_display_name(entry) and new_name in entry_values(entry):
             strip[ch] = new_name
 
         # 每条只归一类，六个计数加起来正好是范围条数
         if new_name == name:
-            same += 1                              # 直译与俗名同字，名字表那条不用换
+            same += 1                              # 直译与俗名同字，直译名那条不用换
         elif entry is None:
             if covered(name, None, new_name):
-                skipcov += 1                       # 俗名已被名字表的值包含，没必要新建条目
+                skipcov += 1                       # 俗名已被直译名的值包含，没必要新建条目
             else:
                 fresh.append((cp, [name]))
         elif name in entry_values(entry):
@@ -256,7 +261,7 @@ def move_colloquial(patch, fresh, strip):
                     group.pop('alias', None)       # 组名还在，别名删光就行
                 else:
                     # 组里就这一条别名，删掉就空了。把它提成**组语境名**：
-                    # 显示效果完全一样（名字表兜底值本来就是它），但组不再是空壳。
+                    # 显示效果完全一样（直译名兜底值本来就是它），但组不再是空壳。
                     # 例：💃 `{"通用":{"alias":["舞者"]}}` → `{"通用":{"name":"舞者"}}`
                     group.pop('alias', None)
                     group['name'] = clash
@@ -290,7 +295,7 @@ def main(argv):
     scope = find_scope()
     cldr = {cp: c for cp, _, c in scope}
     print('== 第 1 步：认定范围 ==')
-    print('  名字表的值 == CLDR 俗名，且在 %s：%d 条'
+    print('  直译名的值 == CLDR 俗名，且在 %s：%d 条'
           % (' + '.join('U+%X-%X' % r for r in SCOPE_RANGES), len(scope)))
 
     translations, unknown = build_translations(scope)
@@ -317,7 +322,7 @@ def main(argv):
         print('--dry-run：未落盘')
         return 0
 
-    print('  名字表换直译：%d 条' % apply_to_name_table(translations))
+    print('  直译名换直译：%d 条' % apply_to_name_table(translations))
     move_colloquial(patch, fresh, strip)
     print('  落盘完成：补 alias %d、新建条目 %d、删撞名别名 %d'
           % (len(patch), len(fresh), len(strip)))
