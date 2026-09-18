@@ -929,6 +929,14 @@ EMOJI_PHRASE = {
     # WITH/AND 的作用范围官方名本身就歧义，拆清楚再译（2026-09-18）
     'MALE WITH STROKE AND MALE AND FEMALE SIGN': '带划线的男性符号与男性和女性符号',
     'WHITE SUN WITH SMALL CLOUD': '带小云的太阳',
+    # IN 直译成「在」出来的「X在Y」不是中文（2026-09-18）
+    'MAN IN TUXEDO': '穿燕尾服的男人',
+    'FLAG IN HOLE': '洞中的旗',
+    'LEAF FLUTTERING IN WIND': '风中飘动的叶',
+    'BUST IN SILHOUETTE': '剪影中的半身像',
+    'BUSTS IN SILHOUETTE': '剪影中的半身像们',
+    'FACE SCREAMING IN FEAR': '惊恐尖叫的脸',
+    'MAN IN BUSINESS SUIT LEVITATING': '穿商务西装飘浮的男人',
 }
 
 # ---- 人工补充别名 ----
