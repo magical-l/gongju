@@ -7538,7 +7538,7 @@ const ENRICHED_SYMBOLS = [
 	{"char":"🙏","name":"双手合十"},
 	{"char":"🕏","name":"药神之碗","alias":["健康之碗"]},
 	{"char":"🍯","alias":["一罐蜂蜜"]},
-	{"char":"🍼","alias":["奶"]},
+	{"char":"🍼"},
 	{"char":"👏","alias":["掌声"]},
 	{"char":"💴","alias":["日元"]},
 	{"char":"🥀","alias":["凋零"]},
