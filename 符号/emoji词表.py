@@ -937,6 +937,21 @@ EMOJI_PHRASE = {
     'BUSTS IN SILHOUETTE': '剪影中的半身像们',
     'FACE SCREAMING IN FEAR': '惊恐尖叫的脸',
     'MAN IN BUSINESS SUIT LEVITATING': '穿商务西装飘浮的男人',
+    # 介词硬译出来的「X在Y」「X到Y」不是中文，整条定死（2026-09-18）
+    # ⚠️ 箭头指的那根 BAR 是**竖杠**，不是横杠
+    'CITYSCAPE AT DUSK': '黄昏的城市景观',
+    'BRIDGE AT NIGHT': '夜里的桥',
+    'INDEX POINTING AT THE VIEWER': '指着观看者的食指',
+    'NORTH WEST ARROW TO LONG BAR': '指向长竖杠的左上箭头',
+    'LEFTWARDS ARROW TO BAR': '指向竖杠的左箭头',
+    'RIGHTWARDS ARROW TO BAR': '指向竖杠的右箭头',
+    'LEFTWARDS ARROW TO BAR OVER RIGHTWARDS ARROW TO BAR': '上面是指向竖杠的左箭头，下面是指向竖杠的右箭头',
+    'NORTH WEST ARROW TO CORNER': '指向左上角的箭头',
+    'NORTH WEST ARROW FROM BAR': '从竖杠出发的西北箭头',
+    'NORTH EAST ARROW FROM BAR': '从竖杠出发的东北箭头',
+    'SOUTH EAST ARROW FROM BAR': '从竖杠出发的东南箭头',
+    'SOUTH WEST ARROW FROM BAR': '从竖杠出发的西南箭头',
+    'DOWNWARDS BLACK ARROW TO BAR': '指向竖杠的实心下箭头',
 }
 
 # ---- 人工补充别名 ----
