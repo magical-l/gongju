@@ -230,7 +230,7 @@ const ENRICHED_SYMBOLS = [
 	{"char":"⚤","alias":["结合","异性恋","Interlaced Male and Female Sign"],"name":"男女"},
 	{"char":"⚥","alias":["中性"],"name":"双性"},
 	{"char":"⚦","name":"男"},
-	{"char":"⚧","mode":"dual","alias":["跨性别符号"],"name":"跨性别"},
+	{"char":"⚧","mode":"dual","name":"跨性别符号"},
 	{"char":"⚨","name":"垂直男"},
 	{"char":"⚩","name":"水平男"},
 	{"char":"⚲","name":"中性、无性别"},

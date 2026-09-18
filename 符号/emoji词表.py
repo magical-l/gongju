@@ -926,6 +926,9 @@ EMOJI_PHRASE = {
     'YEN SIGN': '元符号',
     'FULLWIDTH YEN SIGN': '全角元符号',
     'CHART WITH UPWARDS TREND AND YEN SIGN': '带元符号的上涨趋势图',
+    # WITH/AND 的作用范围官方名本身就歧义，拆清楚再译（2026-09-18）
+    'MALE WITH STROKE AND MALE AND FEMALE SIGN': '带划线的男性符号与男性和女性符号',
+    'WHITE SUN WITH SMALL CLOUD': '带小云的太阳',
 }
 
 # ---- 人工补充别名 ----
