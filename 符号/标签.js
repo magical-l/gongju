@@ -17993,7 +17993,8 @@ window.TAGS_DATA = {
               "ranges": [
                 [126976,127019]
               ],
-              "src": ["full", "emoji"]
+              "src": ["full", "emoji"],
+              "alias": ["方城之战"]
             },
             "多米诺骨牌": {
               "children": {},

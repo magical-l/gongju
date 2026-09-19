@@ -974,6 +974,41 @@ EMOJI_PHRASE = {
     'CHERRY BLOSSOM': '樱花',
     'SHOOTING STAR': '流星',
     'CRYSTAL BALL': '水晶球',
+    # 麻将（2026-09-19）。官方名一律是 `MAHJONG TILE XXX`，逐词拼会散在三处：
+    #   · `OF 花色` 走 OF 分支被倒装成「CHARACTERS之麻将牌一」
+    #   · 梅兰竹菊春夏秋冬不在词表里（放 EMOJI_WORD 会污染别的官方名，只在这儿定）
+    #   · `WHITE` 在词表里是排版术语「空心」（见 ·013），到麻将里该是白板的白
+    'OF CHARACTERS': '万',
+    'OF BAMBOOS': '条',
+    'OF CIRCLES': '筒',
+    'WHITE DRAGON': '白龙',
+    'MAHJONG TILE PLUM': '麻将牌梅',
+    'MAHJONG TILE ORCHID': '麻将牌兰',
+    'MAHJONG TILE BAMBOO': '麻将牌竹',
+    'MAHJONG TILE CHRYSANTHEMUM': '麻将牌菊',
+    'MAHJONG TILE SPRING': '麻将牌春',
+    'MAHJONG TILE SUMMER': '麻将牌夏',
+    'MAHJONG TILE AUTUMN': '麻将牌秋',
+    'MAHJONG TILE WINTER': '麻将牌冬',
+    # JOKER 真正的直译是小丑，不是「王牌」（王牌在中文里是 ace/trump）
+    'MAHJONG TILE JOKER': '麻将小丑牌',
+    # 中国象棋（2026-09-19）。逐词引擎做不到——同一个词按红黑方要译成不同的字
+    #   （GENERAL 红方是「帅」黑方是「将」，仕/士、相/象、兵/卒 同理，还有砲/炮），
+    #   只能整条定死。`XIANGQI` 本身也不在词表里。
+    'XIANGQI RED GENERAL': '象棋红帅',
+    'XIANGQI RED MANDARIN': '象棋红仕',
+    'XIANGQI RED ELEPHANT': '象棋红相',
+    'XIANGQI RED HORSE': '象棋红马',
+    'XIANGQI RED CHARIOT': '象棋红车',
+    'XIANGQI RED CANNON': '象棋红炮',
+    'XIANGQI RED SOLDIER': '象棋红兵',
+    'XIANGQI BLACK GENERAL': '象棋黑将',
+    'XIANGQI BLACK MANDARIN': '象棋黑士',
+    'XIANGQI BLACK ELEPHANT': '象棋黑象',
+    'XIANGQI BLACK HORSE': '象棋黑马',
+    'XIANGQI BLACK CHARIOT': '象棋黑车',
+    'XIANGQI BLACK CANNON': '象棋黑炮',
+    'XIANGQI BLACK SOLDIER': '象棋黑卒',
 }
 
 # ---- 人工补充别名 ----
