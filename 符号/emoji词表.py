@@ -158,7 +158,7 @@ EMOJI_WORD.update({
     'SPIDER': '蜘蛛', 'SCORPION': '蝎子', 'CRICKET': '蟋蟀', 'MOSQUITO': '蚊子',
     'FLY': '苍蝇', 'WORM': '蠕虫', 'MICROBE': '微生物',
     # ============ 植物 ============
-    'BOUQUET': '花束', 'CHERRY': '樱花', 'BLOSSOM': '花', 'ROSETTE': '莲座',
+    'BOUQUET': '花束', 'CHERRY': '樱桃', 'BLOSSOM': '花', 'ROSETTE': '莲座',
     'ROSE': '玫瑰', 'HIBISCUS': '木槿', 'SUNFLOWER': '向日葵', 'TULIP': '郁金香',
     'HYACINTH': '风信子', 'SEEDLING': '幼苗', 'POTTED': '盆栽', 'PLANT': '植物',
     'EVERGREEN': '常绿', 'DECIDUOUS': '落叶', 'TREE': '树', 'PALM': '手掌',
@@ -211,7 +211,7 @@ EMOJI_WORD.update({
     'SUN': '太阳', 'SUNRISE': '日出', 'SUNSET': '日落', 'DUSK': '黄昏',
     'MOON': '月亮', 'WAXING': '盈', 'WANING': '亏', 'GIBBOUS': '凸',
     'CRESCENT': '新月', 'FULL': '满', 'NEW': '新', 'LAST': '末',
-    'STAR': '星', 'STARS': '星星', 'SHOOTING': '流星', 'GLOWING': '发光',
+    'STAR': '星', 'STARS': '星星', 'SHOOTING': '射击', 'GLOWING': '发光',
     'MILKY': '银河', 'WAY': '带', 'EARTH': '地球', 'GLOBE': '地球',
     'MERIDIANS': '子午线', 'WORLD': '世界', 'PLANET': '行星', 'RINGED': '带环',
     'CLOUD': '云', 'RAIN': '雨', 'STORM': '风暴', 'LIGHTNING': '闪电',
@@ -367,7 +367,7 @@ EMOJI_WORD.update({
     # ============ 科学 / 医疗 ============
     'TEST': '试管', 'TUBE': '管', 'PETRI': '培养皿', 'DISH': '皿',
     'MICROSCOPE': '显微镜', 'TELESCOPE': '望远镜', 'LAB': '实验服',
-    'CRYSTAL': '水晶球', 'MAGIC': '魔法', 'WAND': '魔杖', 'SCIENTIST': '科学家',
+    'CRYSTAL': '水晶', 'MAGIC': '魔法', 'WAND': '魔杖', 'SCIENTIST': '科学家',
     # ============ 运动 / 游戏 ============
     'FOOTBALL': '足球', 'TENNIS': '网球', 'RACQUET': '球拍', 'DISC': '飞盘',
     'HOCKEY': '冰球', 'SKI': '滑雪', 'GAME': '游戏', 'PLAYING': '玩',
@@ -393,7 +393,7 @@ EMOJI_WORD.update({
     'FLAT': '平底', 'HIGH-HEELED': '高跟鞋', 'BALLET': '芭蕾', 'SHOES': '鞋',
     'BOOT': '靴子', 'BOOTS': '靴子', 'SHOE': '鞋', 'T-SHIRT': 'T恤',
     'JEANS': '牛仔裤', 'NECKTIE': '领带', 'VEST': '背心', 'PICK': '尖镐',
-    'PRAYER': '念珠', 'BEADS': '珠', 'LIPSTICK': '口红', 'GEM': '宝石',
+    'PRAYER': '祈祷', 'BEADS': '珠', 'LIPSTICK': '口红', 'GEM': '宝石',
     'GLASS': '玻璃杯', 'GLASSES': '眼镜', 'CROWN_': '王冠', 'RING': '戒指',
     # ============ 宗教 / 信仰 ============
     'WORSHIP': '礼拜', 'OM': '唵', 'MENORAH': '烛台', 'BRANCHES': '枝',
