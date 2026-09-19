@@ -75,8 +75,26 @@ OCCUPATIONS = {
 # 「男戴头巾的人」——它不是职业，交给直译（男人戴头巾）。
 
 
+# 身份/种族也算「职业」那一类：中文里说「男法师/女法师」，不说「男人法师」。
+# 动作类才走「男人X」（`man rowing boat` → 男人划船）。2026-09-19 补。
+GENDERED_IDENTITY = {'elf', 'fairy', 'genie', 'mage', 'vampire', 'zombie', 'merperson',
+                     'merman', 'superhero', 'supervillain', 'troll'}
+
+
+def _ident_zh(w):
+    from emoji词表 import EMOJI_WORD
+    return EMOJI_WORD.get(w.upper(), w)
+
+
 def occ_zh(en):
     """'cook' / 'man cook' / 'woman cook' → 厨师 / 男厨师 / 女厨师"""
+    for ident in GENDERED_IDENTITY:
+        if en == ident:
+            return _ident_zh(ident)
+        if en == 'man ' + ident:
+            return '男' + _ident_zh(ident)
+        if en == 'woman ' + ident:
+            return '女' + _ident_zh(ident)
     for occ, zh in OCCUPATIONS.items():
         if en == occ:
             return zh
