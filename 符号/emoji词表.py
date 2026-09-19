@@ -969,6 +969,11 @@ EMOJI_PHRASE = {
     'NORTH EAST TRIANGLE-HEADED ARROW TO BAR': '指向杠的右上三角箭头',
     'SOUTH EAST TRIANGLE-HEADED ARROW TO BAR': '指向杠的右下三角箭头',
     'SOUTH WEST TRIANGLE-HEADED ARROW TO BAR': '指向杠的左下三角箭头',
+    # 单词直译出来不是中文说法的，整条定死（2026-09-19）
+    'PRAYER BEADS': '念珠',
+    'CHERRY BLOSSOM': '樱花',
+    'SHOOTING STAR': '流星',
+    'CRYSTAL BALL': '水晶球',
 }
 
 # ---- 人工补充别名 ----
