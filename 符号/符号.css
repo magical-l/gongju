@@ -8,7 +8,7 @@
 
 /* ===== 文章三栏布局 ===== */
 :root {
-	--sym-font-stack: "Arial", "Segoe UI Emoji", "Segoe UI Symbol", "Consolas", "Lucida Sans Unicode", "Noto Sans Symbols 2", sans-serif;
+	--sym-font-stack: "Arial", "Segoe UI Emoji", "Noto Sans Symbols 2", "Segoe UI Symbol", "Consolas", sans-serif;
 }
 .symbol-page {
 	display: flex;
@@ -1316,6 +1316,13 @@ main {
 	font-size: 13px;
 	color: var(--el-text-color-regular);
 	margin-bottom: 6px;
+}
+
+.meta-editor-dialog .me-hint {
+	margin-top: 4px;
+	font-size: 12px;
+	line-height: 1.5;
+	color: var(--el-text-color-secondary);
 }
 
 .meta-editor-dialog .me-alias-row {

@@ -326,6 +326,16 @@ function lookupZhName(cp) {
 	return null;
 }
 
+/** 码位 → 数据层**原始**直译名（官方名直译名.js 的 names 里那一条），未命中返回 ''。
+ *  ⚠️ 与 lookupZhName 的区别：**不扫 patterns**——前缀是整段范围的默认值，不是名字；
+ *  拿它当编辑框初值，一保存就把前缀固化成一条真名字（此后该段范围再也回不到规律生成）。
+ *  键格式与数据文件一致：单码位 String(cp)，序列 cp.join('-')（序列的直译由脚本生成，界面只读）。 */
+function rawZhNameOf(cp) {
+	if (!ZH_TRANSLATION) return '';
+	const n = ZH_TRANSLATION.names[Array.isArray(cp) ? cp.join('-') : String(cp)];
+	return n || '';
+}
+
 /** 无名可用的分类占位名（未分配 / 私用区 / 控制字符三档）：zhNameOf 的兜底链与标签语境的兜底链共用，两处口径必须一致。
  *  注意它**不参与拼接名**——占位不是名字（见 fallbackNameOf）。 */
 function unnamedPlaceholder(cp) {
@@ -605,16 +615,18 @@ function countSubtreeNodes(node) {
 
 // ===== 字体相关 =====
 
-/** 回退字体列表：queryLocalFonts 不可用时的预定义备用字体（优先符号覆盖广的） */
+/** 回退字体列表：queryLocalFonts 不可用时的预定义备用字体
+ *  Noto 排在 "Segoe UI Symbol" 之前——太玄经（U+1D300–1D35F）等双方都覆盖的码位由 Noto 胜出，
+ *  否则会取到 Segoe 那版 Unicode 早期提案的错版字形（U+1D301–1D303 互相错位） */
 const FALLBACK_SYMBOL_FONTS = [
 	'Segoe UI Emoji',
+	'Noto Sans Symbols 2',
 	'Segoe UI Symbol',
 	'Consolas',
-	'Lucida Sans Unicode',
 ];
 
 /** 构建渲染栈：具体字体打头（泛型 sans-serif 会触发系统回退链，把 emoji 截胡给 Noto Sans SC 等文字字体）
- *  + families 居中 + 内嵌 Noto 兜底 + sans-serif 末位兜底 */
+ *  + families 居中 + sans-serif 末位兜底；Noto 仅在 families 未含它时补位（已含则沿用 families 中的位次，不重复插入） */
 function buildFontStack(families) {
 	const seen = new Set();
 	const quoted = ['"Arial"'];
@@ -623,7 +635,7 @@ function buildFontStack(families) {
 		seen.add(f);
 		quoted.push('"' + String(f).replace(/"/g, '') + '"');
 	}
-	quoted.push('"Noto Sans Symbols 2"');
+	if (!seen.has('Noto Sans Symbols 2')) quoted.push('"Noto Sans Symbols 2"');
 	quoted.push('sans-serif');
 	return quoted.join(', ');
 }
@@ -936,11 +948,17 @@ const app = createApp({
 			metaEditorOldAliases: [],    // 打开弹窗时的旧别名（标签模式比对变更用）
 			metaEditorIntro: '',      // 编辑弹窗标签简介
 			metaEditorOldIntro: '',   // 打开弹窗时的简介（判断是否变更）
+			metaEditorZh: '',         // 符号模式：直译名输入（写 官方名直译名.js；序列只读）
+			metaEditorOldZh: '',      // 打开弹窗时的原始直译名（判脏用；取 names 键，不含 patterns 前缀）
 			reparentTarget: '',       // 父级归属：选中的目标父 path（''=提升为根）
 			metaNewChild: '',            // 标签模式：新增子标签的名字输入
 		};
 	},
 	computed: {
+		/** 符号编辑弹窗的直译名输入框是否只读：序列（多码位）的直译由脚本生成，界面不给改 */
+		metaEditorZhReadonly() {
+			return !!(this.metaEditorChar && Array.isArray(this.metaEditorChar.cp));
+		},
 		previewStyle() {
 			const style = { fontSize: this.previewFontSize + 'rem' };
 			if (this.selectedPreviewFont && this.fontAffectsAll) {
@@ -1733,7 +1751,8 @@ const app = createApp({
 		// ===== 字体切换 =====
 
 		async initFontList() {
-			this.fontList = ['Noto Sans Symbols 2', ...FALLBACK_SYMBOL_FONTS];
+			// Noto 已在 FALLBACK_SYMBOL_FONTS 中，去重避免切换面板出现重复项
+			this.fontList = [...new Set(['Noto Sans Symbols 2', ...FALLBACK_SYMBOL_FONTS])];
 		},
 
 		/** 加载本机所有字体到切换列表（只改列表，不改渲染栈） */
@@ -2371,20 +2390,22 @@ const app = createApp({
 		aliasList(list) {
 			return [...new Set((list || []).map(a => (a || '').trim()).filter(a => a !== ''))];
 		},
-		/** 打开符号元数据编辑弹窗：按块预填（每块主名/别名各取各的落点现值，没有就留空） */
+		/** 打开符号元数据编辑弹窗：按块预填（每块主名/别名各取各的落点现值，没有就留空）；
+		 *  直译名取原始值（rawZhNameOf，不扫 patterns 前缀——否则一保存就把前缀固化成名字） */
 		editSelectedSymbol() {
 			const sc = this.selectedChar;
 			if (!sc) return;
 			this.metaEditorKind = 'symbol';
 			this.metaEditorChar = sc;
 			this.metaEditorBlocks = this.symbolEditorBlocks(sc);
+			this.metaEditorZh = rawZhNameOf(sc.cp); this.metaEditorOldZh = this.metaEditorZh;
 			this.metaEditorIntro = sc.intro || ''; this.metaEditorOldIntro = this.metaEditorIntro; this.reparentTarget = '';
 			this.metaEditorCpStr = sc.codeStr || this.cpsHex(sc.cp);
 			this.metaEditorPath = '';
 			this.metaEditorVisible = true;
 		},
 		/** 保存符号元数据：遍历编辑块、逐块判脏、逐块写——全局块落条目级 name/alias，组块落 groups[组键]；
-		 *  按路由（ENRICHED_SYMBOLS entry / 官方名直译名.js）先写服务器，成功后再改内存 */
+		 *  主名/别名/简介走 entry 路线（符号富化数据.js），直译名走 官方名直译名.js——先写服务器，成功后再改内存 */
 		async saveSymbolMeta() {
 			const sc = this.metaEditorChar;
 			if (!sc) return;
@@ -2393,6 +2414,10 @@ const app = createApp({
 			const oldJoinedName = isSeq ? seqSymbolMeta(sc.cp).zhName : '';
 			const intro = (this.metaEditorIntro || '').trim();
 			const introChanged = intro !== this.metaEditorOldIntro;
+			// 直译名判脏：跟原始快照比（两边都 trim，源数据带空白不算改动）。
+			// 序列恒不改：输入框 disabled，且后端会拒收序列的 zh（这里再兜一道，防别的入口塞值进来）
+			const zh = (this.metaEditorZh || '').trim();
+			const zhChanged = !isSeq && zh !== (this.metaEditorOldZh || '').trim();
 			// 逐块判脏：各块跟打开弹窗时自己的快照比，互不牵连（某块没动就不会被别的块带着落盘）
 			const blocks = this.metaEditorBlocks.map(b => {
 				const name = (b.name || '').trim();
@@ -2400,27 +2425,22 @@ const app = createApp({
 				return { block: b, key: b.key, name, alias, nameChanged: name !== b.oldName, aliasChanged: JSON.stringify(alias) !== JSON.stringify(b.oldAliases) };
 			});
 			const dirty = blocks.filter(x => x.nameChanged || x.aliasChanged);
-			if (!dirty.length && !introChanged) { this.metaEditorVisible = false; return; }
+			if (!dirty.length && !introChanged && !zhChanged) { this.metaEditorVisible = false; return; }
 			// 全局块可以清空主名：清掉 entry.name 后拼接名自动回退到「兜底名 + 各标签名」，不再拦「名字不能为空」
-			const globalBlock = blocks.find(x => x.key === null) || null;
-			const groupDirty = dirty.filter(x => x.key !== null);
-			const nameChanged = !!globalBlock && globalBlock.nameChanged;
-			const aliasChanged = !!globalBlock && globalBlock.aliasChanged;
-			// 序列与单码点同构，一律走下方 entry 路线：编辑 = 登记/更新该符号在 ENRICHED_SYMBOLS 的元素
-			// （序列 useNameRoute 恒 false，序列名不在 官方名直译名.js；富化优先、标签 seqs 默认名兜底）
-			// 路由决策：
-			//   序列 / 字符在 ENRICHED_SYMBOLS / 涉及任何组块或全局别名的改动 / 简介改动 → entry 路线（写 符号富化数据.js）
-			//   仅改全局主名、单码位、不在 ENRICHED_SYMBOLS → name 路线（写 官方名直译名.js）
-			const inSymbols = !isSeq && ENRICHED_SYMBOLS.some(s => s.char === sc.char);
-			const useNameRoute = !isSeq && !inSymbols && nameChanged && !aliasChanged && !groupDirty.length && !introChanged;
+			// 一律走下方 entry 路线：编辑 = 登记/更新该符号在 ENRICHED_SYMBOLS 的元素
+			// （序列与单码点同构，序列名不在 官方名直译名.js；富化优先、标签 seqs 默认名兜底；
+			//  该字符没有富化条目时下方新建一条最小条目，全局主名一样落 entry.name）
+			// 直译名（zh）是另一条独立的路：写 官方名直译名.js，只有本次真改了它才发
+			// 只改直译名（其它块与简介都没脏）：payload 只带 zh，不带原样的 entry（否则白写一次 符号富化数据.js）
+			const zhOnly = zhChanged && !dirty.length && !introChanged;
+			// zh 要写 官方名直译名.js，缺文件时拒绝在内存里造出不一致
+			if (zhChanged && !ZH_TRANSLATION) { ElementPlus.ElMessage.error('中文名数据未加载'); return; }
 			const payload = { action: 'sym', cps: this.toCpsArray(sc.cp) };
+			if (zhChanged) payload.zh = zh;   // 空串 = 让后端删掉该键、回落自动生成（不能 omit：omit 表示「没改」）
 			// entry 路线需在 serverSave 前改内存 entry（要发出去），失败必须回滚，否则页面与文件不一致
 			let entry = null;
 			let snapshot = null;
-			if (useNameRoute) {
-				if (!ZH_TRANSLATION) { ElementPlus.ElMessage.error('中文名数据未加载'); return; }
-				payload.name = globalBlock.name;
-			} else {
+			if (!zhOnly) {
 				entry = ENRICHED_SYMBOLS.find(s => s.char === sc.char);
 				snapshot = entry ? JSON.parse(JSON.stringify(entry)) : null;
 				if (entry) {
@@ -2482,21 +2502,33 @@ const app = createApp({
 				ElementPlus.ElMessage.error('保存失败：' + e.message);
 				return;
 			}
+			// 落盘成功 → 条目若已被清空到只剩 char（主名/别名/各组/简介全清空），后端 sym_upsert 是删行而非写入
+			// （datatool.py check_all ④ 判的「空壳条目」），内存必须同步移除，否则页面与文件不一致；
+			// 位置必须在下方 SYMBOL_MAP.clear()/buildSymbolMap() 之前，重建时才能读到移除后的状态
+			const entryEmptied = !zhOnly && !!entry && Object.keys(entry).length === 1;
+			if (entryEmptied) {
+				const ei = ENRICHED_SYMBOLS.indexOf(entry);
+				if (ei >= 0) ENRICHED_SYMBOLS.splice(ei, 1);
+			}
 			// 成功 → 改内存：映射重建后按新数据重算显示名，不直接套输入值——
 			// 只改全局主名而当前在本标签下时，显示的仍是该标签的语境名
-			if (useNameRoute) {
-				ZH_TRANSLATION.names[sc.cp] = globalBlock.name;
-				sc.zhName = globalBlock.name;
-			} else {
-				SYMBOL_MAP.clear();
-				buildSymbolMap();
-				const nameEdited = blocks.some(x => x.nameChanged);
-				const aliasEdited = blocks.some(x => x.aliasChanged);
-				if (nameEdited) sc.zhName = this.ctxZhName(sc.cp);
-				// 详情别名按语境重算（语境下=本组 alias ∪ 条目级 alias ∪ 其他组组名）
-				if (nameEdited || aliasEdited) sc.aliases = this.ctxAliases(sc.cp);
-				if (introChanged) sc.intro = intro;
+			// 直译名落内存（先落，重建映射时才能读到新值）：键格式与数据文件一致，空值删键回落自动生成
+			if (zhChanged) {
+				const zhKey = isSeq ? sc.cp.join('-') : String(sc.cp);
+				if (zh) ZH_TRANSLATION.names[zhKey] = zh;
+				else delete ZH_TRANSLATION.names[zhKey];
 			}
+			SYMBOL_MAP.clear();
+			buildSymbolMap();
+			const nameEdited = blocks.some(x => x.nameChanged);
+			const aliasEdited = blocks.some(x => x.aliasChanged);
+			// 直译名改了也要重算显示名：当前显示名走兜底层（无条目级主名、本标签也没组名）时，
+			// 它就是从直译名来的——不重算，关掉弹窗页面还挂着旧名
+			// 条目被移除（entryEmptied）同理：条目级主名与各标签组名一起没了，卡片名必须回落到兜底层
+			if (nameEdited || zhChanged || entryEmptied) sc.zhName = this.ctxZhName(sc.cp);
+			// 详情别名按语境重算（语境下=本组 alias ∪ 条目级 alias ∪ 其他组组名）
+			if (nameEdited || aliasEdited || entryEmptied) sc.aliases = this.ctxAliases(sc.cp);
+			if (introChanged) sc.intro = intro;
 			this.$forceUpdate();
 			this.metaEditorVisible = false;
 			ElementPlus.ElMessage.success('已保存');

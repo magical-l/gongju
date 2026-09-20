@@ -17,7 +17,7 @@
 	<link href="../css/layout.css" rel="stylesheet">
 	<link href="../resources/biz.css?v=250821" rel="stylesheet">
 	<link href="../css/花活.css" rel="stylesheet">
-	<link href="符号.css?v=260915" rel="stylesheet">
+	<link href="符号.css?v=260920b" rel="stylesheet">
 </head>
 <body class="目字形">
 	<header>
@@ -363,6 +363,12 @@
 					</div>
 				</div>
 				<template v-if="metaEditorKind === 'symbol'">
+					<!-- 直译名：独立落点，写 官方名直译名.js（搜索用的那个名字），与下方各块的主名互不干涉 -->
+					<div class="me-field">
+						<div class="me-sep">直译名</div>
+						<el-input v-model="metaEditorZh" :disabled="metaEditorZhReadonly" placeholder="留空则自动生成"></el-input>
+						<div class="me-hint">{{ metaEditorZhReadonly ? '序列名的直译由脚本生成，不可改' : '有主名时只影响搜索；没主名时它就是默认显示名' }}</div>
+					</div>
 					<!-- 每块一个落点：全局块（key=null）恒在首位，其后是数据里已有的组，末尾按需补当前标签的空块 -->
 					<div class="me-field" :class="{ 'me-section': bi > 0 }" v-for="(b, bi) in metaEditorBlocks" :key="b.key === null ? '__global__' : b.key">
 						<div class="me-sep">{{ b.label }}</div>
@@ -459,7 +465,7 @@
 		<script src="../lib/toastr.min.js"></script>
 		<script src="../resources/biz-util.js?v=250801"></script>
 	</div>
-	<script src="符号.js?v=260918"></script>
+	<script src="符号.js?v=260920b"></script>
 	<div>
 		<!-- 谷歌广告联盟 -->
 		<script async crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3376778290975789"></script>

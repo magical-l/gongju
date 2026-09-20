@@ -580,8 +580,21 @@ def tag_reparent(p):
 
 # ===== 符号编辑 =====
 
+def _fix_last_entry_comma(lines):
+    """条目区最后一条不带逗号（文件约定）。删行后可能把带逗号的那条顶到最后，这里补正。"""
+    last = None
+    for i, ln in enumerate(lines):
+        if ln.strip().startswith('{'):
+            last = i
+    if last is not None and lines[last].rstrip().endswith(','):
+        lines[last] = lines[last].rstrip()[:-1]
+
+
 def sym_upsert(entry):
     """把条目写入 符号富化数据.js：有同 char 则替换行，否则追加到 ] 前。
+
+    ⚠ 只剩 `char` 的条目**删行**、不写入——那是 `check_all` ④ 报的「空壳条目」，留着就是垃圾
+    （把主名/别名/各组/简介全清空就会走到这里）。本来没这条时什么也不做，不白写一次盘。
 
     文件格式：`const ENRICHED_SYMBOLS = [` + 每条目一行 `\t{...},` + `];`，但最后一条不带逗号。
     追加时若原末条缺逗号须补上，否则非法 JSON。
@@ -589,6 +602,7 @@ def sym_upsert(entry):
     char = entry['char']
     lines, nl = _read_lines(SYMBOL_JS)
     compact = json.dumps(entry, ensure_ascii=False, separators=(',', ':'))
+    is_shell = set(entry) == {'char'}
     replaced = False
     for i, ln in enumerate(lines):
         m = re.search(r'"char":\s*("(?:[^"\\]|\\.)*")', ln)
@@ -596,13 +610,19 @@ def sym_upsert(entry):
             continue
         try:
             if json.loads(m.group(1)) == char:
-                trailing = ',' if ln.rstrip().endswith(',') else ''
-                lines[i] = '\t' + compact + trailing
+                if is_shell:
+                    del lines[i]
+                    _fix_last_entry_comma(lines)
+                else:
+                    trailing = ',' if ln.rstrip().endswith(',') else ''
+                    lines[i] = '\t' + compact + trailing
                 replaced = True
                 break
         except Exception:
             continue
     if not replaced:
+        if is_shell:
+            return          # 空壳且本来就没有这条 → 无事可做
         # 追加到收尾 ] 前：给原末条补逗号，新条目不带逗号（成为新末条）
         insert_idx = len(lines)
         for i, ln in enumerate(lines):
@@ -616,22 +636,49 @@ def sym_upsert(entry):
 
 
 def zhname_set(cp, name):
-    """写 官方名直译名.js：names 是 {码点:名字} 映射，直接赋值。换行风格由 write_text 探测保持。"""
+    """写 官方名直译名.js：names 是 {码点:名字} 映射。
+    name 为 None/空白 → **删键**（回落 patterns 前缀 / 官方英文名 / 占位名），不写空名——
+    空名是静默的数据损坏（见 docs/设计/数据说明.md §六「三条容易踩的」第一条）。换行风格由 write_text 探测保持。"""
     d = read_data(ZH_JS, 'ZH_TRANSLATION_DATA')
-    d['names'][str(cp)] = name
+    key = str(cp)
+    name = (name or '').strip()
+    if name:
+        d['names'][key] = name
+    else:
+        d['names'].pop(key, None)
     write_text(ZH_JS, dump_data(d, 'ZH_TRANSLATION_DATA'))
 
 
 def sym_save(p):
+    """sym 动作的落点：
+      entry → 符号富化数据.js（人工层）
+      zh    → 官方名直译名.js（编辑弹窗的「直译名」字段，与 entry 正交、可同时提交）
+      name  → 官方名直译名.js（**旧路，编辑弹窗已不再使用**，只留给外部脚本）
+              来由：「全局主名」从前在「字符没有富化条目」时会退而写直译名，于是弹窗里
+              「全局主名」与「直译名」两个框指向同一处存储、互相打架。现在「全局主名」
+              一律走 entry（没有条目就新建），不再碰这条。
+    ⚠ zh 必须**先于** entry 处理：过去 entry 分支提前 return，会把它静默吞掉。"""
     entry = p.get('entry')
     name = p.get('name')
+    has_zh = 'zh' in p
+    cps = norm_cps(p.get('cps') or [])
+    # 序列的直译名由 build_zwj.py 独占。校验必须在任何落盘之前：否则 entry 已写、
+    # 前端却收到失败并回滚内存，文件与页面就不一致了。
+    if has_zh and len(cps) != 1:
+        return False, '序列的直译名由 build_zwj.py 生成，界面不提供修改'
+    done = []
     if entry:
         sym_upsert(entry)
-        return True, '已保存到 符号富化数据.js'
-    if name is not None:
-        cps = norm_cps(p['cps'])
+        done.append('已保存到 符号富化数据.js')
+    elif name is not None and not has_zh:
+        # 两个字段写的是同一处（该字符没有条目级名时，全局主名即直译名），同时给时以 zh 为准
         zhname_set(cps[0], name)
-        return True, '已保存到 官方名直译名.js'
+        done.append('已保存到 官方名直译名.js')
+    if has_zh:
+        zhname_set(cps[0], p['zh'])
+        done.append('直译名已保存到 官方名直译名.js')
+    if done:
+        return True, '；'.join(done)
     return False, '无变更'
 
 
