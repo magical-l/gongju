@@ -7363,5 +7363,10 @@ const ENRICHED_SYMBOLS = [
 	{"char":"🎰","name":"老虎机"},
 	{"char":"📠","name":"传真机"},
 	{"char":"🎿","name":"滑雪板和滑雪靴"},
-	{"char":"🏘","name":"住宅楼"}
+	{"char":"🏘","name":"住宅楼"},
+	{"char":"🏻","name":"浅肤色","intro":"emoji 里用来表示菲茨帕特里克肤色分类法第 1、2 型的修饰符。该分类法由美国皮肤科医生 Thomas B. Fitzpatrick 于 1975 年提出，按皮肤对紫外线的反应把人分 I–VI 型。emoji 只做了 5 个修饰符，最浅的 I、II 两型合并成一个。"},
+	{"char":"🏼","name":"中浅肤色","intro":"emoji 里用来表示菲茨帕特里克肤色分类法第 3 型的修饰符。该分类法由美国皮肤科医生 Thomas B. Fitzpatrick 于 1975 年提出，按皮肤对紫外线的反应把人分 I–VI 型。"},
+	{"char":"🏽","name":"中肤色","intro":"emoji 里用来表示菲茨帕特里克肤色分类法第 4 型的修饰符。该分类法由美国皮肤科医生 Thomas B. Fitzpatrick 于 1975 年提出，按皮肤对紫外线的反应把人分 I–VI 型。"},
+	{"char":"🏾","name":"中深肤色","intro":"emoji 里用来表示菲茨帕特里克肤色分类法第 5 型的修饰符。该分类法由美国皮肤科医生 Thomas B. Fitzpatrick 于 1975 年提出，按皮肤对紫外线的反应把人分 I–VI 型。"},
+	{"char":"🏿","name":"深肤色","intro":"emoji 里用来表示菲茨帕特里克肤色分类法第 6 型的修饰符。该分类法由美国皮肤科医生 Thomas B. Fitzpatrick 于 1975 年提出，按皮肤对紫外线的反应把人分 I–VI 型。"}
 ];

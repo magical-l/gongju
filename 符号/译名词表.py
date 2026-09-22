@@ -105,13 +105,14 @@ WORD = {
     'DOUBLE':                                      '双',
     'EAST':                                        '东',
     'EIGHT':                                       '八',
-    'EMOJI':                                       'EMOJI',   # 恒等映射（同 APL / OCR）：媒介名，不作译
+    'EMOJI':                                       'emoji',   # 媒介名，不作译（映射到小写，与库内既有写法一致）
     'EPACT':                                       '岁差',
     'EPIGRAPHIC':                                  '铭文',
     'EQUALS':                                      '等号',
     'EXCLAMATION':                                 '叹',
     'EXTENDED':                                    '扩展',
     'FINAL':                                       '词尾',
+    'FITZPATRICK':                                 '菲茨帕特里克',   # 皮肤光型分类的提出者，人名
     'FISHHOOK':                                    '鱼钩',
     'FIST':                                        '拳',
     'FIVE':                                        '五',
@@ -221,6 +222,7 @@ WORD = {
     'TRIANGLE':                                    '三角',
     'TRIPLE':                                      '三',
     'TURNED':                                      '翻转',
+    'TYPE':                                        '型',
     'UPPER':                                       '上',
     'VARIA':                                       '钝音符',
     'VERTICAL':                                    '竖',

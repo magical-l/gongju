@@ -992,6 +992,17 @@ EMOJI_PHRASE = {
     'MAHJONG TILE WINTER': '麻将牌冬',
     # JOKER 真正的直译是小丑，不是「王牌」（王牌在中文里是 ace/trump）
     'MAHJONG TILE JOKER': '麻将小丑牌',
+    # 肤色修饰符（2026-09-22）。逐词引擎做不到——`TYPE-1-2` 是**带连字符的整个 token**，
+    #   词表按词切不开它；而且 FITZPATRICK 不在词表里（是人名，见 译名词表.WORD）。
+    #   FITZPATRICK 指 Thomas B. Fitzpatrick 1975 年的皮肤光型分类（I–VI 型）；
+    #   emoji 只给了 5 个修饰符，最浅的 I、II 两型合并，所以是 `TYPE-1-2`。
+    #   ⚠️ 直译名按这里的输出写死（可复现）；「浅肤色」等给人看的名字归**富化主名**，
+    #      分类法的来历写进富化层的 `intro`。
+    'EMOJI MODIFIER FITZPATRICK TYPE-1-2': 'emoji修饰符菲茨帕特里克1、2型',
+    'EMOJI MODIFIER FITZPATRICK TYPE-3': 'emoji修饰符菲茨帕特里克3型',
+    'EMOJI MODIFIER FITZPATRICK TYPE-4': 'emoji修饰符菲茨帕特里克4型',
+    'EMOJI MODIFIER FITZPATRICK TYPE-5': 'emoji修饰符菲茨帕特里克5型',
+    'EMOJI MODIFIER FITZPATRICK TYPE-6': 'emoji修饰符菲茨帕特里克6型',
     # 中国象棋（2026-09-19）。逐词引擎做不到——同一个词按红黑方要译成不同的字
     #   （GENERAL 红方是「帅」黑方是「将」，仕/士、相/象、兵/卒 同理，还有砲/炮），
     #   只能整条定死。`XIANGQI` 本身也不在词表里。
