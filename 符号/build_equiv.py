@@ -20,7 +20,10 @@
    西里尔 а → `a`、希腊 ο → `o` 这类跨文字系统的形近字。
    按**源字符的文字系统**收窄到 拉丁/希腊/西里尔/通用 四类，挡掉希伯来/阿拉伯
    变音符那类对中文用户无意义的噪音；再挡掉**目标是装饰性图形块**的（见
-   `DECORATIVE_BLOCKS`——🍓 的 confusable 是 U+1CEBF「另一套图」，当别名是垃圾）。
+   `DECORATIVE_BLOCKS`——🍓 的 confusable 是 U+1CEBF「另一套图」，当别名是垃圾）；
+   再挡掉**拿别的字母/数字顶替**的（`letter_identity_spoof`，判据：跟它相似的那个**是不是
+   同一个字母**——含字母变体、含字母被当符号用；不是就删。2026-09-21 用户裁定）。
+   `Ｉ→l`、`⒨→(rn)`、`⑽→(lO)`、`△→Δ` 删；`①→➀`、`ɡ→g`、`∑→Ʃ` 留。
 
 设计说明：
 
@@ -37,6 +40,7 @@ License: confusables.txt 与 UnicodeData.txt 均为 Unicode, Inc. 数据文件
 （https://www.unicode.org/terms_of_use.html）。
 """
 import os
+import re
 import sys
 import unicodedata
 from collections import Counter
@@ -73,6 +77,63 @@ BAD_CATEGORIES = ('Mn', 'Mc', 'Me', 'Zs', 'Zl', 'Zp', 'Cc', 'Cf')
 # 典型受害对：🍓 U+1F353 的 confusable 是 U+1CEBF（都是"图"）。
 DECORATIVE_BLOCKS = ((0x1CC00, 0x1CEBF), (0x1FB00, 0x1FBFF), (0x1F000, 0x1FAFF))
 
+# 多字符同形字里**确实该符号本身写法**的——只有这几条，逐条判过（2026-09-21 用户裁定）。
+# 判据是「这串字母是不是这个符号的写法/通行缩写」，**不是**「别名有几个字符」。
+# 炼金术符号尤其明显：它们的传统写法就是字母缩写或字母堆叠。
+MULTI_KEEP = {
+    ('🝜', 'sss'),   # 层叠符（stratum super stratum），就画成三个 s
+    ('🜀', 'QE'),    # 第五元素 quintessence 的通行缩写
+    ('🜇', 'AR'),    # 王水 aqua regia
+    ('🝫', 'MB'),    # 玛丽水浴 Maria bath
+    ('🝬', 'VB'),    # 蒸气浴 vapor bath
+    ('₶', 'lt'),     # livre tournois 的标准缩写
+}
+
+# 「跟它相似的那个是不是同一个字母」——判据的两个零件（2026-09-21 用户裁定）
+_WORDNUM = {'ZERO': '0', 'ONE': '1', 'TWO': '2', 'THREE': '3', 'FOUR': '4', 'FIVE': '5', 'SIX': '6',
+            'SEVEN': '7', 'EIGHT': '8', 'NINE': '9', 'TEN': '10', 'ELEVEN': '11', 'TWELVE': '12',
+            'THIRTEEN': '13', 'FOURTEEN': '14', 'FIFTEEN': '15', 'SIXTEEN': '16', 'SEVENTEEN': '17',
+            'EIGHTEEN': '18', 'NINETEEN': '19', 'TWENTY': '20', 'THIRTY': '30'}
+_MOD_RE = re.compile(r'^(?:(?:FULLWIDTH|HALFWIDTH|PARENTHESIZED|CIRCLED|SQUARED|DINGBAT|NEGATIVE|WHITE|BLACK|SMALL|LARGE)\s+)+')
+_LETTER_RE = re.compile(r'(?:LATIN|GREEK|CYRILLIC)\s+(?:CAPITAL|SMALL)\s+LETTER\s+(?:[A-Z]+\s+)*([A-Z])$')
+_WORDNUM_RE = re.compile(r'(?:DIGIT|NUMBER)\s+([A-Z]+)$')
+_ROMAN_RE = re.compile(r'ROMAN NUMERAL\s+([IVXLC]+)$')
+MATH_IDENTITY = re.compile(r'N-ARY|SUMMATION|PRODUCT|INTEGRAL|FOR ALL|THERE EXISTS|OPERATOR|MATHEMATICAL|UNION|INTERSECTION|LOGICAL')
+
+
+def strip_modifiers(name):
+    """剥掉 FULLWIDTH / PARENTHESIZED / CIRCLED… 这类包装词，露出真正的名词部分。"""
+    while True:
+        m = _MOD_RE.match(name)
+        if not m:
+            return name
+        name = name[m.end():]
+
+
+def letter_identity(name):
+    """Unicode 名 → 它代表的字母/数字（小写）。不是字母数字类返回 None。
+
+    `LATIN SMALL LETTER SCRIPT G` → `g`（花体也算同一个字母）、`CIRCLED DIGIT ONE` → `1`、
+    `LATIN SMALL LETTER THORN` → None（thorn 不是任何一个拉丁字母）。
+    """
+    for src in (strip_modifiers(name), name):
+        m = _LETTER_RE.search(src)
+        if m:
+            return m.group(1).lower()
+        m = _WORDNUM_RE.search(src)
+        if m and m.group(1) in _WORDNUM:
+            return _WORDNUM[m.group(1)]
+        m = _ROMAN_RE.search(src)
+        if m:
+            return m.group(1).lower()
+    return None
+
+
+def ascii_alnum_content(s):
+    """多字符别名里的 ASCII 字母数字内容（`(lO)` → `lo`）；没有则 None。"""
+    c = ''.join(ch for ch in s if ch.isascii() and ch.isalnum())
+    return c.lower() or None
+
 FRACTION_SLASH = '⁄'          # U+2044 FRACTION SLASH，归一成 '/'
 FRACTION_SLASH_PLAIN = '/'
 
@@ -89,6 +150,7 @@ def load_unicodedata(path=UNICODE_DATA):
     """
     decomp = {}
     category = {}
+    names = {}
     pending = None
     with open(path, encoding='utf-8') as f:
         for line in f:
@@ -107,6 +169,7 @@ def load_unicodedata(path=UNICODE_DATA):
                     pending = None
                 continue
             category[cp] = cat
+            names[cp] = name
             if len(fields) < 6:
                 continue
             dm = fields[5].strip()
@@ -115,7 +178,7 @@ def load_unicodedata(path=UNICODE_DATA):
             parts = dm.split()
             compat = parts[0].startswith('<')
             decomp[cp] = (compat, [int(x, 16) for x in (parts[1:] if compat else parts)])
-    return decomp, category
+    return decomp, category, names
 
 
 def load_scripts(path=SCRIPTS):
@@ -153,7 +216,7 @@ class Equiv:
     """把两个来源算成 {字符: [等价形式...]}。"""
 
     def __init__(self):
-        self.decomp, self.category = load_unicodedata()
+        self.decomp, self.category, self.names = load_unicodedata()
         self.scripts = load_scripts()
         self._cache = {}
         self.stats = Counter()
@@ -228,6 +291,32 @@ class Equiv:
             out[cp] = [s]
         return out
 
+    def letter_identity_spoof(self, cp, target):
+        """「拿别的字母/数字去顶替」的那类同形字——2026-09-21 用户裁定**不收**。
+
+        判据（用户原话）：**跟它相似的那个，是不是同一个字母——含字母变体、含字母被当符号用？
+        不是就删。** 多字符的拆开看关键那个：`🄘`（带括号的 i）配 `(l)` ✗、`⑽`（10）配 `(lO)` ✗。
+
+        - 删：`Ｉ→l`、`⒨→(rn)`、`⑽→(lO)`、`△→Δ`（三角形不是希腊字母）、`þ→p`、`ſ→f`
+        - 留：`①→➀`（都是数字 1）、`ɡ→g`（同字母的花体）、`∑→Ʃ`／`∀→Ɐ`（数学借字母形）
+
+        ⚠️ 我在这条判据上连着错过两次：先按「多字符」一刀切（错杀 `🝜→sss`、错放 `∞→oo`），
+        又按「源是字母才管」切（还是错）。**"多字符"不是判据，"是不是同一个字母"才是。**
+        两边都不是字母数字的（`☐→□`、`○→°`）不归这条管，留给人工。
+        """
+        if (chr(cp), target) in MULTI_KEEP:
+            return False          # 这 6 条是符号本身的写法/通行缩写，不是顶替
+        ia = letter_identity(self.names.get(cp, ''))
+        ib = (letter_identity(self.names.get(ord(target), '')) if len(target) == 1
+              else ascii_alnum_content(target))
+        if ia is None and ib is None:
+            return False
+        if ia == ib:
+            return False
+        if MATH_IDENTITY.search(self.names.get(cp, '')) and ib and ib.isalpha():
+            return False          # 数学/逻辑符号借字母形（∑→Ʃ、∀→Ɐ、∏→Π）
+        return True
+
     def confusable_forms(self, char_set):
         """同形字 → {码位: [形式]}（收窄 + 过滤后）。"""
         out = {}
@@ -240,6 +329,9 @@ class Equiv:
             self.stats['conf_narrow'] += 1
             if not self.usable(target):
                 self.stats['conf_dropped_bad'] += 1
+                continue
+            if self.letter_identity_spoof(cp, target):
+                self.stats['conf_dropped_spoof'] += 1     # 拿别的字母/数字顶替（1↔l、m↔rn、△↔Δ）
                 continue
             if self.half_width(chr(cp)) == target:
                 self.stats['conf_dropped_width'] += 1     # 宽度折叠通道已覆盖
@@ -398,10 +490,11 @@ def main(argv):
     print('  NFKC 会改写: %d（剔组合符/空白 %d，与宽度折叠重复 %d）'
           % (eq.stats['nfkc_changed'], eq.stats['nfkc_dropped_bad'], eq.stats['nfkc_dropped_width']))
     print('  confusables 落在字符集里: %d（收窄后 %d；剔组合符 %d、与宽度折叠重复 %d、'
-          '装饰性图形 %d、目标文字系统 %d；与 NFKC 同一字符 %d）'
+          '装饰性图形 %d、目标文字系统 %d、ASCII 冒充 %d；与 NFKC 同一字符 %d）'
           % (eq.stats['conf_in_data'], eq.stats['conf_narrow'], eq.stats['conf_dropped_bad'],
              eq.stats['conf_dropped_width'], eq.stats['conf_dropped_decor'],
-             eq.stats['conf_dropped_script'], eq.stats['conf_overlap_nfkc']))
+             eq.stats['conf_dropped_script'], eq.stats['conf_dropped_spoof'],
+             eq.stats['conf_overlap_nfkc']))
     print('合并: %d 个字符 / %d 条等价形式' % (len(equiv), sum(len(v) for v in equiv.values())))
 
     patch, fresh = plan(equiv, load_zh()['names'])
