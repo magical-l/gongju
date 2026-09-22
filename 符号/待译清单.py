@@ -13,7 +13,8 @@
      每条 {cp, name, todo:[该应用的词…]}
 
   b 节 —— 「词表里根本没有这个词」（新词，需要新增译法）
-     判据：名字里出现既不在 WORD/PHRASE、也不在 KEEP 里的英文词。
+     判据：名字里出现既不在 WORD/PHRASE、也不在 KEEP、也不在 GLYPH_LITERAL 里的英文词。
+     （GLYPH_LITERAL 是「图里画着英文单词」的逐条登记表，见下方常量。）
      每条 {cp, name, block:[卡住的词…]}
 
   keep_suspect 节 —— KEEP 存疑清单（**只列出，不自动改**）
@@ -77,6 +78,18 @@ HEX_SUFFIX = re.compile(r'(?i)-?[0-9A-F]{4,}\b')
 # 只切 小写→大写：语料里的混合大小写串只有 iotaE/iotaA/iotaYAT（全是这类粘接）
 # 和 'Co.'（方块Co.，大写→小写，不动）；全大写的字母名/转写一律不受影响。
 CAMEL = re.compile(r'(?<=[a-z])(?=[A-Z])')
+
+# 图里**画着英文单词**的字符 —— 那个词是**图像的一部分**，不是待译的英文，直译名照留。
+# 逐条登记（同 datatool.ALIAS_KEEP / build_equiv.MULTI_KEEP 的模式），**不是逃生舱**：
+# 新增前必须先看官方码表字形确认真在图里。
+# ⚠️ 别把 BACK / END 这种词塞进 KEEP —— 它在另外 15 / 46 条名字里是**真英文词**
+#    （BACK-TILTED 后倾、MAHJONG TILE BACK 牌背、END OF TEXT 正文结束…），
+#    收进 KEEP 会让那些词**永久漏报**（数据说明.md §7 记过这个坑）。
+# ⚠️ 键是**十进制**码点（`names` 的键就是这个形态），别写十六进制。
+GLYPH_LITERAL = {
+    '128281': {'BACK'},   # U+1F519 键帽上就印着 BACK
+    '128282': {'END'},    # U+1F51A 键帽上就印着 END
+}
 
 # KEEP 里「像英文常用词」的存疑名单用：高频英文词（虚词 + 短实词）。
 # 只用来**筛出**要人工过目的 KEEP 词，不参与 a/b 判定，也不改词表。
@@ -168,7 +181,7 @@ def main():
             a_items.append({'cp': cp, 'name': name, 'todo': sorted(set(todo)),
                             'new': cp not in prev})
 
-        miss = [t for t in toks if t not in known]
+        miss = [t for t in toks if t not in known and t not in GLYPH_LITERAL.get(cp, ())]
         if miss:
             b_items.append({'cp': cp, 'name': name, 'block': miss,
                             'new': cp not in prev})

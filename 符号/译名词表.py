@@ -105,6 +105,7 @@ WORD = {
     'DOUBLE':                                      '双',
     'EAST':                                        '东',
     'EIGHT':                                       '八',
+    'EMOJI':                                       'EMOJI',   # 恒等映射（同 APL / OCR）：媒介名，不作译
     'EPACT':                                       '岁差',
     'EPIGRAPHIC':                                  '铭文',
     'EQUALS':                                      '等号',
