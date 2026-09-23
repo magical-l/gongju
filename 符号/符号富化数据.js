@@ -7256,7 +7256,7 @@ const ENRICHED_SYMBOLS = [
 	{"char":"⬶","name":"平尾左双重箭头"},
 	{"char":"㊪","alias":["宗教"]},
 	{"char":"🐦‍🔥","alias":["菲尼克斯","不死鸟","四象·朱雀"]},
-	{"char":"🐉","groups":{"风水堪舆":{"name":"四象·青龙"}}},
+	{"char":"🐉","groups":{"风水堪舆":{"name":"四象·青龙"},"佛教":{"name":"天龙八部·龙众"}}},
 	{"char":"🜞","alias":["氧化铁","铁锈","铁红","三氧化二铁（Fe₂O₃）","水合氧化铁（FeO(OH)、Fe₂O₃·nH₂O）","四氧化三铁（Fe₃O₄）"]},
 	{"char":"🜣","alias":["氧化铜（CuO）","氧化亚铜（Cu₂O）"]},
 	{"char":"㋁","name":"2月"},
@@ -7368,5 +7368,9 @@ const ENRICHED_SYMBOLS = [
 	{"char":"🏼","name":"中浅肤色","intro":"emoji 里用来表示菲茨帕特里克肤色分类法第 3 型的修饰符。该分类法由美国皮肤科医生 Thomas B. Fitzpatrick 于 1975 年提出，按皮肤对紫外线的反应把人分 I–VI 型。"},
 	{"char":"🏽","name":"中肤色","intro":"emoji 里用来表示菲茨帕特里克肤色分类法第 4 型的修饰符。该分类法由美国皮肤科医生 Thomas B. Fitzpatrick 于 1975 年提出，按皮肤对紫外线的反应把人分 I–VI 型。"},
 	{"char":"🏾","name":"中深肤色","intro":"emoji 里用来表示菲茨帕特里克肤色分类法第 5 型的修饰符。该分类法由美国皮肤科医生 Thomas B. Fitzpatrick 于 1975 年提出，按皮肤对紫外线的反应把人分 I–VI 型。"},
-	{"char":"🏿","name":"深肤色","intro":"emoji 里用来表示菲茨帕特里克肤色分类法第 6 型的修饰符。该分类法由美国皮肤科医生 Thomas B. Fitzpatrick 于 1975 年提出，按皮肤对紫外线的反应把人分 I–VI 型。"}
+	{"char":"🏿","name":"深肤色","intro":"emoji 里用来表示菲茨帕特里克肤色分类法第 6 型的修饰符。该分类法由美国皮肤科医生 Thomas B. Fitzpatrick 于 1975 年提出，按皮肤对紫外线的反应把人分 I–VI 型。"},
+	{"char":"🪭","alias":["扇子"]},
+	{"char":"🐍","alias":["天龙八部·摩睺罗伽"],"groups":{"佛教":{"name":"天龙八部·摩呼罗迦"}}},
+	{"char":"👌","groups":{"佛教":{"name":"拈花指"}}},
+	{"char":"🖏","groups":{"佛教":{"name":"拈花指"}}}
 ];
