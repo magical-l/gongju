@@ -1307,7 +1307,7 @@ const ENRICHED_SYMBOLS = [
 	{"char":"⚍","groups":{"九州":{"name":"九州·地天","alias":["DIGRAM FOR EARTHLY HEAVEN"]},"风水堪舆":{"alias":["脉"]}},"name":"四象·少阴"},
 	{"char":"⚎","groups":{"九州":{"name":"九州·天地","alias":["DIGRAM FOR HEAVENLY EARTH"]},"风水堪舆":{"alias":["息"]}},"name":"四象·少阳"},
 	{"char":"⚏","groups":{"九州":{"name":"九州·双地","alias":["DIGRAM FOR EARTH"]},"风水堪舆":{"alias":["四象·老阴","窟"]}},"name":"四象·太阴"},
-	{"char":"☰","name":"乾卦（天）","alias":["Qian (Heaven)","乾三连","三","二进制111（十进制7）","南（先天）","西北（后天）","Ξ"],"groups":{"计算机键盘符号":{"name":"菜单","alias":["menu"]}}},
+	{"char":"☰","name":"乾卦（天）","alias":["Qian (Heaven)","乾三连","三","二进制111（十进制7）","南（先天）","西北（后天）"],"groups":{"计算机键盘符号":{"name":"菜单","alias":["menu"]}}},
 	{"char":"☱","alias":["Dui (Lake)","兑上缺","半","二进制110（十进制6）","东南（先天）","西（后天）"],"name":"兑卦（沼泽）"},
 	{"char":"☲","alias":["Li (Fire)","离中虚","平","二进制101（十进制5）","东（先天）","南（后天）"],"name":"离卦（火）"},
 	{"char":"☳","alias":["Zhen (Thunder)","震仰盂","斗","二进制100（十进制4）","东北（先天）","东（后天）"],"name":"震卦（雷）"},

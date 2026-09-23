@@ -1,0 +1,280 @@
+{
+ "note": "待译清单。a = 词表有译法但名字里仍留拉丁原文的条目（译法未应用）；b = 名字里含词表未收录英文词的条目（缺译法）；keep_suspect = KEEP 里像英文常用词的存疑项，仅供人工过目，不自动改词表。由 符号/待译清单.py 生成，改好下次跑自动除名。a/b 两节可重叠。",
+ "counts": {
+  "a": 0,
+  "b": 0,
+  "keep_suspect": 67
+ },
+ "a": [],
+ "b": [],
+ "keep_suspect": [
+  {
+   "word": "HE",
+   "names": 47
+  },
+  {
+   "word": "SHE",
+   "names": 43
+  },
+  {
+   "word": "TO",
+   "names": 35
+  },
+  {
+   "word": "AN",
+   "names": 35
+  },
+  {
+   "word": "ME",
+   "names": 35
+  },
+  {
+   "word": "SO",
+   "names": 30
+  },
+  {
+   "word": "WE",
+   "names": 29
+  },
+  {
+   "word": "NO",
+   "names": 28
+  },
+  {
+   "word": "DO",
+   "names": 21
+  },
+  {
+   "word": "BAD",
+   "names": 19
+  },
+  {
+   "word": "BE",
+   "names": 17
+  },
+  {
+   "word": "IN",
+   "names": 14
+  },
+  {
+   "word": "CAN",
+   "names": 14
+  },
+  {
+   "word": "GO",
+   "names": 13
+  },
+  {
+   "word": "THE",
+   "names": 13
+  },
+  {
+   "word": "ON",
+   "names": 11
+  },
+  {
+   "word": "MEN",
+   "names": 10
+  },
+  {
+   "word": "AM",
+   "names": 10
+  },
+  {
+   "word": "IS",
+   "names": 9
+  },
+  {
+   "word": "AT",
+   "names": 8
+  },
+  {
+   "word": "MAN",
+   "names": 6
+  },
+  {
+   "word": "TOO",
+   "names": 6
+  },
+  {
+   "word": "IT",
+   "names": 5
+  },
+  {
+   "word": "SEE",
+   "names": 5
+  },
+  {
+   "word": "BEE",
+   "names": 5
+  },
+  {
+   "word": "NOW",
+   "names": 4
+  },
+  {
+   "word": "NOR",
+   "names": 4
+  },
+  {
+   "word": "US",
+   "names": 4
+  },
+  {
+   "word": "WAS",
+   "names": 4
+  },
+  {
+   "word": "LET",
+   "names": 3
+  },
+  {
+   "word": "TWO",
+   "names": 2
+  },
+  {
+   "word": "OX",
+   "names": 2
+  },
+  {
+   "word": "PUT",
+   "names": 2
+  },
+  {
+   "word": "MY",
+   "names": 2
+  },
+  {
+   "word": "LIE",
+   "names": 2
+  },
+  {
+   "word": "RAT",
+   "names": 2
+  },
+  {
+   "word": "SET",
+   "names": 2
+  },
+  {
+   "word": "THAN",
+   "names": 1
+  },
+  {
+   "word": "OR",
+   "names": 1
+  },
+  {
+   "word": "EAR",
+   "names": 1
+  },
+  {
+   "word": "WAY",
+   "names": 1
+  },
+  {
+   "word": "PAY",
+   "names": 1
+  },
+  {
+   "word": "MAY",
+   "names": 1
+  },
+  {
+   "word": "SAY",
+   "names": 1
+  },
+  {
+   "word": "BAT",
+   "names": 1
+  },
+  {
+   "word": "BOX",
+   "names": 1
+  },
+  {
+   "word": "BY",
+   "names": 1
+  },
+  {
+   "word": "POT",
+   "names": 1
+  },
+  {
+   "word": "FOX",
+   "names": 1
+  },
+  {
+   "word": "DIE",
+   "names": 1
+  },
+  {
+   "word": "NOT",
+   "names": 1
+  },
+  {
+   "word": "GET",
+   "names": 1
+  },
+  {
+   "word": "HIT",
+   "names": 1
+  },
+  {
+   "word": "HOT",
+   "names": 1
+  },
+  {
+   "word": "WAX",
+   "names": 1
+  },
+  {
+   "word": "CAT",
+   "names": 1
+  },
+  {
+   "word": "CUT",
+   "names": 1
+  },
+  {
+   "word": "CUP",
+   "names": 1
+  },
+  {
+   "word": "SIT",
+   "names": 1
+  },
+  {
+   "word": "SHUT",
+   "names": 1
+  },
+  {
+   "word": "WIN",
+   "names": 1
+  },
+  {
+   "word": "SAW",
+   "names": 1
+  },
+  {
+   "word": "SONG",
+   "names": 1
+  },
+  {
+   "word": "BAG",
+   "names": 1
+  },
+  {
+   "word": "CALL",
+   "names": 1
+  },
+  {
+   "word": "HOUSE",
+   "names": 1
+  },
+  {
+   "word": "ANY",
+   "names": 1
+  }
+ ]
+}

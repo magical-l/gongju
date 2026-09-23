@@ -402,6 +402,7 @@ i.icon {
 	--char-music: '♫';
 	--char-video: '🎬';
 	--char-camera: '📷'  /* U+1F4F7 */;
+	--char-import: '📥'  /* U+1F4E5 */;
 }
 /* ------ 状态图标（可放在 .icon 上或 .icon 的祖先上）------ */
 .ok, .checked, .done, .correct, .success, .completed {
@@ -504,6 +505,8 @@ i.icon {
 .video { --icon-char: var(--char-video); }
 .audio { --icon-char: var(--char-music); }
 
+.import { --icon-char: var(--char-import); }
+
 /* .emoji 可以放在节点链上任意一环（包括自己），使得所有字符图标自动切到 emoji */
 .emoji {
 	font-variant-emoji: emoji;
@@ -548,6 +551,7 @@ i.icon {
 	--char-chat-from-right: '🗨️';  /* U+1F5E8+FE0F &#x1F5E8;&#xFE0F; */
 	--char-eye: '👁';  /* U+1F441 &#x1F441; */
 	--char-music: '🎵';  /* U+1F3B5 &#x1F3B5; */
+	--char-import: '📥';
 }
 /* ================== 交互：按钮、表单、编辑控件…… ================== */
 /* 不可交互（视觉可见，但不响应鼠标事件，让点击穿透到下层） */
