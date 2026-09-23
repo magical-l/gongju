@@ -10,21 +10,23 @@
 数据源（全部在 符号/ 下）：
 - unicode官方名.js                —— 英文名权威（读取字母类/韩文等做规则翻译）
 - 参考资料/annotations-zh.json —— CLDR 官方 emoji 中文名
-- zh-*.json              —— 翻译词表，结构 [[cp, "中文名"], ...]（仅对"没有的键"生效）
 
 输出：官方名直译名.js {_v, names:{键:中文名}, patterns:[[lo,hi,prefix]...]}
   - 键为十进制码点字符串；含 '-' 的是序列键（由 build_zwj.py / 人工维护，本脚本不生成也不动）
   - 与 unicode官方名.js 同构
 
 补缺来源（优先级从高到低）：
-1. 翻译词表 zh-*.json
-2. 字母类规则翻译（SCRIPT_ZH 结构翻译）
-3. CLDR emoji 中文名
-4. patterns 算法块：汉字 / 西夏文 / 谚文音节（页面按范围前缀生成；本脚本整体重写该段）
+1. 字母类规则翻译（SCRIPT_ZH 结构翻译 + 修饰符词表）
+2. CLDR emoji 中文名
+3. patterns 算法块：汉字 / 西夏文 / 谚文音节（页面按范围前缀生成；本脚本整体重写该段）
+
+⚠️ 历史上还有一份数据源 `zh-*.json` ×9（7093 条子代理译名），2026-09-23 已删除：
+   它们的键全部早已并入 官方名直译名.js（逐条相同、贡献 0），而 merge 语义下改它们
+   也不会生效——留着只会让人以为"改词表重跑"有用。那份镜像副本的来源见
+   `任务/20260818-全量汉化.md`，内容在 git 历史里。
 """
 
 import json
-import glob
 import os
 import re
 import sys
@@ -323,15 +325,7 @@ def main():
         if zh:
             zh_map[cp] = zh
 
-    # 2. 翻译词表合并（子代理产物，覆盖规则）
-    for f in sorted(glob.glob(os.path.join(HERE, 'zh-*.json'))):
-        tbl = json.load(open(f, encoding='utf-8'))
-        for cp, zh in tbl:
-            cp_int = int(cp, 16) if isinstance(cp, str) and cp.lower().startswith('0x') else int(cp)
-            zh_map[cp_int] = zh
-        print(f'  词表 {os.path.basename(f)}: {len(tbl)} 条')
-
-    # 3. CLDR emoji 中文名（只补空缺）
+    # 2. CLDR emoji 中文名（只补空缺）
     cldr_path = os.path.join(HERE, '参考资料', 'annotations-zh.json')
     cldr_n = 0
     if os.path.exists(cldr_path):
@@ -351,7 +345,7 @@ def main():
             cldr_n += 1
         print(f'  CLDR emoji: {cldr_n} 条')
 
-    # 4. 输出：以现有文件为权威，**只补没有的键**（merge，不重算）
+    # 3. 输出：以现有文件为权威，**只补没有的键**（merge，不重算）
     #    已有的键一律不动 —— 含人工改过的名字、以及序列键（'-'，由 build_zwj.py 维护）
     out_path = ZH
     existing = {}
