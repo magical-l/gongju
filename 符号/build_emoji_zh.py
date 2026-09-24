@@ -5,7 +5,14 @@
 用法::
 
     python build_emoji_zh.py --dry-run      # 只出报告 + 抽样，不落盘
-    python build_emoji_zh.py                # 落盘
+    python build_emoji_zh.py                # 落盘：**只**重写直译名（第 1、2 步）
+    python build_emoji_zh.py --with-aliases # 额外执行第 3 步：把 CLDR 俗名搬进符号数据当 alias
+
+⚠️ 第 3 步（俗名搬移）默认**关**，必须显式加 `--with-aliases`。
+   理由：它按「字面包含」判冗余，判不了语义 —— `男厕 ⊂ 男厕所` 该跳，
+   `散步 ⊂ 散步的人` 该留，脚本分不开。让它跟着"重跑脚本"自动执行，
+   等于把人工删过的别名（如 2026-09-19「别名去重」删掉的 `男厕`/`女厕`）原样注回来。
+   `--dry-run` 里第 3 步的计数照常打印，供决定要不要加 `--with-aliases`。
 
 背景（`符号/docs/任务/20260914-待办27与29的设计与交接.md` 第二节）：
 
@@ -292,6 +299,7 @@ def move_colloquial(patch, fresh, strip):
 
 def main(argv):
     dry = '--dry-run' in argv
+    with_aliases = '--with-aliases' in argv
     scope = find_scope()
     cldr = {cp: c for cp, _, c in scope}
     print('== 第 1 步：认定范围 ==')
@@ -323,9 +331,17 @@ def main(argv):
         return 0
 
     print('  直译名换直译：%d 条' % apply_to_name_table(translations))
-    move_colloquial(patch, fresh, strip)
-    print('  落盘完成：补 alias %d、新建条目 %d、删撞名别名 %d'
-          % (len(patch), len(fresh), len(strip)))
+    if with_aliases:
+        move_colloquial(patch, fresh, strip)
+        print('  落盘完成：补 alias %d、新建条目 %d、删撞名别名 %d'
+              % (len(patch), len(fresh), len(strip)))
+    else:
+        # ⚠️ 默认**不**搬俗名。搬移只按「字面包含」判冗余，判不了语义
+        #（`男厕 ⊂ 男厕所` 该跳，`散步 ⊂ 散步的人` 该留），所以不能让"重跑脚本"
+        # 这个动作替人做决定 —— 它会把你后来手工删掉的别名原样注回来。
+        print('  俗名搬移：**未执行**（要搬需显式加 --with-aliases）。'
+              '待搬：补 alias %d、新建条目 %d、删撞名别名 %d'
+              % (len(patch), len(fresh), len(strip)))
     return 0
 
 

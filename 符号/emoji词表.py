@@ -176,6 +176,7 @@ EMOJI_WORD.update({
     'AVOCADO': '牛油果', 'AUBERGINE': '茄子', 'POTATO': '土豆', 'CARROT': '胡萝卜',
     'MAIZE': '玉米', 'CUCUMBER': '黄瓜', 'BROCCOLI': '西兰花', 'PEANUTS': '花生',
     'BEANS': '豆', 'CHESTNUT': '栗子', 'GINGER': '姜', 'ROOT': '根',
+    'VEGETABLE': '蔬菜',
     'PEA': '豌豆', 'POD': '豆荚', 'TROPICAL': '热带', 'FRUIT': '水果',
     'CROISSANT': '牛角包', 'BAGUETTE': '法棍', 'FLATBREAD': '薄饼',
     'PRETZEL': '椒盐卷饼', 'BAGEL': '贝果', 'PANCAKES': '薄煎饼',
@@ -197,7 +198,7 @@ EMOJI_WORD.update({
     'MILK': '牛奶', 'BABY_': '婴儿', 'BOTTLE': '瓶', 'TEAPOT': '茶壶',
     'TEACUP': '茶杯', 'HANDLE': '柄', 'SAKE': '清酒', 'POPPING': '开瓶',
     'CORK': '软木塞', 'WINE': '葡萄酒', 'COCKTAIL': '鸡尾酒', 'MUG': '马克杯',
-    'MUGS': '马克杯', 'POURING': '倾倒', 'LIQUID': '液体', 'STRAW': '吸管',
+    'MUGS': '马克杯', 'TUMBLER': '平底杯', 'POURING': '倾倒', 'LIQUID': '液体', 'STRAW': '吸管',
     'TEA': '茶', 'MATE': '马黛茶', 'CUBE': '块', 'CHOPSTICKS': '筷子',
     'PLATE': '盘', 'HOCHO': '巧克力', 'AMPHORA': '双耳瓶', 'DRINK': '饮品',
     'BEER': '啤酒', 'CLINKING': '碰杯', 'FORK': '叉', 'SPOON': '勺',
@@ -373,6 +374,8 @@ EMOJI_WORD.update({
     'HOCKEY': '冰球', 'SKI': '滑雪', 'GAME': '游戏', 'PLAYING': '玩',
     'SOFTBALL': '垒球', 'BASKETBALL': '篮球', 'HOOP': '篮筐',
     'VOLLEYBALL': '排球', 'AMERICAN': '美式', 'RUGBY': '橄榄球',
+    # POLO 单看是马球；`WATER POLO` 走 EMOJI_PHRASE 的整块，不然会拼成「水马球」。
+    'POLO': '马球', 'HANDBALL': '手球',
     'BOWLING': '保龄球', 'FIELD': '场地', 'PUCK': '冰球', 'LACROSSE': '长曲棍球',
     'TABLE': '桌上', 'PADDLE': '球拍', 'BADMINTON': '羽毛球',
     'SHUTTLECOCK': '羽毛球', 'BOXING': '拳击', 'GLOVE': '手套',
@@ -526,7 +529,7 @@ EMOJI_WORD.update({
     # ---- 动作 / 运动 ----
     'SWIMMING': '游泳', 'SURFING': '冲浪', 'ROWING': '划船', 'WRESTLING': '摔跤',
     'GOLFING': '打高尔夫', 'BIKING': '骑自行车', 'CARTWHEELING': '侧手翻',
-    'SHRUGGING': '耸肩', 'FACEPALMING': '捂脸', 'WALKING': '走路',
+    'SHRUGGING': '耸肩', 'FACEPALMING': '捂脸', 'WALKING': '走路', 'CLAPPING': '鼓掌',
     'LIFTING': '举', 'WEIGHTS': '重物', 'BOUNCING': '拍', 'TIPPING': '倾斜',
     'GETTING': '接受', 'FEEDING': '喂', 'WEARING': '戴', 'GESTURING': '做手势',
     'MENDING': '修复', 'EXHALING': '呼气', 'HORIZONTALLY': '左右',
@@ -751,6 +754,26 @@ EMOJI_PHRASE = {
     # （`REVERSED VICTORY HAND` 早年被手工改成「反向胜利手势」就是这个道理，
     #   但没回到引擎层修，于是那条一直冻在 find_scope 范围外。补了这条短语它自动回范围。）
     'VICTORY HAND': '胜利手势',
+    # MILKY WAY 逐词是「银河」+「带」，拼出来「银河带」。官方名就是 MILKY WAY，
+    # 标准中文名是「银河」（CLDR 俗名也是「银河」）；「带」是 WAY 单字映射凑的。
+    'MILKY WAY': '银河',
+
+    # ---- 复合名：逐词翻会叠字或多出虚词，必须整块 ----
+    # （2026-09-24 发现：`build_emoji_zh.py` 重跑会把下面这些直译名改坏 ——
+    #   旋转木马马 / 场记板板 / 高跟鞋鞋 / 信用卡卡 / 培养皿皿 / 泰迪熊熊 / 婴儿瓶 / 枯萎花。
+    #   补上整块短语后重跑即复原；同批还补了单词 CLAPPING/POLO/HANDBALL/TUMBLER/VEGETABLE。）
+    'CAROUSEL HORSE': '旋转木马',
+    'CLAPPER BOARD': '场记板',
+    'HIGH-HEELED SHOE': '高跟鞋',
+    'CREDIT CARD': '信用卡',
+    'PETRI DISH': '培养皿',
+    'TEDDY BEAR': '泰迪熊',
+    'BABY BOTTLE': '奶瓶',
+    'WATER POLO': '水球',
+    'WILTED FLOWER': '枯萎的花',
+    'TUMBLER GLASS': '平底杯',
+    'ROOT VEGETABLE': '根菜',
+    'CLAPPING HANDS SIGN': '鼓掌',
 
     # ---- ZWJ 序列专用：要靠整块才翻得对的短语 ----
     # 单词分开拼会串味（`LIFTING WEIGHTS` 逐词是「举重物」，运动名该是「举重」），
