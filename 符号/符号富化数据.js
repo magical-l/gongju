@@ -2158,7 +2158,7 @@ const ENRICHED_SYMBOLS = [
 	{"char":"𑿝","intro":"TAMIL SIGN KAACU：kācu，古泰米尔通用小钱（早期金币、后期多铜）。"},
 	{"char":"𑿞","intro":"TAMIL SIGN PANAM：paṇam（英作 fanam），古泰米尔小金币/通用钱，≈80 kācu。"},
 	{"char":"𑿟","intro":"TAMIL SIGN PON：poṉ 意为“金”，古泰米尔金币单位，≈1 kalañju（约10 paṇam）。"},
-	{"char":"𑿠","intro":"TAMIL SIGN VARAAKAN：varākaṉ（=varāha/pagoda），大额金币，≈42 paṇam。"},
+	{"char":"𑿠","intro":"TAMIL SIGN VARAAKAN：varākaṉ（=varāha/pagoda），大额金币，≈42 paṇam。","groups":{"爬行动物":{"name":"身体绕了个环的蛇"}}},
 	{"char":"𞋿","intro":"万乔文（印度阿鲁纳恰尔邦）书写印度卢比的符号，ngun 即“钱/卢比”。"},
 	{"char":"৲","intro":"旧式写法；现行符号见 U+09F3。"},
 	{"char":"৳","intro":"孟加拉文书写卢比的符号（孟加拉塔卡亦沿用同形）。"},
@@ -7388,5 +7388,6 @@ const ENRICHED_SYMBOLS = [
 	{"char":"࠶","groups":{"手势、姿势":{"name":"女性向左跪"},"人形图示、火柴人":{"name":"向左跪的女性"}}},
 	{"char":"𐫲","groups":{"眼睛":{"name":"没有眼间距的菱形瞳孔双眼"}}},
 	{"char":"𐫳","groups":{"眼睛":{"name":"菱形瞳孔眼睛"}}},
-	{"char":"𐽘","groups":{"眼睛":{"name":"没有眼间距的双眼"}}}
+	{"char":"𐽘","groups":{"眼睛":{"name":"没有眼间距的双眼"}}},
+	{"char":"꒾","groups":{"计时":{"name":"空沙漏"}}}
 ];
