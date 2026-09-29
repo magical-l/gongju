@@ -7389,5 +7389,10 @@ const ENRICHED_SYMBOLS = [
 	{"char":"𐫲","groups":{"眼睛":{"name":"没有眼间距的菱形瞳孔双眼"}}},
 	{"char":"𐫳","groups":{"眼睛":{"name":"菱形瞳孔眼睛"}}},
 	{"char":"𐽘","groups":{"眼睛":{"name":"没有眼间距的双眼"}}},
-	{"char":"꒾","groups":{"计时":{"name":"空沙漏"}}}
+	{"char":"꒾","groups":{"计时":{"name":"空沙漏"}}},
+	{"char":"𐘸","groups":{"饮料":{"name":"插有装饰物吸管的一杯饮料"}}},
+	{"char":"𐙈","groups":{"法律、秩序":{"name":"天平"}}},
+	{"char":"𐙖","groups":{"梳妆打扮":{"name":"梳子"},"配饰":{"name":"梳子"},"天气":{"name":"东北风"}}},
+	{"char":"𐙸","groups":{"天气":{"name":"东北风"}}},
+	{"char":"𐚁","groups":{"帽子":{"name":"牛仔帽"}}}
 ];
