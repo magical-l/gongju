@@ -625,9 +625,25 @@ const FALLBACK_SYMBOL_FONTS = [
 	'Consolas',
 ];
 
+/** 埃及象形专用字体：**必须排在 sans-serif 之后**。
+ *  实测（2026-10-04）：webfont 排在通用族之前时，只要页面上有该族都盖不住的文字（中文），
+ *  Chrome 就会走到它这一档并**把它下下来**——`unicode-range` 挡不住。排到 sans-serif 之后，
+ *  通用族先把常见文字兜住，只有当真出现 sans-serif 也画不出的字符（即埃及象形）时才会取它。 */
+const EGYPT_FONT = 'Noto Sans Egyptian Hieroglyphs';
+
+/** 埃及象形码位区间（与 符号.css 中该 @font-face 的 unicode-range 对齐）。
+ *  第二段是格式控制符 U+13441–13446，一并纳入=宁可多加载也不漏豆腐块。 */
+const EGYPT_CP_RANGES = [[0x13000, 0x1342F], [0x13441, 0x13446]];
+
+/** 码位是否属埃及象形区间 */
+function isEgyptCp(cp) {
+	return EGYPT_CP_RANGES.some(([lo, hi]) => cp >= lo && cp <= hi);
+}
+
 /** 构建渲染栈：具体字体打头（泛型 sans-serif 会触发系统回退链，把 emoji 截胡给 Noto Sans SC 等文字字体）
- *  + families 居中 + sans-serif 末位兜底；Noto 仅在 families 未含它时补位（已含则沿用 families 中的位次，不重复插入） */
-function buildFontStack(families) {
+ *  + families 居中 + sans-serif 末位兜底；Noto 仅在 families 未含它时补位（已含则沿用 families 中的位次，不重复插入）。
+ *  withEgypt 为真时才把埃及象形字体 append 到 sans-serif 之后——否则只要它在栈里，页面一加载就会下载 572KB webfont。 */
+function buildFontStack(families, withEgypt) {
 	const seen = new Set();
 	const quoted = ['"Arial"'];
 	for (const f of families) {
@@ -637,6 +653,8 @@ function buildFontStack(families) {
 	}
 	if (!seen.has('Noto Sans Symbols 2')) quoted.push('"Noto Sans Symbols 2"');
 	quoted.push('sans-serif');
+	// 埃及象形字体排在通用族**之后**（原因见 EGYPT_FONT 的注释），且仅在当前视图真会渲染埃及象形时才入栈
+	if (withEgypt && !seen.has(EGYPT_FONT)) quoted.push('"' + EGYPT_FONT + '"');
 	return quoted.join(', ');
 }
 
@@ -645,8 +663,8 @@ let FULL_FONT_STACK = buildFontStack(FALLBACK_SYMBOL_FONTS);
 
 /** 更新显示字体栈 + CSS 变量。families 为完整字体名列表（Task 5 动态枚举后调用）。
  *  注意：不清渲染缓存——检测结果与显示栈解耦（豆腐块检测走硬编码空栈），清缓存会使已判豆腐块的字符丢标记。 */
-function setFontStacks(families) {
-	FULL_FONT_STACK = buildFontStack(families);
+function setFontStacks(families, withEgypt) {
+	FULL_FONT_STACK = buildFontStack(families, withEgypt);
 	document.documentElement.style.setProperty('--sym-font-stack', FULL_FONT_STACK);
 }
 
@@ -990,6 +1008,22 @@ const app = createApp({
 		/** 是否有搜索关键词 */
 		isSearching() {
 			return this.searchQuery.trim() !== '';
+		},
+		/** 当前视图实际会渲染的符号里是否含埃及象形（码位落在 EGYPT_CP_RANGES）。
+		 *  仅此时才把埃及 webfont 加进 --sym-font-stack；主内容区判据镜像模板的视图选择：
+		 *  搜索 → 各分节 items；概览 → 各段 preview；其余 → gridItems。成员取卡片主符号+全部变体（超集，宁多勿漏）。
+		 *  另外右侧详情（selectedChar）与操作记录面板（.op-char）也用 --sym-font-stack 渲染，一并纳入。 */
+		viewHasEgypt() {
+			const anyEgypt = members => members.some(m => isEgyptCp(m) || (Array.isArray(m) && m.some(isEgyptCp)));
+			if (this.isSearching) {
+				if (this.searchSections.some(sec => anyEgypt(cardsToMembers(sec.items)))) return true;
+			} else if (this.selectedTag && this.gridOverview && this.overviewSegments.length) {
+				if (this.overviewSegments.some(seg => anyEgypt(cardsToMembers(seg.preview)))) return true;
+			} else if (anyEgypt(this.gridItems)) {
+				return true;
+			}
+			if (this.selectedChar && anyEgypt([this.selectedChar.cp])) return true;
+			return this.ops.some(op => anyEgypt(Array.isArray(op.cps) ? op.cps : [op.cps]));
 		},
 		/** 当前选中标签聚合的下级成员：递归收集自身及所有子孙的 ranges/seqs */
 		selectedMembers() {
@@ -2819,7 +2853,7 @@ const app = createApp({
 			.then(r => r.json())
 			.then(d => { if (d && d.ok) this.editEnabled = true; })
 			.catch(() => {});
-		setFontStacks(FALLBACK_SYMBOL_FONTS);
+		// --sym-font-stack 由 viewHasEgypt 的 immediate watcher 初始化（见 watch 段）
 		this.initFontList();
 		this.$nextTick(() => {
 			this.adjustFontSize();
@@ -2830,6 +2864,13 @@ const app = createApp({
 		document.removeEventListener('click', this.onVariantDocClick);
 	},
 	watch: {
+		// 当前视图渲染内容是否含埃及象形 → 按需增减埃及 webfont。immediate 负责初始化那一次
+		viewHasEgypt: {
+			immediate: true,
+			handler(v) {
+				setFontStacks(FALLBACK_SYMBOL_FONTS, v);
+			}
+		},
 		searchQuery(nv) {
 			this.searchSectionPages = {}; // 新搜索 → 所有分节回到第 1 页
 			const s = nv.trim();
