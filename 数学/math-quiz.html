@@ -953,12 +953,12 @@ function onGraded(correctCount, wrongList) {
   STORE.write(K.history, hist);
 
   const book = readWrongBook();
-  const wrongSet = new Set(wrongList.map(w => wrongKey(w.problem)));
-  problems.forEach(p => {
+  const wrongIdx = new Set(wrongList.map(w => w.index));
+  problems.forEach((p, i) => {
     const list = book[p.topic] || (book[p.topic] = []);
     const k = wrongKey(p);
     const idx = list.findIndex(r => r.key === k);
-    if (wrongSet.has(k)) {
+    if (wrongIdx.has(i)) {
       if (idx >= 0) list[idx].count = Math.min(list[idx].count + 1, 5);
       else list.push({ key: k, tokens: p.tokens, answerIndex: p.answerIndex, count: 1, ts });
     } else if (isRedo && idx >= 0) {
@@ -1000,7 +1000,10 @@ function redoWrong() {
   const items = Object.entries(book).flatMap(([topic, list]) =>
     list.map(r => ({ topic, tokens: r.tokens, answerIndex: r.answerIndex }))
   );
-  if (!items.length) return;
+  if (!items.length) {
+    wrongOverlay.classList.remove('show');
+    return;
+  }
 
   problems = items.slice(0, 30);
   graded = false;
@@ -1021,7 +1024,6 @@ function showResult(correctCount, wrongList) {
   const s = lastStats || { duration: 0, rate: 0, weakest: '' };
   const statLine = `本轮用时 ${s.duration} 秒 · 历史正确率 ${s.rate}%`
     + (s.weakest ? ` · 最易错：${s.weakest}` : '');
-  resultMsg.textContent = '';
   if (correctCount === problems.length) {
     resultIcon.textContent = '🏆';
     resultTitle.textContent = '🎉 全部正确！太棒啦！🎉';
