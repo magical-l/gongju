@@ -279,3 +279,6 @@ __pycache__/
 
 # 符号页临时备份（脚本可重跑，不提交）
 符号/标签.json.pre-*
+
+# 码表 PDF 缓存（chartlib.fetch 会按需重下）
+符号/工具/charts/
