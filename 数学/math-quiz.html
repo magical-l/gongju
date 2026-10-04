@@ -98,6 +98,65 @@ h1 {
   color: #aaa;
 }
 
+.settings {
+  margin-bottom: 18px;
+}
+
+.settings-row select {
+  height: 38px;
+  font-size: 16px;
+  font-family: inherit;
+  color: #333;
+  border: 2px solid #d0d9e8;
+  border-radius: 10px;
+  padding: 0 8px;
+  outline: none;
+  background: white;
+}
+
+.settings-row select:focus {
+  border-color: #c084fc;
+}
+
+.settings-label {
+  font-weight: bold;
+  color: #888;
+}
+
+.settings-row .chk {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: normal;
+  color: #666;
+  cursor: pointer;
+}
+
+/* 复选框不受 .settings-row input 的 64×38 尺寸影响，保持系统原生大小 */
+.settings-row .chk input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  border: initial;
+  border-radius: initial;
+  font-size: initial;
+  text-align: initial;
+  accent-color: #c084fc;
+}
+
+.topics-row {
+  flex-wrap: wrap;
+  min-height: 30px;
+}
+
+.topic-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  font-size: 13px;
+  color: #7c5cbf;
+  background: #f3ecff;
+  border-radius: 999px;
+}
+
 .quiz-problems {
   display: flex;
   flex-direction: column;
@@ -377,10 +436,19 @@ h1 {
   <h1>🧮 数学小达人</h1>
   <p class="subtitle" id="subtitle">两位数加减法 · 一共 10 题</p>
 
-  <div class="settings-row">
-    <label for="count-input">题目数量</label>
-    <input type="number" id="count-input" min="5" max="30" value="10">
-    <span class="setting-hint">5 ~ 30 题</span>
+  <div class="settings">
+    <div class="settings-row">
+      <label for="level-select">难度</label>
+      <select id="level-select"></select>
+      <label for="count-input">题量</label>
+      <input type="number" id="count-input" min="5" max="30" value="10">
+    </div>
+    <div class="settings-row topics-row" id="topics-row"></div>
+    <div class="settings-row">
+      <span class="settings-label">题型</span>
+      <label class="chk"><input type="checkbox" id="type-result" checked> 求结果</label>
+      <label class="chk"><input type="checkbox" id="type-blank"> 填空求未知数</label>
+    </div>
   </div>
 
   <div class="quiz-problems" id="problems-container"></div>
@@ -540,6 +608,130 @@ function problemAnswer(p) {
   return Number(p.tokens[p.answerIndex]);
 }
 
+// ── 本地存储 ──────────────────────────────────
+const STORE = {
+  read(key, fallback) {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch (e) {
+      return fallback;
+    }
+  },
+  write(key, val) {
+    try {
+      localStorage.setItem(key, JSON.stringify(val));
+    } catch (e) {
+      /* 配额满 / 隐私模式 → 静默降级为内存态 */
+    }
+  },
+};
+
+const K = {
+  history: 'mathquiz.v1.history',
+  wrong: 'mathquiz.v1.wrong',
+  settings: 'mathquiz.v1.settings',
+};
+
+// ── 设置区 ────────────────────────────────────
+let customTopics = [];   // 「自定义」档勾选的知识点 id
+
+function buildLevelOptions() {
+  levelSelect.innerHTML = '';
+  for (const [id, lv] of Object.entries(LEVELS)) {
+    const opt = document.createElement('option');
+    opt.value = id;
+    opt.textContent = lv.name;
+    levelSelect.appendChild(opt);
+  }
+  const custom = document.createElement('option');
+  custom.value = 'custom';
+  custom.textContent = '自定义';
+  levelSelect.appendChild(custom);
+}
+
+/** 当前生效的知识点池（自定义全不勾 → 回退默认档） */
+function currentPool() {
+  if (levelSelect.value === 'custom') {
+    return customTopics.length ? customTopics : LEVELS[DEFAULT_LEVEL].topics;
+  }
+  return (LEVELS[levelSelect.value] || LEVELS[DEFAULT_LEVEL]).topics;
+}
+
+/** 当前题型（两个都不勾 → 强制回退「求结果」并同步复选框） */
+function currentTypes() {
+  const result = typeResultChk.checked;
+  const blank = typeBlankChk.checked;
+  if (!result && !blank) {
+    typeResultChk.checked = true;
+    return { result: true, blank: false };
+  }
+  return { result, blank };
+}
+
+function renderTopicsRow() {
+  topicsRow.innerHTML = '';
+  if (levelSelect.value === 'custom') {
+    for (const [id, t] of Object.entries(TOPICS)) {
+      const lbl = document.createElement('label');
+      lbl.className = 'chk';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.value = id;
+      cb.checked = customTopics.includes(id);
+      cb.addEventListener('change', () => {
+        customTopics = cb.checked
+          ? customTopics.concat(id)
+          : customTopics.filter(x => x !== id);
+        saveSettings();
+        resetQuiz();
+      });
+      lbl.appendChild(cb);
+      lbl.appendChild(document.createTextNode(' ' + t.name));
+      topicsRow.appendChild(lbl);
+    }
+  } else {
+    const lv = LEVELS[levelSelect.value];
+    if (lv) {
+      lv.topics.forEach(id => {
+        const chip = document.createElement('span');
+        chip.className = 'topic-chip';
+        chip.textContent = TOPICS[id].name;
+        topicsRow.appendChild(chip);
+      });
+    }
+  }
+}
+
+function updateSubtitle() {
+  const count = problems.length || (parseInt(countInput.value, 10) || 10);
+  const lvName = levelSelect.value === 'custom'
+    ? '自定义'
+    : (LEVELS[levelSelect.value] || LEVELS[DEFAULT_LEVEL]).name;
+  subtitle.textContent = `${lvName} · 一共 ${count} 题`;
+}
+
+function saveSettings() {
+  STORE.write(K.settings, {
+    level: levelSelect.value,
+    topics: customTopics,
+    count: parseInt(countInput.value, 10) || 10,
+    result: typeResultChk.checked,
+    blank: typeBlankChk.checked,
+  });
+}
+
+function loadSettings() {
+  const s = STORE.read(K.settings, null) || {};
+  const level = s.level && (LEVELS[s.level] || s.level === 'custom') ? s.level : DEFAULT_LEVEL;
+  levelSelect.value = level;
+  customTopics = Array.isArray(s.topics) ? s.topics.filter(id => TOPICS[id]) : [];
+  if (typeof s.count === 'number') countInput.value = Math.max(5, Math.min(30, s.count));
+  typeResultChk.checked = s.result !== false;
+  typeBlankChk.checked = s.blank === true;
+  renderTopicsRow();
+}
+
 // ── 状态 ──────────────────────────────────────
 let problems = [];
 let graded = false;
@@ -555,6 +747,10 @@ const scoreDisplay = document.getElementById('score-display');
 const scoreTotal = document.getElementById('score-total');
 const subtitle = document.getElementById('subtitle');
 const countInput = document.getElementById('count-input');
+const levelSelect = document.getElementById('level-select');
+const topicsRow = document.getElementById('topics-row');
+const typeResultChk = document.getElementById('type-result');
+const typeBlankChk = document.getElementById('type-blank');
 const overlay = document.getElementById('result-overlay');
 const resultIcon = document.getElementById('result-icon');
 const resultTitle = document.getElementById('result-title');
@@ -693,10 +889,6 @@ function launchConfetti() {
   setTimeout(() => { confettiContainer.innerHTML = ''; }, 5000);
 }
 
-// ── 题目来源（Task 1 降级版，Task 2 替换为设置 UI 版本）────
-function currentPool() { return LEVELS[DEFAULT_LEVEL].topics; }
-function currentTypes() { return { result: true, blank: false }; }
-
 // ── 重置 ──────────────────────────────────────
 function resetQuiz() {
   const count = parseInt(countInput.value, 10) || 10;
@@ -712,6 +904,8 @@ function resetQuiz() {
   scoreDisplay.textContent = '—';
   scoreTotal.textContent = clamped * 10;
   render();
+  saveSettings();
+  updateSubtitle();
   document.getElementById('input-0')?.focus();
 }
 
@@ -720,6 +914,21 @@ gradeBtn.addEventListener('click', grade);
 
 resetBtn.addEventListener('click', resetQuiz);
 countInput.addEventListener('change', resetQuiz);
+
+levelSelect.addEventListener('change', () => {
+  renderTopicsRow();
+  resetQuiz();
+});
+
+typeResultChk.addEventListener('change', () => {
+  if (!typeResultChk.checked && !typeBlankChk.checked) typeBlankChk.checked = true;
+  resetQuiz();
+});
+
+typeBlankChk.addEventListener('change', () => {
+  if (!typeResultChk.checked && !typeBlankChk.checked) typeResultChk.checked = true;
+  resetQuiz();
+});
 
 resultBtn.addEventListener('click', () => {
   if (resultBtn.textContent === '🌟 再来一次') {
@@ -752,6 +961,8 @@ container.addEventListener('keydown', (e) => {
 });
 
 // ── 启动 ──────────────────────────────────────
+buildLevelOptions();
+loadSettings();
 resetQuiz();
 </script>
 </body>
