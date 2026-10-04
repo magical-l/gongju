@@ -419,6 +419,64 @@ h1 {
   color: #ff6b9d;
 }
 
+.btn-wrong {
+  background: #fff0f5;
+  color: #d1477a;
+}
+
+.btn-wrong:hover {
+  background: #ffe3ee;
+}
+
+.wrong-list {
+  max-height: 340px;
+  overflow-y: auto;
+  text-align: left;
+  margin-bottom: 18px;
+  padding: 0 4px;
+}
+
+.wrong-group-head {
+  font-size: 15px;
+  font-weight: bold;
+  color: #7c5cbf;
+  margin: 12px 0 6px;
+}
+
+.wrong-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 16px;
+  color: #555;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: #faf9ff;
+  margin-bottom: 4px;
+}
+
+.wrong-item .cnt {
+  color: #f87171;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.result-btn.plain {
+  background: #eef2f7;
+  color: #555;
+}
+
+.wrong-list .none {
+  text-align: center;
+  color: #999;
+  font-size: 16px;
+  padding: 24px 0;
+}
+
+.result-msg {
+  white-space: pre-line;
+}
+
 /* 响应式 */
 @media (max-width: 480px) {
   .quiz-card { padding: 24px 16px 20px; }
@@ -462,6 +520,7 @@ h1 {
   <div class="actions">
     <button class="btn btn-grade" id="grade-btn">📋 批卷</button>
     <button class="btn btn-reset" id="reset-btn">🔄 重新出题</button>
+    <button class="btn btn-wrong" id="wrong-btn">📕 错题本</button>
   </div>
 </div>
 
@@ -473,6 +532,20 @@ h1 {
     <div class="result-msg" id="result-msg"></div>
     <div class="result-details" id="result-details"></div>
     <button class="result-btn" id="result-btn">👍 知道了</button>
+  </div>
+</div>
+
+<!-- 错题本面板 -->
+<div class="result-overlay" id="wrong-overlay">
+  <div class="result-card">
+    <div class="result-icon">📕</div>
+    <div class="result-title">错题本</div>
+    <div class="wrong-list" id="wrong-list"></div>
+    <div class="actions">
+      <button class="result-btn pink" id="redo-btn">🔁 重做错题</button>
+      <button class="result-btn plain" id="clear-wrong-btn">🗑 清空</button>
+      <button class="result-btn plain" id="close-wrong-btn">关闭</button>
+    </div>
   </div>
 </div>
 
@@ -758,6 +831,12 @@ const resultMsg = document.getElementById('result-msg');
 const resultDetails = document.getElementById('result-details');
 const resultBtn = document.getElementById('result-btn');
 const confettiContainer = document.getElementById('confetti-container');
+const wrongBtn = document.getElementById('wrong-btn');
+const wrongOverlay = document.getElementById('wrong-overlay');
+const wrongList = document.getElementById('wrong-list');
+const redoBtn = document.getElementById('redo-btn');
+const clearWrongBtn = document.getElementById('clear-wrong-btn');
+const closeWrongBtn = document.getElementById('close-wrong-btn');
 
 // ── 渲染题目 ──────────────────────────────────
 function render() {
@@ -836,16 +915,118 @@ function grade() {
   gradeBtn.disabled = true;
   scoreDisplay.textContent = correctCount * 10;
 
+  onGraded(correctCount, wrongList);
   showResult(correctCount, wrongList);
+}
+
+// ── 错题本 ────────────────────────────────────
+/** 错题去重键：token 流 + 挖空位置 */
+function wrongKey(p) {
+  return p.tokens.join('|') + '@' + p.answerIndex;
+}
+
+function readWrongBook() {
+  const book = STORE.read(K.wrong, {});
+  return book && typeof book === 'object' ? book : {};
+}
+
+/** 错题最集中的知识点名（无错题返回空串） */
+function weakestTopic(book) {
+  let best = '';
+  let bestN = 0;
+  for (const [topic, list] of Object.entries(book)) {
+    const n = list.reduce((s, r) => s + r.count, 0);
+    if (n > bestN) { bestN = n; best = topic; }
+  }
+  return best ? (TOPICS[best] ? TOPICS[best].name : '') : '';
+}
+
+/** 批卷后：写历史 + 更新错题本 + 算统计 */
+function onGraded(correctCount, wrongList) {
+  const ts = Date.now();
+  const duration = Math.round((ts - startTime) / 1000);
+
+  const history = STORE.read(K.history, []);
+  const hist = Array.isArray(history) ? history : [];
+  hist.push({ ts, level: levelSelect.value, count: problems.length, correct: correctCount, duration });
+  while (hist.length > 100) hist.shift();
+  STORE.write(K.history, hist);
+
+  const book = readWrongBook();
+  const wrongSet = new Set(wrongList.map(w => wrongKey(w.problem)));
+  problems.forEach(p => {
+    const list = book[p.topic] || (book[p.topic] = []);
+    const k = wrongKey(p);
+    const idx = list.findIndex(r => r.key === k);
+    if (wrongSet.has(k)) {
+      if (idx >= 0) list[idx].count = Math.min(list[idx].count + 1, 5);
+      else list.push({ key: k, tokens: p.tokens, answerIndex: p.answerIndex, count: 1, ts });
+    } else if (isRedo && idx >= 0) {
+      list[idx].count -= 1;
+      if (list[idx].count <= 0) list.splice(idx, 1);
+    }
+    if (!list.length) delete book[p.topic];
+  });
+  STORE.write(K.wrong, book);
+
+  const totCorrect = hist.reduce((s, h) => s + h.correct, 0);
+  const totCount = hist.reduce((s, h) => s + h.count, 0);
+  lastStats = {
+    duration,
+    rate: totCount ? Math.round((totCorrect / totCount) * 100) : 0,
+    weakest: weakestTopic(book),
+  };
+}
+
+function renderWrongList() {
+  const book = readWrongBook();
+  const groups = Object.entries(book).filter(([, list]) => list.length);
+  if (!groups.length) {
+    wrongList.innerHTML = '<div class="none">还没有错题，真棒！🎉</div>';
+    return;
+  }
+  wrongList.innerHTML = groups.map(([topic, list]) => {
+    const head = `<div class="wrong-group-head">${TOPICS[topic] ? TOPICS[topic].name : topic}（${list.length}）</div>`;
+    const items = list.map(r =>
+      `<div class="wrong-item"><span>${r.tokens.map((t, i) => (i === r.answerIndex ? '□' : t)).join(' ')} → <strong>${Number(r.tokens[r.answerIndex])}</strong></span><span class="cnt">错 ${r.count} 次</span></div>`
+    ).join('');
+    return head + items;
+  }).join('');
+}
+
+/** 用错题本里的题重开一轮（最多 30 题） */
+function redoWrong() {
+  const book = readWrongBook();
+  const items = Object.entries(book).flatMap(([topic, list]) =>
+    list.map(r => ({ topic, tokens: r.tokens, answerIndex: r.answerIndex }))
+  );
+  if (!items.length) return;
+
+  problems = items.slice(0, 30);
+  graded = false;
+  isRedo = true;
+  startTime = Date.now();
+  wrongOverlay.classList.remove('show');
+  overlay.classList.remove('show');
+  confettiContainer.innerHTML = '';
+  scoreDisplay.textContent = '—';
+  scoreTotal.textContent = problems.length * 10;
+  render();
+  subtitle.textContent = `错题重做 · 一共 ${problems.length} 题`;
+  document.getElementById('input-0')?.focus();
 }
 
 // ── 显示结果 ──────────────────────────────────
 function showResult(correctCount, wrongList) {
+  const s = lastStats || { duration: 0, rate: 0, weakest: '' };
+  const statLine = `本轮用时 ${s.duration} 秒 · 历史正确率 ${s.rate}%`
+    + (s.weakest ? ` · 最易错：${s.weakest}` : '');
+  resultMsg.textContent = '';
   if (correctCount === problems.length) {
     resultIcon.textContent = '🏆';
     resultTitle.textContent = '🎉 全部正确！太棒啦！🎉';
     resultTitle.className = 'result-title perfect';
-    resultMsg.textContent = '你真是数学小天才！👏 快让爸爸妈妈看看你的成绩！';
+    resultMsg.textContent = `你真是数学小天才！👏 ${statLine}`;
     resultDetails.innerHTML = '';
     resultBtn.className = 'result-btn gold';
     resultBtn.textContent = '🌟 再来一次';
@@ -854,7 +1035,7 @@ function showResult(correctCount, wrongList) {
     resultIcon.textContent = '📝';
     resultTitle.textContent = `答对 ${correctCount} 题，继续加油！`;
     resultTitle.className = 'result-title has-errors';
-    resultMsg.textContent = '错题在这里，看看正确答案吧 👇';
+    resultMsg.textContent = `错题在这里，看看正确答案吧 👇\n${statLine}`;
 
     let html = '';
     wrongList.forEach(w => {
@@ -941,6 +1122,26 @@ resultBtn.addEventListener('click', () => {
 
 overlay.addEventListener('click', (e) => {
   if (e.target === overlay) overlay.classList.remove('show');
+});
+
+wrongBtn.addEventListener('click', () => {
+  renderWrongList();
+  wrongOverlay.classList.add('show');
+});
+
+redoBtn.addEventListener('click', redoWrong);
+
+clearWrongBtn.addEventListener('click', () => {
+  STORE.write(K.wrong, {});
+  renderWrongList();
+});
+
+closeWrongBtn.addEventListener('click', () => {
+  wrongOverlay.classList.remove('show');
+});
+
+wrongOverlay.addEventListener('click', (e) => {
+  if (e.target === wrongOverlay) wrongOverlay.classList.remove('show');
 });
 
 // 回车跳转到下一题
