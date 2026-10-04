@@ -20,6 +20,7 @@
 
 /* ===== 文章三栏布局 ===== */
 :root {
+	/* 埃及象形字体不写在这里：它由 符号.js 的 viewHasEgypt 按需追加（静态写进来会让不看埃及象形的访问者也下载 572KB）。见 符号.js 的 EGYPT_FONT 注释 */
 	--sym-font-stack: "Arial", "Segoe UI Emoji", "Noto Sans Symbols 2", "Segoe UI Symbol", "Consolas", sans-serif;
 }
 .symbol-page {
