@@ -8,6 +8,7 @@
 
 ```
 .                          # 先是根目录的几个页面，后来页面文件多了才建子目录
+├── index.html             # 站点首页：全站工具索引（卡片 + 分类筛选）
 ├── 买房/                  # 买房费用计算器
 ├── 化学/                  # 元素周期表等
 ├── 拼音/                  # 拼音工具（数据在 JSON 文件中）
@@ -36,6 +37,10 @@
 │   ├── fonts/             # 字体文件
 │   └── ...                # jquery, js-base64, js-md5, js-sha1, pako, toastr
 ├── resources/             # 项目自有资源
+│   ├── tools.js           # 全站工具清单（window.TOOLS）——首页卡片与各页导航的唯一数据源
+│   ├── site-nav.js        # 子页顶部导航渲染（读 tools.js，按 data-root 拼相对路径）
+│   ├── home.css           # 首页样式（自成一套，不加载其它样式表）
+│   ├── thumbnails/        # 首页卡片缩略图
 │   ├── biz.css            # 业务组件样式
 │   ├── el-plus.css        # Element Plus 覆盖样式
 │   ├── biz-util.js        # 业务工具函数
@@ -80,6 +85,7 @@
 
 - **Vue 挂载点**：`mount('main')`
 - **页面基础 DOM 结构**：`<body><header>网站导航</header><main>...</main></body>`
+- **站点导航**：见下节「站点导航」
 - **游戏模块**：纯 ES modules（`.esm.js`），无 importmap，直接 `<script type="module">` 引入
 - **回合制游戏**：依赖 `turn-based-game.esm.js` 框架，提供 Module、Player、TurnBasedGaming、Command、Skill 等基类
 - **业务组件**：`resources/biz-util.js` 中有 `ue()` 辅助函数等
@@ -90,6 +96,25 @@
 - **SEO meta**：每个页面包含 `itemscope itemtype`、`og:*`、`twitter:*`、keywords/description
 - **CDN 兼容**：lib 目录中的 CSS 留有 CDN 链接注释（被注释掉的 jsDelivr 地址），少量走 CDN 时可切换
 - **Element Plus CSS**：使用 `@import ... layer(el-plus)` 的方式加载，而非 `<link>`
+
+## 站点导航
+
+导航不再在各页手写复制，改由一份共用数据渲染。
+
+- **数据源**：`resources/tools.js` 暴露 `window.TOOLS`（分类 / 图标 / 名称 / 简介 / 路径 / 缩略图）。`href`、`thumb` 都是**相对站点根**的路径，不带 `../`。
+- **子页导航**：页面 `<header>` 里只写两行 + 一个空容器
+
+  ```html
+  <nav class="site nav" data-root="../"></nav>
+  <script src="../resources/tools.js" defer></script>
+  <script src="../resources/site-nav.js" defer></script>
+  ```
+
+  `data-root` 是该页到站点根的相对前缀：根目录页面 `""`、一级子目录 `"../"`、二级 `"../../"`。`site-nav.js` 用它拼出每个链接和目标页的路径，同时渲染成分类下拉（原生 `<details>`），并给当前页所在分类加选中态、把页头站名包成回首页的链接。
+- **导航样式由 `site-nav.js` 自行注入** `<style>`：各页加载的样式栈不一致（游戏页走 `@import ... layer()`，工具页走 `<link>`），自带一份才能保证导航在每个页面长得一样。
+- **首页例外**：`index.html` 不放分类下拉（首页本身就是索引），它的卡片是**静态 HTML**，不靠 JS 渲染——保证禁用 JS 时首页仍可用、链接也在源码里。
+
+**新增一个工具页面要改两处**：`resources/tools.js` 加一条（进各页导航）、`index.html` 加一张卡片（进首页）。分类色在 `resources/home.css` 里按 `[data-cat="…"]` 映射。
 
 ## 游戏测试
 

@@ -1,0 +1,125 @@
+/*
+ * 首页（index.html）专用样式。
+ *
+ * 分类色由卡片的 data-cat 映射到 --cat-color，图区底色与分类标签圆点都取它。
+ * 首页不加载站点其它样式表，自成一套，避免与各页差异很大的样式栈相互影响。
+ */
+:root {
+	--bg-color: #f5f4f2;        /* 山矾 */
+	--surface-color: #fffefa;   /* 雪白 */
+	--border-color: #e2e2e4;    /* 芡食 */
+	--text-color: #141623;      /* 漆黑 */
+	--text-2-color: #45455d;    /* 青黛 */
+	--brand-color: #3f503b;     /* 螺青 */
+}
+
+[data-cat="文本与编码"] { --cat-color: #757cbb; }   /* 紫苑 */
+[data-cat="字符与图形"] { --cat-color: #5d7259; }   /* 油绿 */
+[data-cat="学科学习"]   { --cat-color: #8b7042; }   /* 流黄 */
+[data-cat="游戏"]       { --cat-color: #995a7f; }   /* 紫府 */
+
+body {
+	margin: 0;
+	padding: 36px 44px 72px;
+	background: var(--bg-color);
+	color: var(--text-color);
+	font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+}
+
+/*============ 页头 ============*/
+body > header {
+	margin-bottom: 26px;
+
+	& .website.name {
+		margin: 0;
+		font-size: 1.75rem;
+		font-weight: 600;
+		letter-spacing: .14em;
+		color: var(--brand-color);
+	}
+
+	& .tagline { margin: 9px 0 0; font-size: .85rem; color: var(--text-2-color); }
+}
+
+/*============ 分类标签 ============*/
+.cat.chips { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 22px; }
+
+.cat.chip {
+	font: inherit;
+	font-size: .85rem;
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	padding: 6px 15px;
+	border: 1px solid var(--border-color);
+	border-radius: 999px;
+	background: var(--surface-color);
+	color: var(--text-2-color);
+	cursor: pointer;
+	transition: background .15s, color .15s, border-color .15s;
+
+	&:hover { border-color: var(--brand-color); color: var(--brand-color); }
+	&.on { background: var(--brand-color); border-color: var(--brand-color); color: #fff; }
+	&.on .cat.dot { background: rgba(255, 255, 255, .75); }
+}
+
+.cat.dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--cat-color);
+}
+
+/*============ 卡片网格 ============*/
+.tool.grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+
+.tool.card {
+	display: flex;
+	flex-direction: column;
+	background: var(--surface-color);
+	border: 1px solid var(--border-color);
+	border-radius: 10px;
+	overflow: hidden;
+	text-decoration: none;
+	color: inherit;
+	box-shadow: 0 1px 3px rgba(20, 22, 35, .05);
+	transition: box-shadow .18s, scale .18s;
+
+	&:hover { box-shadow: 0 6px 18px rgba(20, 22, 35, .12); scale: 1.012; }
+	&.off { display: none; }
+
+	& .shot.box {
+		height: 190px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 12px;
+		background: color-mix(in srgb, var(--cat-color) 10%, var(--surface-color));
+		border-bottom: 1px solid var(--border-color);
+	}
+
+	& .tool.thumb {
+		max-width: 100%;
+		max-height: 100%;
+		object-fit: contain;
+		border-radius: 4px;
+		border: 1px solid rgba(20, 22, 35, .08);
+		box-shadow: 0 1px 6px rgba(20, 22, 35, .16);
+	}
+
+	& .tool.icon { font-size: 3rem; line-height: 1; }
+
+	& .info.box {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		padding: 12px 14px 14px;
+	}
+
+	& .tool.name { font-size: .95rem; font-weight: 600; }
+	& .tool.desc { font-style: normal; font-size: .8rem; line-height: 1.5; color: var(--text-2-color); }
+}
+
+@media (max-width: 1180px) { .tool.grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 860px)  { .tool.grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px)  { .tool.grid { grid-template-columns: 1fr; } }

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
+<head>
+<meta charset="UTF-8">
+<title>工具兽 - 在线小工具合集</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="工具兽收录 17 个打开即用的在线小工具：文本转化、数字转化、SVG转图标、符号大全、格子盘、元素周期表、汉语拼音，以及中国象棋、五子棋、俄罗斯方块、贪吃蛇、2048、数字华容道、星连星等游戏。">
+<meta name="keywords" content="在线工具, 小工具合集, 文本转化, 进制转换, SVG转图标, 符号大全, 元素周期表, 汉语拼音, 在线游戏, 工具兽">
+<meta name="author" content="工具兽">
+<meta property="og:title" content="工具兽 - 在线小工具合集">
+<meta property="og:description" content="17 个打开即用的在线小工具与游戏，全部纯前端运行，不需要安装也不需要登录。">
+<meta property="og:type" content="website">
+
+<link href="resources/home.css" rel="stylesheet">
+</head>
+<body>
+<header>
+	<h1 class="website name">工具兽</h1>
+	<p class="tagline">17 个在线小工具，打开即用</p>
+</header>
+<main>
+	<div class="cat chips">
+		<button class="cat chip on" data-cat="全部">全部 17</button>
+		<button class="cat chip" data-cat="文本与编码"><i class="cat dot"></i>文本与编码 3</button>
+		<button class="cat chip" data-cat="字符与图形"><i class="cat dot"></i>字符与图形 2</button>
+		<button class="cat chip" data-cat="学科学习"><i class="cat dot"></i>学科学习 2</button>
+		<button class="cat chip" data-cat="游戏"><i class="cat dot"></i>游戏 10</button>
+	</div>
+	<div class="tool grid">
+		<a class="tool card" data-cat="文本与编码" href="文本转化.html">
+			<div class="shot box"><span class="tool icon">🔤</span></div>
+			<div class="info box">
+				<b class="tool name">文本转化</b>
+				<em class="tool desc">编码解码、去重、大小写、查找替换</em>
+			</div>
+		</a>
+		<a class="tool card" data-cat="文本与编码" href="数字转化.html">
+			<div class="shot box"><span class="tool icon">🔢</span></div>
+			<div class="info box">
+				<b class="tool name">数字转化</b>
+				<em class="tool desc">二进制、十六进制等进制互转</em>
+			</div>
+		</a>
+		<a class="tool card" data-cat="文本与编码" href="svg转图标.html">
+			<div class="shot box"><span class="tool icon">⬡</span></div>
+			<div class="info box">
+				<b class="tool name">SVG转图标</b>
+				<em class="tool desc">把 SVG 转成 PNG 图片和图标</em>
+			</div>
+		</a>
+		<a class="tool card" data-cat="字符与图形" href="符号/符号.html">
+			<div class="shot box"><span class="tool icon">✳️</span></div>
+			<div class="info box">
+				<b class="tool name">符号</b>
+				<em class="tool desc">Unicode 特殊符号查找与一键复制</em>
+			</div>
+		</a>
+		<a class="tool card" data-cat="字符与图形" href="格子盘.html">
+			<div class="shot box"><span class="tool icon">▦</span></div>
+			<div class="info box">
+				<b class="tool name">格子盘</b>
+				<em class="tool desc">画网格并编辑每格内容</em>
+			</div>
+		</a>
+		<a class="tool card" data-cat="学科学习" href="化学/元素周期表.html">
+			<div class="shot box">
+				<img class="tool thumb" src="resources/thumbnails/元素周期表.jpg" alt="元素周期表">
+			</div>
+			<div class="info box">
+				<b class="tool name">元素周期表</b>
+				<em class="tool desc">查元素性质、物态与用途</em>
+			</div>
+		</a>
+		<a class="tool card" data-cat="学科学习" href="拼音/拼音.html">
+			<div class="shot box">
+				<img class="tool thumb" src="resources/thumbnails/拼音.jpg" alt="汉语拼音学习工具">
+			</div>
+			<div class="info box">
+				<b class="tool name">拼音</b>
+				<em class="tool desc">声母韵母组合拼读练习</em>
+			</div>
+		</a>
+		<a class="tool card" data-cat="游戏" href="游戏/中国象棋/中国象棋.html">
+			<div class="shot box">
+				<img class="tool thumb" src="resources/thumbnails/中国象棋.jpg" alt="中国象棋">
+			</div>
+			<div class="info box">
+				<b class="tool name">中国象棋</b>
+				<em class="tool desc">与电脑对战的中式象棋</em>
+			</div>
+		</a>
+		<a class="tool card" data-cat="游戏" href="游戏/五子棋/gobang.html">
+			<div class="shot box"><span class="tool icon">⚪</span></div>
+			<div class="info box">
+				<b class="tool name">五子棋</b>
+				<em class="tool desc">与电脑对战的五子棋</em>
+			</div>
+		</a>
+		<a class="tool card" data-cat="游戏" href="游戏/俄罗斯方块.html">
+			<div class="shot box"><span class="tool icon">🧱</span></div>
+			<div class="info box">
+				<b class="tool name">俄罗斯方块</b>
+				<em class="tool desc">经典方块消除</em>
+			</div>
+		</a>
+		<a class="tool card" data-cat="游戏" href="游戏/贪吃蛇/贪吃蛇.html">
+			<div class="shot box"><span class="tool icon">🐍</span></div>
+			<div class="info box">
+				<b class="tool name">贪吃蛇</b>
+				<em class="tool desc">经典贪吃蛇</em>
+			</div>
+		</a>
+		<a class="tool card" data-cat="游戏" href="游戏/2048/2048.html">
+			<div class="shot box"><span class="tool icon">🎲</span></div>
+			<div class="info box">
+				<b class="tool name">2048</b>
+				<em class="tool desc">滑动合并数字方块</em>
+			</div>
+		</a>
+		<a class="tool card" data-cat="游戏" href="游戏/2048蛇/2048蛇.html">
+			<div class="shot box">
+				<img class="tool thumb" src="resources/thumbnails/2048蛇.jpg" alt="2048蛇">
+			</div>
+			<div class="info box">
+				<b class="tool name">2048蛇</b>
+				<em class="tool desc">2048 与贪吃蛇合体</em>
+			</div>
+		</a>
+		<a class="tool card" data-cat="游戏" href="游戏/2048方块/2048方块.html">
+			<div class="shot box">
+				<img class="tool thumb" src="resources/thumbnails/2048方块.jpg" alt="2048方块">
+			</div>
+			<div class="info box">
+				<b class="tool name">2048方块</b>
+				<em class="tool desc">2048 与消除玩法合体</em>
+			</div>
+		</a>
+		<a class="tool card" data-cat="游戏" href="游戏/点灯.html">
+			<div class="shot box"><span class="tool icon">💡</span></div>
+			<div class="info box">
+				<b class="tool name">点灯</b>
+				<em class="tool desc">点一下连带翻转，把灯全点亮</em>
+			</div>
+		</a>
+		<a class="tool card" data-cat="游戏" href="游戏/数字华容道.html">
+			<div class="shot box">
+				<img class="tool thumb" src="resources/thumbnails/数字华容道.jpg" alt="数字华容道">
+			</div>
+			<div class="info box">
+				<b class="tool name">数字华容道</b>
+				<em class="tool desc">数字滑块拼图</em>
+			</div>
+		</a>
+		<a class="tool card" data-cat="游戏" href="游戏/星连星/星连星.html">
+			<div class="shot box"><span class="tool icon">✨</span></div>
+			<div class="info box">
+				<b class="tool name">星连星</b>
+				<em class="tool desc">同色连线消除的益智游戏</em>
+			</div>
+		</a>
+	</div>
+</main>
+<div class="js container">
+	<script>
+	(function (doc) {
+		'use strict';
+
+		var chips = doc.querySelectorAll('.cat.chip');
+		var cards = doc.querySelectorAll('.tool.card');
+
+		function onPick(chip) {
+			var cat = chip.dataset.cat;
+			chips.forEach(function (c) { c.classList.toggle('on', c === chip); });
+			cards.forEach(function (card) {
+				card.classList.toggle('off', cat !== '全部' && card.dataset.cat !== cat);
+			});
+		}
+
+		chips.forEach(function (chip) {
+			chip.addEventListener('click', function () { onPick(chip); });
+		});
+	})(document);
+	</script>
+</div>
+</body>
+</html>
