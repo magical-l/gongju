@@ -158,8 +158,10 @@ EMOJI_WORD.update({
     'SPIDER': '蜘蛛', 'SCORPION': '蝎子', 'CRICKET': '蟋蟀', 'MOSQUITO': '蚊子',
     'FLY': '苍蝇', 'WORM': '蠕虫', 'MICROBE': '微生物',
     # ============ 植物 ============
-    'BOUQUET': '花束', 'CHERRY': '樱桃', 'BLOSSOM': '花', 'ROSETTE': '莲座',
-    'ROSE': '玫瑰', 'HIBISCUS': '木槿', 'SUNFLOWER': '向日葵', 'TULIP': '郁金香',
+    # ROSETTE 是「圆花饰」（一圈花瓣的装饰性圆花），不是莲座、也不是玫瑰；
+    # ROSE 用「玫瑰花」，跟郁金香/向日葵这类并列读着齐。
+    'BOUQUET': '花束', 'CHERRY': '樱桃', 'BLOSSOM': '花朵', 'ROSETTE': '圆花饰',
+    'ROSE': '玫瑰花', 'HIBISCUS': '木槿', 'SUNFLOWER': '向日葵', 'TULIP': '郁金香',
     'HYACINTH': '风信子', 'SEEDLING': '幼苗', 'POTTED': '盆栽', 'PLANT': '植物',
     'EVERGREEN': '常绿', 'DECIDUOUS': '落叶', 'TREE': '树', 'PALM': '手掌',
     'CACTUS': '仙人掌', 'HERB': '香草', 'CLOVER': '三叶草', 'MAPLE': '枫',
@@ -516,6 +518,10 @@ EMOJI_WORD.update({
     'SPARKLE': '闪光',
     'SPOKED': '辐条',
     'ASTERISK': '星号',
+    # ❁ 八瓣描边实心花朵（PETALLED 缺词时引擎留着英文）
+    'PETALLED': '瓣',
+    # ❃ 粗泪滴辐条风车星号：官方名里 TEARDROP-SPOKED 是一个词，别拆
+    'TEARDROP-SPOKED': '泪滴辐条', 'PINWHEEL': '风车',
     'X': 'X',
 })
 
@@ -649,7 +655,7 @@ EMOJI_PHRASE = {
     'WHITE SUN': '太阳',
     'WHITE HEART': '白心',
     'BLACK HEART': '黑心',
-    'WHITE FLOWER': '白花',
+    'WHITE FLOWER': '白色花朵',
     'SLEEPING ACCOMMODATION': '住宿',
     'SPEAKING HEAD IN SILHOUETTE': '剪影里的说话头',
     'RAISED BACK OF HAND': '抬起的手背',
@@ -778,7 +784,14 @@ EMOJI_PHRASE = {
     'TEDDY BEAR': '泰迪熊',
     'BABY BOTTLE': '奶瓶',
     'WATER POLO': '水球',
-    'WILTED FLOWER': '枯萎的花',
+    'WILTED FLOWER': '枯萎的花朵',
+    # 用户 2026-10-09 定的规矩：不指具体花种的用「花朵」。FLORETTE 有 4 个字符
+    # （✾ 六瓣黑白花饰 / ❁ 八瓣描边黑花饰 保留「花饰」），所以按整名定死，别动共用的词条。
+    'BLACK FLORETTE': '实心花朵',
+    'WHITE FLORETTE': '空心花朵',
+    # ✾ 得整名定死：不然 'WHITE FLORETTE' 会命中它内部的那两个词
+    'SIX PETALLED BLACK AND WHITE FLORETTE': '六瓣黑白花饰',
+    'BOUQUET OF FLOWERS': '花束',
     'TUMBLER GLASS': '平底杯',
     'ROOT VEGETABLE': '根菜',
     'CLAPPING HANDS SIGN': '鼓掌',
