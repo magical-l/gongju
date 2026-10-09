@@ -669,6 +669,14 @@ EMOJI_PHRASE = {
     'WOMANS BOOTS': '女靴',
     'WOMANS SANDAL': '女式凉鞋',
     'NON-POTABLE WATER': '非饮用水',
+    # LIGHT 在 EMOJI_WORD 里是「灯」（灯泡那条），LIGHT BLUE 不单独定死就会拼成「灯蓝」
+    'LIGHT BLUE HEART': '浅蓝心',
+    # 不整名定死的话，下面的 'BLACK HEART'（给 🖤 那个黑颜色的心用）会贪婪吃掉 "HEAVY BLACK HEART"
+    # 里的整段，只剩 HEAVY 拼成「粗黑心」。这里 BLACK 是「实心」义（同 EMOJI_WORD['BLACK']）。
+    'HEAVY BLACK HEART': '粗实心心形',
+    # 不整名定死的话只切到 'HEART EXCLAMATION' 那条短语，剩下的 MARK 又单独译成「符号」
+    # →「粗心形感叹号符号装饰」（EXCLAMATION MARK 本就该整体译「感叹号」）
+    'HEAVY HEART EXCLAMATION MARK ORNAMENT': '粗心形感叹号装饰',
     'BLUE HEART': '蓝心',
     'GREEN HEART': '绿心',
     'YELLOW HEART': '黄心',
