@@ -15,11 +15,11 @@
 		{ cat: '文本与编码', icon: '🔢', name: '数字转化', desc: '二进制、十六进制等进制互转',
 			href: '编解码/数字转化.html', thumb: '' },
 		{ cat: '文本与编码', icon: '⬡', name: 'SVG转图标', desc: '把 SVG 转成 PNG 图片和图标',
-			href: '编解码/svg转图标.html', thumb: '' },
+			href: '编解码/svg转图标.html', thumb: '编解码/thumbnails/svg转图标.jpg' },
 
 		/*---------- 字符与图形 ----------*/
 		{ cat: '字符与图形', icon: '✳️', name: '符号', desc: 'Unicode 特殊符号查找与一键复制',
-			href: '符号/符号.html', thumb: '' },
+			href: '符号/符号.html', thumb: '符号/thumbnails/符号.jpg' },
 		{ cat: '字符与图形', icon: '▦', name: '格子盘', desc: '画网格并编辑每格内容',
 			href: '格子盘.html', thumb: '' },
 
