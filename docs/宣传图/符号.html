@@ -1,0 +1,26 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><title>export</title><style>
+  :root { --cat:#5d7259;
+          --glyph:"Arial","Segoe UI Emoji","Noto Sans Symbols 2","Segoe UI Symbol","Noto Sans Egyptian Hieroglyphs",sans-serif; }
+  @font-face { font-family:'Noto Sans Egyptian Hieroglyphs'; src:url(/lib/fonts/NotoSansEgyptianHieroglyphs-Regular.ttf); }
+  * { box-sizing:border-box; }
+  html,body { margin:0; padding:0; background:#fff; }
+  /* 图本身：260×166，无边框无阴影（首页的 CSS 会给 <img> 加），按 3× 铺满页面供截图 */
+  .thumb { width:260px; height:166px; background:#fff; overflow:hidden; font-family:var(--glyph);
+           zoom:3; }
+  .panes { height:100%; display:flex; }
+  .tree { width:80px; flex:0 0 80px; border-right:1px solid #eceef1; background:#fafbfa;
+          display:flex; flex-direction:column; justify-content:center;
+          font-family:system-ui,"Segoe UI","Microsoft YaHei",sans-serif; }
+  .tree .tn { font-size:7px; line-height:1.68; color:#5c636b; white-space:nowrap; overflow:hidden;
+              display:flex; align-items:center; padding-right:3px; }
+  .tree .tn .tri { flex:0 0 7px; color:#b3b9bf; font-size:5.5px; font-variant-emoji:text; }
+  .tree .tn.on { background:color-mix(in srgb, var(--cat) 16%, #fff); color:#2f3a2d; font-weight:700;
+                 box-shadow:inset 2px 0 0 var(--cat); }
+  .grid { flex:1; display:grid; grid-template-columns:repeat(5,1fr); grid-template-rows:repeat(5,1fr);
+          padding:4px; gap:2px; }
+  .grid .cell { display:flex; flex-direction:column; align-items:center; justify-content:center;
+                border:1px solid #f1f3f1; border-radius:3px; }
+  .grid .cell .g { font-size:13px; line-height:1.15; }
+  .grid .cell .n { font-size:5.5px; color:#9aa1a8; line-height:1.18; width:100%; padding:0 1px;
+                   max-height:13px; overflow:hidden; text-align:center; word-break:break-all; }
+</style></head><body><div class="thumb"><div class="panes"><div class="tree"><div class="tn" style="padding-left:3px"><span class="tri">▶</span>人</div><div class="tn" style="padding-left:3px"><span class="tri">▶</span>饮食</div><div class="tn" style="padding-left:3px"><span class="tri">▼</span>自然</div><div class="tn" style="padding-left:11px"><span class="tri">▼</span>生物</div><div class="tn" style="padding-left:19px"><span class="tri">▶</span>动物</div><div class="tn" style="padding-left:19px"><span class="tri">▼</span>植物</div><div class="tn on" style="padding-left:27px"><span class="tri"></span>花朵</div><div class="tn" style="padding-left:27px"><span class="tri"></span>果实、种子</div><div class="tn" style="padding-left:27px"><span class="tri"></span>树木</div><div class="tn" style="padding-left:27px"><span class="tri"></span>叶子</div><div class="tn" style="padding-left:11px"><span class="tri">▶</span>天气</div><div class="tn" style="padding-left:11px"><span class="tri">▶</span>星星</div><div class="tn" style="padding-left:11px"><span class="tri">▶</span>地形地貌</div><div class="tn" style="padding-left:3px"><span class="tri">▶</span>数学</div></div><div class="grid"><div class="cell"><span class="g">⚜</span><span class="n">鸢尾花</span></div><div class="cell"><span class="g">🌻</span><span class="n">向日葵</span></div><div class="cell"><span class="g">🌹</span><span class="n">玫瑰花</span></div><div class="cell"><span class="g">🪷</span><span class="n">莲花</span></div><div class="cell"><span class="g">🏵</span><span class="n">圆形花朵</span></div><div class="cell"><span class="g">֍</span><span class="n">螺旋花朵</span></div><div class="cell"><span class="g">✿</span><span class="n">实心花朵</span></div><div class="cell"><span class="g">❀</span><span class="n">空心花朵</span></div><div class="cell"><span class="g">❁</span><span class="n">八瓣花朵</span></div><div class="cell"><span class="g">֎</span><span class="n">螺旋花朵</span></div><div class="cell"><span class="g">🏶</span><span class="n">圈内实心圆形花朵</span></div><div class="cell"><span class="g">🙠</span><span class="n">朝西北花苞</span></div><div class="cell"><span class="g">🙢</span><span class="n">朝东北花苞</span></div><div class="cell"><span class="g">𖠁</span><span class="n">四瓣花朵</span></div><div class="cell"><span class="g">𓇇</span><span class="n">三茎带苞纸莎草丛</span></div><div class="cell"><span class="g">𐫱</span><span class="n">四瓣花朵</span></div><div class="cell"><span class="g">🙡</span><span class="n">朝西南花苞</span></div><div class="cell"><span class="g">🙣</span><span class="n">朝东南花苞</span></div><div class="cell"><span class="g">🜵</span><span class="n">平视的带枝叶花朵</span></div><div class="cell"><span class="g">🎕</span><span class="n">花束</span></div><div class="cell"><span class="g">🀢</span><span class="n">梅</span></div><div class="cell"><span class="g">🀣</span><span class="n">兰</span></div><div class="cell"><span class="g">🀥</span><span class="n">菊</span></div><div class="cell"><span class="g">🌸</span><span class="n">樱花</span></div><div class="cell"><span class="g">💐</span><span class="n">花束</span></div></div></div></div></body></html>
