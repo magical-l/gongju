@@ -18,22 +18,28 @@ body {
 
 /*---------- 左：SVG 输入框 ----------*/
 .input.box {
-	flex: 0 0 528px;
+	flex: 0 0 560px;
 	background: #fff;
 	border: 1px solid #dcdde8;
 	border-radius: 14px;
 	box-shadow: 0 6px 20px rgba(60, 62, 92, .1);
-	padding: 20px 22px 0;
+	padding: 18px 20px 0;
 	overflow: hidden;
 	position: relative;
 }
 
+/*
+ * 字号 28px 是算出来的，不是随手挑的：
+ * 这张图 1000px 宽，在首页卡片里显示成约 330px，缩放 0.33；
+ * 要让代码在卡片上还有 ~9px 的可读字号，画布里就得约 28px。
+ * 代价是每行只装得下约 30 个字符，所以下面这段代码是按短行重排过的。
+ */
 .input.box .code {
 	font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-	font-size: 20px;
-	line-height: 1.66;
-	color: #5c5f7a;
+	font-size: 28px;
+	line-height: 1.52;
 	white-space: pre;
+	color: #5c5f7a;
 }
 
 .input.box .code .tag { color: #757cbb; }
@@ -45,9 +51,9 @@ body {
 	content: "";
 	position: absolute;
 	left: 1px; right: 1px; bottom: 1px;
-	height: 96px;
+	height: 104px;
 	border-radius: 0 0 13px 13px;
-	background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, #fff 64%);
+	background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, #fff 66%);
 }
 
 /*---------- 中：箭头 ----------*/
@@ -67,15 +73,14 @@ body {
 	align-content: center;
 	align-items: center;
 	justify-items: start;
-	gap: 30px 18px;
+	gap: 30px 14px;
 	color: #3d3f57;
 }
 
 .sizes .label {
-	font-size: 15px;
-	letter-spacing: .02em;
-	color: #45455d;
+	font-size: 16px;
 	white-space: nowrap;
+	color: #45455d;
 }
 
 .star {
@@ -86,23 +91,17 @@ body {
 </head>
 <body>
 	<div class="input box">
-		<div class="code"><span class="tag">&lt;svg</span> <span class="attr">viewBox</span>=<span class="str">"0 0 36 36"</span>
-    <span class="attr">xmlns</span>=<span class="str">"http://www.w3.org/2000/svg"</span>
-    <span class="attr">width</span>=<span class="str">"36"</span> <span class="attr">height</span>=<span class="str">"36"</span><span class="tag">&gt;</span>
-  <span class="tag">&lt;title&gt;</span>star<span class="tag">&lt;/title&gt;</span>
+		<div class="code"><span class="tag">&lt;svg</span> <span class="attr">viewBox</span>=<span class="str">"0 0 36 36"</span><span class="tag">&gt;</span>
   <span class="tag">&lt;path</span> <span class="attr">fill-rule</span>=<span class="str">"evenodd"</span>
-    <span class="attr">clip-rule</span>=<span class="str">"evenodd"</span>
-    <span class="attr">d</span>=<span class="str">"M18 3.2l4.34 8.79 9.7 1.41</span>
-    <span class="str">-7.02 6.84 1.66 9.66L18</span>
-    <span class="str">25.34l-8.68 4.56 1.66-9.66</span>
-    <span class="str">-7.02-6.84 9.7-1.41L18 3.2z</span>
-    <span class="str">M18 12.4l1.86 3.77 4.16.6</span>
-    <span class="str">-3.01 2.94.71 4.14L18 21.9</span>
-    <span class="str">l-3.72 1.95.71-4.14</span>
-    <span class="str">-3.01-2.94 4.16-.6L18 12.4z"</span>
+    <span class="attr">d</span>=<span class="str">"M18 3.2l4.34 8.79</span>
+    <span class="str">9.7 1.41-7.02 6.84</span>
+    <span class="str">1.66 9.66L18 25.34</span>
+    <span class="str">l-8.68 4.56 1.66</span>
+    <span class="str">-9.66-7.02-6.84</span>
+    <span class="str">9.7-1.41L18 3.2z"</span>
     <span class="attr">fill</span>=<span class="str">"currentColor"</span><span class="tag">/&gt;</span>
   <span class="tag">&lt;circle</span> <span class="attr">cx</span>=<span class="str">"18"</span> <span class="attr">cy</span>=<span class="str">"18"</span>
-    <span class="attr">r</span>=<span class="str">"2.4"</span> <span class="attr">fill</span>=<span class="str">"#ffffff"</span><span class="tag">/&gt;</span>
+    <span class="attr">r</span>=<span class="str">"2.4"</span><span class="tag">/&gt;</span>
 <span class="tag">&lt;/svg&gt;</span></div>
 	</div>
 
@@ -115,11 +114,11 @@ body {
 	</div>
 
 	<div class="sizes">
-		<div class="star" style="width:48px;height:48px"></div>
+		<div class="star" style="width:52px;height:52px"></div>
 		<span class="label">16 × 16</span>
-		<div class="star" style="width:104px;height:104px"></div>
+		<div class="star" style="width:110px;height:110px"></div>
 		<span class="label">48 × 48</span>
-		<div class="star" style="width:176px;height:176px"></div>
+		<div class="star" style="width:184px;height:184px"></div>
 		<span class="label">128 × 128</span>
 	</div>
 </body>
