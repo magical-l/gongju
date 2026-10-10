@@ -72,17 +72,23 @@ body {
 /*---------- 右：同一图标，三档尺寸 ----------*/
 .sizes {
 	flex: 1;
-	display: grid;
-	grid-template-columns: auto 1fr;
-	align-content: center;
-	align-items: center;
-	justify-items: start;
-	gap: 30px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: flex-start;
+	gap: 26px;
 	color: #3d3f57;
 }
 
+.sizes .one {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 8px;
+}
+
 .sizes .label {
-	font-size: 16px;
+	font-size: 30px;
 	white-space: nowrap;
 	color: #45455d;
 }
@@ -118,12 +124,18 @@ body {
 	</div>
 
 	<div class="sizes">
-		<div class="star" style="width:52px;height:52px"></div>
-		<span class="label">16 × 16</span>
-		<div class="star" style="width:110px;height:110px"></div>
-		<span class="label">48 × 48</span>
-		<div class="star" style="width:184px;height:184px"></div>
-		<span class="label">128 × 128</span>
+		<div class="one">
+			<div class="star" style="width:52px;height:52px"></div>
+			<span class="label">16 × 16</span>
+		</div>
+		<div class="one">
+			<div class="star" style="width:110px;height:110px"></div>
+			<span class="label">48 × 48</span>
+		</div>
+		<div class="one">
+			<div class="star" style="width:184px;height:184px"></div>
+			<span class="label">128 × 128</span>
+		</div>
 	</div>
 </body>
 </html>
