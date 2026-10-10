@@ -33,7 +33,7 @@
 		{ cat: '游戏', icon: '♟️', name: '中国象棋', desc: '双人对弈的中式象棋，可摆残局、记谱',
 			href: '游戏/中国象棋/中国象棋.html', thumb: '游戏/中国象棋/thumbnails/中国象棋.jpg' },
 		{ cat: '游戏', icon: '⚪', name: '五子棋', desc: '双人对弈的五子棋',
-			href: '游戏/五子棋/gobang.html', thumb: '' },
+			href: '游戏/五子棋/gobang.html', thumb: '游戏/五子棋/thumbnails/五子棋.jpg' },
 		{ cat: '游戏', icon: '🧱', name: '俄罗斯方块', desc: '',
 			href: '游戏/俄罗斯方块.html', thumb: '游戏/thumbnails/俄罗斯方块.jpg' },
 		{ cat: '游戏', icon: '🐍', name: '贪吃蛇', desc: '',
@@ -45,10 +45,10 @@
 		{ cat: '游戏', icon: '🧩', name: '2048方块', desc: '2048 与俄罗斯方块合体（落块、合并、满行消除）',
 			href: '游戏/2048方块/2048方块.html', thumb: '游戏/2048方块/thumbnails/2048方块.jpg' },
 		{ cat: '游戏', icon: '💡', name: '点灯', desc: '点一下连带翻转，把灯全点亮',
-			href: '游戏/点灯.html', thumb: '' },
+			href: '游戏/点灯.html', thumb: '游戏/thumbnails/点灯.jpg' },
 		{ cat: '游戏', icon: '🔀', name: '数字华容道', desc: '',
 			href: '游戏/数字华容道.html', thumb: '游戏/thumbnails/数字华容道.jpg' },
 		{ cat: '游戏', icon: '✨', name: '星连星', desc: '同色星连线填满棋盘的益智游戏',
-			href: '游戏/星连星/星连星.html', thumb: '' }
+			href: '游戏/星连星/星连星.html', thumb: '游戏/星连星/thumbnails/星连星.jpg' }
 	];
 })(typeof self !== 'undefined' ? self : this);
