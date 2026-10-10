@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>文本转化 · 缩略图源文件</title>
+<style>
+  /* ============================================================
+     画布 260 × 166（首页卡片图区净尺寸），按 3× 渲染 = 780 × 498。
+     出图：整页截图 780×498 → 缩到宽 760 存 JPEG。
+     构图与「数字转化.html」同一套：上方输入框、下方 3 列格式卡、第 3 列被右缘裁掉。
+     结果值是页面真实输出（输入「你好」），见 docs/宣传图/README.md。
+     ============================================================ */
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #fff; }
+
+  .thumb { width: 260px; height: 166px; background: #eef0f7; overflow: hidden;
+           padding: 10px 0 10px 11px; zoom: 3;
+           font-family: system-ui, "Microsoft YaHei", sans-serif; color: #3d3f57;
+           display: flex; flex-direction: column; gap: 7px; }
+
+  /* 顶：输入框 */
+  .thumb .src { width: 238px; flex: 0 0 auto; background: #fff; border: 1px solid #dcdde8;
+                border-radius: 7px; padding: 5px 8px; font-size: 10.5px; color: #7b8194;
+                line-height: 1.35; box-shadow: 0 2px 6px rgba(60,62,92,.06);
+                white-space: nowrap; }
+  .thumb .src b { color: #757cbb; font-size: 14px; letter-spacing: .5px; }
+  .thumb .src .caret { display: inline-block; width: 1.6px; height: 12px; background: #757cbb;
+                       vertical-align: -2px; margin-left: 2px; border-radius: 1px; }
+
+  /* 下：3 × 3 格式卡，整体宽于画布（右缘裁掉第 3 列） */
+  .thumb .grid { flex: 1; display: grid; grid-template-columns: repeat(3, 102px);
+                 grid-template-rows: repeat(3, 1fr); gap: 5px 6px; }
+  .thumb .cell { background: #fff; border: 1px solid #dcdde8; border-radius: 7px;
+                 padding: 3px 4px 3px 7px; display: flex; flex-direction: column;
+                 justify-content: center; min-width: 0; overflow: hidden; }
+  .thumb .cell .line1 { display: flex; align-items: center; gap: 3px; margin-bottom: 3px; }
+  .thumb .cell .k { font-size: 7.2px; color: #9aa1b2; line-height: 1; white-space: nowrap;
+                    overflow: hidden; }
+  /* 复制图标：每张结果卡标题栏右侧一个 */
+  .thumb .cell .cp { width: 8.5px; height: 8.5px; flex: 0 0 auto; margin-left: auto;
+                     color: #9aa1b2; display: block; }
+  /* 结果值：放不下用省略号（文本编码天生很长，MD5 固定 32 位，装不下） */
+  .thumb .cell .v { display: block; font-size: 8.5px; color: #3d3f57; line-height: 1.15;
+                    font-family: Consolas, "SFMono-Regular", monospace;
+                    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="cp" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="5.4" y="5.4" width="9.2" height="9.2" rx="1.8"/><path d="M10.6 3.2v-.6A1.4 1.4 0 0 0 9.2 1.2H2.6A1.4 1.4 0 0 0 1.2 2.6V9.2a1.4 1.4 0 0 0 1.4 1.4h.6"/></symbol></svg>
+
+<div class="thumb">
+  <div class="src"><b>你好</b><span class="caret"></span></div>
+  <div class="grid">
+    <div class="cell"><div class="line1"><span class="k">MD5</span><svg class="cp"><use href="#cp"/></svg></div><span class="v">7eca689f0d3389d9dea66ae112e5cfd7</span></div>
+    <div class="cell"><div class="line1"><span class="k">Base64 编码</span><svg class="cp"><use href="#cp"/></svg></div><span class="v">5L2g5aW9</span></div>
+    <div class="cell"><div class="line1"><span class="k">SHA1</span><svg class="cp"><use href="#cp"/></svg></div><span class="v">440ee0853ad1e99f962b63e459ef992d7c211722</span></div>
+
+    <div class="cell"><div class="line1"><span class="k">URI 编码</span><svg class="cp"><use href="#cp"/></svg></div><span class="v">%E4%BD%A0%E5%A5%BD</span></div>
+    <div class="cell"><div class="line1"><span class="k">unicode 编码</span><svg class="cp"><use href="#cp"/></svg></div><span class="v">&#92;u4f60&#92;u597d</span></div>
+    <div class="cell"><div class="line1"><span class="k">utf16 编码</span><svg class="cp"><use href="#cp"/></svg></div><span class="v">4f60 597d</span></div>
+
+    <div class="cell"><div class="line1"><span class="k">十六进制编码</span><svg class="cp"><use href="#cp"/></svg></div><span class="v">4f60597d</span></div>
+    <div class="cell"><div class="line1"><span class="k">二进制编码</span><svg class="cp"><use href="#cp"/></svg></div><span class="v">100111101100000 101100101111101</span></div>
+    <div class="cell"><div class="line1"><span class="k">gzip 压缩</span><svg class="cp"><use href="#cp"/></svg></div><span class="v">MzEsMTM5LDgsMCwwLDAsMCwwLDAsMywxMjMs</span></div>
+  </div>
+</div>
+
+</body>
+</html>

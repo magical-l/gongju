@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8">
+<title>数字转化 · 缩略图源文件</title>
+<style>
+  /* ============================================================
+     画布 260 × 166（首页卡片图区净尺寸），按 3× 渲染 = 780 × 498。
+     出图：整页截图 780×498 → 缩到宽 760 存 JPEG。
+     字号按真实卡片尺寸定（不按 1000×560 那套倒推），见 docs/宣传图/README.md。
+     ============================================================ */
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #fff; }
+
+  .thumb { width: 260px; height: 166px; background: #eef0f7; overflow: hidden;
+           padding: 10px 0 10px 11px; zoom: 3;
+           font-family: system-ui, "Microsoft YaHei", sans-serif; color: #3d3f57;
+           display: flex; flex-direction: column; gap: 7px; }
+
+  /* 顶：输入框。光标示意这是输入框 */
+  .thumb .src { width: 238px; flex: 0 0 auto; background: #fff; border: 1px solid #dcdde8;
+                border-radius: 7px; padding: 5px 8px; font-size: 10.5px; color: #7b8194;
+                line-height: 1.35; box-shadow: 0 2px 6px rgba(60,62,92,.06);
+                white-space: nowrap; }
+  .thumb .src b { color: #757cbb; font-size: 14px; letter-spacing: .5px; }
+  .thumb .src .caret { display: inline-block; width: 1.6px; height: 12px; background: #757cbb;
+                       vertical-align: -2px; margin-left: 2px; border-radius: 1px; }
+
+  /* 下：3 × 3 格式矩阵。右侧不留内边距、网格比画布宽 → 第 3 列被右缘裁掉，
+     像"截图只截了一部分"，暗示还有更多格式 */
+  .thumb .grid { flex: 1; display: grid; grid-template-columns: repeat(3, 102px);
+                 grid-template-rows: repeat(3, 1fr); gap: 5px 6px; }
+  .thumb .cell { background: #fff; border: 1px solid #dcdde8; border-radius: 7px;
+                 padding: 3px 5px 3px 7px; display: flex; flex-direction: column;
+                 justify-content: center; min-width: 0; overflow: hidden; }
+  .thumb .cell .line1 { display: flex; align-items: center; gap: 3px; margin-bottom: 3px; }
+  .thumb .cell .k { font-size: 7.2px; color: #9aa1b2; line-height: 1; white-space: nowrap;
+                    overflow: hidden; }
+  .thumb .cell .cp { width: 8.5px; height: 8.5px; flex: 0 0 auto; margin-left: auto;
+                     color: #9aa1b2; display: block; }
+  .thumb .cell .v { font-size: 10.5px; color: #3d3f57; line-height: 1.1; letter-spacing: .2px;
+                    white-space: nowrap; }
+  .thumb .cell .v.mono { font-family: Consolas, "SFMono-Regular", monospace; font-size: 9.4px;
+                         letter-spacing: 0; }
+
+  /* 大写 / 小写 切换（十六进制格） */
+  .thumb .sw { display: inline-flex; border: 1px solid #dcdde8; border-radius: 3px;
+               overflow: hidden; flex: 0 0 auto; }
+  .thumb .sw i { font-style: normal; font-size: 5.6px; line-height: 1; padding: 1.7px 2.8px;
+                 color: #a2a8b8; }
+  .thumb .sw i.on { background: #757cbb; color: #fff; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="cp" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="5.4" y="5.4" width="9.2" height="9.2" rx="1.8"></rect><path d="M10.6 3.2v-.6A1.4 1.4 0 0 0 9.2 1.2H2.6A1.4 1.4 0 0 0 1.2 2.6V9.2a1.4 1.4 0 0 0 1.4 1.4h.6"></path></symbol></svg>
+
+<div class="thumb">
+  <div class="src"><b>1234</b> 元<span class="caret"></span></div>
+  <div class="grid">
+    <div class="cell"><div class="line1"><span class="k">汉语数字</span><svg class="cp"><use href="#cp"></use></svg></div><span class="v">一千二百三十四 元</span></div>
+    <div class="cell"><div class="line1"><span class="k">大写汉语数字</span><svg class="cp"><use href="#cp"></use></svg></div><span class="v">壹仟贰佰叁拾肆 元</span></div>
+    <div class="cell"><div class="line1"><span class="k">汉语数码</span><svg class="cp"><use href="#cp"></use></svg></div><span class="v">一二三四 元</span></div>
+
+    <div class="cell"><div class="line1"><span class="k">十六进制</span><span class="sw"><i>大写</i><i class="on">小写</i></span><svg class="cp"><use href="#cp"></use></svg></div><span class="v mono">4d2 元</span></div>
+    <div class="cell"><div class="line1"><span class="k">二进制</span><svg class="cp"><use href="#cp"></use></svg></div><span class="v mono">10011010010 元</span></div>
+    <div class="cell"><div class="line1"><span class="k">八进制</span><svg class="cp"><use href="#cp"></use></svg></div><span class="v mono">2322 元</span></div>
+
+    <div class="cell"><div class="line1"><span class="k">通讯读法</span><svg class="cp"><use href="#cp"></use></svg></div><span class="v">幺两三四 元</span></div>
+    <div class="cell"><div class="line1"><span class="k">年份/编号</span><svg class="cp"><use href="#cp"></use></svg></div><span class="v">1234 元</span></div>
+    <div class="cell"><div class="line1"><span class="k">筛出数字</span><svg class="cp"><use href="#cp"></use></svg></div><span class="v">1234</span></div>
+  </div>
+</div>
+
+</body>
+</html>

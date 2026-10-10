@@ -11,9 +11,9 @@
 	root.TOOLS = [
 		/*---------- 文本与编码 ----------*/
 		{ cat: '文本与编码', icon: '🔤', name: '文本转化', desc: '编码解码、去重、大小写、查找替换',
-			href: '编解码/文本转化.html', thumb: '' },
+			href: '编解码/文本转化.html', thumb: '编解码/thumbnails/文本转化.jpg' },
 		{ cat: '文本与编码', icon: '🔢', name: '数字转化', desc: '二进制、十六进制等进制互转',
-			href: '编解码/数字转化.html', thumb: '' },
+			href: '编解码/数字转化.html', thumb: '编解码/thumbnails/数字转化.jpg' },
 		{ cat: '文本与编码', icon: '⬡', name: 'SVG转图标', desc: '把 SVG 转成 PNG 图片和图标',
 			href: '编解码/svg转图标.html', thumb: '编解码/thumbnails/svg转图标.jpg' },
 
