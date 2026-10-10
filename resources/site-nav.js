@@ -36,12 +36,12 @@ nav.site.nav summary.cat.name::-webkit-details-marker { display: none; }
 nav.site.nav summary.cat.name::marker { content: ""; }
 
 nav.site.nav summary.cat.name::after {
-	content: "▾";
+	content: "▼";
 	margin-left: 6px;
-	font-size: .625rem;
-	opacity: .5;
+	font-size: .75rem;
+	opacity: .55;
 }
-nav.site.nav details[open] > summary.cat.name::after { content: "▴"; }
+nav.site.nav details[open] > summary.cat.name::after { content: "▲"; }
 
 nav.site.nav summary.cat.name:hover { background: #f0eee7; color: #3f503b; }
 nav.site.nav details.cat.item.active > summary.cat.name { color: #3f503b; font-weight: 600; }
@@ -69,6 +69,14 @@ nav.site.nav ul.tool.list {
 	border: 1px solid #e2e2e4;
 	border-radius: 8px;
 	box-shadow: 0 6px 20px rgba(20, 22, 35, .13);
+}
+nav.site.nav ul.tool.list::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: -6px;
+	height: 6px;
 }
 nav.site.nav a.tool.link {
 	display: block;
@@ -152,6 +160,26 @@ h1.website.name a.home.link { color: inherit; text-decoration: none; }
 		doc.addEventListener('keydown', function (e) {
 			if (e.key !== 'Escape') { return; }
 			nav.querySelectorAll('details[open]').forEach(function (d) { d.open = false; });
+		});
+
+		// 有 hover 能力的设备上改用「划过即展开」；触屏保留原生点击开合。
+		if (!root.matchMedia || !root.matchMedia('(hover: hover)').matches) { return; }
+
+		nav.querySelectorAll('details.cat.item').forEach(function (item) {
+			item.addEventListener('mouseenter', function () {
+				nav.querySelectorAll('details[open]').forEach(function (d) {
+					if (d !== item) { d.open = false; }
+				});
+				item.open = true;
+			});
+			item.addEventListener('mouseleave', function () { item.open = false; });
+
+			var summary = item.querySelector('summary.cat.name');
+			if (!summary) { return; }
+			// 鼠标点击不再 toggle（hover 已展开，点了反而收起）；键盘合成的 click detail 为 0，放行。
+			summary.addEventListener('click', function (e) {
+				if (e.detail > 0) { e.preventDefault(); }
+			});
 		});
 	}
 
