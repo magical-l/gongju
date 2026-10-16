@@ -403,6 +403,7 @@ i.icon {
 	--char-video: '🎬';
 	--char-camera: '📷'  /* U+1F4F7 */;
 	--char-import: '📥'  /* U+1F4E5 */;
+	--char-globe: '🌐'  /* U+1F310 &#x1F310 */;
 }
 /* ------ 状态图标（可放在 .icon 上或 .icon 的祖先上）------ */
 .ok, .checked, .done, .correct, .success, .completed {
@@ -506,6 +507,8 @@ i.icon {
 .audio { --icon-char: var(--char-music); }
 
 .import { --icon-char: var(--char-import); }
+
+.globe { --icon-char: var(--char-globe); }
 
 /* .emoji 可以放在节点链上任意一环（包括自己），使得所有字符图标自动切到 emoji */
 .emoji {
