@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN" itemscope itemtype="http://schema.org/WebPage">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>关系图 - 在线拖拽绘制实体关系图 | 工具兽</title>
+	<meta name="description" content="在线关系图工具：用原型链组织实体与关系，拖拽生成实例，自由连线，可画依赖图、进化树、科技树、食物链。纯本地运行，可导出 JSON / PNG。">
+	<meta name="keywords" content="关系图,实体关系图,拖拽绘图,原型链,依赖图,进化树,科技树,食物链,在线工具">
+	<meta name="author" content="工具兽">
+	<meta property="og:title" content="关系图 - 在线拖拽绘制实体关系图 | 工具兽">
+	<meta property="og:description" content="在线关系图工具：用原型链组织实体与关系，拖拽生成实例，自由连线，可画依赖图、进化树、科技树、食物链。">
+	<meta property="og:type" content="website">
+	<meta name="twitter:card" content="summary">
+	<meta name="twitter:title" content="关系图 - 在线拖拽绘制实体关系图 | 工具兽">
+	<meta name="twitter:description" content="在线关系图工具：用原型链组织实体与关系，拖拽生成实例，自由连线，可画依赖图、进化树、科技树、食物链。">
+
+	<link href="../lib/toastr.min.css" rel="stylesheet">
+	<link href="../css/common.css" rel="stylesheet">
+	<link href="../css/layout.css" rel="stylesheet">
+	<link href="../resources/biz.css?v=250821" rel="stylesheet">
+	<link href="关系图.css" rel="stylesheet">
+</head>
+<body class="目字形 rg-page">
+<header>
+	<h1 title="工具人（gongju.ren）域名太贵买不起" class="website name">工具兽</h1>
+	<nav class="site nav" data-root="../"></nav>
+	<script src="../resources/tools.js" defer></script>
+	<script src="../resources/site-nav.js" defer></script>
+</header>
+<main class="rg-main">
+	<header class="rg-page-header">
+		<h2 class="page-lv name">关系图</h2>
+		<div class="page-lv help area">
+			<button class="btn shape circle" id="rgHelpBtn" title="显示说明">?</button>
+		</div>
+	</header>
+	<div class="toolbar rg-toolbar">
+		<div class="one group">
+			<button class="btn" id="rgNewBtn">✨ 新建</button>
+			<button class="btn" id="rgOpenBtn">📂 打开</button>
+			<button class="btn" id="rgExportBtn">📤 导出</button>
+			<input type="file" id="rgFileInput" accept=".json,application/json" hidden>
+		</div>
+		<div class="one group">
+			<button class="btn" id="rgUndoBtn" title="撤销 (Ctrl+Z)">↩️</button>
+			<button class="btn" id="rgRedoBtn" title="重做 (Ctrl+Y)">↪️</button>
+		</div>
+		<div class="one group">
+			<button class="btn" id="rgZoomOut" title="缩小 10%">🔍−</button>
+			<button class="btn zoom-display" type="button" id="rgZoomDisplay" title="选择缩放比例">100%</button>
+			<button class="btn" id="rgZoomIn" title="放大 10%">🔍+</button>
+			<button class="btn" id="rgZoomReset">100%</button>
+			<button class="btn" id="rgFitBtn">适应内容</button>
+		</div>
+	</div>
+	<section class="rg-editor">
+		<aside class="rg-tree panel" id="rgTree"></aside>
+		<div class="rg-canvas" id="rgCanvas">
+			<div class="rg-world" id="rgWorld">
+				<svg class="rg-svg" id="rgSvg" xmlns="http://www.w3.org/2000/svg">
+					<defs id="rgDefs"></defs>
+					<g class="rg-edge-layer"></g>
+					<g class="rg-label-layer"></g>
+				</svg>
+				<div class="rg-node-layer" id="rgNodeLayer"></div>
+				<svg class="rg-overlay-svg" id="rgOverlaySvg" xmlns="http://www.w3.org/2000/svg">
+					<g class="rg-overlay-layer"></g>
+				</svg>
+			</div>
+			<div class="rg-empty" id="rgEmpty" hidden></div>
+		</div>
+		<aside class="rg-inspector panel" id="rgInspector"></aside>
+	</section>
+	<dialog class="rg-dialog" id="rgHelpDialog">
+		<form method="dialog"><button class="btn" value="close">关闭</button></form>
+		<h2>关系图说明</h2>
+		<p>左树是全部对象；没有位置的对象只存在于左树，相当于定义。拖到画布就生成实例。</p>
+		<ul>
+			<li>默认拖：生成子对象；Ctrl+拖（Mac：Alt+拖）：把对象本身放到画布。</li>
+			<li>从实体四边连接点拖出可画关系；松在空白会留下自由端。</li>
+			<li>点左栏关系行或画布上的关系线，把它设为下一条线使用的关系；再点左栏该行或按 Esc 取消。取消后拖线会先选择关系类型。</li>
+			<li>原型样式沿链继承；右栏改属性只覆盖当前对象，可「↺ 继承」恢复。</li>
+		</ul>
+	</dialog>
+	<dialog class="rg-dialog" id="rgExportDialog">
+		<form method="dialog"><button class="btn" value="close">关闭</button></form>
+		<h2>导出</h2>
+		<button class="btn" id="rgExportJson">📦 导出 JSON</button>
+		<button class="btn" id="rgExportPng">🖼️ 导出 PNG</button>
+	</dialog>
+	<div class="rg-menu" id="rgMenu" hidden></div>
+</main>
+<script src="../lib/jquery-3.4.1.min.js"></script>
+<script src="../lib/toastr.min.js"></script>
+<script src="model.js" defer></script>
+<script src="geometry.js" defer></script>
+<script src="tree-view.js" defer></script>
+<script src="canvas-view.js" defer></script>
+<script src="关系图.js" defer></script>
+</body>
+</html>

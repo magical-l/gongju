@@ -15,6 +15,7 @@
 ├── 拼音/                  # 拼音工具（数据在 JSON 文件中）
 ├── 数学/                  # 数学小达人口算练习（设计见 docs/superpowers/specs/2026-10-04-数学口算练习增强-design.md）
 ├── 符号/                  # 符号工具（文档体系见 符号/docs/README.txt，数据规格见 符号/docs/设计/数据说明.md）
+├── 关系图/                # 关系图编辑器（原型链、拖拽实例、自由连线；文档见 关系图/docs/）
 ├── 计科/unicode/          # Unicode 工具
 ├── css/                   # CSS 布局实验室（子项目，含自己的 CLAUDE.md / docs / demo / test）
 ├── 游戏/                  # 所有游戏
