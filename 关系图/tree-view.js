@@ -40,19 +40,65 @@
     return summary;
   }
 
-  function renderRow(doc, obj, state, depth) {
+  function isSelected(state, id) {
+    if (state.selectedId === id) return true;
+    const ids = state.selectedIds;
+    if (!ids) return false;
+    if (typeof ids.has === 'function') return ids.has(id);
+    return false;
+  }
+
+  function matchesQuery(doc, obj, query) {
+    const label = M.kindOf(obj) === 'entity' ? obj.name : M.effectiveRelationLabel(doc, obj);
+    return String(label == null ? '' : label).toLowerCase().indexOf(query) > -1;
+  }
+
+  function collectVisibleIds(doc, matches) {
+    const visible = new Set(matches);
+    matches.forEach(function (id) {
+      const seen = new Set();
+      let cur = M.findObject(doc, id);
+      while (cur && cur.prototypeId && !seen.has(cur.id)) {
+        seen.add(cur.id);
+        visible.add(cur.prototypeId);
+        cur = M.findObject(doc, cur.prototypeId);
+      }
+    });
+    return visible;
+  }
+
+  function buildSearch(doc, state) {
+    const raw = state.query == null ? '' : String(state.query).trim();
+    if (!raw) return null;
+    const query = raw.toLowerCase();
+    const matches = new Set();
+    (doc.entities || []).forEach(function (entity) {
+      if (matchesQuery(doc, entity, query)) matches.add(entity.id);
+    });
+    (doc.relations || []).forEach(function (relation) {
+      if (matchesQuery(doc, relation, query)) matches.add(relation.id);
+    });
+    return { query: raw, visible: collectVisibleIds(doc, matches) };
+  }
+
+  function renderRow(doc, obj, state, depth, search) {
+    if (search && !search.visible.has(obj.id)) return '';
     const kind = M.kindOf(obj);
     const children = M.getChildren(doc, obj);
+    const visibleChildren = search
+      ? children.filter(function (child) { return search.visible.has(child.id); })
+      : children;
     const collapsed = state.collapsed && state.collapsed.has(obj.id);
-    const selected = state.selectedId === obj.id ? ' selected' : '';
+    const expanded = search ? true : !collapsed;
+    const selected = isSelected(state, obj.id) ? ' selected' : '';
     const armed = state.armedId === obj.id ? ' armed' : '';
     const label = kind === 'entity' ? obj.name : M.effectiveRelationLabel(doc, obj);
     const status = kind === 'entity' ? entityStatus(obj) : relationStatus(doc, obj);
     const idAttr = escapeHTML(obj.id);
-    const toggle = children.length
-      ? '<button class="rg-twisty" data-action="toggle" title="折叠/展开">' + (collapsed ? '▸' : '▾') + '</button>'
+    const toggle = visibleChildren.length
+      ? '<button class="rg-twisty" data-action="toggle" title="折叠/展开">' + (expanded ? '▾' : '▸') + '</button>'
       : '<span class="rg-twisty placeholder"></span>';
-    const count = children.length ? '<span class="rg-tree-count">' + children.length + '</span>' : '';
+    const count = visibleChildren.length ? '<span class="rg-tree-count">' + visibleChildren.length + '</span>' : '';
     const rowTitle = kind === 'relation'
       ? (armed ? '下一条线使用此关系；再次点击取消' : '点击设为下一条线使用的关系')
       : '拖到画布生成子对象；Ctrl+拖（Mac：Alt+拖）把对象本身放到画布';
@@ -65,32 +111,45 @@
       '<button class="rg-tree-add" data-action="add-child" title="新建子对象">＋</button>' +
       '<button class="rg-tree-menu-btn" data-action="menu" title="更多">⋯</button>' +
       '</div>';
-    if (children.length && !collapsed) {
-      html += '<ul class="rg-tree-children">' + children.map(function (child) {
-        return renderRow(doc, child, state, depth + 1);
+    if (visibleChildren.length && expanded) {
+      html += '<ul class="rg-tree-children">' + visibleChildren.map(function (child) {
+        return renderRow(doc, child, state, depth + 1, search);
       }).join('') + '</ul>';
     }
     html += '</li>';
     return html;
   }
 
-  function renderSection(doc, kind, title, state) {
+  function renderSection(doc, kind, title, state, search) {
     const roots = M.getRoots(doc, kind);
+    const visibleRoots = search
+      ? roots.filter(function (obj) { return search.visible.has(obj.id); })
+      : roots;
     const total = (kind === 'entity' ? doc.entities : doc.relations).length;
-    const rows = roots.map(function (obj) { return renderRow(doc, obj, state, 0); }).join('');
+    const rows = visibleRoots.map(function (obj) { return renderRow(doc, obj, state, 0, search); }).join('');
+    const emptyText = search ? '没有匹配的对象' : '还没有对象';
     return '<section class="rg-tree-section" data-kind="' + kind + '">' +
       '<header class="rg-tree-header">' +
       '<span class="rg-tree-title">' + title + '</span>' +
       '<span class="rg-tree-total">' + total + '</span>' +
       '<button class="rg-tree-add-root" data-action="add-root" data-kind="' + kind + '" title="新建根对象">＋</button>' +
       '</header>' +
-      (rows ? '<ul class="rg-tree-root">' + rows + '</ul>' : '<p class="rg-tree-empty">还没有对象</p>') +
+      (rows ? '<ul class="rg-tree-root">' + rows + '</ul>' : '<p class="rg-tree-empty">' + emptyText + '</p>') +
       '</section>';
   }
 
   function renderTreeHTML(doc, state) {
-    const s = state || { selectedId: null, armedId: null, collapsed: new Set() };
-    return renderSection(doc, 'entity', '实体', s) + renderSection(doc, 'relation', '关系', s);
+    const s = state || {};
+    const safe = {
+      selectedId: s.selectedId == null ? null : s.selectedId,
+      selectedIds: s.selectedIds || new Set(),
+      armedId: s.armedId == null ? null : s.armedId,
+      collapsed: s.collapsed || new Set(),
+      query: s.query == null ? '' : s.query
+    };
+    const search = buildSearch(doc, safe);
+    return renderSection(doc, 'entity', '实体', safe, search) +
+      renderSection(doc, 'relation', '关系', safe, search);
   }
 
   return { renderTreeHTML: renderTreeHTML, escapeHTML: escapeHTML, relationSummary: relationSummary };

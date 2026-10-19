@@ -142,6 +142,63 @@
     return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
   }
 
+  function alignRects(rects, mode) {
+    const bbox = bboxOfRects(rects);
+    if (!bbox) return [];
+    return rects.map(function (rect) {
+      let x = rect.x;
+      let y = rect.y;
+      if (mode === 'left') x = bbox.x;
+      else if (mode === 'centerX') x = bbox.x + (bbox.width - rect.width) / 2;
+      else if (mode === 'right') x = bbox.x + bbox.width - rect.width;
+      else if (mode === 'top') y = bbox.y;
+      else if (mode === 'centerY') y = bbox.y + (bbox.height - rect.height) / 2;
+      else if (mode === 'bottom') y = bbox.y + bbox.height - rect.height;
+      else throw new Error('未知对齐方式: ' + mode);
+      return { id: rect.id, x: x, y: y };
+    });
+  }
+
+  function distributeRects(rects, axis) {
+    if (axis !== 'x' && axis !== 'y') throw new Error('未知分布轴: ' + axis);
+    const result = rects.map(function (rect) {
+      return { id: rect.id, x: rect.x, y: rect.y };
+    });
+    if (rects.length < 3) return result;
+    const sizeKey = axis === 'x' ? 'width' : 'height';
+    const sorted = rects.slice().sort(function (a, b) { return a[axis] - b[axis]; });
+    const first = sorted[0];
+    const last = sorted[sorted.length - 1];
+    let totalSize = 0;
+    sorted.forEach(function (rect) { totalSize += rect[sizeKey]; });
+    const span = last[axis] + last[sizeKey] - first[axis];
+    // 总尺寸超过首尾跨度时无法保持首尾不动：间距归零，从第一张开始顺序排开，
+    // 末尾卡片会被推到原跨度之外（自动撑开），避免负间距造成重叠。
+    const gap = Math.max(0, (span - totalSize) / (sorted.length - 1));
+    const byId = new Map();
+    let cursor = first[axis] + first[sizeKey] + gap;
+    for (let i = 1; i < sorted.length; i += 1) {
+      const pos = {};
+      pos[axis] = cursor;
+      byId.set(sorted[i].id, pos);
+      cursor += sorted[i][sizeKey] + gap;
+    }
+    return result.map(function (rect) {
+      const pos = byId.get(rect.id);
+      if (!pos) return rect;
+      const out = { id: rect.id, x: rect.x, y: rect.y };
+      out[axis] = pos[axis];
+      return out;
+    });
+  }
+
+  function rectsIntersect(a, b) {
+    return a.x <= b.x + b.width &&
+      b.x <= a.x + a.width &&
+      a.y <= b.y + b.height &&
+      b.y <= a.y + a.height;
+  }
+
   function bboxOfPoints(points) {
     if (!points.length) return null;
     let minX = Infinity;
@@ -190,6 +247,9 @@
     cubicPoint: cubicPoint,
     snapGuides: snapGuides,
     bboxOfRects: bboxOfRects,
+    alignRects: alignRects,
+    distributeRects: distributeRects,
+    rectsIntersect: rectsIntersect,
     bboxOfPoints: bboxOfPoints,
     fitView: fitView,
     screenToWorld: screenToWorld,

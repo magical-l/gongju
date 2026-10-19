@@ -7,11 +7,15 @@
 	const CV = window.RGCanvasView;
 
 	const DRAG_THRESHOLD = 3;
+	// 缩放轴判定用屏幕像素意图，避免 100% 下 1px 抖动把另一轴写成覆盖项
+	const RESIZE_AXIS_THRESHOLD = 2;
+	const NUDGE_DELAY = 400;
 	const STORAGE_KEY = 'relation_graph_v1';
 	let saveTimer = null;
 
 	const els = {
 		tree: document.getElementById('rgTree'),
+		treeSearch: document.getElementById('rgTreeSearch'),
 		canvas: document.getElementById('rgCanvas'),
 		inspector: document.getElementById('rgInspector'),
 		undo: document.getElementById('rgUndoBtn'),
@@ -30,12 +34,24 @@
 		zoomOut: document.getElementById('rgZoomOut'),
 		zoomReset: document.getElementById('rgZoomReset'),
 		fitBtn: document.getElementById('rgFitBtn'),
-		zoomDisplay: document.getElementById('rgZoomDisplay')
+		zoomDisplay: document.getElementById('rgZoomDisplay'),
+		empty: document.getElementById('rgEmpty')
 	};
+
+	// 版本握手：浏览器缓存可能混用旧的 model.js 与本页脚本，
+	// 此时常量缺失会把 undefined 带进宽度计算并写坏本地文档。
+	if (!M || M.MODEL_VERSION !== 3 || !Number.isFinite(M.MIN_ENTITY_WIDTH)) {
+		if (els.empty) {
+			els.empty.hidden = false;
+			els.empty.textContent = '页面资源版本不一致，请按 Ctrl+F5 强制刷新';
+		}
+		return;
+	}
 
 	const app = {
 		doc: M.createDocument(),
 		selectedId: null,
+		selectedIds: new Set(),
 		armedId: null,
 		collapsed: new Set(),
 		history: [],
@@ -43,7 +59,10 @@
 		view: null,
 		drag: null,
 		inspectorDirty: false,
-		hasEdited: false
+		inspectorNumberDirty: false,
+		hasEdited: false,
+		treeQuery: '',
+		nudgeTimer: null
 	};
 
 	function esc(text) {
@@ -62,6 +81,17 @@
 
 	function saveNow() {
 		if (!app.hasEdited) return;
+		let check;
+		try {
+			check = M.validateDocument(JSON.parse(JSON.stringify(app.doc)));
+		} catch (err) {
+			notify('warning', '自动保存已暂停：' + err.message);
+			return;
+		}
+		if (!check.ok) {
+			notify('warning', '自动保存已暂停：' + check.error);
+			return;
+		}
 		try {
 			localStorage.setItem(STORAGE_KEY, JSON.stringify(app.doc));
 		} catch (err) {
@@ -104,6 +134,74 @@
 		return result.doc;
 	}
 
+	// ---- 选择状态 ----
+
+	function setPrimarySelection(id) {
+		app.selectedId = id || null;
+	}
+
+	function setSingleSelection(id) {
+		app.selectedIds = new Set(id ? [id] : []);
+		setPrimarySelection(id);
+	}
+
+	function selectRelation(id) {
+		app.selectedIds.clear();
+		app.selectedId = id || null;
+	}
+
+	function toggleEntitySelection(id) {
+		if (!id) return;
+		if (app.selectedIds.has(id)) {
+			app.selectedIds.delete(id);
+			if (app.selectedId === id) {
+				const rest = Array.from(app.selectedIds);
+				app.selectedId = rest.length ? rest[rest.length - 1] : null;
+			}
+		} else {
+			app.selectedIds.add(id);
+			app.selectedId = id;
+		}
+	}
+
+	function clearSelection() {
+		app.selectedIds.clear();
+		app.selectedId = null;
+	}
+
+	function selectAllPlaced() {
+		const ids = app.doc.entities.filter(function (entity) {
+			return !!entity.position;
+		}).map(function (entity) {
+			return entity.id;
+		});
+		app.selectedIds = new Set(ids);
+		app.selectedId = ids.length ? ids[ids.length - 1] : null;
+	}
+
+	function pruneSelection() {
+		const valid = new Set();
+		app.selectedIds.forEach(function (id) {
+			if (M.findEntity(app.doc, id)) valid.add(id);
+		});
+		app.selectedIds = valid;
+		if (app.selectedId) {
+			const obj = M.findObject(app.doc, app.selectedId);
+			if (!obj) {
+				app.selectedId = null;
+			} else if (M.kindOf(obj) === 'relation') {
+				app.selectedIds.clear();
+			} else if (!app.selectedIds.has(app.selectedId)) {
+				const rest = Array.from(app.selectedIds);
+				app.selectedId = rest.length ? rest[rest.length - 1] : null;
+			}
+		}
+		if (!app.selectedId && app.selectedIds.size) {
+			const rest = Array.from(app.selectedIds);
+			app.selectedId = rest[rest.length - 1];
+		}
+	}
+
 	function snapshot() {
 		return JSON.stringify({ name: app.doc.name, entities: app.doc.entities, relations: app.doc.relations });
 	}
@@ -113,7 +211,7 @@
 		app.doc.name = data.name;
 		app.doc.entities = data.entities;
 		app.doc.relations = data.relations;
-		if (app.selectedId && !M.findObject(app.doc, app.selectedId)) app.selectedId = null;
+		pruneSelection();
 		if (app.armedId && !M.findRelation(app.doc, app.armedId)) app.armedId = null;
 	}
 
@@ -124,6 +222,11 @@
 	}
 
 	function pushHistory() {
+		// 未落盘的微调并入本次历史，避免出现两条记录
+		if (app.nudgeTimer) {
+			clearTimeout(app.nudgeTimer);
+			app.nudgeTimer = null;
+		}
 		app.hasEdited = true;
 		const snap = snapshot();
 		if (snap === app.history[app.histIndex]) return;
@@ -135,9 +238,22 @@
 		scheduleSave();
 	}
 
+	function flushNudge() {
+		if (!app.nudgeTimer) return;
+		clearTimeout(app.nudgeTimer);
+		app.nudgeTimer = null;
+		pushHistory();
+	}
+
 	function flushInspectorName() {
 		if (!app.inspectorDirty) return;
 		app.inspectorDirty = false;
+		pushHistory();
+	}
+
+	function flushInspectorNumber() {
+		if (!app.inspectorNumberDirty) return;
+		app.inspectorNumberDirty = false;
 		pushHistory();
 	}
 
@@ -159,6 +275,8 @@
 			const card = app.view.findCard(obj.id);
 			const cardName = card && card.querySelector('.rg-card-name');
 			if (cardName) cardName.textContent = obj.name;
+			// 按文字定宽的实体，名字变了宽度要跟着重算（继承到 auto 规则的子对象同理）
+			if (M.resolveStyle(app.doc, obj).width === 'auto') app.view.refreshAutoWidth(obj.id);
 		}
 		Array.from(els.tree.querySelectorAll('.rg-tree-row[data-kind="relation"]')).forEach(function (row) {
 			const rel = M.findRelation(app.doc, row.dataset.id);
@@ -168,12 +286,14 @@
 			if (rel.ends && !M.relationVisibility(app.doc, rel)) status += ' · 端点未放置';
 			statusEl.textContent = status;
 		});
-		app.view.updateEdges(app.doc, { selectedId: app.selectedId });
+		app.view.updateEdges(app.doc, { selectedId: app.selectedId, selectedIds: app.selectedIds });
 		if (app.armedId && !M.findRelation(app.doc, app.armedId)) app.armedId = null;
 	}
 
 	function undo() {
 		flushInspectorName();
+		flushInspectorNumber();
+		flushNudge();
 		if (app.histIndex <= 0) return;
 		app.histIndex -= 1;
 		restore(app.history[app.histIndex]);
@@ -184,6 +304,8 @@
 
 	function redo() {
 		flushInspectorName();
+		flushInspectorNumber();
+		flushNudge();
 		if (app.histIndex >= app.history.length - 1) return;
 		app.histIndex += 1;
 		restore(app.history[app.histIndex]);
@@ -200,32 +322,56 @@
 	function renderTree() {
 		els.tree.innerHTML = T.renderTreeHTML(app.doc, {
 			selectedId: app.selectedId,
+			selectedIds: app.selectedIds,
 			armedId: app.armedId,
-			collapsed: app.collapsed
+			collapsed: app.collapsed,
+			query: app.treeQuery
 		});
 	}
 
 	function renderAll() {
 		flushInspectorName();
+		flushInspectorNumber();
+		pruneSelection();
 		renderTree();
-		app.view.render(app.doc, { selectedId: app.selectedId, armedId: app.armedId });
+		app.view.render(app.doc, {
+			selectedId: app.selectedId,
+			selectedIds: app.selectedIds,
+			armedId: app.armedId
+		});
 		updateEmpty();
 		renderInspector();
 	}
 
+	function selectionState() {
+		return {
+			selectedId: app.selectedId,
+			selectedIds: app.selectedIds,
+			armedId: app.armedId
+		};
+	}
+
 	function select(id) {
-		app.selectedId = id;
+		const obj = id ? M.findObject(app.doc, id) : null;
+		if (!obj) {
+			clearSelection();
+		} else if (M.kindOf(obj) === 'entity') {
+			setSingleSelection(id);
+		} else {
+			selectRelation(id);
+		}
 		renderAll();
-		if (id) centerOnObject(id);
+		if (obj) centerOnObject(id);
 	}
 
 	function renderSelection() {
 		flushInspectorName();
+		flushInspectorNumber();
+		pruneSelection();
 		renderTree();
-		Array.from(app.view.nodeLayer.children).forEach(function (card) {
-			card.classList.toggle('selected', card.dataset.id === app.selectedId);
-		});
-		app.view.updateEdges(app.doc, { selectedId: app.selectedId, armedId: app.armedId });
+		const state = selectionState();
+		app.view.applySelection(state);
+		app.view.updateEdges(app.doc, state);
 		renderInspector();
 	}
 
@@ -273,7 +419,8 @@
 		} else {
 			obj = M.createRelation(app.doc, { name: M.nextRelationDefinitionName(app.doc, null) });
 		}
-		app.selectedId = obj.id;
+		if (kind === 'entity') setSingleSelection(obj.id);
+		else selectRelation(obj.id);
 		pushHistory();
 		renderAll();
 	}
@@ -293,7 +440,8 @@
 				prototypeId: parent.id
 			});
 		}
-		app.selectedId = obj.id;
+		if (M.kindOf(parent) === 'entity') setSingleSelection(obj.id);
+		else selectRelation(obj.id);
 		pushHistory();
 		renderAll();
 	}
@@ -385,8 +533,9 @@
 				});
 			}
 		}
-		addItem('删除', function () {
-			app.selectedId = id;
+		addItem('删除', function (fresh) {
+			if (M.kindOf(fresh) === 'relation') selectRelation(id);
+			else setSingleSelection(id);
 			deleteSelected();
 		}, true);
 		openMenuAt(els.menu, rect.left, rect.bottom + 4);
@@ -428,7 +577,7 @@
 					a: M.makeFreeEnd(world.x - 70, world.y),
 					b: M.makeFreeEnd(world.x + 70, world.y)
 				});
-				app.selectedId = relTemplate.id;
+				selectRelation(relTemplate.id);
 				pushHistory();
 				renderAll();
 				return;
@@ -447,7 +596,7 @@
 					prototypeId: relTemplate.id,
 					ends: { a: M.makeBoundEnd(card.dataset.id, port), b: free }
 				});
-				app.selectedId = rel.id;
+				selectRelation(rel.id);
 				pushHistory();
 				renderAll();
 				return;
@@ -459,7 +608,7 @@
 					b: M.makeFreeEnd(world.x + 70, world.y)
 				}
 			});
-			app.selectedId = rel.id;
+			selectRelation(rel.id);
 			pushHistory();
 			renderAll();
 			return;
@@ -468,7 +617,7 @@
 		if (!entity) return;
 		if (drag.asSelf) {
 			M.placeEntity(entity, world.x - 84, world.y - 22);
-			app.selectedId = entity.id;
+			setSingleSelection(entity.id);
 			pushHistory();
 			renderAll();
 			return;
@@ -478,25 +627,61 @@
 			prototypeId: entity.id,
 			position: { x: world.x - 84, y: world.y - 22 }
 		});
-		app.selectedId = child.id;
+		setSingleSelection(child.id);
 		pushHistory();
 		renderAll();
 		startRename(child.id);
 	}
 
+	// ---- 卡片点选与组拖 ----
+
 	function startEntityMove(id, e) {
 		const entity = M.findEntity(app.doc, id);
 		if (!entity || !entity.position) return;
-		app.selectedId = id;
+		if (e.shiftKey) {
+			toggleEntitySelection(id);
+			renderSelection();
+			return;
+		}
+		const wasMulti = app.selectedIds.size > 1 && app.selectedIds.has(id);
+		if (!app.selectedIds.has(id)) {
+			setSingleSelection(id);
+		} else {
+			setPrimarySelection(id);
+		}
 		renderSelection();
+
+		const selectedAtStart = app.selectedIds.size;
+		const ids = [];
+		const starts = [];
+		const rects = [];
+		app.selectedIds.forEach(function (sid) {
+			const item = M.findEntity(app.doc, sid);
+			if (!item || !item.position) return;
+			const rect = app.view.getEntityRect(sid);
+			if (!rect) return;
+			ids.push(sid);
+			starts.push({ id: sid, x: item.position.x, y: item.position.y });
+			rects.push(rect);
+		});
+		if (!ids.length) {
+			setSingleSelection(id);
+			renderSelection();
+			return;
+		}
+		const box = G.bboxOfRects(rects);
+		if (!box) return;
 		app.drag = {
 			type: 'entity',
-			id: id,
+			ids: ids,
+			starts: starts,
+			startBox: box,
+			primaryId: id,
+			multi: selectedAtStart > 1 || wasMulti,
 			moved: false,
 			startX: e.clientX,
 			startY: e.clientY,
-			startWorld: app.view.screenToWorld(e.clientX, e.clientY),
-			startPos: { x: entity.position.x, y: entity.position.y }
+			startWorld: app.view.screenToWorld(e.clientX, e.clientY)
 		};
 		app.drag.cleanup = function () {
 			window.removeEventListener('pointermove', onEntityMove);
@@ -509,8 +694,6 @@
 	function onEntityMove(e) {
 		const drag = app.drag;
 		if (!drag || drag.type !== 'entity') return;
-		const entity = M.findEntity(app.doc, drag.id);
-		if (!entity) return;
 		if (!drag.moved) {
 			const dx = e.clientX - drag.startX;
 			const dy = e.clientY - drag.startY;
@@ -518,23 +701,32 @@
 			drag.moved = true;
 		}
 		const world = app.view.screenToWorld(e.clientX, e.clientY);
-		let x = drag.startPos.x + (world.x - drag.startWorld.x);
-		let y = drag.startPos.y + (world.y - drag.startWorld.y);
-		const current = app.view.getEntityRect(entity.id) || { width: 168, height: 40 };
-		const movingRect = { x: x, y: y, width: current.width, height: current.height };
+		let dx = world.x - drag.startWorld.x;
+		let dy = world.y - drag.startWorld.y;
+		const movingRect = {
+			x: drag.startBox.x + dx,
+			y: drag.startBox.y + dy,
+			width: drag.startBox.width,
+			height: drag.startBox.height
+		};
+		const movingIds = new Set(drag.ids);
 		const others = [];
 		app.doc.entities.forEach(function (other) {
-			if (other.id === entity.id || !other.position) return;
+			if (!other.position || movingIds.has(other.id)) return;
 			const rect = app.view.getEntityRect(other.id);
 			if (rect) others.push(rect);
 		});
 		const snap = G.snapGuides(movingRect, others, 6 / app.doc.viewport.zoom);
-		x += snap.dx;
-		y += snap.dy;
-		entity.position.x = x;
-		entity.position.y = y;
-		app.view.moveCardTo(entity.id, x, y);
-		app.view.updateEdges(app.doc, { selectedId: app.selectedId });
+		dx += snap.dx;
+		dy += snap.dy;
+		drag.starts.forEach(function (item) {
+			const entity = M.findEntity(app.doc, item.id);
+			if (!entity || !entity.position) return;
+			entity.position.x = item.x + dx;
+			entity.position.y = item.y + dy;
+			app.view.moveCardTo(item.id, entity.position.x, entity.position.y);
+		});
+		app.view.updateEdges(app.doc, { selectedId: app.selectedId, selectedIds: app.selectedIds });
 		if (snap.guideX != null || snap.guideY != null) app.view.showGuides(snap);
 		else app.view.clearGuides();
 	}
@@ -546,7 +738,14 @@
 		const drag = app.drag;
 		app.drag = null;
 		app.view.clearGuides();
-		if (!drag.moved) return;
+		if (!drag.moved) {
+			// 多选时点一下（无位移）收拢为单点实体
+			if (drag.multi) {
+				setSingleSelection(drag.primaryId);
+				renderSelection();
+			}
+			return;
+		}
 		pushHistory();
 		renderAll();
 	}
@@ -614,11 +813,60 @@
 	}
 
 	function deleteSelected() {
+		if (app.selectedIds.size) {
+			const pending = Array.from(app.selectedIds);
+			let deleted = 0;
+			let deletedRelations = 0;
+			let progress = true;
+			while (progress && pending.length) {
+				progress = false;
+				for (let i = pending.length - 1; i >= 0; i -= 1) {
+					const obj = M.findEntity(app.doc, pending[i]);
+					if (!obj) {
+						pending.splice(i, 1);
+						continue;
+					}
+					try {
+						const result = M.deleteObject(app.doc, obj);
+						deleted += 1;
+						deletedRelations += result.deletedRelations || 0;
+						pending.splice(i, 1);
+						progress = true;
+					} catch (err) {
+						// 留给下一轮或汇总为阻塞
+					}
+				}
+			}
+			const blocked = [];
+			pending.forEach(function (id) {
+				const obj = M.findEntity(app.doc, id);
+				if (!obj) return;
+				const check = M.deletionCheck(app.doc, obj);
+				blocked.push(obj.name + '：' + check.reason);
+			});
+			if (app.armedId && !M.findRelation(app.doc, app.armedId)) app.armedId = null;
+			pruneSelection();
+			if (deleted) {
+				pushHistory();
+				renderAll();
+				if (deletedRelations) {
+					notify('info', '删除了 ' + deleted + ' 个实体及 ' + deletedRelations + ' 条关系');
+				} else {
+					notify('info', '已删除 ' + deleted + ' 个实体');
+				}
+			} else {
+				renderAll();
+			}
+			if (blocked.length) {
+				notify('warning', '有 ' + blocked.length + ' 个实体未能删除：' + blocked.join('；'));
+			}
+			return;
+		}
 		const obj = app.selectedId ? M.findObject(app.doc, app.selectedId) : null;
 		if (!obj) return;
 		try {
 			const result = M.deleteObject(app.doc, obj);
-			app.selectedId = null;
+			clearSelection();
 			if (app.armedId === obj.id) app.armedId = null;
 			pushHistory();
 			renderAll();
@@ -713,7 +961,7 @@
 				prototypeId: prototypeId || null,
 				ends: { a: sourceEnd, b: targetEnd }
 			});
-			app.selectedId = rel.id;
+			selectRelation(rel.id);
 			pushHistory();
 			renderAll();
 		};
@@ -855,7 +1103,7 @@
 			return;
 		}
 		app.armedId = id;
-		app.selectedId = id;
+		selectRelation(id);
 		renderAll();
 		const bothFree = M.relationEndsAreFree(rel);
 		const half = M.relationIsHalfBound(rel);
@@ -886,7 +1134,7 @@
 			const end = drag.startEnds[key];
 			if (M.isEndFree(end)) rel.ends[key] = M.makeFreeEnd(end.x + dx, end.y + dy);
 		});
-		app.view.updateEdges(app.doc, { selectedId: app.selectedId });
+		app.view.updateEdges(app.doc, { selectedId: app.selectedId, selectedIds: app.selectedIds });
 	}
 
 	function onEdgeMoveEnd() {
@@ -898,16 +1146,269 @@
 		renderAll();
 	}
 
+	// ---- 缩放 ----
+
+	function startResize(id, corner, e) {
+		const entity = M.findEntity(app.doc, id);
+		if (!entity || !entity.position) return;
+		const rect = app.view.getEntityRect(id);
+		if (!rect) return;
+		const style = entity.style || {};
+		app.drag = {
+			type: 'resize',
+			id: id,
+			corner: corner,
+			moved: false,
+			startX: e.clientX,
+			startY: e.clientY,
+			startRect: rect,
+			startPos: { x: entity.position.x, y: entity.position.y },
+			origWidth: Object.prototype.hasOwnProperty.call(style, 'width'),
+			origWidthValue: style.width,
+			origMinHeight: Object.prototype.hasOwnProperty.call(style, 'minHeight'),
+			origMinHeightValue: style.minHeight
+		};
+		app.drag.cleanup = function () {
+			window.removeEventListener('pointermove', onResizeMove);
+			window.removeEventListener('pointerup', onResizeEnd);
+		};
+		window.addEventListener('pointermove', onResizeMove);
+		window.addEventListener('pointerup', onResizeEnd);
+	}
+
+	function onResizeMove(e) {
+		const drag = app.drag;
+		if (!drag || drag.type !== 'resize') return;
+		const mdx = e.clientX - drag.startX;
+		const mdy = e.clientY - drag.startY;
+		if (!drag.moved) {
+			if (Math.hypot(mdx, mdy) <= DRAG_THRESHOLD) return;
+			drag.moved = true;
+		}
+		const entity = M.findEntity(app.doc, drag.id);
+		if (!entity || !entity.position) return;
+		const zoom = app.doc.viewport.zoom || 1;
+		const dx = mdx / zoom;
+		const dy = mdy / zoom;
+		const corner = drag.corner;
+		const start = drag.startRect;
+		// 只把真正拖动的轴写成覆盖项，避免纯纵向/纯横向拖动破坏另一轴的原型继承。
+		// 判定用屏幕像素（不除 zoom），1px 抖动不算拖动该轴。
+		const resizeWidth = (corner.indexOf('e') > -1 || corner.indexOf('w') > -1) && Math.abs(mdx) > RESIZE_AXIS_THRESHOLD;
+		const resizeHeight = (corner.indexOf('n') > -1 || corner.indexOf('s') > -1) && Math.abs(mdy) > RESIZE_AXIS_THRESHOLD;
+
+		let width = start.width;
+		if (Number.isFinite(start.width)) {
+			if (corner.indexOf('e') > -1) width = start.width + dx;
+			else if (corner.indexOf('w') > -1) width = start.width - dx;
+			width = Math.max(M.MIN_ENTITY_WIDTH, width);
+		}
+		const widthOk = Number.isFinite(width);
+
+		let minHeight = start.height;
+		if (Number.isFinite(start.height)) {
+			if (corner.indexOf('s') > -1) minHeight = start.height + dy;
+			else if (corner.indexOf('n') > -1) minHeight = start.height - dy;
+			minHeight = Math.max(0, minHeight);
+		}
+		const heightOk = Number.isFinite(minHeight);
+
+		let x = drag.startPos.x;
+		let y = drag.startPos.y;
+		if (corner.indexOf('w') > -1 && widthOk) x = drag.startPos.x + (start.width - width);
+		if (corner.indexOf('n') > -1) y = drag.startPos.y + dy;
+
+		entity.position.x = x;
+		entity.position.y = y;
+		entity.style = entity.style || {};
+		const patch = { x: x, y: y };
+		if (resizeWidth && widthOk) {
+			entity.style.width = width;
+			patch.width = width;
+		}
+		if (resizeHeight && heightOk) {
+			if (minHeight > 0) entity.style.minHeight = minHeight;
+			else M.clearStyleKey(entity, 'minHeight');
+			patch.minHeight = minHeight;
+		}
+		app.view.resizeCardTo(drag.id, patch);
+		// 最小高度小于内容高度时，高度由内容撑开；北侧拖动需要按实际高度回正位置
+		if (corner.indexOf('n') > -1) {
+			const card = app.view.findCard(drag.id);
+			if (card) {
+				const actualHeight = card.offsetHeight;
+				const fixedY = drag.startPos.y + start.height - actualHeight;
+				if (Math.abs(fixedY - y) > 0.01) {
+					entity.position.y = fixedY;
+					patch.y = fixedY;
+					app.view.resizeCardTo(drag.id, patch);
+				}
+			}
+		}
+	}
+
+	function onResizeEnd() {
+		window.removeEventListener('pointermove', onResizeMove);
+		window.removeEventListener('pointerup', onResizeEnd);
+		if (!app.drag || app.drag.type !== 'resize') return;
+		const drag = app.drag;
+		app.drag = null;
+		if (!drag.moved) return;
+		pushHistory();
+		renderAll();
+	}
+
+	// ---- 框选 ----
+
+	function normalizeRect(a, b) {
+		return {
+			x: Math.min(a.x, b.x),
+			y: Math.min(a.y, b.y),
+			width: Math.abs(a.x - b.x),
+			height: Math.abs(a.y - b.y)
+		};
+	}
+
+	function startMarquee(e) {
+		e.preventDefault();
+		app.drag = {
+			type: 'marquee',
+			start: app.view.screenToWorld(e.clientX, e.clientY),
+			startX: e.clientX,
+			startY: e.clientY,
+			moved: false,
+			rect: null
+		};
+		app.drag.cleanup = function () {
+			window.removeEventListener('pointermove', onMarqueeMove);
+			window.removeEventListener('pointerup', onMarqueeEnd);
+		};
+		window.addEventListener('pointermove', onMarqueeMove);
+		window.addEventListener('pointerup', onMarqueeEnd);
+	}
+
+	function onMarqueeMove(e) {
+		const drag = app.drag;
+		if (!drag || drag.type !== 'marquee') return;
+		if (!drag.moved) {
+			const dx = e.clientX - drag.startX;
+			const dy = e.clientY - drag.startY;
+			if (Math.hypot(dx, dy) <= DRAG_THRESHOLD) return;
+			drag.moved = true;
+		}
+		const current = app.view.screenToWorld(e.clientX, e.clientY);
+		drag.rect = normalizeRect(drag.start, current);
+		// 框选期间不更新边，避免 overlay 被清掉
+		app.view.showMarquee(drag.rect);
+	}
+
+	function onMarqueeEnd(e) {
+		window.removeEventListener('pointermove', onMarqueeMove);
+		window.removeEventListener('pointerup', onMarqueeEnd);
+		if (!app.drag || app.drag.type !== 'marquee') return;
+		const drag = app.drag;
+		app.drag = null;
+		app.view.clearMarquee();
+		if (!drag.moved) {
+			clearSelection();
+			renderSelection();
+			return;
+		}
+		const rect = drag.rect || normalizeRect(drag.start, app.view.screenToWorld(e.clientX, e.clientY));
+		const ids = [];
+		app.doc.entities.forEach(function (entity) {
+			if (!entity.position) return;
+			const entityRect = app.view.getEntityRect(entity.id);
+			if (entityRect && G.rectsIntersect(entityRect, rect)) ids.push(entity.id);
+		});
+		app.selectedIds = new Set(ids);
+		app.selectedId = ids.length ? ids[ids.length - 1] : null;
+		renderSelection();
+	}
+
+	// ---- 方向键微调 / 对齐分布 ----
+
+	function selectedPlacedRects() {
+		const rects = [];
+		app.selectedIds.forEach(function (id) {
+			const entity = M.findEntity(app.doc, id);
+			if (!entity || !entity.position) return;
+			const rect = app.view.getEntityRect(id);
+			if (!rect) return;
+			rects.push({ id: id, x: rect.x, y: rect.y, width: rect.width, height: rect.height });
+		});
+		return rects;
+	}
+
+	function nudgeSelected(dx, dy) {
+		const ids = [];
+		app.selectedIds.forEach(function (id) {
+			const entity = M.findEntity(app.doc, id);
+			if (entity && entity.position) ids.push(id);
+		});
+		if (!ids.length) return false;
+		ids.forEach(function (id) {
+			const entity = M.findEntity(app.doc, id);
+			entity.position.x += dx;
+			entity.position.y += dy;
+			app.view.moveCardTo(id, entity.position.x, entity.position.y);
+		});
+		app.view.updateEdges(app.doc, { selectedId: app.selectedId, selectedIds: app.selectedIds });
+		app.hasEdited = true;
+		scheduleSave();
+		clearTimeout(app.nudgeTimer);
+		app.nudgeTimer = setTimeout(function () {
+			app.nudgeTimer = null;
+			pushHistory();
+			renderAll();
+		}, NUDGE_DELAY);
+		return true;
+	}
+
+	function applyPositions(list) {
+		list.forEach(function (item) {
+			const entity = M.findEntity(app.doc, item.id);
+			if (!entity || !entity.position) return;
+			entity.position.x = item.x;
+			entity.position.y = item.y;
+		});
+		pushHistory();
+		renderAll();
+	}
+
+	function alignSelected(mode) {
+		const rects = selectedPlacedRects();
+		if (rects.length < 2) return;
+		applyPositions(G.alignRects(rects, mode));
+	}
+
+	function distributeSelected(axis) {
+		const rects = selectedPlacedRects();
+		if (rects.length < 3) return;
+		applyPositions(G.distributeRects(rects, axis));
+	}
+
 	function cancelActiveDrag() {
 		const drag = app.drag;
 		app.drag = null;
 		if (drag && typeof drag.cleanup === 'function') drag.cleanup();
 		if (drag) {
 			if (drag.type === 'entity') {
+				drag.starts.forEach(function (item) {
+					const entity = M.findEntity(app.doc, item.id);
+					if (!entity || !entity.position) return;
+					entity.position.x = item.x;
+					entity.position.y = item.y;
+				});
+			} else if (drag.type === 'resize') {
 				const entity = M.findEntity(app.doc, drag.id);
-				if (entity && drag.startPos) {
-					entity.position.x = drag.startPos.x;
-					entity.position.y = drag.startPos.y;
+				if (entity) {
+					entity.position = { x: drag.startPos.x, y: drag.startPos.y };
+					entity.style = entity.style || {};
+					if (drag.origWidth) entity.style.width = drag.origWidthValue;
+					else delete entity.style.width;
+					if (drag.origMinHeight) entity.style.minHeight = drag.origMinHeightValue;
+					else delete entity.style.minHeight;
 				}
 			} else if (drag.type === 'edge-move') {
 				const rel = M.findRelation(app.doc, drag.id);
@@ -924,6 +1425,8 @@
 		renderAll();
 	}
 
+	// ---- 右栏 ----
+
 	function prototypeSelectHTML(obj, kind) {
 		const candidates = (kind === 'entity' ? app.doc.entities : app.doc.relations).filter(function (o) {
 			return o.id !== obj.id && !M.isDescendant(app.doc, o.id, obj.id);
@@ -937,16 +1440,60 @@
 		return html + '</select></label>';
 	}
 
+	function styleSourceText(source, key) {
+		let text = source.source === 'default' ? '默认'
+			: (source.source === 'own' ? '覆盖' : '继承自 ' + source.sourceName);
+		// width 行的值可能就是规则本身：标出「按文字」，避免误读成测出来的数字
+		if (key === 'width' && source.value === 'auto') text += '（按文字）';
+		return text;
+	}
+
 	function styleRowHTML(obj, key, label, controlHTML) {
 		const source = M.getStyleSource(app.doc, obj, key);
-		const sourceText = source.source === 'default' ? '默认'
-			: (source.source === 'own' ? '覆盖' : '继承自 ' + source.sourceName);
+		const sourceText = styleSourceText(source, key);
 		const reset = source.source === 'own'
 			? '<button class="btn small" data-reset-style="' + key + '" title="恢复继承">↺</button>'
 			: '';
-		return '<div class="rg-style-row"><span class="rg-style-label">' + label + '</span>' +
+		return '<div class="rg-style-row" data-style-row="' + key + '"><span class="rg-style-label">' + label + '</span>' +
 			controlHTML + '<span class="rg-style-source">' + esc(sourceText) + '</span>' +
 			reset + '</div>';
+	}
+
+	// 就地刷新某一行的来源文本与 ↺，不重建 inspector，保住输入框焦点
+	function refreshStyleRow(obj, key) {
+		const row = els.inspector.querySelector('[data-style-row="' + key + '"]');
+		if (!row) return;
+		const source = M.getStyleSource(app.doc, obj, key);
+		const sourceEl = row.querySelector('.rg-style-source');
+		if (sourceEl) sourceEl.textContent = styleSourceText(source, key);
+		if (key === 'width') {
+			// 同步 auto 的显示态，但不重建输入框（保住焦点）
+			const auto = source.value === 'auto';
+			const input = row.querySelector('input[data-style-key="width"]');
+			if (input) {
+				input.placeholder = '按文字';
+				if (auto) input.value = '';
+				else if (document.activeElement !== input) input.value = String(source.value);
+			}
+			const fit = row.querySelector('[data-action="fit-width"]');
+			if (fit) {
+				fit.classList.toggle('active', auto);
+				fit.textContent = auto ? '✓ 按文字' : '按文字';
+			}
+		}
+		const existing = row.querySelector('[data-reset-style]');
+		if (source.source === 'own') {
+			if (!existing) {
+				const btn = document.createElement('button');
+				btn.className = 'btn small';
+				btn.dataset.resetStyle = key;
+				btn.title = '恢复继承';
+				btn.textContent = '↺';
+				row.appendChild(btn);
+			}
+		} else if (existing) {
+			existing.remove();
+		}
 	}
 
 	function entityStyleHTML(obj, style) {
@@ -955,10 +1502,20 @@
 				const parts = item.split(':');
 				return '<option value="' + parts[0] + '"' + (style.shape === parts[0] ? ' selected' : '') + '>' + parts[1] + '</option>';
 			}).join('') + '</select>';
+		const autoWidth = style.width === 'auto';
+		const widthValue = autoWidth ? '' : String(style.width);
+		const minHeightValue = style.minHeight > 0 ? String(style.minHeight) : '';
+		const widthControl = '<input type="number" data-style-key="width" min="' + M.MIN_ENTITY_WIDTH +
+			'" step="10" value="' + esc(widthValue) + '" placeholder="按文字">' +
+			'<button class="btn small' + (autoWidth ? ' active' : '') + '" data-action="fit-width" ' +
+			'title="按当前文字自动定宽（最小 40，最大 480）">' + (autoWidth ? '✓ 按文字' : '按文字') + '</button>';
 		return styleRowHTML(obj, 'shape', '形状', shape) +
 			styleRowHTML(obj, 'fill', '填充', '<input type="color" data-style-key="fill" value="' + esc(style.fill) + '">') +
 			styleRowHTML(obj, 'border', '边框', '<input type="color" data-style-key="border" value="' + esc(style.border) + '">') +
-			styleRowHTML(obj, 'text', '文字', '<input type="color" data-style-key="text" value="' + esc(style.text) + '">');
+			styleRowHTML(obj, 'text', '文字', '<input type="color" data-style-key="text" value="' + esc(style.text) + '">') +
+			styleRowHTML(obj, 'width', '宽', widthControl) +
+			styleRowHTML(obj, 'minHeight', '最小高度',
+				'<input type="number" data-style-key="minHeight" min="0" step="10" value="' + esc(minHeightValue) + '" placeholder="自动">');
 	}
 
 	function relationStyleHTML(obj, style) {
@@ -978,6 +1535,34 @@
 			styleRowHTML(obj, 'showLabel', '标签', '<input type="checkbox" data-style-key="showLabel"' + (style.showLabel ? ' checked' : '') + '>');
 	}
 
+	function groupPanelHTML() {
+		const total = app.selectedIds.size;
+		const placed = selectedPlacedRects().length;
+		const alignDisabled = placed < 2 ? ' disabled' : '';
+		const distDisabled = placed < 3 ? ' disabled' : '';
+		const alignBtn = function (mode, text) {
+			return '<button class="btn small" data-action="align" data-align="' + mode + '"' + alignDisabled + '>' + text + '</button>';
+		};
+		const distBtn = function (axis, text, title) {
+			return '<button class="btn small" data-action="distribute" data-axis="' + axis + '" title="' + title + '"' + distDisabled + '>' + text + '</button>';
+		};
+		let html = '<h3>组选择</h3>';
+		html += '<p class="rg-muted">已选 ' + total + ' 个实体（' + placed + ' 个在画布）</p>';
+		html += '<p class="rg-muted">对齐（仅画布中的实体）</p><div class="rg-actions">' +
+			alignBtn('left', '左') + alignBtn('centerX', '中') + alignBtn('right', '右') +
+			alignBtn('top', '上') + alignBtn('centerY', '中') + alignBtn('bottom', '下') +
+			'</div>';
+		html += '<p class="rg-muted">分布</p><div class="rg-actions">' +
+			distBtn('x', '水平等距', '相邻卡片之间的空隙相等；只改左右位置') +
+			distBtn('y', '垂直等距', '只改上下位置') + '</div>';
+		html += '<p class="rg-muted">等距 = 相邻卡片之间的空隙相等；排成一行请先用上/中/下的「中」对齐，再水平等距。</p>';
+		html += '<div class="rg-actions">' +
+			'<button class="btn danger" data-action="delete-selection">删除所选</button>' +
+			'<button class="btn" data-action="clear-selection">取消选择</button>' +
+			'</div>';
+		return html;
+	}
+
 	function endStatusText(end) {
 		if (M.isEndBound(end)) {
 			const entity = M.findEntity(app.doc, end.entityId);
@@ -990,7 +1575,12 @@
 	}
 
 	function renderInspector() {
+		flushInspectorNumber();
 		const el = els.inspector;
+		if (app.selectedIds.size > 1) {
+			el.innerHTML = groupPanelHTML();
+			return;
+		}
 		const obj = app.selectedId ? M.findObject(app.doc, app.selectedId) : null;
 		if (!obj) {
 			el.innerHTML = '<h3>未选中</h3>' +
@@ -1020,6 +1610,9 @@
 		}
 		html += prototypeSelectHTML(obj, kind);
 		html += isEntity ? entityStyleHTML(obj, style) : relationStyleHTML(obj, style);
+		if (isEntity && children.length) {
+			html += '<p class="rg-muted">尺寸会沿原型链传给子对象；子对象可单独覆盖。</p>';
+		}
 		html += '<div class="rg-actions">';
 		if (isEntity) {
 			html += obj.position
@@ -1043,11 +1636,64 @@
 		return input.value;
 	}
 
+	// 宽 / 最小高度实时写入模型：空值或 0 清空覆盖，避免输入后未失焦就丢值
+	function applyEntitySizeInput(obj, key, raw) {
+		if (key !== 'width' && key !== 'minHeight') return;
+		if (M.kindOf(obj) !== 'entity') return;
+		const text = String(raw == null ? '' : raw).trim();
+		const num = text === '' ? NaN : Number(text);
+		if (key === 'width') {
+			if (!Number.isFinite(num) || num <= 0) {
+				// 清空 = 恢复继承；解析结果可能是 'auto'、祖先数字或默认 168
+				M.clearStyleKey(obj, 'width');
+			} else {
+				// 输入数字 = 覆盖当前节点的 auto 规则
+				M.setStyleKey(obj, 'width', Math.max(M.MIN_ENTITY_WIDTH, num));
+			}
+			app.view.setEntityWidth(obj.id, M.resolveStyle(app.doc, obj).width);
+			// 继承宽度的子对象画布上也要立刻跟上（auto 的重新测量，数字的直接取新值）
+			M.getDescendantIds(app.doc, obj).forEach(function (id) {
+				const child = M.findEntity(app.doc, id);
+				if (!child || !child.position) return;
+				app.view.setEntityWidth(id, M.resolveStyle(app.doc, child).width);
+			});
+			return;
+		}
+		if (!Number.isFinite(num) || num <= 0) {
+			M.clearStyleKey(obj, 'minHeight');
+		} else {
+			M.setStyleKey(obj, 'minHeight', num);
+		}
+		app.view.resizeCardTo(obj.id, { minHeight: M.resolveStyle(app.doc, obj).minHeight });
+	}
+
+	// ---- 适应内容 ----
+	// 宽度的自动测量在 canvas-view.js（卡片进 DOM 后按自身字体测量），这里只写规则
+
+	function fitEntityWidth(obj) {
+		if (!obj || M.kindOf(obj) !== 'entity') return;
+		flushInspectorName();
+		// 写入的是规则而不是测量值：子对象继承 'auto' 后按自己的名字测量
+		M.setStyleKey(obj, 'width', 'auto');
+		pushHistory();
+		renderAll();
+	}
+
 	app.view = new CV.CanvasView(els.canvas, {
 		onCanvasPointerDown: function (e) {
-			app.selectedId = null;
-			renderAll();
-			if (e.button !== 0) return;
+			if (e.button !== 0) {
+				clearSelection();
+				renderSelection();
+				return;
+			}
+			if (e.shiftKey) {
+				startMarquee(e);
+				return;
+			}
+			if (app.selectedId || app.selectedIds.size) {
+				clearSelection();
+				renderSelection();
+			}
 			const start = { x: e.clientX, y: e.clientY, vx: app.doc.viewport.x, vy: app.doc.viewport.y };
 			const move = function (ev) {
 				app.doc.viewport.x = start.vx + ev.clientX - start.x;
@@ -1073,6 +1719,9 @@
 		},
 		onHandlePointerDown: function (relId, endKey, e) {
 			startHandleDrag(relId, endKey, e);
+		},
+		onResizePointerDown: function (id, corner, e) {
+			startResize(id, corner, e);
 		}
 	});
 
@@ -1081,27 +1730,36 @@
 		if (action) {
 			const row = action.closest('.rg-tree-row');
 			const id = row && row.dataset.id;
-			if (action.dataset.action === 'toggle') { toggleCollapse(id); return; }
+			if (action.dataset.action === 'toggle') {
+				// 搜索结果里祖先强制展开；此时折叠操作不改变 collapsed
+				if (app.treeQuery.trim()) return;
+				toggleCollapse(id);
+				return;
+			}
 			if (action.dataset.action === 'add-root') { addRoot(action.dataset.kind); return; }
 			if (action.dataset.action === 'add-child') { addChild(id); return; }
 			if (action.dataset.action === 'menu') { openRowMenu(action, id); return; }
 		}
 		const row = e.target.closest('.rg-tree-row');
-		if (row) {
-			if (row.dataset.kind === 'relation') {
-				const id = row.dataset.id;
-				if (app.armedId === id) {
-					app.armedId = null;
-					app.selectedId = id;
-					renderAll();
-					notify('info', '已取消下一条线使用的关系；下次拖线会先选择关系类型');
-				} else {
-					app.armedId = id;
-					select(id);
-				}
+		if (!row) return;
+		if (row.dataset.kind === 'relation') {
+			const id = row.dataset.id;
+			if (app.armedId === id) {
+				app.armedId = null;
+				selectRelation(id);
+				renderAll();
+				notify('info', '已取消下一条线使用的关系；下次拖线会先选择关系类型');
 			} else {
-				select(row.dataset.id);
+				app.armedId = id;
+				select(id);
 			}
+			return;
+		}
+		if (e.shiftKey) {
+			toggleEntitySelection(row.dataset.id);
+			renderAll();
+		} else {
+			select(row.dataset.id);
 		}
 	});
 
@@ -1109,6 +1767,7 @@
 		const row = e.target.closest('.rg-tree-row');
 		if (!row || e.button !== 0) return;
 		if (e.target.closest('[data-action]')) return;
+		if (e.shiftKey) return;
 		treeDrag = {
 			id: row.dataset.id,
 			kind: row.dataset.kind,
@@ -1125,7 +1784,34 @@
 		window.addEventListener('pointerup', onTreeDragUp);
 	});
 
+	if (els.treeSearch) {
+		els.treeSearch.addEventListener('input', function () {
+			app.treeQuery = els.treeSearch.value;
+			renderTree();
+		});
+		els.treeSearch.addEventListener('keydown', function (e) {
+			if (e.key !== 'Escape') return;
+			e.stopPropagation();
+			if (!els.treeSearch.value) return;
+			els.treeSearch.value = '';
+			app.treeQuery = '';
+			renderTree();
+		});
+	}
+
 	els.inspector.addEventListener('input', function (e) {
+		const styleKey = e.target.dataset.styleKey;
+		if (styleKey === 'width' || styleKey === 'minHeight') {
+			const obj = app.selectedId ? M.findObject(app.doc, app.selectedId) : null;
+			if (!obj) return;
+			applyEntitySizeInput(obj, styleKey, e.target.value);
+			// 宽度规则（auto 与否）随输入即时反映到按钮/来源，但不重建输入框
+			if (styleKey === 'width') refreshStyleRow(obj, 'width');
+			app.inspectorNumberDirty = true;
+			app.hasEdited = true;
+			scheduleSave();
+			return;
+		}
 		const field = e.target.dataset.field;
 		if (field === 'doc-name') {
 			app.doc.name = e.target.value;
@@ -1189,6 +1875,16 @@
 		}
 		const styleKey = e.target.dataset.styleKey;
 		if (styleKey) {
+			if (styleKey === 'width' || styleKey === 'minHeight') {
+				// input 事件已实时写入模型；change 只提交历史并就地刷新来源/↺。
+				// 不重建 inspector，避免转移焦点到另一个数值框时第一次点击被吞。
+				if (!app.inspectorNumberDirty) return;
+				app.inspectorNumberDirty = false;
+				pushHistory();
+				refreshStyleRow(obj, styleKey);
+				scheduleSave();
+				return;
+			}
 			M.setStyleKey(obj, styleKey, readStyleValue(e.target));
 			pushHistory();
 			renderAll();
@@ -1225,8 +1921,15 @@
 	});
 
 	els.inspector.addEventListener('click', function (e) {
-		const reset = e.target.closest('[data-reset-style]');
 		const action = e.target.closest('[data-action]');
+		if (action && app.selectedIds.size > 1) {
+			const name = action.dataset.action;
+			if (name === 'align') { alignSelected(action.dataset.align); return; }
+			if (name === 'distribute') { distributeSelected(action.dataset.axis); return; }
+			if (name === 'delete-selection') { deleteSelected(); return; }
+			if (name === 'clear-selection') { clearSelection(); renderAll(); return; }
+		}
+		const reset = e.target.closest('[data-reset-style]');
 		const obj = app.selectedId ? M.findObject(app.doc, app.selectedId) : null;
 		if (!obj) return;
 		if (reset) {
@@ -1245,6 +1948,8 @@
 			if (obj.ends) {
 				reverseRelation(obj);
 			}
+		} else if (name === 'fit-width') {
+			fitEntityWidth(obj);
 		} else if (name === 'add-child') {
 			addChild(obj.id);
 		} else if (name === 'delete') {
@@ -1263,16 +1968,29 @@
 		} else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
 			e.preventDefault();
 			redo();
+		} else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
+			e.preventDefault();
+			selectAllPlaced();
+			renderSelection();
 		} else if (e.key === 'Delete' || e.key === 'Backspace') {
 			e.preventDefault();
 			deleteSelected();
 		} else if (e.key === 'Escape') {
 			closeMenu();
 			cancelActiveDrag();
-			if (app.armedId) {
-				app.armedId = null;
-				renderAll();
-			}
+			app.armedId = null;
+			clearSelection();
+			renderAll();
+		} else if (!e.ctrlKey && !e.metaKey && !e.altKey &&
+			(e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+			const step = e.shiftKey ? 10 : 1;
+			let dx = 0;
+			let dy = 0;
+			if (e.key === 'ArrowLeft') dx = -step;
+			else if (e.key === 'ArrowRight') dx = step;
+			else if (e.key === 'ArrowUp') dy = -step;
+			else dy = step;
+			if (nudgeSelected(dx, dy)) e.preventDefault();
 		}
 	});
 
@@ -1421,7 +2139,7 @@
 	function newDocument() {
 		if (!confirmReplace('新建')) return;
 		app.doc = M.createDocument();
-		app.selectedId = null;
+		clearSelection();
 		app.armedId = null;
 		app.view.setViewport(app.doc.viewport);
 		updateZoomDisplay();
@@ -1438,7 +2156,7 @@
 		}
 		if (!confirmReplace('导入')) return;
 		app.doc = result.doc;
-		app.selectedId = null;
+		clearSelection();
 		app.armedId = null;
 		app.view.setViewport(app.doc.viewport);
 		updateZoomDisplay();
@@ -1614,7 +2332,15 @@
 		get view() { return app.view; },
 		select: select,
 		renderAll: renderAll,
+		renderSelection: renderSelection,
 		undo: undo,
-		redo: redo
+		redo: redo,
+		clearSelection: clearSelection,
+		selectAllPlaced: selectAllPlaced,
+		alignSelected: alignSelected,
+		distributeSelected: distributeSelected,
+		fitEntityWidth: fitEntityWidth,
+		deleteSelected: deleteSelected,
+		nudgeSelected: nudgeSelected
 	};
 })();

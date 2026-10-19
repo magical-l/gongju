@@ -18,7 +18,7 @@
 	<link href="../css/common.css" rel="stylesheet">
 	<link href="../css/layout.css" rel="stylesheet">
 	<link href="../resources/biz.css?v=250821" rel="stylesheet">
-	<link href="关系图.css" rel="stylesheet">
+	<link href="关系图.css?v=261020" rel="stylesheet">
 </head>
 <body class="目字形 rg-page">
 <header>
@@ -54,7 +54,10 @@
 		</div>
 	</div>
 	<section class="rg-editor">
-		<aside class="rg-tree panel" id="rgTree"></aside>
+		<aside class="rg-tree panel">
+			<div class="rg-tree-search"><input id="rgTreeSearch" type="search" placeholder="搜索实体/关系" aria-label="搜索实体或关系" autocomplete="off"></div>
+			<div id="rgTree"></div>
+		</aside>
 		<div class="rg-canvas" id="rgCanvas">
 			<div class="rg-world" id="rgWorld">
 				<svg class="rg-svg" id="rgSvg" xmlns="http://www.w3.org/2000/svg">
@@ -92,10 +95,10 @@
 </main>
 <script src="../lib/jquery-3.4.1.min.js"></script>
 <script src="../lib/toastr.min.js"></script>
-<script src="model.js" defer></script>
-<script src="geometry.js" defer></script>
-<script src="tree-view.js" defer></script>
-<script src="canvas-view.js" defer></script>
-<script src="关系图.js" defer></script>
+<script src="model.js?v=261020" defer></script>
+<script src="geometry.js?v=261020" defer></script>
+<script src="tree-view.js?v=261020" defer></script>
+<script src="canvas-view.js?v=261020" defer></script>
+<script src="关系图.js?v=261020" defer></script>
 </body>
 </html>

@@ -141,3 +141,4 @@
 - **不要创建 package.json 或 node_modules**——项目是纯静态，无构建流程
 - **不要引入 npm 包**——所有库已经 vendored 在 `lib/` 中
 - **不要修改 `lib/` 中的任何文件**——它们是第三方代码，由 git 记录版本
+- **关系图页资源版本**：`关系图/关系图.html` 的本地脚本/样式带 `?v=YYMMDD`；改本页资源时递增。`model.js` 的 `MODEL_VERSION` 必须与 `关系图.js` 的握手版本一致；`saveNow` 写 localStorage 前必须校验文档。

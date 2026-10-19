@@ -65,6 +65,61 @@ describe('样式与标签', () => {
     assertEqual(M.resolveStyle(doc, c).fill, '#fde8e8');
   });
 
+  it('minHeight 默认、继承、覆盖与清除', () => {
+    const doc = M.createDocument();
+    const a = M.createEntity(doc, { id: 'n_a', name: '物种' });
+    const b = M.createEntity(doc, { id: 'n_b', name: '虎', prototypeId: 'n_a' });
+    const c = M.createEntity(doc, {
+      id: 'n_c',
+      name: '白化虎',
+      prototypeId: 'n_b',
+      style: { minHeight: 240 }
+    });
+    assertEqual(M.ENTITY_STYLE_DEFAULTS.minHeight, 0);
+    assertEqual(M.ENTITY_STYLE_KEYS.includes('minHeight'), true);
+    assertEqual(M.resolveStyle(doc, a).minHeight, 0);
+    assertEqual(M.resolveStyle(doc, a).width, 168);
+    M.setStyleKey(a, 'minHeight', 200);
+    assertEqual(M.resolveStyle(doc, b).minHeight, 200);
+    assertEqual(M.resolveStyle(doc, c).minHeight, 240);
+    assertEqual(M.getStyleSource(doc, b, 'minHeight').source, 'inherited');
+    assertEqual(M.getStyleSource(doc, c, 'minHeight').source, 'own');
+    M.clearStyleKey(c, 'minHeight');
+    assertEqual(M.resolveStyle(doc, c).minHeight, 200);
+    assertEqual(M.getStyleSource(doc, c, 'minHeight').source, 'inherited');
+  });
+
+  it('width 的 auto 规则可继承，子对象可覆盖或恢复继承', () => {
+    assertEqual(M.MODEL_VERSION, 3);
+    const doc = M.createDocument();
+    const a = M.createEntity(doc, { id: 'n_a', name: '熊' });
+    const b = M.createEntity(doc, { id: 'n_b', name: '熊 1', prototypeId: 'n_a' });
+    M.setStyleKey(a, 'width', 'auto');
+    assertEqual(M.resolveStyle(doc, a).width, 'auto');
+    assertEqual(M.resolveStyle(doc, b).width, 'auto');
+    assertEqual(M.getStyleSource(doc, b, 'width').source, 'inherited');
+    assertEqual(M.getStyleSource(doc, b, 'width').sourceName, '熊');
+    M.setStyleKey(b, 'width', 200);
+    assertEqual(M.resolveStyle(doc, b).width, 200);
+    assertEqual(M.getStyleSource(doc, b, 'width').source, 'own');
+    M.clearStyleKey(b, 'width');
+    assertEqual(M.resolveStyle(doc, b).width, 'auto');
+    assertEqual(M.getStyleSource(doc, b, 'width').source, 'inherited');
+  });
+
+  it('validateDocument 允许实体 width=auto，拒绝关系 width=auto', () => {
+    const doc = M.createDocument();
+    M.createEntity(doc, { id: 'n_a', name: '熊', style: { width: 'auto' } });
+    assertEqual(M.validateDocument(JSON.parse(JSON.stringify(doc))).ok, true);
+
+    M.createRelation(doc, {
+      id: 'r_1',
+      style: { width: 'auto' },
+      ends: { a: M.makeBoundEnd('n_a', 'right'), b: M.makeFreeEnd(100, 20) }
+    });
+    assertEqual(M.validateDocument(JSON.parse(JSON.stringify(doc))).ok, false);
+  });
+
   it('样式来源区分默认/继承/覆盖', () => {
     const doc = M.createDocument();
     const a = M.createEntity(doc, { id: 'n_a', name: '物种' });
@@ -214,6 +269,47 @@ describe('删除与校验', () => {
     const selfLoop = JSON.parse(JSON.stringify(doc));
     selfLoop.relations[0].ends.b = M.makeBoundEnd('n_a', 'left');
     assertEqual(M.validateDocument(selfLoop).ok, false);
+  });
+
+  it('validateDocument 校验实体宽度与最小高度边界', () => {
+    assertEqual(M.MIN_ENTITY_WIDTH, 40);
+    const base = M.createDocument();
+    M.createEntity(base, {
+      id: 'n_a',
+      name: '虎',
+      position: { x: 0, y: 0 },
+      style: { width: 40, minHeight: 0 }
+    });
+    assertEqual(M.validateDocument(JSON.parse(JSON.stringify(base))).ok, true);
+
+    const defaultWidth = M.createDocument();
+    M.createEntity(defaultWidth, { id: 'n_a', name: '虎', style: { width: 168 } });
+    assertEqual(M.validateDocument(JSON.parse(JSON.stringify(defaultWidth))).ok, true);
+
+    const narrow = JSON.parse(JSON.stringify(base));
+    narrow.entities[0].style.width = 39;
+    assertEqual(M.validateDocument(narrow).ok, false);
+
+    const negativeHeight = JSON.parse(JSON.stringify(base));
+    negativeHeight.entities[0].style.minHeight = -1;
+    assertEqual(M.validateDocument(negativeHeight).ok, false);
+
+    const badType = JSON.parse(JSON.stringify(base));
+    badType.entities[0].style.width = '168';
+    assertEqual(M.validateDocument(badType).ok, false);
+
+    const infinite = JSON.parse(JSON.stringify(base));
+    infinite.entities[0].style.minHeight = Infinity;
+    assertEqual(M.validateDocument(infinite).ok, false);
+
+    const relationWidth = M.createDocument();
+    M.createEntity(relationWidth, { id: 'n_a', name: '虎', position: { x: 0, y: 0 } });
+    M.createRelation(relationWidth, {
+      id: 'r_1',
+      style: { width: 2 },
+      ends: { a: M.makeBoundEnd('n_a', 'right'), b: M.makeFreeEnd(100, 20) }
+    });
+    assertEqual(M.validateDocument(JSON.parse(JSON.stringify(relationWidth))).ok, true);
   });
 
   it('validateDocument 拒绝带引号或尖括号的 ID', () => {

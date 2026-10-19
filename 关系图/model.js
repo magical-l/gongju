@@ -5,16 +5,19 @@
   'use strict';
 
   const SCHEMA_VERSION = 1;
+  // v3：实体 style.width 允许字面量 'auto'（按文字定宽的规则，可沿原型链继承）
+  const MODEL_VERSION = 3;
   const PORTS = ['top', 'right', 'bottom', 'left'];
   const ENTITY_ID_PATTERN = /^n_[A-Za-z0-9_-]+$/;
   const RELATION_ID_PATTERN = /^r_[A-Za-z0-9_-]+$/;
+  const MIN_ENTITY_WIDTH = 40;
   const ENTITY_STYLE_DEFAULTS = Object.freeze({
-    shape: 'rounded', fill: '#ffffff', border: '#9aa3b2', text: '#1f2430', width: 168
+    shape: 'rounded', fill: '#ffffff', border: '#9aa3b2', text: '#1f2430', width: 168, minHeight: 0
   });
   const RELATION_STYLE_DEFAULTS = Object.freeze({
     color: '#5b6472', dash: false, arrow: 'end', lineStyle: 'curve', showLabel: true, width: 2
   });
-  const ENTITY_STYLE_KEYS = ['shape', 'fill', 'border', 'text', 'width'];
+  const ENTITY_STYLE_KEYS = ['shape', 'fill', 'border', 'text', 'width', 'minHeight'];
   const RELATION_STYLE_KEYS = ['color', 'dash', 'arrow', 'lineStyle', 'showLabel', 'width'];
   const SHAPES = ['rounded', 'rect', 'pill'];
   const ARROWS = ['end', 'both', 'none'];
@@ -365,8 +368,9 @@
     return '必须是实体端点或自由坐标';
   }
 
-  function validateStyle(style, allowed) {
+  function validateStyle(style, allowed, kind) {
     const keys = Object.keys(style);
+    const isEntity = kind === 'entity';
     for (let i = 0; i < keys.length; i += 1) {
       const key = keys[i];
       const value = style[key];
@@ -377,7 +381,17 @@
       if ((key === 'dash' || key === 'showLabel') && typeof value !== 'boolean') return key + ' 必须是布尔';
       if ((key === 'fill' || key === 'border' || key === 'text' || key === 'color') &&
         (typeof value !== 'string' || !value.trim())) return key + ' 必须是非空字符串';
-      if (key === 'width' && (!Number.isFinite(value) || value <= 0)) return 'width 必须是正数';
+      if (key === 'width') {
+        // 只有实体支持 'auto' 规则（按文字定宽）；关系 width 是线宽，只能是正数
+        if (isEntity && value === 'auto') continue;
+        if (!Number.isFinite(value)) return 'width 必须是有限数';
+        if (isEntity ? value < MIN_ENTITY_WIDTH : value <= 0) {
+          return isEntity ? 'width 不能小于 ' + MIN_ENTITY_WIDTH : 'width 必须是正数';
+        }
+      }
+      if (key === 'minHeight' && (!Number.isFinite(value) || value < 0)) {
+        return 'minHeight 必须是不小于 0 的有限数';
+      }
     }
     return '';
   }
@@ -422,7 +436,7 @@
         }
       }
       if (!isPlainObject(e.style)) return fail(p + '.style 必须是对象');
-      const styleErr = validateStyle(e.style, ENTITY_STYLE_KEYS);
+      const styleErr = validateStyle(e.style, ENTITY_STYLE_KEYS, 'entity');
       if (styleErr) return fail(p + '.style: ' + styleErr);
     }
 
@@ -438,7 +452,7 @@
       if (typeof r.name !== 'string') return fail(p + '.name 必须是字符串');
       if (r.prototypeId != null && typeof r.prototypeId !== 'string') return fail(p + '.prototypeId 非法');
       if (!isPlainObject(r.style)) return fail(p + '.style 必须是对象');
-      const styleErr = validateStyle(r.style, RELATION_STYLE_KEYS);
+      const styleErr = validateStyle(r.style, RELATION_STYLE_KEYS, 'relation');
       if (styleErr) return fail(p + '.style: ' + styleErr);
       if (r.ends != null) {
         if (!isPlainObject(r.ends) || !isPlainObject(r.ends.a) || !isPlainObject(r.ends.b)) {
@@ -481,9 +495,11 @@
 
   return {
     SCHEMA_VERSION: SCHEMA_VERSION,
+    MODEL_VERSION: MODEL_VERSION,
     PORTS: PORTS,
     ENTITY_ID_PATTERN: ENTITY_ID_PATTERN,
     RELATION_ID_PATTERN: RELATION_ID_PATTERN,
+    MIN_ENTITY_WIDTH: MIN_ENTITY_WIDTH,
     ENTITY_STYLE_DEFAULTS: ENTITY_STYLE_DEFAULTS,
     RELATION_STYLE_DEFAULTS: RELATION_STYLE_DEFAULTS,
     ENTITY_STYLE_KEYS: ENTITY_STYLE_KEYS,

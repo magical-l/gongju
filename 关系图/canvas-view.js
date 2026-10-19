@@ -15,6 +15,7 @@
     this.overlayLayer = canvasEl.querySelector('.rg-overlay-layer');
     this.nodeLayer = canvasEl.querySelector('.rg-node-layer');
     this.emptyEl = canvasEl.querySelector('.rg-empty');
+    this.measureCtx = null;
     this.viewport = { x: 0, y: 0, zoom: 1 };
     this.doc = null;
     this.state = null;
@@ -26,6 +27,15 @@
     const self = this;
     this.el.addEventListener('pointerdown', function (e) {
       if (e.target.closest('.rg-card-input')) return;
+      const resizeHandle = e.target.closest('.rg-resize-handle');
+      if (resizeHandle) {
+        e.preventDefault();
+        const card = resizeHandle.closest('.rg-card');
+        if (card && self.cb.onResizePointerDown) {
+          self.cb.onResizePointerDown(card.dataset.id, resizeHandle.dataset.corner, e);
+        }
+        return;
+      }
       const handle = e.target.closest('.rg-end-handle');
       if (handle) {
         e.preventDefault();
@@ -78,8 +88,16 @@
     this.renderEdges(doc, this.state);
   };
 
+  CanvasView.prototype.selectedIdSet = function (state) {
+    const ids = state && state.selectedIds;
+    if (ids && typeof ids.has === 'function') return ids;
+    return new Set(state && state.selectedId ? [state.selectedId] : []);
+  };
+
   CanvasView.prototype.renderNodes = function (doc) {
     const self = this;
+    const selectedIds = this.selectedIdSet(this.state);
+    const singleSelected = selectedIds.size === 1;
     doc.entities.forEach(function (entity) {
       if (!entity.position) return;
       const style = M.resolveStyle(doc, entity);
@@ -88,11 +106,13 @@
       card.dataset.id = entity.id;
       card.style.left = entity.position.x + 'px';
       card.style.top = entity.position.y + 'px';
-      card.style.width = style.width + 'px';
+      card.style.minHeight = style.minHeight > 0 ? style.minHeight + 'px' : '';
       card.style.setProperty('--rg-fill', style.fill);
       card.style.setProperty('--rg-border', style.border);
       card.style.setProperty('--rg-text', style.text);
-      if (self.state.selectedId === entity.id) card.classList.add('selected');
+      const isSelected = selectedIds.has(entity.id);
+      if (isSelected) card.classList.add('selected');
+      if (isSelected && singleSelected) card.classList.add('single');
       const name = document.createElement('span');
       name.className = 'rg-card-name';
       name.textContent = entity.name;
@@ -103,7 +123,89 @@
         dot.dataset.port = port;
         card.appendChild(dot);
       });
+      if (isSelected && singleSelected) {
+        ['nw', 'ne', 'sw', 'se'].forEach(function (corner) {
+          const handle = document.createElement('span');
+          handle.className = 'rg-resize-handle';
+          handle.dataset.corner = corner;
+          card.appendChild(handle);
+        });
+      }
       self.nodeLayer.appendChild(card);
+      // 'auto' 是规则而非测量值：卡片进 DOM 后按自己的名字测量，子对象各算各的
+      if (style.width === 'auto') {
+        card.style.width = self.measureAutoWidth(card, name) + 'px';
+      } else {
+        card.style.width = style.width + 'px';
+      }
+    });
+  };
+
+  // 自动宽度 = 当前名字按卡片字体单行排版 + 左右 padding + 左右边框，夹在 [40, 480]
+  CanvasView.prototype.measureAutoWidth = function (card, nameEl) {
+    const text = nameEl ? nameEl.textContent : '';
+    const cardStyle = window.getComputedStyle(card);
+    const nameStyle = nameEl ? window.getComputedStyle(nameEl) : cardStyle;
+    let width = 0;
+    if (!this.measureCtx) this.measureCtx = document.createElement('canvas').getContext('2d');
+    if (this.measureCtx) {
+      this.measureCtx.font = [nameStyle.fontStyle, nameStyle.fontWeight, nameStyle.fontSize, nameStyle.fontFamily]
+        .filter(Boolean).join(' ');
+      width = this.measureCtx.measureText(text).width;
+      const letterSpacing = parseFloat(nameStyle.letterSpacing);
+      if (Number.isFinite(letterSpacing) && text.length > 1) width += letterSpacing * (text.length - 1);
+    }
+    ['paddingLeft', 'paddingRight', 'borderLeftWidth', 'borderRightWidth'].forEach(function (key) {
+      const value = parseFloat(cardStyle[key]);
+      if (Number.isFinite(value)) width += value;
+    });
+    const min = M.MIN_ENTITY_WIDTH;
+    if (!Number.isFinite(width) || width <= 0) width = M.ENTITY_STYLE_DEFAULTS.width;
+    return Math.max(min, Math.min(480, Math.ceil(width)));
+  };
+
+  // 名字变化后按自动规则重算（非 auto 的卡片不受名字影响）
+  CanvasView.prototype.refreshAutoWidth = function (id) {
+    const card = this.findCard(id);
+    const entity = M.findEntity(this.doc, id);
+    if (!card || !entity) return;
+    if (M.resolveStyle(this.doc, entity).width !== 'auto') return;
+    card.style.width = this.measureAutoWidth(card, card.querySelector('.rg-card-name')) + 'px';
+    this.updateEdges(this.doc, this.state);
+  };
+
+  // width 为 'auto' 时现场测量，否则写数字宽度
+  CanvasView.prototype.setEntityWidth = function (id, width) {
+    const card = this.findCard(id);
+    if (!card) return;
+    const resolved = width === 'auto'
+      ? this.measureAutoWidth(card, card.querySelector('.rg-card-name'))
+      : width;
+    if (!Number.isFinite(resolved)) return;
+    card.style.width = Math.max(M.MIN_ENTITY_WIDTH, resolved) + 'px';
+    this.updateEdges(this.doc, this.state);
+  };
+
+  CanvasView.prototype.applySelection = function (state) {
+    this.state = state || {};
+    const selectedIds = this.selectedIdSet(this.state);
+    const singleSelected = selectedIds.size === 1;
+    Array.from(this.nodeLayer.children).forEach(function (card) {
+      const isSelected = selectedIds.has(card.dataset.id);
+      card.classList.toggle('selected', isSelected);
+      card.classList.toggle('single', isSelected && singleSelected);
+      const handles = card.querySelectorAll('.rg-resize-handle');
+      if (isSelected && singleSelected) {
+        if (handles.length) return;
+        ['nw', 'ne', 'sw', 'se'].forEach(function (corner) {
+          const handle = document.createElement('span');
+          handle.className = 'rg-resize-handle';
+          handle.dataset.corner = corner;
+          card.appendChild(handle);
+        });
+        return;
+      }
+      Array.from(handles).forEach(function (handle) { handle.remove(); });
     });
   };
 
@@ -138,6 +240,9 @@
     const self = this;
     const contentRects = [];
     const contentPoints = [];
+    const multiEntity = state.selectedIds
+      && typeof state.selectedIds.has === 'function'
+      && state.selectedIds.size > 1;
     doc.entities.forEach(function (entity) {
       if (!entity.position) return;
       const rect = self.getEntityRect(entity.id);
@@ -164,7 +269,7 @@
 
       const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       line.setAttribute('d', path.d);
-      line.setAttribute('class', 'rg-edge' + (state.selectedId === rel.id ? ' selected' : ''));
+      line.setAttribute('class', 'rg-edge' + (!multiEntity && state.selectedId === rel.id ? ' selected' : ''));
       line.dataset.edgeId = rel.id;
       line.setAttribute('stroke', style.color);
       line.setAttribute('stroke-width', String(style.width));
@@ -199,7 +304,7 @@
         label.insertBefore(rect, text);
       }
 
-      if (state.selectedId === rel.id) {
+      if (!multiEntity && state.selectedId === rel.id) {
         ['a', 'b'].forEach(function (key) {
           const handle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
           handle.setAttribute('class', 'rg-end-handle');
@@ -276,6 +381,21 @@
     card.style.top = y + 'px';
   };
 
+  CanvasView.prototype.resizeCardTo = function (id, rect) {
+    const card = this.findCard(id);
+    if (!card) return;
+    if (rect.x != null) card.style.left = rect.x + 'px';
+    if (rect.y != null) card.style.top = rect.y + 'px';
+    // 只接受数字宽度；'auto' 必须走 setEntityWidth/refreshAutoWidth 测量
+    if (rect.width != null && Number.isFinite(rect.width)) {
+      card.style.width = Math.max(M.MIN_ENTITY_WIDTH, rect.width) + 'px';
+    }
+    if (rect.minHeight != null) {
+      card.style.minHeight = rect.minHeight > 0 ? rect.minHeight + 'px' : '';
+    }
+    this.updateEdges(this.doc, this.state);
+  };
+
   CanvasView.prototype.updateEdges = function (doc, state) {
     this.edgeLayer.textContent = '';
     this.labelLayer.textContent = '';
@@ -306,8 +426,26 @@
     if (old) old.remove();
   };
 
+  CanvasView.prototype.showMarquee = function (rect) {
+    this.clearMarquee();
+    if (!rect) return;
+    const el = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    el.setAttribute('class', 'rg-marquee-rect');
+    el.setAttribute('x', String(rect.x));
+    el.setAttribute('y', String(rect.y));
+    el.setAttribute('width', String(Math.max(0, rect.width)));
+    el.setAttribute('height', String(Math.max(0, rect.height)));
+    this.overlayLayer.appendChild(el);
+  };
+
+  CanvasView.prototype.clearMarquee = function () {
+    const old = this.overlayLayer.querySelector('.rg-marquee-rect');
+    if (old) old.remove();
+  };
+
   CanvasView.prototype.clearOverlay = function () {
     this.clearRubberBand();
+    this.clearMarquee();
     this.clearGuides();
   };
 
