@@ -40,7 +40,7 @@
 
 	// 版本握手：浏览器缓存可能混用旧的 model.js 与本页脚本，
 	// 此时常量缺失会把 undefined 带进宽度计算并写坏本地文档。
-	if (!M || M.MODEL_VERSION !== 3 || !Number.isFinite(M.MIN_ENTITY_WIDTH)) {
+	if (!M || M.MODEL_VERSION !== 4 || !Number.isFinite(M.MIN_ENTITY_WIDTH)) {
 		if (els.empty) {
 			els.empty.hidden = false;
 			els.empty.textContent = '页面资源版本不一致，请按 Ctrl+F5 强制刷新';
@@ -62,7 +62,9 @@
 		inspectorNumberDirty: false,
 		hasEdited: false,
 		treeQuery: '',
-		nudgeTimer: null
+		nudgeTimer: null,
+		clipboard: null,
+		pasteCount: 0
 	};
 
 	function esc(text) {
@@ -518,6 +520,13 @@
 			els.menu.appendChild(btn);
 		};
 		if (M.kindOf(obj) === 'entity') {
+			addItem('复制', function (fresh) {
+				setSingleSelection(fresh.id);
+				copySelection();
+			});
+			addItem('复制子树', function (fresh) {
+				copySubtree(fresh.id);
+			});
 			addItem(obj.position ? '从画布移除' : '放到画布', function (fresh) {
 				if (fresh.position) unplaceObject(fresh);
 				else placeObject(fresh);
@@ -812,11 +821,53 @@
 		input.addEventListener('blur', commit, { once: true });
 	}
 
+	function copySelection() {
+		let payload = null;
+		if (app.selectedIds.size) {
+			payload = M.copyEntities(app.doc, Array.from(app.selectedIds));
+		} else {
+			const obj = app.selectedId ? M.findObject(app.doc, app.selectedId) : null;
+			if (!obj) return false;
+			if (M.kindOf(obj) !== 'entity') {
+				notify('info', '暂不支持复制关系');
+				return true;
+			}
+			payload = M.copyEntities(app.doc, [obj.id]);
+		}
+		if (!payload || !payload.entities.length) return false;
+		app.clipboard = payload;
+		app.pasteCount = 0;
+		notify('info', '已复制 ' + payload.entities.length + ' 个实体');
+		return true;
+	}
+
+	function copySubtree(id) {
+		const payload = M.copyEntitySubtree(app.doc, id);
+		if (!payload.entities.length) return;
+		app.clipboard = payload;
+		app.pasteCount = 0;
+		notify('info', '已复制子树（' + payload.entities.length + ' 个实体），Ctrl+V 粘贴');
+	}
+
+	function pasteClipboard() {
+		if (!app.clipboard) return false;
+		app.pasteCount += 1;
+		const result = M.pasteClipboard(app.doc, app.clipboard, 24 * app.pasteCount);
+		if (!result.entityIds.length) return false;
+		app.selectedIds = new Set(result.entityIds);
+		app.selectedId = result.entityIds[result.entityIds.length - 1];
+		pushHistory();
+		renderAll();
+		notify('info', '已粘贴 ' + result.entityIds.length + ' 个实体');
+		return true;
+	}
+
 	function deleteSelected() {
 		if (app.selectedIds.size) {
 			const pending = Array.from(app.selectedIds);
 			let deleted = 0;
 			let deletedRelations = 0;
+			let promoted = 0;
 			let progress = true;
 			while (progress && pending.length) {
 				progress = false;
@@ -830,6 +881,7 @@
 						const result = M.deleteObject(app.doc, obj);
 						deleted += 1;
 						deletedRelations += result.deletedRelations || 0;
+						promoted += result.promoted || 0;
 						pending.splice(i, 1);
 						progress = true;
 					} catch (err) {
@@ -849,11 +901,10 @@
 			if (deleted) {
 				pushHistory();
 				renderAll();
-				if (deletedRelations) {
-					notify('info', '删除了 ' + deleted + ' 个实体及 ' + deletedRelations + ' 条关系');
-				} else {
-					notify('info', '已删除 ' + deleted + ' 个实体');
-				}
+				const parts = ['删除了 ' + deleted + ' 个实体'];
+				if (deletedRelations) parts.push('连带删除 ' + deletedRelations + ' 条关系');
+				if (promoted) parts.push(promoted + ' 个子对象提升到父级');
+				notify('info', parts.join('，'));
 			} else {
 				renderAll();
 			}
@@ -864,15 +915,21 @@
 		}
 		const obj = app.selectedId ? M.findObject(app.doc, app.selectedId) : null;
 		if (!obj) return;
+		const isEntity = M.kindOf(obj) === 'entity';
+		// 删除后 obj 已不在文档；标签必须在 deleteObject 之前取好
+		const labelSnapshot = isEntity ? obj.name : M.effectiveRelationLabel(app.doc, obj);
 		try {
 			const result = M.deleteObject(app.doc, obj);
 			clearSelection();
 			if (app.armedId === obj.id) app.armedId = null;
 			pushHistory();
 			renderAll();
-			if (M.kindOf(obj) === 'entity' && result.deletedRelations) {
-				notify('info', '删除了实体及 ' + result.deletedRelations + ' 条关系');
+			const parts = ['已删除「' + labelSnapshot + '」'];
+			if (isEntity && result.deletedRelations) {
+				parts.push('连带删除 ' + result.deletedRelations + ' 条关系');
 			}
+			if (result.promoted) parts.push(result.promoted + ' 个子对象提升到父级');
+			notify('info', parts.join('，'));
 		} catch (err) {
 			notify('warning', err.message);
 		}
@@ -1972,6 +2029,10 @@
 			e.preventDefault();
 			selectAllPlaced();
 			renderSelection();
+		} else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
+			if (copySelection()) e.preventDefault();
+		} else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
+			if (pasteClipboard()) e.preventDefault();
 		} else if (e.key === 'Delete' || e.key === 'Backspace') {
 			e.preventDefault();
 			deleteSelected();

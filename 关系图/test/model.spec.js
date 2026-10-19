@@ -90,7 +90,7 @@ describe('样式与标签', () => {
   });
 
   it('width 的 auto 规则可继承，子对象可覆盖或恢复继承', () => {
-    assertEqual(M.MODEL_VERSION, 3);
+    assertEqual(M.MODEL_VERSION, 4);
     const doc = M.createDocument();
     const a = M.createEntity(doc, { id: 'n_a', name: '熊' });
     const b = M.createEntity(doc, { id: 'n_b', name: '熊 1', prototypeId: 'n_a' });
@@ -199,13 +199,52 @@ describe('样式与标签', () => {
 });
 
 describe('删除与校验', () => {
-  it('被引用为原型的对象不能删', () => {
+  it('删除被引用为原型的实体时子对象提升到原型', () => {
     const doc = M.createDocument();
-    const a = M.createEntity(doc, { id: 'n_a', name: '物种' });
+    M.createEntity(doc, { id: 'n_g', name: '界' });
+    M.createEntity(doc, { id: 'n_a', name: '物种', prototypeId: 'n_g' });
     M.createEntity(doc, { id: 'n_b', name: '虎', prototypeId: 'n_a' });
-    const check = M.deletionCheck(doc, a);
-    assertEqual(check.ok, false);
-    assertThrows(() => M.deleteObject(doc, a), '以它为原型');
+    M.createEntity(doc, { id: 'n_c', name: '白化虎', prototypeId: 'n_b' });
+    const a = M.findEntity(doc, 'n_a');
+    assertEqual(M.deletionCheck(doc, a).ok, true);
+    const result = M.deleteObject(doc, a);
+    assertEqual(result.promoted, 1);
+    assertEqual(M.findEntity(doc, 'n_b').prototypeId, 'n_g');
+    assertEqual(M.findEntity(doc, 'n_c').prototypeId, 'n_b');
+  });
+
+  it('删除根对象时子对象提升为根', () => {
+    const doc = M.createDocument();
+    M.createEntity(doc, { id: 'n_a', name: '物种' });
+    M.createEntity(doc, { id: 'n_b', name: '虎', prototypeId: 'n_a' });
+    const result = M.deleteObject(doc, M.findEntity(doc, 'n_a'));
+    assertEqual(result.promoted, 1);
+    assertEqual(M.findEntity(doc, 'n_b').prototypeId, null);
+    assertDeepEqual(M.getRoots(doc, 'entity').map(function (e) { return e.id; }), ['n_b']);
+  });
+
+  it('删除关系原型时子关系提升', () => {
+    const doc = M.createDocument();
+    M.createRelation(doc, { id: 'r_a', name: '捕食' });
+    M.createRelation(doc, { id: 'r_b', name: '', prototypeId: 'r_a' });
+    const result = M.deleteObject(doc, M.findRelation(doc, 'r_a'));
+    assertEqual(result.promoted, 1);
+    assertEqual(M.findRelation(doc, 'r_b').prototypeId, null);
+  });
+
+  it('删除实体时提升数与连带关系数一并返回', () => {
+    const doc = M.createDocument();
+    M.createEntity(doc, { id: 'n_a', name: '虎', position: { x: 0, y: 0 } });
+    M.createEntity(doc, { id: 'n_b', name: '小虎', prototypeId: 'n_a' });
+    M.createEntity(doc, { id: 'n_c', name: '狼', position: { x: 100, y: 0 } });
+    M.createRelation(doc, {
+      id: 'r_1',
+      ends: { a: M.makeBoundEnd('n_a', 'right'), b: M.makeBoundEnd('n_c', 'left') }
+    });
+    const result = M.deleteObject(doc, M.findEntity(doc, 'n_a'));
+    assertEqual(result.promoted, 1);
+    assertEqual(result.deletedRelations, 1);
+    assertEqual(M.findEntity(doc, 'n_b').prototypeId, null);
   });
 
   it('删除实体会连带删除挂在它上面的关系', () => {
@@ -327,5 +366,94 @@ describe('删除与校验', () => {
     const angleRelationId = JSON.parse(JSON.stringify(doc));
     angleRelationId.relations[0].id = 'r_1<x>';
     assertEqual(M.validateDocument(angleRelationId).ok, false);
+  });
+});
+
+describe('复制与粘贴', () => {
+  function makePair() {
+    const doc = M.createDocument();
+    const a = M.createEntity(doc, { id: 'n_a', name: 'A', position: { x: 100, y: 100 } });
+    const b = M.createEntity(doc, { id: 'n_b', name: 'B', prototypeId: 'n_a', position: { x: 300, y: 100 } });
+    const c = M.createEntity(doc, { id: 'n_c', name: 'C' });
+    M.createRelation(doc, {
+      id: 'r_1',
+      ends: { a: M.makeBoundEnd('n_a', 'right'), b: M.makeBoundEnd('n_b', 'left') }
+    });
+    M.createRelation(doc, {
+      id: 'r_2',
+      ends: { a: M.makeBoundEnd('n_a', 'right'), b: M.makeBoundEnd('n_c', 'left') }
+    });
+    return { doc: doc, a: a, b: b, c: c };
+  }
+
+  it('复制载荷与文档解耦', () => {
+    const { doc } = makePair();
+    const payload = M.copyEntities(doc, ['n_a']);
+    assertEqual(payload.mode, 'copy');
+    assertEqual(payload.entities.length, 1);
+    payload.entities[0].name = '被改';
+    assertEqual(M.findEntity(doc, 'n_a').name, 'A');
+  });
+
+  it('多选复制只带两端都在集合内的关系', () => {
+    const { doc } = makePair();
+    const payload = M.copyEntities(doc, ['n_a', 'n_b']);
+    assertEqual(payload.entities.length, 2);
+    assertDeepEqual(payload.relations.map(function (r) { return r.id; }), ['r_1']);
+  });
+
+  it('粘贴生成新 ID、偏移位置并重映射内部原型和端点', () => {
+    const { doc } = makePair();
+    const payload = M.copyEntities(doc, ['n_a', 'n_b']);
+    const result = M.pasteClipboard(doc, payload, 24);
+    assertEqual(result.entityIds.length, 2);
+    assertEqual(result.relationIds.length, 1);
+    const copyA = M.findEntity(doc, result.entityIds[0]);
+    const copyB = M.findEntity(doc, result.entityIds[1]);
+    assertEqual(copyA.name, 'A 副本');
+    assertEqual(copyA.position.x, 124);
+    assertEqual(copyB.prototypeId, copyA.id);
+    const copyR = M.findRelation(doc, result.relationIds[0]);
+    assertEqual(copyR.ends.a.entityId, copyA.id);
+    assertEqual(copyR.ends.b.entityId, copyB.id);
+  });
+
+  it('粘贴时载荷外的原型保持原引用', () => {
+    const { doc } = makePair();
+    const payload = M.copyEntities(doc, ['n_b']);
+    const result = M.pasteClipboard(doc, payload, 24);
+    assertEqual(M.findEntity(doc, result.entityIds[0]).prototypeId, 'n_a');
+  });
+
+  it('连续粘贴副本名追加数字，位置依次错开', () => {
+    const { doc } = makePair();
+    const payload = M.copyEntities(doc, ['n_a']);
+    const first = M.pasteClipboard(doc, payload, 24);
+    const second = M.pasteClipboard(doc, payload, 48);
+    const a1 = M.findEntity(doc, first.entityIds[0]);
+    const a2 = M.findEntity(doc, second.entityIds[0]);
+    assertEqual(a1.name, 'A 副本');
+    assertEqual(a2.name, 'A 副本 2');
+    assertEqual(a2.position.x, 148);
+  });
+
+  it('复制子树克隆后代、重映射链路并挂到原父级', () => {
+    const doc = M.createDocument();
+    M.createEntity(doc, { id: 'n_root', name: '根' });
+    M.createEntity(doc, { id: 'n_a', name: 'A', prototypeId: 'n_root' });
+    M.createEntity(doc, { id: 'n_b', name: 'B', prototypeId: 'n_a', position: { x: 10, y: 10 } });
+    M.createEntity(doc, { id: 'n_c', name: 'C', prototypeId: 'n_b' });
+    const payload = M.copyEntitySubtree(doc, 'n_a');
+    assertEqual(payload.mode, 'subtree');
+    assertEqual(payload.entities.length, 3);
+    const result = M.pasteClipboard(doc, payload, 24);
+    const copyA = doc.entities.find(function (e) { return e.name === 'A 副本'; });
+    assertEqual(copyA.prototypeId, 'n_root');
+    const copyB = doc.entities.find(function (e) { return e.prototypeId === copyA.id; });
+    assertEqual(copyB.name, 'B');
+    assertEqual(copyB.position.x, 34);
+    const copyC = doc.entities.find(function (e) { return e.prototypeId === copyB.id; });
+    assertEqual(copyC.name, 'C');
+    assertEqual(copyC.position, null);
   });
 });

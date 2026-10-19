@@ -5,8 +5,8 @@
   'use strict';
 
   const SCHEMA_VERSION = 1;
-  // v3：实体 style.width 允许字面量 'auto'（按文字定宽的规则，可沿原型链继承）
-  const MODEL_VERSION = 3;
+  // v4：删除时子对象提升；新增实体复制/子树复制/粘贴
+  const MODEL_VERSION = 4;
   const PORTS = ['top', 'right', 'bottom', 'left'];
   const ENTITY_ID_PATTERN = /^n_[A-Za-z0-9_-]+$/;
   const RELATION_ID_PATTERN = /^r_[A-Za-z0-9_-]+$/;
@@ -315,9 +315,7 @@
 
   function deletionCheck(doc, obj) {
     const kind = kindOf(obj);
-    const arr = kind === 'entity' ? doc.entities : doc.relations;
-    const refs = arr.filter(function (o) { return o.prototypeId === obj.id; });
-    if (refs.length) return { ok: false, reason: '有 ' + refs.length + ' 个对象以它为原型' };
+    // 子对象不再阻塞删除：删除时它们会提升到被删对象的原型下
     if (kind === 'relation') return { ok: true, incidentRelations: [] };
     const incident = doc.relations.filter(function (r) { return endsBoundTo(r, obj.id); });
     for (let i = 0; i < incident.length; i += 1) {
@@ -333,17 +331,138 @@
     return { ok: true, incidentRelations: incident };
   }
 
+  function promoteChildren(doc, obj) {
+    const children = getChildren(doc, obj);
+    children.forEach(function (child) {
+      child.prototypeId = obj.prototypeId || null;
+    });
+    return children.length;
+  }
+
   function deleteObject(doc, obj) {
     const check = deletionCheck(doc, obj);
     if (!check.ok) throw new Error(check.reason);
+    const promoted = promoteChildren(doc, obj);
     if (kindOf(obj) === 'entity') {
       const ids = new Set(check.incidentRelations.map(function (r) { return r.id; }));
       doc.relations = doc.relations.filter(function (r) { return !ids.has(r.id); });
       doc.entities = doc.entities.filter(function (e) { return e.id !== obj.id; });
-      return { deletedRelations: ids.size };
+      return { deletedRelations: ids.size, promoted: promoted };
     }
     doc.relations = doc.relations.filter(function (r) { return r.id !== obj.id; });
-    return { deletedRelations: 1 };
+    return { deletedRelations: 1, promoted: promoted };
+  }
+
+  function clonePlain(obj) {
+    return JSON.parse(JSON.stringify(obj));
+  }
+
+  function copyEntities(doc, ids) {
+    const wanted = new Set((ids || []).filter(function (id) {
+      return !!findEntity(doc, id);
+    }));
+    const entities = doc.entities
+      .filter(function (e) { return wanted.has(e.id); })
+      .map(clonePlain);
+    const relations = doc.relations
+      .filter(function (r) {
+        return r.ends && isEndBound(r.ends.a) && isEndBound(r.ends.b) &&
+          wanted.has(r.ends.a.entityId) && wanted.has(r.ends.b.entityId);
+      })
+      .map(clonePlain);
+    return { mode: 'copy', entities: entities, relations: relations };
+  }
+
+  function copyEntitySubtree(doc, id) {
+    const root = findEntity(doc, id);
+    if (!root) return { mode: 'subtree', rootId: null, entities: [] };
+    const ids = new Set([root.id]);
+    getDescendantIds(doc, root).forEach(function (childId) { ids.add(childId); });
+    return {
+      mode: 'subtree',
+      rootId: root.id,
+      entities: doc.entities.filter(function (e) { return ids.has(e.id); }).map(clonePlain)
+    };
+  }
+
+  function uniqueSiblingName(doc, base, prototypeId, excludeId) {
+    const used = new Set();
+    doc.entities.forEach(function (e) {
+      if (e.id === excludeId) return;
+      if ((e.prototypeId || null) === (prototypeId || null)) used.add(e.name);
+    });
+    if (!used.has(base)) return base;
+    let n = 2;
+    while (used.has(base + ' ' + n)) n += 1;
+    return base + ' ' + n;
+  }
+
+  function pasteClipboard(doc, payload, offset) {
+    const p = payload || {};
+    const srcEntities = Array.isArray(p.entities) ? p.entities : [];
+    const srcRelations = Array.isArray(p.relations) ? p.relations : [];
+    const step = Number.isFinite(offset) ? offset : 24;
+    const idMap = new Map();
+    const created = [];
+    const entityIds = [];
+    const relationIds = [];
+
+    srcEntities.forEach(function (src) {
+      if (!src || !isValidEntityId(src.id)) return;
+      const fallback = typeof src.name === 'string' && src.name.trim() ? src.name : '新实体';
+      const entity = createEntity(doc, {
+        name: fallback,
+        position: src.position
+          ? { x: src.position.x + step, y: src.position.y + step }
+          : null,
+        style: src.style
+      });
+      idMap.set(src.id, entity.id);
+      created.push({ src: src, entity: entity });
+      entityIds.push(entity.id);
+    });
+
+    created.forEach(function (item) {
+      const src = item.src;
+      const mapped = src.prototypeId ? idMap.get(src.prototypeId) : null;
+      item.entity.prototypeId = mapped ||
+        (src.prototypeId && findEntity(doc, src.prototypeId) ? src.prototypeId : null);
+    });
+
+    created.forEach(function (item) {
+      const src = item.src;
+      const name = typeof src.name === 'string' && src.name.trim() ? src.name : '新实体';
+      if (p.mode === 'subtree' && src.id !== p.rootId) {
+        item.entity.name = name;
+        return;
+      }
+      item.entity.name = uniqueSiblingName(
+        doc, name + ' 副本', item.entity.prototypeId, item.entity.id
+      );
+    });
+
+    srcRelations.forEach(function (src) {
+      if (!src || !src.ends) return;
+      const mapEnd = function (end) {
+        if (!isEndBound(end)) return cloneEnd(end);
+        const mapped = idMap.get(end.entityId);
+        return mapped ? { entityId: mapped, port: end.port } : null;
+      };
+      const a = mapEnd(src.ends.a);
+      const b = mapEnd(src.ends.b);
+      if (!a || !b) return;
+      const relation = createRelation(doc, {
+        name: typeof src.name === 'string' ? src.name : '',
+        ends: { a: a, b: b },
+        style: src.style
+      });
+      relation.prototypeId = src.prototypeId && findRelation(doc, src.prototypeId)
+        ? src.prototypeId
+        : null;
+      relationIds.push(relation.id);
+    });
+
+    return { entityIds: entityIds, relationIds: relationIds };
   }
 
   function cloneDocument(doc) {
@@ -547,6 +666,9 @@
     endsBoundTo: endsBoundTo,
     deletionCheck: deletionCheck,
     deleteObject: deleteObject,
+    copyEntities: copyEntities,
+    copyEntitySubtree: copyEntitySubtree,
+    pasteClipboard: pasteClipboard,
     cloneDocument: cloneDocument,
     validateDocument: validateDocument
   };
