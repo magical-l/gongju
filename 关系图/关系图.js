@@ -28,6 +28,8 @@
 		exportJson: document.getElementById('rgExportJson'),
 		exportPng: document.getElementById('rgExportPng'),
 		exportDialog: document.getElementById('rgExportDialog'),
+		templateDialog: document.getElementById('rgTemplateDialog'),
+		templateList: document.getElementById('rgTemplateList'),
 		helpBtn: document.getElementById('rgHelpBtn'),
 		helpDialog: document.getElementById('rgHelpDialog'),
 		zoomIn: document.getElementById('rgZoomIn'),
@@ -2209,6 +2211,38 @@
 		scheduleSave();
 	}
 
+	function renderTemplateList() {
+		const templates = (window.RGTemplates && window.RGTemplates.list) || [];
+		const items = templates.concat([{
+			id: '', name: '空白图', desc: '从零开始，自己建实体与关系', icon: '✏️', tone: '#9aa3b2', blank: true
+		}]);
+		els.templateList.innerHTML = items.map(function (tpl) {
+			return '<button type="button" class="rg-template-card' + (tpl.blank ? ' blank' : '') + '"' +
+				' data-template="' + esc(tpl.id) + '" style="--rg-tone:' + esc(tpl.tone || '#9aa3b2') + '">' +
+				'<span class="rg-template-icon">' + esc(tpl.icon || '📄') + '</span>' +
+				'<span class="rg-template-body"><strong>' + esc(tpl.name) + '</strong>' +
+				'<span>' + esc(tpl.desc) + '</span></span>' +
+				'<span class="rg-template-go">→</span>' +
+				'</button>';
+		}).join('');
+	}
+
+	function applyTemplate(id) {
+		const templates = (window.RGTemplates && window.RGTemplates.list) || [];
+		const tpl = templates.find(function (item) { return item.id === id; });
+		if (!tpl) return;
+		if (!confirmReplace('使用模板「' + tpl.name + '」')) return;
+		app.doc = tpl.build();
+		clearSelection();
+		app.armedId = null;
+		app.view.setViewport(app.doc.viewport);
+		updateZoomDisplay();
+		pushHistory();
+		renderAll();
+		fitContent();
+		notify('info', '已加载模板「' + tpl.name + '」，可直接改名字使用');
+	}
+
 	function importDocument(parsed) {
 		const result = M.validateDocument(parsed);
 		if (!result.ok) {
@@ -2348,7 +2382,19 @@
 		img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
 	}
 
-	els.newBtn.addEventListener('click', newDocument);
+	els.newBtn.addEventListener('click', function () {
+		renderTemplateList();
+		els.templateDialog.showModal();
+	});
+
+	els.templateList.addEventListener('click', function (e) {
+		const card = e.target.closest('[data-template]');
+		if (!card) return;
+		const id = card.dataset.template;
+		els.templateDialog.close();
+		if (id) applyTemplate(id);
+		else newDocument();
+	});
 	els.openBtn.addEventListener('click', function () { els.fileInput.click(); });
 	els.fileInput.addEventListener('change', function (e) {
 		const file = e.target.files[0];

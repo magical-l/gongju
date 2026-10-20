@@ -18,7 +18,7 @@
 	<link href="../css/common.css" rel="stylesheet">
 	<link href="../css/layout.css" rel="stylesheet">
 	<link href="../resources/biz.css?v=250821" rel="stylesheet">
-	<link href="关系图.css?v=261020" rel="stylesheet">
+	<link href="关系图.css?v=261025" rel="stylesheet">
 </head>
 <body class="目字形 rg-page">
 <header>
@@ -87,6 +87,14 @@
 			<li>删除有子对象的节点时，子对象会自动提升到它的原型下，可撤销。</li>
 		</ul>
 	</dialog>
+	<dialog class="rg-dialog rg-template-dialog" id="rgTemplateDialog">
+		<form method="dialog" class="rg-dialog-close">
+			<button class="btn shape circle" value="close" aria-label="关闭">×</button>
+		</form>
+		<h2>新建关系图</h2>
+		<p class="rg-dialog-lead">选一张模板开始，或从空白图自己画。模板里的节点和关系都可以改。</p>
+		<div class="rg-template-list" id="rgTemplateList"></div>
+	</dialog>
 	<dialog class="rg-dialog" id="rgExportDialog">
 		<form method="dialog"><button class="btn" value="close">关闭</button></form>
 		<h2>导出</h2>
@@ -97,10 +105,11 @@
 </main>
 <script src="../lib/jquery-3.4.1.min.js"></script>
 <script src="../lib/toastr.min.js"></script>
-<script src="model.js?v=261021" defer></script>
-<script src="geometry.js?v=261021" defer></script>
-<script src="tree-view.js?v=261021" defer></script>
-<script src="canvas-view.js?v=261021" defer></script>
-<script src="关系图.js?v=261021" defer></script>
+<script src="model.js?v=261025" defer></script>
+<script src="templates.js?v=261025" defer></script>
+<script src="geometry.js?v=261025" defer></script>
+<script src="tree-view.js?v=261025" defer></script>
+<script src="canvas-view.js?v=261025" defer></script>
+<script src="关系图.js?v=261025" defer></script>
 </body>
 </html>

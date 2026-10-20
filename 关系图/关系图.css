@@ -259,3 +259,100 @@ body.rg-dragging {
 	width: 88px;
 	box-sizing: border-box;
 }
+.rg-template-dialog {
+	position: relative;
+	width: min(760px, 92vw);
+	max-height: 90vh;
+	padding: 26px 30px 30px;
+	overflow: auto;
+}
+.rg-template-dialog > form.rg-dialog-close {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	display: block;
+	margin: 0;
+}
+.rg-template-dialog h2 {
+	margin: 0 0 6px;
+	padding-right: 40px;
+	font-size: 20px;
+}
+.rg-dialog-lead {
+	margin: 0 0 18px;
+	color: var(--text-secondary);
+	font-size: 13px;
+	line-height: 1.6;
+}
+.rg-template-list {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+	gap: 14px;
+}
+.rg-template-card {
+	--rg-tone: #9aa3b2;
+	min-height: 76px;
+	height: auto;
+	display: grid;
+	grid-template-columns: 40px 1fr 20px;
+	gap: 12px;
+	align-items: center;
+	padding: 16px 18px;
+	text-align: left;
+	border: 1px solid var(--border-subtle);
+	border-radius: var(--radius-md);
+	background: var(--bg-base);
+	box-shadow: inset 3px 0 0 var(--rg-tone);
+	cursor: pointer;
+	transition: border-color .15s, box-shadow .15s, transform .15s;
+}
+.rg-template-dialog .rg-template-card:hover {
+	border-color: var(--rg-tone);
+	box-shadow: inset 3px 0 0 var(--rg-tone), var(--shadow-md);
+	transform: translateY(-1px);
+}
+.rg-template-card:focus-visible {
+	outline: 2px solid var(--rg-tone);
+	outline-offset: 2px;
+}
+.rg-template-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	border-radius: 10px;
+	background: var(--bg-subtle);
+	font-size: 20px;
+}
+.rg-template-body {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+.rg-template-body strong {
+	font-size: 15px;
+}
+.rg-template-body span {
+	color: var(--text-secondary);
+	font-size: 13px;
+	line-height: 1.45;
+}
+.rg-template-go {
+	color: var(--rg-tone);
+	font-size: 16px;
+	opacity: .5;
+	transition: opacity .15s, transform .15s;
+}
+.rg-template-card:hover .rg-template-go {
+	opacity: 1;
+	transform: translateX(2px);
+}
+.rg-template-card.blank {
+	grid-column: 1 / -1;
+	border-style: dashed;
+	box-shadow: none;
+}
+.rg-template-dialog .rg-template-card.blank:hover {
+	box-shadow: var(--shadow-sm);
+}
